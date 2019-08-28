@@ -243,13 +243,16 @@ class SaiApi {
   create2(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
       sai_object_id_t switch_id) {
-    sai_object_id_t id;
+    static_assert(
+        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
+        "invalid traits for the api");
+    typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
-    sai_status_t status = impl().template _create<SaiObjectTraits>(
-        &id, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
+    sai_status_t status = impl()._create(
+        &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(
         status, ApiParameters::ApiType, "Failed to create sai entity");
-    return typename SaiObjectTraits::AdapterKey{id};
+    return key;
   }
 
   // entry struct case
@@ -258,9 +261,12 @@ class SaiApi {
   create2(
       const typename SaiObjectTraits::AdapterKey& entry,
       const typename SaiObjectTraits::CreateAttributes& createAttributes) {
+    static_assert(
+        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
+        "invalid traits for the api");
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
-    sai_status_t status = impl().template _create<SaiObjectTraits>(
-        entry, saiAttributeTs.size(), saiAttributeTs.data());
+    sai_status_t status =
+        impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(
         status, ApiParameters::ApiType, "Failed to create sai entity");
   }

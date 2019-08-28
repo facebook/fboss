@@ -22,6 +22,49 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
+class MplsApi;
+
+struct SaiInSegTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_INSEG_ENTRY;
+  using SaiApiT = MplsApi;
+  struct Attributes {
+    using EnumType = sai_inseg_entry_attr_t;
+    using NextHopId =
+        SaiAttribute<EnumType, SAI_INSEG_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
+    using PacketAction =
+        SaiAttribute<EnumType, SAI_INSEG_ENTRY_ATTR_PACKET_ACTION, sai_int32_t>;
+    using NumOfPop =
+        SaiAttribute<EnumType, SAI_INSEG_ENTRY_ATTR_NUM_OF_POP, sai_uint8_t>;
+  };
+
+  class InSegEntry {
+   public:
+    InSegEntry() {}
+    InSegEntry(sai_object_id_t switchId, uint32_t label) {
+      entry_.switch_id = switchId;
+      entry_.label = label;
+    }
+    explicit InSegEntry(const sai_object_key_t& key) {
+      entry_ = key.key.inseg_entry;
+    }
+    const sai_inseg_entry_t* entry() const {
+      return &entry_;
+    }
+
+   private:
+    sai_inseg_entry_t entry_{};
+  };
+
+  using AdapterKey = InSegEntry;
+  using AdapterHostKey = InSegEntry;
+  using CreateAttributes = std::tuple<
+      Attributes::PacketAction,
+      Attributes::NumOfPop,
+      Attributes::NextHopId>;
+};
+template <>
+struct IsSaiEntryStruct<SaiInSegTraits::InSegEntry> : public std::true_type {};
+
 struct MplsApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_MPLS;
 
@@ -58,13 +101,33 @@ struct MplsApiParameters {
 
 class MplsApi : public SaiApi<MplsApi, MplsApiParameters> {
  public:
-  static auto constexpr ApiType = MplsApiParameters::ApiType;
+  static auto constexpr ApiType = SAI_API_MPLS;
   using InSegEntry = typename MplsApiParameters::InSegEntry;
 
   MplsApi() {
     sai_status_t status =
         sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
     saiApiCheckError(status, ApiType, "Failed to query mpls api");
+  }
+
+  sai_status_t _create(
+      const typename SaiInSegTraits::InSegEntry& inSegEntry,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_inseg_entry(inSegEntry.entry(), count, attr_list);
+  }
+  sai_status_t _remove(const SaiInSegTraits::InSegEntry& inSegEntry) {
+    return api_->remove_inseg_entry(inSegEntry.entry());
+  }
+  sai_status_t _getAttribute(
+      const SaiInSegTraits::InSegEntry& inSegEntry,
+      sai_attribute_t* attr) const {
+    return api_->get_inseg_entry_attribute(inSegEntry.entry(), 1, attr);
+  }
+  sai_status_t _setAttribute(
+      const SaiInSegTraits::InSegEntry& inSegEntry,
+      const sai_attribute_t* attr) {
+    return api_->set_inseg_entry_attribute(inSegEntry.entry(), attr);
   }
 
   sai_status_t _create(

@@ -164,6 +164,26 @@ class NeighborApi : public SaiApi<NeighborApi, NeighborApiParameters> {
 
  private:
   sai_status_t _create(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_neighbor_entry(neighborEntry.entry(), count, attr_list);
+  }
+  sai_status_t _remove(const SaiNeighborTraits::NeighborEntry& neighborEntry) {
+    return api_->remove_neighbor_entry(neighborEntry.entry());
+  }
+  sai_status_t _getAttribute(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry,
+      sai_attribute_t* attr) const {
+    return api_->get_neighbor_entry_attribute(neighborEntry.entry(), 1, attr);
+  }
+  sai_status_t _setAttribute(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry,
+      const sai_attribute_t* attr) {
+    return api_->set_neighbor_entry_attribute(neighborEntry.entry(), attr);
+  }
+
+  sai_status_t _create(
       const NeighborApiParameters::NeighborEntry& neighborEntry,
       sai_attribute_t* attr_list,
       size_t count) {

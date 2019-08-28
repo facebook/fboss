@@ -29,3 +29,14 @@ FBOSS_STRONG_TYPE(sai_object_id_t, SchedulerSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);
+
+namespace facebook {
+namespace fboss {
+
+template <typename SaiId>
+sai_object_id_t* rawSaiId(SaiId* id) {
+  return reinterpret_cast<sai_object_id_t*>(id);
+}
+
+} // namespace fboss
+} // namespace facebook

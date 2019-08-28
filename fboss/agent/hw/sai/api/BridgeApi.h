@@ -118,11 +118,42 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
 
  private:
   sai_status_t _create(
-      sai_object_id_t* bridge_id,
+      BridgeSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_bridge(rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _create(
+      BridgePortSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_bridge_port(rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _getAttribute(BridgeSaiId id, sai_attribute_t* attr) const {
+    return api_->get_bridge_attribute(id, 1, attr);
+  }
+  sai_status_t _getAttribute(BridgePortSaiId id, sai_attribute_t* attr) const {
+    return api_->get_bridge_port_attribute(id, 1, attr);
+  }
+
+  sai_status_t _remove(BridgeSaiId id) {
+    XLOG(INFO) << "remove_bridge " << id;
+    return api_->remove_bridge(id);
+  }
+  sai_status_t _remove(BridgePortSaiId id) {
+    XLOG(INFO) << "remove_bridge_port " << id;
+    return api_->remove_bridge_port(id);
+  }
+
+  sai_status_t _create(
+      sai_object_id_t* id,
       sai_attribute_t* attr_list,
       size_t count,
       sai_object_id_t switch_id) {
-    return api_->create_bridge(bridge_id, switch_id, count, attr_list);
+    return api_->create_bridge(id, switch_id, count, attr_list);
   }
   sai_status_t _remove(sai_object_id_t bridge_id) {
     return api_->remove_bridge(bridge_id);
@@ -132,15 +163,6 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
   }
   sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
     return api_->set_bridge_attribute(handle, attr);
-  }
-  sai_status_t _getMemberAttr(sai_attribute_t* attr, sai_object_id_t handle)
-      const {
-    return api_->get_bridge_port_attribute(handle, 1, attr);
-  }
-  sai_status_t _setMemberAttr(
-      const sai_attribute_t* attr,
-      sai_object_id_t handle) {
-    return api_->set_bridge_port_attribute(handle, attr);
   }
   sai_status_t _createMember(
       sai_object_id_t* bridge_port_id,
@@ -153,6 +175,16 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
   sai_status_t _removeMember(sai_object_id_t bridge_port_id) {
     return api_->remove_bridge_port(bridge_port_id);
   }
+  sai_status_t _getMemberAttr(sai_attribute_t* attr, sai_object_id_t handle)
+      const {
+    return api_->get_bridge_port_attribute(handle, 1, attr);
+  }
+  sai_status_t _setMemberAttr(
+      const sai_attribute_t* attr,
+      sai_object_id_t handle) {
+    return api_->set_bridge_port_attribute(handle, attr);
+  }
+
   sai_bridge_api_t* api_;
   friend class SaiApi<BridgeApi, BridgeApiParameters>;
 };

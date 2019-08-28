@@ -161,6 +161,26 @@ class RouteApi : public SaiApi<RouteApi, RouteApiParameters> {
 
  private:
   sai_status_t _create(
+      const typename SaiRouteTraits::RouteEntry& routeEntry,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_route_entry(routeEntry.entry(), count, attr_list);
+  }
+  sai_status_t _remove(const SaiRouteTraits::RouteEntry& routeEntry) {
+    return api_->remove_route_entry(routeEntry.entry());
+  }
+  sai_status_t _getAttribute(
+      const SaiRouteTraits::RouteEntry& routeEntry,
+      sai_attribute_t* attr) const {
+    return api_->get_route_entry_attribute(routeEntry.entry(), 1, attr);
+  }
+  sai_status_t _setAttribute(
+      const SaiRouteTraits::RouteEntry& routeEntry,
+      const sai_attribute_t* attr) {
+    return api_->set_route_entry_attribute(routeEntry.entry(), attr);
+  }
+
+  sai_status_t _create(
       const RouteApiParameters::RouteEntry& routeEntry,
       sai_attribute_t* attr_list,
       size_t count) {

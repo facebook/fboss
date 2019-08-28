@@ -80,6 +80,27 @@ class VirtualRouterApi
 
  private:
   sai_status_t _create(
+      VirtualRouterSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_virtual_router(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(VirtualRouterSaiId virtual_router_id) {
+    return api_->remove_virtual_router(virtual_router_id);
+  }
+  sai_status_t _getAttribute(VirtualRouterSaiId handle, sai_attribute_t* attr)
+      const {
+    return api_->get_virtual_router_attribute(handle, 1, attr);
+  }
+  sai_status_t _setAttribute(
+      VirtualRouterSaiId handle,
+      const sai_attribute_t* attr) {
+    return api_->set_virtual_router_attribute(handle, attr);
+  }
+
+  sai_status_t _create(
       sai_object_id_t* virtual_router_id,
       sai_attribute_t* attr_list,
       size_t count,

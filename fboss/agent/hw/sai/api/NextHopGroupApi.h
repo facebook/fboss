@@ -138,6 +138,47 @@ class NextHopGroupApi
 
  private:
   sai_status_t _create(
+      NextHopGroupSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_next_hop_group(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _create(
+      NextHopGroupMemberSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_next_hop_group_member(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(NextHopGroupSaiId next_hop_group_id) {
+    return api_->remove_next_hop_group(next_hop_group_id);
+  }
+  sai_status_t _remove(NextHopGroupMemberSaiId next_hop_group_id) {
+    return api_->remove_next_hop_group_member(next_hop_group_id);
+  }
+  sai_status_t _getAttribute(NextHopGroupSaiId id, sai_attribute_t* attr)
+      const {
+    return api_->get_next_hop_group_attribute(id, 1, attr);
+  }
+  sai_status_t _getAttribute(NextHopGroupMemberSaiId id, sai_attribute_t* attr)
+      const {
+    return api_->get_next_hop_group_member_attribute(id, 1, attr);
+  }
+  sai_status_t _setAttribute(
+      NextHopGroupSaiId id,
+      const sai_attribute_t* attr) {
+    return api_->set_next_hop_group_attribute(id, attr);
+  }
+  sai_status_t _setAttribute(
+      NextHopGroupMemberSaiId id,
+      const sai_attribute_t* attr) {
+    return api_->set_next_hop_group_member_attribute(id, attr);
+  }
+
+  sai_status_t _create(
       sai_object_id_t* next_hop_group_id,
       sai_attribute_t* attr_list,
       size_t count,

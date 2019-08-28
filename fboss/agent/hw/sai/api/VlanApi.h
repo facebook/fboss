@@ -125,6 +125,34 @@ class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
 
  private:
   sai_status_t _create(
+      VlanSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_vlan(rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _create(
+      VlanMemberSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_vlan_member(rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(VlanSaiId id) {
+    return api_->remove_vlan(id);
+  }
+  sai_status_t _remove(VlanMemberSaiId id) {
+    return api_->remove_vlan_member(id);
+  }
+
+  sai_status_t _getAttribute(VlanSaiId id, sai_attribute_t* attr) const {
+    return api_->get_vlan_attribute(id, 1, attr);
+  }
+  sai_status_t _getAttribute(VlanMemberSaiId id, sai_attribute_t* attr) const {
+    return api_->get_vlan_member_attribute(id, 1, attr);
+  }
+
+  sai_status_t _create(
       sai_object_id_t* vlan_id,
       sai_attribute_t* attr_list,
       size_t count,

@@ -23,16 +23,19 @@ class RouterInterfaceApiTest : public ::testing::Test {
     sai_api_initialize(0, nullptr);
     routerInterfaceApi = std::make_unique<RouterInterfaceApi>();
   }
-  sai_object_id_t createRouterInterface(
+  RouterInterfaceSaiId createRouterInterface(
       sai_object_id_t vr = 42,
       sai_object_id_t vlan = 43) {
-    RouterInterfaceApiParameters::Attributes::Type typeAttribute(
+    SaiRouterInterfaceTraits::Attributes::Type typeAttribute(
         SAI_ROUTER_INTERFACE_TYPE_VLAN);
-    RouterInterfaceApiParameters::Attributes::VirtualRouterId
+    SaiRouterInterfaceTraits::Attributes::VirtualRouterId
         virtualRouterIdAttribute(vr);
-    RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute(vlan);
-    auto rifId = routerInterfaceApi->create(
-        {virtualRouterIdAttribute, typeAttribute, vlanIdAttribute, folly::none},
+    SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(vlan);
+    auto rifId = routerInterfaceApi->create2<SaiRouterInterfaceTraits>(
+        {virtualRouterIdAttribute,
+         typeAttribute,
+         vlanIdAttribute,
+         std::nullopt},
         0);
     EXPECT_EQ(rifId, fs->rim.get(rifId).id);
     EXPECT_EQ(vr, fs->rim.get(rifId).virtualRouterId);
@@ -51,35 +54,35 @@ TEST_F(RouterInterfaceApiTest, create) {
 TEST_F(RouterInterfaceApiTest, setSrcMac) {
   auto rifId = createRouterInterface();
   folly::MacAddress mac("42:42:42:42:42:42");
-  RouterInterfaceApiParameters::Attributes::SrcMac ma(mac);
-  RouterInterfaceApiParameters::Attributes::SrcMac ma2;
-  EXPECT_NE(mac, routerInterfaceApi->getAttribute(ma2, rifId));
-  routerInterfaceApi->setAttribute(ma, rifId);
-  EXPECT_EQ(mac, routerInterfaceApi->getAttribute(ma2, rifId));
+  SaiRouterInterfaceTraits::Attributes::SrcMac ma(mac);
+  SaiRouterInterfaceTraits::Attributes::SrcMac ma2;
+  EXPECT_NE(mac, routerInterfaceApi->getAttribute2(rifId, ma2));
+  routerInterfaceApi->setAttribute2(rifId, ma);
+  EXPECT_EQ(mac, routerInterfaceApi->getAttribute2(rifId, ma2));
 }
 
 TEST_F(RouterInterfaceApiTest, setVrId) {
   auto rifId = createRouterInterface();
-  RouterInterfaceApiParameters::Attributes::VirtualRouterId
+  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute(10);
-  RouterInterfaceApiParameters::Attributes::VirtualRouterId
+  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute2;
   EXPECT_EQ(
-      42, routerInterfaceApi->getAttribute(virtualRouterIdAttribute2, rifId));
+      42, routerInterfaceApi->getAttribute2(rifId, virtualRouterIdAttribute2));
   EXPECT_EQ(
       SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute(virtualRouterIdAttribute, rifId));
+      routerInterfaceApi->setAttribute2(rifId, virtualRouterIdAttribute));
   EXPECT_EQ(
-      42, routerInterfaceApi->getAttribute(virtualRouterIdAttribute2, rifId));
+      42, routerInterfaceApi->getAttribute2(rifId, virtualRouterIdAttribute2));
 }
 
 TEST_F(RouterInterfaceApiTest, setVlanId) {
   auto rifId = createRouterInterface();
-  RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute(10);
-  RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute2;
-  EXPECT_EQ(43, routerInterfaceApi->getAttribute(vlanIdAttribute2, rifId));
+  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(10);
+  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute2;
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute2(rifId, vlanIdAttribute2));
   EXPECT_EQ(
       SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute(vlanIdAttribute, rifId));
-  EXPECT_EQ(43, routerInterfaceApi->getAttribute(vlanIdAttribute2, rifId));
+      routerInterfaceApi->setAttribute2(rifId, vlanIdAttribute));
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute2(rifId, vlanIdAttribute2));
 }

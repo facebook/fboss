@@ -103,6 +103,23 @@ class PortApi : public SaiApi<PortApi, PortApiParameters> {
 
  private:
   sai_status_t _create(
+      PortSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_port(rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(PortSaiId key) {
+    return api_->remove_port(key);
+  }
+  sai_status_t _getAttribute(PortSaiId key, sai_attribute_t* attr) const {
+    return api_->get_port_attribute(key, 1, attr);
+  }
+  sai_status_t _setAttribute(PortSaiId key, const sai_attribute_t* attr) {
+    return api_->set_port_attribute(key, attr);
+  }
+
+  sai_status_t _create(
       sai_object_id_t* port_id,
       sai_attribute_t* attr_list,
       size_t count,

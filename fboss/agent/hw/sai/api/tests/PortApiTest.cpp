@@ -26,16 +26,16 @@ class PortApiTest : public ::testing::Test {
     portApi = std::make_unique<PortApi>();
   }
 
-  sai_object_id_t createPort(
+  PortSaiId createPort(
       uint32_t speed,
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
-    PortApiParameters::Attributes a{{lanes, speed, adminState}};
-    return portApi->create(a.attrs(), 0);
+    SaiPortTraits::CreateAttributes a{lanes, speed, adminState};
+    return portApi->create2<SaiPortTraits>(a, 0);
   }
 
-  std::vector<sai_object_id_t> createFourPorts() const {
-    std::vector<sai_object_id_t> portIds;
+  std::vector<PortSaiId> createFourPorts() const {
+    std::vector<PortSaiId> portIds;
     portIds.push_back(createPort(100000, {0, 1, 2, 3}, true));
     for (uint32_t i = 4; i < 8; ++i) {
       portIds.push_back(createPort(25000, {i}, false));
@@ -46,15 +46,15 @@ class PortApiTest : public ::testing::Test {
     return portIds;
   }
 
-  void checkPort(sai_object_id_t portId) const {
-    PortApiParameters::Attributes::AdminState adminStateAttribute;
+  void checkPort(PortSaiId portId) const {
+    SaiPortTraits::Attributes::AdminState adminStateAttribute;
     std::vector<uint32_t> ls;
     ls.resize(4);
-    PortApiParameters::Attributes::HwLaneList hwLaneListAttribute(ls);
-    PortApiParameters::Attributes::Speed speedAttribute;
-    auto gotAdminState = portApi->getAttribute(adminStateAttribute, portId);
-    auto gotSpeed = portApi->getAttribute(speedAttribute, portId);
-    auto lanes = portApi->getAttribute(hwLaneListAttribute, portId);
+    SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute(ls);
+    SaiPortTraits::Attributes::Speed speedAttribute;
+    auto gotAdminState = portApi->getAttribute2(portId, adminStateAttribute);
+    auto gotSpeed = portApi->getAttribute2(portId, speedAttribute);
+    auto lanes = portApi->getAttribute2(portId, hwLaneListAttribute);
     EXPECT_EQ(fs->pm.get(portId).adminState, gotAdminState);
     EXPECT_EQ(fs->pm.get(portId).speed, gotSpeed);
     EXPECT_EQ(fs->pm.get(portId).id, portId);
@@ -67,14 +67,14 @@ class PortApiTest : public ::testing::Test {
 
 TEST_F(PortApiTest, onePort) {
   auto id = createPort(100000, {42}, true);
-  PortApiParameters::Attributes::AdminState as_blank;
+  SaiPortTraits::Attributes::AdminState as_blank;
   std::vector<uint32_t> ls;
   ls.resize(1);
-  PortApiParameters::Attributes::HwLaneList l_blank(ls);
-  PortApiParameters::Attributes::Speed s_blank;
-  EXPECT_EQ(portApi->getAttribute(as_blank, id), true);
-  EXPECT_EQ(portApi->getAttribute(s_blank, id), 100000);
-  auto lanes = portApi->getAttribute(l_blank, id);
+  SaiPortTraits::Attributes::HwLaneList l_blank(ls);
+  SaiPortTraits::Attributes::Speed s_blank;
+  EXPECT_EQ(portApi->getAttribute2(id, as_blank), true);
+  EXPECT_EQ(portApi->getAttribute2(id, s_blank), 100000);
+  auto lanes = portApi->getAttribute2(id, l_blank);
   EXPECT_EQ(lanes.size(), 1);
   EXPECT_EQ(lanes[0], 42);
 }
@@ -86,23 +86,23 @@ TEST_F(PortApiTest, fourPorts) {
 TEST_F(PortApiTest, setPortAttributes) {
   auto portIds = createFourPorts();
 
-  PortApiParameters::Attributes::AdminState as_attr(true);
-  PortApiParameters::Attributes::Speed speed_attr(50000);
+  SaiPortTraits::Attributes::AdminState as_attr(true);
+  SaiPortTraits::Attributes::Speed speed_attr(50000);
   // set speeds
-  portApi->setAttribute(speed_attr, portIds[0]);
-  portApi->setAttribute(speed_attr, portIds[2]);
+  portApi->setAttribute2(portIds[0], speed_attr);
+  portApi->setAttribute2(portIds[2], speed_attr);
   // set admin state
-  portApi->setAttribute(as_attr, portIds[2]);
+  portApi->setAttribute2(portIds[2], as_attr);
   // confirm admin states
-  EXPECT_EQ(portApi->getAttribute(as_attr, portIds[0]), true);
-  EXPECT_EQ(portApi->getAttribute(as_attr, portIds[1]), false);
-  EXPECT_EQ(portApi->getAttribute(as_attr, portIds[2]), true);
-  EXPECT_EQ(portApi->getAttribute(as_attr, portIds[3]), false);
+  EXPECT_EQ(portApi->getAttribute2(portIds[0], as_attr), true);
+  EXPECT_EQ(portApi->getAttribute2(portIds[1], as_attr), false);
+  EXPECT_EQ(portApi->getAttribute2(portIds[2], as_attr), true);
+  EXPECT_EQ(portApi->getAttribute2(portIds[3], as_attr), false);
   // confirm speeds
-  EXPECT_EQ(portApi->getAttribute(speed_attr, portIds[0]), 50000);
-  EXPECT_EQ(portApi->getAttribute(speed_attr, portIds[1]), 25000);
-  EXPECT_EQ(portApi->getAttribute(speed_attr, portIds[2]), 50000);
-  EXPECT_EQ(portApi->getAttribute(speed_attr, portIds[3]), 25000);
+  EXPECT_EQ(portApi->getAttribute2(portIds[0], speed_attr), 50000);
+  EXPECT_EQ(portApi->getAttribute2(portIds[1], speed_attr), 25000);
+  EXPECT_EQ(portApi->getAttribute2(portIds[2], speed_attr), 50000);
+  EXPECT_EQ(portApi->getAttribute2(portIds[3], speed_attr), 25000);
   // confirm consistency internally, too
   for (const auto& portId : portIds) {
     checkPort(portId);
@@ -113,22 +113,22 @@ TEST_F(PortApiTest, removePort) {
   {
     // basic remove
     auto portId = createPort(25000, {42}, true);
-    portApi->remove(portId);
+    portApi->remove2(portId);
   }
   {
     // remove a const portId
     const auto portId = createPort(25000, {42}, true);
-    portApi->remove(portId);
+    portApi->remove2((portId));
   }
   {
     // remove rvalue id
-    portApi->remove(createPort(25000, {42}, true));
+    portApi->remove2(createPort(25000, {42}, true));
   }
   {
     // remove in "canonical" for-loop
     auto portIds = createFourPorts();
     for (const auto& portId : portIds) {
-      portApi->remove(portId);
+      portApi->remove2(portId);
     }
   }
 }
@@ -138,15 +138,15 @@ TEST_F(PortApiTest, getLaneListPresized) {
   auto portId = createPort(100000, inLanes, true);
   std::vector<uint32_t> tempLanes;
   tempLanes.resize(4);
-  PortApiParameters::Attributes::HwLaneList hwLaneListAttr{tempLanes};
-  auto gotLanes = portApi->getAttribute(hwLaneListAttr, portId);
+  SaiPortTraits::Attributes::HwLaneList hwLaneListAttr{tempLanes};
+  auto gotLanes = portApi->getAttribute2(portId, hwLaneListAttr);
   EXPECT_EQ(gotLanes, inLanes);
 }
 
 TEST_F(PortApiTest, getLaneListUnsized) {
   std::vector<uint32_t> inLanes{0, 1, 2, 3};
   auto portId = createPort(100000, inLanes, true);
-  PortApiParameters::Attributes::HwLaneList hwLaneListAttr;
-  auto gotLanes = portApi->getAttribute(hwLaneListAttr, portId);
+  SaiPortTraits::Attributes::HwLaneList hwLaneListAttr;
+  auto gotLanes = portApi->getAttribute2(portId, hwLaneListAttr);
   EXPECT_EQ(gotLanes, inLanes);
 }

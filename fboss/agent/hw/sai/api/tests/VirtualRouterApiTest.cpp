@@ -28,5 +28,6 @@ class VirtualRouterApiTest : public ::testing::Test {
 };
 
 TEST_F(VirtualRouterApiTest, createVirtualRouter) {
-  virtualRouterApi->create({}, 0);
+  SaiVirtualRouterTraits::CreateAttributes c{};
+  virtualRouterApi->create2<SaiVirtualRouterTraits>(c, 0);
 }

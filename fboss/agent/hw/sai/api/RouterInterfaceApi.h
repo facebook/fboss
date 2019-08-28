@@ -111,6 +111,27 @@ class RouterInterfaceApi
 
  private:
   sai_status_t _create(
+      RouterInterfaceSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_router_interface(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(RouterInterfaceSaiId router_interface_id) {
+    return api_->remove_router_interface(router_interface_id);
+  }
+  sai_status_t _getAttribute(RouterInterfaceSaiId id, sai_attribute_t* attr)
+      const {
+    return api_->get_router_interface_attribute(id, 1, attr);
+  }
+  sai_status_t _setAttribute(
+      RouterInterfaceSaiId key,
+      const sai_attribute_t* attr) {
+    return api_->set_router_interface_attribute(key, attr);
+  }
+
+  sai_status_t _create(
       sai_object_id_t* router_interface_id,
       sai_attribute_t* attr_list,
       size_t count,
@@ -121,6 +142,7 @@ class RouterInterfaceApi
   sai_status_t _remove(sai_object_id_t router_interface_id) {
     return api_->remove_router_interface(router_interface_id);
   }
+
   sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
     return api_->get_router_interface_attribute(handle, 1, attr);
   }
