@@ -310,7 +310,6 @@ add_executable(bcm_test
 
 
 add_library(fboss_agent STATIC
-    common/stats/ServiceData.cpp
     fboss/agent/AgentConfig.cpp
     fboss/agent/AggregatePortStats.cpp
     fboss/agent/AlpmUtils.cpp
