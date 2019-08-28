@@ -705,8 +705,15 @@ void BcmPort::updateStats() {
   }
 
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  auto lastPortStats = lastPortStats_.rlock()->portStats();
-  HwPortStats curPortStats{lastPortStats};
+
+  HwPortStats curPortStats, lastPortStats;
+  {
+    auto lockedPortStats = lastPortStats_.rlock();
+    if (lockedPortStats->has_value()) {
+      lastPortStats = curPortStats = (*lockedPortStats)->portStats();
+    }
+  }
+
   // All stats start with a unitialized (-1) value. If there are no in discards
   // we will just report that as the monotonic counter. Instead set it to
   // 0 if uninintialized
@@ -907,12 +914,20 @@ std::chrono::seconds BcmPort::BcmPortStats::timeRetrieved() const {
   return timeRetrieved_;
 }
 
-HwPortStats BcmPort::getPortStats() const {
-  return lastPortStats_.rlock()->portStats();
+folly::Optional<HwPortStats> BcmPort::getPortStats() const {
+  auto bcmStats = lastPortStats_.rlock();
+  if (!bcmStats->has_value()) {
+    return folly::none;
+  }
+  return (*bcmStats)->portStats();
 }
 
 std::chrono::seconds BcmPort::getTimeRetrieved() const {
-  return lastPortStats_.rlock()->timeRetrieved();
+  auto bcmStats = lastPortStats_.rlock();
+  if (!bcmStats->has_value()) {
+    return std::chrono::seconds(0);
+  }
+  return (*bcmStats)->timeRetrieved();
 }
 
 void BcmPort::applyMirrorAction(
@@ -965,6 +980,11 @@ void BcmPort::destroyAllPortStats() {
     utility::deleteCounter(item.second.getName());
   }
   queueManager_->destroyQueueCounters();
+
+  {
+    auto lockedPortStatsPtr = lastPortStats_.wlock();
+    *lockedPortStatsPtr = folly::none;
+  }
 }
 
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {

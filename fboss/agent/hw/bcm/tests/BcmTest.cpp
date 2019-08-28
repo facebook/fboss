@@ -79,8 +79,9 @@ std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
   updateHwSwitchStats(getHwSwitch());
   std::map<PortID, HwPortStats> mapPortStats;
   for (const auto& port : ports) {
-    mapPortStats[port] =
+    auto stats =
         getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
+    mapPortStats[port] = (stats) ? *stats : HwPortStats{};
   }
   return mapPortStats;
 }

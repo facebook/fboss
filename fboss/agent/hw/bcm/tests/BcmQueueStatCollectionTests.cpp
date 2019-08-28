@@ -35,8 +35,8 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
       auto hwStats = port->getPortStats();
       auto numUcastQueues =
           port->getQueueManager()->getNumQueues(cfg::StreamType::UNICAST);
-      auto queueStatMaps = {hwStats.queueOutBytes_,
-                            hwStats.queueOutDiscardBytes_};
+      auto queueStatMaps = {hwStats->queueOutBytes_,
+                            hwStats->queueOutDiscardBytes_};
       // Only expected number of queue stats should be present
       EXPECT_TRUE(std::all_of(
           queueStatMaps.begin(),

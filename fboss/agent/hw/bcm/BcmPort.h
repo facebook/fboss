@@ -142,7 +142,7 @@ class BcmPort {
    * Update this port's statistics.
    */
   void updateStats();
-  HwPortStats getPortStats() const;
+  folly::Optional<HwPortStats> getPortStats() const;
   std::chrono::seconds getTimeRetrieved() const;
 
   /**
@@ -276,7 +276,7 @@ class BcmPort {
   fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
-  folly::Synchronized<BcmPortStats> lastPortStats_;
+  folly::Synchronized<folly::Optional<BcmPortStats>> lastPortStats_;
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 
   std::atomic<bool> statCollectionEnabled_{false};

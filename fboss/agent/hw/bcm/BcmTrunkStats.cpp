@@ -133,7 +133,14 @@ BcmTrunkStats::accumulateMemberStats() const {
         continue;
       }
 
-      auto memberStats = memberPort->getPortStats();
+      auto memberStatsOptional = memberPort->getPortStats();
+      if (!memberStatsOptional.has_value()) {
+        XLOG(WARNING) << "BcmTrunkStats for AggregatePort " << aggregatePortID_
+                      << " is out of sync for member " << memberPort;
+        continue;
+      }
+      auto& memberStats = memberStatsOptional.value();
+
       cumulativeSum.inBytes_ += memberStats.inBytes_;
       cumulativeSum.inUnicastPkts_ += memberStats.inUnicastPkts_;
       cumulativeSum.inMulticastPkts_ += memberStats.inMulticastPkts_;
