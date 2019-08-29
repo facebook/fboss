@@ -249,6 +249,21 @@ enum AclActionType {
 enum AclLookupClass {
   DST_CLASS_L3_LOCAL_IP4 = 1
   DST_CLASS_L3_LOCAL_IP6 = 2
+
+  /*
+   * RSW Downlink ports connected to MH-NIC setups configure a queue per host
+   * using ACLs. These ACLs use following classes.
+   */
+  CLASS_QUEUE_PER_HOST_QUEUE_0 = 10
+  CLASS_QUEUE_PER_HOST_QUEUE_1 = 11
+  CLASS_QUEUE_PER_HOST_QUEUE_2 = 12
+  CLASS_QUEUE_PER_HOST_QUEUE_3 = 13
+  CLASS_QUEUE_PER_HOST_QUEUE_4 = 14
+  CLASS_QUEUE_PER_HOST_QUEUE_5 = 15
+  CLASS_QUEUE_PER_HOST_QUEUE_6 = 16
+  CLASS_QUEUE_PER_HOST_QUEUE_7 = 17
+  CLASS_QUEUE_PER_HOST_QUEUE_8 = 18
+  CLASS_QUEUE_PER_HOST_QUEUE_9 = 19
 }
 
 /**
