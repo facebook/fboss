@@ -665,7 +665,7 @@ void BcmSwitch::setupPacketRx() {
   };
 
   if (!(getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED)) {
-    XLOG(DBG1) << " Skip settiing up packet RX since its explicitly disabled";
+    XLOG(DBG1) << " Skip setting up packet RX since its explicitly disabled";
     return;
   }
   // Register our packet handler callback function.
