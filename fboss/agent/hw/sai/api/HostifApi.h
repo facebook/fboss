@@ -48,9 +48,12 @@ struct SaiHostifTrapGroupTraits {
   // adapter host key type is the set of trap types in the trap group -- but
   // this works for now, and is quite a bit simpler.
   using AdapterHostKey = Attributes::Queue;
-  using CreateAttributes = std::tuple<
-      std::optional<Attributes::Queue>,
-      std::optional<Attributes::Policer>>;
+
+  // Queue is optional, but as noted above treating it at as mandatory is
+  // temporarily convenient
+  // TODO(borisb): possibly redesign AdapterHostKey and CreateAttributes here
+  using CreateAttributes =
+      std::tuple<Attributes::Queue, std::optional<Attributes::Policer>>;
 };
 
 struct SaiHostifTrapTraits {

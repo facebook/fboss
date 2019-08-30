@@ -187,6 +187,7 @@ class SaiApi {
         IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
         "getAttribute must be called on a SaiAttribute or supported "
         "collection of SaiAttributes");
+
     sai_status_t status;
     status = impl()._getAttribute(key, attr.saiAttr());
     /*
@@ -221,7 +222,9 @@ class SaiApi {
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
     AttrT attr = attrOptional.value_or(AttrT{});
-    return getAttribute2(key, attr);
+    auto res =
+        std::optional<typename AttrT::ValueType>{getAttribute2(key, attr)};
+    return res;
   }
 
   // Currently, create2 is not clever enough to have totally deducible

@@ -186,6 +186,9 @@ struct IsDuplicateSaiType
 template <typename T>
 struct IsSaiAttribute : public std::false_type {};
 
+template <typename AttrT>
+struct IsSaiAttribute<std::optional<AttrT>> : public IsSaiAttribute<AttrT> {};
+
 template <typename T>
 struct IsSaiEntryStruct : public std::false_type {};
 
@@ -202,7 +205,7 @@ struct IsTupleOfSaiAttributes : public std::false_type {};
 
 template <typename... AttrTs>
 struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
-    : std::conjunction<IsSaiAttribute<AttrTs>...> {};
+    : public std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
 } // namespace fboss
 } // namespace facebook

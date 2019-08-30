@@ -152,6 +152,13 @@ class VlanApi : public SaiApi<VlanApi, VlanApiParameters> {
     return api_->get_vlan_member_attribute(id, 1, attr);
   }
 
+  sai_status_t _setAttribute(VlanSaiId id, const sai_attribute_t* attr) {
+    return api_->set_vlan_attribute(id, attr);
+  }
+  sai_status_t _setAttribute(VlanMemberSaiId id, const sai_attribute_t* attr) {
+    return api_->set_vlan_member_attribute(id, attr);
+  }
+
   sai_status_t _create(
       sai_object_id_t* vlan_id,
       sai_attribute_t* attr_list,

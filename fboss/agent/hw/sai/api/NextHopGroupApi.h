@@ -44,7 +44,6 @@ struct SaiNextHopGroupTraits {
   };
 
   using AdapterKey = NextHopGroupSaiId;
-  // vector of rifId, ip address pairs
   using AdapterHostKey = std::set<typename SaiNextHopTraits::AdapterHostKey>;
   using CreateAttributes = std::tuple<Attributes::Type>;
 };

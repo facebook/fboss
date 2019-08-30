@@ -302,6 +302,10 @@ class SaiAttribute<
     return !(*this == other);
   }
 
+  bool operator<(const SaiAttribute& other) const {
+    return value() < other.value();
+  }
+
  private:
   DataType& data() {
     return _extract<SaiAttribute>(saiAttr_);
@@ -421,6 +425,10 @@ class SaiAttribute<
 
   bool operator!=(const SaiAttribute& other) const {
     return !(*this == other);
+  }
+
+  bool operator<(const SaiAttribute& other) const {
+    return value() < other.value();
   }
 
  private:
