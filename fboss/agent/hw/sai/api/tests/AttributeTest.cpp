@@ -208,6 +208,18 @@ TEST(Attribute, dupeType) {
       "uint64_t attr ValueT should be uint64_t");
 }
 
+// Test that it is possible to use an attribute as a hash table key
+TEST(Attribute, hashKey) {
+  std::unordered_map<ObjAttr, int> objMap;
+  ObjAttr o1{42};
+  ObjAttr o2{1024};
+  objMap[o1] = 42;
+  objMap[o2] = 1024;
+  for (const auto& obj : objMap) {
+    EXPECT_EQ(obj.first.value(), obj.second);
+  }
+}
+
 /*
  * Static assertion "tests" about SaiAttributes to ensure the types behave
  * how we expect them to.

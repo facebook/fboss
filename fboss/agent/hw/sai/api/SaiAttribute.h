@@ -449,3 +449,17 @@ struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, void>>
 
 } // namespace fboss
 } // namespace facebook
+
+namespace std {
+template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
+struct hash<facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>> {
+  size_t operator()(
+      const facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>&
+          attr) const {
+    size_t seed = 0;
+    boost::hash_combine(seed, attr.value());
+    return seed;
+  }
+};
+
+} // namespace std

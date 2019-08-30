@@ -19,11 +19,7 @@ size_t hash<facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey>::operator()(
     const facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey& k) const {
   size_t seed = 0;
   for (const auto& p : k) {
-    boost::hash_combine(seed, std::get<0>(p).value());
-    boost::hash_combine(seed, std::get<1>(p).value());
-    // TODO(borisb): one of these should work but requires hashing sai attribute
-    // boost::hash_combine(seed, std::hash<std::decay_t<decltype(p)>>{}(p));
-    // boost::hash_combine(seed, p);
+    boost::hash_combine(seed, std::hash<std::decay_t<decltype(p)>>{}(p));
   }
   return seed;
 }
