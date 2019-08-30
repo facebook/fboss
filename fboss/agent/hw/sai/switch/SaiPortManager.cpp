@@ -151,7 +151,7 @@ void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
 PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort) const {
   bool adminState;
-  std::vector<uint32_t> hwLaneList;
+
   switch (swPort->getAdminState()) {
     case cfg::PortState::DISABLED:
       adminState = false;
@@ -166,20 +166,19 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
   }
   uint32_t speed;
   switch (swPort->getSpeed()) {
-    // TODO: actual lane mapping! :)
     case cfg::PortSpeed::TWENTYFIVEG:
       speed = static_cast<uint32_t>(swPort->getSpeed());
-      hwLaneList.push_back(swPort->getID());
       break;
     case cfg::PortSpeed::HUNDREDG:
       speed = static_cast<uint32_t>(swPort->getSpeed());
-      hwLaneList.push_back(swPort->getID());
-      hwLaneList.push_back(swPort->getID() + 1);
       break;
     default:
       speed = 0;
       XLOG(INFO) << "Invalid port speed!";
   }
+
+  auto platformPort = platform_->getPort(swPort->getID());
+  auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
   return PortApiParameters::Attributes({hwLaneList, speed, adminState});
 }
 
