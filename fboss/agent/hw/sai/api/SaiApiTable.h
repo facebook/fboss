@@ -32,129 +32,95 @@ namespace fboss {
 
 class SaiApiTable {
  public:
-  SaiApiTable();
+  SaiApiTable() = default;
+  ~SaiApiTable() = default;
   SaiApiTable(const SaiApiTable& other) = delete;
   SaiApiTable& operator=(const SaiApiTable& other) = delete;
 
-  BridgeApi& bridgeApi() {
-    return *bridgeApi_;
-  }
-  const BridgeApi& bridgeApi() const {
-    return *bridgeApi_;
+  // Static function for getting the SaiApiTable folly::Singleton
+  static std::shared_ptr<SaiApiTable> getInstance();
+
+  /*
+   * This constructs each individual SAI API object which queries the Adapter
+   * for the api implementation and thus renders them ready for use by the
+   * Adapter Host.
+   */
+  void queryApis();
+
+  BridgeApi& bridgeApi();
+  const BridgeApi& bridgeApi() const;
+
+  FdbApi& fdbApi();
+  const FdbApi& fdbApi() const;
+
+  HostifApi& hostifApi();
+  const HostifApi& hostifApi() const;
+
+  LagApi& lagApi();
+  const LagApi& lagApi() const;
+
+  NextHopApi& nextHopApi();
+  const NextHopApi& nextHopApi() const;
+
+  NextHopGroupApi& nextHopGroupApi();
+  const NextHopGroupApi& nextHopGroupApi() const;
+
+  NeighborApi& neighborApi();
+  const NeighborApi& neighborApi() const;
+
+  PortApi& portApi();
+  const PortApi& portApi() const;
+
+  QueueApi& queueApi();
+  const QueueApi& queueApi() const;
+
+  RouteApi& routeApi();
+  const RouteApi& routeApi() const;
+
+  RouterInterfaceApi& routerInterfaceApi();
+  const RouterInterfaceApi& routerInterfaceApi() const;
+
+  SchedulerApi& schedulerApi();
+  const SchedulerApi& schedulerApi() const;
+
+  SwitchApi& switchApi();
+  const SwitchApi& switchApi() const;
+
+  VirtualRouterApi& virtualRouterApi();
+  const VirtualRouterApi& virtualRouterApi() const;
+
+  VlanApi& vlanApi();
+  const VlanApi& vlanApi() const;
+
+  template <typename SaiApiT>
+  SaiApiT& getApi() {
+    return *std::get<std::unique_ptr<SaiApiT>>(apis_);
   }
 
-  FdbApi& fdbApi() {
-    return *fdbApi_;
-  }
-  const FdbApi& fdbApi() const {
-    return *fdbApi_;
-  }
-
-  HostifApi& hostifApi() {
-    return *hostifApi_;
-  }
-  const HostifApi& hostifApi() const {
-    return *hostifApi_;
-  }
-
-  LagApi& lagApi() {
-    return *lagApi_;
-  }
-  const LagApi& lagApi() const {
-    return *lagApi_;
-  }
-
-  NextHopApi& nextHopApi() {
-    return *nextHopApi_;
-  }
-  const NextHopApi& nextHopApi() const {
-    return *nextHopApi_;
-  }
-
-  NextHopGroupApi& nextHopGroupApi() {
-    return *nextHopGroupApi_;
-  }
-  const NextHopGroupApi& nextHopGroupApi() const {
-    return *nextHopGroupApi_;
-  }
-
-  NeighborApi& neighborApi() {
-    return *neighborApi_;
-  }
-  const NeighborApi& neighborApi() const {
-    return *neighborApi_;
-  }
-
-  PortApi& portApi() {
-    return *portApi_;
-  }
-  const PortApi& portApi() const {
-    return *portApi_;
-  }
-
-  QueueApi& queueApi() {
-    return *queueApi_;
-  }
-
-  const QueueApi& queueApi() const {
-    return *queueApi_;
-  }
-
-  RouteApi& routeApi() {
-    return *routeApi_;
-  }
-  const RouteApi& routeApi() const {
-    return *routeApi_;
-  }
-  RouterInterfaceApi& routerInterfaceApi() {
-    return *routerInterfaceApi_;
-  }
-  const RouterInterfaceApi& routerInterfaceApi() const {
-    return *routerInterfaceApi_;
-  }
-  SchedulerApi& schedulerApi() {
-    return *schedulerApi_;
-  }
-  const SchedulerApi& schedulerApi() const {
-    return *schedulerApi_;
-  }
-  SwitchApi& switchApi() {
-    return *switchApi_;
-  }
-  const SwitchApi& switchApi() const {
-    return *switchApi_;
-  }
-
-  VirtualRouterApi& virtualRouterApi() {
-    return *virtualRouterApi_;
-  }
-  const VirtualRouterApi& virtualRouterApi() const {
-    return *virtualRouterApi_;
-  }
-
-  VlanApi& vlanApi() {
-    return *vlanApi_;
-  }
-  const VlanApi& vlanApi() const {
-    return *vlanApi_;
+  template <typename SaiApiT>
+  const SaiApiT& getApi() const {
+    return *std::get<std::unique_ptr<SaiApiT>>(apis_);
   }
 
  private:
-  std::unique_ptr<BridgeApi> bridgeApi_;
-  std::unique_ptr<FdbApi> fdbApi_;
-  std::unique_ptr<HostifApi> hostifApi_;
-  std::unique_ptr<LagApi> lagApi_;
-  std::unique_ptr<NextHopApi> nextHopApi_;
-  std::unique_ptr<NextHopGroupApi> nextHopGroupApi_;
-  std::unique_ptr<NeighborApi> neighborApi_;
-  std::unique_ptr<PortApi> portApi_;
-  std::unique_ptr<QueueApi> queueApi_;
-  std::unique_ptr<RouteApi> routeApi_;
-  std::unique_ptr<RouterInterfaceApi> routerInterfaceApi_;
-  std::unique_ptr<SchedulerApi> schedulerApi_;
-  std::unique_ptr<SwitchApi> switchApi_;
-  std::unique_ptr<VirtualRouterApi> virtualRouterApi_;
-  std::unique_ptr<VlanApi> vlanApi_;
+  std::tuple<
+      std::unique_ptr<BridgeApi>,
+      std::unique_ptr<FdbApi>,
+      std::unique_ptr<HostifApi>,
+      std::unique_ptr<LagApi>,
+      std::unique_ptr<NextHopApi>,
+      std::unique_ptr<NextHopGroupApi>,
+      std::unique_ptr<NeighborApi>,
+      std::unique_ptr<PortApi>,
+      std::unique_ptr<QueueApi>,
+      std::unique_ptr<RouteApi>,
+      std::unique_ptr<RouterInterfaceApi>,
+      std::unique_ptr<SchedulerApi>,
+      std::unique_ptr<SwitchApi>,
+      std::unique_ptr<VirtualRouterApi>,
+      std::unique_ptr<VlanApi>>
+      apis_;
+  bool apisQueried_{false};
 };
 
 } // namespace fboss

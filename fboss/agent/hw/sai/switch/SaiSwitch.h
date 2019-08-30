@@ -202,7 +202,7 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
   SaiApiTable* apiTableLocked(const std::lock_guard<std::mutex>& lock);
 
-  std::unique_ptr<SaiApiTable> saiApiTable_;
+  std::shared_ptr<SaiApiTable> saiApiTable_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;

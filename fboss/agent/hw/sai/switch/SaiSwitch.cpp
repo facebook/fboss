@@ -216,7 +216,8 @@ HwInitResult SaiSwitch::initLocked(
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
 
-  saiApiTable_ = std::make_unique<SaiApiTable>();
+  saiApiTable_ = SaiApiTable::getInstance();
+  saiApiTable_->queryApis();
   managerTable_ =
       std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();

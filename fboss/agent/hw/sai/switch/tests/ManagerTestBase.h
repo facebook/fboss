@@ -128,7 +128,7 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform
   std::shared_ptr<SaiPlatform> saiPlatform;
-  std::unique_ptr<SaiApiTable> saiApiTable;
+  std::shared_ptr<SaiApiTable> saiApiTable;
   std::unique_ptr<SaiManagerTable> saiManagerTable;
 
   std::array<TestInterface, 10> testInterfaces;

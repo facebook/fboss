@@ -34,7 +34,8 @@ void ManagerTestBase::SetUp() {
       std::move(thriftAgentConfig), "dummyConfigStr");
   saiPlatform->init(std::move(agentConfig));
   saiPlatform->initPorts();
-  saiApiTable = std::make_unique<SaiApiTable>();
+  saiApiTable = SaiApiTable::getInstance();
+  saiApiTable->queryApis();
   saiManagerTable =
       std::make_unique<SaiManagerTable>(saiApiTable.get(), saiPlatform.get());
 

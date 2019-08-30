@@ -10,27 +10,155 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 
+#include <folly/Singleton.h>
+
 extern "C" {
 #include <sai.h>
 }
 
+namespace {
+struct singleton_tag_type {};
+} // namespace
+
+using facebook::fboss::SaiApiTable;
+static folly::Singleton<SaiApiTable, singleton_tag_type> saiApiTableSingleton{};
+std::shared_ptr<SaiApiTable> SaiApiTable::getInstance() {
+  return saiApiTableSingleton.try_get();
+}
+
 namespace facebook {
 namespace fboss {
-SaiApiTable::SaiApiTable() {
-  bridgeApi_ = std::make_unique<BridgeApi>();
-  fdbApi_ = std::make_unique<FdbApi>();
-  hostifApi_ = std::make_unique<HostifApi>();
-  nextHopApi_ = std::make_unique<NextHopApi>();
-  nextHopGroupApi_ = std::make_unique<NextHopGroupApi>();
-  neighborApi_ = std::make_unique<NeighborApi>();
-  portApi_ = std::make_unique<PortApi>();
-  queueApi_ = std::make_unique<QueueApi>();
-  routeApi_ = std::make_unique<RouteApi>();
-  routerInterfaceApi_ = std::make_unique<RouterInterfaceApi>();
-  schedulerApi_ = std::make_unique<SchedulerApi>();
-  switchApi_ = std::make_unique<SwitchApi>();
-  virtualRouterApi_ = std::make_unique<VirtualRouterApi>();
-  vlanApi_ = std::make_unique<VlanApi>();
+
+void SaiApiTable::queryApis() {
+  if (apisQueried_) {
+    return;
+  }
+  apisQueried_ = true;
+  std::get<std::unique_ptr<BridgeApi>>(apis_) = std::make_unique<BridgeApi>();
+  std::get<std::unique_ptr<FdbApi>>(apis_) = std::make_unique<FdbApi>();
+  std::get<std::unique_ptr<HostifApi>>(apis_) = std::make_unique<HostifApi>();
+  std::get<std::unique_ptr<NextHopApi>>(apis_) = std::make_unique<NextHopApi>();
+  std::get<std::unique_ptr<NextHopGroupApi>>(apis_) =
+      std::make_unique<NextHopGroupApi>();
+  std::get<std::unique_ptr<NeighborApi>>(apis_) =
+      std::make_unique<NeighborApi>();
+  std::get<std::unique_ptr<PortApi>>(apis_) = std::make_unique<PortApi>();
+  std::get<std::unique_ptr<QueueApi>>(apis_) = std::make_unique<QueueApi>();
+  std::get<std::unique_ptr<RouteApi>>(apis_) = std::make_unique<RouteApi>();
+  std::get<std::unique_ptr<RouterInterfaceApi>>(apis_) =
+      std::make_unique<RouterInterfaceApi>();
+  std::get<std::unique_ptr<SchedulerApi>>(apis_) =
+      std::make_unique<SchedulerApi>();
+  std::get<std::unique_ptr<SwitchApi>>(apis_) = std::make_unique<SwitchApi>();
+  std::get<std::unique_ptr<VirtualRouterApi>>(apis_) =
+      std::make_unique<VirtualRouterApi>();
+  std::get<std::unique_ptr<VlanApi>>(apis_) = std::make_unique<VlanApi>();
 }
+
+BridgeApi& SaiApiTable::bridgeApi() {
+  return getApi<BridgeApi>();
+}
+const BridgeApi& SaiApiTable::bridgeApi() const {
+  return getApi<BridgeApi>();
+}
+
+FdbApi& SaiApiTable::fdbApi() {
+  return getApi<FdbApi>();
+}
+const FdbApi& SaiApiTable::fdbApi() const {
+  return getApi<FdbApi>();
+}
+
+HostifApi& SaiApiTable::hostifApi() {
+  return getApi<HostifApi>();
+}
+const HostifApi& SaiApiTable::hostifApi() const {
+  return getApi<HostifApi>();
+}
+
+LagApi& SaiApiTable::lagApi() {
+  return getApi<LagApi>();
+}
+const LagApi& SaiApiTable::lagApi() const {
+  return getApi<LagApi>();
+}
+
+NextHopApi& SaiApiTable::nextHopApi() {
+  return getApi<NextHopApi>();
+}
+const NextHopApi& SaiApiTable::nextHopApi() const {
+  return getApi<NextHopApi>();
+}
+
+NextHopGroupApi& SaiApiTable::nextHopGroupApi() {
+  return getApi<NextHopGroupApi>();
+}
+const NextHopGroupApi& SaiApiTable::nextHopGroupApi() const {
+  return getApi<NextHopGroupApi>();
+}
+
+NeighborApi& SaiApiTable::neighborApi() {
+  return getApi<NeighborApi>();
+}
+const NeighborApi& SaiApiTable::neighborApi() const {
+  return getApi<NeighborApi>();
+}
+
+PortApi& SaiApiTable::portApi() {
+  return getApi<PortApi>();
+}
+const PortApi& SaiApiTable::portApi() const {
+  return getApi<PortApi>();
+}
+
+QueueApi& SaiApiTable::queueApi() {
+  return getApi<QueueApi>();
+}
+const QueueApi& SaiApiTable::queueApi() const {
+  return getApi<QueueApi>();
+}
+
+RouteApi& SaiApiTable::routeApi() {
+  return getApi<RouteApi>();
+}
+const RouteApi& SaiApiTable::routeApi() const {
+  return getApi<RouteApi>();
+}
+
+RouterInterfaceApi& SaiApiTable::routerInterfaceApi() {
+  return getApi<RouterInterfaceApi>();
+}
+const RouterInterfaceApi& SaiApiTable::routerInterfaceApi() const {
+  return getApi<RouterInterfaceApi>();
+}
+
+SchedulerApi& SaiApiTable::schedulerApi() {
+  return getApi<SchedulerApi>();
+}
+const SchedulerApi& SaiApiTable::schedulerApi() const {
+  return getApi<SchedulerApi>();
+}
+
+SwitchApi& SaiApiTable::switchApi() {
+  return getApi<SwitchApi>();
+}
+const SwitchApi& SaiApiTable::switchApi() const {
+  return getApi<SwitchApi>();
+}
+
+VirtualRouterApi& SaiApiTable::virtualRouterApi() {
+  return getApi<VirtualRouterApi>();
+}
+const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
+  return getApi<VirtualRouterApi>();
+}
+
+VlanApi& SaiApiTable::vlanApi() {
+  return getApi<VlanApi>();
+}
+const VlanApi& SaiApiTable::vlanApi() const {
+  return getApi<VlanApi>();
+}
+
 } // namespace fboss
 } // namespace facebook
