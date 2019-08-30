@@ -46,6 +46,32 @@ class PortManagerTest : public ManagerTestBase {
     auto gotSpeed = portApi.getAttribute(speedAttribute, saiId);
     EXPECT_EQ(25000, gotSpeed);
   }
+
+  /**
+   * DO NOT use this routine for adding ports.
+   * This is only used to verify port consolidation logic in sai port
+   * manager. It makes certain assumptions about the lane numbers and
+   * also adds the port under the hood bypassing the port manager.
+   */
+  sai_object_id_t addPort(const PortID& swId, cfg::PortSpeed portSpeed) {
+    auto& portApi = saiApiTable->portApi();
+    PortApiParameters::Attributes::AdminState adminState{true};
+    std::vector<uint32_t> ls;
+    if (portSpeed == cfg::PortSpeed::TWENTYFIVEG) {
+      ls.push_back(swId);
+    } else {
+      ls.push_back(swId);
+      ls.push_back(swId + 1);
+      ls.push_back(swId + 2);
+      ls.push_back(swId + 3);
+    }
+    PortApiParameters::Attributes::HwLaneList lanes(ls);
+    PortApiParameters::Attributes::Speed speed{static_cast<int>(portSpeed)};
+    PortApiParameters::Attributes a{{lanes, speed, adminState}};
+    auto saiPortId = portApi.create(a.attrs(), 0);
+    return saiPortId;
+  }
+
   TestPort p0;
   TestPort p1;
 };
@@ -130,4 +156,13 @@ TEST_F(PortManagerTest, changeNonExistentPort) {
   saiManagerTable->portManager().addPort(swPort);
   swPort2->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   EXPECT_THROW(saiManagerTable->portManager().changePort(swPort2), FbossError);
+}
+
+TEST_F(PortManagerTest, portConsolidationAddPort) {
+  auto port0 = PortID(0);
+  auto saiPortId0 = addPort(port0, cfg::PortSpeed::TWENTYFIVEG);
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  checkPort(port0, saiId, true);
+  EXPECT_EQ(saiId, saiPortId0);
 }
