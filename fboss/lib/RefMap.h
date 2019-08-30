@@ -75,6 +75,14 @@ class RefMap {
     return map_.size();
   }
 
+  std::shared_ptr<V> ref(const K& k) const {
+    auto itr = map_.find(k);
+    if (itr == map_.end()) {
+      return std::shared_ptr<V>{};
+    }
+    return itr->second.lock();
+  }
+
   V* get(const K& k) {
     return getImpl(k);
   }
@@ -125,11 +133,11 @@ class RefMap {
 
  private:
   V* getImpl(const K& k) const {
-    auto itr = map_.find(k);
-    if (itr == map_.end()) {
+    auto vsp = ref(k);
+    if (!vsp) {
       return nullptr;
     }
-    return itr->second.lock().get();
+    return vsp.get();
   }
 
   MapType map_;

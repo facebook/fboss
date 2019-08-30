@@ -112,6 +112,26 @@ TEST(RefMap, get) {
   EXPECT_EQ(identityMap.size(), 1);
 }
 
+TEST(RefMap, ref) {
+  UnorderedRefMap<int, A> identityMap;
+  bool ins;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins, true);
+  EXPECT_EQ(a1->x, 42);
+  EXPECT_EQ(a1.use_count(), 1);
+  EXPECT_EQ(identityMap.size(), 1);
+  {
+    std::shared_ptr<A> a2 = identityMap.ref(42);
+    EXPECT_EQ(a2->x, 42);
+    EXPECT_EQ(a1.use_count(), 2);
+    EXPECT_EQ(a2.use_count(), 2);
+    EXPECT_EQ(identityMap.size(), 1);
+  }
+  EXPECT_EQ(a1.use_count(), 1);
+  EXPECT_EQ(identityMap.size(), 1);
+}
+
 TEST(RefMap, getNonExistent) {
   UnorderedRefMap<int, A> identityMap;
   bool ins;
