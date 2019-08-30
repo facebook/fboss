@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -65,4 +66,23 @@ TEST_F(BridgeApiTest, removeBridgePort) {
   EXPECT_EQ(fs->brm.get(0).fm().map().size(), 1);
   bridgeApi->remove2(bridgePortId);
   EXPECT_EQ(fs->brm.get(0).fm().map().size(), 0);
+}
+
+TEST_F(BridgeApiTest, bridgeCount) {
+  uint32_t count = getObjectCount<SaiBridgeTraits>(0);
+  // default bridge
+  EXPECT_EQ(count, 1);
+  SaiBridgeTraits::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
+  bridgeApi->create2<SaiBridgeTraits>({bridgeType}, 0);
+  count = getObjectCount<SaiBridgeTraits>(0);
+  EXPECT_EQ(count, 2);
+}
+
+TEST_F(BridgeApiTest, bridgePortCount) {
+  uint32_t count = getObjectCount<SaiBridgePortTraits>(0);
+  EXPECT_EQ(count, 0);
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  bridgeApi->create2<SaiBridgePortTraits>(c, 0);
+  count = getObjectCount<SaiBridgePortTraits>(0);
+  EXPECT_EQ(count, 1);
 }

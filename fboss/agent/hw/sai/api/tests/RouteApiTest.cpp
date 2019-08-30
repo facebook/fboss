@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/RouteApi.h"
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/IPAddress.h>
@@ -78,4 +79,18 @@ TEST_F(RouteApiTest, setRouteNextHop) {
   routeApi->setAttribute2(r, nextHopIdAttribute3);
   EXPECT_EQ(
       routeApi->getAttribute2(r, SaiRouteTraits::Attributes::NextHopId()), 42);
+}
+
+TEST_F(RouteApiTest, routeCount) {
+  uint32_t count = getObjectCount<SaiRouteTraits>(0);
+  EXPECT_EQ(count, 0);
+  folly::CIDRNetwork prefix(ip6, 64);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi->create2<SaiRouteTraits>(
+      r, {packetActionAttribute, nextHopIdAttribute});
+  count = getObjectCount<SaiRouteTraits>(0);
+  EXPECT_EQ(count, 1);
 }

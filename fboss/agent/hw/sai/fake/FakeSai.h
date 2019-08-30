@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiNeighbor.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHop.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiObject.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiQueue.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiRoute.h"

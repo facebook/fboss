@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -34,7 +35,7 @@ class PortApiTest : public ::testing::Test {
     return portApi->create2<SaiPortTraits>(a, 0);
   }
 
-  std::vector<PortSaiId> createFourPorts() const {
+  std::vector<PortSaiId> createFivePorts() const {
     std::vector<PortSaiId> portIds;
     portIds.push_back(createPort(100000, {0, 1, 2, 3}, true));
     for (uint32_t i = 4; i < 8; ++i) {
@@ -80,11 +81,11 @@ TEST_F(PortApiTest, onePort) {
 }
 
 TEST_F(PortApiTest, fourPorts) {
-  auto portIds = createFourPorts();
+  auto portIds = createFivePorts();
 }
 
 TEST_F(PortApiTest, setPortAttributes) {
-  auto portIds = createFourPorts();
+  auto portIds = createFivePorts();
 
   SaiPortTraits::Attributes::AdminState as_attr(true);
   SaiPortTraits::Attributes::Speed speed_attr(50000);
@@ -126,7 +127,7 @@ TEST_F(PortApiTest, removePort) {
   }
   {
     // remove in "canonical" for-loop
-    auto portIds = createFourPorts();
+    auto portIds = createFivePorts();
     for (const auto& portId : portIds) {
       portApi->remove2(portId);
     }
@@ -149,4 +150,14 @@ TEST_F(PortApiTest, getLaneListUnsized) {
   SaiPortTraits::Attributes::HwLaneList hwLaneListAttr;
   auto gotLanes = portApi->getAttribute2(portId, hwLaneListAttr);
   EXPECT_EQ(gotLanes, inLanes);
+}
+
+// ObjectApi tests
+TEST_F(PortApiTest, portCount) {
+  uint32_t count = getObjectCount<SaiPortTraits>(0);
+  // cpu port
+  EXPECT_EQ(count, 1);
+  createFivePorts();
+  count = getObjectCount<SaiPortTraits>(0);
+  EXPECT_EQ(count, 6);
 }
