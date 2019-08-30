@@ -98,7 +98,7 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto port = fs->pm.get(port_id);
+  const auto& port = fs->pm.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:

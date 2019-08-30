@@ -55,13 +55,16 @@ sai_status_t set_route_entry_attribute_fn(
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
   auto& fr = fs->rm.get(re);
   switch (attr->id) {
+    case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
+      fr.packetAction = attr->value.s32;
+      break;
     case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
       fr.nextHopId = attr->value.oid;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
-  return SAI_STATUS_FAILURE;
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_route_entry_attribute_fn(
@@ -76,6 +79,9 @@ sai_status_t get_route_entry_attribute_fn(
   const auto& fr = fs->rm.get(re);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
+      case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
+        attr_list[i].value.s32 = fr.packetAction;
+        break;
       case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
         attr_list[i].value.oid = fr.nextHopId;
         break;

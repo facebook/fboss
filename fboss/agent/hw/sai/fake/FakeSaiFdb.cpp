@@ -79,6 +79,10 @@ sai_status_t get_fdb_entry_attribute_fn(
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
         attr_list[i].value.oid = fdbEntry.bridgePortId;
         break;
+      case SAI_FDB_ENTRY_ATTR_TYPE:
+        // Only static fdb entries for now
+        attr_list[i].value.s32 = SAI_FDB_ENTRY_TYPE_STATIC;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

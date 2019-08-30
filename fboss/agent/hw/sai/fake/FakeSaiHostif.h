@@ -57,18 +57,25 @@ class FakeHostifTrap {
   FakeHostifTrap(
       sai_hostif_trap_type_t trapType,
       sai_packet_action_t packetAction,
+      uint32_t priority,
       sai_object_id_t trapGroup)
-      : trapType(trapType), packetAction(packetAction), trapGroup(trapGroup) {}
+      : trapType(trapType),
+        packetAction(packetAction),
+        priority(priority),
+        trapGroup(trapGroup) {}
   sai_hostif_trap_type_t trapType;
   sai_packet_action_t packetAction;
+  uint32_t priority;
   sai_object_id_t trapGroup;
   sai_object_id_t id;
 };
 
 class FakeHostifTrapGroup {
  public:
-  explicit FakeHostifTrapGroup(uint32_t queueId) : queueId(queueId) {}
+  explicit FakeHostifTrapGroup(uint32_t queueId, sai_object_id_t policer)
+      : queueId(queueId), policerId(policer) {}
   uint32_t queueId;
+  sai_object_id_t policerId;
   sai_object_id_t id;
 };
 

@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <folly/logging/xlog.h>
+
 #include <unordered_map>
 
 extern "C" {

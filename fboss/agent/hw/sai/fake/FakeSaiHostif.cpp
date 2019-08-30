@@ -46,9 +46,10 @@ sai_status_t create_hostif_trap_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  sai_hostif_trap_type_t trapType;
-  sai_packet_action_t packetAction;
-  sai_object_id_t trapGroup;
+  folly::Optional<sai_hostif_trap_type_t> trapType;
+  folly::Optional<sai_packet_action_t> packetAction;
+  sai_object_id_t trapGroup = 0;
+  uint32_t priority = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE:
@@ -57,6 +58,9 @@ sai_status_t create_hostif_trap_fn(
       case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
         packetAction = (sai_packet_action_t)attr_list[i].value.s32;
         break;
+      case SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY:
+        priority = attr_list[i].value.u32;
+        break;
       case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
         trapGroup = attr_list[i].value.oid;
         break;
@@ -64,7 +68,16 @@ sai_status_t create_hostif_trap_fn(
         break;
     }
   }
-  *hostif_trap_id = fs->htm.create(trapType, packetAction, trapGroup);
+  if (!trapType) {
+    XLOG(ERR) << "create hostif trap missing trap type";
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  if (!packetAction) {
+    XLOG(ERR) << "create hostif trap missing packet action";
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *hostif_trap_id = fs->htm.create(
+      trapType.value(), packetAction.value(), priority, trapGroup);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -98,6 +111,8 @@ sai_status_t get_hostif_trap_attribute_fn(
       case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
         attr[i].value.s32 = static_cast<int32_t>(hostifTrap.packetAction);
         break;
+      case SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY:
+        attr[i].value.u32 = hostifTrap.priority;
       case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
         attr[i].value.oid = hostifTrap.trapGroup;
         break;
@@ -115,16 +130,20 @@ sai_status_t create_hostif_trap_group_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   uint32_t queueId = 0;
+  sai_object_id_t policer = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
         queueId = attr_list[i].value.u32;
         break;
+      case SAI_HOSTIF_TRAP_GROUP_ATTR_POLICER:
+        policer = attr_list[i].value.oid;
+        break;
       default:
         break;
     }
   }
-  *hostif_trap_group_id = fs->htgm.create(queueId);
+  *hostif_trap_group_id = fs->htgm.create(queueId, policer);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -154,6 +173,9 @@ sai_status_t get_hostif_trap_group_attribute_fn(
     switch (attr[i].id) {
       case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
         attr[i].value.s32 = static_cast<uint32_t>(hostifTrapGroup.queueId);
+        break;
+      case SAI_HOSTIF_TRAP_GROUP_ATTR_POLICER:
+        attr[i].value.oid = hostifTrapGroup.policerId;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

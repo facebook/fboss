@@ -56,10 +56,21 @@ sai_status_t remove_bridge_fn(sai_object_id_t bridge_id) {
 }
 
 sai_status_t get_bridge_attribute_fn(
-    sai_object_id_t /* bridge_id */,
-    uint32_t /* attr_count */,
-    sai_attribute_t* /* attr */) {
-  return SAI_STATUS_FAILURE;
+    sai_object_id_t bridge_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& bridge = fs->brm.get(bridge_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_BRIDGE_ATTR_TYPE:
+        attr[i].value.s32 = bridge.type;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_bridge_attribute_fn(
