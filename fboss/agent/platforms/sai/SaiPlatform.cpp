@@ -56,12 +56,6 @@ void SaiPlatform::initImpl() {
   saiSwitch_ = std::make_unique<SaiSwitch>(this);
 }
 
-std::vector<int8_t> SaiPlatform::getConnectionHandle() const {
-  static const std::array<int8_t, 34> connStr{
-      "/dev/testdev/socket/0.0.0.0:40000"};
-  return std::vector<int8_t>{std::begin(connStr), std::end(connStr)};
-}
-
 SaiPlatform::SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)) {}
 
@@ -93,6 +87,21 @@ SaiPlatformPort* SaiPlatform::getPort(PortID id) const {
 
 PlatformPort* SaiPlatform::getPlatformPort(PortID port) const {
   return getPort(port);
+}
+
+folly::Optional<std::string> SaiPlatform::getPlatformAttribute(
+    cfg::PlatformAttributes platformAttribute) {
+  auto platform = config()->thrift.get_platform();
+  if (!platform) {
+    throw FbossError("platform config is empty");
+  }
+
+  auto platformIter = platform->platformSettings.find(platformAttribute);
+  if (platformIter == platform->platformSettings.end()) {
+    return folly::none;
+  }
+
+  return platformIter->second;
 }
 
 } // namespace fboss

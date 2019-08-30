@@ -21,15 +21,13 @@
 namespace {
 using namespace facebook::fboss;
 
-std::vector<int8_t> getConnectionHandle() {
-  static const char connStr[] = "/dev/testdev0/socket/0.0.0.0:40000";
-  return std::vector<int8_t>{std::begin(connStr), std::end(connStr)};
-}
-
-SwitchApiParameters::Attributes getSwitchAttributes(
-    const SaiPlatform* platform) {
+SwitchApiParameters::Attributes getSwitchAttributes(SaiPlatform* platform) {
   SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
-  SwitchApiParameters::Attributes::HwInfo hwInfo(getConnectionHandle());
+  auto connStr = platform->getPlatformAttribute(
+      cfg::PlatformAttributes::CONNECTION_HANDLE);
+  auto connectionHandle = std::vector<int8_t>{std::begin(connStr.value()),
+                                              std::end(connStr.value())};
+  SwitchApiParameters::Attributes::HwInfo hwInfo(connectionHandle);
   SwitchApiParameters::Attributes::SrcMac srcMac(platform->getLocalMac());
   return {{initSwitch, hwInfo, srcMac}};
 }
@@ -61,7 +59,7 @@ bool SaiSwitchInstance::operator!=(const SaiSwitchInstance& other) const {
 SaiSwitchManager::SaiSwitchManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
+    SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
   switch_ = std::make_unique<SaiSwitchInstance>(
       apiTable_, getSwitchAttributes(platform));

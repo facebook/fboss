@@ -39,7 +39,8 @@ class SaiPlatform : public Platform {
   virtual sai_service_method_table_t* getServiceMethodTable() const {
     return nullptr;
   }
-  virtual std::vector<int8_t> getConnectionHandle() const;
+  virtual folly::Optional<std::string> getPlatformAttribute(
+      cfg::PlatformAttributes platformAttribute);
   virtual SaiPlatformPort* getPort(PortID id) const;
   virtual PlatformMode getMode() const;
   PlatformPort* getPlatformPort(PortID port) const override;

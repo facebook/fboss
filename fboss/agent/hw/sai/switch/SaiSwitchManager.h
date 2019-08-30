@@ -56,7 +56,7 @@ class SaiSwitchManager {
   SaiSwitchManager(
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+      SaiPlatform* platform);
   const SaiSwitchInstance* getSwitch() const;
   SaiSwitchInstance* getSwitch();
   sai_object_id_t getSwitchSaiId() const;
