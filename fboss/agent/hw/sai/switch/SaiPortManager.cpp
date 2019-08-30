@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
@@ -24,8 +25,73 @@ namespace fboss {
 SaiPortManager::SaiPortManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
+    SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+
+bool SaiPortManager::isValidPortConfig(const std::shared_ptr<Port>& swPort) {
+  auto platformPort = platform_->getPort(swPort->getID());
+  // TODO: Revisit this. Add a test with different speed and the
+  // subsumed port list is not right in agentconfigfactory.
+  /*
+   * getSubsumedPorts returns a list of PortID from the platform by
+   * reading the agent config given the port speed. This would return
+   * false if a port has been already created from the subsumed port list.
+   */
+  auto subsumedPorts = platformPort->getSubsumedPorts(swPort->getSpeed());
+  for (auto portId : subsumedPorts) {
+    if (ports_.find(portId) != ports_.end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+sai_object_id_t SaiPortManager::getSaiPortImpl(
+    const std::vector<uint32_t>& hwLanes,
+    cfg::PortSpeed speed) {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
+  auto& switchApi = apiTable_->switchApi();
+  auto numPorts = switchApi.getAttribute(
+      SwitchApiParameters::Attributes::PortNumber(), switchId);
+  if (numPorts == 0) {
+    return SAI_NULL_OBJECT_ID;
+  }
+  std::vector<sai_object_id_t> portList;
+  portList.resize(numPorts);
+  auto portIds = switchApi.getAttribute(
+      SwitchApiParameters::Attributes::PortList(portList), switchId);
+  // TODO: finding a portId everytime a port is added is
+  // expensive. ports from config * ports configured. Other approach is to
+  // map these object ids to portIDs using the platform config during init.
+  for (auto portId : portIds) {
+    auto attributes = attributesFromSaiPort(portId);
+    // TODO: should we consider admin state ? The attribute list
+    // constructed here vs the attributes used by the addPort will differ
+    // if the admin state differs.
+    if (attributes.hwLaneList == hwLanes and
+        static_cast<cfg::PortSpeed>(attributes.speed) == speed) {
+      XLOG(DBG2) << "Consolidated sai port id: " << portId;
+      return portId;
+    }
+  }
+  return SAI_NULL_OBJECT_ID;
+}
+
+sai_object_id_t SaiPortManager::getSaiPortIf(
+    const std::vector<uint32_t>& hwLanes,
+    cfg::PortSpeed speed) {
+  return getSaiPortImpl(hwLanes, speed);
+}
+
+sai_object_id_t SaiPortManager::getSaiPort(
+    const std::vector<uint32_t>& hwLanes,
+    cfg::PortSpeed speed) {
+  auto saiPortId = getSaiPortImpl(hwLanes, speed);
+  if (saiPortId == SAI_NULL_OBJECT_ID) {
+    throw FbossError("failed to find sai port");
+  }
+  return saiPortId;
+}
 
 sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPort* existingPort = getPort(swPort->getID());
@@ -36,9 +102,21 @@ sai_object_id_t SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         " SAI id: ",
         existingPort->id());
   }
+  if (!swPort->isEnabled()) {
+    return SAI_NULL_OBJECT_ID;
+  }
+  if (!isValidPortConfig(swPort)) {
+    throw FbossError("Invalid port configuration ", swPort->getID());
+  }
   PortApiParameters::Attributes attributes = attributesFromSwPort(swPort);
-  auto saiPort =
-      std::make_unique<SaiPort>(apiTable_, managerTable_, attributes);
+  auto saiPortId = getSaiPortIf(attributes.hwLaneList, swPort->getSpeed());
+  std::unique_ptr<SaiPort> saiPort;
+  if (saiPortId != SAI_NULL_OBJECT_ID) {
+    saiPort = std::make_unique<SaiPort>(
+        apiTable_, managerTable_, attributes, saiPortId);
+  } else {
+    saiPort = std::make_unique<SaiPort>(apiTable_, managerTable_, attributes);
+  }
   sai_object_id_t saiId = saiPort->id();
   ports_.emplace(std::make_pair(swPort->getID(), std::move(saiPort)));
   portSaiIds_.emplace(std::make_pair(saiId, swPort->getID()));
@@ -74,7 +152,6 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort) const {
   bool adminState;
   std::vector<uint32_t> hwLaneList;
-  uint32_t speed;
   switch (swPort->getAdminState()) {
     case cfg::PortState::DISABLED:
       adminState = false;
@@ -87,6 +164,7 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
       XLOG(INFO) << "Invalid port admin state!";
       break;
   }
+  uint32_t speed;
   switch (swPort->getSpeed()) {
     // TODO: actual lane mapping! :)
     case cfg::PortSpeed::TWENTYFIVEG:
@@ -102,6 +180,20 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
       speed = 0;
       XLOG(INFO) << "Invalid port speed!";
   }
+  return PortApiParameters::Attributes({hwLaneList, speed, adminState});
+}
+
+PortApiParameters::Attributes SaiPortManager::attributesFromSaiPort(
+    const sai_object_id_t saiPortId) const {
+  auto& portApi = apiTable_->portApi();
+  auto speed =
+      portApi.getAttribute(PortApiParameters::Attributes::Speed(), saiPortId);
+  std::vector<uint32_t> ls;
+  ls.resize(8);
+  auto hwLaneList = portApi.getAttribute(
+      PortApiParameters::Attributes::HwLaneList(ls), saiPortId);
+  auto adminState = portApi.getAttribute(
+      PortApiParameters::Attributes::AdminState(), saiPortId);
   return PortApiParameters::Attributes({hwLaneList, speed, adminState});
 }
 
@@ -143,6 +235,18 @@ SaiPort::SaiPort(
   auto& portApi = apiTable_->portApi();
   auto switchId = managerTable->switchManager().getSwitchSaiId();
   id_ = portApi.create(attributes_.attrs(), switchId);
+  bridgePort_ = managerTable_->bridgeManager().addBridgePort(id_);
+}
+
+SaiPort::SaiPort(
+    SaiApiTable* apiTable,
+    SaiManagerTable* managerTable,
+    const PortApiParameters::Attributes& attributes,
+    sai_object_id_t id)
+    : apiTable_(apiTable),
+      managerTable_(managerTable),
+      attributes_(attributes),
+      id_(id) {
   bridgePort_ = managerTable_->bridgeManager().addBridgePort(id_);
 }
 

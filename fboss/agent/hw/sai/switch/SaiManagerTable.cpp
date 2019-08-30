@@ -28,9 +28,7 @@
 namespace facebook {
 namespace fboss {
 
-SaiManagerTable::SaiManagerTable(
-    SaiApiTable* apiTable,
-    const SaiPlatform* platform)
+SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable, SaiPlatform* platform)
     : apiTable_(apiTable) {
   switchManager_ =
       std::make_unique<SaiSwitchManager>(apiTable_, this, platform);

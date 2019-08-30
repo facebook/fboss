@@ -32,7 +32,7 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(SaiApiTable* apiTable, const SaiPlatform* platform);
+  SaiManagerTable(SaiApiTable* apiTable, SaiPlatform* platform);
   ~SaiManagerTable();
 
   SaiBridgeManager& bridgeManager();

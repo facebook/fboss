@@ -31,6 +31,11 @@ class SaiPort {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const PortApiParameters::Attributes& attributes);
+  SaiPort(
+      SaiApiTable* apiTable,
+      SaiManagerTable* managerTable,
+      const PortApiParameters::Attributes& attributes,
+      sai_object_id_t id);
   ~SaiPort();
   // This is an RAII type which manages the lifetime of the port
   // being programmed to the underlying SAI Adapter. For this reason,
@@ -73,22 +78,34 @@ class SaiPortManager {
   SaiPortManager(
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+      SaiPlatform* platform);
   sai_object_id_t addPort(const std::shared_ptr<Port>& swPort);
   void removePort(PortID id);
   void changePort(const std::shared_ptr<Port>& swPort);
 
   PortApiParameters::Attributes attributesFromSwPort(
       const std::shared_ptr<Port>& swPort) const;
+  PortApiParameters::Attributes attributesFromSaiPort(
+      const sai_object_id_t saiPortId) const;
   const SaiPort* getPort(PortID swId) const;
   SaiPort* getPort(PortID swId);
   PortID getPortID(sai_object_id_t saiId) const;
+  sai_object_id_t getSaiPortIf(
+      const std::vector<uint32_t>& hwLanes,
+      cfg::PortSpeed speed);
+  sai_object_id_t getSaiPort(
+      const std::vector<uint32_t>& hwLanes,
+      cfg::PortSpeed speed);
 
  private:
   SaiPort* getPortImpl(PortID swId) const;
+  bool isValidPortConfig(const std::shared_ptr<Port>& swPort);
+  sai_object_id_t getSaiPortImpl(
+      const std::vector<uint32_t>& hwLanes,
+      cfg::PortSpeed speed);
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
-  const SaiPlatform* platform_;
+  SaiPlatform* platform_;
   std::unordered_map<PortID, std::unique_ptr<SaiPort>> ports_;
   std::unordered_map<sai_object_id_t, PortID> portSaiIds_;
 };
