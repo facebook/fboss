@@ -17,3 +17,9 @@ sai_status_t sai_get_object_count(
     sai_object_id_t switch_id,
     sai_object_type_t object_type,
     uint32_t* count);
+
+sai_status_t sai_get_object_key(
+    sai_object_id_t switch_id,
+    sai_object_type_t object_type,
+    uint32_t count,
+    sai_object_key_t* object_list);

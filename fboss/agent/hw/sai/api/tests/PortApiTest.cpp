@@ -161,3 +161,14 @@ TEST_F(PortApiTest, portCount) {
   count = getObjectCount<SaiPortTraits>(0);
   EXPECT_EQ(count, 6);
 }
+
+TEST_F(PortApiTest, portKeys) {
+  auto portIds = createFivePorts();
+  auto keys = getObjectKeys<SaiPortTraits>(0);
+  EXPECT_EQ(keys.size(), 6);
+  // cpu port
+  portIds.push_back(PortSaiId(0));
+  std::sort(portIds.begin(), portIds.end());
+  std::sort(keys.begin(), keys.end());
+  EXPECT_EQ(keys, portIds);
+}

@@ -94,3 +94,16 @@ TEST_F(RouteApiTest, routeCount) {
   count = getObjectCount<SaiRouteTraits>(0);
   EXPECT_EQ(count, 1);
 }
+
+TEST_F(RouteApiTest, routeKeys) {
+  folly::CIDRNetwork prefix(ip6, 64);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi->create2<SaiRouteTraits>(
+      r, {packetActionAttribute, nextHopIdAttribute});
+  auto routeKeys = getObjectKeys<SaiRouteTraits>(0);
+  EXPECT_EQ(routeKeys.size(), 1);
+  EXPECT_EQ(routeKeys[0], r);
+}
