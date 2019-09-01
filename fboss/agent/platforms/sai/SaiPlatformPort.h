@@ -47,6 +47,8 @@ class SaiPlatformPort : public PlatformPort {
   void externalState(ExternalState) override {}
   virtual std::vector<uint32_t> getHwPortLanes(cfg::PortSpeed speed) const;
   virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
+  virtual phy::FecMode getFecMode(cfg::PortSpeed speed) const;
+  virtual TransmitterTechnology getTransmitterTech();
 
  private:
   PortID id_{0};

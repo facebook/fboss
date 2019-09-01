@@ -172,3 +172,47 @@ TEST_F(PortApiTest, portKeys) {
   std::sort(keys.begin(), keys.end());
   EXPECT_EQ(keys, portIds);
 }
+
+TEST_F(PortApiTest, setGetOptionalAttributes) {
+  auto portId = createPort(25000, {42}, true);
+
+  // Fec Mode get/set
+  int32_t saiFecMode = SAI_PORT_FEC_MODE_RS;
+  PortApiParameters::Attributes::FecMode fecMode{saiFecMode};
+  portApi->setAttribute(fecMode, portId);
+  auto gotFecMode = portApi->getAttribute(fecMode, portId);
+  EXPECT_EQ(gotFecMode, saiFecMode);
+
+  // Internal Loopback Mode get/set
+  int32_t saiInternalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
+  PortApiParameters::Attributes::InternalLoopbackMode internalLoopbackMode{
+      saiInternalLoopbackMode};
+  portApi->setAttribute(internalLoopbackMode, portId);
+  auto gotInternalLoopbackMode =
+      portApi->getAttribute(internalLoopbackMode, portId);
+  EXPECT_EQ(gotInternalLoopbackMode, saiInternalLoopbackMode);
+
+  // Media type get/set
+  int32_t saiMediaType = SAI_PORT_MEDIA_TYPE_COPPER;
+  PortApiParameters::Attributes::MediaType mediaType{saiMediaType};
+  portApi->setAttribute(mediaType, portId);
+  auto gotMediaType = portApi->getAttribute(mediaType, portId);
+  EXPECT_EQ(gotMediaType, saiMediaType);
+
+  // Global Flow Control get/set
+  int32_t saiFlowControl = SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
+  PortApiParameters::Attributes::GlobalFlowControlMode flowControl{
+      saiFlowControl};
+  portApi->setAttribute(flowControl, portId);
+  auto gotFlowControl = portApi->getAttribute(flowControl, portId);
+  EXPECT_EQ(gotFlowControl, saiFlowControl);
+
+  // Ingress port vlan get/set
+  sai_vlan_id_t saiPortVlanId = 2000;
+  PortApiParameters::Attributes::PortVlanId portVlanId{saiPortVlanId};
+  portApi->setAttribute(portVlanId, portId);
+  auto gotPortVlanId = portApi->getAttribute(portVlanId, portId);
+  EXPECT_EQ(gotPortVlanId, saiPortVlanId);
+
+  portApi->remove(portId);
+}

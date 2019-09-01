@@ -46,6 +46,13 @@ class FakePort {
   bool adminState{false};
   std::vector<uint32_t> lanes;
   uint32_t speed{0};
+  sai_port_fec_mode_t fecMode{SAI_PORT_FEC_MODE_NONE};
+  sai_port_internal_loopback_mode_t internalLoopbackMode{
+      SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
+  sai_port_flow_control_mode_t globalFlowControlMode{
+      SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
+  sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
+  sai_vlan_id_t vlanId{0};
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;

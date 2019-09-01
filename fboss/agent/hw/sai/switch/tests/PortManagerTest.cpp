@@ -38,6 +38,8 @@ class PortManagerTest : public ManagerTestBase {
     ls.resize(1);
     PortApiParameters::Attributes::HwLaneList hwLaneListAttribute(ls);
     PortApiParameters::Attributes::Speed speedAttribute;
+    PortApiParameters::Attributes::FecMode fecMode;
+    PortApiParameters::Attributes::InternalLoopbackMode ilbMode;
     auto gotAdminState = portApi.getAttribute(adminStateAttribute, saiId);
     EXPECT_EQ(enabled, gotAdminState);
     auto gotLanes = portApi.getAttribute(hwLaneListAttribute, saiId);
@@ -45,6 +47,11 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_EQ(swId, gotLanes[0]);
     auto gotSpeed = portApi.getAttribute(speedAttribute, saiId);
     EXPECT_EQ(25000, gotSpeed);
+    auto gotFecMode = portApi.getAttribute(fecMode, saiId);
+    EXPECT_EQ(static_cast<int32_t>(SAI_PORT_FEC_MODE_NONE), gotFecMode);
+    auto gotIlbMode = portApi.getAttribute(ilbMode, saiId);
+    EXPECT_EQ(
+        static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
   }
 
   /**
@@ -67,7 +74,14 @@ class PortManagerTest : public ManagerTestBase {
     }
     PortApiParameters::Attributes::HwLaneList lanes(ls);
     PortApiParameters::Attributes::Speed speed{static_cast<int>(portSpeed)};
-    PortApiParameters::Attributes a{{lanes, speed, adminState}};
+    PortApiParameters::Attributes a{{lanes,
+                                     speed,
+                                     adminState,
+                                     folly::none,
+                                     folly::none,
+                                     folly::none,
+                                     folly::none,
+                                     folly::none}};
     auto saiPortId = portApi.create(a.attrs(), 0);
     return saiPortId;
   }

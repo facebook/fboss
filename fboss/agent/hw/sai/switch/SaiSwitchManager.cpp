@@ -23,10 +23,13 @@ using namespace facebook::fboss;
 
 SwitchApiParameters::Attributes getSwitchAttributes(SaiPlatform* platform) {
   SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
+  std::vector<int8_t> connectionHandle;
   auto connStr = platform->getPlatformAttribute(
       cfg::PlatformAttributes::CONNECTION_HANDLE);
-  auto connectionHandle = std::vector<int8_t>{std::begin(connStr.value()),
-                                              std::end(connStr.value())};
+  if (connStr.hasValue()) {
+    connectionHandle = std::vector<int8_t>{std::begin(connStr.value()),
+                                           std::end(connStr.value())};
+  }
   SwitchApiParameters::Attributes::HwInfo hwInfo(connectionHandle);
   SwitchApiParameters::Attributes::SrcMac srcMac(platform->getLocalMac());
   return {{initSwitch, hwInfo, srcMac}};

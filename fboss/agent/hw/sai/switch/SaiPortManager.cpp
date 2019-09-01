@@ -179,7 +179,61 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSwPort(
 
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
-  return PortApiParameters::Attributes({hwLaneList, speed, adminState});
+
+  auto fecMode = SAI_PORT_FEC_MODE_NONE;
+  if (!platformPort->shouldDisableFEC() &&
+      swPort->getFEC() == cfg::PortFEC::ON) {
+    auto fec = platformPort->getFecMode(swPort->getSpeed());
+    if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
+      fecMode = SAI_PORT_FEC_MODE_FC;
+    } else if (fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544) {
+      fecMode = SAI_PORT_FEC_MODE_RS;
+    }
+  }
+
+  auto pause = swPort->getPause();
+  auto globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_DISABLE;
+  if (pause.tx && pause.rx) {
+    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
+  } else if (pause.tx) {
+    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
+  } else if (pause.rx) {
+    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
+  }
+
+  auto internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
+  switch (swPort->getLoopbackMode()) {
+    case cfg::PortLoopbackMode::NONE:
+      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
+      break;
+    case cfg::PortLoopbackMode::PHY:
+      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_PHY;
+      break;
+    case cfg::PortLoopbackMode::MAC:
+      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
+      break;
+  }
+
+  auto mediaType = SAI_PORT_MEDIA_TYPE_UNKNOWN;
+  switch (platformPort->getTransmitterTech()) {
+    case TransmitterTechnology::COPPER:
+      mediaType = SAI_PORT_MEDIA_TYPE_COPPER;
+      break;
+    case TransmitterTechnology::OPTICAL:
+      mediaType = SAI_PORT_MEDIA_TYPE_FIBER;
+      break;
+    default:
+      mediaType = SAI_PORT_MEDIA_TYPE_UNKNOWN;
+  }
+  uint16_t vlanId = swPort->getIngressVlan();
+  return PortApiParameters::Attributes({hwLaneList,
+                                        speed,
+                                        adminState,
+                                        fecMode,
+                                        internalLoopbackMode,
+                                        mediaType,
+                                        globalFlowControlMode,
+                                        vlanId});
 }
 
 PortApiParameters::Attributes SaiPortManager::attributesFromSaiPort(
@@ -193,7 +247,24 @@ PortApiParameters::Attributes SaiPortManager::attributesFromSaiPort(
       PortApiParameters::Attributes::HwLaneList(ls), saiPortId);
   auto adminState = portApi.getAttribute(
       PortApiParameters::Attributes::AdminState(), saiPortId);
-  return PortApiParameters::Attributes({hwLaneList, speed, adminState});
+  auto fecMode =
+      portApi.getAttribute(PortApiParameters::Attributes::FecMode(), saiPortId);
+  auto internalLoopbackMode = portApi.getAttribute(
+      PortApiParameters::Attributes::InternalLoopbackMode(), saiPortId);
+  auto mediaType = portApi.getAttribute(
+      PortApiParameters::Attributes::MediaType(), saiPortId);
+  auto flowControlMode = portApi.getAttribute(
+      PortApiParameters::Attributes::GlobalFlowControlMode(), saiPortId);
+  auto portVlanId = portApi.getAttribute(
+      PortApiParameters::Attributes::PortVlanId(), saiPortId);
+  return PortApiParameters::Attributes({hwLaneList,
+                                        speed,
+                                        adminState,
+                                        fecMode,
+                                        internalLoopbackMode,
+                                        mediaType,
+                                        flowControlMode,
+                                        portVlanId});
 }
 
 // private const getter for use by const and non-const getters
@@ -267,6 +338,36 @@ void SaiPort::setAttributes(
   if (attributes_.hwLaneList != desiredAttributes.hwLaneList) {
     portApi.setAttribute(
         PortApiParameters::Attributes::HwLaneList{desiredAttributes.hwLaneList},
+        id_);
+  }
+
+  if (attributes_.fecMode != desiredAttributes.fecMode) {
+    portApi.setAttribute(
+        PortApiParameters::Attributes::FecMode{
+            desiredAttributes.fecMode.value()},
+        id_);
+  }
+
+  if (attributes_.internalLoopbackMode !=
+      desiredAttributes.internalLoopbackMode) {
+    portApi.setAttribute(
+        PortApiParameters::Attributes::InternalLoopbackMode{
+            desiredAttributes.internalLoopbackMode.value()},
+        id_);
+  }
+
+  if (attributes_.globalFlowControlMode !=
+      desiredAttributes.globalFlowControlMode) {
+    portApi.setAttribute(
+        PortApiParameters::Attributes::GlobalFlowControlMode{
+            desiredAttributes.globalFlowControlMode.value()},
+        id_);
+  }
+
+  if (attributes_.portVlanId != desiredAttributes.portVlanId) {
+    portApi.setAttribute(
+        PortApiParameters::Attributes::PortVlanId{
+            desiredAttributes.portVlanId.value()},
         id_);
   }
 }

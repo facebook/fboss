@@ -30,9 +30,7 @@ void SaiPlatformPort::linkSpeedChanged(const cfg::PortSpeed& /* speed */) {}
 bool SaiPlatformPort::supportsTransceiver() const {
   return false;
 }
-folly::Optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
-  return folly::none;
-}
+
 void SaiPlatformPort::statusIndication(
     bool /* enabled */,
     bool /* link */,
@@ -93,6 +91,34 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     subsumedPortList.push_back(PortID(portId));
   }
   return subsumedPortList;
+}
+
+phy::FecMode SaiPlatformPort::getFecMode(cfg::PortSpeed speed) const {
+  auto platformSettings = getPlatformPortSettings(speed);
+  if (!platformSettings) {
+    throw FbossError(
+        "platform port settings is empty for port ", id_, "speed ", speed);
+  }
+  return platformSettings->iphy_ref()->fec;
+}
+
+folly::Optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
+  // TODO (srikrishnagopu): TransceiverID is now part of AgentConfig in
+  // front panel resources which is defined per speed. Declaring default
+  // speed for now to get the transceiverid.
+  auto speed = cfg::PortSpeed::HUNDREDG;
+  auto platformSettings = getPlatformPortSettings(speed);
+  if (!platformSettings) {
+    throw FbossError(
+        "platform port settings is empty for port ", id_, "speed ", speed);
+  }
+  return static_cast<TransceiverID>(
+      platformSettings->frontPanelResources_ref()->transceiverId);
+}
+
+TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
+  // TODO(srikrishnagopu): Copy it from wedge port ?
+  return TransmitterTechnology::OPTICAL;
 }
 
 } // namespace fboss

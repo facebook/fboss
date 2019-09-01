@@ -69,16 +69,52 @@ struct PortApiParameters {
         EnumType,
         SAI_PORT_ATTR_QOS_QUEUE_LIST,
         std::vector<sai_object_id_t>>;
-
-    using CreateAttributes =
-        SaiAttributeTuple<HwLaneList, Speed, SaiAttributeOptional<AdminState>>;
+    using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
+    using OperStatus =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
+    using InternalLoopbackMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
+        sai_int32_t>;
+    using MediaType =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_MEDIA_TYPE, sai_int32_t>;
+    using GlobalFlowControlMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE,
+        sai_int32_t>;
+    using PortVlanId =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
+    using CreateAttributes = SaiAttributeTuple<
+        HwLaneList,
+        Speed,
+        SaiAttributeOptional<AdminState>,
+        SaiAttributeOptional<FecMode>,
+        SaiAttributeOptional<InternalLoopbackMode>,
+        SaiAttributeOptional<MediaType>,
+        SaiAttributeOptional<GlobalFlowControlMode>,
+        SaiAttributeOptional<PortVlanId>>;
 
     Attributes(const CreateAttributes& attrs) {
-      std::tie(hwLaneList, speed, adminState) = attrs.value();
+      std::tie(
+          hwLaneList,
+          speed,
+          adminState,
+          fecMode,
+          internalLoopbackMode,
+          mediaType,
+          globalFlowControlMode,
+          portVlanId) = attrs.value();
     }
 
     CreateAttributes attrs() const {
-      return {hwLaneList, speed, adminState};
+      return {hwLaneList,
+              speed,
+              adminState,
+              fecMode,
+              internalLoopbackMode,
+              mediaType,
+              globalFlowControlMode,
+              portVlanId};
     }
     bool operator==(const Attributes& other) const {
       return attrs() == other.attrs();
@@ -89,6 +125,13 @@ struct PortApiParameters {
     HwLaneList::ValueType hwLaneList;
     Speed::ValueType speed;
     folly::Optional<typename AdminState::ValueType> adminState;
+    folly::Optional<typename FecMode::ValueType> fecMode;
+    folly::Optional<typename InternalLoopbackMode::ValueType>
+        internalLoopbackMode;
+    folly::Optional<typename MediaType::ValueType> mediaType;
+    folly::Optional<typename GlobalFlowControlMode::ValueType>
+        globalFlowControlMode;
+    folly::Optional<typename PortVlanId::ValueType> portVlanId;
   };
 };
 

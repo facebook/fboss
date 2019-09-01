@@ -25,6 +25,11 @@ sai_status_t create_port_fn(
   folly::Optional<bool> adminState;
   std::vector<uint32_t> lanes;
   folly::Optional<sai_uint32_t> speed;
+  folly::Optional<sai_port_fec_mode_t> fecMode;
+  folly::Optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
+  folly::Optional<sai_port_flow_control_mode_t> flowControlMode;
+  folly::Optional<sai_port_media_type_t> mediaType;
+  folly::Optional<sai_vlan_id_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -38,6 +43,23 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_SPEED:
         speed = attr_list[i].value.u32;
         break;
+      case SAI_PORT_ATTR_FEC_MODE:
+        fecMode = static_cast<sai_port_fec_mode_t>(attr_list[i].value.u32);
+        break;
+      case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
+        internalLoopbackMode = static_cast<sai_port_internal_loopback_mode_t>(
+            attr_list[i].value.u32);
+        break;
+      case SAI_PORT_ATTR_MEDIA_TYPE:
+        mediaType = static_cast<sai_port_media_type_t>(attr_list[i].value.s32);
+        break;
+      case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
+        flowControlMode =
+            static_cast<sai_port_flow_control_mode_t>(attr_list[i].value.s32);
+        break;
+      case SAI_PORT_ATTR_PORT_VLAN_ID:
+        vlanId = attr_list[i].value.u16;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -46,9 +68,24 @@ sai_status_t create_port_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *port_id = fs->pm.create(lanes, speed.value());
+  auto& port = fs->pm.get(*port_id);
   if (adminState) {
-    auto& port = fs->pm.get(*port_id);
     port.adminState = adminState.value();
+  }
+  if (fecMode.hasValue()) {
+    port.fecMode = fecMode.value();
+  }
+  if (internalLoopbackMode.hasValue()) {
+    port.internalLoopbackMode = internalLoopbackMode.value();
+  }
+  if (vlanId.hasValue()) {
+    port.vlanId = vlanId.value();
+  }
+  if (mediaType.hasValue()) {
+    port.mediaType = mediaType.value();
+  }
+  if (vlanId.hasValue()) {
+    port.vlanId = vlanId.value();
   }
   return SAI_STATUS_SUCCESS;
 }
@@ -84,6 +121,28 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_SPEED:
       port.speed = attr->value.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_PORT_ATTR_FEC_MODE:
+      port.fecMode = static_cast<sai_port_fec_mode_t>(attr->value.s32);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
+      port.internalLoopbackMode =
+          static_cast<sai_port_internal_loopback_mode_t>(attr->value.s32);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_PORT_ATTR_MEDIA_TYPE:
+      port.mediaType = static_cast<sai_port_media_type_t>(attr->value.s32);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
+      port.globalFlowControlMode =
+          static_cast<sai_port_flow_control_mode_t>(attr->value.s32);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_PORT_ATTR_PORT_VLAN_ID:
+      port.vlanId = static_cast<sai_vlan_id_t>(attr->value.u16);
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -122,6 +181,21 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_LIST:
         attr[i].value.objlist.count = 0;
+        break;
+      case SAI_PORT_ATTR_FEC_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.fecMode);
+        break;
+      case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.internalLoopbackMode);
+        break;
+      case SAI_PORT_ATTR_MEDIA_TYPE:
+        attr[i].value.s32 = static_cast<int32_t>(port.mediaType);
+        break;
+      case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
+        attr[i].value.s32 = static_cast<int32_t>(port.globalFlowControlMode);
+        break;
+      case SAI_PORT_ATTR_PORT_VLAN_ID:
+        attr[i].value.u16 = port.vlanId;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
