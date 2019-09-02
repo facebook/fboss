@@ -114,6 +114,15 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
     return _setAttr(&attr, switch_id);
   }
 
+  sai_status_t registerPortStateChangeCallback(
+      sai_object_id_t switch_id,
+      sai_port_state_change_notification_fn port_state_change_cb) {
+    sai_attribute_t attr;
+    attr.id = SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY;
+    attr.value.ptr = (void*)port_state_change_cb;
+    return _setAttr(&attr, switch_id);
+  }
+
  private:
   sai_status_t _create(
       sai_object_id_t* switch_id,

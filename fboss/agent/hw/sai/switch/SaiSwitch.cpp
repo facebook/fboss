@@ -60,6 +60,12 @@ void __gPacketRxCallback(
       switch_id, buffer_size, buffer, attr_count, attr_list);
 }
 
+void __glinkStateChangedNotification(
+    uint32_t count,
+    const sai_port_oper_status_notification_t* data) {
+  __gSaiSwitch->linkStateChangedCallback(count, data);
+}
+
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return initLocked(lock, callback);
@@ -180,6 +186,16 @@ void SaiSwitch::packetRxCallback(
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   packetRxCallbackLocked(
       lock, switch_id, buffer_size, buffer, attr_count, attr_list);
+}
+
+void SaiSwitch::linkStateChangedCallback(
+    uint32_t count,
+    const sai_port_oper_status_notification_t* data) {
+  for (auto i = 0; i < count; i++) {
+    auto state = data[i].port_state == SAI_PORT_OPER_STATUS_UP ? "up" : "down";
+    XLOG(INFO) << "port " << state << " notification received for " << std::hex
+               << data[i].port_id;
+  }
 }
 
 BootType SaiSwitch::getBootType() const {
@@ -364,6 +380,8 @@ void SaiSwitch::switchRunStateChangedLocked(
     case SwitchRunState::INITIALIZED: {
       auto& switchApi = apiTableLocked(lock)->switchApi();
       switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+      switchApi.registerPortStateChangeCallback(
+          switchId_, __glinkStateChangedNotification);
     } break;
     default:
       break;

@@ -81,6 +81,10 @@ class SaiSwitch : public HwSwitch {
       uint32_t attr_count,
       const sai_attribute_t* attr_list);
 
+  void linkStateChangedCallback(
+      uint32_t count,
+      const sai_port_oper_status_notification_t* data);
+
   BootType getBootType() const override;
 
   const SaiManagerTable* managerTable() const;
