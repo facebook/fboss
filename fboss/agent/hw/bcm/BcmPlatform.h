@@ -98,9 +98,6 @@ class BcmPlatform : public Platform {
 
   virtual bool isCosSupported() const = 0;
 
-  virtual bool areAclsSupported() const {
-    return true;
-  }
   virtual bool v6MirrorTunnelSupported() const = 0;
 
   virtual bool sflowSamplingSupported() const = 0;

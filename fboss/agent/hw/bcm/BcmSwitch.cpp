@@ -1320,11 +1320,6 @@ void BcmSwitch::processQosChanges(const StateDelta& delta) {
 }
 
 void BcmSwitch::processAclChanges(const StateDelta& delta) {
-  if (!platform_->areAclsSupported()) {
-    // certain platforms may not support acls fully.
-    return;
-  }
-
   forEachChanged(
       delta.getAclsDelta(),
       &BcmSwitch::processChangedAcl,
