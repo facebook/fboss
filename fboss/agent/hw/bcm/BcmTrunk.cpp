@@ -23,6 +23,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/AggregatePort.h"
 
 using std::vector;
@@ -45,6 +46,19 @@ BcmTrunk::~BcmTrunk() {
 }
 
 void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
+  auto warmBootCache = hw_->getWarmBootCache();
+
+  auto foundTrunk = std::find_if(
+      warmBootCache->trunks_begin(),
+      warmBootCache->trunks_end(),
+      [&aggPort](auto& trunk) { return aggPort->getID() == trunk.first; });
+
+  if (foundTrunk != warmBootCache->trunks_end()) {
+    bcmTrunkID_ = foundTrunk->second;
+    warmBootCache->programmed(foundTrunk);
+    return;
+  }
+
   auto rv = opennsl_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
   bcmCheckError(
       rv, "failed to create trunk for aggregate port ", aggPort->getID());
