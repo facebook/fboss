@@ -27,6 +27,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -41,6 +42,10 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
+
+extern "C" {
+#include <opennsl/trunk.h>
+}
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -58,6 +63,7 @@ using namespace facebook::fboss;
 
 namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
+auto constexpr kTrunks = "trunks";
 auto constexpr kVlanForCPUEgressEntries = 0;
 auto constexpr kACLFieldGroupID = 128;
 
@@ -146,6 +152,13 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
     ecmps.push_back(std::move(ecmp));
   }
   warmBootCache[kEcmpObjects] = std::move(ecmps);
+
+  folly::dynamic trunks = folly::dynamic::object;
+  auto& trunkTable = *getHw()->getTrunkTable();
+  for (const auto& e : trunkTable) {
+    trunks[std::to_string(e.first)] = e.second->id();
+  }
+  warmBootCache[kTrunks] = std::move(trunks);
   return warmBootCache;
 }
 
@@ -189,6 +202,15 @@ void BcmWarmBootCache::populateFromWarmBootState(
   for (auto& ecmpIdAndEgress : hwSwitchEcmp2EgressIds_) {
     XLOG(DBG1) << ecmpIdAndEgress.first << " (from warmboot file) ==> "
                << toEgressIdsStr(ecmpIdAndEgress.second);
+  }
+
+  auto& trunks = warmBootState[kHwSwitch][kWarmBootCache][kTrunks];
+  for (const auto& e : trunks.items()) {
+    trunks_[AggregatePortID(e.first.asInt())] = e.second.asInt();
+  }
+  XLOG(DBG1) << "Reconstructed following list of trunks ";
+  for (const auto& e : trunks_) {
+    XLOG(DBG0) << "Aggregate port " << e.first << " => trunk ID " << e.second;
   }
 
   // Extract BcmHost and its egress object from the warm boot file
@@ -984,6 +1006,12 @@ void BcmWarmBootCache::removeUnclaimedMirrors() {
       [this](const auto& mirrorEgressPath2Handle) {
         this->removeUnclaimedMirror(mirrorEgressPath2Handle.second);
       });
+}
+
+void BcmWarmBootCache::programmed(TrunksItr itr) {
+  XLOG(DBG1) << "Programmed trunk id=" << itr->second
+             << ", removing from warm boot cache.";
+  trunks_.erase(itr);
 }
 
 BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(

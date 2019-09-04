@@ -30,6 +30,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
+#include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/types.h"
@@ -150,6 +151,7 @@ class BcmWarmBootCache {
       flat_map<std::pair<opennsl_gport_t, uint32_t>, BcmMirrorHandle>;
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
+  using Trunks = boost::container::flat_map<AggregatePortID, opennsl_trunk_t>;
   using IngressQosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
   using IngressQosMapsItr = IngressQosMaps::iterator;
 
@@ -473,6 +475,18 @@ class BcmWarmBootCache {
   AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry);
   void programmed(AclEntry2AclStatItr itr);
 
+  /*
+   * Iterators and find functions for trunks
+   */
+  using TrunksItr = Trunks::iterator;
+  TrunksItr trunks_begin() {
+    return trunks_.begin();
+  }
+  TrunksItr trunks_end() {
+    return trunks_.end();
+  }
+  void programmed(TrunksItr itr);
+
   IngressQosMapsItr findIngressQosMap(const std::set<QosRule>& qosRules);
   IngressQosMapsItr ingressQosMaps_end() {
     return ingressQosMaps_.end();
@@ -617,6 +631,9 @@ class BcmWarmBootCache {
 
   // acls
   Priority2BcmAclEntryHandle priority2BcmAclEntryHandle_;
+
+  // trunks
+  Trunks trunks_;
 
   BcmRtag7Module::ModuleState moduleAState_;
   BcmRtag7Module::ModuleState moduleBState_;
