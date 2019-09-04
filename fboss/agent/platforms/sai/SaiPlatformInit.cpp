@@ -15,28 +15,24 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
-#include "fboss/agent/platforms/sai/facebook/SaiWedge400CPlatform.h"
 
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<SaiPlatform> chooseSaiPlatform() {
+std::unique_ptr<SaiPlatform> chooseSaiPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo) {
+  if (productInfo->getMode() == PlatformMode::WEDGE100) {
+    return std::make_unique<SaiBcmPlatform>(std::move(productInfo));
+  }
+  return chooseFBSaiPlatform(std::move(productInfo));
+}
+
+std::unique_ptr<Platform> initSaiPlatform(std::unique_ptr<AgentConfig> config) {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
 
-  auto mode = productInfo->getMode();
-  if (mode == PlatformMode::WEDGE400C) {
-    return std::make_unique<SaiWedge400CPlatform>(std::move(productInfo));
-  } else if (mode == PlatformMode::WEDGE100) {
-    return std::make_unique<SaiBcmPlatform>(std::move(productInfo));
-  } else {
-    return nullptr;
-  }
-}
-
-std::unique_ptr<Platform> initSaiPlatform(std::unique_ptr<AgentConfig> config) {
-  auto platform = chooseSaiPlatform();
+  auto platform = chooseSaiPlatform(std::move(productInfo));
   platform->init(std::move(config));
   return std::move(platform);
 }
