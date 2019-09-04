@@ -12,18 +12,70 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 
+#include <optional>
+#include <tuple>
 #include <vector>
 
 extern "C" {
 #include <sai.h>
 }
 
+FBOSS_STRONG_TYPE(sai_object_id_t, SwitchSaiId);
+
 namespace facebook {
 namespace fboss {
+
+struct SaiSwitchTraits {
+  static constexpr sai_api_t ApiType = SAI_API_SWITCH;
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_SWITCH;
+  struct Attributes {
+    using EnumType = sai_switch_attr_t;
+    using CpuPort =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_CPU_PORT, SaiObjectIdT>;
+    using DefaultVirtualRouterId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID,
+        SaiObjectIdT>;
+    using DefaultVlanId =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_DEFAULT_VLAN_ID, SaiObjectIdT>;
+    using PortNumber =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_PORT_NUMBER, sai_uint32_t>;
+    using PortList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_LIST,
+        std::vector<sai_object_id_t>>;
+    using SrcMac = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SRC_MAC_ADDRESS,
+        folly::MacAddress>;
+    using HwInfo = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO,
+        std::vector<int8_t>>;
+    using Default1QBridgeId = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID,
+        SaiObjectIdT>;
+    using InitSwitch =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_INIT_SWITCH, bool>;
+    using MaxNumberOfSupportedPorts = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
+        sai_uint32_t>;
+  };
+  using AdapterKey = SwitchSaiId;
+  using AdapterHostKey = std::monostate;
+  using CreateAttributes = std::tuple<
+      Attributes::InitSwitch,
+      std::optional<Attributes::HwInfo>,
+      std::optional<Attributes::SrcMac>>;
+  using AllAttributes = std::tuple<Attributes::InitSwitch>;
+};
 
 struct SwitchApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_SWITCH;
