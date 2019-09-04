@@ -28,10 +28,11 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
       mode == PlatformMode::GALAXY_LC ||
       mode == PlatformMode::GALAXY_FC) {
     return std::make_unique<GalaxyManager>();
-  } else if (mode == PlatformMode::MINIPACK) {
-    return createFBTransceiverManager(std::move(productInfo));
   } else if (mode == PlatformMode::YAMP) {
     return createYampTransceiverManager();
+  } else if (
+      mode == PlatformMode::MINIPACK || mode == PlatformMode::WEDGE400DQ) {
+    return createFBTransceiverManager(std::move(productInfo));
   }
   return std::make_unique<Wedge40Manager>();
 }
