@@ -25,10 +25,6 @@ DEFINE_bool(
     false,
     "Whether to program host routes in host table. If false, all "
     "routes are programmed in route table");
-DEFINE_string(
-    script_pre_asic_init,
-    "script_pre_asic_init",
-    "Broadcom script file to be run before ASIC init");
 
 namespace facebook {
 namespace fboss {
@@ -37,10 +33,6 @@ BcmPlatform::BcmPlatform() {}
 
 std::string BcmPlatform::getHwConfigDumpFile() const {
   return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
-}
-
-std::string BcmPlatform::getScriptPreAsicInit() const {
-  return getPersistentStateDir() + "/" + FLAGS_script_pre_asic_init;
 }
 
 bool BcmPlatform::isBcmShellSupported() const {

@@ -129,6 +129,10 @@ DEFINE_int32(
     60,
     "Update BST stats for ODS interval in seconds");
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
+DEFINE_string(
+    script_pre_asic_init,
+    "script_pre_asic_init",
+    "Broadcom script file to be run before ASIC init");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -418,8 +422,12 @@ std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
       StateDelta(make_shared<SwitchState>(), warmBootState));
 }
 
+std::string BcmSwitch::getScriptPreAsicInitFile() const {
+  return platform_->getPersistentStateDir() + "/" + FLAGS_script_pre_asic_init;
+}
+
 void BcmSwitch::runBcmScriptPreAsicInit() const {
-  std::string filename = platform_->getScriptPreAsicInit();
+  std::string filename = getScriptPreAsicInitFile();
   std::ifstream scriptFile(filename);
 
   if (!scriptFile.good()) {

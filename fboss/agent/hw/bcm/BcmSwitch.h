@@ -484,6 +484,10 @@ class BcmSwitch : public BcmSwitchIf {
   BcmSwitch& operator=(BcmSwitch const&) = delete;
 
   /*
+   * BRCM script file to be run before ASIC init
+   */
+  std::string getScriptPreAsicInitFile() const;
+  /*
    * Get default state switch is in on a cold boot
    */
   std::shared_ptr<SwitchState> getColdBootSwitchState() const;
