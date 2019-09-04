@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -43,6 +44,20 @@ class PortStoreTest : public ::testing::Test {
     return saiApiTable->portApi().create2<SaiPortTraits>(c, 0);
   }
 };
+
+TEST_F(PortStoreTest, loadPort) {
+  // create a port
+  auto id = createPort(0);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiPortTraits>();
+
+  std::vector<uint32_t> lanes{0};
+  SaiPortTraits::AdapterHostKey k{lanes};
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), id);
+}
 
 TEST_F(PortStoreTest, portLoadCtor) {
   auto portId = createPort(0);

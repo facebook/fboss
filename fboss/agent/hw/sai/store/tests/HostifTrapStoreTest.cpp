@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -40,6 +41,40 @@ class HostifTrapStoreTest : public ::testing::Test {
     return saiApiTable->hostifApi().create2<SaiHostifTrapTraits>(c, 0);
   }
 };
+
+TEST_F(HostifTrapStoreTest, loadHostifTrapGroups) {
+  auto hostifTrapGroupSaiId1 = createTrapGroup(2);
+  auto hostifTrapGroupSaiId2 = createTrapGroup(3);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiHostifTrapGroupTraits>();
+
+  SaiHostifTrapGroupTraits::AdapterHostKey k1{2};
+  SaiHostifTrapGroupTraits::AdapterHostKey k2{3};
+  auto got = store.get(k1);
+  EXPECT_EQ(got->adapterKey(), hostifTrapGroupSaiId1);
+  got = store.get(k2);
+  EXPECT_EQ(got->adapterKey(), hostifTrapGroupSaiId2);
+}
+
+TEST_F(HostifTrapStoreTest, loadHostifTrap) {
+  auto hostifTrapSaiId1 = createTrap(SAI_HOSTIF_TRAP_TYPE_IP2ME);
+  auto hostifTrapSaiId2 =
+      createTrap(SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiHostifTrapTraits>();
+
+  SaiHostifTrapTraits::AdapterHostKey k1{SAI_HOSTIF_TRAP_TYPE_IP2ME};
+  SaiHostifTrapTraits::AdapterHostKey k2{
+      SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY};
+  auto got = store.get(k1);
+  EXPECT_EQ(got->adapterKey(), hostifTrapSaiId1);
+  got = store.get(k2);
+  EXPECT_EQ(got->adapterKey(), hostifTrapSaiId2);
+}
 
 TEST_F(HostifTrapStoreTest, trapGroupLoadCtor) {
   auto id = createTrapGroup(2);

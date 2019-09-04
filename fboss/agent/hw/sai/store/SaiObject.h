@@ -132,7 +132,8 @@ typename std::
         NextHopGroupMemberSaiId(memberId),
         SaiNextHopGroupMemberTraits::Attributes::NextHopId{})};
     SaiNextHopTraits::AdapterHostKey nhk{};
-    ret.insert(apiTable->nextHopApi().getAttribute2(nextHopSaiId, nhk));
+    apiTable->nextHopApi().getAttribute2(nextHopSaiId, nhk);
+    ret.insert(nhk);
   }
   return ret;
 }

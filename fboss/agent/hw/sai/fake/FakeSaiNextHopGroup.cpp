@@ -36,7 +36,6 @@ sai_status_t create_next_hop_group_fn(
     }
   }
   if (!type) {
-    XLOG(INFO) << "Missing type attr!";
     return SAI_STATUS_INVALID_PARAMETER;
   }
   if (type.value() != SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
@@ -114,7 +113,6 @@ sai_status_t create_next_hop_group_member_fn(
     }
   }
   if (!nextHopGroupId || !nextHopId) {
-    XLOG(INFO) << "Missing nhgid or nhid attr!";
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *next_hop_group_member_id = fs->nhgm.createMember(

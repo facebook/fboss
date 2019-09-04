@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -38,6 +39,24 @@ class RouterInterfaceStoreTest : public ::testing::Test {
         {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac}, 0);
   }
 };
+
+TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
+  auto srcMac1 = folly::MacAddress{"41:41:41:41:41:41"};
+  auto srcMac2 = folly::MacAddress{"42:42:42:42:42:42"};
+  auto routerInterfaceSaiId1 = createRouterInterface(41, srcMac1);
+  auto routerInterfaceSaiId2 = createRouterInterface(42, srcMac2);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiRouterInterfaceTraits>();
+
+  SaiRouterInterfaceTraits::AdapterHostKey k1{0, 41};
+  SaiRouterInterfaceTraits::AdapterHostKey k2{0, 42};
+  auto got = store.get(k1);
+  EXPECT_EQ(got->adapterKey(), routerInterfaceSaiId1);
+  got = store.get(k2);
+  EXPECT_EQ(got->adapterKey(), routerInterfaceSaiId2);
+}
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceLoadCtor) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};

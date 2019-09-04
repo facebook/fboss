@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -49,6 +50,55 @@ class NextHopGroupStoreTest : public ::testing::Test {
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
 };
+
+TEST_F(NextHopGroupStoreTest, loadEmptyNextHopGroup) {
+  auto nextHopGroupId = createNextHopGroup();
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNextHopGroupTraits>();
+
+  SaiNextHopGroupTraits::AdapterHostKey k;
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), nextHopGroupId);
+}
+
+TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
+  // Create a next hop group
+  auto nextHopGroupId = createNextHopGroup();
+
+  // Create two next hops and two next hop group members
+  folly::IPAddress ip1{"10.10.10.1"};
+  folly::IPAddress ip2{"10.10.10.2"};
+  auto nextHopId1 = createNextHop(ip1);
+  auto nextHopId2 = createNextHop(ip2);
+  auto nextHopGroupMemberId1 =
+      createNextHopGroupMember(nextHopGroupId, nextHopId1);
+  auto nextHopGroupMemberId2 =
+      createNextHopGroupMember(nextHopGroupId, nextHopId2);
+
+  // perform a warm boot load
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNextHopGroupTraits>();
+
+  SaiNextHopGroupTraits::AdapterHostKey k;
+  k.insert({42, ip1});
+  k.insert({42, ip2});
+  auto got = store.get(k);
+  EXPECT_TRUE(got);
+  EXPECT_EQ(got->adapterKey(), nextHopGroupId);
+
+  auto& memberStore = s.get<SaiNextHopGroupMemberTraits>();
+  SaiNextHopGroupMemberTraits::AdapterHostKey k1{nextHopGroupId, nextHopId1};
+  SaiNextHopGroupMemberTraits::AdapterHostKey k2{nextHopGroupId, nextHopId2};
+  auto got1 = memberStore.get(k1);
+  auto got2 = memberStore.get(k2);
+  EXPECT_TRUE(got1);
+  EXPECT_TRUE(got2);
+  EXPECT_EQ(got1->adapterKey(), nextHopGroupMemberId1);
+  EXPECT_EQ(got2->adapterKey(), nextHopGroupMemberId2);
+}
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupLoadCtor) {
   auto id = createNextHopGroup();

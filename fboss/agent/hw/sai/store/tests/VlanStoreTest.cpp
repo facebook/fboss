@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -42,6 +43,32 @@ class VlanStoreTest : public ::testing::Test {
         {vlanId, bridgePortId}, 0);
   }
 };
+
+TEST_F(VlanStoreTest, loadVlans) {
+  auto vlanSaiId = createVlan(42);
+  auto vlanSaiId2 = createVlan(400);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiVlanTraits>();
+
+  auto got = store.get(SaiVlanTraits::Attributes::VlanId{42});
+  EXPECT_EQ(got->adapterKey(), vlanSaiId);
+  got = store.get(SaiVlanTraits::Attributes::VlanId{400});
+  EXPECT_EQ(got->adapterKey(), vlanSaiId2);
+}
+
+TEST_F(VlanStoreTest, loadVlanMember) {
+  auto vlanId = createVlan(42);
+  auto vlanMemberId = createVlanMember(vlanId, 10);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiVlanMemberTraits>();
+
+  auto got = store.get(SaiVlanMemberTraits::Attributes::BridgePortId{10});
+  EXPECT_EQ(got->adapterKey(), vlanMemberId);
+}
 
 TEST_F(VlanStoreTest, vlanLoadCtor) {
   auto vlanId = createVlan(42);

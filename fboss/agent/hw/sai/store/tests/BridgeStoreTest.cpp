@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -32,10 +33,33 @@ class BridgeStoreTest : public ::testing::Test {
   std::shared_ptr<SaiApiTable> saiApiTable;
 };
 
+TEST_F(BridgeStoreTest, loadBridge) {
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiBridgeTraits>();
+  auto got = store.get(std::monostate{});
+  EXPECT_EQ(
+      std::get<SaiBridgeTraits::Attributes::Type>(got->attributes()).value(),
+      SAI_BRIDGE_TYPE_1Q);
+}
+
+TEST_F(BridgeStoreTest, loadBridgePort) {
+  auto& bridgeApi = saiApiTable->bridgeApi();
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  auto bridgePortId = bridgeApi.create2<SaiBridgePortTraits>(c, 0);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiBridgePortTraits>();
+
+  auto got = store.get(SaiBridgePortTraits::Attributes::PortId{42});
+  EXPECT_EQ(got->adapterKey(), bridgePortId);
+}
+
 /*
  * Note, the default bridge id is a pain to get at, so we will skip
  * the bridgeLoadCtor test. That will largely be covered by testing
- * BridgeStore.load() anyway.
+ * BridgeStore.reload() anyway.
  */
 
 TEST_F(BridgeStoreTest, bridgePortLoadCtor) {

@@ -27,14 +27,14 @@ sai_status_t remove_virtual_router_fn(sai_object_id_t /* virtual_router_id */) {
 sai_status_t set_virtual_router_attribute_fn(
     sai_object_id_t /* virtual_router_id */,
     const sai_attribute_t* /* attr */) {
-  return SAI_STATUS_FAILURE;
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_virtual_router_attribute_fn(
     sai_object_id_t /* virtual_router_id */,
     uint32_t /* attr_count */,
     sai_attribute_t* /* attr */) {
-  return SAI_STATUS_FAILURE;
+  return SAI_STATUS_SUCCESS;
 }
 
 namespace facebook {

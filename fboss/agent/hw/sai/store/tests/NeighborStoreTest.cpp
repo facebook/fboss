@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -29,6 +30,26 @@ class NeighborStoreTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;
 };
+
+TEST_F(NeighborStoreTest, loadNeighbor) {
+  auto& neighborApi = saiApiTable->neighborApi();
+  folly::IPAddress ip4{"10.10.10.1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
+  neighborApi.create2<SaiNeighborTraits>(n, {daAttr});
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNeighborTraits>();
+
+  auto got = store.get(n);
+  EXPECT_EQ(got->adapterKey(), n);
+  EXPECT_EQ(
+      std::get<SaiNeighborTraits::Attributes::DstMac>(got->attributes())
+          .value(),
+      dstMac);
+}
 
 TEST_F(NeighborStoreTest, neighborLoadCtor) {
   auto& neighborApi = saiApiTable->neighborApi();

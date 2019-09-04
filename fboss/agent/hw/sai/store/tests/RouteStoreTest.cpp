@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/logging/xlog.h>
 
@@ -29,6 +30,29 @@ class RouteStoreTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;
 };
+
+TEST_F(RouteStoreTest, loadRoute) {
+  auto& routeApi = saiApiTable->routeApi();
+  folly::IPAddress ip4{"10.10.10.1"};
+  folly::CIDRNetwork dest(ip4, 24);
+  SaiRouteTraits::RouteEntry r(0, 0, dest);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi.create2<SaiRouteTraits>(
+      r, {packetActionAttribute, nextHopIdAttribute});
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  s->setSwitchId(0);
+  s->reload();
+  auto& store = s->get<SaiRouteTraits>();
+
+  auto got = store.get(r);
+  EXPECT_EQ(got->adapterKey(), r);
+  EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, got->attributes()), 5);
+  store.setObject(r, {packetActionAttribute, 4});
+  EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, got->attributes()), 4);
+}
 
 TEST_F(RouteStoreTest, routeLoadCtor) {
   auto& routeApi = saiApiTable->routeApi();
