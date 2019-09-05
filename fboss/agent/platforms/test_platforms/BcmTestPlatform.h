@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
+#include "fboss/agent/platforms/test_platforms/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -21,14 +22,6 @@
 
 namespace facebook {
 namespace fboss {
-
-enum class FlexPortMode {
-  FOURX10G,
-  FOURX25G,
-  ONEX40G,
-  TWOX50G,
-  ONEX100G,
-};
 
 class BcmTestPlatform : public BcmPlatform {
  public:

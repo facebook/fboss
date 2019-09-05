@@ -11,6 +11,8 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/platforms/test_platforms/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
