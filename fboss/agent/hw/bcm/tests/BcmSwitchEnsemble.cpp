@@ -71,5 +71,17 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
       std::move(platform), std::move(hwSwitch), std::move(linkToggler));
 }
 
+const std::vector<PortID>& BcmSwitchEnsemble::logicalPortIds() const {
+  return getPlatform()->logicalPortIds();
+}
+
+const std::vector<PortID>& BcmSwitchEnsemble::masterLogicalPortIds() const {
+  return getPlatform()->masterLogicalPortIds();
+}
+
+std::vector<PortID> BcmSwitchEnsemble::getAllPortsinGroup(PortID portID) const {
+  return getPlatform()->getAllPortsinGroup(portID);
+}
+
 } // namespace fboss
 } // namespace facebook

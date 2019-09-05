@@ -62,6 +62,18 @@ std::shared_ptr<SwitchState> HwTest::getProgrammedState() const {
   return hwSwitchEnsemble_->getProgrammedState();
 }
 
+const std::vector<PortID>& HwTest::logicalPortIds() const {
+  return hwSwitchEnsemble_->logicalPortIds();
+}
+
+const std::vector<PortID>& HwTest::masterLogicalPortIds() const {
+  return hwSwitchEnsemble_->masterLogicalPortIds();
+}
+
+std::vector<PortID> HwTest::getAllPortsinGroup(PortID portID) const {
+  return hwSwitchEnsemble_->getAllPortsinGroup(portID);
+}
+
 void HwTest::SetUp() {
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.

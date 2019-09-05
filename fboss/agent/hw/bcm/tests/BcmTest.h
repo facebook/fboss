@@ -59,9 +59,6 @@ class BcmTest : public HwTest {
     return static_cast<const BcmTestPlatform*>(HwTest::getPlatform());
   }
 
-  const std::vector<PortID>& logicalPortIds() const;
-  const std::vector<PortID>& masterLogicalPortIds() const;
-  std::vector<PortID> getAllPortsinGroup(PortID portID);
   int getUnit() const;
 
   virtual std::map<PortID, HwPortStats> getLatestPortStats(

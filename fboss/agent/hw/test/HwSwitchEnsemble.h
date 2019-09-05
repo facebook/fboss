@@ -48,7 +48,13 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual Platform* getPlatform() {
     return platform_.get();
   }
+  virtual const Platform* getPlatform() const {
+    return platform_.get();
+  }
   virtual HwSwitch* getHwSwitch() {
+    return hwSwitch_.get();
+  }
+  virtual const HwSwitch* getHwSwitch() const {
     return hwSwitch_.get();
   }
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
@@ -56,6 +62,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void exitFatal() const noexcept override {}
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
+
+  virtual const std::vector<PortID>& logicalPortIds() const = 0;
+  virtual const std::vector<PortID>& masterLogicalPortIds() const = 0;
+  virtual std::vector<PortID> getAllPortsinGroup(PortID portID) const = 0;
 
  protected:
   /*

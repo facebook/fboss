@@ -60,18 +60,6 @@ int BcmTest::getUnit() const {
   return getHwSwitch()->getUnit();
 }
 
-const std::vector<PortID>& BcmTest::logicalPortIds() const {
-  return getPlatform()->logicalPortIds();
-}
-
-const std::vector<PortID>& BcmTest::masterLogicalPortIds() const {
-  return getPlatform()->masterLogicalPortIds();
-}
-
-std::vector<PortID> BcmTest::getAllPortsinGroup(PortID portID) {
-  return getPlatform()->getAllPortsinGroup(portID);
-}
-
 std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   auto rv = opennsl_stat_sync(getHwSwitch()->getUnit());

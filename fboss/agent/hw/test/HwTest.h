@@ -67,6 +67,10 @@ class HwTest : public ::testing::Test,
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
 
+  const std::vector<PortID>& logicalPortIds() const;
+  const std::vector<PortID>& masterLogicalPortIds() const;
+  std::vector<PortID> getAllPortsinGroup(PortID portID) const;
+
  private:
   /*
    * createHw is a hook for each of the specific HW implementations to do the

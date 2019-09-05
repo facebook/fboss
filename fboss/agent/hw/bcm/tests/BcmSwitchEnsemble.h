@@ -29,9 +29,18 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   BcmTestPlatform* getPlatform() override {
     return static_cast<BcmTestPlatform*>(HwSwitchEnsemble::getPlatform());
   }
+  const BcmTestPlatform* getPlatform() const override {
+    return static_cast<const BcmTestPlatform*>(HwSwitchEnsemble::getPlatform());
+  }
   BcmSwitch* getHwSwitch() override {
     return static_cast<BcmSwitch*>(HwSwitchEnsemble::getHwSwitch());
   }
+  const BcmSwitch* getHwSwitch() const override {
+    return static_cast<const BcmSwitch*>(HwSwitchEnsemble::getHwSwitch());
+  }
+  const std::vector<PortID>& logicalPortIds() const override;
+  const std::vector<PortID>& masterLogicalPortIds() const override;
+  std::vector<PortID> getAllPortsinGroup(PortID portID) const override;
 
  private:
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
