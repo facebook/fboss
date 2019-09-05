@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -23,149 +24,94 @@
 namespace facebook {
 namespace fboss {
 
-SaiVlanMember::SaiVlanMember(
-    SaiApiTable* apiTable,
-    const VlanApiParameters::MemberAttributes& attributes,
-    const sai_object_id_t& switchId)
-    : apiTable_(apiTable), attributes_(attributes) {
-  auto& vlanApi = apiTable_->vlanApi();
-  id_ = vlanApi.createMember(attributes_.attrs(), switchId);
-}
-
-SaiVlanMember::~SaiVlanMember() {
-  auto& vlanApi = apiTable_->vlanApi();
-  vlanApi.removeMember(id());
-}
-
-bool SaiVlanMember::operator==(const SaiVlanMember& other) const {
-  return attributes_ == other.attributes_;
-}
-
-bool SaiVlanMember::operator!=(const SaiVlanMember& other) const {
-  return !(*this == other);
-}
-
-SaiVlan::SaiVlan(
-    SaiApiTable* apiTable,
-    SaiManagerTable* managerTable,
-    const VlanApiParameters::Attributes& attributes)
-    : apiTable_(apiTable),
-      managerTable_(managerTable),
-      attributes_(attributes) {
-  auto& vlanApi = apiTable_->vlanApi();
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  id_ = vlanApi.create(attributes_.attrs(), switchId);
-}
-
-SaiVlan::~SaiVlan() {
-  members_.clear();
-  auto& vlanApi = apiTable_->vlanApi();
-  vlanApi.remove(id());
-}
-
-void SaiVlan::addMember(PortID swPortId) {
-  VlanApiParameters::MemberAttributes::VlanId vlanIdMemberAttribute{id()};
-  SaiPort* port = managerTable_->portManager().getPort(swPortId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  if (!port) {
-    throw FbossError(
-        "Failed to add vlan member: no port matching vlan member port: ",
-        swPortId);
-  }
-  sai_object_id_t bridgePortId = port->getBridgePort()->id();
-  port->setPortVlan(managerTable_->vlanManager().getVlanID(id()));
-  VlanApiParameters::MemberAttributes::BridgePortId bridgePortIdAttribute{
-      bridgePortId};
-  VlanApiParameters::MemberAttributes memberAttributes{
-      {vlanIdMemberAttribute, bridgePortIdAttribute}};
-  auto member =
-      std::make_unique<SaiVlanMember>(apiTable_, memberAttributes, switchId);
-  sai_object_id_t memberId = member->id();
-  members_.insert(std::make_pair(memberId, std::move(member)));
-  memberIdMap_.insert(std::make_pair(memberAttributes.bridgePortId, memberId));
-}
-
-void SaiVlan::removeMember(PortID swPortId) {
-  SaiPort* port = managerTable_->portManager().getPort(swPortId);
-  if (!port) {
-    throw FbossError(
-        "Failed to remove vlan membmer: no port matching vlan member port: ",
-        swPortId);
-  }
-  sai_object_id_t bridgePortId = port->getBridgePort()->id();
-  auto memberEntry = memberIdMap_.find(bridgePortId);
-  if (memberEntry != memberIdMap_.end()) {
-    members_.erase(memberEntry->second);
-  }
-  memberIdMap_.erase(bridgePortId);
-}
-
-std::vector<sai_object_id_t> SaiVlan::getMemberBridgePortIds() const {
-  std::vector<sai_object_id_t> bridgePortIds;
-  std::transform(
-      memberIdMap_.begin(),
-      memberIdMap_.end(),
-      std::back_inserter(bridgePortIds),
-      [](const std::pair<sai_object_id_t, sai_object_id_t>& idMapping) {
-        return idMapping.first;
-      });
-  return bridgePortIds;
-}
-
-bool SaiVlan::operator==(const SaiVlan& other) const {
-  if (attributes_ != other.attributes_) {
-    return false;
-  }
-  return members_ == other.members_;
-}
-
-bool SaiVlan::operator!=(const SaiVlan& other) const {
-  return !(*this == other);
-}
-
 SaiVlanManager::SaiVlanManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
-sai_object_id_t SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
+VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   VlanID swVlanId = swVlan->getID();
-  auto existingVlan = getVlan(swVlanId);
-  if (existingVlan) {
+
+  // If we already store a handle to this VLAN, fail to add a new one
+  auto handle = getVlanHandle(swVlanId);
+  if (handle) {
     throw FbossError(
         "attempted to add a duplicate vlan with VlanID: ", swVlanId);
   }
-  VlanApiParameters::Attributes::VlanId vlanIdAttribute{swVlanId};
-  VlanApiParameters::Attributes attributes{{vlanIdAttribute}};
-  auto saiVlan =
-      std::make_unique<SaiVlan>(apiTable_, managerTable_, attributes);
-  sai_object_id_t saiId = saiVlan->id();
-  vlanSaiIds_.emplace(std::make_pair(saiVlan->id(), swVlanId));
+
+  // Create the VLAN
+  auto& vlanStore = s->get<SaiVlanTraits>();
+  SaiVlanTraits::AdapterHostKey adapterHostKey{swVlanId};
+  SaiVlanTraits::CreateAttributes attributes{swVlanId};
+  auto saiVlan = vlanStore.setObject(adapterHostKey, attributes);
+  auto vlanHandle = std::make_unique<SaiVlanHandle>();
+  vlanHandle->vlan = saiVlan;
+  vlanHandle->vlanMembers.reserve(swVlan->getPorts().size());
+  // createVlanMember relies on the handle being in handles_,
+  // so we must do this before we create the members
+  handles_.emplace(swVlanId, std::move(vlanHandle));
+
+  // Create VLAN members
   for (const auto& memberPort : swVlan->getPorts()) {
     PortID swPortId = memberPort.first;
-    saiVlan->addMember(swPortId);
+    createVlanMember(swVlanId, swPortId);
   }
-  vlans_.insert(std::make_pair(swVlanId, std::move(saiVlan)));
-  return saiId;
+  return saiVlan->adapterKey();
+}
+
+void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
+  auto vlanHandle = getVlanHandle(swVlanId);
+  if (!vlanHandle) {
+    throw FbossError(
+        "Failed to add vlan member: no vlan matching vlanID: ", swVlanId);
+  }
+
+  // Compute the BridgePort sai id to associate with this vlan member
+  SaiPort* port = managerTable_->portManager().getPort(swPortId);
+  if (!port) {
+    throw FbossError(
+        "Failed to add vlan member: no port matching vlan member port: ",
+        swPortId);
+  }
+  sai_object_id_t bridgePortId = port->getBridgePort()->id();
+
+  // Associate the port with the vlan for the sake of computing the
+  // VlanID during packet RX
+  port->setPortVlan(swVlanId);
+
+  SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
+      vlanHandle->vlan->adapterKey()};
+  SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
+      bridgePortId};
+  SaiVlanMemberTraits::CreateAttributes memberAttributes{vlanIdAttribute,
+                                                         bridgePortIdAttribute};
+  SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{
+      bridgePortIdAttribute};
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& vlanMemberStore = s->get<SaiVlanMemberTraits>();
+  auto saiVlanMember =
+      vlanMemberStore.setObject(memberAdapterHostKey, memberAttributes);
+  vlanHandle->vlanMembers.emplace(swPortId, saiVlanMember);
 }
 
 void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
-  const auto citr = vlans_.find(swVlanId);
-  if (citr == vlans_.cend()) {
+  const auto citr = handles_.find(swVlanId);
+  if (citr == handles_.cend()) {
     throw FbossError(
         "attempted to remove a vlan which does not exist: ", swVlanId);
   }
-  vlanSaiIds_.erase(citr->second->id());
-  vlans_.erase(citr);
+  handles_.erase(citr);
 }
 
 void SaiVlanManager::changeVlan(
     const std::shared_ptr<Vlan>& swVlanOld,
     const std::shared_ptr<Vlan>& swVlanNew) {
   VlanID swVlanId = swVlanNew->getID();
-  SaiVlan* vlan = getVlan(swVlanId);
-  if (!vlan) {
+  auto handle = getVlanHandle(swVlanId);
+  if (!handle) {
     throw FbossError(
         "attempted to change a vlan which does not exist: ", swVlanId);
   }
@@ -184,7 +130,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(removed, removed.begin()),
       compareIds);
   for (const auto& swPortId : removed) {
-    vlan->removeMember(swPortId.first);
+    handle->vlanMembers.erase(swPortId.first);
   }
   VlanFields::MemberPorts added;
   std::set_difference(
@@ -195,7 +141,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(added, added.begin()),
       compareIds);
   for (const auto& swPortId : added) {
-    vlan->addMember(swPortId.first);
+    createVlanMember(swVlanId, swPortId.first);
   }
 }
 
@@ -211,29 +157,23 @@ void SaiVlanManager::processVlanDelta(const VlanMapDelta& delta) {
       delta, processChanged, processAdded, processRemoved);
 }
 
-SaiVlan* SaiVlanManager::getVlan(VlanID swVlanId) {
-  return getVlanImpl(swVlanId);
+const SaiVlanHandle* SaiVlanManager::getVlanHandle(VlanID swVlanId) const {
+  return getVlanHandleImpl(swVlanId);
 }
-const SaiVlan* SaiVlanManager::getVlan(VlanID swVlanId) const {
-  return getVlanImpl(swVlanId);
+
+SaiVlanHandle* SaiVlanManager::getVlanHandle(VlanID swVlanId) {
+  return getVlanHandleImpl(swVlanId);
 }
-SaiVlan* SaiVlanManager::getVlanImpl(VlanID swVlanId) const {
-  auto itr = vlans_.find(swVlanId);
-  if (itr == vlans_.end()) {
+
+SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
+  auto itr = handles_.find(swVlanId);
+  if (itr == handles_.end()) {
     return nullptr;
   }
-  if (!itr->second) {
+  if (!itr->second || !itr->second->vlan) {
     XLOG(FATAL) << "invalid null VLAN for VlanID: " << swVlanId;
   }
   return itr->second.get();
-}
-
-VlanID SaiVlanManager::getVlanID(sai_object_id_t saiVlanId) {
-  auto itr = vlanSaiIds_.find(saiVlanId);
-  if (itr == vlanSaiIds_.end()) {
-    return VlanID(0);
-  }
-  return itr->second;
 }
 
 } // namespace fboss

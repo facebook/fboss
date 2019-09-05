@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
@@ -237,7 +238,12 @@ HwInitResult SaiSwitch::initLocked(
   managerTable_ =
       std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
+
+  auto saiStore = SaiStore::getInstance();
+  saiStore->setSwitchId(switchId_);
+
   platform_->initPorts();
+
   callback_ = callback;
   auto state = std::make_shared<SwitchState>();
   ret.switchState = state;

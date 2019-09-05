@@ -12,12 +12,15 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
+#include "folly/container/F14Map.h"
+
 #include <memory>
-#include <unordered_map>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -25,66 +28,12 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiVlanMember {
- public:
-  SaiVlanMember(
-      SaiApiTable* apiTable,
-      const VlanApiParameters::MemberAttributes& attributes,
-      const sai_object_id_t& switchId);
-  ~SaiVlanMember();
-  SaiVlanMember(const SaiVlanMember& other) = delete;
-  SaiVlanMember(SaiVlanMember&& other) = delete;
-  SaiVlanMember& operator=(const SaiVlanMember& other) = delete;
-  SaiVlanMember& operator=(SaiVlanMember&& other) = delete;
-  bool operator==(const SaiVlanMember& other) const;
-  bool operator!=(const SaiVlanMember& other) const;
+using SaiVlan = SaiObject<SaiVlanTraits>;
+using SaiVlanMember = SaiObject<SaiVlanMemberTraits>;
 
-  void setAttributes(
-      const VlanApiParameters::MemberAttributes& desiredAttributes);
-  const VlanApiParameters::MemberAttributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  VlanApiParameters::MemberAttributes attributes_;
-  sai_object_id_t id_;
-};
-
-class SaiVlan {
- public:
-  SaiVlan(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const VlanApiParameters::Attributes& attributes);
-  ~SaiVlan();
-  SaiVlan(const SaiVlan& other) = delete;
-  SaiVlan(SaiVlan&& other) = delete;
-  SaiVlan& operator=(const SaiVlan& other) = delete;
-  SaiVlan& operator=(SaiVlan&& other) = delete;
-  bool operator==(const SaiVlan& other) const;
-  bool operator!=(const SaiVlan& other) const;
-
-  void addMember(PortID swPortId);
-  void removeMember(PortID swPortId);
-  std::vector<sai_object_id_t> getMemberBridgePortIds() const;
-  const VlanApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  SaiManagerTable* managerTable_;
-  VlanApiParameters::Attributes attributes_;
-  std::unordered_map<sai_object_id_t, std::unique_ptr<SaiVlanMember>> members_;
-  std::unordered_map<sai_object_id_t, sai_object_id_t> memberIdMap_;
-  sai_object_id_t id_;
+struct SaiVlanHandle {
+  std::shared_ptr<SaiVlan> vlan;
+  folly::F14FastMap<PortID, std::shared_ptr<SaiVlanMember>> vlanMembers;
 };
 
 class SaiVlanManager {
@@ -93,24 +42,24 @@ class SaiVlanManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  sai_object_id_t addVlan(const std::shared_ptr<Vlan>& swVlan);
+  VlanSaiId addVlan(const std::shared_ptr<Vlan>& swVlan);
   void removeVlan(const VlanID& swVlanId);
   void changeVlan(
       const std::shared_ptr<Vlan>& swVlanOld,
       const std::shared_ptr<Vlan>& swVlanNew);
   void processVlanDelta(const VlanMapDelta& delta);
 
-  SaiVlan* getVlan(VlanID swVlanId);
-  const SaiVlan* getVlan(VlanID swVlanId) const;
-  VlanID getVlanID(sai_object_id_t vlanSaiId);
+  const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
+  SaiVlanHandle* getVlanHandle(VlanID swVlanId);
 
  private:
-  SaiVlan* getVlanImpl(VlanID swVlanId) const;
+  void createVlanMember(VlanID swVlanId, PortID swPortId);
+  SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<VlanID, std::unique_ptr<SaiVlan>> vlans_;
-  std::unordered_map<sai_object_id_t, VlanID> vlanSaiIds_;
+
+  folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>> handles_;
 };
 
 } // namespace fboss

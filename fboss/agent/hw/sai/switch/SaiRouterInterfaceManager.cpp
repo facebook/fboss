@@ -80,13 +80,15 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
   RouterInterfaceApiParameters::Attributes::Type typeAttribute{
       SAI_ROUTER_INTERFACE_TYPE_VLAN};
   VlanID swVlanId = swInterface->getVlanID();
-  SaiVlan* saiVlan = managerTable_->vlanManager().getVlan(swVlanId);
-  if (!saiVlan) {
+  SaiVlanHandle* saiVlanHandle =
+      managerTable_->vlanManager().getVlanHandle(swVlanId);
+  if (!saiVlanHandle) {
     throw FbossError(
         "Failed to add router interface: no sai vlan for VlanID ", swVlanId);
   }
+  std::shared_ptr<SaiVlan> saiVlan = saiVlanHandle->vlan;
   RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute{
-      saiVlan->id()};
+      saiVlan->adapterKey()};
   RouterInterfaceApiParameters::Attributes::SrcMac srcMacAttribute{srcMac};
   RouterInterfaceApiParameters::Attributes attributes{{virtualRouterIdAttribute,
                                                        typeAttribute,

@@ -10,9 +10,11 @@
 
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/test/AgentConfigFactory.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -38,6 +40,9 @@ void ManagerTestBase::SetUp() {
   saiApiTable->queryApis();
   saiManagerTable =
       std::make_unique<SaiManagerTable>(saiApiTable.get(), saiPlatform.get());
+  sai_object_id_t switchId = saiManagerTable->switchManager().getSwitchSaiId();
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  s->setSwitchId(switchId);
 
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
