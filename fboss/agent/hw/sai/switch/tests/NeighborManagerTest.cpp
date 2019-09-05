@@ -33,19 +33,21 @@ class NeighborManagerTest : public ManagerTestBase {
       const folly::MacAddress& expectedDstMac) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
-    auto gotMac = saiApiTable->neighborApi().getAttribute(
-        NeighborApiParameters::Attributes::DstMac(), saiEntry);
+    auto gotMac = saiApiTable->neighborApi().getAttribute2(
+        saiEntry, SaiNeighborTraits::Attributes::DstMac{});
     EXPECT_EQ(gotMac, expectedDstMac);
-    auto saiNeighbor = saiManagerTable->neighborManager().getNeighbor(saiEntry);
-    EXPECT_TRUE(saiNeighbor);
+    auto saiNeighborHandle =
+        saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
+    EXPECT_TRUE(saiNeighborHandle);
   }
 
   template <typename NeighborEntryT>
   void checkMissing(const NeighborEntryT& neighborEntry) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
-    auto saiNeighbor = saiManagerTable->neighborManager().getNeighbor(saiEntry);
-    EXPECT_FALSE(saiNeighbor);
+    auto saiNeighborHandle =
+        saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
+    EXPECT_FALSE(saiNeighborHandle);
   }
 
   TestInterface intf0;

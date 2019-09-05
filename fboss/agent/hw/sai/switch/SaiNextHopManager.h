@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
 
 #include "folly/IPAddress.h"
@@ -25,36 +26,7 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiNextHop {
- public:
-  SaiNextHop(
-      SaiApiTable* apiTable,
-      const NextHopApiParameters::Attributes& attributes,
-      const sai_object_id_t& switchID);
-  ~SaiNextHop();
-  SaiNextHop(const SaiNextHop& other) = delete;
-  SaiNextHop(SaiNextHop&& other) = delete;
-  SaiNextHop& operator=(const SaiNextHop& other) = delete;
-  SaiNextHop& operator=(SaiNextHop&& other) = delete;
-  bool operator==(const SaiNextHop& other) const;
-  bool operator!=(const SaiNextHop& other) const;
-
-  void setAttributes(
-      const NextHopApiParameters::Attributes& desiredAttributes) {
-    throw FbossError("No support for changing next hop attributes");
-  }
-  const NextHopApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  NextHopApiParameters::Attributes attributes_;
-  sai_object_id_t id_;
-};
+using SaiNextHop = SaiObject<SaiNextHopTraits>;
 
 class SaiNextHopManager {
  public:
@@ -62,7 +34,7 @@ class SaiNextHopManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  std::unique_ptr<SaiNextHop> addNextHop(
+  std::shared_ptr<SaiNextHop> addNextHop(
       sai_object_id_t routerInterfaceId,
       const folly::IPAddress& ip);
 

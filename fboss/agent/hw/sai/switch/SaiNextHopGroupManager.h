@@ -104,10 +104,10 @@ class SaiNextHopGroupManager {
   void unregisterNeighborResolutionHandling(
       const RouteNextHopEntry::NextHopSet& swNextHops);
   void handleResolvedNeighbor(
-      const NeighborApiParameters::EntryType& neighborEntry,
+      const SaiNeighborTraits::NeighborEntry& neighborEntry,
       sai_object_id_t nextHopId);
   void handleUnresolvedNeighbor(
-      const NeighborApiParameters::EntryType& neighborEntry,
+      const SaiNeighborTraits::NeighborEntry& neighborEntry,
       sai_object_id_t nextHopId);
 
  private:
@@ -116,7 +116,7 @@ class SaiNextHopGroupManager {
   const SaiPlatform* platform_;
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroup> nextHopGroups_;
   std::unordered_map<
-      NeighborApiParameters::NeighborEntry,
+      SaiNeighborTraits::NeighborEntry,
       boost::container::flat_set<RouteNextHopEntry::NextHopSet>>
       nextHopsByNeighbor_;
 };

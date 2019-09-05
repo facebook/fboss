@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -22,35 +23,13 @@
 namespace facebook {
 namespace fboss {
 
-SaiFdbEntry::SaiFdbEntry(
-    SaiApiTable* apiTable,
-    const FdbApiParameters::EntryType& entry,
-    const FdbApiParameters::Attributes& attributes)
-    : apiTable_(apiTable), entry_(entry), attributes_(attributes) {
-  auto& fdbApi = apiTable_->fdbApi();
-  fdbApi.create(entry_, attributes.attrs());
-}
-
-SaiFdbEntry::~SaiFdbEntry() {
-  auto& fdbApi = apiTable_->fdbApi();
-  fdbApi.remove(entry_);
-}
-
-bool SaiFdbEntry::operator==(const SaiFdbEntry& other) const {
-  return attributes_ == other.attributes_;
-}
-
-bool SaiFdbEntry::operator!=(const SaiFdbEntry& other) const {
-  return !(*this == other);
-}
-
 SaiFdbManager::SaiFdbManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
-std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
+std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     const InterfaceID& intfId,
     const folly::MacAddress& mac,
     const PortDescriptor& portDesc) {
@@ -61,9 +40,8 @@ std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     throw FbossError(
         "Attempted to add non-existent interface to Fdb: ", intfId);
   }
-  auto vlanId = std::get<SaiRouterInterfaceTraits::Attributes::VlanId>(
-                    routerInterfaceHandle->routerInterface->attributes())
-                    .value();
+  auto rif = routerInterfaceHandle->routerInterface;
+  auto vlanId = GET_ATTR(RouterInterface, VlanId, rif->attributes());
   // TODO(srikrishnagopu): Can it be an AGG Port ?
   auto portId = portDesc.phyPortID();
   auto port = managerTable_->portManager().getPort(portId);
@@ -72,10 +50,11 @@ std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto bridgePortId = port->getBridgePort()->id();
-  FdbApiParameters::EntryType entry{switchId, vlanId, mac};
-  FdbApiParameters::Attributes attributes{
-      {SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId}};
-  return std::make_unique<SaiFdbEntry>(apiTable_, entry, attributes);
+  SaiFdbTraits::FdbEntry entry{switchId, vlanId, mac};
+  SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
+                                            bridgePortId};
+  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  return store.setObject(entry, attributes);
 }
 
 } // namespace fboss

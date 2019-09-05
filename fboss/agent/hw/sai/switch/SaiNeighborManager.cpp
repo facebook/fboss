@@ -9,10 +9,11 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
-#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
-#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -21,42 +22,6 @@
 
 namespace facebook {
 namespace fboss {
-
-SaiNeighbor::SaiNeighbor(
-    SaiApiTable* apiTable,
-    SaiManagerTable* managerTable,
-    const NeighborApiParameters::EntryType& entry,
-    const NeighborApiParameters::Attributes& attributes,
-    std::unique_ptr<SaiFdbEntry> fdbEntry)
-    : apiTable_(apiTable),
-      managerTable_(managerTable),
-      entry_(entry),
-      attributes_(attributes),
-      fdbEntry_(std::move(fdbEntry)) {
-  auto& neighborApi = apiTable_->neighborApi();
-  neighborApi.create(entry_, attributes.attrs());
-  nextHop_ = managerTable_->nextHopManager().addNextHop(
-      entry_.routerInterfaceId(), entry_.ip());
-}
-
-SaiNeighbor::~SaiNeighbor() {
-  auto& neighborApi = apiTable_->neighborApi();
-  fdbEntry_.reset();
-  nextHop_.reset();
-  neighborApi.remove(entry_);
-}
-
-bool SaiNeighbor::operator==(const SaiNeighbor& other) const {
-  return attributes_ == other.attributes_;
-}
-
-bool SaiNeighbor::operator!=(const SaiNeighbor& other) const {
-  return !(*this == other);
-}
-
-sai_object_id_t SaiNeighbor::nextHopId() const {
-  return nextHop_->id();
-}
 
 SaiNeighborManager::SaiNeighborManager(
     SaiApiTable* apiTable,
@@ -67,7 +32,7 @@ SaiNeighborManager::SaiNeighborManager(
 // Helper function to create a SAI NeighborEntry from an FBOSS SwitchState
 // NeighborEntry (e.g., NeighborEntry<IPAddressV6, NDPTable>)
 template <typename NeighborEntryT>
-NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
+SaiNeighborTraits::NeighborEntry SaiNeighborManager::saiEntryFromSwEntry(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   folly::IPAddress ip(swEntry->getIP());
   SaiRouterInterfaceHandle* routerInterfaceHandle =
@@ -80,7 +45,7 @@ NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
         swEntry->getIntfID());
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  return NeighborApiParameters::EntryType(
+  return SaiNeighborTraits::NeighborEntry(
       switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip);
 }
 
@@ -97,6 +62,7 @@ void SaiNeighborManager::changeNeighbor(
   if (!oldSwEntry->isPending() && newSwEntry->isPending()) {
     removeNeighbor(oldSwEntry);
     addNeighbor(newSwEntry);
+    // TODO(borisb): unresolve in next hop group...
   }
   if (!oldSwEntry->isPending() && !newSwEntry->isPending()) {
   }
@@ -108,7 +74,7 @@ void SaiNeighborManager::addNeighbor(
   // Handle pending()
   XLOG(INFO) << "addNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
-  auto existingSaiNeighbor = getNeighbor(saiEntry);
+  auto existingSaiNeighbor = getNeighborHandle(saiEntry);
   if (existingSaiNeighbor) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
@@ -118,15 +84,20 @@ void SaiNeighborManager::addNeighbor(
     unresolvedNeighbors_.insert(saiEntry);
   } else {
     XLOG(INFO) << "add resolved neighbor";
-    NeighborApiParameters::Attributes attributes{{swEntry->getMac()}};
+    SaiNeighborTraits::CreateAttributes attributes{swEntry->getMac()};
+    auto& store = SaiStore::getInstance()->get<SaiNeighborTraits>();
+    auto neighbor = store.setObject(saiEntry, attributes);
     auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
         swEntry->getIntfID(), swEntry->getMac(), swEntry->getPort());
-    auto neighbor = std::make_unique<SaiNeighbor>(
-        apiTable_, managerTable_, saiEntry, attributes, std::move(fdbEntry));
-    sai_object_id_t nextHopId = neighbor->nextHopId();
-    neighbors_.insert(std::make_pair(saiEntry, std::move(neighbor)));
+    auto nextHop = managerTable_->nextHopManager().addNextHop(
+        swEntry->getIntfID(), swEntry->getIP());
+    auto neighborHandle = std::make_unique<SaiNeighborHandle>();
+    neighborHandle->neighbor = neighbor;
+    neighborHandle->fdbEntry = fdbEntry;
+    neighborHandle->nextHop = nextHop;
+    handles_.emplace(saiEntry, std::move(neighborHandle));
     managerTable_->nextHopGroupManager().handleResolvedNeighbor(
-        saiEntry, nextHopId);
+        saiEntry, nextHop->adapterKey());
   }
 }
 
@@ -135,7 +106,7 @@ void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
-  auto count = neighbors_.erase(saiEntry);
+  auto count = handles_.erase(saiEntry);
   if (count == 0) {
     count = unresolvedNeighbors_.erase(saiEntry);
   }
@@ -165,21 +136,22 @@ void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
 }
 
 void SaiNeighborManager::clear() {
-  neighbors_.clear();
+  handles_.clear();
+  unresolvedNeighbors_.clear();
 }
 
-const SaiNeighbor* SaiNeighborManager::getNeighbor(
-    const NeighborApiParameters::EntryType& saiEntry) const {
-  return getNeighborImpl(saiEntry);
+const SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
+    const SaiNeighborTraits::NeighborEntry& saiEntry) const {
+  return getNeighborHandleImpl(saiEntry);
 }
-SaiNeighbor* SaiNeighborManager::getNeighbor(
-    const NeighborApiParameters::EntryType& saiEntry) {
-  return getNeighborImpl(saiEntry);
+SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
+    const SaiNeighborTraits::NeighborEntry& saiEntry) {
+  return getNeighborHandleImpl(saiEntry);
 }
-SaiNeighbor* SaiNeighborManager::getNeighborImpl(
-    const NeighborApiParameters::EntryType& saiEntry) const {
-  auto itr = neighbors_.find(saiEntry);
-  if (itr == neighbors_.end()) {
+SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
+    const SaiNeighborTraits::NeighborEntry& saiEntry) const {
+  auto itr = handles_.find(saiEntry);
+  if (itr == handles_.end()) {
     return nullptr;
   }
   if (!itr->second.get()) {
@@ -188,10 +160,10 @@ SaiNeighbor* SaiNeighborManager::getNeighborImpl(
   return itr->second.get();
 }
 
-template NeighborApiParameters::EntryType
+template SaiNeighborTraits::NeighborEntry
 SaiNeighborManager::saiEntryFromSwEntry<NdpEntry>(
     const std::shared_ptr<NdpEntry>& swEntry);
-template NeighborApiParameters::EntryType
+template SaiNeighborTraits::NeighborEntry
 SaiNeighborManager::saiEntryFromSwEntry<ArpEntry>(
     const std::shared_ptr<ArpEntry>& swEntry);
 

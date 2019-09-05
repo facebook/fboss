@@ -126,15 +126,16 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     }
     folly::IPAddress ip = swNextHop.addr();
     auto switchId = managerTable_->switchManager().getSwitchSaiId();
-    NeighborApiParameters::EntryType neighborEntry{
+    SaiNeighborTraits::NeighborEntry neighborEntry{
         switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
     nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
-    auto neighbor = managerTable_->neighborManager().getNeighbor(neighborEntry);
-    if (!neighbor) {
+    auto neighborHandle =
+        managerTable_->neighborManager().getNeighborHandle(neighborEntry);
+    if (!neighborHandle) {
       XLOG(INFO) << "L2 Unresolved neighbor for " << ip;
       continue;
     } else {
-      nextHopGroup->addMember(neighbor->nextHopId());
+      nextHopGroup->addMember(neighborHandle->nextHop->adapterKey());
     }
   }
   return nextHopGroup;
@@ -153,14 +154,14 @@ void SaiNextHopGroupManager::unregisterNeighborResolutionHandling(
     }
     folly::IPAddress ip = swNextHop.addr();
     auto switchId = managerTable_->switchManager().getSwitchSaiId();
-    NeighborApiParameters::EntryType neighborEntry{
+    SaiNeighborTraits::NeighborEntry neighborEntry{
         switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
     nextHopsByNeighbor_[neighborEntry].erase(swNextHops);
   }
 }
 
 void SaiNextHopGroupManager::handleResolvedNeighbor(
-    const NeighborApiParameters::EntryType& neighborEntry,
+    const SaiNeighborTraits::NeighborEntry& neighborEntry,
     sai_object_id_t nextHopId) {
   auto itr = nextHopsByNeighbor_.find(neighborEntry);
   if (itr == nextHopsByNeighbor_.end()) {
@@ -181,7 +182,7 @@ void SaiNextHopGroupManager::handleResolvedNeighbor(
 }
 
 void SaiNextHopGroupManager::handleUnresolvedNeighbor(
-    const NeighborApiParameters::EntryType& neighborEntry,
+    const SaiNeighborTraits::NeighborEntry& neighborEntry,
     sai_object_id_t nextHopId) {
   auto itr = nextHopsByNeighbor_.find(neighborEntry);
   if (itr == nextHopsByNeighbor_.end()) {
