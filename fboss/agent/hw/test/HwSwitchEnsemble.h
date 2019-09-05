@@ -68,6 +68,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual const std::vector<PortID>& logicalPortIds() const = 0;
   virtual const std::vector<PortID>& masterLogicalPortIds() const = 0;
   virtual std::vector<PortID> getAllPortsinGroup(PortID portID) const = 0;
+  virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
  protected:
   /*

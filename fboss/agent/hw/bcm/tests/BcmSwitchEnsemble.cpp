@@ -83,5 +83,9 @@ std::vector<PortID> BcmSwitchEnsemble::getAllPortsinGroup(PortID portID) const {
   return getPlatform()->getAllPortsinGroup(portID);
 }
 
+std::vector<FlexPortMode> BcmSwitchEnsemble::getSupportedFlexPortModes() const {
+  return getPlatform()->getSupportedFlexPortModes();
+}
+
 } // namespace fboss
 } // namespace facebook

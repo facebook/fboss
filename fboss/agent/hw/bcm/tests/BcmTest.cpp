@@ -52,10 +52,6 @@ folly::dynamic BcmTest::createWarmBootSwitchState() {
   return state;
 }
 
-std::list<FlexPortMode> BcmTest::getSupportedFlexPortModes() {
-  return getPlatform()->getSupportedFlexPortModes();
-}
-
 int BcmTest::getUnit() const {
   return getHwSwitch()->getUnit();
 }

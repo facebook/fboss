@@ -34,7 +34,7 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return false;
   }
 
-  std::list<FlexPortMode> getSupportedFlexPortModes() const override {
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
   }
   const PortQueue& getDefaultPortQueueSettings(

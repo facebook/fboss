@@ -18,7 +18,7 @@ class BcmTestWedge100Platform : public BcmTestWedgeTomahawkPlatform {
   BcmTestWedge100Platform();
   ~BcmTestWedge100Platform() override {}
 
-  std::list<FlexPortMode> getSupportedFlexPortModes() const override {
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G,
             FlexPortMode::TWOX50G,
             FlexPortMode::ONEX40G,

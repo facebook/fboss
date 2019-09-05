@@ -44,8 +44,6 @@ class BcmTest : public HwTest {
 
   using HwTest::getLatestPortStats;
 
-  std::list<FlexPortMode> getSupportedFlexPortModes();
-
   BcmSwitch* getHwSwitch() override {
     return static_cast<BcmSwitch*>(HwTest::getHwSwitch());
   }

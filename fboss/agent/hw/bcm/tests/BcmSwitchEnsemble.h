@@ -41,6 +41,7 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   const std::vector<PortID>& logicalPortIds() const override;
   const std::vector<PortID>& masterLogicalPortIds() const override;
   std::vector<PortID> getAllPortsinGroup(PortID portID) const override;
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
 
  private:
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(

@@ -19,6 +19,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
@@ -37,7 +38,7 @@ class BcmTestPlatform : public BcmPlatform {
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
   folly::MacAddress getLocalMac() const override;
-  virtual std::list<FlexPortMode> getSupportedFlexPortModes() const = 0;
+  virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;

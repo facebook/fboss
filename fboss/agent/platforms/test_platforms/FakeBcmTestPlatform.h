@@ -36,7 +36,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
-  std::list<FlexPortMode> getSupportedFlexPortModes() const override {
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G,
             FlexPortMode::TWOX50G,
             FlexPortMode::ONEX40G,
