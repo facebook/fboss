@@ -16,6 +16,9 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
+#include <memory>
+#include <tuple>
+
 namespace facebook {
 namespace fboss {
 
@@ -52,13 +55,15 @@ std::unique_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     const folly::MacAddress& mac,
     const PortDescriptor& portDesc) {
   XLOG(INFO) << "addFdb " << mac;
-  SaiRouterInterface* routerInterface =
-      managerTable_->routerInterfaceManager().getRouterInterface(intfId);
-  if (!routerInterface) {
+  SaiRouterInterfaceHandle* routerInterfaceHandle =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(intfId);
+  if (!routerInterfaceHandle) {
     throw FbossError(
         "Attempted to add non-existent interface to Fdb: ", intfId);
   }
-  auto vlanId = routerInterface->attributes().vlanId;
+  auto vlanId = std::get<SaiRouterInterfaceTraits::Attributes::VlanId>(
+                    routerInterfaceHandle->routerInterface->attributes())
+                    .value();
   // TODO(srikrishnagopu): Can it be an AGG Port ?
   auto portId = portDesc.phyPortID();
   auto port = managerTable_->portManager().getPort(portId);

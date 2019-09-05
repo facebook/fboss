@@ -283,7 +283,7 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   sai_status_t setAttribute2(const AdapterKeyT& key, const AttrT& attr) {
-    return impl()._setAttribute(key, attr.saiAttr());
+    return impl()._setAttribute(key, saiAttr(attr));
   }
 
  private:

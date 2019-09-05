@@ -12,52 +12,31 @@
 
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include "folly/MacAddress.h"
 
+#include "folly/container/F14Map.h"
+
 #include <memory>
-#include <unordered_map>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
 class SaiRoute;
-class SaiRouterInterface;
 class SaiVirtualRouter;
 class SaiPlatform;
 
-class SaiRouterInterface {
- public:
-  SaiRouterInterface(
-      SaiApiTable* apiTable,
-      const RouterInterfaceApiParameters::Attributes& attributes,
-      const sai_object_id_t& switchID);
-  ~SaiRouterInterface();
-  SaiRouterInterface(const SaiRouterInterface& other) = delete;
-  SaiRouterInterface(SaiRouterInterface&& other) = delete;
-  SaiRouterInterface& operator=(const SaiRouterInterface& other) = delete;
-  SaiRouterInterface& operator=(SaiRouterInterface&& other) = delete;
-  bool operator==(const SaiRouterInterface& other) const;
-  bool operator!=(const SaiRouterInterface& other) const;
+using SaiRouterInterface = SaiObject<SaiRouterInterfaceTraits>;
 
-  void addToMeRoutes(std::vector<std::unique_ptr<SaiRoute>>&& toMeRoutes);
-
-  const RouterInterfaceApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  RouterInterfaceApiParameters::Attributes attributes_;
-  std::vector<std::unique_ptr<SaiRoute>> toMeRoutes_;
-  sai_object_id_t id_;
+struct SaiRouterInterfaceHandle {
+  std::shared_ptr<SaiRouterInterface> routerInterface;
+  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
 };
 
 class SaiRouterInterfaceManager {
@@ -66,24 +45,26 @@ class SaiRouterInterfaceManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  sai_object_id_t addRouterInterface(
+  RouterInterfaceSaiId addRouterInterface(
       const std::shared_ptr<Interface>& swInterface);
   void removeRouterInterface(const InterfaceID& swId);
   void changeRouterInterface(
       const std::shared_ptr<Interface>& oldInterface,
       const std::shared_ptr<Interface>& newInterface);
-  SaiRouterInterface* getRouterInterface(const InterfaceID& swId);
-  const SaiRouterInterface* getRouterInterface(const InterfaceID& swId) const;
+  SaiRouterInterfaceHandle* getRouterInterfaceHandle(const InterfaceID& swId);
+  const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
+      const InterfaceID& swId) const;
 
   void processInterfaceDelta(const StateDelta& stateDelta);
 
  private:
-  SaiRouterInterface* getRouterInterfaceImpl(const InterfaceID& swId) const;
+  SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
+      const InterfaceID& swId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<InterfaceID, std::unique_ptr<SaiRouterInterface>>
-      routerInterfaces_;
+  folly::F14FastMap<InterfaceID, std::unique_ptr<SaiRouterInterfaceHandle>>
+      handles_;
 };
 
 } // namespace fboss

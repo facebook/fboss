@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -22,63 +23,38 @@
 namespace facebook {
 namespace fboss {
 
-SaiRouterInterface::SaiRouterInterface(
-    SaiApiTable* apiTable,
-    const RouterInterfaceApiParameters::Attributes& attributes,
-    const sai_object_id_t& switchID)
-    : apiTable_(apiTable), attributes_(attributes) {
-  auto& routerInterfaceApi = apiTable_->routerInterfaceApi();
-  id_ = routerInterfaceApi.create(attributes_.attrs(), switchID);
-}
-
-SaiRouterInterface::~SaiRouterInterface() {
-  toMeRoutes_.clear();
-  auto& routerInterfaceApi = apiTable_->routerInterfaceApi();
-  routerInterfaceApi.remove(id_);
-}
-
-void SaiRouterInterface::addToMeRoutes(
-    std::vector<std::unique_ptr<SaiRoute>>&& toMeRoutes) {
-  toMeRoutes_.insert(
-      toMeRoutes_.end(),
-      std::make_move_iterator(toMeRoutes.begin()),
-      std::make_move_iterator(toMeRoutes.end()));
-}
-
-bool SaiRouterInterface::operator==(const SaiRouterInterface& other) const {
-  return attributes_ == other.attributes();
-}
-bool SaiRouterInterface::operator!=(const SaiRouterInterface& other) const {
-  return !(*this == other);
-}
-
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
-sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
+RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
+  // check if the router interface already exists
   InterfaceID swId(swInterface->getID());
-  auto itr = routerInterfaces_.find(swId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  if (itr != routerInterfaces_.end()) {
+  auto handle = getRouterInterfaceHandle(swId);
+  if (handle) {
     throw FbossError(
         "Attempted to add duplicate router interface with InterfaceID ", swId);
   }
+
+  // compute the virtual router id for this router interface
   RouterID routerId = swInterface->getRouterID();
-  folly::MacAddress srcMac = swInterface->getMac();
   SaiVirtualRouter* virtualRouter =
       managerTable_->virtualRouterManager().getVirtualRouter(routerId);
   if (!virtualRouter) {
     throw FbossError("No virtual router for RouterID ", routerId);
   }
   sai_object_id_t saiVirtualRouterId = virtualRouter->id();
-  RouterInterfaceApiParameters::Attributes::VirtualRouterId
+  SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute{saiVirtualRouterId};
-  RouterInterfaceApiParameters::Attributes::Type typeAttribute{
+
+  // we only use VLAN based router interfaces
+  SaiRouterInterfaceTraits::Attributes::Type typeAttribute{
       SAI_ROUTER_INTERFACE_TYPE_VLAN};
+
+  // compute the VLAN sai id for this router interface
   VlanID swVlanId = swInterface->getVlanID();
   SaiVlanHandle* saiVlanHandle =
       managerTable_->vlanManager().getVlanHandle(swVlanId);
@@ -86,30 +62,47 @@ sai_object_id_t SaiRouterInterfaceManager::addRouterInterface(
     throw FbossError(
         "Failed to add router interface: no sai vlan for VlanID ", swVlanId);
   }
-  std::shared_ptr<SaiVlan> saiVlan = saiVlanHandle->vlan;
-  RouterInterfaceApiParameters::Attributes::VlanId vlanIdAttribute{
-      saiVlan->adapterKey()};
-  RouterInterfaceApiParameters::Attributes::SrcMac srcMacAttribute{srcMac};
-  RouterInterfaceApiParameters::Attributes attributes{{virtualRouterIdAttribute,
-                                                       typeAttribute,
-                                                       vlanIdAttribute,
-                                                       srcMacAttribute}};
-  auto routerInterface =
-      std::make_unique<SaiRouterInterface>(apiTable_, attributes, switchId);
+  SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute{
+      saiVlanHandle->vlan->adapterKey()};
+
+  // get the src mac for this router interface
+  folly::MacAddress srcMac = swInterface->getMac();
+  SaiRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
+
+  // create the router interface
+  SaiRouterInterfaceTraits::CreateAttributes attributes{
+      virtualRouterIdAttribute,
+      typeAttribute,
+      vlanIdAttribute,
+      srcMacAttribute};
+  SaiRouterInterfaceTraits::AdapterHostKey k{
+      virtualRouterIdAttribute,
+      vlanIdAttribute,
+  };
+  auto& store = SaiStore::getInstance()->get<SaiRouterInterfaceTraits>();
+  std::shared_ptr<SaiRouterInterface> routerInterface =
+      store.setObject(k, attributes);
+  auto routerInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
+  routerInterfaceHandle->routerInterface = routerInterface;
+
+  // create the ToMe routes for this router interface
   auto toMeRoutes =
       managerTable_->routeManager().makeInterfaceToMeRoutes(swInterface);
-  routerInterface->addToMeRoutes(std::move(toMeRoutes));
-  sai_object_id_t saiId = routerInterface->id();
-  routerInterfaces_.insert(std::make_pair(swId, std::move(routerInterface)));
-  return saiId;
+  routerInterfaceHandle->toMeRoutes.insert(
+      routerInterfaceHandle->toMeRoutes.end(),
+      std::make_move_iterator(toMeRoutes.begin()),
+      std::make_move_iterator(toMeRoutes.end()));
+
+  handles_.emplace(swId, std::move(routerInterfaceHandle));
+  return routerInterface->adapterKey();
 }
 
 void SaiRouterInterfaceManager::removeRouterInterface(const InterfaceID& swId) {
-  auto itr = routerInterfaces_.find(swId);
-  if (itr == routerInterfaces_.end()) {
+  auto itr = handles_.find(swId);
+  if (itr == handles_.end()) {
     throw FbossError("Failed to remove non-existent router interface: ", swId);
   }
-  routerInterfaces_.erase(itr);
+  handles_.erase(itr);
 }
 
 void SaiRouterInterfaceManager::changeRouterInterface(
@@ -118,20 +111,22 @@ void SaiRouterInterfaceManager::changeRouterInterface(
   throw FbossError("Not implemented");
 }
 
-SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterface(
+SaiRouterInterfaceHandle* SaiRouterInterfaceManager::getRouterInterfaceHandle(
     const InterfaceID& swId) {
-  return getRouterInterfaceImpl(swId);
+  return getRouterInterfaceHandleImpl(swId);
 }
 
-const SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterface(
+const SaiRouterInterfaceHandle*
+SaiRouterInterfaceManager::getRouterInterfaceHandle(
     const InterfaceID& swId) const {
-  return getRouterInterfaceImpl(swId);
+  return getRouterInterfaceHandleImpl(swId);
 }
 
-SaiRouterInterface* SaiRouterInterfaceManager::getRouterInterfaceImpl(
+SaiRouterInterfaceHandle*
+SaiRouterInterfaceManager::getRouterInterfaceHandleImpl(
     const InterfaceID& swId) const {
-  auto itr = routerInterfaces_.find(swId);
-  if (itr == routerInterfaces_.end()) {
+  auto itr = handles_.find(swId);
+  if (itr == handles_.end()) {
     return nullptr;
   }
   if (!itr->second) {

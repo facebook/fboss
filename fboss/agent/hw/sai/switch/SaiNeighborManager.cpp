@@ -70,17 +70,18 @@ template <typename NeighborEntryT>
 NeighborApiParameters::EntryType SaiNeighborManager::saiEntryFromSwEntry(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   folly::IPAddress ip(swEntry->getIP());
-  SaiRouterInterface* routerInterface =
-      managerTable_->routerInterfaceManager().getRouterInterface(
+  SaiRouterInterfaceHandle* routerInterfaceHandle =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
           swEntry->getIntfID());
-  if (!routerInterface) {
+  if (!routerInterfaceHandle) {
     throw FbossError(
         "Failed to create sai_neighbor_entry from NeighborEntry. "
         "No SaiRouterInterface for InterfaceID: ",
         swEntry->getIntfID());
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  return NeighborApiParameters::EntryType(switchId, routerInterface->id(), ip);
+  return NeighborApiParameters::EntryType(
+      switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip);
 }
 
 template <typename NeighborEntryT>

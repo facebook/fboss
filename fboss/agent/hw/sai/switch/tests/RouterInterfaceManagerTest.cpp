@@ -34,17 +34,15 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
   }
 
   void checkRouterInterface(
-      sai_object_id_t saiRouterInterfaceId,
+      RouterInterfaceSaiId saiRouterInterfaceId,
       sai_object_id_t expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac) {
-    auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
-        RouterInterfaceApiParameters::Attributes::VlanId(),
-        saiRouterInterfaceId);
-    auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute(
-        RouterInterfaceApiParameters::Attributes::SrcMac(),
-        saiRouterInterfaceId);
-    auto vlanIdGot = saiApiTable->vlanApi().getAttribute(
-        VlanApiParameters::Attributes::VlanId(), saiVlanIdGot);
+    auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute2(
+        saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::VlanId{});
+    auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute2(
+        saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::SrcMac{});
+    auto vlanIdGot = saiApiTable->vlanApi().getAttribute2(
+        VlanSaiId{saiVlanIdGot}, SaiVlanTraits::Attributes::VlanId{});
     EXPECT_EQ(vlanIdGot, expectedSaiVlanId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);
   }
@@ -83,20 +81,20 @@ TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  auto routerInterface =
-      saiManagerTable->routerInterfaceManager().getRouterInterface(
+  auto routerInterfaceHandle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(0));
-  EXPECT_TRUE(routerInterface);
-  EXPECT_EQ(routerInterface->id(), saiId);
+  EXPECT_TRUE(routerInterfaceHandle);
+  EXPECT_EQ(routerInterfaceHandle->routerInterface->adapterKey(), saiId);
 }
 
 TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {
   auto swInterface = makeInterface(intf0);
   saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  auto routerInterface =
-      saiManagerTable->routerInterfaceManager().getRouterInterface(
+  auto routerInterfaceHandle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(2));
-  EXPECT_FALSE(routerInterface);
+  EXPECT_FALSE(routerInterfaceHandle);
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
@@ -105,9 +103,9 @@ TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
   InterfaceID swId(1);
   routerInterfaceManager.removeRouterInterface(swId);
-  auto routerInterface =
-      saiManagerTable->routerInterfaceManager().getRouterInterface(swId);
-  EXPECT_FALSE(routerInterface);
+  auto routerInterfaceHandle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(swId);
+  EXPECT_FALSE(routerInterfaceHandle);
 }
 
 TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {

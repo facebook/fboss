@@ -118,15 +118,16 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   }
   for (const auto& swNextHop : swNextHops) {
     InterfaceID interfaceId = swNextHop.intf();
-    auto routerInterface =
-        managerTable_->routerInterfaceManager().getRouterInterface(interfaceId);
-    if (!routerInterface) {
+    auto routerInterfaceHandle =
+        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+            interfaceId);
+    if (!routerInterfaceHandle) {
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
     folly::IPAddress ip = swNextHop.addr();
     auto switchId = managerTable_->switchManager().getSwitchSaiId();
     NeighborApiParameters::EntryType neighborEntry{
-        switchId, routerInterface->id(), ip};
+        switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
     nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
     auto neighbor = managerTable_->neighborManager().getNeighbor(neighborEntry);
     if (!neighbor) {
@@ -143,16 +144,17 @@ void SaiNextHopGroupManager::unregisterNeighborResolutionHandling(
     const RouteNextHopEntry::NextHopSet& swNextHops) {
   for (const auto& swNextHop : swNextHops) {
     InterfaceID interfaceId = swNextHop.intf();
-    auto routerInterface =
-        managerTable_->routerInterfaceManager().getRouterInterface(interfaceId);
-    if (!routerInterface) {
+    auto routerInterfaceHandle =
+        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+            interfaceId);
+    if (!routerInterfaceHandle) {
       XLOG(WARNING) << "Missing SAI router interface for " << interfaceId;
       continue;
     }
     folly::IPAddress ip = swNextHop.addr();
     auto switchId = managerTable_->switchManager().getSwitchSaiId();
     NeighborApiParameters::EntryType neighborEntry{
-        switchId, routerInterface->id(), ip};
+        switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
     nextHopsByNeighbor_[neighborEntry].erase(swNextHops);
   }
 }

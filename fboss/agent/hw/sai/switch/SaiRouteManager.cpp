@@ -156,16 +156,16 @@ void SaiRouteManager::addRoute(
     if (swRoute->isConnected()) {
       CHECK_EQ(fwd.getNextHopSet().size(), 1);
       InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
-      SaiRouterInterface* saiInterface =
-          managerTable_->routerInterfaceManager().getRouterInterface(
+      const SaiRouterInterfaceHandle* routerInterfaceHandle =
+          managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
               interfaceId);
-      if (!saiInterface) {
+      if (!routerInterfaceHandle) {
         throw FbossError(
             "cannot create subnet route without a sai_router_interface "
             "for InterfaceID: ",
             interfaceId);
       }
-      nextHopIdOpt = saiInterface->id();
+      nextHopIdOpt = routerInterfaceHandle->routerInterface->adapterKey();
     } else {
       /*
        * A Route which has NextHop(s) will create or reference an existing
