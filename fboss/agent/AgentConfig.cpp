@@ -31,7 +31,6 @@ std::unique_ptr<AgentConfig> AgentConfig::fromDefaultFile() {
 
 std::unique_ptr<AgentConfig> AgentConfig::fromFile(folly::StringPiece path) {
   std::string configStr;
-  std::cerr << "Reading config from " << path << std::endl;
   if (!folly::readFile(path.data(), configStr)) {
     throw FbossError("unable to read ", path);
   }
@@ -45,16 +44,13 @@ std::unique_ptr<AgentConfig> AgentConfig::fromRawConfig(
   apache::thrift::SimpleJSONSerializer::deserialize<cfg::AgentConfig>(
       configStr.c_str(), agentConfig);
 
-  // this is crappy, but because we don't annotate the json with
-  // numbers, we have to use the SimpleJSONSerializer, which is
-  // extremely permissive about unexpected keys and never throws.  To
-  // determine if we parsed anything, we check if the sw member
-  // has any differences with a default-constructed SwitchConfig. If
-  // not, we fall back to treating the config as a SwitchConfig
-  // directly.
-  if (agentConfig.sw != cfg::SwitchConfig()) {
-    std::cerr << "Parsed config successfully as AgentConfig" << std::endl;
-  } else {
+  // This is crappy, but because we don't annotate the json with numbers, we
+  // have to use the SimpleJSONSerializer, which is extremely permissive about
+  // unexpected keys and never throws. To determine if we parsed anything, we
+  // check if the sw member has any differences with a default-constructed
+  // SwitchConfig. If not, we fall back to treating the config as a
+  // SwitchConfig directly.
+  if (agentConfig.sw == cfg::SwitchConfig()) {
     std::cerr << "Not valid AgentConfig, fallback to parsing as SwitchConfig..."
               << std::endl;
     apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
