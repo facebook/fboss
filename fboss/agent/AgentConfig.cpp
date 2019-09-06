@@ -16,7 +16,10 @@
 
 #include <iostream>
 
-DEFINE_string(config, "", "The path to the local JSON configuration file");
+DEFINE_string(
+    config,
+    "/etc/coop/agent.conf",
+    "The path to the local JSON configuration file");
 
 // NOTE: we use std::cerr because logging libs are likely not
 // initialized yet...
@@ -25,7 +28,6 @@ namespace facebook {
 namespace fboss {
 
 std::unique_ptr<AgentConfig> AgentConfig::fromDefaultFile() {
-  CHECK(!FLAGS_config.empty()) << "Must set --config";
   return fromFile(FLAGS_config);
 }
 
