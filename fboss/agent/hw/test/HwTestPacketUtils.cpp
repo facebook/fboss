@@ -217,6 +217,37 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       hopLimit,
       payload);
 }
+
+UDPDatagram::UDPDatagram(folly::io::Cursor& /*cursor*/) {}
+
+std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
+    const HwSwitch* /*hw*/) const {
+  return nullptr;
+}
+
+template <typename AddrT>
+IPPacket<AddrT>::IPPacket(folly::io::Cursor& /*cursor*/) {}
+
+template <typename AddrT>
+std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
+    const HwSwitch* /*hw*/) const {
+  return nullptr;
+}
+
+MPLSPacket::MPLSPacket(folly::io::Cursor& /*cursor*/) {}
+
+std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
+    const HwSwitch* /*hw*/) const {
+  return nullptr;
+}
+
+EthFrame::EthFrame(folly::io::Cursor& /*cursor*/) {}
+
+std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
+    const HwSwitch* /*hw*/) const {
+  return nullptr;
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
