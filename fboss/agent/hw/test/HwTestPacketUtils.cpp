@@ -218,11 +218,24 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       payload);
 }
 
-UDPDatagram::UDPDatagram(folly::io::Cursor& /*cursor*/) {}
+UDPDatagram::UDPDatagram(folly::io::Cursor& cursor) {
+  udpHdr_.parse(&cursor, nullptr);
+  auto payLoadSize = udpHdr_.length - UDPHeader::size(); // payload length
+  payload_.resize(payLoadSize);
+  for (auto i = 0; i < payLoadSize; i++) {
+    payload_[i] = cursor.readBE<uint8_t>(); // payload bytes
+  }
+}
 
 std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
-    const HwSwitch* /*hw*/) const {
-  return nullptr;
+    const HwSwitch* hw) const {
+  auto txPacket = hw->allocatePacket(length());
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  udpHdr_.write(&rwCursor);
+  for (auto byte : payload_) {
+    rwCursor.writeBE<uint8_t>(byte);
+  }
+  return txPacket;
 }
 
 template <typename AddrT>

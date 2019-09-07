@@ -111,6 +111,14 @@ class UDPDatagram {
     return UDPHeader::size() + payload_.size();
   }
 
+  UDPHeader header() const {
+    return udpHdr_;
+  }
+
+  std::vector<uint8_t> payload() const {
+    return payload_;
+  }
+
   // construct TxPacket by encapsulating rabdom byte payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
