@@ -113,6 +113,10 @@ std::vector<std::unique_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
 
   // Compute per-address information
   for (const auto& address : swInterface->getAddresses()) {
+    // Skip interface link local routes. This will be trapped by ACL.
+    if (address.first.isV6() && address.first.isLinkLocal()) {
+      continue;
+    }
     // empty next hop group -- this route will not manage the
     // lifetime of a next hop group
     std::shared_ptr<SaiNextHopGroup> nextHopGroup;
