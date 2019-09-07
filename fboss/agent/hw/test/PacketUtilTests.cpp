@@ -89,6 +89,20 @@ void verifyMPLSHdr(const MPLSHdr& mplsHdr) {
   };
   EXPECT_EQ(expectedStack, mplsHdr.stack());
 }
+
+const auto kEthHdr =
+    "02 90 fb 43"
+    "a2 ec 02 90"
+    "fb 43 a2 ec"
+    "81 00 0f a1"
+    "88 47";
+
+void verifyEthHdr(const EthHdr& ethHdr) {
+  EXPECT_EQ(ethHdr.srcAddr, folly::MacAddress("02:90:fb:43:a2:ec"));
+  EXPECT_EQ(ethHdr.dstAddr, folly::MacAddress("02:90:fb:43:a2:ec"));
+  EXPECT_EQ(ethHdr.vlanTags, EthHdr::VlanTags_t{VlanTag(4001, 0x8100)});
+  EXPECT_EQ(ethHdr.etherType, 0x8847);
+}
 } // anonymous namespace
 
 TEST(PacketUtilTests, UDPDatagram) {
@@ -138,6 +152,29 @@ TEST(PacketUtilTests, MPLSPacket) {
   folly::io::Cursor cursor{buf.get()};
 
   auto mplsPkt = utility::MPLSPacket(cursor);
+  auto mplsHdr = mplsPkt.header();
+  verifyMPLSHdr(mplsHdr);
+  auto ip6Pkt = mplsPkt.v6PayLoad().value();
+  auto ip6Hdr = ip6Pkt.header();
+  auto ip6Payload = ip6Pkt.payload();
+  verifyIP6Hdr(ip6Hdr);
+  auto udpPkt = ip6Payload.value();
+  verifyUdp(udpPkt.header(), udpPkt.payload());
+}
+
+TEST(PacketUtilTests, EthFrame) {
+  auto eth = std::string(kEthHdr);
+  eth.append(kMPLSHdr);
+  eth.append(kIPv6Hdr);
+  eth.append(kUDP);
+
+  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(eth));
+  folly::io::Cursor cursor{buf.get()};
+
+  auto ethPkt = utility::EthFrame(cursor);
+  verifyEthHdr(ethPkt.header());
+
+  auto mplsPkt = ethPkt.mplsPayLoad().value();
   auto mplsHdr = mplsPkt.header();
   verifyMPLSHdr(mplsHdr);
   auto ip6Pkt = mplsPkt.v6PayLoad().value();

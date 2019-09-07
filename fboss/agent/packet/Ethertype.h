@@ -40,6 +40,9 @@ enum class ETHERTYPE : uint16_t {
   // Internet Protocol (version 6)
   ETHERTYPE_IPV6 = 0x86DD,
 
+  // MPLS Label Switched Packet
+  ETHERTYPE_MPLS = 0x8847,
+
   // Jumbo Frame (instead of actual length)
   ETHERTYPE_JUMBO = 0x8870,
 
@@ -58,6 +61,5 @@ enum class ETHERTYPE : uint16_t {
   // Ethernet passive optical n/ws. Used for pause frames
   ETHERTYPE_EPON = 0x8808,
 };
-
 }
 } // namespace facebook

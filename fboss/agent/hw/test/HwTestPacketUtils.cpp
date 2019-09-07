@@ -23,6 +23,8 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 
+#include "fboss/agent/types.h"
+
 using namespace facebook::fboss;
 using folly::MacAddress;
 using folly::io::RWPrivateCursor;
@@ -299,11 +301,54 @@ std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
   return txPacket;
 }
 
-EthFrame::EthFrame(folly::io::Cursor& /*cursor*/) {}
+EthFrame::EthFrame(folly::io::Cursor& cursor) {
+  hdr_ = EthHdr(cursor);
+  switch (hdr_.etherType) {
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4):
+      v4PayLoad_.assign(IPPacket<folly::IPAddressV4>(cursor));
+      break;
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6):
+      v6PayLoad_.assign(IPPacket<folly::IPAddressV6>(cursor));
+      break;
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS):
+      mplsPayLoad_.assign(MPLSPacket(cursor));
+      break;
+  }
+}
 
 std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
-    const HwSwitch* /*hw*/) const {
-  return nullptr;
+    const HwSwitch* hw) const {
+  auto txPacket = hw->allocatePacket(length());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+
+  rwCursor.push(hdr_.dstAddr.bytes(), folly::MacAddress::SIZE);
+  rwCursor.push(hdr_.srcAddr.bytes(), folly::MacAddress::SIZE);
+  if (!hdr_.vlanTags.empty()) {
+    for (const auto& vlanTag : hdr_.vlanTags) {
+      rwCursor.template writeBE<uint32_t>(vlanTag.value);
+    }
+  }
+  if (v4PayLoad_) {
+    rwCursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
+    auto v4Packet = v4PayLoad_->getTxPacket(hw);
+    folly::io::Cursor cursor(v4Packet->buf());
+    rwCursor.push(cursor, v4PayLoad_->length());
+  } else if (v6PayLoad_) {
+    rwCursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+    auto v6Packet = v6PayLoad_->getTxPacket(hw);
+    folly::io::Cursor cursor(v6Packet->buf());
+    rwCursor.push(cursor, v6PayLoad_->length());
+  } else if (mplsPayLoad_) {
+    rwCursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS));
+    auto mplsPacket = mplsPayLoad_->getTxPacket(hw);
+    folly::io::Cursor cursor(mplsPacket->buf());
+    rwCursor.push(cursor, mplsPayLoad_->length());
+  }
+  return txPacket;
 }
 
 template class IPPacket<folly::IPAddressV4>;

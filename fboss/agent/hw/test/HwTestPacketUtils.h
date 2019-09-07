@@ -229,9 +229,33 @@ class EthFrame {
   EthFrame(EthHdr hdr, IPPacket<folly::IPAddressV6> payload)
       : hdr_(std::move(hdr)), v6PayLoad_(payload) {}
 
+  EthHdr header() const {
+    return hdr_;
+  }
+
+  size_t length() const {
+    auto len = 0;
+    if (v4PayLoad_) {
+      len += v4PayLoad_->length();
+    } else if (v6PayLoad_) {
+      len += v6PayLoad_->length();
+    } else if (mplsPayLoad_) {
+      len += mplsPayLoad_->length();
+    }
+    len += EthHdr::SIZE;
+    return len;
+  }
   // construct TxPacket by encapsulating payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
+
+  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
+    return v4PayLoad_;
+  }
+
+  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
+    return v6PayLoad_;
+  }
 
   folly::Optional<MPLSPacket> mplsPayLoad() const {
     return mplsPayLoad_;
