@@ -42,6 +42,14 @@ EthHdr makeEthHdr(
   return ethHdr;
 }
 
+uint8_t nextHeader(const IPv6Hdr& hdr) {
+  return hdr.nextHeader;
+}
+
+uint8_t nextHeader(const IPv4Hdr& hdr) {
+  return hdr.protocol;
+}
+
 } // namespace
 
 namespace facebook {
@@ -239,12 +247,25 @@ std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
 }
 
 template <typename AddrT>
-IPPacket<AddrT>::IPPacket(folly::io::Cursor& /*cursor*/) {}
+IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
+  hdr_ = HdrT(cursor);
+  if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
+    // if proto is udp, encapsulate udp
+    udpPayLoad_.assign(UDPDatagram(cursor));
+  }
+}
 
 template <typename AddrT>
 std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
-    const HwSwitch* /*hw*/) const {
-  return nullptr;
+    const HwSwitch* hw) const {
+  auto txPacket = hw->allocatePacket(length());
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  hdr_.serialize(&rwCursor);
+  if (udpPayLoad_) {
+    folly::io::Cursor cursor(udpPayLoad_->getTxPacket(hw)->buf());
+    rwCursor.push(cursor, udpPayLoad_->length());
+  }
+  return txPacket;
 }
 
 MPLSPacket::MPLSPacket(folly::io::Cursor& /*cursor*/) {}
@@ -261,6 +282,8 @@ std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
   return nullptr;
 }
 
+template class IPPacket<folly::IPAddressV4>;
+template class IPPacket<folly::IPAddressV6>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

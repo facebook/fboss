@@ -141,6 +141,18 @@ class IPPacket {
   // set header fields, useful to construct TxPacket
   explicit IPPacket(const HdrT& hdr) : hdr_{hdr} {}
 
+  size_t length() const {
+    return hdr_.size() + (udpPayLoad_ ? udpPayLoad_->length() : 0);
+  }
+
+  HdrT header() const {
+    return hdr_;
+  }
+
+  folly::Optional<UDPDatagram> payload() const {
+    return udpPayLoad_;
+  }
+
   // construct TxPacket by encapsulating udp payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
@@ -148,7 +160,11 @@ class IPPacket {
  private:
   HdrT hdr_;
   folly::Optional<UDPDatagram> udpPayLoad_;
+  // TODO: support TCP segment
 };
+
+using IPv4Packet = IPPacket<folly::IPAddressV4>;
+using IPv6Packet = IPPacket<folly::IPAddressV6>;
 
 class MPLSPacket {
  public:
