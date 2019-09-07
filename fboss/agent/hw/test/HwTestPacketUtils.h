@@ -182,6 +182,25 @@ class MPLSPacket {
       v6PayLoad_.assign(std::move(payload));
     }
   }
+
+  MPLSHdr header() const {
+    return hdr_;
+  }
+
+  size_t length() const {
+    return hdr_.size() +
+        (v4PayLoad_ ? v4PayLoad_->length()
+                    : (v6PayLoad_ ? v6PayLoad_->length() : 0));
+  }
+
+  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
+    return v4PayLoad_;
+  }
+
+  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
+    return v6PayLoad_;
+  }
+
   // construct TxPacket by encapsulating l3 payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
@@ -204,19 +223,19 @@ class EthFrame {
     mplsPayLoad_.assign(std::move(payload));
   }
 
-  template <typename AddrT>
-  EthFrame(EthHdr hdr, IPPacket<AddrT> payload) : hdr_(std::move(hdr)) {
-    auto isV4 = std::is_same<AddrT, folly::IPAddressV4>::value;
-    if (isV4) {
-      v4PayLoad_.assign(std::move(payload));
-    } else {
-      v6PayLoad_.assign(std::move(payload));
-    }
-  }
+  EthFrame(EthHdr hdr, IPPacket<folly::IPAddressV4> payload)
+      : hdr_(std::move(hdr)), v4PayLoad_(payload) {}
+
+  EthFrame(EthHdr hdr, IPPacket<folly::IPAddressV6> payload)
+      : hdr_(std::move(hdr)), v6PayLoad_(payload) {}
 
   // construct TxPacket by encapsulating payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
+
+  folly::Optional<MPLSPacket> mplsPayLoad() const {
+    return mplsPayLoad_;
+  }
 
  private:
   EthHdr hdr_;

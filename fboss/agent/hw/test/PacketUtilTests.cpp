@@ -75,6 +75,20 @@ void verifyIP6Hdr(const IPv6Hdr& ip6Hdr) {
   EXPECT_EQ(ip6Hdr.srcAddr, folly::IPAddressV6("2401:db00:e211:9100:1020::24"));
   EXPECT_EQ(ip6Hdr.dstAddr, folly::IPAddressV6("2401:db00:e211:9100:1020::25"));
 }
+
+const auto kMPLSHdr =
+    "00 12 c8 7e"
+    "00 0c 80 7e"
+    "00 06 49 7e";
+
+void verifyMPLSHdr(const MPLSHdr& mplsHdr) {
+  const std::vector<MPLSHdr::Label> expectedStack{
+      MPLSHdr::Label(300, 4, false, 126),
+      MPLSHdr::Label(200, 0, false, 126),
+      MPLSHdr::Label(100, 4, true, 126),
+  };
+  EXPECT_EQ(expectedStack, mplsHdr.stack());
+}
 } // anonymous namespace
 
 TEST(PacketUtilTests, UDPDatagram) {
@@ -112,5 +126,24 @@ TEST(PacketUtilTests, IpV4Packet) {
   auto ip4Payload = ip4Pkt.payload();
   verifyIP4Hdr(ip4Hdr);
   auto udpPkt = ip4Payload.value();
+  verifyUdp(udpPkt.header(), udpPkt.payload());
+}
+
+TEST(PacketUtilTests, MPLSPacket) {
+  auto mpls = std::string(kMPLSHdr);
+  mpls.append(kIPv6Hdr);
+  mpls.append(kUDP);
+
+  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(mpls));
+  folly::io::Cursor cursor{buf.get()};
+
+  auto mplsPkt = utility::MPLSPacket(cursor);
+  auto mplsHdr = mplsPkt.header();
+  verifyMPLSHdr(mplsHdr);
+  auto ip6Pkt = mplsPkt.v6PayLoad().value();
+  auto ip6Hdr = ip6Pkt.header();
+  auto ip6Payload = ip6Pkt.payload();
+  verifyIP6Hdr(ip6Hdr);
+  auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
 }
