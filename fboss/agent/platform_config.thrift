@@ -6,6 +6,7 @@ namespace py.asyncio neteng.fboss.asyncio.platform_config
 namespace cpp2 facebook.fboss.cfg
 
 include "fboss/agent/hw/bcm/bcm_config.thrift"
+include "fboss/agent/hw/sai/config/asic_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 
@@ -15,6 +16,7 @@ enum PlatformAttributes {
 
 union ChipConfig {
   1: bcm_config.BcmConfig bcm,
+  2: asic_config.AsicConfig asic,
 }
 
 struct FrontPanelResources {

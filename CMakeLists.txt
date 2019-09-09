@@ -110,6 +110,7 @@ add_fbthrift_cpp_library(
     json
   DEPENDS
     bcm_config_cpp2
+    asic_config_cpp2
     phy_cpp2
 )
 add_fbthrift_cpp_library(
@@ -173,6 +174,12 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   bcm_config_cpp2
   fboss/agent/hw/bcm/bcm_config.thrift
+  OPTIONS
+    json
+)
+add_fbthrift_cpp_library(
+  asic_config_cpp2
+  fboss/agent/hw/sai/config/asic_config.thrift
   OPTIONS
     json
 )
