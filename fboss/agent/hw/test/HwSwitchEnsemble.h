@@ -88,6 +88,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * For platforms that support hw call logging, API to stop this logging
    */
   virtual void stopHwCallLogging() const = 0;
+  /*
+   * Initiate graceful exit
+   */
+  void gracefulExit();
 
  protected:
   /*

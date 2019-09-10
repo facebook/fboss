@@ -121,5 +121,13 @@ void HwSwitchEnsemble::revertToInitCfgState() {
   CHECK(initCfgState_);
   applyNewState(initCfgState_);
 }
+
+void HwSwitchEnsemble::gracefulExit() {
+  // Initiate warm boot
+  folly::dynamic switchState = folly::dynamic::object;
+  getHwSwitch()->unregisterCallbacks();
+  switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+  getHwSwitch()->gracefulExit(switchState);
+}
 } // namespace fboss
 } // namespace facebook

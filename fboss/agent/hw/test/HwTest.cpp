@@ -112,11 +112,7 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
   }
   hwSwitchEnsemble_->removeHwEventObserver(this);
   if (doWarmboot) {
-    // Initiate warm boot
-    folly::dynamic switchState = folly::dynamic::object;
-    getHwSwitch()->unregisterCallbacks();
-    switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
-    getHwSwitch()->gracefulExit(switchState);
+    hwSwitchEnsemble_->gracefulExit();
     // Leak HwSwitchEnsemble for warmboot, so that
     // we don't run destructors and unprogram h/w. We are
     // going to exit the process anyways.
