@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
@@ -24,6 +23,10 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
 
 void BcmSwitchEnsemble::recreateHwSwitchFromWBState() {
   // noop
+}
+
+void BcmSwitchEnsemble::stopHwCallLogging() const {
+  // noop - hw call logging is not supported in OSS
 }
 } // namespace fboss
 } // namespace facebook

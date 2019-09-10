@@ -82,11 +82,6 @@ class HwTest : public ::testing::Test,
    * Create thrift server to handle thrift based interaction with the test
    */
   virtual std::unique_ptr<std::thread> createThriftThread() const = 0;
-  /*
-   * Hook to execute any necessary HW specific behavior between test setup
-   * and verify
-   */
-  virtual void postSetup() {}
 
  protected:
   /*
@@ -113,8 +108,12 @@ class HwTest : public ::testing::Test,
       setup();
     }
 
-    logStage("postSetup()");
-    postSetup();
+    /* HACK!!!
+     * We don't need to log h/w calls in verify for our current use
+     * case of verifying auto generated hw call log logic. So for
+     * efficiency sake stop this logging post setup
+     */
+    hwSwitchEnsemble_->stopHwCallLogging();
 
     logStage("verify()");
     verify();
