@@ -13,10 +13,6 @@
 namespace facebook {
 namespace fboss {
 
-void BcmTest::recreateHwSwitchFromWBState() {
-  // noop
-}
-
 std::unique_ptr<std::thread> BcmTest::createThriftThread() const {
   throw FbossError("Starting thrift server not supported");
 }

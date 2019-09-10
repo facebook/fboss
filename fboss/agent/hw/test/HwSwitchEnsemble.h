@@ -70,6 +70,16 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual std::vector<PortID> getAllPortsinGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
+  virtual void dumpHwCounters() const = 0;
+  /*
+   * Does this hw support warm boot
+   */
+  virtual bool warmBootSupported() const = 0;
+  /*
+   * Destroy and recreate HwSwitch from just the warm boot state
+   */
+  virtual void recreateHwSwitchFromWBState() = 0;
+
  protected:
   /*
    * Setup ensemble

@@ -45,13 +45,6 @@ std::unique_ptr<HwSwitchEnsemble> BcmTest::createHw() const {
   return std::make_unique<BcmSwitchEnsemble>(featuresDesired());
 }
 
-folly::dynamic BcmTest::createWarmBootSwitchState() {
-  folly::dynamic state = folly::dynamic::object;
-  state[kSwSwitch] = getProgrammedState()->toFollyDynamic();
-  state[kHwSwitch] = getHwSwitch()->toFollyDynamic();
-  return state;
-}
-
 int BcmTest::getUnit() const {
   return getHwSwitch()->getUnit();
 }
@@ -70,8 +63,5 @@ std::map<PortID, HwPortStats> BcmTest::getLatestPortStats(
   return mapPortStats;
 }
 
-void BcmTest::collectTestFailureInfo() const {
-  getHwSwitch()->printDiagCmd("show c");
-}
 } // namespace fboss
 } // namespace facebook

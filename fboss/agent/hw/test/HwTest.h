@@ -82,11 +82,6 @@ class HwTest : public ::testing::Test,
    * Create thrift server to handle thrift based interaction with the test
    */
   virtual std::unique_ptr<std::thread> createThriftThread() const = 0;
-  virtual bool warmBootSupported() const = 0;
-  /*
-   * Destroy and recreate HwSwitch from just the warm boot state
-   */
-  virtual void recreateHwSwitchFromWBState() = 0;
   /*
    * Hook to execute any necessary HW specific behavior between test setup
    * and verify
@@ -142,7 +137,7 @@ class HwTest : public ::testing::Test,
         // structures using warm boot cache and pre warmboot switch state.
         // Skip is we already did a true ASIC level warm boot. Since that
         // already verified this code path
-        if (warmBootSupported()) {
+        if (hwSwitchEnsemble_->warmBootSupported()) {
           logStage("flushBcmAndVerifyUsingWarmbootCache()");
           flushBcmAndVerifyUsingWarmbootCache(
               verify, setupPostWarmboot, verifyPostWarmboot);
@@ -163,7 +158,9 @@ class HwTest : public ::testing::Test,
 
  private:
   void tearDownSwitchEnsemble(bool doWarmboot = false);
-  virtual void collectTestFailureInfo() const {}
+  void collectTestFailureInfo() const {
+    hwSwitchEnsemble_->dumpHwCounters();
+  }
 
   void logStage(folly::StringPiece msg);
 
@@ -176,7 +173,7 @@ class HwTest : public ::testing::Test,
       SETUP_POSTWB_FN setupPostWarmboot,
       VERIFY_POSTWB_FN verifyPostWarmboot) {
     logStage("recreateHwSwitchFromWBState() (in memory warmboot)");
-    recreateHwSwitchFromWBState();
+    hwSwitchEnsemble_->recreateHwSwitchFromWBState();
 
     logStage("verify()");
     verify();

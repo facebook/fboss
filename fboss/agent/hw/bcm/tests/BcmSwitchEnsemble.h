@@ -43,10 +43,17 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::vector<PortID> getAllPortsinGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
 
+  void dumpHwCounters() const override;
+  bool warmBootSupported() const override {
+    return true;
+  }
+  void recreateHwSwitchFromWBState() override;
+
  private:
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);
+  folly::dynamic createWarmBootSwitchState() const;
 };
 
 } // namespace fboss

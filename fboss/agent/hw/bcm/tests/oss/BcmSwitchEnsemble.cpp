@@ -22,5 +22,8 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
   return nullptr;
 }
 
+void BcmSwitchEnsemble::recreateHwSwitchFromWBState() {
+  // noop
+}
 } // namespace fboss
 } // namespace facebook

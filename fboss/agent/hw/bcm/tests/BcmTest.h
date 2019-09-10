@@ -58,8 +58,7 @@ class BcmTest : public HwTest {
   }
 
   int getUnit() const;
-
-  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+  std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
 
  protected:
@@ -69,15 +68,9 @@ class BcmTest : public HwTest {
 
  private:
   std::unique_ptr<HwSwitchEnsemble> createHw() const override;
-  void collectTestFailureInfo() const override;
   std::unique_ptr<std::thread> createThriftThread() const override;
-  bool warmBootSupported() const override {
-    return true;
-  }
-  void recreateHwSwitchFromWBState() override;
   void postSetup() override;
 
-  folly::dynamic createWarmBootSwitchState();
 
   // Forbidden copy constructor and assignment operator
   BcmTest(BcmTest const&) = delete;
