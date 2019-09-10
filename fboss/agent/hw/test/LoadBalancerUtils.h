@@ -24,7 +24,7 @@ class HwSwitch;
 class Platform;
 class SwitchState;
 class LoadBalancer;
-class HwTest;
+class HwSwitchEnsemble;
 } // namespace fboss
 } // namespace facebook
 
@@ -60,7 +60,7 @@ void pumpTraffic(
     folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
 
 bool isLoadBalanced(
-    HwTest* hwTest,
+    HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
@@ -68,7 +68,7 @@ bool isLoadBalanced(
     bool noTrafficOk = false);
 
 bool isLoadBalanced(
-    HwTest* hwTest,
+    HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     int maxDeviationPct);
 } // namespace utility

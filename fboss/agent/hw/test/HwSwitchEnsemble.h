@@ -79,6 +79,11 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * Destroy and recreate HwSwitch from just the warm boot state
    */
   virtual void recreateHwSwitchFromWBState() = 0;
+  /*
+   * Get latest port stats for given ports
+   */
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) = 0;
 
  protected:
   /*

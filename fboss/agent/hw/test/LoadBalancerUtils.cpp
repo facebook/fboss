@@ -14,7 +14,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
-#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -123,7 +123,7 @@ void pumpTraffic(
 }
 
 bool isLoadBalanced(
-    HwTest* hwTest,
+    HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
@@ -134,7 +134,7 @@ bool isLoadBalanced(
                    return portDesc.phyPortID();
                  }) |
       folly::gen::as<std::vector<PortID>>();
-  auto portIdToStats = hwTest->getLatestPortStats(portIDs);
+  auto portIdToStats = hwSwitchEnsemble->getLatestPortStats(portIDs);
   auto portBytes = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
                      return portIdAndStats.second.outBytes_;
@@ -171,11 +171,14 @@ bool isLoadBalanced(
 }
 
 bool isLoadBalanced(
-    HwTest* hwTest,
+    HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     int maxDeviationPct) {
   return isLoadBalanced(
-      hwTest, ecmpPorts, std::vector<NextHopWeight>(), maxDeviationPct);
+      hwSwitchEnsemble,
+      ecmpPorts,
+      std::vector<NextHopWeight>(),
+      maxDeviationPct);
 }
 
 } // namespace utility

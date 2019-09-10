@@ -42,7 +42,6 @@ class BcmTest : public HwTest {
   BcmTest();
   ~BcmTest() override;
 
-  using HwTest::getLatestPortStats;
 
   BcmSwitch* getHwSwitch() override {
     return static_cast<BcmSwitch*>(HwTest::getHwSwitch());
@@ -58,8 +57,6 @@ class BcmTest : public HwTest {
   }
 
   int getUnit() const;
-  std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) override;
 
  protected:
   virtual cfg::SwitchConfig initialConfig() const {

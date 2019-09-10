@@ -12,7 +12,12 @@
 #include <memory>
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
 namespace {
@@ -96,6 +101,20 @@ folly::dynamic BcmSwitchEnsemble::createWarmBootSwitchState() const {
 
 void BcmSwitchEnsemble::dumpHwCounters() const {
   getHwSwitch()->printDiagCmd("show c");
+}
+
+std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  auto rv = opennsl_stat_sync(getHwSwitch()->getUnit());
+  bcmCheckError(rv, "Unable to sync stats ");
+  updateHwSwitchStats(getHwSwitch());
+  std::map<PortID, HwPortStats> mapPortStats;
+  for (const auto& port : ports) {
+    auto stats =
+        getHwSwitch()->getPortTable()->getBcmPort(port)->getPortStats();
+    mapPortStats[port] = (stats) ? *stats : HwPortStats{};
+  }
+  return mapPortStats;
 }
 
 } // namespace fboss

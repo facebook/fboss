@@ -64,8 +64,8 @@ class HwTest : public ::testing::Test,
    * Sync and get current stats for port(s)
    */
   HwPortStats getLatestPortStats(PortID port);
-  virtual std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports) = 0;
+  std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports);
 
   const std::vector<PortID>& logicalPortIds() const;
   const std::vector<PortID>& masterLogicalPortIds() const;

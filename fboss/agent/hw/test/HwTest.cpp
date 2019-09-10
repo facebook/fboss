@@ -148,5 +148,9 @@ std::shared_ptr<SwitchState> HwTest::applyNewState(
 HwPortStats HwTest::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
+std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  return hwSwitchEnsemble_->getLatestPortStats(ports);
+}
 } // namespace fboss
 } // namespace facebook

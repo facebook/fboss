@@ -49,6 +49,9 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   }
   void recreateHwSwitchFromWBState() override;
 
+  std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) override;
+
  private:
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch,
