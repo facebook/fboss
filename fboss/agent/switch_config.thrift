@@ -659,6 +659,12 @@ struct Port {
    *     port queue config = SwitchConfig::defaultPortQueues
    */
   22: optional PortQueueConfigName portQueueConfigName
+
+  /*
+   * If non-empty, host/route entry with this port as egress gets a ClassID from
+   * below list. When the list is exhausted, wrap around.
+   */
+  23: list<AclLookupClass> lookupClasses = []
 }
 
 enum LacpPortRate {
