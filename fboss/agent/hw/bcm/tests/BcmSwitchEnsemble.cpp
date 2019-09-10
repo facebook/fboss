@@ -20,6 +20,8 @@
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 
+DECLARE_bool(setup_thrift);
+
 namespace {
 void addPort(
     facebook::fboss::BcmConfig::ConfigMap& cfg,
@@ -72,8 +74,15 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     linkToggler = createLinkToggler(
         hwSwitch.get(), bcmTestPlatform->desiredLoopbackMode());
   }
+  std::unique_ptr<std::thread> thriftThread;
+  if (FLAGS_setup_thrift) {
+    thriftThread = createThriftThread(hwSwitch.get());
+  }
   setupEnsemble(
-      std::move(platform), std::move(hwSwitch), std::move(linkToggler));
+      std::move(platform),
+      std::move(hwSwitch),
+      std::move(linkToggler),
+      std::move(thriftThread));
 }
 
 const std::vector<PortID>& BcmSwitchEnsemble::logicalPortIds() const {

@@ -16,6 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <memory>
+#include <thread>
 
 namespace facebook {
 namespace fboss {
@@ -100,7 +101,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void setupEnsemble(
       std::unique_ptr<Platform> platform,
       std::unique_ptr<HwSwitch> hwSwitch,
-      std::unique_ptr<HwLinkStateToggler> linkToggler);
+      std::unique_ptr<HwLinkStateToggler> linkToggler,
+      std::unique_ptr<std::thread> thriftThread);
 
  private:
   std::shared_ptr<SwitchState> programmedState_;
@@ -110,6 +112,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<HwSwitch> hwSwitch_;
   uint32_t featuresDesired_{0};
   std::set<HwSwitchEventObserverIf*> hwEventObservers_;
+  std::unique_ptr<std::thread> thriftThread_;
 };
 
 } // namespace fboss

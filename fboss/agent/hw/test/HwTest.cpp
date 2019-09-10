@@ -30,16 +30,6 @@ DEFINE_bool(
     "Set up test for SDK warmboot. Useful for testing individual "
     "tests doing a full process warmboot and verifying expectations");
 
-DEFINE_bool(
-    setup_thrift,
-    false,
-    "Setup a thrift handler. Primarily useful for inspecting state setup "
-    "by a test, say for debugging things via a shell");
-
-DEFINE_int32(
-    thrift_port,
-    5908,
-    "Port for thrift server to use (use with --setup_thrift");
 
 namespace {
 
@@ -81,9 +71,6 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   hwSwitchEnsemble_ = createHw();
   hwSwitchEnsemble_->addHwEventObserver(this);
-  if (FLAGS_setup_thrift) {
-    thriftThread_ = createThriftThread();
-  }
 }
 
 void HwTest::TearDown() {
@@ -103,12 +90,6 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
   }
   if (::testing::Test::HasFailure()) {
     collectTestFailureInfo();
-  }
-  if (thriftThread_) {
-    // If thrift thread is running, don't tear down till thrift
-    // thread is done, else thrift calls that depend on existence
-    // of hw switch ensemble will start failing
-    thriftThread_->join();
   }
   hwSwitchEnsemble_->removeHwEventObserver(this);
   if (doWarmboot) {

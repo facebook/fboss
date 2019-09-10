@@ -18,6 +18,17 @@
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 
+DEFINE_bool(
+    setup_thrift,
+    false,
+    "Setup a thrift handler. Primarily useful for inspecting HW state,"
+    "say for debugging things via a shell");
+
+DEFINE_int32(
+    thrift_port,
+    5908,
+    "Port for thrift server to use (use with --setup_thrift");
+
 namespace facebook {
 namespace fboss {
 
@@ -25,6 +36,9 @@ HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
     : featuresDesired_(featuresDesired) {}
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {
+  if (thriftThread_) {
+    thriftThread_->join();
+  }
   // ALPM requires that the default routes (always required to be
   // present for ALPM) be deleted last. When we destroy the HwSwitch
   // and the contained routeTable, there is no notion of a *order* of
@@ -96,7 +110,8 @@ void HwSwitchEnsemble::removeHwEventObserver(
 void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<Platform> platform,
     std::unique_ptr<HwSwitch> hwSwitch,
-    std::unique_ptr<HwLinkStateToggler> linkToggler) {
+    std::unique_ptr<HwLinkStateToggler> linkToggler,
+    std::unique_ptr<std::thread> thriftThread) {
   platform_ = std::move(platform);
   hwSwitch_ = std::move(hwSwitch);
   linkToggler_ = std::move(linkToggler);
@@ -114,6 +129,7 @@ void HwSwitchEnsemble::setupEnsemble(
   if (alpmState) {
     applyNewState(alpmState);
   }
+  thriftThread_ = std::move(thriftThread);
   hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
 }
 
@@ -123,6 +139,11 @@ void HwSwitchEnsemble::revertToInitCfgState() {
 }
 
 void HwSwitchEnsemble::gracefulExit() {
+  if (thriftThread_) {
+    // Join thrif thread. Thrift calls will fail post
+    // warm boot exit sequence initiated below
+    thriftThread_->join();
+  }
   // Initiate warm boot
   folly::dynamic switchState = folly::dynamic::object;
   getHwSwitch()->unregisterCallbacks();

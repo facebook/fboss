@@ -78,10 +78,6 @@ class HwTest : public ::testing::Test,
    * different chips, provide a hook for derived test class to hook in.
    */
   virtual std::unique_ptr<HwSwitchEnsemble> createHw() const = 0;
-  /*
-   * Create thrift server to handle thrift based interaction with the test
-   */
-  virtual std::unique_ptr<std::thread> createThriftThread() const = 0;
 
  protected:
   /*
@@ -190,7 +186,6 @@ class HwTest : public ::testing::Test,
 
  private:
   std::unique_ptr<HwSwitchEnsemble> hwSwitchEnsemble_;
-  std::unique_ptr<std::thread> thriftThread_;
 };
 
 } // namespace fboss
