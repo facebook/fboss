@@ -15,7 +15,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
-#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DEFINE_bool(

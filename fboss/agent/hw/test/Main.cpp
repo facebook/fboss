@@ -7,25 +7,22 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/Main.h"
+#include <folly/init/Init.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/FbossError.h"
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=false");
 
 DECLARE_bool(setup_for_warmboot);
 
-using namespace facebook::fboss;
-
 int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
 
-  fbossInit(argc, argv);
+  folly::init(&argc, &argv, true);
 
   // Run the tests
   auto ret = RUN_ALL_TESTS();
