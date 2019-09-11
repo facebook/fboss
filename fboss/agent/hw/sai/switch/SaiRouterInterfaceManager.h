@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -28,7 +29,6 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
-class SaiRoute;
 class SaiVirtualRouter;
 class SaiPlatform;
 

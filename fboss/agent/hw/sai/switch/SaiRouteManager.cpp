@@ -9,59 +9,17 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
+#include <optional>
+
 namespace facebook {
 namespace fboss {
-
-SaiRoute::SaiRoute(
-    SaiApiTable* apiTable,
-    SaiManagerTable* managerTable,
-    const RouteApiParameters::EntryType& entry,
-    const RouteApiParameters::Attributes& attributes,
-    std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup)
-    : apiTable_(apiTable),
-      managerTable_(managerTable),
-      entry_(entry),
-      attributes_(attributes),
-      nextHopGroup_(nextHopGroup) {
-  auto& routeApi = apiTable_->routeApi();
-  routeApi.create(entry_, attributes.attrs());
-}
-
-SaiRoute::~SaiRoute() {
-  apiTable_->routeApi().remove(entry_);
-}
-
-bool SaiRoute::operator==(const SaiRoute& other) const {
-  return attributes_ == other.attributes_;
-}
-
-bool SaiRoute::operator!=(const SaiRoute& other) const {
-  return !(*this == other);
-}
-
-void SaiRoute::setAttributes(
-    const RouteApiParameters::Attributes& desiredAttributes) {
-  auto& routeApi = apiTable_->routeApi();
-  if (desiredAttributes.packetAction != attributes_.packetAction) {
-    routeApi.setAttribute(
-        RouteApiParameters::Attributes::PacketAction{
-            desiredAttributes.packetAction},
-        entry_);
-  }
-  if ((desiredAttributes.nextHopId != attributes_.nextHopId) &&
-      desiredAttributes.nextHopId) {
-    routeApi.setAttribute(
-        RouteApiParameters::Attributes::NextHopId{
-            desiredAttributes.nextHopId.value()},
-        entry_);
-  }
-  attributes_ = desiredAttributes;
-}
 
 SaiRouteManager::SaiRouteManager(
     SaiApiTable* apiTable,
@@ -70,7 +28,7 @@ SaiRouteManager::SaiRouteManager(
     : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
 
 template <typename AddrT>
-RouteApiParameters::EntryType SaiRouteManager::routeEntryFromSwRoute(
+SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) const {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
@@ -81,7 +39,7 @@ RouteApiParameters::EntryType SaiRouteManager::routeEntryFromSwRoute(
   if (!virtualRouter) {
     throw FbossError("No virtual router with id ", routerId);
   }
-  return RouteApiParameters::EntryType{switchId, virtualRouter->id(), prefix};
+  return SaiRouteTraits::RouteEntry{switchId, virtualRouter->id(), prefix};
 }
 
 template <typename AddrT>
@@ -92,9 +50,9 @@ void SaiRouteManager::changeRoute(
   // TODO: implement modifying an existing route
 }
 
-std::vector<std::unique_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
+std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     const std::shared_ptr<Interface>& swInterface) {
-  std::vector<std::unique_ptr<SaiRoute>> toMeRoutes;
+  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
   // Compute information common to all addresses in the interface:
   // vr id
   RouterID routerId = swInterface->getRouterID();
@@ -110,22 +68,19 @@ std::vector<std::unique_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute(
       SwitchApiParameters::Attributes::CpuPort{}, switchId);
 
+  toMeRoutes.reserve(swInterface->getAddresses().size());
   // Compute per-address information
   for (const auto& address : swInterface->getAddresses()) {
-    // Skip interface link local routes. This will be trapped by ACL.
-    if (address.first.isV6() && address.first.isLinkLocal()) {
-      continue;
-    }
     // empty next hop group -- this route will not manage the
     // lifetime of a next hop group
     std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup;
     // destination
     folly::CIDRNetwork destination{address.first, address.first.bitCount()};
-    RouteApiParameters::EntryType entry{switchId, virtualRouterId, destination};
-    RouteApiParameters::Attributes attributes{{packetAction, cpuPortId}};
-    auto route = std::make_unique<SaiRoute>(
-        apiTable_, managerTable_, entry, attributes, nextHopGroup);
-    toMeRoutes.emplace_back(std::move(route));
+    SaiRouteTraits::RouteEntry entry{switchId, virtualRouterId, destination};
+    SaiRouteTraits::CreateAttributes attributes{packetAction, cpuPortId};
+    auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
+    auto route = store.setObject(entry, attributes);
+    toMeRoutes.emplace_back(route);
   }
   return toMeRoutes;
 }
@@ -134,17 +89,16 @@ template <typename AddrT>
 void SaiRouteManager::addRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) {
-  RouteApiParameters::EntryType entry =
-      routeEntryFromSwRoute(routerId, swRoute);
-  auto itr = routes_.find(entry);
-  if (itr != routes_.end()) {
+  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
+  auto itr = handles_.find(entry);
+  if (itr != handles_.end()) {
     throw FbossError(
         "Failure to add route. A route already exists to ",
         swRoute->prefix().str());
   }
   auto fwd = swRoute->getForwardInfo();
   sai_int32_t packetAction;
-  folly::Optional<sai_object_id_t> nextHopIdOpt;
+  std::optional<sai_object_id_t> nextHopIdOpt;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
   if (fwd.getAction() == NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -190,19 +144,21 @@ void SaiRouteManager::addRoute(
     packetAction = SAI_PACKET_ACTION_DROP;
   }
 
-  RouteApiParameters::Attributes attributes{{packetAction, nextHopIdOpt}};
-  auto route = std::make_unique<SaiRoute>(
-      apiTable_, managerTable_, entry, attributes, nextHopGroupHandle);
-  routes_.emplace(std::make_pair(entry, std::move(route)));
+  SaiRouteTraits::CreateAttributes attributes{packetAction, nextHopIdOpt};
+  auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
+  auto route = store.setObject(entry, attributes);
+  auto routeHandle = std::make_unique<SaiRouteHandle>();
+  routeHandle->route = route;
+  routeHandle->nextHopGroupHandle = nextHopGroupHandle;
+  handles_.emplace(entry, std::move(routeHandle));
 }
 
 template <typename AddrT>
 void SaiRouteManager::removeRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) {
-  RouteApiParameters::EntryType entry =
-      routeEntryFromSwRoute(routerId, swRoute);
-  size_t count = routes_.erase(entry);
+  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
+  size_t count = handles_.erase(entry);
   if (!count) {
     throw FbossError(
         "Failed to remove non-existent route to ", swRoute->prefix().str());
@@ -240,18 +196,18 @@ void SaiRouteManager::processRouteDelta(const StateDelta& delta) {
   }
 }
 
-SaiRoute* SaiRouteManager::getRoute(
-    const RouteApiParameters::EntryType& entry) {
-  return getRouteImpl(entry);
+SaiRouteHandle* SaiRouteManager::getRouteHandle(
+    const SaiRouteTraits::RouteEntry& entry) {
+  return getRouteHandleImpl(entry);
 }
-const SaiRoute* SaiRouteManager::getRoute(
-    const RouteApiParameters::EntryType& entry) const {
-  return getRouteImpl(entry);
+const SaiRouteHandle* SaiRouteManager::getRouteHandle(
+    const SaiRouteTraits::RouteEntry& entry) const {
+  return getRouteHandleImpl(entry);
 }
-SaiRoute* SaiRouteManager::getRouteImpl(
-    const RouteApiParameters::EntryType& entry) const {
-  auto itr = routes_.find(entry);
-  if (itr == routes_.end()) {
+SaiRouteHandle* SaiRouteManager::getRouteHandleImpl(
+    const SaiRouteTraits::RouteEntry& entry) const {
+  auto itr = handles_.find(entry);
+  if (itr == handles_.end()) {
     return nullptr;
   }
   if (!itr->second.get()) {
@@ -263,14 +219,14 @@ SaiRoute* SaiRouteManager::getRouteImpl(
 }
 
 void SaiRouteManager::clear() {
-  routes_.clear();
+  handles_.clear();
 }
 
-template RouteApiParameters::EntryType
+template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV6>(
     RouterID routerId,
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry) const;
-template RouteApiParameters::EntryType
+template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV4>(
     RouterID routerId,
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry) const;

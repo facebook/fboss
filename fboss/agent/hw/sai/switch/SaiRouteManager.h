@@ -10,49 +10,29 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
-#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
+#include "folly/container/F14Map.h"
+
 #include <memory>
-#include <unordered_map>
 
 namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiNextHopGroupHandle;
 
-class SaiRoute {
- public:
-  SaiRoute(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const RouteApiParameters::EntryType& entry,
-      const RouteApiParameters::Attributes& attributes,
-      std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup);
-  ~SaiRoute();
-  SaiRoute(const SaiRoute& other) = delete;
-  SaiRoute(SaiRoute&& other) = delete;
-  SaiRoute& operator=(const SaiRoute& other) = delete;
-  SaiRoute& operator=(SaiRoute&& other) = delete;
-  bool operator==(const SaiRoute& other) const;
-  bool operator!=(const SaiRoute& other) const;
+using SaiRoute = SaiObject<SaiRouteTraits>;
 
-  void setAttributes(const RouteApiParameters::Attributes& desiredAttributes);
-  const RouteApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  SaiManagerTable* managerTable_;
-  RouteApiParameters::EntryType entry_;
-  RouteApiParameters::Attributes attributes_;
-  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup_;
+struct SaiRouteHandle {
+  std::shared_ptr<SaiRoute> route;
+  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
 };
 
 class SaiRouteManager {
@@ -64,7 +44,7 @@ class SaiRouteManager {
   // Helper function to create a SAI RouteEntry from an FBOSS SwitchState
   // Route (e.g., Route<IPAddressV6>)
   template <typename AddrT>
-  RouteApiParameters::EntryType routeEntryFromSwRoute(
+  SaiRouteTraits::RouteEntry routeEntryFromSwRoute(
       RouterID routerId,
       const std::shared_ptr<Route<AddrT>>& swEntry) const;
 
@@ -74,7 +54,7 @@ class SaiRouteManager {
       const std::shared_ptr<Route<AddrT>>& oldSwRoute,
       const std::shared_ptr<Route<AddrT>>& newSwRoute);
 
-  std::vector<std::unique_ptr<SaiRoute>> makeInterfaceToMeRoutes(
+  std::vector<std::shared_ptr<SaiRoute>> makeInterfaceToMeRoutes(
       const std::shared_ptr<Interface>& swInterface);
 
   template <typename AddrT>
@@ -89,19 +69,21 @@ class SaiRouteManager {
 
   void processRouteDelta(const StateDelta& delta);
 
-  SaiRoute* getRoute(const RouteApiParameters::EntryType& entry);
-  const SaiRoute* getRoute(const RouteApiParameters::EntryType& entry) const;
+  SaiRouteHandle* getRouteHandle(const SaiRouteTraits::RouteEntry& entry);
+  const SaiRouteHandle* getRouteHandle(
+      const SaiRouteTraits::RouteEntry& entry) const;
 
   void clear();
 
  private:
-  SaiRoute* getRouteImpl(const RouteApiParameters::EntryType& entry) const;
+  SaiRouteHandle* getRouteHandleImpl(
+      const SaiRouteTraits::RouteEntry& entry) const;
 
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<RouteApiParameters::EntryType, std::unique_ptr<SaiRoute>>
-      routes_;
+  folly::F14FastMap<SaiRouteTraits::RouteEntry, std::unique_ptr<SaiRouteHandle>>
+      handles_;
 };
 
 } // namespace fboss

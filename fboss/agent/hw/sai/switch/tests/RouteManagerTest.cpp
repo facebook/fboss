@@ -81,10 +81,14 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
-  auto saiRoute = saiManagerTable->routeManager().getRoute(saiEntry);
+  auto saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(saiEntry);
+  auto saiRoute = saiRouteHandle->route;
   // sai_object_id_t of cpu port is 0 in FakeSai
-  EXPECT_EQ(saiRoute->attributes().packetAction, SAI_PACKET_ACTION_FORWARD);
-  EXPECT_EQ(saiRoute->attributes().nextHopId.value(), 0);
+  EXPECT_EQ(
+      GET_ATTR(Route, PacketAction, saiRoute->attributes()),
+      SAI_PACKET_ACTION_FORWARD);
+  EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, saiRoute->attributes()), 0);
 }
 
 TEST_F(RouteManagerTest, addDropRoute) {
@@ -120,8 +124,9 @@ TEST_F(RouteManagerTest, getRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
-  SaiRoute* saiRoute = saiManagerTable->routeManager().getRoute(entry);
-  EXPECT_TRUE(saiRoute);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(entry);
+  EXPECT_TRUE(saiRouteHandle);
 }
 
 TEST_F(RouteManagerTest, removeRoute) {
@@ -129,11 +134,12 @@ TEST_F(RouteManagerTest, removeRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
-  SaiRoute* saiRoute = saiManagerTable->routeManager().getRoute(entry);
-  EXPECT_TRUE(saiRoute);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(entry);
+  EXPECT_TRUE(saiRouteHandle);
   saiManagerTable->routeManager().removeRoute(RouterID(0), r);
-  saiRoute = saiManagerTable->routeManager().getRoute(entry);
-  EXPECT_FALSE(saiRoute);
+  saiRouteHandle = saiManagerTable->routeManager().getRouteHandle(entry);
+  EXPECT_FALSE(saiRouteHandle);
 }
 
 TEST_F(RouteManagerTest, addDupRoute) {
@@ -152,8 +158,9 @@ TEST_F(RouteManagerTest, getNonexistentRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
-  SaiRoute* saiRoute = saiManagerTable->routeManager().getRoute(entry);
-  EXPECT_FALSE(saiRoute);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(entry);
+  EXPECT_FALSE(saiRouteHandle);
 }
 
 TEST_F(RouteManagerTest, removeNonexistentRoute) {
@@ -184,10 +191,12 @@ TEST_F(ToMeRouteTest, toMeRoutes) {
       saiManagerTable->routeManager().makeInterfaceToMeRoutes(swInterface);
   EXPECT_EQ(toMeRoutes.size(), 1);
   const auto& toMeRoute = toMeRoutes.at(0);
-  EXPECT_EQ(toMeRoute->attributes().packetAction, SAI_PACKET_ACTION_FORWARD);
+  EXPECT_EQ(
+      GET_ATTR(Route, PacketAction, toMeRoute->attributes()),
+      SAI_PACKET_ACTION_FORWARD);
 
   auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
-  auto cpuPortId = saiApiTable->switchApi().getAttribute(
+  sai_object_id_t cpuPortId = saiApiTable->switchApi().getAttribute(
       SwitchApiParameters::Attributes::CpuPort{}, switchId);
-  EXPECT_EQ(toMeRoute->attributes().nextHopId, cpuPortId);
+  EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, toMeRoute->attributes()), cpuPortId);
 }
