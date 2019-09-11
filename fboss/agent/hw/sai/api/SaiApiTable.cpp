@@ -76,13 +76,6 @@ const HostifApi& SaiApiTable::hostifApi() const {
   return getApi<HostifApi>();
 }
 
-LagApi& SaiApiTable::lagApi() {
-  return getApi<LagApi>();
-}
-const LagApi& SaiApiTable::lagApi() const {
-  return getApi<LagApi>();
-}
-
 NextHopApi& SaiApiTable::nextHopApi() {
   return getApi<NextHopApi>();
 }
