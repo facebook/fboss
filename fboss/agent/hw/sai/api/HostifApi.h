@@ -81,6 +81,52 @@ struct SaiHostifTrapTraits {
       std::optional<Attributes::TrapGroup>>;
 };
 
+// TX and RX packets aren't proper SaiObjectTraits, but we'll follow the pattern
+// for defining their attributes
+struct SaiTxPacketTraits {
+  struct Attributes {
+    using EnumType = sai_hostif_packet_attr_t;
+    using TxType = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE,
+        sai_int32_t>;
+    using EgressPortOrLag = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG,
+        SaiObjectIdT>;
+  };
+  using TxAttributes = std::
+      tuple<Attributes::TxType, std::optional<Attributes::EgressPortOrLag>>;
+};
+
+struct SaiRxPacketTraits {
+  struct Attributes {
+    using EnumType = sai_hostif_packet_attr_t;
+    using TrapId = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID,
+        SaiObjectIdT>;
+    using IngressPort = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT,
+        SaiObjectIdT>;
+    using IngressLag = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG,
+        SaiObjectIdT>;
+  };
+  using RxAttributes = std::tuple<
+      Attributes::TrapId,
+      Attributes::IngressPort,
+      Attributes::IngressLag>;
+};
+
+struct SaiHostifApiPacket {
+  void* buffer;
+  size_t size;
+  SaiHostifApiPacket(void* buffer, size_t size) : buffer(buffer), size(size) {}
+};
+
 struct HostifApiParameters {
   static constexpr sai_api_t ApiType = SAI_API_HOSTIF;
   struct TxPacketAttributes {
@@ -129,12 +175,6 @@ struct HostifApiParameters {
     typename TrapId::ValueType trapId;
     typename IngressPort::ValueType ingressPort;
     typename IngressLag::ValueType ingressLag;
-  };
-
-  struct HostifApiPacket {
-    void* buffer;
-    size_t size;
-    HostifApiPacket(void* buffer, size_t size) : buffer(buffer), size(size) {}
   };
 
   struct Attributes {
@@ -292,10 +332,10 @@ class HostifApi : public SaiApi<HostifApi, HostifApiParameters> {
 
  public:
   sai_status_t send(
-      const HostifApiParameters::TxPacketAttributes::TxAttributes& attributes,
+      const SaiTxPacketTraits::TxAttributes& attributes,
       sai_object_id_t switch_id,
-      HostifApiParameters::HostifApiPacket& txPacket) {
-    std::vector<sai_attribute_t> saiAttributeTs = attributes.saiAttrs();
+      const SaiHostifApiPacket& txPacket) {
+    std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(attributes);
     return api_->send_hostif_packet(
         switch_id,
         txPacket.size,

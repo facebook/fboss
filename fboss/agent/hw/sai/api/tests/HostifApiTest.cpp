@@ -31,35 +31,37 @@ class HostifApiTest : public ::testing::Test {
   sai_object_id_t createHostifTrap(
       sai_hostif_trap_type_t trapId,
       sai_object_id_t trapGroupId) {
-    HostifApiParameters::MemberAttributes::TrapType trapType(trapId);
-    HostifApiParameters::MemberAttributes::PacketAction packetAction(
+    SaiHostifTrapTraits::Attributes::TrapType trapType(trapId);
+    SaiHostifTrapTraits::Attributes::PacketAction packetAction(
         SAI_PACKET_ACTION_TRAP);
-    HostifApiParameters::MemberAttributes::TrapGroup trapGroup(trapGroupId);
-    HostifApiParameters::MemberAttributes::TrapPriority trapPriority(
+    SaiHostifTrapTraits::Attributes::TrapGroup trapGroup(trapGroupId);
+    SaiHostifTrapTraits::Attributes::TrapPriority trapPriority(
         SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY);
-    HostifApiParameters::MemberAttributes attributes{
-        {trapType, packetAction, trapPriority, trapGroup}};
-    sai_object_id_t trap = hostifApi->createMember(attributes.attrs(), 0);
+    SaiHostifTrapTraits::CreateAttributes attributes{
+        trapType, packetAction, trapPriority, trapGroup};
+    sai_object_id_t trap =
+        hostifApi->create2<SaiHostifTrapTraits>(attributes, 0);
     return trap;
   }
 
   sai_object_id_t createHostifTrapGroup(uint32_t queueId) {
-    HostifApiParameters::Attributes::Queue queue(queueId);
-    HostifApiParameters::Attributes attributes{{queue, 0}};
-    sai_object_id_t trapGroup = hostifApi->create(attributes.attrs(), 0);
+    SaiHostifTrapGroupTraits::Attributes::Queue queue(queueId);
+    SaiHostifTrapGroupTraits::CreateAttributes attributes{queue, 0};
+    sai_object_id_t trapGroup =
+        hostifApi->create2<SaiHostifTrapGroupTraits>(attributes, 0);
     return trapGroup;
   }
 };
 
 TEST_F(HostifApiTest, sendPacket) {
-  HostifApiParameters::TxPacketAttributes::EgressPortOrLag egressPort(10);
-  HostifApiParameters::TxPacketAttributes::TxType txType(
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(10);
+  SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-  HostifApiParameters::TxPacketAttributes a{{txType, egressPort}};
+  SaiTxPacketTraits::TxAttributes a{txType, egressPort};
   folly::StringPiece testPacket = "TESTPACKET";
-  HostifApiParameters::HostifApiPacket txPacket{
-      (void*)(testPacket.toString().c_str()), testPacket.toString().length()};
-  hostifApi->send(a.attrs(), 0, txPacket);
+  SaiHostifApiPacket txPacket{(void*)(testPacket.toString().c_str()),
+                              testPacket.toString().length()};
+  hostifApi->send(a, 0, txPacket);
 }
 
 TEST_F(HostifApiTest, createTrap) {

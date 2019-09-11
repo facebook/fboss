@@ -9,64 +9,15 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/state/ControlPlane.h"
 
+#include "thrift/lib/cpp/util/EnumUtils.h"
+
 namespace facebook {
 namespace fboss {
-
-SaiHostifTrapGroup::SaiHostifTrapGroup(
-    SaiApiTable* apiTable,
-    const HostifApiParameters::Attributes& attributes,
-    sai_object_id_t& switchId)
-    : apiTable_(apiTable), attributes_(attributes) {
-  auto& hostifApi = apiTable_->hostifApi();
-  id_ = hostifApi.create(attributes_.attrs(), switchId);
-}
-
-SaiHostifTrapGroup::~SaiHostifTrapGroup() {
-  auto& hostifApi = apiTable_->hostifApi();
-  hostifApi.remove(id_);
-}
-
-bool SaiHostifTrapGroup::operator==(const SaiHostifTrapGroup& other) const {
-  return attributes_ == other.attributes();
-}
-bool SaiHostifTrapGroup::operator!=(const SaiHostifTrapGroup& other) const {
-  return !(*this == other);
-}
-
-std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::addHostifTrapGroup(
-    uint32_t queueId) {
-  HostifApiParameters::Attributes attrs{{queueId, folly::none}};
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto entry =
-      hostifTrapGroups_.refOrEmplace(queueId, apiTable_, attrs, switchId);
-  return entry.first;
-}
-
-SaiHostifTrap::SaiHostifTrap(
-    SaiApiTable* apiTable,
-    const HostifApiParameters::MemberAttributes& attributes,
-    sai_object_id_t& switchId,
-    std::shared_ptr<SaiHostifTrapGroup> trapGroup)
-    : apiTable_(apiTable), attributes_(attributes), trapGroup_(trapGroup) {
-  auto& hostifApi = apiTable_->hostifApi();
-  id_ = hostifApi.createMember(attributes_.attrs(), switchId);
-}
-
-SaiHostifTrap::~SaiHostifTrap() {
-  auto& hostifApi = apiTable_->hostifApi();
-  hostifApi.removeMember(id_);
-}
-
-bool SaiHostifTrap::operator==(const SaiHostifTrap& other) const {
-  return attributes_ == other.attributes();
-}
-bool SaiHostifTrap::operator!=(const SaiHostifTrap& other) const {
-  return !(*this == other);
-}
 
 sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason) {
@@ -92,57 +43,117 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
   }
 }
 
-sai_object_id_t SaiHostifManager::incRefOrAddHostifTrapGroup(
+SaiHostifTrapTraits::CreateAttributes
+SaiHostifManager::makeHostifTrapAttributes(
+    cfg::PacketRxReason trapId,
+    HostifTrapGroupSaiId trapGroupId) {
+  SaiHostifTrapTraits::Attributes::PacketAction packetAction{
+      SAI_PACKET_ACTION_TRAP};
+  SaiHostifTrapTraits::Attributes::TrapType trapType{
+      packetReasonToHostifTrap(trapId)};
+  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{
+      SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY};
+  SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
+
+  return SaiHostifTrapTraits::CreateAttributes{
+      trapType, packetAction, trapPriority, trapGroup};
+}
+
+std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
+    uint32_t queueId) {
+  auto& store = SaiStore::getInstance()->get<SaiHostifTrapGroupTraits>();
+  SaiHostifTrapGroupTraits::AdapterHostKey k{queueId};
+  SaiHostifTrapGroupTraits::CreateAttributes attributes{queueId, std::nullopt};
+  return store.setObject(k, attributes);
+}
+
+HostifTrapSaiId SaiHostifManager::addHostifTrap(
     cfg::PacketRxReason trapId,
     uint32_t queueId) {
-  auto hostifTrapGroup = addHostifTrapGroup(queueId);
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  HostifApiParameters::MemberAttributes::PacketAction packetAction{
-      SAI_PACKET_ACTION_TRAP};
-  HostifApiParameters::MemberAttributes::TrapType trapType{
-      packetReasonToHostifTrap(trapId)};
-  HostifApiParameters::MemberAttributes::TrapPriority trapPriority{
-      SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY};
-  HostifApiParameters::MemberAttributes::TrapGroup trapGroup{
-      hostifTrapGroup->id()};
-  HostifApiParameters::MemberAttributes attributes{
-      {trapType, packetAction, trapPriority, trapGroup}};
-  auto hostifTrap = std::make_unique<SaiHostifTrap>(
-      apiTable_, attributes, switchId, hostifTrapGroup);
-  auto hostifTrapId = hostifTrap->id();
-  hostifTraps_.emplace(trapId, std::move(hostifTrap));
-  return hostifTrapId;
+  if (handles_.find(trapId) != handles_.end()) {
+    throw FbossError(
+        "Attempted to re-add existing trap for rx reason: ",
+        apache::thrift::util::enumName(trapId));
+  }
+  auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
+  auto attributes =
+      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey());
+  SaiHostifTrapTraits::AdapterHostKey k =
+      GET_ATTR(HostifTrap, TrapType, attributes);
+  auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
+  auto hostifTrap = store.setObject(k, attributes);
+
+  auto handle = std::make_unique<SaiHostifTrapHandle>();
+  handle->trap = hostifTrap;
+  handle->trapGroup = hostifTrapGroup;
+  handles_.emplace(trapId, std::move(handle));
+  return hostifTrap->adapterKey();
 }
 
 void SaiHostifManager::removeHostifTrap(cfg::PacketRxReason trapId) {
-  hostifTraps_.erase(trapId);
+  auto count = handles_.erase(trapId);
+  if (!count) {
+    throw FbossError(
+        "Attempted to remove non-existent trap for rx reason: ",
+        apache::thrift::util::enumName(trapId));
+  }
 }
 
 void SaiHostifManager::changeHostifTrap(
-    cfg::PacketRxReason /* trapId */,
-    uint32_t /* newQueueid */) {
-  throw FbossError("Not implemented");
+    cfg::PacketRxReason trapId,
+    uint32_t queueId) {
+  auto handleItr = handles_.find(trapId);
+  if (handleItr == handles_.end()) {
+    throw FbossError(
+        "Attempted to change non-existent trap for rx reason: ",
+        apache::thrift::util::enumName(trapId));
+  }
+  auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
+  auto attributes =
+      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey());
+  SaiHostifTrapTraits::AdapterHostKey k =
+      GET_ATTR(HostifTrap, TrapType, attributes);
+  auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
+  auto hostifTrap = store.setObject(k, attributes);
+
+  handleItr->second->trap = hostifTrap;
+  handleItr->second->trapGroup = hostifTrapGroup;
 }
 
-void SaiHostifManager::processHostifDelta(const StateDelta& delta) {
+void SaiHostifManager::processControlPlaneDelta(const StateDelta& delta) {
   auto controlPlaneDelta = delta.getControlPlaneDelta();
-  auto& oldRxReasonToCpuQueueMap =
-      controlPlaneDelta.getOld()->getRxReasonToQueue();
-  auto& newRxReasonToCpuQueueMap =
-      controlPlaneDelta.getNew()->getRxReasonToQueue();
-  for (auto newRxReasonEntry : newRxReasonToCpuQueueMap) {
-    if (oldRxReasonToCpuQueueMap.size() > 0 &&
-        oldRxReasonToCpuQueueMap.at(newRxReasonEntry.first)) {
-      changeHostifTrap(newRxReasonEntry.first, newRxReasonEntry.second);
+  auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
+  auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
+
+  // RxReasonToQueue is a flat_map, so the iterator is sorted. We can rely on
+  // that fact to implement handling changes in one pass.
+  auto oldItr = oldRxReasonToQueue.begin();
+  auto newItr = newRxReasonToQueue.begin();
+  while (oldItr != oldRxReasonToQueue.end() ||
+         newItr != newRxReasonToQueue.end()) {
+    if (oldItr == oldRxReasonToQueue.end()) {
+      // no more old reasons, all new reasons need to be added
+      addHostifTrap(newItr->first, newItr->second);
+      ++newItr;
+    } else if (newItr == newRxReasonToQueue.end()) {
+      // no more new reasons, all old reasons need to be removed
+      removeHostifTrap(oldItr->first);
+      ++oldItr;
+    } else if (oldItr->first < newItr->first) {
+      // current old is not found in new, needs to be removed
+      removeHostifTrap(oldItr->first);
+      ++oldItr;
+    } else if (newItr->first < oldItr->first) {
+      // current new is not found in old, needs to be added
+      addHostifTrap(newItr->first, newItr->second);
+      ++newItr;
     } else {
-      incRefOrAddHostifTrapGroup(
-          newRxReasonEntry.first, newRxReasonEntry.second);
-    }
-  }
-  for (auto oldRxReasonEntry : oldRxReasonToCpuQueueMap) {
-    if (newRxReasonToCpuQueueMap.size() > 0 &&
-        !newRxReasonToCpuQueueMap.at(oldRxReasonEntry.first)) {
-      removeHostifTrap(oldRxReasonEntry.first);
+      // rx reasons are equal -- check if the queue changed!
+      if (oldItr->second != newItr->second) {
+        changeHostifTrap(newItr->first, newItr->second);
+      }
+      ++oldItr;
+      ++newItr;
     }
   }
 }
@@ -151,11 +162,6 @@ SaiHostifManager::SaiHostifManager(
     SaiApiTable* apiTable,
     SaiManagerTable* managerTable)
     : apiTable_(apiTable), managerTable_(managerTable) {}
-
-SaiHostifManager::~SaiHostifManager() {
-  hostifTraps_.clear();
-  hostifTrapGroups_.clear();
-}
 
 } // namespace fboss
 } // namespace facebook

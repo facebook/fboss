@@ -291,7 +291,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
       delta);
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
-  managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
+  managerTableLocked(lock)->hostifManager().processControlPlaneDelta(delta);
   return delta.newState();
 }
 
@@ -324,14 +324,14 @@ bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
 bool SaiSwitch::sendPacketSwitchedSyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt) noexcept {
-  HostifApiParameters::TxPacketAttributes::TxType txType(
+  SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
-  HostifApiParameters::TxPacketAttributes attributes{{txType, 0}};
-  HostifApiParameters::HostifApiPacket txPacket{
+  SaiTxPacketTraits::TxAttributes attributes{txType, 0};
+  SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
   auto& hostifApi = saiApiTable_->hostifApi();
-  hostifApi.send(attributes.attrs(), switchId_, txPacket);
+  hostifApi.send(attributes, switchId_, txPacket);
   return true;
 }
 
@@ -344,16 +344,16 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   if (!portHandle) {
     throw FbossError("Failed to send packet on invalid port: ", portID);
   }
-  HostifApiParameters::HostifApiPacket txPacket{
+  SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
-  HostifApiParameters::TxPacketAttributes::EgressPortOrLag egressPort(
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(
       portHandle->port->adapterKey());
-  HostifApiParameters::TxPacketAttributes::TxType txType(
+  SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-  HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
+  SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
   auto& hostifApi = saiApiTable_->hostifApi();
-  hostifApi.send(attributes.attrs(), switchId_, txPacket);
+  hostifApi.send(attributes, switchId_, txPacket);
   return true;
 }
 

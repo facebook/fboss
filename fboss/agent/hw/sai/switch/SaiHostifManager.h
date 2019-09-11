@@ -12,96 +12,52 @@
 
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
 #include <memory>
-#include <unordered_map>
+#include "folly/container/F14Map.h"
 
 namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
 
-class SaiHostifTrapGroup {
- public:
-  SaiHostifTrapGroup(
-      SaiApiTable* apiTable,
-      const HostifApiParameters::Attributes& attributes,
-      sai_object_id_t& switchId);
-  ~SaiHostifTrapGroup();
-  SaiHostifTrapGroup(const SaiHostifTrapGroup& other) = delete;
-  SaiHostifTrapGroup(SaiHostifTrapGroup&& other) = delete;
-  SaiHostifTrapGroup& operator=(const SaiHostifTrapGroup& other) = delete;
-  SaiHostifTrapGroup& operator=(SaiHostifTrapGroup&& other) = delete;
-  bool operator==(const SaiHostifTrapGroup& other) const;
-  bool operator!=(const SaiHostifTrapGroup& other) const;
+using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
+using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
 
-  const HostifApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  sai_object_id_t id_;
-  HostifApiParameters::Attributes attributes_;
-};
-
-class SaiHostifTrap {
- public:
-  SaiHostifTrap(
-      SaiApiTable* apiTable,
-      const HostifApiParameters::MemberAttributes& attributes,
-      sai_object_id_t& switchId,
-      std::shared_ptr<SaiHostifTrapGroup> trapGroup);
-  ~SaiHostifTrap();
-  SaiHostifTrap(const SaiHostifTrap& other) = delete;
-  SaiHostifTrap(SaiHostifTrap&& other) = delete;
-  SaiHostifTrap& operator=(const SaiHostifTrap& other) = delete;
-  SaiHostifTrap& operator=(SaiHostifTrap&& other) = delete;
-  bool operator==(const SaiHostifTrap& other) const;
-  bool operator!=(const SaiHostifTrap& other) const;
-
-  const HostifApiParameters::MemberAttributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  sai_object_id_t id_;
-  HostifApiParameters::MemberAttributes attributes_;
-  std::shared_ptr<SaiHostifTrapGroup> trapGroup_{nullptr};
+struct SaiHostifTrapHandle {
+  std::shared_ptr<SaiHostifTrap> trap;
+  std::shared_ptr<SaiHostifTrapGroup> trapGroup;
 };
 
 class SaiHostifManager {
  public:
   SaiHostifManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
-  ~SaiHostifManager();
-  sai_object_id_t incRefOrAddHostifTrapGroup(
-      cfg::PacketRxReason trapId,
-      uint32_t queueId);
+
+  HostifTrapSaiId addHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
   void removeHostifTrap(cfg::PacketRxReason trapId);
-  std::shared_ptr<SaiHostifTrapGroup> addHostifTrapGroup(uint32_t queueId);
-  void processHostifDelta(const StateDelta& delta);
+  void changeHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
+
+  void processControlPlaneDelta(const StateDelta& delta);
+
   static sai_hostif_trap_type_t packetReasonToHostifTrap(
       cfg::PacketRxReason reason);
   static cfg::PacketRxReason hostifTrapToPacketReason(
       sai_hostif_trap_type_t trapType);
+  static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(
+      cfg::PacketRxReason trapId,
+      HostifTrapGroupSaiId trapGroupId);
 
  private:
+  std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
+
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
-  std::unordered_map<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrap>>
-      hostifTraps_;
-  FlatRefMap<uint32_t, SaiHostifTrapGroup> hostifTrapGroups_;
-  void changeHostifTrap(cfg::PacketRxReason trapId, uint32_t newQueueid);
+  folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
+      handles_;
 };
 
 } // namespace fboss
