@@ -29,7 +29,6 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
-class SaiVirtualRouter;
 class SaiPlatform;
 
 using SaiRouterInterface = SaiObject<SaiRouterInterfaceTraits>;

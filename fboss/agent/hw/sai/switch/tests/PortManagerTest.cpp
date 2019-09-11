@@ -181,6 +181,7 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
   auto saiId0 = addPort(portId, cfg::PortSpeed::TWENTYFIVEG);
 
   // loads the added port into SaiStore
+  SaiStore::getInstance()->release();
   SaiStore::getInstance()->reload();
 
   // add a port with the same lanes through PortManager

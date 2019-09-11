@@ -41,5 +41,9 @@ void SaiStore::reload() {
   tupleForEach([](auto& store) { store.reload(); }, stores_);
 }
 
+void SaiStore::release() {
+  tupleForEach([](auto& store) { store.release(); }, stores_);
+}
+
 } // namespace fboss
 } // namespace facebook

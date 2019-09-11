@@ -82,6 +82,10 @@ class SaiObjectStore {
     return objects_.ref(adapterHostKey);
   }
 
+  void release() {
+    objects_.clear();
+  }
+
  private:
   std::optional<sai_object_id_t> switchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
@@ -116,6 +120,11 @@ class SaiStore {
    * Reload the SaiStore from the current SAI state via SAI api calls.
    */
   void reload();
+
+  /*
+   *
+   */
+  void release();
 
   template <typename SaiObjectTraits>
   detail::SaiObjectStore<SaiObjectTraits>& get() {

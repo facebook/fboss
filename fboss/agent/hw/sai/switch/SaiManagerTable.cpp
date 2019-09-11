@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
@@ -32,6 +33,11 @@ SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable, SaiPlatform* platform)
     : apiTable_(apiTable) {
   switchManager_ =
       std::make_unique<SaiSwitchManager>(apiTable_, this, platform);
+  // TODO(borisb): find a cleaner solution to this problem.
+  // perhaps reload fixes it?
+  auto saiStore = SaiStore::getInstance();
+  saiStore->setSwitchId(switchManager_->getSwitchSaiId());
+
   bridgeManager_ =
       std::make_unique<SaiBridgeManager>(apiTable_, this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this, platform);

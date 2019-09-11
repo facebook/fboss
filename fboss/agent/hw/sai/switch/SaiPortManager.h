@@ -17,8 +17,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
 
-#include <unordered_map>
-
 namespace facebook {
 namespace fboss {
 

@@ -21,7 +21,7 @@ sai_status_t create_virtual_router_fn(
 }
 
 sai_status_t remove_virtual_router_fn(sai_object_id_t /* virtual_router_id */) {
-  return SAI_STATUS_FAILURE;
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_virtual_router_attribute_fn(

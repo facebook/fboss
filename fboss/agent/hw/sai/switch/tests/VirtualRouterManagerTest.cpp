@@ -28,8 +28,9 @@ class VirtualRouterManagerTest : public ManagerTestBase {
 };
 
 TEST_F(VirtualRouterManagerTest, defaultVirtualRouterTest) {
-  SaiVirtualRouter* virtualRouter =
-      saiManagerTable->virtualRouterManager().getVirtualRouter(RouterID(0));
-  EXPECT_TRUE(virtualRouter);
-  EXPECT_EQ(virtualRouter->id(), 0);
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      saiManagerTable->virtualRouterManager().getVirtualRouterHandle(
+          RouterID(0));
+  EXPECT_TRUE(virtualRouterHandle);
+  EXPECT_EQ(virtualRouterHandle->virtualRouter->adapterKey(), 0);
 }

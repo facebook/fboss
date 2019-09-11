@@ -34,12 +34,13 @@ SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   folly::IPAddress prefixNetwork{swRoute->prefix().network};
   folly::CIDRNetwork prefix{prefixNetwork, swRoute->prefix().mask};
-  SaiVirtualRouter* virtualRouter =
-      managerTable_->virtualRouterManager().getVirtualRouter(routerId);
-  if (!virtualRouter) {
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      managerTable_->virtualRouterManager().getVirtualRouterHandle(routerId);
+  if (!virtualRouterHandle) {
     throw FbossError("No virtual router with id ", routerId);
   }
-  return SaiRouteTraits::RouteEntry{switchId, virtualRouter->id(), prefix};
+  return SaiRouteTraits::RouteEntry{
+      switchId, virtualRouterHandle->virtualRouter->adapterKey(), prefix};
 }
 
 template <typename AddrT>
@@ -56,12 +57,14 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   // Compute information common to all addresses in the interface:
   // vr id
   RouterID routerId = swInterface->getRouterID();
-  SaiVirtualRouter* virtualRouter =
-      managerTable_->virtualRouterManager().getVirtualRouter(routerId);
-  if (!virtualRouter) {
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      managerTable_->virtualRouterManager().getVirtualRouterHandle(routerId);
+  if (!virtualRouterHandle) {
     throw FbossError("No virtual router with id ", routerId);
   }
-  sai_object_id_t virtualRouterId = virtualRouter->id();
+  sai_object_id_t virtualRouterId =
+      virtualRouterHandle->virtualRouter->adapterKey();
+  ;
   // packet action
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
   sai_object_id_t switchId = managerTable_->switchManager().getSwitchSaiId();

@@ -17,7 +17,6 @@
 #include "fboss/agent/types.h"
 
 #include <memory>
-#include <unordered_map>
 
 namespace facebook {
 namespace fboss {

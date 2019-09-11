@@ -239,9 +239,6 @@ HwInitResult SaiSwitch::initLocked(
       std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
 
-  auto saiStore = SaiStore::getInstance();
-  saiStore->setSwitchId(switchId_);
-
   platform_->initPorts();
 
   callback_ = callback;

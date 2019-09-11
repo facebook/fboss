@@ -40,12 +40,13 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
 
   // compute the virtual router id for this router interface
   RouterID routerId = swInterface->getRouterID();
-  SaiVirtualRouter* virtualRouter =
-      managerTable_->virtualRouterManager().getVirtualRouter(routerId);
-  if (!virtualRouter) {
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      managerTable_->virtualRouterManager().getVirtualRouterHandle(routerId);
+  if (!virtualRouterHandle) {
     throw FbossError("No virtual router for RouterID ", routerId);
   }
-  sai_object_id_t saiVirtualRouterId = virtualRouter->id();
+  sai_object_id_t saiVirtualRouterId =
+      virtualRouterHandle->virtualRouter->adapterKey();
   SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute{saiVirtualRouterId};
 

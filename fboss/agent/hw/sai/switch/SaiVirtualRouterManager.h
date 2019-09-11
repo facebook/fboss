@@ -12,12 +12,13 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
 
 #include "folly/MacAddress.h"
+#include "folly/container/F14Map.h"
 
 #include <memory>
-#include <unordered_map>
 
 namespace facebook {
 namespace fboss {
@@ -25,37 +26,9 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiVirtualRouter {
- public:
-  // Default virtual router
-  explicit SaiVirtualRouter(SaiApiTable* apiTable, sai_object_id_t& switchId);
-  // SaiSwitch managed virtual router
-  SaiVirtualRouter(
-      SaiApiTable* apiTable,
-      const VirtualRouterApiParameters::Attributes& attributes,
-      const sai_object_id_t& switchId);
-  ~SaiVirtualRouter();
-  SaiVirtualRouter(const SaiVirtualRouter& other) = delete;
-  SaiVirtualRouter(SaiVirtualRouter&& other) = delete;
-  SaiVirtualRouter& operator=(const SaiVirtualRouter& other) = delete;
-  SaiVirtualRouter& operator=(SaiVirtualRouter&& other) = delete;
-  bool operator==(const SaiVirtualRouter& other) const;
-  bool operator!=(const SaiVirtualRouter& other) const;
-
-  const VirtualRouterApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  VirtualRouterApiParameters::Attributes attributes_;
-  sai_object_id_t id_;
-  // In SAI, there is a default VirtualRouter. We should be able to use it,
-  // but should not RAII manage its lifetime.
-  bool default_{false};
+using SaiVirtualRouter = SaiObject<SaiVirtualRouterTraits>;
+struct SaiVirtualRouterHandle {
+  std::shared_ptr<SaiVirtualRouter> virtualRouter;
 };
 
 class SaiVirtualRouterManager {
@@ -64,15 +37,18 @@ class SaiVirtualRouterManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  sai_object_id_t addVirtualRouter(const RouterID& routerId);
-  SaiVirtualRouter* getVirtualRouter(const RouterID& routerId);
+  VirtualRouterSaiId addVirtualRouter(const RouterID& routerId);
+  SaiVirtualRouterHandle* getVirtualRouterHandle(const RouterID& routerId);
+  const SaiVirtualRouterHandle* getVirtualRouterHandle(
+      const RouterID& routerId) const;
 
  private:
+  SaiVirtualRouterHandle* getVirtualRouterHandleImpl(
+      const RouterID& routerId) const;
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<RouterID, std::unique_ptr<SaiVirtualRouter>>
-      virtualRouters_;
+  folly::F14FastMap<RouterID, std::unique_ptr<SaiVirtualRouterHandle>> handles_;
 };
 
 } // namespace fboss
