@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -25,14 +26,14 @@ extern "C" {
 #include <sai.h>
 }
 
-FBOSS_STRONG_TYPE(sai_object_id_t, SwitchSaiId);
-
 namespace facebook {
 namespace fboss {
 
+class SwitchApi;
+
 struct SaiSwitchTraits {
-  static constexpr sai_api_t ApiType = SAI_API_SWITCH;
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_SWITCH;
+  using SaiApiT = SwitchApi;
   struct Attributes {
     using EnumType = sai_switch_attr_t;
     using CpuPort =
@@ -74,7 +75,6 @@ struct SaiSwitchTraits {
       Attributes::InitSwitch,
       std::optional<Attributes::HwInfo>,
       std::optional<Attributes::SrcMac>>;
-  using AllAttributes = std::tuple<Attributes::InitSwitch>;
 };
 
 struct SwitchApiParameters {
@@ -176,6 +176,23 @@ class SwitchApi : public SaiApi<SwitchApi, SwitchApiParameters> {
   }
 
  private:
+  sai_status_t _create(
+      SwitchSaiId* id,
+      sai_object_id_t /* switch_id */,
+      size_t attr_count,
+      sai_attribute_t* attr_list) {
+    return api_->create_switch(rawSaiId(id), attr_count, attr_list);
+  }
+  sai_status_t _remove(SwitchSaiId id) {
+    return api_->remove_switch(id);
+  }
+  sai_status_t _getAttribute(SwitchSaiId id, sai_attribute_t* attr) const {
+    return api_->get_switch_attribute(id, 1, attr);
+  }
+  sai_status_t _setAttribute(SwitchSaiId id, const sai_attribute_t* attr) {
+    return api_->set_switch_attribute(id, attr);
+  }
+
   sai_status_t _create(
       sai_object_id_t* switch_id,
       sai_attribute_t* attr_list,

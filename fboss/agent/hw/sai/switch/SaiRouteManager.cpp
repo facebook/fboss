@@ -31,7 +31,7 @@ template <typename AddrT>
 SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) const {
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
   folly::IPAddress prefixNetwork{swRoute->prefix().network};
   folly::CIDRNetwork prefix{prefixNetwork, swRoute->prefix().mask};
   SaiVirtualRouterHandle* virtualRouterHandle =
@@ -67,9 +67,9 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   ;
   // packet action
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
-  sai_object_id_t switchId = managerTable_->switchManager().getSwitchSaiId();
-  sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute(
-      SwitchApiParameters::Attributes::CpuPort{}, switchId);
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute2(
+      switchId, SaiSwitchTraits::Attributes::CpuPort{});
 
   toMeRoutes.reserve(swInterface->getAddresses().size());
   // Compute per-address information
@@ -139,9 +139,9 @@ void SaiRouteManager::addRoute(
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
-    sai_object_id_t switchId = managerTable_->switchManager().getSwitchSaiId();
-    sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute(
-        SwitchApiParameters::Attributes::CpuPort{}, switchId);
+    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+    sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute2(
+        switchId, SaiSwitchTraits::Attributes::CpuPort{});
     nextHopIdOpt = cpuPortId;
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;

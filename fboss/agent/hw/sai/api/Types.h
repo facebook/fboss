@@ -26,6 +26,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, PortSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, QueueSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, RouterInterfaceSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, SchedulerSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, SwitchSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);

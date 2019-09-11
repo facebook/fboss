@@ -21,8 +21,7 @@
 namespace {
 using namespace facebook::fboss;
 
-SwitchApiParameters::Attributes getSwitchAttributes(SaiPlatform* platform) {
-  SwitchApiParameters::Attributes::InitSwitch initSwitch(true);
+SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
   auto connStr = platform->getPlatformAttribute(
       cfg::PlatformAttributes::CONNECTION_HANDLE);
@@ -30,9 +29,10 @@ SwitchApiParameters::Attributes getSwitchAttributes(SaiPlatform* platform) {
     connectionHandle = std::vector<int8_t>{std::begin(connStr.value()),
                                            std::end(connStr.value())};
   }
-  SwitchApiParameters::Attributes::HwInfo hwInfo(connectionHandle);
-  SwitchApiParameters::Attributes::SrcMac srcMac(platform->getLocalMac());
-  return {{initSwitch, hwInfo, srcMac}};
+  SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
+  SaiSwitchTraits::Attributes::HwInfo hwInfo(connectionHandle);
+  SaiSwitchTraits::Attributes::SrcMac srcMac(platform->getLocalMac());
+  return {initSwitch, hwInfo, srcMac};
 }
 } // namespace
 
@@ -41,10 +41,11 @@ namespace fboss {
 
 SaiSwitchInstance::SaiSwitchInstance(
     SaiApiTable* apiTable,
-    const SwitchApiParameters::Attributes& attributes)
+    const SaiSwitchTraits::CreateAttributes& attributes)
     : apiTable_(apiTable), attributes_(attributes) {
   auto& switchApi = apiTable_->switchApi();
-  id_ = switchApi.create(attributes_.attrs());
+  id_ = switchApi.create2<SaiSwitchTraits>(
+      attributes_, 0 /* fake switch id; ignored */);
 }
 
 SaiSwitchInstance::~SaiSwitchInstance() {
@@ -83,7 +84,7 @@ SaiSwitchInstance* SaiSwitchManager::getSwitch() {
   return getSwitchImpl();
 }
 
-sai_object_id_t SaiSwitchManager::getSwitchSaiId() const {
+SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   auto switchInstance = getSwitch();
   if (!switchInstance) {
     throw FbossError("failed to get switch id: switch not initialized");

@@ -29,7 +29,7 @@ class SaiSwitchInstance {
  public:
   SaiSwitchInstance(
       SaiApiTable* apiTable,
-      const SwitchApiParameters::Attributes& attributes);
+      const SaiSwitchTraits::CreateAttributes& attributes);
   ~SaiSwitchInstance();
   SaiSwitchInstance(const SaiSwitchInstance& other) = delete;
   SaiSwitchInstance(SaiSwitchInstance&& other) = delete;
@@ -38,17 +38,17 @@ class SaiSwitchInstance {
   bool operator==(const SaiSwitchInstance& other) const;
   bool operator!=(const SaiSwitchInstance& other) const;
 
-  const SwitchApiParameters::Attributes attributes() const {
+  const SaiSwitchTraits::CreateAttributes attributes() const {
     return attributes_;
   }
-  sai_object_id_t id() const {
+  SwitchSaiId id() const {
     return id_;
   }
 
  private:
   SaiApiTable* apiTable_;
-  SwitchApiParameters::Attributes attributes_;
-  sai_object_id_t id_;
+  SaiSwitchTraits::CreateAttributes attributes_;
+  SwitchSaiId id_;
 };
 
 class SaiSwitchManager {
@@ -59,7 +59,7 @@ class SaiSwitchManager {
       SaiPlatform* platform);
   const SaiSwitchInstance* getSwitch() const;
   SaiSwitchInstance* getSwitch();
-  sai_object_id_t getSwitchSaiId() const;
+  SwitchSaiId getSwitchSaiId() const;
 
  private:
   SaiSwitchInstance* getSwitchImpl() const;
