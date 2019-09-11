@@ -36,7 +36,14 @@ class PortStoreTest : public ::testing::Test {
       std::optional<bool> adminStateOpt = true) {
     std::vector<uint32_t> lanes;
     lanes.push_back(lane);
-    return SaiPortTraits::CreateAttributes{lanes, speed, adminStateOpt};
+    return SaiPortTraits::CreateAttributes{lanes,
+                                           speed,
+                                           adminStateOpt,
+                                           std::nullopt,
+                                           std::nullopt,
+                                           std::nullopt,
+                                           std::nullopt,
+                                           std::nullopt};
   }
 
   PortSaiId createPort(uint32_t lane) {

@@ -10,6 +10,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -30,16 +31,16 @@ class PortManagerTest : public ManagerTestBase {
     p0 = testInterfaces[0].remoteHosts[0].port;
     p1 = testInterfaces[1].remoteHosts[0].port;
   }
+  // TODO: make it properly handle different lanes/speeds for different
+  // port ids...
   void checkPort(const PortID& swId, sai_object_id_t saiId, bool enabled) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
-    PortApiParameters::Attributes::AdminState adminStateAttribute;
-    std::vector<uint32_t> ls;
-    ls.resize(1);
-    PortApiParameters::Attributes::HwLaneList hwLaneListAttribute(ls);
-    PortApiParameters::Attributes::Speed speedAttribute;
-    PortApiParameters::Attributes::FecMode fecMode;
-    PortApiParameters::Attributes::InternalLoopbackMode ilbMode;
+    SaiPortTraits::Attributes::AdminState adminStateAttribute;
+    SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute;
+    SaiPortTraits::Attributes::Speed speedAttribute;
+    SaiPortTraits::Attributes::FecMode fecMode;
+    SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
     auto gotAdminState = portApi.getAttribute(adminStateAttribute, saiId);
     EXPECT_EQ(enabled, gotAdminState);
     auto gotLanes = portApi.getAttribute(hwLaneListAttribute, saiId);
@@ -62,7 +63,6 @@ class PortManagerTest : public ManagerTestBase {
    */
   sai_object_id_t addPort(const PortID& swId, cfg::PortSpeed portSpeed) {
     auto& portApi = saiApiTable->portApi();
-    PortApiParameters::Attributes::AdminState adminState{true};
     std::vector<uint32_t> ls;
     if (portSpeed == cfg::PortSpeed::TWENTYFIVEG) {
       ls.push_back(swId);
@@ -72,18 +72,18 @@ class PortManagerTest : public ManagerTestBase {
       ls.push_back(swId + 2);
       ls.push_back(swId + 3);
     }
-    PortApiParameters::Attributes::HwLaneList lanes(ls);
-    PortApiParameters::Attributes::Speed speed{static_cast<int>(portSpeed)};
-    PortApiParameters::Attributes a{{lanes,
-                                     speed,
-                                     adminState,
-                                     folly::none,
-                                     folly::none,
-                                     folly::none,
-                                     folly::none,
-                                     folly::none}};
-    auto saiPortId = portApi.create(a.attrs(), 0);
-    return saiPortId;
+    SaiPortTraits::Attributes::AdminState adminState{true};
+    SaiPortTraits::Attributes::HwLaneList lanes(ls);
+    SaiPortTraits::Attributes::Speed speed{static_cast<int>(portSpeed)};
+    SaiPortTraits::CreateAttributes a{lanes,
+                                      speed,
+                                      adminState,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt};
+    return portApi.create2<SaiPortTraits>(a, 0);
   }
 
   TestPort p0;
@@ -113,35 +113,38 @@ TEST_F(PortManagerTest, addDupIdPorts) {
 TEST_F(PortManagerTest, getBySwId) {
   std::shared_ptr<Port> swPort = makePort(p1);
   saiManagerTable->portManager().addPort(swPort);
-  SaiPort* port = saiManagerTable->portManager().getPort(PortID(10));
+  SaiPortHandle* port =
+      saiManagerTable->portManager().getPortHandle(PortID(10));
   EXPECT_TRUE(port);
-  EXPECT_EQ(port->attributes().adminState, true);
-  EXPECT_EQ(port->attributes().speed, 25000);
-  EXPECT_EQ(port->attributes().hwLaneList.size(), 1);
-  EXPECT_EQ(port->attributes().hwLaneList[0], 10);
+  EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, port->port->attributes()), true);
+  EXPECT_EQ(GET_ATTR(Port, Speed, port->port->attributes()), 25000);
+  auto hwLaneList = GET_ATTR(Port, HwLaneList, port->port->attributes());
+  EXPECT_EQ(hwLaneList.size(), 1);
+  EXPECT_EQ(hwLaneList[0], 10);
 }
 
 TEST_F(PortManagerTest, getNonExistent) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
-  SaiPort* port = saiManagerTable->portManager().getPort(PortID(10));
+  SaiPortHandle* port =
+      saiManagerTable->portManager().getPortHandle(PortID(10));
   EXPECT_FALSE(port);
 }
 
 TEST_F(PortManagerTest, removePort) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
-  SaiPort* port = saiManagerTable->portManager().getPort(PortID(0));
+  SaiPortHandle* port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_TRUE(port);
   saiManagerTable->portManager().removePort(PortID(0));
-  port = saiManagerTable->portManager().getPort(PortID(0));
+  port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_FALSE(port);
 }
 
 TEST_F(PortManagerTest, removeNonExistentPort) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
-  SaiPort* port = saiManagerTable->portManager().getPort(PortID(0));
+  SaiPortHandle* port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_TRUE(port);
   EXPECT_THROW(
       saiManagerTable->portManager().removePort(PortID(10)), FbossError);
@@ -173,10 +176,18 @@ TEST_F(PortManagerTest, changeNonExistentPort) {
 }
 
 TEST_F(PortManagerTest, portConsolidationAddPort) {
-  auto port0 = PortID(0);
-  auto saiPortId0 = addPort(port0, cfg::PortSpeed::TWENTYFIVEG);
+  PortID portId(0);
+  // adds a port "behind the back of" PortManager
+  auto saiId0 = addPort(portId, cfg::PortSpeed::TWENTYFIVEG);
+
+  // loads the added port into SaiStore
+  SaiStore::getInstance()->reload();
+
+  // add a port with the same lanes through PortManager
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
-  checkPort(port0, saiId, true);
-  EXPECT_EQ(saiId, saiPortId0);
+  auto saiId1 = saiManagerTable->portManager().addPort(swPort);
+
+  checkPort(portId, saiId0, true);
+  // expect it to return the existing port rather than create a new one
+  EXPECT_EQ(saiId0, saiId1);
 }

@@ -69,17 +69,19 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   }
 
   // Compute the BridgePort sai id to associate with this vlan member
-  SaiPort* port = managerTable_->portManager().getPort(swPortId);
-  if (!port) {
+  SaiPortHandle* portHandle =
+      managerTable_->portManager().getPortHandle(swPortId);
+  if (!portHandle) {
     throw FbossError(
-        "Failed to add vlan member: no port matching vlan member port: ",
+        "Failed to add vlan member: no port handle matching vlan member port: ",
         swPortId);
   }
-  sai_object_id_t bridgePortSaiId = port->getBridgePort()->adapterKey();
+  BridgePortSaiId bridgePortSaiId = portHandle->bridgePort->adapterKey();
 
-  // Associate the port with the vlan for the sake of computing the
+  // Associate the portHandle with the vlan for the sake of computing the
   // VlanID during packet RX
-  port->setPortVlan(swVlanId);
+  // TODO(borisb): remove after D15750266
+  vlanIdsByPortId_[swPortId] = swVlanId;
 
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
@@ -102,6 +104,10 @@ void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
   if (citr == handles_.cend()) {
     throw FbossError(
         "attempted to remove a vlan which does not exist: ", swVlanId);
+  }
+  // TODO(borisb): remove after D15750266
+  for (const auto& member : citr->second->vlanMembers) {
+    vlanIdsByPortId_.erase(member.first);
   }
   handles_.erase(citr);
 }
@@ -131,6 +137,7 @@ void SaiVlanManager::changeVlan(
       compareIds);
   for (const auto& swPortId : removed) {
     handle->vlanMembers.erase(swPortId.first);
+    vlanIdsByPortId_.erase(swPortId.first);
   }
   VlanFields::MemberPorts added;
   std::set_difference(
@@ -174,6 +181,11 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
     XLOG(FATAL) << "invalid null VLAN for VlanID: " << swVlanId;
   }
   return itr->second.get();
+}
+
+// TODO(borisb): remove after D15750266
+VlanID SaiVlanManager::getVlanIdByPortId(PortID portId) const {
+  return vlanIdsByPortId_.at(portId);
 }
 
 } // namespace fboss

@@ -44,12 +44,12 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
   auto vlanId = GET_ATTR(RouterInterface, VlanId, rif->attributes());
   // TODO(srikrishnagopu): Can it be an AGG Port ?
   auto portId = portDesc.phyPortID();
-  auto port = managerTable_->portManager().getPort(portId);
-  if (!port) {
+  auto portHandle = managerTable_->portManager().getPortHandle(portId);
+  if (!portHandle) {
     throw FbossError("Attempted to add non-existent port to Fdb: ", portId);
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto bridgePortId = port->getBridgePort()->adapterKey();
+  auto bridgePortId = portHandle->bridgePort->adapterKey();
   SaiFdbTraits::FdbEntry entry{switchId, vlanId, mac};
   SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
                                             bridgePortId};

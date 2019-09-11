@@ -37,11 +37,11 @@ class FdbManagerTest : public ManagerTestBase {
       const PortDescriptor& portDesc) {
     auto vlanId = VlanID(intfId);
     auto portId = portDesc.phyPortID();
-    FdbApiParameters::EntryType entry{1, vlanId, mac};
-    auto port = saiManagerTable->portManager().getPort(portId);
-    auto expectedBridgePortId = port->getBridgePort()->adapterKey();
-    auto bridgePortId = saiApiTable->fdbApi().getAttribute(
-        FdbApiParameters::Attributes::BridgePortId(), entry);
+    SaiFdbTraits::FdbEntry entry{1, vlanId, mac};
+    auto portHandle = saiManagerTable->portManager().getPortHandle(portId);
+    auto expectedBridgePortId = portHandle->bridgePort->adapterKey();
+    auto bridgePortId = saiApiTable->fdbApi().getAttribute2(
+        entry, SaiFdbTraits::Attributes::BridgePortId{});
     EXPECT_EQ(bridgePortId, expectedBridgePortId);
   }
 
@@ -55,5 +55,4 @@ TEST_F(FdbManagerTest, addFdbEntry) {
   auto fdbEntry =
       saiManagerTable->fdbManager().addFdbEntry(intfId, mac1, portDesc);
   checkFdbEntry(intfId, mac1, portDesc);
-  fdbEntry.reset();
 }

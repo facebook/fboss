@@ -52,6 +52,9 @@ class SaiVlanManager {
   const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
   SaiVlanHandle* getVlanHandle(VlanID swVlanId);
 
+  // TODO(borisb): remove after D15750266
+  VlanID getVlanIdByPortId(PortID portId) const;
+
  private:
   void createVlanMember(VlanID swVlanId, PortID swPortId);
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
@@ -60,6 +63,8 @@ class SaiVlanManager {
   const SaiPlatform* platform_;
 
   folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>> handles_;
+  // TODO(borisb): remove after D15750266
+  folly::F14FastMap<PortID, VlanID> vlanIdsByPortId_;
 };
 
 } // namespace fboss

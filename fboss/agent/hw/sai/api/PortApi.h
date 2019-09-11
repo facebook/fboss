@@ -40,6 +40,29 @@ struct SaiPortTraits {
         std::vector<uint32_t>>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
+    using QosNumberOfQueues = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES,
+        sai_uint32_t>;
+    using QosQueueList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_QUEUE_LIST,
+        std::vector<sai_object_id_t>>;
+    using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
+    using OperStatus =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
+    using InternalLoopbackMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
+        sai_int32_t>;
+    using MediaType =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_MEDIA_TYPE, sai_int32_t>;
+    using GlobalFlowControlMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE,
+        sai_int32_t>;
+    using PortVlanId =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -47,7 +70,12 @@ struct SaiPortTraits {
   using CreateAttributes = std::tuple<
       Attributes::HwLaneList,
       Attributes::Speed,
-      std::optional<Attributes::AdminState>>;
+      std::optional<Attributes::AdminState>,
+      std::optional<Attributes::FecMode>,
+      std::optional<Attributes::InternalLoopbackMode>,
+      std::optional<Attributes::MediaType>,
+      std::optional<Attributes::GlobalFlowControlMode>,
+      std::optional<Attributes::PortVlanId>>;
 };
 
 struct PortApiParameters {

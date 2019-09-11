@@ -31,7 +31,14 @@ class PortApiTest : public ::testing::Test {
       uint32_t speed,
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
-    SaiPortTraits::CreateAttributes a{lanes, speed, adminState};
+    SaiPortTraits::CreateAttributes a{lanes,
+                                      speed,
+                                      adminState,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt};
     return portApi->create2<SaiPortTraits>(a, 0);
   }
 

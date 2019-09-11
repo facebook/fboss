@@ -274,11 +274,11 @@ void SaiSwitch::packetRxCallbackLocked(
   }
   CHECK_NE(saiPortId, 0);
   const auto& portManager = managerTableLocked(lock)->portManager();
+  const auto& vlanManager = managerTableLocked(lock)->vlanManager();
   PortID swPortId = portManager.getPortID(saiPortId);
-  const SaiPort* port = portManager.getPort(swPortId);
-  auto vlanId = port->getPortVlan();
+  auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
   auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, vlanId);
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
   callback_->packetReceived(std::move(rxPacket));
 }
 
@@ -342,15 +342,16 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt,
     PortID portID) noexcept {
-  auto port = managerTableLocked(lock)->portManager().getPort(portID);
-  if (!port) {
+  auto portHandle =
+      managerTableLocked(lock)->portManager().getPortHandle(portID);
+  if (!portHandle) {
     throw FbossError("Failed to send packet on invalid port: ", portID);
   }
   HostifApiParameters::HostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
   HostifApiParameters::TxPacketAttributes::EgressPortOrLag egressPort(
-      port->id());
+      portHandle->port->adapterKey());
   HostifApiParameters::TxPacketAttributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   HostifApiParameters::TxPacketAttributes attributes{{txType, egressPort}};
