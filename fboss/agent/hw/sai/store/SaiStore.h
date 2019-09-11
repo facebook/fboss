@@ -148,7 +148,8 @@ class SaiStore {
       detail::SaiObjectStore<SaiNextHopGroupTraits>,
       detail::SaiObjectStore<SaiNextHopGroupMemberTraits>,
       detail::SaiObjectStore<SaiHostifTrapGroupTraits>,
-      detail::SaiObjectStore<SaiHostifTrapTraits>>
+      detail::SaiObjectStore<SaiHostifTrapTraits>,
+      detail::SaiObjectStore<SaiQueueTraits>>
       stores_;
 };
 

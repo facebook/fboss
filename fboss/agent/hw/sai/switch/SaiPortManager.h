@@ -14,22 +14,24 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
+
+#include "folly/container/F14Map.h"
 
 namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
-class SaiQueue;
 
 using SaiPort = SaiObject<SaiPortTraits>;
 
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
-  std::unordered_map<uint8_t, std::unique_ptr<SaiQueue>> queues;
+  folly::F14FastMap<uint8_t, std::shared_ptr<SaiQueue>> queues;
 };
 
 class SaiPortManager {

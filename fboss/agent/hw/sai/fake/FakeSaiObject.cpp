@@ -78,6 +78,9 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_QUEUE:
+      *count = fs->qm.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }

@@ -12,12 +12,14 @@
 
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
+#include "folly/container/F14Map.h"
+
 #include <memory>
-#include <unordered_map>
 
 namespace facebook {
 namespace fboss {
@@ -25,44 +27,7 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiQueue {
- public:
-  SaiQueue(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      sai_object_id_t saiPortId,
-      const QueueApiParameters::Attributes& attributes);
-  SaiQueue(
-      SaiApiTable* apiTable,
-      sai_object_id_t id,
-      sai_object_id_t saiPortId,
-      const QueueApiParameters::Attributes& attributes);
-  ~SaiQueue();
-  SaiQueue(const SaiQueue& other) = delete;
-  SaiQueue(SaiQueue&& other) = delete;
-  SaiQueue& operator=(const SaiQueue& other) = delete;
-  SaiQueue& operator=(SaiQueue&& other) = delete;
-  bool operator==(const SaiQueue& other) const;
-  bool operator!=(const SaiQueue& other) const;
-  void updatePortQueue(PortQueue& portQueue);
-
-  const QueueApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
-  sai_object_id_t getSaiPortId() {
-    return saiPortId_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  sai_object_id_t id_;
-  sai_object_id_t saiPortId_;
-  QueueApiParameters::Attributes attributes_;
-};
+using SaiQueue = SaiObject<SaiQueueTraits>;
 
 class SaiQueueManager {
  public:
@@ -70,10 +35,14 @@ class SaiQueueManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  std::unique_ptr<SaiQueue> createQueue(
-      sai_object_id_t saiPortId,
-      uint32_t numQueues,
-      PortQueue& portQueue);
+
+  std::shared_ptr<SaiQueue> createQueue(
+      PortSaiId portSaiId,
+      const PortQueue& portQueue);
+
+  folly::F14FastMap<uint8_t, std::shared_ptr<SaiQueue>> createQueues(
+      PortSaiId portSaiId,
+      const QueueConfig& queues);
 
  private:
   SaiApiTable* apiTable_;

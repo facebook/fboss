@@ -47,6 +47,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->port = saiPort;
   handle->bridgePort =
       managerTable_->bridgeManager().addBridgePort(saiPort->adapterKey());
+  handle->queues = managerTable_->queueManager().createQueues(
+      saiPort->adapterKey(), swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
   portSaiIds_.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();
@@ -70,6 +72,8 @@ void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   portStore.setObject(portKey, attributes);
+  existingPort->queues = managerTable_->queueManager().createQueues(
+      existingPort->port->adapterKey(), swPort->getPortQueues());
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
