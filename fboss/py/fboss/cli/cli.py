@@ -137,25 +137,6 @@ class NicCli(object):
         nic.NicCmd(cli_opts).run(detail, verbose)
 
 
-class GetConfigCli(object):
-    ''' Get running config sub-commands '''
-
-    def __init__(self):
-        self.config.add_command(self._agent, name=AGENT_KEYWORD)
-
-    @click.group(cls=AliasedGroup)
-    def config():
-        ''' Show running config '''
-        pass
-
-    @click.command()
-    @click.pass_obj
-    def _agent(cli_opts):
-        ''' Show controller running config '''
-        raise Exception(''' D13645809 reorganized commands:
-            fboss config agent => fboss agent config show ''')
-
-
 class IpCli(object):
     ''' IP sub-commands '''
     @click.command()
@@ -417,17 +398,6 @@ class ProductInfoCli(object):
         info.ProductInfoCmd(cli_opts).run(detail)
 
 
-class ReloadConfigCli(object):
-    ''' Reload config sub-commands '''
-
-    @click.command()
-    @click.pass_obj
-    def reloadconfig(cli_opts):
-        ''' Reload agent configuration file  '''
-        raise Exception(''' D13645809 reorganized commands:
-            fboss reloadconfig => fboss agent config reload ''')
-
-
 class RouteCli(object):
     ''' Route sub-commands '''
 
@@ -610,7 +580,6 @@ def add_modules(main_func):
 
     main_func.add_command(ArpCli().arp)
     main_func.add_command(AggregatePortCli().aggregate_port)
-    main_func.add_command(GetConfigCli().config)
     main_func.add_command(IpCli().ip)
     main_func.add_command(InterfaceCli().interface)
     main_func.add_command(L2Cli().l2)
@@ -619,7 +588,6 @@ def add_modules(main_func):
     main_func.add_command(NicCli().nic)
     main_func.add_command(PortCli().port)
     main_func.add_command(ProductInfoCli().product)
-    main_func.add_command(ReloadConfigCli().reloadconfig)
     main_func.add_command(RouteCli().route)
     main_func.add_command(VerbosityCli().set)
     main_func.add_command(AgentCli().agent)
