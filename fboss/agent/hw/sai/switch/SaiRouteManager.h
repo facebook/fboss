@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
@@ -23,7 +24,6 @@ namespace facebook {
 namespace fboss {
 
 class SaiManagerTable;
-class SaiNextHopGroup;
 class SaiPlatform;
 
 class SaiRoute {
@@ -33,7 +33,7 @@ class SaiRoute {
       SaiManagerTable* managerTable,
       const RouteApiParameters::EntryType& entry,
       const RouteApiParameters::Attributes& attributes,
-      std::shared_ptr<SaiNextHopGroup> nextHopGroup);
+      std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup);
   ~SaiRoute();
   SaiRoute(const SaiRoute& other) = delete;
   SaiRoute(SaiRoute&& other) = delete;
@@ -52,7 +52,7 @@ class SaiRoute {
   SaiManagerTable* managerTable_;
   RouteApiParameters::EntryType entry_;
   RouteApiParameters::Attributes attributes_;
-  std::shared_ptr<SaiNextHopGroup> nextHopGroup_;
+  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup_;
 };
 
 class SaiRouteManager {

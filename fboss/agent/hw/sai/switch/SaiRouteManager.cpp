@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -23,7 +22,7 @@ SaiRoute::SaiRoute(
     SaiManagerTable* managerTable,
     const RouteApiParameters::EntryType& entry,
     const RouteApiParameters::Attributes& attributes,
-    std::shared_ptr<SaiNextHopGroup> nextHopGroup)
+    std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup)
     : apiTable_(apiTable),
       managerTable_(managerTable),
       entry_(entry),
@@ -119,7 +118,7 @@ std::vector<std::unique_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     }
     // empty next hop group -- this route will not manage the
     // lifetime of a next hop group
-    std::shared_ptr<SaiNextHopGroup> nextHopGroup;
+    std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup;
     // destination
     folly::CIDRNetwork destination{address.first, address.first.bitCount()};
     RouteApiParameters::EntryType entry{switchId, virtualRouterId, destination};
@@ -146,7 +145,7 @@ void SaiRouteManager::addRoute(
   auto fwd = swRoute->getForwardInfo();
   sai_int32_t packetAction;
   folly::Optional<sai_object_id_t> nextHopIdOpt;
-  std::shared_ptr<SaiNextHopGroup> nextHopGroup;
+  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
   if (fwd.getAction() == NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     /*
@@ -176,10 +175,10 @@ void SaiRouteManager::addRoute(
        * SaiNextHopGroup corresponding to ECMP over those next hops. When no
        * route refers to a next hop set, it will be removed in SAI as well.
        */
-      nextHopGroup =
+      nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               fwd.getNextHopSet());
-      nextHopIdOpt = nextHopGroup->id();
+      nextHopIdOpt = nextHopGroupHandle->nextHopGroup->adapterKey();
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -193,7 +192,7 @@ void SaiRouteManager::addRoute(
 
   RouteApiParameters::Attributes attributes{{packetAction, nextHopIdOpt}};
   auto route = std::make_unique<SaiRoute>(
-      apiTable_, managerTable_, entry, attributes, nextHopGroup);
+      apiTable_, managerTable_, entry, attributes, nextHopGroupHandle);
   routes_.emplace(std::make_pair(entry, std::move(route)));
 }
 

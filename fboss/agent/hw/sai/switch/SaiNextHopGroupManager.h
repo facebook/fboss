@@ -12,13 +12,15 @@
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
 #include <memory>
-#include <unordered_map>
+#include "folly/container/F14Map.h"
+#include "folly/container/F14Set.h"
 
 #include <boost/container/flat_set.hpp>
 
@@ -28,68 +30,13 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiNextHopGroupMember {
- public:
-  SaiNextHopGroupMember(
-      SaiApiTable* apiTable,
-      const NextHopGroupApiParameters::MemberAttributes& attributes,
-      const sai_object_id_t& switchID);
-  ~SaiNextHopGroupMember();
-  SaiNextHopGroupMember(const SaiNextHopGroupMember& other) = delete;
-  SaiNextHopGroupMember(SaiNextHopGroupMember&& other) = delete;
-  SaiNextHopGroupMember& operator=(const SaiNextHopGroupMember& other) = delete;
-  SaiNextHopGroupMember& operator=(SaiNextHopGroupMember&& other) = delete;
-  bool operator==(const SaiNextHopGroupMember& other) const;
-  bool operator!=(const SaiNextHopGroupMember& other) const;
+using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
+using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 
-  const NextHopGroupApiParameters::MemberAttributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  NextHopGroupApiParameters::MemberAttributes attributes_;
-  sai_object_id_t id_;
-};
-
-class SaiNextHopGroup {
- public:
-  SaiNextHopGroup(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const NextHopGroupApiParameters::Attributes& attributes,
-      const RouteNextHopEntry::NextHopSet& swNextHops);
-  ~SaiNextHopGroup();
-  SaiNextHopGroup(const SaiNextHopGroup& other) = delete;
-  SaiNextHopGroup(SaiNextHopGroup&& other) = delete;
-  SaiNextHopGroup& operator=(const SaiNextHopGroup& other) = delete;
-  SaiNextHopGroup& operator=(SaiNextHopGroup&& other) = delete;
-  bool operator==(const SaiNextHopGroup& other) const;
-  bool operator!=(const SaiNextHopGroup& other) const;
-
-  bool empty() const;
-  std::size_t size() const;
-  void addMember(sai_object_id_t nextHopId);
-  void removeMember(sai_object_id_t nextHopId);
-  const NextHopGroupApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  SaiManagerTable* managerTable_;
-  NextHopGroupApiParameters::Attributes attributes_;
-  RouteNextHopEntry::NextHopSet swNextHops_;
-  sai_object_id_t id_;
-  std::unordered_map<sai_object_id_t, std::unique_ptr<SaiNextHopGroupMember>>
-      members_;
-  std::unordered_map<sai_object_id_t, sai_object_id_t> memberIdMap_;
+struct SaiNextHopGroupHandle {
+  std::shared_ptr<SaiNextHopGroup> nextHopGroup;
+  folly::F14FastMap<NextHopSaiId, std::shared_ptr<SaiNextHopGroupMember>>
+      nextHopGroupMembers;
 };
 
 class SaiNextHopGroupManager {
@@ -98,24 +45,28 @@ class SaiNextHopGroupManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  std::shared_ptr<SaiNextHopGroup> incRefOrAddNextHopGroup(
+
+  std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
   void unregisterNeighborResolutionHandling(
       const RouteNextHopEntry::NextHopSet& swNextHops);
   void handleResolvedNeighbor(
       const SaiNeighborTraits::NeighborEntry& neighborEntry,
-      sai_object_id_t nextHopId);
+      NextHopSaiId nextHopId);
   void handleUnresolvedNeighbor(
       const SaiNeighborTraits::NeighborEntry& neighborEntry,
-      sai_object_id_t nextHopId);
+      NextHopSaiId nextHopId);
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroup> nextHopGroups_;
-  std::unordered_map<
+  // TODO(borisb): improve SaiObject/SaiStore to the point where they
+  // support the next hop group use case correctly, rather than this
+  // abomination of multiple levels of RefMaps :(
+  FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
+  folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
       boost::container::flat_set<RouteNextHopEntry::NextHopSet>>
       nextHopsByNeighbor_;
