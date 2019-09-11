@@ -9,12 +9,12 @@
  */
 #pragma once
 
-#include "SaiApi.h"
-#include "SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiApi.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
-
-#include <boost/variant.hpp>
 
 extern "C" {
 #include <sai.h>
@@ -23,73 +23,54 @@ extern "C" {
 namespace facebook {
 namespace fboss {
 
-struct LagApiParameters {
-  static constexpr sai_api_t ApiType = SAI_API_LAG;
-  struct Attributes {
-    using EnumType = sai_lag_attr_t;
-    using MemberList = SaiAttribute<
-        EnumType,
-        SAI_LAG_ATTR_PORT_LIST,
-        std::vector<sai_object_id_t>>;
-  };
-
-  struct MemberAttributes {
-    using EnumType = sai_lag_member_attr_t;
-    using LagId =
-        SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_LAG_ID, SaiObjectIdT>;
-    using PortId =
-        SaiAttribute<EnumType, SAI_LAG_MEMBER_ATTR_PORT_ID, SaiObjectIdT>;
-  };
-};
-
-class LagApi : public SaiApi<LagApi, LagApiParameters> {
+class LagApi : public SaiApi<LagApi> {
  public:
+  static constexpr sai_api_t ApiType = SAI_API_LAG;
   LagApi() {
     sai_status_t status =
-        sai_api_query(SAI_API_LAG, reinterpret_cast<void**>(&api_));
-    saiApiCheckError(
-        status, LagApiParameters::ApiType, "Failed to query for lag api");
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for lag api");
   }
   LagApi(const LagApi& other) = delete;
 
  private:
   sai_status_t _create(
-      sai_object_id_t* lag_id,
-      sai_attribute_t* attr_list,
+      LagSaiId* id,
+      sai_object_id_t switch_id,
       size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_lag(lag_id, switch_id, count, attr_list);
+      sai_attribute_t* attr_list) {
+    return api_->create_lag(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _remove(sai_object_id_t lag_id) {
-    return api_->remove_lag(lag_id);
-  }
-  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
-    return api_->get_lag_attribute(handle, 1, attr);
-  }
-  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
-    return api_->set_lag_attribute(handle, attr);
-  }
-  sai_status_t _createMember(
-      sai_object_id_t* lag_member_id,
-      sai_attribute_t* attr_list,
+  sai_status_t _create(
+      LagMemberSaiId* id,
+      sai_object_id_t switch_id,
       size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_lag_member(lag_member_id, switch_id, count, attr_list);
+      sai_attribute_t* attr_list) {
+    return api_->create_lag_member(rawSaiId(id), switch_id, count, attr_list);
   }
-  sai_status_t _removeMember(sai_object_id_t lag_member_id) {
-    return api_->remove_lag_member(lag_member_id);
+
+  sai_status_t _remove(LagSaiId id) {
+    return api_->remove_lag(id);
   }
-  sai_status_t _getMemberAttr(sai_attribute_t* attr, sai_object_id_t handle)
-      const {
-    return api_->get_lag_member_attribute(handle, 1, attr);
+  sai_status_t _remove(LagMemberSaiId id) {
+    return api_->remove_lag_member(id);
   }
-  sai_status_t _setMemberAttr(
-      const sai_attribute_t* attr,
-      sai_object_id_t handle) {
-    return api_->set_lag_member_attribute(handle, attr);
+
+  sai_status_t _getAttribute(LagSaiId id, sai_attribute_t* attr) const {
+    return api_->get_lag_attribute(id, 1, attr);
+  }
+  sai_status_t _getAttribute(LagMemberSaiId id, sai_attribute_t* attr) const {
+    return api_->get_lag_member_attribute(id, 1, attr);
+  }
+
+  sai_status_t _setAttribute(LagSaiId id, const sai_attribute_t* attr) {
+    return api_->set_lag_attribute(id, attr);
+  }
+  sai_status_t _setAttribute(LagMemberSaiId id, const sai_attribute_t* attr) {
+    return api_->set_lag_member_attribute(id, attr);
   }
   sai_lag_api_t* api_;
-  friend class SaiApi<LagApi, LagApiParameters>;
+  friend class SaiApi<LagApi>;
 };
 
 } // namespace fboss

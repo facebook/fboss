@@ -28,7 +28,7 @@ class HostifApiTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<HostifApi> hostifApi;
 
-  sai_object_id_t createHostifTrap(
+  HostifTrapSaiId createHostifTrap(
       sai_hostif_trap_type_t trapId,
       sai_object_id_t trapGroupId) {
     SaiHostifTrapTraits::Attributes::TrapType trapType(trapId);
@@ -39,15 +39,15 @@ class HostifApiTest : public ::testing::Test {
         SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY);
     SaiHostifTrapTraits::CreateAttributes attributes{
         trapType, packetAction, trapPriority, trapGroup};
-    sai_object_id_t trap =
+    HostifTrapSaiId trap =
         hostifApi->create2<SaiHostifTrapTraits>(attributes, 0);
     return trap;
   }
 
-  sai_object_id_t createHostifTrapGroup(uint32_t queueId) {
+  HostifTrapGroupSaiId createHostifTrapGroup(uint32_t queueId) {
     SaiHostifTrapGroupTraits::Attributes::Queue queue(queueId);
     SaiHostifTrapGroupTraits::CreateAttributes attributes{queue, 0};
-    sai_object_id_t trapGroup =
+    HostifTrapGroupSaiId trapGroup =
         hostifApi->create2<SaiHostifTrapGroupTraits>(attributes, 0);
     return trapGroup;
   }
@@ -72,19 +72,17 @@ TEST_F(HostifApiTest, createTrap) {
   EXPECT_EQ(fs->htm.get(trap).trapType, trapType);
   EXPECT_EQ(fs->htm.get(trap).packetAction, SAI_PACKET_ACTION_TRAP);
   EXPECT_EQ(fs->htgm.get(trapGroup).queueId, queueId);
-  hostifApi->remove(trapGroup);
-  hostifApi->removeMember(trap);
 }
 
 TEST_F(HostifApiTest, removeTrap) {
   sai_hostif_trap_type_t trapType = SAI_HOSTIF_TRAP_TYPE_LACP;
   uint32_t queueId = 10;
-  sai_object_id_t trapGroup = createHostifTrapGroup(queueId);
-  sai_object_id_t trap = createHostifTrap(trapType, trapGroup);
+  auto trapGroup = createHostifTrapGroup(queueId);
+  auto trap = createHostifTrap(trapType, trapGroup);
   EXPECT_EQ(fs->htm.map().size(), 1);
   EXPECT_EQ(fs->htgm.map().size(), 1);
-  hostifApi->remove(trapGroup);
-  hostifApi->removeMember(trap);
+  hostifApi->remove2(trapGroup);
+  hostifApi->remove2(trap);
   EXPECT_EQ(fs->htm.map().size(), 0);
   EXPECT_EQ(fs->htgm.map().size(), 0);
 }

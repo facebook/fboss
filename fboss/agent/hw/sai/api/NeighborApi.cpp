@@ -23,13 +23,4 @@ size_t hash<facebook::fboss::SaiNeighborTraits::NeighborEntry>::operator()(
   boost::hash_combine(seed, std::hash<folly::IPAddress>()(n.ip()));
   return seed;
 }
-
-size_t hash<facebook::fboss::NeighborApiParameters::NeighborEntry>::operator()(
-    const facebook::fboss::NeighborApiParameters::NeighborEntry& n) const {
-  size_t seed = 0;
-  boost::hash_combine(seed, n.switchId());
-  boost::hash_combine(seed, n.routerInterfaceId());
-  boost::hash_combine(seed, std::hash<folly::IPAddress>()(n.ip()));
-  return seed;
-}
 } // namespace std

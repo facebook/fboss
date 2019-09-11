@@ -50,7 +50,7 @@ SaiSwitchInstance::SaiSwitchInstance(
 
 SaiSwitchInstance::~SaiSwitchInstance() {
   auto& switchApi = apiTable_->switchApi();
-  switchApi.remove(id());
+  switchApi.remove2(id());
 }
 
 bool SaiSwitchInstance::operator==(const SaiSwitchInstance& other) const {

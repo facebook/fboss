@@ -57,7 +57,7 @@ TEST_F(NeighborApiTest, removeV4Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
-  neighborApi->remove(n);
+  neighborApi->remove2(n);
   EXPECT_EQ(fs->nm.map().size(), 0);
 }
 
@@ -66,7 +66,7 @@ TEST_F(NeighborApiTest, removeV6Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
-  neighborApi->remove(n);
+  neighborApi->remove2(n);
   EXPECT_EQ(fs->nm.map().size(), 0);
 }
 

@@ -77,7 +77,7 @@ TEST_F(VlanApiTest, removeVlanMember) {
   auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
-  vlanApi->removeMember(vlanMemberId);
+  vlanApi->remove2(vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlanMembers) {
@@ -127,7 +127,7 @@ TEST_F(VlanApiTest, setVlanMemberAttribute) {
   auto bridgePortId = 42;
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute2(
       bridgePortId);
-  vlanApi->setMemberAttribute(bridgePortIdAttribute2, vlanMemberId);
+  vlanApi->setAttribute2(vlanMemberId, bridgePortIdAttribute2);
   auto bridgePortIdGot = vlanApi->getAttribute2(
       vlanMemberId, SaiVlanMemberTraits::Attributes::BridgePortId());
   EXPECT_EQ(bridgePortId, bridgePortIdGot);

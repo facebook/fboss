@@ -19,6 +19,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgePortSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, LagSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, LagMemberSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopGroupMemberSaiId);

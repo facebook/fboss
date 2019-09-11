@@ -23,17 +23,17 @@ class NextHopManagerTest : public ManagerTestBase {
   }
 
   void checkNextHop(
-      sai_object_id_t nextHopId,
+      NextHopSaiId nextHopId,
       sai_object_id_t expectedRifId,
       const folly::IPAddress& expectedIp) {
-    auto rifIdGot = saiApiTable->nextHopApi().getAttribute(
-        SaiNextHopTraits::Attributes::RouterInterfaceId(), nextHopId);
+    auto rifIdGot = saiApiTable->nextHopApi().getAttribute2(
+        nextHopId, SaiNextHopTraits::Attributes::RouterInterfaceId());
     EXPECT_EQ(rifIdGot, expectedRifId);
-    auto ipGot = saiApiTable->nextHopApi().getAttribute(
-        SaiNextHopTraits::Attributes::Ip(), nextHopId);
+    auto ipGot = saiApiTable->nextHopApi().getAttribute2(
+        nextHopId, SaiNextHopTraits::Attributes::Ip());
     EXPECT_EQ(ipGot, expectedIp);
-    auto typeGot = saiApiTable->nextHopApi().getAttribute(
-        SaiNextHopTraits::Attributes::Type(), nextHopId);
+    auto typeGot = saiApiTable->nextHopApi().getAttribute2(
+        nextHopId, SaiNextHopTraits::Attributes::Type());
     EXPECT_EQ(typeGot, SAI_NEXT_HOP_TYPE_IP);
   }
 };

@@ -28,10 +28,10 @@ class NextHopApiTest : public ::testing::Test {
     nextHopApi = std::make_unique<NextHopApi>();
   }
   NextHopSaiId createNextHop(folly::IPAddress ip) {
-    NextHopApiParameters::Attributes::Type typeAttribute(SAI_NEXT_HOP_TYPE_IP);
-    NextHopApiParameters::Attributes::RouterInterfaceId
-        routerInterfaceIdAttribute(0);
-    NextHopApiParameters::Attributes::Ip ipAttribute(ip4);
+    SaiNextHopTraits::Attributes::Type typeAttribute(SAI_NEXT_HOP_TYPE_IP);
+    SaiNextHopTraits::Attributes::RouterInterfaceId routerInterfaceIdAttribute(
+        0);
+    SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
     auto nextHopId = nextHopApi->create2<SaiNextHopTraits>(
         {typeAttribute, routerInterfaceIdAttribute, ipAttribute}, 0);
     auto fnh = fs->nhm.get(nextHopId);
@@ -58,14 +58,14 @@ TEST_F(NextHopApiTest, removeNextHop) {
 
 TEST_F(NextHopApiTest, getIp) {
   auto nextHopId = createNextHop(ip4);
-  NextHopApiParameters::Attributes::Ip ipAttribute;
+  SaiNextHopTraits::Attributes::Ip ipAttribute;
   EXPECT_EQ(ip4, nextHopApi->getAttribute2(nextHopId, ipAttribute));
 }
 
 // IP is create only, so if we try to set it, we expect to fail
 TEST_F(NextHopApiTest, setIp) {
   auto nextHopId = createNextHop(ip4);
-  NextHopApiParameters::Attributes::Ip ipAttribute(ip4);
+  SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
   EXPECT_EQ(
       nextHopApi->setAttribute2(nextHopId, ipAttribute),
       SAI_STATUS_INVALID_PARAMETER);

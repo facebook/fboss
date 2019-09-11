@@ -65,44 +65,9 @@ struct SaiInSegTraits {
 template <>
 struct IsSaiEntryStruct<SaiInSegTraits::InSegEntry> : public std::true_type {};
 
-struct MplsApiParameters {
-  static constexpr sai_api_t ApiType = SAI_API_MPLS;
-
-  struct Attributes {
-    using EnumType = sai_inseg_entry_attr_t;
-    using NextHopId =
-        SaiAttribute<EnumType, SAI_INSEG_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
-    using PacketAction = SaiAttribute<
-        EnumType,
-        SAI_INSEG_ENTRY_ATTR_PACKET_ACTION,
-        sai_packet_action_t>;
-    using NumOfPop =
-        SaiAttribute<EnumType, SAI_INSEG_ENTRY_ATTR_NUM_OF_POP, sai_uint8_t>;
-
-    using CreateAttributes =
-        SaiAttributeTuple<PacketAction, NumOfPop, NextHopId>;
-  };
-
-  class InSegEntry {
-   public:
-    InSegEntry(sai_object_id_t switchId, uint32_t label) {
-      entry_.switch_id = switchId;
-      entry_.label = label;
-    }
-
-    const sai_inseg_entry_t* entry() const {
-      return &entry_;
-    }
-
-   private:
-    sai_inseg_entry_t entry_;
-  };
-};
-
-class MplsApi : public SaiApi<MplsApi, MplsApiParameters> {
+class MplsApi : public SaiApi<MplsApi> {
  public:
   static auto constexpr ApiType = SAI_API_MPLS;
-  using InSegEntry = typename MplsApiParameters::InSegEntry;
 
   MplsApi() {
     sai_status_t status =
@@ -130,17 +95,9 @@ class MplsApi : public SaiApi<MplsApi, MplsApiParameters> {
     return api_->set_inseg_entry_attribute(inSegEntry.entry(), attr);
   }
 
-  sai_status_t _create(
-      const InSegEntry& labelFibEntry,
-      sai_attribute_t* attr_list,
-      size_t attr_count);
-  sai_status_t _remove(const InSegEntry& labelFibEntry);
-  sai_status_t _getAttr(sai_attribute_t* attr, const InSegEntry& entry) const;
-  sai_status_t _setAttr(const sai_attribute_t* attr, const InSegEntry& entry);
-
  private:
   sai_mpls_api_t* api_;
-  friend class SaiApi<MplsApi, MplsApiParameters>;
+  friend class SaiApi<MplsApi>;
 };
 
 } // namespace fboss

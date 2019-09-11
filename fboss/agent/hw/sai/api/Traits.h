@@ -18,66 +18,6 @@ namespace facebook {
 namespace fboss {
 
 /*
- * apiUsesObjectId<T>::value is true if T is an ApiTypes whose
- * create/remove/getAttribute/setAttribute use sai_object_id_t
- * for lookup. create will return a sai_object_id_t
- * Examples of SaiApis whose types satisfy this include PortApi, SwitchApi,
- * BridgeApi.
- * apiUsesEntry<T>::value will be false.
- */
-template <typename ApiTypes>
-struct apiUsesObjectId : public std::true_type {};
-
-/*
- * apiUsesEntry<T>::value is true if T is an ApiTypes whose
- * create/remove/getAttribute/setAttribute use an entry
- * struct for lookup.
- * Examples of SaiApis whose types satisfy this include RouteApi
- * apiUsesObjectId<T>::value will be false
- */
-template <typename ApiTypes>
-struct apiUsesEntry : public std::false_type {};
-class NeighborApiParameters;
-class RouteApiParameters;
-class FdbApiParameters;
-template <>
-struct apiUsesObjectId<NeighborApiParameters> : public std::false_type {};
-template <>
-struct apiUsesObjectId<RouteApiParameters> : public std::false_type {};
-template <>
-struct apiUsesObjectId<FdbApiParameters> : public std::false_type {};
-template <>
-struct apiUsesEntry<NeighborApiParameters> : public std::true_type {};
-template <>
-struct apiUsesEntry<RouteApiParameters> : public std::true_type {};
-template <>
-struct apiUsesEntry<FdbApiParameters> : public std::true_type {};
-
-/*
- * apiHasMembers<T>::value is true if T is an ApiTypes which
- * has nested "members". Examples of SaiApis whose types satisfy
- * this are VlanApi and NextHopGroupApi
- */
-template <typename ApiTypes>
-struct apiHasMembers : public std::false_type {};
-
-class BridgeApiParameters;
-class VlanApiParameters;
-class LagTypes;
-class NextHopGroupApiParameters;
-class HostifApiParameters;
-template <>
-struct apiHasMembers<BridgeApiParameters> : public std::true_type {};
-template <>
-struct apiHasMembers<VlanApiParameters> : public std::true_type {};
-template <>
-struct apiHasMembers<LagTypes> : public std::true_type {};
-template <>
-struct apiHasMembers<NextHopGroupApiParameters> : public std::true_type {};
-template <>
-struct apiHasMembers<HostifApiParameters> : public std::true_type {};
-
-/*
  * Helper metafunctions for C++ wrappers of non-primitive SAI types.
  *
  * e.g., folly::MacAddress for sai_mac_t, folly::IPAddress for

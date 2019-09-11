@@ -78,92 +78,7 @@ struct SaiPortTraits {
       std::optional<Attributes::PortVlanId>>;
 };
 
-struct PortApiParameters {
-  static constexpr sai_api_t ApiType = SAI_API_PORT;
-  struct Attributes {
-    using EnumType = sai_port_attr_t;
-    using AdminState = SaiAttribute<EnumType, SAI_PORT_ATTR_ADMIN_STATE, bool>;
-    using HwLaneList = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_HW_LANE_LIST,
-        std::vector<uint32_t>>;
-    using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
-    using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
-    using QosNumberOfQueues = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES,
-        sai_uint32_t>;
-    using QosQueueList = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_QOS_QUEUE_LIST,
-        std::vector<sai_object_id_t>>;
-    using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
-    using OperStatus =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
-    using InternalLoopbackMode = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
-        sai_int32_t>;
-    using MediaType =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_MEDIA_TYPE, sai_int32_t>;
-    using GlobalFlowControlMode = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE,
-        sai_int32_t>;
-    using PortVlanId =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
-    using CreateAttributes = SaiAttributeTuple<
-        HwLaneList,
-        Speed,
-        SaiAttributeOptional<AdminState>,
-        SaiAttributeOptional<FecMode>,
-        SaiAttributeOptional<InternalLoopbackMode>,
-        SaiAttributeOptional<MediaType>,
-        SaiAttributeOptional<GlobalFlowControlMode>,
-        SaiAttributeOptional<PortVlanId>>;
-
-    Attributes(const CreateAttributes& attrs) {
-      std::tie(
-          hwLaneList,
-          speed,
-          adminState,
-          fecMode,
-          internalLoopbackMode,
-          mediaType,
-          globalFlowControlMode,
-          portVlanId) = attrs.value();
-    }
-
-    CreateAttributes attrs() const {
-      return {hwLaneList,
-              speed,
-              adminState,
-              fecMode,
-              internalLoopbackMode,
-              mediaType,
-              globalFlowControlMode,
-              portVlanId};
-    }
-    bool operator==(const Attributes& other) const {
-      return attrs() == other.attrs();
-    }
-    bool operator!=(const Attributes& other) const {
-      return !(*this == other);
-    }
-    HwLaneList::ValueType hwLaneList;
-    Speed::ValueType speed;
-    folly::Optional<typename AdminState::ValueType> adminState;
-    folly::Optional<typename FecMode::ValueType> fecMode;
-    folly::Optional<typename InternalLoopbackMode::ValueType>
-        internalLoopbackMode;
-    folly::Optional<typename MediaType::ValueType> mediaType;
-    folly::Optional<typename GlobalFlowControlMode::ValueType>
-        globalFlowControlMode;
-    folly::Optional<typename PortVlanId::ValueType> portVlanId;
-  };
-};
-
-class PortApi : public SaiApi<PortApi, PortApiParameters> {
+class PortApi : public SaiApi<PortApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_PORT;
   PortApi() {
@@ -190,24 +105,8 @@ class PortApi : public SaiApi<PortApi, PortApiParameters> {
     return api_->set_port_attribute(key, attr);
   }
 
-  sai_status_t _create(
-      sai_object_id_t* port_id,
-      sai_attribute_t* attr_list,
-      size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_port(port_id, switch_id, count, attr_list);
-  }
-  sai_status_t _remove(sai_object_id_t port_id) {
-    return api_->remove_port(port_id);
-  }
-  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t id) const {
-    return api_->get_port_attribute(id, 1, attr);
-  }
-  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t id) {
-    return api_->set_port_attribute(id, attr);
-  }
   sai_port_api_t* api_;
-  friend class SaiApi<PortApi, PortApiParameters>;
+  friend class SaiApi<PortApi>;
 };
 
 } // namespace fboss

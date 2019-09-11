@@ -45,30 +45,7 @@ struct SaiVirtualRouterTraits {
   using CreateAttributes = std::tuple<std::optional<Attributes::SrcMac>>;
 };
 
-struct VirtualRouterApiParameters {
-  static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
-  struct Attributes {
-    using EnumType = sai_virtual_router_attr_t;
-    using SrcMac = SaiAttribute<
-        EnumType,
-        SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS,
-        folly::MacAddress>;
-    using CreateAttributes = SaiAttributeTuple<>;
-    Attributes(const CreateAttributes& create) {}
-    CreateAttributes attrs() const {
-      return CreateAttributes{};
-    }
-    bool operator==(const Attributes& other) const {
-      return attrs() == other.attrs();
-    }
-    bool operator!=(const Attributes& other) const {
-      return !(*this == other);
-    }
-  };
-};
-
-class VirtualRouterApi
-    : public SaiApi<VirtualRouterApi, VirtualRouterApiParameters> {
+class VirtualRouterApi : public SaiApi<VirtualRouterApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_ROUTER;
   VirtualRouterApi() {
@@ -100,25 +77,8 @@ class VirtualRouterApi
     return api_->set_virtual_router_attribute(handle, attr);
   }
 
-  sai_status_t _create(
-      sai_object_id_t* virtual_router_id,
-      sai_attribute_t* attr_list,
-      size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_virtual_router(
-        virtual_router_id, switch_id, count, attr_list);
-  }
-  sai_status_t _remove(sai_object_id_t virtual_router_id) {
-    return api_->remove_virtual_router(virtual_router_id);
-  }
-  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
-    return api_->get_virtual_router_attribute(handle, 1, attr);
-  }
-  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
-    return api_->set_virtual_router_attribute(handle, attr);
-  }
   sai_virtual_router_api_t* api_;
-  friend class SaiApi<VirtualRouterApi, VirtualRouterApiParameters>;
+  friend class SaiApi<VirtualRouterApi>;
 };
 
 } // namespace fboss

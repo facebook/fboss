@@ -61,53 +61,7 @@ struct SaiBridgePortTraits {
   using CreateAttributes = std::tuple<Attributes::Type, Attributes::PortId>;
 };
 
-struct BridgeApiParameters {
-  static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
-  struct Attributes {
-    using EnumType = sai_bridge_attr_t;
-    using PortList = SaiAttribute<
-        EnumType,
-        SAI_BRIDGE_ATTR_PORT_LIST,
-        std::vector<sai_object_id_t>>;
-    using Type = SaiAttribute<EnumType, SAI_BRIDGE_ATTR_TYPE, sai_int32_t>;
-
-    using CreateAttributes = SaiAttributeTuple<Type>;
-    Attributes(const CreateAttributes& attrs) {
-      std::tie(type) = attrs.value();
-    }
-    CreateAttributes attrs() const {
-      return {type};
-    }
-    Type::ValueType type;
-  };
-
-  struct MemberAttributes {
-    using EnumType = sai_bridge_port_attr_t;
-    using BridgeId =
-        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_BRIDGE_ID, SaiObjectIdT>;
-    using PortId =
-        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_PORT_ID, SaiObjectIdT>;
-    using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
-
-    using CreateAttributes = SaiAttributeTuple<Type, PortId>;
-    MemberAttributes(const CreateAttributes& attrs) {
-      std::tie(type, portId) = attrs.value();
-    }
-    CreateAttributes attrs() const {
-      return {type, portId};
-    }
-    bool operator==(const MemberAttributes& other) const {
-      return attrs() == other.attrs();
-    }
-    bool operator!=(const MemberAttributes& other) const {
-      return !(*this == other);
-    }
-    Type::ValueType type;
-    PortId::ValueType portId;
-  };
-};
-
-class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
+class BridgeApi : public SaiApi<BridgeApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
   BridgeApi() {
@@ -153,45 +107,8 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
     return api_->set_bridge_port_attribute(id, attr);
   }
 
-  sai_status_t _create(
-      sai_object_id_t* id,
-      sai_attribute_t* attr_list,
-      size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_bridge(id, switch_id, count, attr_list);
-  }
-  sai_status_t _remove(sai_object_id_t bridge_id) {
-    return api_->remove_bridge(bridge_id);
-  }
-  sai_status_t _getAttr(sai_attribute_t* attr, sai_object_id_t handle) const {
-    return api_->get_bridge_attribute(handle, 1, attr);
-  }
-  sai_status_t _setAttr(const sai_attribute_t* attr, sai_object_id_t handle) {
-    return api_->set_bridge_attribute(handle, attr);
-  }
-  sai_status_t _createMember(
-      sai_object_id_t* bridge_port_id,
-      sai_attribute_t* attr_list,
-      size_t count,
-      sai_object_id_t switch_id) {
-    return api_->create_bridge_port(
-        bridge_port_id, switch_id, count, attr_list);
-  }
-  sai_status_t _removeMember(sai_object_id_t bridge_port_id) {
-    return api_->remove_bridge_port(bridge_port_id);
-  }
-  sai_status_t _getMemberAttr(sai_attribute_t* attr, sai_object_id_t handle)
-      const {
-    return api_->get_bridge_port_attribute(handle, 1, attr);
-  }
-  sai_status_t _setMemberAttr(
-      const sai_attribute_t* attr,
-      sai_object_id_t handle) {
-    return api_->set_bridge_port_attribute(handle, attr);
-  }
-
   sai_bridge_api_t* api_;
-  friend class SaiApi<BridgeApi, BridgeApiParameters>;
+  friend class SaiApi<BridgeApi>;
 };
 
 } // namespace fboss

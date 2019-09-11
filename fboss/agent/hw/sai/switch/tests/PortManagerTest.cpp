@@ -33,7 +33,7 @@ class PortManagerTest : public ManagerTestBase {
   }
   // TODO: make it properly handle different lanes/speeds for different
   // port ids...
-  void checkPort(const PortID& swId, sai_object_id_t saiId, bool enabled) {
+  void checkPort(const PortID& swId, PortSaiId saiId, bool enabled) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
     SaiPortTraits::Attributes::AdminState adminStateAttribute;
@@ -41,16 +41,16 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::Speed speedAttribute;
     SaiPortTraits::Attributes::FecMode fecMode;
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
-    auto gotAdminState = portApi.getAttribute(adminStateAttribute, saiId);
+    auto gotAdminState = portApi.getAttribute2(saiId, adminStateAttribute);
     EXPECT_EQ(enabled, gotAdminState);
-    auto gotLanes = portApi.getAttribute(hwLaneListAttribute, saiId);
+    auto gotLanes = portApi.getAttribute2(saiId, hwLaneListAttribute);
     EXPECT_EQ(1, gotLanes.size());
     EXPECT_EQ(swId, gotLanes[0]);
-    auto gotSpeed = portApi.getAttribute(speedAttribute, saiId);
+    auto gotSpeed = portApi.getAttribute2(saiId, speedAttribute);
     EXPECT_EQ(25000, gotSpeed);
-    auto gotFecMode = portApi.getAttribute(fecMode, saiId);
+    auto gotFecMode = portApi.getAttribute2(saiId, fecMode);
     EXPECT_EQ(static_cast<int32_t>(SAI_PORT_FEC_MODE_NONE), gotFecMode);
-    auto gotIlbMode = portApi.getAttribute(ilbMode, saiId);
+    auto gotIlbMode = portApi.getAttribute2(saiId, ilbMode);
     EXPECT_EQ(
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
   }
@@ -61,7 +61,7 @@ class PortManagerTest : public ManagerTestBase {
    * manager. It makes certain assumptions about the lane numbers and
    * also adds the port under the hood bypassing the port manager.
    */
-  sai_object_id_t addPort(const PortID& swId, cfg::PortSpeed portSpeed) {
+  PortSaiId addPort(const PortID& swId, cfg::PortSpeed portSpeed) {
     auto& portApi = saiApiTable->portApi();
     std::vector<uint32_t> ls;
     if (portSpeed == cfg::PortSpeed::TWENTYFIVEG) {

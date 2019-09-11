@@ -225,7 +225,7 @@ class SaiObject {
     if (live_) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
-      api.remove(adapterKey_);
+      api.remove2(adapterKey_);
     }
     live_ = false;
   }

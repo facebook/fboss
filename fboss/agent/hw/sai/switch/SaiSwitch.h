@@ -220,7 +220,7 @@ class SaiSwitch : public HwSwitch {
    */
   mutable std::mutex saiSwitchMutex_;
 
-  sai_object_id_t switchId_;
+  SwitchSaiId switchId_;
 };
 
 } // namespace fboss
