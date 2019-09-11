@@ -106,13 +106,18 @@ void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
-  auto count = handles_.erase(saiEntry);
-  if (count == 0) {
-    count = unresolvedNeighbors_.erase(saiEntry);
-  }
-  if (count == 0) {
-    throw FbossError(
-        "Attempted to remove non-existent neighbor: ", swEntry->getIP().str());
+  auto neighborHandle = getNeighborHandle(saiEntry);
+  if (neighborHandle) {
+    managerTable_->nextHopGroupManager().handleUnresolvedNeighbor(
+        saiEntry, neighborHandle->nextHop->adapterKey());
+    handles_.erase(saiEntry);
+  } else {
+    auto count = unresolvedNeighbors_.erase(saiEntry);
+    if (count == 0) {
+      throw FbossError(
+          "Attempted to remove non-existent neighbor: ",
+          swEntry->getIP().str());
+    }
   }
 }
 

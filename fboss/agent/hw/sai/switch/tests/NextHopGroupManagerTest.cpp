@@ -150,20 +150,47 @@ TEST_F(NextHopGroupManagerTest, resolveNeighborAfter) {
           swNextHops);
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
-  /*
-   * will pass in D13604057
-   * auto arpEntry0 = makeArpEntry(intf0.id, h0);
-   * saiManagerTable->neighborManager().addNeighbor(arpEntry0);
-   * auto arpEntry1 = makeArpEntry(intf1.id, h1);
-   * saiManagerTable->neighborManager().addNeighbor(arpEntry1);
-   * checkNextHopGroup(saiNextHopGroup->id(), {h0.ip, h1.ip});
-   */
+  auto arpEntry0 = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
+  auto arpEntry1 = makeArpEntry(intf1.id, h1);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip, h1.ip});
 }
 
-TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {}
+TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {
+  auto arpEntry0 = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
+  auto arpEntry1 = makeArpEntry(intf1.id, h1);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
+  auto saiNextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          swNextHops);
+  auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+  checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip, h1.ip});
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry1);
+  checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip});
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry0);
+  checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
+}
 
-TEST_F(NextHopGroupManagerTest, derefThenResolve) {}
-
-TEST_F(NextHopGroupManagerTest, deleteThenResolve) {}
-
-TEST_F(NextHopGroupManagerTest, l3UnresolvedNextHop) {}
+TEST_F(NextHopGroupManagerTest, derefThenResolve) {
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
+  {
+    auto saiNextHopGroupHandle =
+        saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+            swNextHops);
+    auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+    checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
+  }
+  auto arpEntry0 = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
+  auto arpEntry1 = makeArpEntry(intf1.id, h1);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  // Assertion is that nothing crashes because we _would_ have processed
+  // these resolutions but the object has been deleted
+}
