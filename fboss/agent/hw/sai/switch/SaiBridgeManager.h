@@ -12,6 +12,8 @@
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/Types.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -23,58 +25,11 @@ namespace fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-class SaiBridge {
- public:
-  SaiBridge(
-      SaiApiTable* apiTable,
-      const BridgeApiParameters::Attributes& attributes,
-      const sai_object_id_t& switchId);
-  ~SaiBridge();
-  SaiBridge(const SaiBridge& other) = delete;
-  SaiBridge(SaiBridge&& other) = delete;
-  SaiBridge& operator=(const SaiBridge& other) = delete;
-  SaiBridge& operator=(SaiBridge&& other) = delete;
-  bool operator==(const SaiBridge& other) const;
-  bool operator!=(const SaiBridge& other) const;
+using SaiBridge = SaiObject<SaiBridgeTraits>;
+using SaiBridgePort = SaiObject<SaiBridgePortTraits>;
 
-  const BridgeApiParameters::Attributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  BridgeApiParameters::Attributes attributes_;
-  sai_object_id_t id_;
-};
-
-class SaiBridgePort {
- public:
-  SaiBridgePort(
-      SaiApiTable* apiTable,
-      const BridgeApiParameters::MemberAttributes& attributes,
-      const sai_object_id_t& switchId);
-  ~SaiBridgePort();
-  SaiBridgePort(const SaiBridgePort& other) = delete;
-  SaiBridgePort(SaiBridgePort&& other) = delete;
-  SaiBridgePort& operator=(const SaiBridgePort& other) = delete;
-  SaiBridgePort& operator=(SaiBridgePort&& other) = delete;
-  bool operator==(const SaiBridgePort& other) const;
-  bool operator!=(const SaiBridgePort& other) const;
-
-  const BridgeApiParameters::MemberAttributes attributes() const {
-    return attributes_;
-  }
-  sai_object_id_t id() const {
-    return id_;
-  }
-
- private:
-  SaiApiTable* apiTable_;
-  BridgeApiParameters::MemberAttributes attributes_;
-  sai_object_id_t id_;
+struct SaiBridgeHandle {
+  std::shared_ptr<SaiBridge> bridge;
 };
 
 class SaiBridgeManager {
@@ -83,13 +38,13 @@ class SaiBridgeManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  std::unique_ptr<SaiBridgePort> addBridgePort(sai_object_id_t portId);
+  std::shared_ptr<SaiBridgePort> addBridgePort(PortSaiId portId);
 
  private:
   SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_map<BridgeID, std::unique_ptr<SaiBridge>> bridges_;
+  std::unique_ptr<SaiBridgeHandle> bridgeHandle_;
 };
 
 } // namespace fboss

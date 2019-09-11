@@ -75,7 +75,7 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
         "Failed to add vlan member: no port matching vlan member port: ",
         swPortId);
   }
-  sai_object_id_t bridgePortId = port->getBridgePort()->id();
+  sai_object_id_t bridgePortSaiId = port->getBridgePort()->adapterKey();
 
   // Associate the port with the vlan for the sake of computing the
   // VlanID during packet RX
@@ -84,7 +84,7 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
-      bridgePortId};
+      bridgePortSaiId};
   SaiVlanMemberTraits::CreateAttributes memberAttributes{vlanIdAttribute,
                                                          bridgePortIdAttribute};
   SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{

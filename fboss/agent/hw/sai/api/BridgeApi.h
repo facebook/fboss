@@ -132,6 +132,13 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
     return api_->create_bridge_port(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _remove(BridgeSaiId id) {
+    return api_->remove_bridge(id);
+  }
+  sai_status_t _remove(BridgePortSaiId id) {
+    return api_->remove_bridge_port(id);
+  }
+
   sai_status_t _getAttribute(BridgeSaiId id, sai_attribute_t* attr) const {
     return api_->get_bridge_attribute(id, 1, attr);
   }
@@ -139,13 +146,11 @@ class BridgeApi : public SaiApi<BridgeApi, BridgeApiParameters> {
     return api_->get_bridge_port_attribute(id, 1, attr);
   }
 
-  sai_status_t _remove(BridgeSaiId id) {
-    XLOG(INFO) << "remove_bridge " << id;
-    return api_->remove_bridge(id);
+  sai_status_t _setAttribute(BridgeSaiId id, const sai_attribute_t* attr) {
+    return api_->set_bridge_attribute(id, attr);
   }
-  sai_status_t _remove(BridgePortSaiId id) {
-    XLOG(INFO) << "remove_bridge_port " << id;
-    return api_->remove_bridge_port(id);
+  sai_status_t _setAttribute(BridgePortSaiId id, const sai_attribute_t* attr) {
+    return api_->set_bridge_port_attribute(id, attr);
   }
 
   sai_status_t _create(

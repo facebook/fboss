@@ -49,7 +49,7 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     throw FbossError("Attempted to add non-existent port to Fdb: ", portId);
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto bridgePortId = port->getBridgePort()->id();
+  auto bridgePortId = port->getBridgePort()->adapterKey();
   SaiFdbTraits::FdbEntry entry{switchId, vlanId, mac};
   SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
                                             bridgePortId};

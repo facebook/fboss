@@ -28,10 +28,13 @@ class BridgeManagerTest : public ManagerTestBase {
 };
 
 TEST_F(BridgeManagerTest, addBridgePort) {
-  auto bridgePort = saiManagerTable->bridgeManager().addBridgePort(42);
-  EXPECT_EQ(bridgePort->attributes().type, SAI_BRIDGE_PORT_TYPE_PORT);
-  EXPECT_EQ(bridgePort->attributes().portId, 42);
-  auto portId = saiApiTable->bridgeApi().getMemberAttribute(
-      BridgeApiParameters::MemberAttributes::PortId(), bridgePort->id());
+  auto bridgePort =
+      saiManagerTable->bridgeManager().addBridgePort(PortSaiId(42));
+  EXPECT_EQ(
+      GET_ATTR(BridgePort, Type, bridgePort->attributes()),
+      SAI_BRIDGE_PORT_TYPE_PORT);
+  EXPECT_EQ(GET_ATTR(BridgePort, PortId, bridgePort->attributes()), 42);
+  auto portId = saiApiTable->bridgeApi().getAttribute2(
+      bridgePort->adapterKey(), SaiBridgePortTraits::Attributes::PortId{});
   EXPECT_EQ(portId, 42);
 }

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
 
@@ -20,7 +21,6 @@
 namespace facebook {
 namespace fboss {
 
-class SaiBridgePort;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiQueue;
@@ -69,7 +69,7 @@ class SaiPort {
   PortApiParameters::Attributes attributes_;
   sai_object_id_t id_;
   VlanID vlanId_{0};
-  std::unique_ptr<SaiBridgePort> bridgePort_;
+  std::shared_ptr<SaiBridgePort> bridgePort_;
   std::unordered_map<uint8_t, std::unique_ptr<SaiQueue>> queues_;
 };
 
