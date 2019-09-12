@@ -291,6 +291,7 @@ void SaiSwitch::unregisterCallbacksLocked(
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
     const std::lock_guard<std::mutex>& lock,
     const StateDelta& delta) {
+  managerTableLocked(lock)->portManager().processPortDelta(delta);
   managerTableLocked(lock)->vlanManager().processVlanDelta(
       delta.getVlansDelta());
   managerTableLocked(lock)->routerInterfaceManager().processInterfaceDelta(

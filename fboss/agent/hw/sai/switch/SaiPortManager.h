@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include "folly/container/F14Map.h"
@@ -49,6 +50,7 @@ class SaiPortManager {
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
   PortID getPortID(sai_object_id_t saiId) const;
+  void processPortDelta(const StateDelta& stateDelta);
 
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;

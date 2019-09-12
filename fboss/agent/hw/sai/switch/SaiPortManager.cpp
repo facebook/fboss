@@ -191,5 +191,19 @@ PortID SaiPortManager::getPortID(sai_object_id_t saiId) const {
   }
   return itr->second;
 }
+
+void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
+  auto delta = stateDelta.getPortsDelta();
+  auto processChanged = [this](const auto& /* oldPort */, const auto& newPort) {
+    changePort(newPort);
+  };
+  auto processAdded = [this](const auto& newPort) { addPort(newPort); };
+  auto processRemoved = [this](const auto& oldPort) {
+    removePort(oldPort->getID());
+  };
+  DeltaFunctions::forEachChanged(
+      delta, processChanged, processAdded, processRemoved);
+}
+
 } // namespace fboss
 } // namespace facebook
