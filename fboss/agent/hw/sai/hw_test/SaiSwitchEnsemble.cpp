@@ -32,20 +32,17 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
   );
 }
 
-const std::vector<PortID>& SaiSwitchEnsemble::logicalPortIds() const {
+std::vector<PortID> SaiSwitchEnsemble::logicalPortIds() const {
   // TODO
-  static std::vector<PortID> logicalPorts;
-  return logicalPorts;
+  return {};
 }
 
-const std::vector<PortID>& SaiSwitchEnsemble::masterLogicalPortIds() const {
+std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
   // TODO
-  static std::vector<PortID> logicalPorts;
-  return logicalPorts;
+  return {};
 }
 
 std::vector<PortID> SaiSwitchEnsemble::getAllPortsinGroup(PortID portID) const {
-  // TODO
   return {};
 }
 

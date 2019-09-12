@@ -67,8 +67,8 @@ class HwTest : public ::testing::Test,
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
 
-  const std::vector<PortID>& logicalPortIds() const;
-  const std::vector<PortID>& masterLogicalPortIds() const;
+  std::vector<PortID> logicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds() const;
   std::vector<PortID> getAllPortsinGroup(PortID portID) const;
 
  protected:

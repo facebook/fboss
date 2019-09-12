@@ -37,8 +37,8 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   const SaiSwitch* getHwSwitch() const override {
     return static_cast<const SaiSwitch*>(HwSwitchEnsemble::getHwSwitch());
   }
-  const std::vector<PortID>& logicalPortIds() const override;
-  const std::vector<PortID>& masterLogicalPortIds() const override;
+  std::vector<PortID> logicalPortIds() const override;
+  std::vector<PortID> masterLogicalPortIds() const override;
   std::vector<PortID> getAllPortsinGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
 

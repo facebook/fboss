@@ -85,11 +85,11 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
       std::move(thriftThread));
 }
 
-const std::vector<PortID>& BcmSwitchEnsemble::logicalPortIds() const {
+std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {
   return getPlatform()->logicalPortIds();
 }
 
-const std::vector<PortID>& BcmSwitchEnsemble::masterLogicalPortIds() const {
+std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 

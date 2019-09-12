@@ -53,11 +53,11 @@ std::shared_ptr<SwitchState> HwTest::getProgrammedState() const {
   return hwSwitchEnsemble_->getProgrammedState();
 }
 
-const std::vector<PortID>& HwTest::logicalPortIds() const {
+std::vector<PortID> HwTest::logicalPortIds() const {
   return hwSwitchEnsemble_->logicalPortIds();
 }
 
-const std::vector<PortID>& HwTest::masterLogicalPortIds() const {
+std::vector<PortID> HwTest::masterLogicalPortIds() const {
   return hwSwitchEnsemble_->masterLogicalPortIds();
 }
 
