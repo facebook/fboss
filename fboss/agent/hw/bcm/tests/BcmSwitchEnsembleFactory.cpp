@@ -7,23 +7,18 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
+
+#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-DECLARE_int32(thrift_port);
 
+#include <memory>
 
 namespace facebook {
 namespace fboss {
 
-BcmTest::BcmTest() {
+std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(uint32_t featuresDesired) {
+  return std::make_unique<BcmSwitchEnsemble>(featuresDesired);
 }
-
-BcmTest::~BcmTest() {}
-
-int BcmTest::getUnit() const {
-  return getHwSwitch()->getUnit();
-}
-
 } // namespace fboss
 } // namespace facebook

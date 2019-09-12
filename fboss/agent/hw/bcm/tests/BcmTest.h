@@ -64,8 +64,6 @@ class BcmTest : public HwTest {
   }
 
  private:
-  std::unique_ptr<HwSwitchEnsemble> createHw() const override;
-
   // Forbidden copy constructor and assignment operator
   BcmTest(BcmTest const&) = delete;
   BcmTest& operator=(BcmTest const&) = delete;

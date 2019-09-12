@@ -71,14 +71,6 @@ class HwTest : public ::testing::Test,
   const std::vector<PortID>& masterLogicalPortIds() const;
   std::vector<PortID> getAllPortsinGroup(PortID portID) const;
 
- private:
-  /*
-   * createHw is a hook for each of the specific HW implementations to do the
-   * necessary hw creation. Since this is likely to vary across
-   * different chips, provide a hook for derived test class to hook in.
-   */
-  virtual std::unique_ptr<HwSwitchEnsemble> createHw() const = 0;
-
  protected:
   /*
    * Most tests don't want packet RX or link scan enabled while running. Other

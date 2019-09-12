@@ -280,6 +280,7 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
+    fboss/agent/hw/bcm/tests/BcmSwitchEnsembleFactory.cpp
     fboss/agent/hw/test/Main.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp

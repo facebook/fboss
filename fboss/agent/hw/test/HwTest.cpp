@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
@@ -69,7 +70,7 @@ void HwTest::SetUp() {
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  hwSwitchEnsemble_ = createHw();
+  hwSwitchEnsemble_ = createHwEnsemble(featuresDesired());
   hwSwitchEnsemble_->addHwEventObserver(this);
 }
 
