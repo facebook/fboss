@@ -18,6 +18,10 @@ class SaiBcmPlatform : public SaiPlatform {
   explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
       : SaiPlatform(std::move(productInfo)) {}
   sai_service_method_table_t* getServiceMethodTable() const override;
+  std::vector<PortID> masterLogicalPortIds() const override {
+    // TODO
+    return {};
+  }
 };
 
 } // namespace fboss

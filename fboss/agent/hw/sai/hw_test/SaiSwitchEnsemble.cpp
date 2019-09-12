@@ -38,8 +38,7 @@ std::vector<PortID> SaiSwitchEnsemble::logicalPortIds() const {
 }
 
 std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
-  // TODO
-  return {};
+  return getPlatform()->masterLogicalPortIds();
 }
 
 std::vector<PortID> SaiSwitchEnsemble::getAllPortsinGroup(PortID portID) const {

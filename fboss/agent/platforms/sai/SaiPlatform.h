@@ -18,6 +18,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
 #include <memory>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
@@ -45,6 +46,15 @@ class SaiPlatform : public Platform {
   virtual PlatformMode getMode() const;
   PlatformPort* getPlatformPort(PortID port) const override;
   virtual void initPorts();
+
+  /*
+   * Get ids of all controlling ports
+   */
+  virtual std::vector<PortID> masterLogicalPortIds() const {
+    // TODO make this pure virtual when we cook up a platform
+    // for fake SAI
+    return {};
+  }
 
  private:
   void initImpl() override;
