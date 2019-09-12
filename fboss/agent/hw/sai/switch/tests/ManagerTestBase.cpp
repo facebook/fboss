@@ -17,7 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/test/AgentConfigFactory.h"
-#include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
@@ -30,7 +30,7 @@ void ManagerTestBase::SetUp() {
   sai_api_initialize(0, nullptr);
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-  saiPlatform = std::make_unique<SaiPlatform>(std::move(productInfo));
+  saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
   auto thriftAgentConfig = utility::getAgentConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");

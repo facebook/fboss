@@ -9,19 +9,22 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include <folly/experimental/TestUtil.h>
+
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 namespace facebook {
 namespace fboss {
 
-class SaiBcmPlatform : public SaiHwPlatform {
+class SaiFakePlatform : public SaiPlatform {
  public:
-  explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiHwPlatform(std::move(productInfo)) {}
-  std::vector<PortID> masterLogicalPortIds() const override {
-    // TODO
-    return {};
-  }
+  explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
+      : SaiPlatform(std::move(productInfo)) {}
+  std::string getVolatileStateDir() const override;
+  std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
+
+ private:
+  folly::test::TemporaryDirectory tmpDir_;
 };
 
 } // namespace fboss

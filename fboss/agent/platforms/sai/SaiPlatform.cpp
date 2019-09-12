@@ -11,6 +11,48 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
 
+DEFINE_string(
+    hw_config_file,
+    "hw_config",
+    "File for dumping HW config on startup");
+
+namespace {
+
+std::unordered_map<const char*, const char*> kSaiProfileValues;
+
+const char* saiProfileGetValue(
+    sai_switch_profile_id_t /*profile_id*/,
+    const char* variable) {
+  auto saiProfileValItr = kSaiProfileValues.find(variable);
+  return saiProfileValItr != kSaiProfileValues.end() ? saiProfileValItr->second
+                                                     : nullptr;
+}
+
+int saiProfileGetNextValue(
+    sai_switch_profile_id_t /* profile_id */,
+    const char** variable,
+    const char** value) {
+  static auto saiProfileValItr = kSaiProfileValues.begin();
+  if (!value) {
+    saiProfileValItr = kSaiProfileValues.begin();
+    return 0;
+  }
+  if (saiProfileValItr == kSaiProfileValues.end()) {
+    return -1;
+  }
+  *variable = saiProfileValItr->first;
+  *value = saiProfileValItr->second;
+  ++saiProfileValItr;
+  return 0;
+}
+
+sai_service_method_table_t kSaiServiceMethodTable = {
+    .profile_get_value = saiProfileGetValue,
+    .profile_get_next_value = saiProfileGetNextValue,
+};
+
+} // namespace
+
 namespace facebook {
 namespace fboss {
 
@@ -32,10 +74,6 @@ folly::MacAddress SaiPlatform::getLocalMac() const {
   return folly::MacAddress("42:42:42:42:42:42");
 }
 
-std::string SaiPlatform::getPersistentStateDir() const {
-  return std::string("/var/facebook/fboss");
-}
-
 void SaiPlatform::getProductInfo(ProductInfo& info) {
   productInfo_->getInfo(info);
 }
@@ -44,16 +82,31 @@ PlatformMode SaiPlatform::getMode() const {
   return productInfo_->getMode();
 }
 
-std::string SaiPlatform::getVolatileStateDir() const {
-  return std::string("/dev/shm/fboss");
-}
-
 TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const {
   return TransceiverIdxThrift();
 }
 
+std::string SaiPlatform::getHwConfigDumpFile() {
+  return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
+}
+
+void SaiPlatform::generateHwConfigFile() {
+  auto hwConfig = getHwConfig();
+  if (!folly::writeFile(hwConfig, getHwConfigDumpFile().c_str())) {
+    throw FbossError(errno, "failed to generate hw config file. write failed");
+  }
+}
+
+void SaiPlatform::initSaiProfileValues() {
+  kSaiProfileValues.insert(
+      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile().c_str()));
+  kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
+}
+
 void SaiPlatform::initImpl() {
+  initSaiProfileValues();
   saiSwitch_ = std::make_unique<SaiSwitch>(this);
+  generateHwConfigFile();
 }
 
 SaiPlatform::SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
@@ -102,6 +155,10 @@ folly::Optional<std::string> SaiPlatform::getPlatformAttribute(
   }
 
   return platformIter->second;
+}
+
+sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
+  return &kSaiServiceMethodTable;
 }
 
 } // namespace fboss

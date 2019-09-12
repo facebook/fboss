@@ -19,11 +19,12 @@
 
 namespace facebook {
 namespace fboss {
+
 class SaiPlatform;
 
 class SaiSwitch : public HwSwitch {
  public:
-  explicit SaiSwitch(SaiPlatform* platform) : platform_(platform) {}
+  explicit SaiSwitch(SaiPlatform* platform);
   HwInitResult init(Callback* callback) noexcept override;
 
   void unregisterCallbacks() noexcept override;

@@ -7,22 +7,29 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#pragma once
 
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+
+#include <cstdio>
+#include <cstring>
 namespace facebook {
 namespace fboss {
+DEFINE_string(
+    volatile_state_dir,
+    "/dev/shm/fboss",
+    "Directory for storing volatile state");
+DEFINE_string(
+    persistent_state_dir,
+    "/var/facebook/fboss",
+    "Directory for storing persistent state");
 
-class SaiBcmPlatform : public SaiHwPlatform {
- public:
-  explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiHwPlatform(std::move(productInfo)) {}
-  std::vector<PortID> masterLogicalPortIds() const override {
-    // TODO
-    return {};
-  }
-  std::string getHwConfig() override;
-};
+std::string SaiHwPlatform::getVolatileStateDir() const {
+  return FLAGS_volatile_state_dir;
+}
+
+std::string SaiHwPlatform::getPersistentStateDir() const {
+  return FLAGS_persistent_state_dir;
+}
 
 } // namespace fboss
 } // namespace facebook

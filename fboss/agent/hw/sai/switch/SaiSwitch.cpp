@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -50,6 +51,11 @@ using facebook::fboss::DeltaFunctions::forEachAdded;
 // cards being managed by one instance of FBOSS, this will need to be
 // extended, presumably into an array keyed by switch id.
 static SaiSwitch* __gSaiSwitch;
+
+SaiSwitch::SaiSwitch(SaiPlatform* platform) : platform_(platform) {
+  utilCreateDir(platform_->getVolatileStateDir());
+  utilCreateDir(platform_->getPersistentStateDir());
+}
 
 void __gPacketRxCallback(
     sai_object_id_t switch_id,

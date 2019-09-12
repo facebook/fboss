@@ -98,6 +98,9 @@ void PlatformProductInfo::initMode() {
       // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
       mode_ = PlatformMode::WEDGE100;
     } else if (
+        modelName.find("Wedge400c") == 0 || modelName.find("WEDGE400C") == 0) {
+      mode_ = PlatformMode::WEDGE400C;
+    } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
       // TODO(joseph5wu) Need to confirm the final version of Wedge400DQ model
       // name in fruid and fbwhoami
