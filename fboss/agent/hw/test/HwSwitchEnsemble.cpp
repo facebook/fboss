@@ -48,6 +48,8 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   auto routeTables = rmRoutesState->getRouteTables()->modify(&rmRoutesState);
   routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
   applyNewState(setupAlpmState(rmRoutesState));
+  // Unregister callbacks before we start destroying hwSwitch
+  getHwSwitch()->unregisterCallbacks();
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
