@@ -238,8 +238,8 @@ HwInitResult SaiSwitch::initLocked(
   HwInitResult ret;
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
-
   saiApiTable_ = SaiApiTable::getInstance();
+  sai_api_initialize(0, platform_->getServiceMethodTable());
   saiApiTable_->queryApis();
   managerTable_ =
       std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);

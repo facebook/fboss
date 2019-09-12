@@ -48,7 +48,7 @@ class SaiPlatform : public Platform {
   virtual std::string getHwConfig() = 0;
   std::string getHwConfigDumpFile();
   void generateHwConfigFile();
-  sai_service_method_table_t* getServiceMethodTable() const;
+  virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
 
   /*
