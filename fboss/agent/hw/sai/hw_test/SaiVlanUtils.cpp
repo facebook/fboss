@@ -8,17 +8,35 @@
  *
  */
 
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/test/HwVlanUtils.h"
+
+#include <folly/gen/Base.h>
 
 namespace facebook {
 namespace fboss {
 
 std::vector<VlanID> getConfiguredVlans(const HwSwitch* hwSwitch) {
-  return {};
+  const auto& vlanMgr =
+      static_cast<const SaiSwitch*>(hwSwitch)->managerTable()->vlanManager();
+
+  return folly::gen::from(vlanMgr.getVlanHandles()) |
+      folly::gen::map([](const auto& vlanIdAndHandle) {
+           return vlanIdAndHandle.first;
+         }) |
+      folly::gen::as<std::vector<VlanID>>();
 }
 
 std::map<VlanID, uint32_t> getVlanToNumPorts(const HwSwitch* hwSwitch) {
-  return {};
+  std::map<VlanID, uint32_t> vlan2NumPorts;
+  const auto& vlanMgr =
+      static_cast<const SaiSwitch*>(hwSwitch)->managerTable()->vlanManager();
+  for (const auto& [vlanId, handle] : vlanMgr.getVlanHandles()) {
+    vlan2NumPorts[vlanId] = handle->vlanMembers.size();
+  }
+  return vlan2NumPorts;
 }
 } // namespace fboss
 } // namespace facebook

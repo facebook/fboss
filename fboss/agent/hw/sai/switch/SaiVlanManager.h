@@ -42,6 +42,8 @@ class SaiVlanManager {
       SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
+  using SaiVlanHandles =
+      folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>>;
   VlanSaiId addVlan(const std::shared_ptr<Vlan>& swVlan);
   void removeVlan(const VlanID& swVlanId);
   void changeVlan(
@@ -54,6 +56,9 @@ class SaiVlanManager {
 
   // TODO(borisb): remove after D15750266
   VlanID getVlanIdByPortId(PortID portId) const;
+  const SaiVlanHandles& getVlanHandles() const {
+    return handles_;
+  }
 
  private:
   void createVlanMember(VlanID swVlanId, PortID swPortId);
@@ -62,7 +67,7 @@ class SaiVlanManager {
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 
-  folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>> handles_;
+  SaiVlanHandles handles_;
   // TODO(borisb): remove after D15750266
   folly::F14FastMap<PortID, VlanID> vlanIdsByPortId_;
 };
