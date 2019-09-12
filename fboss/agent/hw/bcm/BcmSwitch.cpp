@@ -328,11 +328,6 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
 
   std::lock_guard<std::mutex> g(lock_);
 
-  // Disable Mac Address aging cross warmboot to avoid SDK crash - CS8800124
-  // TODO{rsher} This doesn't 100% remove the race condition (in theory?)
-  // so come back and remove this once BRCM issues an SDK patch.
-  setMacAging(std::chrono::seconds(0));
-
   // This will run some common shell commands to give more info about
   // the underlying bcm sdk state
   dumpState(platform_->getWarmBootHelper()->shutdownSdkDumpFile());
