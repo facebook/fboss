@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/QueueApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -31,10 +30,7 @@ using SaiQueue = SaiObject<SaiQueueTraits>;
 
 class SaiQueueManager {
  public:
-  SaiQueueManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiQueueManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
 
   std::shared_ptr<SaiQueue> createQueue(
       PortSaiId portSaiId,
@@ -45,7 +41,6 @@ class SaiQueueManager {
       const QueueConfig& queues);
 
  private:
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

@@ -22,10 +22,9 @@ namespace facebook {
 namespace fboss {
 
 SaiVirtualRouterManager::SaiVirtualRouterManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
+    : managerTable_(managerTable), platform_(platform) {
   SaiVirtualRouterTraits::AdapterHostKey k;
   SaiVirtualRouterTraits::CreateAttributes attributes;
   auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();

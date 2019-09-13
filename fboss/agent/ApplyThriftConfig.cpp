@@ -630,7 +630,7 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
     std::shared_ptr<Port> newPort;
     if (!origPort) {
       auto port = std::make_shared<Port>(
-        PortID(portCfg.logicalID), portCfg.name_ref().value_unchecked());
+          PortID(portCfg.logicalID), portCfg.name_ref().value_unchecked());
       newPort = updatePort(port, &portCfg);
     } else {
       newPort = updatePort(origPort, &portCfg);

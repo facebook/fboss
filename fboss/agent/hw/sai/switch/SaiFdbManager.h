@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/FdbApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -29,17 +28,13 @@ using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 
 class SaiFdbManager {
  public:
-  SaiFdbManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiFdbManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   std::shared_ptr<SaiFdbEntry> addFdbEntry(
       const InterfaceID& intfId,
       const folly::MacAddress& mac,
       const PortDescriptor& portDesc);
 
  private:
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

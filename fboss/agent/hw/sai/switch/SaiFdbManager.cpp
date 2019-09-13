@@ -24,10 +24,9 @@ namespace facebook {
 namespace fboss {
 
 SaiFdbManager::SaiFdbManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
     const InterfaceID& intfId,

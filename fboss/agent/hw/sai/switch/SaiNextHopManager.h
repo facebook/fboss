@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
 
@@ -30,16 +29,12 @@ using SaiNextHop = SaiObject<SaiNextHopTraits>;
 
 class SaiNextHopManager {
  public:
-  SaiNextHopManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   std::shared_ptr<SaiNextHop> addNextHop(
       sai_object_id_t routerInterfaceId,
       const folly::IPAddress& ip);
 
  private:
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };

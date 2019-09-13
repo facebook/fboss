@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -38,10 +37,7 @@ struct SaiVlanHandle {
 
 class SaiVlanManager {
  public:
-  SaiVlanManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiVlanManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   using SaiVlanHandles =
       folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>>;
   VlanSaiId addVlan(const std::shared_ptr<Vlan>& swVlan);
@@ -63,7 +59,6 @@ class SaiVlanManager {
  private:
   void createVlanMember(VlanID swVlanId, PortID swPortId);
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

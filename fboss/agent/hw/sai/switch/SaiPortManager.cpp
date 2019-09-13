@@ -24,10 +24,9 @@ namespace facebook {
 namespace fboss {
 
 SaiPortManager::SaiPortManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());

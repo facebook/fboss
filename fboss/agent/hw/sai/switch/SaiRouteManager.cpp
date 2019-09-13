@@ -22,10 +22,9 @@ namespace facebook {
 namespace fboss {
 
 SaiRouteManager::SaiRouteManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 template <typename AddrT>
 SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
@@ -68,8 +67,9 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   // packet action
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute2(
-      switchId, SaiSwitchTraits::Attributes::CpuPort{});
+  sai_object_id_t cpuPortId =
+      SaiApiTable::getInstance()->switchApi().getAttribute2(
+          switchId, SaiSwitchTraits::Attributes::CpuPort{});
 
   toMeRoutes.reserve(swInterface->getAddresses().size());
   // Compute per-address information
@@ -140,8 +140,9 @@ void SaiRouteManager::addRoute(
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-    sai_object_id_t cpuPortId = apiTable_->switchApi().getAttribute2(
-        switchId, SaiSwitchTraits::Attributes::CpuPort{});
+    sai_object_id_t cpuPortId =
+        SaiApiTable::getInstance()->switchApi().getAttribute2(
+            switchId, SaiSwitchTraits::Attributes::CpuPort{});
     nextHopIdOpt = cpuPortId;
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;

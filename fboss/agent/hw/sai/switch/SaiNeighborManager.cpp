@@ -24,10 +24,9 @@ namespace facebook {
 namespace fboss {
 
 SaiNeighborManager::SaiNeighborManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 // Helper function to create a SAI NeighborEntry from an FBOSS SwitchState
 // NeighborEntry (e.g., NeighborEntry<IPAddressV6, NDPTable>)

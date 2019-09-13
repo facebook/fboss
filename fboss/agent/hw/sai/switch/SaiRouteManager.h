@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -37,10 +36,7 @@ struct SaiRouteHandle {
 
 class SaiRouteManager {
  public:
-  SaiRouteManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiRouteManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   // Helper function to create a SAI RouteEntry from an FBOSS SwitchState
   // Route (e.g., Route<IPAddressV6>)
   template <typename AddrT>
@@ -79,7 +75,6 @@ class SaiRouteManager {
   SaiRouteHandle* getRouteHandleImpl(
       const SaiRouteTraits::RouteEntry& entry) const;
 
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<SaiRouteTraits::RouteEntry, std::unique_ptr<SaiRouteHandle>>

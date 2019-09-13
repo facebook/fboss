@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
@@ -33,14 +32,10 @@ struct SaiBridgeHandle {
 
 class SaiBridgeManager {
  public:
-  SaiBridgeManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      const SaiPlatform* platform);
+  SaiBridgeManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   std::shared_ptr<SaiBridgePort> addBridgePort(PortSaiId portId);
 
  private:
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBridgeHandle> bridgeHandle_;

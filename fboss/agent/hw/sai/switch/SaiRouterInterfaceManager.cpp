@@ -23,10 +23,9 @@ namespace facebook {
 namespace fboss {
 
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {

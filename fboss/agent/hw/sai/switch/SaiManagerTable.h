@@ -14,7 +14,6 @@
 namespace facebook {
 namespace fboss {
 
-class SaiApiTable;
 class SaiBridgeManager;
 class SaiFdbManager;
 class SaiHostifManager;
@@ -32,7 +31,7 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(SaiApiTable* apiTable, SaiPlatform* platform);
+  explicit SaiManagerTable(SaiPlatform* platform);
   ~SaiManagerTable();
 
   SaiBridgeManager& bridgeManager();
@@ -88,7 +87,6 @@ class SaiManagerTable {
   std::unique_ptr<SaiSwitchManager> switchManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;
-  SaiApiTable* apiTable_;
 };
 
 } // namespace fboss

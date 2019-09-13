@@ -27,8 +27,7 @@ class SaiPlatform;
 
 class SaiSwitchInstance {
  public:
-  SaiSwitchInstance(
-      SaiApiTable* apiTable,
+  explicit SaiSwitchInstance(
       const SaiSwitchTraits::CreateAttributes& attributes);
   ~SaiSwitchInstance();
   SaiSwitchInstance(const SaiSwitchInstance& other) = delete;
@@ -46,24 +45,19 @@ class SaiSwitchInstance {
   }
 
  private:
-  SaiApiTable* apiTable_;
   SaiSwitchTraits::CreateAttributes attributes_;
   SwitchSaiId id_;
 };
 
 class SaiSwitchManager {
  public:
-  SaiSwitchManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      SaiPlatform* platform);
+  SaiSwitchManager(SaiManagerTable* managerTable, SaiPlatform* platform);
   const SaiSwitchInstance* getSwitch() const;
   SaiSwitchInstance* getSwitch();
   SwitchSaiId getSwitchSaiId() const;
 
  private:
   SaiSwitchInstance* getSwitchImpl() const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchInstance> switch_;

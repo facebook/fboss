@@ -220,16 +220,6 @@ SaiManagerTable* SaiSwitch::managerTable() {
   return managerTableLocked(lock);
 }
 
-const SaiApiTable* SaiSwitch::apiTable() const {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return apiTableLocked(lock);
-}
-
-SaiApiTable* SaiSwitch::apiTable() {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return apiTableLocked(lock);
-}
-
 // Begin Locked functions with actual SaiSwitch functionality
 
 HwInitResult SaiSwitch::initLocked(
@@ -238,11 +228,10 @@ HwInitResult SaiSwitch::initLocked(
   HwInitResult ret;
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
-  saiApiTable_ = SaiApiTable::getInstance();
+
   sai_api_initialize(0, platform_->getServiceMethodTable());
-  saiApiTable_->queryApis();
-  managerTable_ =
-      std::make_unique<SaiManagerTable>(apiTableLocked(lock), platform_);
+  SaiApiTable::getInstance()->queryApis();
+  managerTable_ = std::make_unique<SaiManagerTable>(platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
 
   platform_->initPorts();
@@ -337,7 +326,7 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
-  auto& hostifApi = saiApiTable_->hostifApi();
+  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   hostifApi.send(attributes, switchId_, txPacket);
   return true;
 }
@@ -359,7 +348,7 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
-  auto& hostifApi = saiApiTable_->hostifApi();
+  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   hostifApi.send(attributes, switchId_, txPacket);
   return true;
 }
@@ -389,7 +378,7 @@ void SaiSwitch::switchRunStateChangedLocked(
     SwitchRunState newState) {
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
-      auto& switchApi = apiTableLocked(lock)->switchApi();
+      auto& switchApi = SaiApiTable::getInstance()->switchApi();
       switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
       switchApi.registerPortStateChangeCallback(
           switchId_, __glinkStateChangedNotification);
@@ -441,16 +430,6 @@ const SaiManagerTable* SaiSwitch::managerTableLocked(
 SaiManagerTable* SaiSwitch::managerTableLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
   return managerTable_.get();
-}
-
-const SaiApiTable* SaiSwitch::apiTableLocked(
-    const std::lock_guard<std::mutex>& /* lock */) const {
-  return saiApiTable_.get();
-}
-
-SaiApiTable* SaiSwitch::apiTableLocked(
-    const std::lock_guard<std::mutex>& /* lock */) {
-  return saiApiTable_.get();
 }
 
 } // namespace fboss

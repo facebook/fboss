@@ -158,10 +158,8 @@ void SaiHostifManager::processControlPlaneDelta(const StateDelta& delta) {
   }
 }
 
-SaiHostifManager::SaiHostifManager(
-    SaiApiTable* apiTable,
-    SaiManagerTable* managerTable)
-    : apiTable_(apiTable), managerTable_(managerTable) {}
+SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
+    : managerTable_(managerTable) {}
 
 } // namespace fboss
 } // namespace facebook

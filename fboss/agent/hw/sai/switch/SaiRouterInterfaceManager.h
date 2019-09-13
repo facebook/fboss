@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/state/Interface.h"
@@ -41,7 +40,6 @@ struct SaiRouterInterfaceHandle {
 class SaiRouterInterfaceManager {
  public:
   SaiRouterInterfaceManager(
-      SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   RouterInterfaceSaiId addRouterInterface(
@@ -59,7 +57,6 @@ class SaiRouterInterfaceManager {
  private:
   SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
       const InterfaceID& swId) const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<InterfaceID, std::unique_ptr<SaiRouterInterfaceHandle>>

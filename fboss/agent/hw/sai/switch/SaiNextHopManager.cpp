@@ -31,9 +31,8 @@ std::shared_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
 }
 
 SaiNextHopManager::SaiNextHopManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 } // namespace fboss
 } // namespace facebook

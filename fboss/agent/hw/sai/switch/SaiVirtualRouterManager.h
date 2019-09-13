@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/types.h"
@@ -34,7 +33,6 @@ struct SaiVirtualRouterHandle {
 class SaiVirtualRouterManager {
  public:
   SaiVirtualRouterManager(
-      SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   VirtualRouterSaiId addVirtualRouter(const RouterID& routerId);
@@ -45,7 +43,6 @@ class SaiVirtualRouterManager {
  private:
   SaiVirtualRouterHandle* getVirtualRouterHandleImpl(
       const RouterID& routerId) const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<RouterID, std::unique_ptr<SaiVirtualRouterHandle>> handles_;

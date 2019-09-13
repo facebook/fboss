@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -37,10 +36,7 @@ struct SaiPortHandle {
 
 class SaiPortManager {
  public:
-  SaiPortManager(
-      SaiApiTable* apiTable,
-      SaiManagerTable* managerTable,
-      SaiPlatform* platform);
+  SaiPortManager(SaiManagerTable* managerTable, SaiPlatform* platform);
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
   void removePort(PortID id);
   void changePort(const std::shared_ptr<Port>& swPort);
@@ -54,7 +50,6 @@ class SaiPortManager {
 
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>> handles_;

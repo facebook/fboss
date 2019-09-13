@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/HostifApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -35,7 +34,7 @@ struct SaiHostifTrapHandle {
 
 class SaiHostifManager {
  public:
-  SaiHostifManager(SaiApiTable* apiTable, SaiManagerTable* managerTable);
+  explicit SaiHostifManager(SaiManagerTable* managerTable);
 
   HostifTrapSaiId addHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
   void removeHostifTrap(cfg::PacketRxReason trapId);
@@ -54,7 +53,6 @@ class SaiHostifManager {
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
 
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;

@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
@@ -29,33 +28,28 @@
 namespace facebook {
 namespace fboss {
 
-SaiManagerTable::SaiManagerTable(SaiApiTable* apiTable, SaiPlatform* platform)
-    : apiTable_(apiTable) {
-  switchManager_ =
-      std::make_unique<SaiSwitchManager>(apiTable_, this, platform);
+SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
+  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
   // TODO(borisb): find a cleaner solution to this problem.
   // perhaps reload fixes it?
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchManager_->getSwitchSaiId());
 
-  bridgeManager_ =
-      std::make_unique<SaiBridgeManager>(apiTable_, this, platform);
-  fdbManager_ = std::make_unique<SaiFdbManager>(apiTable_, this, platform);
-  hostifManager_ = std::make_unique<SaiHostifManager>(apiTable_, this);
-  portManager_ = std::make_unique<SaiPortManager>(apiTable_, this, platform);
-  queueManager_ = std::make_unique<SaiQueueManager>(apiTable_, this, platform);
+  bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
+  fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
+  hostifManager_ = std::make_unique<SaiHostifManager>(this);
+  portManager_ = std::make_unique<SaiPortManager>(this, platform);
+  queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   virtualRouterManager_ =
-      std::make_unique<SaiVirtualRouterManager>(apiTable_, this, platform);
-  vlanManager_ = std::make_unique<SaiVlanManager>(apiTable_, this, platform);
-  routeManager_ = std::make_unique<SaiRouteManager>(apiTable_, this, platform);
+      std::make_unique<SaiVirtualRouterManager>(this, platform);
+  vlanManager_ = std::make_unique<SaiVlanManager>(this, platform);
+  routeManager_ = std::make_unique<SaiRouteManager>(this, platform);
   routerInterfaceManager_ =
-      std::make_unique<SaiRouterInterfaceManager>(apiTable_, this, platform);
-  nextHopManager_ =
-      std::make_unique<SaiNextHopManager>(apiTable_, this, platform);
+      std::make_unique<SaiRouterInterfaceManager>(this, platform);
+  nextHopManager_ = std::make_unique<SaiNextHopManager>(this, platform);
   nextHopGroupManager_ =
-      std::make_unique<SaiNextHopGroupManager>(apiTable_, this, platform);
-  neighborManager_ =
-      std::make_unique<SaiNeighborManager>(apiTable_, this, platform);
+      std::make_unique<SaiNextHopGroupManager>(this, platform);
+  neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {

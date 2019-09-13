@@ -31,10 +31,9 @@ SaiQueueTraits::CreateAttributes makeQueueAttributes(
 } // namespace detail
 
 SaiQueueManager::SaiQueueManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiQueue> SaiQueueManager::createQueue(
     PortSaiId portSaiId,

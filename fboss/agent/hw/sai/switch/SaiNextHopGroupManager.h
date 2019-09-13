@@ -11,7 +11,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -42,7 +41,6 @@ struct SaiNextHopGroupHandle {
 class SaiNextHopGroupManager {
  public:
   SaiNextHopGroupManager(
-      SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -59,7 +57,6 @@ class SaiNextHopGroupManager {
       NextHopSaiId nextHopId);
 
  private:
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   // TODO(borisb): improve SaiObject/SaiStore to the point where they

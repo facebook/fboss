@@ -92,10 +92,6 @@ class SaiSwitch : public HwSwitch {
 
   SaiManagerTable* managerTable();
 
-  const SaiApiTable* apiTable() const;
-
-  SaiApiTable* apiTable();
-
  private:
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
@@ -203,11 +199,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
 
-  const SaiApiTable* apiTableLocked(
-      const std::lock_guard<std::mutex>& lock) const;
-  SaiApiTable* apiTableLocked(const std::lock_guard<std::mutex>& lock);
-
-  std::shared_ptr<SaiApiTable> saiApiTable_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;

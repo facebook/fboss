@@ -40,16 +40,15 @@ namespace facebook {
 namespace fboss {
 
 SaiSwitchInstance::SaiSwitchInstance(
-    SaiApiTable* apiTable,
     const SaiSwitchTraits::CreateAttributes& attributes)
-    : apiTable_(apiTable), attributes_(attributes) {
-  auto& switchApi = apiTable_->switchApi();
+    : attributes_(attributes) {
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
   id_ = switchApi.create2<SaiSwitchTraits>(
       attributes_, 0 /* fake switch id; ignored */);
 }
 
 SaiSwitchInstance::~SaiSwitchInstance() {
-  auto& switchApi = apiTable_->switchApi();
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
   switchApi.remove2(id());
 }
 
@@ -61,12 +60,10 @@ bool SaiSwitchInstance::operator!=(const SaiSwitchInstance& other) const {
 }
 
 SaiSwitchManager::SaiSwitchManager(
-    SaiApiTable* apiTable,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : apiTable_(apiTable), managerTable_(managerTable), platform_(platform) {
-  switch_ = std::make_unique<SaiSwitchInstance>(
-      apiTable_, getSwitchAttributes(platform));
+    : managerTable_(managerTable), platform_(platform) {
+  switch_ = std::make_unique<SaiSwitchInstance>(getSwitchAttributes(platform));
 }
 
 SaiSwitchInstance* SaiSwitchManager::getSwitchImpl() const {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -39,7 +38,6 @@ struct SaiNeighborHandle {
 class SaiNeighborManager {
  public:
   SaiNeighborManager(
-      SaiApiTable* apiTable,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
@@ -71,7 +69,6 @@ class SaiNeighborManager {
  private:
   SaiNeighborHandle* getNeighborHandleImpl(
       const SaiNeighborTraits::NeighborEntry& entry) const;
-  SaiApiTable* apiTable_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unordered_set<SaiNeighborTraits::NeighborEntry> unresolvedNeighbors_;
