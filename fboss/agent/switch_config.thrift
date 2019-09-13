@@ -457,6 +457,16 @@ struct ActiveQueueManagement {
   2: required QueueCongestionBehavior behavior
 }
 
+struct Range {
+  1: i32 minimum
+  2: i32 maximum
+}
+
+union PortQueueRate {
+  1: Range pktsPerSec
+  2: Range kbitsPerSec
+}
+
 // It is only necessary to define PortQueues for those that you want to
 // change settings on
 // It is only necessary to define PortQueues for those where you do not want to
@@ -478,6 +488,7 @@ struct PortQueue {
   10: optional i32 sharedBytes
   // Only Unicast queue supports aqms
   11: optional list<ActiveQueueManagement> aqms;
+  12: optional PortQueueRate portQueueRate
 }
 
 struct QosRule {
