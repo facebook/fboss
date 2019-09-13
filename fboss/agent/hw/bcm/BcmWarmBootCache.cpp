@@ -204,13 +204,16 @@ void BcmWarmBootCache::populateFromWarmBootState(
                << toEgressIdsStr(ecmpIdAndEgress.second);
   }
 
-  auto& trunks = warmBootState[kHwSwitch][kWarmBootCache][kTrunks];
-  for (const auto& e : trunks.items()) {
-    trunks_[AggregatePortID(e.first.asInt())] = e.second.asInt();
-  }
-  XLOG(DBG1) << "Reconstructed following list of trunks ";
-  for (const auto& e : trunks_) {
-    XLOG(DBG0) << "Aggregate port " << e.first << " => trunk ID " << e.second;
+  auto& wbCache = warmBootState[kHwSwitch][kWarmBootCache];
+  if (auto it = wbCache.find(kTrunks); it != wbCache.items().end()) {
+    auto& trunks = it->second;
+    for (const auto& e : trunks.items()) {
+      trunks_[AggregatePortID(e.first.asInt())] = e.second.asInt();
+    }
+    XLOG(DBG1) << "Reconstructed following list of trunks ";
+    for (const auto& e : trunks_) {
+      XLOG(DBG0) << "Aggregate port " << e.first << " => trunk ID " << e.second;
+    }
   }
 
   // Extract BcmHost and its egress object from the warm boot file
