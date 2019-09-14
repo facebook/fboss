@@ -2077,6 +2077,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
 
   folly::Optional<PortID> mirrorEgressPort;
   folly::Optional<folly::IPAddress> destinationIp;
+  folly::Optional<folly::IPAddress> srcIp;
   folly::Optional<TunnelUdpPorts> udpPorts;
 
   if (mirrorConfig->destination.__isset.egressPort) {
@@ -2126,6 +2127,10 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     } else if (tunnel.greTunnel_ref()) {
       destinationIp.assign(folly::IPAddress(tunnel.greTunnel_ref().value().ip));
     }
+
+    if (tunnel.srcIp_ref()) {
+      srcIp.assign(folly::IPAddress(tunnel.srcIp_ref().value()));
+    }
   }
 
   uint8_t dscpMark = mirrorConfig->get_dscp();
@@ -2135,7 +2140,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
       mirrorConfig->name,
       mirrorEgressPort,
       destinationIp,
-      folly::none,
+      srcIp,
       udpPorts,
       dscpMark,
       truncate);
