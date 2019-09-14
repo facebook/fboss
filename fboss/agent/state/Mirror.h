@@ -83,12 +83,14 @@ struct MirrorFields {
       const std::string& name,
       const folly::Optional<PortID>& egressPort,
       const folly::Optional<folly::IPAddress>& destinationIp,
+      const folly::Optional<folly::IPAddress>& srcIp = folly::none,
       const folly::Optional<TunnelUdpPorts>& udpPorts = folly::none,
       const uint8_t& dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
       const bool truncate = false)
       : name(name),
         egressPort(egressPort),
         destinationIp(destinationIp),
+        srcIp(srcIp),
         udpPorts(udpPorts),
         dscp(dscp),
         truncate(truncate) {
@@ -103,6 +105,7 @@ struct MirrorFields {
   std::string name;
   folly::Optional<PortID> egressPort;
   folly::Optional<folly::IPAddress> destinationIp;
+  folly::Optional<folly::IPAddress> srcIp;
   folly::Optional<TunnelUdpPorts> udpPorts;
   uint8_t dscp;
   bool truncate;
@@ -118,12 +121,14 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
       std::string name,
       folly::Optional<PortID> egressPort,
       folly::Optional<folly::IPAddress> destinationIp,
+      folly::Optional<folly::IPAddress> srcIp = folly::none,
       folly::Optional<TunnelUdpPorts> udpPorts = folly::none,
       uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
       bool truncate = false);
   std::string getID() const;
   folly::Optional<PortID> getEgressPort() const;
   folly::Optional<folly::IPAddress> getDestinationIp() const;
+  folly::Optional<folly::IPAddress> getSrcIp() const;
   folly::Optional<TunnelUdpPorts> getTunnelUdpPorts() const;
   folly::Optional<MirrorTunnel> getMirrorTunnel() const;
   uint8_t getDscp() const;

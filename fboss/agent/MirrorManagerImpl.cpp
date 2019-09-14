@@ -33,6 +33,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       mirror->getID(),
       mirror->getEgressPort(),
       mirror->getDestinationIp(),
+      mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
       mirror->getDscp(),
       mirror->getTruncate());

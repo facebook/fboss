@@ -65,6 +65,9 @@ folly::dynamic MirrorFields::toFollyDynamic() const {
   } else {
     mirrorFields[kDestinationIp] = folly::dynamic::object;
   }
+  if (srcIp) {
+    mirrorFields[kSrcIp] = srcIp.value().str();
+  }
   if (resolvedTunnel) {
     mirrorFields[kTunnel] = resolvedTunnel.value().toFollyDynamic();
   } else {
@@ -80,10 +83,18 @@ Mirror::Mirror(
     std::string name,
     folly::Optional<PortID> egressPort,
     folly::Optional<folly::IPAddress> destinationIp,
+    folly::Optional<folly::IPAddress> srcIp,
     folly::Optional<TunnelUdpPorts> udpPorts,
     uint8_t dscp,
     bool truncate)
-    : NodeBaseT(name, egressPort, destinationIp, udpPorts, dscp, truncate) {}
+    : NodeBaseT(
+          name,
+          egressPort,
+          destinationIp,
+          srcIp,
+          udpPorts,
+          dscp,
+          truncate) {}
 
 std::string Mirror::getID() const {
   return getFields()->name;
@@ -125,8 +136,12 @@ folly::dynamic Mirror::toFollyDynamic() const {
   mirror[kConfigHasEgressPort] = configHasEgressPort();
   mirror[kEgressPort] = fields[kEgressPort];
   mirror[kDestinationIp] = fields[kDestinationIp];
+  if (fields.find(kSrcIp) != fields.items().end()) {
+    mirror[kSrcIp] = fields[kSrcIp];
+  }
   mirror[kTunnel] = fields[kTunnel];
   mirror[kDscp] = fields[kDscp];
+  mirror[kTruncate] = fields[kTruncate];
   mirror[kTruncate] = fields[kTruncate];
   return mirror;
 }
@@ -144,12 +159,16 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
   }
   auto egressPort = folly::Optional<PortID>();
   auto destinationIp = folly::Optional<folly::IPAddress>();
+  auto srcIp = folly::Optional<folly::IPAddress>();
   auto tunnel = folly::Optional<MirrorTunnel>();
   if (!json[kEgressPort].empty()) {
     egressPort.assign(PortID(json[kEgressPort].asInt()));
   }
   if (!json[kDestinationIp].empty()) {
     destinationIp.assign(folly::IPAddress(json[kDestinationIp].asString()));
+  }
+  if (json.find(kSrcIp) != json.items().end()) {
+    srcIp.assign(folly::IPAddress(json[kSrcIp].asString()));
   }
   if (!json[kTunnel].empty()) {
     tunnel.assign(MirrorTunnel::fromFollyDynamic(json[kTunnel]));
@@ -161,10 +180,10 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
   std::shared_ptr<Mirror> mirror = nullptr;
   if (configHasEgressPort) {
     mirror = std::make_shared<Mirror>(
-        name, egressPort, destinationIp, udpPorts, dscp, truncate);
+        name, egressPort, destinationIp, srcIp, udpPorts, dscp, truncate);
   } else {
     mirror = std::make_shared<Mirror>(
-        name, folly::none, destinationIp, udpPorts, dscp, truncate);
+        name, folly::none, destinationIp, srcIp, udpPorts, dscp, truncate);
     if (egressPort) {
       mirror->setEgressPort(egressPort.value());
     }
@@ -180,6 +199,7 @@ bool Mirror::operator==(const Mirror& rhs) const {
       (configHasEgressPort() == rhs.configHasEgressPort() ||
        getEgressPort() == rhs.getEgressPort()) &&
       getDestinationIp() == rhs.getDestinationIp() &&
+      getSrcIp() == rhs.getSrcIp() &&
       getMirrorTunnel() == rhs.getMirrorTunnel() &&
       getDscp() == rhs.getDscp() && getTruncate() == rhs.getTruncate();
 }
@@ -198,6 +218,10 @@ bool Mirror::configHasEgressPort() const {
 
 folly::Optional<folly::IPAddress> Mirror::getDestinationIp() const {
   return getFields()->destinationIp;
+}
+
+folly::Optional<folly::IPAddress> Mirror::getSrcIp() const {
+  return getFields()->srcIp;
 }
 
 template class NodeBaseT<Mirror, MirrorFields>;
