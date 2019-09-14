@@ -148,10 +148,13 @@ struct SflowTunnel {
 /*
  * Either greTunnel or sflowTunnel (but not both) must be set to specify
  * destination IP and encapsulation type.
+ * a tunnel source ip can be specified optionally if mirror collector wants
+ * a specific IP to be in L3 header
  */
 struct MirrorTunnel {
   1: optional GreTunnel greTunnel
   2: optional SflowTunnel sflowTunnel
+  3: optional string srcIp
 }
 
 union MirrorEgressPort {
