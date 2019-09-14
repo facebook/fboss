@@ -49,7 +49,7 @@ cfg::MirrorTunnel getSflowMirrorTunnelConfig(
 cfg::Mirror getGREMirror(
     const std::string& name,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    folly::Optional<folly::IPAddress> srcAddress = folly::none,
     uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
     bool truncate = false);
 
@@ -57,7 +57,7 @@ cfg::Mirror getGREMirrorWithPort(
     const std::string& name,
     PortID portID,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    folly::Optional<folly::IPAddress> srcAddress = folly::none,
     uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
     bool truncate = false);
 
@@ -65,7 +65,7 @@ cfg::Mirror getGREMirrorWithPort(
     const std::string& name,
     const std::string& portName,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    folly::Optional<folly::IPAddress> srcAddress = folly::none,
     uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
     bool truncate = false);
 cfg::Mirror getSFlowMirror(
