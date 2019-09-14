@@ -559,10 +559,14 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
   config_.mirrors.push_back(
       utility::getSPANMirror("span", MirrorTest::egressPort));
 
-  config_.mirrors.push_back(
-      utility::getGREMirror("unresolved", MirrorTest::tunnelDestination));
-  config_.mirrors.push_back(
-      utility::getGREMirror("resolved", MirrorTest::tunnelDestination));
+  config_.mirrors.push_back(utility::getGREMirror(
+      "unresolved",
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.1.10")));
+  config_.mirrors.push_back(utility::getGREMirror(
+      "resolved",
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.1.10")));
   config_.mirrors.push_back(utility::getGREMirror(
       "with_dscp", MirrorTest::tunnelDestination, folly::none, 3));
   config_.mirrors.push_back(utility::getSFlowMirror(
@@ -570,7 +574,7 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
       udpPorts.udpSrcPort,
       udpPorts.udpDstPort,
       MirrorTest::tunnelDestination,
-      folly::none,
+      folly::IPAddress("10.0.1.10"),
       MirrorTest::dscp));
   publishWithStateUpdate();
   auto span = state_->getMirrors()->getMirrorIf("span");
@@ -601,6 +605,44 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("with_tunnel_type")),
       *(state_->getMirrors()->getMirrorIf("with_tunnel_type")));
+}
+
+TEST_F(MirrorTest, GreMirrorWithSrcIP) {
+  config_.mirrors.push_back(utility::getGREMirror(
+      "mirror0",
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  auto mirror0 = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_EQ(mirror0->getID(), "mirror0");
+  EXPECT_EQ(mirror0->getDestinationIp(), MirrorTest::tunnelDestination);
+  EXPECT_EQ(mirror0->getSrcIp(), folly::IPAddress("10.0.0.1"));
+  EXPECT_EQ(mirror0->getDscp(), MirrorTest::dscp);
+  EXPECT_EQ(mirror0->getTruncate(), true);
+  EXPECT_EQ(mirror0->getTunnelUdpPorts(), folly::none);
+}
+
+TEST_F(MirrorTest, SflowMirrorWithSrcIP) {
+  config_.mirrors.push_back(utility::getSFlowMirror(
+      "mirror0",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  auto mirror0 = state_->getMirrors()->getMirrorIf("mirror0");
+  EXPECT_EQ(mirror0->getID(), "mirror0");
+  EXPECT_EQ(mirror0->getDestinationIp(), MirrorTest::tunnelDestination);
+  EXPECT_EQ(mirror0->getSrcIp(), folly::IPAddress("10.0.0.1"));
+  EXPECT_EQ(mirror0->getDscp(), MirrorTest::dscp);
+  EXPECT_EQ(mirror0->getTruncate(), true);
+  EXPECT_TRUE(mirror0->getTunnelUdpPorts().hasValue());
+  EXPECT_EQ(mirror0->getTunnelUdpPorts().value().udpSrcPort, 8998);
+  EXPECT_EQ(mirror0->getTunnelUdpPorts().value().udpDstPort, 9889);
 }
 
 } // namespace fboss

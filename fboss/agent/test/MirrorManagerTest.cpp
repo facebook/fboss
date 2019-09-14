@@ -27,6 +27,7 @@ const PortID kMirrorEgressPort{5};
 template <typename AddrT>
 struct MirrorManagerTestParams {
   AddrT mirrorDestination;
+  AddrT mirrorSource;
   std::array<AddrT, 2> neighborIPs;
   std::array<MacAddress, 2> neighborMACs;
   std::array<PortID, 2> neighborPorts;
@@ -36,6 +37,7 @@ struct MirrorManagerTestParams {
 
   MirrorManagerTestParams(
       const AddrT& mirrorDestination,
+      const AddrT& mirrorSource,
       std::array<AddrT, 2>&& neighborIPs,
       std::array<MacAddress, 2>&& neighborMACs,
       std::array<PortID, 2>&& neighborPorts,
@@ -43,6 +45,7 @@ struct MirrorManagerTestParams {
       const RoutePrefix<AddrT>& longerPrefix,
       const RoutePrefix<AddrT>& shorterPrefix)
       : mirrorDestination(mirrorDestination),
+        mirrorSource(mirrorSource),
         neighborIPs(std::move(neighborIPs)),
         neighborMACs(std::move(neighborMACs)),
         neighborPorts(std::move(neighborPorts)),
@@ -64,6 +67,7 @@ MirrorManagerV4TestParams
 MirrorManagerTestParams<folly::IPAddressV4>::getParams() {
   return MirrorManagerV4TestParams(
       IPAddressV4("10.0.10.101"),
+      IPAddressV4("10.0.11.101"),
       {IPAddressV4("10.0.0.111"), IPAddressV4("10.0.55.111")},
       {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
       {PortID(6), PortID(7)},
@@ -77,6 +81,7 @@ MirrorManagerV6TestParams
 MirrorManagerTestParams<folly::IPAddressV6>::getParams() {
   return MirrorManagerV6TestParams(
       IPAddressV6("2401:db00:2110:10::1001"),
+      IPAddressV6("2401:db00:2110:11::1001"),
       {IPAddressV6("2401:db00:2110:3001::0111"),
        IPAddressV6("2401:db00:2110:3055::0111")},
       {MacAddress("10:0:0:0:1:11"), MacAddress("10:0:0:55:1:11")},
@@ -213,6 +218,24 @@ class MirrorManagerTest : public ::testing::Test {
         folly::Optional<PortID>(PortID(egressPort)),
         folly::Optional<IPAddress>(remoteIp));
 
+    auto newState = state->isPublished() ? state->clone() : state;
+    auto mirrors = newState->getMirrors()->modify(&newState);
+    mirrors->addMirror(mirror);
+    return newState;
+  }
+
+  std::shared_ptr<SwitchState> addSflowMirror(
+      const std::shared_ptr<SwitchState>& state,
+      const std::string& name,
+      AddrT remoteIp,
+      uint16_t srcPort,
+      uint16_t dstPort) {
+    auto mirror = std::make_shared<Mirror>(
+        name,
+        folly::Optional<PortID>(),
+        folly::Optional<IPAddress>(remoteIp),
+        folly::Optional<IPAddress>(),
+        folly::make_optional<TunnelUdpPorts>(srcPort, dstPort));
     auto newState = state->isPublished() ? state->clone() : state;
     auto mirrors = newState->getMirrors()->modify(&newState);
     mirrors->addMirror(mirror);
@@ -895,6 +918,98 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
     StateDelta delta(oldState, newState);
     EXPECT_FALSE(DeltaFunctions::isEmpty(delta.getVlansDelta()));
     EXPECT_TRUE(DeltaFunctions::isEmpty(delta.getRouteTablesDelta()));
+  });
+}
+
+// test for gre src ip resolved
+TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        RouteNextHopSet nextHops = {params.nextHop(0)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        updatedState = this->addErspanMirror(
+            updatedState, kMirrorName, params.mirrorDestination);
+
+        auto oldMirror = updatedState->getMirrors()->getMirrorIf(kMirrorName);
+        auto mirror = std::make_shared<Mirror>(
+            kMirrorName,
+            oldMirror->getEgressPort(),
+            oldMirror->getDestinationIp(),
+            folly::make_optional<folly::IPAddress>(params.mirrorSource));
+        updatedState->getMirrors()->updateNode(mirror);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
+    auto tunnel = mirror->getMirrorTunnel().value();
+    EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
+    EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
+    const auto& interface =
+        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+    EXPECT_EQ(tunnel.srcIp, folly::IPAddress(params.mirrorSource));
+    EXPECT_EQ(tunnel.srcMac, interface->getMac());
+    EXPECT_FALSE(tunnel.udpPorts.hasValue());
+  });
+}
+
+TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        RouteNextHopSet nextHops = {params.nextHop(0)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        updatedState = this->addSflowMirror(
+            updatedState, kMirrorName, params.mirrorDestination, 10101, 20202);
+
+        auto oldMirror = updatedState->getMirrors()->getMirrorIf(kMirrorName);
+        auto mirror = std::make_shared<Mirror>(
+            kMirrorName,
+            oldMirror->getEgressPort(),
+            oldMirror->getDestinationIp(),
+            folly::make_optional<folly::IPAddress>(params.mirrorSource),
+            oldMirror->getTunnelUdpPorts());
+        updatedState->getMirrors()->updateNode(mirror);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getMirrorTunnel().hasValue());
+    auto tunnel = mirror->getMirrorTunnel().value();
+    EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
+    EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
+    const auto& interface =
+        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+    EXPECT_EQ(tunnel.srcIp, folly::IPAddress(params.mirrorSource));
+    EXPECT_EQ(tunnel.srcMac, interface->getMac());
+    EXPECT_TRUE(tunnel.udpPorts.hasValue());
+    EXPECT_EQ(tunnel.udpPorts->udpSrcPort, 10101);
+    EXPECT_EQ(tunnel.udpPorts->udpDstPort, 20202);
   });
 }
 } // namespace fboss
