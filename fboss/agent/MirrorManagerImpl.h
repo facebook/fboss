@@ -45,6 +45,7 @@ class MirrorManagerImpl {
   MirrorTunnel resolveMirrorTunnel(
       const std::shared_ptr<SwitchState>& state,
       const AddrT& destinationIp,
+      const folly::Optional<AddrT>& srcIp,
       const NextHop& nextHop,
       const std::shared_ptr<NeighborEntryT>& neighbor,
       const folly::Optional<TunnelUdpPorts>& udpPorts);

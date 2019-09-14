@@ -47,8 +47,16 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     }
 
     const auto egressPort = entry->getPort().phyPortID();
+    folly::Optional<AddrT> srcIp = newMirror->getSrcIp()
+        ? getIPAddress<AddrT>(mirror->getSrcIp().value())
+        : folly::Optional<AddrT>(folly::none);
     newMirror->setMirrorTunnel(resolveMirrorTunnel(
-        state, destinationIp, nexthop, entry, newMirror->getTunnelUdpPorts()));
+        state,
+        destinationIp,
+        srcIp,
+        nexthop,
+        entry,
+        newMirror->getTunnelUdpPorts()));
     newMirror->setEgressPort(egressPort);
     break;
   }
@@ -112,6 +120,7 @@ template <typename AddrT>
 MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp,
+    const folly::Optional<AddrT>& srcIp,
     const NextHop& nextHop,
     const std::shared_ptr<NeighborEntryT>& neighbor,
     const folly::Optional<TunnelUdpPorts>& udpPorts) {
@@ -119,7 +128,7 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   return MirrorTunnel(
-      iter->first,
+      srcIp ? srcIp.value() : iter->first,
       destinationIp,
       interface->getMac(),
       neighbor->getMac(),
