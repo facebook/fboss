@@ -57,6 +57,9 @@ find_library(OPENNSL opennsl)
 find_path(OPENNSL_INCLUDE_DIR NAMES opennsl/tx.h)
 include_directories(${OPENNSL_INCLUDE_DIR})
 
+message(STATUS "Found OPENNSL: ${OPENNSL}")
+message(STATUS "Found OPENNSL_INCLUDE_DIR: ${OPENNSL_INCLUDE_DIR}")
+
 find_library(LIBNL nl-3)
 find_path(LIBNL_INCLUDE_DIR NAMES libnl3/netlink/socket.h)
 include_directories(${LIBNL_INCLUDE_DIR})
