@@ -79,3 +79,7 @@ switches.
 
 FBOSS development is ongoing at Facebook, and we plan to continue releasing
 more components, additional features, and improvements to the existing tooling.
+
+## License
+
+See [LICENSE](LICENSE).
