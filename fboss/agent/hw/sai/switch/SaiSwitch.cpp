@@ -382,6 +382,14 @@ void SaiSwitch::switchRunStateChangedLocked(
       switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
       switchApi.registerPortStateChangeCallback(
           switchId_, __glinkStateChangedNotification);
+
+      /* TODO(T54112206) :remove trapping ARP, NDP & CPU nexthop packets */
+      auto& hostifManager = managerTableLocked(lock)->hostifManager();
+      for (auto reason : {cfg::PacketRxReason::ARP,
+                          cfg::PacketRxReason::NDP,
+                          cfg::PacketRxReason::CPU_IS_NHOP}) {
+        hostifManager.addHostifTrap(reason, 0);
+      }
     } break;
     default:
       break;

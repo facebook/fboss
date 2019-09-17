@@ -83,6 +83,10 @@ void SaiNeighborManager::addNeighbor(
     unresolvedNeighbors_.insert(saiEntry);
   } else {
     XLOG(INFO) << "add resolved neighbor";
+    if (swEntry->getIP().isLinkLocal()) {
+      XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
+      return;
+    }
     SaiNeighborTraits::CreateAttributes attributes{swEntry->getMac()};
     auto& store = SaiStore::getInstance()->get<SaiNeighborTraits>();
     auto neighbor = store.setObject(saiEntry, attributes);

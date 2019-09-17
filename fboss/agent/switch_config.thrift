@@ -525,6 +525,7 @@ enum PacketRxReason {
   L3_DEST_MISS = 5 // L3 DIP miss
   TTL_1        = 6 // L3UC or IPMC packet with TTL equal to 1
   CPU_IS_NHOP  = 7 // The CPU port is the next-hop in the routing table
+  NDP          = 8 // NDP discovery messages
 }
 
 enum PortLoopbackMode {

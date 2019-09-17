@@ -24,6 +24,10 @@ sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
   switch (reason) {
     case cfg::PacketRxReason::ARP:
       return SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST;
+    case cfg::PacketRxReason::NDP:
+      return SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY;
+    case cfg::PacketRxReason::CPU_IS_NHOP:
+      return SAI_HOSTIF_TRAP_TYPE_IP2ME;
     case cfg::PacketRxReason::DHCP:
       return SAI_HOSTIF_TRAP_TYPE_DHCP;
     default:
