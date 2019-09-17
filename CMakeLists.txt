@@ -688,6 +688,7 @@ add_executable(agent_test
        fboss/agent/test/StaticRoutes.cpp
        fboss/agent/test/TestPacketFactory.cpp
        fboss/agent/test/ThriftTest.cpp
+       fboss/agent/test/TrunkUtils.cpp
        fboss/agent/test/TunInterfaceTest.cpp
        fboss/agent/test/UDPTest.cpp
        fboss/agent/test/oss/Main.cpp
