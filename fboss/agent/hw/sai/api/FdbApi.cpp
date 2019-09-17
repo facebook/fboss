@@ -19,7 +19,7 @@ size_t hash<facebook::fboss::SaiFdbTraits::FdbEntry>::operator()(
     const facebook::fboss::SaiFdbTraits::FdbEntry& fdbEntry) const {
   size_t seed = 0;
   boost::hash_combine(seed, fdbEntry.switchId());
-  boost::hash_combine(seed, fdbEntry.bridgeId());
+  boost::hash_combine(seed, fdbEntry.bridgeVlanId());
   boost::hash_combine(seed, std::hash<folly::MacAddress>()(fdbEntry.mac()));
   return seed;
 }

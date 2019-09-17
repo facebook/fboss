@@ -45,10 +45,10 @@ struct SaiFdbTraits {
     FdbEntry() {}
     FdbEntry(
         sai_object_id_t switchId,
-        sai_object_id_t bridgeId,
+        sai_object_id_t bridgeVlanId,
         const folly::MacAddress& mac) {
       fdb_entry.switch_id = switchId;
-      fdb_entry.bv_id = bridgeId;
+      fdb_entry.bv_id = bridgeVlanId;
       toSaiMacAddress(mac, fdb_entry.mac_address);
     }
     explicit FdbEntry(const sai_object_key_t& key) {
@@ -60,7 +60,7 @@ struct SaiFdbTraits {
     sai_object_id_t switchId() const {
       return fdb_entry.switch_id;
     }
-    sai_object_id_t bridgeId() const {
+    sai_object_id_t bridgeVlanId() const {
       return fdb_entry.bv_id;
     }
     const sai_fdb_entry_t* entry() const {
@@ -68,8 +68,8 @@ struct SaiFdbTraits {
     }
     bool operator==(const FdbEntry& other) const {
       return (
-          switchId() == other.switchId() && bridgeId() == other.bridgeId() &&
-          mac() == other.mac());
+          switchId() == other.switchId() &&
+          bridgeVlanId() == other.bridgeVlanId() && mac() == other.mac());
     }
 
    private:
