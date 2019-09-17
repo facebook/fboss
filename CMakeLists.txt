@@ -284,11 +284,11 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwVlanTests.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
-    fboss/agent/hw/bcm/tests/BcmSwitchEnsembleFactory.cpp
+    fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
     fboss/agent/hw/test/Main.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmVlanUtils.cpp
+    fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
     fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
     fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
