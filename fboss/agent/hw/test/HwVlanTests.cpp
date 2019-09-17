@@ -30,16 +30,6 @@ class HwVlanTest : public HwTest {
   }
 };
 
-TEST_F(HwVlanTest, VlanInit) {
-  auto setup = [=]() {};
-
-  auto verify = [=]() {
-    // Make sure there are still no VLANs except the default VLAN
-    ASSERT_EQ(1, getConfiguredVlans(getHwSwitch()).size());
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwVlanTest, VlanApplyConfig) {
   auto setup = [=]() { applyNewConfig(config()); };
 

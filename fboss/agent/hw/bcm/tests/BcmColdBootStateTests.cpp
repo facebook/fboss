@@ -12,14 +12,26 @@
 
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/test/HwVlanUtils.h"
 
 namespace facebook {
 namespace fboss {
 
-TEST_F(BcmTest, allPortsDisabledOnColdBoot) {
+TEST_F(BcmTest, chipColdBootDefaults) {
   auto setup = [] {};
   auto verify = [this] {
-    for (auto portIdAndPort : *getHwSwitch()->getPortTable()) {
+    // A single default VLAN should be configured
+    auto vlans = getConfiguredVlans(getHwSwitch());
+    EXPECT_EQ(vlans.size(), 1);
+    // All ports should be part of this vlan
+    auto portTable = getHwSwitch()->getPortTable();
+    // Minus 1 for CPU port, which is also in default VLAN
+    EXPECT_EQ(
+        getVlanToNumPorts(getHwSwitch())[vlans[0]] - 1,
+        std::distance(portTable->begin(), portTable->end()));
+
+    // All ports should be down, and in default VLAN
+    for (auto portIdAndPort : *portTable) {
       EXPECT_FALSE(portIdAndPort.second->isEnabled());
     }
   };
