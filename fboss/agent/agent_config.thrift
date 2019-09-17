@@ -20,5 +20,5 @@ struct AgentConfig {
   // All configuration for the platform. This includes the chip
   // configuration (e.g broadcom config), as well as low-level port
   // tuning params.
-  3: optional platform_config.PlatformConfig platform,
+  3: platform_config.PlatformConfig platform,
 }

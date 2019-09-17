@@ -16,14 +16,9 @@ namespace facebook {
 namespace fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
-  auto platformConfig = config()->thrift.get_platform();
-  if (!platformConfig) {
-    throw FbossError(
-        "failed to generate hw config file. platform config does not exist");
-  }
-  auto& config = platformConfig->chip.get_bcm().config;
+  auto& cfg = config()->thrift.platform.chip.get_bcm().config;
   std::vector<std::string> nameValStrs;
-  for (const auto& entry : config) {
+  for (const auto& entry : cfg) {
     nameValStrs.emplace_back(
         folly::to<std::string>(entry.first, '=', entry.second));
   }

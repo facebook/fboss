@@ -45,13 +45,10 @@ bool SaiPlatformPort::shouldDisableFEC() const {
 
 folly::Optional<cfg::PlatformPortSettings>
 SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
-  auto platformSettings = platform_->config()->thrift.get_platform();
-  if (!platformSettings) {
-    throw FbossError("platform config is empty");
-  }
+  auto& platformSettings = platform_->config()->thrift.platform;
 
-  auto portsIter = platformSettings->ports.find(id_);
-  if (portsIter == platformSettings->ports.end()) {
+  auto portsIter = platformSettings.ports.find(id_);
+  if (portsIter == platformSettings.ports.end()) {
     throw FbossError("platform port id ", id_, " not found");
   }
 

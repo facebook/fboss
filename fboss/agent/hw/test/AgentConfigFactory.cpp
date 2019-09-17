@@ -61,9 +61,9 @@ cfg::AgentConfig getAgentConfig() {
   for (uint16_t portId = 0; portId < kMaxPorts; portId++) {
     auto platformPortConfig = getPlatformPortConfig(portId);
     config.__isset.platform = true;
-    config.platform_ref()->ports.emplace(portId, platformPortConfig);
+    config.platform.ports.emplace(portId, platformPortConfig);
   }
-  config.platform_ref()->platformSettings.insert(std::make_pair(
+  config.platform.platformSettings.insert(std::make_pair(
       cfg::PlatformAttributes::CONNECTION_HANDLE, "test connection handle"));
   return config;
 }

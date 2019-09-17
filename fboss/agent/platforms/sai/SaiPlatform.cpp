@@ -113,12 +113,9 @@ SaiPlatform::SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)) {}
 
 void SaiPlatform::initPorts() {
-  auto platformSettings = config()->thrift.get_platform();
-  if (!platformSettings) {
-    throw FbossError("platform config is empty");
-  }
+  auto& platformSettings = config()->thrift.platform;
   auto platformMode = getMode();
-  for (auto& port : platformSettings->ports) {
+  for (auto& port : platformSettings.ports) {
     std::unique_ptr<SaiPlatformPort> saiPort;
     PortID portId(port.first);
     if (platformMode == PlatformMode::WEDGE400C) {
@@ -144,13 +141,10 @@ PlatformPort* SaiPlatform::getPlatformPort(PortID port) const {
 
 folly::Optional<std::string> SaiPlatform::getPlatformAttribute(
     cfg::PlatformAttributes platformAttribute) {
-  auto platform = config()->thrift.get_platform();
-  if (!platform) {
-    throw FbossError("platform config is empty");
-  }
+  auto& platform = config()->thrift.platform;
 
-  auto platformIter = platform->platformSettings.find(platformAttribute);
-  if (platformIter == platform->platformSettings.end()) {
+  auto platformIter = platform.platformSettings.find(platformAttribute);
+  if (platformIter == platform.platformSettings.end()) {
     return folly::none;
   }
 

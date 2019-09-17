@@ -154,13 +154,10 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
 
 folly::Optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
     cfg::PortSpeed speed) {
-  auto platformSettings = platform_->config()->thrift.get_platform();
-  if (!platformSettings) {
-    return folly::none;
-  }
+  auto& platformSettings = platform_->config()->thrift.platform;
 
-  auto portsIter = platformSettings->ports.find(id_);
-  if (portsIter == platformSettings->ports.end()) {
+  auto portsIter = platformSettings.ports.find(id_);
+  if (portsIter == platformSettings.ports.end()) {
     return folly::none;
   }
 
