@@ -202,6 +202,10 @@ void SaiSwitch::linkStateChangedCallback(
     auto state = data[i].port_state == SAI_PORT_OPER_STATUS_UP ? "up" : "down";
     XLOG(INFO) << "port " << state << " notification received for " << std::hex
                << data[i].port_id;
+    // FIXME - accessing port table here is racy - T54107986
+    callback_->linkStateChanged(
+        managerTable()->portManager().getPortID(data[i].port_id),
+        data[i].port_state == SAI_PORT_OPER_STATUS_UP);
   }
 }
 
