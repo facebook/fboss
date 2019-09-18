@@ -18,6 +18,7 @@ from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
+from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
 
 
 class PortDetailsCmd(cmds.FbossCmd):
@@ -119,32 +120,33 @@ class PortDetailsCmd(cmds.FbossCmd):
                 for val in ("weight", "reservedBytes", "scalingFactor"):
                     if hasattr(queue, val) and getattr(queue, val):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
+
+                if not (hasattr(queue, "aqms") and queue.aqms):
+                    attrs.append("TAIL DROP")
+                    print("    Queue {} {:29}{}".format(
+                        queue.id, name, ",".join(attrs)))
+                    continue
+
                 print("    Queue {} {:29}{}".format(
                     queue.id, name, ",".join(attrs)))
-                if hasattr(queue, "aqm") and queue.aqm:
-                    aqm = queue.aqm
-                    attrs1 = []
-                    attrs1.append("{}={}".format("aqm", "enabled"))
+                for aqm in queue.aqms:
+                    attrs = []
+                    if aqm.behavior == QueueCongestionBehavior.EARLY_DROP:
+                        attrs.append("EARLY DROP")
+                    elif aqm.behavior == QueueCongestionBehavior.ECN:
+                        attrs.append("ECN")
                     if hasattr(aqm.detection, "linear") and aqm.detection.linear:
-                        attrs1.append("{}={}".format("detection", "linear"))
+                        attrs.append("{}={}".format("detection", "linear"))
                         linear = aqm.detection.linear
-                        attrs1.append("{}={}".format(
+                        attrs.append("{}={}".format(
                             "minThresh",
                             linear.minimumLength))
-                        attrs1.append("{}={}".format(
+                        attrs.append("{}={}".format(
                             "maxThresh",
                             linear.maximumLength))
-                    if aqm.behavior.earlyDrop:
-                        earlyDrop = "ENABLED"
-                    else:
-                        earlyDrop = "DISABLED"
-                    attrs1.append("{}={}".format("earlyDrop", earlyDrop))
-                    if aqm.behavior.ecn:
-                        ecn = "ENABLED"
-                    else:
-                        ecn = "DISABLED"
-                    attrs1.append("{}={}".format("ecn", ecn))
-                    print('{:<5}{}'.format('', ",".join(attrs1)))
+
+                        print('{:<41}{}'.format('', ",".join(attrs)))
+
 
     def _print_port_counters(self, client, port_info):
         pass
