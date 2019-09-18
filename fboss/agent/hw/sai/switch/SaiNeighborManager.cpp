@@ -84,16 +84,21 @@ void SaiNeighborManager::addNeighbor(
   } else {
     XLOG(INFO) << "add resolved neighbor";
     if (swEntry->getIP().isLinkLocal()) {
+      /* TODO: investigate and fix adding link local neighbors */
       XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
       return;
     }
     SaiNeighborTraits::CreateAttributes attributes{swEntry->getMac()};
     auto& store = SaiStore::getInstance()->get<SaiNeighborTraits>();
-    auto neighbor = store.setObject(saiEntry, attributes);
+    /*
+     * program fdb entry before creating neighbor, neighbor requires fdb entry
+     */
     auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
         swEntry->getIntfID(), swEntry->getMac(), swEntry->getPort());
+    auto neighbor = store.setObject(saiEntry, attributes);
+    /* add next hop to discovered neighbor over */
     auto nextHop = managerTable_->nextHopManager().addNextHop(
-        swEntry->getIntfID(), swEntry->getIP());
+        saiEntry.routerInterfaceId(), swEntry->getIP());
     auto neighborHandle = std::make_unique<SaiNeighborHandle>();
     neighborHandle->neighbor = neighbor;
     neighborHandle->fdbEntry = fdbEntry;
