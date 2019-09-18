@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
@@ -95,12 +96,16 @@ class SaiApi {
     sai_status_t status =
         impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
+    XLOG(DBG5) << "created sai object [" << saiApiTypeToString(ApiT::ApiType)
+               << "]:" << folly::logging::objectToString(entry);
   }
 
   template <typename AdapterKeyT>
   void remove2(const AdapterKeyT& key) {
     sai_status_t status = impl()._remove(key);
     saiApiCheckError(status, ApiT::ApiType, "Failed to remove sai object");
+    XLOG(DBG5) << "removed sai object [" << saiApiTypeToString(ApiT::ApiType)
+               << "]:" << folly::logging::objectToString(key);
   }
 
   /*

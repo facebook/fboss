@@ -77,6 +77,8 @@ struct SaiNeighborTraits {
           ip() == other.ip());
     }
 
+    std::string toString() const;
+
    private:
     sai_neighbor_entry_t neighbor_entry{};
   };
@@ -121,6 +123,12 @@ class NeighborApi : public SaiApi<NeighborApi> {
   sai_neighbor_api_t* api_;
   friend class SaiApi<NeighborApi>;
 };
+
+inline void toAppend(
+    const SaiNeighborTraits::NeighborEntry& entry,
+    std::string* result) {
+  result->append(entry.toString());
+}
 
 } // namespace fboss
 } // namespace facebook

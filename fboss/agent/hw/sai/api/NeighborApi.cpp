@@ -24,3 +24,18 @@ size_t hash<facebook::fboss::SaiNeighborTraits::NeighborEntry>::operator()(
   return seed;
 }
 } // namespace std
+
+namespace facebook {
+namespace fboss {
+std::string SaiNeighborTraits::NeighborEntry::toString() const {
+  return folly::to<std::string>(
+      "NeighborEntry:(switch:",
+      switchId(),
+      ", interface: ",
+      routerInterfaceId(),
+      ", ip: ",
+      ip().str(),
+      ")");
+}
+} // namespace fboss
+} // namespace facebook

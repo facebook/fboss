@@ -72,6 +72,8 @@ struct SaiFdbTraits {
           bridgeVlanId() == other.bridgeVlanId() && mac() == other.mac());
     }
 
+    std::string toString() const;
+
    private:
     sai_fdb_entry_t fdb_entry{};
   };
@@ -117,6 +119,10 @@ class FdbApi : public SaiApi<FdbApi> {
   sai_fdb_api_t* api_;
   friend class SaiApi<FdbApi>;
 };
+
+inline void toAppend(const SaiFdbTraits::FdbEntry& entry, std::string* result) {
+  result->append(entry.toString());
+}
 
 } // namespace fboss
 } // namespace facebook

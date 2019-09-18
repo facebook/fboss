@@ -72,6 +72,8 @@ struct SaiRouteTraits {
           destination() == other.destination());
     }
 
+    std::string toString() const;
+
    private:
     sai_route_entry_t route_entry{};
   };
@@ -117,6 +119,12 @@ class RouteApi : public SaiApi<RouteApi> {
   sai_route_api_t* api_;
   friend class SaiApi<RouteApi>;
 };
+
+inline void toAppend(
+    const SaiRouteTraits::RouteEntry& entry,
+    std::string* result) {
+  result->append(entry.toString());
+}
 
 } // namespace fboss
 } // namespace facebook

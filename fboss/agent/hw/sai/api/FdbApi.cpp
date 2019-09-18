@@ -24,3 +24,18 @@ size_t hash<facebook::fboss::SaiFdbTraits::FdbEntry>::operator()(
   return seed;
 }
 } // namespace std
+
+namespace facebook {
+namespace fboss {
+std::string SaiFdbTraits::FdbEntry::toString() const {
+  return folly::to<std::string>(
+      "FdbEntry: (switch:",
+      switchId(),
+      ", mac:",
+      mac(),
+      "), bridge:(",
+      bridgeVlanId(),
+      ")");
+}
+} // namespace fboss
+} // namespace facebook

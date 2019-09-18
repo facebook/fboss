@@ -25,3 +25,21 @@ size_t hash<facebook::fboss::SaiRouteTraits::RouteEntry>::operator()(
   return seed;
 }
 } // namespace std
+
+namespace facebook {
+namespace fboss {
+std::string SaiRouteTraits::RouteEntry::toString() const {
+  const auto cidr = destination();
+  return folly::to<std::string>(
+      "RouteEntry:(switch:",
+      switchId(),
+      ", vrf: ",
+      virtualRouterId(),
+      ", prefix: ",
+      cidr.first,
+      "/",
+      cidr.second,
+      ")");
+}
+} // namespace fboss
+} // namespace facebook
