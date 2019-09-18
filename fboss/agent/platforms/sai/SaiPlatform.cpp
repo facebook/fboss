@@ -71,6 +71,7 @@ std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
 }
 
 folly::MacAddress SaiPlatform::getLocalMac() const {
+  // TODO: remove hardcoded mac
   return folly::MacAddress("42:42:42:42:42:42");
 }
 
