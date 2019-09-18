@@ -55,10 +55,17 @@ struct SaiBridgePortTraits {
     using PortId =
         SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_PORT_ID, SaiObjectIdT>;
     using Type = SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_TYPE, sai_int32_t>;
+    using FdbLearningMode = SaiAttribute<
+        EnumType,
+        SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE,
+        sai_int32_t>;
   };
   using AdapterKey = BridgePortSaiId;
   using AdapterHostKey = Attributes::PortId;
-  using CreateAttributes = std::tuple<Attributes::Type, Attributes::PortId>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::PortId,
+      std::optional<Attributes::FdbLearningMode>>;
 };
 
 class BridgeApi : public SaiApi<BridgeApi> {

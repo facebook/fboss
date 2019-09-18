@@ -31,8 +31,10 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
   }
   auto& store = SaiStore::getInstance()->get<SaiBridgePortTraits>();
   SaiBridgePortTraits::AdapterHostKey k{portId};
-  SaiBridgePortTraits::CreateAttributes attributes{SAI_BRIDGE_PORT_TYPE_PORT,
-                                                   portId};
+  SaiBridgePortTraits::CreateAttributes attributes{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      portId,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
   return store.setObject(k, attributes);
 }
 

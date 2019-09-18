@@ -45,7 +45,10 @@ TEST_F(BridgeStoreTest, loadBridge) {
 
 TEST_F(BridgeStoreTest, loadBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
   auto bridgePortId = bridgeApi.create2<SaiBridgePortTraits>(c, 0);
 
   SaiStore s(0);
@@ -64,7 +67,10 @@ TEST_F(BridgeStoreTest, loadBridgePort) {
 
 TEST_F(BridgeStoreTest, bridgePortLoadCtor) {
   auto& bridgeApi = saiApiTable->bridgeApi();
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
   auto bridgePortId = bridgeApi.create2<SaiBridgePortTraits>(c, 0);
   SaiObject<SaiBridgePortTraits> obj(bridgePortId);
   EXPECT_EQ(obj.adapterKey(), bridgePortId);
@@ -72,7 +78,10 @@ TEST_F(BridgeStoreTest, bridgePortLoadCtor) {
 }
 
 TEST_F(BridgeStoreTest, bridgePortCreateCtor) {
-  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT, 42};
+  SaiBridgePortTraits::CreateAttributes c{
+      SAI_BRIDGE_PORT_TYPE_PORT,
+      42,
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
   SaiObject<SaiBridgePortTraits> obj({42}, c, 0);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }

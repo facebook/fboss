@@ -87,6 +87,7 @@ sai_status_t create_bridge_port_fn(
   auto fs = FakeSai::getInstance();
   folly::Optional<sai_object_id_t> portId;
   folly::Optional<int32_t> type;
+  folly::Optional<int32_t> learningMode;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
@@ -95,6 +96,9 @@ sai_status_t create_bridge_port_fn(
       case SAI_BRIDGE_PORT_ATTR_TYPE:
         type = attr_list[i].value.s32;
         break;
+      case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
+        learningMode = attr_list[i].value.s32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -102,7 +106,8 @@ sai_status_t create_bridge_port_fn(
   if (!portId || !type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *bridge_port_id = fs->brm.createMember(0, type.value(), portId.value());
+  *bridge_port_id = fs->brm.createMember(
+      0, type.value(), portId.value(), learningMode.value());
   return SAI_STATUS_SUCCESS;
 }
 
@@ -128,6 +133,9 @@ sai_status_t get_bridge_port_attribute_fn(
         break;
       case SAI_BRIDGE_PORT_ATTR_TYPE:
         attr[i].value.s32 = bridgePort.type;
+        break;
+      case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
+        attr[i].value.s32 = bridgePort.learningMode;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
