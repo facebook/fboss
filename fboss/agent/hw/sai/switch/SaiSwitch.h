@@ -24,7 +24,11 @@ class SaiPlatform;
 
 class SaiSwitch : public HwSwitch {
  public:
-  explicit SaiSwitch(SaiPlatform* platform);
+  explicit SaiSwitch(
+      SaiPlatform* platform,
+      uint32_t featuresDesired =
+          (FeaturesDesired::PACKET_RX_DESIRED |
+           FeaturesDesired::LINKSCAN_DESIRED));
   HwInitResult init(Callback* callback) noexcept override;
 
   void unregisterCallbacks() noexcept override;

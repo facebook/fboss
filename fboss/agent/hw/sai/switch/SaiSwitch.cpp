@@ -56,7 +56,8 @@ using facebook::fboss::DeltaFunctions::forEachAdded;
 // extended, presumably into an array keyed by switch id.
 static SaiSwitch* __gSaiSwitch;
 
-SaiSwitch::SaiSwitch(SaiPlatform* platform) : platform_(platform) {
+SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
+    : HwSwitch(featuresDesired), platform_(platform) {
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
 }
@@ -465,9 +466,13 @@ void SaiSwitch::switchRunStateChangedLocked(
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
-      switchApi.registerPortStateChangeCallback(
-          switchId_, __glinkStateChangedNotification);
+      if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+        switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+      }
+      if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+        switchApi.registerPortStateChangeCallback(
+            switchId_, __glinkStateChangedNotification);
+      }
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
 
       /* TODO(T54112206) :remove trapping ARP, NDP & CPU nexthop packets */

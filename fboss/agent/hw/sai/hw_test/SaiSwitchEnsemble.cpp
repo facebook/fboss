@@ -25,9 +25,8 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   // TODO pass in agent config
   auto platform = initSaiPlatform();
-  // TODO get SaiSwitch to honor features desired and pass them here
-  auto hwSwitch =
-      std::make_unique<SaiSwitch>(static_cast<SaiPlatform*>(platform.get()));
+  auto hwSwitch = std::make_unique<SaiSwitch>(
+      static_cast<SaiPlatform*>(platform.get()), featuresDesired);
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(
@@ -41,7 +40,8 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
       std::move(platform),
       std::move(hwSwitch),
       std::move(linkToggler),
-      nullptr // Add support for accessing HW shell once we add support for it
+      nullptr // Add support for accessing HW shell once we have a h/w shell for
+              // SAI
   );
 }
 
