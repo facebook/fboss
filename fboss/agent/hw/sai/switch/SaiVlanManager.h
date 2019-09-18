@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -49,7 +50,7 @@ class SaiVlanManager {
 
   const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
   SaiVlanHandle* getVlanHandle(VlanID swVlanId);
-
+  VlanID getVlanID(VlanSaiId saiVlanId) const;
   // TODO(borisb): remove after D15750266
   VlanID getVlanIdByPortId(PortID portId) const;
   const SaiVlanHandles& getVlanHandles() const {
@@ -59,6 +60,7 @@ class SaiVlanManager {
  private:
   void createVlanMember(VlanID swVlanId, PortID swPortId);
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
+  SaiVlanHandle* getVlanHandleImpl(VlanSaiId vlanId) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

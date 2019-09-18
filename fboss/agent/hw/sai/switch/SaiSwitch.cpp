@@ -10,8 +10,10 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -363,7 +365,20 @@ void SaiSwitch::updateStatsLocked(
 
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    std::vector<L2EntryThrift>* /* l2Table */) const {}
+    std::vector<L2EntryThrift>* l2Table) const {
+  auto fdbEntries = getObjectKeys<SaiFdbTraits>(switchId_);
+  for (const auto& fdbEntry : fdbEntries) {
+    L2EntryThrift entry;
+    entry.vlanID = managerTable()->vlanManager().getVlanID(
+        VlanSaiId(fdbEntry.bridgeVlanId()));
+    entry.mac = fdbEntry.mac().toString();
+    auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
+    auto saiPortId = fdbApi.getAttribute2(
+        fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
+    entry.port = managerTable()->portManager().getPortID(saiPortId);
+    l2Table->push_back(entry);
+  }
+}
 
 void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& /* lock */,

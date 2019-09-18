@@ -182,6 +182,15 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
   return itr->second.get();
 }
 
+VlanID SaiVlanManager::getVlanID(VlanSaiId saiVlanId) const {
+  for (const auto& [vlanId, vlanHandle] : handles_) {
+    if (vlanHandle->vlan->adapterKey() == saiVlanId) {
+      return vlanId;
+    }
+  }
+  throw FbossError("Counld not lookup vlan for : ", saiVlanId);
+}
+
 // TODO(borisb): remove after D15750266
 VlanID SaiVlanManager::getVlanIdByPortId(PortID portId) const {
   return vlanIdsByPortId_.at(portId);
