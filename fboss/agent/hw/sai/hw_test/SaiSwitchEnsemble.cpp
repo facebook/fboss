@@ -9,8 +9,12 @@
  */
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
+#include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
+
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+
+#include "fboss/agent/HwSwitch.h"
 
 #include <memory>
 
@@ -24,10 +28,19 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
   // TODO get SaiSwitch to honor features desired and pass them here
   auto hwSwitch =
       std::make_unique<SaiSwitch>(static_cast<SaiPlatform*>(platform.get()));
+  std::unique_ptr<HwLinkStateToggler> linkToggler;
+  if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
+    linkToggler = std::make_unique<SaiLinkStateToggler>(
+        hwSwitch.get(),
+        [this](const std::shared_ptr<SwitchState>& toApply) {
+          applyNewState(toApply);
+        },
+        cfg::PortLoopbackMode::MAC);
+  }
   setupEnsemble(
       std::move(platform),
       std::move(hwSwitch),
-      nullptr, // TODO add SaiLinkStateToggler once we add support for it
+      std::move(linkToggler),
       nullptr // Add support for accessing HW shell once we add support for it
   );
 }
