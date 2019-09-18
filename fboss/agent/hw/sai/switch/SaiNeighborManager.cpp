@@ -112,6 +112,12 @@ void SaiNeighborManager::addNeighbor(
 template <typename NeighborEntryT>
 void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
+  if (swEntry->getIP().isLinkLocal()) {
+    /* TODO: investigate and fix adding link local neighbors */
+    XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
+    return;
+  }
+
   XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto neighborHandle = getNeighborHandle(saiEntry);
