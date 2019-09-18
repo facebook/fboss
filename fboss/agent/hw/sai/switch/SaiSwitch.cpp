@@ -75,6 +75,12 @@ void __glinkStateChangedNotification(
   __gSaiSwitch->linkStateChangedCallback(count, data);
 }
 
+void __gFdbEventCallback(
+    uint32_t count,
+    const sai_fdb_event_notification_data_t* data) {
+  __gSaiSwitch->fdbEventCallback(count, data);
+}
+
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return initLocked(lock, callback);
@@ -401,6 +407,7 @@ void SaiSwitch::switchRunStateChangedLocked(
       switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
       switchApi.registerPortStateChangeCallback(
           switchId_, __glinkStateChangedNotification);
+      switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
 
       /* TODO(T54112206) :remove trapping ARP, NDP & CPU nexthop packets */
       auto& hostifManager = managerTableLocked(lock)->hostifManager();
@@ -457,6 +464,18 @@ const SaiManagerTable* SaiSwitch::managerTableLocked(
 SaiManagerTable* SaiSwitch::managerTableLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
   return managerTable_.get();
+}
+
+void SaiSwitch::fdbEventCallback(
+    uint32_t count,
+    const sai_fdb_event_notification_data_t* data) {
+  fdbEventCallbackLocked(count, data);
+}
+
+void SaiSwitch::fdbEventCallbackLocked(
+    uint32_t /*count*/,
+    const sai_fdb_event_notification_data_t* /*data*/) {
+  // TODO  - program macs from learn events to FDB
 }
 
 } // namespace fboss

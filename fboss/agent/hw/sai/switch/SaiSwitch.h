@@ -85,6 +85,9 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallback(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
+  void fdbEventCallback(
+      uint32_t count,
+      const sai_fdb_event_notification_data_t* data);
 
   BootType getBootType() const override;
 
@@ -192,6 +195,10 @@ class SaiSwitch : public HwSwitch {
       const void* buffer,
       uint32_t attr_count,
       const sai_attribute_t* attr_list);
+
+  void fdbEventCallbackLocked(
+      uint32_t count,
+      const sai_fdb_event_notification_data_t* data);
 
   BootType getBootTypeLocked(const std::lock_guard<std::mutex>& lock) const;
 

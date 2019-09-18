@@ -94,21 +94,13 @@ class SwitchApi : public SaiApi<SwitchApi> {
 
   sai_status_t registerRxCallback(
       SwitchSaiId id,
-      sai_packet_event_notification_fn rx_cb) {
-    sai_attribute_t attr;
-    attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
-    attr.value.ptr = (void*)rx_cb;
-    return _setAttribute(id, &attr);
-  }
-
+      sai_packet_event_notification_fn rx_cb);
   sai_status_t registerPortStateChangeCallback(
       SwitchSaiId id,
-      sai_port_state_change_notification_fn port_state_change_cb) {
-    sai_attribute_t attr;
-    attr.id = SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY;
-    attr.value.ptr = (void*)port_state_change_cb;
-    return _setAttribute(id, &attr);
-  }
+      sai_port_state_change_notification_fn port_state_change_cb);
+  sai_status_t registerFdbEventCallback(
+      SwitchSaiId id,
+      sai_fdb_event_notification_fn fdb_event_cb);
 
  private:
   sai_status_t _create(
