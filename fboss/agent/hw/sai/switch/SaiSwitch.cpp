@@ -198,9 +198,9 @@ void SaiSwitch::packetRxCallback(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  std::unique_lock<std::mutex> lock(saiSwitchMutex_);
   packetRxCallbackLocked(
-      lock, switch_id, buffer_size, buffer, attr_count, attr_list);
+      std::move(lock), switch_id, buffer_size, buffer, attr_count, attr_list);
 }
 
 void SaiSwitch::linkStateChangedCallback(
@@ -256,7 +256,7 @@ HwInitResult SaiSwitch::initLocked(
 }
 
 void SaiSwitch::packetRxCallbackLocked(
-    const std::lock_guard<std::mutex>& lock,
+    std::unique_lock<std::mutex>&& lock,
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
     const void* buffer,
@@ -277,12 +277,17 @@ void SaiSwitch::packetRxCallbackLocked(
     }
   }
   CHECK_NE(saiPortId, 0);
-  const auto& portManager = managerTableLocked(lock)->portManager();
-  const auto& vlanManager = managerTableLocked(lock)->vlanManager();
+  const auto& portManager = managerTable_->portManager();
+  const auto& vlanManager = managerTable_->vlanManager();
   PortID swPortId = portManager.getPortID(saiPortId);
   auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
   auto rxPacket =
       std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
+  /*
+   * TODO: unlock the mutex here because packet rx cb may end up calling packet
+   * tx function in the same thread stack, which also needs a lock.
+   */
+  lock.unlock();
   callback_->packetReceived(std::move(rxPacket));
 }
 

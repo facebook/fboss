@@ -189,7 +189,7 @@ class SaiSwitch : public HwSwitch {
       PortID port) const;
 
   void packetRxCallbackLocked(
-      const std::lock_guard<std::mutex>& lock,
+      std::unique_lock<std::mutex>&& lock,
       sai_object_id_t switch_id,
       sai_size_t buffer_size,
       const void* buffer,
