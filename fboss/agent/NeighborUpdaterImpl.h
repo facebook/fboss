@@ -99,14 +99,7 @@ class NeighborUpdaterImpl {
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
 
-  /**
-   * caches_ can be accessed from multiple threads, so we need to lock accesses
-   * with cachesMutex_. Note that this means that the cache implmentation cade
-   * should NOT ever call back into NeighborUpdaterImpl because of this, as it
-   * would likely be a lock ordering issue.
-   */
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
-  std::mutex cachesMutex_;
 
   friend class NeighborUpdater;
 };

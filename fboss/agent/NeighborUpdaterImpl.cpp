@@ -66,18 +66,15 @@ NeighborUpdaterImpl::~NeighborUpdaterImpl() {
 }
 
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheFor(VlanID vlan) {
-  std::lock_guard<std::mutex> g(cachesMutex_);
   return getArpCacheInternal(vlan);
 }
 
 shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheFor(VlanID vlan) {
-  std::lock_guard<std::mutex> g(cachesMutex_);
   return getNdpCacheInternal(vlan);
 }
 
 std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheData() {
   std::list<ArpEntryThrift> entries;
-  std::lock_guard<std::mutex> g(cachesMutex_);
   for (auto it = caches_.begin(); it != caches_.end(); ++it) {
     entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
   }
@@ -86,7 +83,6 @@ std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheData() {
 
 std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheData() {
   std::list<NdpEntryThrift> entries;
-  std::lock_guard<std::mutex> g(cachesMutex_);
   for (auto it = caches_.begin(); it != caches_.end(); ++it) {
     entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
   }
@@ -172,7 +168,6 @@ void NeighborUpdaterImpl::portDown(PortDescriptor port) {
   }
 }
 
-// expects the cachesMutex_ to be held
 bool NeighborUpdaterImpl::flushEntryImpl(VlanID vlan, IPAddress ip) {
   if (ip.isV4()) {
     auto cache = getArpCacheInternal(vlan);
@@ -183,16 +178,9 @@ bool NeighborUpdaterImpl::flushEntryImpl(VlanID vlan, IPAddress ip) {
 }
 
 uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
-  // clone caches_ so we don't need to hold the lock while flushing entries
-  boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches;
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    caches = caches_;
-  }
-
   uint32_t count{0};
   if (vlan == VlanID(0)) {
-    for (auto it = caches.begin(); it != caches.end(); ++it) {
+    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
       if (flushEntryImpl(it->first, ip)) {
         ++count;
       }
@@ -208,26 +196,18 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
     std::shared_ptr<NeighborCaches> caches) {
-  std::lock_guard<std::mutex> g(cachesMutex_);
   caches_.emplace(vlanID, std::move(caches));
 }
 
 void NeighborUpdaterImpl::vlanDeleted(VlanID vlanID) {
-  std::shared_ptr<NeighborCaches> removedEntry;
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    auto iter = caches_.find(vlanID);
-    if (iter != caches_.end()) {
-      // we copy the entry over so we don't destroy the
-      // caches while holding the lock.
-      removedEntry = std::move(iter->second);
-      caches_.erase(iter);
-    } else {
-      // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
-      // specific vlan. Need to make sure that caches are correctly created for
-      // the initial SwitchState to avoid false positives
-      XLOG(DBG0) << "Deleted Vlan with no corresponding NeighborCaches";
-    }
+  auto iter = caches_.find(vlanID);
+  if (iter != caches_.end()) {
+    caches_.erase(iter);
+  } else {
+    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+    // specific vlan. Need to make sure that caches are correctly created for
+    // the initial SwitchState to avoid false positives
+    XLOG(DBG0) << "Deleted Vlan with no corresponding NeighborCaches";
   }
 }
 
@@ -235,7 +215,6 @@ void NeighborUpdaterImpl::vlanChanged(
     VlanID vlanID,
     InterfaceID intfID,
     std::string vlanName) {
-  std::lock_guard<std::mutex> g(cachesMutex_);
   auto iter = caches_.find(vlanID);
   if (iter != caches_.end()) {
     iter->second->arpCache->setIntfID(intfID);
@@ -255,7 +234,6 @@ void NeighborUpdaterImpl::timeoutsChanged(
     std::chrono::seconds ndpTimeout,
     std::chrono::seconds staleEntryInterval,
     uint32_t maxNeighborProbes) {
-  std::lock_guard<std::mutex> g(cachesMutex_);
   for (auto& vlanAndCaches : caches_) {
     auto& arpCache = vlanAndCaches.second->arpCache;
     auto& ndpCache = vlanAndCaches.second->ndpCache;
