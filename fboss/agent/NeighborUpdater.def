@@ -1,0 +1,38 @@
+#define GET_MACRO(_IGNORED,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...) NAME
+
+#define ARG_LIST_0(ARG_LIST_ENTRY_CB, TYPE, NAME)
+#define ARG_LIST_1(ARG_LIST_ENTRY_CB, TYPE, NAME) ARG_LIST_ENTRY_CB(TYPE, NAME)
+#define ARG_LIST_2(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_1(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_3(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_2(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_4(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_3(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_5(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_4(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_6(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_5(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_7(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_6(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST_8(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_7(ARG_LIST_ENTRY_CB, __VA_ARGS__)
+#define ARG_LIST(ARG_LIST_ENTRY_CB, ...) GET_MACRO("ignored", ##__VA_ARGS__, ARG_LIST_8, _, ARG_LIST_7, _, ARG_LIST_6, _, ARG_LIST_5, _, ARG_LIST_4, _, ARG_LIST_3, _, ARG_LIST_2, _, ARG_LIST_1, _, ARG_LIST_0)(ARG_LIST_ENTRY_CB, ##__VA_ARGS__)
+
+NEIGHBOR_UPDATER_METHOD(public, flushEntry, uint32_t, VlanID, vlan, folly::IPAddress, ip)
+
+// Ndp events
+NEIGHBOR_UPDATER_METHOD(public, sentNeighborSolicitation, void, VlanID, vlan, folly::IPAddressV6, ip)
+NEIGHBOR_UPDATER_METHOD(public, receivedNdpMine, void, VlanID, vlan, folly::IPAddressV6, ip, folly::MacAddress, mac, PortDescriptor, port, ICMPv6Type, type, uint32_t, flags)
+NEIGHBOR_UPDATER_METHOD(public, receivedNdpNotMine, void, VlanID, vlan, folly::IPAddressV6, ip, folly::MacAddress, mac, PortDescriptor, port, ICMPv6Type, type, uint32_t, flags)
+
+// Arp events
+NEIGHBOR_UPDATER_METHOD(public, sentArpRequest, void, VlanID, vlan, folly::IPAddressV4, ip)
+NEIGHBOR_UPDATER_METHOD(public, receivedArpMine, void, VlanID, vlan, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
+NEIGHBOR_UPDATER_METHOD(public, receivedArpNotMine, void, VlanID, vlan, folly::IPAddressV4, ip, folly::MacAddress, mac, PortDescriptor, port, ArpOpCode, op)
+
+NEIGHBOR_UPDATER_METHOD(public, portDown, void, PortDescriptor, port)
+
+NEIGHBOR_UPDATER_METHOD(public, getArpCacheData, void, std::vector<ArpEntryThrift>&, arpTable)
+NEIGHBOR_UPDATER_METHOD(public, getNdpCacheData, void, std::vector<NdpEntryThrift>&, ndpTable)
+
+// State update helpers
+NEIGHBOR_UPDATER_METHOD(private, vlanAdded, void, const SwitchState*, state, const Vlan*, vlan)
+NEIGHBOR_UPDATER_METHOD(private, vlanDeleted, void, const Vlan*, vlan)
+NEIGHBOR_UPDATER_METHOD(private, vlanChanged, void, const Vlan*, oldVlan, const Vlan*, newVlan)
+NEIGHBOR_UPDATER_METHOD(private, timeoutsChanged, void, std::chrono::seconds, arpTimeout, std::chrono::seconds, ndpTimeout, std::chrono::seconds, staleEntryInterval, uint32_t, maxNeighborProbes)
+
+#undef ARG_LIST
+#undef GET_MACRO

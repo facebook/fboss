@@ -441,6 +441,7 @@ add_library(fboss_agent STATIC
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
+    fboss/agent/NeighborUpdaterImpl.cpp
     fboss/agent/oss/AggregatePortStats.cpp
     fboss/agent/oss/Main.cpp
     fboss/agent/oss/SetupThrift.cpp
