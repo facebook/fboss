@@ -51,10 +51,16 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
 #define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)
-#define NEIGHBOR_UPDATER_METHOD(_VISIBILITY, NAME, RETURN_TYPE, ...) \
-  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, __VA_ARGS__)>           \
-  RETURN_TYPE NAME(ARG_LIST(ARG_RVALUE_REF_TYPE, __VA_ARGS__)) {     \
-    return impl_->NAME(ARG_LIST(ARG_FORWARDER, __VA_ARGS__));        \
+#define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...) \
+  VISIBILITY:                                                       \
+  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>        \
+  RETURN_TYPE NAME(ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {  \
+    return impl_->NAME(ARG_LIST(ARG_FORWARDER, ##__VA_ARGS__));     \
+  }
+#define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE) \
+  VISIBILITY:                                                          \
+  RETURN_TYPE NAME() {                                                 \
+    return impl_->NAME();                                              \
   }
 #include "fboss/agent/NeighborUpdater.def"
 #undef NEIGHBOR_UPDATER_METHOD

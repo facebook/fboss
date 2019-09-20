@@ -75,36 +75,22 @@ shared_ptr<NdpCache> NeighborUpdaterImpl::getNdpCacheFor(VlanID vlan) {
   return getNdpCacheInternal(vlan);
 }
 
-void NeighborUpdaterImpl::getArpCacheData(
-    std::vector<ArpEntryThrift>& arpTable) {
+std::list<ArpEntryThrift> NeighborUpdaterImpl::getArpCacheData() {
   std::list<ArpEntryThrift> entries;
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
-      entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
-    }
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->arpCache->getArpCacheData());
   }
-  arpTable.reserve(entries.size());
-  arpTable.insert(
-      arpTable.begin(),
-      std::make_move_iterator(std::begin(entries)),
-      std::make_move_iterator(std::end(entries)));
+  return entries;
 }
 
-void NeighborUpdaterImpl::getNdpCacheData(
-    std::vector<NdpEntryThrift>& ndpTable) {
+std::list<NdpEntryThrift> NeighborUpdaterImpl::getNdpCacheData() {
   std::list<NdpEntryThrift> entries;
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    for (auto it = caches_.begin(); it != caches_.end(); ++it) {
-      entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
-    }
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  for (auto it = caches_.begin(); it != caches_.end(); ++it) {
+    entries.splice(entries.end(), it->second->ndpCache->getNdpCacheData());
   }
-  ndpTable.reserve(entries.size());
-  ndpTable.insert(
-      ndpTable.begin(),
-      std::make_move_iterator(std::begin(entries)),
-      std::make_move_iterator(std::end(entries)));
+  return entries;
 }
 
 shared_ptr<ArpCache> NeighborUpdaterImpl::getArpCacheInternal(VlanID vlan) {

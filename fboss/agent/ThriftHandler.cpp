@@ -696,13 +696,23 @@ void ThriftHandler::getInterfaceDetail(
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured();
-  sw_->getNeighborUpdater()->getNdpCacheData(ndpTable);
+  auto entries = sw_->getNeighborUpdater()->getNdpCacheData();
+  ndpTable.reserve(entries.size());
+  ndpTable.insert(
+      ndpTable.begin(),
+      std::make_move_iterator(std::begin(entries)),
+      std::make_move_iterator(std::end(entries)));
 }
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured();
-  sw_->getNeighborUpdater()->getArpCacheData(arpTable);
+  auto entries = sw_->getNeighborUpdater()->getArpCacheData();
+  arpTable.reserve(entries.size());
+  arpTable.insert(
+      arpTable.begin(),
+      std::make_move_iterator(std::begin(entries)),
+      std::make_move_iterator(std::end(entries)));
 }
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {

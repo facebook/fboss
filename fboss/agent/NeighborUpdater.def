@@ -1,6 +1,6 @@
 #define GET_MACRO(_IGNORED,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...) NAME
 
-#define ARG_LIST_0(ARG_LIST_ENTRY_CB, TYPE, NAME)
+#define ARG_LIST_0(ARG_LIST_ENTRY_CB)
 #define ARG_LIST_1(ARG_LIST_ENTRY_CB, TYPE, NAME) ARG_LIST_ENTRY_CB(TYPE, NAME)
 #define ARG_LIST_2(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_1(ARG_LIST_ENTRY_CB, __VA_ARGS__)
 #define ARG_LIST_3(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_2(ARG_LIST_ENTRY_CB, __VA_ARGS__)
@@ -10,6 +10,11 @@
 #define ARG_LIST_7(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_6(ARG_LIST_ENTRY_CB, __VA_ARGS__)
 #define ARG_LIST_8(ARG_LIST_ENTRY_CB, TYPE, NAME, ...) ARG_LIST_ENTRY_CB(TYPE, NAME), ARG_LIST_7(ARG_LIST_ENTRY_CB, __VA_ARGS__)
 #define ARG_LIST(ARG_LIST_ENTRY_CB, ...) GET_MACRO("ignored", ##__VA_ARGS__, ARG_LIST_8, _, ARG_LIST_7, _, ARG_LIST_6, _, ARG_LIST_5, _, ARG_LIST_4, _, ARG_LIST_3, _, ARG_LIST_2, _, ARG_LIST_1, _, ARG_LIST_0)(ARG_LIST_ENTRY_CB, ##__VA_ARGS__)
+
+#if !defined(NEIGHBOR_UPDATER_METHOD_NO_ARGS)
+#define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE) NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE)
+#define DEFINED_NO_ARGS_VARIANT
+#endif
 
 NEIGHBOR_UPDATER_METHOD(public, flushEntry, uint32_t, VlanID, vlan, folly::IPAddress, ip)
 
@@ -25,8 +30,8 @@ NEIGHBOR_UPDATER_METHOD(public, receivedArpNotMine, void, VlanID, vlan, folly::I
 
 NEIGHBOR_UPDATER_METHOD(public, portDown, void, PortDescriptor, port)
 
-NEIGHBOR_UPDATER_METHOD(public, getArpCacheData, void, std::vector<ArpEntryThrift>&, arpTable)
-NEIGHBOR_UPDATER_METHOD(public, getNdpCacheData, void, std::vector<NdpEntryThrift>&, ndpTable)
+NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheData, std::list<ArpEntryThrift>)
+NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheData, std::list<NdpEntryThrift>)
 
 // State update helpers
 NEIGHBOR_UPDATER_METHOD(private, vlanAdded, void, const SwitchState*, state, const Vlan*, vlan)
@@ -36,3 +41,7 @@ NEIGHBOR_UPDATER_METHOD(private, timeoutsChanged, void, std::chrono::seconds, ar
 
 #undef ARG_LIST
 #undef GET_MACRO
+#if defined(DEFINED_NO_ARGS_VARIANT)
+#undef NEIGHBOR_UPDATER_METHOD_NO_ARGS
+#undef DEFINED_NO_ARGS_VARIANT
+#endif
