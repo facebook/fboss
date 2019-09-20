@@ -30,15 +30,18 @@ class StateDelta;
 /**
  * This class handles all updates to neighbor entries. Whenever we perform an
  * action or receive a packet that should update the Arp or Ndp tables in the
- * SwitchState, it goes through this class first. This class stores Arp and NDP
- * caches for each vlan and those are the source of truth for neighbor entries.
+ * SwitchState, it goes through this class first, which then schedules some
+ * work on the neighbor thread using the implementation methods present in
+ * `NeighborUpdaterImpl`.
  *
- * Those caches are self-managing and manage all changes to the Neighbor Tables
- * due to expiration or failed resolution.
+ * Most methods in this class return a `folly::Future<>` which the caller can
+ * use to wait for completion of the underlying execution.
  *
- * This class implements the StateObserver API and listens for all vlan added or
- * deleted events. It ignores all changes it receives related to arp/ndp tables,
- * as all those changes should originate from the caches stored in this class.
+ * This class implements the StateObserver API and listens for all vlan added
+ * or deleted events. It ignores all changes it receives related to arp/ndp
+ * tables, as all those changes should originate from the caches stored in this
+ * class. Everything else is forwarded to the `Impl` class on the neighbor
+ * thread.
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
  private:
@@ -55,7 +58,7 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
-  // Zero-cost forwarders
+  // Zero-cost forwarders. See comment in NeighborUpdater.def.
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
 #define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)

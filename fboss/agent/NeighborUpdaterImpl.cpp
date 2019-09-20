@@ -47,21 +47,16 @@ NeighborUpdaterImpl::NeighborUpdaterImpl() {}
 
 NeighborUpdaterImpl::~NeighborUpdaterImpl() {
   for (auto& vlanAndCache : caches_) {
-    // We want cache to clear entries
-    // before we destroy the caches. Entries
-    // hold a pointer to cache thus can call
-    // (virtual) methods on the cache. Calling
-    // virtual methods on the cache while the
-    // cache is in its destructor is not safe,
-    // since it may call a method on the base
-    // Neigbor cache where the derived class object
-    // was desired. If this method is pure virtual
-    // in base class you get a pure virtual function
-    // called exception.
+    // We want cache to clear entries before we destroy the caches. Entries
+    // hold a pointer to cache thus can call (virtual) methods on the cache.
+    // Calling virtual methods on the cache while the cache is in its
+    // destructor is not safe, since it may call a method on the base Neigbor
+    // cache where the derived class object was desired. If this method is pure
+    // virtual in base class you get a pure virtual function called exception.
     vlanAndCache.second->clearEntries();
   }
-  // reset the map of caches. This should call the destructors of
-  // each NeighborCache and block until everything is stopped.
+  // reset the map of caches. This should call the destructors of each
+  // NeighborCache and block until everything is stopped.
   caches_.clear();
 }
 

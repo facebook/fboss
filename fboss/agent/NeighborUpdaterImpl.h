@@ -30,23 +30,17 @@ enum ArpOpCode : uint16_t;
 enum class ICMPv6Type : uint8_t;
 
 /**
- * This class handles all updates to neighbor entries. Whenever we perform an
- * action or receive a packet that should update the Arp or Ndp tables in the
- * SwitchState, it goes through this class first. This class stores Arp and NDP
- * caches for each vlan and those are the source of truth for neighbor entries.
- *
- * Those caches are self-managing and manage all changes to the Neighbor Tables
- * due to expiration or failed resolution.
- *
- * This class implements the StateObserver API and listens for all vlan added or
- * deleted events. It ignores all changes it receives related to arp/ndp tables,
- * as all those changes should originate from the caches stored in this class.
+ * This class implements the core neighbor update logic. Its methods are only
+ * called from `NeighborUpdater` which schedules calls to this class on the
+ * neighbor thread.
+ * Having all data structures accessed only from the neighbor thread avoids
+ * concurrency issues and simplifies the threading model.
  */
 class NeighborUpdaterImpl {
   struct NeighborCaches {
-    /* These are shared_ptrs for safety reasons as it lets callers
-     * safely use the results of getArpCacheFor or getNdpCacheFor
-     * even if the vlan is deleted in another thread. */
+    // These are shared_ptrs for safety reasons as it lets callers safely use
+    // the results of getArpCacheFor or getNdpCacheFor even if the vlan is
+    // deleted in another thread.
     std::shared_ptr<ArpCache> arpCache;
     std::shared_ptr<NdpCache> ndpCache;
 
@@ -74,6 +68,8 @@ class NeighborUpdaterImpl {
   // All methods other than constructor/destructor of this class are private
   // because only NeighborUpdater should be using this class and that is marked
   // as a friend class anyway.
+  //
+  // See comment in NeighborUpdater.def
  private:
 #define ARG_LIST_ENTRY(TYPE, NAME) TYPE NAME
 #define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...) \
