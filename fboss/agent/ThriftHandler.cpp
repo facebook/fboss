@@ -696,7 +696,7 @@ void ThriftHandler::getInterfaceDetail(
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured();
-  auto entries = sw_->getNeighborUpdater()->getNdpCacheData();
+  auto entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
   ndpTable.reserve(entries.size());
   ndpTable.insert(
       ndpTable.begin(),
@@ -707,7 +707,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured();
-  auto entries = sw_->getNeighborUpdater()->getArpCacheData();
+  auto entries = sw_->getNeighborUpdater()->getArpCacheData().get();
   arpTable.reserve(entries.size());
   arpTable.insert(
       arpTable.begin(),
@@ -1267,7 +1267,7 @@ int32_t ThriftHandler::flushNeighborEntry(
 
   auto parsedIP = toIPAddress(*ip);
   VlanID vlanID(vlan);
-  return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP);
+  return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {

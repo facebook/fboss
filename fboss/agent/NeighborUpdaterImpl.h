@@ -68,7 +68,7 @@ class NeighborUpdaterImpl {
   };
 
  public:
-  explicit NeighborUpdaterImpl(SwSwitch* sw);
+  explicit NeighborUpdaterImpl();
   ~NeighborUpdaterImpl();
 
   // All methods other than constructor/destructor of this class are private
@@ -107,7 +107,6 @@ class NeighborUpdaterImpl {
    */
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;
   std::mutex cachesMutex_;
-  SwSwitch* sw_{nullptr};
 
   friend class NeighborUpdater;
 };

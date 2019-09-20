@@ -43,7 +43,7 @@ namespace fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
-NeighborUpdaterImpl::NeighborUpdaterImpl(SwSwitch* sw) : sw_(sw) {}
+NeighborUpdaterImpl::NeighborUpdaterImpl() {}
 
 NeighborUpdaterImpl::~NeighborUpdaterImpl() {
   for (auto& vlanAndCache : caches_) {
@@ -208,14 +208,11 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
 void NeighborUpdaterImpl::vlanAdded(
     VlanID vlanID,
     std::shared_ptr<NeighborCaches> caches) {
-  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
-
   std::lock_guard<std::mutex> g(cachesMutex_);
   caches_.emplace(vlanID, std::move(caches));
 }
 
 void NeighborUpdaterImpl::vlanDeleted(VlanID vlanID) {
-  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   std::shared_ptr<NeighborCaches> removedEntry;
   {
     std::lock_guard<std::mutex> g(cachesMutex_);
@@ -238,7 +235,6 @@ void NeighborUpdaterImpl::vlanChanged(
     VlanID vlanID,
     InterfaceID intfID,
     std::string vlanName) {
-  CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   std::lock_guard<std::mutex> g(cachesMutex_);
   auto iter = caches_.find(vlanID);
   if (iter != caches_.end()) {

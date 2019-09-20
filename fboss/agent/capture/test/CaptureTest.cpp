@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
@@ -204,12 +205,14 @@ TEST(CaptureTest, FullCapture) {
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   sw->packetReceived(ipPkt.clone());
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
   // Receive an ARP reply for the desired IP. This should cause the
   // arp entry to change from pending to active
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   sw->packetReceived(arpPkt.clone());
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
   // Re-send the original packet now that the ARP table is populated.

@@ -41,28 +41,40 @@ class StateDelta;
  * as all those changes should originate from the caches stored in this class.
  */
 class NeighborUpdater : public AutoRegisterStateObserver {
+ private:
+  using NeighborCaches = NeighborUpdaterImpl::NeighborCaches;
+
+  std::shared_ptr<NeighborUpdaterImpl> impl_;
+  SwSwitch* sw_{nullptr};
+
  public:
   explicit NeighborUpdater(SwSwitch* sw);
   ~NeighborUpdater() override;
 
-  void stateUpdated(const StateDelta& delta) override;
+  void waitForPendingUpdates();
 
-  using NeighborCaches = NeighborUpdaterImpl::NeighborCaches;
+  void stateUpdated(const StateDelta& delta) override;
 
   // Zero-cost forwarders
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
 #define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)
-#define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...) \
-  VISIBILITY:                                                       \
-  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>        \
-  RETURN_TYPE NAME(ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {  \
-    return impl_->NAME(ARG_LIST(ARG_FORWARDER, ##__VA_ARGS__));     \
+#define ARG_NAME_ONLY(TYPE, NAME) NAME
+#define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...)           \
+  VISIBILITY:                                                                 \
+  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>                  \
+  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME(                        \
+      ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {                         \
+    return folly::via(sw_->getNeighborCacheEvb(), [=, impl = this->impl_]() { \
+      return impl->NAME(ARG_LIST(ARG_NAME_ONLY, ##__VA_ARGS__));              \
+    });                                                                       \
   }
-#define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE) \
-  VISIBILITY:                                                          \
-  RETURN_TYPE NAME() {                                                 \
-    return impl_->NAME();                                              \
+#define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE)     \
+  VISIBILITY:                                                              \
+  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME() {                  \
+    return folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() { \
+      return impl->NAME();                                                 \
+    });                                                                    \
   }
 #include "fboss/agent/NeighborUpdater.def"
 #undef NEIGHBOR_UPDATER_METHOD
@@ -82,9 +94,6 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   // Forbidden copy constructor and assignment operator
   NeighborUpdater(NeighborUpdater const&) = delete;
   NeighborUpdater& operator=(NeighborUpdater const&) = delete;
-
-  std::shared_ptr<NeighborUpdaterImpl> impl_;
-  SwSwitch* sw_{nullptr};
 };
 
 } // namespace fboss

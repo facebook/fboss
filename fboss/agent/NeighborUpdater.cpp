@@ -45,10 +45,16 @@ using facebook::fboss::DeltaFunctions::forEachChanged;
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
     : AutoRegisterStateObserver(sw, "NeighborUpdater"),
-      impl_(std::make_shared<NeighborUpdaterImpl>(sw)),
+      impl_(std::make_shared<NeighborUpdaterImpl>()),
       sw_(sw) {}
 
-NeighborUpdater::~NeighborUpdater() {}
+NeighborUpdater::~NeighborUpdater() {
+  waitForPendingUpdates();
+}
+
+void NeighborUpdater::waitForPendingUpdates() {
+  folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() {}).get();
+}
 
 auto NeighborUpdater::createCaches(const SwitchState* state, const Vlan* vlan)
     -> std::shared_ptr<NeighborCaches> {

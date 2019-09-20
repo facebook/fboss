@@ -349,6 +349,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new ArpTable does not have any entry
   auto arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
@@ -393,6 +394,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Wait for any updates triggered by the packet to complete.
   waitForStateUpdates(sw);
@@ -431,6 +433,7 @@ TEST(ArpTest, TableUpdates) {
       PortID(1),
       folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the counters again
   counters.update();
@@ -466,6 +469,7 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -502,6 +506,7 @@ TEST(ArpTest, TableUpdates) {
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(2), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
   counters.update();
@@ -555,6 +560,7 @@ TEST(ArpTest, TableUpdates) {
       PortID(1),
       folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
   counters.update();
@@ -611,6 +617,7 @@ TEST(ArpTest, TableUpdates) {
       PortID(5),
       folly::Optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(5), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
   counters.update();
@@ -667,6 +674,7 @@ TEST(ArpTest, NotMine) {
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new stats
   counters.update();
@@ -705,6 +713,7 @@ TEST(ArpTest, BadHlen) {
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new stats
   counters.update();
@@ -749,6 +758,7 @@ void sendArpReply(
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(port), VlanID(1));
+  handle->getSw()->getNeighborUpdater()->waitForPendingUpdates();
 }
 
 TEST(ArpTest, FlushEntry) {
@@ -875,6 +885,7 @@ TEST(ArpTest, PendingArp) {
           vlanID));
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Should see a pending entry now
   waitForStateUpdates(sw);
@@ -900,6 +911,7 @@ TEST(ArpTest, PendingArp) {
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Should still see a pending entry now
   waitForStateUpdates(sw);
@@ -936,6 +948,7 @@ TEST(ArpTest, PendingArp) {
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
   entry = getArpEntry(sw, IPAddressV4("10.0.0.10"), vlanID);
   EXPECT_NE(entry, nullptr);
@@ -1270,6 +1283,7 @@ TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);
   EXPECT_TRUE(arpExpiry.wait());
@@ -1321,6 +1335,7 @@ TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);
 
@@ -1390,6 +1405,7 @@ TEST(ArpTest, receivedPacketWithRouteToDestination) {
   }
 
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);
   for (auto& arpExpiry : arpExpirations) {

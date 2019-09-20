@@ -167,6 +167,7 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
       PortDescriptor(kPort1),
       ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
       0);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
   // 2 neighbor entries expected
   verifyReachableCnt(2);
@@ -179,6 +180,7 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
   // And wait for purge to happen. Test ensures that
   // purge is not skipped due to port down/up being coalesced
   waitForStateUpdates(sw);
+  sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // 0 neighbor entries expected, i.e. entries must be purged
   verifyReachableCnt(0);
