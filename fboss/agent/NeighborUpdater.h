@@ -47,6 +47,8 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
+  using NeighborCaches = NeighborUpdaterImpl::NeighborCaches;
+
   // Zero-cost forwarders
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
@@ -66,6 +68,9 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 #undef NEIGHBOR_UPDATER_METHOD
 
  private:
+  std::shared_ptr<NeighborCaches> createCaches(
+      const SwitchState* state,
+      const Vlan* vlan);
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);

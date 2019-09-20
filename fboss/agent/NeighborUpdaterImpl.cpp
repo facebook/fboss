@@ -206,30 +206,20 @@ uint32_t NeighborUpdaterImpl::flushEntry(VlanID vlan, IPAddress ip) {
 }
 
 void NeighborUpdaterImpl::vlanAdded(
-    const SwitchState* state,
-    const Vlan* vlan) {
+    VlanID vlanID,
+    std::shared_ptr<NeighborCaches> caches) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
-  auto caches = std::make_shared<NeighborCaches>(
-      sw_, state, vlan->getID(), vlan->getName(), vlan->getInterfaceID());
-
-  // We need to populate the caches from the SwitchState when a vlan is added
-  // After this, we no longer process Arp or Ndp deltas for this vlan.
-  caches->arpCache->repopulate(vlan->getArpTable());
-  caches->ndpCache->repopulate(vlan->getNdpTable());
-
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    caches_.emplace(vlan->getID(), std::move(caches));
-  }
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  caches_.emplace(vlanID, std::move(caches));
 }
 
-void NeighborUpdaterImpl::vlanDeleted(const Vlan* vlan) {
+void NeighborUpdaterImpl::vlanDeleted(VlanID vlanID) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   std::shared_ptr<NeighborCaches> removedEntry;
   {
     std::lock_guard<std::mutex> g(cachesMutex_);
-    auto iter = caches_.find(vlan->getID());
+    auto iter = caches_.find(vlanID);
     if (iter != caches_.end()) {
       // we copy the entry over so we don't destroy the
       // caches while holding the lock.
@@ -245,31 +235,22 @@ void NeighborUpdaterImpl::vlanDeleted(const Vlan* vlan) {
 }
 
 void NeighborUpdaterImpl::vlanChanged(
-    const Vlan* oldVlan,
-    const Vlan* newVlan) {
-  if (newVlan->getInterfaceID() == oldVlan->getInterfaceID() &&
-      newVlan->getName() == oldVlan->getName()) {
-    // For now we only care about changes to the interfaceID and VlanName
-    return;
-  }
-
+    VlanID vlanID,
+    InterfaceID intfID,
+    std::string vlanName) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
-  {
-    std::lock_guard<std::mutex> g(cachesMutex_);
-    auto iter = caches_.find(newVlan->getID());
-    if (iter != caches_.end()) {
-      auto intfID = newVlan->getInterfaceID();
-      iter->second->arpCache->setIntfID(intfID);
-      iter->second->ndpCache->setIntfID(intfID);
-      const auto& vlanName = newVlan->getName();
-      iter->second->arpCache->setVlanName(vlanName);
-      iter->second->ndpCache->setVlanName(vlanName);
-    } else {
-      // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
-      // specific vlan. Need to make sure that caches are correctly created for
-      // the initial SwitchState to avoid false positives
-      XLOG(DBG0) << "Changed Vlan with no corresponding NeighborCaches";
-    }
+  std::lock_guard<std::mutex> g(cachesMutex_);
+  auto iter = caches_.find(vlanID);
+  if (iter != caches_.end()) {
+    iter->second->arpCache->setIntfID(intfID);
+    iter->second->ndpCache->setIntfID(intfID);
+    iter->second->arpCache->setVlanName(vlanName);
+    iter->second->ndpCache->setVlanName(vlanName);
+  } else {
+    // TODO(aeckert): May want to fatal here when a cache doesn't exist for a
+    // specific vlan. Need to make sure that caches are correctly created for
+    // the initial SwitchState to avoid false positives
+    XLOG(DBG0) << "Changed Vlan with no corresponding NeighborCaches";
   }
 }
 

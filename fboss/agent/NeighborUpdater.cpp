@@ -50,6 +50,19 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
 
 NeighborUpdater::~NeighborUpdater() {}
 
+auto NeighborUpdater::createCaches(const SwitchState* state, const Vlan* vlan)
+    -> std::shared_ptr<NeighborCaches> {
+  auto caches = std::make_shared<NeighborCaches>(
+      sw_, state, vlan->getID(), vlan->getName(), vlan->getInterfaceID());
+
+  // We need to populate the caches from the SwitchState when a vlan is added
+  // After this, we no longer process Arp or Ndp deltas for this vlan.
+  caches->arpCache->repopulate(vlan->getArpTable());
+  caches->ndpCache->repopulate(vlan->getNdpTable());
+
+  return caches;
+}
+
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
   for (const auto& entry : delta.getVlansDelta()) {
@@ -58,11 +71,18 @@ void NeighborUpdater::stateUpdated(const StateDelta& delta) {
     auto newEntry = entry.getNew();
 
     if (!newEntry) {
-      vlanDeleted(oldEntry.get());
+      vlanDeleted(oldEntry->getID());
     } else if (!oldEntry) {
-      vlanAdded(delta.newState().get(), newEntry.get());
+      vlanAdded(
+          newEntry->getID(),
+          createCaches(delta.newState().get(), newEntry.get()));
     } else {
-      vlanChanged(oldEntry.get(), newEntry.get());
+      if (newEntry->getInterfaceID() != oldEntry->getInterfaceID() ||
+          newEntry->getName() != oldEntry->getName()) {
+        // For now we only care about changes to the interfaceID and VlanName
+        vlanChanged(
+            newEntry->getID(), newEntry->getInterfaceID(), newEntry->getName());
+      }
     }
   }
 

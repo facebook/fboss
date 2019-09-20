@@ -43,6 +43,30 @@ enum class ICMPv6Type : uint8_t;
  * as all those changes should originate from the caches stored in this class.
  */
 class NeighborUpdaterImpl {
+  struct NeighborCaches {
+    /* These are shared_ptrs for safety reasons as it lets callers
+     * safely use the results of getArpCacheFor or getNdpCacheFor
+     * even if the vlan is deleted in another thread. */
+    std::shared_ptr<ArpCache> arpCache;
+    std::shared_ptr<NdpCache> ndpCache;
+
+    NeighborCaches(
+        SwSwitch* sw,
+        const SwitchState* state,
+        VlanID vlanID,
+        std::string vlanName,
+        InterfaceID intfID)
+        : arpCache(
+              std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
+          ndpCache(
+              std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {
+    }
+    void clearEntries() {
+      arpCache->clearEntries();
+      ndpCache->clearEntries();
+    }
+  };
+
  public:
   explicit NeighborUpdaterImpl(SwSwitch* sw);
   ~NeighborUpdaterImpl();
@@ -74,30 +98,6 @@ class NeighborUpdaterImpl {
   // Forbidden copy constructor and assignment operator
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
-
-  struct NeighborCaches {
-    /* These are shared_ptrs for safety reasons as it lets callers
-     * safely use the results of getArpCacheFor or getNdpCacheFor
-     * even if the vlan is deleted in another thread. */
-    std::shared_ptr<ArpCache> arpCache;
-    std::shared_ptr<NdpCache> ndpCache;
-
-    NeighborCaches(
-        SwSwitch* sw,
-        const SwitchState* state,
-        VlanID vlanID,
-        std::string vlanName,
-        InterfaceID intfID)
-        : arpCache(
-              std::make_shared<ArpCache>(sw, state, vlanID, vlanName, intfID)),
-          ndpCache(
-              std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {
-    }
-    void clearEntries() {
-      arpCache->clearEntries();
-      ndpCache->clearEntries();
-    }
-  };
 
   /**
    * caches_ can be accessed from multiple threads, so we need to lock accesses
