@@ -55,8 +55,10 @@ SaiHostifManager::makeHostifTrapAttributes(
       SAI_PACKET_ACTION_TRAP};
   SaiHostifTrapTraits::Attributes::TrapType trapType{
       packetReasonToHostifTrap(trapId)};
-  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{
-      SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY};
+  /*
+   * TODO: Setting it to max priority to trap ARP packets.
+   */
+  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{255};
   SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
 
   return SaiHostifTrapTraits::CreateAttributes{
