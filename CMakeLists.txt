@@ -290,6 +290,7 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
     fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
+    fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
     fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
     fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp

@@ -19,6 +19,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -133,5 +134,31 @@ TEST_F(HwMacLearningTest, PortCheckMacsLearned) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwMacLearningTest, MacAging) {
+  auto setup = [=]() { /* NOOP */ };
+  auto verify = [=]() {
+    constexpr int kMinAgeSecs = 1;
+    bool removed = false;
+
+    // 0: sendPkt here instead of setup b/c the last step of the test
+    // removes the packet, so we need to reset it with each verify()
+    sendPkt();
+    // 1: Verify that Mac aging is enabled, that is, >0
+    EXPECT_GT(utility::getMacAgeTimerSeconds(getHwSwitch()), 0);
+    // 2: Verify that we really learned that MAC
+    EXPECT_TRUE(
+        wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
+    // 3: Force MAC aging to as fast a possible but min is still 1 second
+    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeSecs);
+    // 4: Verify the mac has been removed; this call will wait up to
+    //     5 seconds before giving up, which is longer than the 2*kMinAge
+    //     needed
+    removed = wasMacLearnt(
+        PortDescriptor(PortID(masterLogicalPortIds()[0])),
+        /* shouldExist */ false); // return true if mac no longer learned
+    EXPECT_TRUE(removed);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace fboss
 } // namespace facebook
