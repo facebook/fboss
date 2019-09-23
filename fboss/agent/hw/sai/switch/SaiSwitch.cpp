@@ -283,6 +283,14 @@ void SaiSwitch::packetRxCallbackLocked(
   const auto& portManager = managerTable_->portManager();
   const auto& vlanManager = managerTable_->vlanManager();
   PortID swPortId = portManager.getPortID(saiPortId);
+  /*
+   * TODO: PortID 0 can be a valid port. Throw an exception or check for
+   * an invalid port id.
+   */
+  if (swPortId == 0) {
+    lock.unlock();
+    return;
+  }
   auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
   auto rxPacket =
       std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
