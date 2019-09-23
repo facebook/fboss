@@ -15,6 +15,8 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 
+#include "common/logging/logging.h"
+
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
@@ -248,6 +250,16 @@ std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
   return txPacket;
 }
 
+void UDPDatagram::serialize(folly::io::RWPrivateCursor& cursor) const {
+  CHECK_GE(cursor.totalLength(), length())
+      << "Insufficient room to serialize packet";
+
+  udpHdr_.write(&cursor);
+  for (auto byte : payload_) {
+    cursor.writeBE<uint8_t>(byte);
+  }
+}
+
 template <typename AddrT>
 IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
   hdr_ = HdrT(cursor);
@@ -270,6 +282,17 @@ std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
   return txPacket;
 }
 
+template <typename AddrT>
+void IPPacket<AddrT>::serialize(folly::io::RWPrivateCursor& cursor) const {
+  CHECK_GE(cursor.totalLength(), length())
+      << "Insufficient room to serialize packet";
+
+  hdr_.serialize(&cursor);
+  if (udpPayLoad_) {
+    udpPayLoad_->serialize(cursor);
+  }
+}
+
 MPLSPacket::MPLSPacket(folly::io::Cursor& cursor) {
   hdr_ = MPLSHdr(&cursor);
   uint8_t ipver = 0;
@@ -289,6 +312,7 @@ std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
   auto txPacket = hw->allocatePacket(length());
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
 
+  hdr_.serialize(&rwCursor);
   if (v4PayLoad_) {
     auto v4Packet = v4PayLoad_->getTxPacket(hw);
     folly::io::Cursor cursor(v4Packet->buf());
@@ -299,6 +323,18 @@ std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
     rwCursor.push(cursor, v4PayLoad_->length());
   }
   return txPacket;
+}
+
+void MPLSPacket::serialize(folly::io::RWPrivateCursor& cursor) const {
+  CHECK_GE(cursor.totalLength(), length())
+      << "Insufficient room to serialize packet";
+
+  hdr_.serialize(&cursor);
+  if (v4PayLoad_) {
+    v4PayLoad_->serialize(cursor);
+  } else if (v6PayLoad_) {
+    v6PayLoad_->serialize(cursor);
+  }
 }
 
 EthFrame::EthFrame(folly::io::Cursor& cursor) {
@@ -349,6 +385,34 @@ std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
     rwCursor.push(cursor, mplsPayLoad_->length());
   }
   return txPacket;
+}
+
+void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
+  CHECK_GE(cursor.totalLength(), length())
+      << "Insufficient room to serialize packet";
+
+  cursor.push(hdr_.dstAddr.bytes(), folly::MacAddress::SIZE);
+  cursor.push(hdr_.srcAddr.bytes(), folly::MacAddress::SIZE);
+
+  if (!hdr_.vlanTags.empty()) {
+    for (const auto& vlanTag : hdr_.vlanTags) {
+      cursor.template writeBE<uint32_t>(vlanTag.value);
+    }
+  }
+
+  if (v4PayLoad_) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
+    v4PayLoad_->serialize(cursor);
+  } else if (v6PayLoad_) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+    v6PayLoad_->serialize(cursor);
+  } else if (mplsPayLoad_) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS));
+    mplsPayLoad_->serialize(cursor);
+  }
 }
 
 template class IPPacket<folly::IPAddressV4>;

@@ -103,22 +103,45 @@ void verifyEthHdr(const EthHdr& ethHdr) {
   EXPECT_EQ(ethHdr.vlanTags, EthHdr::VlanTags_t{VlanTag(4001, 0x8100)});
   EXPECT_EQ(ethHdr.etherType, 0x8847);
 }
+
+void verifySerialization(folly::IOBuf* expectBuf, folly::IOBuf* actualBuf) {
+  folly::io::Cursor cursorIn(expectBuf);
+  folly::io::Cursor cursorOut(actualBuf);
+
+  auto expectSerialize = PktUtil::hexDump(cursorIn);
+  auto actualSerialize = PktUtil::hexDump(cursorOut);
+
+  EXPECT_EQ(expectSerialize, actualSerialize);
+}
 } // anonymous namespace
 
 TEST(PacketUtilTests, UDPDatagram) {
-  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(kUDP));
-  folly::io::Cursor cursor{buf.get()};
+  // test deserialization
+  auto udpStr = std::string(kUDP);
 
-  auto udpPkt = utility::UDPDatagram(cursor);
+  auto bufIn = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(udpStr));
+  folly::io::Cursor rCursor{bufIn.get()};
+
+  auto udpPkt = utility::UDPDatagram(rCursor);
   verifyUdp(udpPkt.header(), udpPkt.payload());
+
+  // test serialization
+  auto bufOut = folly::IOBuf::create(udpPkt.length());
+  bufOut->append(udpPkt.length());
+
+  folly::io::RWPrivateCursor rwCursor{bufOut.get()};
+  udpPkt.serialize(rwCursor);
+
+  verifySerialization(bufIn.get(), bufOut.get());
 }
 
 TEST(PacketUtilTests, IpV6Packet) {
+  // test deserialization
   auto ipv6 = std::string(kIPv6Hdr);
   ipv6.append(kUDP);
 
-  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(ipv6));
-  folly::io::Cursor cursor{buf.get()};
+  auto bufIn = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(ipv6));
+  folly::io::Cursor cursor{bufIn.get()};
 
   auto ip6Pkt = utility::IPv6Packet(cursor);
   auto ip6Hdr = ip6Pkt.header();
@@ -126,14 +149,24 @@ TEST(PacketUtilTests, IpV6Packet) {
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
+
+  // test serialization
+  auto bufOut = folly::IOBuf::create(ip6Pkt.length());
+  bufOut->append(ip6Pkt.length());
+
+  folly::io::RWPrivateCursor rwCursor{bufOut.get()};
+  ip6Pkt.serialize(rwCursor);
+
+  verifySerialization(bufIn.get(), bufOut.get());
 }
 
 TEST(PacketUtilTests, IpV4Packet) {
+  // test deserialization
   auto ipv4 = std::string(kIPv4Hdr);
   ipv4.append(kUDP);
 
-  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(ipv4));
-  folly::io::Cursor cursor{buf.get()};
+  auto bufIn = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(ipv4));
+  folly::io::Cursor cursor{bufIn.get()};
 
   auto ip4Pkt = utility::IPv4Packet(cursor);
   auto ip4Hdr = ip4Pkt.header();
@@ -141,15 +174,25 @@ TEST(PacketUtilTests, IpV4Packet) {
   verifyIP4Hdr(ip4Hdr);
   auto udpPkt = ip4Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
+
+  // test serialization
+  auto bufOut = folly::IOBuf::create(ip4Pkt.length());
+  bufOut->append(ip4Pkt.length());
+
+  folly::io::RWPrivateCursor rwCursor{bufOut.get()};
+  ip4Pkt.serialize(rwCursor);
+
+  verifySerialization(bufIn.get(), bufOut.get());
 }
 
 TEST(PacketUtilTests, MPLSPacket) {
+  // test deserialization
   auto mpls = std::string(kMPLSHdr);
   mpls.append(kIPv6Hdr);
   mpls.append(kUDP);
 
-  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(mpls));
-  folly::io::Cursor cursor{buf.get()};
+  auto bufIn = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(mpls));
+  folly::io::Cursor cursor{bufIn.get()};
 
   auto mplsPkt = utility::MPLSPacket(cursor);
   auto mplsHdr = mplsPkt.header();
@@ -160,6 +203,15 @@ TEST(PacketUtilTests, MPLSPacket) {
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
+
+  // test serialization
+  auto bufOut = folly::IOBuf::create(mplsPkt.length());
+  bufOut->append(mplsPkt.length());
+
+  folly::io::RWPrivateCursor rwCursor{bufOut.get()};
+  mplsPkt.serialize(rwCursor);
+
+  verifySerialization(bufIn.get(), bufOut.get());
 }
 
 TEST(PacketUtilTests, EthFrame) {
@@ -168,8 +220,8 @@ TEST(PacketUtilTests, EthFrame) {
   eth.append(kIPv6Hdr);
   eth.append(kUDP);
 
-  auto buf = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(eth));
-  folly::io::Cursor cursor{buf.get()};
+  auto bufIn = std::make_unique<folly::IOBuf>(PktUtil::parseHexData(eth));
+  folly::io::Cursor cursor{bufIn.get()};
 
   auto ethPkt = utility::EthFrame(cursor);
   verifyEthHdr(ethPkt.header());
@@ -183,4 +235,13 @@ TEST(PacketUtilTests, EthFrame) {
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
+
+  // test serialization
+  auto bufOut = folly::IOBuf::create(ethPkt.length());
+  bufOut->append(ethPkt.length());
+
+  folly::io::RWPrivateCursor rwCursor{bufOut.get()};
+  ethPkt.serialize(rwCursor);
+
+  verifySerialization(bufIn.get(), bufOut.get());
 }

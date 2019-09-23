@@ -123,6 +123,8 @@ class UDPDatagram {
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
 
+  void serialize(folly::io::RWPrivateCursor& cursor) const;
+
  private:
   UDPHeader udpHdr_;
   std::vector<uint8_t> payload_{};
@@ -156,6 +158,8 @@ class IPPacket {
   // construct TxPacket by encapsulating udp payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
+
+  void serialize(folly::io::RWPrivateCursor& cursor) const;
 
  private:
   HdrT hdr_;
@@ -204,6 +208,8 @@ class MPLSPacket {
   // construct TxPacket by encapsulating l3 payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
+
+  void serialize(folly::io::RWPrivateCursor& cursor) const;
 
  private:
   MPLSHdr hdr_{MPLSHdr::Label{0, 0, 0, 0}};
@@ -260,6 +266,8 @@ class EthFrame {
   folly::Optional<MPLSPacket> mplsPayLoad() const {
     return mplsPayLoad_;
   }
+
+  void serialize(folly::io::RWPrivateCursor& cursor) const;
 
  private:
   EthHdr hdr_;
