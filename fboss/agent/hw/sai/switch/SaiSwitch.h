@@ -14,8 +14,11 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 
+#include <folly/io/async/EventBase.h>
+
 #include <memory>
 #include <mutex>
+#include <thread>
 
 namespace facebook {
 namespace fboss {
@@ -75,17 +78,6 @@ class SaiSwitch : public HwSwitch {
 
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 
-  /*
-   * This signature matches the SAI callback signature and will be invoked
-   * immediately by the non-method SAI callback function.
-   */
-  void packetRxCallback(
-      sai_object_id_t switch_id,
-      sai_size_t buffer_size,
-      const void* buffer,
-      uint32_t attr_count,
-      const sai_attribute_t* attr_list);
-
   void linkStateChangedCallback(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
@@ -99,6 +91,20 @@ class SaiSwitch : public HwSwitch {
 
   SaiManagerTable* managerTable();
 
+  /*
+   * This method is not thread safe, it should only be used
+   * from the SAI adapter's rx callback caller thread.
+   *
+   * It immediately runs packetRxCallbackBottomHalf with the
+   * same arguments on rxBottomHalfEventBase_
+   */
+  void packetRxCallbackTopHalf(
+      sai_object_id_t switch_id,
+      sai_size_t buffer_size,
+      const void* buffer,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list);
+
  private:
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
@@ -108,12 +114,15 @@ class SaiSwitch : public HwSwitch {
    * lock_guard -- which ensures that a lock is held during the call.
    * While it could be any lock, there is only saiSwitchMutex_ in this context.
    *
-   * The public methods take saiSwitchMutex_ with an
-   * std::lock_guard and then call the Locked version passing the const
-   * lock_guard ref. The Locked versions don't take any additional locks.
+   * The public methods take saiSwitchMutex_ with an std::lock_guard and then
+   * call the Locked version passing the const lock_guard ref. The Locked
+   * versions don't take any additional locks.
    *
    * Within SaiSwitch, no method should call methods from the public interface
    * to avoid a deadlock trying to lock saiSwitchMutex_ twice.
+   *
+   * N.B., packet rx is handled slightly differently, which is documented
+   * along with its methods.
    */
   HwInitResult initLocked(
       const std::lock_guard<std::mutex>& lock,
@@ -192,14 +201,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       PortID port) const;
 
-  void packetRxCallbackLocked(
-      std::unique_lock<std::mutex>&& lock,
-      sai_object_id_t switch_id,
-      sai_size_t buffer_size,
-      const void* buffer,
-      uint32_t attr_count,
-      const sai_attribute_t* attr_list);
-
   void fdbEventCallbackLocked(
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
@@ -209,6 +210,15 @@ class SaiSwitch : public HwSwitch {
   const SaiManagerTable* managerTableLocked(
       const std::lock_guard<std::mutex>& lock) const;
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
+
+  void initRx(const std::lock_guard<std::mutex>& lock);
+
+  void packetRxCallbackBottomHalf(
+      sai_object_id_t switch_id,
+      sai_size_t buffer_size,
+      const void* buffer,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list);
 
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
@@ -224,6 +234,9 @@ class SaiSwitch : public HwSwitch {
   mutable std::mutex saiSwitchMutex_;
 
   SwitchSaiId switchId_;
+
+  std::unique_ptr<std::thread> rxBottomHalfThread_;
+  folly::EventBase rxBottomHalfEventBase_;
 };
 
 } // namespace fboss

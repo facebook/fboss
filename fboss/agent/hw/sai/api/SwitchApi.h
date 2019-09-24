@@ -102,6 +102,10 @@ class SwitchApi : public SaiApi<SwitchApi> {
       SwitchSaiId id,
       sai_fdb_event_notification_fn fdb_event_cb);
 
+  sai_status_t unregisterRxCallback(SwitchSaiId switch_id) {
+    return registerRxCallback(switch_id, nullptr);
+  }
+
  private:
   sai_status_t _create(
       SwitchSaiId* id,

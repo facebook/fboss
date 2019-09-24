@@ -33,9 +33,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <iomanip>
-#include <memory>
-#include <sstream>
+#include <folly/logging/xlog.h>
 
 extern "C" {
 #include <sai.h>
@@ -56,19 +54,14 @@ using facebook::fboss::DeltaFunctions::forEachAdded;
 // extended, presumably into an array keyed by switch id.
 static SaiSwitch* __gSaiSwitch;
 
-SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
-    : HwSwitch(featuresDesired), platform_(platform) {
-  utilCreateDir(platform_->getVolatileStateDir());
-  utilCreateDir(platform_->getPersistentStateDir());
-}
-
+// Free functions to register as callbacks
 void __gPacketRxCallback(
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  __gSaiSwitch->packetRxCallback(
+  __gSaiSwitch->packetRxCallbackTopHalf(
       switch_id, buffer_size, buffer, attr_count, attr_list);
 }
 
@@ -84,14 +77,32 @@ void __gFdbEventCallback(
   __gSaiSwitch->fdbEventCallback(count, data);
 }
 
+SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
+    : HwSwitch(featuresDesired), platform_(platform) {
+  utilCreateDir(platform_->getVolatileStateDir());
+  utilCreateDir(platform_->getPersistentStateDir());
+}
+
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return initLocked(lock, callback);
 }
 
 void SaiSwitch::unregisterCallbacks() noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  unregisterCallbacksLocked(lock);
+  // after unregistering there could still be a single packet in our
+  // pipeline. To fully shut down rx, we need to stop the thread and
+  // let the possible last packet get processed. Since processing a
+  // packet takes the saiSwitchMutex_, before calling join() on the thread
+  // we need to release the lock.
+  {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    unregisterCallbacksLocked(lock);
+  }
+
+  // rx is turned off and the evb loop is set to break
+  // just need to block until the last packet is processed
+  rxBottomHalfThread_->join();
+  // rx is completely shut-off
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
@@ -191,19 +202,16 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
   return getPortMaxSpeedLocked(lock, port);
 }
 
-/*
- * This signature matches the SAI callback signature and will be invoked
- * immediately by the non-method SAI callback function.
- */
-void SaiSwitch::packetRxCallback(
+void SaiSwitch::packetRxCallbackTopHalf(
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  std::unique_lock<std::mutex> lock(saiSwitchMutex_);
-  packetRxCallbackLocked(
-      std::move(lock), switch_id, buffer_size, buffer, attr_count, attr_list);
+  rxBottomHalfEventBase_.runInEventBaseThread([=]() {
+    packetRxCallbackBottomHalf(
+        switch_id, buffer_size, buffer, attr_count, attr_list);
+  });
 }
 
 void SaiSwitch::linkStateChangedCallback(
@@ -241,6 +249,7 @@ HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     Callback* callback) noexcept {
   HwInitResult ret;
+
   ret.bootType = BootType::COLD_BOOT;
   bootType_ = BootType::COLD_BOOT;
 
@@ -248,18 +257,27 @@ HwInitResult SaiSwitch::initLocked(
   SaiApiTable::getInstance()->queryApis();
   managerTable_ = std::make_unique<SaiManagerTable>(platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
-
+  SaiStore::getInstance()->setSwitchId(switchId_);
   platform_->initPorts();
 
   callback_ = callback;
+  __gSaiSwitch = this;
+
   auto state = std::make_shared<SwitchState>();
   ret.switchState = state;
-  __gSaiSwitch = this;
   return ret;
 }
 
-void SaiSwitch::packetRxCallbackLocked(
-    std::unique_lock<std::mutex>&& lock,
+void SaiSwitch::initRx(const std::lock_guard<std::mutex>& /* lock */) {
+  rxBottomHalfThread_ = std::make_unique<std::thread>([this]() {
+    initThread("fbossSaiRxBH");
+    rxBottomHalfEventBase_.loopForever();
+  });
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+}
+
+void SaiSwitch::packetRxCallbackBottomHalf(
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
     const void* buffer,
@@ -280,30 +298,32 @@ void SaiSwitch::packetRxCallbackLocked(
     }
   }
   CHECK_NE(saiPortId, 0);
-  const auto& portManager = managerTable_->portManager();
-  const auto& vlanManager = managerTable_->vlanManager();
-  PortID swPortId = portManager.getPortID(saiPortId);
-  /*
-   * TODO: PortID 0 can be a valid port. Throw an exception or check for
-   * an invalid port id.
-   */
-  if (swPortId == 0) {
-    lock.unlock();
-    return;
+  std::unique_ptr<SaiRxPacket> rxPacket;
+  {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    const auto& portManager = managerTableLocked(lock)->portManager();
+    const auto& vlanManager = managerTableLocked(lock)->vlanManager();
+    PortID swPortId = portManager.getPortID(saiPortId);
+    /*
+     * TODO: PortID 0 can be a valid port. Throw an exception or check for
+     * an invalid port id.
+     */
+    if (swPortId == 0) {
+      return;
+    }
+    auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
+    rxPacket =
+        std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
   }
-  auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
-  auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
-  /*
-   * TODO: unlock the mutex here because packet rx cb may end up calling packet
-   * tx function in the same thread stack, which also needs a lock.
-   */
-  lock.unlock();
   callback_->packetReceived(std::move(rxPacket));
 }
 
 void SaiSwitch::unregisterCallbacksLocked(
-    const std::lock_guard<std::mutex>& /* lock */) noexcept {}
+    const std::lock_guard<std::mutex>& /* lock */) noexcept {
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.unregisterRxCallback(switchId_);
+  rxBottomHalfEventBase_.terminateLoopSoon();
+}
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
     const std::lock_guard<std::mutex>& lock,
@@ -315,7 +335,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
       delta);
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
-  managerTableLocked(lock)->hostifManager().processControlPlaneDelta(delta);
   return delta.newState();
 }
 
@@ -422,13 +441,15 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
     XLOG(DBG5) << PktUtil::hexDump(cursor);
   }
 
+  XLOG(INFO) << "pkt->buf()->length(): " << pkt->buf()->length();
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
-  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(
-      portHandle->port->adapterKey());
+
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(
+      portHandle->port->adapterKey());
   SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   hostifApi.send(attributes, switchId_, txPacket);
@@ -475,7 +496,7 @@ void SaiSwitch::switchRunStateChangedLocked(
     case SwitchRunState::INITIALIZED: {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-        switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
+        initRx(lock);
       }
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         switchApi.registerPortStateChangeCallback(
