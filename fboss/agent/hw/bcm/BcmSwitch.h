@@ -471,6 +471,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool isAlpmEnabled() const;
   /*
+   * Clear statistics for a list of ports.
+   */
+  void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.
    * To that end make tests friends, but no one else
@@ -783,11 +788,6 @@ class BcmSwitch : public BcmSwitchIf {
   MmuState queryMmuState() const;
   void exportDeviceBufferUsage();
 
-  /*
-   * Clear statistics for a list of ports.
-   */
-  void clearPortStats(
-      const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   /*
    * Return true if any of the port's queue names changed, false otherwise.
