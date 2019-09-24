@@ -212,6 +212,7 @@ class SaiSwitch : public HwSwitch {
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
 
   void initRx(const std::lock_guard<std::mutex>& lock);
+  void initAsyncTx(const std::lock_guard<std::mutex>& lock);
 
   void packetRxCallbackBottomHalf(
       sai_object_id_t switch_id,
@@ -237,6 +238,9 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<std::thread> rxBottomHalfThread_;
   folly::EventBase rxBottomHalfEventBase_;
+
+  std::unique_ptr<std::thread> asyncTxThread_;
+  folly::EventBase asyncTxEventBase_;
 };
 
 } // namespace fboss

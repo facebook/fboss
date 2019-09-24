@@ -157,8 +157,11 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  gracefulExitLocked(lock, switchState);
+  {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    gracefulExitLocked(lock, switchState);
+  }
+  asyncTxThread_->join();
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {
@@ -277,6 +280,13 @@ void SaiSwitch::initRx(const std::lock_guard<std::mutex>& /* lock */) {
   switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
 }
 
+void SaiSwitch::initAsyncTx(const std::lock_guard<std::mutex>& /* lock */) {
+  asyncTxThread_ = std::make_unique<std::thread>([this]() {
+    initThread("fbossSaiAsyncTx");
+    asyncTxEventBase_.loopForever();
+  });
+}
+
 void SaiSwitch::packetRxCallbackBottomHalf(
     sai_object_id_t switch_id,
     sai_size_t buffer_size,
@@ -353,7 +363,12 @@ std::unique_ptr<TxPacket> SaiSwitch::allocatePacketLocked(
 bool SaiSwitch::sendPacketSwitchedAsyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt) noexcept {
-  return sendPacketSwitchedSyncLocked(lock, std::move(pkt));
+  asyncTxEventBase_.runInEventBaseThread(
+      [this, pkt = std::move(pkt)]() mutable {
+        std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+        sendPacketSwitchedSyncLocked(lock, std::move(pkt));
+      });
+  return true;
 }
 
 bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
@@ -361,7 +376,12 @@ bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     folly::Optional<uint8_t> /* queue */) noexcept {
-  return sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID);
+  asyncTxEventBase_.runInEventBaseThread(
+      [this, pkt = std::move(pkt), portID]() mutable {
+        std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+        sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID);
+      });
+  return true;
 }
 
 bool SaiSwitch::sendPacketSwitchedSyncLocked(
@@ -441,7 +461,6 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
     XLOG(DBG5) << PktUtil::hexDump(cursor);
   }
 
-  XLOG(INFO) << "pkt->buf()->length(): " << pkt->buf()->length();
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -479,7 +498,9 @@ void SaiSwitch::fetchL2TableLocked(
 
 void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    folly::dynamic& /* switchState */) {}
+    folly::dynamic& /* switchState */) {
+  asyncTxEventBase_.terminateLoopSoon();
+}
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
@@ -495,6 +516,7 @@ void SaiSwitch::switchRunStateChangedLocked(
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
+      initAsyncTx(lock);
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
         initRx(lock);
       }
