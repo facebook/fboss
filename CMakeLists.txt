@@ -284,6 +284,7 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwVlanTests.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/test/HwLinkStateDependentTest.h
+    fboss/agent/hw/test/HwTestCoppUtils.h
     fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
     fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
     fboss/agent/hw/test/Main.cpp
