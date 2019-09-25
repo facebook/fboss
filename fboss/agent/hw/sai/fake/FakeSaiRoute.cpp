@@ -17,6 +17,28 @@
 using facebook::fboss::FakeRoute;
 using facebook::fboss::FakeSai;
 
+sai_status_t set_route_entry_attribute_fn(
+    const sai_route_entry_t* route_entry,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto re = std::make_tuple(
+      route_entry->switch_id,
+      route_entry->vr_id,
+      facebook::fboss::fromSaiIpPrefix(route_entry->destination));
+  auto& fr = fs->rm.get(re);
+  switch (attr->id) {
+    case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
+      fr.packetAction = attr->value.s32;
+      break;
+    case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
+      fr.nextHopId = attr->value.oid;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t create_route_entry_fn(
     const sai_route_entry_t* route_entry,
     uint32_t attr_count,
@@ -45,27 +67,6 @@ sai_status_t remove_route_entry_fn(const sai_route_entry_t* route_entry) {
   return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t set_route_entry_attribute_fn(
-    const sai_route_entry_t* route_entry,
-    const sai_attribute_t* attr) {
-  auto fs = FakeSai::getInstance();
-  auto re = std::make_tuple(
-      route_entry->switch_id,
-      route_entry->vr_id,
-      facebook::fboss::fromSaiIpPrefix(route_entry->destination));
-  auto& fr = fs->rm.get(re);
-  switch (attr->id) {
-    case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
-      fr.packetAction = attr->value.s32;
-      break;
-    case SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID:
-      fr.nextHopId = attr->value.oid;
-      break;
-    default:
-      return SAI_STATUS_INVALID_PARAMETER;
-  }
-  return SAI_STATUS_SUCCESS;
-}
 
 sai_status_t get_route_entry_attribute_fn(
     const sai_route_entry_t* route_entry,

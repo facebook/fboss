@@ -16,6 +16,12 @@
 
 using facebook::fboss::FakeSai;
 
+sai_status_t set_bridge_attribute_fn(
+    sai_object_id_t /* bridge_id */,
+    const sai_attribute_t* /* attr */) {
+  return SAI_STATUS_FAILURE;
+}
+
 sai_status_t create_bridge_fn(
     sai_object_id_t* bridge_id,
     sai_object_id_t /* switch_id */,
@@ -71,12 +77,6 @@ sai_status_t get_bridge_attribute_fn(
     }
   }
   return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t set_bridge_attribute_fn(
-    sai_object_id_t /* bridge_id */,
-    const sai_attribute_t* /* attr */) {
-  return SAI_STATUS_FAILURE;
 }
 
 sai_status_t create_bridge_port_fn(

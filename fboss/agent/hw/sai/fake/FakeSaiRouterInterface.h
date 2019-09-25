@@ -17,23 +17,6 @@ extern "C" {
 #include <sai.h>
 }
 
-sai_status_t create_router_interface_fn(
-    sai_object_id_t* router_interface_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_router_interface_fn(sai_object_id_t router_interface_id);
-
-sai_status_t set_router_interface_attribute_fn(
-    sai_object_id_t router_interface_id,
-    const sai_attribute_t* attr);
-
-sai_status_t get_router_interface_attribute_fn(
-    sai_object_id_t router_interface_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
 namespace facebook {
 namespace fboss {
 

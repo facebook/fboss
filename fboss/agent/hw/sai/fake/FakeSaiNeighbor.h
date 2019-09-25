@@ -20,23 +20,6 @@ extern "C" {
 #include <sai.h>
 }
 
-sai_status_t create_neighbor_entry_fn(
-    const sai_neighbor_entry_t* neighbor_entry,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_neighbor_entry_fn(
-    const sai_neighbor_entry_t* neighbor_entry);
-
-sai_status_t set_neighbor_entry_attribute_fn(
-    const sai_neighbor_entry_t* neighbor_entry,
-    const sai_attribute_t* attr);
-
-sai_status_t get_neighbor_entry_attribute_fn(
-    const sai_neighbor_entry_t* neighbor_entry,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list);
-
 namespace facebook {
 namespace fboss {
 

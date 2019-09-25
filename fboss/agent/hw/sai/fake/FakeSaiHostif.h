@@ -15,40 +15,6 @@ extern "C" {
 #include <sai.h>
 }
 
-sai_status_t create_hostif_trap_fn(
-    sai_object_id_t* hostif_trap_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_hostif_trap_fn(sai_object_id_t hostif_trap_id);
-
-sai_status_t set_hostif_trap_attribute_fn(
-    sai_object_id_t hostif_trap_id,
-    const sai_attribute_t* attr);
-
-sai_status_t get_hostif_trap_attribute_fn(
-    sai_object_id_t hostif_trap_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
-sai_status_t create_hostif_trap_group_fn(
-    sai_object_id_t* hostif_trap_group_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_hostif_trap_group_fn(sai_object_id_t hostif_trap_group_id);
-
-sai_status_t set_hostif_trap_group_attribute_fn(
-    sai_object_id_t hostif_trap_group_id,
-    const sai_attribute_t* attr);
-
-sai_status_t get_hostif_trap_group_attribute_fn(
-    sai_object_id_t hostif_trap_group_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
 namespace facebook {
 namespace fboss {
 

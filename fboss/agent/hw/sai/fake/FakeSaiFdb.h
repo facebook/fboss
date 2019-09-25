@@ -18,23 +18,6 @@
 extern "C" {
 #include <sai.h>
 }
-
-sai_status_t create_fdb_entry_fn(
-    const sai_fdb_entry_t* fdb_entry,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_fdb_entry_fn(const sai_fdb_entry_t* fdb_entry);
-
-sai_status_t set_fdb_entry_attribute_fn(
-    const sai_fdb_entry_t* fdb_entry,
-    const sai_attribute_t* attr);
-
-sai_status_t get_fdb_entry_attribute_fn(
-    const sai_fdb_entry_t* fdb_entry,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list);
-
 namespace facebook {
 namespace fboss {
 

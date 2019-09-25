@@ -20,24 +20,6 @@ static constexpr uint64_t kDefaultVirtualRouterId = 0;
 static constexpr uint64_t kCpuPort = 0;
 } // namespace
 
-sai_status_t create_switch_fn(
-    sai_object_id_t* switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto fs = FakeSai::getInstance();
-  *switch_id = fs->swm.create();
-  for (int i = 0; i < attr_count; ++i) {
-    set_switch_attribute_fn(*switch_id, &attr_list[i]);
-  }
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t remove_switch_fn(sai_object_id_t switch_id) {
-  auto fs = FakeSai::getInstance();
-  fs->swm.remove(switch_id);
-  return SAI_STATUS_SUCCESS;
-}
-
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
@@ -65,6 +47,24 @@ sai_status_t set_switch_attribute_fn(
       break;
   }
   return res;
+}
+
+sai_status_t create_switch_fn(
+    sai_object_id_t* switch_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  *switch_id = fs->swm.create();
+  for (int i = 0; i < attr_count; ++i) {
+    set_switch_attribute_fn(*switch_id, &attr_list[i]);
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_switch_fn(sai_object_id_t switch_id) {
+  auto fs = FakeSai::getInstance();
+  fs->swm.remove(switch_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_switch_attribute_fn(

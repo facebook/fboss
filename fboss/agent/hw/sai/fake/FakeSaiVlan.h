@@ -14,41 +14,6 @@
 extern "C" {
 #include <sai.h>
 }
-
-sai_status_t create_vlan_fn(
-    sai_object_id_t* vlan_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_vlan_fn(sai_object_id_t vlan_id);
-
-sai_status_t get_vlan_attribute_fn(
-    sai_object_id_t vlan_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
-sai_status_t set_vlan_attribute_fn(
-    sai_object_id_t vlan_id,
-    const sai_attribute_t* attr);
-
-sai_status_t create_vlan_member_fn(
-    sai_object_id_t* vlan_member_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_vlan_member_fn(sai_object_id_t vlan_member_id);
-
-sai_status_t get_vlan_member_attribute_fn(
-    sai_object_id_t vlan_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
-sai_status_t set_vlan_member_attribute_fn(
-    sai_object_id_t vlan_member_id,
-    const sai_attribute_t* attr);
-
 namespace facebook {
 namespace fboss {
 

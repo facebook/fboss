@@ -88,6 +88,31 @@ sai_status_t set_vlan_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_vlan_member_attribute_fn(
+    sai_object_id_t vlan_member_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& vlanMember = fs->vm.getMember(vlan_member_id);
+  sai_status_t res;
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  switch (attr->id) {
+    case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
+      vlanMember.vlanId = attr->value.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
+      vlanMember.bridgePortId = attr->value.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    default:
+      res = SAI_STATUS_NOT_SUPPORTED;
+      break;
+  }
+  return res;
+}
+
 sai_status_t create_vlan_member_fn(
     sai_object_id_t* vlan_member_id,
     sai_object_id_t /* switch_id */,
@@ -141,31 +166,6 @@ sai_status_t get_vlan_member_attribute_fn(
     }
   }
   return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t set_vlan_member_attribute_fn(
-    sai_object_id_t vlan_member_id,
-    const sai_attribute_t* attr) {
-  auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vm.getMember(vlan_member_id);
-  sai_status_t res;
-  if (!attr) {
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-  switch (attr->id) {
-    case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
-      vlanMember.vlanId = attr->value.oid;
-      res = SAI_STATUS_SUCCESS;
-      break;
-    case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
-      vlanMember.bridgePortId = attr->value.oid;
-      res = SAI_STATUS_SUCCESS;
-      break;
-    default:
-      res = SAI_STATUS_NOT_SUPPORTED;
-      break;
-  }
-  return res;
 }
 
 namespace facebook {

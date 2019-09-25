@@ -18,23 +18,6 @@ extern "C" {
 #include <sai.h>
 }
 
-sai_status_t create_port_fn(
-    sai_object_id_t* port_id,
-    sai_object_id_t switch_id,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_port_fn(sai_object_id_t port_id);
-
-sai_status_t set_port_attribute_fn(
-    sai_object_id_t port_id,
-    const sai_attribute_t* attr);
-
-sai_status_t get_port_attribute_fn(
-    sai_object_id_t port_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr);
-
 namespace facebook {
 namespace fboss {
 

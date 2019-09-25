@@ -19,23 +19,6 @@
 extern "C" {
 #include <sai.h>
 }
-
-sai_status_t create_route_entry_fn(
-    const sai_route_entry_t* route_entry,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list);
-
-sai_status_t remove_route_entry_fn(const sai_route_entry_t* route_entry);
-
-sai_status_t set_route_entry_attribute_fn(
-    const sai_route_entry_t* route_entry,
-    const sai_attribute_t* attr);
-
-sai_status_t get_route_entry_attribute_fn(
-    const sai_route_entry_t* route_entry,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list);
-
 namespace facebook {
 namespace fboss {
 
