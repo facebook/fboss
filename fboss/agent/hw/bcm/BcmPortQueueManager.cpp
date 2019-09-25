@@ -40,6 +40,10 @@ BcmPortQueueManager::getQueueCounterTypes() const {
        BcmCosQueueStatType::DROPPED_BYTES,
        BcmCosQueueCounterScope::AGGREGATED,
        kOutCongestionDiscardsBytes()},
+      {cfg::StreamType::UNICAST,
+       BcmCosQueueStatType::OUT_PACKETS,
+       BcmCosQueueCounterScope::QUEUES,
+       kOutPkts()},
   };
   return types;
 }

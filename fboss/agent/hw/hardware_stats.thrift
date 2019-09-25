@@ -29,6 +29,7 @@ struct HwPortStats {
   20: map<i16, i64> queueOutDiscardBytes_ = {}
   21: map<i16, i64> queueOutBytes_ = {}
   22: i64 outEcnCounter_ = STAT_UNINITIALIZED
+  23: map<i16, i64> queueOutPackets_ = {}
 }
 
 struct HwTrunkStats {

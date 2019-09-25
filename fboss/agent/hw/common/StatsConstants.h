@@ -102,5 +102,8 @@ inline folly::StringPiece constexpr kOutEcnCounter() {
   return "out_ecn_counter";
 }
 
+inline folly::StringPiece constexpr kOutPkts() {
+  return "out_pkts";
+}
 } // namespace fboss
 } // namespace facebook
