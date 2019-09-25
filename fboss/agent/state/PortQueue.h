@@ -41,10 +41,10 @@ struct PortQueueFields {
   folly::Optional<int> reservedBytes{folly::none};
   folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
   folly::Optional<std::string> name{folly::none};
-  folly::Optional<int> packetsPerSec{folly::none};
   folly::Optional<int> sharedBytes{folly::none};
   // Using map to avoid manually sorting aqm list from thrift api
   AQMMap aqms;
+  folly::Optional<cfg::PortQueueRate> portQueueRate{folly::none};
 };
 
 /*
@@ -68,8 +68,8 @@ class PortQueue
         getFields()->scalingFactor == queue.getScalingFactor() &&
         getFields()->scheduling == queue.getScheduling() &&
         getFields()->aqms == queue.getAqms() &&
-        getFields()->packetsPerSec == queue.getPacketsPerSec() &&
-        getFields()->name == queue.getName();
+        getFields()->name == queue.getName() &&
+        getFields()->portQueueRate == queue.getPortQueueRate();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
@@ -143,19 +143,19 @@ class PortQueue
   void setName(const std::string& name) {
     writableFields()->name = name;
   }
-
-  folly::Optional<int> getPacketsPerSec() const {
-    return getFields()->packetsPerSec;
-  }
-  void setPacketsPerSec(int packetsPerSec) {
-    writableFields()->packetsPerSec = packetsPerSec;
-  }
-
   folly::Optional<int> getSharedBytes() const {
     return getFields()->sharedBytes;
   }
   void setSharedBytes(int sharedBytes) {
     writableFields()->sharedBytes = sharedBytes;
+  }
+
+  folly::Optional<cfg::PortQueueRate> getPortQueueRate() const {
+    return getFields()->portQueueRate;
+  }
+
+  void setPortQueueRate(cfg::PortQueueRate portQueueRate) {
+    writableFields()->portQueueRate = portQueueRate;
   }
 
  private:

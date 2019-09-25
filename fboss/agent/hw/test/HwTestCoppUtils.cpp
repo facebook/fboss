@@ -28,6 +28,15 @@ const auto kIPv6LinkLocalMcastNetwork =
 namespace facebook {
 namespace fboss {
 namespace utility {
+
+cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
+  cfg::Range range;
+  range.set_minimum(minimum);
+  range.set_maximum(maximum);
+
+  return range;
+}
+
 void addCpuQueueConfig(cfg::SwitchConfig& config) {
   std::vector<cfg::PortQueue> cpuQueues;
 
@@ -37,7 +46,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
   queue0.streamType = cfg::StreamType::MULTICAST;
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kCoppLowPriWeight;
-  queue0.packetsPerSec_ref() = kCoppLowPriPktsPerSec;
+  queue0.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+      getRange(0, kCoppLowPriPktsPerSec));
+  queue0.__isset.portQueueRate = true;
   queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
   queue0.sharedBytes_ref() = kCoppLowPriSharedBytes;
   cpuQueues.push_back(queue0);
@@ -48,7 +59,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
   queue1.streamType = cfg::StreamType::MULTICAST;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kCoppDefaultPriWeight;
-  queue1.packetsPerSec_ref() = kCoppDefaultPriPktsPerSec;
+  queue1.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+      getRange(0, kCoppDefaultPriPktsPerSec));
+  queue1.__isset.portQueueRate = true;
   queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
   queue1.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
   cpuQueues.push_back(queue1);

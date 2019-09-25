@@ -24,6 +24,21 @@ using std::shared_ptr;
 namespace {
 constexpr auto kNumCPUQueues = 48;
 
+cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
+  cfg::Range range;
+  range.set_minimum(minimum);
+  range.set_maximum(maximum);
+
+  return range;
+}
+
+cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
+  cfg::PortQueueRate portQueueRate;
+  portQueueRate.set_pktsPerSec(getRange(minimum, maximum));
+
+  return portQueueRate;
+}
+
 std::vector<cfg::PortQueue> getConfigCPUQueues() {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
@@ -48,7 +63,9 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   defaultQ.streamType = cfg::StreamType::MULTICAST;
   defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   defaultQ.weight_ref() = 1;
-  defaultQ.packetsPerSec_ref() = 200;
+  defaultQ.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+      getRange(0, 200));
+  defaultQ.__isset.portQueueRate = true;
   defaultQ.reservedBytes_ref() = 1040;
   defaultQ.sharedBytes_ref() = 10192;
   cpuQueues.push_back(defaultQ);
@@ -59,7 +76,8 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   low.streamType = cfg::StreamType::MULTICAST;
   low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   low.weight_ref() = 1;
-  low.packetsPerSec_ref() = 100;
+  low.portQueueRate_ref().value_unchecked().set_pktsPerSec(getRange(0, 100));
+  low.__isset.portQueueRate = true;
   low.reservedBytes_ref() = 1040;
   low.sharedBytes_ref() = 10192;
   cpuQueues.push_back(low);
@@ -88,7 +106,7 @@ QueueConfig genCPUQueues() {
   defaultQ->setStreamType(cfg::StreamType::MULTICAST);
   defaultQ->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   defaultQ->setWeight(1);
-  defaultQ->setPacketsPerSec(200);
+  defaultQ->setPortQueueRate(getPortQueueRatePps(0, 200));
   defaultQ->setReservedBytes(1040);
   defaultQ->setSharedBytes(10192);
   queues.push_back(defaultQ);
@@ -98,7 +116,7 @@ QueueConfig genCPUQueues() {
   low->setStreamType(cfg::StreamType::MULTICAST);
   low->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
   low->setWeight(1);
-  low->setPacketsPerSec(100);
+  low->setPortQueueRate(getPortQueueRatePps(0, 100));
   low->setReservedBytes(1040);
   low->setSharedBytes(10192);
   queues.push_back(low);
@@ -276,7 +294,9 @@ TEST(ControlPlane, changeLowPrioQueue) {
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
   auto& lowQueue = newCfgCpuQueues.at(newCfgCpuQueues.size() - 1);
-  lowQueue.packetsPerSec_ref().value_unchecked() = 1000;
+  lowQueue.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+      getRange(0, 1000));
+
   cfg::SwitchConfig newConfig;
   newConfig.cpuQueues = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
@@ -287,7 +307,8 @@ TEST(ControlPlane, changeLowPrioQueue) {
   EXPECT_EQ(newQueues.size(), kNumCPUQueues);
   auto cpu4QueuesMap = getCPUQueuesMap();
   // low-prio has been changed(pps from 100->1000)
-  cpu4QueuesMap.find(0)->second->setPacketsPerSec(1000);
+  cpu4QueuesMap.find(0)->second->setPortQueueRate(getPortQueueRatePps(0, 1000));
+
   for (const auto& queue : newQueues) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value

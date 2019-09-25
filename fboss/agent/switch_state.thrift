@@ -25,8 +25,13 @@ struct PortQueueFields {
  6: string streamType
  7: optional list<switch_config.ActiveQueueManagement> aqms
  8: optional string name
- 10: optional i32 packetsPerSec
+ /*
+  * Refer PortQueueRate which is a generalized version and allows configuring
+  * pps as well as kbps.
+  */
+ 10: optional i32 packetsPerSec_DEPRECATED
  11: optional i32 sharedBytes
+ 12: optional switch_config.PortQueueRate portQueueRate
 }
 
 // Port configuration and oper state fields

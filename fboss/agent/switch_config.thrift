@@ -487,7 +487,11 @@ struct PortQueue {
   6: required QueueScheduling scheduling
   7: optional string name
   // 8: optional i32 length (deprecated)
-  9: optional i32 packetsPerSec
+  /*
+   * Refer PortQueueRate which is a generalized version and allows configuring
+   * pps as well as kbps.
+   */
+  9: optional i32 packetsPerSec_DEPRECATED
   10: optional i32 sharedBytes
   // Only Unicast queue supports aqms
   11: optional list<ActiveQueueManagement> aqms;

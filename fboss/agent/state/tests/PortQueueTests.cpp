@@ -23,6 +23,22 @@ using std::make_shared;
 using std::shared_ptr;
 
 namespace {
+
+cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
+  cfg::Range range;
+  range.set_minimum(minimum);
+  range.set_maximum(maximum);
+
+  return range;
+}
+
+cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
+  cfg::PortQueueRate portQueueRate;
+  portQueueRate.set_pktsPerSec(getRange(minimum, maximum));
+
+  return portQueueRate;
+}
+
 cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   cfg::ActiveQueueManagement earlyDropAQM;
   cfg::LinearQueueCongestionDetection earlyDropLQCD;
@@ -59,7 +75,8 @@ cfg::SwitchConfig generateTestConfig() {
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
   queue0.reservedBytes_ref() = 19968;
   queue0.sharedBytes_ref() = 19968;
-  queue0.packetsPerSec_ref() = 100;
+  queue0.portQueueRate_ref().value_unchecked().set_pktsPerSec(getRange(0, 100));
+  queue0.__isset.portQueueRate = true;
   queue0.aqms_ref().value_unchecked().push_back(getECNAqmConfig());
   queue0.aqms_ref().value_unchecked().push_back(getEarlyDropAqmConfig());
   queue0.__isset.aqms = true;
@@ -77,7 +94,7 @@ PortQueue* generatePortQueue() {
   pqObject.setReservedBytes(1000);
   pqObject.setScalingFactor(cfg::MMUScalingFactor::ONE);
   pqObject.setName("queue0");
-  pqObject.setPacketsPerSec(200);
+  pqObject.setPortQueueRate(getPortQueueRatePps(0, 200));
   pqObject.setSharedBytes(10000);
   std::vector<cfg::ActiveQueueManagement> aqms;
   aqms.push_back(getEarlyDropAqmConfig());
@@ -102,7 +119,7 @@ PortQueue* generateProdCPUPortQueue() {
   pqObject.setStreamType(cfg::StreamType::MULTICAST);
   pqObject.setWeight(1);
   pqObject.setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
-  pqObject.setPacketsPerSec(200);
+  pqObject.setPortQueueRate(getPortQueueRatePps(0, 200));
   pqObject.setReservedBytes(1000);
   pqObject.setSharedBytes(10000);
   return &pqObject;

@@ -68,9 +68,6 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   if (name) {
     queue.name = name;
   }
-  if (packetsPerSec) {
-    queue.packetsPerSec = packetsPerSec;
-  }
   if (sharedBytes) {
     queue.sharedBytes = sharedBytes;
   }
@@ -81,6 +78,11 @@ state::PortQueueFields PortQueueFields::toThrift() const {
     }
     queue.aqms = aqmList;
   }
+
+  if (portQueueRate) {
+    queue.portQueueRate = portQueueRate;
+  }
+
   return queue;
 }
 
@@ -113,9 +115,6 @@ PortQueueFields PortQueueFields::fromThrift(
   if (queueThrift.name) {
     queue.name = queueThrift.name;
   }
-  if (queueThrift.packetsPerSec) {
-    queue.packetsPerSec = queueThrift.packetsPerSec;
-  }
   if (queueThrift.sharedBytes) {
     queue.sharedBytes = queueThrift.sharedBytes;
   }
@@ -123,6 +122,10 @@ PortQueueFields PortQueueFields::fromThrift(
     for (const auto& aqm : queueThrift.aqms.value()) {
       queue.aqms.emplace(aqm.behavior, aqm);
     }
+  }
+
+  if (queueThrift.portQueueRate) {
+    queue.portQueueRate = queueThrift.portQueueRate;
   }
 
   return queue;
@@ -140,9 +143,6 @@ std::string PortQueue::toString() const {
   }
   if (getSharedBytes()) {
     ss << ", sharedBytes=" << getSharedBytes().value();
-  }
-  if (getPacketsPerSec()) {
-    ss << ", packetsPerSec=" << getPacketsPerSec().value();
   }
   if (getScalingFactor()) {
     ss << ", scalingFactor="
@@ -163,6 +163,36 @@ std::string PortQueue::toString() const {
   if (getName()) {
     ss << ", name=" << getName().value();
   }
+
+  if (getPortQueueRate()) {
+    uint32_t rateMin, rateMax;
+    std::string type;
+    auto portQueueRate = getPortQueueRate().value();
+
+    switch (portQueueRate.getType()) {
+      case cfg::PortQueueRate::Type::pktsPerSec:
+        type = "pps";
+        rateMin = portQueueRate.get_pktsPerSec().minimum;
+        rateMax = portQueueRate.get_pktsPerSec().maximum;
+        break;
+      case cfg::PortQueueRate::Type::kbitsPerSec:
+        type = "pps";
+        rateMin = portQueueRate.get_kbitsPerSec().minimum;
+        rateMax = portQueueRate.get_kbitsPerSec().maximum;
+        break;
+      case cfg::PortQueueRate::Type::__EMPTY__:
+        // needed to handle error from -Werror=switch, fall through
+        FOLLY_FALLTHROUGH;
+      default:
+        type = "unknown";
+        rateMin = 0;
+        rateMax = 0;
+        break;
+    }
+
+    ss << ", bandwidth " << type << " min: " << rateMin << " max: " << rateMax;
+  }
+
   return ss.str();
 }
 
@@ -183,16 +213,16 @@ bool checkSwConfPortQueueMatch(
              cfgQueue->__isset.scalingFactor,
              cfgQueue->scalingFactor_ref().value_unchecked()) &&
       isPortQueueOptionalAttributeSame(
-             swQueue->getPacketsPerSec(),
-             cfgQueue->__isset.packetsPerSec,
-             cfgQueue->packetsPerSec_ref().value_unchecked()) &&
-      isPortQueueOptionalAttributeSame(
              swQueue->getSharedBytes(),
              cfgQueue->__isset.sharedBytes,
              cfgQueue->sharedBytes_ref().value_unchecked()) &&
       comparePortQueueAQMs(
              swQueue->getAqms(), cfgQueue->aqms_ref().value_unchecked()) &&
-      swQueue->getName() == cfgQueue->name_ref().value_unchecked();
+      swQueue->getName() == cfgQueue->name_ref().value_unchecked() &&
+      isPortQueueOptionalAttributeSame(
+             swQueue->getPortQueueRate(),
+             cfgQueue->__isset.portQueueRate,
+             cfgQueue->portQueueRate_ref().value_unchecked());
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

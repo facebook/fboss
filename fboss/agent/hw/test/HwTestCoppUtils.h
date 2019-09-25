@@ -49,6 +49,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const folly::MacAddress& localMac);
+
+cfg::Range getRange(uint32_t minimum, uint32_t maximum);
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

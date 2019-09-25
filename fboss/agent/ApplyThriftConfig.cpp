@@ -713,12 +713,13 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   if (cfg->__isset.sharedBytes) {
     queue->setSharedBytes(cfg->sharedBytes_ref().value_unchecked());
   }
-  if (cfg->__isset.packetsPerSec) {
-    queue->setPacketsPerSec(cfg->packetsPerSec_ref().value_unchecked());
-  }
   if (cfg->__isset.name) {
     queue->setName(cfg->name_ref().value_unchecked());
   }
+  if (cfg->__isset.portQueueRate) {
+    queue->setPortQueueRate(cfg->portQueueRate_ref().value_unchecked());
+  }
+
   return queue;
 }
 
