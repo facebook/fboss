@@ -50,7 +50,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   void onHwInitialized(SwSwitch* sw) override;
   std::unique_ptr<ThriftHandler> createHandler(SwSwitch* sw) override;
 
-  folly::MacAddress getLocalMac() const override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 
@@ -92,7 +91,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   virtual folly::ByteRange defaultLed0Code() = 0;
   virtual folly::ByteRange defaultLed1Code() = 0;
 
-  folly::MacAddress localMac_;
   std::unique_ptr<BcmSwitch> hw_;
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;

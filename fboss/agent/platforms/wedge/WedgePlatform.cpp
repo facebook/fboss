@@ -10,7 +10,6 @@
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
 #include <folly/Memory.h>
-#include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/SwSwitch.h"
@@ -35,11 +34,8 @@ DEFINE_string(
     persistent_state_dir,
     "/var/facebook/fboss",
     "Directory for storing persistent state");
-DEFINE_string(mac, "", "The local MAC address for this switch");
-DEFINE_string(mgmt_if, "eth0", "name of management interface");
 
 using folly::MacAddress;
-using folly::Subprocess;
 using std::make_unique;
 using std::string;
 
@@ -56,7 +52,6 @@ WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
 
 void WedgePlatform::initImpl() {
   BcmAPI::init(loadConfig());
-  initLocalMac();
   hw_.reset(new BcmSwitch(this));
 }
 
@@ -110,10 +105,6 @@ HwSwitch* WedgePlatform::getHwSwitch() const {
   return hw_.get();
 }
 
-MacAddress WedgePlatform::getLocalMac() const {
-  return localMac_;
-}
-
 string WedgePlatform::getVolatileStateDir() const {
   return FLAGS_volatile_state_dir;
 }
@@ -136,29 +127,6 @@ void WedgePlatform::getProductInfo(ProductInfo& info) {
 
 PlatformMode WedgePlatform::getMode() const {
   return productInfo_->getMode();
-}
-
-void WedgePlatform::initLocalMac() {
-  if (!FLAGS_mac.empty()) {
-    localMac_ = MacAddress(FLAGS_mac);
-    return;
-  }
-
-  // TODO(t4543375): Get the base MAC address from the BMC.
-  //
-  // For now, we take the MAC address from eth0, and enable the
-  // "locally administered" bit.  This MAC should be unique, and it's fine for
-  // us to use a locally administered address for now.
-  std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
-  Subprocess p(cmd, Subprocess::Options().pipeStdout());
-  auto out = p.communicate();
-  p.waitChecked();
-  auto idx = out.first.find("link/ether ");
-  if (idx == std::string::npos) {
-    throw std::runtime_error("unable to determine local mac address");
-  }
-  MacAddress eth0Mac(out.first.substr(idx + 11, 17));
-  localMac_ = MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {

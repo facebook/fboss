@@ -109,7 +109,7 @@ class Platform {
    * This method must be thread safe.  It may be called simultaneously from
    * various different threads.
    */
-  virtual folly::MacAddress getLocalMac() const = 0;
+  virtual folly::MacAddress getLocalMac() const;
 
   /*
    * Get the path to a directory where persistent state can be stored.

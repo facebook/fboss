@@ -10,6 +10,7 @@
 
 #include "fboss/agent/Platform.h"
 
+#include <folly/Subprocess.h>
 #include <string>
 #include "fboss/agent/AgentConfig.h"
 
@@ -23,6 +24,36 @@ DEFINE_string(
     "crash_hw_state",
     "File for dumping HW state on crash");
 
+DEFINE_string(mac, "", "The local MAC address for this switch");
+
+DEFINE_string(mgmt_if, "eth0", "name of management interface");
+
+using folly::MacAddress;
+using folly::Subprocess;
+
+namespace {
+MacAddress localMacAddress() {
+  if (!FLAGS_mac.empty()) {
+    return MacAddress(FLAGS_mac);
+  }
+
+  // TODO(t4543375): Get the base MAC address from the BMC.
+  //
+  // For now, we take the MAC address from eth0, and enable the
+  // "locally administered" bit.  This MAC should be unique, and it's fine for
+  // us to use a locally administered address for now.
+  std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
+  Subprocess p(cmd, Subprocess::Options().pipeStdout());
+  auto out = p.communicate();
+  p.waitChecked();
+  auto idx = out.first.find("link/ether ");
+  if (idx == std::string::npos) {
+    throw std::runtime_error("unable to determine local mac address");
+  }
+  MacAddress eth0Mac(out.first.substr(idx + 11, 17));
+  return MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
+}
+} // namespace
 namespace facebook {
 namespace fboss {
 
@@ -52,7 +83,16 @@ const AgentConfig* Platform::reloadConfig() {
 void Platform::init(std::unique_ptr<AgentConfig> config) {
   // take ownership of the config if passed in
   config_ = std::move(config);
+  std::ignore = getLocalMac();
   initImpl();
+}
+
+MacAddress Platform::getLocalMac() const {
+  static folly::Optional<MacAddress> kLocalMac;
+  if (!kLocalMac.hasValue()) {
+    kLocalMac.assign(localMacAddress());
+  }
+  return kLocalMac.value();
 }
 
 } // namespace fboss
