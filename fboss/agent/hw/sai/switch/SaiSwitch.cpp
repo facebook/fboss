@@ -101,8 +101,10 @@ void SaiSwitch::unregisterCallbacks() noexcept {
 
   // rx is turned off and the evb loop is set to break
   // just need to block until the last packet is processed
-  rxBottomHalfThread_->join();
-  // rx is completely shut-off
+  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+    rxBottomHalfThread_->join();
+    // rx is completely shut-off
+  }
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
