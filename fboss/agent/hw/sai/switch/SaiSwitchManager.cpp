@@ -28,7 +28,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
   if (connStr.hasValue()) {
     std::copy(
         connStr->c_str(),
-        connStr->c_str() + connStr->size(),
+        connStr->c_str() + connStr->size() + 1,
         std::back_inserter(connectionHandle));
   }
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
