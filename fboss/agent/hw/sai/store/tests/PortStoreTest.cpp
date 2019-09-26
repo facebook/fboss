@@ -48,7 +48,7 @@ class PortStoreTest : public ::testing::Test {
 
   PortSaiId createPort(uint32_t lane) {
     SaiPortTraits::CreateAttributes c = makeAttrs(lane, 100000);
-    return saiApiTable->portApi().create2<SaiPortTraits>(c, 0);
+    return saiApiTable->portApi().create<SaiPortTraits>(c, 0);
   }
 };
 
@@ -79,7 +79,7 @@ TEST_F(PortStoreTest, portCreateCtor) {
   SaiPortTraits::AdapterHostKey adapterHostKey =
       std::get<SaiPortTraits::Attributes::HwLaneList>(attrs);
   SaiObject<SaiPortTraits> obj(adapterHostKey, attrs, 0);
-  auto apiSpeed = saiApiTable->portApi().getAttribute2(
+  auto apiSpeed = saiApiTable->portApi().getAttribute(
       obj.adapterKey(), SaiPortTraits::Attributes::Speed{});
   EXPECT_EQ(apiSpeed, 100000);
 }
@@ -91,7 +91,7 @@ TEST_F(PortStoreTest, portSetSpeed) {
   auto newAttrs = makeAttrs(0, 25000);
   portObj.setAttributes(newAttrs);
   EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 25000);
-  auto apiSpeed = saiApiTable->portApi().getAttribute2(
+  auto apiSpeed = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::Speed{});
   EXPECT_EQ(apiSpeed, 25000);
 }
@@ -103,7 +103,7 @@ TEST_F(PortStoreTest, portSetAdminState) {
   auto newAttrs = makeAttrs(0, 25000, false);
   portObj.setAttributes(newAttrs);
   EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), false);
-  auto apiAdminState = saiApiTable->portApi().getAttribute2(
+  auto apiAdminState = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::AdminState{});
   EXPECT_EQ(apiAdminState, false);
 }
@@ -115,7 +115,7 @@ TEST_F(PortStoreTest, portUnsetAdminState) {
   auto newAttrs = makeAttrs(0, 25000, std::nullopt);
   portObj.setAttributes(newAttrs);
   /*
-  auto apiAdminState = saiApiTable->portApi().getAttribute2(
+  auto apiAdminState = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::AdminState{});
    * Once we properly handle un-setting and defaults, un-setting admin state
    * should make it false.
@@ -131,7 +131,7 @@ TEST_F(PortStoreTest, testMove) {
   SaiObject<SaiPortTraits> portObj(portId);
   {
     SaiObject<SaiPortTraits> portObj2(std::move(portObj));
-    auto apiSpeed = saiApiTable->portApi().getAttribute2(
+    auto apiSpeed = saiApiTable->portApi().getAttribute(
         portId, SaiPortTraits::Attributes::Speed{});
     EXPECT_EQ(apiSpeed, 100000);
   }
@@ -140,7 +140,7 @@ TEST_F(PortStoreTest, testMove) {
   // object is missing instead of throwing a map::at exception. That will
   // let us improve the expected exception to SaiApiError
   EXPECT_THROW(
-      saiApiTable->portApi().getAttribute2(
+      saiApiTable->portApi().getAttribute(
           portId, SaiPortTraits::Attributes::Speed{}),
       std::exception);
 }

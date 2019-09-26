@@ -39,28 +39,28 @@ class RouteApiTest : public ::testing::Test {
   folly::MacAddress dstMac{strMac};
 };
 
-TEST_F(RouteApiTest, create2V4Route) {
+TEST_F(RouteApiTest, createV4Route) {
   folly::CIDRNetwork prefix(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, prefix);
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi->create2<SaiRouteTraits>(
+  routeApi->create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
   EXPECT_EQ(
-      routeApi->getAttribute2(r, SaiRouteTraits::Attributes::NextHopId()), 5);
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::NextHopId()), 5);
 }
 
-TEST_F(RouteApiTest, create2V6Route) {
+TEST_F(RouteApiTest, createV6Route) {
   folly::CIDRNetwork prefix(ip6, 64);
   SaiRouteTraits::RouteEntry r(0, 0, prefix);
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi->create2<SaiRouteTraits>(
+  routeApi->create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
   EXPECT_EQ(
-      routeApi->getAttribute2(r, SaiRouteTraits::Attributes::NextHopId()), 5);
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::NextHopId()), 5);
 }
 
 TEST_F(RouteApiTest, setRouteNextHop) {
@@ -69,16 +69,16 @@ TEST_F(RouteApiTest, setRouteNextHop) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi->create2<SaiRouteTraits>(
+  routeApi->create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute2(0);
-  routeApi->setAttribute2(r, nextHopIdAttribute2);
+  routeApi->setAttribute(r, nextHopIdAttribute2);
   EXPECT_EQ(
-      routeApi->getAttribute2(r, SaiRouteTraits::Attributes::NextHopId()), 0);
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::NextHopId()), 0);
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute3(42);
-  routeApi->setAttribute2(r, nextHopIdAttribute3);
+  routeApi->setAttribute(r, nextHopIdAttribute3);
   EXPECT_EQ(
-      routeApi->getAttribute2(r, SaiRouteTraits::Attributes::NextHopId()), 42);
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::NextHopId()), 42);
 }
 
 TEST_F(RouteApiTest, routeCount) {
@@ -89,7 +89,7 @@ TEST_F(RouteApiTest, routeCount) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi->create2<SaiRouteTraits>(
+  routeApi->create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
   count = getObjectCount<SaiRouteTraits>(0);
   EXPECT_EQ(count, 1);
@@ -101,7 +101,7 @@ TEST_F(RouteApiTest, routeKeys) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi->create2<SaiRouteTraits>(
+  routeApi->create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
   auto routeKeys = getObjectKeys<SaiRouteTraits>(0);
   EXPECT_EQ(routeKeys.size(), 1);

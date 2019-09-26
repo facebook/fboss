@@ -40,15 +40,15 @@ class NextHopGroupManagerTest : public ManagerTestBase {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
     auto& nextHopApi = saiApiTable->nextHopApi();
     SaiNextHopGroupTraits::Attributes::NextHopMemberList memberList{};
-    auto members = nextHopGroupApi.getAttribute2(nextHopGroupId, memberList);
+    auto members = nextHopGroupApi.getAttribute(nextHopGroupId, memberList);
     EXPECT_EQ(members.size(), expectedNextHopIps.size());
 
     std::unordered_set<folly::IPAddress> gotNextHopIps;
     for (const auto& member : members) {
-      auto nextHopId = nextHopGroupApi.getAttribute2(
+      auto nextHopId = nextHopGroupApi.getAttribute(
           NextHopGroupMemberSaiId(member),
           SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
-      folly::IPAddress ip = nextHopApi.getAttribute2(
+      folly::IPAddress ip = nextHopApi.getAttribute(
           NextHopSaiId(nextHopId), SaiNextHopTraits::Attributes::Ip{});
       EXPECT_TRUE(gotNextHopIps.insert(ip).second);
     }

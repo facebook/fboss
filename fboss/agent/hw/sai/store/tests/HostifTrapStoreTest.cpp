@@ -32,13 +32,13 @@ class HostifTrapStoreTest : public ::testing::Test {
 
   HostifTrapGroupSaiId createTrapGroup(uint32_t queue) {
     SaiHostifTrapGroupTraits::CreateAttributes c{queue, std::nullopt};
-    return saiApiTable->hostifApi().create2<SaiHostifTrapGroupTraits>(c, 0);
+    return saiApiTable->hostifApi().create<SaiHostifTrapGroupTraits>(c, 0);
   }
 
   HostifTrapSaiId createTrap(int32_t trapType) {
     SaiHostifTrapTraits::CreateAttributes c{
         trapType, SAI_PACKET_ACTION_TRAP, std::nullopt, std::nullopt};
-    return saiApiTable->hostifApi().create2<SaiHostifTrapTraits>(c, 0);
+    return saiApiTable->hostifApi().create<SaiHostifTrapTraits>(c, 0);
   }
 };
 

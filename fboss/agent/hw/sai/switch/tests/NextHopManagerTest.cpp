@@ -26,13 +26,13 @@ class NextHopManagerTest : public ManagerTestBase {
       NextHopSaiId nextHopId,
       sai_object_id_t expectedRifId,
       const folly::IPAddress& expectedIp) {
-    auto rifIdGot = saiApiTable->nextHopApi().getAttribute2(
+    auto rifIdGot = saiApiTable->nextHopApi().getAttribute(
         nextHopId, SaiNextHopTraits::Attributes::RouterInterfaceId());
     EXPECT_EQ(rifIdGot, expectedRifId);
-    auto ipGot = saiApiTable->nextHopApi().getAttribute2(
+    auto ipGot = saiApiTable->nextHopApi().getAttribute(
         nextHopId, SaiNextHopTraits::Attributes::Ip());
     EXPECT_EQ(ipGot, expectedIp);
-    auto typeGot = saiApiTable->nextHopApi().getAttribute2(
+    auto typeGot = saiApiTable->nextHopApi().getAttribute(
         nextHopId, SaiNextHopTraits::Attributes::Type());
     EXPECT_EQ(typeGot, SAI_NEXT_HOP_TYPE_IP);
   }

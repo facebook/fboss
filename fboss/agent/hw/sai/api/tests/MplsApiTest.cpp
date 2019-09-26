@@ -32,25 +32,25 @@ class MplsApiTest : public ::testing::Test {
 TEST_F(MplsApiTest, createInSegEntry) {
   SaiInSegTraits::InSegEntry is{0, 42};
   SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create2<SaiInSegTraits>(is, attrs);
+  mplsApi->create<SaiInSegTraits>(is, attrs);
   EXPECT_EQ(
-      mplsApi->getAttribute2(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
+      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
 }
 
 TEST_F(MplsApiTest, removeInSegEntry) {
   SaiInSegTraits::InSegEntry is{0, 42};
   SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create2<SaiInSegTraits>(is, attrs);
-  mplsApi->remove2(is);
+  mplsApi->create<SaiInSegTraits>(is, attrs);
+  mplsApi->remove(is);
 }
 
 TEST_F(MplsApiTest, setAttributes) {
   SaiInSegTraits::InSegEntry is{0, 42};
   SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create2<SaiInSegTraits>(is, attrs);
+  mplsApi->create<SaiInSegTraits>(is, attrs);
   EXPECT_EQ(
-      mplsApi->getAttribute2(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
-  mplsApi->setAttribute2(is, SaiInSegTraits::Attributes::NumOfPop{2});
+      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
+  mplsApi->setAttribute(is, SaiInSegTraits::Attributes::NumOfPop{2});
   EXPECT_EQ(
-      mplsApi->getAttribute2(is, SaiInSegTraits::Attributes::NumOfPop{}), 2);
+      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 2);
 }

@@ -33,13 +33,13 @@ class VlanStoreTest : public ::testing::Test {
   std::shared_ptr<SaiApiTable> saiApiTable;
 
   VlanSaiId createVlan(uint16_t vlanId) const {
-    return saiApiTable->vlanApi().create2<SaiVlanTraits>({vlanId}, 0);
+    return saiApiTable->vlanApi().create<SaiVlanTraits>({vlanId}, 0);
   }
 
   VlanMemberSaiId createVlanMember(
       sai_object_id_t vlanId,
       sai_object_id_t bridgePortId) const {
-    return saiApiTable->vlanApi().create2<SaiVlanMemberTraits>(
+    return saiApiTable->vlanApi().create<SaiVlanMemberTraits>(
         {vlanId, bridgePortId}, 0);
   }
 };

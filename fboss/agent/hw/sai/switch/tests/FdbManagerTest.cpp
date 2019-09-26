@@ -40,7 +40,7 @@ class FdbManagerTest : public ManagerTestBase {
     SaiFdbTraits::FdbEntry entry{1, vlanId, mac};
     auto portHandle = saiManagerTable->portManager().getPortHandle(portId);
     auto expectedBridgePortId = portHandle->bridgePort->adapterKey();
-    auto bridgePortId = saiApiTable->fdbApi().getAttribute2(
+    auto bridgePortId = saiApiTable->fdbApi().getAttribute(
         entry, SaiFdbTraits::Attributes::BridgePortId{});
     EXPECT_EQ(bridgePortId, expectedBridgePortId);
   }

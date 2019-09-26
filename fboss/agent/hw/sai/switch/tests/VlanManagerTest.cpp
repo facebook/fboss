@@ -45,16 +45,16 @@ class VlanManagerTest : public ManagerTestBase {
     auto& vlanApi = saiApiTable->vlanApi();
     auto& bridgeApi = saiApiTable->bridgeApi();
     auto& portApi = saiApiTable->portApi();
-    auto gotMembers = vlanApi.getAttribute2(
+    auto gotMembers = vlanApi.getAttribute(
         saiVlanId, SaiVlanTraits::Attributes::MemberList{});
     for (const auto& member : gotMembers) {
-      BridgePortSaiId bridgePortId{vlanApi.getAttribute2(
+      BridgePortSaiId bridgePortId{vlanApi.getAttribute(
           VlanMemberSaiId{member},
           SaiVlanMemberTraits::Attributes::BridgePortId{})};
-      PortSaiId portId{bridgeApi.getAttribute2(
+      PortSaiId portId{bridgeApi.getAttribute(
           bridgePortId, SaiBridgePortTraits::Attributes::PortId{})};
-      auto lanesGot = portApi.getAttribute2(
-          portId, SaiPortTraits::Attributes::HwLaneList{});
+      auto lanesGot =
+          portApi.getAttribute(portId, SaiPortTraits::Attributes::HwLaneList{});
       observedPorts.insert(lanesGot[0]);
       XLOG(INFO) << "Check Vlan Member: " << member
                  << "; bpid: " << bridgePortId << "; portId" << portId << "; "
@@ -69,7 +69,7 @@ class VlanManagerTest : public ManagerTestBase {
 TEST_F(VlanManagerTest, addVlan) {
   std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
   VlanSaiId saiId = saiManagerTable->vlanManager().addVlan(swVlan);
-  auto swId = saiApiTable->vlanApi().getAttribute2(
+  auto swId = saiApiTable->vlanApi().getAttribute(
       saiId, SaiVlanTraits::Attributes::VlanId());
   EXPECT_EQ(swId, 0);
 }
@@ -77,12 +77,12 @@ TEST_F(VlanManagerTest, addVlan) {
 TEST_F(VlanManagerTest, addTwoVlans) {
   std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
   VlanSaiId saiId = saiManagerTable->vlanManager().addVlan(swVlan);
-  auto swId = saiApiTable->vlanApi().getAttribute2(
+  auto swId = saiApiTable->vlanApi().getAttribute(
       saiId, SaiVlanTraits::Attributes::VlanId());
   EXPECT_EQ(swId, 0);
   std::shared_ptr<Vlan> swVlan2 = makeVlan(intf1);
   VlanSaiId saiId2 = saiManagerTable->vlanManager().addVlan(swVlan2);
-  auto swId2 = saiApiTable->vlanApi().getAttribute2(
+  auto swId2 = saiApiTable->vlanApi().getAttribute(
       saiId2, SaiVlanTraits::Attributes::VlanId());
   EXPECT_EQ(swId2, 1);
 }

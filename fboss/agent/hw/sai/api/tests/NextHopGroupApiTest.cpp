@@ -41,20 +41,20 @@ class NextHopGroupApiTest : public ::testing::Test {
 };
 
 TEST_F(NextHopGroupApiTest, createNextHopGroup) {
-  auto nextHopGroupId = nextHopGroupApi->create2<SaiNextHopGroupTraits>(
+  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroup) {
-  auto nextHopGroupId = nextHopGroupApi->create2<SaiNextHopGroupTraits>(
+  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
-  nextHopGroupApi->remove2(nextHopGroupId);
+  nextHopGroupApi->remove(nextHopGroupId);
 }
 
 TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
-  auto nextHopGroupId = nextHopGroupApi->create2<SaiNextHopGroupTraits>(
+  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
@@ -62,19 +62,19 @@ TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
   typename SaiNextHopGroupMemberTraits::CreateAttributes c{nextHopGroupId,
                                                            nextHopId};
   auto nextHopGroupMemberId =
-      nextHopGroupApi->create2<SaiNextHopGroupMemberTraits>(c, 0);
+      nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
-  auto nextHopGroupId = nextHopGroupApi->create2<SaiNextHopGroupTraits>(
+  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
   typename SaiNextHopGroupMemberTraits::CreateAttributes c{nextHopGroupId,
                                                            nextHopId};
   auto nextHopGroupMemberId =
-      nextHopGroupApi->create2<SaiNextHopGroupMemberTraits>(c, 0);
+      nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
-  nextHopGroupApi->remove2(nextHopGroupMemberId);
+  nextHopGroupApi->remove(nextHopGroupMemberId);
 }

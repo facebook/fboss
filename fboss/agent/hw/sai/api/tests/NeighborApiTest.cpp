@@ -36,69 +36,69 @@ class NeighborApiTest : public ::testing::Test {
   folly::MacAddress dstMac{strMac};
 };
 
-TEST_F(NeighborApiTest, create2V4Neighbor) {
+TEST_F(NeighborApiTest, createV4Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
 }
 
-TEST_F(NeighborApiTest, create2V6Neighbor) {
+TEST_F(NeighborApiTest, createV6Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, removeV4Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
-  neighborApi->remove2(n);
+  neighborApi->remove(n);
   EXPECT_EQ(fs->nm.map().size(), 0);
 }
 
 TEST_F(NeighborApiTest, removeV6Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   EXPECT_EQ(fs->nm.map().size(), 1);
-  neighborApi->remove2(n);
+  neighborApi->remove(n);
   EXPECT_EQ(fs->nm.map().size(), 0);
 }
 
 TEST_F(NeighborApiTest, getV4DstMac) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   auto gotMac =
-      neighborApi->getAttribute2(n, SaiNeighborTraits::Attributes::DstMac());
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::DstMac());
   EXPECT_EQ(gotMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, setV4DstMac) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   folly::MacAddress dstMac2("22:22:22:22:22:22");
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute2(dstMac2);
-  neighborApi->setAttribute2(n, dstMacAttribute2);
+  neighborApi->setAttribute(n, dstMacAttribute2);
   auto gotMac =
-      neighborApi->getAttribute2(n, SaiNeighborTraits::Attributes::DstMac());
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::DstMac());
   EXPECT_EQ(gotMac, dstMac2);
 }
 
 TEST_F(NeighborApiTest, setV6DstMac) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
-  neighborApi->create2<SaiNeighborTraits>(n, {dstMacAttribute});
+  neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
   folly::MacAddress dstMac2("22:22:22:22:22:22");
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute2(dstMac2);
-  neighborApi->setAttribute2(n, dstMacAttribute2);
+  neighborApi->setAttribute(n, dstMacAttribute2);
   auto gotMac =
-      neighborApi->getAttribute2(n, SaiNeighborTraits::Attributes::DstMac());
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::DstMac());
   EXPECT_EQ(gotMac, dstMac2);
 }

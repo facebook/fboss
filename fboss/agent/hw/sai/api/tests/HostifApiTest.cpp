@@ -40,7 +40,7 @@ class HostifApiTest : public ::testing::Test {
     SaiHostifTrapTraits::CreateAttributes attributes{
         trapType, packetAction, trapPriority, trapGroup};
     HostifTrapSaiId trap =
-        hostifApi->create2<SaiHostifTrapTraits>(attributes, 0);
+        hostifApi->create<SaiHostifTrapTraits>(attributes, 0);
     return trap;
   }
 
@@ -48,7 +48,7 @@ class HostifApiTest : public ::testing::Test {
     SaiHostifTrapGroupTraits::Attributes::Queue queue(queueId);
     SaiHostifTrapGroupTraits::CreateAttributes attributes{queue, 0};
     HostifTrapGroupSaiId trapGroup =
-        hostifApi->create2<SaiHostifTrapGroupTraits>(attributes, 0);
+        hostifApi->create<SaiHostifTrapGroupTraits>(attributes, 0);
     return trapGroup;
   }
 };
@@ -81,8 +81,8 @@ TEST_F(HostifApiTest, removeTrap) {
   auto trap = createHostifTrap(trapType, trapGroup);
   EXPECT_EQ(fs->htm.map().size(), 1);
   EXPECT_EQ(fs->htgm.map().size(), 1);
-  hostifApi->remove2(trapGroup);
-  hostifApi->remove2(trap);
+  hostifApi->remove(trapGroup);
+  hostifApi->remove(trap);
   EXPECT_EQ(fs->htm.map().size(), 0);
   EXPECT_EQ(fs->htgm.map().size(), 0);
 }

@@ -32,7 +32,7 @@ class NextHopGroupStoreTest : public ::testing::Test {
 
   NextHopGroupSaiId createNextHopGroup() {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
-    return nextHopGroupApi.create2<SaiNextHopGroupTraits>(
+    return nextHopGroupApi.create<SaiNextHopGroupTraits>(
         {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   }
 
@@ -40,13 +40,13 @@ class NextHopGroupStoreTest : public ::testing::Test {
       sai_object_id_t groupId,
       sai_object_id_t nextHopId) {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
-    return nextHopGroupApi.create2<SaiNextHopGroupMemberTraits>(
+    return nextHopGroupApi.create<SaiNextHopGroupMemberTraits>(
         {groupId, nextHopId}, 0);
   }
 
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     auto& nextHopApi = saiApiTable->nextHopApi();
-    return nextHopApi.create2<SaiNextHopTraits>(
+    return nextHopApi.create<SaiNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
 };

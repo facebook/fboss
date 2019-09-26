@@ -45,13 +45,13 @@ SaiSwitchInstance::SaiSwitchInstance(
     const SaiSwitchTraits::CreateAttributes& attributes)
     : attributes_(attributes) {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  id_ = switchApi.create2<SaiSwitchTraits>(
+  id_ = switchApi.create<SaiSwitchTraits>(
       attributes_, 0 /* fake switch id; ignored */);
 }
 
 SaiSwitchInstance::~SaiSwitchInstance() {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.remove2(id());
+  switchApi.remove(id());
 }
 
 bool SaiSwitchInstance::operator==(const SaiSwitchInstance& other) const {

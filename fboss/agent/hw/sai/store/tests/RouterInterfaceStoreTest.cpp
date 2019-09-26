@@ -35,7 +35,7 @@ class RouterInterfaceStoreTest : public ::testing::Test {
   RouterInterfaceSaiId createRouterInterface(
       sai_object_id_t vlanId,
       const folly::MacAddress& mac) {
-    return saiApiTable->routerInterfaceApi().create2<SaiRouterInterfaceTraits>(
+    return saiApiTable->routerInterfaceApi().create<SaiRouterInterfaceTraits>(
         {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac}, 0);
   }
 };

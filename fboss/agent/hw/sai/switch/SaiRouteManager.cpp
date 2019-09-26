@@ -68,7 +68,7 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
   sai_object_id_t cpuPortId =
-      SaiApiTable::getInstance()->switchApi().getAttribute2(
+      SaiApiTable::getInstance()->switchApi().getAttribute(
           switchId, SaiSwitchTraits::Attributes::CpuPort{});
 
   toMeRoutes.reserve(swInterface->getAddresses().size());
@@ -141,7 +141,7 @@ void SaiRouteManager::addRoute(
     packetAction = SAI_PACKET_ACTION_FORWARD;
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
     sai_object_id_t cpuPortId =
-        SaiApiTable::getInstance()->switchApi().getAttribute2(
+        SaiApiTable::getInstance()->switchApi().getAttribute(
             switchId, SaiSwitchTraits::Attributes::CpuPort{});
     nextHopIdOpt = cpuPortId;
   } else if (fwd.getAction() == DROP) {

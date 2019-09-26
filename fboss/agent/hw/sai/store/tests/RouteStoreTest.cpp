@@ -39,7 +39,7 @@ TEST_F(RouteStoreTest, loadRoute) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi.create2<SaiRouteTraits>(
+  routeApi.create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
 
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
@@ -62,7 +62,7 @@ TEST_F(RouteStoreTest, routeLoadCtor) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
-  routeApi.create2<SaiRouteTraits>(
+  routeApi.create<SaiRouteTraits>(
       r, {packetActionAttribute, nextHopIdAttribute});
 
   SaiObject<SaiRouteTraits> obj(r);

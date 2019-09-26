@@ -49,7 +49,7 @@ TEST_F(BridgeStoreTest, loadBridgePort) {
       SAI_BRIDGE_PORT_TYPE_PORT,
       42,
       SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
-  auto bridgePortId = bridgeApi.create2<SaiBridgePortTraits>(c, 0);
+  auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
 
   SaiStore s(0);
   s.reload();
@@ -71,7 +71,7 @@ TEST_F(BridgeStoreTest, bridgePortLoadCtor) {
       SAI_BRIDGE_PORT_TYPE_PORT,
       42,
       SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
-  auto bridgePortId = bridgeApi.create2<SaiBridgePortTraits>(c, 0);
+  auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
   SaiObject<SaiBridgePortTraits> obj(bridgePortId);
   EXPECT_EQ(obj.adapterKey(), bridgePortId);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);

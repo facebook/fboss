@@ -125,14 +125,14 @@ typename std::
         const typename SaiObjectTraits::CreateAttributes& attributes) {
   typename SaiObjectTraits::AdapterHostKey ret;
   auto apiTable = SaiApiTable::getInstance();
-  auto memberIds = apiTable->nextHopGroupApi().getAttribute2(
+  auto memberIds = apiTable->nextHopGroupApi().getAttribute(
       adapterKey, SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
   for (const auto memberId : memberIds) {
-    NextHopSaiId nextHopSaiId{apiTable->nextHopGroupApi().getAttribute2(
+    NextHopSaiId nextHopSaiId{apiTable->nextHopGroupApi().getAttribute(
         NextHopGroupMemberSaiId(memberId),
         SaiNextHopGroupMemberTraits::Attributes::NextHopId{})};
     SaiNextHopTraits::AdapterHostKey nhk{};
-    apiTable->nextHopApi().getAttribute2(nextHopSaiId, nhk);
+    apiTable->nextHopApi().getAttribute(nextHopSaiId, nhk);
     ret.insert(nhk);
   }
   return ret;
@@ -181,7 +181,7 @@ class SaiObject {
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
     // N.B., fills out attributes_ as a side effect
     // XXX TODO: side-effect mode does NOT work with optionals
-    attributes_ = api.getAttribute2(adapterKey_, attributes_);
+    attributes_ = api.getAttribute(adapterKey_, attributes_);
 
     live_ = true;
     adapterHostKey_ =
@@ -225,7 +225,7 @@ class SaiObject {
     if (live_) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
-      api.remove2(adapterKey_);
+      api.remove(adapterKey_);
     }
     live_ = false;
   }
@@ -276,7 +276,7 @@ class SaiObject {
   void setNewAttributeHelper(const AttrT& newAttr) {
     auto& api =
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
-    api.setAttribute2(adapterKey(), newAttr);
+    api.setAttribute(adapterKey(), newAttr);
   }
   template <typename AttrT>
   void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
@@ -295,7 +295,7 @@ class SaiObject {
       sai_object_id_t switchId) {
     auto& api =
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
-    return api.template create2<T>(attributes, switchId);
+    return api.template create<T>(attributes, switchId);
   }
 
   template <typename T = SaiObjectTraits>
@@ -311,7 +311,7 @@ class SaiObject {
         "AdapterKey == AdapterHostKey == entry struct");
     auto& api =
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
-    api.template create2<T>(k, attributes);
+    api.template create<T>(k, attributes);
     return k;
   }
 

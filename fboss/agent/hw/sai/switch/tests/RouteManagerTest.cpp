@@ -196,7 +196,7 @@ TEST_F(ToMeRouteTest, toMeRoutes) {
       SAI_PACKET_ACTION_FORWARD);
 
   auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
-  sai_object_id_t cpuPortId = saiApiTable->switchApi().getAttribute2(
+  sai_object_id_t cpuPortId = saiApiTable->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::CpuPort{});
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, toMeRoute->attributes()), cpuPortId);
 }

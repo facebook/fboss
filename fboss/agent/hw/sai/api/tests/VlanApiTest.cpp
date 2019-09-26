@@ -36,59 +36,59 @@ class VlanApiTest : public ::testing::Test {
 };
 
 TEST_F(VlanApiTest, createVlan) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
 }
 
 TEST_F(VlanApiTest, removeVlan) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
-  vlanApi->remove2(vlanId);
+  vlanApi->remove(vlanId);
 }
 
 TEST_F(VlanApiTest, createVlanMember) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{0};
-  auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlan) {
-  auto vlanId1 = vlanApi->create2<SaiVlanTraits>({42}, 0);
-  auto vlanId2 = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId1 = vlanApi->create<SaiVlanTraits>({42}, 0);
+  auto vlanId2 = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId1);
   checkVlan(vlanId2);
   EXPECT_NE(vlanId1, vlanId2);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId2};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{0};
-  auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId2, vlanMemberId);
 }
 
 TEST_F(VlanApiTest, removeVlanMember) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{0};
-  auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
-  vlanApi->remove2(vlanMemberId);
+  vlanApi->remove(vlanMemberId);
 }
 
 TEST_F(VlanApiTest, multipleVlanMembers) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute1{0};
-  auto vlanMemberId1 = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId1 = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute1}, 0);
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute2{1};
-  auto vlanMemberId2 = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId2 = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute2}, 0);
   checkVlanMember(vlanId, vlanMemberId1);
   checkVlanMember(vlanId, vlanMemberId2);
@@ -96,39 +96,39 @@ TEST_F(VlanApiTest, multipleVlanMembers) {
 }
 
 TEST_F(VlanApiTest, getVlanAttribute) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   auto vlanIdGot =
-      vlanApi->getAttribute2(vlanId, SaiVlanTraits::Attributes::VlanId());
+      vlanApi->getAttribute(vlanId, SaiVlanTraits::Attributes::VlanId());
   EXPECT_EQ(42, vlanIdGot);
 }
 
 TEST_F(VlanApiTest, getVlanMemberAttribute) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{0};
-  auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
-  auto vlanIdGot = vlanApi->getAttribute2(
+  auto vlanIdGot = vlanApi->getAttribute(
       vlanMemberId, SaiVlanMemberTraits::Attributes::VlanId());
   EXPECT_EQ(vlanId, vlanIdGot);
 }
 
 TEST_F(VlanApiTest, setVlanMemberAttribute) {
-  auto vlanId = vlanApi->create2<SaiVlanTraits>({42}, 0);
+  auto vlanId = vlanApi->create<SaiVlanTraits>({42}, 0);
   checkVlan(vlanId);
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{vlanId};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{0};
-  auto vlanMemberId = vlanApi->create2<SaiVlanMemberTraits>(
+  auto vlanMemberId = vlanApi->create<SaiVlanMemberTraits>(
       {vlanIdAttribute, bridgePortIdAttribute}, 0);
   checkVlanMember(vlanId, vlanMemberId);
   auto bridgePortId = 42;
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute2(
       bridgePortId);
-  vlanApi->setAttribute2(vlanMemberId, bridgePortIdAttribute2);
-  auto bridgePortIdGot = vlanApi->getAttribute2(
+  vlanApi->setAttribute(vlanMemberId, bridgePortIdAttribute2);
+  auto bridgePortIdGot = vlanApi->getAttribute(
       vlanMemberId, SaiVlanMemberTraits::Attributes::BridgePortId());
   EXPECT_EQ(bridgePortId, bridgePortIdGot);
 }
@@ -138,6 +138,6 @@ TEST_F(VlanApiTest, setVlanMemberAttribute) {
  * belong to the API. (trying to create a next hop group with the vlan api)
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 TEST_F(VlanApiTest, doesntCompile) {
-  auto vlanId = vlanApi->create2<SaiNextHopGroupTraits>({10}, 0);
+  auto vlanId = vlanApi->create<SaiNextHopGroupTraits>({10}, 0);
 }
 */

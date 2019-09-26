@@ -34,7 +34,7 @@ TEST_F(BridgeManagerTest, addBridgePort) {
       GET_ATTR(BridgePort, Type, bridgePort->attributes()),
       SAI_BRIDGE_PORT_TYPE_PORT);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, bridgePort->attributes()), 42);
-  auto portId = saiApiTable->bridgeApi().getAttribute2(
+  auto portId = saiApiTable->bridgeApi().getAttribute(
       bridgePort->adapterKey(), SaiBridgePortTraits::Attributes::PortId{});
   EXPECT_EQ(portId, 42);
 }

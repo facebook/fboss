@@ -39,7 +39,7 @@ class PortApiTest : public ::testing::Test {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt};
-    return portApi->create2<SaiPortTraits>(a, 0);
+    return portApi->create<SaiPortTraits>(a, 0);
   }
 
   std::vector<PortSaiId> createFivePorts() const {
@@ -60,9 +60,9 @@ class PortApiTest : public ::testing::Test {
     ls.resize(4);
     SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute(ls);
     SaiPortTraits::Attributes::Speed speedAttribute;
-    auto gotAdminState = portApi->getAttribute2(portId, adminStateAttribute);
-    auto gotSpeed = portApi->getAttribute2(portId, speedAttribute);
-    auto lanes = portApi->getAttribute2(portId, hwLaneListAttribute);
+    auto gotAdminState = portApi->getAttribute(portId, adminStateAttribute);
+    auto gotSpeed = portApi->getAttribute(portId, speedAttribute);
+    auto lanes = portApi->getAttribute(portId, hwLaneListAttribute);
     EXPECT_EQ(fs->pm.get(portId).adminState, gotAdminState);
     EXPECT_EQ(fs->pm.get(portId).speed, gotSpeed);
     EXPECT_EQ(fs->pm.get(portId).id, portId);
@@ -80,9 +80,9 @@ TEST_F(PortApiTest, onePort) {
   ls.resize(1);
   SaiPortTraits::Attributes::HwLaneList l_blank(ls);
   SaiPortTraits::Attributes::Speed s_blank;
-  EXPECT_EQ(portApi->getAttribute2(id, as_blank), true);
-  EXPECT_EQ(portApi->getAttribute2(id, s_blank), 100000);
-  auto lanes = portApi->getAttribute2(id, l_blank);
+  EXPECT_EQ(portApi->getAttribute(id, as_blank), true);
+  EXPECT_EQ(portApi->getAttribute(id, s_blank), 100000);
+  auto lanes = portApi->getAttribute(id, l_blank);
   EXPECT_EQ(lanes.size(), 1);
   EXPECT_EQ(lanes[0], 42);
 }
@@ -97,20 +97,20 @@ TEST_F(PortApiTest, setPortAttributes) {
   SaiPortTraits::Attributes::AdminState as_attr(true);
   SaiPortTraits::Attributes::Speed speed_attr(50000);
   // set speeds
-  portApi->setAttribute2(portIds[0], speed_attr);
-  portApi->setAttribute2(portIds[2], speed_attr);
+  portApi->setAttribute(portIds[0], speed_attr);
+  portApi->setAttribute(portIds[2], speed_attr);
   // set admin state
-  portApi->setAttribute2(portIds[2], as_attr);
+  portApi->setAttribute(portIds[2], as_attr);
   // confirm admin states
-  EXPECT_EQ(portApi->getAttribute2(portIds[0], as_attr), true);
-  EXPECT_EQ(portApi->getAttribute2(portIds[1], as_attr), false);
-  EXPECT_EQ(portApi->getAttribute2(portIds[2], as_attr), true);
-  EXPECT_EQ(portApi->getAttribute2(portIds[3], as_attr), false);
+  EXPECT_EQ(portApi->getAttribute(portIds[0], as_attr), true);
+  EXPECT_EQ(portApi->getAttribute(portIds[1], as_attr), false);
+  EXPECT_EQ(portApi->getAttribute(portIds[2], as_attr), true);
+  EXPECT_EQ(portApi->getAttribute(portIds[3], as_attr), false);
   // confirm speeds
-  EXPECT_EQ(portApi->getAttribute2(portIds[0], speed_attr), 50000);
-  EXPECT_EQ(portApi->getAttribute2(portIds[1], speed_attr), 25000);
-  EXPECT_EQ(portApi->getAttribute2(portIds[2], speed_attr), 50000);
-  EXPECT_EQ(portApi->getAttribute2(portIds[3], speed_attr), 25000);
+  EXPECT_EQ(portApi->getAttribute(portIds[0], speed_attr), 50000);
+  EXPECT_EQ(portApi->getAttribute(portIds[1], speed_attr), 25000);
+  EXPECT_EQ(portApi->getAttribute(portIds[2], speed_attr), 50000);
+  EXPECT_EQ(portApi->getAttribute(portIds[3], speed_attr), 25000);
   // confirm consistency internally, too
   for (const auto& portId : portIds) {
     checkPort(portId);
@@ -121,22 +121,22 @@ TEST_F(PortApiTest, removePort) {
   {
     // basic remove
     auto portId = createPort(25000, {42}, true);
-    portApi->remove2(portId);
+    portApi->remove(portId);
   }
   {
     // remove a const portId
     const auto portId = createPort(25000, {42}, true);
-    portApi->remove2((portId));
+    portApi->remove((portId));
   }
   {
     // remove rvalue id
-    portApi->remove2(createPort(25000, {42}, true));
+    portApi->remove(createPort(25000, {42}, true));
   }
   {
     // remove in "canonical" for-loop
     auto portIds = createFivePorts();
     for (const auto& portId : portIds) {
-      portApi->remove2(portId);
+      portApi->remove(portId);
     }
   }
 }
@@ -147,7 +147,7 @@ TEST_F(PortApiTest, getLaneListPresized) {
   std::vector<uint32_t> tempLanes;
   tempLanes.resize(4);
   SaiPortTraits::Attributes::HwLaneList hwLaneListAttr{tempLanes};
-  auto gotLanes = portApi->getAttribute2(portId, hwLaneListAttr);
+  auto gotLanes = portApi->getAttribute(portId, hwLaneListAttr);
   EXPECT_EQ(gotLanes, inLanes);
 }
 
@@ -155,7 +155,7 @@ TEST_F(PortApiTest, getLaneListUnsized) {
   std::vector<uint32_t> inLanes{0, 1, 2, 3};
   auto portId = createPort(100000, inLanes, true);
   SaiPortTraits::Attributes::HwLaneList hwLaneListAttr;
-  auto gotLanes = portApi->getAttribute2(portId, hwLaneListAttr);
+  auto gotLanes = portApi->getAttribute(portId, hwLaneListAttr);
   EXPECT_EQ(gotLanes, inLanes);
 }
 
@@ -165,38 +165,38 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   // Fec Mode get/set
   int32_t saiFecMode = SAI_PORT_FEC_MODE_RS;
   SaiPortTraits::Attributes::FecMode fecMode{saiFecMode};
-  portApi->setAttribute2(portId, fecMode);
-  auto gotFecMode = portApi->getAttribute2(portId, fecMode);
+  portApi->setAttribute(portId, fecMode);
+  auto gotFecMode = portApi->getAttribute(portId, fecMode);
   EXPECT_EQ(gotFecMode, saiFecMode);
 
   // Internal Loopback Mode get/set
   int32_t saiInternalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
   SaiPortTraits::Attributes::InternalLoopbackMode internalLoopbackMode{
       saiInternalLoopbackMode};
-  portApi->setAttribute2(portId, internalLoopbackMode);
+  portApi->setAttribute(portId, internalLoopbackMode);
   auto gotInternalLoopbackMode =
-      portApi->getAttribute2(portId, internalLoopbackMode);
+      portApi->getAttribute(portId, internalLoopbackMode);
   EXPECT_EQ(gotInternalLoopbackMode, saiInternalLoopbackMode);
 
   // Media type get/set
   int32_t saiMediaType = SAI_PORT_MEDIA_TYPE_COPPER;
   SaiPortTraits::Attributes::MediaType mediaType{saiMediaType};
-  portApi->setAttribute2(portId, mediaType);
-  auto gotMediaType = portApi->getAttribute2(portId, mediaType);
+  portApi->setAttribute(portId, mediaType);
+  auto gotMediaType = portApi->getAttribute(portId, mediaType);
   EXPECT_EQ(gotMediaType, saiMediaType);
 
   // Global Flow Control get/set
   int32_t saiFlowControl = SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
   SaiPortTraits::Attributes::GlobalFlowControlMode flowControl{saiFlowControl};
-  portApi->setAttribute2(portId, flowControl);
-  auto gotFlowControl = portApi->getAttribute2(portId, flowControl);
+  portApi->setAttribute(portId, flowControl);
+  auto gotFlowControl = portApi->getAttribute(portId, flowControl);
   EXPECT_EQ(gotFlowControl, saiFlowControl);
 
   // Ingress port vlan get/set
   sai_vlan_id_t saiPortVlanId = 2000;
   SaiPortTraits::Attributes::PortVlanId portVlanId{saiPortVlanId};
-  portApi->setAttribute2(portId, portVlanId);
-  auto gotPortVlanId = portApi->getAttribute2(portId, portVlanId);
+  portApi->setAttribute(portId, portVlanId);
+  auto gotPortVlanId = portApi->getAttribute(portId, portVlanId);
   EXPECT_EQ(gotPortVlanId, saiPortVlanId);
 }
 

@@ -33,7 +33,7 @@ class NextHopStoreTest : public ::testing::Test {
   std::shared_ptr<SaiApiTable> saiApiTable;
 
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
-    return saiApiTable->nextHopApi().create2<SaiNextHopTraits>(
+    return saiApiTable->nextHopApi().create<SaiNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
 };

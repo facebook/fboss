@@ -31,27 +31,27 @@ class SwitchApiTest : public ::testing::Test {
 
 TEST_F(SwitchApiTest, setGetInit) {
   SaiSwitchTraits::Attributes::InitSwitch init{true};
-  switchApi->setAttribute2(switchId, init);
+  switchApi->setAttribute(switchId, init);
   SaiSwitchTraits::Attributes::InitSwitch blank{false};
-  EXPECT_TRUE(switchApi->getAttribute2(switchId, blank));
+  EXPECT_TRUE(switchApi->getAttribute(switchId, blank));
 }
 
 TEST_F(SwitchApiTest, getNumPorts) {
   SaiSwitchTraits::Attributes::PortNumber pn;
   // expect the one global cpu port
-  EXPECT_EQ(switchApi->getAttribute2(switchId, pn), 1);
+  EXPECT_EQ(switchApi->getAttribute(switchId, pn), 1);
   fs->pm.create(FakePort{{0}, 100000});
   fs->pm.create(FakePort{{1}, 25000});
   fs->pm.create(FakePort{{2}, 25000});
   fs->pm.create(FakePort{{3}, 25000});
   // expect 4 created ports plus global cpu port
-  EXPECT_EQ(switchApi->getAttribute2(switchId, pn), 5);
+  EXPECT_EQ(switchApi->getAttribute(switchId, pn), 5);
 }
 
 TEST_F(SwitchApiTest, setNumPorts) {
   SaiSwitchTraits::Attributes::PortNumber pn{100};
   EXPECT_THROW(
-      saiCheckError(switchApi->setAttribute2(switchId, pn)), SaiApiError);
+      saiCheckError(switchApi->setAttribute(switchId, pn)), SaiApiError);
 }
 
 TEST_F(SwitchApiTest, testGetPortIds) {
@@ -60,39 +60,39 @@ TEST_F(SwitchApiTest, testGetPortIds) {
   fs->pm.create(FakePort{{2}, 25000});
   fs->pm.create(FakePort{{3}, 25000});
   SaiSwitchTraits::Attributes::PortNumber pn;
-  auto numPorts = switchApi->getAttribute2(
+  auto numPorts = switchApi->getAttribute(
       switchId, SaiSwitchTraits::Attributes::PortNumber());
   std::vector<sai_object_id_t> v;
   v.resize(numPorts);
   SaiSwitchTraits::Attributes::PortList pl(v);
-  auto portIds = switchApi->getAttribute2(switchId, pl);
+  auto portIds = switchApi->getAttribute(switchId, pl);
   EXPECT_EQ(portIds.size(), numPorts);
 }
 
 TEST_F(SwitchApiTest, testSetMac) {
   folly::MacAddress newSrcMac("DE:AD:BE:EF:42:42");
   SaiSwitchTraits::Attributes::SrcMac ma(newSrcMac);
-  switchApi->setAttribute2(switchId, ma);
+  switchApi->setAttribute(switchId, ma);
   SaiSwitchTraits::Attributes::SrcMac blank;
-  EXPECT_EQ(switchApi->getAttribute2(switchId, blank), newSrcMac);
+  EXPECT_EQ(switchApi->getAttribute(switchId, blank), newSrcMac);
 }
 
 TEST_F(SwitchApiTest, getDefaultVlanId) {
   EXPECT_EQ(
-      switchApi->getAttribute2(
+      switchApi->getAttribute(
           switchId, SaiSwitchTraits::Attributes::DefaultVlanId()),
       0);
 }
 
 TEST_F(SwitchApiTest, setDefaultVlanId) {
   EXPECT_EQ(
-      switchApi->setAttribute2(
+      switchApi->setAttribute(
           switchId, SaiSwitchTraits::Attributes::DefaultVlanId(42)),
       SAI_STATUS_INVALID_PARAMETER);
 }
 
 TEST_F(SwitchApiTest, getCpuPort) {
-  auto cpuPort = switchApi->getAttribute2(
-      switchId, SaiSwitchTraits::Attributes::CpuPort{});
+  auto cpuPort =
+      switchApi->getAttribute(switchId, SaiSwitchTraits::Attributes::CpuPort{});
   EXPECT_EQ(cpuPort, 0);
 }

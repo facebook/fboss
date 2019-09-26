@@ -28,7 +28,7 @@ TEST_F(HostifManagerTest, createHostifTrap) {
   auto trapType = cfg::PacketRxReason::ARP;
   HostifTrapSaiId trapId =
       saiManagerTable->hostifManager().addHostifTrap(trapType, queueId);
-  auto trapTypeExpected = saiApiTable->hostifApi().getAttribute2(
+  auto trapTypeExpected = saiApiTable->hostifApi().getAttribute(
       trapId, SaiHostifTrapTraits::Attributes::TrapType{});
   auto trapTypeCfg = SaiHostifManager::packetReasonToHostifTrap(trapType);
   EXPECT_EQ(trapTypeCfg, trapTypeExpected);
@@ -41,12 +41,12 @@ TEST_F(HostifManagerTest, sharedHostifTrapGroup) {
   auto& hostifManager = saiManagerTable->hostifManager();
   HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId);
   HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId);
-  auto trapGroup1 = saiApiTable->hostifApi().getAttribute2(
+  auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
       trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
-  auto trapGroup2 = saiApiTable->hostifApi().getAttribute2(
+  auto trapGroup2 = saiApiTable->hostifApi().getAttribute(
       trapId2, SaiHostifTrapTraits::Attributes::TrapGroup{});
   EXPECT_EQ(trapGroup1, trapGroup2);
-  auto queueIdExpected = saiApiTable->hostifApi().getAttribute2(
+  auto queueIdExpected = saiApiTable->hostifApi().getAttribute(
       HostifTrapGroupSaiId{trapGroup1},
       SaiHostifTrapGroupTraits::Attributes::Queue{});
   EXPECT_EQ(queueIdExpected, queueId);
@@ -60,12 +60,12 @@ TEST_F(HostifManagerTest, removeHostifTrap) {
   // create two traps using the same queue
   HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId);
   HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId);
-  auto trapGroup1 = saiApiTable->hostifApi().getAttribute2(
+  auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
       trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
   // remove one of them
   saiManagerTable->hostifManager().removeHostifTrap(trapType1);
   // trap group for the queue should still be valid
-  auto trapGroup2 = saiApiTable->hostifApi().getAttribute2(
+  auto trapGroup2 = saiApiTable->hostifApi().getAttribute(
       trapId2, SaiHostifTrapTraits::Attributes::TrapGroup{});
   EXPECT_EQ(trapGroup1, trapGroup2);
 }

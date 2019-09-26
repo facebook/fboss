@@ -37,7 +37,7 @@ TEST_F(NeighborStoreTest, loadNeighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
   SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create2<SaiNeighborTraits>(n, {daAttr});
+  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
 
   SaiStore s(0);
   s.reload();
@@ -57,7 +57,7 @@ TEST_F(NeighborStoreTest, neighborLoadCtor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
   SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create2<SaiNeighborTraits>(n, {daAttr});
+  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
 
   SaiObject<SaiNeighborTraits> obj(n);
   EXPECT_EQ(obj.adapterKey(), n);
@@ -87,7 +87,7 @@ TEST_F(NeighborStoreTest, setDstMac) {
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac2);
   // Check that dst mac really changed according to SAI
   auto& neighborApi = saiApiTable->neighborApi();
-  auto apiDstMac = neighborApi.getAttribute2(
+  auto apiDstMac = neighborApi.getAttribute(
       obj.adapterKey(), SaiNeighborTraits::Attributes::DstMac{});
   EXPECT_EQ(apiDstMac, dstMac2);
 }

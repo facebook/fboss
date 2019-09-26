@@ -489,8 +489,8 @@ void SaiSwitch::fetchL2TableLocked(
         VlanSaiId(fdbEntry.bridgeVlanId()));
     entry.mac = fdbEntry.mac().toString();
     auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
-    auto saiPortId = fdbApi.getAttribute2(
-        fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
+    auto saiPortId =
+        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
     entry.port = managerTable()->portManager().getPortID(saiPortId);
     l2Table->push_back(entry);
   }

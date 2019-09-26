@@ -41,16 +41,16 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::Speed speedAttribute;
     SaiPortTraits::Attributes::FecMode fecMode;
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
-    auto gotAdminState = portApi.getAttribute2(saiId, adminStateAttribute);
+    auto gotAdminState = portApi.getAttribute(saiId, adminStateAttribute);
     EXPECT_EQ(enabled, gotAdminState);
-    auto gotLanes = portApi.getAttribute2(saiId, hwLaneListAttribute);
+    auto gotLanes = portApi.getAttribute(saiId, hwLaneListAttribute);
     EXPECT_EQ(1, gotLanes.size());
     EXPECT_EQ(swId, gotLanes[0]);
-    auto gotSpeed = portApi.getAttribute2(saiId, speedAttribute);
+    auto gotSpeed = portApi.getAttribute(saiId, speedAttribute);
     EXPECT_EQ(25000, gotSpeed);
-    auto gotFecMode = portApi.getAttribute2(saiId, fecMode);
+    auto gotFecMode = portApi.getAttribute(saiId, fecMode);
     EXPECT_EQ(static_cast<int32_t>(SAI_PORT_FEC_MODE_NONE), gotFecMode);
-    auto gotIlbMode = portApi.getAttribute2(saiId, ilbMode);
+    auto gotIlbMode = portApi.getAttribute(saiId, ilbMode);
     EXPECT_EQ(
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
   }
@@ -83,7 +83,7 @@ class PortManagerTest : public ManagerTestBase {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt};
-    return portApi.create2<SaiPortTraits>(a, 0);
+    return portApi.create<SaiPortTraits>(a, 0);
   }
 
   TestPort p0;

@@ -31,7 +31,7 @@ class RouterInterfaceApiTest : public ::testing::Test {
     SaiRouterInterfaceTraits::Attributes::VirtualRouterId
         virtualRouterIdAttribute(vr);
     SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(vlan);
-    auto rifId = routerInterfaceApi->create2<SaiRouterInterfaceTraits>(
+    auto rifId = routerInterfaceApi->create<SaiRouterInterfaceTraits>(
         {virtualRouterIdAttribute,
          typeAttribute,
          vlanIdAttribute,
@@ -56,9 +56,9 @@ TEST_F(RouterInterfaceApiTest, setSrcMac) {
   folly::MacAddress mac("42:42:42:42:42:42");
   SaiRouterInterfaceTraits::Attributes::SrcMac ma(mac);
   SaiRouterInterfaceTraits::Attributes::SrcMac ma2;
-  EXPECT_NE(mac, routerInterfaceApi->getAttribute2(rifId, ma2));
-  routerInterfaceApi->setAttribute2(rifId, ma);
-  EXPECT_EQ(mac, routerInterfaceApi->getAttribute2(rifId, ma2));
+  EXPECT_NE(mac, routerInterfaceApi->getAttribute(rifId, ma2));
+  routerInterfaceApi->setAttribute(rifId, ma);
+  EXPECT_EQ(mac, routerInterfaceApi->getAttribute(rifId, ma2));
 }
 
 TEST_F(RouterInterfaceApiTest, setVrId) {
@@ -68,21 +68,21 @@ TEST_F(RouterInterfaceApiTest, setVrId) {
   SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute2;
   EXPECT_EQ(
-      42, routerInterfaceApi->getAttribute2(rifId, virtualRouterIdAttribute2));
+      42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
   EXPECT_EQ(
       SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute2(rifId, virtualRouterIdAttribute));
+      routerInterfaceApi->setAttribute(rifId, virtualRouterIdAttribute));
   EXPECT_EQ(
-      42, routerInterfaceApi->getAttribute2(rifId, virtualRouterIdAttribute2));
+      42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
 }
 
 TEST_F(RouterInterfaceApiTest, setVlanId) {
   auto rifId = createRouterInterface();
   SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(10);
   SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute2;
-  EXPECT_EQ(43, routerInterfaceApi->getAttribute2(rifId, vlanIdAttribute2));
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
   EXPECT_EQ(
       SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute2(rifId, vlanIdAttribute));
-  EXPECT_EQ(43, routerInterfaceApi->getAttribute2(rifId, vlanIdAttribute2));
+      routerInterfaceApi->setAttribute(rifId, vlanIdAttribute));
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
 }

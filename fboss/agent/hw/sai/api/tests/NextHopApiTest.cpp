@@ -32,7 +32,7 @@ class NextHopApiTest : public ::testing::Test {
     SaiNextHopTraits::Attributes::RouterInterfaceId routerInterfaceIdAttribute(
         0);
     SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
-    auto nextHopId = nextHopApi->create2<SaiNextHopTraits>(
+    auto nextHopId = nextHopApi->create<SaiNextHopTraits>(
         {typeAttribute, routerInterfaceIdAttribute, ipAttribute}, 0);
     auto fnh = fs->nhm.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_IP, fnh.type);
@@ -52,14 +52,14 @@ TEST_F(NextHopApiTest, createNextHop) {
 TEST_F(NextHopApiTest, removeNextHop) {
   auto nextHopId = createNextHop(ip4);
   EXPECT_EQ(fs->nhm.map().size(), 1);
-  nextHopApi->remove2(nextHopId);
+  nextHopApi->remove(nextHopId);
   EXPECT_EQ(fs->nhm.map().size(), 0);
 }
 
 TEST_F(NextHopApiTest, getIp) {
   auto nextHopId = createNextHop(ip4);
   SaiNextHopTraits::Attributes::Ip ipAttribute;
-  EXPECT_EQ(ip4, nextHopApi->getAttribute2(nextHopId, ipAttribute));
+  EXPECT_EQ(ip4, nextHopApi->getAttribute(nextHopId, ipAttribute));
 }
 
 // IP is create only, so if we try to set it, we expect to fail
@@ -67,6 +67,6 @@ TEST_F(NextHopApiTest, setIp) {
   auto nextHopId = createNextHop(ip4);
   SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
   EXPECT_EQ(
-      nextHopApi->setAttribute2(nextHopId, ipAttribute),
+      nextHopApi->setAttribute(nextHopId, ipAttribute),
       SAI_STATUS_INVALID_PARAMETER);
 }

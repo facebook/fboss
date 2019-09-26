@@ -53,7 +53,7 @@ class SaiApi {
    * rename these to no longer have the '2'
    */
 
-  // Currently, create2 is not clever enough to have totally deducible
+  // Currently, create is not clever enough to have totally deducible
   // template parameters. It can be done, but I think it would reduce
   // the value of the CreateAttributes pattern. That is something that
   // may change in the future.
@@ -69,7 +69,7 @@ class SaiApi {
   std::enable_if_t<
       AdapterKeyIsObjectId<SaiObjectTraits>::value,
       typename SaiObjectTraits::AdapterKey>
-  create2(
+  create(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
       sai_object_id_t switch_id) {
     static_assert(
@@ -86,7 +86,7 @@ class SaiApi {
   // entry struct case
   template <typename SaiObjectTraits>
   std::enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, void>
-  create2(
+  create(
       const typename SaiObjectTraits::AdapterKey& entry,
       const typename SaiObjectTraits::CreateAttributes& createAttributes) {
     static_assert(
@@ -101,7 +101,7 @@ class SaiApi {
   }
 
   template <typename AdapterKeyT>
-  void remove2(const AdapterKeyT& key) {
+  void remove(const AdapterKeyT& key) {
     sai_status_t status = impl()._remove(key);
     saiApiCheckError(status, ApiT::ApiType, "Failed to remove sai object");
     XLOG(DBG5) << "removed sai object [" << saiApiTypeToString(ApiT::ApiType)
@@ -118,7 +118,7 @@ class SaiApi {
 
   // Default "real attr". This is the base case of the recursion
   template <typename AdapterKeyT, typename AttrT>
-  typename std::remove_reference<AttrT>::type::ValueType getAttribute2(
+  typename std::remove_reference<AttrT>::type::ValueType getAttribute(
       const AdapterKeyT& key,
       AttrT&& attr) {
     static_assert(
@@ -145,27 +145,27 @@ class SaiApi {
 
   // std::tuple of attributes
   template <typename AdapterKeyT, typename... AttrTs>
-  auto getAttribute2(const AdapterKeyT& key, std::tuple<AttrTs...>& attrTuple) {
+  auto getAttribute(const AdapterKeyT& key, std::tuple<AttrTs...>& attrTuple) {
     // TODO: assert on All<IsSaiAttribute>
     auto recurse = [&key, this](auto&& attr) {
-      return getAttribute2(key, attr);
+      return getAttribute(key, attr);
     };
     return tupleMap(recurse, attrTuple);
   }
 
   // std::optional of attribute
   template <typename AdapterKeyT, typename AttrT>
-  auto getAttribute2(
+  auto getAttribute(
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
     AttrT attr = attrOptional.value_or(AttrT{});
     auto res =
-        std::optional<typename AttrT::ValueType>{getAttribute2(key, attr)};
+        std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
     return res;
   }
 
   template <typename AdapterKeyT, typename AttrT>
-  sai_status_t setAttribute2(const AdapterKeyT& key, const AttrT& attr) {
+  sai_status_t setAttribute(const AdapterKeyT& key, const AttrT& attr) {
     return impl()._setAttribute(key, saiAttr(attr));
   }
 

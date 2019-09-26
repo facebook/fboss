@@ -37,11 +37,11 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId saiRouterInterfaceId,
       sai_object_id_t expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac) {
-    auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute2(
+    auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::VlanId{});
-    auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute2(
+    auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::SrcMac{});
-    auto vlanIdGot = saiApiTable->vlanApi().getAttribute2(
+    auto vlanIdGot = saiApiTable->vlanApi().getAttribute(
         VlanSaiId{saiVlanIdGot}, SaiVlanTraits::Attributes::VlanId{});
     EXPECT_EQ(vlanIdGot, expectedSaiVlanId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);

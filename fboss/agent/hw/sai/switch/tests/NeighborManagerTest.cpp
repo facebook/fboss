@@ -33,7 +33,7 @@ class NeighborManagerTest : public ManagerTestBase {
       const folly::MacAddress& expectedDstMac) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
-    auto gotMac = saiApiTable->neighborApi().getAttribute2(
+    auto gotMac = saiApiTable->neighborApi().getAttribute(
         saiEntry, SaiNeighborTraits::Attributes::DstMac{});
     EXPECT_EQ(gotMac, expectedDstMac);
     auto saiNeighborHandle =
