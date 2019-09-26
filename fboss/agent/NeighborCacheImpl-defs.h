@@ -152,47 +152,14 @@ NeighborCacheImpl<NTable>::~NeighborCacheImpl() {
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::clearEntries() {
-  /* All the NeighborCacheEntries need to be destroyed on
-   * the background thread. Because we do not want to exit
-   * the destructor until all of the entries have stopped
-   * executing, we use folly futures to wait for all entries
-   * to destroy themselves.
-   */
-  std::vector<folly::Future<folly::Unit>> stopTasks;
   for (const auto& item : entries_) {
     auto addr = item.first;
     auto entry = item.second;
-    stopTasks.push_back(
-        Entry::destroy(std::move(entry), evb_)
-            .thenError([=](const folly::exception_wrapper& /*e*/) {
-              XLOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr "
-                          << addr;
-            }));
+    Entry::destroy(std::move(entry), evb_)
+        .thenError([=](const folly::exception_wrapper& /*e*/) {
+          XLOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr " << addr;
+        });
   }
-  /*
-   * There is an interesting race condition possible with a flush
-   * coming from a different thread (like a ThriftHandler processing
-   * a flush neighbor api call). In flushEntry, we run Entry::destroy
-   * which ultimately runs an asynchronous cancelTimeout on evb_. At that
-   * point, we are unable to block on the destroy call, because it could
-   * cause a deadlock.
-   *
-   * As a result, it is possible for entries_ to be empty,
-   * but for there to still be cancelTimeout lambdas scheduled. On its own
-   * this is not so bad, but it is also possible for there to be a last
-   * lambda scheduled from the AsyncTimeout itself, ahead of the cancel. If
-   * that happens, then that code can race with destroying the Cache* which
-   * can cause a use-after-free.
-   *
-   * To fix it, we ensure that stopTasks is not empty so that we definitely
-   * drain the current evb queue. Any entry missing in entries_ above will
-   * have an async Entry::destroy on the evb, so we are sure to have
-   * canceled them all.
-   */
-  if (stopTasks.empty()) {
-    stopTasks.push_back(folly::via(evb_, []() {}));
-  }
-  folly::collectAllSemiFuture(stopTasks).get();
   entries_.clear();
 }
 
