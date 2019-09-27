@@ -1486,20 +1486,22 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
             (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? rib() : nullptr,
             &curConfig_);
 
+        if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
+          throw FbossError("Invalid config passed in, skipping");
+        }
+
+        // Update config cached in SwSwitch. Update this even if the config did
+        // not change (as this might be during warmboot).
+        curConfig_ = newConfig;
+        curConfigStr_ = target->swConfigRaw();
+        target->dumpConfig(platform_->getRunningConfigDumpFile());
+
         if (!newState) {
           // if config is not updated, the new state will return null
           // in such a case return here, to prevent possible crash.
           XLOG(WARNING) << "Applying config did not cause state change";
           return nullptr;
         }
-
-        if (!isValidStateUpdate(StateDelta(state, newState))) {
-          throw FbossError("Invalid config passed in, skipping");
-        }
-
-        curConfig_ = newConfig;
-        curConfigStr_ = target->swConfigRaw();
-        target->dumpConfig(platform_->getRunningConfigDumpFile());
 
         // TODO(aeckert): this should be unneeded. Remove this
         for (auto& port : *newState->getPorts()) {
