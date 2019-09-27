@@ -68,12 +68,16 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
   folly::MacAddress srcMac = swInterface->getMac();
   SaiRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
 
+  // get MTU
+  SaiRouterInterfaceTraits::Attributes::Mtu mtuAttribute{swInterface->getMtu()};
+
   // create the router interface
   SaiRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       vlanIdAttribute,
-      srcMacAttribute};
+      srcMacAttribute,
+      mtuAttribute};
   SaiRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       vlanIdAttribute,

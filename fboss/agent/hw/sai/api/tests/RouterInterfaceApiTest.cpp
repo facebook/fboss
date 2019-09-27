@@ -35,6 +35,7 @@ class RouterInterfaceApiTest : public ::testing::Test {
         {virtualRouterIdAttribute,
          typeAttribute,
          vlanIdAttribute,
+         std::nullopt,
          std::nullopt},
         0);
     EXPECT_EQ(rifId, fs->rim.get(rifId).id);
@@ -85,4 +86,15 @@ TEST_F(RouterInterfaceApiTest, setVlanId) {
       SAI_STATUS_INVALID_PARAMETER,
       routerInterfaceApi->setAttribute(rifId, vlanIdAttribute));
   EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
+}
+
+TEST_F(RouterInterfaceApiTest, setMtu) {
+  auto rifId = createRouterInterface();
+  sai_uint32_t mtu{9000};
+  SaiRouterInterfaceTraits::Attributes::Mtu mtu1{mtu};
+  SaiRouterInterfaceTraits::Attributes::Mtu mtu2;
+  EXPECT_NE(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
+  EXPECT_EQ(1514 /*default*/, routerInterfaceApi->getAttribute(rifId, mtu2));
+  routerInterfaceApi->setAttribute(rifId, mtu1);
+  EXPECT_EQ(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
 }

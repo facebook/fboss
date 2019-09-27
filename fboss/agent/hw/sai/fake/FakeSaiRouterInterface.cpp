@@ -27,6 +27,7 @@ sai_status_t create_router_interface_fn(
   folly::Optional<sai_object_id_t> vlanId;
   folly::Optional<sai_object_id_t> vrId;
   folly::Optional<folly::MacAddress> mac;
+  folly::Optional<sai_uint32_t> mtu;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
@@ -43,6 +44,9 @@ sai_status_t create_router_interface_fn(
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
         vlanId = attr_list[i].value.oid;
         break;
+      case SAI_ROUTER_INTERFACE_ATTR_MTU:
+        mtu = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -56,6 +60,10 @@ sai_status_t create_router_interface_fn(
   if (mac) {
     auto& ri = fs->rim.get(*router_interface_id);
     ri.setSrcMac(mac.value());
+  }
+  if (mtu) {
+    auto& ri = fs->rim.get(*router_interface_id);
+    ri.mtu = mtu.value();
   }
   return SAI_STATUS_SUCCESS;
 }
@@ -74,6 +82,9 @@ sai_status_t set_router_interface_attribute_fn(
   switch (attr->id) {
     case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
       ri.setSrcMac(attr->value.mac);
+      break;
+    case SAI_ROUTER_INTERFACE_ATTR_MTU:
+      ri.mtu = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -100,6 +111,9 @@ sai_status_t get_router_interface_attribute_fn(
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
         attr[i].value.oid = ri.vlanId;
+        break;
+      case SAI_ROUTER_INTERFACE_ATTR_MTU:
+        attr[i].value.u32 = ri.mtu;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

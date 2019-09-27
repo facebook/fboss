@@ -46,12 +46,15 @@ struct SaiRouterInterfaceTraits {
         SaiObjectIdT>;
     using VlanId =
         SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_VLAN_ID, SaiObjectIdT>;
+    using Mtu =
+        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_MTU, sai_uint32_t>;
   };
   using CreateAttributes = std::tuple<
       Attributes::VirtualRouterId,
       Attributes::Type,
       Attributes::VlanId,
-      std::optional<Attributes::SrcMac>>;
+      std::optional<Attributes::SrcMac>,
+      std::optional<Attributes::Mtu>>;
   using AdapterKey = RouterInterfaceSaiId;
   using AdapterHostKey =
       std::tuple<Attributes::VirtualRouterId, Attributes::VlanId>;

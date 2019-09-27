@@ -34,17 +34,18 @@ class RouterInterfaceStoreTest : public ::testing::Test {
 
   RouterInterfaceSaiId createRouterInterface(
       sai_object_id_t vlanId,
-      const folly::MacAddress& mac) {
+      const folly::MacAddress& mac,
+      sai_uint32_t mtu) {
     return saiApiTable->routerInterfaceApi().create<SaiRouterInterfaceTraits>(
-        {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac}, 0);
+        {0, SAI_ROUTER_INTERFACE_TYPE_VLAN, vlanId, mac, mtu}, 0);
   }
 };
 
 TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
   auto srcMac1 = folly::MacAddress{"41:41:41:41:41:41"};
   auto srcMac2 = folly::MacAddress{"42:42:42:42:42:42"};
-  auto routerInterfaceSaiId1 = createRouterInterface(41, srcMac1);
-  auto routerInterfaceSaiId2 = createRouterInterface(42, srcMac2);
+  auto routerInterfaceSaiId1 = createRouterInterface(41, srcMac1, 1514);
+  auto routerInterfaceSaiId2 = createRouterInterface(42, srcMac2, 9000);
 
   SaiStore s(0);
   s.reload();
@@ -60,39 +61,43 @@ TEST_F(RouterInterfaceStoreTest, loadRouterInterfaces) {
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceLoadCtor) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
-  auto routerInterfaceSaiId = createRouterInterface(41, srcMac);
+  auto routerInterfaceSaiId = createRouterInterface(41, srcMac, 9000);
 
   SaiObject<SaiRouterInterfaceTraits> obj(routerInterfaceSaiId);
   EXPECT_EQ(obj.adapterKey(), routerInterfaceSaiId);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
+  EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 9000);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceCreateCtor) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   SaiRouterInterfaceTraits::AdapterHostKey k{0, 41};
   SaiRouterInterfaceTraits::CreateAttributes c{
-      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac};
+      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
 
   SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
+  EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 9000);
 }
 
 TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   SaiRouterInterfaceTraits::AdapterHostKey k{0, 41};
   SaiRouterInterfaceTraits::CreateAttributes c{
-      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac};
+      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
 
   SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac);
+  EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 9000);
 
   folly::MacAddress srcMac2{"42:42:42:42:42:42"};
   SaiRouterInterfaceTraits::CreateAttributes newAttrs{
-      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac2};
+      0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac2, 1514};
   obj.setAttributes(newAttrs);
   EXPECT_EQ(GET_ATTR(RouterInterface, VlanId, obj.attributes()), 41);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac2);
+  EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 1514);
 }
