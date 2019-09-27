@@ -479,7 +479,9 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
 
 void SaiSwitch::updateStatsLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    SwitchStats* /* switchStats */) {}
+    SwitchStats* /* switchStats */) {
+  managerTable_->portManager().updateStats();
+}
 
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,

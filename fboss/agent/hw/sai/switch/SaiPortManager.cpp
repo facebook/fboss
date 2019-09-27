@@ -204,5 +204,12 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
       delta, processChanged, processAdded, processRemoved);
 }
 
+std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
+  std::map<PortID, HwPortStats> portStats;
+  for (const auto& [portId, handle] : handles_) {
+    portStats.emplace(portId, handle->lastCollectedStats);
+  }
+  return portStats;
+}
 } // namespace fboss
 } // namespace facebook

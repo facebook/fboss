@@ -10,11 +10,13 @@
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 
 #include <memory>
 
@@ -69,8 +71,9 @@ void SaiSwitchEnsemble::dumpHwCounters() const {
 
 std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  // TODO
-  return {};
+  SwitchStats dummy;
+  getHwSwitch()->updateStats(&dummy);
+  return getHwSwitch()->managerTable()->portManager().getPortStats();
 }
 
 void SaiSwitchEnsemble::recreateHwSwitchFromWBState() {

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -32,6 +33,8 @@ struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
   folly::F14FastMap<uint8_t, std::shared_ptr<SaiQueue>> queues;
+  HwPortStats lastCollectedStats;
+  void updateStats();
 };
 
 class SaiPortManager {
@@ -47,6 +50,8 @@ class SaiPortManager {
   SaiPortHandle* getPortHandle(PortID swId);
   PortID getPortID(sai_object_id_t saiId) const;
   void processPortDelta(const StateDelta& stateDelta);
+  void updateStats() {}
+  std::map<PortID, HwPortStats> getPortStats() const;
 
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
