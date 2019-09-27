@@ -9,10 +9,10 @@
  */
 #include "BcmTrunkStats.h"
 
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
-#include "fboss/agent/hw/common/StatsConstants.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>

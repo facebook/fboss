@@ -18,6 +18,7 @@
 #include "common/stats/MonotonicCounter.h"
 
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -27,7 +28,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
-#include "fboss/agent/hw/common/StatsConstants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"

@@ -9,9 +9,9 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/common/StatsConstants.h"
 
 #include "folly/logging/xlog.h"
 

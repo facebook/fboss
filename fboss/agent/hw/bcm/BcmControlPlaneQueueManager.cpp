@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/common/StatsConstants.h"
 
 namespace facebook {
 namespace fboss {
