@@ -31,7 +31,7 @@ namespace fboss {
  * SaiAttributeTuple, SaiAttributeVariant, and SaiAttributeOptional have the
  * same interface as a normal attribute, but actually hide a tuple or variant of
  * attributes beneath the "surface". They are essentially thin, helpful wrappers
- * on top of std::tuple, boost::variant, and folly::Optional which are
+ * on top of std::tuple, boost::variant, and std::optional which are
  * simultaneously a model for the informal SaiAttribute "concept".
  *
  * The main advantage of this approach, is that we can now compose
@@ -166,7 +166,7 @@ class SaiAttributeVariant {
 template <typename AttrT>
 class SaiAttributeOptional {
  public:
-  using ValueType = folly::Optional<typename AttrT::ValueType>;
+  using ValueType = std::optional<typename AttrT::ValueType>;
   SaiAttributeOptional() {}
   /* implicit */ SaiAttributeOptional(const folly::None&) {}
   /* implicit */ SaiAttributeOptional(const typename AttrT::ValueType& v)
@@ -180,7 +180,7 @@ class SaiAttributeOptional {
 
   ValueType value() const {
     if (!optional_) {
-      return folly::none;
+      return std::nullopt;
     }
     return optional_.value().value();
   }
@@ -198,7 +198,7 @@ class SaiAttributeOptional {
   }
 
  private:
-  folly::Optional<AttrT> optional_;
+  std::optional<AttrT> optional_;
 };
 
 template <typename AttrT>

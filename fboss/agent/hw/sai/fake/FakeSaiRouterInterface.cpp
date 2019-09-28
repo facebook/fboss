@@ -23,11 +23,11 @@ sai_status_t create_router_interface_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<int32_t> type;
-  folly::Optional<sai_object_id_t> vlanId;
-  folly::Optional<sai_object_id_t> vrId;
-  folly::Optional<folly::MacAddress> mac;
-  folly::Optional<sai_uint32_t> mtu;
+  std::optional<int32_t> type;
+  std::optional<sai_object_id_t> vlanId;
+  std::optional<sai_object_id_t> vrId;
+  std::optional<folly::MacAddress> mac;
+  std::optional<sai_uint32_t> mtu;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:

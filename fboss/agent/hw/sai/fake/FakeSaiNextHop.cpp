@@ -23,9 +23,9 @@ sai_status_t create_next_hop_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_next_hop_type_t> type;
-  folly::Optional<folly::IPAddress> ip;
-  folly::Optional<sai_object_id_t> routerInterfaceId;
+  std::optional<sai_next_hop_type_t> type;
+  std::optional<folly::IPAddress> ip;
+  std::optional<sai_object_id_t> routerInterfaceId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_ATTR_TYPE:

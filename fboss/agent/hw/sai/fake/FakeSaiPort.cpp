@@ -22,14 +22,14 @@ sai_status_t create_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<bool> adminState;
+  std::optional<bool> adminState;
   std::vector<uint32_t> lanes;
-  folly::Optional<sai_uint32_t> speed;
-  folly::Optional<sai_port_fec_mode_t> fecMode;
-  folly::Optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
-  folly::Optional<sai_port_flow_control_mode_t> flowControlMode;
-  folly::Optional<sai_port_media_type_t> mediaType;
-  folly::Optional<sai_vlan_id_t> vlanId;
+  std::optional<sai_uint32_t> speed;
+  std::optional<sai_port_fec_mode_t> fecMode;
+  std::optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
+  std::optional<sai_port_flow_control_mode_t> flowControlMode;
+  std::optional<sai_port_media_type_t> mediaType;
+  std::optional<sai_vlan_id_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -72,19 +72,19 @@ sai_status_t create_port_fn(
   if (adminState) {
     port.adminState = adminState.value();
   }
-  if (fecMode.hasValue()) {
+  if (fecMode.has_value()) {
     port.fecMode = fecMode.value();
   }
-  if (internalLoopbackMode.hasValue()) {
+  if (internalLoopbackMode.has_value()) {
     port.internalLoopbackMode = internalLoopbackMode.value();
   }
-  if (vlanId.hasValue()) {
+  if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
   }
-  if (mediaType.hasValue()) {
+  if (mediaType.has_value()) {
     port.mediaType = mediaType.value();
   }
-  if (vlanId.hasValue()) {
+  if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
   }
   return SAI_STATUS_SUCCESS;

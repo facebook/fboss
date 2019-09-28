@@ -46,8 +46,8 @@ sai_status_t create_hostif_trap_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_hostif_trap_type_t> trapType;
-  folly::Optional<sai_packet_action_t> packetAction;
+  std::optional<sai_hostif_trap_type_t> trapType;
+  std::optional<sai_packet_action_t> packetAction;
   sai_object_id_t trapGroup = 0;
   uint32_t priority = 0;
   for (int i = 0; i < attr_count; ++i) {

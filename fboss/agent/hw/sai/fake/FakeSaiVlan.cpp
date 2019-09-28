@@ -24,7 +24,7 @@ sai_status_t create_vlan_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<uint16_t> vlanId;
+  std::optional<uint16_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_VLAN_ATTR_VLAN_ID:
@@ -119,7 +119,7 @@ sai_status_t create_vlan_member_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_object_id_t> vlanId;
+  std::optional<sai_object_id_t> vlanId;
   for (int i = 0; i < attr_count; ++i) {
     if (attr_list[i].id == SAI_VLAN_MEMBER_ATTR_VLAN_ID) {
       vlanId = attr_list[i].value.oid;

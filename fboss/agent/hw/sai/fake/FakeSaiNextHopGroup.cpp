@@ -24,7 +24,7 @@ sai_status_t create_next_hop_group_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<int32_t> type;
+  std::optional<int32_t> type;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
@@ -98,8 +98,8 @@ sai_status_t create_next_hop_group_member_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_object_id_t> nextHopGroupId;
-  folly::Optional<sai_object_id_t> nextHopId;
+  std::optional<sai_object_id_t> nextHopGroupId;
+  std::optional<sai_object_id_t> nextHopId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:

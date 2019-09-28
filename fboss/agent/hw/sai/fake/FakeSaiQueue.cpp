@@ -22,10 +22,10 @@ sai_status_t create_queue_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_object_id_t> port;
-  folly::Optional<sai_object_id_t> parentScheduler;
-  folly::Optional<uint8_t> index = 0;
-  folly::Optional<sai_queue_type_t> type;
+  std::optional<sai_object_id_t> port;
+  std::optional<sai_object_id_t> parentScheduler;
+  std::optional<uint8_t> index = 0;
+  std::optional<sai_queue_type_t> type;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_QUEUE_ATTR_TYPE:

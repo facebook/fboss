@@ -21,12 +21,12 @@ sai_status_t create_scheduler_fn(
     sai_object_id_t /* switch_id */,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  folly::Optional<sai_scheduling_type_t> schedulingType;
-  folly::Optional<sai_uint8_t> weight;
-  folly::Optional<sai_uint64_t> minBandwidthRate;
-  folly::Optional<sai_uint64_t> minBandwidthBurstRate;
-  folly::Optional<sai_uint64_t> maxBandwidthRate;
-  folly::Optional<sai_uint64_t> maxBandwidthBurstRate;
+  std::optional<sai_scheduling_type_t> schedulingType;
+  std::optional<sai_uint8_t> weight;
+  std::optional<sai_uint64_t> minBandwidthRate;
+  std::optional<sai_uint64_t> minBandwidthBurstRate;
+  std::optional<sai_uint64_t> maxBandwidthRate;
+  std::optional<sai_uint64_t> maxBandwidthBurstRate;
   auto fs = FakeSai::getInstance();
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {

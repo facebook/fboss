@@ -131,13 +131,13 @@ TEST(AttributeDataTypes, attributeOptionalGetSaiAttr) {
 
 TEST(AttributeDataTypes, attributeOptionalGetValue) {
   AttrOptional o(I{42});
-  folly::Optional<int32_t> v = o.value();
+  std::optional<int32_t> v = o.value();
   EXPECT_EQ(v.value(), 42);
 }
 
 TEST(AttributeDataTypes, attributeOptionalGetSaiAttrNone) {
   AttrOptional o;
-  EXPECT_EQ(o.value(), folly::none);
+  EXPECT_EQ(o.value(), std::nullopt);
 }
 
 TEST(AttributeDataTypes, attributeOptionalGetValueNone) {
@@ -147,16 +147,16 @@ TEST(AttributeDataTypes, attributeOptionalGetValueNone) {
 }
 
 TEST(AttributeDataTypes, optionalConstructFromFollyOptional) {
-  folly::Optional<int32_t> follyOptional{42};
+  std::optional<int32_t> follyOptional{42};
   AttrOptional o(follyOptional);
-  folly::Optional<int32_t> v = o.value();
+  std::optional<int32_t> v = o.value();
   EXPECT_EQ(v.value(), 42);
 }
 
 TEST(AttributeDataTypes, optionalConstructFromFollyNone) {
-  folly::Optional<int32_t> follyOptional = folly::none;
+  std::optional<int32_t> follyOptional = std::nullopt;
   AttrOptional o(follyOptional);
-  EXPECT_EQ(o.value(), folly::none);
+  EXPECT_EQ(o.value(), std::nullopt);
 }
 
 // Tests for a mix of various SaiAttribute wrapper types
@@ -180,7 +180,7 @@ TEST(AttributeDataTypes, vectorInTuple) {
 }
 TEST(AttributeDataTypes, optionalInTuple) {
   SaiAttributeTuple<B, AttrOptional, I> t(B{true}, AttrOptional{I{42}}, I{420});
-  std::tuple<bool, folly::Optional<int32_t>, int32_t> vt = t.value();
+  std::tuple<bool, std::optional<int32_t>, int32_t> vt = t.value();
   EXPECT_TRUE(std::get<0>(vt));
   EXPECT_EQ(std::get<1>(vt).value(), 42);
   EXPECT_EQ(std::get<2>(vt), 420);
@@ -206,8 +206,8 @@ TEST(AttributeDataTypes, tupleInVariant) {
 TEST(AttributeDataTypes, optionalInVariant) {
   SaiAttributeVariant<SaiAttributeOptional<I>, B> var(
       SaiAttributeOptional<I>{I{42}});
-  boost::variant<folly::Optional<int>, bool> varv = var.value();
-  folly::Optional<int> o = boost::get<folly::Optional<int>>(varv);
+  boost::variant<std::optional<int>, bool> varv = var.value();
+  std::optional<int> o = boost::get<std::optional<int>>(varv);
   EXPECT_EQ(o.value(), 42);
 }
 TEST(AttributeDataTypes, variantInVariant) {
@@ -221,20 +221,20 @@ TEST(AttributeDataTypes, variantInVariant) {
 TEST(AttributeDataTypes, tupleInOptional) {
   SaiAttributeOptional<SaiAttributeTuple<B, I>> o(
       SaiAttributeTuple<B, I>{B{true}, I{42}});
-  folly::Optional<std::tuple<bool, int>> ov = o.value();
+  std::optional<std::tuple<bool, int>> ov = o.value();
   EXPECT_EQ(std::get<0>(ov.value()), true);
   EXPECT_EQ(std::get<1>(ov.value()), 42);
 }
 TEST(AttributeDataTypes, variantInOptional) {
   SaiAttributeOptional<SaiAttributeVariant<B, I>> o(
       SaiAttributeVariant<B, I>{I{42}});
-  folly::Optional<boost::variant<bool, int>> ov = o.value();
+  std::optional<boost::variant<bool, int>> ov = o.value();
   EXPECT_EQ(boost::get<int>(ov.value()), 42);
 }
 TEST(AttributeDataTypes, optionalInOptional) {
   SaiAttributeOptional<SaiAttributeOptional<I>> o(
       SaiAttributeOptional<I>{I{42}});
-  folly::Optional<folly::Optional<int>> ov = o.value();
+  std::optional<std::optional<int>> ov = o.value();
   EXPECT_EQ(ov.value().value(), 42);
 }
 

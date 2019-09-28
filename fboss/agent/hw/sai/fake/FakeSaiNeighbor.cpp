@@ -24,7 +24,7 @@ sai_status_t create_neighbor_entry_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
-  folly::Optional<folly::MacAddress> dstMac;
+  std::optional<folly::MacAddress> dstMac;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:

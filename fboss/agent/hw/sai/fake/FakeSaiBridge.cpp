@@ -28,7 +28,7 @@ sai_status_t create_bridge_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_bridge_type_t> bridgeType;
+  std::optional<sai_bridge_type_t> bridgeType;
   // See if we have a bridge type.
   for (int i = 0; i < attr_count; ++i) {
     if (attr_list[i].id == SAI_BRIDGE_ATTR_TYPE) {
@@ -85,9 +85,9 @@ sai_status_t create_bridge_port_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  folly::Optional<sai_object_id_t> portId;
-  folly::Optional<int32_t> type;
-  folly::Optional<int32_t> learningMode;
+  std::optional<sai_object_id_t> portId;
+  std::optional<int32_t> type;
+  std::optional<int32_t> learningMode;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
