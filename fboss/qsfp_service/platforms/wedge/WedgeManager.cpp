@@ -121,7 +121,7 @@ void WedgeManager::refreshTransceivers() {
   }
 
   std::vector<folly::Future<folly::Unit>> futs;
-  XLOG(DBG2) << "Start refreshing all transceivers...";
+  XLOG(INFO) << "Start refreshing all transceivers...";
 
   for (const auto& transceiver : transceivers_) {
     XLOG(DBG3) << "Fired to refresh transceiver " << transceiver->getID();
@@ -129,7 +129,31 @@ void WedgeManager::refreshTransceivers() {
   }
 
   folly::collectAll(futs.begin(), futs.end()).wait();
-  XLOG(DBG2) << "Finished refreshing all transceivers";
+  XLOG(INFO) << "Finished refreshing all transceivers";
+}
+
+int WedgeManager::scanTransceiverPresence(
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  // If the id list is empty, we default to scan the presence of all the
+  // transcievers.
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
+  }
+
+  std::map<int32_t, ModulePresence> presenceUpdate;
+  for (auto id : *ids) {
+    presenceUpdate[id] = ModulePresence::UNKNOWN;
+  }
+
+  wedgeI2cBus_->scanPresence(presenceUpdate);
+
+  int numTransceiversUp = 0;
+  for (const auto& presence : presenceUpdate) {
+    if (presence.second == ModulePresence::PRESENT) {
+      numTransceiversUp++;
+    }
+  }
+  return numTransceiversUp;
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {

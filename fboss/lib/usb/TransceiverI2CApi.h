@@ -12,11 +12,14 @@
 #include <folly/io/async/EventBase.h>
 
 #include <cstdint>
+#include <map>
 #include <stdexcept>
 #include <string>
 
 namespace facebook {
 namespace fboss {
+
+enum class ModulePresence { PRESENT, ABSENT, UNKNOWN };
 
 class I2cError : public std::exception {
  public:
@@ -56,6 +59,10 @@ class TransceiverI2CApi {
   virtual void verifyBus(bool autoReset) = 0;
 
   virtual bool isPresent(unsigned int module) = 0;
+  /*
+   * Function will detect transceiver presence according to the indexes provided
+   */
+  virtual void scanPresence(std::map<int32_t, ModulePresence>& presences) = 0;
 
   /*
    * Function bring transceiver out of reset whenever a transceiver has been

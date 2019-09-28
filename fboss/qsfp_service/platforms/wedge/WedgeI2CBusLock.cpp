@@ -75,6 +75,12 @@ bool WedgeI2CBusLock::isPresent(unsigned int module) {
   return wedgeI2CBus_->isPresent(module);
 }
 
+void WedgeI2CBusLock::scanPresence(
+    std::map<int32_t, ModulePresence>& presence) {
+  BusGuard g(this);
+  wedgeI2CBus_->scanPresence(presence);
+}
+
 void WedgeI2CBusLock::ensureOutOfReset(unsigned int module) {
   BusGuard g(this);
   wedgeI2CBus_->ensureOutOfReset(module);

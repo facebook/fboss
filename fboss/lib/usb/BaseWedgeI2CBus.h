@@ -46,6 +46,7 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
   bool isPresent(unsigned int module) override;
+  void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
 
  protected:
   enum : unsigned int {

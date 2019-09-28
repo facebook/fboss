@@ -18,9 +18,17 @@ namespace fboss {
 // based on the hardware.
 
 class Wedge100I2CBus : public PCA9548MuxedBus<32> {
+ public:
+  void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
+
+ protected:
+  void initBus() override;
+
  private:
   MuxLayer createMuxes() override;
   void wireUpPorts(PortLeaves& leaves) override;
+
+  std::unique_ptr<PCA9548> qsfpStatusMux_;
 };
 
 } // namespace fboss

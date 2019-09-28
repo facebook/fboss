@@ -32,6 +32,9 @@ class WedgeManager : public TransceiverManager {
   }
   void refreshTransceivers() override;
 
+  int scanTransceiverPresence(
+      std::unique_ptr<std::vector<int32_t>> ids) override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   std::unique_ptr<TransceiverI2CApi>

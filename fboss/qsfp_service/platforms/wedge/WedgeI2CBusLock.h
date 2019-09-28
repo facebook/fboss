@@ -34,6 +34,7 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
 
   void verifyBus(bool autoReset);
   bool isPresent(unsigned int module) override;
+  void scanPresence(std::map<int32_t, ModulePresence>& presence) override;
   void ensureOutOfReset(unsigned int module) override;
 
   folly::EventBase* getEventBase(unsigned int module) override;
