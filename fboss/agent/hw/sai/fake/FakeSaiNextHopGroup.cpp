@@ -158,8 +158,7 @@ sai_status_t set_next_hop_group_member_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_next_hop_group_api_t _next_hop_group_api;
 
@@ -182,5 +181,4 @@ void populate_next_hop_group_api(
   *next_hop_group_api = &_next_hop_group_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -13,12 +13,11 @@
 
 #include "fboss/agent/TxPacket.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiTxPacket : public TxPacket {
  public:
   explicit SaiTxPacket(uint32_t size);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

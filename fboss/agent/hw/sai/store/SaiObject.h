@@ -16,8 +16,7 @@
 
 #include <variant>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace detail {
 
@@ -346,5 +345,5 @@ class SaiObject {
   std::get<std::optional<Sai##obj##Traits::Attributes::attr>>(tuple) \
       .value()                                                       \
       .value()
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

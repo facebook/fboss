@@ -26,8 +26,7 @@ std::shared_ptr<SaiApiTable> SaiApiTable::getInstance() {
   return saiApiTableSingleton.try_get();
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void SaiApiTable::queryApis() {
   if (apisQueried_) {
@@ -151,5 +150,4 @@ const VlanApi& SaiApiTable::vlanApi() const {
   return getApi<VlanApi>();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

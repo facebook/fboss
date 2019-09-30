@@ -17,8 +17,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiSwitchEnsemble : public HwSwitchEnsemble {
  public:
@@ -61,5 +60,4 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   folly::dynamic createWarmBootSwitchState() const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

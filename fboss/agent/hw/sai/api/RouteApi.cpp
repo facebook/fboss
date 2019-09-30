@@ -26,8 +26,8 @@ size_t hash<facebook::fboss::SaiRouteTraits::RouteEntry>::operator()(
 }
 } // namespace std
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 std::string SaiRouteTraits::RouteEntry::toString() const {
   const auto cidr = destination();
   return folly::to<std::string>(
@@ -41,5 +41,5 @@ std::string SaiRouteTraits::RouteEntry::toString() const {
       cidr.second,
       ")");
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

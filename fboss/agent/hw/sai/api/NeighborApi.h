@@ -27,8 +27,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class NeighborApi;
 
@@ -130,8 +129,7 @@ inline void toAppend(
   result->append(entry.toString());
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
 namespace std {
 template <>

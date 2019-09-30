@@ -18,8 +18,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiVirtualRouterManager::SaiVirtualRouterManager(
     SaiManagerTable* managerTable,
@@ -62,5 +61,4 @@ SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandleImpl(
   return itr->second.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

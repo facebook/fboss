@@ -22,8 +22,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class NextHopApi;
 
@@ -78,5 +77,4 @@ class NextHopApi : public SaiApi<NextHopApi> {
   friend class SaiApi<NextHopApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

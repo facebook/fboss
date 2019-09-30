@@ -20,8 +20,7 @@
 #include <mutex>
 #include <thread>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiPlatform;
 
@@ -243,5 +242,4 @@ class SaiSwitch : public HwSwitch {
   folly::EventBase asyncTxEventBase_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

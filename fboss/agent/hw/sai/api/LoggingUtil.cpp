@@ -11,8 +11,7 @@
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
   switch (apiType) {
@@ -129,5 +128,5 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       throw FbossError("object type invalid: ", objectType);
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

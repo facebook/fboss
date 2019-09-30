@@ -8,8 +8,7 @@ extern "C" {
 
 #include <functional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeSaiInSegEntry {
   sai_inseg_entry_t sai_inseg_entry;
@@ -18,8 +17,7 @@ struct FakeSaiInSegEntry {
   bool operator==(const FakeSaiInSegEntry& other) const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
 namespace std {
 

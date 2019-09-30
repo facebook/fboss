@@ -26,8 +26,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiApiTable {
  public:
@@ -118,5 +117,4 @@ class SaiApiTable {
   bool apisQueried_{false};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -19,8 +19,7 @@
 #include <memory>
 #include "folly/container/F14Map.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 
@@ -58,5 +57,4 @@ class SaiHostifManager {
       handles_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

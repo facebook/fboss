@@ -235,8 +235,8 @@ void _realloc(const SaiListT& src, std::vector<T>& dst) {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 template <
     typename AttrEnumT,
     AttrEnumT AttrEnum,
@@ -455,8 +455,7 @@ template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, void>>
     : public std::true_type {};
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
 namespace std {
 template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>

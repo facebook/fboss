@@ -15,8 +15,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeBridgePort {
  public:
@@ -52,5 +51,5 @@ class FakeBridge {
 using FakeBridgeManager = FakeManagerWithMembers<FakeBridge, FakeBridgePort>;
 
 void populate_bridge_api(sai_bridge_api_t** bridge_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

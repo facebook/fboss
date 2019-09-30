@@ -89,8 +89,7 @@ sai_status_t get_next_hop_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_next_hop_api_t _next_hop_api;
 
@@ -102,5 +101,4 @@ void populate_next_hop_api(sai_next_hop_api_t** next_hop_api) {
   *next_hop_api = &_next_hop_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

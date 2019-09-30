@@ -13,8 +13,7 @@
 
 #include "fboss/agent/RxPacket.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiRxPacket : public RxPacket {
  public:
@@ -24,5 +23,5 @@ class SaiRxPacket : public RxPacket {
       PortID portID,
       VlanID vlanID);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

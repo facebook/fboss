@@ -26,8 +26,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ArpEntry;
 class Interface;
@@ -135,5 +134,4 @@ class ManagerTestBase : public ::testing::Test {
   uint32_t setupStage{SetupStage::BLANK};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

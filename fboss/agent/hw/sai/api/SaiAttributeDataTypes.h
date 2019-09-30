@@ -24,8 +24,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * SaiAttributeTuple, SaiAttributeVariant, and SaiAttributeOptional have the
@@ -233,5 +232,4 @@ std::vector<sai_attribute_t> saiAttrs(const std::tuple<AttrTs...>& tup) {
   return ret;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

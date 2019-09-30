@@ -36,8 +36,7 @@ uint8_t calculateMaskLengthFromIPAsMask(const folly::IPAddress& mask) {
 
 #include <folly/lang/Assume.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::IPAddress fromSaiIpAddress(const sai_ip_address_t& addr) {
   switch (addr.addr_family) {
@@ -130,5 +129,4 @@ void toSaiMacAddress(const folly::MacAddress& src, sai_mac_t& dst) {
   std::copy(std::begin(r), std::end(r), std::begin(dst));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -31,13 +31,11 @@ FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename SaiId>
 sai_object_id_t* rawSaiId(SaiId* id) {
   return reinterpret_cast<sai_object_id_t*>(id);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

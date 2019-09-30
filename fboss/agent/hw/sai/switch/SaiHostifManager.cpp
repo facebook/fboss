@@ -16,8 +16,7 @@
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason) {
@@ -167,5 +166,4 @@ void SaiHostifManager::processControlPlaneDelta(const StateDelta& delta) {
 SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
     : managerTable_(managerTable) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

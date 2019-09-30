@@ -17,8 +17,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     PortSaiId portId) {
@@ -43,5 +42,4 @@ SaiBridgeManager::SaiBridgeManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

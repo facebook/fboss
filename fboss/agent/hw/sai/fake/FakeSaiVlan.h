@@ -14,8 +14,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeVlanMember {
  public:
@@ -44,5 +43,5 @@ class FakeVlan {
 using FakeVlanManager = FakeManagerWithMembers<FakeVlan, FakeVlanMember>;
 
 void populate_vlan_api(sai_vlan_api_t** vlan_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

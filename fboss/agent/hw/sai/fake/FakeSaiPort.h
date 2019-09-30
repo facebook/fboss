@@ -18,8 +18,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakePort {
  public:
@@ -41,5 +40,5 @@ class FakePort {
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
 
 void populate_port_api(sai_port_api_t** port_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

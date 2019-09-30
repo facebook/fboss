@@ -25,8 +25,8 @@ size_t hash<facebook::fboss::SaiNeighborTraits::NeighborEntry>::operator()(
 }
 } // namespace std
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 std::string SaiNeighborTraits::NeighborEntry::toString() const {
   return folly::to<std::string>(
       "NeighborEntry:(switch:",
@@ -37,5 +37,5 @@ std::string SaiNeighborTraits::NeighborEntry::toString() const {
       ip().str(),
       ")");
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

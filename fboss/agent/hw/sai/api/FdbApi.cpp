@@ -25,8 +25,8 @@ size_t hash<facebook::fboss::SaiFdbTraits::FdbEntry>::operator()(
 }
 } // namespace std
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 std::string SaiFdbTraits::FdbEntry::toString() const {
   return folly::to<std::string>(
       "FdbEntry: (switch:",
@@ -37,5 +37,5 @@ std::string SaiFdbTraits::FdbEntry::toString() const {
       bridgeVlanId(),
       ")");
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

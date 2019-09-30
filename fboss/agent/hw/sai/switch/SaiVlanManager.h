@@ -22,8 +22,7 @@
 #include <memory>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -69,5 +68,4 @@ class SaiVlanManager {
   folly::F14FastMap<PortID, VlanID> vlanIdsByPortId_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

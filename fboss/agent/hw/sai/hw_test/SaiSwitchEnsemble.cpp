@@ -20,8 +20,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
@@ -85,5 +84,4 @@ void SaiSwitchEnsemble::stopHwCallLogging() const {
   // TODO - if we support cint style h/w call logging
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

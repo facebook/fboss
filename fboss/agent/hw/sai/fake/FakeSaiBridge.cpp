@@ -169,8 +169,7 @@ sai_status_t set_bridge_port_attribute_fn(
   return res;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_bridge_api_t _bridge_api;
 
@@ -186,5 +185,4 @@ void populate_bridge_api(sai_bridge_api_t** bridge_api) {
   *bridge_api = &_bridge_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

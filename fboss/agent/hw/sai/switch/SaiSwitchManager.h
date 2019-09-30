@@ -19,8 +19,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -63,5 +62,4 @@ class SaiSwitchManager {
   std::unique_ptr<SaiSwitchInstance> switch_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

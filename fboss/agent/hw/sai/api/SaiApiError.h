@@ -19,8 +19,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiApiError : public FbossError {
  public:
@@ -73,5 +72,4 @@ void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
 
 // TODO: saiLogFatal
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

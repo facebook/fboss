@@ -19,8 +19,7 @@ extern "C" {
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MplsApi;
 
@@ -100,5 +99,4 @@ class MplsApi : public SaiApi<MplsApi> {
   friend class SaiApi<MplsApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

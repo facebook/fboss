@@ -21,8 +21,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -78,5 +77,4 @@ class SaiNeighborManager {
       handles_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

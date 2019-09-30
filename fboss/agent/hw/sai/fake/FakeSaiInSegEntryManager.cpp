@@ -76,8 +76,7 @@ sai_status_t sai_create_inseg_entry(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 sai_mpls_api_t* FakeInSegEntryManager::kApi() {
   static sai_mpls_api_t kMplsApi{&sai_create_inseg_entry,
@@ -91,5 +90,4 @@ void populate_mpls_api(sai_mpls_api_t** mpls_api) {
   *mpls_api = FakeInSegEntryManager::kApi();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

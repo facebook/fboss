@@ -22,8 +22,7 @@ std::shared_ptr<SaiStore> SaiStore::getInstance() {
   return saiStoreSingleton.try_get();
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiStore::SaiStore() {}
 
@@ -45,5 +44,4 @@ void SaiStore::release() {
   tupleForEach([](auto& store) { store.release(); }, stores_);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -15,8 +15,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeNextHopGroupMember {
  public:
@@ -49,5 +48,5 @@ using FakeNextHopGroupManager =
     FakeManagerWithMembers<FakeNextHopGroup, FakeNextHopGroupMember>;
 
 void populate_next_hop_group_api(sai_next_hop_group_api_t** next_hop_group_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -127,8 +127,7 @@ sai_status_t get_queue_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_queue_api_t _queue_api;
 
@@ -140,5 +139,4 @@ void populate_queue_api(sai_queue_api_t** queue_api) {
   *queue_api = &_queue_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

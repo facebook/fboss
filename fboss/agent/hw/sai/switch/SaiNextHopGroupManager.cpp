@@ -22,8 +22,7 @@
 
 #include <algorithm>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiManagerTable* managerTable,
@@ -170,5 +169,4 @@ void SaiNextHopGroupManager::handleUnresolvedNeighbor(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

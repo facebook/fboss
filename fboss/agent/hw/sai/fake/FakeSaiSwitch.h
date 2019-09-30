@@ -16,8 +16,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeSwitch {
  public:
@@ -44,5 +43,5 @@ class FakeSwitch {
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
 
 void populate_switch_api(sai_switch_api_t** switch_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

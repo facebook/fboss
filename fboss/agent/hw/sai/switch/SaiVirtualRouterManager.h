@@ -19,8 +19,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -48,5 +47,4 @@ class SaiVirtualRouterManager {
   folly::F14FastMap<RouterID, std::unique_ptr<SaiVirtualRouterHandle>> handles_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

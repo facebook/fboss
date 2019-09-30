@@ -21,8 +21,7 @@
 
 #include <algorithm>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiVlanManager::SaiVlanManager(
     SaiManagerTable* managerTable,
@@ -196,5 +195,4 @@ VlanID SaiVlanManager::getVlanIdByPortId(PortID portId) const {
   return vlanIdsByPortId_.at(portId);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

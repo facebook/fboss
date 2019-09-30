@@ -17,8 +17,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::shared_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
     sai_object_id_t routerInterfaceId,
@@ -34,5 +33,5 @@ SaiNextHopManager::SaiNextHopManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

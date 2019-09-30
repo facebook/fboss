@@ -17,8 +17,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeQueue {
  public:
@@ -44,5 +43,5 @@ class FakeQueue {
 using FakeQueueManager = FakeManager<sai_object_id_t, FakeQueue>;
 
 void populate_queue_api(sai_queue_api_t** queue_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

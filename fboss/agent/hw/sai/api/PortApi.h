@@ -23,8 +23,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PortApi;
 
@@ -109,5 +108,4 @@ class PortApi : public SaiApi<PortApi> {
   friend class SaiApi<PortApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

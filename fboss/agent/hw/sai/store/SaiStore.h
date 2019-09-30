@@ -21,8 +21,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace detail {
 
@@ -153,5 +152,4 @@ class SaiStore {
       stores_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

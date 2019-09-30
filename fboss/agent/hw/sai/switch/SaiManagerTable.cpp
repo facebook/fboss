@@ -25,8 +25,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
   switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
@@ -155,5 +154,4 @@ const SaiVlanManager& SaiManagerTable::vlanManager() const {
   return *vlanManager_;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

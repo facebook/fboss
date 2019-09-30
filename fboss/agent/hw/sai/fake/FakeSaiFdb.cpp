@@ -90,8 +90,7 @@ sai_status_t get_fdb_entry_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_fdb_api_t _fdb_api;
 
@@ -103,5 +102,4 @@ void populate_fdb_api(sai_fdb_api_t** fdb_api) {
   *fdb_api = &_fdb_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

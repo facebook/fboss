@@ -22,8 +22,7 @@ extern "C" {
  * Note: sai_ip4_t, sai_ip6_t, and sai_mac_t are in network byte order
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::IPAddress fromSaiIpAddress(const sai_ip_address_t& addr);
 folly::IPAddressV4 fromSaiIpAddress(const sai_ip4_t& addr);
@@ -39,5 +38,4 @@ sai_ip_prefix_t toSaiIpPrefix(const folly::CIDRNetwork& prefix);
 folly::MacAddress fromSaiMacAddress(const sai_mac_t& mac);
 void toSaiMacAddress(const folly::MacAddress& src, sai_mac_t& dst);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

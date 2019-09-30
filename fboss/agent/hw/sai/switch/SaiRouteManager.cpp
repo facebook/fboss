@@ -18,8 +18,7 @@
 
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiRouteManager::SaiRouteManager(
     SaiManagerTable* managerTable,
@@ -258,5 +257,4 @@ template void SaiRouteManager::removeRoute<folly::IPAddressV4>(
     RouterID routerId,
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

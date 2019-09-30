@@ -23,8 +23,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SchedulerApi;
 
@@ -94,5 +93,4 @@ class SchedulerApi : public SaiApi<SchedulerApi> {
   friend class SaiApi<SchedulerApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

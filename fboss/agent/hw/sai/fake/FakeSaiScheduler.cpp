@@ -157,8 +157,7 @@ sai_status_t get_scheduler_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_scheduler_api_t _scheduler_api;
 
@@ -170,5 +169,4 @@ void populate_scheduler_api(sai_scheduler_api_t** scheduler_api) {
   *scheduler_api = &_scheduler_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

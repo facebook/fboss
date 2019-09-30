@@ -12,8 +12,7 @@
 
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiSwitch;
 
@@ -35,5 +34,4 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   SaiSwitch* hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

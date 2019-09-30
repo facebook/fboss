@@ -168,8 +168,7 @@ sai_status_t get_vlan_member_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_vlan_api_t _vlan_api;
 
@@ -185,5 +184,4 @@ void populate_vlan_api(sai_vlan_api_t** vlan_api) {
   *vlan_api = &_vlan_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

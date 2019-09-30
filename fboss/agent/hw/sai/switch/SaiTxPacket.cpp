@@ -13,12 +13,11 @@
 
 #include <folly/io/IOBuf.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiTxPacket::SaiTxPacket(uint32_t size) {
   buf_ = folly::IOBuf::createSeparate(size);
   buf_->append(size);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

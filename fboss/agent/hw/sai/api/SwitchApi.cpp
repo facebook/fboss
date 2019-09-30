@@ -10,8 +10,7 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 sai_status_t SwitchApi::registerRxCallback(
     SwitchSaiId id,
@@ -40,5 +39,4 @@ sai_status_t SwitchApi::registerFdbEventCallback(
   return _setAttribute(id, &attr);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/lib/TupleUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace detail {
 SaiQueueTraits::CreateAttributes makeQueueAttributes(
@@ -56,5 +55,4 @@ SaiQueueManager::createQueues(PortSaiId portSaiId, const QueueConfig& queues) {
   return ret;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -17,8 +17,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeNextHop {
  public:
@@ -36,5 +35,5 @@ struct FakeNextHop {
 using FakeNextHopManager = FakeManager<sai_object_id_t, FakeNextHop>;
 
 void populate_next_hop_api(sai_next_hop_api_t** next_hop_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

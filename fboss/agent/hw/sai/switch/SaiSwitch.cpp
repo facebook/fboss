@@ -38,8 +38,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static SaiSwitch* hwSwitch;
 
@@ -599,5 +598,4 @@ void SaiSwitch::fdbEventCallbackLocked(
   // TODO  - program macs from learn events to FDB
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

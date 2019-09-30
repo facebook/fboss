@@ -37,8 +37,7 @@ sai_status_t get_virtual_router_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_virtual_router_api_t _virtual_router_api;
 
@@ -53,5 +52,4 @@ void populate_virtual_router_api(
   *virtual_router_api = &_virtual_router_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

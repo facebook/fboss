@@ -19,8 +19,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     SaiManagerTable* managerTable,
@@ -155,5 +154,4 @@ void SaiRouterInterfaceManager::processInterfaceDelta(
       delta, processChanged, processAdded, processRemoved);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

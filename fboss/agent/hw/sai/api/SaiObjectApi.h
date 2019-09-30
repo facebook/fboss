@@ -24,8 +24,7 @@ extern "C" {
  * during warm boot, but are not necessarily restricted to that use case.
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace detail {
 template <typename SaiObjectTraits>
@@ -70,5 +69,4 @@ std::vector<typename SaiObjectTraits::AdapterKey> getObjectKeys(
   return ret;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

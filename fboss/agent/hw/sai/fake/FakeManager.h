@@ -17,8 +17,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename K, typename T>
 class FakeManager {
@@ -102,5 +101,4 @@ class FakeManagerWithMembers : public FakeManager<sai_object_id_t, GroupT> {
   std::unordered_map<sai_object_id_t, sai_object_id_t> memberToGroupMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

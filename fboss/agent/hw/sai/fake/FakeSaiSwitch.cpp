@@ -111,8 +111,7 @@ sai_status_t get_switch_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_switch_api_t _switch_api;
 
@@ -124,5 +123,4 @@ void populate_switch_api(sai_switch_api_t** switch_api) {
   *switch_api = &_switch_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

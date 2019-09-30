@@ -12,8 +12,7 @@
 
 #include <folly/io/IOBuf.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void freeRxPacket(void* /* ptr */, void* /* arg */) {
   // The packet is on the stack, don't "free" it.
@@ -30,5 +29,5 @@ SaiRxPacket::SaiRxPacket(
   srcPort_ = portId;
   srcVlan_ = vlanId;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

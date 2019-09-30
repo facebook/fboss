@@ -10,8 +10,7 @@ extern "C" {
 #include <saiswitch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeInSegEntryAttributes {
   sai_packet_action_t action{SAI_PACKET_ACTION_FORWARD};
@@ -26,5 +25,4 @@ struct FakeInSegEntryManager
 
 void populate_mpls_api(sai_mpls_api_t** mpls_api);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

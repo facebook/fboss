@@ -14,8 +14,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * Helper metafunctions for C++ wrappers of non-primitive SAI types.
@@ -147,5 +146,4 @@ template <typename... AttrTs>
 struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
     : public std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

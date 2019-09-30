@@ -20,8 +20,7 @@
 #include <memory>
 #include <tuple>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiFdbManager::SaiFdbManager(
     SaiManagerTable* managerTable,
@@ -56,5 +55,4 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
   return store.setObject(entry, attributes);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

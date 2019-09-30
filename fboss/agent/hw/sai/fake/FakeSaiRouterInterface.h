@@ -17,8 +17,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeRouterInterface {
  public:
@@ -51,5 +50,5 @@ using FakeRouterInterfaceManager =
 
 void populate_router_interface_api(
     sai_router_interface_api_t** router_interface_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

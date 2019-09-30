@@ -22,8 +22,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void ManagerTestBase::SetUp() {
   fs = FakeSai::getInstance();
@@ -163,5 +162,4 @@ std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
   return r;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

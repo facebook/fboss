@@ -17,8 +17,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -41,5 +40,4 @@ class SaiBridgeManager {
   std::unique_ptr<SaiBridgeHandle> bridgeHandle_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

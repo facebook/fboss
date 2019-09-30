@@ -31,8 +31,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
@@ -55,8 +54,7 @@ struct FakeSai {
   bool initialized = false;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
 sai_status_t sai_api_initialize(
     uint64_t flags,

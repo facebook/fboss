@@ -20,8 +20,7 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NdpEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiNeighborManager::SaiNeighborManager(
     SaiManagerTable* managerTable,
@@ -202,5 +201,5 @@ template void SaiNeighborManager::removeNeighbor<NdpEntry>(
     const std::shared_ptr<NdpEntry>& swEntry);
 template void SaiNeighborManager::removeNeighbor<ArpEntry>(
     const std::shared_ptr<ArpEntry>& swEntry);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

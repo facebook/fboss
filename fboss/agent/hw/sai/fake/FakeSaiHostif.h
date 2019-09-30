@@ -15,8 +15,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeHostifTrap {
  public:
@@ -50,5 +49,5 @@ using FakeHostifTrapGroupManager =
     FakeManager<sai_object_id_t, FakeHostifTrapGroup>;
 
 void populate_hostif_api(sai_hostif_api_t** hostif_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

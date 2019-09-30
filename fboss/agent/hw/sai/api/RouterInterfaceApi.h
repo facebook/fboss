@@ -23,8 +23,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RouterInterfaceApi;
 
@@ -97,5 +96,4 @@ class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
   friend class SaiApi<RouterInterfaceApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

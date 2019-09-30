@@ -23,8 +23,7 @@
 
 #include <boost/container/flat_set.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -69,5 +68,4 @@ class SaiNextHopGroupManager {
       nextHopsByNeighbor_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -24,8 +24,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HostifApi;
 
@@ -192,5 +191,5 @@ class HostifApi : public SaiApi<HostifApi> {
         saiAttributeTs.data());
   }
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

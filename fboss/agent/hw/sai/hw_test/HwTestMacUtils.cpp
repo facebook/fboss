@@ -10,8 +10,8 @@
 
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 uint32_t getMacAgeTimerSeconds(const facebook::fboss::HwSwitch* /*hwSwitch*/) {
@@ -26,5 +26,5 @@ void setMacAgeTimerSeconds(
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

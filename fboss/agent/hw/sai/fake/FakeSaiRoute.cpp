@@ -93,8 +93,7 @@ sai_status_t get_route_entry_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_route_api_t _route_api;
 
@@ -106,5 +105,4 @@ void populate_route_api(sai_route_api_t** route_api) {
   *route_api = &_route_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

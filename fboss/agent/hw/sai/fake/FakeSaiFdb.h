@@ -18,8 +18,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeFdb {
   explicit FakeFdb(const sai_object_id_t bridgePortId)
@@ -32,5 +31,5 @@ using FakeFdbEntry =
 using FakeFdbManager = FakeManager<FakeFdbEntry, FakeFdb>;
 
 void populate_fdb_api(sai_fdb_api_t** fdb_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

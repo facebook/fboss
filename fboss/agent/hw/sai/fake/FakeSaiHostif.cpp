@@ -184,8 +184,7 @@ sai_status_t get_hostif_trap_group_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_hostif_api_t _hostif_api;
 
@@ -204,5 +203,4 @@ void populate_hostif_api(sai_hostif_api_t** hostif_api) {
   *hostif_api = &_hostif_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

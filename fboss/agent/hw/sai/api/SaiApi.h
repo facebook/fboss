@@ -29,8 +29,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename ApiT>
 class SaiApi {
@@ -175,5 +174,4 @@ class SaiApi {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

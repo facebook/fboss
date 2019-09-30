@@ -15,11 +15,9 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType);
 folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

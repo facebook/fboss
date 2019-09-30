@@ -22,8 +22,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class VlanApi;
 
@@ -113,5 +112,4 @@ class VlanApi : public SaiApi<VlanApi> {
   friend class SaiApi<VlanApi>;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

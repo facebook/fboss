@@ -15,8 +15,7 @@
 
 #include <folly/gen/Base.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::vector<VlanID> getConfiguredVlans(const HwSwitch* hwSwitch) {
   const auto& vlanMgr =
@@ -38,5 +37,5 @@ std::map<VlanID, uint32_t> getVlanToNumPorts(const HwSwitch* hwSwitch) {
   }
   return vlan2NumPorts;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

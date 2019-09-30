@@ -122,8 +122,7 @@ sai_status_t get_router_interface_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static sai_router_interface_api_t _router_interface_api;
 
@@ -138,5 +137,4 @@ void populate_router_interface_api(
   *router_interface_api = &_router_interface_api;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

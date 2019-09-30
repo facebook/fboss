@@ -19,8 +19,7 @@
 extern "C" {
 #include <sai.h>
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeRoute {
   FakeRoute() {}
@@ -33,5 +32,5 @@ using FakeRouteEntry =
 using FakeRouteManager = FakeManager<FakeRouteEntry, FakeRoute>;
 
 void populate_route_api(sai_route_api_t** route_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

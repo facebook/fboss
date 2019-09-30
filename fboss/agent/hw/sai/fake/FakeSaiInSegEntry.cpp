@@ -4,8 +4,7 @@
 
 #include <boost/functional/hash.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 FakeSaiInSegEntry::FakeSaiInSegEntry(sai_inseg_entry_t other_sai_inseg_entry) {
   sai_inseg_entry.switch_id = other_sai_inseg_entry.switch_id;
@@ -16,8 +15,8 @@ bool FakeSaiInSegEntry::operator==(const FakeSaiInSegEntry& other) const {
   return sai_inseg_entry.switch_id == other.sai_inseg_entry.switch_id &&
       sai_inseg_entry.label == other.sai_inseg_entry.label;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
 
 namespace std {
 

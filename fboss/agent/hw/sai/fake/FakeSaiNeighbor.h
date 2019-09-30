@@ -20,8 +20,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct FakeNeighbor {
   explicit FakeNeighbor(const folly::MacAddress& dstMac) : dstMac(dstMac) {}
@@ -33,5 +32,5 @@ using FakeNeighborEntry =
 using FakeNeighborManager = FakeManager<FakeNeighborEntry, FakeNeighbor>;
 
 void populate_neighbor_api(sai_neighbor_api_t** neighbor_api);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

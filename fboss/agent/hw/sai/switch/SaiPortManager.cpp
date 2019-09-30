@@ -20,8 +20,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiPortManager::SaiPortManager(
     SaiManagerTable* managerTable,
@@ -211,5 +210,5 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   }
   return portStats;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

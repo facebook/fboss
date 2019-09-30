@@ -38,8 +38,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiSwitchInstance::SaiSwitchInstance(
     const SaiSwitchTraits::CreateAttributes& attributes)
@@ -91,5 +90,4 @@ SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   return switchInstance->id();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
