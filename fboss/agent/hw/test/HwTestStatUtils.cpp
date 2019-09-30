@@ -18,12 +18,8 @@
 namespace facebook {
 namespace fboss {
 void updateHwSwitchStats(HwSwitch* hw) {
-  try {
-    SwitchStats dummy;
-    hw->updateStats(&dummy);
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
-  }
+  SwitchStats dummy;
+  hw->updateStats(&dummy);
 }
 
 uint64_t getPortOutPkts(HwPortStats portStats) {
