@@ -18,14 +18,15 @@ DEFINE_string(
 
 namespace {
 
-std::unordered_map<const char*, const char*> kSaiProfileValues;
+std::unordered_map<std::string, std::string> kSaiProfileValues;
 
 const char* saiProfileGetValue(
     sai_switch_profile_id_t /*profile_id*/,
     const char* variable) {
   auto saiProfileValItr = kSaiProfileValues.find(variable);
-  return saiProfileValItr != kSaiProfileValues.end() ? saiProfileValItr->second
-                                                     : nullptr;
+  return saiProfileValItr != kSaiProfileValues.end()
+      ? saiProfileValItr->second.c_str()
+      : nullptr;
 }
 
 int saiProfileGetNextValue(
@@ -40,8 +41,8 @@ int saiProfileGetNextValue(
   if (saiProfileValItr == kSaiProfileValues.end()) {
     return -1;
   }
-  *variable = saiProfileValItr->first;
-  *value = saiProfileValItr->second;
+  *variable = saiProfileValItr->first.c_str();
+  *value = saiProfileValItr->second.c_str();
   ++saiProfileValItr;
   return 0;
 }
@@ -95,7 +96,7 @@ void SaiPlatform::generateHwConfigFile() {
 
 void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(
-      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile().c_str()));
+      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
 }
 
