@@ -1909,10 +1909,20 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   }
 
   folly::Optional<std::string> qosPolicy;
+  ControlPlane::RxReasonToQueue newRxReasonToQueue;
+  bool rxReasonToQueueUnchanged = true;
   if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy_ref()) {
     if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy_ref()) {
       if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy_ref()) {
         qosPolicy = *defaultQosPolicy;
+      }
+    }
+    if (auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue_ref()) {
+      for (auto rxEntry : *rxReasonToQueue) {
+        newRxReasonToQueue.emplace(rxEntry);
+      }
+      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
+        rxReasonToQueueUnchanged = false;
       }
     }
   } else {
@@ -1931,13 +1941,14 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   bool qosPolicyUnchanged = qosPolicy == origCPU->getQosPolicy();
 
-  if (queuesUnchanged && qosPolicyUnchanged) {
+  if (queuesUnchanged && qosPolicyUnchanged && rxReasonToQueueUnchanged) {
     return nullptr;
   }
 
   auto newCPU = origCPU->clone();
   newCPU->resetQueues(newQueues);
   newCPU->resetQosPolicy(qosPolicy);
+  newCPU->resetRxReasonToQueue(newRxReasonToQueue);
   return newCPU;
 }
 
