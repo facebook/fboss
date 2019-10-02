@@ -146,4 +146,7 @@ template <typename... AttrTs>
 struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
     : public std::conjunction<IsSaiAttribute<AttrTs>...> {};
 
+template <typename SaiObjectTraits>
+struct IsSaiObjectOwnedByAdapter : public std::false_type {};
+
 } // namespace facebook::fboss

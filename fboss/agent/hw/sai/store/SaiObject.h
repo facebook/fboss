@@ -222,9 +222,7 @@ class SaiObject {
 
   ~SaiObject() {
     if (live_) {
-      auto& api = SaiApiTable::getInstance()
-                      ->getApi<typename SaiObjectTraits::SaiApiT>();
-      api.remove(adapterKey_);
+      remove();
     }
     live_ = false;
   }
@@ -271,6 +269,13 @@ class SaiObject {
   }
 
  private:
+  void remove() {
+    if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
+      auto& api = SaiApiTable::getInstance()
+                      ->getApi<typename SaiObjectTraits::SaiApiT>();
+      api.remove(adapterKey_);
+    }
+  }
   template <typename AttrT>
   void setNewAttributeHelper(const AttrT& newAttr) {
     auto& api =

@@ -43,6 +43,9 @@ struct SaiBridgeTraits {
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
 
+template <>
+struct IsSaiObjectOwnedByAdapter<SaiBridgeTraits> : public std::true_type {};
+
 struct SaiBridgePortTraits {
   static constexpr sai_api_t ApiType = SAI_API_BRIDGE;
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_BRIDGE_PORT;
@@ -93,7 +96,8 @@ class BridgeApi : public SaiApi<BridgeApi> {
   }
 
   sai_status_t _remove(BridgeSaiId id) {
-    return api_->remove_bridge(id);
+    CHECK(false) << " Bridge remove should never be called";
+    return SAI_STATUS_FAILURE;
   }
   sai_status_t _remove(BridgePortSaiId id) {
     return api_->remove_bridge_port(id);

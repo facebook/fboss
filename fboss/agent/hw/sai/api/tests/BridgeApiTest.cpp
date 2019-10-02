@@ -43,16 +43,6 @@ TEST_F(BridgeApiTest, createBridge) {
   checkBridge(bridgeId);
 }
 
-TEST_F(BridgeApiTest, removeBridge) {
-  SaiBridgeTraits::Attributes::Type bridgeType(SAI_BRIDGE_TYPE_1Q);
-  auto bridgeId = bridgeApi->create<SaiBridgeTraits>({bridgeType}, 0);
-  checkBridge(bridgeId);
-  // account for default bridge
-  EXPECT_EQ(fs->brm.map().size(), 2);
-  bridgeApi->remove(bridgeId);
-  EXPECT_EQ(fs->brm.map().size(), 1);
-}
-
 TEST_F(BridgeApiTest, createBridgePort) {
   SaiBridgePortTraits::CreateAttributes c{
       SAI_BRIDGE_PORT_TYPE_PORT,
