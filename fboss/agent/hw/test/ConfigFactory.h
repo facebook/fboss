@@ -39,7 +39,6 @@ auto constexpr kDefaultVlanId = 1;
 
 folly::MacAddress kLocalCpuMac();
 
-cfg::SwitchConfig onePortConfig(const HwSwitch* hwSwitch, PortID port);
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,

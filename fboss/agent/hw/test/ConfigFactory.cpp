@@ -88,14 +88,6 @@ folly::MacAddress kLocalCpuMac() {
   return kLocalMac;
 }
 
-cfg::SwitchConfig onePortConfig(const HwSwitch* hwSwitch, PortID port) {
-  std::map<PortID, VlanID> port2vlan;
-  std::vector<PortID> ports;
-  port2vlan[port] = VlanID(kDefaultVlanId);
-  ports.push_back(port);
-  return genPortVlanCfg(hwSwitch, ports, port2vlan, std::vector<VlanID>({}));
-}
-
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,
