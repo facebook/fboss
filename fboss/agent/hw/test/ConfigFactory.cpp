@@ -210,17 +210,6 @@ twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2) {
   return config;
 }
 
-cfg::SwitchConfig multiplePortSingleVlanConfig(
-    const HwSwitch* hwSwitch,
-    const std::vector<PortID>& ports) {
-  std::map<PortID, VlanID> port2vlan;
-  auto portItr = ports.begin();
-  for (; portItr != ports.end(); portItr++) {
-    port2vlan[*portItr] = kDefaultVlanId;
-  }
-  return genPortVlanCfg(hwSwitch, ports, port2vlan, std::vector<VlanID>({}));
-}
-
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

@@ -66,9 +66,6 @@ cfg::SwitchConfig onePortPerVlanConfig(
 
 cfg::SwitchConfig
 twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2);
-cfg::SwitchConfig multiplePortSingleVlanConfig(
-    const HwSwitch* hwSwitch,
-    const std::vector<PortID>& ports);
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
