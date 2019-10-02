@@ -60,15 +60,14 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   if (!virtualRouterHandle) {
     throw FbossError("No virtual router with id ", routerId);
   }
-  sai_object_id_t virtualRouterId =
-      virtualRouterHandle->virtualRouter->adapterKey();
+  VirtualRouterSaiId virtualRouterId{
+      virtualRouterHandle->virtualRouter->adapterKey()};
   ;
   // packet action
   sai_packet_action_t packetAction = SAI_PACKET_ACTION_FORWARD;
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  sai_object_id_t cpuPortId =
-      SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::CpuPort{});
+  PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
+      switchId, SaiSwitchTraits::Attributes::CpuPort{})};
 
   toMeRoutes.reserve(swInterface->getAddresses().size());
   // Compute per-address information
@@ -100,8 +99,9 @@ void SaiRouteManager::addRoute(
   }
   auto fwd = swRoute->getForwardInfo();
   sai_int32_t packetAction;
-  std::optional<sai_object_id_t> nextHopIdOpt;
+  std::optional<SaiRouteTraits::CreateAttributes> attributes;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+
   if (fwd.getAction() == NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     /*
@@ -124,7 +124,10 @@ void SaiRouteManager::addRoute(
             "for InterfaceID: ",
             interfaceId);
       }
-      nextHopIdOpt = routerInterfaceHandle->routerInterface->adapterKey();
+      RouterInterfaceSaiId routerInterfaceId{
+          routerInterfaceHandle->routerInterface->adapterKey()};
+      attributes = SaiRouteTraits::CreateAttributes{
+          packetAction, std::move(routerInterfaceId)};
     } else {
       /*
        * A Route which has NextHop(s) will create or reference an existing
@@ -134,22 +137,24 @@ void SaiRouteManager::addRoute(
       nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               fwd.getNextHopSet());
-      nextHopIdOpt = nextHopGroupHandle->nextHopGroup->adapterKey();
+      NextHopGroupSaiId nextHopGroupId{
+          nextHopGroupHandle->nextHopGroup->adapterKey()};
+      attributes = SaiRouteTraits::CreateAttributes{packetAction,
+                                                    std::move(nextHopGroupId)};
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-    sai_object_id_t cpuPortId =
-        SaiApiTable::getInstance()->switchApi().getAttribute(
-            switchId, SaiSwitchTraits::Attributes::CpuPort{});
-    nextHopIdOpt = cpuPortId;
+    PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+    attributes =
+        SaiRouteTraits::CreateAttributes{packetAction, std::move(cpuPortId)};
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
   }
 
-  SaiRouteTraits::CreateAttributes attributes{packetAction, nextHopIdOpt};
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
-  auto route = store.setObject(entry, attributes);
+  auto route = store.setObject(entry, *attributes);
   auto routeHandle = std::make_unique<SaiRouteHandle>();
   routeHandle->route = route;
   routeHandle->nextHopGroupHandle = nextHopGroupHandle;

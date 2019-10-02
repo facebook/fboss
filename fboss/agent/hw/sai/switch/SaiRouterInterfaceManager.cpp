@@ -43,8 +43,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
   if (!virtualRouterHandle) {
     throw FbossError("No virtual router for RouterID ", routerId);
   }
-  sai_object_id_t saiVirtualRouterId =
-      virtualRouterHandle->virtualRouter->adapterKey();
+  VirtualRouterSaiId saiVirtualRouterId{
+      virtualRouterHandle->virtualRouter->adapterKey()};
   SaiRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute{saiVirtualRouterId};
 

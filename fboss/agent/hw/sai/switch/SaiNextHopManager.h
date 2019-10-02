@@ -30,7 +30,7 @@ class SaiNextHopManager {
  public:
   SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   std::shared_ptr<SaiNextHop> addNextHop(
-      sai_object_id_t routerInterfaceId,
+      RouterInterfaceSaiId routerInterfaceId,
       const folly::IPAddress& ip);
 
  private:

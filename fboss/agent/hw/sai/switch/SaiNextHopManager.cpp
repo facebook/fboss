@@ -20,7 +20,7 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
-    sai_object_id_t routerInterfaceId,
+    RouterInterfaceSaiId routerInterfaceId,
     const folly::IPAddress& ip) {
   SaiNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
   SaiNextHopTraits::CreateAttributes attributes{

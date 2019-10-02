@@ -61,7 +61,7 @@ void __gPacketRxCallback(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   __gSaiSwitch->packetRxCallbackTopHalf(
-      switch_id, buffer_size, buffer, attr_count, attr_list);
+      SwitchSaiId{switch_id}, buffer_size, buffer, attr_count, attr_list);
 }
 
 void __glinkStateChangedNotification(
@@ -207,7 +207,7 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
 }
 
 void SaiSwitch::packetRxCallbackTopHalf(
-    sai_object_id_t switch_id,
+    SwitchSaiId switch_id,
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t attr_count,
@@ -227,7 +227,7 @@ void SaiSwitch::linkStateChangedCallback(
                << data[i].port_id;
     // FIXME - accessing port table here is racy - T54107986
     callback_->linkStateChanged(
-        managerTable()->portManager().getPortID(data[i].port_id),
+        managerTable()->portManager().getPortID(PortSaiId{data[i].port_id}),
         data[i].port_state == SAI_PORT_OPER_STATUS_UP);
   }
 }
@@ -289,12 +289,12 @@ void SaiSwitch::initAsyncTx(const std::lock_guard<std::mutex>& /* lock */) {
 }
 
 void SaiSwitch::packetRxCallbackBottomHalf(
-    sai_object_id_t switch_id,
+    SwitchSaiId /* unused */,
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  sai_object_id_t saiPortId = 0;
+  PortSaiId saiPortId{0};
   for (auto index = 0; index < attr_count; index++) {
     const sai_attribute_t* attr = &attr_list[index];
     switch (attr->id) {
@@ -308,7 +308,7 @@ void SaiSwitch::packetRxCallbackBottomHalf(
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  CHECK_NE(saiPortId, 0);
+  CHECK_NE(saiPortId, PortSaiId{0});
   std::unique_ptr<SaiRxPacket> rxPacket;
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
@@ -494,7 +494,7 @@ void SaiSwitch::fetchL2TableLocked(
     auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
     auto saiPortId =
         fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
-    entry.port = managerTable()->portManager().getPortID(saiPortId);
+    entry.port = managerTable()->portManager().getPortID(PortSaiId{saiPortId});
     l2Table->push_back(entry);
   }
 }

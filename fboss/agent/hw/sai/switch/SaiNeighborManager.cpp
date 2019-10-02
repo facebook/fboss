@@ -97,7 +97,7 @@ void SaiNeighborManager::addNeighbor(
     auto neighbor = store.setObject(saiEntry, attributes);
     /* add next hop to discovered neighbor over */
     auto nextHop = managerTable_->nextHopManager().addNextHop(
-        saiEntry.routerInterfaceId(), swEntry->getIP());
+        RouterInterfaceSaiId{saiEntry.routerInterfaceId()}, swEntry->getIP());
     auto neighborHandle = std::make_unique<SaiNeighborHandle>();
     neighborHandle->neighbor = neighbor;
     neighborHandle->fdbEntry = fdbEntry;

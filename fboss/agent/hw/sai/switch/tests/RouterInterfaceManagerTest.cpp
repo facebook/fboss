@@ -35,7 +35,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
 
   void checkRouterInterface(
       RouterInterfaceSaiId saiRouterInterfaceId,
-      sai_object_id_t expectedSaiVlanId,
+      VlanSaiId expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac) {
     auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::VlanId{});
@@ -43,7 +43,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::SrcMac{});
     auto vlanIdGot = saiApiTable->vlanApi().getAttribute(
         VlanSaiId{saiVlanIdGot}, SaiVlanTraits::Attributes::VlanId{});
-    EXPECT_EQ(vlanIdGot, expectedSaiVlanId);
+    EXPECT_EQ(VlanSaiId{vlanIdGot}, expectedSaiVlanId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);
   }
 
@@ -55,7 +55,7 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkRouterInterface(saiId, intf0.id, intf0.routerMac);
+  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
@@ -65,8 +65,8 @@ TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
   auto swInterface1 = makeInterface(intf1);
   auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
       swInterface1);
-  checkRouterInterface(saiId0, intf0.id, intf0.routerMac);
-  checkRouterInterface(saiId1, intf1.id, intf1.routerMac);
+  checkRouterInterface(saiId0, VlanSaiId{intf0.id}, intf0.routerMac);
+  checkRouterInterface(saiId1, VlanSaiId{intf1.id}, intf1.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {

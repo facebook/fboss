@@ -98,7 +98,7 @@ class SaiSwitch : public HwSwitch {
    * same arguments on rxBottomHalfEventBase_
    */
   void packetRxCallbackTopHalf(
-      sai_object_id_t switch_id,
+      SwitchSaiId switch_id,
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t attr_count,
@@ -214,7 +214,7 @@ class SaiSwitch : public HwSwitch {
   void initAsyncTx(const std::lock_guard<std::mutex>& lock);
 
   void packetRxCallbackBottomHalf(
-      sai_object_id_t switch_id,
+      SwitchSaiId switch_id,
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t attr_count,

@@ -182,7 +182,7 @@ SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) {
   return getPortHandleImpl(swId);
 }
 
-PortID SaiPortManager::getPortID(sai_object_id_t saiId) const {
+PortID SaiPortManager::getPortID(PortSaiId saiId) const {
   auto itr = portSaiIds_.find(saiId);
   if (itr == portSaiIds_.end()) {
     return PortID(0);

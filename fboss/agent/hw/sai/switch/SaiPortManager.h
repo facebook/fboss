@@ -47,7 +47,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort) const;
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
-  PortID getPortID(sai_object_id_t saiId) const;
+  PortID getPortID(PortSaiId saiId) const;
   void processPortDelta(const StateDelta& stateDelta);
   void updateStats() {}
   std::map<PortID, HwPortStats> getPortStats() const;
@@ -57,7 +57,7 @@ class SaiPortManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>> handles_;
-  folly::F14FastMap<sai_object_id_t, PortID> portSaiIds_;
+  folly::F14FastMap<PortSaiId, PortID> portSaiIds_;
 };
 
 } // namespace facebook::fboss
