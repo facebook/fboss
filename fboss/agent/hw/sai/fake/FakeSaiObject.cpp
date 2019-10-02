@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -91,12 +92,20 @@ sai_status_t sai_get_object_count(
 sai_status_t sai_get_object_key(
     sai_object_id_t switch_id,
     sai_object_type_t object_type,
+#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
+    uint32_t* count,
+#else
     uint32_t count,
+#endif
     sai_object_key_t* object_list) {
   auto fs = facebook::fboss::FakeSai::getInstance();
   uint32_t c = 0;
   sai_get_object_count(switch_id, object_type, &c);
+#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
+  if (c > *count) {
+#else
   if (c > count) {
+#endif
     // TODO(borisb): how should we best handle this overflow?
     // feels a little weird to not signal back.
     return SAI_STATUS_BUFFER_OVERFLOW;

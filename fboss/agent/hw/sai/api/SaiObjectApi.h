@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <type_traits>
@@ -61,8 +62,13 @@ std::vector<typename SaiObjectTraits::AdapterKey> getObjectKeys(
   std::vector<sai_object_key_t> keys;
   uint32_t c = getObjectCount<SaiObjectTraits>(switch_id);
   keys.resize(c);
+#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
+  sai_status_t status = sai_get_object_key(
+      switch_id, SaiObjectTraits::ObjectType, &c, keys.data());
+#else
   sai_status_t status = sai_get_object_key(
       switch_id, SaiObjectTraits::ObjectType, c, keys.data());
+#endif
   for (const auto k : keys) {
     ret.push_back(detail::getAdapterKey<SaiObjectTraits>(k));
   }
