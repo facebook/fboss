@@ -15,7 +15,6 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"

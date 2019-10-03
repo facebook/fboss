@@ -15,6 +15,8 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DEFINE_bool(
@@ -41,13 +43,26 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   // ALPM requires that the default routes (always required to be
   // present for ALPM) be deleted last. When we destroy the HwSwitch
   // and the contained routeTable, there is no notion of a *order* of
-  // destruction. So blow away all routes except the min required for ALPM
+  // destruction.
+  // So blow away all routes except the min required for ALPM
   // We are going to reset HwSwith anyways, so deleting routes does not
   // matter here.
-  auto rmRoutesState{getProgrammedState()->clone()};
-  auto routeTables = rmRoutesState->getRouteTables()->modify(&rmRoutesState);
+  // Blowing away all routes means, blowing away 2 tables
+  // - Route tables
+  // - Interface addresses - for platforms where trapping packets to CPU is done
+  // via interfaceToMe routes.
+  // So blow away routes and interface addresses.
+  auto noRoutesState{getProgrammedState()->clone()};
+  auto routeTables = noRoutesState->getRouteTables()->modify(&noRoutesState);
   routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
-  applyNewState(setupAlpmState(rmRoutesState));
+  auto newIntfMap = noRoutesState->getInterfaces()->clone();
+  for (auto& interface : *newIntfMap) {
+    auto newIntf = interface->clone();
+    newIntf->setAddresses(Interface::Addresses{});
+    newIntfMap->updateNode(newIntf);
+  }
+  noRoutesState->resetIntfs(newIntfMap);
+  applyNewState(setupAlpmState(noRoutesState));
   // Unregister callbacks before we start destroying hwSwitch
   getHwSwitch()->unregisterCallbacks();
 }
