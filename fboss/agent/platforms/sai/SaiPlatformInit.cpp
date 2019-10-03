@@ -14,7 +14,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 
 namespace facebook {
 namespace fboss {
@@ -22,7 +22,7 @@ namespace fboss {
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo) {
   if (productInfo->getMode() == PlatformMode::WEDGE100) {
-    return std::make_unique<SaiBcmPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge100Platform>(std::move(productInfo));
   }
   return chooseFBSaiPlatform(std::move(productInfo));
 }

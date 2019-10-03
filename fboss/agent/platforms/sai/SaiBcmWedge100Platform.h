@@ -9,15 +9,14 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 namespace facebook {
 namespace fboss {
 
-class SaiBcmPlatform : public SaiHwPlatform {
+class SaiBcmWedge100Platform : public SaiBcmPlatform {
  public:
-  explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiHwPlatform(std::move(productInfo)) {}
-  std::string getHwConfig() override;
+  using SaiBcmPlatform::SaiBcmPlatform;
+  std::vector<PortID> masterLogicalPortIds() const override;
 };
 
 } // namespace fboss

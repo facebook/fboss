@@ -1,0 +1,31 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
+
+#include <cstdio>
+#include <cstring>
+namespace facebook {
+namespace fboss {
+
+std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
+  constexpr std::array<int, 32> kMasterLogicalPortIds = {
+      118, 122, 126, 130, 1,  5,  9,  13, 17, 21, 25, 29, 34,  38,  42,  46,
+      50,  54,  58,  62,  68, 72, 76, 80, 84, 88, 92, 96, 102, 106, 110, 114};
+  std::vector<PortID> portIds;
+  portIds.reserve(kMasterLogicalPortIds.size());
+  std::for_each(
+      kMasterLogicalPortIds.begin(),
+      kMasterLogicalPortIds.end(),
+      [&portIds](auto portId) { portIds.emplace_back(PortID(portId)); });
+  return portIds;
+}
+} // namespace fboss
+} // namespace facebook
