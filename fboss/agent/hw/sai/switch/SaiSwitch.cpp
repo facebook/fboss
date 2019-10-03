@@ -346,6 +346,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
       delta);
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
+  managerTableLocked(lock)->hostifManager().processControlPlaneDelta(delta);
   return delta.newState();
 }
 
@@ -528,14 +529,6 @@ void SaiSwitch::switchRunStateChangedLocked(
             switchId_, __glinkStateChangedNotification);
       }
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
-
-      /* TODO(T54112206) :remove trapping ARP, NDP & CPU nexthop packets */
-      auto& hostifManager = managerTableLocked(lock)->hostifManager();
-      for (auto reason : {cfg::PacketRxReason::ARP,
-                          cfg::PacketRxReason::NDP,
-                          cfg::PacketRxReason::CPU_IS_NHOP}) {
-        hostifManager.addHostifTrap(reason, 0);
-      }
     } break;
     default:
       break;
