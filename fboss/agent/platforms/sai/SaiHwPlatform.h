@@ -20,8 +20,7 @@ extern "C" {
 #include <saiswitch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiHwPlatform : public SaiPlatform {
  public:
@@ -30,5 +29,5 @@ class SaiHwPlatform : public SaiPlatform {
   std::string getPersistentStateDir() const override;
   std::string getVolatileStateDir() const override;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

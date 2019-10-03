@@ -12,8 +12,7 @@
 
 #include <cstdio>
 #include <cstring>
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::string SaiFakePlatform::getVolatileStateDir() const {
   return tmpDir_.path().string() + "/volatile";
@@ -27,5 +26,4 @@ std::string SaiFakePlatform::getHwConfig() {
   return {};
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

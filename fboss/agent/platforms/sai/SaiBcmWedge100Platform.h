@@ -10,8 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiBcmWedge100Platform : public SaiBcmPlatform {
  public:
@@ -19,5 +18,4 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
   std::vector<PortID> masterLogicalPortIds() const override;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

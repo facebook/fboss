@@ -12,8 +12,8 @@
 
 #include <cstdio>
 #include <cstring>
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 DEFINE_string(
     volatile_state_dir,
     "/dev/shm/fboss",
@@ -31,5 +31,4 @@ std::string SaiHwPlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

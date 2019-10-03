@@ -13,8 +13,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AgentConfig;
 class Platform;
@@ -28,5 +27,5 @@ std::unique_ptr<SaiPlatform> chooseFBSaiPlatform(
 
 std::unique_ptr<Platform> initSaiPlatform(
     std::unique_ptr<AgentConfig> config = nullptr);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

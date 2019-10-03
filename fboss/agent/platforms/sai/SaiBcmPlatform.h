@@ -10,8 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiBcmPlatform : public SaiHwPlatform {
  public:
@@ -20,5 +19,4 @@ class SaiBcmPlatform : public SaiHwPlatform {
   std::string getHwConfig() override;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -54,8 +54,7 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
@@ -152,5 +151,4 @@ sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

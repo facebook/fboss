@@ -12,8 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PortID SaiPlatformPort::getPortID() const {
   return id_;
@@ -118,5 +117,4 @@ TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
   return TransmitterTechnology::OPTICAL;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

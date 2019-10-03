@@ -16,8 +16,7 @@
 
 #include <folly/Optional.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiPlatform;
 
@@ -57,5 +56,4 @@ class SaiPlatformPort : public PlatformPort {
       cfg::PortSpeed speed) const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

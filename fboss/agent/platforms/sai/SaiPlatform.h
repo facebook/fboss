@@ -26,8 +26,7 @@ extern "C" {
 #include <saiswitch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiPlatform : public Platform {
  public:
@@ -67,5 +66,4 @@ class SaiPlatform : public Platform {
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -12,8 +12,7 @@
 
 #include <cstdio>
 #include <cstring>
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
   auto& cfg = config()->thrift.platform.chip.get_bcm().config;
@@ -25,5 +24,5 @@ std::string SaiBcmPlatform::getHwConfig() {
   auto hwConfig = folly::join('\n', nameValStrs);
   return hwConfig;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

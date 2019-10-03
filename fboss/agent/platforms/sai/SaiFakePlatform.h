@@ -12,8 +12,7 @@
 #include <folly/experimental/TestUtil.h>
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiFakePlatform : public SaiPlatform {
  public:
@@ -27,5 +26,4 @@ class SaiFakePlatform : public SaiPlatform {
   folly::test::TemporaryDirectory tmpDir_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

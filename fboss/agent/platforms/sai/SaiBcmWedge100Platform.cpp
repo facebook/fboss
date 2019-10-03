@@ -12,8 +12,7 @@
 
 #include <cstdio>
 #include <cstring>
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
   constexpr std::array<int, 32> kMasterLogicalPortIds = {
@@ -27,5 +26,5 @@ std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
       [&portIds](auto portId) { portIds.emplace_back(PortID(portId)); });
   return portIds;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

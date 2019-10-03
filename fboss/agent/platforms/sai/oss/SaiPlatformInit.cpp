@@ -9,13 +9,11 @@
  */
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> chooseFBSaiPlatform(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
   return nullptr;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
