@@ -85,6 +85,7 @@ class IPPacket {
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
  private:
+  void setUDPCheckSum(folly::IOBuf* buffer) const;
   HdrT hdr_;
   folly::Optional<UDPDatagram> udpPayLoad_;
   // TODO: support TCP segment

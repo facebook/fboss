@@ -63,6 +63,23 @@ IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
 }
 
 template <typename AddrT>
+void IPPacket<AddrT>::setUDPCheckSum(folly::IOBuf* buffer) const {
+  CHECK(udpPayLoad_.hasValue());
+  folly::io::Cursor start(buffer);
+  // jump to  payloag start.
+  // skip ipv4 header and udp header to get to the start of payload
+  start += (hdr_.size() + udpPayLoad_->header().size());
+  // compute checksum
+  auto udpHdr = udpPayLoad_->header();
+  auto csum = udpHdr.computeChecksum(hdr_, start);
+  folly::io::RWPrivateCursor rwCursor(buffer);
+  rwCursor +=
+      (hdr_.size() + sizeof(udpHdr.srcPort) + sizeof(udpHdr.dstPort) +
+       sizeof(udpHdr.length));
+  rwCursor.writeBE<uint16_t>(csum);
+}
+
+template <typename AddrT>
 std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
     const HwSwitch* hw) const {
   auto txPacket = hw->allocatePacket(length());
@@ -72,6 +89,7 @@ std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
     auto udpPkt = udpPayLoad_->getTxPacket(hw);
     folly::io::Cursor cursor(udpPkt->buf());
     rwCursor.push(cursor, udpPayLoad_->length());
+    setUDPCheckSum(txPacket->buf());
   }
   return txPacket;
 }
