@@ -103,6 +103,7 @@ void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress cpuMac,
+    VlanID vlan,
     folly::Optional<PortID> frontPanelPortToLoopTraffic) {
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
@@ -111,7 +112,7 @@ void pumpTraffic(
       auto dstIp = folly::IPAddress(
           folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
       auto pkt = makeUDPTxPacket(
-          hw, VlanID(1), cpuMac, cpuMac, srcIp, dstIp, 10000 + i, 20000 + j);
+          hw, vlan, cpuMac, cpuMac, srcIp, dstIp, 10000 + i, 20000 + j);
       if (frontPanelPortToLoopTraffic) {
         hw->sendPacketOutOfPortSync(
             std::move(pkt), frontPanelPortToLoopTraffic.value());

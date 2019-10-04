@@ -35,7 +35,7 @@ auto constexpr kBaseVlanId = 1000;
 /*
  * Default VLAN
  */
-auto constexpr kDefaultVlanId = 1;
+auto constexpr kDefaultVlanId = 4095;
 
 folly::MacAddress kLocalCpuMac();
 

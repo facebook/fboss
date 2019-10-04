@@ -57,6 +57,7 @@ void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress cpuMac,
+    VlanID vlan,
     folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
 
 bool isLoadBalanced(

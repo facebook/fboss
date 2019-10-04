@@ -52,7 +52,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {
         auto pkt = utility::makeUDPTxPacket(
             getHwSwitch(),
-            VlanID(1),
+            VlanID(utility::kDefaultVlanId),
             cpuMac,
             cpuMac,
             srcIp,

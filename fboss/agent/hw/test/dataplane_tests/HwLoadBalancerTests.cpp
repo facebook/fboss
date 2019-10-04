@@ -98,6 +98,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         isV6,
         getHwSwitch(),
         getPlatform()->getLocalMac(),
+        VlanID(utility::kDefaultVlanId),
         frontPanelPortToLoopTraffic);
     auto ecmpPorts = isV6 ? ecmpHelper6->ecmpPortDescs(ecmpWidth)
                           : ecmpHelper4->ecmpPortDescs(ecmpWidth);
