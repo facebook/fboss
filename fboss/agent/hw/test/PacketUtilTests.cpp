@@ -2,8 +2,11 @@
 
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
+#include "fboss/agent/hw/mock/MockHwSwitch.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -245,4 +248,91 @@ TEST(PacketUtilTests, EthFrame) {
   ethPkt.serialize(rwCursor);
 
   verifySerialization(bufIn.get(), bufOut.get());
+}
+
+TEST(PacketUtilTest, TxMPLSv4UDP) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  EthHdr ethHdr;
+  ethHdr.srcAddr = folly::MacAddress("0a:0b:0c:0d:0e:0f");
+  ethHdr.dstAddr = folly::MacAddress("01:02:03:04:05:06");
+  ethHdr.etherType = 0x8847; // TODO set this in eth packet based on payload
+  ethHdr.vlanTags.push_back(
+      VlanTag(1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+
+  MPLSHdr mplsHdr{{
+      MPLSHdr::Label(301, 0, false, 128),
+      MPLSHdr::Label(201, 0, false, 128),
+      MPLSHdr::Label(201, 0, true, 128),
+  }};
+
+  IPv4Hdr v4Hdr;
+  v4Hdr.srcAddr = folly::IPAddressV4("10.0.0.1");
+  v4Hdr.dstAddr = folly::IPAddressV4("10.0.0.1");
+  v4Hdr.version = 4; // TODO set this in ip packet
+  v4Hdr.ttl = 128; // TODO check this in ip packet
+  v4Hdr.ihl = 5; // TODO set this in ip packet if 0
+  v4Hdr.protocol = 17; // TODO set this in ip packet
+  v4Hdr.computeChecksum();
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = 10001;
+  udpHdr.dstPort = 20001;
+
+  auto payload = std::vector<uint8_t>(16, 0xa5);
+
+  auto ethPkt = utility::EthFrame(
+      ethHdr,
+      utility::MPLSPacket(
+          mplsHdr,
+          utility::IPv4Packet(v4Hdr, utility::UDPDatagram(udpHdr, payload))));
+
+  auto txPacket = ethPkt.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor{txPacket->buf()};
+  auto ethPkt2 = utility::EthFrame(cursor);
+  EXPECT_EQ(ethPkt, ethPkt2);
+}
+
+TEST(PacketUtilTest, TxMPLSv6UDP) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  EthHdr ethHdr;
+  ethHdr.srcAddr = folly::MacAddress("0a:0b:0c:0d:0e:0f");
+  ethHdr.dstAddr = folly::MacAddress("01:02:03:04:05:06");
+  ethHdr.etherType = 0x8847; // TODO set this in eth packet based on payload
+  ethHdr.vlanTags.push_back(
+      VlanTag(1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+
+  MPLSHdr mplsHdr{{
+      MPLSHdr::Label(301, 0, false, 128),
+      MPLSHdr::Label(201, 0, false, 128),
+      MPLSHdr::Label(201, 0, true, 128),
+  }};
+
+  IPv6Hdr v6Hdr;
+  v6Hdr.srcAddr = folly::IPAddressV6("1001::1");
+  v6Hdr.dstAddr = folly::IPAddressV6("1001::2");
+  v6Hdr.version = 6; // TODO set this in ip packet
+  v6Hdr.hopLimit = 128; // TODO check this in ip packet
+  v6Hdr.payloadLength = 24; // TODO: set this in ip packet
+  v6Hdr.nextHeader = 17; // TODO set this in ip packet
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = 10001;
+  udpHdr.dstPort = 20001;
+
+  auto payload = std::vector<uint8_t>(16, 0xa5);
+
+  auto ethPkt = utility::EthFrame(
+      ethHdr,
+      utility::MPLSPacket(
+          mplsHdr,
+          utility::IPv6Packet(v6Hdr, utility::UDPDatagram(udpHdr, payload))));
+
+  auto txPacket = ethPkt.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor{txPacket->buf()};
+  auto ethPkt2 = utility::EthFrame(cursor);
+  EXPECT_EQ(ethPkt, ethPkt2);
 }
