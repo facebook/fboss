@@ -151,10 +151,10 @@ void SaiRouteManager::addRoute(
         SaiRouteTraits::CreateAttributes{packetAction, std::move(cpuPortId)};
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
+    attributes = SaiRouteTraits::CreateAttributes{packetAction, std::nullopt};
   }
-
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
-  auto route = store.setObject(entry, *attributes);
+  auto route = store.setObject(entry, attributes.value());
   auto routeHandle = std::make_unique<SaiRouteHandle>();
   routeHandle->route = route;
   routeHandle->nextHopGroupHandle = nextHopGroupHandle;

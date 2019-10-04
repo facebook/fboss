@@ -63,6 +63,28 @@ TEST_F(RouteApiTest, createV6Route) {
       routeApi->getAttribute(r, SaiRouteTraits::Attributes::NextHopId()), 5);
 }
 
+TEST_F(RouteApiTest, createV4Drop) {
+  folly::CIDRNetwork prefix(ip4, 24);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_DROP};
+  routeApi->create<SaiRouteTraits>(r, {packetActionAttribute, std::nullopt});
+  EXPECT_EQ(
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::PacketAction()),
+      SAI_PACKET_ACTION_DROP);
+}
+
+TEST_F(RouteApiTest, createV6Drop) {
+  folly::CIDRNetwork prefix(ip6, 64);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_DROP};
+  routeApi->create<SaiRouteTraits>(r, {packetActionAttribute, std::nullopt});
+  EXPECT_EQ(
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::PacketAction()),
+      SAI_PACKET_ACTION_DROP);
+}
+
 TEST_F(RouteApiTest, setRouteNextHop) {
   folly::CIDRNetwork prefix(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, prefix);
