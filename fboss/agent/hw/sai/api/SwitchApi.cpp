@@ -12,31 +12,49 @@
 
 namespace facebook::fboss {
 
-sai_status_t SwitchApi::registerRxCallback(
+void SwitchApi::registerRxCallback(
     SwitchSaiId id,
     sai_packet_event_notification_fn rx_cb) {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
   attr.value.ptr = (void*)rx_cb;
-  return _setAttribute(id, &attr);
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      rx_cb ? "register" : "unregister",
+      " rx callback");
 }
 
-sai_status_t SwitchApi::registerPortStateChangeCallback(
+void SwitchApi::registerPortStateChangeCallback(
     SwitchSaiId id,
     sai_port_state_change_notification_fn port_state_change_cb) {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY;
   attr.value.ptr = (void*)port_state_change_cb;
-  return _setAttribute(id, &attr);
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      port_state_change_cb ? "register" : "unregister",
+      " port state change callback");
 }
 
-sai_status_t SwitchApi::registerFdbEventCallback(
+void SwitchApi::registerFdbEventCallback(
     SwitchSaiId id,
     sai_fdb_event_notification_fn fdb_event_cb) {
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_FDB_EVENT_NOTIFY;
   attr.value.ptr = (void*)fdb_event_cb;
-  return _setAttribute(id, &attr);
+  auto rv = _setAttribute(id, &attr);
+  saiApiCheckError(
+      rv,
+      ApiType,
+      "Unable to ",
+      fdb_event_cb ? "register" : "unregister",
+      " FDB event callback");
 }
 
 } // namespace facebook::fboss

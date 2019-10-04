@@ -91,18 +91,18 @@ class SwitchApi : public SaiApi<SwitchApi> {
     return api_;
   }
 
-  sai_status_t registerRxCallback(
+  void registerRxCallback(
       SwitchSaiId id,
       sai_packet_event_notification_fn rx_cb);
-  sai_status_t registerPortStateChangeCallback(
+  void registerPortStateChangeCallback(
       SwitchSaiId id,
       sai_port_state_change_notification_fn port_state_change_cb);
-  sai_status_t registerFdbEventCallback(
+  void registerFdbEventCallback(
       SwitchSaiId id,
       sai_fdb_event_notification_fn fdb_event_cb);
 
-  sai_status_t unregisterRxCallback(SwitchSaiId switch_id) {
-    return registerRxCallback(switch_id, nullptr);
+  void unregisterRxCallback(SwitchSaiId switch_id) {
+    registerRxCallback(switch_id, nullptr);
   }
 
  private:
