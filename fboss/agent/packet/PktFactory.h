@@ -81,9 +81,19 @@ class IPPacket {
     if constexpr (std::is_same_v<HdrT, IPv4Hdr>) {
       hdr_.version = 4;
       hdr_.length = length();
+      if (!hdr_.ttl) {
+        hdr_.ttl = 128;
+      }
+      hdr_.ihl = (5 > hdr_.ihl) ? 5 : hdr_.ihl;
+      hdr_.computeChecksum();
+      hdr_.protocol = 17; /* udp */
     } else {
       hdr_.version = 6;
       hdr_.payloadLength = udpPayLoad_->length();
+      if (!hdr_.hopLimit) {
+        hdr_.hopLimit = 128;
+      }
+      hdr_.nextHeader = 17; /* udp */
     }
   }
 
@@ -184,13 +194,18 @@ class EthFrame {
 
   EthFrame(EthHdr hdr, MPLSPacket payload) : hdr_(std::move(hdr)) {
     mplsPayLoad_.assign(std::move(payload));
+    hdr_.etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS);
   }
 
   EthFrame(EthHdr hdr, IPPacket<folly::IPAddressV4> payload)
-      : hdr_(std::move(hdr)), v4PayLoad_(payload) {}
+      : hdr_(std::move(hdr)), v4PayLoad_(payload) {
+    hdr_.etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
+  }
 
   EthFrame(EthHdr hdr, IPPacket<folly::IPAddressV6> payload)
-      : hdr_(std::move(hdr)), v6PayLoad_(payload) {}
+      : hdr_(std::move(hdr)), v6PayLoad_(payload) {
+    hdr_.etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  }
 
   EthHdr header() const {
     return hdr_;
@@ -238,6 +253,26 @@ class EthFrame {
   folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
   folly::Optional<MPLSPacket> mplsPayLoad_;
 };
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
