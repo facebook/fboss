@@ -25,7 +25,9 @@ class UDPDatagram {
 
   // set header fields, useful to construct TxPacket
   UDPDatagram(const UDPHeader& udpHdr, std::vector<uint8_t> payload)
-      : udpHdr_(udpHdr), payload_(payload) {}
+      : udpHdr_(udpHdr), payload_(payload) {
+    udpHdr_.length = udpHdr_.size() + payload_.size();
+  }
 
   size_t length() const {
     return UDPHeader::size() + payload_.size();
@@ -64,7 +66,15 @@ class IPPacket {
   explicit IPPacket(const HdrT& hdr) : hdr_{hdr} {}
 
   IPPacket(const HdrT& hdr, UDPDatagram payload)
-      : hdr_{hdr}, udpPayLoad_(payload) {}
+      : hdr_{hdr}, udpPayLoad_(payload) {
+    if constexpr (std::is_same_v<HdrT, IPv4Hdr>) {
+      hdr_.version = 4;
+      hdr_.length = length();
+    } else {
+      hdr_.version = 6;
+      hdr_.payloadLength = udpPayLoad_->length();
+    }
+  }
 
   size_t length() const {
     return hdr_.size() + (udpPayLoad_ ? udpPayLoad_->length() : 0);
