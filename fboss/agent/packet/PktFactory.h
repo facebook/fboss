@@ -63,6 +63,9 @@ class IPPacket {
   // set header fields, useful to construct TxPacket
   explicit IPPacket(const HdrT& hdr) : hdr_{hdr} {}
 
+  IPPacket(const HdrT& hdr, UDPDatagram payload)
+      : hdr_{hdr}, udpPayLoad_(payload) {}
+
   size_t length() const {
     return hdr_.size() + (udpPayLoad_ ? udpPayLoad_->length() : 0);
   }
@@ -99,12 +102,7 @@ class MPLSPacket {
   explicit MPLSPacket(MPLSHdr hdr) : hdr_(std::move(hdr)) {}
   template <typename AddrT>
   MPLSPacket(MPLSHdr hdr, IPPacket<AddrT> payload) : hdr_(std::move(hdr)) {
-    auto isV4 = std::is_same<AddrT, folly::IPAddressV4>::value;
-    if (isV4) {
-      v4PayLoad_.assign(std::move(payload));
-    } else {
-      v6PayLoad_.assign(std::move(payload));
-    }
+    setPayLoad(payload);
   }
 
   MPLSHdr header() const {
@@ -132,6 +130,14 @@ class MPLSPacket {
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
  private:
+  void setPayLoad(IPPacket<folly::IPAddressV6> payload) {
+    v6PayLoad_.assign(payload);
+  }
+
+  void setPayLoad(IPPacket<folly::IPAddressV4> payload) {
+    v4PayLoad_.assign(payload);
+  }
+
   MPLSHdr hdr_{MPLSHdr::Label{0, 0, 0, 0}};
   folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
   folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;

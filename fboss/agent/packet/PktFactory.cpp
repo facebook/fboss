@@ -69,7 +69,8 @@ std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   hdr_.serialize(&rwCursor);
   if (udpPayLoad_) {
-    folly::io::Cursor cursor(udpPayLoad_->getTxPacket(hw)->buf());
+    auto udpPkt = udpPayLoad_->getTxPacket(hw);
+    folly::io::Cursor cursor(udpPkt->buf());
     rwCursor.push(cursor, udpPayLoad_->length());
   }
   return txPacket;
@@ -111,9 +112,9 @@ std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
     folly::io::Cursor cursor(v4Packet->buf());
     rwCursor.push(cursor, v4PayLoad_->length());
   } else if (v6PayLoad_) {
-    auto v6Packet = v4PayLoad_->getTxPacket(hw);
+    auto v6Packet = v6PayLoad_->getTxPacket(hw);
     folly::io::Cursor cursor(v6Packet->buf());
-    rwCursor.push(cursor, v4PayLoad_->length());
+    rwCursor.push(cursor, v6PayLoad_->length());
   }
   return txPacket;
 }
