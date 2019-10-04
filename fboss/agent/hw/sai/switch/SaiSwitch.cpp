@@ -14,7 +14,9 @@
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
@@ -81,6 +83,8 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
 }
+
+SaiSwitch::~SaiSwitch() {}
 
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
@@ -225,10 +229,20 @@ void SaiSwitch::linkStateChangedCallback(
     auto state = data[i].port_state == SAI_PORT_OPER_STATUS_UP ? "up" : "down";
     XLOG(INFO) << "port " << state << " notification received for " << std::hex
                << data[i].port_id;
-    // FIXME - accessing port table here is racy - T54107986
+
+    // Look up SwitchState PortID by port sai id in ConcurrentIndices
+    const auto portItr =
+        concurrentIndices_->portIds.find(PortSaiId(data[i].port_id));
+    if (portItr == concurrentIndices_->portIds.cend()) {
+      XLOG(WARNING)
+          << "received port notification for port with unknown sai id: "
+          << data[i].port_id;
+      return;
+    }
+    PortID swPortId = portItr->second;
+
     callback_->linkStateChanged(
-        managerTable()->portManager().getPortID(PortSaiId{data[i].port_id}),
-        data[i].port_state == SAI_PORT_OPER_STATUS_UP);
+        swPortId, data[i].port_state == SAI_PORT_OPER_STATUS_UP);
   }
 }
 
@@ -259,11 +273,12 @@ HwInitResult SaiSwitch::initLocked(
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
   SaiApiTable::getInstance()->queryApis();
-  managerTable_ = std::make_unique<SaiManagerTable>(platform_);
+  concurrentIndices_ = std::make_unique<ConcurrentIndices>();
+  managerTable_ =
+      std::make_unique<SaiManagerTable>(platform_, concurrentIndices_.get());
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
   SaiStore::getInstance()->setSwitchId(switchId_);
   platform_->initPorts();
-
   callback_ = callback;
   __gSaiSwitch = this;
 
@@ -294,12 +309,12 @@ void SaiSwitch::packetRxCallbackBottomHalf(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  PortSaiId saiPortId{0};
+  std::optional<PortSaiId> portSaiIdOpt;
   for (auto index = 0; index < attr_count; index++) {
     const sai_attribute_t* attr = &attr_list[index];
     switch (attr->id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
-        saiPortId = attr->value.oid;
+        portSaiIdOpt = attr->value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
@@ -308,24 +323,25 @@ void SaiSwitch::packetRxCallbackBottomHalf(
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  CHECK_NE(saiPortId, PortSaiId{0});
-  std::unique_ptr<SaiRxPacket> rxPacket;
-  {
-    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    const auto& portManager = managerTableLocked(lock)->portManager();
-    const auto& vlanManager = managerTableLocked(lock)->vlanManager();
-    PortID swPortId = portManager.getPortID(saiPortId);
-    /*
-     * TODO: PortID 0 can be a valid port. Throw an exception or check for
-     * an invalid port id.
-     */
-    if (swPortId == 0) {
-      return;
-    }
-    auto swVlanId = vlanManager.getVlanIdByPortId(swPortId);
-    rxPacket =
-        std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
+  CHECK(portSaiIdOpt);
+  PortSaiId portSaiId{portSaiIdOpt.value()};
+
+  const auto portItr = concurrentIndices_->portIds.find(portSaiId);
+  if (portItr == concurrentIndices_->portIds.cend()) {
+    XLOG(WARNING) << "RX packet had port with unknown sai id: " << portSaiId;
+    return;
   }
+  PortID swPortId = portItr->second;
+
+  const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
+  if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+    XLOG(WARNING) << "RX packet had port in no known vlan: " << portSaiId;
+    return;
+  }
+  VlanID swVlanId = vlanItr->second;
+
+  auto rxPacket =
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
   callback_->packetReceived(std::move(rxPacket));
 }
 
@@ -487,15 +503,35 @@ void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     std::vector<L2EntryThrift>* l2Table) const {
   auto fdbEntries = getObjectKeys<SaiFdbTraits>(switchId_);
+  l2Table->resize(fdbEntries.size());
   for (const auto& fdbEntry : fdbEntries) {
     L2EntryThrift entry;
-    entry.vlanID = managerTable()->vlanManager().getVlanID(
-        VlanSaiId(fdbEntry.bridgeVlanId()));
-    entry.mac = fdbEntry.mac().toString();
+    // SwitchState's VlanID is an attribute we store in the vlan, so
+    // we can get it via SaiApi
+    auto& vlanApi = SaiApiTable::getInstance()->vlanApi();
+    VlanID swVlanId{vlanApi.getAttribute(
+        VlanSaiId{fdbEntry.bridgeVlanId()},
+        SaiVlanTraits::Attributes::VlanId{})};
+    entry.vlanID = swVlanId;
+
+    // To get the PortID, we get the bridgePortId from the fdb entry,
+    // then get that Bridge Port's PortId attribute. We can lookup the
+    // PortID for a sai port id in ConcurrentIndices
     auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
-    auto saiPortId =
+    auto bridgePortSaiId =
         fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
-    entry.port = managerTable()->portManager().getPortID(PortSaiId{saiPortId});
+    auto& bridgeApi = SaiApiTable::getInstance()->bridgeApi();
+    auto portSaiId = bridgeApi.getAttribute(
+        BridgePortSaiId{bridgePortSaiId},
+        SaiBridgePortTraits::Attributes::PortId{});
+    const auto portItr = concurrentIndices_->portIds.find(PortSaiId{portSaiId});
+    if (portItr == concurrentIndices_->portIds.cend()) {
+      XLOG(WARNING) << "l2 table entry had unknown port sai id: " << portSaiId;
+      continue;
+    }
+    entry.port = portItr->second;
+
+    // entry is filled out; push it onto the L2 table
     l2Table->push_back(entry);
   }
 }

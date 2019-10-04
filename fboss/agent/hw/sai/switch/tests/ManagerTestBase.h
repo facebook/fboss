@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
@@ -128,6 +129,7 @@ class ManagerTestBase : public ::testing::Test {
   // TODO - Add FakeSaiPlatform
   std::shared_ptr<SaiPlatform> saiPlatform;
   std::shared_ptr<SaiApiTable> saiApiTable;
+  std::unique_ptr<ConcurrentIndices> concurrentIndices;
   std::unique_ptr<SaiManagerTable> saiManagerTable;
 
   std::array<TestInterface, 10> testInterfaces;

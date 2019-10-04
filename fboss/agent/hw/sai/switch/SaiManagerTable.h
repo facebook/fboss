@@ -13,6 +13,7 @@
 
 namespace facebook::fboss {
 
+class ConcurrentIndices;
 class SaiBridgeManager;
 class SaiFdbManager;
 class SaiHostifManager;
@@ -30,7 +31,7 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  explicit SaiManagerTable(SaiPlatform* platform);
+  SaiManagerTable(SaiPlatform* platform, ConcurrentIndices* concurrentIndices);
   ~SaiManagerTable();
 
   SaiBridgeManager& bridgeManager();

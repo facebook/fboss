@@ -22,6 +22,7 @@
 
 namespace facebook::fboss {
 
+class ConcurrentIndices;
 class SaiPlatform;
 
 class SaiSwitch : public HwSwitch {
@@ -31,6 +32,9 @@ class SaiSwitch : public HwSwitch {
       uint32_t featuresDesired =
           (FeaturesDesired::PACKET_RX_DESIRED |
            FeaturesDesired::LINKSCAN_DESIRED));
+
+  ~SaiSwitch() override;
+
   HwInitResult init(Callback* callback) noexcept override;
 
   void unregisterCallbacks() noexcept override;
@@ -220,18 +224,29 @@ class SaiSwitch : public HwSwitch {
       uint32_t attr_count,
       const sai_attribute_t* attr_list);
 
+  /*
+   * SaiSwitch must support a few varieties of concurrent access:
+   * 1. state updates on the SwSwitch update thread calling stateChanged
+   * 2. packet rx callback
+   * 3. async tx thread
+   * 4. port state event callback (i.e., linkscan)
+   * 5. stats collection
+   * 6. getters exposed to thrift or other threads
+   *
+   * It is critical that 2, 3, and 4 are not blocked by other, possibly slower
+   * operations. Ideally, 1 and 5 are able to make progress relatively freely
+   * as well. To that end, we synchronize most access (1, 6) with a global
+   * lock, but give a fast-path for 2, 3, 4, 5 in the form of possibly out
+   * of date indices stored in folly::ConcurrentHashMaps in ConcurrentIndices
+   * e.g., rx can look up the PortID from the sai_object_id_t on the
+   * packet without blocking normal hardware programming.
+   */
+  mutable std::mutex saiSwitchMutex_;
+  std::unique_ptr<ConcurrentIndices> concurrentIndices_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;
   Callback* callback_{nullptr};
-  /*
-   * This mutex acts as a global lock for using SaiSwitch, since updates
-   * are serialized by SwSwitch naturally, this prevents races between:
-   * 1. updates
-   * 2. queries (counters, thrift calls)
-   * 3. sai callbacks (port status, packet received)
-   */
-  mutable std::mutex saiSwitchMutex_;
 
   SwitchSaiId switchId_;
 

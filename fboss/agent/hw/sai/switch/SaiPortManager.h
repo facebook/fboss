@@ -23,6 +23,7 @@
 
 namespace facebook::fboss {
 
+class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 
@@ -38,16 +39,19 @@ struct SaiPortHandle {
 
 class SaiPortManager {
  public:
-  SaiPortManager(SaiManagerTable* managerTable, SaiPlatform* platform);
+  SaiPortManager(
+      SaiManagerTable* managerTable,
+      SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices_);
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
   void removePort(PortID id);
   void changePort(const std::shared_ptr<Port>& swPort);
 
   SaiPortTraits::CreateAttributes attributesFromSwPort(
       const std::shared_ptr<Port>& swPort) const;
+
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
-  PortID getPortID(PortSaiId saiId) const;
   void processPortDelta(const StateDelta& stateDelta);
   void updateStats() {}
   std::map<PortID, HwPortStats> getPortStats() const;
@@ -56,8 +60,8 @@ class SaiPortManager {
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
+  ConcurrentIndices* concurrentIndices_;
   folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>> handles_;
-  folly::F14FastMap<PortSaiId, PortID> portSaiIds_;
 };
 
 } // namespace facebook::fboss

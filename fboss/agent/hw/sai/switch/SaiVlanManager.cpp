@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -25,8 +26,11 @@ namespace facebook::fboss {
 
 SaiVlanManager::SaiVlanManager(
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    const SaiPlatform* platform,
+    ConcurrentIndices* concurrentIndices)
+    : managerTable_(managerTable),
+      platform_(platform),
+      concurrentIndices_(concurrentIndices) {}
 
 VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
@@ -76,11 +80,6 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   }
   BridgePortSaiId bridgePortSaiId = portHandle->bridgePort->adapterKey();
 
-  // Associate the portHandle with the vlan for the sake of computing the
-  // VlanID during packet RX
-  // TODO(borisb): remove after D15750266
-  vlanIdsByPortId_[swPortId] = swVlanId;
-
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
@@ -95,6 +94,7 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   auto saiVlanMember =
       vlanMemberStore.setObject(memberAdapterHostKey, memberAttributes);
   vlanHandle->vlanMembers.emplace(swPortId, saiVlanMember);
+  concurrentIndices_->vlanIds.emplace(portHandle->port->adapterKey(), swVlanId);
 }
 
 void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
@@ -102,10 +102,6 @@ void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
   if (citr == handles_.cend()) {
     throw FbossError(
         "attempted to remove a vlan which does not exist: ", swVlanId);
-  }
-  // TODO(borisb): remove after D15750266
-  for (const auto& member : citr->second->vlanMembers) {
-    vlanIdsByPortId_.erase(member.first);
   }
   handles_.erase(citr);
 }
@@ -135,7 +131,15 @@ void SaiVlanManager::changeVlan(
       compareIds);
   for (const auto& swPortId : removed) {
     handle->vlanMembers.erase(swPortId.first);
-    vlanIdsByPortId_.erase(swPortId.first);
+    SaiPortHandle* portHandle =
+        managerTable_->portManager().getPortHandle(swPortId.first);
+    if (!portHandle) {
+      throw FbossError(
+          "Failed to remove vlan member: "
+          "no port handle matching vlan member port: ",
+          swPortId.first);
+    }
+    concurrentIndices_->vlanIds.erase(portHandle->port->adapterKey());
   }
   VlanFields::MemberPorts added;
   std::set_difference(
@@ -179,20 +183,6 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
     XLOG(FATAL) << "invalid null VLAN for VlanID: " << swVlanId;
   }
   return itr->second.get();
-}
-
-VlanID SaiVlanManager::getVlanID(VlanSaiId saiVlanId) const {
-  for (const auto& [vlanId, vlanHandle] : handles_) {
-    if (vlanHandle->vlan->adapterKey() == saiVlanId) {
-      return vlanId;
-    }
-  }
-  throw FbossError("Counld not lookup vlan for : ", saiVlanId);
-}
-
-// TODO(borisb): remove after D15750266
-VlanID SaiVlanManager::getVlanIdByPortId(PortID portId) const {
-  return vlanIdsByPortId_.at(portId);
 }
 
 } // namespace facebook::fboss

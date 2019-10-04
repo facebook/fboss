@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
@@ -27,7 +28,9 @@
 
 namespace facebook::fboss {
 
-SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
+SaiManagerTable::SaiManagerTable(
+    SaiPlatform* platform,
+    ConcurrentIndices* concurrentIndices) {
   switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
   // TODO(borisb): find a cleaner solution to this problem.
   // perhaps reload fixes it?
@@ -37,11 +40,13 @@ SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this);
-  portManager_ = std::make_unique<SaiPortManager>(this, platform);
+  portManager_ =
+      std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
   queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(this, platform);
-  vlanManager_ = std::make_unique<SaiVlanManager>(this, platform);
+  vlanManager_ =
+      std::make_unique<SaiVlanManager>(this, platform, concurrentIndices);
   routeManager_ = std::make_unique<SaiRouteManager>(this, platform);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(this, platform);

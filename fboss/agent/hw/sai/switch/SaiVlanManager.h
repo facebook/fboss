@@ -24,6 +24,7 @@
 
 namespace facebook::fboss {
 
+class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 
@@ -37,9 +38,13 @@ struct SaiVlanHandle {
 
 class SaiVlanManager {
  public:
-  SaiVlanManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiVlanManager(
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices);
   using SaiVlanHandles =
       folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>>;
+
   VlanSaiId addVlan(const std::shared_ptr<Vlan>& swVlan);
   void removeVlan(const VlanID& swVlanId);
   void changeVlan(
@@ -49,9 +54,7 @@ class SaiVlanManager {
 
   const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
   SaiVlanHandle* getVlanHandle(VlanID swVlanId);
-  VlanID getVlanID(VlanSaiId saiVlanId) const;
-  // TODO(borisb): remove after D15750266
-  VlanID getVlanIdByPortId(PortID portId) const;
+
   const SaiVlanHandles& getVlanHandles() const {
     return handles_;
   }
@@ -64,8 +67,7 @@ class SaiVlanManager {
   const SaiPlatform* platform_;
 
   SaiVlanHandles handles_;
-  // TODO(borisb): remove after D15750266
-  folly::F14FastMap<PortID, VlanID> vlanIdsByPortId_;
+  ConcurrentIndices* concurrentIndices_;
 };
 
 } // namespace facebook::fboss

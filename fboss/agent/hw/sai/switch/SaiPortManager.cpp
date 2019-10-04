@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -24,8 +25,11 @@ namespace facebook::fboss {
 
 SaiPortManager::SaiPortManager(
     SaiManagerTable* managerTable,
-    SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    SaiPlatform* platform,
+    ConcurrentIndices* concurrentIndices)
+    : managerTable_(managerTable),
+      platform_(platform),
+      concurrentIndices_(concurrentIndices) {}
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
@@ -48,7 +52,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->queues = managerTable_->queueManager().createQueues(
       saiPort->adapterKey(), swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
-  portSaiIds_.emplace(saiPort->adapterKey(), swPort->getID());
+  concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();
 }
 
@@ -57,7 +61,7 @@ void SaiPortManager::removePort(PortID swId) {
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
   }
-  portSaiIds_.erase(itr->second->port->adapterKey());
+  concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   handles_.erase(itr);
 }
 
@@ -180,14 +184,6 @@ const SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) const {
 
 SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) {
   return getPortHandleImpl(swId);
-}
-
-PortID SaiPortManager::getPortID(PortSaiId saiId) const {
-  auto itr = portSaiIds_.find(saiId);
-  if (itr == portSaiIds_.end()) {
-    return PortID(0);
-  }
-  return itr->second;
 }
 
 void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
