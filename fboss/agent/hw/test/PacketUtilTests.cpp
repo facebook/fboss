@@ -325,3 +325,95 @@ TEST(PacketUtilTest, TxMPLSv6UDP) {
   auto ethPkt2 = utility::EthFrame(cursor);
   EXPECT_EQ(ethPkt, ethPkt2);
 }
+
+TEST(PacketUtilTest, GetEthFrameV4) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  auto ethFrame0 = utility::getEthFrame(
+      folly::MacAddress("01:02:03:04:05:06"),
+      folly::MacAddress("0a:0b:0c:0d:0e:0f"),
+      folly::IPAddressV4("10.0.1.1"),
+      folly::IPAddressV4("10.0.1.2"),
+      10010,
+      10020);
+
+  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor(txPkt->buf());
+
+  auto ethFrame1 = utility::EthFrame(cursor);
+
+  EXPECT_EQ(ethFrame1, ethFrame0);
+}
+
+TEST(PacketUtilTest, GetEthFrameV6) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  auto ethFrame0 = utility::getEthFrame(
+      folly::MacAddress("01:02:03:04:05:06"),
+      folly::MacAddress("0a:0b:0c:0d:0e:0f"),
+      folly::IPAddressV6("1001::1"),
+      folly::IPAddressV6("1001::2"),
+      10010,
+      10020);
+
+  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor(txPkt->buf());
+
+  auto ethFrame1 = utility::EthFrame(cursor);
+
+  EXPECT_EQ(ethFrame1, ethFrame0);
+}
+
+TEST(PacketUtilTest, GetEthFrameV4MPLS) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  std::vector<MPLSHdr::Label> labels{
+      MPLSHdr::Label(1001, 0, false, 128),
+      MPLSHdr::Label(2001, 0, false, 128),
+      MPLSHdr::Label(3001, 0, true, 128),
+  };
+  auto ethFrame0 = utility::getEthFrame(
+      folly::MacAddress("01:02:03:04:05:06"),
+      folly::MacAddress("0a:0b:0c:0d:0e:0f"),
+      labels,
+      folly::IPAddressV4("10.0.1.1"),
+      folly::IPAddressV4("10.0.1.2"),
+      10010,
+      10020);
+
+  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor(txPkt->buf());
+
+  auto ethFrame1 = utility::EthFrame(cursor);
+
+  EXPECT_EQ(ethFrame1, ethFrame0);
+}
+
+TEST(PacketUtilTest, GetEthFrameV6MPLS) {
+  auto platform = createMockPlatform();
+  auto hwSwitch = MockHwSwitch(platform.get());
+
+  std::vector<MPLSHdr::Label> labels{
+      MPLSHdr::Label(1001, 0, false, 128),
+      MPLSHdr::Label(2001, 0, false, 128),
+      MPLSHdr::Label(3001, 0, true, 128),
+  };
+  auto ethFrame0 = utility::getEthFrame(
+      folly::MacAddress("01:02:03:04:05:06"),
+      folly::MacAddress("0a:0b:0c:0d:0e:0f"),
+      labels,
+      folly::IPAddressV6("1001::1"),
+      folly::IPAddressV6("1001::2"),
+      10010,
+      10020);
+
+  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  folly::io::Cursor cursor(txPkt->buf());
+
+  auto ethFrame1 = utility::EthFrame(cursor);
+
+  EXPECT_EQ(ethFrame1, ethFrame0);
+}

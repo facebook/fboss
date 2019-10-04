@@ -10,6 +10,8 @@
 #include "fboss/agent/HwSwitch.h"
 
 namespace {
+static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
+
 using namespace facebook::fboss;
 uint8_t nextHeader(const IPv6Hdr& hdr) {
   return hdr.nextHeader;
@@ -227,8 +229,104 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
   }
 }
 
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort) {
+  constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  constexpr auto etherType =
+      isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
+  EthHdr ethHdr{srcMac,
+                dstMac,
+                {EthHdr::VlanTags_t{VlanTag(1, 0x8100)}},
+                static_cast<uint16_t>(etherType)};
+  std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
+  ipHdr.srcAddr = srcIp;
+  ipHdr.dstAddr = dstIp;
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = sPort;
+  udpHdr.dstPort = dPort;
+
+  return utility::EthFrame(
+      ethHdr,
+      utility::IPPacket<AddrT>(
+          ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload)));
+}
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort) {
+  constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  EthHdr ethHdr{srcMac,
+                dstMac,
+                {EthHdr::VlanTags_t{VlanTag(1, 0x8100)}},
+                static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
+
+  MPLSHdr mplsHdr{std::move(labels)};
+
+  std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
+  ipHdr.srcAddr = srcIp;
+  ipHdr.dstAddr = dstIp;
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = sPort;
+  udpHdr.dstPort = dPort;
+
+  return utility::EthFrame(
+      ethHdr,
+      utility::MPLSPacket(
+          mplsHdr,
+          utility::IPPacket<AddrT>(
+              ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload))));
+}
+
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
+
+template EthFrame getEthFrame<folly::IPAddressV4>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    folly::IPAddressV4 srcIp,
+    folly::IPAddressV4 dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
+
+template EthFrame getEthFrame<folly::IPAddressV6>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    folly::IPAddressV6 srcIp,
+    folly::IPAddressV6 dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
+
+template EthFrame getEthFrame<folly::IPAddressV4>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    folly::IPAddressV4 srcIp,
+    folly::IPAddressV4 dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
+
+template EthFrame getEthFrame<folly::IPAddressV6>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    folly::IPAddressV6 srcIp,
+    folly::IPAddressV6 dstIp,
+    uint16_t sPort,
+    uint16_t dPort);
 
 } // namespace utility
 } // namespace fboss
