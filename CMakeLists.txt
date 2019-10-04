@@ -640,15 +640,6 @@ target_link_libraries(bcm_test
     ${LIBGMOCK_LIBRARIES}
 )
 
-# TODO(rsher)
-# depends on agent/hw/bcm/facebook/bcm_config.thrift
-# investigate open sourcing
-# add_executable(lldp_tool
-#       fboss/util/lldp_tool.cpp
-# )
-#
-# target_link_libraries(lldp_tool fboss-agent)
-
 add_executable(cp2112_util
     fboss/util/cp2112_util.cpp
 )
