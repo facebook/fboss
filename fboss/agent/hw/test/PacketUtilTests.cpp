@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 
 #include <folly/io/Cursor.h>

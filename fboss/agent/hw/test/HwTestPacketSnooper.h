@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
 
 #include <folly/Optional.h>
 #include <folly/io/IOBuf.h>
