@@ -44,7 +44,9 @@ class BcmTxPacket : public TxPacket {
    */
   void setDestModPort(opennsl_port_t port) {
     DCHECK_EQ((port & ~0xff), 0);
-    enableHiGigHeader();
+    // Need to reset TX_ETHER for packets that are
+    // predetermined to go out of a port/trunk
+    pkt_->flags &= ~OPENNSL_TX_ETHER;
     OPENNSL_PBMP_PORT_SET(pkt_->tx_pbmp, port);
     OPENNSL_PBMP_PORT_SET(pkt_->tx_upbmp, port);
   }
@@ -82,7 +84,6 @@ class BcmTxPacket : public TxPacket {
   // Forbidden copy constructor and assignment operator
   BcmTxPacket(BcmTxPacket const&) = delete;
   BcmTxPacket& operator=(BcmTxPacket const&) = delete;
-  void enableHiGigHeader();
 
   // Synchronization around synchrnous packet sending
   static std::mutex& syncPktMutex();

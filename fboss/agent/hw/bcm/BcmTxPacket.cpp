@@ -74,13 +74,6 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size)
   BcmStats::get()->txPktAlloc();
 }
 
-void BcmTxPacket::enableHiGigHeader() {
-  // this is a hack, as ideally, we just want to reset TX_ETHER flag, but
-  // opennsl does not have api to read flags and set or reset bits
-  // incrementally.
-  pkt_->flags &= ~OPENNSL_TX_ETHER;
-}
-
 inline int BcmTxPacket::sendImpl(unique_ptr<BcmTxPacket> pkt) noexcept {
   opennsl_pkt_t* bcmPkt = pkt->pkt_;
   const auto buf = pkt->buf();
