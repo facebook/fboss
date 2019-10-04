@@ -47,6 +47,17 @@ class UDPDatagram {
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
+  bool operator==(const UDPDatagram& that) const {
+    /* ignore checksum, */
+    return std::tie(
+               udpHdr_.srcPort, udpHdr_.dstPort, udpHdr_.length, payload_) ==
+        std::tie(
+               that.udpHdr_.srcPort,
+               that.udpHdr_.dstPort,
+               that.udpHdr_.length,
+               that.payload_);
+  }
+
  private:
   UDPHeader udpHdr_;
   std::vector<uint8_t> payload_{};
@@ -94,6 +105,10 @@ class IPPacket {
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
+  bool operator==(const IPPacket<AddrT>& that) const {
+    return std::tie(hdr_, udpPayLoad_) == std::tie(that.hdr_, that.udpPayLoad_);
+  }
+
  private:
   void setUDPCheckSum(folly::IOBuf* buffer) const;
   HdrT hdr_;
@@ -139,6 +154,11 @@ class MPLSPacket {
       const HwSwitch* hw) const;
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
+
+  bool operator==(const MPLSPacket& that) const {
+    return std::tie(hdr_, v4PayLoad_, v6PayLoad_) ==
+        std::tie(that.hdr_, that.v4PayLoad_, that.v6PayLoad_);
+  }
 
  private:
   void setPayLoad(IPPacket<folly::IPAddressV6> payload) {
@@ -205,6 +225,12 @@ class EthFrame {
   }
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
+
+  bool operator==(const EthFrame& that) const {
+    return std::tie(hdr_, v4PayLoad_, v6PayLoad_, mplsPayLoad_) ==
+        std::tie(
+               that.hdr_, that.v4PayLoad_, that.v6PayLoad_, that.mplsPayLoad_);
+  }
 
  private:
   EthHdr hdr_;
