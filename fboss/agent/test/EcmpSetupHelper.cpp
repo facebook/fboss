@@ -375,6 +375,25 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
 }
 
 template <typename IPAddrT>
+std::shared_ptr<SwitchState>
+EcmpSetupAnyNPorts<IPAddrT>::setupIp2MplsECMPForwarding(
+    const std::shared_ptr<SwitchState>& inputState,
+    size_t ecmpWidth,
+    const std::vector<RouteT>& prefixes,
+    std::vector<LabelForwardingAction::LabelStack> stacks,
+    const std::vector<NextHopWeight>& weights) const {
+  auto ports = getPortDescs(ecmpWidth);
+  std::map<PortDescriptor, LabelForwardingAction::LabelStack> port2Stack;
+  auto i = 0;
+  for (auto port : ports) {
+    i = (i % stacks.size());
+    port2Stack.emplace(port, stacks[i++]);
+  }
+  return ecmpSetupTargetedPorts_.setupIp2MplsECMPForwarding(
+      inputState, ports, port2Stack, prefixes, weights);
+}
+
+template <typename IPAddrT>
 std::vector<PortDescriptor> EcmpSetupAnyNPorts<IPAddrT>::ecmpPortDescs(
     int width) const {
   return ecmpSetupTargetedPorts_.ecmpPortDescs(width);

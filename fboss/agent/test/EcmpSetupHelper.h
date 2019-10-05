@@ -267,6 +267,14 @@ class EcmpSetupAnyNPorts {
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
+  std::shared_ptr<SwitchState> setupIp2MplsECMPForwarding(
+      const std::shared_ptr<SwitchState>& inputState,
+      size_t width,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      std::vector<LabelForwardingAction::LabelStack> stacks = {{10010}},
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+
   folly::Optional<VlanID> getVlan(const PortDescriptor& port) const {
     return ecmpSetupTargetedPorts_.getVlan(port);
   }
