@@ -105,6 +105,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   // rx is turned off and the evb loop is set to break
   // just need to block until the last packet is processed
   if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+    rxBottomHalfEventBase_.terminateLoopSoon();
     rxBottomHalfThread_->join();
     // rx is completely shut-off
   }
@@ -348,8 +349,13 @@ void SaiSwitch::packetRxCallbackBottomHalf(
 void SaiSwitch::unregisterCallbacksLocked(
     const std::lock_guard<std::mutex>& /* lock */) noexcept {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.unregisterRxCallback(switchId_);
-  rxBottomHalfEventBase_.terminateLoopSoon();
+  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+    switchApi.unregisterRxCallback(switchId_);
+  }
+  if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+    switchApi.unregisterPortStateChangeCallback(switchId_);
+  }
+  switchApi.unregisterFdbEventCallback(switchId_);
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(

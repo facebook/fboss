@@ -104,6 +104,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
   void unregisterRxCallback(SwitchSaiId switch_id) {
     registerRxCallback(switch_id, nullptr);
   }
+  void unregisterPortStateChangeCallback(SwitchSaiId id) {
+    registerPortStateChangeCallback(id, nullptr);
+  }
+  void unregisterFdbEventCallback(SwitchSaiId id) {
+    registerFdbEventCallback(id, nullptr);
+  }
 
  private:
   sai_status_t _create(
