@@ -260,8 +260,8 @@ enum PortOperState {
 }
 
 struct LinearQueueCongestionDetection {
-  1: i16 minimumLength
-  2: i16 maximumLength
+  1: i32 minimumLength
+  2: i32 maximumLength
 }
 
 struct QueueCongestionDetection {
