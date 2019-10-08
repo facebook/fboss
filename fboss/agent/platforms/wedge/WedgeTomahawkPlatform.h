@@ -59,6 +59,11 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool isMultiPathLabelSwitchActionSupported() const override {
     return true;
   }
+
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
 };
 
 } // namespace fboss

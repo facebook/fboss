@@ -77,6 +77,11 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;

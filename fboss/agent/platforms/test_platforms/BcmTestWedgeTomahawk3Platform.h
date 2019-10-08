@@ -70,6 +70,11 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
     return true;
   }
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawk3Platform(BcmTestWedgeTomahawk3Platform const&) = delete;

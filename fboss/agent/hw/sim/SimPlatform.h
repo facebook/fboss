@@ -43,6 +43,11 @@ class SimPlatform : public Platform {
     return nullptr;
   }
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SimPlatform(SimPlatform const&) = delete;

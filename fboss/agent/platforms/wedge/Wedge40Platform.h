@@ -63,6 +63,11 @@ class Wedge40Platform : public WedgePlatform {
     return false;
   }
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;

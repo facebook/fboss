@@ -22,6 +22,11 @@ class SaiFakePlatform : public SaiPlatform {
   std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   folly::test::TemporaryDirectory tmpDir_;
 };

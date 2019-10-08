@@ -25,6 +25,7 @@ class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
 struct ProductInfo;
+class HwAsic;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -172,6 +173,8 @@ class Platform {
   virtual TransceiverIdxThrift getPortMapping(PortID port) const = 0;
 
   virtual PlatformPort* getPlatformPort(PortID port) const = 0;
+
+  virtual HwAsic* getAsic() const = 0;
 
  private:
   /*

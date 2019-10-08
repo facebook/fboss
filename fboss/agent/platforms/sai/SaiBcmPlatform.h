@@ -17,6 +17,10 @@ class SaiBcmPlatform : public SaiHwPlatform {
   explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
       : SaiHwPlatform(std::move(productInfo)) {}
   std::string getHwConfig() override;
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
 };
 
 } // namespace facebook::fboss

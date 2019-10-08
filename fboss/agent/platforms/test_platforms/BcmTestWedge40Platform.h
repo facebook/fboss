@@ -70,6 +70,11 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return cfg::PortLoopbackMode::PHY;
   }
 
+  HwAsic* getAsic() const override {
+    /* TODO: implement this */
+    return nullptr;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
