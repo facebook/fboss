@@ -1396,7 +1396,6 @@ template <typename DELTA, typename ParentClassT>
 void BcmSwitch::processNeighborEntryDelta(
     const DELTA& delta,
     std::shared_ptr<SwitchState>* appliedState) {
-  using EntryT = typename DELTA::Node;
   const auto* oldEntry = delta.getOld().get();
   const auto* newEntry = delta.getNew().get();
 

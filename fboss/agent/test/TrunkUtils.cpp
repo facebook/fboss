@@ -78,9 +78,7 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
   auto newState{curState};
   for (auto aggPortOld : *newState->getAggregatePorts()) {
     auto aggPort = aggPortOld->modify(&newState);
-    for (auto subPort : aggPort->sortedSubports()) {
-      aggPort->setMinimumLinkCount(minlinks);
-    }
+    aggPort->setMinimumLinkCount(minlinks);
   }
   return newState;
 }
