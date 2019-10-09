@@ -10,9 +10,17 @@
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 
+#include "fboss/agent/hw/switch_asics/FakeAsic.h"
+
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
+
+SaiFakePlatform::SaiFakePlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiPlatform(std::move(productInfo)) {
+  asic_ = std::make_unique<FakeAsic>();
+}
 
 std::string SaiFakePlatform::getVolatileStateDir() const {
   return tmpDir_.path().string() + "/volatile";
@@ -25,5 +33,11 @@ std::string SaiFakePlatform::getPersistentStateDir() const {
 std::string SaiFakePlatform::getHwConfig() {
   return {};
 }
+
+HwAsic* SaiFakePlatform::getAsic() const {
+  return asic_.get();
+}
+
+SaiFakePlatform::~SaiFakePlatform() {}
 
 } // namespace facebook::fboss

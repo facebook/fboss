@@ -320,6 +320,7 @@ add_executable(bcm_test
 )
 
 add_library(switch_asics STATIC
+    fboss/agent/hw/switch_asics/FakeAsic.h
     fboss/agent/hw/switch_asics/HwAsic.h
     fboss/agent/hw/switch_asics/Tomahawk3Asic.h
     fboss/agent/hw/switch_asics/TomahawkAsic.h

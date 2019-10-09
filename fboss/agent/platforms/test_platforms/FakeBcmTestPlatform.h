@@ -15,10 +15,11 @@
 
 namespace facebook {
 namespace fboss {
+class FakeAsic;
 class FakeBcmTestPlatform : public BcmTestPlatform {
  public:
   FakeBcmTestPlatform();
-  ~FakeBcmTestPlatform() override {}
+  ~FakeBcmTestPlatform() override;
 
   bool isCosSupported() const override {
     return true;
@@ -77,9 +78,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
-  HwAsic* getAsic() const override {
-    throw std::runtime_error("getAsic not implemented for FakeBcmTestPlatform");
-  }
+  HwAsic* getAsic() const override;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -89,6 +88,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
 
   folly::test::TemporaryDirectory tmpDir_;
+  std::unique_ptr<FakeAsic> asic_;
 };
 } // namespace fboss
 } // namespace facebook

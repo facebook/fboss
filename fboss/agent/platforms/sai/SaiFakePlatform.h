@@ -13,21 +13,20 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 namespace facebook::fboss {
-
+class FakeAsic;
 class SaiFakePlatform : public SaiPlatform {
  public:
-  explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiPlatform(std::move(productInfo)) {}
+  explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  ~SaiFakePlatform() override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
 
-  HwAsic* getAsic() const override {
-    throw std::runtime_error("getAsic not implemented for SaiBcmPlatform");
-  }
+  HwAsic* getAsic() const override;
 
  private:
   folly::test::TemporaryDirectory tmpDir_;
+  std::unique_ptr<FakeAsic> asic_;
 };
 
 } // namespace facebook::fboss

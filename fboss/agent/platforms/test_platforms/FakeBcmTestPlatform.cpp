@@ -10,6 +10,8 @@
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPort.h"
 
+#include "fboss/agent/hw/switch_asics/FakeAsic.h"
+
 using std::make_unique;
 
 namespace {
@@ -25,7 +27,11 @@ FakeBcmTestPlatform::FakeBcmTestPlatform()
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
-          kNumPortsPerTransceiver) {}
+          kNumPortsPerTransceiver) {
+  asic_ = std::make_unique<FakeAsic>();
+}
+
+FakeBcmTestPlatform::~FakeBcmTestPlatform() {}
 
 std::unique_ptr<BcmTestPort> FakeBcmTestPlatform::createTestPort(
     PortID id) const {
@@ -38,6 +44,10 @@ std::string FakeBcmTestPlatform::getVolatileStateDir() const {
 
 std::string FakeBcmTestPlatform::getPersistentStateDir() const {
   return tmpDir_.path().string() + "/persist";
+}
+
+HwAsic* FakeBcmTestPlatform::getAsic() const {
+  return asic_.get();
 }
 
 } // namespace fboss
