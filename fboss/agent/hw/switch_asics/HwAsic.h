@@ -8,7 +8,6 @@ namespace fboss {
 class HwAsic {
  public:
   enum class Feature {
-    INVALID,
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,
@@ -17,7 +16,7 @@ class HwAsic {
     SFLOWv6,
     MPLS,
     MPLS_ECMP,
-    UNUSED,
+    TRUNCATE_MIRROR_PACKET,
   };
 
   virtual ~HwAsic() {}
