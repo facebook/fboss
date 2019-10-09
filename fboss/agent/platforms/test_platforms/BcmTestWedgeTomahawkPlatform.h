@@ -11,6 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
+#include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+
 namespace facebook {
 namespace fboss {
 class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
@@ -72,8 +74,7 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   }
 
   HwAsic* getAsic() const override {
-    /* TODO: implement this */
-    return nullptr;
+    return asic_.get();
   }
 
  private:
@@ -81,6 +82,7 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   BcmTestWedgeTomahawkPlatform(BcmTestWedgeTomahawkPlatform const&) = delete;
   BcmTestWedgeTomahawkPlatform& operator=(BcmTestWedgeTomahawkPlatform const&) =
       delete;
+  std::unique_ptr<TomahawkAsic> asic_;
 };
 } // namespace fboss
 } // namespace facebook

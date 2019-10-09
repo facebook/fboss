@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
 namespace facebook {
@@ -20,7 +21,9 @@ class PlatformProductInfo;
 class Wedge40Platform : public WedgePlatform {
  public:
   explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : WedgePlatform(std::move(productInfo)) {}
+      : WedgePlatform(std::move(productInfo)) {
+    asic_ = std::make_unique<Trident2Asic>();
+  }
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 
@@ -71,6 +74,7 @@ class Wedge40Platform : public WedgePlatform {
  private:
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;
+  std::unique_ptr<Trident2Asic> asic_;
 };
 
 } // namespace fboss

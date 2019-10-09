@@ -14,10 +14,11 @@
 
 namespace facebook {
 namespace fboss {
+class Trident2Asic;
 class BcmTestWedge40Platform : public BcmTestWedgePlatform {
  public:
   BcmTestWedge40Platform();
-  ~BcmTestWedge40Platform() override {}
+  ~BcmTestWedge40Platform() override;
 
   bool isCosSupported() const override {
     return false;
@@ -70,10 +71,7 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return cfg::PortLoopbackMode::PHY;
   }
 
-  HwAsic* getAsic() const override {
-    /* TODO: implement this */
-    return nullptr;
-  }
+  HwAsic* getAsic() const override;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -81,6 +79,7 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   BcmTestWedge40Platform& operator=(BcmTestWedge40Platform const&) = delete;
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<Trident2Asic> asic_;
 };
 } // namespace fboss
 } // namespace facebook

@@ -11,6 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
+#include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+
 namespace facebook {
 namespace fboss {
 class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
@@ -18,7 +20,9 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   BcmTestWedgeTomahawk3Platform(
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver)
-      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
+      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {
+    asic_ = std::make_unique<Tomahawk3Asic>();
+  }
   ~BcmTestWedgeTomahawk3Platform() override {}
 
   bool isCosSupported() const override {
@@ -71,8 +75,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   }
 
   HwAsic* getAsic() const override {
-    /* TODO: implement this */
-    return nullptr;
+    return asic_.get();
   }
 
  private:
@@ -80,6 +83,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   BcmTestWedgeTomahawk3Platform(BcmTestWedgeTomahawk3Platform const&) = delete;
   BcmTestWedgeTomahawk3Platform& operator=(
       BcmTestWedgeTomahawk3Platform const&) = delete;
+  std::unique_ptr<Tomahawk3Asic> asic_;
 };
 } // namespace fboss
 } // namespace facebook
