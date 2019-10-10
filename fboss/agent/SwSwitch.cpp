@@ -1502,15 +1502,6 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
           XLOG(WARNING) << "Applying config did not cause state change";
           return nullptr;
         }
-
-        // TODO(aeckert): this should be unneeded. Remove this
-        for (auto& port : *newState->getPorts()) {
-          if (!port->isPublished()) {
-            /* port has been changed */
-            port->setOperState(hw_->isPortUp(port->getID()));
-          }
-        }
-
         return newState;
       });
 }
