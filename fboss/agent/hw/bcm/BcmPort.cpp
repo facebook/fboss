@@ -282,8 +282,12 @@ opennsl_pbmp_t BcmPort::getPbmp() {
 void BcmPort::disable(const std::shared_ptr<Port>& swPort) {
   if (!isEnabled()) {
     // Already disabled
+    XLOG(DBG2) << "No need to disable port " << port_
+               << " since it is already disabled";
     return;
   }
+
+  XLOG(DBG1) << "Disabling port " << port_;
 
   auto pbmp = getPbmp();
   for (auto entry : swPort->getVlans()) {
@@ -330,8 +334,12 @@ bool BcmPort::isUp() {
 void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   if (isEnabled()) {
     // Port is already enabled, don't need to do anything
+    XLOG(DBG2) << "No need to enable port " << port_
+               << " since it is already enabled";
     return;
   }
+
+  XLOG(DBG1) << "Enabling port " << port_;
 
   auto pbmp = getPbmp();
   opennsl_pbmp_t emptyPortList;
@@ -574,6 +582,9 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
   // separately. Once that is resolved, we can do a audit to see that if all
   // ports are in desired mode settings, we can make mode changes a first
   // class citizen as well.
+
+  XLOG(DBG1) << "setSpeed called on port " << port_ << ": portUp=" << portUp
+             << ", curSpeed=" << curSpeed << ", desiredSpeed=" << desiredSpeed;
   if (!portUp || curSpeed != desiredSpeed) {
     setInterfaceMode(swPort);
 
