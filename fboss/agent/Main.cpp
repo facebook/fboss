@@ -305,6 +305,9 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
   auto stopServices = [&]() {
+    // stop accepting new connections
+    server->stopListening();
+
     init.stopFunctionScheduler();
     fbossFinalize();
   };
