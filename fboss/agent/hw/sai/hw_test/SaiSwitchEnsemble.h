@@ -45,7 +45,6 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   bool warmBootSupported() const override {
     return true;
   }
-  void recreateHwSwitchFromWBState() override;
 
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;

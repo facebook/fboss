@@ -117,19 +117,6 @@ class HwTest : public ::testing::Test,
     if (FLAGS_setup_for_warmboot) {
       logStage("tearDownSwitchEnsemble() for warmboot");
       tearDownSwitchEnsemble(true);
-    } else {
-      if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
-        // Now do a Hw switch layer only warm boot and verify. This is
-        // useful to verify integrity of reconstructing BCM layer data
-        // structures using warm boot cache and pre warmboot switch state.
-        // Skip is we already did a true ASIC level warm boot. Since that
-        // already verified this code path
-        if (hwSwitchEnsemble_->warmBootSupported()) {
-          logStage("flushBcmAndVerifyUsingWarmbootCache()");
-          flushBcmAndVerifyUsingWarmbootCache(
-              verify, setupPostWarmboot, verifyPostWarmboot);
-        }
-      }
     }
   }
 
@@ -150,27 +137,6 @@ class HwTest : public ::testing::Test,
   }
 
   void logStage(folly::StringPiece msg);
-
-  template <
-      typename VERIFY_FN,
-      typename SETUP_POSTWB_FN,
-      typename VERIFY_POSTWB_FN>
-  void flushBcmAndVerifyUsingWarmbootCache(
-      VERIFY_FN verify,
-      SETUP_POSTWB_FN setupPostWarmboot,
-      VERIFY_POSTWB_FN verifyPostWarmboot) {
-    logStage("recreateHwSwitchFromWBState() (in memory warmboot)");
-    hwSwitchEnsemble_->recreateHwSwitchFromWBState();
-
-    logStage("verify()");
-    verify();
-
-    logStage("setupPostWarmboot()");
-    setupPostWarmboot();
-
-    logStage("verifyPostWarmboot()");
-    verifyPostWarmboot();
-  }
 
   // Forbidden copy constructor and assignment operator
   HwTest(HwTest const&) = delete;

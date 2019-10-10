@@ -75,11 +75,6 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
   return getHwSwitch()->managerTable()->portManager().getPortStats();
 }
 
-void SaiSwitchEnsemble::recreateHwSwitchFromWBState() {
-  // Maybe TODO - will implement this if we decide to support in process
-  // recosntruction of warm boot state from serialized switch state.
-}
-
 void SaiSwitchEnsemble::stopHwCallLogging() const {
   // TODO - if we support cint style h/w call logging
 }

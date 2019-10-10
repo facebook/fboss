@@ -21,10 +21,6 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
   return nullptr;
 }
 
-void BcmSwitchEnsemble::recreateHwSwitchFromWBState() {
-  // noop
-}
-
 void BcmSwitchEnsemble::stopHwCallLogging() const {
   // noop - hw call logging is not supported in OSS
 }
