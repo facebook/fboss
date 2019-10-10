@@ -357,9 +357,7 @@ void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
 }
 
 bool BcmSwitch::isPortUp(PortID port) const {
-  int linkStatus;
-  opennsl_port_link_status_get(getUnit(), port, &linkStatus);
-  return linkStatus == OPENNSL_PORT_LINK_STATUS_UP;
+  return portTable_->getBcmPort(port)->isUp();
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
