@@ -31,13 +31,9 @@ DEFINE_int32(
     30,
     "minimum interval between customizing the same down port twice");
 DEFINE_int32(
-    tx_enable_interval,
+    remediate_interval,
     300,
-    "seconds between ensuring tx is enabled on down ports");
-DEFINE_int32(
-    reset_lpmode_interval,
-    300,
-    "seconds between flapping lpmode on down ports to try to recover");
+    "seconds between running more destructive remediations on down ports");
 
 using std::memcpy;
 using std::mutex;
@@ -559,6 +555,10 @@ QsfpModule::QsfpModule(
     : qsfpImpl_(std::move(qsfpImpl)),
       portsPerTransceiver_(portsPerTransceiver) {
   CHECK_GT(portsPerTransceiver_, 0);
+
+  // set last up time to be current time since we don't know if the
+  // port was up before we just restarted.
+  lastWorkingTime_ = std::time(nullptr);
 }
 
 void QsfpModule::setQsfpIdprom() {
@@ -797,6 +797,10 @@ void QsfpModule::transceiverPortsChanged(
 
   if (safeToCustomize()) {
     needsCustomization_ = true;
+  } else {
+    // Since we don't have positive confirmation all ports are down,
+    // update the lastWorkingTime_ to now.
+    lastWorkingTime_ = std::time(nullptr);
   }
 
   if (dirty_) {
@@ -851,6 +855,10 @@ void QsfpModule::refreshLocked() {
 
   if (customizeWanted) {
     customizeTransceiverLocked(getPortSpeed());
+
+    if (shouldRemediate(FLAGS_remediate_interval)) {
+      remediateFlakyTransceiver();
+    }
   }
 
   if (customizeWanted || willRefresh) {
@@ -865,6 +873,25 @@ void QsfpModule::refreshLocked() {
 
   // assign
   info_.wlock()->assign(parseDataLocked());
+}
+
+bool QsfpModule::shouldRemediate(time_t cooldown) const {
+  auto now = std::time(nullptr);
+  return now - std::max(lastWorkingTime_, lastRemediateTime_) > cooldown;
+}
+
+/*
+ * Put logic here that should only be run on ports that have been
+ * down for a long time. These are actions that are potentially more
+ * disruptive, but have worked in the past to recover a transceiver.
+ */
+void QsfpModule::remediateFlakyTransceiver() {
+  XLOG(DBG0) << "Performing potentially disruptive remediations on "
+             << qsfpImpl_->getName();
+
+  ensureTxEnabled();
+  resetLowPowerMode();
+  lastRemediateTime_ = std::time(nullptr);
 }
 
 void QsfpModule::getFieldValue(SffField fieldName,
@@ -944,9 +971,6 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);
-
-    // make sure TX is enabled on the transceiver
-    ensureTxEnabled(FLAGS_tx_enable_interval);
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
@@ -1121,14 +1145,12 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
              << std::hex << (int)*ether << " Desired power control "
              << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second;
 
-  if (currentState == desiredSetting &&
-      std::time(nullptr) - lastPowerClassReset_ < FLAGS_reset_lpmode_interval) {
+  if (currentState == desiredSetting) {
     XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
                << " Power override already correctly set, doing nothing";
     return;
   }
 
-  uint8_t lowPower = uint8_t(PowerControl::POWER_LPMODE);
   uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
   if (desiredSetting == PowerControlState::HIGH_POWER_OVERRIDE) {
     power = uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
@@ -1138,30 +1160,44 @@ void QsfpModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress, offset, length);
 
-  // first set to low power
+  // enable target power class
   qsfpImpl_->writeTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(lowPower), &lowPower);
-
-  // then enable target power class
-  if (lowPower != power) {
-    // Transceivers need a bit of time to handle the low power setting
-    // we just sent. We should be able to use the status register to be
-    // smarter about this, but just sleeping 0.1s for now.
-    usleep(kUsecBetweenPowerModeFlap);
-
-    qsfpImpl_->writeTransceiver(
-        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
-  }
-
-  // update last time we reset the power class
-  lastPowerClassReset_ = std::time(nullptr);
+      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
 
   XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
              << _PowerControlState_VALUES_TO_NAMES.find(desiredSetting)->second
              << " (" << int(power) << ")";
 }
 
-void QsfpModule::ensureTxEnabled(time_t cooldown) {
+void QsfpModule::resetLowPowerMode() {
+  // Newer transceivers will have a auto-clearing reset bit that is
+  // probably better to use than this.
+
+  int offset, length, dataAddress;
+  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress, offset, length);
+
+  uint8_t oldPower;
+  getQsfpValue(dataAddress, offset, length, &oldPower);
+
+  uint8_t lowPower = uint8_t(PowerControl::POWER_LPMODE);
+
+  if (oldPower != lowPower) {
+    // first set to low power
+    qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, offset, sizeof(lowPower), &lowPower);
+
+    // Transceivers need a bit of time to handle the low power setting
+    // we just sent. We should be able to use the status register to be
+    // smarter about this, but just sleeping 0.1s for now.
+    usleep(kUsecBetweenPowerModeFlap);
+  }
+
+  // set back to previous value
+  qsfpImpl_->writeTransceiver(
+      TransceiverI2CApi::ADDR_QSFP, offset, sizeof(oldPower), &oldPower);
+}
+
+void QsfpModule::ensureTxEnabled() {
   // Sometimes transceivers lock up and disable TX. When we customize
   // the transceiver let's also ensure that tx is enabled. We have
   // even seen transceivers report to have tx enabled in the DOM, but
@@ -1175,15 +1211,11 @@ void QsfpModule::ensureTxEnabled(time_t cooldown) {
   int length;
   int dataAddress;
   getQsfpFieldAddress(SffField::TX_DISABLE, dataAddress, offset, length);
-  const uint8_t *disabled = getQsfpValuePtr(dataAddress, offset, length);
 
-  if (*disabled || std::time(nullptr) - lastTxEnable_ >= cooldown) {
-    // If tx is disabled or it has been > cooldown secs, force writ
-    std::array<uint8_t, 1> buf = {{0}};
-    qsfpImpl_->writeTransceiver(
+  // Force enable
+  std::array<uint8_t, 1> buf = {{0}};
+  qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
-    lastTxEnable_ = std::time(nullptr);
-  }
 }
 
 bool QsfpModule::getTransceiverStats(TransceiverStats& stats) {

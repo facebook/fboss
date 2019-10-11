@@ -175,8 +175,10 @@ class QsfpModule : public Transceiver {
    */
   time_t lastRefreshTime_{0};
   time_t lastCustomizeTime_{0};
-  time_t lastTxEnable_{0};
-  time_t lastPowerClassReset_{0};
+  time_t lastRemediateTime_{0};
+
+  // last time we know transceiver was working because at least one port was up
+  time_t lastWorkingTime_{0};
 
   /*
    * Perform transceiver customization
@@ -338,8 +340,21 @@ class QsfpModule : public Transceiver {
    */
   const folly::Optional<LengthAndGauge> getDACCableOverride() const;
 
+  bool shouldRemediate(time_t cooldown) const;
+
+  /*
+   * Put logic here that should only be run on ports that have been
+   * down for a long time. These are actions that are potentially more
+   * disruptive, but have worked in the past to recover a transceiver.
+   */
+  void remediateFlakyTransceiver();
+
   // make sure that tx_disable bits are clear
-  void ensureTxEnabled(time_t cooldown);
+  void ensureTxEnabled();
+
+  // set to low power and then back to original setting. This has
+  // effect of restarting the transceiver state machine
+  void resetLowPowerMode();
 
   /*
    * Determine if it is safe to customize the ports based on the
