@@ -82,6 +82,11 @@ void ManagerTestBase::SetUp() {
   }
 }
 
+void ManagerTestBase::TearDown() {
+  saiManagerTable.reset();
+  FakeSai::clear();
+}
+
 std::shared_ptr<Port> ManagerTestBase::makePort(
     const TestPort& testPort) const {
   std::string name = folly::sformat("port{}", testPort.id);

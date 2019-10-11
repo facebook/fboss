@@ -20,8 +20,6 @@ sai_status_t sai_get_object_count(
     uint32_t* count) {
   *count = 0;
   auto fs = facebook::fboss::FakeSai::getInstance();
-  XLOG(INFO) << "get count: " << object_type;
-  XLOG(INFO) << "vlan obj type: " << SAI_OBJECT_TYPE_VLAN;
   switch (object_type) {
     case SAI_OBJECT_TYPE_PORT:
       *count = fs->pm.map().size();

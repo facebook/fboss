@@ -57,6 +57,11 @@ class FakeManager {
     return map_;
   }
 
+  void clear() {
+    count_ = 0;
+    map_.clear();
+  }
+
  private:
   static size_t count_;
   std::unordered_map<K, T> map_;
@@ -86,6 +91,7 @@ class FakeManagerWithMembers : public FakeManager<sai_object_id_t, GroupT> {
   }
   size_t removeMember(sai_object_id_t memberId) {
     GroupT& group = this->get(memberToGroupMap_.at(memberId));
+    memberToGroupMap_.erase(memberId);
     return group.fm().remove(memberId);
   }
   MemberT& getMember(sai_object_id_t memberId) {
@@ -95,6 +101,14 @@ class FakeManagerWithMembers : public FakeManager<sai_object_id_t, GroupT> {
   const MemberT& getMember(sai_object_id_t memberId) const {
     const GroupT& group = this->get(memberToGroupMap_.at(memberId));
     return group.fm().get(memberId);
+  }
+  void clearWithMembers() {
+    for (auto entry : memberToGroupMap_) {
+      GroupT& group = this->get(memberToGroupMap_.at(entry.first));
+      group.fm().clear();
+    }
+    memberToGroupMap_.clear();
+    this->clear();
   }
 
  private:

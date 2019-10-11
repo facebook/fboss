@@ -23,6 +23,26 @@ std::shared_ptr<FakeSai> FakeSai::getInstance() {
   return fakeSaiSingleton.try_get();
 }
 
+void FakeSai::clear() {
+  auto fs = FakeSai::getInstance();
+  fs->brm.clearWithMembers();
+  fs->fdbm.clear();
+  fs->htm.clear();
+  fs->htgm.clear();
+  fs->inSegEntryManager.clear();
+  fs->nm.clear();
+  fs->nhm.clear();
+  fs->nhgm.clearWithMembers();
+  fs->pm.clear();
+  fs->qm.clear();
+  fs->rm.clear();
+  fs->rim.clear();
+  fs->scm.clear();
+  fs->swm.clear();
+  fs->vrm.clear();
+  fs->vm.clearWithMembers();
+}
+
 sai_status_t sai_api_initialize(
     uint64_t /* flags */,
     const sai_service_method_table_t* /* services */) {

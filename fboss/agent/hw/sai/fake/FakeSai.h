@@ -35,6 +35,7 @@ namespace facebook::fboss {
 
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
+  static void clear();
   FakeBridgeManager brm;
   FakeFdbManager fdbm;
   FakeHostifTrapManager htm;
