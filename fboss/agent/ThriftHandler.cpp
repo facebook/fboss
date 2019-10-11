@@ -283,6 +283,7 @@ void populateAggregatePortThrift(
   aggregatePortThrift.systemPriority = aggregatePort->getSystemPriority();
   aggregatePortThrift.systemID = aggregatePort->getSystemID().toString();
   aggregatePortThrift.minimumLinkCount = aggregatePort->getMinimumLinkCount();
+  aggregatePortThrift.isUp = aggregatePort->isUp();
 
   // Since aggregatePortThrift.memberPorts is being push_back'ed to, but is an
   // out parameter, make sure it's clear() first

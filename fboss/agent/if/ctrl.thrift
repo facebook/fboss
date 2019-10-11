@@ -159,6 +159,7 @@ struct AggregatePortThrift {
   5: i32 systemPriority
   6: string systemID
   7: byte minimumLinkCount
+  8: bool isUp
 }
 
 struct LacpStateThrift {
