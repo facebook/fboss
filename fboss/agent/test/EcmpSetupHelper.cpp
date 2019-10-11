@@ -507,6 +507,55 @@ MplsEcmpSetupTargetedPorts<IPAddrT>::getLabelForwardingAction(
       LabelForwardingAction::LabelForwardingType::NOOP);
 }
 
+template <typename IPAddrT>
+flat_set<PortDescriptor> MplsEcmpSetupAnyNPorts<IPAddrT>::getPortDescs(
+    int width) const {
+  flat_set<PortDescriptor> portDescs;
+  for (size_t w = 0; w < width; ++w) {
+    portDescs.insert(getNextHops().at(w).portDesc);
+  }
+  return portDescs;
+}
+
+template <typename IPAddrT>
+std::vector<PortDescriptor> MplsEcmpSetupAnyNPorts<IPAddrT>::ecmpPortDescs(
+    int width) const {
+  return mplsEcmpSetupTargetedPorts_.ecmpPortDescs(width);
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    size_t numNextHops) const {
+  return mplsEcmpSetupTargetedPorts_.resolveNextHops(
+      inputState, getPortDescs(numNextHops));
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    size_t numNextHops) const {
+  return mplsEcmpSetupTargetedPorts_.unresolveNextHops(
+      inputState, getPortDescs(numNextHops));
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState> MplsEcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
+    const std::shared_ptr<SwitchState>& inputState,
+    const boost::container::flat_set<PortDescriptor>& portDescs) const {
+  return mplsEcmpSetupTargetedPorts_.resolveNextHops(inputState, portDescs);
+}
+
+template <typename IPAddrT>
+std::shared_ptr<SwitchState>
+MplsEcmpSetupAnyNPorts<IPAddrT>::setupECMPForwarding(
+    const std::shared_ptr<SwitchState>& inputState,
+    size_t width,
+    const std::vector<NextHopWeight>& weights) const {
+  return mplsEcmpSetupTargetedPorts_.setupECMPForwarding(
+      inputState, getPortDescs(width), weights);
+}
+
 template class BaseEcmpSetupHelper<
     folly::IPAddressV4,
     EcmpNextHop<folly::IPAddressV4>>;
@@ -528,6 +577,8 @@ template class EcmpSetupAnyNPorts<folly::IPAddressV6>;
 
 template class MplsEcmpSetupTargetedPorts<folly::IPAddressV4>;
 template class MplsEcmpSetupTargetedPorts<folly::IPAddressV6>;
+template class MplsEcmpSetupAnyNPorts<folly::IPAddressV4>;
+template class MplsEcmpSetupAnyNPorts<folly::IPAddressV6>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

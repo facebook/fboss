@@ -284,6 +284,64 @@ class EcmpSetupAnyNPorts {
   EcmpSetupTargetedPorts<IPAddrT> ecmpSetupTargetedPorts_;
 };
 
+template <typename IPAddrT>
+class MplsEcmpSetupAnyNPorts {
+ public:
+  using EcmpNextHopT = EcmpMplsNextHop<IPAddrT>;
+  MplsEcmpSetupAnyNPorts(
+      const std::shared_ptr<SwitchState>& inputState,
+      LabelForwardingEntry::Label topLabel,
+      LabelForwardingAction::LabelForwardingType actionType)
+      : mplsEcmpSetupTargetedPorts_(inputState, topLabel, actionType) {}
+
+  std::shared_ptr<SwitchState> setupECMPForwarding(
+      const std::shared_ptr<SwitchState>& inputState,
+      size_t width,
+      const std::vector<NextHopWeight>& weights =
+          std::vector<NextHopWeight>()) const;
+
+  EcmpNextHopT nhop(size_t id) const {
+    return getNextHops()[id];
+  }
+  const std::vector<EcmpNextHopT>& getNextHops() const {
+    return mplsEcmpSetupTargetedPorts_.getNextHops();
+  }
+  IPAddrT ip(size_t id) const {
+    return nhop(id).ip;
+  }
+
+  std::vector<PortDescriptor> ecmpPortDescs(int width) const;
+  PortDescriptor ecmpPortDescriptorAt(int index) const {
+    return ecmpPortDescs(index + 1)[index];
+  }
+
+  /*
+   * resolveNextHops and unresolveNextHops resolves/unresolves the first
+   * numNextHops stored in setup helper created during the setup.
+   */
+  std::shared_ptr<SwitchState> resolveNextHops(
+      const std::shared_ptr<SwitchState>& inputState,
+      size_t numNextHops) const;
+  std::shared_ptr<SwitchState> unresolveNextHops(
+      const std::shared_ptr<SwitchState>& inputState,
+      size_t numNextHops) const;
+
+  /*
+   * Targeted resolve. Resolve only a subset of next hops.
+   * This is useful, in cases where we don't care which
+   * N ports get picked for ECMP group, but later want to
+   * selectively control which of the next hops want have
+   * their ARP/NDP resolved
+   */
+  std::shared_ptr<SwitchState> resolveNextHops(
+      const std::shared_ptr<SwitchState>& inputState,
+      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+
+ private:
+  boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;
+  MplsEcmpSetupTargetedPorts<IPAddrT> mplsEcmpSetupTargetedPorts_;
+};
+
 using EcmpSetupAnyNPorts4 = EcmpSetupAnyNPorts<folly::IPAddressV4>;
 using EcmpSetupAnyNPorts6 = EcmpSetupAnyNPorts<folly::IPAddressV6>;
 } // namespace utility
