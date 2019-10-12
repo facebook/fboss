@@ -2,6 +2,8 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -63,12 +65,60 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
   return utility::isLoadBalanced(ensemble_, ecmpPorts, weights, deviation);
 }
 
+template <typename AddrT>
+HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
+    HwSwitchEnsemble* ensemble,
+    RouterID vrf,
+    std::vector<LabelForwardingAction::LabelStack> stacks)
+    : BaseT(
+          ensemble,
+          std::make_unique<EcmpSetupAnyNPortsT>(
+              ensemble->getProgrammedState(),
+              vrf)),
+      stacks_(std::move(stacks)) {}
+
+template <typename AddrT>
+HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
+    HwSwitchEnsemble* ensemble,
+    RouterID vrf)
+    : HwIpEcmpDataPlaneTestUtil(ensemble, vrf, {}) {}
+
+template <typename AddrT>
+void HwIpEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
+    int ecmpWidth,
+    std::vector<NextHopWeight>& weights) {
+  auto* helper = BaseT::ecmpSetupHelper();
+  auto* ensemble = BaseT::getEnsemble();
+  auto state =
+      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth);
+  auto newState = stacks_.empty()
+      ? helper->setupECMPForwarding(state, ecmpWidth, {{AddrT(), 0}}, weights)
+      : helper->setupIp2MplsECMPForwarding(
+            state, ecmpWidth, {{AddrT(), 0}}, stacks_, weights);
+  ensemble->applyNewState(newState);
+}
+
+template <typename AddrT>
+void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTraffic(
+    folly::Optional<PortID> port) {
+  auto* ensemble = BaseT::getEnsemble();
+
+  utility::pumpTraffic(
+      std::is_same_v<AddrT, folly::IPAddressV6>,
+      ensemble->getHwSwitch(),
+      ensemble->getPlatform()->getLocalMac(),
+      VlanID(utility::kDefaultVlanId),
+      port);
+}
+
 template class HwEcmpDataPlaneTestUtil<utility::EcmpSetupAnyNPorts4>;
 template class HwEcmpDataPlaneTestUtil<utility::EcmpSetupAnyNPorts6>;
 template class HwEcmpDataPlaneTestUtil<
     utility::MplsEcmpSetupAnyNPorts<folly::IPAddressV4>>;
 template class HwEcmpDataPlaneTestUtil<
     utility::MplsEcmpSetupAnyNPorts<folly::IPAddressV6>>;
+template class HwIpEcmpDataPlaneTestUtil<folly::IPAddressV4>;
+template class HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

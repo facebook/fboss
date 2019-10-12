@@ -5,6 +5,8 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/test/EcmpSetupHelper.h"
+
 namespace facebook {
 namespace fboss {
 class HwSwitchEnsemble;
@@ -30,6 +32,9 @@ class HwEcmpDataPlaneTestUtil {
   EcmpSetupHelperT* ecmpSetupHelper() const {
     return helper_.get();
   }
+  HwSwitchEnsemble* getEnsemble() {
+    return ensemble_;
+  }
   bool isLoadBalanced(
       int ecmpWidth,
       const std::vector<NextHopWeight>& weights,
@@ -40,6 +45,29 @@ class HwEcmpDataPlaneTestUtil {
 
   HwSwitchEnsemble* ensemble_;
   std::unique_ptr<EcmpSetupHelperT> helper_;
+};
+
+template <typename AddrT>
+class HwIpEcmpDataPlaneTestUtil
+    : public HwEcmpDataPlaneTestUtil<EcmpSetupAnyNPorts<AddrT>> {
+ public:
+  using EcmpSetupAnyNPortsT = EcmpSetupAnyNPorts<AddrT>;
+  using BaseT = HwEcmpDataPlaneTestUtil<EcmpSetupAnyNPortsT>;
+
+  HwIpEcmpDataPlaneTestUtil(HwSwitchEnsemble* ensemble, RouterID vrf);
+
+  HwIpEcmpDataPlaneTestUtil(
+      HwSwitchEnsemble* ensemble,
+      RouterID vrf,
+      std::vector<LabelForwardingAction::LabelStack> stacks);
+
+  void setupECMPForwarding(int ecmpWidth, std::vector<NextHopWeight>& weights)
+      override;
+  /* pump IP traffic */
+  void pumpTraffic(folly::Optional<PortID> port) override;
+
+ private:
+  std::vector<LabelForwardingAction::LabelStack> stacks_;
 };
 
 } // namespace utility
