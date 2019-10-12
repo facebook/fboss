@@ -424,7 +424,7 @@ MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
       auto vlanID = iter->second;
       auto nexthop = nhop(portDescriptor);
       nhops.emplace(LabelNextHop(
-          nexthop.ip, InterfaceID(vlanID), hopWeights[i], nexthop.action));
+          nexthop.ip, InterfaceID(vlanID), hopWeights[i++], nexthop.action));
     }
   }
 

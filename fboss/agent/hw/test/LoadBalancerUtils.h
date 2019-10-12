@@ -60,6 +60,13 @@ void pumpTraffic(
     VlanID vlan,
     folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
 
+void pumpMplsTraffic(
+    bool isV6,
+    HwSwitch* hw,
+    uint32_t label,
+    folly::MacAddress cpuMac,
+    folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
+
 bool isLoadBalanced(
     HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,

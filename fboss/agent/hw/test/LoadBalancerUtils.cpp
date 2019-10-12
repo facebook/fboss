@@ -16,6 +16,7 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -123,6 +124,54 @@ void pumpTraffic(
   }
 }
 
+void pumpMplsTraffic(
+    bool isV6,
+    HwSwitch* hw,
+    uint32_t label,
+    folly::MacAddress cpuMac,
+    folly::Optional<PortID> frontPanelPortToLoopTraffic) {
+  MPLSHdr::Label mplsLabel{label, 0, true, 128};
+  std::unique_ptr<TxPacket> pkt;
+  for (auto i = 0; i < 100; ++i) {
+    auto srcIp = folly::IPAddress(
+        folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
+    for (auto j = 0; j < 100; ++j) {
+      auto dstIp = folly::IPAddress(
+          folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
+
+      auto frame = isV6 ? utility::getEthFrame(
+                              cpuMac,
+                              cpuMac,
+                              {mplsLabel},
+                              srcIp.asV6(),
+                              dstIp.asV6(),
+                              10000 + i,
+                              20000 + j)
+                        : utility::getEthFrame(
+                              cpuMac,
+                              cpuMac,
+                              {mplsLabel},
+                              srcIp.asV4(),
+                              dstIp.asV4(),
+                              10000 + i,
+                              20000 + j);
+
+      if (isV6) {
+        pkt = frame.getTxPacket(hw);
+      } else {
+        pkt = frame.getTxPacket(hw);
+      }
+
+      if (frontPanelPortToLoopTraffic) {
+        hw->sendPacketOutOfPortSync(
+            std::move(pkt), frontPanelPortToLoopTraffic.value());
+      } else {
+        hw->sendPacketSwitchedSync(std::move(pkt));
+      }
+    }
+  }
+}
+
 bool isLoadBalanced(
     HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
@@ -158,6 +207,8 @@ bool isLoadBalanced(
       auto percentDev = std::abs(weightPercent - portOutBytesPercent);
       // Don't tolerate a deviation of more than maxDeviationPct
       if (percentDev > maxDeviationPct) {
+        XLOG(ERR) << "Percent Deviation: " << percentDev
+                  << ", Maximum Deviation: " << maxDeviationPct;
         return false;
       }
     }
@@ -165,6 +216,8 @@ bool isLoadBalanced(
     auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
     // Don't tolerate a deviation of more than maxDeviationPct
     if (percentDev > maxDeviationPct) {
+      XLOG(ERR) << "Percent Deviation: " << percentDev
+                << ", Maximum Deviation: " << maxDeviationPct;
       return false;
     }
   }
