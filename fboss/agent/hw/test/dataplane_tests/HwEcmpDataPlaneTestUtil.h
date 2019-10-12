@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
@@ -68,6 +69,27 @@ class HwIpEcmpDataPlaneTestUtil
 
  private:
   std::vector<LabelForwardingAction::LabelStack> stacks_;
+};
+
+template <typename AddrT>
+class HwMplsEcmpDataPlaneTestUtil
+    : public HwEcmpDataPlaneTestUtil<MplsEcmpSetupAnyNPorts<AddrT>> {
+ public:
+  using EcmpSetupAnyNPortsT = MplsEcmpSetupAnyNPorts<AddrT>;
+  using BaseT = HwEcmpDataPlaneTestUtil<MplsEcmpSetupAnyNPorts<AddrT>>;
+
+  HwMplsEcmpDataPlaneTestUtil(
+      HwSwitchEnsemble* ensemble,
+      MPLSHdr::Label topLabel,
+      LabelForwardingAction::LabelForwardingType actionType);
+
+  void setupECMPForwarding(int ecmpWidth, std::vector<NextHopWeight>& weights)
+      override;
+
+ private:
+  /* pump MPLS traffic */
+  void pumpTraffic(folly::Optional<PortID> port) override;
+  MPLSHdr::Label label_;
 };
 
 } // namespace utility

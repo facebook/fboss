@@ -111,6 +111,44 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTraffic(
       port);
 }
 
+template <typename AddrT>
+HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
+    HwSwitchEnsemble* ensemble,
+    MPLSHdr::Label topLabel,
+    LabelForwardingAction::LabelForwardingType actionType)
+    : BaseT(
+          ensemble,
+          std::make_unique<EcmpSetupAnyNPortsT>(
+              ensemble->getProgrammedState(),
+              topLabel.getLabelValue(),
+              actionType)),
+      label_(topLabel) {}
+
+template <typename AddrT>
+void HwMplsEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
+    int ecmpWidth,
+    std::vector<NextHopWeight>& weights) {
+  auto* helper = BaseT::ecmpSetupHelper();
+  auto* ensemble = BaseT::getEnsemble();
+  auto state =
+      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth);
+  auto newState = helper->setupECMPForwarding(state, ecmpWidth, weights);
+  ensemble->applyNewState(newState);
+}
+
+template <typename AddrT>
+void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTraffic(
+    folly::Optional<PortID> port) {
+  /* pump MPLS traffic */
+  auto* ensemble = BaseT::getEnsemble();
+  pumpMplsTraffic(
+      std::is_same_v<AddrT, folly::IPAddressV6>,
+      ensemble->getHwSwitch(),
+      label_.getLabelValue(),
+      ensemble->getPlatform()->getLocalMac(),
+      port);
+}
+
 template class HwEcmpDataPlaneTestUtil<utility::EcmpSetupAnyNPorts4>;
 template class HwEcmpDataPlaneTestUtil<utility::EcmpSetupAnyNPorts6>;
 template class HwEcmpDataPlaneTestUtil<
@@ -119,6 +157,9 @@ template class HwEcmpDataPlaneTestUtil<
     utility::MplsEcmpSetupAnyNPorts<folly::IPAddressV6>>;
 template class HwIpEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 template class HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+template class HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV4>;
+template class HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
