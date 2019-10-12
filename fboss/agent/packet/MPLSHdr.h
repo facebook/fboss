@@ -27,6 +27,18 @@ struct MPLSHdr {
           otherLabel.bottomOfStack == bottomOfStack &&
           otherLabel.timeToLive == timeToLive;
     }
+    uint32_t getLabelValue() const {
+      return label;
+    }
+    bool isbottomOfStack() const {
+      return bottomOfStack;
+    }
+    uint8_t getTrafficClass() const {
+      return trafficClass;
+    }
+    uint8_t getTTL() const {
+      return timeToLive;
+    }
   };
 
  public:
