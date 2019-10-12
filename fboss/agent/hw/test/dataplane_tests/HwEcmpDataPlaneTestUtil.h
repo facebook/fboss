@@ -24,7 +24,7 @@ class HwEcmpDataPlaneTestUtil {
 
   virtual void setupECMPForwarding(
       int ecmpWidth,
-      std::vector<NextHopWeight>& weights) = 0;
+      const std::vector<NextHopWeight>& weights) = 0;
 
   void pumpTraffic(int ecmpWidth, bool loopThroughFrontPanel);
   void resolveNextHopsandClearStats(unsigned int ecmpWidth);
@@ -42,7 +42,7 @@ class HwEcmpDataPlaneTestUtil {
       uint8_t deviation);
 
  private:
-  virtual void pumpTraffic(folly::Optional<PortID> port) = 0;
+  virtual void pumpTrafficThroughPort(folly::Optional<PortID> port) = 0;
 
   HwSwitchEnsemble* ensemble_;
   std::unique_ptr<EcmpSetupHelperT> helper_;
@@ -62,10 +62,11 @@ class HwIpEcmpDataPlaneTestUtil
       RouterID vrf,
       std::vector<LabelForwardingAction::LabelStack> stacks);
 
-  void setupECMPForwarding(int ecmpWidth, std::vector<NextHopWeight>& weights)
-      override;
+  void setupECMPForwarding(
+      int ecmpWidth,
+      const std::vector<NextHopWeight>& weights) override;
   /* pump IP traffic */
-  void pumpTraffic(folly::Optional<PortID> port) override;
+  void pumpTrafficThroughPort(folly::Optional<PortID> port) override;
 
  private:
   std::vector<LabelForwardingAction::LabelStack> stacks_;
@@ -83,12 +84,13 @@ class HwMplsEcmpDataPlaneTestUtil
       MPLSHdr::Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType);
 
-  void setupECMPForwarding(int ecmpWidth, std::vector<NextHopWeight>& weights)
-      override;
+  void setupECMPForwarding(
+      int ecmpWidth,
+      const std::vector<NextHopWeight>& weights) override;
 
  private:
   /* pump MPLS traffic */
-  void pumpTraffic(folly::Optional<PortID> port) override;
+  void pumpTrafficThroughPort(folly::Optional<PortID> port) override;
   MPLSHdr::Label label_;
 };
 

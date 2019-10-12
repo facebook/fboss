@@ -19,6 +19,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
 #include <folly/IPAddress.h>
 #include <folly/Optional.h>
@@ -52,33 +53,20 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  template <typename AddrT>
-  void setupECMPForwarding(
-      utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
-      int ecmpWidth,
-      const std::vector<NextHopWeight>& weights) {
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth),
-        ecmpWidth,
-        {{AddrT(), 0}},
-        weights);
-    applyNewState(newState);
-  }
-
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
-    ecmpHelper6 = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
-    ecmpHelper4 = std::make_unique<utility::EcmpSetupAnyNPorts4>(
-        getProgrammedState(), RouterID(0));
+    helper4 = std::make_unique<utility::HwIpV4EcmpDataPlaneTestUtil>(
+        getHwSwitchEnsemble(), RouterID(0));
+    helper6 = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
+        getHwSwitchEnsemble(), RouterID(0));
   }
 
   void setupECMP6andECMP4Forwarding(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights) {
-    setupECMPForwarding(*ecmpHelper6, ecmpWidth, weights);
-    setupECMPForwarding(*ecmpHelper4, ecmpWidth, weights);
+    helper4->setupECMPForwarding(ecmpWidth, weights);
+    helper6->setupECMPForwarding(ecmpWidth, weights);
     applyNewState(
         addLoadBalancer(getPlatform(), getProgrammedState(), loadBalancer));
   }
@@ -88,57 +76,36 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       bool isV6,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel) {
-    folly::Optional<PortID> frontPanelPortToLoopTraffic;
-    if (loopThroughFrontPanel) {
-      frontPanelPortToLoopTraffic = isV6
-          ? ecmpHelper6->ecmpPortDescriptorAt(ecmpWidth).phyPortID()
-          : ecmpHelper4->ecmpPortDescriptorAt(ecmpWidth).phyPortID();
+    if (!isV6) {
+      helper4->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
+      // Don't tolerate a deviation of > 25%
+      EXPECT_TRUE(helper4->isLoadBalanced(ecmpWidth, weights, 25));
+    } else {
+      helper6->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
+      // Don't tolerate a deviation of > 25%
+      EXPECT_TRUE(helper6->isLoadBalanced(ecmpWidth, weights, 25));
     }
-    utility::pumpTraffic(
-        isV6,
-        getHwSwitch(),
-        getPlatform()->getLocalMac(),
-        VlanID(utility::kDefaultVlanId),
-        frontPanelPortToLoopTraffic);
-    auto ecmpPorts = isV6 ? ecmpHelper6->ecmpPortDescs(ecmpWidth)
-                          : ecmpHelper4->ecmpPortDescs(ecmpWidth);
-    // Don't tolerate a deviation of > 25%
-    EXPECT_TRUE(
-        utility::isLoadBalanced(getHwSwitchEnsemble(), ecmpPorts, weights, 25));
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
-    applyNewState(
-        ecmpHelper6->resolveNextHops(getProgrammedState(), ecmpWidth));
-    applyNewState(
-        ecmpHelper4->resolveNextHops(getProgrammedState(), ecmpWidth));
-    while (ecmpWidth) {
-      ecmpWidth--;
-      auto v6Ports = {static_cast<int32_t>(
-          ecmpHelper6->nhop(ecmpWidth).portDesc.phyPortID())};
-      auto v4Ports = {static_cast<int32_t>(
-          ecmpHelper4->nhop(ecmpWidth).portDesc.phyPortID())};
-      getHwSwitch()->clearPortStats(
-          std::make_unique<std::vector<int32_t>>(v6Ports));
-      getHwSwitch()->clearPortStats(
-          std::make_unique<std::vector<int32_t>>(v4Ports));
-    }
+    helper4->resolveNextHopsandClearStats(ecmpWidth);
+    helper6->resolveNextHopsandClearStats(ecmpWidth);
   }
 
   void shrinkECMP(bool isV6, unsigned int ecmpWidth) {
     if (isV6) {
-      bringDownPort(ecmpHelper6->nhop(ecmpWidth).portDesc.phyPortID());
+      helper6->shrinkECMP(ecmpWidth);
     } else {
-      bringDownPort(ecmpHelper4->nhop(ecmpWidth).portDesc.phyPortID());
+      helper4->shrinkECMP(ecmpWidth);
     }
     resolveNextHopsandClearStats(ecmpWidth);
   }
 
   void expandECMP(bool isV6, unsigned int ecmpWidth) {
     if (isV6) {
-      bringUpPort(ecmpHelper6->nhop(ecmpWidth).portDesc.phyPortID());
+      helper6->expandECMP(ecmpWidth);
     } else {
-      bringUpPort(ecmpHelper4->nhop(ecmpWidth).portDesc.phyPortID());
+      helper4->expandECMP(ecmpWidth);
     }
     resolveNextHopsandClearStats(ecmpWidth);
   }
@@ -196,8 +163,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
  private:
-  std::unique_ptr<utility::EcmpSetupAnyNPorts6> ecmpHelper6;
-  std::unique_ptr<utility::EcmpSetupAnyNPorts4> ecmpHelper4;
+  std::unique_ptr<utility::HwIpV4EcmpDataPlaneTestUtil> helper4;
+  std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> helper6;
 };
 
 // ECMP, CPU originated traffic

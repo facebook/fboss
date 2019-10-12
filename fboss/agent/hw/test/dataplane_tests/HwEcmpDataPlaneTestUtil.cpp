@@ -22,7 +22,7 @@ void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::pumpTraffic(
     frontPanelPortToLoopTraffic =
         helper_->ecmpPortDescriptorAt(ecmpWidth).phyPortID();
   }
-  pumpTraffic(frontPanelPortToLoopTraffic);
+  pumpTrafficThroughPort(frontPanelPortToLoopTraffic);
 }
 
 template <typename EcmpSetupHelperT>
@@ -86,7 +86,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 template <typename AddrT>
 void HwIpEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
     int ecmpWidth,
-    std::vector<NextHopWeight>& weights) {
+    const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
   auto state =
@@ -99,7 +99,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
 }
 
 template <typename AddrT>
-void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTraffic(
+void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     folly::Optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
 
@@ -127,7 +127,7 @@ HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
 template <typename AddrT>
 void HwMplsEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
     int ecmpWidth,
-    std::vector<NextHopWeight>& weights) {
+    const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
   auto state =
@@ -137,7 +137,7 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
 }
 
 template <typename AddrT>
-void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTraffic(
+void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     folly::Optional<PortID> port) {
   /* pump MPLS traffic */
   auto* ensemble = BaseT::getEnsemble();
