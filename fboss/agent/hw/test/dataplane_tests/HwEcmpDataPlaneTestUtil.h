@@ -92,6 +92,14 @@ class HwMplsEcmpDataPlaneTestUtil
   MPLSHdr::Label label_;
 };
 
+using HwIpV4EcmpDataPlaneTestUtil =
+    HwIpEcmpDataPlaneTestUtil<folly::IPAddressV4>;
+using HwIpV6EcmpDataPlaneTestUtil =
+    HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+using HwMplsV4EcmpDataPlaneTestUtil =
+    HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV4>;
+using HwMplsV6EcmpDataPlaneTestUtil =
+    HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
