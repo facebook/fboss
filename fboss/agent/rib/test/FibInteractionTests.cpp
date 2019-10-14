@@ -336,7 +336,8 @@ TEST(Rib, Update) {
   config.interfaces[0].ipAddresses[1] = "192.168.0.19/24";
   config.interfaces[0].ipAddresses[2] = "::/0";
 
-  auto testHandle = createTestHandle(&config, ENABLE_STANDALONE_RIB);
+  auto testHandle =
+      createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
   auto sw = testHandle->getSw();
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 2, 2);

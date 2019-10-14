@@ -14,10 +14,9 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
-
-#include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include <folly/IntrusiveList.h>
 #include <folly/Optional.h>
@@ -30,6 +29,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <type_traits>
 
 namespace facebook {
 namespace fboss {
@@ -57,18 +57,29 @@ class StateObserver;
 class TunManager;
 class MirrorManager;
 
-enum SwitchFlags : int {
+enum class SwitchFlags : int {
   DEFAULT = 0,
   ENABLE_TUN = 1,
   ENABLE_LLDP = 2,
   PUBLISH_STATS = 4,
   ENABLE_LACP = 8,
-  ENABLE_STANDALONE_RIB = 16
+  ENABLE_STANDALONE_RIB = 16,
 };
 
-inline SwitchFlags operator|=(SwitchFlags& a, const SwitchFlags b) {
-  return (
-      a = static_cast<SwitchFlags>(static_cast<int>(a) | static_cast<int>(b)));
+inline SwitchFlags operator|(SwitchFlags lhs, SwitchFlags rhs) {
+  using BackingType = std::underlying_type_t<SwitchFlags>;
+  return static_cast<SwitchFlags>(
+      static_cast<BackingType>(lhs) | static_cast<BackingType>(rhs));
+}
+
+inline SwitchFlags& operator|=(SwitchFlags& lhs, SwitchFlags rhs) {
+  lhs = lhs | rhs;
+  return lhs;
+}
+
+inline bool operator&(SwitchFlags lhs, SwitchFlags rhs) {
+  using BackingType = std::underlying_type_t<SwitchFlags>;
+  return (static_cast<BackingType>(lhs) & static_cast<BackingType>(rhs)) != 0;
 }
 
 /*

@@ -59,7 +59,7 @@ using namespace facebook::fboss;
 namespace {
 
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
-  if (flags & ENABLE_TUN) {
+  if (flags & SwitchFlags::ENABLE_TUN) {
     // TODO(aeckert): I don't think this should be a first class
     // argument to SwSwitch::init() as unit tests are the only place
     // that pass in a TunManager to init(). Let's come up with a way

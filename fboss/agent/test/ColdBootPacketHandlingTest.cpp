@@ -51,7 +51,8 @@ const folly::IPAddressV6 kIPv6LinkLocalAddr("fe80::1");
 class ColdBootPacketHandlingFixture : public ::testing::Test {
  public:
   void SetUp() override {
-    handle_ = createTestHandle(getColdBootState(), kPlatformMac, ENABLE_TUN);
+    handle_ = createTestHandle(
+        getColdBootState(), kPlatformMac, SwitchFlags::ENABLE_TUN);
   }
   void TearDown() override {
     handle_.reset();
