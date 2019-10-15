@@ -45,6 +45,7 @@ const std::vector<facebook::fboss::NextHopWeight>
 namespace facebook {
 namespace fboss {
 
+template <typename HwEcmpDataPlaneTestUtilT>
 class HwLoadBalancerTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
@@ -55,58 +56,39 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
-    helper4 = std::make_unique<utility::HwIpV4EcmpDataPlaneTestUtil>(
-        getHwSwitchEnsemble(), RouterID(0));
-    helper6 = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
+    helper = std::make_unique<HwEcmpDataPlaneTestUtilT>(
         getHwSwitchEnsemble(), RouterID(0));
   }
 
-  void setupECMP6andECMP4Forwarding(
+  void setupECMPForwarding(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights) {
-    helper4->setupECMPForwarding(ecmpWidth, weights);
-    helper6->setupECMPForwarding(ecmpWidth, weights);
+    helper->setupECMPForwarding(ecmpWidth, weights);
     applyNewState(
         addLoadBalancer(getPlatform(), getProgrammedState(), loadBalancer));
   }
 
   void pumpTrafficPortAndVerifyLoadBalanced(
       unsigned int ecmpWidth,
-      bool isV6,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel) {
-    if (!isV6) {
-      helper4->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
-      // Don't tolerate a deviation of > 25%
-      EXPECT_TRUE(helper4->isLoadBalanced(ecmpWidth, weights, 25));
-    } else {
-      helper6->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
-      // Don't tolerate a deviation of > 25%
-      EXPECT_TRUE(helper6->isLoadBalanced(ecmpWidth, weights, 25));
-    }
+    helper->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
+    // Don't tolerate a deviation of > 25%
+    EXPECT_TRUE(helper->isLoadBalanced(ecmpWidth, weights, 25));
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
-    helper4->resolveNextHopsandClearStats(ecmpWidth);
-    helper6->resolveNextHopsandClearStats(ecmpWidth);
+    helper->resolveNextHopsandClearStats(ecmpWidth);
   }
 
-  void shrinkECMP(bool isV6, unsigned int ecmpWidth) {
-    if (isV6) {
-      helper6->shrinkECMP(ecmpWidth);
-    } else {
-      helper4->shrinkECMP(ecmpWidth);
-    }
+  void shrinkECMP(unsigned int ecmpWidth) {
+    helper->shrinkECMP(ecmpWidth);
     resolveNextHopsandClearStats(ecmpWidth);
   }
 
-  void expandECMP(bool isV6, unsigned int ecmpWidth) {
-    if (isV6) {
-      helper6->expandECMP(ecmpWidth);
-    } else {
-      helper4->expandECMP(ecmpWidth);
-    }
+  void expandECMP(unsigned int ecmpWidth) {
+    helper->expandECMP(ecmpWidth);
     resolveNextHopsandClearStats(ecmpWidth);
   }
 
@@ -114,45 +96,41 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   void runLoadBalanceTest(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
-      bool isV6,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel = false) {
     auto setup = [=]() {
-      setupECMP6andECMP4Forwarding(ecmpWidth, loadBalancer, weights);
+      setupECMPForwarding(ecmpWidth, loadBalancer, weights);
     };
     auto verify = [=]() {
       pumpTrafficPortAndVerifyLoadBalanced(
-          ecmpWidth, isV6, weights, loopThroughFrontPanel);
+          ecmpWidth, weights, loopThroughFrontPanel);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
 
   void runEcmpShrinkExpandLoadBalanceTest(
       unsigned int ecmpWidth,
-      const cfg::LoadBalancer& loadBalancer,
-      bool isV6) {
+      const cfg::LoadBalancer& loadBalancer) {
     unsigned int minLinksLoadbalanceTest = 1;
     auto setup = [=]() {
-      setupECMP6andECMP4Forwarding(ecmpWidth, loadBalancer, {} /*weights*/);
+      setupECMPForwarding(ecmpWidth, loadBalancer, {} /*weights*/);
     };
     auto verify = [=]() {
       unsigned int width = ecmpWidth;
 
       while (width > minLinksLoadbalanceTest) {
         width--;
-        shrinkECMP(isV6, width);
+        shrinkECMP(width);
         pumpTrafficPortAndVerifyLoadBalanced(
             width,
-            isV6,
             {}, /*weights*/
             false /*loopThroughFrontPanel*/);
       }
 
       while (width < ecmpWidth) {
-        expandECMP(isV6, width);
+        expandECMP(width);
         pumpTrafficPortAndVerifyLoadBalanced(
             width,
-            isV6,
             {}, /*weights*/
             false /*loopThroughFrontPanel*/);
         width++;
@@ -163,129 +141,109 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
  private:
-  std::unique_ptr<utility::HwIpV4EcmpDataPlaneTestUtil> helper4;
-  std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> helper6;
+  std::unique_ptr<HwEcmpDataPlaneTestUtilT> helper;
 };
 
+class HwLoadBalancerTestIpV4
+    : public HwLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil> {};
+
+class HwLoadBalancerTestIpV6
+    : public HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {};
+
 // ECMP, CPU originated traffic
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceFullHashV6CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpFullHashConfig(), true /* isV6 */, {});
+TEST_F(HwLoadBalancerTestIpV6, ECMPLoadBalanceFullHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpFullHashConfig(), {});
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceFullHashV4CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpFullHashConfig(), false /* isV6 */, {});
+TEST_F(HwLoadBalancerTestIpV4, ECMPLoadBalanceFullHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpFullHashConfig(), {});
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceHalfHashV6CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpHalfHashConfig(), true /* isV6 */, {});
+TEST_F(HwLoadBalancerTestIpV6, ECMPLoadBalanceHalfHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpHalfHashConfig(), {});
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceHalfHashV4CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpHalfHashConfig(), false /* isV6 */, {});
+TEST_F(HwLoadBalancerTestIpV4, ECMPLoadBalanceHalfHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpHalfHashConfig(), {});
 }
 
 // ECMP, CPU originated traffic Shrink/Expand
-TEST_F(HwLoadBalancerTest, ECMShrinkExpandLoadBalanceFullHashV6CpuTraffic) {
-  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpFullHashConfig(), true /*isV6*/);
+TEST_F(HwLoadBalancerTestIpV6, ECMShrinkExpandLoadBalanceFullHashCpuTraffic) {
+  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpFullHashConfig());
 }
-TEST_F(HwLoadBalancerTest, ECMPShrinkExapndLoadBalanceFullHashV4CpuTraffic) {
-  runEcmpShrinkExpandLoadBalanceTest(
-      8, getEcmpFullHashConfig(), false /*isV6*/);
+TEST_F(HwLoadBalancerTestIpV4, ECMPShrinkExapndLoadBalanceFullHashCpuTraffic) {
+  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpFullHashConfig());
 }
-TEST_F(HwLoadBalancerTest, ECMPShrinkExpandLoadBalanceHalfHashV6CpuTraffic) {
-  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpHalfHashConfig(), true /*isV6*/);
+TEST_F(HwLoadBalancerTestIpV6, ECMPShrinkExpandLoadBalanceHalfHashCpuTraffic) {
+  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpHalfHashConfig());
 }
-TEST_F(HwLoadBalancerTest, ECMPShrinkExpandLoadBalanceHalfHashV4CpuTraffic) {
-  runEcmpShrinkExpandLoadBalanceTest(
-      8, getEcmpHalfHashConfig(), false /*isV6*/);
+TEST_F(HwLoadBalancerTestIpV4, ECMPShrinkExpandLoadBalanceHalfHashCpuTraffic) {
+  runEcmpShrinkExpandLoadBalanceTest(8, getEcmpHalfHashConfig());
 }
 
 // UCMP, CPU originated traffic
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceFullHashV6CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpFullHashConfig(), true /* isV6 */, kUcmpWeights);
+TEST_F(HwLoadBalancerTestIpV6, UCMPLoadBalanceFullHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpFullHashConfig(), kUcmpWeights);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceFullHashV4CpuTraffic) {
-  runLoadBalanceTest(
-      8, getEcmpFullHashConfig(), false /* isV6 */, kUcmpWeights);
+TEST_F(HwLoadBalancerTestIpV4, UCMPLoadBalanceFullHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpFullHashConfig(), kUcmpWeights);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceHalfHashV6CpuTraffic) {
-  runLoadBalanceTest(8, getEcmpHalfHashConfig(), true /* isV6 */, kUcmpWeights);
+TEST_F(HwLoadBalancerTestIpV6, UCMPLoadBalanceHalfHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpHalfHashConfig(), kUcmpWeights);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceHalfHashV4CpuTraffic) {
-  runLoadBalanceTest(
-      8, getEcmpHalfHashConfig(), false /* isV6 */, kUcmpWeights);
+TEST_F(HwLoadBalancerTestIpV4, UCMPLoadBalanceHalfHashCpuTraffic) {
+  runLoadBalanceTest(8, getEcmpHalfHashConfig(), kUcmpWeights);
 }
 
 // ECMP, Front Panel traffic
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceFullHashV6FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV6, ECMPLoadBalanceFullHashFrontPanelTraffic) {
   runLoadBalanceTest(
-      8,
-      getEcmpFullHashConfig(),
-      true /* isV6 */,
-      {},
-      true /* loopThroughFrontPanelPort */);
+      8, getEcmpFullHashConfig(), {}, true /* loopThroughFrontPanelPort */);
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceFullHashV4FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV4, ECMPLoadBalanceFullHashFrontPanelTraffic) {
   runLoadBalanceTest(
-      8,
-      getEcmpFullHashConfig(),
-      false /* isV6 */,
-      {},
-      true /* loopThroughFrontPanelPort */);
+      8, getEcmpFullHashConfig(), {}, true /* loopThroughFrontPanelPort */);
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceHalfHashV6FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV6, ECMPLoadBalanceHalfHashFrontPanelTraffic) {
   runLoadBalanceTest(
-      8,
-      getEcmpHalfHashConfig(),
-      true /* isV6 */,
-      {},
-      true /* loopThroughFrontPanelPort */);
+      8, getEcmpHalfHashConfig(), {}, true /* loopThroughFrontPanelPort */);
 }
-TEST_F(HwLoadBalancerTest, ECMPLoadBalanceHalfHashV4FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV4, ECMPLoadBalanceHalfHashFrontPanelTraffic) {
   runLoadBalanceTest(
-      8,
-      getEcmpHalfHashConfig(),
-      false /* isV6 */,
-      {},
-      true /* loopThroughFrontPanelPort */);
+      8, getEcmpHalfHashConfig(), {}, true /* loopThroughFrontPanelPort */);
 }
 
 // UCMP, Front Panel traffic
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceFullHashV6FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV6, UCMPLoadBalanceFullHashFrontPanelTraffic) {
   runLoadBalanceTest(
       8,
       getEcmpFullHashConfig(),
-      true /* isV6 */,
       kUcmpWeights,
       true /* loopThroughFrontPanelPort */);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceFullHashV4FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV4, UCMPLoadBalanceFullHashFrontPanelTraffic) {
   runLoadBalanceTest(
       8,
       getEcmpFullHashConfig(),
-      false /* isV6 */,
       kUcmpWeights,
       true /* loopThroughFrontPanelPort */);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceHalfHashV6FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV6, UCMPLoadBalanceHalfHashFrontPanelTraffic) {
   runLoadBalanceTest(
       8,
       getEcmpHalfHashConfig(),
-      true /* isV6 */,
       kUcmpWeights,
       true /* loopThroughFrontPanelPort */);
 }
 
-TEST_F(HwLoadBalancerTest, UCMPLoadBalanceHalfHashV4FrontPanelTraffic) {
+TEST_F(HwLoadBalancerTestIpV4, UCMPLoadBalanceHalfHashFrontPanelTraffic) {
   runLoadBalanceTest(
       8,
       getEcmpHalfHashConfig(),
-      false /* isV6 */,
       kUcmpWeights,
       true /* loopThroughFrontPanelPort */);
 }
-
 } // namespace fboss
 } // namespace facebook
