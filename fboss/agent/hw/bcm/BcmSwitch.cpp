@@ -1812,7 +1812,7 @@ opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
   try {
     bcmPkt = createRxPacket(pkt);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "failed to allocated BcmRxPacket for receive handling: "
+    XLOG(ERR) << "failed to allocate BcmRxPacket for receive handling: "
               << folly::exceptionStr(ex);
     return OPENNSL_RX_NOT_HANDLED;
   }
