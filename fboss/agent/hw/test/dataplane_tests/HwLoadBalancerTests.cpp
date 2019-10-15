@@ -56,7 +56,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
-    helper = std::make_unique<HwEcmpDataPlaneTestUtilT>(
+    helper_ = std::make_unique<HwEcmpDataPlaneTestUtilT>(
         getHwSwitchEnsemble(), RouterID(0));
   }
 
@@ -64,7 +64,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights) {
-    helper->setupECMPForwarding(ecmpWidth, weights);
+    helper_->setupECMPForwarding(ecmpWidth, weights);
     applyNewState(
         addLoadBalancer(getPlatform(), getProgrammedState(), loadBalancer));
   }
@@ -73,22 +73,22 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       unsigned int ecmpWidth,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel) {
-    helper->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
+    helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel);
     // Don't tolerate a deviation of > 25%
-    EXPECT_TRUE(helper->isLoadBalanced(ecmpWidth, weights, 25));
+    EXPECT_TRUE(helper_->isLoadBalanced(ecmpWidth, weights, 25));
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
-    helper->resolveNextHopsandClearStats(ecmpWidth);
+    helper_->resolveNextHopsandClearStats(ecmpWidth);
   }
 
   void shrinkECMP(unsigned int ecmpWidth) {
-    helper->shrinkECMP(ecmpWidth);
+    helper_->shrinkECMP(ecmpWidth);
     resolveNextHopsandClearStats(ecmpWidth);
   }
 
   void expandECMP(unsigned int ecmpWidth) {
-    helper->expandECMP(ecmpWidth);
+    helper_->expandECMP(ecmpWidth);
     resolveNextHopsandClearStats(ecmpWidth);
   }
 
@@ -141,7 +141,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
  private:
-  std::unique_ptr<HwEcmpDataPlaneTestUtilT> helper;
+  std::unique_ptr<HwEcmpDataPlaneTestUtilT> helper_;
 };
 
 class HwLoadBalancerTestIpV4
