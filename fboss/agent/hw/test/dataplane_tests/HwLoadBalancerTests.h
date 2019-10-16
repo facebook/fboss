@@ -7,6 +7,75 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
+#include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/facilities/expand.hpp>
+#include <boost/preprocessor/stringize.hpp>
+
+#define EcmpWeights \
+  {}
+#define UcmpWeights \
+  { 10, 20, 30, 40, 50, 60, 70, 80 }
+
+#define TRAFFIC_NAME(TRAFFIC_TYPE) BOOST_PP_CAT(TRAFFIC_TYPE, Traffic)
+#define HASH_NAME(HASH_TYPE) BOOST_PP_CAT(HASH_TYPE, Hash)
+#define LB_NAME(LB_TYPE) BOOST_PP_CAT(LB_TYPE, LoadBalance)
+
+#define TEST_NAME(LB_TYPE, HASH_TYPE, TRAFFIC_TYPE) \
+  BOOST_PP_CAT(                                     \
+      LB_NAME(LB_TYPE),                             \
+      BOOST_PP_CAT(HASH_NAME(HASH_TYPE), TRAFFIC_NAME(TRAFFIC_TYPE)))
+
+#define ECMP_SHRINK_EXPAND_TEST_NAME(HASH_TYPE) \
+  BOOST_PP_CAT(                                 \
+      ECMPShrinkExpandLoadBalance,              \
+      BOOST_PP_CAT(HASH_NAME(HASH_TYPE), TRAFFIC_NAME(Cpu)))
+
+#define RUN_HW_LOAD_BALANCER_TEST(                                    \
+    TEST_FIXTURE, LB_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
+  TEST_F(TEST_FIXTURE, TEST_NAME(LB_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
+    static bool kLoopThroughFrontPanelPort =                          \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != "Cpu");                  \
+    runLoadBalanceTest(                                               \
+        8,                                                            \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(),   \
+        LB_TYPE##Weights,                                             \
+        kLoopThroughFrontPanelPort);                                  \
+  }
+
+#define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
+  TEST_F(TEST_FIXTURE, ECMP_SHRINK_EXPAND_TEST_NAME(HASH_TYPE)) {        \
+    runEcmpShrinkExpandLoadBalanceTest(                                  \
+        8, facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig());  \
+  }
+
+#define RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, LB_TYPE, HASH_TYPE) \
+  RUN_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, LB_TYPE, HASH_TYPE, Cpu)
+
+#define RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL( \
+    TEST_FIXTURE, LB_TYPE, HASH_TYPE)          \
+  RUN_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, LB_TYPE, HASH_TYPE, FrontPanel)
+
+#define RUN_ALL_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)   \
+  RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, Ecmp, Full) \
+  RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, Ecmp, Half) \
+  RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, Ucmp, Full) \
+  RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, Ucmp, Half)
+
+#define RUN_ALL_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE)   \
+  RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE, Ecmp, Full) \
+  RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE, Ecmp, Half) \
+  RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE, Ucmp, Full) \
+  RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE, Ucmp, Half)
+
+#define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE) \
+  RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, Full)     \
+  RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, Half)
+
+#define RUN_ALL_HW_LOAD_BALANCER_TEST(TEST_FIXTURE)       \
+  RUN_ALL_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)         \
+  RUN_ALL_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE) \
+  RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)
+
 namespace facebook {
 namespace fboss {
 
