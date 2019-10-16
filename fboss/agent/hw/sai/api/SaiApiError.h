@@ -31,7 +31,7 @@ class SaiApiError : public FbossError {
             "] ",
             std::forward<Args>(args)...,
             ": ",
-            status),
+            saiStatusToString(status)),
         status_(status),
         apiType_(apiType) {}
   sai_status_t getSaiStatus() const {
@@ -66,7 +66,7 @@ void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
     XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "]"
               << folly::to<std::string>(std::forward<Args>(args)...) << ": "
-              << status;
+              << saiStatusToString(status);
   }
 }
 

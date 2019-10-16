@@ -19,5 +19,6 @@ namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType);
 folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType);
+folly::StringPiece saiStatusToString(sai_status_t status);
 
 } // namespace facebook::fboss

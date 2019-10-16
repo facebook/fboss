@@ -129,4 +129,76 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
   }
 }
 
+folly::StringPiece saiStatusToString(sai_status_t status) {
+  switch (status) {
+    case SAI_STATUS_SUCCESS:
+      return "SUCCESS";
+    case SAI_STATUS_FAILURE:
+      return "FAILURE";
+    case SAI_STATUS_NOT_SUPPORTED:
+      return "NOT SUPPORTED";
+    case SAI_STATUS_NO_MEMORY:
+      return "NO MEMORY";
+    case SAI_STATUS_INSUFFICIENT_RESOURCES:
+      return "INSUFFICIENT RESOURCES";
+    case SAI_STATUS_INVALID_PARAMETER:
+      return "INVALID PARAMETER";
+    case SAI_STATUS_ITEM_ALREADY_EXISTS:
+      return "ITEM ALREADY EXISTS";
+    case SAI_STATUS_ITEM_NOT_FOUND:
+      return "ITEM NOT FOUND";
+    case SAI_STATUS_BUFFER_OVERFLOW:
+      return "BUFFER OVERFLOW";
+    case SAI_STATUS_INVALID_PORT_NUMBER:
+      return "INVALID PORT NUMBER";
+    case SAI_STATUS_INVALID_PORT_MEMBER:
+      return "INVALID PORT MEMBER";
+    case SAI_STATUS_INVALID_VLAN_ID:
+      return "INVALID VLAN ID";
+    case SAI_STATUS_UNINITIALIZED:
+      return "UNINITIALIZED";
+    case SAI_STATUS_TABLE_FULL:
+      return "TABLE FULL";
+    case SAI_STATUS_MANDATORY_ATTRIBUTE_MISSING:
+      return "MANDATORY ATTRIBUTE MISSING";
+    case SAI_STATUS_NOT_IMPLEMENTED:
+      return "NOT IMPLEMENTED";
+    case SAI_STATUS_ADDR_NOT_FOUND:
+      return "ADDR NOT FOUND";
+    case SAI_STATUS_OBJECT_IN_USE:
+      return "OBJECT IN USE";
+    case SAI_STATUS_INVALID_OBJECT_TYPE:
+      return "INVALID OBJECT TYPE";
+    case SAI_STATUS_INVALID_OBJECT_ID:
+      return "INVALID OBJECT ID";
+    case SAI_STATUS_INVALID_NV_STORAGE:
+      return "INVALID NV STORAGE";
+    case SAI_STATUS_NV_STORAGE_FULL:
+      return "NV STORAGE FULL";
+    case SAI_STATUS_SW_UPGRADE_VERSION_MISMATCH:
+      return "SW UPGRADE VERSION MISMATCH";
+    case SAI_STATUS_NOT_EXECUTED:
+      return "NOT EXECUTED";
+    case SAI_STATUS_INVALID_ATTRIBUTE_0:
+      return "INVALID ATTRIBUTE 0";
+    case SAI_STATUS_INVALID_ATTRIBUTE_MAX:
+      return "INVALID ATTRIBUTE MAX";
+    case SAI_STATUS_INVALID_ATTR_VALUE_MAX:
+      return "INVALID ATTR VALUE MAX";
+    case SAI_STATUS_ATTR_NOT_IMPLEMENTED_0:
+      return "ATTR NOT IMPLEMENTED 0";
+    case SAI_STATUS_ATTR_NOT_IMPLEMENTED_MAX:
+      return "ATTR NOT IMPLEMENTED MAX";
+    case SAI_STATUS_UNKNOWN_ATTRIBUTE_0:
+      return "UNKNOWN ATTRIBUTE 0";
+    case SAI_STATUS_UNKNOWN_ATTRIBUTE_MAX:
+      return "UNKNOWN ATTRIBUTE MAX";
+    case SAI_STATUS_ATTR_NOT_SUPPORTED_0:
+      return "ATTR NOT SUPPORTED 0";
+    case SAI_STATUS_ATTR_NOT_SUPPORTED_MAX:
+      return "ATTR NOT SUPPORTED MAX";
+    default:
+      throw FbossError("status invalid: ", status);
+  }
+}
 } // namespace facebook::fboss
