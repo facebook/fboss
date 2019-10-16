@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
-#include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
