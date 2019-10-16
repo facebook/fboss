@@ -16,7 +16,8 @@ namespace utility {
 FSWRouteScaleGenerator::FSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,
-    unsigned int ecmpWidth)
+    unsigned int ecmpWidth,
+    RouterID routerId)
     : routeDistributionGen_(
           startingState,
           // v6 distribution
@@ -41,12 +42,14 @@ FSWRouteScaleGenerator::FSWRouteScaleGenerator(
               {32, 4500},
           },
           chunkSize,
-          ecmpWidth) {}
+          ecmpWidth,
+          routerId) {}
 
 THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,
-    unsigned int ecmpWidth)
+    unsigned int ecmpWidth,
+    RouterID routerId)
     : routeDistributionGen_(
           startingState,
           // v6 distribution
@@ -71,12 +74,14 @@ THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
               {32, 10000},
           },
           chunkSize,
-          ecmpWidth) {}
+          ecmpWidth,
+          routerId) {}
 
 HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,
-    unsigned int ecmpWidth)
+    unsigned int ecmpWidth,
+    RouterID routerId)
     : routeDistributionGen_(
           startingState,
           // v6 distribution
@@ -105,12 +110,14 @@ HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
               {32, 16721},
           },
           chunkSize,
-          ecmpWidth) {}
+          ecmpWidth,
+          routerId) {}
 
 HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,
-    unsigned int ecmpWidth)
+    unsigned int ecmpWidth,
+    RouterID routerId)
     : routeDistributionGen_(
           startingState,
           // v6 distribution
@@ -145,7 +152,9 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
               {32, 16625},
           },
           chunkSize,
-          ecmpWidth) {}
+          ecmpWidth,
+          routerId) {}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

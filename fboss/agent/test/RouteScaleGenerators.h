@@ -38,7 +38,8 @@ class FSWRouteScaleGenerator {
   explicit FSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
-      unsigned int ecmpWidth = kDefaulEcmpWidth);
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
   const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
   }
@@ -56,7 +57,8 @@ class THAlpmRouteScaleGenerator {
   explicit THAlpmRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
-      unsigned int ecmpWidth = kDefaulEcmpWidth);
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
   const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
   }
@@ -74,7 +76,8 @@ class HgridDuRouteScaleGenerator {
   explicit HgridDuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
-      unsigned int ecmpWidth = kDefaulEcmpWidth);
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
 
   const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
@@ -93,7 +96,8 @@ class HgridUuRouteScaleGenerator {
   explicit HgridUuRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
-      unsigned int ecmpWidth = kDefaulEcmpWidth);
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
   const std::vector<std::shared_ptr<SwitchState>>& get() {
     return routeDistributionGen_.get();
   }
