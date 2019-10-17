@@ -8,20 +8,18 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-
-#include "fboss/agent/hw/bcm/BcmControlPlane.h"
-#include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 
 #include <folly/IPAddressV6.h>
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
 #include <folly/json.h>
 #include "common/time/Time.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
 
 #include <chrono>
 #include <iostream>
@@ -32,35 +30,36 @@ DEFINE_bool(json, true, "Output in json form");
 namespace facebook::fboss {
 
 std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
-    BcmSwitchEnsemble& ensemble,
+    HwSwitchEnsemble* ensemble,
     PortID port) {
-  auto stats = ensemble.getLatestPortStats({port})[port];
+  auto stats = ensemble->getLatestPortStats({port})[port];
   return {stats.outUnicastPkts_, stats.outBytes_};
 }
 
 void runTxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
-  BcmSwitchEnsemble ensemble;
-  auto bcmSwitch = ensemble.getHwSwitch();
-  auto portUsed = ensemble.getPlatform()->masterLogicalPortIds()[0];
-  auto config = utility::oneL3IntfConfig(bcmSwitch, portUsed);
-  ensemble.applyInitialConfigAndBringUpPorts(config);
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble.getProgrammedState());
+  auto ensemble = createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
+  auto hwSwitch = ensemble->getHwSwitch();
+  auto portUsed = ensemble->masterLogicalPortIds()[0];
+  auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
+  ensemble->applyInitialConfigAndBringUpPorts(config);
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
   auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
-      ecmpHelper.resolveNextHops(ensemble.getProgrammedState(), kEcmpWidth),
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
       kEcmpWidth);
-  ensemble.applyNewState(ecmpRouteState);
+  ensemble->applyNewState(ecmpRouteState);
 
+  auto cpuMac = ensemble->getPlatform()->getLocalMac();
   std::atomic<bool> packetTxDone{false};
-  std::thread t([bcmSwitch, &config, &packetTxDone]() {
-    auto cpuMac = bcmSwitch->getPlatform()->getLocalMac();
+  std::thread t([cpuMac, hwSwitch, &config, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
     const auto kDstIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
     while (!packetTxDone) {
       for (auto i = 0; i < 1'000; ++i) {
         // Send packet
         auto txPacket = utility::makeUDPTxPacket(
-            bcmSwitch,
+            hwSwitch,
             VlanID(config.vlanPorts[0].vlanID),
             cpuMac,
             cpuMac,
@@ -68,18 +67,19 @@ void runTxSlowPathBenchmark() {
             kDstIp,
             8000,
             8001);
-        bcmSwitch->sendPacketSwitchedAsync(std::move(txPacket));
+        hwSwitch->sendPacketSwitchedAsync(std::move(txPacket));
       }
     }
   });
 
   auto [pktsBefore, bytesBefore] =
-      getOutPktsAndBytes(ensemble, PortID(portUsed));
+      getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
   auto timeBefore = std::chrono::steady_clock::now();
   constexpr auto kBurnIntevalMs = 5000;
   // Let the packet flood warm up
   WallClockMs::Burn(kBurnIntevalMs);
-  auto [pktsAfter, bytesAfter] = getOutPktsAndBytes(ensemble, PortID(portUsed));
+  auto [pktsAfter, bytesAfter] =
+      getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
   auto timeAfter = std::chrono::steady_clock::now();
   packetTxDone = true;
   t.join();
