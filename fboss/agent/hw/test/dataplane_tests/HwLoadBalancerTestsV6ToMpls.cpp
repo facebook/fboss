@@ -14,19 +14,38 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
+namespace {
+const std::vector<facebook::fboss::LabelForwardingAction::LabelStack> stacks{
+    {101, 102, 103},
+    {201, 202, 203},
+    {301, 302, 303},
+    {401, 402, 403},
+    {501, 502, 503},
+    {601, 602, 603},
+    {701, 702, 703},
+    {801, 802, 803}};
+
+} // namespace
+
 namespace facebook {
 namespace fboss {
 
-class HwLoadBalancerTestV6
+class HwLoadBalancerTestV6ToMpls
     : public HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {
+ public:
+  bool skipTest() const override {
+    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS_ECMP);
+  }
+
+ private:
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> getECMPHelper()
       override {
     return std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
-        getHwSwitchEnsemble(), RouterID(0));
+        getHwSwitchEnsemble(), RouterID(0), stacks);
   }
-
 };
 
-RUN_ALL_HW_LOAD_BALANCER_TEST(HwLoadBalancerTestV6)
+RUN_ALL_HW_LOAD_BALANCER_TEST(HwLoadBalancerTestV6ToMpls)
+
 } // namespace fboss
 } // namespace facebook

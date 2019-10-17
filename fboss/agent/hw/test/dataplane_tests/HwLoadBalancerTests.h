@@ -104,9 +104,11 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;
 
-  virtual void setupECMPHelper(
+  void setupECMPHelper(
       unsigned int ecmpWidth,
-      const std::vector<NextHopWeight>& weights) = 0;
+      const std::vector<NextHopWeight>& weights) {
+    getEcmpSetupHelper()->setupECMPForwarding(ecmpWidth, weights);
+  }
 
   void pumpTrafficPortAndVerifyLoadBalanced(
       unsigned int ecmpWidth,
@@ -133,12 +135,18 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
  protected:
+  virtual bool skipTest() const {
+    return false;
+  }
   void runLoadBalanceTest(
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel = false,
       uint8_t deviation = 25) {
+    if (skipTest()) {
+      return;
+    }
     auto setup = [=]() {
       setupECMPForwarding(ecmpWidth, loadBalancer, weights);
     };
@@ -153,6 +161,9 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       unsigned int ecmpWidth,
       const cfg::LoadBalancer& loadBalancer,
       uint8_t deviation = 25) {
+    if (skipTest()) {
+      return;
+    }
     unsigned int minLinksLoadbalanceTest = 1;
     auto setup = [=]() {
       setupECMPForwarding(ecmpWidth, loadBalancer, {} /*weights*/);

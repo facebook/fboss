@@ -20,7 +20,9 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   BcmTestWedgeTomahawkPlatform(
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver)
-      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
+      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {
+    asic_ = std::make_unique<TomahawkAsic>();
+  }
   ~BcmTestWedgeTomahawkPlatform() override {}
 
   bool isCosSupported() const override {
