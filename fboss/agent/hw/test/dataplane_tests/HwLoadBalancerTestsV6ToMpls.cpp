@@ -12,20 +12,8 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwTestConstants.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-
-namespace {
-const std::vector<facebook::fboss::LabelForwardingAction::LabelStack> stacks{
-    {101, 102, 103},
-    {201, 202, 203},
-    {301, 302, 303},
-    {401, 402, 403},
-    {501, 502, 503},
-    {601, 602, 603},
-    {701, 702, 703},
-    {801, 802, 803}};
-
-} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -41,7 +29,7 @@ class HwLoadBalancerTestV6ToMpls
   std::unique_ptr<utility::HwIpV6EcmpDataPlaneTestUtil> getECMPHelper()
       override {
     return std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
-        getHwSwitchEnsemble(), RouterID(0), stacks);
+        getHwSwitchEnsemble(), RouterID(0), utility::kHwTestLabelStacks());
   }
 };
 
