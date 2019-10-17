@@ -313,6 +313,7 @@ void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   printf("  Interrupt Flags:\n");
   printf("    LOS: 0x%02x\n", lowerBuf[3]);
   printf("    Fault: 0x%02x\n", lowerBuf[4]);
+  printf("    LOL: 0x%02x\n", lowerBuf[5]);
   printf("    Temp: 0x%02x\n", lowerBuf[6]);
   printf("    Vcc: 0x%02x\n", lowerBuf[7]);
   printf("    Rx Power: 0x%02x 0x%02x\n", lowerBuf[9], lowerBuf[10]);
