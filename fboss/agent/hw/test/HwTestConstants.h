@@ -13,6 +13,8 @@ std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks();
 std::vector<uint64_t> kHwTestEcmpWeights();
 
 std::vector<uint64_t> kHwTestUcmpWeights();
+
+uint32_t constexpr kHwTestMplsLabel = 1001;
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
