@@ -54,9 +54,9 @@ struct AggregatePortFields {
   using SubportToForwardingState =
       boost::container::flat_map<PortID, Forwarding>;
 
-  struct subport {
-    subport() {}
-    subport(
+  struct Subport {
+    Subport() {}
+    Subport(
         PortID id,
         uint16_t pri,
         cfg::LacpPortRate r,
@@ -64,22 +64,22 @@ struct AggregatePortFields {
         : portID(id), priority(pri), rate(r), activity(a) {}
 
     // Needed for std::equal
-    bool operator==(const struct subport& rhs) const {
+    bool operator==(const Subport& rhs) const {
       return portID == rhs.portID && priority == rhs.priority &&
           rate == rhs.rate && activity == rhs.activity;
     }
-    bool operator!=(const struct subport& rhs) const {
+    bool operator!=(const Subport& rhs) const {
       return !(*this == rhs);
     }
 
     // Needed for boost::container::flat_set
-    bool operator<(const struct subport& rhs) const {
+    bool operator<(const Subport& rhs) const {
       return portID < rhs.portID;
     }
 
     folly::dynamic toFollyDynamic(
         const AggregatePortFields::SubportToForwardingState& portStates) const;
-    static struct subport fromFollyDynamic(
+    static Subport fromFollyDynamic(
         const folly::dynamic& json,
         AggregatePortFields::SubportToForwardingState& portStates);
 
@@ -88,7 +88,6 @@ struct AggregatePortFields {
     cfg::LacpPortRate rate{cfg::LacpPortRate::SLOW};
     cfg::LacpPortActivity activity{cfg::LacpPortActivity::PASSIVE};
   };
-  using Subport = struct subport;
   using Subports = boost::container::flat_set<Subport>;
 
   AggregatePortFields(
