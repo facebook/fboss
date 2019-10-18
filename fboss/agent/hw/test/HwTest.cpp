@@ -22,7 +22,11 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-using namespace facebook::fboss;
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
 
 DEFINE_bool(
     setup_for_warmboot,
@@ -100,6 +104,11 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
     // TODO - use SdkBlackholer once we have these
     // SDK exit calls covered.
     __attribute__((unused)) auto leakedHwEnsemble = hwSwitchEnsemble_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+    __lsan_ignore_object(leakedHwEnsemble);
+#endif
+#endif
   }
   hwSwitchEnsemble_.reset();
 }

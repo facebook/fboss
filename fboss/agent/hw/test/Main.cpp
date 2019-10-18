@@ -16,8 +16,6 @@
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=false");
 
-DECLARE_bool(setup_for_warmboot);
-
 int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
@@ -25,6 +23,5 @@ int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
 
   // Run the tests
-  auto ret = RUN_ALL_TESTS();
-  return ret;
+  return RUN_ALL_TESTS();
 }
