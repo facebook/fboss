@@ -415,12 +415,7 @@ std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
       StateDelta(make_shared<SwitchState>(), warmBootState));
 }
 
-std::string BcmSwitch::getScriptPreAsicInitFile() const {
-  return platform_->getPersistentStateDir() + "/" + FLAGS_script_pre_asic_init;
-}
-
-void BcmSwitch::runBcmScriptPreAsicInit() const {
-  std::string filename = getScriptPreAsicInitFile();
+void BcmSwitch::runBcmScript(const std::string& filename) const {
   std::ifstream scriptFile(filename);
 
   if (!scriptFile.good()) {
@@ -490,18 +485,17 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   steady_clock::time_point begin = steady_clock::now();
   CHECK(!unitObject_);
-  unitObject_ = BcmAPI::initOnlyUnit(platform_);
+  unitObject_ = BcmAPI::createOnlyUnit(platform_);
   unit_ = unitObject_->getNumber();
   unitObject_->setCookie(this);
+
+  BcmAPI::initUnit(unit_, platform_);
 
   bootType_ = platform_->getWarmBootHelper()->canWarmBoot()
       ? BootType::WARM_BOOT
       : BootType::COLD_BOOT;
   auto warmBoot = bootType_ == BootType::WARM_BOOT;
   callback_ = callback;
-
-  // Possibly run pre-init bcm shell script before ASIC init.
-  runBcmScriptPreAsicInit();
 
   ret.initializedTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();

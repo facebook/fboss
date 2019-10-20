@@ -13,6 +13,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/sim/SimHandler.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 DEFINE_string(
     volatile_state_dir,
@@ -30,7 +31,7 @@ namespace facebook {
 namespace fboss {
 
 SimPlatform::SimPlatform(folly::MacAddress mac, uint32_t numPorts)
-    : mac_(mac), hw_(new SimSwitch(this, numPorts)) {}
+    : Platform(nullptr), mac_(mac), hw_(new SimSwitch(this, numPorts)) {}
 
 SimPlatform::~SimPlatform() {}
 

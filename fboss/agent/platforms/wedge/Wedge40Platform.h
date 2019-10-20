@@ -20,10 +20,7 @@ class PlatformProductInfo;
 
 class Wedge40Platform : public WedgePlatform {
  public:
-  explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : WedgePlatform(std::move(productInfo)) {
-    asic_ = std::make_unique<Trident2Asic>();
-  }
+  explicit Wedge40Platform(std::unique_ptr<PlatformProductInfo> productInfo);
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 

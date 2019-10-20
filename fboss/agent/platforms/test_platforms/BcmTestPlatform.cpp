@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
@@ -26,7 +27,8 @@ namespace fboss {
 BcmTestPlatform::BcmTestPlatform(
     std::vector<PortID> masterLogicalPorts,
     int numPortsPerTranceiver)
-    : masterLogicalPortIds_(std::move(masterLogicalPorts)) {
+    : BcmPlatform(nullptr),
+      masterLogicalPortIds_(std::move(masterLogicalPorts)) {
   numPortsPerTranceiver_ = numPortsPerTranceiver;
   for (auto masterPort : masterLogicalPortIds_) {
     for (int i = 0; i < numPortsPerTranceiver; ++i) {

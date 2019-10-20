@@ -70,14 +70,6 @@ std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
 }
 
-void SaiPlatform::getProductInfo(ProductInfo& info) {
-  productInfo_->getInfo(info);
-}
-
-PlatformMode SaiPlatform::getMode() const {
-  return productInfo_->getMode();
-}
-
 TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const {
   return TransceiverIdxThrift();
 }
@@ -106,7 +98,7 @@ void SaiPlatform::initImpl() {
 }
 
 SaiPlatform::SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-    : productInfo_(std::move(productInfo)) {}
+    : Platform(std::move(productInfo)) {}
 
 void SaiPlatform::initPorts() {
   auto& platformSettings = config()->thrift.platform;

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 #include <folly/Subprocess.h>
 #include <string>
@@ -57,7 +58,8 @@ MacAddress localMacAddress() {
 namespace facebook {
 namespace fboss {
 
-Platform::Platform() {}
+Platform::Platform(std::unique_ptr<PlatformProductInfo> productInfo)
+    : productInfo_(std::move(productInfo)) {}
 Platform::~Platform() {}
 
 std::string Platform::getCrashHwStateFile() const {
@@ -93,6 +95,16 @@ MacAddress Platform::getLocalMac() const {
     kLocalMac.assign(localMacAddress());
   }
   return kLocalMac.value();
+}
+
+void Platform::getProductInfo(ProductInfo& info) {
+  CHECK(productInfo_);
+  productInfo_->getInfo(info);
+}
+
+PlatformMode Platform::getMode() const {
+  CHECK(productInfo_);
+  return productInfo_->getMode();
 }
 
 } // namespace fboss

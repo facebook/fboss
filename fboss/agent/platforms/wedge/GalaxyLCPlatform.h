@@ -15,12 +15,10 @@ namespace facebook {
 namespace fboss {
 
 class WedgePortMapping;
-class PlatformProductInfo;
 
 class GalaxyLCPlatform : public GalaxyPlatform {
  public:
-  explicit GalaxyLCPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : GalaxyPlatform(std::move(productInfo)) {}
+  using GalaxyPlatform::GalaxyPlatform;
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
 

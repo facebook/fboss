@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -47,7 +48,7 @@ namespace facebook {
 namespace fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-    : productInfo_(std::move(productInfo)),
+    : BcmPlatform(std::move(productInfo)),
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 void WedgePlatform::initImpl() {
@@ -120,14 +121,6 @@ void WedgePlatform::onUnitCreate(int unit) {
 }
 
 void WedgePlatform::onUnitAttach(int /*unit*/) {}
-
-void WedgePlatform::getProductInfo(ProductInfo& info) {
-  productInfo_->getInfo(info);
-}
-
-PlatformMode WedgePlatform::getMode() const {
-  return productInfo_->getMode();
-}
 
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();

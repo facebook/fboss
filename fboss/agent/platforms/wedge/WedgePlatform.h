@@ -12,7 +12,6 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -31,6 +30,7 @@ namespace fboss {
 
 class BcmSwitch;
 class WedgePort;
+class PlatformProductInfo;
 
 class WedgePlatform : public BcmPlatform, public StateObserver {
  public:
@@ -55,7 +55,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
 
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
-  void getProductInfo(ProductInfo& info) override;
   void onInitialConfigApplied(SwSwitch* sw) override {}
 
   bool canUseHostTableForHostRoutes() const override {
@@ -74,7 +73,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   }
 
  protected:
-  PlatformMode getMode() const;
   std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
 
  private:
@@ -93,7 +91,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
 
   std::unique_ptr<BcmSwitch> hw_;
 
-  const std::unique_ptr<PlatformProductInfo> productInfo_;
   std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };

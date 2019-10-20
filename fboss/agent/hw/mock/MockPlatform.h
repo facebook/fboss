@@ -31,7 +31,9 @@ class HwTestHandle;
 class MockPlatform : public Platform {
  public:
   MockPlatform();
-  explicit MockPlatform(std::unique_ptr<MockHwSwitch> hw);
+  explicit MockPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<MockHwSwitch> hw);
   ~MockPlatform() override;
 
   HwSwitch* getHwSwitch() const override;

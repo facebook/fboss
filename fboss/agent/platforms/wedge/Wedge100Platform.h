@@ -19,12 +19,10 @@ namespace fboss {
 
 class BcmSwitch;
 class Wedge100Port;
-class PlatformProductInfo;
 
 class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
-  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : WedgeTomahawkPlatform(std::move(productInfo)) {}
+  using WedgeTomahawkPlatform::WedgeTomahawkPlatform;
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;

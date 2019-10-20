@@ -14,6 +14,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/HwTestHandle.h"
 
 #include <gmock/gmock.h>
@@ -28,15 +29,21 @@ using testing::WithArg;
 namespace facebook {
 namespace fboss {
 
-MockPlatform::MockPlatform(std::unique_ptr<MockHwSwitch> hw)
-    : tmpDir_("fboss_mock_state"), hw_(std::move(hw)) {
+MockPlatform::MockPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<MockHwSwitch> hw)
+    : Platform(std::move(productInfo)),
+      tmpDir_("fboss_mock_state"),
+      hw_(std::move(hw)) {
   ON_CALL(*hw_, stateChanged(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
 }
 
 MockPlatform::MockPlatform()
-    : MockPlatform(make_unique<::testing::NiceMock<MockHwSwitch>>(this)) {}
+    : MockPlatform(
+          nullptr,
+          make_unique<::testing::NiceMock<MockHwSwitch>>(this)) {}
 
 MockPlatform::~MockPlatform() {}
 

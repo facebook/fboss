@@ -62,7 +62,9 @@ class BcmAPI {
    * not appear to perform locking around device ID allocation and
    * initialization.
    */
-  static std::unique_ptr<BcmUnit> initUnit(int deviceIndex);
+  static std::unique_ptr<BcmUnit> createUnit(
+      int deviceIndex,
+      BcmPlatform* platform);
 
   /*
    * Ensure that there is only a single BCM switch in the system,
@@ -71,7 +73,20 @@ class BcmAPI {
    * The unit will not have been initialized yet, and must still
    * be initialized with BcmUnit::attach().
    */
-  static std::unique_ptr<BcmUnit> initOnlyUnit(BcmPlatform* platform);
+  static std::unique_ptr<BcmUnit> createOnlyUnit(BcmPlatform* platform);
+
+  /*
+   * Initialize a BcmUnit.
+   *
+   * The unit will not have been initialized yet, and must still
+   * be initialized with BcmUnit::attach().
+   *
+   * All devices should be initialized from the main thread, before
+   * performing BCM SDK calls from other threads.  The Broadcom SDK does
+   * not appear to perform locking around device ID allocation and
+   * initialization.
+   */
+  static void initUnit(int unit, BcmPlatform* platform);
 
   /*
    * Indicate that a BcmUnit object is being destroyed.
@@ -120,20 +135,6 @@ class BcmAPI {
    * values we are currently using and provide these to the sdk.
    */
   static void initConfig(const std::map<std::string, std::string>& config);
-  /*
-   * Create a BcmUnit.
-   *
-   * The unit will not have been initialized yet, and must still
-   * be initialized with BcmUnit::attach().
-   *
-   * All devices should be initialized from the main thread, before
-   * performing BCM SDK calls from other threads.  The Broadcom SDK does
-   * not appear to perform locking around device ID allocation and
-   * initialization.
-   */
-  static std::unique_ptr<BcmUnit> initUnit(
-      int deviceIndex,
-      BcmPlatform* platform);
 
   // Forbidden copy constructor and assignment operator
   BcmAPI(BcmAPI const&) = delete;

@@ -209,7 +209,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   HwInitResult init(Callback* callback) override;
 
-  void runBcmScriptPreAsicInit() const;
+  void runBcmScript(const std::string& filename) const;
 
   void unregisterCallbacks() override;
 
@@ -488,10 +488,6 @@ class BcmSwitch : public BcmSwitchIf {
   BcmSwitch(BcmSwitch const&) = delete;
   BcmSwitch& operator=(BcmSwitch const&) = delete;
 
-  /*
-   * BRCM script file to be run before ASIC init
-   */
-  std::string getScriptPreAsicInitFile() const;
   /*
    * Get default state switch is in on a cold boot
    */
@@ -784,10 +780,8 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<Port>& newPort,
       const std::shared_ptr<SwitchState>& newState) const;
 
-
   MmuState queryMmuState() const;
   void exportDeviceBufferUsage();
-
 
   /*
    * Return true if any of the port's queue names changed, false otherwise.

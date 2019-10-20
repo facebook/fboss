@@ -8,9 +8,16 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 namespace facebook {
 namespace fboss {
+
+WedgeTomahawkPlatform::WedgeTomahawkPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : WedgePlatform(std::move(productInfo)) {
+  asic_ = std::make_unique<TomahawkAsic>();
+}
 const PortQueue& WedgeTomahawkPlatform::getDefaultPortQueueSettings(
     cfg::StreamType /*streamType*/) const {
   throw FbossError("PortQueue setting is not supported");

@@ -17,7 +17,7 @@ DECLARE_string(fruid_filepath);
 namespace facebook {
 namespace fboss {
 
-enum class PlatformMode {
+enum class PlatformMode : char {
   WEDGE,
   WEDGE100,
   GALAXY_LC,

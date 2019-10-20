@@ -29,8 +29,6 @@ DEFINE_bool(
 namespace facebook {
 namespace fboss {
 
-BcmPlatform::BcmPlatform() {}
-
 std::string BcmPlatform::getHwConfigDumpFile() const {
   return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }
@@ -50,5 +48,6 @@ void BcmPlatform::dumpHwConfig() const {
     throw facebook::fboss::SysError(errno, "error writing bcm config ");
   }
 }
+
 } // namespace fboss
 } // namespace facebook

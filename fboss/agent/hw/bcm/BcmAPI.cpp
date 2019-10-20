@@ -71,7 +71,7 @@ BcmAPI::HwConfigMap BcmAPI::getHwConfig() {
   return bcmConfig;
 }
 
-std::unique_ptr<BcmUnit> BcmAPI::initUnit(
+std::unique_ptr<BcmUnit> BcmAPI::createUnit(
     int deviceIndex,
     BcmPlatform* platform) {
   auto unitObj = make_unique<BcmUnit>(deviceIndex, platform);
@@ -82,13 +82,18 @@ std::unique_ptr<BcmUnit> BcmAPI::initUnit(
     throw FbossError("a BcmUnit already exists for unit number ", unit);
   }
   platform->onUnitCreate(unit);
+
+  return unitObj;
+}
+
+void BcmAPI::initUnit(int unit, BcmPlatform* platform) {
+  BcmUnit* unitObj = getUnit(unit);
   if (platform->getWarmBootHelper()->canWarmBoot()) {
     unitObj->warmBootAttach();
   } else {
     unitObj->coldBootAttach();
   }
   platform->onUnitAttach(unit);
-  return unitObj;
 }
 
 void BcmAPI::init(const std::map<std::string, std::string>& config) {
@@ -102,14 +107,14 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
   bcmInitialized.store(true, std::memory_order_release);
 }
 
-std::unique_ptr<BcmUnit> BcmAPI::initOnlyUnit(BcmPlatform* platform) {
+std::unique_ptr<BcmUnit> BcmAPI::createOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
   if (numDevices == 0) {
     throw FbossError("no Broadcom switching ASIC found");
   } else if (numDevices > 1) {
     throw FbossError("found more than 1 Broadcom switching ASIC");
   }
-  return initUnit(0, platform);
+  return createUnit(0, platform);
 }
 
 void BcmAPI::unitDestroyed(BcmUnit* unit) {

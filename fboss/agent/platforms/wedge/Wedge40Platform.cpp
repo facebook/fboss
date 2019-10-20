@@ -8,11 +8,18 @@
  *
  */
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/Wedge40Port.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 
 namespace facebook {
 namespace fboss {
+
+Wedge40Platform::Wedge40Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : WedgePlatform(std::move(productInfo)) {
+  asic_ = std::make_unique<Trident2Asic>();
+}
 
 std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
   const WedgePortMapping::PortTransceiverMap ports = {

@@ -22,10 +22,7 @@ class PlatformProductInfo;
 class WedgeTomahawkPlatform : public WedgePlatform {
  public:
   explicit WedgeTomahawkPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo)
-      : WedgePlatform(std::move(productInfo)) {
-    asic_ = std::make_unique<TomahawkAsic>();
-  }
+      std::unique_ptr<PlatformProductInfo> productInfo);
 
   uint32_t getMMUBufferBytes() const override {
     // All WedgeTomahawk platforms have 16MB MMU buffer

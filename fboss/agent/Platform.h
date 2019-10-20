@@ -26,6 +26,8 @@ class SwSwitch;
 class ThriftHandler;
 struct ProductInfo;
 class HwAsic;
+class PlatformProductInfo;
+enum class PlatformMode : char;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -45,7 +47,7 @@ class HwAsic;
  */
 class Platform {
  public:
-  Platform();
+  explicit Platform(std::unique_ptr<PlatformProductInfo> productInfo);
   virtual ~Platform();
 
   /*
@@ -84,6 +86,16 @@ class Platform {
   virtual HwSwitch* getHwSwitch() const = 0;
 
   /*
+   * Get the product information
+   */
+  void getProductInfo(ProductInfo& info);
+
+  /*
+   * Get the product mode
+   */
+  PlatformMode getMode() const;
+
+  /*
    * onHwInitialized() will be called once the HwSwitch object has been
    * initialized.  Platform-specific initialization that requires access to the
    * HwSwitch can be performed here.
@@ -118,11 +130,6 @@ class Platform {
    * Files written to this directory should be preserved across system reboots.
    */
   virtual std::string getPersistentStateDir() const = 0;
-
-  /*
-   * Get the product information
-   */
-  virtual void getProductInfo(ProductInfo& info) = 0;
 
   /*
    * Get the path to a directory where volatile state can be stored.
@@ -191,6 +198,8 @@ class Platform {
   // Forbidden copy constructor and assignment operator
   Platform(Platform const&) = delete;
   Platform& operator=(Platform const&) = delete;
+
+  const std::unique_ptr<PlatformProductInfo> productInfo_;
 };
 
 } // namespace fboss
