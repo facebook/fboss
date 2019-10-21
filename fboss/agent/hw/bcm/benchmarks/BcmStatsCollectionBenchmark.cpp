@@ -8,9 +8,11 @@
  *
  */
 
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>
@@ -31,16 +33,17 @@ namespace fboss {
  */
 BENCHMARK(BcmStatsCollection) {
   folly::BenchmarkSuspender suspender;
-  static BcmSwitchEnsemble ensemble;
-  auto hwSwitch = ensemble.getHwSwitch();
-  auto config = utility::onePortPerVlanConfig(
-      hwSwitch, ensemble.getPlatform()->masterLogicalPortIds());
+  static auto ensemble =
+      createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
+  auto hwSwitch = ensemble->getHwSwitch();
+  auto config =
+      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
   SwitchStats dummy;
   suspender.dismiss();
   for (auto i = 0; i < 10'000; ++i) {
     hwSwitch->updateStats(&dummy);
   }
-  ensemble.applyInitialConfigAndBringUpPorts(config);
+  ensemble->applyInitialConfigAndBringUpPorts(config);
 }
 } // namespace fboss
 } // namespace facebook
