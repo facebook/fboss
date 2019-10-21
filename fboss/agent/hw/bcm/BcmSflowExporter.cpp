@@ -61,7 +61,7 @@ folly::IPAddress getLocalIPv6() {
     return ret.value();
   }
 
-  struct ifaddrs* ifaddr;
+  struct ifaddrs* ifaddr{nullptr};
   std::vector<char> host;
   host.reserve(NI_MAXHOST);
 
@@ -69,6 +69,9 @@ folly::IPAddress getLocalIPv6() {
     XLOG(DBG2) << "getifaddrs failed. Returned default address ::";
     return folly::IPAddress("::");
   }
+  SCOPE_EXIT {
+    freeifaddrs(ifaddr);
+  };
 
   for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ifa->ifa_addr == nullptr) {
