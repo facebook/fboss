@@ -41,7 +41,8 @@ class RoutingInformationBase {
     std::chrono::microseconds duration{0};
   };
 
-  /* update first acquires exclusive ownership of the RIB and executes the
+  /*
+   * `update()` first acquires exclusive ownership of the RIB and executes the
    * following sequence of actions:
    * 1. Injects and removes routes in `toAdd` and `toDelete`, respectively.
    * 2. Triggers recursive (IP) resolution.
@@ -65,13 +66,15 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
-  // VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
-  // (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
-  // folly::IPAddress). An example of an element in this map is: (RouterID(0),
-  // 169.254.0.0/16) --> (Interface(1), 169.254.0.1) This specifies that the
-  // network 169.254.0.0/16 in VRF 0 can be reached via Interface 1, which has
-  // an address of 169.254.0.1. in that subnet. Note that the IP address in the
-  // key has its mask applied to it while the IP address value doesn't.
+  /*
+   * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
+   * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
+   * folly::IPAddress). An example of an element in this map is: (RouterID(0),
+   * 169.254.0.0/16) --> (Interface(1), 169.254.0.1) This specifies that the
+   * network 169.254.0.0/16 in VRF 0 can be reached via Interface 1, which has
+   * an address of 169.254.0.1. in that subnet. Note that the IP address in the
+   * key has its mask applied to it while the IP address value doesn't.
+   */
   using RouterIDAndNetworkToInterfaceRoutes = boost::container::flat_map<
       RouterID,
       boost::container::flat_map<
@@ -97,12 +100,14 @@ class RoutingInformationBase {
     UpdateStatistics lastUpdateStats_;
   };
 
-  // Currently, route updates to separate VRFs are made to be sequential. In the
-  // event FBOSS has to operate in a routing architecture with numerous VRFs,
-  // we can avoid a slow down by a factor of the the number of VRFs by
-  // parallelizing route updates across VRFs. This can be accomplished simply by
-  // associating the mutex implicit in folly::Synchronized with an individual
-  // RouteTable.
+  /*
+   * Currently, route updates to separate VRFs are made to be sequential. In the
+   * event FBOSS has to operate in a routing architecture with numerous VRFs,
+   * we can avoid a slow down by a factor of the the number of VRFs by
+   * parallelizing route updates across VRFs. This can be accomplished simply by
+   * associating the mutex implicit in folly::Synchronized with an individual
+   * RouteTable.
+   */
   using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
   using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
 
