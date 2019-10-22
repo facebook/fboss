@@ -117,7 +117,8 @@ class PortDetailsCmd(cmds.FbossCmd):
             for queue in port_info.portQueues:
                 name = "({})".format(queue.name) if queue.name != "" else ""
                 attrs = [queue.mode]
-                for val in ("weight", "reservedBytes", "scalingFactor"):
+                for val in ("weight", "reservedBytes", "scalingFactor",
+                        "bandwidthBurstMinKbits", "bandwidthBurstMaxKbits"):
                     if hasattr(queue, val) and getattr(queue, val):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
 
