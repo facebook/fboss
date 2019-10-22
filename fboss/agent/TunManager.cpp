@@ -18,9 +18,9 @@ extern "C" {
 #include <sys/ioctl.h>
 }
 
-#include <folly/Demangle.h>
 #include <folly/MapUtil.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
