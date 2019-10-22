@@ -237,6 +237,36 @@ void getPortInfoHelper(
     if (queue->getName()) {
       pq.name = queue->getName().value();
     }
+
+    if (queue->getPortQueueRate().hasValue()) {
+      if (queue->getPortQueueRate().value().getType() ==
+          cfg::PortQueueRate::Type::pktsPerSec) {
+        Range range;
+        range.set_minimum(
+            queue->getPortQueueRate().value().get_pktsPerSec().minimum);
+        range.set_maximum(
+            queue->getPortQueueRate().value().get_pktsPerSec().maximum);
+        PortQueueRate portQueueRate;
+        portQueueRate.set_pktsPerSec(range);
+
+        pq.portQueueRate_ref().value_unchecked() = portQueueRate;
+        pq.__isset.portQueueRate = true;
+      } else if (
+          queue->getPortQueueRate().value().getType() ==
+          cfg::PortQueueRate::Type::kbitsPerSec) {
+        Range range;
+        range.set_minimum(
+            queue->getPortQueueRate().value().get_kbitsPerSec().minimum);
+        range.set_maximum(
+            queue->getPortQueueRate().value().get_kbitsPerSec().maximum);
+        PortQueueRate portQueueRate;
+        portQueueRate.set_kbitsPerSec(range);
+
+        pq.portQueueRate_ref().value_unchecked() = portQueueRate;
+        pq.__isset.portQueueRate = true;
+      }
+    }
+
     portInfo.portQueues.push_back(pq);
   }
 

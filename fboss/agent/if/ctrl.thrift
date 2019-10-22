@@ -279,6 +279,16 @@ struct ActiveQueueManagement {
   2: QueueCongestionBehavior behavior
 }
 
+struct Range {
+  1: i32 minimum
+  2: i32 maximum
+}
+
+union PortQueueRate {
+  1: Range pktsPerSec
+  2: Range kbitsPerSec
+}
+
 struct PortQueueThrift {
   1: i32 id,
   2: string name = "",
@@ -287,6 +297,7 @@ struct PortQueueThrift {
   5: optional i32 reservedBytes,
   6: optional string scalingFactor,
   7: optional list<ActiveQueueManagement> aqms,
+  8: optional PortQueueRate portQueueRate
 }
 
 struct PortInfoThrift {
