@@ -298,6 +298,9 @@ struct PortQueueThrift {
   6: optional string scalingFactor,
   7: optional list<ActiveQueueManagement> aqms,
   8: optional PortQueueRate portQueueRate
+  9: optional i32 bandwidthBurstMinKbits
+  10: optional i32 bandwidthBurstMaxKbits
+
 }
 
 struct PortInfoThrift {

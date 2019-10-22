@@ -267,6 +267,16 @@ void getPortInfoHelper(
       }
     }
 
+    if (queue->getBandwidthBurstMinKbits()) {
+      pq.bandwidthBurstMinKbits_ref() =
+          queue->getBandwidthBurstMinKbits().value();
+    }
+
+    if (queue->getBandwidthBurstMaxKbits()) {
+      pq.bandwidthBurstMaxKbits_ref() =
+          queue->getBandwidthBurstMaxKbits().value();
+    }
+
     portInfo.portQueues.push_back(pq);
   }
 
