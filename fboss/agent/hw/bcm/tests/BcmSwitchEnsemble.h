@@ -44,9 +44,6 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
 
   void dumpHwCounters() const override;
-  bool warmBootSupported() const override {
-    return true;
-  }
 
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;

@@ -73,10 +73,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
 
   virtual void dumpHwCounters() const = 0;
   /*
-   * Does this hw support warm boot
-   */
-  virtual bool warmBootSupported() const = 0;
-  /*
    * Get latest port stats for given ports
    */
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
