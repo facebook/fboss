@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge400DQPlatform.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge400DQPort.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestWedge400Port.h"
 
 namespace {
 static const std::array<int, 48> kMasterLogicalPortIds = {
@@ -21,16 +21,16 @@ constexpr uint8_t kNumPortsPerTransceiver = 1;
 
 namespace facebook {
 namespace fboss {
-BcmTestWedge400DQPlatform::BcmTestWedge400DQPlatform()
+BcmTestWedge400Platform::BcmTestWedge400Platform()
     : BcmTestWedgeTomahawk3Platform(
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestWedge400DQPlatform::createTestPort(
+std::unique_ptr<BcmTestPort> BcmTestWedge400Platform::createTestPort(
     PortID id) const {
-  return std::make_unique<BcmTestWedge400DQPort>(id);
+  return std::make_unique<BcmTestWedge400Port>(id);
 }
 } // namespace fboss
 } // namespace facebook

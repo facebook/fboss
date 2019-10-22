@@ -43,7 +43,7 @@ TEST_F(BcmRouteScaleTest, fswRouteScale) {
                                             PlatformMode::GALAXY_FC,
                                             PlatformMode::MINIPACK,
                                             PlatformMode::YAMP,
-                                            PlatformMode::WEDGE400DQ});
+                                            PlatformMode::WEDGE400});
 }
 
 TEST_F(BcmRouteScaleTest, thAlpmScale) {
@@ -57,12 +57,12 @@ TEST_F(BcmRouteScaleTest, thAlpmScale) {
 
 TEST_F(BcmRouteScaleTest, hgridDuScaleTest) {
   runTest<utility::HgridDuRouteScaleGenerator>(
-      {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400DQ});
+      {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }
 
 TEST_F(BcmRouteScaleTest, hgridUuScaleTest) {
   runTest<utility::HgridUuRouteScaleGenerator>(
-      {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400DQ});
+      {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }
 } // namespace fboss
 } // namespace facebook

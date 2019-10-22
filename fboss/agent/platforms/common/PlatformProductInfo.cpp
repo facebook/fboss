@@ -102,9 +102,7 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::WEDGE400C;
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
-      // TODO(joseph5wu) Need to confirm the final version of Wedge400DQ model
-      // name in fruid and fbwhoami
-      mode_ = PlatformMode::WEDGE400DQ;
+      mode_ = PlatformMode::WEDGE400;
     } else if (modelName.find("Wedge") == 0 || modelName.find("WEDGE") == 0) {
       mode_ = PlatformMode::WEDGE;
     } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
@@ -139,8 +137,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::YAMP;
     } else if (FLAGS_mode == "fake_wedge40") {
       mode_ = PlatformMode::FAKE_WEDGE40;
-    } else if (FLAGS_mode == "wedge400dq") {
-      mode_ = PlatformMode::WEDGE400DQ;
+    } else if (FLAGS_mode == "wedge400") {
+      mode_ = PlatformMode::WEDGE400;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

@@ -13,9 +13,9 @@
 
 namespace facebook {
 namespace fboss {
-class BcmTestWedge400DQPort : public BcmTestPort {
+class BcmTestWedge400Port : public BcmTestPort {
  public:
-  explicit BcmTestWedge400DQPort(PortID id) : BcmTestPort(id) {}
+  explicit BcmTestWedge400Port(PortID id) : BcmTestPort(id) {}
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(jennylli) support flexport
@@ -37,8 +37,8 @@ class BcmTestWedge400DQPort : public BcmTestPort {
 
  private:
   // Forbidden copy constructor and assignment operator
-  BcmTestWedge400DQPort(BcmTestWedge400DQPort const&) = delete;
-  BcmTestWedge400DQPort& operator=(BcmTestWedge400DQPort const&) = delete;
+  BcmTestWedge400Port(BcmTestWedge400Port const&) = delete;
+  BcmTestWedge400Port& operator=(BcmTestWedge400Port const&) = delete;
 };
 } // namespace fboss
 } // namespace facebook
