@@ -92,11 +92,6 @@ class BcmSwitchIf : public HwSwitch {
    * Flush internal tables w/o but remain attached to ASIC/Unit
    */
   virtual void resetTables() = 0;
-  /*
-   * Set up tables as would be just after doing a init (w/o going through
-   * the whole init sequence of setting up the ASIC)
-   */
-  virtual void initTables(const folly::dynamic& warmBootState) = 0;
 
   virtual BcmPlatform* getPlatform() const = 0;
 
@@ -197,12 +192,6 @@ class BcmSwitch : public BcmSwitchIf {
    * and then try to recreate it by mimicking a warmboot sequence
    */
   void resetTables() override;
-  /*
-   * Init tables using warm boot state (represented by passed in
-   * folly::dynamic). This mimics the warm boot init sequence, without having
-   * the ASIC go through a warm boot.
-   */
-  void initTables(const folly::dynamic& warmBootState) override;
 
   /*
    * Initialize the BcmSwitch.

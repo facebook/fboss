@@ -17,7 +17,6 @@ class MockBcmSwitch : public BcmSwitchIf {
 
   MOCK_METHOD0(releaseUnit, std::unique_ptr<BcmUnit>());
   MOCK_METHOD0(resetTables, void());
-  MOCK_METHOD1(initTables, void(const folly::dynamic&));
   MOCK_CONST_METHOD0(getPlatform, BcmPlatform*());
   MOCK_METHOD1(init, HwInitResult(Callback* callback));
   MOCK_METHOD0(unregisterCallbacks, void());

@@ -254,45 +254,6 @@ void BcmSwitch::resetTables() {
   warmBootCache_.reset();
 }
 
-void BcmSwitch::initTables(const folly::dynamic& warmBootState) {
-  std::lock_guard<std::mutex> g(lock_);
-  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
-  portTable_ = std::make_unique<BcmPortTable>(this);
-  qosPolicyTable_ = std::make_unique<BcmQosPolicyTable>(this);
-  intfTable_ = std::make_unique<BcmIntfTable>(this);
-  hostTable_ = std::make_unique<BcmHostTable>(this);
-  egressManager_ = std::make_unique<BcmEgressManager>(this);
-  neighborTable_ = std::make_unique<BcmNeighborTable>(this);
-  l3NextHopTable_ = std::make_unique<BcmL3NextHopTable>(this);
-  mplsNextHopTable_ = std::make_unique<BcmMplsNextHopTable>(this);
-  multiPathNextHopTable_ = std::make_unique<BcmMultiPathNextHopTable>(this);
-  labelMap_ = std::make_unique<BcmLabelMap>(this);
-  routeTable_ = std::make_unique<BcmRouteTable>(this);
-  aclTable_ = std::make_unique<BcmAclTable>(this);
-  trunkTable_ = std::make_unique<BcmTrunkTable>(this);
-  sFlowExporterTable_ = std::make_unique<BcmSflowExporterTable>();
-  controlPlane_ = std::make_unique<BcmControlPlane>(this);
-  rtag7LoadBalancer_ = std::make_unique<BcmRtag7LoadBalancer>(this);
-  mirrorTable_ = std::make_unique<BcmMirrorTable>(this);
-  warmBootCache_ = std::make_unique<BcmWarmBootCache>(this);
-  warmBootCache_->populate(folly::Optional<folly::dynamic>(warmBootState));
-  bstStatsMgr_ = std::make_unique<BcmBstStatsMgr>(this);
-
-  setupToCpuEgress();
-
-  // We should always initPorts for portTable_ during init/initTables, Otherwise
-  // portable will be empty.
-  opennsl_port_config_t pcfg;
-  auto rv = opennsl_port_config_get(unit_, &pcfg);
-  bcmCheckError(rv, "failed to get port configuration");
-  portTable_->initPorts(&pcfg, true);
-
-  setupCos();
-  auto switchState = applyAndGetWarmBootSwitchState();
-  setupLinkscan();
-  setupPacketRx();
-}
-
 void BcmSwitch::unregisterCallbacks() {
   if (flags_ & RX_REGISTERED) {
     opennsl_rx_stop(unit_, nullptr);
