@@ -15,32 +15,30 @@
 namespace facebook {
 namespace fboss {
 
-auto constexpr kCpuPortName = "cpu";
-auto constexpr kEcmpEgressId = "ecmpEgressId";
 auto constexpr kEcmpEgress = "ecmpEgress";
+auto constexpr kEcmpEgressId = "ecmpEgressId";
 auto constexpr kEcmpHosts = "ecmpHosts";
 auto constexpr kEgress = "egress";
 auto constexpr kEgressId = "egressId";
-auto constexpr kHosts = "hosts";
 auto constexpr kHostTable = "hostTable";
+auto constexpr kHosts = "hosts";
 auto constexpr kHwSwitch = "hwSwitch";
 auto constexpr kIntf = "intf";
-auto constexpr kPort = "port";
 auto constexpr kIntfId = "intfId";
 auto constexpr kIntfTable = "intfTable";
 auto constexpr kIp = "ip";
+auto constexpr kLabel = "label";
 auto constexpr kMac = "mac";
+auto constexpr kMplsNextHops = "mplsNextHops";
+auto constexpr kMplsTunnel = "mplsTunnel";
 auto constexpr kNextHops = "nexthops";
 auto constexpr kPaths = "paths";
-auto constexpr kRouteTable = "routeTable";
+auto constexpr kPort = "port";
+auto constexpr kStack = "stack";
 auto constexpr kSwSwitch = "swSwitch";
+auto constexpr kVlan = "vlan";
 auto constexpr kVrf = "vrf";
 auto constexpr kWarmBootCache = "warmBootCache";
-auto constexpr kLabel = "label";
-auto constexpr kMplsTunnel = "mplsTunnel";
-auto constexpr kStack = "stack";
-auto constexpr kMplsNextHops = "mplsNextHops";
-auto constexpr kVlan = "vlan";
 
 inline folly::StringPiece constexpr kWeight() {
   return "weight";
