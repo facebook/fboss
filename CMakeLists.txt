@@ -276,17 +276,20 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
 )
 
-add_executable(bcm_test
+add_library(bcm_switch_ensemble STATIC
     fboss/agent/hw/test/HwSwitchEnsemble.cpp
     fboss/agent/hw/test/HwLinkStateToggler.cpp
+    fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
+    fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
+)
+
+add_executable(bcm_test
     fboss/agent/hw/test/HwTest.cpp
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/HwVlanTests.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/test/HwLinkStateDependentTest.h
     fboss/agent/hw/test/HwTestCoppUtils.h
-    fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
-    fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
     fboss/agent/hw/test/Main.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
@@ -629,6 +632,7 @@ target_link_libraries(
     ${MNL}
 )
 
+target_link_libraries(bcm_switch_ensemble fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
@@ -647,6 +651,7 @@ target_include_directories(bcm_test
 target_link_libraries(bcm_test
   PUBLIC
     fboss_agent
+    bcm_switch_ensemble
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}
 )
