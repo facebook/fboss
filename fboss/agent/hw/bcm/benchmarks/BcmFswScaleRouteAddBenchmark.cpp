@@ -18,7 +18,6 @@ namespace fboss {
 
 ROUTE_ADD_BENCHMARK(
     BcmFswScaleRouteAddBenchmark,
-    BcmSwitchEnsemble,
     utility::FSWRouteScaleGenerator);
 }
 } // namespace facebook

@@ -18,7 +18,7 @@ namespace fboss {
 
 ROUTE_ADD_BENCHMARK(
     BcmHgridUUScaleRouteAddBenchmark,
-    BcmSwitchEnsemble,
+
     utility::HgridUuRouteScaleGenerator);
 }
 } // namespace facebook
