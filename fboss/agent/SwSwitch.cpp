@@ -1464,11 +1464,7 @@ void SwSwitch::sendL3Packet(
 bool SwSwitch::sendPacketToHost(
     InterfaceID dstIfID,
     std::unique_ptr<RxPacket> pkt) {
-  if (tunMgr_) {
-    return tunMgr_->sendPacketToHost(dstIfID, std::move(pkt));
-  } else {
-    return false;
-  }
+  return tunMgr_ && tunMgr_->sendPacketToHost(dstIfID, std::move(pkt));
 }
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
