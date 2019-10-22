@@ -101,13 +101,6 @@ std::vector<FlexPortMode> BcmSwitchEnsemble::getSupportedFlexPortModes() const {
   return getPlatform()->getSupportedFlexPortModes();
 }
 
-folly::dynamic BcmSwitchEnsemble::createWarmBootSwitchState() const {
-  folly::dynamic state = folly::dynamic::object;
-  state[kSwSwitch] = getProgrammedState()->toFollyDynamic();
-  state[kHwSwitch] = getHwSwitch()->toFollyDynamic();
-  return state;
-}
-
 void BcmSwitchEnsemble::dumpHwCounters() const {
   getHwSwitch()->printDiagCmd("show c");
 }

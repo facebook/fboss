@@ -55,7 +55,6 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);
   std::unique_ptr<std::thread> createThriftThread(const BcmSwitch* hwSwitch);
-  folly::dynamic createWarmBootSwitchState() const;
 };
 
 } // namespace fboss

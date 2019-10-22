@@ -53,7 +53,6 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);
   std::unique_ptr<std::thread> createThriftThread(const SaiSwitch* hwSwitch);
-  folly::dynamic createWarmBootSwitchState() const;
 };
 
 } // namespace facebook::fboss
