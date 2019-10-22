@@ -83,6 +83,14 @@ state::PortQueueFields PortQueueFields::toThrift() const {
     queue.portQueueRate = portQueueRate;
   }
 
+  if (bandwidthBurstMinKbits) {
+    queue.bandwidthBurstMinKbits = bandwidthBurstMinKbits;
+  }
+
+  if (bandwidthBurstMaxKbits) {
+    queue.bandwidthBurstMaxKbits = bandwidthBurstMaxKbits;
+  }
+
   return queue;
 }
 
@@ -126,6 +134,14 @@ PortQueueFields PortQueueFields::fromThrift(
 
   if (queueThrift.portQueueRate) {
     queue.portQueueRate = queueThrift.portQueueRate;
+  }
+
+  if (queueThrift.bandwidthBurstMinKbits) {
+    queue.bandwidthBurstMinKbits = queueThrift.bandwidthBurstMinKbits;
+  }
+
+  if (queueThrift.bandwidthBurstMaxKbits) {
+    queue.bandwidthBurstMaxKbits = queueThrift.bandwidthBurstMaxKbits;
   }
 
   return queue;
@@ -193,6 +209,14 @@ std::string PortQueue::toString() const {
     ss << ", bandwidth " << type << " min: " << rateMin << " max: " << rateMax;
   }
 
+  if (getBandwidthBurstMinKbits()) {
+    ss << ", bandwidthBurstMinKbits: " << getBandwidthBurstMinKbits().value();
+  }
+
+  if (getBandwidthBurstMaxKbits()) {
+    ss << ", bandwidthBurstMaxKbits: " << getBandwidthBurstMaxKbits().value();
+  }
+
   return ss.str();
 }
 
@@ -222,7 +246,15 @@ bool checkSwConfPortQueueMatch(
       isPortQueueOptionalAttributeSame(
              swQueue->getPortQueueRate(),
              cfgQueue->__isset.portQueueRate,
-             cfgQueue->portQueueRate_ref().value_unchecked());
+             cfgQueue->portQueueRate_ref().value_unchecked()) &&
+      isPortQueueOptionalAttributeSame(
+             swQueue->getBandwidthBurstMinKbits(),
+             cfgQueue->__isset.bandwidthBurstMinKbits,
+             cfgQueue->bandwidthBurstMinKbits_ref().value_unchecked()) &&
+      isPortQueueOptionalAttributeSame(
+             swQueue->getBandwidthBurstMaxKbits(),
+             cfgQueue->__isset.bandwidthBurstMaxKbits,
+             cfgQueue->bandwidthBurstMaxKbits_ref().value_unchecked());
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

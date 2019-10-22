@@ -720,6 +720,16 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     queue->setPortQueueRate(cfg->portQueueRate_ref().value_unchecked());
   }
 
+  if (cfg->__isset.bandwidthBurstMinKbits) {
+    queue->setBandwidthBurstMinKbits(
+        cfg->bandwidthBurstMinKbits_ref().value_unchecked());
+  }
+
+  if (cfg->__isset.bandwidthBurstMaxKbits) {
+    queue->setBandwidthBurstMaxKbits(
+        cfg->bandwidthBurstMaxKbits_ref().value_unchecked());
+  }
+
   return queue;
 }
 

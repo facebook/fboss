@@ -32,6 +32,9 @@ struct PortQueueFields {
  10: optional i32 packetsPerSec_DEPRECATED
  11: optional i32 sharedBytes
  12: optional switch_config.PortQueueRate portQueueRate
+
+ 13: optional i32 bandwidthBurstMinKbits
+ 14: optional i32 bandwidthBurstMaxKbits
 }
 
 // Port configuration and oper state fields

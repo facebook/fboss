@@ -45,6 +45,9 @@ struct PortQueueFields {
   // Using map to avoid manually sorting aqm list from thrift api
   AQMMap aqms;
   folly::Optional<cfg::PortQueueRate> portQueueRate{folly::none};
+
+  folly::Optional<int> bandwidthBurstMinKbits;
+  folly::Optional<int> bandwidthBurstMaxKbits;
 };
 
 /*
@@ -69,7 +72,11 @@ class PortQueue
         getFields()->scheduling == queue.getScheduling() &&
         getFields()->aqms == queue.getAqms() &&
         getFields()->name == queue.getName() &&
-        getFields()->portQueueRate == queue.getPortQueueRate();
+        getFields()->portQueueRate == queue.getPortQueueRate() &&
+        getFields()->bandwidthBurstMinKbits ==
+        queue.getBandwidthBurstMinKbits() &&
+        getFields()->bandwidthBurstMaxKbits ==
+        queue.getBandwidthBurstMaxKbits();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
@@ -156,6 +163,22 @@ class PortQueue
 
   void setPortQueueRate(cfg::PortQueueRate portQueueRate) {
     writableFields()->portQueueRate = portQueueRate;
+  }
+
+  folly::Optional<int> getBandwidthBurstMinKbits() const {
+    return getFields()->bandwidthBurstMinKbits;
+  }
+
+  void setBandwidthBurstMinKbits(int bandwidthBurstMinKbits) {
+    writableFields()->bandwidthBurstMinKbits = bandwidthBurstMinKbits;
+  }
+
+  folly::Optional<int> getBandwidthBurstMaxKbits() const {
+    return getFields()->bandwidthBurstMaxKbits;
+  }
+
+  void setBandwidthBurstMaxKbits(int bandwidthBurstMaxKbits) {
+    writableFields()->bandwidthBurstMaxKbits = bandwidthBurstMaxKbits;
   }
 
  private:
