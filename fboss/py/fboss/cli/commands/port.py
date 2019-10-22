@@ -121,6 +121,18 @@ class PortDetailsCmd(cmds.FbossCmd):
                     if hasattr(queue, val) and getattr(queue, val):
                         attrs.append("{}={}".format(val, getattr(queue, val)))
 
+                if (hasattr(queue, "portQueueRate") and queue.portQueueRate):
+                    if (queue.portQueueRate.field == 1):  # pps
+                        attrs.append("minpps={}".format(
+                            queue.portQueueRate.value.minimum))
+                        attrs.append("maxpps={}".format(
+                            queue.portQueueRate.value.maximum))
+                    elif (queue.portQueueRate.field == 2):  # kbps
+                        attrs.append("minkbps={}".format(
+                            queue.portQueueRate.value.minimum))
+                        attrs.append("maxkbps={}".format(
+                            queue.portQueueRate.value.maximum))
+
                 if not (hasattr(queue, "aqms") and queue.aqms):
                     attrs.append("TAIL DROP")
                     print("    Queue {} {:29}{}".format(
