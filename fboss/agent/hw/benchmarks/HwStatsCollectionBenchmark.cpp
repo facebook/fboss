@@ -31,7 +31,7 @@ namespace fboss {
  *   iteration (by letting it pick number of iterations), and calculating
  *   cost of a single iterations does not seem to have more fidelity
  */
-BENCHMARK(BcmStatsCollection) {
+BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
   static auto ensemble =
       createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
