@@ -45,7 +45,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void applyInitialConfigAndBringUpPorts(const cfg::SwitchConfig& cfg);
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
-  virtual HwLinkStateToggler* getLinkToggler() {
+  HwLinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
   }
   virtual Platform* getPlatform() {
