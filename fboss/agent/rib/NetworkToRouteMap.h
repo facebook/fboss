@@ -39,18 +39,18 @@ class NetworkToRouteMap
     return routesObject;
   }
 
-  static std::unique_ptr<NetworkToRouteMap<AddressT>> fromFollyDynamic(
+  static NetworkToRouteMap<AddressT> fromFollyDynamic(
       const folly::dynamic& routes) {
-    auto networkToRouteMap = std::make_unique<NetworkToRouteMap<AddressT>>();
+    NetworkToRouteMap<AddressT> networkToRouteMap;
 
     auto routesJson = routes[kRoutes];
     for (const auto& routeJson : routesJson) {
       auto route = Route<AddressT>::fromFollyDynamic(routeJson);
       RoutePrefix<AddressT> prefix = route.prefix();
-      networkToRouteMap->insert(prefix.network, prefix.mask, std::move(route));
+      networkToRouteMap.insert(prefix.network, prefix.mask, std::move(route));
     }
 
-    return std::move(networkToRouteMap);
+    return networkToRouteMap;
   }
 };
 

@@ -1336,7 +1336,7 @@ TEST(Route, serializeRouteTable) {
       folly::parseJson(serializedAsJsonV4, serOpts);
   auto newV4Routes = NetworkToRouteMap<folly::IPAddressV4>::fromFollyDynamic(
       deserializedAsObjectV4);
-  EXPECT_ROUTES_MATCH(origV4Routes, newV4Routes.get());
+  EXPECT_ROUTES_MATCH(origV4Routes, &newV4Routes);
 
   auto origV6Routes = &v6Routes;
   auto serializedAsObjectV6 = origV6Routes->toFollyDynamic();
@@ -1345,7 +1345,7 @@ TEST(Route, serializeRouteTable) {
   auto deserializedAsObjectV6 = folly::parseJson(serializedAsJsonV6, serOpts);
   auto newV6Routes = NetworkToRouteMap<folly::IPAddressV6>::fromFollyDynamic(
       deserializedAsObjectV6);
-  EXPECT_ROUTES_MATCH(origV6Routes, newV6Routes.get());
+  EXPECT_ROUTES_MATCH(origV6Routes, &newV6Routes);
 }
 
 // Test utility functions for converting RouteNextHopSet to thrift and back
