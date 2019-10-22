@@ -496,6 +496,9 @@ struct PortQueue {
   // Only Unicast queue supports aqms
   11: optional list<ActiveQueueManagement> aqms;
   12: optional PortQueueRate portQueueRate
+
+  13: optional i32 bandwidthBurstMinKbits
+  14: optional i32 bandwidthBurstMaxKbits
 }
 
 struct QosRule {
