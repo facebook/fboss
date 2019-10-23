@@ -14,6 +14,7 @@
 #include <folly/String.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
+#include <folly/logging/xlog.h>
 
 #include "common/logging/logging.h"
 
@@ -165,8 +166,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       dstIp,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size());
+  ipHdr.dscp = dscp;
   ipHdr.computeChecksum();
-  ipHdr.dscp = 0x00;
   ipHdr.ttl = ttl;
   // UDPHeader
   UDPHeader udpHdr(srcPort, dstPort, UDPHeader::size() + payloadBytes.size());
