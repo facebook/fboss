@@ -172,6 +172,37 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
   return stats;
 }
 
+folly::dynamic RoutingInformationBase::toFollyDynamic() const {
+  folly::dynamic rib = folly::dynamic::object;
+
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  for (const auto& routeTable : *lockedRouteTables) {
+    auto routerID = static_cast<int>(routeTable.first);
+    rib[routerID] = folly::dynamic::object;
+    rib[routerID]["v4"] = routeTable.second.v4NetworkToRoute.toFollyDynamic();
+    rib[routerID]["v6"] = routeTable.second.v6NetworkToRoute.toFollyDynamic();
+  }
+
+  return rib;
+}
+
+RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
+    const folly::dynamic& ribJson) {
+  auto rib = RoutingInformationBase();
+
+  auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
+  for (const auto& routeTable : ribJson.items()) {
+    lockedRouteTables->insert(std::make_pair(
+        RouterID(routeTable.first.asInt()),
+        RouteTable{
+            IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second["v4"]),
+            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second["v6"]),
+            UpdateStatistics{}}));
+  }
+
+  return rib;
+}
+
 RoutingInformationBase::RouterIDToRouteTable
 RoutingInformationBase::constructRouteTables(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,

@@ -90,6 +90,9 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
+  folly::dynamic toFollyDynamic() const;
+  static RoutingInformationBase fromFollyDynamic(const folly::dynamic& ribJson);
+
  private:
   struct RouteTable {
     RouteTable() = default;
