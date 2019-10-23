@@ -163,9 +163,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   };
   createMidPriDstIpAcl(kIPv6LinkLocalMcastNetwork);
 
-  auto linkLocalAddr =
-      folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, localMac);
-  createMidPriDstIpAcl(folly::CIDRNetwork(linkLocalAddr, 128));
+  // All fe80::/10 to mid pri queue
+  createMidPriDstIpAcl(folly::CIDRNetwork(folly::IPAddressV6("fe80::"), 10));
 
   return acls;
 }
