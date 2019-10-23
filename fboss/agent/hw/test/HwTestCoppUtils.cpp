@@ -132,6 +132,14 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   createHighPriDstClassL3Acl(false, true);
   createHighPriDstClassL3Acl(false, false);
 
+  {
+    cfg::AclEntry acl;
+    acl.name = "cpuPolicing-high-network-control";
+    acl.dscp_ref() = 48;
+    acls.push_back(
+        std::make_pair(acl, createMatchAction(utility::kCoppHighPriQueueId)));
+  }
+
   // Now steer traffic destined to this (local) interface IP
   // to mid pri queue. Note that we add this Acl entry *after*
   // (with a higher Acl ID) than locally destined protocol
