@@ -49,7 +49,7 @@ class SimPlatform : public Platform {
   SimPlatform(SimPlatform const&) = delete;
   SimPlatform& operator=(SimPlatform const&) = delete;
 
-  void initImpl() {}
+  void initImpl() override {}
 
   folly::MacAddress mac_;
   std::unique_ptr<SimSwitch> hw_;

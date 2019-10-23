@@ -252,7 +252,7 @@ class CP2112 : public CP2112Intf {
     return handle_.isOpen();
   }
 
-  std::chrono::milliseconds getDefaultTimeout() const {
+  std::chrono::milliseconds getDefaultTimeout() const override {
     return defaultTimeout_;
   }
   void setDefaultTimeout(std::chrono::milliseconds timeout) {

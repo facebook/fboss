@@ -23,16 +23,16 @@ namespace facebook { namespace fboss {
 class WedgeI2CBusLock : public TransceiverI2CApi {
  public:
   explicit WedgeI2CBusLock(std::unique_ptr<BaseWedgeI2CBus> wedgeI2CBus);
-  void open();
-  void close();
+  void open() override;
+  void close() override;
   void moduleRead(unsigned int module, uint8_t i2cAddress,
-                  int offset, int len, uint8_t* buf);
+                  int offset, int len, uint8_t* buf) override;
   void moduleWrite(unsigned int module, uint8_t i2cAddress,
-                  int offset, int len, const uint8_t* buf);
+                  int offset, int len, const uint8_t* buf) override;
   void read(uint8_t i2cAddress, int offset, int len, uint8_t* buf);
   void write(uint8_t i2cAddress, int offset, int len, const uint8_t* buf);
 
-  void verifyBus(bool autoReset);
+  void verifyBus(bool autoReset) override;
   bool isPresent(unsigned int module) override;
   void scanPresence(std::map<int32_t, ModulePresence>& presence) override;
   void ensureOutOfReset(unsigned int module) override;

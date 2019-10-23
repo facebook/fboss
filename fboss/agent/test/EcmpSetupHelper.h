@@ -131,7 +131,7 @@ class EcmpSetupTargetedPorts
       RouterID routerId = RouterID(0));
 
   virtual ~EcmpSetupTargetedPorts() override {}
-  EcmpNextHopT nhop(PortDescriptor portDesc) const;
+  EcmpNextHopT nhop(PortDescriptor portDesc) const override;
 
   RouterID getRouterId() const {
     return routerId_;
