@@ -131,12 +131,16 @@ void HwSwitchEnsemble::setupEnsemble(
   platform_ = std::move(platform);
   hwSwitch_ = std::move(hwSwitch);
   linkToggler_ = std::move(linkToggler);
+
   programmedState_ = hwSwitch_->init(this).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this
   // programmedState_ without first cloning it.
   programmedState_->publish();
+
+  routingInformationBase_ = std::make_unique<rib::RoutingInformationBase>();
+
   // Handle ALPM state. ALPM requires that default routes be programmed
   // before any other routes. We handle that setup here. Similarly ALPM
   // requires that default routes be deleted last. That aspect is handled
@@ -145,7 +149,9 @@ void HwSwitchEnsemble::setupEnsemble(
   if (alpmState) {
     applyNewState(alpmState);
   }
+
   thriftThread_ = std::move(thriftThread);
+
   hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
 }
 

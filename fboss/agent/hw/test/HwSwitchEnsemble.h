@@ -13,6 +13,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/platforms/test_platforms/TestPlatformTypes.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -47,6 +48,12 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::shared_ptr<SwitchState> getProgrammedState() const;
   HwLinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
+  }
+  const rib::RoutingInformationBase* getRib() const {
+    return routingInformationBase_.get();
+  }
+  rib::RoutingInformationBase* getRib() {
+    return routingInformationBase_.get();
   }
   virtual Platform* getPlatform() {
     return platform_.get();
@@ -99,6 +106,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
  private:
   std::shared_ptr<SwitchState> programmedState_;
   std::shared_ptr<SwitchState> initCfgState_;
+  std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<HwSwitch> hwSwitch_;
