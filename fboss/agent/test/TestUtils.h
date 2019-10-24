@@ -164,6 +164,12 @@ std::shared_ptr<SwitchState> testStateA();
 std::shared_ptr<SwitchState> testStateAWithPortsUp();
 
 /*
+ * Same as testStateA but with AclLookupClass associated with every port.
+ * (MH-NIC case queue-per-host configuration).
+ */
+std::shared_ptr<SwitchState> testStateAWithLookupClasses();
+
+/*
  * Test may want to tweak default configuration
  */
 std::shared_ptr<SwitchState> testState(cfg::SwitchConfig config);

@@ -414,6 +414,18 @@ shared_ptr<SwitchState> testStateAWithPortsUp() {
   return bringAllPortsUp(testStateA());
 }
 
+shared_ptr<SwitchState> testStateAWithLookupClasses() {
+  auto newState = testStateAWithPortsUp()->clone();
+  auto newPortMap = newState->getPorts()->modify(&newState);
+  for (auto port : *newPortMap) {
+    auto newPort = port->clone();
+    newPort->setLookupClassesToDistributeTrafficOn(
+        {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0});
+    newPortMap->updatePort(newPort);
+  }
+  return newState;
+}
+
 shared_ptr<SwitchState> testStateB() {
   // Setup a default state object
   auto state = make_shared<SwitchState>();
