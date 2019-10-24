@@ -104,9 +104,9 @@ class PrintNeighborTableCmd(FbossCmd):
         self._print_table(self.nbr_table, self.WIDTH, ports)
 
     def _print_table(self, entries, width, ports):
-        tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {}"
+        tmpl = "{:" + str(width) + "} {:18} {:<10}  {:18} {!s:12} {:<10} {}"
         print(tmpl.format(
-            "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL"))
+            "IP Address", "MAC Address", "Port", "VLAN", "State", "TTL", "CLASSID"))
 
         for entry in sorted(entries, key=lambda e: e.ip.addr):
             port_identifier = entry.port
@@ -116,8 +116,9 @@ class PrintNeighborTableCmd(FbossCmd):
             vlan_field = '{} ({})'.format(entry.vlanName, entry.vlanID)
             ttl = '{}s'.format(entry.ttl // 1000) if entry.ttl else '?'
             state = entry.state if entry.state else 'NA'
+            classID = entry.classID
             print(tmpl.format(ip, entry.mac, port_identifier, vlan_field,
-                              state, ttl))
+                              state, ttl, classID))
 
 
 class VerbosityCmd(FbossCmd):
