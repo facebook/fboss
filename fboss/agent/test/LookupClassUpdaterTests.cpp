@@ -45,6 +45,49 @@ class LookupClassUpdaterTest : public ::testing::Test {
     schedulePendingTestStateUpdates();
   }
 
+  VlanID kVlan() const {
+    return VlanID(1);
+  }
+
+  PortID kPortID() const {
+    return PortID(1);
+  }
+
+  IPAddressV4 kIp4Addr() const {
+    return IPAddressV4("10.0.0.2");
+  }
+
+  IPAddressV6 kIp6Addr() const {
+    return IPAddressV6("2401:db00:2110:3001::0002");
+  }
+
+  void resolveNeighbor() {
+    /*
+     * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
+     * assert if valid CLASSID is associated with the newly resolved neighbor.
+     */
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      sw_->getNeighborUpdater()->receivedArpMine(
+          kVlan(),
+          kIp4Addr(),
+          MacAddress("01:02:03:04:05:06"),
+          PortDescriptor(kPortID()),
+          ArpOpCode::ARP_OP_REPLY);
+    } else {
+      sw_->getNeighborUpdater()->receivedNdpMine(
+          kVlan(),
+          kIp6Addr(),
+          MacAddress("01:02:03:04:05:06"),
+          PortDescriptor(kPortID()),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+    }
+
+    sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
+  }
+
  protected:
   void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
@@ -64,57 +107,31 @@ using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 TYPED_TEST_CASE(LookupClassUpdaterTest, TestTypes);
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
-  const VlanID kVlan1{1};
-  const PortID kPort1{1};
-  auto kIp4Addr = IPAddressV4("10.0.0.2");
-  auto kIp6Addr = IPAddressV6("2401:db00:2110:3001::0002");
-
   using NeighborTableT = std::conditional_t<
       std::is_same<TypeParam, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
-  /*
-   * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
-   * assert if valid CLASSID is associated with the newly resolved neighbor.
-   */
-
-  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
-    this->sw_->getNeighborUpdater()->receivedArpMine(
-        kVlan1,
-        kIp4Addr,
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ArpOpCode::ARP_OP_REPLY);
-  } else {
-    this->sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlan1,
-        kIp6Addr,
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-  }
-
-  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
-  waitForStateUpdates(this->sw_);
+  this->resolveNeighbor();
 
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
-    auto vlan = state->getVlans()->getVlan(kVlan1);
+    auto vlan = state->getVlans()->getVlan(this->kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
     if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
-      auto entry = neighborTable->getEntry(kIp4Addr);
+      auto entry = neighborTable->getEntry(this->kIp4Addr());
 
+      EXPECT_TRUE(entry->getClassID().hasValue());
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
                 << " class: " << static_cast<int>(entry->getClassID().value());
       EXPECT_EQ(
           entry->getClassID(),
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
     } else {
-      auto entry = neighborTable->getEntry(kIp6Addr);
+      auto entry = neighborTable->getEntry(this->kIp6Addr());
 
+      EXPECT_TRUE(entry->getClassID().hasValue());
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
                 << " class: " << static_cast<int>(entry->getClassID().value());
       EXPECT_EQ(
@@ -123,5 +140,46 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
     }
   });
 }
+
+TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<TypeParam, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  this->resolveNeighbor();
+
+  /*
+   * Force a port down, this will cause previously resolved neighbor to go to
+   * pending state, and the classID should no longer be associated with the
+   * port. Assert for it.
+   */
+
+  this->sw_->linkStateChanged(this->kPortID(), false);
+
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto vlan = state->getVlans()->getVlan(this->kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+      auto entry = neighborTable->getEntry(this->kIp4Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_FALSE(entry->getClassID().hasValue());
+    } else {
+      auto entry = neighborTable->getEntry(this->kIp6Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_FALSE(entry->getClassID().hasValue());
+    }
+  });
+}
+
 } // namespace fboss
 } // namespace facebook
