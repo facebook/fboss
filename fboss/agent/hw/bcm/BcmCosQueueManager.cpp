@@ -8,10 +8,23 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
+
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 
 namespace facebook {
 namespace fboss {
+BcmCosQueueManager::BcmCosQueueManager(
+    BcmSwitch* hw,
+    const std::string& portName,
+    opennsl_gport_t portGport)
+    : hw_(hw), portName_(portName), portGport_(portGport) {
+  if (hw_->getPlatform()->isCosSupported()) {
+    // Make sure we get all the queue gports from hardware for portGport
+    getCosQueueGportsFromHw();
+  }
+}
 
 void BcmCosQueueManager::fillOrReplaceCounter(
     const BcmCosQueueCounterType& type,
@@ -28,7 +41,7 @@ void BcmCosQueueManager::fillOrReplaceCounter(
        */
       std::string name;
 
-      if (queueConfig.hasValue() &&
+      if (queueConfig.hasValue() && (queueConfig.value().size() != 0) &&
           queueConfig.value().at(queue)->getName().hasValue()) {
         name = folly::to<std::string>(
             portName_,

@@ -56,8 +56,7 @@ class BcmCosQueueManager {
   BcmCosQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
-      opennsl_gport_t portGport)
-      : hw_(hw), portName_(portName), portGport_(portGport) {}
+      opennsl_gport_t portGport);
 
   virtual ~BcmCosQueueManager() = default;
 
@@ -104,6 +103,11 @@ class BcmCosQueueManager {
   void updateQueueStats(
       std::chrono::seconds now,
       HwPortStats* portStats = nullptr);
+
+  void getCosQueueGportsFromHw();
+  opennsl_gport_t getPortGport() const {
+    return portGport_;
+  }
 
  protected:
   void getSchedulingAndWeight(

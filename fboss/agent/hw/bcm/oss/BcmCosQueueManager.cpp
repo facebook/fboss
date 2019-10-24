@@ -68,5 +68,7 @@ void BcmCosQueueManager::updateQueueAggregatedStat(
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
+
+void BcmCosQueueManager::getCosQueueGportsFromHw() {}
 } // namespace fboss
 } // namespace facebook
