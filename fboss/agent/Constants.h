@@ -39,6 +39,7 @@ auto constexpr kSwSwitch = "swSwitch";
 auto constexpr kVlan = "vlan";
 auto constexpr kVrf = "vrf";
 auto constexpr kWarmBootCache = "warmBootCache";
+auto constexpr kClassID = "classID";
 
 inline folly::StringPiece constexpr kWeight() {
   return "weight";

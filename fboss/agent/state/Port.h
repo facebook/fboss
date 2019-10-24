@@ -80,6 +80,7 @@ struct PortFields {
   folly::Optional<std::string> egressMirror;
   folly::Optional<std::string> qosPolicy;
   LLDPValidations expectedLLDPValues;
+  std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
 };
 
 /*
@@ -263,6 +264,18 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   void setExpectedLLDPValues(LLDPValidations vals) {
     writableFields()->expectedLLDPValues.swap(vals);
+  }
+
+  const std::vector<cfg::AclLookupClass>&
+  getLookupClassesToDistributeTrafficOn() const {
+    return getFields()->lookupClassesToDistrubuteTrafficOn;
+  }
+
+  void setLookupClassesToDistributeTrafficOn(
+      const std::vector<cfg::AclLookupClass>&
+          lookupClassesToDistrubuteTrafficOn) {
+    writableFields()->lookupClassesToDistrubuteTrafficOn =
+        lookupClassesToDistrubuteTrafficOn;
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

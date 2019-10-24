@@ -84,6 +84,10 @@ class NeighborCacheImpl {
 
   void updateEntryState(AddressType ip, NeighborEntryState state);
 
+  void updateEntryClassID(
+      AddressType ip,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none);
+
   std::unique_ptr<EntryFields> cloneEntryFields(AddressType ip);
 
   void portDown(PortDescriptor port);

@@ -19,6 +19,7 @@ constexpr auto kMac = "mac";
 constexpr auto kPort = "portId";
 constexpr auto kInterface = "interfaceId";
 constexpr auto kNeighborEntryState = "state";
+constexpr auto kClassID = "classID";
 } // namespace
 
 namespace facebook {
@@ -32,6 +33,10 @@ folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
   entry[kPort] = port.toFollyDynamic();
   entry[kInterface] = static_cast<uint32_t>(interfaceID);
   entry[kNeighborEntryState] = static_cast<int>(state);
+  if (classID.hasValue()) {
+    entry[kClassID] = static_cast<int>(classID.value());
+  }
+
   return entry;
 }
 
@@ -43,7 +48,13 @@ NeighborEntryFields<IPADDR> NeighborEntryFields<IPADDR>::fromFollyDynamic(
   auto port = PortDescriptor::fromFollyDynamic(entryJson[kPort]);
   InterfaceID intf(entryJson[kInterface].asInt());
   auto state = NeighborState(entryJson[kNeighborEntryState].asInt());
-  return NeighborEntryFields(ip, mac, port, intf, state);
+
+  if (entryJson.find(kClassID) != entryJson.items().end()) {
+    auto classID = cfg::AclLookupClass(entryJson[kClassID].asInt());
+    return NeighborEntryFields(ip, mac, port, intf, state, classID);
+  } else {
+    return NeighborEntryFields(ip, mac, port, intf, state);
+  }
 }
 
 template <typename IPADDR, typename SUBCLASS>

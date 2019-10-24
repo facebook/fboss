@@ -56,6 +56,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
+class LookupClassUpdater;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -855,6 +856,8 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<LldpManager> lldpManager_;
   std::unique_ptr<PortUpdateHandler> portUpdateHandler_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
+
+  std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
 };
 
 } // namespace fboss

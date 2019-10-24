@@ -210,6 +210,46 @@ void NeighborCacheImpl<NTable>::updateEntryState(
 }
 
 template <typename NTable>
+void NeighborCacheImpl<NTable>::updateEntryClassID(
+    AddressType ip,
+    folly::Optional<cfg::AclLookupClass> classID) {
+  auto entry = getCacheEntry(ip);
+
+  if (entry) {
+    entry->updateClassID(classID);
+
+    auto updateClassIDFn =
+        [this, ip, classID](const std::shared_ptr<SwitchState>& state) {
+          auto vlan = state->getVlans()->getVlanIf(vlanID_).get();
+          std::shared_ptr<SwitchState> newState{state};
+          auto* table = vlan->template getNeighborTable<NTable>().get();
+          auto node = table->getNodeIf(ip);
+
+          if (node) {
+            auto fields = EntryFields(
+                node->getIP(),
+                node->getMac(),
+                node->getPort(),
+                node->getIntfID(),
+                node->getState(),
+                classID);
+            table = table->modify(&vlan, &newState);
+            table->updateEntry(fields);
+          }
+
+          return newState;
+        };
+
+    auto classIDStr = classID.hasValue()
+        ? folly::to<std::string>(static_cast<int>(classID.value()))
+        : "None";
+    sw_->updateState(
+        folly::to<std::string>("configure lookup classID: ", classIDStr),
+        std::move(updateClassIDFn));
+  }
+}
+
+template <typename NTable>
 NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
     const EntryFields& fields,
     NeighborEntryState state,

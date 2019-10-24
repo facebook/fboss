@@ -29,8 +29,14 @@ struct NeighborEntryFields {
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID interfaceID,
-      NeighborState state = NeighborState::REACHABLE)
-      : ip(ip), mac(mac), port(port), interfaceID(interfaceID), state(state) {}
+      NeighborState state = NeighborState::REACHABLE,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none)
+      : ip(ip),
+        mac(mac),
+        port(port),
+        interfaceID(interfaceID),
+        state(state),
+        classID(classID) {}
 
   NeighborEntryFields(
       AddressType ip,
@@ -63,6 +69,7 @@ struct NeighborEntryFields {
   PortDescriptor port;
   InterfaceID interfaceID;
   NeighborState state;
+  folly::Optional<cfg::AclLookupClass> classID;
 };
 
 template <typename IPADDR, typename SUBCLASS>
@@ -96,7 +103,7 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   bool operator==(const NeighborEntry& other) const {
     return getIP() == other.getIP() && getMac() == other.getMac() &&
         getPort() == other.getPort() && getIntfID() == other.getIntfID() &&
-        getState() == other.getState();
+        getState() == other.getState() && getClassID() == other.getClassID();
   }
   bool operator!=(const NeighborEntry& other) const {
     return !operator==(other);
@@ -148,6 +155,18 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
 
   void setPending() {
     this->writableFields()->state = NeighborState::PENDING;
+  }
+
+  bool isReachable() const {
+    return this->getFields()->state == NeighborState::REACHABLE;
+  }
+
+  folly::Optional<cfg::AclLookupClass> getClassID() const {
+    return this->getFields()->classID;
+  }
+
+  void setClassID(folly::Optional<cfg::AclLookupClass> classID) {
+    this->writableFields()->classID.assign(classID);
   }
 
  private:

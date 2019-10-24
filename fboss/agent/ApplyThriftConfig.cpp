@@ -889,6 +889,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setEgressMirror(newEgressMirror);
   newPort->setQosPolicy(newQosPolicy);
   newPort->setExpectedLLDPValues(lldpmap);
+  newPort->setLookupClassesToDistributeTrafficOn(portConf->lookupClasses);
   return newPort;
 }
 

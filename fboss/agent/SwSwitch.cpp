@@ -40,6 +40,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
+#include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/Platform.h"
@@ -165,7 +166,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       mirrorManager_(new MirrorManager(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       rib_(new rib::RoutingInformationBase()),
-      portUpdateHandler_(new PortUpdateHandler(this)) {
+      portUpdateHandler_(new PortUpdateHandler(this)),
+      lookupClassUpdater_(new LookupClassUpdater(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -253,6 +255,8 @@ void SwSwitch::stop() {
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
   rib_.reset();
+
+  lookupClassUpdater_.reset();
 
   // stops the background and update threads.
   stopThreads();

@@ -77,6 +77,23 @@ class NeighborUpdaterImpl {
 #include "fboss/agent/NeighborUpdater.def"
 #undef NEIGHBOR_UPDATER_METHOD
 
+  template <typename NeighborCacheT>
+  std::shared_ptr<NeighborCacheT> getNeighborCacheFor(VlanID vlan);
+
+  template <typename AddrT>
+  void updateEntryClassID(
+      VlanID vlan,
+      AddrT ip,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+    using NeighborCacheT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpCache,
+        NdpCache>;
+
+    auto cache = getNeighborCacheFor<NeighborCacheT>(vlan);
+    cache->updateEntryClassID(ip, classID);
+  }
+
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
@@ -99,6 +116,18 @@ class NeighborUpdaterImpl {
 
   friend class NeighborUpdater;
 };
+
+template <>
+inline std::shared_ptr<ArpCache> NeighborUpdaterImpl::getNeighborCacheFor(
+    VlanID vlan) {
+  return getArpCacheFor(vlan);
+}
+
+template <>
+inline std::shared_ptr<NdpCache> NeighborUpdaterImpl::getNeighborCacheFor(
+    VlanID vlan) {
+  return getNdpCacheFor(vlan);
+}
 
 } // namespace fboss
 } // namespace facebook

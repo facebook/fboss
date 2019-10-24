@@ -82,6 +82,15 @@ class NeighborUpdater : public AutoRegisterStateObserver {
 #include "fboss/agent/NeighborUpdater.def"
 #undef NEIGHBOR_UPDATER_METHOD
 
+ public:
+  template <typename AddrT>
+  void updateEntryClassID(
+      VlanID vlan,
+      AddrT ip,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+    impl_->updateEntryClassID(vlan, ip, classID);
+  }
+
  private:
   std::shared_ptr<NeighborCaches> createCaches(
       const SwitchState* state,

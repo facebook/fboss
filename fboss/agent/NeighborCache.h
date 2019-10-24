@@ -97,6 +97,12 @@ class NeighborCache {
     impl_->clearEntries();
   }
 
+  void updateEntryClassID(
+      AddressType ip,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+    impl_->updateEntryClassID(ip, classID);
+  }
+
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(

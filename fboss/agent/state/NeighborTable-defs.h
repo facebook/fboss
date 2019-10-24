@@ -83,7 +83,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     AddressType ip,
     folly::MacAddress mac,
     PortDescriptor port,
-    InterfaceID intfID) {
+    InterfaceID intfID,
+    folly::Optional<cfg::AclLookupClass> classID) {
   CHECK(!this->isPublished());
   auto& nodes = this->writableNodes();
   auto it = nodes.find(ip);
@@ -95,6 +96,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setPort(port);
   entry->setIntfID(intfID);
   entry->setState(NeighborState::REACHABLE);
+  entry->setClassID(classID);
   it->second = entry;
 }
 
@@ -114,7 +116,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     const NeighborEntryFields<AddressType>& fields) {
-  updateEntry(fields.ip, fields.mac, fields.port, fields.interfaceID);
+  updateEntry(
+      fields.ip, fields.mac, fields.port, fields.interfaceID, fields.classID);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
