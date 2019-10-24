@@ -228,6 +228,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     entry.vlanID = cache_->getVlanID();
     entry.state = getStateName();
     entry.ttl = getTtl();
+    entry.classID =
+        getClassID().hasValue() ? static_cast<int>(getClassID().value()) : 0;
   }
 
  private:

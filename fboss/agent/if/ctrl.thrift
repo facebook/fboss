@@ -121,6 +121,7 @@ struct ArpEntryThrift {
   5: i32 vlanID,
   6: string state,
   7: i32 ttl,
+  8: i32 classID,
 }
 
 struct L2EntryThrift {
@@ -328,6 +329,7 @@ struct NdpEntryThrift {
   5: i32 vlanID,
   6: string state,
   7: i32 ttl,
+  8: i32 classID,
 }
 
 enum BootType {
