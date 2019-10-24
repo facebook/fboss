@@ -7,13 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/rib/RouteNextHop.h"
-#include "fboss/agent/rib/RouteNextHopEntry.h"
-#include "fboss/agent/rib/RouteTypes.h"
 
+#include "common/network/if/gen-cpp2/Address_types.h"
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/Route.h"
+#include "fboss/agent/rib/RouteNextHop.h"
+#include "fboss/agent/rib/RouteNextHopEntry.h"
+#include "fboss/agent/rib/RouteTypes.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -22,15 +26,9 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/types.h"
-
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-
-#include "common/network/if/gen-cpp2/Address_types.h"
-#include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
 #include <folly/Optional.h>
@@ -359,7 +357,7 @@ TEST(Rib, Update) {
   routesToPrefixA.push_back(
       createUnicastRoute(prefixA6.first, prefixA6.second, client10Nexthop6));
 
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(10),
       AdminDistance::EBGP,
@@ -379,7 +377,7 @@ TEST(Rib, Update) {
   routeToPrefixBFromClient10.push_back(
       createUnicastRoute(prefixB4.first, prefixB4.second, client10Nexthop4));
 
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(10),
       AdminDistance::EBGP,
@@ -393,7 +391,7 @@ TEST(Rib, Update) {
   std::vector<UnicastRoute> routeToPrefixBFromClient20;
   routeToPrefixBFromClient20.push_back(
       createUnicastRoute(prefixB4.first, prefixB4.second, client20Nexthop4));
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(20),
       AdminDistance::EBGP,
@@ -412,7 +410,7 @@ TEST(Rib, Update) {
   std::vector<UnicastRoute> routeToPrefixCFromClient10;
   routeToPrefixCFromClient10.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client10Nexthop6));
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(10),
       AdminDistance::EBGP,
@@ -426,7 +424,7 @@ TEST(Rib, Update) {
   std::vector<UnicastRoute> routeToPrefixCFromClient20;
   routeToPrefixCFromClient20.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client20Nexthop6));
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(20),
       AdminDistance::EBGP,
@@ -440,7 +438,7 @@ TEST(Rib, Update) {
   std::vector<UnicastRoute> routeToPrefixCFromClient30;
   routeToPrefixCFromClient30.push_back(
       createUnicastRoute(prefixC6.first, prefixC6.second, client30Nexthop6));
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(30),
       AdminDistance::EBGP,
@@ -480,7 +478,7 @@ TEST(Rib, Update) {
       createUnicastRoute(prefixD6.first, prefixD6.second, client10Nexthop6b));
   syncFibRoutes.push_back(
       createUnicastRoute(prefixD4.first, prefixD4.second, client10Nexthop4));
-  sw->rib()->update(
+  sw->getRib()->update(
       vrfZero,
       ClientID(10),
       AdminDistance::EBGP,

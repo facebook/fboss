@@ -531,7 +531,7 @@ void ThriftHandler::deleteUnicastRoutes(
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
-    auto stats = sw_->rib()->update(
+    auto stats = sw_->getRib()->update(
         defaultVrf,
         clientID,
         defaultAdminDistance,
@@ -600,7 +600,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
-    auto stats = sw_->rib()->update(
+    auto stats = sw_->getRib()->update(
         defaultVrf,
         clientID,
         defaultAdminDistance,

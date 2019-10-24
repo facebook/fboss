@@ -550,7 +550,7 @@ class SwSwitch : public HwSwitch::Callback {
     return lagManager_.get();
   }
 
-  rib::RoutingInformationBase* rib() {
+  rib::RoutingInformationBase* getRib() {
     DCHECK(isStandaloneRibEnabled());
     return rib_.get();
   }

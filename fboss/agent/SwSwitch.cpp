@@ -1483,7 +1483,8 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
             state,
             &newConfig,
             getPlatform(),
-            (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? rib() : nullptr,
+            (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? getRib()
+                                                              : nullptr,
             &curConfig_);
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {

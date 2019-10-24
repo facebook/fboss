@@ -176,7 +176,7 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
         state,
         config,
         sw->getPlatform(),
-        sw->isStandaloneRibEnabled() ? sw->rib() : nullptr);
+        sw->isStandaloneRibEnabled() ? sw->getRib() : nullptr);
   };
   sw->updateStateBlocking("test_setup", updateFn);
   return handle;
