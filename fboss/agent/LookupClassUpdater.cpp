@@ -23,6 +23,20 @@ cfg::AclLookupClass LookupClassUpdater::getClassIDwithMinimumNeighbors(
 }
 
 template <typename NeighborEntryT>
+void LookupClassUpdater::removeNeighborFromLocalCache(
+    const NeighborEntryT* removedEntry) {
+  auto portID = removedEntry->getPort().phyPortID();
+  auto mac = removedEntry->getMac();
+  auto& mac2ClassID = port2MacAndClassID_[portID];
+  auto& classID2Count = port2ClassIDAndCount_[portID];
+  auto classID = mac2ClassID[mac];
+
+  mac2ClassID.erase(mac);
+  classID2Count[classID]--;
+  CHECK_GE(classID2Count[classID], 0);
+}
+
+template <typename NeighborEntryT>
 void LookupClassUpdater::removeClassIDForPortAndMac(
     VlanID vlan,
     const NeighborEntryT* removedEntry) {
@@ -39,32 +53,25 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     return;
   }
 
-  auto mac = removedEntry->getMac();
-  auto& mac2ClassID = port2MacAndClassID_[portID];
-  auto& classID2Count = port2ClassIDAndCount_[portID];
-  auto classID = mac2ClassID[mac];
-
-  mac2ClassID.erase(mac);
-  classID2Count[classID]--;
-  CHECK_GE(classID2Count[classID], 0);
+  removeNeighborFromLocalCache(removedEntry);
+  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << port->getID()
+             << " name: " << port->getName()
+             << " MAC: " << folly::to<std::string>(removedEntry->getMac())
+             << " IP: " << folly::to<std::string>(removedEntry->getIP())
+             << " classID: None";
 
   updater->updateEntryClassID(vlan, removedEntry->getIP());
 }
 
-void LookupClassUpdater::initClassID2Count(std::shared_ptr<Port> port) {
+void LookupClassUpdater::initPort(std::shared_ptr<Port> port) {
+  auto& mac2ClassID = port2MacAndClassID_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
-  /*
-   * When first neighbor is discovered for a port, start maintaining counters
-   * for the number of neigbhors associated with a classID for that port
-   * (initialized to 0). When a new neighbor is discovered, these counters help
-   * find out the least used classID that can then be used for the newly
-   * discovered neighbor.
-   */
-  if (classID2Count.size() == 0) {
-    for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
-      classID2Count[classID] = 0;
-    }
+  mac2ClassID.clear();
+  classID2Count.clear();
+
+  for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
+    classID2Count[classID] = 0;
   }
 }
 
@@ -84,8 +91,6 @@ void LookupClassUpdater::updateNeighborClassID(
      */
     return;
   }
-
-  initClassID2Count(port);
 
   auto mac = newEntry->getMac();
   auto& mac2ClassID = port2MacAndClassID_[port->getID()];
@@ -218,9 +223,168 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
   }
 }
 
+template <typename AddrT>
+void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
+    const StateDelta& stateDelta,
+    PortID portID) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  auto updater = sw_->getNeighborUpdater();
+  auto newState = stateDelta.newState();
+  auto port = newState->getPorts()->getPortIf(portID);
+  for (auto vlanMember : port->getVlans()) {
+    auto vlanID = vlanMember.first;
+    // TODO(skhare) consume state from stateDelta instead
+    auto vlan = sw_->getState()->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    for (const auto& entry :
+         *(vlan->template getNeighborTable<NeighborTableT>())) {
+      if (entry->getPort().phyPortID() == portID &&
+          entry->getClassID().hasValue()) {
+        removeNeighborFromLocalCache(entry.get());
+        updater->updateEntryClassID(vlanID, entry.get()->getIP());
+      }
+    }
+  }
+}
+
+template <typename AddrT>
+void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(PortID portID) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  // TODO(skhare) consume state from stateDelta instead
+  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  for (auto vlanMember : port->getVlans()) {
+    auto vlanID = vlanMember.first;
+    // TODO(skhare) consume state from stateDelta instead
+    auto vlan = sw_->getState()->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    for (const auto& entry :
+         *(vlan->template getNeighborTable<NeighborTableT>())) {
+      if (entry->getPort().phyPortID() == portID) {
+        updateNeighborClassID(vlanID, entry.get());
+      }
+    }
+  }
+}
+
+void LookupClassUpdater::processPortAdded(
+    const StateDelta& /* unused */,
+    std::shared_ptr<Port> addedPort) {
+  CHECK(addedPort);
+  if (addedPort->getLookupClassesToDistributeTrafficOn().size() == 0) {
+    /*
+     * Only downlink ports of Yosemite RSW will have lookupClasses
+     * configured. For all other ports, control returns here.
+     */
+    return;
+  }
+
+  initPort(addedPort);
+}
+
+void LookupClassUpdater::processPortRemoved(
+    const StateDelta& stateDelta,
+    std::shared_ptr<Port> removedPort) {
+  CHECK(removedPort);
+  auto newState = stateDelta.newState();
+  auto portID = removedPort->getID();
+
+  /*
+   * The port that is being removed should not be next hop for any neighbor.
+   * in the new switch state.
+   */
+  for (auto vlanMember : removedPort->getVlans()) {
+    auto vlanID = vlanMember.first;
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    for (const auto& entry : *(vlan->template getNeighborTable<ArpTable>())) {
+      CHECK(entry->getPort().phyPortID() != portID);
+    }
+
+    for (const auto& entry : *(vlan->template getNeighborTable<NdpTable>())) {
+      CHECK(entry->getPort().phyPortID() != portID);
+    }
+  }
+
+  port2MacAndClassID_.erase(portID);
+  port2ClassIDAndCount_.erase(portID);
+}
+
+void LookupClassUpdater::processPortChanged(
+    const StateDelta& stateDelta,
+    std::shared_ptr<Port> oldPort,
+    std::shared_ptr<Port> newPort) {
+  CHECK(oldPort && newPort);
+  CHECK_EQ(oldPort->getID(), newPort->getID());
+  /*
+   * If the lists of lookupClasses are identical (common case), do nothing.
+   * If the lists are different e.g. fewer/more classes (unlikely - but the
+   * list of classes can go from > 0 to 0 if this feature is disabled),
+   * clear all the ClassIDs associated with every resolved neighbor for this
+   * egress port. Then, repopulate classIDs using the newPort's list of
+   * lookupClasses.
+   * To avoid unncessary shuffling when order of lookup classes changes,
+   * (e.g. due to config change), sort and compare. This requires a deep
+   * copy and sorting, but in practice, the list of lookup classes should be
+   * small (< 10).
+   */
+  auto oldLookupClasses{oldPort->getLookupClassesToDistributeTrafficOn()};
+  auto newLookupClasses{newPort->getLookupClassesToDistributeTrafficOn()};
+
+  sort(oldLookupClasses.begin(), oldLookupClasses.end());
+  sort(newLookupClasses.begin(), newLookupClasses.end());
+
+  if (oldLookupClasses == newLookupClasses) {
+    return;
+  }
+
+  clearClassIdsForResolvedNeighbors<folly::IPAddressV6>(
+      stateDelta, newPort->getID());
+  clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
+      stateDelta, newPort->getID());
+
+  initPort(newPort);
+
+  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV6>(newPort->getID());
+  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV4>(newPort->getID());
+}
+
+void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
+  for (const auto& delta : stateDelta.getPortsDelta()) {
+    auto oldPort = delta.getOld();
+    auto newPort = delta.getNew();
+
+    if (!oldPort && newPort) {
+      processPortAdded(stateDelta, newPort);
+    } else if (oldPort && !newPort) {
+      processPortRemoved(stateDelta, oldPort);
+    } else {
+      processPortChanged(stateDelta, oldPort, newPort);
+    }
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   processNeighborUpdates<folly::IPAddressV6>(stateDelta);
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
+
+  processPortUpdates(stateDelta);
 }
 
 } // namespace fboss

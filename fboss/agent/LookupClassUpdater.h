@@ -32,7 +32,7 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       const NeighborEntryT* oldEntry,
       const NeighborEntryT* newEntry);
 
-  void initClassID2Count(std::shared_ptr<Port> port);
+  void initPort(std::shared_ptr<Port> port);
 
   template <typename NeighborEntryT>
   void updateNeighborClassID(VlanID vlan, const NeighborEntryT* newEntry);
@@ -47,6 +47,29 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   template <typename NeighborEntryT>
   void updateStateObserverLocalCache(const NeighborEntryT* newEntry);
+
+  template <typename NeighborEntryT>
+  void removeNeighborFromLocalCache(const NeighborEntryT* removedEntry);
+
+  template <typename AddrT>
+  void clearClassIdsForResolvedNeighbors(
+      const StateDelta& stateDelta,
+      PortID portID);
+  template <typename AddrT>
+  void repopulateClassIdsForResolvedNeighbors(PortID portID);
+
+  void processPortUpdates(const StateDelta& stateDelta);
+
+  void processPortAdded(
+      const StateDelta& stateDelta,
+      std::shared_ptr<Port> addedPort);
+  void processPortRemoved(
+      const StateDelta& stateDelta,
+      std::shared_ptr<Port> port);
+  void processPortChanged(
+      const StateDelta& stateDelta,
+      std::shared_ptr<Port> oldPort,
+      std::shared_ptr<Port> newPort);
 
   SwSwitch* sw_;
   boost::container::flat_map<PortID, ClassID2Count> port2ClassIDAndCount_;

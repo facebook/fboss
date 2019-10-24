@@ -165,7 +165,7 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     return this->getFields()->classID;
   }
 
-  void setClassID(folly::Optional<cfg::AclLookupClass> classID) {
+  void setClassID(folly::Optional<cfg::AclLookupClass> classID = folly::none) {
     this->writableFields()->classID.assign(classID);
   }
 
