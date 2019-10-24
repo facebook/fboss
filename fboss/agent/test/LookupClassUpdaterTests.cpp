@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -31,6 +32,7 @@ template <typename AddrT>
 class LookupClassUpdaterTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
+  using StateUpdateFn = SwSwitch::StateUpdateFn;
 
   void SetUp() override {
     handle_ = createTestHandle(testStateAWithLookupClasses());
@@ -43,6 +45,10 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void TearDown() override {
     schedulePendingTestStateUpdates();
+  }
+
+  void updateState(folly::StringPiece name, StateUpdateFn func) {
+    sw_->updateStateBlocking(name, func);
   }
 
   VlanID kVlan() const {
@@ -177,6 +183,110 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
       EXPECT_FALSE(entry->getClassID().hasValue());
+    }
+  });
+}
+
+TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<TypeParam, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  this->resolveNeighbor();
+
+  this->updateState(
+      "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto newPortMap = newState->getPorts()->modify(&newState);
+
+        for (auto port : *newPortMap) {
+          auto newPort = port->clone();
+          newPort->setLookupClassesToDistributeTrafficOn({});
+          newPortMap->updatePort(newPort);
+        }
+        return newState;
+      });
+
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto vlan = state->getVlans()->getVlan(this->kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+      auto entry = neighborTable->getEntry(this->kIp4Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_FALSE(entry->getClassID().hasValue());
+    } else {
+      auto entry = neighborTable->getEntry(this->kIp6Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_FALSE(entry->getClassID().hasValue());
+    }
+  });
+}
+
+TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<TypeParam, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  this->resolveNeighbor();
+
+  this->updateState(
+      "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto newPortMap = newState->getPorts()->modify(&newState);
+
+        for (auto port : *newPortMap) {
+          auto newPort = port->clone();
+          newPort->setLookupClassesToDistributeTrafficOn(
+              {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+               cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4});
+
+          newPortMap->updatePort(newPort);
+        }
+        return newState;
+      });
+
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto vlan = state->getVlans()->getVlan(this->kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+      auto entry = neighborTable->getEntry(this->kIp4Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(
+          entry->getClassID().value() ==
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 ||
+          entry->getClassID().value() ==
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
+
+    } else {
+      auto entry = neighborTable->getEntry(this->kIp6Addr());
+
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
+      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(
+          entry->getClassID().value() ==
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 ||
+          entry->getClassID().value() ==
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
     }
   });
 }

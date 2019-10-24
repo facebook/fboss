@@ -339,6 +339,8 @@ shared_ptr<SwitchState> testStateA() {
   for (int idx = 1; idx <= 10; ++idx) {
     state->registerPort(PortID(idx), folly::to<string>("port", idx));
     vlan1->addPort(PortID(idx), false);
+    auto port = state->getPorts()->getPortIf(PortID(idx));
+    port->addVlan(vlan1->getID(), false);
   }
   // Add VLAN 55, and ports 11-20 which belong to it.
   auto vlan55 = make_shared<Vlan>(VlanID(55), "Vlan55");
@@ -346,6 +348,8 @@ shared_ptr<SwitchState> testStateA() {
   for (int idx = 11; idx <= 20; ++idx) {
     state->registerPort(PortID(idx), folly::to<string>("port", idx));
     vlan55->addPort(PortID(idx), false);
+    auto port = state->getPorts()->getPortIf(PortID(idx));
+    port->addVlan(vlan55->getID(), false);
   }
   // Add Interface 1 to VLAN 1
   auto intf1 = make_shared<Interface>(
