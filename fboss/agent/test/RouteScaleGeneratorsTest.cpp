@@ -21,46 +21,38 @@ namespace facebook {
 namespace fboss {
 TEST(RouteScaleGeneratorsTest, FSWDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::FSWRouteScaleGenerator(
-          createTestState(mockPlatform.get()), kChunkSize, 2)
-          .routeDistributionGenerator();
+  auto routeDistributionGen = utility::FSWRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
 
-  verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 16000);
-  verifyChunking(routeDistributionSwitchStatesGen, 16000, kChunkSize);
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 16000);
+  verifyChunking(routeDistributionGen, 16000, kChunkSize);
 }
 
 TEST(RouteScaleGeneratorsTest, THAlpmDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::THAlpmRouteScaleGenerator(
-          createTestState(mockPlatform.get()), kChunkSize, 2)
-          .routeDistributionGenerator();
+  auto routeDistributionGen = utility::THAlpmRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
 
-  verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 33400);
-  verifyChunking(routeDistributionSwitchStatesGen, 33400, kChunkSize);
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 33400);
+  verifyChunking(routeDistributionGen, 33400, kChunkSize);
 }
 
 TEST(RouteScaleGeneratorsTest, HgridDuRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::HgridDuRouteScaleGenerator(
-          createTestState(mockPlatform.get()), kChunkSize, 2)
-          .routeDistributionGenerator();
+  auto routeDistributionGen = utility::HgridDuRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
 
-  verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 37249);
-  verifyChunking(routeDistributionSwitchStatesGen, 37249, kChunkSize);
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 37249);
+  verifyChunking(routeDistributionGen, 37249, kChunkSize);
 }
 
 TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::HgridUuRouteScaleGenerator(
-          createTestState(mockPlatform.get()), kChunkSize, 2)
-          .routeDistributionGenerator();
+  auto routeDistributionGen = utility::HgridUuRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
 
-  verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 48350);
-  verifyChunking(routeDistributionSwitchStatesGen, 48350, kChunkSize);
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 48350);
+  verifyChunking(routeDistributionGen, 48350, kChunkSize);
 }
 } // namespace fboss
 } // namespace facebook

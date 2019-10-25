@@ -18,7 +18,7 @@ FSWRouteScaleGenerator::FSWRouteScaleGenerator(
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
-    : routeDistributionGen_(
+    : RouteDistributionGenerator(
           startingState,
           // v6 distribution
           {
@@ -50,7 +50,7 @@ THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
-    : routeDistributionGen_(
+    : RouteDistributionGenerator(
           startingState,
           // v6 distribution
           {
@@ -82,7 +82,7 @@ HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
-    : routeDistributionGen_(
+    : RouteDistributionGenerator(
           startingState,
           // v6 distribution
           {
@@ -118,7 +118,7 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
-    : routeDistributionGen_(
+    : RouteDistributionGenerator(
           startingState,
           // v6 distribution
           {
