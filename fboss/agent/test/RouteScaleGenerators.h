@@ -40,16 +40,18 @@ class FSWRouteScaleGenerator {
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
-  const std::vector<std::shared_ptr<SwitchState>>& get() {
+  const RouteDistributionGenerator::RouteChunks& get() {
     return routeDistributionGen_.get();
   }
-  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
-      const {
+  const std::vector<std::shared_ptr<SwitchState>>& getSwitchStates() {
+    return routeDistributionGen_.getSwitchStates();
+  }
+  const RouteDistributionGenerator& routeDistributionGenerator() const {
     return routeDistributionGen_;
   }
 
  private:
-  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
+  RouteDistributionGenerator routeDistributionGen_;
 };
 
 class THAlpmRouteScaleGenerator {
@@ -59,16 +61,18 @@ class THAlpmRouteScaleGenerator {
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
-  const std::vector<std::shared_ptr<SwitchState>>& get() {
+  const RouteDistributionGenerator::RouteChunks& get() {
     return routeDistributionGen_.get();
   }
-  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
-      const {
+  const std::vector<std::shared_ptr<SwitchState>>& getSwitchStates() {
+    return routeDistributionGen_.getSwitchStates();
+  }
+  const RouteDistributionGenerator& routeDistributionGenerator() const {
     return routeDistributionGen_;
   }
 
  private:
-  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
+  RouteDistributionGenerator routeDistributionGen_;
 };
 
 class HgridDuRouteScaleGenerator {
@@ -79,16 +83,18 @@ class HgridDuRouteScaleGenerator {
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
 
-  const std::vector<std::shared_ptr<SwitchState>>& get() {
+  const RouteDistributionGenerator::RouteChunks& get() {
     return routeDistributionGen_.get();
   }
-  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
-      const {
+  const std::vector<std::shared_ptr<SwitchState>>& getSwitchStates() {
+    return routeDistributionGen_.getSwitchStates();
+  }
+  const RouteDistributionGenerator& routeDistributionGenerator() const {
     return routeDistributionGen_;
   }
 
  private:
-  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
+  RouteDistributionGenerator routeDistributionGen_;
 };
 
 class HgridUuRouteScaleGenerator {
@@ -98,16 +104,18 @@ class HgridUuRouteScaleGenerator {
       unsigned int chunkSize = kDefaultChunkSize,
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
-  const std::vector<std::shared_ptr<SwitchState>>& get() {
+  const RouteDistributionGenerator::RouteChunks& get() {
     return routeDistributionGen_.get();
   }
-  const RouteDistributionSwitchStatesGenerator& routeDistributionGenerator()
-      const {
+  const std::vector<std::shared_ptr<SwitchState>>& getSwitchStates() {
+    return routeDistributionGen_.getSwitchStates();
+  }
+  const RouteDistributionGenerator& routeDistributionGenerator() const {
     return routeDistributionGen_;
   }
 
  private:
-  RouteDistributionSwitchStatesGenerator routeDistributionGen_;
+  RouteDistributionGenerator routeDistributionGen_;
 };
 } // namespace utility
 } // namespace fboss

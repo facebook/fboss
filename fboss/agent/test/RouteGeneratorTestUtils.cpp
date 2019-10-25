@@ -88,13 +88,11 @@ uint64_t getRouteCount(
 }
 
 void verifyRouteCount(
-    const utility::RouteDistributionSwitchStatesGenerator&
-        routeDistributionSwitchStatesGen,
+    const utility::RouteDistributionGenerator& routeDistributionGen,
     uint64_t alreadyExistingRoutes,
     uint64_t expectedNewRoutes) {
-  const auto& switchStates = routeDistributionSwitchStatesGen.get();
-  const auto& routeChunks =
-      routeDistributionSwitchStatesGen.routeDistributionGenerator().get();
+  const auto& switchStates = routeDistributionGen.getSwitchStates();
+  const auto& routeChunks = routeDistributionGen.get();
 
   EXPECT_EQ(
       getRouteCount(switchStates.back()),
@@ -103,8 +101,7 @@ void verifyRouteCount(
 }
 
 void verifyChunking(
-    const utility::RouteDistributionSwitchStatesGenerator::SwitchStates&
-        switchStates,
+    const utility::RouteDistributionGenerator::SwitchStates& switchStates,
     unsigned int totalRoutes,
     unsigned int chunkSize) {
   auto remainingRoutes = totalRoutes;
@@ -132,16 +129,12 @@ void verifyChunking(
 }
 
 void verifyChunking(
-    const utility::RouteDistributionSwitchStatesGenerator&
-        routeDistributionSwitchStatesGen,
+    const utility::RouteDistributionGenerator& routeDistributionGen,
     unsigned int totalRoutes,
     unsigned int chunkSize) {
   verifyChunking(
-      routeDistributionSwitchStatesGen.get(), totalRoutes, chunkSize);
-  verifyChunking(
-      routeDistributionSwitchStatesGen.routeDistributionGenerator().get(),
-      totalRoutes,
-      chunkSize);
+      routeDistributionGen.getSwitchStates(), totalRoutes, chunkSize);
+  verifyChunking(routeDistributionGen.get(), totalRoutes, chunkSize);
 }
 } // namespace fboss
 } // namespace facebook

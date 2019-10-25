@@ -49,14 +49,12 @@ uint64_t getRouteCount(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks);
 
 void verifyRouteCount(
-    const utility::RouteDistributionSwitchStatesGenerator&
-        routeDistributionSwitchStatesGen,
+    const utility::RouteDistributionGenerator& routeDistributionGen,
     uint64_t alreadyExistingRoutes,
     uint64_t expectedNewRoutes);
 
 void verifyChunking(
-    const utility::RouteDistributionSwitchStatesGenerator::SwitchStates&
-        switchStates,
+    const utility::RouteDistributionGenerator::SwitchStates& switchStates,
     unsigned int totalRoutes,
     unsigned int chunkSize);
 
@@ -66,8 +64,7 @@ void verifyChunking(
     unsigned int chunkSize);
 
 void verifyChunking(
-    const utility::RouteDistributionSwitchStatesGenerator&
-        routeDistributionSwitchStatesGen,
+    const utility::RouteDistributionGenerator& routeDistributionGen,
     unsigned int totalRoutes,
     unsigned int chunkSize);
 

@@ -29,7 +29,8 @@ class BcmRouteScaleTest : public BcmTest {
     auto setup = [this]() {
       applyNewConfig(
           utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
-      auto states = RouteScaleGeneratorT(getProgrammedState()).get();
+      auto states =
+          RouteScaleGeneratorT(getProgrammedState()).getSwitchStates();
       applyNewState(states.back());
     };
     auto verify = [] {};

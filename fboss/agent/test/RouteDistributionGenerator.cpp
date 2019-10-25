@@ -105,23 +105,8 @@ void RouteDistributionGenerator::genRouteDistribution(
   }
 }
 
-RouteDistributionSwitchStatesGenerator::RouteDistributionSwitchStatesGenerator(
-    const std::shared_ptr<SwitchState>& startingState,
-    const Masklen2NumPrefixes& v6DistributionSpec,
-    const Masklen2NumPrefixes& v4DistributionSpec,
-    unsigned int chunkSize,
-    unsigned int ecmpWidth,
-    RouterID routerId)
-    : routeDistributionGen_(
-          startingState,
-          v6DistributionSpec,
-          v4DistributionSpec,
-          chunkSize,
-          ecmpWidth,
-          routerId) {}
-
-const RouteDistributionSwitchStatesGenerator::SwitchStates&
-RouteDistributionSwitchStatesGenerator::get() const {
+const RouteDistributionGenerator::SwitchStates&
+RouteDistributionGenerator::getSwitchStates() const {
   if (generatedStates_) {
     return *generatedStates_;
   }
@@ -129,15 +114,15 @@ RouteDistributionSwitchStatesGenerator::get() const {
   // Resolving next hops is not strictly necessary, since we will
   // program routes even when next hops don't have their ARP/NDP resolved.
   // But for mimicking a more common scenario, resolve these.
-  auto ecmpHelper6 = EcmpSetupAnyNPorts6(routeDistributionGen_.startingState());
-  auto ecmpHelper4 = EcmpSetupAnyNPorts4(routeDistributionGen_.startingState());
-  auto nhopsResolvedState = ecmpHelper6.resolveNextHops(
-      routeDistributionGen_.startingState(), routeDistributionGen_.ecmpWidth());
-  nhopsResolvedState = ecmpHelper4.resolveNextHops(
-      nhopsResolvedState, routeDistributionGen_.ecmpWidth());
+  auto ecmpHelper6 = EcmpSetupAnyNPorts6(startingState());
+  auto ecmpHelper4 = EcmpSetupAnyNPorts4(startingState());
+  auto nhopsResolvedState =
+      ecmpHelper6.resolveNextHops(startingState(), ecmpWidth());
+  nhopsResolvedState =
+      ecmpHelper4.resolveNextHops(nhopsResolvedState, ecmpWidth());
   nhopsResolvedState->publish();
   generatedStates_->push_back(nhopsResolvedState);
-  for (const auto& routeChunk : routeDistributionGen_.get()) {
+  for (const auto& routeChunk : get()) {
     std::vector<RoutePrefixV6> v6Prefixes;
     std::vector<RoutePrefixV4> v4Prefixes;
     for (const auto& route : routeChunk) {
@@ -151,10 +136,10 @@ RouteDistributionSwitchStatesGenerator::get() const {
       }
     }
     auto newState = generatedStates_->back()->clone();
-    newState = ecmpHelper6.setupECMPForwarding(
-        newState, routeDistributionGen_.ecmpWidth(), v6Prefixes);
-    newState = ecmpHelper4.setupECMPForwarding(
-        newState, routeDistributionGen_.ecmpWidth(), v4Prefixes);
+    newState =
+        ecmpHelper6.setupECMPForwarding(newState, ecmpWidth(), v6Prefixes);
+    newState =
+        ecmpHelper4.setupECMPForwarding(newState, ecmpWidth(), v4Prefixes);
     generatedStates_->push_back(newState);
   }
 

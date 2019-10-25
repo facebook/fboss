@@ -42,6 +42,8 @@ class RouteDistributionGenerator {
   };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
+  using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
+
   RouteDistributionGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       const Masklen2NumPrefixes& v6DistributionSpec,
@@ -53,6 +55,7 @@ class RouteDistributionGenerator {
    * Compute, cache and return route distribution
    */
   const RouteChunks& get() const;
+  const SwitchStates& getSwitchStates() const;
 
   std::shared_ptr<SwitchState> startingState() const {
     return startingState_;
@@ -77,41 +80,12 @@ class RouteDistributionGenerator {
   const unsigned int ecmpWidth_;
   const RouterID routerId_{0};
   /*
-   * Cache for genertated chunks. Mark mutable since
-   * caching is just a optimization doesn't and doesn't reflect
-   * the essential state of this class. So allow modifying from
-   * const methods.
+   * Caches for genertated chunks and states. Mark mutable since
+   * caching is just a optimization doesn't and doesn't reflect the
+   * essential state of this class. So allow modifying from const
+   * methods.
    */
   mutable folly::Optional<RouteChunks> generatedRouteChunks_;
-};
-
-class RouteDistributionSwitchStatesGenerator {
- public:
-  using SwitchStates = std::vector<std::shared_ptr<SwitchState>>;
-  RouteDistributionSwitchStatesGenerator(
-      const std::shared_ptr<SwitchState>& startingState,
-      const Masklen2NumPrefixes& v6DistributionSpec,
-      const Masklen2NumPrefixes& v4DistributionSpec,
-      unsigned int chunkSize,
-      unsigned int ecmpWidth,
-      RouterID routerId = RouterID(0));
-
-  /*
-   * Compute, cache and return route distribution
-   */
-  const SwitchStates& get() const;
-  const RouteDistributionGenerator& routeDistributionGenerator() const {
-    return routeDistributionGen_;
-  }
-
- private:
-  const RouteDistributionGenerator routeDistributionGen_;
-  /*
-   * Cache for genertated states. Mark mutable since
-   * caching is just a optimization doesn't and doesn't reflect
-   * the essential state of this class. So allow modifying from
-   * const methods.
-   */
   mutable folly::Optional<SwitchStates> generatedStates_;
 };
 

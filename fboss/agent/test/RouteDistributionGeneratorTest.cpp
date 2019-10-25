@@ -19,38 +19,36 @@ namespace fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()),
-          {
-              {65, 5},
-              {127, 5},
-          },
-          {
-              {25, 5},
-              {32, 5},
-          },
-          4000,
-          2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()),
+      {
+          {65, 5},
+          {127, 5},
+      },
+      {
+          {25, 5},
+          {32, 5},
+      },
+      4000,
+      2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 4000);
 }
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionMultipleChunks) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()),
-          {
-              {65, 5},
-              {127, 5},
-          },
-          {
-              {25, 5},
-              {32, 5},
-          },
-          10,
-          2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()),
+      {
+          {65, 5},
+          {127, 5},
+      },
+      {
+          {25, 5},
+          {32, 5},
+      },
+      10,
+      2);
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 10);
 }
@@ -59,19 +57,18 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverMaskLens) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()),
-          {
-              {65, 3},
-              {127, 5},
-          },
-          {
-              {25, 3},
-              {32, 7},
-          },
-          4,
-          2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()),
+      {
+          {65, 3},
+          {127, 5},
+      },
+      {
+          {25, 3},
+          {32, 7},
+      },
+      4,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 18);
   verifyChunking(routeDistributionSwitchStatesGen, 18, 4);
@@ -81,19 +78,18 @@ TEST(
     RouteDistributionGeneratorsTest,
     v4AndV6DistributionChunksSpillOverAddressFamilies) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()),
-          {
-              {65, 5},
-              {127, 6},
-          },
-          {
-              {25, 4},
-              {32, 5},
-          },
-          5,
-          2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()),
+      {
+          {65, 5},
+          {127, 6},
+      },
+      {
+          {25, 4},
+          {32, 5},
+      },
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 20);
   verifyChunking(routeDistributionSwitchStatesGen, 20, 5);
@@ -101,15 +97,14 @@ TEST(
 
 TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()),
-          {
-              {65, 5},
-          },
-          {},
-          5,
-          2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()),
+      {
+          {65, 5},
+      },
+      {},
+      5,
+      2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -117,9 +112,8 @@ TEST(RouteDistributionGeneratorsTest, emptyV4Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()), {}, {{24, 5}}, 5, 2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()), {}, {{24, 5}}, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 5);
   verifyChunking(routeDistributionSwitchStatesGen, 5, 5);
@@ -127,9 +121,8 @@ TEST(RouteDistributionGeneratorsTest, emptyV6Distribution) {
 
 TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
-  auto routeDistributionSwitchStatesGen =
-      utility::RouteDistributionSwitchStatesGenerator(
-          createTestState(mockPlatform.get()), {}, {}, 5, 2);
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      createTestState(mockPlatform.get()), {}, {}, 5, 2);
 
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);

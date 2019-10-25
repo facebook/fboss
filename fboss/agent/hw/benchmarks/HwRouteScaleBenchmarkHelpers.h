@@ -32,7 +32,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfigAndBringUpPorts(config);
   static const auto states =
-      RouteScaleGeneratorT(ensemble->getProgrammedState()).get();
+      RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
   if (measureAdd) {
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
