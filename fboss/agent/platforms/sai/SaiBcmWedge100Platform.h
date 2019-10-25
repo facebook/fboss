@@ -12,10 +12,18 @@
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 namespace facebook::fboss {
 
+class TomahawkAsic;
+
 class SaiBcmWedge100Platform : public SaiBcmPlatform {
  public:
-  using SaiBcmPlatform::SaiBcmPlatform;
+  explicit SaiBcmWedge100Platform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
+  ~SaiBcmWedge100Platform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
+  HwAsic* getAsic() const override;
+
+ private:
+  std::unique_ptr<TomahawkAsic> asic_;
 };
 
 } // namespace facebook::fboss

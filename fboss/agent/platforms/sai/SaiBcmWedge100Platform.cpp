@@ -9,10 +9,17 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
+#include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
+
+SaiBcmWedge100Platform::SaiBcmWedge100Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiBcmPlatform(std::move(productInfo)) {
+  asic_ = std::make_unique<TomahawkAsic>();
+}
 
 std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
   constexpr std::array<int, 32> kMasterLogicalPortIds = {
@@ -27,4 +34,9 @@ std::vector<PortID> SaiBcmWedge100Platform::masterLogicalPortIds() const {
   return portIds;
 }
 
+HwAsic* SaiBcmWedge100Platform::getAsic() const {
+  return asic_.get();
+}
+
+SaiBcmWedge100Platform::~SaiBcmWedge100Platform() {}
 } // namespace facebook::fboss

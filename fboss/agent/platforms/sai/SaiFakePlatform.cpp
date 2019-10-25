@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
-
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 
 #include <cstdio>

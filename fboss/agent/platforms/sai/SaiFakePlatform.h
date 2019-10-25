@@ -21,7 +21,6 @@ class SaiFakePlatform : public SaiPlatform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
-
   HwAsic* getAsic() const override;
 
  private:
