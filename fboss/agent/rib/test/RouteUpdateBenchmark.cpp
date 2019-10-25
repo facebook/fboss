@@ -50,7 +50,8 @@ std::vector<NextHopThrift> nextHopsThrift(
 
 } // namespace
 
-BENCHMARK(FibSyncLegacy) {
+template <typename Generator>
+static void runOldRibTest() {
   // Suspend benchamrking for setup.
   folly::BenchmarkSuspender suspender;
 
@@ -85,7 +86,8 @@ BENCHMARK(FibSyncLegacy) {
   }
 }
 
-BENCHMARK_RELATIVE(FibSync) {
+template <typename Generator>
+static void runNewRibTest() {
   // Suspend benchamrking for setup.
   folly::BenchmarkSuspender suspender;
 
@@ -115,9 +117,8 @@ BENCHMARK_RELATIVE(FibSync) {
         return newState;
       });
 
-  auto routeChunks = utility::HgridUuRouteScaleGenerator(
-                         sw->getAppliedState(), 1337, kEcmpWidth, vrfZero)
-                         .get();
+  auto routeChunks =
+      Generator(sw->getAppliedState(), 1337, kEcmpWidth, vrfZero).get();
 
   // Resume benchmakring post-setup.
   suspender.dismiss();
@@ -157,6 +158,38 @@ BENCHMARK_RELATIVE(FibSync) {
         },
         sw);
   }
+}
+
+BENCHMARK(FibSyncFSWLegacy) {
+  runOldRibTest<utility::FSWRouteScaleGenerator>();
+}
+
+BENCHMARK_RELATIVE(FibSyncFSW) {
+  runNewRibTest<utility::FSWRouteScaleGenerator>();
+}
+
+BENCHMARK(FibSyncTHAlpmLegacy) {
+  runOldRibTest<utility::THAlpmRouteScaleGenerator>();
+}
+
+BENCHMARK_RELATIVE(FibSyncTHAlpm) {
+  runNewRibTest<utility::THAlpmRouteScaleGenerator>();
+}
+
+BENCHMARK(FibSyncHgridDuLegacy) {
+  runOldRibTest<utility::HgridDuRouteScaleGenerator>();
+}
+
+BENCHMARK_RELATIVE(FibSyncHgridDu) {
+  runNewRibTest<utility::HgridDuRouteScaleGenerator>();
+}
+
+BENCHMARK(FibSyncHgridUuLegacy) {
+  runOldRibTest<utility::HgridUuRouteScaleGenerator>();
+}
+
+BENCHMARK_RELATIVE(FibSyncHgridUu) {
+  runNewRibTest<utility::HgridUuRouteScaleGenerator>();
 }
 
 int main(int argc, char** argv) {
