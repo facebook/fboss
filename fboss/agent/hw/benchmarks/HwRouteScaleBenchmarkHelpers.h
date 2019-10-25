@@ -24,7 +24,7 @@ namespace fboss {
  * to add (or delete post addition) these routes
  */
 template <typename RouteScaleGeneratorT>
-void routeAddDelBenhmarker(bool measureAdd) {
+void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   static auto ensemble = createHwEnsemble(
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
@@ -51,12 +51,12 @@ void routeAddDelBenhmarker(bool measureAdd) {
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \
   BENCHMARK(name) {                                     \
-    routeAddDelBenhmarker<RouteScaleGeneratorT>(true);  \
+    routeAddDelBenchmarker<RouteScaleGeneratorT>(true); \
   }
 
-#define ROUTE_DEL_BENCHMARK(name, RouteScaleGeneratorT) \
-  BENCHMARK(name) {                                     \
-    routeAddDelBenhmarker<RouteScaleGeneratorT>(false); \
+#define ROUTE_DEL_BENCHMARK(name, RouteScaleGeneratorT)  \
+  BENCHMARK(name) {                                      \
+    routeAddDelBenchmarker<RouteScaleGeneratorT>(false); \
   }
 } // namespace fboss
 } // namespace facebook
