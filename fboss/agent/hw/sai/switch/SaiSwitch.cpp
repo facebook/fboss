@@ -217,10 +217,18 @@ void SaiSwitch::packetRxCallbackTopHalf(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  rxBottomHalfEventBase_.runInEventBaseThread([=]() {
-    packetRxCallbackBottomHalf(
-        switch_id, buffer_size, buffer, attr_count, attr_list);
-  });
+  std::vector<sai_attribute_t> attrList;
+  attrList.resize(attr_count);
+  std::copy(attr_list, attr_list + attr_count, attrList.data());
+  std::unique_ptr<folly::IOBuf> ioBuf =
+      folly::IOBuf::copyBuffer(buffer, buffer_size);
+  rxBottomHalfEventBase_.runInEventBaseThread(
+      [this,
+       switch_id,
+       ioBufTmp = std::move(ioBuf),
+       attrListTmp = std::move(attrList)]() mutable {
+        packetRxCallbackBottomHalf(switch_id, std::move(ioBufTmp), attrListTmp);
+      });
 }
 
 void SaiSwitch::linkStateChangedCallback(
@@ -306,16 +314,13 @@ void SaiSwitch::initAsyncTx(const std::lock_guard<std::mutex>& /* lock */) {
 
 void SaiSwitch::packetRxCallbackBottomHalf(
     SwitchSaiId /* unused */,
-    sai_size_t buffer_size,
-    const void* buffer,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
+    std::unique_ptr<folly::IOBuf> ioBuf,
+    std::vector<sai_attribute_t> attrList) {
   std::optional<PortSaiId> portSaiIdOpt;
-  for (auto index = 0; index < attr_count; index++) {
-    const sai_attribute_t* attr = &attr_list[index];
-    switch (attr->id) {
+  for (auto attr : attrList) {
+    switch (attr.id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
-        portSaiIdOpt = attr->value.oid;
+        portSaiIdOpt = attr.value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
@@ -341,8 +346,8 @@ void SaiSwitch::packetRxCallbackBottomHalf(
   }
   VlanID swVlanId = vlanItr->second;
 
-  auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
+  auto rxPacket = std::make_unique<SaiRxPacket>(
+      ioBuf->length(), ioBuf->writableData(), swPortId, swVlanId);
   callback_->packetReceived(std::move(rxPacket));
 }
 

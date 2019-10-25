@@ -219,10 +219,8 @@ class SaiSwitch : public HwSwitch {
 
   void packetRxCallbackBottomHalf(
       SwitchSaiId switch_id,
-      sai_size_t buffer_size,
-      const void* buffer,
-      uint32_t attr_count,
-      const sai_attribute_t* attr_list);
+      std::unique_ptr<folly::IOBuf> ioBuf,
+      std::vector<sai_attribute_t> attrList);
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:
