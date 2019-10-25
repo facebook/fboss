@@ -110,15 +110,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
 
+  // TODO: Generate the fec mode once the platform config has fec mode
   auto fecMode = SAI_PORT_FEC_MODE_NONE;
-  if (!platformPort->shouldDisableFEC() &&
-      swPort->getFEC() == cfg::PortFEC::ON) {
-    auto fec = platformPort->getFecMode(swPort->getSpeed());
-    if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
-      fecMode = SAI_PORT_FEC_MODE_FC;
-    } else if (fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544) {
-      fecMode = SAI_PORT_FEC_MODE_RS;
-    }
+  if (swPort->getFEC() == cfg::PortFEC::ON) {
+    fecMode = SAI_PORT_FEC_MODE_RS;
   }
 
   auto pause = swPort->getPause();
