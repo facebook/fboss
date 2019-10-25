@@ -533,6 +533,8 @@ enum PacketRxReason {
   TTL_1        = 6 // L3UC or IPMC packet with TTL equal to 1
   CPU_IS_NHOP  = 7 // The CPU port is the next-hop in the routing table
   NDP          = 8 // NDP discovery messages
+  LLDP         = 9 // LLDP
+  ARP_RESPONSE = 10 // ARP RESPONSE
 }
 
 enum PortLoopbackMode {
