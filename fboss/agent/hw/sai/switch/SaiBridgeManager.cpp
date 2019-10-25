@@ -33,7 +33,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
   SaiBridgePortTraits::CreateAttributes attributes{
       SAI_BRIDGE_PORT_TYPE_PORT,
       portId,
-      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
+      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_DISABLE};
   return store.setObject(k, attributes);
 }
 
