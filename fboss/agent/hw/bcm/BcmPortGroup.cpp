@@ -202,12 +202,15 @@ void BcmPortGroup::reconfigureLaneMode(
   // 2. Set the opennslPortControlLanes setting
   setActiveLanes(newLaneMode);
 
-  // 3. Enable linkscan, then enable ports.
+  // 3. Only enable linkscan, and don't enable ports.
+  // Enable port will program the port with the sw config and also adding it
+  // to vlan, which means there's a dependency on vlan readiness. Therefore,
+  // we should let the caller to decide when it's the best time to enable port,
+  // usually the very end of BcmSwitch::stateChangedImpl()
   for (auto& bcmPort : allPorts_) {
     auto swPort = bcmPort->getSwitchStatePort(state);
     if (swPort->isEnabled()) {
       bcmPort->enableLinkscan();
-      bcmPort->enable(swPort);
     }
   }
 }

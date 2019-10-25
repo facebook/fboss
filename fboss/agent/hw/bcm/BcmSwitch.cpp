@@ -652,6 +652,14 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     const StateDelta& delta) {
+  // Reconfigure port groups in case we are changing between using a port as
+  // 1, 2 or 4 ports. Only do this if flexports are enabled
+  // Calling reconfigure port group first to make sure the ports of SW state
+  // already exists in HW.
+  if (FLAGS_flexports) {
+    reconfigurePortGroups(delta);
+  }
+
   forEachAdded(delta.getPortsDelta(), [this](const auto& newPort) {
     if (!portTable_->getBcmPortIf(newPort->getID())) {
       throw FbossError("Cannot add a port unknown to hardware");
@@ -751,12 +759,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processAggregatePortChanges(delta);
 
-  // Reconfigure port groups in case we are changing between using a port as
-  // 1, 2 or 4 ports. Only do this if flexports are enabled
-  if (FLAGS_flexports) {
-    reconfigurePortGroups(delta);
-  }
-
   processAddedPorts(delta);
   processChangedPorts(delta);
 
@@ -817,15 +819,15 @@ void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
 }
 
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
-  forEachChanged(
-      delta.getPortsDelta(),
-      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-        if (!oldPort->isEnabled() && newPort->isEnabled()) {
-          auto bcmPort = portTable_->getBcmPort(newPort->getID());
-          bcmPort->enable(newPort);
-          processEnabledPortQueues(newPort);
-        }
-      });
+  // make sure we'll enable all the necessary ports based on the new state
+  auto newState = delta.newState();
+  for (auto& port : *newState->getPorts()) {
+    if (port->isEnabled()) {
+      auto bcmPort = portTable_->getBcmPort(port->getID());
+      bcmPort->enable(port);
+      processEnabledPortQueues(port);
+    }
+  }
 }
 
 void BcmSwitch::processChangedPortQueues(
