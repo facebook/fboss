@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
@@ -96,46 +97,6 @@ static const std::vector<opennsl_stat_val_t> kOutPktLengthStats = {
     snmpOpenNSLTransmittedPkts9217to16383Octets,
 };
 
-// This allows mapping from a speed and port transmission technology
-// to a broadcom supported interface
-static const std::
-    map<cfg::PortSpeed, std::map<TransmitterTechnology, opennsl_port_if_t>>
-        kPortTypeMapping = {
-            {cfg::PortSpeed::HUNDREDG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}}},
-            {cfg::PortSpeed::FIFTYG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
-              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2}}},
-            {cfg::PortSpeed::FORTYG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI},
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_XLAUI}}},
-            {cfg::PortSpeed::TWENTYFIVEG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
-            {cfg::PortSpeed::TWENTYG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-              // We don't expect 20G optics
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
-            {cfg::PortSpeed::XG,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-              {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI},
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
-            {cfg::PortSpeed::GIGE,
-             {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII},
-              // We don't expect 1G optics
-              // What to default to
-              {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}}}};
 
 MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
   auto pcitr = portCounters_.find(statKey.str());
@@ -478,7 +439,8 @@ opennsl_port_if_t BcmPort::getDesiredInterfaceMode(
 
   // If speed or transmitter type isn't in map
   try {
-    auto result = kPortTypeMapping.at(speed).at(transmitterTech);
+    auto result =
+        getSpeedToTransmitterTechAndMode().at(speed).at(transmitterTech);
     XLOG(DBG1) << "Getting desired interface mode for port " << id
                << " (speed=" << static_cast<int>(speed)
                << ", tech=" << static_cast<int>(transmitterTech)

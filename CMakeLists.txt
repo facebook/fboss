@@ -364,6 +364,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortDescriptor.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmPort.cpp
+    fboss/agent/hw/bcm/BcmPortUtils.cpp
     fboss/agent/hw/bcm/BcmPortGroup.cpp
     fboss/agent/hw/bcm/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/BcmPortTable.cpp
