@@ -50,9 +50,6 @@ using folly::IPAddressV6;
 
 namespace {
 
-// Interface route client ID
-const auto kIntfRouteClient = ClientID::INTERFACE_ROUTE;
-
 // Platform mac address
 const folly::MacAddress kPlatformMac("02:01:02:03:04:05");
 const folly::MacAddress kEmptyMac("00:00:00:00:00:00");
