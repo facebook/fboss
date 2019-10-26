@@ -12,6 +12,8 @@
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 namespace {
 constexpr auto kQueues = "queues";
 constexpr auto kRxReasonToQueue = "rxReasonToQueue";
@@ -30,10 +32,9 @@ folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   controlPlane[kRxReasonToQueue] = folly::dynamic::object;
 
   for (const auto& reasonToQueue : rxReasonToQueue) {
-    auto reason =
-        cfg::_PacketRxReason_VALUES_TO_NAMES.find(reasonToQueue.first);
-    CHECK(reason != cfg::_PacketRxReason_VALUES_TO_NAMES.end());
-    controlPlane[kRxReasonToQueue][reason->second] = reasonToQueue.second;
+    auto reason = apache::thrift::util::enumName(reasonToQueue.first);
+    CHECK(reason != nullptr);
+    controlPlane[kRxReasonToQueue][reason] = reasonToQueue.second;
   }
 
   if (qosPolicy) {

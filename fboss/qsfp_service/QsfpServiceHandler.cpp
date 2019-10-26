@@ -1,6 +1,8 @@
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook { namespace fboss {
 
@@ -33,7 +35,7 @@ void QsfpServiceHandler::customizeTransceiver(int32_t idx,
     cfg::PortSpeed speed) {
   auto log = LOG_THRIFT_CALL(INFO);
   XLOG(INFO) << "customizeTransceiver request for " << idx << " to speed "
-             << cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second;
+             << apache::thrift::util::enumNameSafe(speed);
   manager_->customizeTransceiver(idx, speed);
 }
 

@@ -9,25 +9,6 @@
  */
 #include "fboss/agent/SwSwitch.h"
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-#include <thrift/lib/cpp2/async/RequestChannel.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
-#include <fb303/ServiceData.h>
-#include <folly/Demangle.h>
-#include <folly/FileUtil.h>
-#include <folly/GLog.h>
-#include <folly/MacAddress.h>
-#include <folly/MapUtil.h>
-#include <folly/SocketAddress.h>
-#include <folly/String.h>
-#include <folly/logging/xlog.h>
-#include <folly/system/ThreadName.h>
-#include <glog/logging.h>
-#include <chrono>
-#include <condition_variable>
-#include <exception>
-#include <tuple>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
@@ -66,6 +47,27 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_constants.h"
+
+#include <fb303/ServiceData.h>
+#include <folly/Demangle.h>
+#include <folly/FileUtil.h>
+#include <folly/GLog.h>
+#include <folly/MacAddress.h>
+#include <folly/MapUtil.h>
+#include <folly/SocketAddress.h>
+#include <folly/String.h>
+#include <folly/logging/xlog.h>
+#include <folly/system/ThreadName.h>
+#include <glog/logging.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
+#include <thrift/lib/cpp2/async/RequestChannel.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
+#include <chrono>
+#include <condition_variable>
+#include <exception>
+#include <tuple>
 
 using folly::EventBase;
 using folly::SocketAddress;
@@ -1513,7 +1515,7 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 
 std::string SwSwitch::switchRunStateStr(
     facebook::fboss::SwitchRunState runState) const {
-  return _SwitchRunState_VALUES_TO_NAMES.find(runState)->second;
+  return apache::thrift::util::enumNameSafe(runState);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
@@ -1526,12 +1528,9 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
   }
 
   if (XLOG_IS_ON(DBG3)) {
-    auto clientName = folly::get_default(
-        _ClientID_VALUES_TO_NAMES, ClientID(clientId), "UNKNOWN");
-    auto distanceString = folly::get_default(
-        _AdminDistance_VALUES_TO_NAMES,
-        static_cast<AdminDistance>(distance->second),
-        "UNKNOWN");
+    auto clientName = apache::thrift::util::enumNameSafe(ClientID(clientId));
+    auto distanceString = apache::thrift::util::enumNameSafe(
+        static_cast<AdminDistance>(distance->second));
     XLOG(DBG3) << "Mapping client id " << clientId << " (" << clientName
                << ") to admin distance " << distance->second << " ("
                << distanceString << ").";

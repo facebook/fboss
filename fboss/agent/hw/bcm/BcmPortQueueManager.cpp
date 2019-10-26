@@ -13,7 +13,8 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include "folly/logging/xlog.h"
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook {
 namespace fboss {
@@ -60,7 +61,7 @@ int BcmPortQueueManager::getNumQueues(cfg::StreamType streamType) const {
   }
   throw FbossError(
       "Failed to retrieve queue size because unknown StreamType",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
 }
 
 opennsl_gport_t BcmPortQueueManager::getQueueGPort(
@@ -73,7 +74,7 @@ opennsl_gport_t BcmPortQueueManager::getQueueGPort(
   }
   throw FbossError(
       "Failed to retrieve queue gport because unknown StreamType: ",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
 }
 
 BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
