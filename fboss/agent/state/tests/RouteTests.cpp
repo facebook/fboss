@@ -1894,7 +1894,7 @@ TEST(Route, fwdInfoRanking) {
       rid,
       IPAddress("10.10.0.0"),
       16,
-      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+      ClientID::INTERFACE_ROUTE,
       RouteNextHopEntry(
           ResolvedNextHop(
               IPAddress("10.10.0.1"), InterfaceID(9), UCMP_DEFAULT_WEIGHT),
@@ -2419,7 +2419,7 @@ TEST(Route, unresolvedWithRouteLabels) {
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   tables = updater.updateDone();
@@ -2430,9 +2430,7 @@ TEST(Route, unresolvedWithRouteLabels) {
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
   EXPECT_EQ(
-      route->has(
-          StdClientIds2ClientID(StdClientIds::BGPD),
-          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, DISTANCE)),
       true);
 
   EXPECT_FALSE(route->isResolved());
@@ -2463,7 +2461,7 @@ TEST(Route, withTunnelAndRouteLabels) {
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   std::vector<ResolvedNextHop> igpNextHops;
@@ -2484,7 +2482,7 @@ TEST(Route, withTunnelAndRouteLabels) {
         rid,
         kBgpNextHopAddrs[i],
         64,
-        StdClientIds2ClientID(StdClientIds::OPENR),
+        ClientID::OPENR,
         RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
   }
 
@@ -2496,9 +2494,7 @@ TEST(Route, withTunnelAndRouteLabels) {
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
   EXPECT_EQ(
-      route->has(
-          StdClientIds2ClientID(StdClientIds::BGPD),
-          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, DISTANCE)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -2549,7 +2545,7 @@ TEST(Route, withOnlyTunnelLabels) {
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   std::vector<ResolvedNextHop> igpNextHops;
@@ -2570,7 +2566,7 @@ TEST(Route, withOnlyTunnelLabels) {
         rid,
         kBgpNextHopAddrs[i],
         64,
-        StdClientIds2ClientID(StdClientIds::OPENR),
+        ClientID::OPENR,
         RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
   }
 
@@ -2582,9 +2578,7 @@ TEST(Route, withOnlyTunnelLabels) {
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
   EXPECT_EQ(
-      route->has(
-          StdClientIds2ClientID(StdClientIds::BGPD),
-          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, DISTANCE)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -2637,7 +2631,7 @@ TEST(Route, updateTunnelLabels) {
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   ResolvedNextHop igpNextHop{
@@ -2653,7 +2647,7 @@ TEST(Route, updateTunnelLabels) {
       rid,
       kBgpNextHopAddrs[0],
       64,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
 
   tables = updater.updateDone();
@@ -2670,13 +2664,12 @@ TEST(Route, updateTunnelLabels) {
                                             kLabelStacks[1].begin() + 3})};
 
   RouteUpdater anotherUpdater(tables);
-  anotherUpdater.delRoute(
-      rid, kBgpNextHopAddrs[0], 64, StdClientIds2ClientID(StdClientIds::OPENR));
+  anotherUpdater.delRoute(rid, kBgpNextHopAddrs[0], 64, ClientID::OPENR);
   anotherUpdater.addRoute(
       rid,
       kBgpNextHopAddrs[0],
       64,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       RouteNextHopEntry(updatedIgpNextHop, AdminDistance::DIRECTLY_CONNECTED));
 
   tables = anotherUpdater.updateDone();
@@ -2692,9 +2685,7 @@ TEST(Route, updateTunnelLabels) {
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
   EXPECT_EQ(
-      route->has(
-          StdClientIds2ClientID(StdClientIds::BGPD),
-          RouteNextHopEntry(bgpNextHops, DISTANCE)),
+      route->has(ClientID::BGPD, RouteNextHopEntry(bgpNextHops, DISTANCE)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -2733,7 +2724,7 @@ TEST(Route, updateRouteLabels) {
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   ResolvedNextHop igpNextHop{
@@ -2749,7 +2740,7 @@ TEST(Route, updateRouteLabels) {
       rid,
       kBgpNextHopAddrs[0],
       64,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
 
   tables = updater.updateDone();
@@ -2765,17 +2756,13 @@ TEST(Route, updateRouteLabels) {
                                             kLabelStacks[1].begin() + 2})};
 
   RouteUpdater anotherUpdater(tables);
-  anotherUpdater.delRoute(
-      rid,
-      kPrefix.network,
-      kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD));
+  anotherUpdater.delRoute(rid, kPrefix.network, kPrefix.mask, ClientID::BGPD);
 
   anotherUpdater.addRoute(
       rid,
       kPrefix.network,
       kPrefix.mask,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       RouteNextHopEntry(updatedBgpNextHop, DISTANCE));
 
   tables = anotherUpdater.updateDone();
@@ -2792,8 +2779,7 @@ TEST(Route, updateRouteLabels) {
 
   EXPECT_EQ(
       route->has(
-          StdClientIds2ClientID(StdClientIds::BGPD),
-          RouteNextHopEntry(updatedBgpNextHop, DISTANCE)),
+          ClientID::BGPD, RouteNextHopEntry(updatedBgpNextHop, DISTANCE)),
       true);
 
   EXPECT_TRUE(route->isResolved());

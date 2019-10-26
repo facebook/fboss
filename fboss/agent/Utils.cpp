@@ -106,15 +106,15 @@ std::string getLocalHostname() {
   return hostname;
 }
 
-std::vector<ClientID> StdClientIds2AllClientIDs() {
+std::vector<ClientID> AllClientIDs() {
   return std::vector<ClientID>{
-      StdClientIds2ClientID(StdClientIds::BGPD),
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
-      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
-      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
-      StdClientIds2ClientID(StdClientIds::NETLINK_LISTENER),
-      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::BGPD,
+      ClientID::STATIC_ROUTE,
+      ClientID::INTERFACE_ROUTE,
+      ClientID::LINKLOCAL_ROUTE,
+      ClientID::NETLINK_LISTENER,
+      ClientID::STATIC_INTERNAL,
+      ClientID::OPENR,
   };
 }
 } // namespace fboss

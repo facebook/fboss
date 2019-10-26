@@ -27,7 +27,7 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using std::make_shared;
 
-auto kStaticClient = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
+auto kStaticClient = ClientID::STATIC_ROUTE;
 
 TEST(StaticRoutes, configureUnconfigure) {
   auto platform = createMockPlatform();

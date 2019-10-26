@@ -81,14 +81,7 @@ void incNiceValue(const uint32_t increment);
  */
 bool dumpStateToFile(const std::string& filename, const folly::dynamic& json);
 
-/*
- * StdClientIds to ClientID
- */
-static inline ClientID StdClientIds2ClientID(StdClientIds id) {
-  return ClientID{static_cast<uint32_t>(id)};
-}
-
-std::vector<ClientID> StdClientIds2AllClientIDs();
+std::vector<ClientID> AllClientIDs();
 
 /*
  * Report our hostname

@@ -22,7 +22,7 @@ using FbossClient = std::unique_ptr<FbossCtrlAsyncClient>;
 class NetlinkManager {
  public:
   const static int FBOSS_CLIENT_ID =
-      static_cast<int>(StdClientIds::NETLINK_LISTENER);
+      static_cast<int>(ClientID::NETLINK_LISTENER);
   NetlinkManager(folly::EventBase* eb);
   void run();
   struct nl_sock* getNetlinkSocket() const;

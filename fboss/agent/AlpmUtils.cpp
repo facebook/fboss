@@ -46,14 +46,14 @@ std::shared_ptr<SwitchState> setupAlpmState(
       RouterID(0),
       folly::IPAddressV4("0.0.0.0"),
       0,
-      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
+      ClientID::STATIC_INTERNAL,
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   updater.addRoute(
       RouterID(0),
       folly::IPAddressV6("::"),
       0,
-      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
+      ClientID::STATIC_INTERNAL,
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   auto newRt = updater.updateDone();

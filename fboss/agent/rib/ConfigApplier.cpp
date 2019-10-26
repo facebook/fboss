@@ -49,19 +49,18 @@ void ConfigApplier::updateRibAndFib() {
   updater.addRoute(
       folly::IPAddressV4("0.0.0.0"),
       0,
-      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
+      ClientID::STATIC_INTERNAL,
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
   updater.addRoute(
       folly::IPAddressV6("::"),
       0,
-      StdClientIds2ClientID(StdClientIds::STATIC_INTERNAL),
+      ClientID::STATIC_INTERNAL,
       RouteNextHopEntry(
           RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
   // Update static routes
-  updater.removeAllRoutesForClient(
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
+  updater.removeAllRoutesForClient(ClientID::STATIC_ROUTE);
 
   for (const auto& staticRoute : staticCpuRouteRange_) {
     if (RouterID(staticRoute.routerID) != vrf_) {
@@ -72,7 +71,7 @@ void ConfigApplier::updateRibAndFib() {
     updater.addRoute(
         prefix.first,
         prefix.second,
-        StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+        ClientID::STATIC_ROUTE,
         RouteNextHopEntry::createToCpu());
   }
   for (const auto& staticRoute : staticDropRouteRange_) {
@@ -84,7 +83,7 @@ void ConfigApplier::updateRibAndFib() {
     updater.addRoute(
         prefix.first,
         prefix.second,
-        StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+        ClientID::STATIC_ROUTE,
         RouteNextHopEntry::createDrop());
   }
   for (const auto& staticRoute : staticRouteRange_) {
@@ -96,13 +95,12 @@ void ConfigApplier::updateRibAndFib() {
     updater.addRoute(
         prefix.first,
         prefix.second,
-        StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+        ClientID::STATIC_ROUTE,
         RouteNextHopEntry::fromStaticRoute(staticRoute));
   }
 
   // Update interface routes
-  updater.removeAllRoutesForClient(
-      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE));
+  updater.removeAllRoutesForClient(ClientID::INTERFACE_ROUTE);
   addInterfaceRoutes(&updater, directlyConnectedRouteRange_);
 
   // Add link-local routes

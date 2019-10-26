@@ -66,14 +66,14 @@ class RouteUpdateLoggerTest : public ::testing::Test {
         RouterID(0),
         folly::IPAddressV4("0.0.0.0"),
         0,
-        StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+        ClientID::STATIC_ROUTE,
         RouteNextHopEntry(
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
     updater.addRoute(
         RouterID(0),
         folly::IPAddressV6("::"),
         0,
-        StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+        ClientID::STATIC_ROUTE,
         RouteNextHopEntry(
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
     auto newRt = updater.updateDone();

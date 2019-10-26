@@ -428,7 +428,7 @@ struct LinkNeighborThrift {
   15: optional string localPortName
 }
 
-enum StdClientIds {
+enum ClientID {
   BGPD = 0,
   STATIC_ROUTE = 1,
   INTERFACE_ROUTE = 2,

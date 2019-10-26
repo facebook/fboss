@@ -1487,7 +1487,7 @@ void ThriftHandler::addMplsRoutesImpl(
     }
     auto adminDistance = mplsRoute.adminDistance_ref().has_value()
         ? mplsRoute.adminDistance_ref().value()
-        : sw_->clientIdToAdminDistance(ClientID(clientId));
+        : sw_->clientIdToAdminDistance(static_cast<int>(clientId));
     LabelNextHopSet nexthops = util::toRouteNextHopSet(mplsRoute.nextHops);
     // validate top label
     labelFib = labelFib->programLabel(

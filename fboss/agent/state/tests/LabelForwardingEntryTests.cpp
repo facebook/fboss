@@ -24,19 +24,19 @@ TEST(LabelForwardingEntryTests, ToFromDynamic) {
   std::array<std::shared_ptr<LabelForwardingEntry>, 4> entries{
       std::make_shared<LabelForwardingEntry>(
           5001,
-          StdClientIds2ClientID(StdClientIds::OPENR),
+          ClientID::OPENR,
           util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)),
       std::make_shared<LabelForwardingEntry>(
           5001,
-          StdClientIds2ClientID(StdClientIds::OPENR),
+          ClientID::OPENR,
           util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)),
       std::make_shared<LabelForwardingEntry>(
           5001,
-          StdClientIds2ClientID(StdClientIds::OPENR),
+          ClientID::OPENR,
           util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)),
       std::make_shared<LabelForwardingEntry>(
           5001,
-          StdClientIds2ClientID(StdClientIds::OPENR),
+          ClientID::OPENR,
           util::getPopLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED))};
   for (const auto& entry : entries) {
     testToAndFromDynamic(entry);
@@ -44,21 +44,21 @@ TEST(LabelForwardingEntryTests, ToFromDynamic) {
 }
 
 TEST(LabelForwardingEntryTests, getEntryForClient) {
-  std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
+  std::map<ClientID, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-          {StdClientIds::OPENR,
+          {ClientID::OPENR,
            [](AdminDistance distance) {
              return util::getSwapLabelNextHopEntry(distance);
            }},
-          {StdClientIds::BGPD,
+          {ClientID::BGPD,
            [](AdminDistance distance) {
              return util::getPushLabelNextHopEntry(distance);
            }},
-          {StdClientIds::STATIC_ROUTE,
+          {ClientID::STATIC_ROUTE,
            [](AdminDistance distance) {
              return util::getPhpLabelNextHopEntry(distance);
            }},
-          {StdClientIds::INTERFACE_ROUTE,
+          {ClientID::INTERFACE_ROUTE,
            [](AdminDistance distance) {
              return util::getPopLabelNextHopEntry(distance);
            }},
@@ -66,38 +66,32 @@ TEST(LabelForwardingEntryTests, getEntryForClient) {
 
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      clientNextHopsEntry[StdClientIds::OPENR](
-          AdminDistance::DIRECTLY_CONNECTED));
+      ClientID::OPENR,
+      clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED));
 
-  for (auto stdClientId : {StdClientIds::BGPD,
-                           StdClientIds::STATIC_ROUTE,
-                           StdClientIds::INTERFACE_ROUTE}) {
+  for (auto clientID :
+       {ClientID::BGPD, ClientID::STATIC_ROUTE, ClientID::INTERFACE_ROUTE}) {
     entry->update(
-        StdClientIds2ClientID(stdClientId),
-        clientNextHopsEntry[stdClientId](AdminDistance::DIRECTLY_CONNECTED));
+        clientID,
+        clientNextHopsEntry[clientID](AdminDistance::DIRECTLY_CONNECTED));
   }
 
   for (const auto clientNextHop : clientNextHopsEntry) {
-    auto* nexthopEntry =
-        entry->getEntryForClient(StdClientIds2ClientID(clientNextHop.first));
+    auto* nexthopEntry = entry->getEntryForClient(clientNextHop.first);
     EXPECT_EQ(
         *nexthopEntry, clientNextHop.second(AdminDistance::DIRECTLY_CONNECTED));
   }
-  EXPECT_EQ(
-      nullptr,
-      entry->getEntryForClient(
-          StdClientIds2ClientID(StdClientIds::NETLINK_LISTENER)));
+  EXPECT_EQ(nullptr, entry->getEntryForClient(ClientID::NETLINK_LISTENER));
 }
 
 TEST(LabelForwardingEntryTests, delEntryForClient) {
-  std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
+  std::map<ClientID, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-          {StdClientIds::OPENR,
+          {ClientID::OPENR,
            [](AdminDistance distance) {
              return util::getSwapLabelNextHopEntry(distance);
            }},
-          {StdClientIds::BGPD,
+          {ClientID::BGPD,
            [](AdminDistance distance) {
              return util::getPushLabelNextHopEntry(distance);
            }},
@@ -105,40 +99,36 @@ TEST(LabelForwardingEntryTests, delEntryForClient) {
 
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      clientNextHopsEntry[StdClientIds::OPENR](
-          AdminDistance::DIRECTLY_CONNECTED));
+      ClientID::OPENR,
+      clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED));
   entry->update(
-      StdClientIds2ClientID(StdClientIds::BGPD),
-      clientNextHopsEntry[StdClientIds::BGPD](
-          AdminDistance::DIRECTLY_CONNECTED));
+      ClientID::BGPD,
+      clientNextHopsEntry[ClientID::BGPD](AdminDistance::DIRECTLY_CONNECTED));
 
-  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::OPENR));
+  entry->delEntryForClient(ClientID::OPENR);
 
-  EXPECT_EQ(
-      nullptr,
-      entry->getEntryForClient(StdClientIds2ClientID(StdClientIds::OPENR)));
+  EXPECT_EQ(nullptr, entry->getEntryForClient(ClientID::OPENR));
   EXPECT_EQ(
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED),
-      *(entry->getEntryForClient(StdClientIds2ClientID(StdClientIds::BGPD))));
+      *(entry->getEntryForClient(ClientID::BGPD)));
 }
 
 TEST(LabelForwardingEntryTests, getBestEntry) {
-  std::map<StdClientIds, std::function<LabelNextHopEntry(AdminDistance)>>
+  std::map<ClientID, std::function<LabelNextHopEntry(AdminDistance)>>
       clientNextHopsEntry{
-          {StdClientIds::OPENR,
+          {ClientID::OPENR,
            [](AdminDistance distance) {
              return util::getSwapLabelNextHopEntry(distance);
            }},
-          {StdClientIds::BGPD,
+          {ClientID::BGPD,
            [](AdminDistance distance) {
              return util::getPushLabelNextHopEntry(distance);
            }},
-          {StdClientIds::STATIC_ROUTE,
+          {ClientID::STATIC_ROUTE,
            [](AdminDistance distance) {
              return util::getPhpLabelNextHopEntry(distance);
            }},
-          {StdClientIds::INTERFACE_ROUTE,
+          {ClientID::INTERFACE_ROUTE,
            [](AdminDistance distance) {
              return util::getPopLabelNextHopEntry(distance);
            }},
@@ -146,36 +136,32 @@ TEST(LabelForwardingEntryTests, getBestEntry) {
 
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      clientNextHopsEntry[StdClientIds::OPENR](
-          AdminDistance::DIRECTLY_CONNECTED));
+      ClientID::OPENR,
+      clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED));
 
-  for (auto stdClientId : {StdClientIds::BGPD,
-                           StdClientIds::STATIC_ROUTE,
-                           StdClientIds::INTERFACE_ROUTE}) {
+  for (auto clientID :
+       {ClientID::BGPD, ClientID::STATIC_ROUTE, ClientID::INTERFACE_ROUTE}) {
     entry->update(
-        StdClientIds2ClientID(stdClientId),
-        clientNextHopsEntry[stdClientId](AdminDistance::DIRECTLY_CONNECTED));
+        clientID,
+        clientNextHopsEntry[clientID](AdminDistance::DIRECTLY_CONNECTED));
   }
 
   EXPECT_EQ(
-      clientNextHopsEntry[StdClientIds::OPENR](
-          AdminDistance::DIRECTLY_CONNECTED),
+      clientNextHopsEntry[ClientID::OPENR](AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
 
-  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::OPENR));
+  entry->delEntryForClient(ClientID::OPENR);
   EXPECT_EQ(
-      clientNextHopsEntry[StdClientIds::BGPD](
+      clientNextHopsEntry[ClientID::BGPD](AdminDistance::DIRECTLY_CONNECTED),
+      entry->getLabelNextHop());
+  entry->delEntryForClient(ClientID::BGPD);
+  EXPECT_EQ(
+      clientNextHopsEntry[ClientID::STATIC_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
-  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::BGPD));
+  entry->delEntryForClient(ClientID::STATIC_ROUTE);
   EXPECT_EQ(
-      clientNextHopsEntry[StdClientIds::STATIC_ROUTE](
-          AdminDistance::DIRECTLY_CONNECTED),
-      entry->getLabelNextHop());
-  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::STATIC_ROUTE));
-  EXPECT_EQ(
-      clientNextHopsEntry[StdClientIds::INTERFACE_ROUTE](
+      clientNextHopsEntry[ClientID::INTERFACE_ROUTE](
           AdminDistance::DIRECTLY_CONNECTED),
       entry->getLabelNextHop());
 }
@@ -185,7 +171,7 @@ TEST(LabelForwardingEntryTests, modify) {
   auto lFib = std::make_shared<LabelForwardingInformationBase>();
   lFib->addNode(std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
 
   auto newState = oldState->clone();
@@ -221,7 +207,7 @@ TEST(LabelForwardingEntryTests, modify) {
 TEST(LabelForwardingEntryTests, HasLabelNextHop) {
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   const auto& nexthop = entry->getLabelNextHop();
   EXPECT_NE(nexthop.getNextHopSet().size(), 0);

@@ -35,8 +35,7 @@ namespace fboss {
 namespace rib {
 
 static const PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
-static const auto kInterfaceRouteClientId =
-    StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
+static const auto kInterfaceRouteClientId = ClientID::INTERFACE_ROUTE;
 
 RouteUpdater::RouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
@@ -92,11 +91,7 @@ void RouteUpdater::addInterfaceRoute(
   ResolvedNextHop resolvedNextHop(address, interface, UCMP_DEFAULT_WEIGHT);
   RouteNextHopEntry nextHop(resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
 
-  addRoute(
-      network,
-      mask,
-      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
-      nextHop);
+  addRoute(network, mask, ClientID::INTERFACE_ROUTE, nextHop);
 }
 
 void RouteUpdater::addLinkLocalRoutes() {
@@ -105,16 +100,13 @@ void RouteUpdater::addLinkLocalRoutes() {
   addRouteImpl(
       kIPv6LinkLocalPrefix,
       v6Routes_,
-      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
+      ClientID::LINKLOCAL_ROUTE,
       RouteNextHopEntry(
           RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
 }
 
 void RouteUpdater::delLinkLocalRoutes() {
-  delRouteImpl(
-      kIPv6LinkLocalPrefix,
-      v6Routes_,
-      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE));
+  delRouteImpl(kIPv6LinkLocalPrefix, v6Routes_, ClientID::LINKLOCAL_ROUTE);
 }
 
 template <typename AddressT>
@@ -133,7 +125,7 @@ void RouteUpdater::delRouteImpl(
   route.delEntryForClient(clientID);
 
   XLOG(DBG3) << "Deleted next-hops for prefix " << prefix.str()
-             << "from client " << clientID;
+             << "from client " << folly::to<std::string>(clientID);
 
   if (route.hasNoEntry()) {
     XLOG(DBG3) << "...and then deleted route " << route.str();

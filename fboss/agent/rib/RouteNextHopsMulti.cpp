@@ -51,7 +51,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
   std::vector<ClientAndNextHops> list;
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
-    destPair.clientId = srcPair.first;
+    destPair.clientId = static_cast<int>(srcPair.first);
     for (const auto& nh : srcPair.second.getNextHopSet()) {
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
       if (nh.intfID().hasValue()) {
@@ -68,10 +68,11 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
 std::string RouteNextHopsMulti::str() const {
   std::string ret = "";
   for (auto const& row : map_) {
-    int clientid = row.first;
+    ClientID clientid = row.first;
     RouteNextHopSet const& nxtHps = row.second.getNextHopSet();
 
-    ret.append(folly::to<std::string>("(client#", clientid, ": "));
+    ret.append(folly::to<std::string>(
+        "(client#", folly::to<std::string>(clientid), ": "));
     for (const auto& nh : nxtHps) {
       ret.append(folly::to<std::string>(nh.str(), ", "));
     }

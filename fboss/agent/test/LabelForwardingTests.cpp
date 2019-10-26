@@ -36,8 +36,8 @@ class LabelForwardingTest : public ::testing::Test {
 
 TEST_F(LabelForwardingTest, addMplsRoutes) {
   std::array<ClientID, 2> clients{
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::OPENR,
+      ClientID::BGPD,
   };
   std::array<std::vector<MplsRoute>, 2> routes{
       util::getTestRoutes(0, 4),
@@ -46,7 +46,8 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
 
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
-        clients[i], std::make_unique<std::vector<MplsRoute>>(routes[i]));
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
   waitForStateUpdates(sw);
@@ -69,8 +70,8 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
 
 TEST_F(LabelForwardingTest, deleteMplsRoutes) {
   std::array<ClientID, 2> clients{
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::OPENR,
+      ClientID::BGPD,
   };
   std::array<std::vector<MplsRoute>, 2> routes{
       util::getTestRoutes(0, 4),
@@ -79,7 +80,8 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
 
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
-        clients[i], std::make_unique<std::vector<MplsRoute>>(routes[i]));
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
   waitForStateUpdates(sw);
@@ -96,7 +98,7 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
   }
   for (auto i = 0; i < 2; i++) {
     thriftHandler->deleteMplsRoutes(
-        clients[i],
+        static_cast<int>(clients[i]),
         std::make_unique<std::vector<MplsLabel>>(routesToRemove[i]));
   }
 
@@ -122,8 +124,8 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
 
 TEST_F(LabelForwardingTest, syncMplsFib) {
   std::array<ClientID, 2> clients{
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::OPENR,
+      ClientID::BGPD,
   };
   std::array<std::vector<MplsRoute>, 2> routes{
       util::getTestRoutes(0, 4),
@@ -132,14 +134,16 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
 
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
-        clients[i], std::make_unique<std::vector<MplsRoute>>(routes[i]));
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(routes[i]));
   }
 
   waitForStateUpdates(sw);
 
   auto moreOpenrRoutes = util::getTestRoutes(8, 4);
   thriftHandler->addMplsRoutes(
-      clients[0], std::make_unique<std::vector<MplsRoute>>(moreOpenrRoutes));
+      static_cast<int>(clients[0]),
+      std::make_unique<std::vector<MplsRoute>>(moreOpenrRoutes));
 
   waitForStateUpdates(sw);
 
@@ -165,7 +169,7 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
   }
 
   thriftHandler->syncMplsFib(
-      clients[0],
+      static_cast<int>(clients[0]),
       std::make_unique<std::vector<MplsRoute>>(
           std::begin(routes[0]), std::begin(routes[0]) + 4));
 
@@ -194,8 +198,8 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
 
 TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
   std::array<ClientID, 2> clients{
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::OPENR,
+      ClientID::BGPD,
   };
   std::array<std::vector<MplsRoute>, 2> inRoutes{
       util::getTestRoutes(0, 4),
@@ -210,13 +214,15 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
     std::sort(inRoutes[i].begin(), inRoutes[i].end(), sortByLabel);
 
     thriftHandler->addMplsRoutes(
-        clients[i], std::make_unique<std::vector<MplsRoute>>(inRoutes[i]));
+        static_cast<int>(clients[i]),
+        std::make_unique<std::vector<MplsRoute>>(inRoutes[i]));
   }
 
   std::array<std::vector<MplsRoute>, 2> outRoutes;
 
   for (auto i = 0; i < 2; i++) {
-    thriftHandler->getMplsRouteTableByClient(outRoutes[i], clients[i]);
+    thriftHandler->getMplsRouteTableByClient(
+        outRoutes[i], static_cast<int>(clients[i]));
     std::sort(outRoutes[i].begin(), outRoutes[i].end(), sortByLabel);
   }
 

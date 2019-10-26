@@ -1618,7 +1618,7 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
           table.first,
           addr,
           len,
-          StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+          ClientID::INTERFACE_ROUTE,
           RouteNextHopEntry(
               std::move(nhop), AdminDistance::DIRECTLY_CONNECTED));
     }
@@ -1647,10 +1647,7 @@ shared_ptr<RouteTableMap> ThriftConfigApplier::updateInterfaceRoutes() {
       }
       if (!found) {
         updater.delRoute(
-            id,
-            addr.first,
-            addr.second,
-            StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE));
+            id, addr.first, addr.second, ClientID::INTERFACE_ROUTE);
       }
     }
   }
@@ -1708,7 +1705,7 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
   // RouteUpdater should be able to handle nullptr and convert that into
   // into RouteTableMap. Investigate why we shouldn't do that TODO(krishnakn)
   RouteUpdater updater(routes);
-  auto staticClientId = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
+  auto staticClientId = ClientID::STATIC_ROUTE;
   auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
   updater.removeAllRoutesForClient(RouterID(0), staticClientId);
 

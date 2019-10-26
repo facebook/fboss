@@ -40,8 +40,7 @@ namespace fboss {
 static const RouteUpdater::PrefixV6 kIPv6LinkLocalPrefix{
     folly::IPAddressV6("fe80::"),
     64};
-static const auto kInterfaceRouteClientId =
-    StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE);
+static const auto kInterfaceRouteClientId = ClientID::INTERFACE_ROUTE;
 
 using std::make_shared;
 
@@ -165,17 +164,14 @@ void RouteUpdater::addLinkLocalRoutes(RouterID id) {
   addRouteImpl(
       kIPv6LinkLocalPrefix,
       getRibV6(id),
-      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE),
+      ClientID::LINKLOCAL_ROUTE,
       RouteNextHopEntry(
           RouteForwardAction::TO_CPU, AdminDistance::DIRECTLY_CONNECTED));
 }
 
 void RouteUpdater::delLinkLocalRoutes(RouterID id) {
   // Delete v6 link-local route
-  delRouteImpl(
-      kIPv6LinkLocalPrefix,
-      getRibV6(id),
-      StdClientIds2ClientID(StdClientIds::LINKLOCAL_ROUTE));
+  delRouteImpl(kIPv6LinkLocalPrefix, getRibV6(id), ClientID::LINKLOCAL_ROUTE);
 }
 
 template <typename PrefixT, typename RibT>
@@ -206,8 +202,8 @@ void RouteUpdater::delRouteImpl(
   }
   old->delEntryForClient(clientId);
   // TODO Do I need to publish the change??
-  XLOG(DBG3) << "Deleted nexthops for client " << clientId << " from route "
-             << prefix.str();
+  XLOG(DBG3) << "Deleted nexthops for client " << static_cast<int>(clientId)
+             << " from route " << prefix.str();
   if (old->hasNoEntry()) {
     rib->removeRoute(old);
     XLOG(DBG3) << "...and then deleted route " << prefix.str();

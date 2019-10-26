@@ -1056,7 +1056,7 @@ struct SwitchConfig {
   17: i32 staleEntryInterval = 10
   18: list<AggregatePort> aggregatePorts = []
   // What admin distance to use for each potential clientID
-  // These mappings map a StdClientIds to a AdminDistance
+  // These mappings map a ClientID to a AdminDistance
   // Predefined values for these can be found at
   // fboss/agent/if/ctrl.thrift
   19: map<i32, i32> clientIdToAdminDistance = {

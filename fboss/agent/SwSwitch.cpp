@@ -1527,7 +1527,7 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
 
   if (XLOG_IS_ON(DBG3)) {
     auto clientName = folly::get_default(
-        _StdClientIds_VALUES_TO_NAMES, StdClientIds(clientId), "UNKNOWN");
+        _ClientID_VALUES_TO_NAMES, ClientID(clientId), "UNKNOWN");
     auto distanceString = folly::get_default(
         _AdminDistance_VALUES_TO_NAMES,
         static_cast<AdminDistance>(distance->second),

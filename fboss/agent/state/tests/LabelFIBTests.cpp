@@ -42,7 +42,7 @@ TEST(LabelFIBTests, addLabelForwardingEntry) {
 
   entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
   lFib->addNode(entry);
@@ -53,7 +53,7 @@ TEST(LabelFIBTests, removeLabelForwardingEntry) {
   auto lFib = std::make_shared<LabelForwardingInformationBase>();
   lFib->addNode(std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
   EXPECT_NE(nullptr, lFib->getLabelForwardingEntryIf(5001));
   lFib->removeNodeIf(5001);
@@ -65,7 +65,7 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
 
   lFib->addNode(std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
 
   EXPECT_NE(nullptr, lFib->getLabelForwardingEntryIf(5001));
@@ -73,9 +73,9 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
   auto entry = lFib->getLabelForwardingEntryIf(5001);
 
   entry->update(
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      ClientID::STATIC_ROUTE,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entry->delEntryForClient(StdClientIds2ClientID(StdClientIds::OPENR));
+  entry->delEntryForClient(ClientID::OPENR);
 
   lFib->updateNode(entry);
   auto updatedEntry = lFib->getLabelForwardingEntry(5001);
@@ -92,17 +92,17 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
 
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   lFib->addNode(entry);
 
   entry->update(
-      StdClientIds2ClientID(StdClientIds::STATIC_ROUTE),
+      ClientID::STATIC_ROUTE,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
   lFib->addNode(std::make_shared<LabelForwardingEntry>(
       5002,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED)));
 
   auto generated =
@@ -124,7 +124,7 @@ TEST(LabelFIBTests, forEachAdded) {
   labelFib = labelFib->clone();
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   labelFib->addNode(entry);
   auto newState = state->clone();
@@ -151,7 +151,7 @@ TEST(LabelFIBTests, forEachRemoved) {
   labelFib = labelFib->clone();
   auto entry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   labelFib->addNode(entry);
 
@@ -187,7 +187,7 @@ TEST(LabelFIBTests, forEachChanged) {
   labelFib = labelFib->clone();
   auto oldEntry = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   labelFib->addNode(oldEntry);
 
@@ -201,7 +201,7 @@ TEST(LabelFIBTests, forEachChanged) {
   auto newEntry = labelFib->getLabelForwardingEntry(5001);
   newEntry = newEntry->clone();
   newEntry->update(
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   labelFib->updateNode(newEntry);
 
@@ -229,11 +229,10 @@ TEST(LabelFIBTests, programLabel) {
   auto stateA = testStateA();
   auto entryToAdd = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
-  addOrUpdateEntryWithProgramLabel(
-      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToAdd.get());
+  addOrUpdateEntryWithProgramLabel(&stateA, ClientID::OPENR, entryToAdd.get());
   stateA->publish();
   auto entryAdded =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
@@ -245,55 +244,47 @@ TEST(LabelFIBTests, updateLabel) {
   auto stateA = testStateA();
   auto entryToAdd = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
-  addOrUpdateEntryWithProgramLabel(
-      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToAdd.get());
+  addOrUpdateEntryWithProgramLabel(&stateA, ClientID::OPENR, entryToAdd.get());
   stateA->publish();
 
   auto entryToUpdate = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
   /* updating entry for 5001 for OpenR */
   addOrUpdateEntryWithProgramLabel(
-      &stateA, StdClientIds2ClientID(StdClientIds::OPENR), entryToUpdate.get());
+      &stateA, ClientID::OPENR, entryToUpdate.get());
   auto entryUpdated =
       stateA->getLabelForwardingInformationBase()->getLabelForwardingEntry(
           5001);
 
   EXPECT_EQ(
-      *entryToUpdate->getEntryForClient(
-          StdClientIds2ClientID(StdClientIds::OPENR)),
-      *entryUpdated->getEntryForClient(
-          StdClientIds2ClientID(StdClientIds::OPENR)));
+      *entryToUpdate->getEntryForClient(ClientID::OPENR),
+      *entryUpdated->getEntryForClient(ClientID::OPENR));
 }
 
 TEST(LabelFIBTests, unprogramLabel) {
   auto stateA = testStateA();
   auto entryToAdd5001 = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5001.get());
+      &stateA, ClientID::OPENR, entryToAdd5001.get());
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5002.get());
+      &stateA, ClientID::OPENR, entryToAdd5002.get());
   stateA->publish();
 
-  removeEntryWithUnprogramLabel(
-      &stateA, 5002, StdClientIds2ClientID(StdClientIds::OPENR));
+  removeEntryWithUnprogramLabel(&stateA, 5002, ClientID::OPENR);
   stateA->publish();
 
   auto entry5001 =
@@ -311,27 +302,23 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
   auto stateA = testStateA();
   auto entryToAdd5001 = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   auto entryToAdd5003 = std::make_shared<LabelForwardingEntry>(
       5003,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
 
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5001.get());
+      &stateA, ClientID::OPENR, entryToAdd5001.get());
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5002.get());
+      &stateA, ClientID::OPENR, entryToAdd5002.get());
   addOrUpdateEntryWithProgramLabel(
-      &stateA, StdClientIds2ClientID(StdClientIds::BGPD), entryToAdd5003.get());
+      &stateA, ClientID::BGPD, entryToAdd5003.get());
 
   stateA->publish();
 
@@ -351,7 +338,7 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
 
   SwitchState::modify(&stateA);
   stateA->getLabelForwardingInformationBase()->purgeEntriesForClient(
-      &stateA, StdClientIds2ClientID(StdClientIds::OPENR));
+      &stateA, ClientID::OPENR);
 
   stateA->publish();
 
@@ -376,20 +363,16 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   // 1) open r adds 5001 (directly connected), and bgp adds 5002 (static route)
   auto entryToAdd5001 = std::make_shared<LabelForwardingEntry>(
       5001,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5001.get());
+      &stateA, ClientID::OPENR, entryToAdd5001.get());
   auto entryToAdd5002Bgp = std::make_shared<LabelForwardingEntry>(
       5002,
-      StdClientIds2ClientID(StdClientIds::BGPD),
+      ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::STATIC_ROUTE));
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::BGPD),
-      entryToAdd5002Bgp.get());
+      &stateA, ClientID::BGPD, entryToAdd5002Bgp.get());
   stateA->publish();
 
   auto entryAdded5001 =
@@ -406,13 +389,11 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   // 2) now open r adds for 5002 (directly connected)
   auto entryToAdd5002Openr = std::make_shared<LabelForwardingEntry>(
       5002,
-      StdClientIds2ClientID(StdClientIds::OPENR),
+      ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
   SwitchState::modify(&stateA);
   addOrUpdateEntryWithProgramLabel(
-      &stateA,
-      StdClientIds2ClientID(StdClientIds::OPENR),
-      entryToAdd5002Openr.get());
+      &stateA, ClientID::OPENR, entryToAdd5002Openr.get());
   stateA->publish();
 
   entryAdded5002 =
@@ -427,7 +408,7 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   // 4) purge entries open-r for now
   SwitchState::modify(&stateA);
   stateA->getLabelForwardingInformationBase()->purgeEntriesForClient(
-      &stateA, StdClientIds2ClientID(StdClientIds::OPENR));
+      &stateA, ClientID::OPENR);
   stateA->publish();
 
   // 5) check that oper-r only entry is deleted

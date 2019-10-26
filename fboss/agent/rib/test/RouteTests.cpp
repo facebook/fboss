@@ -672,7 +672,7 @@ TEST(Route, InterfaceAndStatic) {
     updater.updateDone();
   }
 
-  auto staticClientId = StdClientIds2ClientID(StdClientIds::STATIC_ROUTE);
+  auto staticClientId = ClientID::STATIC_ROUTE;
   auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
 
   RouteUpdater updater(&v4Routes, &v6Routes);
@@ -1105,7 +1105,7 @@ TEST(Route, fwdInfoRanking) {
   u1.addRoute(
       IPAddress("10.10.0.0"),
       16,
-      StdClientIds2ClientID(StdClientIds::INTERFACE_ROUTE),
+      ClientID::INTERFACE_ROUTE,
       RouteNextHopEntry(
           ResolvedNextHop(
               IPAddress("10.10.0.1"), InterfaceID(9), UCMP_DEFAULT_WEIGHT),
