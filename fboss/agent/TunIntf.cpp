@@ -359,8 +359,8 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
       }
     } // while
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Hit some error when forwarding packets :"
-              << folly::exceptionStr(ex);
+    XLOG_EVERY_MS(ERR, 1000) << "Hit some error when forwarding packets :"
+                             << folly::exceptionStr(ex);
   }
 
   if (fdFail) {
