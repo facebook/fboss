@@ -38,11 +38,11 @@ void LookupClassUpdater::removeNeighborFromLocalCache(
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::removeClassIDForPortAndMac(
+    const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* removedEntry) {
   auto portID = removedEntry->getPort().phyPortID();
-  // TODO(skhare) consume state from stateDelta instead
-  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  auto port = switchState->getPorts()->getPortIf(portID);
   auto updater = sw_->getNeighborUpdater();
 
   if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
@@ -77,11 +77,11 @@ void LookupClassUpdater::initPort(std::shared_ptr<Port> port) {
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::updateNeighborClassID(
+    const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* newEntry) {
   auto portID = newEntry->getPort().phyPortID();
-  // TODO(skhare) consume state from stateDelta instead
-  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  auto port = switchState->getPorts()->getPortIf(portID);
   auto updater = sw_->getNeighborUpdater();
 
   if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
@@ -117,25 +117,28 @@ void LookupClassUpdater::updateNeighborClassID(
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::processNeighborAdded(
+    const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* addedEntry) {
   CHECK(addedEntry);
 
   if (addedEntry->isReachable()) {
-    updateNeighborClassID(vlan, addedEntry);
+    updateNeighborClassID(switchState, vlan, addedEntry);
   }
 }
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::processNeighborRemoved(
+    const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* removedEntry) {
   CHECK(removedEntry);
-  removeClassIDForPortAndMac(vlan, removedEntry);
+  removeClassIDForPortAndMac(switchState, vlan, removedEntry);
 }
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::processNeighborChanged(
+    const StateDelta& stateDelta,
     VlanID vlan,
     const NeighborEntryT* oldEntry,
     const NeighborEntryT* newEntry) {
@@ -144,11 +147,11 @@ void LookupClassUpdater::processNeighborChanged(
   CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
 
   if (!oldEntry->isReachable() && newEntry->isReachable()) {
-    updateNeighborClassID(vlan, newEntry);
+    updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
   }
 
   if (oldEntry->isReachable() && !newEntry->isReachable()) {
-    removeClassIDForPortAndMac(vlan, oldEntry);
+    removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
   }
 
   /*
@@ -158,17 +161,17 @@ void LookupClassUpdater::processNeighborChanged(
   if ((oldEntry->isReachable() && newEntry->isReachable()) &&
       (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID() ||
        oldEntry->getMac() != newEntry->getMac())) {
-    removeClassIDForPortAndMac(vlan, oldEntry);
-    updateNeighborClassID(vlan, newEntry);
+    removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
+    updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
   }
 }
 
 template <typename NeighborEntryT>
 void LookupClassUpdater::updateStateObserverLocalCache(
+    const std::shared_ptr<SwitchState>& switchState,
     const NeighborEntryT* newEntry) {
   auto portID = newEntry->getPort().phyPortID();
-  // TODO(skhare) consume state from stateDelta instead
-  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  auto port = switchState->getPorts()->getPortIf(portID);
   auto& mac2ClassID = port2MacAndClassID_[portID];
   auto& classID2Count = port2ClassIDAndCount_[portID];
   auto classID = newEntry->getClassID().value();
@@ -208,16 +211,16 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
        * classID to populate this state observer's local cached value.
        */
       if (newEntry && newEntry->getClassID().hasValue()) {
-        updateStateObserverLocalCache(newEntry);
+        updateStateObserverLocalCache(stateDelta.newState(), newEntry);
         continue;
       }
 
       if (!oldEntry) {
-        processNeighborAdded(vlan, newEntry);
+        processNeighborAdded(stateDelta.newState(), vlan, newEntry);
       } else if (!newEntry) {
-        processNeighborRemoved(vlan, oldEntry);
+        processNeighborRemoved(stateDelta.oldState(), vlan, oldEntry);
       } else {
-        processNeighborChanged(vlan, oldEntry, newEntry);
+        processNeighborChanged(stateDelta, vlan, oldEntry, newEntry);
       }
     }
   }
@@ -225,7 +228,7 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
 
 template <typename AddrT>
 void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
-    const StateDelta& stateDelta,
+    const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
   using NeighborTableT = std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -233,12 +236,10 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       NdpTable>;
 
   auto updater = sw_->getNeighborUpdater();
-  auto newState = stateDelta.newState();
-  auto port = newState->getPorts()->getPortIf(portID);
+  auto port = switchState->getPorts()->getPortIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
-    // TODO(skhare) consume state from stateDelta instead
-    auto vlan = sw_->getState()->getVlans()->getVlanIf(vlanID);
+    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -255,18 +256,18 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
 }
 
 template <typename AddrT>
-void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(PortID portID) {
+void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
+    const std::shared_ptr<SwitchState>& switchState,
+    PortID portID) {
   using NeighborTableT = std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
-  // TODO(skhare) consume state from stateDelta instead
-  auto port = sw_->getState()->getPorts()->getPortIf(portID);
+  auto port = switchState->getPorts()->getPortIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
-    // TODO(skhare) consume state from stateDelta instead
-    auto vlan = sw_->getState()->getVlans()->getVlanIf(vlanID);
+    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -274,14 +275,14 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(PortID portID) {
     for (const auto& entry :
          *(vlan->template getNeighborTable<NeighborTableT>())) {
       if (entry->getPort().phyPortID() == portID) {
-        updateNeighborClassID(vlanID, entry.get());
+        updateNeighborClassID(switchState, vlanID, entry.get());
       }
     }
   }
 }
 
 void LookupClassUpdater::processPortAdded(
-    const StateDelta& /* unused */,
+    const std::shared_ptr<SwitchState>& /* unused */,
     std::shared_ptr<Port> addedPort) {
   CHECK(addedPort);
   if (addedPort->getLookupClassesToDistributeTrafficOn().size() == 0) {
@@ -296,10 +297,9 @@ void LookupClassUpdater::processPortAdded(
 }
 
 void LookupClassUpdater::processPortRemoved(
-    const StateDelta& stateDelta,
+    const std::shared_ptr<SwitchState>& switchState,
     std::shared_ptr<Port> removedPort) {
   CHECK(removedPort);
-  auto newState = stateDelta.newState();
   auto portID = removedPort->getID();
 
   /*
@@ -308,7 +308,7 @@ void LookupClassUpdater::processPortRemoved(
    */
   for (auto vlanMember : removedPort->getVlans()) {
     auto vlanID = vlanMember.first;
-    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
     if (!vlan) {
       continue;
     }
@@ -355,14 +355,16 @@ void LookupClassUpdater::processPortChanged(
   }
 
   clearClassIdsForResolvedNeighbors<folly::IPAddressV6>(
-      stateDelta, newPort->getID());
+      stateDelta.oldState(), newPort->getID());
   clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
-      stateDelta, newPort->getID());
+      stateDelta.oldState(), newPort->getID());
 
   initPort(newPort);
 
-  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV6>(newPort->getID());
-  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV4>(newPort->getID());
+  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV6>(
+      stateDelta.newState(), newPort->getID());
+  repopulateClassIdsForResolvedNeighbors<folly::IPAddressV4>(
+      stateDelta.newState(), newPort->getID());
 }
 
 void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
@@ -371,9 +373,13 @@ void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
     auto newPort = delta.getNew();
 
     if (!oldPort && newPort) {
-      processPortAdded(stateDelta, newPort);
+      processPortAdded(stateDelta.newState(), newPort);
     } else if (oldPort && !newPort) {
-      processPortRemoved(stateDelta, oldPort);
+      /*
+       * Asserts port being removed is not next hop for any neighbor.
+       * in the newState, thus we need to pass newState to PortRemove.
+       */
+      processPortRemoved(stateDelta.newState(), oldPort);
     } else {
       processPortChanged(stateDelta, oldPort, newPort);
     }

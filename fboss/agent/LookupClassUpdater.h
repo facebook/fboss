@@ -23,11 +23,18 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   void processNeighborUpdates(const StateDelta& stateDelta);
 
   template <typename NeighborEntryT>
-  void processNeighborAdded(VlanID vlan, const NeighborEntryT* addedEntry);
+  void processNeighborAdded(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlan,
+      const NeighborEntryT* addedEntry);
   template <typename NeighborEntryT>
-  void processNeighborRemoved(VlanID vlan, const NeighborEntryT* removedEntry);
+  void processNeighborRemoved(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlan,
+      const NeighborEntryT* removedEntry);
   template <typename NeighborEntryT>
   void processNeighborChanged(
+      const StateDelta& stateDelta,
       VlanID vlan,
       const NeighborEntryT* oldEntry,
       const NeighborEntryT* newEntry);
@@ -35,10 +42,14 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   void initPort(std::shared_ptr<Port> port);
 
   template <typename NeighborEntryT>
-  void updateNeighborClassID(VlanID vlan, const NeighborEntryT* newEntry);
+  void updateNeighborClassID(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlan,
+      const NeighborEntryT* newEntry);
 
   template <typename NeighborEntryT>
   void removeClassIDForPortAndMac(
+      const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
       const NeighborEntryT* removedEntry);
 
@@ -46,25 +57,29 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       ClassID2Count classID2Count) const;
 
   template <typename NeighborEntryT>
-  void updateStateObserverLocalCache(const NeighborEntryT* newEntry);
+  void updateStateObserverLocalCache(
+      const std::shared_ptr<SwitchState>& switchState,
+      const NeighborEntryT* newEntry);
 
   template <typename NeighborEntryT>
   void removeNeighborFromLocalCache(const NeighborEntryT* removedEntry);
 
   template <typename AddrT>
   void clearClassIdsForResolvedNeighbors(
-      const StateDelta& stateDelta,
+      const std::shared_ptr<SwitchState>& switchState,
       PortID portID);
   template <typename AddrT>
-  void repopulateClassIdsForResolvedNeighbors(PortID portID);
+  void repopulateClassIdsForResolvedNeighbors(
+      const std::shared_ptr<SwitchState>& switchState,
+      PortID portID);
 
   void processPortUpdates(const StateDelta& stateDelta);
 
   void processPortAdded(
-      const StateDelta& stateDelta,
+      const std::shared_ptr<SwitchState>& switchState,
       std::shared_ptr<Port> addedPort);
   void processPortRemoved(
-      const StateDelta& stateDelta,
+      const std::shared_ptr<SwitchState>& switchState,
       std::shared_ptr<Port> port);
   void processPortChanged(
       const StateDelta& stateDelta,
