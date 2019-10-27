@@ -159,7 +159,15 @@ std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
   auto prefixHost =
       hw_->writableHostTable()->refOrEmplace(BcmHostKey(vrf_, prefix_));
   prefixHost->setEgressId(egressId);
-  prefixHost->addToBcmHostTable(fwd.getNextHopSet().size() > 1, replace);
+
+  /*
+   * If the host entry is not programmed, program it.
+   * During warmboot, if the entry exists in warmboot cache, use that entry to
+   * reprogram  (replace = true).
+   */
+  if (!prefixHost->isAddedInHw() || replace) {
+    prefixHost->addToBcmHostTable(fwd.getNextHopSet().size() > 1, replace);
+  }
   return prefixHost;
 }
 

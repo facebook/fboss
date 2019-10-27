@@ -157,6 +157,10 @@ class BcmHost {
         : nullptr;
   }
 
+  bool isAddedInHw() const {
+    return addedInHW_;
+  }
+
  private:
   // no copy or assignment
   BcmHost(BcmHost const&) = delete;
