@@ -49,7 +49,8 @@ std::unique_ptr<WedgePortMapping> Wedge100Platform::createPortMapping() {
       {PortID(92), TransceiverID(26)},  {PortID(96), TransceiverID(27)},
       {PortID(102), TransceiverID(28)}, {PortID(106), TransceiverID(29)},
       {PortID(110), TransceiverID(30)}, {PortID(114), TransceiverID(31)}};
-  return WedgePortMapping::create<WedgePortMappingT<Wedge100Port>>(this, ports);
+  return WedgePortMapping::create<
+      WedgePortMappingT<Wedge100Platform, Wedge100Port>>(this, ports);
 }
 
 void Wedge100Platform::enableLedMode() {

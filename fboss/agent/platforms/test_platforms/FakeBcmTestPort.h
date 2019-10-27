@@ -4,9 +4,11 @@
 
 namespace facebook {
 namespace fboss {
+class FakeBcmTestPlatform;
+
 class FakeBcmTestPort : public BcmTestPort {
  public:
-  explicit FakeBcmTestPort(PortID id);
+  FakeBcmTestPort(PortID id, FakeBcmTestPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return {

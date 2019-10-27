@@ -22,9 +22,7 @@ class SaiPlatform;
 
 class SaiPlatformPort : public PlatformPort {
  public:
-  explicit SaiPlatformPort(PortID id, SaiPlatform* platform)
-      : id_(id), platform_(platform) {}
-  PortID getPortID() const override;
+  SaiPlatformPort(PortID id, SaiPlatform* platform);
   void preDisable(bool temporary) override;
   void postDisable(bool temporary) override;
   void preEnable() override;
@@ -50,8 +48,6 @@ class SaiPlatformPort : public PlatformPort {
   virtual TransmitterTechnology getTransmitterTech();
 
  private:
-  PortID id_{0};
-  SaiPlatform* platform_{nullptr};
   folly::Optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed) const;
 };

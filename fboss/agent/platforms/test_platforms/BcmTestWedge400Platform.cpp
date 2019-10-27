@@ -29,8 +29,8 @@ BcmTestWedge400Platform::BcmTestWedge400Platform()
           kNumPortsPerTransceiver) {}
 
 std::unique_ptr<BcmTestPort> BcmTestWedge400Platform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestWedge400Port>(id);
+    PortID id) {
+  return std::make_unique<BcmTestWedge400Port>(id, this);
 }
 } // namespace fboss
 } // namespace facebook

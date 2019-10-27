@@ -13,10 +13,9 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
+SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
+    : PlatformPort(id, platform) {}
 
-PortID SaiPlatformPort::getPortID() const {
-  return id_;
-}
 void SaiPlatformPort::preDisable(bool /* temporary */) {}
 void SaiPlatformPort::postDisable(bool /* temporary */) {}
 void SaiPlatformPort::preEnable() {}
@@ -44,17 +43,17 @@ bool SaiPlatformPort::shouldDisableFEC() const {
 
 folly::Optional<cfg::PlatformPortSettings>
 SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
-  auto& platformSettings = platform_->config()->thrift.platform;
+  auto& platformSettings = getPlatform()->config()->thrift.platform;
 
-  auto portsIter = platformSettings.ports.find(id_);
+  auto portsIter = platformSettings.ports.find(getPortID());
   if (portsIter == platformSettings.ports.end()) {
-    throw FbossError("platform port id ", id_, " not found");
+    throw FbossError("platform port id ", getPortID(), " not found");
   }
 
   auto& portConfig = portsIter->second;
   auto speedIter = portConfig.supportedSpeeds.find(speed);
   if (speedIter == portConfig.supportedSpeeds.end()) {
-    throw FbossError("Port ", id_, " does not support speed ", speed);
+    throw FbossError("Port ", getPortID(), " does not support speed ", speed);
   }
 
   return speedIter->second;
@@ -65,7 +64,10 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
   auto platformPortSettings = getPlatformPortSettings(speed);
   if (!platformPortSettings) {
     throw FbossError(
-        "platform port settings is empty for port ", id_, "speed ", speed);
+        "platform port settings is empty for port ",
+        getPortID(),
+        "speed ",
+        speed);
   }
   auto& laneMap = platformPortSettings->iphy_ref()->lanes;
   std::vector<uint32_t> hwLaneList;
@@ -80,7 +82,10 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
   auto platformPortSettings = getPlatformPortSettings(speed);
   if (!platformPortSettings) {
     throw FbossError(
-        "platform port settings is empty for port ", id_, "speed ", speed);
+        "platform port settings is empty for port ",
+        getPortID(),
+        "speed ",
+        speed);
   }
   std::vector<PortID> subsumedPortList;
   for (auto portId : platformPortSettings->subsumedPorts) {
@@ -93,7 +98,10 @@ phy::FecMode SaiPlatformPort::getFecMode(cfg::PortSpeed speed) const {
   auto platformSettings = getPlatformPortSettings(speed);
   if (!platformSettings) {
     throw FbossError(
-        "platform port settings is empty for port ", id_, "speed ", speed);
+        "platform port settings is empty for port ",
+        getPortID(),
+        "speed ",
+        speed);
   }
   return platformSettings->iphy_ref()->fec;
 }
@@ -106,7 +114,10 @@ folly::Optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
   auto platformSettings = getPlatformPortSettings(speed);
   if (!platformSettings) {
     throw FbossError(
-        "platform port settings is empty for port ", id_, "speed ", speed);
+        "platform port settings is empty for port ",
+        getPortID(),
+        "speed ",
+        speed);
   }
   return static_cast<TransceiverID>(
       platformSettings->frontPanelResources_ref()->transceiverId);

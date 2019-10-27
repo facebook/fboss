@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
 
+#include "fboss/agent/platforms/wedge/Wedge100Platform.h"
+
 namespace {
 using facebook::fboss::TransmitterTechnology;
 using facebook::fboss::TxSettings;
@@ -117,6 +119,12 @@ std::array<uint8_t, 28> traceGroupMapping = {{
 
 namespace facebook {
 namespace fboss {
+
+Wedge100Port::Wedge100Port(
+    PortID id,
+    Wedge100Platform* platform,
+    folly::Optional<FrontPanelResources> frontPanel)
+    : WedgePort(id, platform, frontPanel) {}
 
 Wedge100Port::TxOverrides Wedge100Port::getTxOverrides() const {
   if (supportsTransceiver()) {

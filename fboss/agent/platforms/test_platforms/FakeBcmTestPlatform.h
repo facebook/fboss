@@ -85,7 +85,7 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
   FakeBcmTestPlatform& operator=(FakeBcmTestPlatform const&) = delete;
 
-  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;

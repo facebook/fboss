@@ -14,13 +14,14 @@
 namespace facebook {
 namespace fboss {
 
+class Wedge40Platform;
+
 class Wedge40Port : public WedgePort {
  public:
   Wedge40Port(
       PortID id,
-      WedgePlatform* platform,
-      folly::Optional<FrontPanelResources> frontPanel)
-      : WedgePort(id, platform, frontPanel) {}
+      Wedge40Platform* platform,
+      folly::Optional<FrontPanelResources> frontPanel);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

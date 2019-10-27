@@ -27,7 +27,7 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
   BcmTestGalaxyPlatform(BcmTestGalaxyPlatform const&) = delete;
   BcmTestGalaxyPlatform& operator=(BcmTestGalaxyPlatform const&) = delete;
 
-  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
 } // namespace fboss
 } // namespace facebook

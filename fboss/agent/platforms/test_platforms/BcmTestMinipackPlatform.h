@@ -23,7 +23,7 @@ class BcmTestMinipackPlatform : public BcmTestWedgeTomahawk3Platform {
   BcmTestMinipackPlatform(BcmTestMinipackPlatform const&) = delete;
   BcmTestMinipackPlatform& operator=(BcmTestMinipackPlatform const&) = delete;
 
-  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
 } // namespace fboss
 } // namespace facebook

@@ -14,9 +14,11 @@
 
 namespace facebook {
 namespace fboss {
+class BcmTestGalaxyPlatform;
+
 class BcmTestGalaxyPort : public BcmTestPort {
  public:
-  explicit BcmTestGalaxyPort(PortID id);
+  BcmTestGalaxyPort(PortID id, BcmTestGalaxyPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return {cfg::PortSpeed::TWENTYFIVEG};

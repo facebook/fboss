@@ -33,9 +33,8 @@ FakeBcmTestPlatform::FakeBcmTestPlatform()
 
 FakeBcmTestPlatform::~FakeBcmTestPlatform() {}
 
-std::unique_ptr<BcmTestPort> FakeBcmTestPlatform::createTestPort(
-    PortID id) const {
-  return std::make_unique<FakeBcmTestPort>(id);
+std::unique_ptr<BcmTestPort> FakeBcmTestPlatform::createTestPort(PortID id) {
+  return std::make_unique<FakeBcmTestPort>(id, this);
 }
 
 std::string FakeBcmTestPlatform::getVolatileStateDir() const {

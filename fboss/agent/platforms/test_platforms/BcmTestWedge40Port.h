@@ -4,9 +4,11 @@
 
 namespace facebook {
 namespace fboss {
+class BcmTestWedge40Platform;
+
 class BcmTestWedge40Port : public BcmTestPort {
  public:
-  explicit BcmTestWedge40Port(PortID id);
+  BcmTestWedge40Port(PortID id, BcmTestWedge40Platform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return {cfg::PortSpeed::GIGE, cfg::PortSpeed::XG};

@@ -19,9 +19,11 @@
 namespace facebook {
 namespace fboss {
 
+class Platform;
+
 class PlatformPort {
  public:
-  PlatformPort() {}
+  PlatformPort(PortID id, Platform* platform);
   PlatformPort(PlatformPort&&) = default;
   PlatformPort& operator=(PlatformPort&&) = default;
   virtual ~PlatformPort() {}
@@ -29,7 +31,15 @@ class PlatformPort {
   /*
    * Get the PortID for this port
    */
-  virtual PortID getPortID() const = 0;
+  PortID getPortID() const {
+    return id_;
+  }
+  /*
+   * Get the Platform for this port
+   */
+  Platform* getPlatform() const {
+    return platform_;
+  }
 
   /*
    * preDisable() will be called by the hardware code just before disabling
@@ -159,6 +169,9 @@ class PlatformPort {
   virtual void externalState(ExternalState) = 0;
 
  private:
+  PortID id_{0};
+  Platform* platform_{nullptr};
+
   // Forbidden copy constructor and assignment operator
   PlatformPort(PlatformPort const&) = delete;
   PlatformPort& operator=(PlatformPort const&) = delete;

@@ -10,8 +10,13 @@
 
 #include "fboss/agent/PlatformPort.h"
 
+#include "fboss/agent/Platform.h"
+
 namespace facebook {
 namespace fboss {
+
+PlatformPort::PlatformPort(PortID id, Platform* platform)
+    : id_(id), platform_(platform) {}
 
 std::ostream& operator<<(std::ostream& os, PlatformPort::ExternalState lfs) {
   switch (lfs) {

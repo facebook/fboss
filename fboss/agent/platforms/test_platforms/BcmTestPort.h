@@ -15,15 +15,11 @@
 
 namespace facebook {
 namespace fboss {
+class BcmTestPlatform;
 
 class BcmTestPort : public BcmPlatformPort {
  public:
-  explicit BcmTestPort(PortID id);
-
-  PortID getPortID() const override {
-    return id_;
-  }
-
+  BcmTestPort(PortID id, BcmTestPlatform* platform);
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
     return bcmPort_;
@@ -81,7 +77,6 @@ class BcmTestPort : public BcmPlatformPort {
     return BcmTestPort::TxOverrides();
   }
 
-  PortID id_{0};
   bool shouldDisableFec_{false};
   BcmPort* bcmPort_{nullptr};
 };

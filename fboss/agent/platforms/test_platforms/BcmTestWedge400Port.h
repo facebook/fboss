@@ -13,9 +13,11 @@
 
 namespace facebook {
 namespace fboss {
+class BcmTestWedge400Platform;
+
 class BcmTestWedge400Port : public BcmTestPort {
  public:
-  explicit BcmTestWedge400Port(PortID id) : BcmTestPort(id) {}
+  BcmTestWedge400Port(PortID id, BcmTestWedge400Platform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(jennylli) support flexport

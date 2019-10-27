@@ -23,7 +23,7 @@ class BcmTestWedge400Platform : public BcmTestWedgeTomahawk3Platform {
   BcmTestWedge400Platform(BcmTestWedge400Platform const&) = delete;
   BcmTestWedge400Platform& operator=(BcmTestWedge400Platform const&) = delete;
 
-  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
 } // namespace fboss
 } // namespace facebook

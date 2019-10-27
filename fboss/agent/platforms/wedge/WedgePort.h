@@ -44,10 +44,6 @@ class WedgePort : public BcmPlatformPort {
       folly::Optional<FrontPanelResources> frontPanel);
 
  public:
-  PortID getPortID() const override {
-    return id_;
-  }
-
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
     return bcmPort_;
@@ -112,9 +108,6 @@ class WedgePort : public BcmPlatformPort {
 
  protected:
   bool isControllingPort() const;
-
-  PortID id_{0};
-  WedgePlatform* platform_{nullptr};
 
   // TODO(aeckert): deprecate cached speed
   cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};

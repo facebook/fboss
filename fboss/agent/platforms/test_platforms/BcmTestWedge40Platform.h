@@ -78,7 +78,7 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
   BcmTestWedge40Platform& operator=(BcmTestWedge40Platform const&) = delete;
 
-  std::unique_ptr<BcmTestPort> createTestPort(PortID id) const override;
+  std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
   std::unique_ptr<Trident2Asic> asic_;
 };
 } // namespace fboss

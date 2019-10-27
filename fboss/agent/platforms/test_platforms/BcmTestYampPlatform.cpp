@@ -164,9 +164,8 @@ BcmTestYampPlatform::BcmTestYampPlatform()
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestYampPlatform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestYampPort>(id);
+std::unique_ptr<BcmTestPort> BcmTestYampPlatform::createTestPort(PortID id) {
+  return std::make_unique<BcmTestYampPort>(id, this);
 }
 } // namespace fboss
 } // namespace facebook

@@ -31,9 +31,8 @@ BcmTestWedge40Platform::BcmTestWedge40Platform()
   asic_ = std::make_unique<Trident2Asic>();
 }
 
-std::unique_ptr<BcmTestPort> BcmTestWedge40Platform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestWedge40Port>(id);
+std::unique_ptr<BcmTestPort> BcmTestWedge40Platform::createTestPort(PortID id) {
+  return std::make_unique<BcmTestWedge40Port>(id, this);
 }
 
 HwAsic* BcmTestWedge40Platform::getAsic() const {

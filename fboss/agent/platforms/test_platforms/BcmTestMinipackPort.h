@@ -13,9 +13,11 @@
 
 namespace facebook {
 namespace fboss {
+class BcmTestMinipackPlatform;
+
 class BcmTestMinipackPort : public BcmTestPort {
  public:
-  explicit BcmTestMinipackPort(PortID id) : BcmTestPort(id) {}
+  BcmTestMinipackPort(PortID id, BcmTestMinipackPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(joseph5wu) We haven't support flexport and portgroup for TH3

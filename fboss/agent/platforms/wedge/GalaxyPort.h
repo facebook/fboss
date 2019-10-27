@@ -16,13 +16,14 @@
 namespace facebook {
 namespace fboss {
 
+class GalaxyPlatform;
+
 class GalaxyPort : public WedgePort {
  public:
   GalaxyPort(
       PortID id,
-      WedgePlatform* platform,
-      folly::Optional<FrontPanelResources> frontPanel)
-      : WedgePort(id, platform, frontPanel) {}
+      GalaxyPlatform* platform,
+      folly::Optional<FrontPanelResources> frontPanel);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

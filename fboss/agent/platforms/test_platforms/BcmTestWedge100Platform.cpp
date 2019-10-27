@@ -30,8 +30,8 @@ BcmTestWedge100Platform::BcmTestWedge100Platform()
           kNumPortsPerTransceiver) {}
 
 std::unique_ptr<BcmTestPort> BcmTestWedge100Platform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestWedge100Port>(id);
+    PortID id) {
+  return std::make_unique<BcmTestWedge100Port>(id, this);
 }
 
 } // namespace fboss

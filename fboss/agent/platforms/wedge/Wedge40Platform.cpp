@@ -39,7 +39,8 @@ std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
       {PortID(53), TransceiverID(13)},
       {PortID(57), TransceiverID(14)},
       {PortID(61), TransceiverID(15)}};
-  return WedgePortMapping::create<WedgePortMappingT<Wedge40Port>>(this, ports);
+  return WedgePortMapping::create<
+      WedgePortMappingT<Wedge40Platform, Wedge40Port>>(this, ports);
 }
 
 } // namespace fboss

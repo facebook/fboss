@@ -27,9 +27,8 @@ BcmTestGalaxyPlatform::BcmTestGalaxyPlatform()
               kMasterLogicalPortIds.end()),
           kNumPortsPerTransceiver) {}
 
-std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestGalaxyPort>(id);
+std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(PortID id) {
+  return std::make_unique<BcmTestGalaxyPort>(id, this);
 }
 
 } // namespace fboss

@@ -21,6 +21,7 @@ namespace facebook {
 namespace fboss {
 
 class BcmPort;
+class BcmPlatform;
 
 typedef boost::container::flat_set<cfg::PortSpeed> LaneSpeeds;
 
@@ -52,7 +53,7 @@ class BcmPlatformPort : public PlatformPort {
   using TxOverrides = boost::container::
       flat_map<std::pair<TransmitterTechnology, double>, TxSettings>;
 
-  BcmPlatformPort() {}
+  BcmPlatformPort(PortID id, BcmPlatform* platform);
   BcmPlatformPort(BcmPlatformPort&&) = default;
   BcmPlatformPort& operator=(BcmPlatformPort&&) = default;
 

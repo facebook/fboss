@@ -30,7 +30,8 @@ std::unique_ptr<WedgePortMapping> GalaxyFCPlatform::createPortMapping() {
       {PortID(46), none},  {PortID(34), none},  {PortID(21), none},
       {PortID(25), none},  {PortID(17), none},
   };
-  return WedgePortMapping::create<WedgePortMappingT<GalaxyPort>>(this, ports);
+  return WedgePortMapping::create<
+      WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this, ports);
 }
 
 } // namespace fboss

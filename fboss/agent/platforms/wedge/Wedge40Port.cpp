@@ -7,17 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Port.h"
 
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
+#include "fboss/agent/platforms/wedge/Wedge40Port.h"
+
+#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 
 namespace facebook {
 namespace fboss {
-
-BcmTestWedge40Port::BcmTestWedge40Port(
+Wedge40Port::Wedge40Port(
     PortID id,
-    BcmTestWedge40Platform* platform)
-    : BcmTestPort(id, platform) {}
-
+    Wedge40Platform* platform,
+    folly::Optional<FrontPanelResources> frontPanel)
+    : WedgePort(id, platform, frontPanel) {}
 } // namespace fboss
 } // namespace facebook

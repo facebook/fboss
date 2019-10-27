@@ -9,10 +9,13 @@
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
+#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+
 namespace facebook {
 namespace fboss {
 
-BcmTestPort::BcmTestPort(PortID id) : id_(id) {}
+BcmTestPort::BcmTestPort(PortID id, BcmTestPlatform* platform)
+    : BcmPlatformPort(id, platform) {}
 
 void BcmTestPort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;

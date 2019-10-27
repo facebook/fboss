@@ -7,17 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Port.h"
 
-#include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestMinipackPort.h"
+
+#include "fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.h"
 
 namespace facebook {
 namespace fboss {
 
-BcmTestWedge40Port::BcmTestWedge40Port(
+BcmTestMinipackPort::BcmTestMinipackPort(
     PortID id,
-    BcmTestWedge40Platform* platform)
+    BcmTestMinipackPlatform* platform)
     : BcmTestPort(id, platform) {}
-
 } // namespace fboss
 } // namespace facebook

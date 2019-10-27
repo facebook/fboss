@@ -105,7 +105,7 @@ class WedgePortMapping {
  private:
   virtual std::unique_ptr<WedgePort> constructPort(
       const PortID port,
-      const folly::Optional<FrontPanelResources> frontPanel) const = 0;
+      const folly::Optional<FrontPanelResources> frontPanel) = 0;
 
   /* Helper to add associated ports to the port mapping.
    * Optionally specify a front panel port mapping if this
@@ -145,7 +145,7 @@ class WedgePortMapping {
   boost::container::flat_map<TransceiverID, WedgePort*> transceiverMap_;
 };
 
-template <typename WedgePortT>
+template <typename WedgePlatformT, typename WedgePortT>
 class WedgePortMappingT : public WedgePortMapping {
  public:
   explicit WedgePortMappingT(WedgePlatform* platform)
@@ -154,8 +154,9 @@ class WedgePortMappingT : public WedgePortMapping {
  private:
   std::unique_ptr<WedgePort> constructPort(
       PortID port,
-      folly::Optional<FrontPanelResources> frontPanel) const override {
-    return std::make_unique<WedgePortT>(port, platform_, frontPanel);
+      folly::Optional<FrontPanelResources> frontPanel) override {
+    return std::make_unique<WedgePortT>(
+        port, dynamic_cast<WedgePlatformT*>(platform_), frontPanel);
   }
 };
 

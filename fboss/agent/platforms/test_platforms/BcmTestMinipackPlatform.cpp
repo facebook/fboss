@@ -165,8 +165,8 @@ BcmTestMinipackPlatform::BcmTestMinipackPlatform()
           kNumPortsPerTransceiver) {}
 
 std::unique_ptr<BcmTestPort> BcmTestMinipackPlatform::createTestPort(
-    PortID id) const {
-  return std::make_unique<BcmTestMinipackPort>(id);
+    PortID id) {
+  return std::make_unique<BcmTestMinipackPort>(id, this);
 }
 } // namespace fboss
 } // namespace facebook

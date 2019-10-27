@@ -19,7 +19,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -30,7 +29,7 @@ WedgePort::WedgePort(
     PortID id,
     WedgePlatform* platform,
     folly::Optional<FrontPanelResources> frontPanel)
-    : id_(id), platform_(platform), frontPanel_(frontPanel) {}
+    : BcmPlatformPort(id, platform), frontPanel_(frontPanel) {}
 
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -56,7 +55,7 @@ bool WedgePort::isMediaPresent() {
 }
 
 folly::Future<TransceiverInfo> WedgePort::getTransceiverInfo() const {
-  auto qsfpCache = platform_->getQsfpCache();
+  auto qsfpCache = dynamic_cast<WedgePlatform*>(getPlatform())->getQsfpCache();
   return qsfpCache->futureGet(getTransceiverID().value());
 }
 
@@ -154,9 +153,9 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
 
 folly::Optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
     cfg::PortSpeed speed) {
-  auto& platformSettings = platform_->config()->thrift.platform;
+  auto& platformSettings = getPlatform()->config()->thrift.platform;
 
-  auto portsIter = platformSettings.ports.find(id_);
+  auto portsIter = platformSettings.ports.find(getPortID());
   if (portsIter == platformSettings.ports.end()) {
     return folly::none;
   }
@@ -164,7 +163,7 @@ folly::Optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
   auto portConfig = portsIter->second;
   auto speedIter = portConfig.supportedSpeeds.find(speed);
   if (speedIter == portConfig.supportedSpeeds.end()) {
-    throw FbossError("Port ", id_, " does not support speed ", speed);
+    throw FbossError("Port ", getPortID(), " does not support speed ", speed);
   }
 
   return speedIter->second;

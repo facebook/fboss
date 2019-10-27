@@ -309,8 +309,11 @@ add_executable(bcm_test
     fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.cpp
     fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestMinipackPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestYampPlatform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestYampPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.cpp
+    fboss/agent/platforms/test_platforms/BcmTestWedge400Port.cpp
     fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
     fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
     fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
@@ -363,6 +366,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmLabeledTunnel.cpp
     fboss/agent/hw/bcm/BcmPortDescriptor.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
+    fboss/agent/hw/bcm/BcmPlatformPort.cpp
     fboss/agent/hw/bcm/BcmPort.cpp
     fboss/agent/hw/bcm/BcmPortUtils.cpp
     fboss/agent/hw/bcm/BcmPortGroup.cpp
@@ -494,8 +498,10 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/Wedge40Platform.cpp
+    fboss/agent/platforms/wedge/Wedge40Port.cpp
     fboss/agent/platforms/wedge/FakeWedge40Platform.cpp
     fboss/agent/platforms/wedge/Wedge100Platform.cpp
+    fboss/agent/platforms/wedge/GalaxyPort.cpp
     fboss/agent/platforms/wedge/GalaxyLCPlatform.cpp
     fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
