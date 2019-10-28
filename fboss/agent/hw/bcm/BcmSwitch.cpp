@@ -1389,7 +1389,8 @@ void BcmSwitch::processAddedAndChangedNeighbor(
         neighborKey,
         intf->getBcmIfId(),
         neighborMac,
-        getPortTable()->getBcmPortId(port));
+        getPortTable()->getBcmPortId(port),
+        entry->getClassID());
   }
   std::for_each(
       writableMplsNextHopTable()->getNextHops().begin(),
@@ -1407,10 +1408,16 @@ void BcmSwitch::processAddedNeighborEntry(const NeighborEntryT* addedEntry) {
   CHECK(addedEntry);
   if (addedEntry->isPending()) {
     XLOG(DBG3) << "adding pending neighbor entry to "
-               << addedEntry->getIP().str();
+               << addedEntry->getIP().str()
+               << (addedEntry->getClassID().hasValue()
+                       ? static_cast<int>(addedEntry->getClassID().value())
+                       : 0);
   } else {
     XLOG(DBG3) << "adding neighbor entry " << addedEntry->getIP().str()
-               << " to " << addedEntry->getMac().toString();
+               << " to " << addedEntry->getMac().toString()
+               << (addedEntry->getClassID().hasValue()
+                       ? static_cast<int>(addedEntry->getClassID().value())
+                       : 0);
   }
 
   const auto* intf = getIntfTable()->getBcmIntf(addedEntry->getIntfID());
@@ -1431,10 +1438,17 @@ void BcmSwitch::processChangedNeighborEntry(
   CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
   if (newEntry->isPending()) {
     XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
+               << " classID: "
+               << (newEntry->getClassID().hasValue()
+                       ? static_cast<int>(newEntry->getClassID().value())
+                       : 0)
                << " to pending";
-
   } else {
     XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
+               << " classID: "
+               << (newEntry->getClassID().hasValue()
+                       ? static_cast<int>(newEntry->getClassID().value())
+                       : 0)
                << " to " << newEntry->getMac().toString();
   }
 

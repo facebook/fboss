@@ -13,6 +13,8 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/hw/bcm/BcmAclEntry.h"
+#include "fboss/agent/hw/bcm/BcmClassIDUtil.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -174,7 +176,33 @@ void BcmHost::program(
     opennsl_if_t intf,
     const MacAddress* mac,
     opennsl_port_t port,
-    RouteForwardAction action) {
+    RouteForwardAction action,
+    folly::Optional<cfg::AclLookupClass> classID) {
+  auto replace = false;
+
+  if (classID.hasValue()) {
+    if (!BcmClassIDUtil::isValidQueuePerHostClass(classID.value())) {
+      throw FbossError(
+          "Invalid classID specified for port: ",
+          port,
+          "mac: ",
+          mac->toString(),
+          " classID: ",
+          static_cast<int>(classID.value()));
+    }
+
+    if (getLookupClassId() != static_cast<int>(classID.value())) {
+      setLookupClassId(static_cast<int>(classID.value()));
+      /*
+       * ClassID changed.
+       * If addedInHW_ is true, 'replace' it to apply new classID.
+       * If addedInHW_ is false, entry will be programmed in hw with right
+       * classID by addToBcmHostTable anyway, no need to 'replace'.
+       */
+      replace = addedInHW_;
+    }
+  }
+
   unique_ptr<BcmEgress> createdEgress{nullptr};
   BcmEgress* egressPtr{nullptr};
   const auto& addr = key_.addr();
@@ -198,9 +226,13 @@ void BcmHost::program(
     }
   }
 
-  // if no host was added already, add one pointing to the egress object
-  if (!addedInHW_) {
-    addToBcmHostTable();
+  /*
+   * If the host entry is is not programmed, program it.
+   * If the host entry is already added, and if replace is true (e.g. classsID
+   * changed), then reprogram the entry.
+   */
+  if (!addedInHW_ || replace) {
+    addToBcmHostTable(false, replace);
   }
 
   folly::Optional<BcmPortDescriptor> newEgressPort = (port == 0)
@@ -441,17 +473,21 @@ void BcmHostTable::programHostsToPort(
     const BcmHostKey& key,
     opennsl_if_t intf,
     const MacAddress& mac,
-    opennsl_port_t port) {
+    opennsl_port_t port,
+    folly::Optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   CHECK(host);
-  host->program(intf, mac, port);
+  host->program(intf, mac, port, classID);
   // (TODO) program labeled next hops to the host
 }
 
-void BcmHostTable::programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf) {
+void BcmHostTable::programHostsToCPU(
+    const BcmHostKey& key,
+    opennsl_if_t intf,
+    folly::Optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   if (host) {
-    return host->programToCPU(intf);
+    return host->programToCPU(intf, classID);
   }
   // (TODO) program labeled next hops to the host
 }

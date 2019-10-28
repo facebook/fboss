@@ -100,6 +100,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
     // owned egress, BcmHost entry is not host route entry.
     host[kEgress] = egressToFollyDynamic(egress);
   }
+  host[kClassID] = bcmHost->getLookupClassId();
   return host;
 }
 

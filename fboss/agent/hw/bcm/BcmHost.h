@@ -28,9 +28,6 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
-#include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
-
 namespace facebook {
 namespace fboss {
 
@@ -88,11 +85,17 @@ class BcmHost {
    * For host routes, we only need to do b) since we use
    * a already created egress entry
    */
-  void program(opennsl_if_t intf, folly::MacAddress mac, opennsl_port_t port) {
-    return program(intf, &mac, port, NEXTHOPS);
+  void program(
+      opennsl_if_t intf,
+      folly::MacAddress mac,
+      opennsl_port_t port,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+    return program(intf, &mac, port, NEXTHOPS, classID);
   }
-  void programToCPU(opennsl_if_t intf) {
-    return program(intf, nullptr, 0, TO_CPU);
+  void programToCPU(
+      opennsl_if_t intf,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+    return program(intf, nullptr, 0, TO_CPU, classID);
   }
   void programToDrop(opennsl_if_t intf) {
     return program(intf, nullptr, 0, DROP);
@@ -169,7 +172,9 @@ class BcmHost {
       opennsl_if_t intf,
       const folly::MacAddress* mac,
       opennsl_port_t port,
-      RouteForwardAction action);
+      RouteForwardAction action,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none);
+
   void initHostCommon(opennsl_l3_host_t* host) const;
 
   void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
@@ -230,8 +235,12 @@ class BcmHostTable {
       const BcmHostKey& key,
       opennsl_if_t intf,
       const MacAddress& mac,
-      opennsl_port_t port);
-  void programHostsToCPU(const BcmHostKey& key, opennsl_if_t intf);
+      opennsl_port_t port,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none);
+  void programHostsToCPU(
+      const BcmHostKey& key,
+      opennsl_if_t intf,
+      folly::Optional<cfg::AclLookupClass> classID = folly::none);
 
   std::shared_ptr<BcmHost> refOrEmplace(const BcmHostKey& key);
 

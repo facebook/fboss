@@ -240,12 +240,14 @@ void BcmWarmBootCache::populateFromWarmBootState(
     auto vrf = hostEntry[kVrf].asInt();
     auto key = std::make_tuple(vrf, ip, intf);
     vrfIp2EgressFromBcmHostInWarmBootFile_[key] = egressId;
+    auto classID = hostEntry[kClassID].asInt();
 
     XLOG(DBG1) << "Construct a host entry (vrf=" << vrf << ",ip=" << ip
                << ",intf="
                << (intf.hasValue() ? folly::to<std::string>(intf.value())
                                    : "None")
-               << ") pointing to the egress entry, id=" << egressId;
+               << ") pointing to the egress entry, id=" << egressId
+               << " classID: " << classID;
   }
 
   // extract MPLS next hop and its egress object from the  warm boot file
