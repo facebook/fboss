@@ -106,10 +106,9 @@ class RoutingInformationBase {
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
-   * we can avoid a slow down by a factor of the the number of VRFs by
-   * parallelizing route updates across VRFs. This can be accomplished simply by
-   * associating the mutex implicit in folly::Synchronized with an individual
-   * RouteTable.
+   * we can avoid a slow down by a factor of number of VRFs by parallelizing
+   * route updates across VRFs. This can be accomplished simply by associating
+   * the mutex implicit in folly::Synchronized with an individual RouteTable.
    */
   using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
   using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
