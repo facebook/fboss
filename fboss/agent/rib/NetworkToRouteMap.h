@@ -17,10 +17,6 @@
 
 #include <memory>
 
-namespace {
-constexpr auto kRoutes = "routes";
-}
-
 namespace facebook {
 namespace fboss {
 namespace rib {
@@ -28,6 +24,8 @@ namespace rib {
 template <typename AddressT>
 class NetworkToRouteMap
     : public facebook::network::RadixTree<AddressT, Route<AddressT>> {
+  static constexpr auto kRoutes = "routes";
+
  public:
   folly::dynamic toFollyDynamic() const {
     folly::dynamic routesJson = folly::dynamic::array;
