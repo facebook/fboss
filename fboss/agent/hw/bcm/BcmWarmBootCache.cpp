@@ -240,7 +240,11 @@ void BcmWarmBootCache::populateFromWarmBootState(
     auto vrf = hostEntry[kVrf].asInt();
     auto key = std::make_tuple(vrf, ip, intf);
     vrfIp2EgressFromBcmHostInWarmBootFile_[key] = egressId;
-    auto classID = hostEntry[kClassID].asInt();
+
+    int classID = 0;
+    if (hostEntry.find(kClassID) != hostEntry.items().end()) {
+      classID = hostEntry[kClassID].asInt();
+    }
 
     XLOG(DBG1) << "Construct a host entry (vrf=" << vrf << ",ip=" << ip
                << ",intf="
