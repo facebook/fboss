@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
 
 #include "fboss/agent/test/RouteScaleGenerators.h"
@@ -17,8 +16,7 @@ namespace facebook {
 namespace fboss {
 
 ROUTE_DEL_BENCHMARK(
-    BcmThAlpmScaleRouteDelBenchmark,
-
+    HwThAlpmScaleRouteDelBenchmark,
     utility::THAlpmRouteScaleGenerator);
 }
 } // namespace facebook
