@@ -80,7 +80,7 @@ class HwTest : public ::testing::Test,
    * it.
    */
   virtual uint32_t featuresDesired() const {
-    return (~HwSwitch::LINKSCAN_DESIRED & ~HwSwitch::PACKET_RX_DESIRED);
+    return 0;
   }
   template <
       typename SETUP_FN,
