@@ -31,7 +31,10 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(SaiPlatform* platform, ConcurrentIndices* concurrentIndices);
+  SaiManagerTable(SaiPlatform* platform);
+  void createSaiTableManagers(
+      SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices);
   ~SaiManagerTable();
 
   SaiBridgeManager& bridgeManager();

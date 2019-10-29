@@ -285,10 +285,14 @@ HwInitResult SaiSwitch::initLocked(
   sai_api_initialize(0, platform_->getServiceMethodTable());
   SaiApiTable::getInstance()->queryApis();
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
-  managerTable_ =
-      std::make_unique<SaiManagerTable>(platform_, concurrentIndices_.get());
+  managerTable_ = std::make_unique<SaiManagerTable>(platform_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
-  SaiStore::getInstance()->setSwitchId(switchId_);
+  // TODO(borisb): find a cleaner solution to this problem.
+  // perhaps reload fixes it?
+  auto saiStore = SaiStore::getInstance();
+  saiStore->setSwitchId(switchId_);
+  saiStore->reload();
+  managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   platform_->initPorts();
   callback_ = callback;
   __gSaiSwitch = this;

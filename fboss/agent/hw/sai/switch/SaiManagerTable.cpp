@@ -28,15 +28,13 @@
 
 namespace facebook::fboss {
 
-SaiManagerTable::SaiManagerTable(
+SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
+  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
+}
+
+void SaiManagerTable::createSaiTableManagers(
     SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices) {
-  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
-  // TODO(borisb): find a cleaner solution to this problem.
-  // perhaps reload fixes it?
-  auto saiStore = SaiStore::getInstance();
-  saiStore->setSwitchId(switchManager_->getSwitchSaiId());
-
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this);

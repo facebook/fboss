@@ -42,11 +42,13 @@ void ManagerTestBase::SetUp() {
   saiApiTable = SaiApiTable::getInstance();
   saiApiTable->queryApis();
   concurrentIndices = std::make_unique<ConcurrentIndices>();
-  saiManagerTable = std::make_unique<SaiManagerTable>(
-      saiPlatform.get(), concurrentIndices.get());
+  saiManagerTable = std::make_unique<SaiManagerTable>(saiPlatform.get());
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   s->setSwitchId(switchId);
+  s->reload();
+  saiManagerTable->createSaiTableManagers(
+      saiPlatform.get(), concurrentIndices.get());
 
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
@@ -88,6 +90,7 @@ void ManagerTestBase::SetUp() {
 
 void ManagerTestBase::TearDown() {
   saiManagerTable.reset();
+  SaiStore::getInstance()->release();
   FakeSai::clear();
 }
 
