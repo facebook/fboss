@@ -59,7 +59,9 @@ class SaiObjectStore {
       auto adapterHostKey = obj.adapterHostKey();
       auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
       if (!ins.second) {
-        XLOG(FATAL) << "Unexpected duplicate adapterHostKey";
+        XLOG(FATAL) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
+                    << "]"
+                    << " Unexpected duplicate adapterHostKey";
       }
       warmBootHandles_.push_back(ins.first);
     }
@@ -73,11 +75,17 @@ class SaiObjectStore {
     if (!ins.second) {
       ins.first->setAttributes(attributes);
     }
+    XLOG(DBG5) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
+               << "["
+               << "set object";
     return ins.first;
   }
 
   std::shared_ptr<ObjectType> get(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
+    XLOG(DBG5) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
+               << "["
+               << "get object";
     return objects_.ref(adapterHostKey);
   }
 
