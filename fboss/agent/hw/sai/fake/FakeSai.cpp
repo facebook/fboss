@@ -50,7 +50,6 @@ sai_status_t sai_api_initialize(
   if (fs->initialized) {
     return SAI_STATUS_FAILURE;
   }
-
   // Create the default switch per the SAI spec
   fs->swm.create();
   // Create the default 1Q bridge per the SAI spec

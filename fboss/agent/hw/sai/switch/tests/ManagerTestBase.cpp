@@ -22,9 +22,13 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
 
+#include <folly/Singleton.h>
+
 namespace facebook::fboss {
 
 void ManagerTestBase::SetUp() {
+  folly::SingletonVault::singleton()->destroyInstances();
+  folly::SingletonVault::singleton()->reenableInstances();
   fs = FakeSai::getInstance();
   sai_api_initialize(0, nullptr);
   auto productInfo =
