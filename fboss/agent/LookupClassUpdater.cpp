@@ -25,6 +25,8 @@ cfg::AclLookupClass LookupClassUpdater::getClassIDwithMinimumNeighbors(
 template <typename NeighborEntryT>
 void LookupClassUpdater::removeNeighborFromLocalCache(
     const NeighborEntryT* removedEntry) {
+  CHECK(removedEntry->getPort().isPhysicalPort());
+
   auto portID = removedEntry->getPort().phyPortID();
   auto mac = removedEntry->getMac();
   auto& mac2ClassID = port2MacAndClassID_[portID];
@@ -41,6 +43,8 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* removedEntry) {
+  CHECK(removedEntry->getPort().isPhysicalPort());
+
   auto portID = removedEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
   auto updater = sw_->getNeighborUpdater();
@@ -80,6 +84,8 @@ void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
     const NeighborEntryT* newEntry) {
+  CHECK(newEntry->getPort().isPhysicalPort());
+
   auto portID = newEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
   auto updater = sw_->getNeighborUpdater();
@@ -121,6 +127,7 @@ void LookupClassUpdater::processNeighborAdded(
     VlanID vlan,
     const NeighborEntryT* addedEntry) {
   CHECK(addedEntry);
+  CHECK(addedEntry->getPort().isPhysicalPort());
 
   if (addedEntry->isReachable()) {
     updateNeighborClassID(switchState, vlan, addedEntry);
@@ -133,6 +140,8 @@ void LookupClassUpdater::processNeighborRemoved(
     VlanID vlan,
     const NeighborEntryT* removedEntry) {
   CHECK(removedEntry);
+  CHECK(removedEntry->getPort().isPhysicalPort());
+
   removeClassIDForPortAndMac(switchState, vlan, removedEntry);
 }
 
@@ -145,6 +154,8 @@ void LookupClassUpdater::processNeighborChanged(
   CHECK(oldEntry);
   CHECK(newEntry);
   CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
+  CHECK(oldEntry->getPort().isPhysicalPort());
+  CHECK(newEntry->getPort().isPhysicalPort());
 
   if (!oldEntry->isReachable() && newEntry->isReachable()) {
     updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
@@ -170,6 +181,8 @@ template <typename NeighborEntryT>
 void LookupClassUpdater::updateStateObserverLocalCache(
     const std::shared_ptr<SwitchState>& switchState,
     const NeighborEntryT* newEntry) {
+  CHECK(newEntry->getPort().isPhysicalPort());
+
   auto portID = newEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
   auto& mac2ClassID = port2MacAndClassID_[portID];
@@ -204,6 +217,15 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
          vlanDelta.template getNeighborDelta<NeighborTableT>()) {
       const auto* oldEntry = delta.getOld().get();
       const auto* newEntry = delta.getNew().get();
+
+      /*
+       * At this point in time, queue-per-host fix is needed (and thus
+       * supported) for physical link only.
+       */
+      if ((oldEntry && !oldEntry->getPort().isPhysicalPort()) ||
+          (newEntry && !newEntry->getPort().isPhysicalPort())) {
+        continue;
+      }
 
       /*
        * If newEntry already has classID populated (e.g. post warmboot), then
@@ -246,7 +268,12 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
 
     for (const auto& entry :
          *(vlan->template getNeighborTable<NeighborTableT>())) {
-      if (entry->getPort().phyPortID() == portID &&
+      /*
+       * At this point in time, queue-per-host fix is needed (and thus
+       * supported) for physical link only.
+       */
+      if (entry->getPort().isPhysicalPort() &&
+          entry->getPort().phyPortID() == portID &&
           entry->getClassID().hasValue()) {
         removeNeighborFromLocalCache(entry.get());
         updater->updateEntryClassID(vlanID, entry.get()->getIP());
@@ -274,7 +301,12 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
 
     for (const auto& entry :
          *(vlan->template getNeighborTable<NeighborTableT>())) {
-      if (entry->getPort().phyPortID() == portID) {
+      /*
+       * At this point in time, queue-per-host fix is needed (and thus
+       * supported) for physical link only.
+       */
+      if (entry->getPort().isPhysicalPort() &&
+          entry->getPort().phyPortID() == portID) {
         updateNeighborClassID(switchState, vlanID, entry.get());
       }
     }
@@ -313,12 +345,21 @@ void LookupClassUpdater::processPortRemoved(
       continue;
     }
 
+    /*
+     * At this point in time, queue-per-host fix is needed (and thus
+     * supported) for physical link only.
+     */
+
     for (const auto& entry : *(vlan->template getNeighborTable<ArpTable>())) {
-      CHECK(entry->getPort().phyPortID() != portID);
+      if (entry->getPort().isPhysicalPort()) {
+        CHECK(entry->getPort().phyPortID() != portID);
+      }
     }
 
     for (const auto& entry : *(vlan->template getNeighborTable<NdpTable>())) {
-      CHECK(entry->getPort().phyPortID() != portID);
+      if (entry->getPort().isPhysicalPort()) {
+        CHECK(entry->getPort().phyPortID() != portID);
+      }
     }
   }
 
