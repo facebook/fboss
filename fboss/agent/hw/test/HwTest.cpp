@@ -126,8 +126,6 @@ std::shared_ptr<SwitchState> HwTest::applyNewState(
     return hwSwitchEnsemble_->getProgrammedState();
   }
   auto programmedState = hwSwitchEnsemble_->applyNewState(newState);
-  // Assert that our desired state was applied exactly
-  EXPECT_EQ(newState, programmedState);
   return programmedState;
 }
 
