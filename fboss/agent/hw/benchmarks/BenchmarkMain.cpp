@@ -14,6 +14,7 @@
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
 #include <folly/json.h>
+#include <folly/logging/Init.h>
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -21,6 +22,8 @@
 #include <iostream>
 
 using facebook::timevalToUsec;
+
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
