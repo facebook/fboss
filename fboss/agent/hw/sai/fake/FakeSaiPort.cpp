@@ -87,11 +87,29 @@ sai_status_t create_port_fn(
   if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
   }
+
+  // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
+  for (uint8_t queueId = 0; queueId < 7; queueId++) {
+    auto saiQueueId =
+        fs->qm.create(SAI_QUEUE_TYPE_UNICAST, *port_id, queueId, *port_id);
+    port.queueIdList.push_back(saiQueueId);
+    if (queueId == 6) {
+      // Create queue 6 for multicast also.
+      saiQueueId =
+          fs->qm.create(SAI_QUEUE_TYPE_MULTICAST, *port_id, queueId, *port_id);
+      port.queueIdList.push_back(saiQueueId);
+    }
+  }
+
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_port_fn(sai_object_id_t port_id) {
   auto fs = FakeSai::getInstance();
+  auto& port = fs->pm.get(port_id);
+  for (auto saiQueueId : port.queueIdList) {
+    fs->qm.remove(saiQueueId);
+  }
   fs->pm.remove(port_id);
   return SAI_STATUS_SUCCESS;
 }
@@ -177,10 +195,16 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.u32 = port.speed;
         break;
       case SAI_PORT_ATTR_QOS_NUMBER_OF_QUEUES:
-        attr[i].value.u32 = 0;
+        attr[i].value.u32 = 8;
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_LIST:
-        attr[i].value.objlist.count = 0;
+        if (port.queueIdList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.queueIdList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.queueIdList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.queueIdList[j];
+        }
         break;
       case SAI_PORT_ATTR_FEC_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.fecMode);

@@ -224,6 +224,12 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_QUEUE: {
+      for (const auto& q : fs->qm.map()) {
+        object_list[i++].key.object_id = q.second.id;
+      }
+      break;
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }

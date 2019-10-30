@@ -35,6 +35,7 @@ class FakePort {
       SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
   sai_vlan_id_t vlanId{0};
+  std::vector<sai_object_id_t> queueIdList;
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
