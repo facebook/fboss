@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Port.h"
 
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
@@ -22,8 +23,10 @@ constexpr uint8_t kNumPortsPerTransceiver = 4;
 namespace facebook {
 namespace fboss {
 
-BcmTestWedge40Platform::BcmTestWedge40Platform()
+BcmTestWedge40Platform::BcmTestWedge40Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgePlatform(
+          std::move(productInfo),
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),

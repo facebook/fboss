@@ -13,10 +13,13 @@
 
 namespace facebook {
 namespace fboss {
+
+class PlatformProductInfo;
+
 class BcmTestYampPlatform : public BcmTestWedgeTomahawk3Platform {
  public:
-  BcmTestYampPlatform();
-  ~BcmTestYampPlatform() override {}
+  explicit BcmTestYampPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
 
  private:
   // Forbidden copy constructor and assignment operator

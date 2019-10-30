@@ -10,6 +10,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+
 DEFINE_string(
     volatile_state_dir,
     "/dev/shm/fboss/bcm_test",
@@ -23,9 +25,13 @@ namespace facebook {
 namespace fboss {
 
 BcmTestWedgePlatform::BcmTestWedgePlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
     std::vector<PortID> masterLogicalPortIds,
     int numPortsPerTranceiver)
-    : BcmTestPlatform(masterLogicalPortIds, numPortsPerTranceiver) {}
+    : BcmTestPlatform(
+          std::move(productInfo),
+          masterLogicalPortIds,
+          numPortsPerTranceiver) {}
 
 std::string BcmTestWedgePlatform::getVolatileStateDir() const {
   return FLAGS_volatile_state_dir;

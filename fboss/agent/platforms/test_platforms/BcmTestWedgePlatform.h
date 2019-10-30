@@ -17,9 +17,9 @@ namespace fboss {
 class BcmTestWedgePlatform : public BcmTestPlatform {
  public:
   BcmTestWedgePlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
-  ~BcmTestWedgePlatform() override {}
 
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;

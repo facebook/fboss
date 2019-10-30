@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge400Port.h"
 
 namespace {
@@ -21,8 +22,10 @@ constexpr uint8_t kNumPortsPerTransceiver = 1;
 
 namespace facebook {
 namespace fboss {
-BcmTestWedge400Platform::BcmTestWedge400Platform()
+BcmTestWedge400Platform::BcmTestWedge400Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawk3Platform(
+          std::move(productInfo),
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),

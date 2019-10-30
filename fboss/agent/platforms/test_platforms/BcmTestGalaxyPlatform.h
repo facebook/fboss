@@ -15,7 +15,8 @@ namespace facebook {
 namespace fboss {
 class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
  public:
-  BcmTestGalaxyPlatform();
+  explicit BcmTestGalaxyPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
   ~BcmTestGalaxyPlatform() override {}
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {

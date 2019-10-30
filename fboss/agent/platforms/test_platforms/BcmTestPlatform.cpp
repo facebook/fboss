@@ -25,9 +25,10 @@ namespace facebook {
 namespace fboss {
 
 BcmTestPlatform::BcmTestPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
     std::vector<PortID> masterLogicalPorts,
     int numPortsPerTranceiver)
-    : BcmPlatform(nullptr),
+    : BcmPlatform(std::move(productInfo)),
       masterLogicalPortIds_(std::move(masterLogicalPorts)) {
   numPortsPerTranceiver_ = numPortsPerTranceiver;
   for (auto masterPort : masterLogicalPortIds_) {

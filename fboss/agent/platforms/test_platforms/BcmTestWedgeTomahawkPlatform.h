@@ -11,6 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
+
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 
 namespace facebook {
@@ -18,9 +20,13 @@ namespace fboss {
 class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
  public:
   BcmTestWedgeTomahawkPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver)
-      : BcmTestWedgePlatform(masterLogicalPortIds, numPortsPerTranceiver) {
+      : BcmTestWedgePlatform(
+            std::move(productInfo),
+            masterLogicalPortIds,
+            numPortsPerTranceiver) {
     asic_ = std::make_unique<TomahawkAsic>();
   }
   ~BcmTestWedgeTomahawkPlatform() override {}

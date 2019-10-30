@@ -15,9 +15,11 @@
 namespace facebook {
 namespace fboss {
 class Trident2Asic;
+class PlatformProductInfo;
+
 class BcmTestWedge40Platform : public BcmTestWedgePlatform {
  public:
-  BcmTestWedge40Platform();
+  explicit BcmTestWedge40Platform(std::unique_ptr<PlatformProductInfo> product);
   ~BcmTestWedge40Platform() override;
 
   bool isCosSupported() const override {

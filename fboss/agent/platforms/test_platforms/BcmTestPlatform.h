@@ -23,10 +23,12 @@
 
 namespace facebook {
 namespace fboss {
+class PlatformProductInfo;
 
 class BcmTestPlatform : public BcmPlatform {
  public:
   BcmTestPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
   ~BcmTestPlatform() override;

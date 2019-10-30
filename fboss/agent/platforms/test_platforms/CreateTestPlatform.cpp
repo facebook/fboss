@@ -34,21 +34,26 @@ PlatformMode getPlatformMode() {
 
 std::unique_ptr<Platform> createTestPlatform() {
   auto mode = getPlatformMode();
+  std::unique_ptr<PlatformProductInfo> productInfo;
+  if (mode != PlatformMode::FAKE_WEDGE) {
+    productInfo = std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+    // TODO create a fake product info for FAKE WEDGE
+  }
   if (mode == PlatformMode::WEDGE) {
-    return std::make_unique<BcmTestWedge40Platform>();
+    return std::make_unique<BcmTestWedge40Platform>(std::move(productInfo));
   } else if (mode == PlatformMode::WEDGE100) {
-    return std::make_unique<BcmTestWedge100Platform>();
+    return std::make_unique<BcmTestWedge100Platform>(std::move(productInfo));
   } else if (
       mode == PlatformMode::GALAXY_LC || mode == PlatformMode::GALAXY_FC) {
-    return std::make_unique<BcmTestGalaxyPlatform>();
+    return std::make_unique<BcmTestGalaxyPlatform>(std::move(productInfo));
   } else if (mode == PlatformMode::MINIPACK) {
-    return std::make_unique<BcmTestMinipackPlatform>();
+    return std::make_unique<BcmTestMinipackPlatform>(std::move(productInfo));
   } else if (mode == PlatformMode::YAMP) {
-    return std::make_unique<BcmTestYampPlatform>();
+    return std::make_unique<BcmTestYampPlatform>(std::move(productInfo));
   } else if (mode == PlatformMode::WEDGE400) {
-    return std::make_unique<BcmTestWedge400Platform>();
+    return std::make_unique<BcmTestWedge400Platform>(std::move(productInfo));
   } else if (mode == PlatformMode::FAKE_WEDGE) {
-    return std::make_unique<FakeBcmTestPlatform>();
+    return std::make_unique<FakeBcmTestPlatform>(std::move(productInfo));
   } else {
     throw std::runtime_error("invalid mode ");
   }

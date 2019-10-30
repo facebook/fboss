@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPort.h"
 
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
@@ -22,8 +23,10 @@ constexpr uint8_t kNumPortsPerTransceiver = 4;
 
 namespace facebook {
 namespace fboss {
-FakeBcmTestPlatform::FakeBcmTestPlatform()
+FakeBcmTestPlatform::FakeBcmTestPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestPlatform(
+          std::move(productInfo),
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),

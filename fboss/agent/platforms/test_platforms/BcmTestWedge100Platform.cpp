@@ -22,8 +22,10 @@ constexpr uint8_t kNumPortsPerTransceiver = 4;
 
 namespace facebook {
 namespace fboss {
-BcmTestWedge100Platform::BcmTestWedge100Platform()
+BcmTestWedge100Platform::BcmTestWedge100Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawkPlatform(
+          std::move(productInfo),
           std::vector<PortID>(
               kMasterLogicalPortIds.begin(),
               kMasterLogicalPortIds.end()),
