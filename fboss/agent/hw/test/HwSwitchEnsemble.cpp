@@ -80,8 +80,10 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
   newState->publish();
   StateDelta delta(programmedState_, newState);
   programmedState_ = hwSwitch_->stateChanged(delta);
-  // Assert that our desired state was applied exactly
-  CHECK_EQ(newState, programmedState_);
+  if (!allowPartialStateApplication_) {
+    // Assert that our desired state was applied exactly
+    CHECK_EQ(newState, programmedState_);
+  }
   programmedState_->publish();
   return programmedState_;
 }

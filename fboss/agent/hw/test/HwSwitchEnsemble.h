@@ -41,6 +41,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * benchmark iteration to start with a clean slate.
    */
   void revertToInitCfgState();
+  void setAllowPartialStateApplication(bool allow) {
+    allowPartialStateApplication_ = allow;
+  }
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> newState);
   void applyInitialConfigAndBringUpPorts(const cfg::SwitchConfig& cfg);
@@ -113,6 +116,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   uint32_t featuresDesired_{0};
   std::set<HwSwitchEventObserverIf*> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
+  bool allowPartialStateApplication_{false};
 };
 
 } // namespace fboss
