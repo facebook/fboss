@@ -206,18 +206,18 @@ bool isLoadBalanced(
           (static_cast<float>(portOutBytes) / highest) * 100.0;
       auto percentDev = std::abs(weightPercent - portOutBytesPercent);
       // Don't tolerate a deviation of more than maxDeviationPct
+      XLOG(INFO) << "Percent Deviation: " << percentDev
+                 << ", Maximum Deviation: " << maxDeviationPct;
       if (percentDev > maxDeviationPct) {
-        XLOG(ERR) << "Percent Deviation: " << percentDev
-                  << ", Maximum Deviation: " << maxDeviationPct;
         return false;
       }
     }
   } else {
     auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
     // Don't tolerate a deviation of more than maxDeviationPct
+    XLOG(INFO) << "Percent Deviation: " << percentDev
+               << ", Maximum Deviation: " << maxDeviationPct;
     if (percentDev > maxDeviationPct) {
-      XLOG(ERR) << "Percent Deviation: " << percentDev
-                << ", Maximum Deviation: " << maxDeviationPct;
       return false;
     }
   }
