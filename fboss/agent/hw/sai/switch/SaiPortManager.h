@@ -12,7 +12,7 @@
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/Port.h"
@@ -27,7 +27,7 @@ class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 
-using SaiPort = SaiObject<SaiPortTraits>;
+using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;

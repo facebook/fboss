@@ -11,7 +11,9 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
+#include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/lib/RefMap.h"
 
 #include <memory>
@@ -34,7 +36,10 @@ namespace detail {
 template <typename SaiObjectTraits>
 class SaiObjectStore {
  public:
-  using ObjectType = SaiObject<SaiObjectTraits>;
+  using ObjectType = typename std::conditional<
+      SaiObjectHasStats<SaiObjectTraits>::value,
+      SaiObjectWithCounters<SaiObjectTraits>,
+      SaiObject<SaiObjectTraits>>::type;
 
   explicit SaiObjectStore(sai_object_id_t switchId) : switchId_(switchId) {}
   SaiObjectStore() {}

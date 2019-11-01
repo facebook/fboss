@@ -149,4 +149,7 @@ struct IsTupleOfSaiAttributes<std::tuple<AttrTs...>>
 template <typename SaiObjectTraits>
 struct IsSaiObjectOwnedByAdapter : public std::false_type {};
 
+template <typename SaiObjectTraits>
+struct SaiObjectHasStats : public std::false_type {};
+
 } // namespace facebook::fboss

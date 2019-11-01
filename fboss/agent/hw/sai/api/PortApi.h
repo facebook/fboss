@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -75,7 +76,28 @@ struct SaiPortTraits {
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>>;
+
+  static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
+  static constexpr std::array<sai_port_stat_t, 14> CounterIds = {
+      SAI_PORT_STAT_IF_IN_OCTETS,
+      SAI_PORT_STAT_IF_IN_UCAST_PKTS,
+      SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
+      SAI_PORT_STAT_IF_IN_BROADCAST_PKTS,
+      SAI_PORT_STAT_IF_IN_DISCARDS,
+      SAI_PORT_STAT_IF_IN_ERRORS,
+      SAI_PORT_STAT_PAUSE_RX_PKTS,
+      SAI_PORT_STAT_IF_OUT_OCTETS,
+      SAI_PORT_STAT_IF_OUT_UCAST_PKTS,
+      SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS,
+      SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS,
+      SAI_PORT_STAT_IF_OUT_DISCARDS,
+      SAI_PORT_STAT_IF_OUT_ERRORS,
+      SAI_PORT_STAT_PAUSE_TX_PKTS,
+  };
 };
+
+template <>
+struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
 
 class PortApi : public SaiApi<PortApi> {
  public:
@@ -102,6 +124,25 @@ class PortApi : public SaiApi<PortApi> {
   }
   sai_status_t _setAttribute(PortSaiId key, const sai_attribute_t* attr) {
     return api_->set_port_attribute(key, attr);
+  }
+
+  sai_status_t _getStats(
+      PortSaiId key,
+      uint32_t num_of_counters,
+      sai_port_stat_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
+    return api_->get_port_stats_ext(
+        key,
+        num_of_counters,
+        reinterpret_cast<sai_stat_id_t*>(counter_ids),
+        mode,
+        counters);
+#else
+    return api_->get_port_stats_ext(
+        key, num_of_counters, counter_ids, mode, counters);
+#endif
   }
 
   sai_port_api_t* api_;

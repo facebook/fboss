@@ -268,7 +268,7 @@ class SaiObject {
     return attributes_;
   }
 
- private:
+ protected:
   void remove() {
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
@@ -287,7 +287,8 @@ class SaiObject {
     if (newAttrOpt) {
       setNewAttributeHelper(newAttrOpt.value());
     } else {
-      // TODO(borisb): handle un-setting optional attributes to default properly
+      // TODO(borisb): handle un-setting optional attributes to default
+      // properly
     }
   }
 
@@ -319,6 +320,7 @@ class SaiObject {
     return k;
   }
 
+ private:
   bool live_{false};
   typename SaiObjectTraits::AdapterKey adapterKey_;
   typename SaiObjectTraits::AdapterHostKey adapterHostKey_;

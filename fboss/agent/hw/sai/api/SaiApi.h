@@ -168,6 +168,23 @@ class SaiApi {
     return impl()._setAttribute(key, saiAttr(attr));
   }
 
+  template <typename SaiObjectTraits>
+  std::enable_if_t<
+      SaiObjectHasStats<SaiObjectTraits>::value,
+      std::vector<uint64_t>>
+  getStats(const typename SaiObjectTraits::AdapterKey& key) {
+    std::vector<uint64_t> counters;
+    counters.resize(SaiObjectTraits::CounterIds.size());
+    sai_status_t status = impl()._getStats(
+        key,
+        counters.size(),
+        SaiObjectTraits::CounterIds.data(),
+        SaiObjectTraits::CounterMode,
+        counters.data());
+    saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
+    return counters;
+  }
+
  private:
   ApiT& impl() {
     return static_cast<ApiT&>(*this);
