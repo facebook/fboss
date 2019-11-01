@@ -576,10 +576,6 @@ void SaiSwitch::switchRunStateChangedLocked(
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      initAsyncTx(lock);
-      if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-        initRx(lock);
-      }
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
     } break;
     case SwitchRunState::CONFIGURED: {
@@ -587,6 +583,11 @@ void SaiSwitch::switchRunStateChangedLocked(
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         switchApi.registerPortStateChangeCallback(
             switchId_, __glinkStateChangedNotification);
+      }
+      // TODO: T56772674: Optimize Rx and Tx init
+      initAsyncTx(lock);
+      if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+        initRx(lock);
       }
     } break;
     default:
