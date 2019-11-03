@@ -22,7 +22,7 @@ class BcmRouteScaleTest : public BcmTest {
  protected:
   template <typename RouteScaleGeneratorT>
   void runTest(const std::set<PlatformMode>& applicablePlatforms) {
-    if (applicablePlatforms.find(getPlatformMode()) ==
+    if (applicablePlatforms.find(getPlatform()->getMode()) ==
         applicablePlatforms.end()) {
       return;
     }
