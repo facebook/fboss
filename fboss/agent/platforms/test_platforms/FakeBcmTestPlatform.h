@@ -17,12 +17,10 @@ namespace facebook {
 namespace fboss {
 
 class FakeAsic;
-class PlatformProductInfo;
 
 class FakeBcmTestPlatform : public BcmTestPlatform {
  public:
-  explicit FakeBcmTestPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+  FakeBcmTestPlatform();
   ~FakeBcmTestPlatform() override;
 
   bool isCosSupported() const override {

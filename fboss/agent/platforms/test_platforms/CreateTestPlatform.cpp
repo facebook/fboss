@@ -37,7 +37,7 @@ std::unique_ptr<Platform> createTestPlatform() {
   std::unique_ptr<PlatformProductInfo> productInfo;
   if (mode != PlatformMode::FAKE_WEDGE) {
     productInfo = std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-    // TODO create a fake product info for FAKE WEDGE
+    productInfo->initialize();
   }
   if (mode == PlatformMode::WEDGE) {
     return std::make_unique<BcmTestWedge40Platform>(std::move(productInfo));
@@ -53,7 +53,7 @@ std::unique_ptr<Platform> createTestPlatform() {
   } else if (mode == PlatformMode::WEDGE400) {
     return std::make_unique<BcmTestWedge400Platform>(std::move(productInfo));
   } else if (mode == PlatformMode::FAKE_WEDGE) {
-    return std::make_unique<FakeBcmTestPlatform>(std::move(productInfo));
+    return std::make_unique<FakeBcmTestPlatform>();
   } else {
     throw std::runtime_error("invalid mode ");
   }
