@@ -582,6 +582,10 @@ add_library(fboss_agent STATIC
     fboss/agent/rib/RouteUpdater.cpp
     fboss/agent/rib/RoutingInformationBase.cpp
 
+    fboss/agent/test/ResourceLibUtil.cpp
+    fboss/agent/test/RouteDistributionGenerator.cpp
+    fboss/agent/test/RouteScaleGenerators.cpp
+
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h
@@ -704,6 +708,9 @@ add_executable(agent_test
        fboss/agent/test/RouteDistributionGeneratorTest.cpp
        fboss/agent/test/RouteUpdateLoggerTest.cpp
        fboss/agent/test/RouteUpdateLoggingTrackerTest.cpp
+       fboss/agent/test/ResourceLibUtilTest.cpp
+       fboss/agent/test/RouteDistributionGeneratorTest.cpp
+       fboss/agent/test/RouteScaleGeneratorsTest.cpp
        fboss/agent/test/StaticRoutes.cpp
        fboss/agent/test/TestPacketFactory.cpp
        fboss/agent/test/ThriftTest.cpp
