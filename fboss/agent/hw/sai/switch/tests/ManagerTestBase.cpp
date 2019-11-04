@@ -198,21 +198,38 @@ std::vector<QueueSaiId> ManagerTestBase::getPortQueueSaiIds(
 
 std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
     uint8_t queueId,
-    cfg::StreamType streamType) {
+    cfg::StreamType streamType,
+    cfg::QueueScheduling schedType,
+    uint8_t weight,
+    uint64_t minPps,
+    uint64_t maxPps) {
   auto portQueue = std::make_shared<PortQueue>(queueId);
   std::string queueName = "queue";
   queueName.append(std::to_string(queueId));
   portQueue->setStreamType(streamType);
   portQueue->setName(queueName);
+  cfg::PortQueueRate portQueueRate;
+  cfg::Range range;
+  range.minimum = minPps;
+  range.maximum = maxPps;
+  portQueueRate.set_pktsPerSec(range);
+  portQueue->setPortQueueRate(portQueueRate);
+  portQueue->setWeight(weight);
+  portQueue->setScheduling(schedType);
   return portQueue;
 }
 
 QueueConfig ManagerTestBase::makeQueueConfig(
     std::vector<uint8_t> queueIds,
-    cfg::StreamType streamType) {
+    cfg::StreamType streamType,
+    cfg::QueueScheduling schedType,
+    uint8_t weight,
+    uint64_t minPps,
+    uint64_t maxPps) {
   QueueConfig queueConfig;
   for (auto queueId : queueIds) {
-    auto portQueue = makePortQueue(queueId, streamType);
+    auto portQueue =
+        makePortQueue(queueId, streamType, schedType, weight, minPps, maxPps);
     queueConfig.push_back(portQueue);
   }
   return queueConfig;

@@ -133,11 +133,21 @@ class ManagerTestBase : public ::testing::Test {
 
   std::shared_ptr<PortQueue> makePortQueue(
       uint8_t queueId,
-      cfg::StreamType streamType = cfg::StreamType::UNICAST);
+      cfg::StreamType streamType = cfg::StreamType::UNICAST,
+      cfg::QueueScheduling schedType =
+          cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+      uint8_t weight = 24,
+      uint64_t minPps = 12000,
+      uint64_t maxPps = 60000);
 
   QueueConfig makeQueueConfig(
       std::vector<uint8_t> queueIds,
-      cfg::StreamType streamType = cfg::StreamType::UNICAST);
+      cfg::StreamType streamType = cfg::StreamType::UNICAST,
+      cfg::QueueScheduling schedType =
+          cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+      uint8_t weight = 24,
+      uint64_t minPps = 12000,
+      uint64_t maxPps = 60000);
 
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform
