@@ -19,9 +19,60 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
+
+sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
+  if (pause.tx && pause.rx) {
+    return SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
+  } else if (pause.tx) {
+    return SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
+  } else if (pause.rx) {
+    return SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
+  } else {
+    return SAI_PORT_FLOW_CONTROL_MODE_DISABLE;
+  }
+}
+
+sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
+    cfg::PortLoopbackMode loopbackMode) {
+  switch (loopbackMode) {
+    case cfg::PortLoopbackMode::NONE:
+      return SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
+    case cfg::PortLoopbackMode::PHY:
+      return SAI_PORT_INTERNAL_LOOPBACK_MODE_PHY;
+    case cfg::PortLoopbackMode::MAC:
+      return SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
+    default:
+      return SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
+  }
+}
+
+sai_port_media_type_t getSaiPortMediaType(
+    TransmitterTechnology transmitterTech) {
+  switch (transmitterTech) {
+    case TransmitterTechnology::COPPER:
+      return SAI_PORT_MEDIA_TYPE_COPPER;
+    case TransmitterTechnology::OPTICAL:
+      return SAI_PORT_MEDIA_TYPE_FIBER;
+    default:
+      return SAI_PORT_MEDIA_TYPE_UNKNOWN;
+  }
+}
+
+sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
+  if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
+    return SAI_PORT_FEC_MODE_FC;
+  } else if (fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544) {
+    return SAI_PORT_FEC_MODE_RS;
+  } else {
+    return SAI_PORT_FEC_MODE_NONE;
+  }
+}
 
 SaiPortManager::SaiPortManager(
     SaiManagerTable* managerTable,
@@ -100,76 +151,21 @@ void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort) const {
-  bool adminState;
-
-  switch (swPort->getAdminState()) {
-    case cfg::PortState::DISABLED:
-      adminState = false;
-      break;
-    case cfg::PortState::ENABLED:
-      adminState = true;
-      break;
-    default:
-      adminState = false;
-      XLOG(INFO) << "Invalid port admin state!";
-      break;
-  }
-  uint32_t speed;
-  switch (swPort->getSpeed()) {
-    case cfg::PortSpeed::TWENTYFIVEG:
-      speed = static_cast<uint32_t>(swPort->getSpeed());
-      break;
-    case cfg::PortSpeed::HUNDREDG:
-      speed = static_cast<uint32_t>(swPort->getSpeed());
-      break;
-    default:
-      speed = 0;
-      XLOG(INFO) << "Invalid port speed!";
-  }
-
+  bool adminState =
+      swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
+  uint32_t speed = static_cast<uint32_t>(swPort->getSpeed());
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
-
-  // TODO: Generate the fec mode once the platform config has fec mode
+  auto globalFlowControlMode = getSaiPortPauseMode(swPort->getPause());
+  auto internalLoopbackMode =
+      getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
+  auto mediaType = getSaiPortMediaType(platformPort->getTransmitterTech());
+  // TODO: Use getSaiPortFecMode once the platform config has fec mode
   auto fecMode = SAI_PORT_FEC_MODE_NONE;
   if (swPort->getFEC() == cfg::PortFEC::ON) {
     fecMode = SAI_PORT_FEC_MODE_RS;
   }
 
-  auto pause = swPort->getPause();
-  auto globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_DISABLE;
-  if (pause.tx && pause.rx) {
-    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
-  } else if (pause.tx) {
-    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
-  } else if (pause.rx) {
-    globalFlowControlMode = SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
-  }
-
-  auto internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
-  switch (swPort->getLoopbackMode()) {
-    case cfg::PortLoopbackMode::NONE:
-      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
-      break;
-    case cfg::PortLoopbackMode::PHY:
-      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_PHY;
-      break;
-    case cfg::PortLoopbackMode::MAC:
-      internalLoopbackMode = SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
-      break;
-  }
-
-  auto mediaType = SAI_PORT_MEDIA_TYPE_UNKNOWN;
-  switch (platformPort->getTransmitterTech()) {
-    case TransmitterTechnology::COPPER:
-      mediaType = SAI_PORT_MEDIA_TYPE_COPPER;
-      break;
-    case TransmitterTechnology::OPTICAL:
-      mediaType = SAI_PORT_MEDIA_TYPE_FIBER;
-      break;
-    default:
-      mediaType = SAI_PORT_MEDIA_TYPE_UNKNOWN;
-  }
   uint16_t vlanId = swPort->getIngressVlan();
   return SaiPortTraits::CreateAttributes{hwLaneList,
                                          speed,
