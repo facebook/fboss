@@ -32,9 +32,9 @@ using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
-  folly::F14FastMap<uint8_t, std::shared_ptr<SaiQueue>> queues;
   HwPortStats lastCollectedStats;
   void updateStats();
+  SaiQueueHandles queues;
 };
 
 class SaiPortManager {
@@ -52,12 +52,27 @@ class SaiPortManager {
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
+  const SaiQueueHandle* getQueueHandle(
+      PortID swId,
+      const SaiQueueConfig& saiQueueConfig) const;
+  SaiQueueHandle* getQueueHandle(
+      PortID swId,
+      const SaiQueueConfig& saiQueueConfig);
   void processPortDelta(const StateDelta& stateDelta);
   void updateStats() {}
   std::map<PortID, HwPortStats> getPortStats() const;
+  void removeQueue(
+      SaiQueueHandles& handle,
+      const SaiQueueConfig& saiQueueConfig);
 
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
+  SaiQueueHandle* getQueueHandleImpl(
+      PortID swId,
+      const SaiQueueConfig& saiQueueConfig) const;
+  void loadQueues(
+      const std::shared_ptr<Port>& swPort,
+      SaiPortHandle* portHandle);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

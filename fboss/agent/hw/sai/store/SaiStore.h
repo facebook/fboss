@@ -53,6 +53,24 @@ class SaiObjectStore {
     switchId_ = switchId;
   }
 
+  /*
+   * This routine will help load sai objects owned by the SAI Adapter.
+   * For instance, sai queue objects are owned by the adapter and will not be
+   * loaded during the initial reload. When a port is created, the queues will
+   * be created by the SDK and the adapter keys for the queue can be retrieved.
+   * Using the adapter key, the sai store can be populated with its attributes.
+   */
+  std::shared_ptr<ObjectType> loadObjectOwnedByAdapter(
+      const typename SaiObjectTraits::AdapterKey& adapterKey) {
+    static_assert(
+        IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value,
+        "Only adapter owned SAI objects can be loaded");
+    ObjectType obj(adapterKey);
+    auto adapterHostKey = obj.adapterHostKey();
+    auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
+    return ins.first;
+  }
+
   void reload() {
     if (!switchId_) {
       XLOG(FATAL)

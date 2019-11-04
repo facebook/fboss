@@ -31,6 +31,28 @@ SaiPortManager::SaiPortManager(
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
+void SaiPortManager::loadQueues(
+    const std::shared_ptr<Port>& swPort,
+    SaiPortHandle* portHandle) {
+  SaiPortTraits::Attributes::QosQueueList queueListAttribute;
+  auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), queueListAttribute);
+  if (queueSaiIdList.size() == 0) {
+    throw FbossError("no queues exist for port ", swPort->getID());
+  }
+  std::vector<QueueSaiId> queueSaiIds;
+  queueSaiIds.reserve(queueSaiIdList.size());
+  std::transform(
+      queueSaiIdList.begin(),
+      queueSaiIdList.end(),
+      queueSaiIds.begin(),
+      [](sai_object_id_t queueId) -> QueueSaiId {
+        return QueueSaiId(queueId);
+      });
+  portHandle->queues = managerTable_->queueManager().loadQueues(
+      portHandle->port->adapterKey(), queueSaiIds, swPort->getPortQueues());
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   if (portHandle) {
@@ -49,8 +71,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->port = saiPort;
   handle->bridgePort =
       managerTable_->bridgeManager().addBridgePort(saiPort->adapterKey());
-  handle->queues = managerTable_->queueManager().createQueues(
-      saiPort->adapterKey(), swPort->getPortQueues());
+  loadQueues(swPort, handle.get());
   handles_.emplace(swPort->getID(), std::move(handle));
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();
@@ -74,8 +95,7 @@ void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   portStore.setObject(portKey, attributes);
-  existingPort->queues = managerTable_->queueManager().createQueues(
-      existingPort->port->adapterKey(), swPort->getPortQueues());
+  loadQueues(swPort, existingPort);
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -179,6 +199,36 @@ const SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) const {
 
 SaiPortHandle* SaiPortManager::getPortHandle(PortID swId) {
   return getPortHandleImpl(swId);
+}
+
+// private const getter for use by const and non-const getters
+SaiQueueHandle* SaiPortManager::getQueueHandleImpl(
+    PortID swId,
+    const SaiQueueConfig& saiQueueConfig) const {
+  auto portHandle = getPortHandleImpl(swId);
+  if (!portHandle) {
+    XLOG(FATAL) << "Invalid null SaiPortHandle for " << swId;
+  }
+  auto itr = portHandle->queues.find(saiQueueConfig);
+  if (itr == portHandle->queues.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiQueueHandle for " << swId;
+  }
+  return itr->second.get();
+}
+
+const SaiQueueHandle* SaiPortManager::getQueueHandle(
+    PortID swId,
+    const SaiQueueConfig& saiQueueConfig) const {
+  return getQueueHandleImpl(swId, saiQueueConfig);
+}
+
+SaiQueueHandle* SaiPortManager::getQueueHandle(
+    PortID swId,
+    const SaiQueueConfig& saiQueueConfig) {
+  return getQueueHandleImpl(swId, saiQueueConfig);
 }
 
 void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {

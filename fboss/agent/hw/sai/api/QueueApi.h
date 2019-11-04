@@ -58,6 +58,9 @@ struct SaiQueueTraits {
       Attributes::ParentSchedulerNode>;
 };
 
+template <>
+struct IsSaiObjectOwnedByAdapter<SaiQueueTraits> : public std::true_type {};
+
 class QueueApi : public SaiApi<QueueApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_QUEUE;

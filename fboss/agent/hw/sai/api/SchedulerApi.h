@@ -56,7 +56,9 @@ struct SaiSchedulerTraits {
         sai_uint64_t>;
   };
   using AdapterKey = SchedulerSaiId;
-  using AdapterHostKey = std::set<typename SaiQueueTraits::AdapterHostKey>;
+  using AdapterHostKey = std::tuple<
+      std::optional<Attributes::SchedulingType>,
+      std::optional<Attributes::SchedulingWeight>>;
   using CreateAttributes = std::tuple<
       std::optional<Attributes::SchedulingType>,
       std::optional<Attributes::SchedulingWeight>,

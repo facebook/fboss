@@ -26,22 +26,31 @@ class SaiManagerTable;
 class SaiPlatform;
 
 using SaiQueue = SaiObject<SaiQueueTraits>;
+using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
+
+struct SaiQueueHandle {
+  std::shared_ptr<SaiQueue> queue;
+};
+
+using SaiQueueHandles =
+    folly::F14FastMap<SaiQueueConfig, std::unique_ptr<SaiQueueHandle>>;
 
 class SaiQueueManager {
  public:
   SaiQueueManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-
-  std::shared_ptr<SaiQueue> createQueue(
+  SaiQueueHandles loadQueues(
       PortSaiId portSaiId,
-      const PortQueue& portQueue);
-
-  folly::F14FastMap<uint8_t, std::shared_ptr<SaiQueue>> createQueues(
-      PortSaiId portSaiId,
+      const std::vector<QueueSaiId>& queueSaiIds,
       const QueueConfig& queues);
+  void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
 
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+  void ensurePortQueueConfig(
+      PortSaiId portSaiId,
+      const SaiQueueHandles& queueHandles,
+      const QueueConfig& queues);
 };
 
 } // namespace facebook::fboss
