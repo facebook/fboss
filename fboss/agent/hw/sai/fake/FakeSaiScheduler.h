@@ -24,6 +24,7 @@ class FakeScheduler {
   sai_object_id_t id;
   sai_scheduling_type_t schedulingType{SAI_SCHEDULING_TYPE_WRR};
   sai_uint8_t weight{1};
+  sai_meter_type_t meterType{SAI_METER_TYPE_BYTES};
   sai_uint64_t minBandwidthRate{0};
   sai_uint64_t minBandwidthBurstRate{0};
   sai_uint64_t maxBandwidthRate{0};

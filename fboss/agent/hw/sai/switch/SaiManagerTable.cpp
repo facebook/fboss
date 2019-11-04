@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -48,6 +49,7 @@ void SaiManagerTable::createSaiTableManagers(
   routeManager_ = std::make_unique<SaiRouteManager>(this, platform);
   routerInterfaceManager_ =
       std::make_unique<SaiRouterInterfaceManager>(this, platform);
+  schedulerManager_ = std::make_unique<SaiSchedulerManager>(this, platform);
   nextHopManager_ = std::make_unique<SaiNextHopManager>(this, platform);
   nextHopGroupManager_ =
       std::make_unique<SaiNextHopGroupManager>(this, platform);
@@ -134,6 +136,13 @@ SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager() {
 const SaiRouterInterfaceManager& SaiManagerTable::routerInterfaceManager()
     const {
   return *routerInterfaceManager_;
+}
+
+SaiSchedulerManager& SaiManagerTable::schedulerManager() {
+  return *schedulerManager_;
+}
+const SaiSchedulerManager& SaiManagerTable::schedulerManager() const {
+  return *schedulerManager_;
 }
 
 SaiSwitchManager& SaiManagerTable::switchManager() {

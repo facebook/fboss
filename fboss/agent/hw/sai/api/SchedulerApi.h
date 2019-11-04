@@ -38,6 +38,8 @@ struct SaiSchedulerTraits {
         EnumType,
         SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT,
         sai_uint8_t>;
+    using MeterType =
+        SaiAttribute<EnumType, SAI_SCHEDULER_ATTR_METER_TYPE, sai_int32_t>;
     using MinBandwidthRate = SaiAttribute<
         EnumType,
         SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE,
@@ -62,6 +64,8 @@ struct SaiSchedulerTraits {
   using CreateAttributes = std::tuple<
       std::optional<Attributes::SchedulingType>,
       std::optional<Attributes::SchedulingWeight>,
+      std::optional<Attributes::MeterType>,
+      std::optional<Attributes::MinBandwidthRate>,
       std::optional<Attributes::MaxBandwidthRate>>;
 };
 

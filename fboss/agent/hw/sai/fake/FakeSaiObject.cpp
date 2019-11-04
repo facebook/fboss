@@ -81,6 +81,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_QUEUE:
       *count = fs->qm.map().size();
       break;
+    case SAI_OBJECT_TYPE_SCHEDULER:
+      *count = fs->scm.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -227,6 +230,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_QUEUE: {
       for (const auto& q : fs->qm.map()) {
         object_list[i++].key.object_id = q.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_SCHEDULER: {
+      for (const auto& sc : fs->scm.map()) {
+        object_list[i++].key.object_id = sc.second.id;
       }
       break;
     }

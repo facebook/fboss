@@ -45,8 +45,11 @@ SaiQueueManager::SaiQueueManager(
     : managerTable_(managerTable), platform_(platform) {}
 
 void SaiQueueManager::changeQueue(
-    SaiQueueHandle* /* queueHandle */,
-    const PortQueue& /* newPortQueue */) {}
+    SaiQueueHandle* queueHandle,
+    const PortQueue& newPortQueue) {
+  queueHandle->scheduler =
+      managerTable_->schedulerManager().createScheduler(newPortQueue);
+}
 
 void SaiQueueManager::ensurePortQueueConfig(
     PortSaiId portSaiId,

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -30,6 +31,7 @@ using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
 
 struct SaiQueueHandle {
   std::shared_ptr<SaiQueue> queue;
+  std::shared_ptr<SaiScheduler> scheduler;
 };
 
 using SaiQueueHandles =

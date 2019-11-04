@@ -23,6 +23,7 @@ sai_status_t create_scheduler_fn(
     const sai_attribute_t* attr_list) {
   std::optional<sai_scheduling_type_t> schedulingType;
   std::optional<sai_uint8_t> weight;
+  std::optional<sai_meter_type_t> meterType;
   std::optional<sai_uint64_t> minBandwidthRate;
   std::optional<sai_uint64_t> minBandwidthBurstRate;
   std::optional<sai_uint64_t> maxBandwidthRate;
@@ -36,6 +37,9 @@ sai_status_t create_scheduler_fn(
         break;
       case SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT:
         weight = attr_list[i].value.u8;
+        break;
+      case SAI_SCHEDULER_ATTR_METER_TYPE:
+        meterType = static_cast<sai_meter_type_t>(attr_list[i].value.s32);
         break;
       case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE:
         minBandwidthRate = attr_list[i].value.s32;
@@ -60,6 +64,9 @@ sai_status_t create_scheduler_fn(
   }
   if (weight) {
     scheduler.weight = weight.value();
+  }
+  if (meterType) {
+    scheduler.meterType = meterType.value();
   }
   if (minBandwidthRate) {
     scheduler.minBandwidthRate = minBandwidthRate.value();
@@ -87,7 +94,7 @@ sai_status_t set_scheduler_attribute_fn(
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
   auto& scheduler = fs->scm.get(scheduler_id);
-  sai_status_t res;
+  sai_status_t res = SAI_STATUS_SUCCESS;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -95,27 +102,24 @@ sai_status_t set_scheduler_attribute_fn(
     case SAI_SCHEDULER_ATTR_SCHEDULING_TYPE:
       scheduler.schedulingType =
           static_cast<sai_scheduling_type_t>(attr->value.s32);
-      res = SAI_STATUS_INVALID_PARAMETER;
       break;
     case SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT:
       scheduler.weight = attr->value.u8;
-      res = SAI_STATUS_INVALID_PARAMETER;
+      break;
+    case SAI_SCHEDULER_ATTR_METER_TYPE:
+      scheduler.meterType = static_cast<sai_meter_type_t>(attr->value.s32);
       break;
     case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE:
       scheduler.minBandwidthRate = attr->value.u64;
-      res = SAI_STATUS_INVALID_PARAMETER;
       break;
     case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_BURST_RATE:
       scheduler.minBandwidthBurstRate = attr->value.u64;
-      res = SAI_STATUS_INVALID_PARAMETER;
       break;
     case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_RATE:
       scheduler.maxBandwidthRate = attr->value.u64;
-      res = SAI_STATUS_INVALID_PARAMETER;
       break;
     case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_BURST_RATE:
       scheduler.maxBandwidthBurstRate = attr->value.u64;
-      res = SAI_STATUS_INVALID_PARAMETER;
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -137,6 +141,9 @@ sai_status_t get_scheduler_attribute_fn(
         break;
       case SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT:
         attr[i].value.u8 = scheduler.weight;
+        break;
+      case SAI_SCHEDULER_ATTR_METER_TYPE:
+        attr[i].value.s32 = static_cast<sai_int32_t>(scheduler.meterType);
         break;
       case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE:
         attr[i].value.u64 = scheduler.minBandwidthRate;

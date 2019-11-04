@@ -46,6 +46,8 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<RouteApi>>(apis_) = std::make_unique<RouteApi>();
   std::get<std::unique_ptr<RouterInterfaceApi>>(apis_) =
       std::make_unique<RouterInterfaceApi>();
+  std::get<std::unique_ptr<SchedulerApi>>(apis_) =
+      std::make_unique<SchedulerApi>();
   std::get<std::unique_ptr<SwitchApi>>(apis_) = std::make_unique<SwitchApi>();
   std::get<std::unique_ptr<VirtualRouterApi>>(apis_) =
       std::make_unique<VirtualRouterApi>();
