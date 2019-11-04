@@ -59,6 +59,22 @@ enum PortSpeed {
   FOURHUNDREDG = 400000;        // 400G
 }
 
+// <speed>_<num_lanes>_<modulation>_<fec>
+// <num_lanes>_<modulation>_<fec> is the outmoster layer settings.
+enum PortProfileID {
+  PROFILE_DEFAULT = 0
+  PROFILE_10G_1_NRZ_NOFEC = 1
+  PROFILE_20G_2_NRZ_NOFEC = 2
+  PROFILE_25G_1_NRZ_NOFEC = 3
+  PROFILE_40G_4_NRZ_NOFEC = 4
+  PROFILE_50G_2_NRZ_NOFEC = 5
+  PROFILE_100G_4_NRZ_NOFEC = 6
+  PROFILE_100G_4_NRZ_CL91 = 7
+  PROFILE_100G_4_NRZ_RS528 = 8
+  PROFILE_200G_4_PAM4_RS544X2N = 9
+  PROFILE_400G_8_PAM4_RS544X2N = 10
+}
+
 /**
  * The pause setting for a port
  */
@@ -689,6 +705,17 @@ struct Port {
    * below list. When the list is exhausted, wrap around.
    */
   23: list<AclLookupClass> lookupClasses = []
+
+  /*
+   * The speed profile id for a port.
+   * As FBOSS supports more and more speeds and there're a lot of config
+   * combinations(like fec, lane_utilizations, medium) occured for those new
+   * platforms. So we'll gradually deprecate the `speed` and `fec` fields from
+   * Port struct and only use this `profileID` to program the port.
+   * Besides, each platform can support different kinds of speed profiles, and
+   * it should be defined in the `PlatformConfig`(platform_config.thrift)
+   */
+  24: PortProfileID profileID = PortProfileID.PROFILE_DEFAULT
 }
 
 enum LacpPortRate {
