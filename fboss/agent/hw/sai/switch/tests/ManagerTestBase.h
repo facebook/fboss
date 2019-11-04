@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
@@ -125,6 +126,8 @@ class ManagerTestBase : public ::testing::Test {
       const TestRoute& route) const;
 
   std::shared_ptr<Vlan> makeVlan(const TestInterface& testInterface) const;
+
+  std::vector<QueueSaiId> getPortQueueSaiIds(const SaiPortHandle* portHandle);
 
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform

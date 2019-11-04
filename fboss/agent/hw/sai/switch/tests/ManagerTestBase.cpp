@@ -176,4 +176,16 @@ std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
   return r;
 }
 
+std::vector<QueueSaiId> ManagerTestBase::getPortQueueSaiIds(
+    const SaiPortHandle* portHandle) {
+  SaiPortTraits::Attributes::QosQueueList queueListAttribute;
+  auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), queueListAttribute);
+  std::vector<QueueSaiId> queueSaiIds;
+  for (auto queueSaiId : queueSaiIdList) {
+    queueSaiIds.push_back(QueueSaiId(queueSaiId));
+  }
+  return queueSaiIds;
+}
+
 } // namespace facebook::fboss
