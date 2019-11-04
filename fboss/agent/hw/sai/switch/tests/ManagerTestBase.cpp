@@ -62,7 +62,15 @@ void ManagerTestBase::SetUp() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
-        saiManagerTable->portManager().addPort(swPort);
+        auto portSaiId = saiManagerTable->portManager().addPort(swPort);
+        if (setupStage & SetupStage::QUEUE) {
+          QueueConfig queueConfig;
+          for (auto queueId = 0; queueId < kPortQueueMax; queueId++) {
+            auto portQueue = makePortQueue(queueId);
+            queueConfig.push_back(portQueue);
+          }
+          saiManagerTable->queueManager().loadQueues(portSaiId, {}, queueConfig);
+        }
       }
     }
   }
@@ -186,6 +194,28 @@ std::vector<QueueSaiId> ManagerTestBase::getPortQueueSaiIds(
     queueSaiIds.push_back(QueueSaiId(queueSaiId));
   }
   return queueSaiIds;
+}
+
+std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
+    uint8_t queueId,
+    cfg::StreamType streamType) {
+  auto portQueue = std::make_shared<PortQueue>(queueId);
+  std::string queueName = "queue";
+  queueName.append(std::to_string(queueId));
+  portQueue->setStreamType(streamType);
+  portQueue->setName(queueName);
+  return portQueue;
+}
+
+QueueConfig ManagerTestBase::makeQueueConfig(
+    std::vector<uint8_t> queueIds,
+    cfg::StreamType streamType) {
+  QueueConfig queueConfig;
+  for (auto queueId : queueIds) {
+    auto portQueue = makePortQueue(queueId, streamType);
+    queueConfig.push_back(portQueue);
+  }
+  return queueConfig;
 }
 
 } // namespace facebook::fboss

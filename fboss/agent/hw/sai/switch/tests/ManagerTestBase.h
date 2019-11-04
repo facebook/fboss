@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
@@ -46,6 +47,7 @@ class ManagerTestBase : public ::testing::Test {
     VLAN = 2,
     INTERFACE = 4,
     NEIGHBOR = 8,
+    QUEUE = 16,
   };
 
   /*
@@ -129,6 +131,14 @@ class ManagerTestBase : public ::testing::Test {
 
   std::vector<QueueSaiId> getPortQueueSaiIds(const SaiPortHandle* portHandle);
 
+  std::shared_ptr<PortQueue> makePortQueue(
+      uint8_t queueId,
+      cfg::StreamType streamType = cfg::StreamType::UNICAST);
+
+  QueueConfig makeQueueConfig(
+      std::vector<uint8_t> queueIds,
+      cfg::StreamType streamType = cfg::StreamType::UNICAST);
+
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform
   std::shared_ptr<SaiPlatform> saiPlatform;
@@ -138,6 +148,9 @@ class ManagerTestBase : public ::testing::Test {
 
   std::array<TestInterface, 10> testInterfaces;
   uint32_t setupStage{SetupStage::BLANK};
+
+ private:
+  static constexpr uint8_t kPortQueueMax = 8;
 };
 
 } // namespace facebook::fboss
