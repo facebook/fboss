@@ -23,6 +23,11 @@ constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
  */
 const auto kIPv6LinkLocalMcastNetwork =
     folly::IPAddress::createNetwork("ff02::/16");
+/*
+ * Link local ucast network
+ */
+const auto kIPv6LinkLocalUcastNetwork =
+    folly::IPAddress::createNetwork("fe80::/10");
 } // unnamed namespace
 
 namespace facebook {
@@ -132,13 +137,36 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   createHighPriDstClassL3Acl(false, true);
   createHighPriDstClassL3Acl(false, false);
 
-  {
+  // Dst IP local + DSCP 48 to high pri queue
+  auto createHigPriLocalIpNetworkControlAcl = [&](bool isV4) {
     cfg::AclEntry acl;
-    acl.name = "cpuPolicing-high-network-control";
+    acl.name = folly::to<std::string>(
+        "cpuPolicing-high-",
+        isV4 ? "dstLocalIp4" : "dstLocalIp6",
+        "-network-control");
     acl.dscp_ref() = 48;
+    acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+                                 : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
     acls.push_back(
         std::make_pair(acl, createMatchAction(utility::kCoppHighPriQueueId)));
-  }
+  };
+  createHigPriLocalIpNetworkControlAcl(true);
+  createHigPriLocalIpNetworkControlAcl(false);
+  // Link local IPv6 + DSCP 48 to high pri queue
+  auto createHighPriLinkLocalV6NetworoControlAcl =
+      [&](const folly::CIDRNetwork& dstNetwork) {
+        cfg::AclEntry acl;
+        auto dstNetworkStr =
+            folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+        acl.name = folly::to<std::string>(
+            "cpuPolicing-high-", dstNetworkStr, "-network-control");
+        acl.dstIp_ref() = dstNetworkStr;
+        acl.dscp_ref() = 48;
+        acls.push_back(std::make_pair(
+            acl, createMatchAction(utility::kCoppHighPriQueueId)));
+      };
+  createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalMcastNetwork);
+  createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalUcastNetwork);
 
   // Now steer traffic destined to this (local) interface IP
   // to mid pri queue. Note that we add this Acl entry *after*
@@ -172,7 +200,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   createMidPriDstIpAcl(kIPv6LinkLocalMcastNetwork);
 
   // All fe80::/10 to mid pri queue
-  createMidPriDstIpAcl(folly::CIDRNetwork(folly::IPAddressV6("fe80::"), 10));
+  createMidPriDstIpAcl(kIPv6LinkLocalUcastNetwork);
 
   return acls;
 }
