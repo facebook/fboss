@@ -64,8 +64,7 @@ class Wedge40Platform : public WedgePlatform {
   }
 
   HwAsic* getAsic() const override {
-    /* TODO: implement this */
-    return nullptr;
+    return asic_.get();
   }
 
  private:
