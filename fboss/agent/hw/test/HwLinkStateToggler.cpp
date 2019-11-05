@@ -62,7 +62,7 @@ void HwLinkStateToggler::portStateChangeImpl(
   }
 }
 
-void HwLinkStateToggler::applyInitialConfigAndBringUpPorts(
+void HwLinkStateToggler::applyInitialConfig(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg) {
@@ -83,6 +83,11 @@ void HwLinkStateToggler::applyInitialConfigAndBringUpPorts(
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
   stateUpdateFn_(newState);
+}
+
+void HwLinkStateToggler::bringUpPorts(
+    const std::shared_ptr<SwitchState>& newState,
+    const cfg::SwitchConfig& initCfg) {
   std::vector<PortID> portsToBringUp;
   folly::gen::from(initCfg.ports) | folly::gen::filter([](const auto& port) {
     return port.state == cfg::PortState::ENABLED;

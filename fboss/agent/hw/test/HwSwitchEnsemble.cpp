@@ -93,9 +93,11 @@ void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
   CHECK(featuresDesired_ & HwSwitch::LINKSCAN_DESIRED)
       << "Link scan feature must be enabled for exercising "
       << "applyInitialConfigAndBringUpPorts";
-  linkToggler_->applyInitialConfigAndBringUpPorts(
+  linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
   hwSwitch_->initialConfigApplied();
+  hwSwitch_->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  linkToggler_->bringUpPorts(getProgrammedState(), initCfg);
   initCfgState_ = getProgrammedState();
 }
 
