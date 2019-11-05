@@ -83,6 +83,15 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
     dscpSet.emplace(qosRule.dscp);
   }
 
+  /*
+   * If no qos rules are provided (dscp to queue mappoing), treat it as qos
+   * disabled. For example, MH-NIC downwlink ports use queue-per-host and thus
+   * don't have an qos rules configured.
+   */
+  if (dscpSet.size() == 0) {
+    return true;
+  }
+
   // we have alredy validated that values are in range [0, 63]
   auto isValid = dscpSet.size() == kDscpValueMaxCnt;
   if (!isValid) {
