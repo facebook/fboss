@@ -25,5 +25,9 @@ using PortSpeed2TransmitterTechAndMode = std::
 
 const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode();
 
+uint32_t getDesiredPhyLaneConfig(
+    TransmitterTechnology tech,
+    cfg::PortSpeed speed);
+
 } // namespace fboss
 } // namespace facebook

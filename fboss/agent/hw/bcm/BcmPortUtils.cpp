@@ -54,5 +54,32 @@ const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode() {
         {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}}}};
   return kPortTypeMapping;
 }
+
+uint32_t getDesiredPhyLaneConfig(
+    TransmitterTechnology tech,
+    cfg::PortSpeed speed) {
+  // see shared/port.h for what these various shifts mean. I elide
+  // them here simply because they are very verbose.
+  if (tech == TransmitterTechnology::BACKPLANE) {
+    if (speed == cfg::PortSpeed::FORTYG) {
+      // DFE + BACKPLANE + NRZ
+      return 0x8004;
+    } else if (speed == cfg::PortSpeed::HUNDREDG) {
+      // DFE + BACKPLANE + PAM4 + NS
+      return 0x5004;
+    }
+  } else if (tech == TransmitterTechnology::COPPER) {
+    if (speed == cfg::PortSpeed::FORTYG) {
+      // DFE + COPPER + NRZ
+      return 0x8024;
+    } else if (speed == cfg::PortSpeed::HUNDREDG) {
+      // DFE + COPPER + PAM4 + NS
+      return 0x5024;
+    }
+  }
+  // TODO: add more mappings + better error message
+  throw std::runtime_error("Unsupported tech+speed in port_resource");
+}
+
 } // namespace fboss
 } // namespace facebook
