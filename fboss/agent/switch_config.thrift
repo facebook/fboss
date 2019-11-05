@@ -368,8 +368,12 @@ struct AclEntry {
   22: optional i32 l4SrcPort
   23: optional i32 l4DstPort
 
+  // TODO (skhare): DEPRECATE and rename to lookupClassL3
   /* dstClassL3 */
   24: optional AclLookupClass lookupClass;
+
+  /* dstClassL2 */
+  25: optional AclLookupClass lookupClassL2
 }
 
 /*
