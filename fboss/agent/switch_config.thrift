@@ -517,6 +517,24 @@ struct PortQueue {
   14: optional i32 bandwidthBurstMaxKbits
 }
 
+struct DscpQosMap {
+  1: i16 internalTrafficClass
+  2: list<byte> fromDscpToTrafficClass
+  3: optional byte fromTrafficClassToDscp
+}
+
+struct ExpQosMap {
+  1: i16 internalTrafficClass
+  2: list<byte> fromExpToTrafficClass
+  3: optional byte fromTrafficClassToExp
+}
+
+struct QosMap {
+  1: list<DscpQosMap> dscpMaps
+  2: list<ExpQosMap> expMaps
+  3: map<i16, i16> trafficClassToQueueId
+}
+
 struct QosRule {
   1: i16 queueId
   2: list<i16> dscp = []
@@ -525,6 +543,7 @@ struct QosRule {
 struct QosPolicy {
   1: string name
   2: list<QosRule> rules
+  3: optional QosMap qosMap
 }
 
 struct TrafficPolicyConfig {
