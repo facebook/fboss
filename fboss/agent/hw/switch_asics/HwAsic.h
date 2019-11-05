@@ -20,8 +20,19 @@ class HwAsic {
     TX_VLAN_STRIPPING_ON_PORT,
   };
 
+  enum class AsicType {
+    ASIC_TYPE_FAKE,
+
+    ASIC_TYPE_TRIDENT2,
+    ASIC_TYPE_TOMAHAWK,
+    ASIC_TYPE_TOMAHAWK3,
+
+    ASIC_TYPE_GIBRALTAR,
+  };
+
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
+  virtual AsicType getAsicType() const = 0;
 };
 
 } // namespace fboss

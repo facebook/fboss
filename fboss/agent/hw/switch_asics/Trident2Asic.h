@@ -10,6 +10,9 @@ namespace fboss {
 class Trident2Asic : public HwAsic {
  public:
   bool isSupported(Feature) const override;
+  AsicType getAsicType() const override {
+    return AsicType::ASIC_TYPE_TRIDENT2;
+  }
 };
 
 } // namespace fboss

@@ -12,6 +12,9 @@ class FakeAsic : public HwAsic {
   bool isSupported(Feature) const override {
     return true; // fake supports all features
   }
+  AsicType getAsicType() const override {
+    return AsicType::ASIC_TYPE_FAKE;
+  }
 };
 
 } // namespace fboss

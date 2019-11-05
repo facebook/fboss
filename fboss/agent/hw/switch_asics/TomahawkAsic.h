@@ -10,6 +10,9 @@ namespace fboss {
 class TomahawkAsic : public HwAsic {
  public:
   bool isSupported(Feature) const override;
+  AsicType getAsicType() const override {
+    return AsicType::ASIC_TYPE_TOMAHAWK;
+  }
 };
 
 } // namespace fboss
