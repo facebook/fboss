@@ -183,6 +183,11 @@ class Platform {
 
   virtual HwAsic* getAsic() const = 0;
 
+  /*
+   * initPorts() will be called during port initialization.
+   */
+  virtual void initPorts() = 0;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is

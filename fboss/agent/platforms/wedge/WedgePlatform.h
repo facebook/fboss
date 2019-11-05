@@ -38,7 +38,8 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   ~WedgePlatform() override;
 
   void initImpl() override;
-  InitPortMap initPorts() override;
+  void initPorts() override;
+  BcmPlatformPortMap getPlatformPortMap() override;
 
   void stop() override;
 

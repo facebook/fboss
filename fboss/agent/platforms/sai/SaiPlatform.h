@@ -40,7 +40,7 @@ class SaiPlatform : public Platform {
       cfg::PlatformAttributes platformAttribute);
   virtual SaiPlatformPort* getPort(PortID id) const;
   PlatformPort* getPlatformPort(PortID port) const override;
-  virtual void initPorts();
+  void initPorts() override;
   virtual std::string getHwConfig() = 0;
   std::string getHwConfigDumpFile();
   void generateHwConfigFile();

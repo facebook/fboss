@@ -44,6 +44,8 @@ class SimPlatform : public Platform {
     throw std::runtime_error("getAsic not implemented for SimPlatform");
   }
 
+  void initPorts() override;
+
  private:
   // Forbidden copy constructor and assignment operator
   SimPlatform(SimPlatform const&) = delete;

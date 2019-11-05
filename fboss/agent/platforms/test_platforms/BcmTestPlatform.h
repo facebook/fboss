@@ -48,7 +48,8 @@ class BcmTestPlatform : public BcmPlatform {
 
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
-  InitPortMap initPorts() override;
+  void initPorts() override;
+  BcmPlatformPortMap getPlatformPortMap() override;
 
   bool canUseHostTableForHostRoutes() const override {
     return true;

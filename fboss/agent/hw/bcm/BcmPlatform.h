@@ -30,7 +30,7 @@ class PortQueue;
  */
 class BcmPlatform : public Platform {
  public:
-  typedef std::map<opennsl_port_t, BcmPlatformPort*> InitPortMap;
+  typedef std::map<opennsl_port_t, BcmPlatformPort*> BcmPlatformPortMap;
 
   using Platform::Platform;
 
@@ -48,14 +48,12 @@ class BcmPlatform : public Platform {
   virtual void onUnitAttach(int unit) = 0;
 
   /*
-   * initPorts() will be called during port initialization.
-   *
    * The BcmPlatform should return a map of BCM port ID to BcmPlatformPort
    * objects.  The BcmPlatform object will retain ownership of all the
    * BcmPlatformPort objects, and must ensure that they remain valid for as
    * long as the BcmSwitch exists.
    */
-  virtual InitPortMap initPorts() = 0;
+  virtual BcmPlatformPortMap getPlatformPortMap() = 0;
 
   /*
    * Get filename for where we dump the HW config that

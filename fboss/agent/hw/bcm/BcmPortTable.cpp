@@ -44,8 +44,8 @@ void BcmPortTable::initPorts(
   // platform.  For instance, even though the Trident2 chip may support up to
   // 128 ports, if the platform only defines 32 ports we will only create 32
   // BcmPort objects.
-  auto platformPorts = hw_->getPlatform()->initPorts();
-  for (const auto& entry : platformPorts) {
+  hw_->getPlatform()->initPorts();
+  for (const auto& entry : hw_->getPlatform()->getPlatformPortMap()) {
     opennsl_port_t bcmPortNum = entry.first;
     BcmPlatformPort* platPort = entry.second;
 

@@ -55,6 +55,8 @@ class MockPlatform : public Platform {
     return _getAsic();
   }
 
+  MOCK_METHOD0(initPorts, void());
+
  private:
   void createTmpDir();
   void cleanupTmpDir();

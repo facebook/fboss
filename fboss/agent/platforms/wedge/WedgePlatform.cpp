@@ -58,10 +58,17 @@ void WedgePlatform::initImpl() {
 
 WedgePlatform::~WedgePlatform() {}
 
-WedgePlatform::InitPortMap WedgePlatform::initPorts() {
+void WedgePlatform::initPorts() {
   portMapping_ = createPortMapping();
+}
 
-  InitPortMap mapping;
+WedgePlatform::BcmPlatformPortMap WedgePlatform::getPlatformPortMap() {
+  if (portMapping_ == nullptr) {
+    throw FbossError(
+        "Platform port mapping is empty, need to initPorts() first");
+  }
+
+  BcmPlatformPortMap mapping;
   for (const auto& kv : *portMapping_) {
     opennsl_port_t id = kv.first;
     mapping[id] = kv.second.get();

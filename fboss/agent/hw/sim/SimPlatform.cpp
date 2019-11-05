@@ -58,5 +58,7 @@ std::string SimPlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
+void SimPlatform::initPorts() {}
+
 } // namespace fboss
 } // namespace facebook

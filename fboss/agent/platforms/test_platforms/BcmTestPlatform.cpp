@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -72,15 +73,17 @@ void BcmTestPlatform::onUnitAttach(int /*unit*/) {
   // Nothing to do
 }
 
-BcmTestPlatform::InitPortMap BcmTestPlatform::initPorts() {
-  InitPortMap ports;
-
+void BcmTestPlatform::initPorts() {
   for (int logicalPortId : logicalPortIds_) {
     PortID id(logicalPortId);
+    ports_[PortID(logicalPortId)] = createTestPort(id);
+  }
+}
 
-    auto rtn = ports_.emplace(id, createTestPort(id));
-
-    ports.emplace(logicalPortId, rtn.first->second.get());
+BcmTestPlatform::BcmPlatformPortMap BcmTestPlatform::getPlatformPortMap() {
+  BcmPlatformPortMap ports;
+  for (const auto& port : ports_) {
+    ports[static_cast<opennsl_port_t>(port.first)] = port.second.get();
   }
   return ports;
 }
