@@ -53,6 +53,12 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
     ClientAndNextHops destPair;
     destPair.clientId = static_cast<int>(srcPair.first);
     for (const auto& nh : srcPair.second.getNextHopSet()) {
+      // Populate `.nextHops` attribute as it is primary one indicating nexthops
+      destPair.nextHops.push_back(nh.toThrift());
+
+      // Populate `nextHopAddrs` for backward compatibility
+      // TODO: Remove `nextHopAddrs` as protocols (BGP, Open/R) has migrated to
+      // using ".nextHops" attribute
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
       if (nh.intfID().hasValue()) {
         auto& nhAddr = destPair.nextHopAddrs.back();

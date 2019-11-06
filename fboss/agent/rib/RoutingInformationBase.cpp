@@ -203,6 +203,27 @@ RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
   return rib;
 }
 
+std::vector<RouteDetails> RoutingInformationBase::getRouteTableDetails(
+    RouterID rid) const {
+  std::vector<RouteDetails> routeDetails;
+  SYNCHRONIZED_CONST(synchronizedRouteTables_) {
+    const auto it = synchronizedRouteTables_.find(rid);
+    if (it != synchronizedRouteTables_.end()) {
+      for (auto rit = it->second.v4NetworkToRoute.begin();
+           rit != it->second.v4NetworkToRoute.end();
+           ++rit) {
+        routeDetails.emplace_back(rit.value().toRouteDetails());
+      }
+      for (auto rit = it->second.v6NetworkToRoute.begin();
+           rit != it->second.v6NetworkToRoute.end();
+           ++rit) {
+        routeDetails.emplace_back(rit.value().toRouteDetails());
+      }
+    }
+  }
+  return routeDetails;
+}
+
 RoutingInformationBase::RouterIDToRouteTable
 RoutingInformationBase::constructRouteTables(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,

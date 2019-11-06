@@ -93,6 +93,8 @@ class RoutingInformationBase {
   folly::dynamic toFollyDynamic() const;
   static RoutingInformationBase fromFollyDynamic(const folly::dynamic& ribJson);
 
+  std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
+
  private:
   struct RouteTable {
     RouteTable() = default;

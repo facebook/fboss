@@ -953,6 +953,28 @@ TEST(Route, deepCopy) {
 }
 
 // Test serialization of RouteNextHopsMulti.
+TEST(Route, toThriftRouteNextHopsMulti) {
+  // This function tests toThrift of:
+  // RouteNextHopsMulti
+
+  // test for new format to new format
+  RouteNextHopsMulti nhm1;
+  nhm1.update(kClientA, RouteNextHopEntry(newNextHops(3, "1.1.1."), kDistance));
+  nhm1.update(kClientB, RouteNextHopEntry(newNextHops(1, "2.2.2."), kDistance));
+  nhm1.update(kClientC, RouteNextHopEntry(newNextHops(4, "3.3.3."), kDistance));
+
+  auto clientAndNexthops = nhm1.toThrift();
+  EXPECT_EQ(3, clientAndNexthops.size());
+  for (auto const& entry : clientAndNexthops) {
+    EXPECT_GE(entry.nextHops.size(), 1);
+    ASSERT_EQ(entry.nextHops.size(), entry.nextHopAddrs.size());
+    for (auto i = 0; i < entry.nextHops.size(); ++i) {
+      EXPECT_EQ(entry.nextHopAddrs.at(i), entry.nextHops.at(i).address);
+    }
+  }
+}
+
+// Test serialization of RouteNextHopsMulti.
 TEST(Route, serializeRouteNextHopsMulti) {
   // This function tests [de]serialization of:
   // RouteNextHopsMulti

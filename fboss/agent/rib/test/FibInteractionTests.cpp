@@ -357,6 +357,10 @@ TEST(Rib, Update) {
   routesToPrefixA.push_back(
       createUnicastRoute(prefixA6.first, prefixA6.second, client10Nexthop6));
 
+  // Get number of routes in rib
+  const size_t numStaticRoutes =
+      sw->getRib()->getRouteTableDetails(vrfZero).size();
+
   sw->getRib()->update(
       vrfZero,
       ClientID(10),
@@ -369,6 +373,10 @@ TEST(Rib, Update) {
       static_cast<void*>(sw));
 
   EXPECT_FIB_SIZE(sw->getState(), vrfZero, 3, 3);
+
+  // Verify that new routes are reflected in route table details
+  EXPECT_EQ(
+      numStaticRoutes + 2, sw->getRib()->getRouteTableDetails(vrfZero).size());
 
   // Prefix B will include next-hops from clients 10 and 20
   auto prefixB4 = folly::CIDRNetworkV4(folly::IPAddressV4("7.2.0.0"), 16);
