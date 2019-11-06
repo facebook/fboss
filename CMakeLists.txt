@@ -289,6 +289,7 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwVlanTests.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/test/HwLinkStateDependentTest.cpp
+    fboss/agent/hw/test/HwTestConstants.cpp
     fboss/agent/hw/test/HwTestCoppUtils.cpp
     fboss/agent/hw/test/Main.cpp
     fboss/agent/hw/bcm/tests/BcmTest.cpp
@@ -582,6 +583,7 @@ add_library(fboss_agent STATIC
     fboss/agent/rib/RouteUpdater.cpp
     fboss/agent/rib/RoutingInformationBase.cpp
 
+    fboss/agent/test/EcmpSetupHelper.cpp
     fboss/agent/test/ResourceLibUtil.cpp
     fboss/agent/test/RouteDistributionGenerator.cpp
     fboss/agent/test/RouteScaleGenerators.cpp
