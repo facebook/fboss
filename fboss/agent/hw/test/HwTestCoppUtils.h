@@ -19,6 +19,7 @@
  */
 namespace facebook {
 namespace fboss {
+class HwSwitch;
 namespace utility {
 
 constexpr int kCPUPort = 0;
@@ -51,6 +52,8 @@ void setDefaultCpuTrafficPolicyConfig(
     const folly::MacAddress& localMac);
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
+
+uint64_t getCpuQueueOutPackets(const HwSwitch* hwSwitch, int queueId);
 
 } // namespace utility
 } // namespace fboss
