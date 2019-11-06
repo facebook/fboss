@@ -181,8 +181,11 @@ cfg::SwitchConfig onePortPerVlanConfig(
   return config;
 }
 
-cfg::SwitchConfig
-twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2) {
+cfg::SwitchConfig twoL3IntfConfig(
+    const HwSwitch* hwSwitch,
+    PortID port1,
+    PortID port2,
+    cfg::PortLoopbackMode lbMode) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports;
   port2vlan[port1] = VlanID(kBaseVlanId);
@@ -190,7 +193,7 @@ twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2) {
   ports.push_back(port1);
   ports.push_back(port2);
   std::vector<VlanID> vlans = {VlanID(kBaseVlanId), VlanID(kBaseVlanId + 1)};
-  auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans);
+  auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans, lbMode);
 
   config.interfaces.resize(2);
   config.interfaces[0].intfID = kBaseVlanId;

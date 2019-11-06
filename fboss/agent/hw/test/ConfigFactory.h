@@ -57,15 +57,17 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true);
-
 cfg::SwitchConfig onePortPerVlanConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true);
+cfg::SwitchConfig twoL3IntfConfig(
+    const HwSwitch* hwSwitch,
+    PortID port1,
+    PortID port2,
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 
-cfg::SwitchConfig
-twoL3IntfConfig(const HwSwitch* hwSwitch, PortID port1, PortID port2);
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
