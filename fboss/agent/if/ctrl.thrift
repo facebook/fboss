@@ -460,6 +460,7 @@ struct AclEntryThrift {
   19: optional i16 l4DstPort
   20: optional byte lookupClass
   21: string actionType
+  22: optional byte lookupClassL2
 }
 
 service FbossCtrl extends fb303.FacebookService {

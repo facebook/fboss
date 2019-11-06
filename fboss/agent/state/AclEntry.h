@@ -113,6 +113,7 @@ struct AclEntryFields {
   folly::Optional<folly::MacAddress> dstMac{folly::none};
   folly::Optional<uint16_t> l4SrcPort{folly::none};
   folly::Optional<uint16_t> l4DstPort{folly::none};
+  folly::Optional<cfg::AclLookupClass> lookupClassL2{folly::none};
   folly::Optional<cfg::AclLookupClass> lookupClass{folly::none};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
@@ -160,6 +161,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->ttl == acl.getTtl() &&
         getFields()->l4SrcPort == acl.getL4SrcPort() &&
         getFields()->l4DstPort == acl.getL4DstPort() &&
+        getFields()->lookupClassL2 == acl.getLookupClassL2() &&
         getFields()->lookupClass == acl.getLookupClass();
   }
 
@@ -305,6 +307,13 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
 
   void setL4DstPort(const uint16_t port) {
     writableFields()->l4DstPort = port;
+  }
+
+  folly::Optional<cfg::AclLookupClass> getLookupClassL2() const {
+    return getFields()->lookupClassL2;
+  }
+  void setLookupClassL2(const cfg::AclLookupClass& lookupClassL2) {
+    writableFields()->lookupClassL2 = lookupClassL2;
   }
 
   folly::Optional<cfg::AclLookupClass> getLookupClass() const {

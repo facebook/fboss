@@ -38,6 +38,7 @@ constexpr auto kIpType = "IpType";
 constexpr auto kTtl = "ttl";
 constexpr auto kTtlValue = "value";
 constexpr auto kTtlMask = "mask";
+constexpr auto kLookupClassL2 = "lookupClassL2";
 constexpr auto kLookupClass = "lookupClass";
 constexpr auto kAclAction = "aclAction";
 } // namespace
@@ -110,6 +111,11 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (l4DstPort) {
     aclEntry[kL4DstPort] = static_cast<uint16_t>(l4DstPort.value());
+  }
+  if (lookupClassL2) {
+    auto lookupClassNameL2 = apache::thrift::util::enumName(*lookupClassL2);
+    CHECK(lookupClassNameL2 != nullptr);
+    aclEntry[kLookupClassL2] = lookupClassNameL2;
   }
   if (lookupClass) {
     auto lookupClassName = apache::thrift::util::enumName(*lookupClass);
@@ -185,6 +191,11 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
   }
   if (aclEntryJson.find(kTtl) != aclEntryJson.items().end()) {
     aclEntry.ttl = AclTtl::fromFollyDynamic(aclEntryJson[kTtl]);
+  }
+  if (aclEntryJson.find(kLookupClassL2) != aclEntryJson.items().end()) {
+    auto lookupClassL2Itr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(
+        aclEntryJson[kLookupClassL2].asString().c_str());
+    aclEntry.lookupClassL2 = cfg::AclLookupClass(lookupClassL2Itr->second);
   }
   if (aclEntryJson.find(kLookupClass) != aclEntryJson.items().end()) {
     auto lookupClassItr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(

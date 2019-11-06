@@ -1527,6 +1527,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (config->__isset.lookupClass) {
     newAcl->setLookupClass(config->lookupClass_ref().value_unchecked());
   }
+  if (config->__isset.lookupClassL2) {
+    newAcl->setLookupClassL2(config->lookupClassL2_ref().value_unchecked());
+  }
   return newAcl;
 }
 
