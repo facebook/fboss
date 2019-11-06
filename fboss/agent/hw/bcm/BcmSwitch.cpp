@@ -819,15 +819,23 @@ void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
 }
 
 void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
-  // make sure we'll enable all the necessary ports based on the new state
-  auto newState = delta.newState();
-  for (auto& port : *newState->getPorts()) {
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!oldPort->isEnabled() && newPort->isEnabled()) {
+          auto bcmPort = portTable_->getBcmPort(newPort->getID());
+          bcmPort->enable(newPort);
+          processEnabledPortQueues(newPort);
+        }
+      });
+
+  forEachAdded(delta.getPortsDelta(), [&](const shared_ptr<Port>& port) {
     if (port->isEnabled()) {
       auto bcmPort = portTable_->getBcmPort(port->getID());
       bcmPort->enable(port);
       processEnabledPortQueues(port);
     }
-  }
+  });
 }
 
 void BcmSwitch::processChangedPortQueues(
