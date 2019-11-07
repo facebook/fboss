@@ -85,7 +85,9 @@ SaiPortManager::SaiPortManager(
 void SaiPortManager::loadQueues(
     const std::shared_ptr<Port>& swPort,
     SaiPortHandle* portHandle) {
-  SaiPortTraits::Attributes::QosQueueList queueListAttribute;
+  std::vector<sai_object_id_t> queueList;
+  queueList.resize(1);
+  SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
   auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
       portHandle->port->adapterKey(), queueListAttribute);
   if (queueSaiIdList.size() == 0) {
