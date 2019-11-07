@@ -169,7 +169,9 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
     gracefulExitLocked(lock, switchState);
   }
-  asyncTxThread_->join();
+  if (asyncTxThread_) {
+    asyncTxThread_->join();
+  }
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {
