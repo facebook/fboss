@@ -8,17 +8,19 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 namespace facebook {
 namespace fboss {
 
-class BcmRouteScaleTest : public BcmTest {
+class HwRouteScaleTest : public HwTest {
  protected:
   template <typename RouteScaleGeneratorT>
   void runTest(const std::set<PlatformMode>& applicablePlatforms) {
@@ -38,7 +40,7 @@ class BcmRouteScaleTest : public BcmTest {
   }
 };
 
-TEST_F(BcmRouteScaleTest, fswRouteScale) {
+TEST_F(HwRouteScaleTest, fswRouteScale) {
   runTest<utility::FSWRouteScaleGenerator>({PlatformMode::WEDGE100,
                                             PlatformMode::GALAXY_LC,
                                             PlatformMode::GALAXY_FC,
@@ -47,21 +49,18 @@ TEST_F(BcmRouteScaleTest, fswRouteScale) {
                                             PlatformMode::WEDGE400});
 }
 
-TEST_F(BcmRouteScaleTest, thAlpmScale) {
-  if (!getHwSwitch()->isAlpmEnabled()) {
-    return;
-  }
+TEST_F(HwRouteScaleTest, thAlpmScale) {
   runTest<utility::THAlpmRouteScaleGenerator>({PlatformMode::WEDGE100,
                                                PlatformMode::GALAXY_LC,
                                                PlatformMode::GALAXY_FC});
 }
 
-TEST_F(BcmRouteScaleTest, hgridDuScaleTest) {
+TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
   runTest<utility::HgridDuRouteScaleGenerator>(
       {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }
 
-TEST_F(BcmRouteScaleTest, hgridUuScaleTest) {
+TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
   runTest<utility::HgridUuRouteScaleGenerator>(
       {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }

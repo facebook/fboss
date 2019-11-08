@@ -287,6 +287,7 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwTest.cpp
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/HwVlanTests.cpp
+    fboss/agent/hw/test/HwRouteScaleTest.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/test/HwLinkStateDependentTest.cpp
     fboss/agent/hw/test/HwTestConstants.cpp
@@ -719,6 +720,10 @@ add_executable(agent_test
        fboss/agent/test/TrunkUtils.cpp
        fboss/agent/test/TunInterfaceTest.cpp
        fboss/agent/test/UDPTest.cpp
+       fboss/agent/test/RouteDistributionGenerator.cpp
+       fboss/agent/test/RouteScaleGenerators.cpp
+       fboss/agent/test/RouteDistributionGeneratorTest.cpp
+       fboss/agent/test/RouteScaleGeneratorsTest.cpp
        fboss/agent/test/oss/Main.cpp
 )
 
