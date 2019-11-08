@@ -16,7 +16,10 @@ namespace fboss {
 
 ForwardingInformationBaseContainerFields::
     ForwardingInformationBaseContainerFields(RouterID vrf)
-    : vrf(vrf) {}
+    : vrf(vrf) {
+  fibV4 = std::make_shared<ForwardingInformationBaseV4>();
+  fibV6 = std::make_shared<ForwardingInformationBaseV6>();
+}
 
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
     RouterID vrf)

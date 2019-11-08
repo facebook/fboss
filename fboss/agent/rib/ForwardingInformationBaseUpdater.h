@@ -50,7 +50,9 @@ class ForwardingInformationBaseUpdater {
   template <typename AddressT>
   std::unique_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
   createUpdatedFib(
-      const facebook::fboss::rib::NetworkToRouteMap<AddressT>& ribRange);
+      const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
+      const std::shared_ptr<
+          facebook::fboss::ForwardingInformationBase<AddressT>>& fib);
 
   RouterID vrf_;
   const IPv4NetworkToRouteMap& v4NetworkToRoute_;

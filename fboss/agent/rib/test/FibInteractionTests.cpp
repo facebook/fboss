@@ -514,7 +514,108 @@ TEST(Rib, Update) {
   EXPECT_ROUTE(state, vrfZero, prefixD4.first, prefixD4.second);
   EXPECT_ROUTE(state, vrfZero, prefixD6.first, prefixD6.second);
 
-  // Make sure there are no more routes (ie. the old ones were deleted)
-  // + the one that gets added by default
+  // Make sure there are no more routes (ie. the old ones were deleted) + the
+  // one that gets added by default
   EXPECT_FIB_SIZE(state, vrfZero, 4, 4);
+}
+
+// There are 3 cases that should be exercised:
+// 1) a route has been added whose prefix _doesn't_ exist in the RIB
+// 2) a route has been added whose prefix exists in the RIB BUT whose
+//    forwarding information differs from that in the FIB
+// 3) a route has been added whose prefix exists in the RIB AND whose
+//    forwarding information matches that in the FIB
+TEST(ForwardingInformationBaseUpdater, Deduplication) {
+  using namespace facebook::fboss;
+
+  const RouterID vrfZero{0};
+  RoutePrefixV6 prefix{folly::IPAddressV6("2a03:2880:ff:1e::"), 64};
+
+  cfg::SwitchConfig config;
+  config.vlans.resize(1);
+  config.vlans[0].id = 1;
+  config.interfaces.resize(1);
+  config.interfaces[0].intfID = 1;
+  config.interfaces[0].vlanID = 1;
+  config.interfaces[0].routerID = vrfZero;
+  config.interfaces[0].__isset.mac = true;
+  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces[0].ipAddresses.resize(2);
+  config.interfaces[0].ipAddresses[0] = "10.120.70.44/31";
+  config.interfaces[0].ipAddresses[1] = "2401:db00:e003:9100:1006::2c/127";
+
+  auto testHandle =
+      createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
+  auto sw = testHandle->getSw();
+
+  std::vector<UnicastRoute> routesToAdd;
+  routesToAdd.push_back(createUnicastRoute(
+      prefix.network,
+      prefix.mask,
+      folly::IPAddress("2401:db00:e003:9100:1006::2c")));
+  std::vector<IpPrefix> routesToDelete;
+
+  // 1)
+  sw->getRib()->update(
+      vrfZero,
+      ClientID(0),
+      AdminDistance::EBGP,
+      routesToAdd,
+      routesToDelete,
+      false /* sync */,
+      "deduplication unit test",
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
+
+  auto route = sw->getState()
+                   ->getFibs()
+                   ->getFibContainer(vrfZero)
+                   ->getFibV6()
+                   ->exactMatch(prefix);
+  ASSERT_TRUE(route);
+
+  // 3)
+  sw->getRib()->update(
+      vrfZero,
+      ClientID(0),
+      AdminDistance::EBGP,
+      routesToAdd,
+      routesToDelete,
+      false /* sync */,
+      "deduplication unit test",
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
+
+  auto route2 = sw->getState()
+                    ->getFibs()
+                    ->getFibContainer(vrfZero)
+                    ->getFibV6()
+                    ->exactMatch(prefix);
+  ASSERT_TRUE(route2);
+  EXPECT_EQ(route, route2);
+
+  routesToAdd.push_back(createUnicastRoute(
+      prefix.network,
+      prefix.mask,
+      folly::IPAddress("2401:db00:e003:9100:1006::2b")));
+
+  // 2)
+  sw->getRib()->update(
+      vrfZero,
+      ClientID(0),
+      AdminDistance::EBGP,
+      routesToAdd,
+      routesToDelete,
+      false /* sync */,
+      "deduplication unit test",
+      &dynamicFibUpdate,
+      static_cast<void*>(sw));
+
+  auto route3 = sw->getState()
+                    ->getFibs()
+                    ->getFibContainer(vrfZero)
+                    ->getFibV6()
+                    ->exactMatch(prefix);
+  ASSERT_TRUE(route3);
+  EXPECT_NE(route, route3);
 }

@@ -11,10 +11,12 @@
 
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
-#include "fboss/agent/state/NodeMap.h"
+
+#include <algorithm>
 
 namespace facebook {
 namespace fboss {
@@ -46,11 +48,12 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
   nextFibContainer->writableFields()->fibV4 =
-      std::shared_ptr<ForwardingInformationBaseV4>(
-          createUpdatedFib(v4NetworkToRoute_));
+      std::shared_ptr<ForwardingInformationBaseV4>(createUpdatedFib(
+          v4NetworkToRoute_, previousFibContainer->getFibV4()));
+
   nextFibContainer->writableFields()->fibV6 =
-      std::shared_ptr<ForwardingInformationBaseV6>(
-          createUpdatedFib(v6NetworkToRoute_));
+      std::shared_ptr<ForwardingInformationBaseV6>(createUpdatedFib(
+          v6NetworkToRoute_, previousFibContainer->getFibV6()));
 
   return nextState;
 }
@@ -58,11 +61,16 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
 template <typename AddressT>
 std::unique_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
 ForwardingInformationBaseUpdater::createUpdatedFib(
-    const facebook::fboss::rib::NetworkToRouteMap<AddressT>& ribRange) {
+    const facebook::fboss::rib::NetworkToRouteMap<AddressT>& rib,
+    const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
+        fib) {
+  // TODO(samank): updateFib should have size equal to the number of resovled
+  // routes in the rib
+
   typename facebook::fboss::ForwardingInformationBase<
       AddressT>::Base::NodeContainer updatedFib;
 
-  for (const auto& ribRouteIt : ribRange) {
+  for (const auto& ribRouteIt : rib) {
     const facebook::fboss::rib::Route<AddressT>& ribRoute = ribRouteIt->value();
 
     if (!ribRoute.isResolved()) {
@@ -71,14 +79,37 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
       continue;
     }
 
-    std::unique_ptr<facebook::fboss::Route<AddressT>> fibRoute =
-        toFibRoute(ribRoute);
+    // TODO(samank): optimize to linear time intersection algorithm
+    facebook::fboss::RoutePrefix<AddressT> fibPrefix{ribRoute.prefix().network,
+                                                     ribRoute.prefix().mask};
+    std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
+        fib->getNodeIf(fibPrefix);
+    if (fibRoute) {
+      if (toFibNextHop(ribRoute.getForwardInfo()) ==
+          fibRoute->getForwardInfo()) {
+        // Reuse prior FIB route
+      } else {
+        fibRoute = toFibRoute(ribRoute);
+      }
+    } else {
+      fibRoute = toFibRoute(ribRoute);
+    }
 
-    auto prefix = fibRoute->prefix();
-    updatedFib.emplace(prefix, fibRoute.release());
+    updatedFib.emplace_hint(updatedFib.cend(), fibPrefix, fibRoute);
   }
 
-  return std::make_unique<ForwardingInformationBase<AddressT>>(updatedFib);
+  DCHECK_EQ(
+      updatedFib.size(),
+      std::count_if(
+          rib.begin(),
+          rib.end(),
+          [](const typename std::remove_reference_t<decltype(
+                 rib)>::ConstIterator& entry) {
+            return entry->value().isResolved();
+          }));
+
+  return std::make_unique<ForwardingInformationBase<AddressT>>(
+      std::move(updatedFib));
 }
 
 facebook::fboss::RouteNextHopEntry

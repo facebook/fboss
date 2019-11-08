@@ -14,7 +14,15 @@
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
+
+namespace facebook {
+namespace fboss {
+template <typename AddrT>
+class RoutePrefix;
+}
+} // namespace facebook
 
 namespace facebook {
 namespace fboss {
