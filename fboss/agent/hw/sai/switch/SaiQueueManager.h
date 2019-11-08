@@ -11,7 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/QueueApi.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -26,7 +26,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-using SaiQueue = SaiObject<SaiQueueTraits>;
+using SaiQueue = SaiObjectWithCounters<SaiQueueTraits>;
 using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
 
 struct SaiQueueHandle {

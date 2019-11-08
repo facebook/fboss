@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -56,10 +57,20 @@ struct SaiQueueTraits {
       Attributes::Port,
       Attributes::Index,
       Attributes::ParentSchedulerNode>;
+  static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
+  static constexpr std::array<sai_queue_stat_t, 4> CounterIds = {
+      SAI_QUEUE_STAT_PACKETS,
+      SAI_QUEUE_STAT_BYTES,
+      SAI_QUEUE_STAT_DROPPED_PACKETS,
+      SAI_QUEUE_STAT_DROPPED_BYTES,
+  };
 };
 
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiQueueTraits> : public std::true_type {};
+
+template <>
+struct SaiObjectHasStats<SaiQueueTraits> : public std::true_type {};
 
 class QueueApi : public SaiApi<QueueApi> {
  public:
@@ -86,6 +97,25 @@ class QueueApi : public SaiApi<QueueApi> {
   }
   sai_status_t _setAttribute(QueueSaiId id, const sai_attribute_t* attr) {
     return api_->set_queue_attribute(id, attr);
+  }
+
+  sai_status_t _getStats(
+      QueueSaiId key,
+      uint32_t num_of_counters,
+      sai_queue_stat_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
+    return api_->get_queue_stats_ext(
+        key,
+        num_of_counters,
+        reinterpret_cast<sai_stat_id_t*>(counter_ids),
+        mode,
+        counters);
+#else
+    return api_->get_queue_stats_ext(
+        key, num_of_counters, counter_ids, mode, counters);
+#endif
   }
 
   sai_queue_api_t* api_;
