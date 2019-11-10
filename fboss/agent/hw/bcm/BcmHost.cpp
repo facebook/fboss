@@ -190,9 +190,21 @@ void BcmHost::program(
           " classID: ",
           static_cast<int>(classID.value()));
     }
+  }
 
-    if (getLookupClassId() != static_cast<int>(classID.value())) {
-      setLookupClassId(static_cast<int>(classID.value()));
+  /*
+   * If queue-per-host classID or no classID (0) are currently programmed,
+   * but there is a request to program a new queue-per-host classID or no
+   * classID (0), reprogram.
+   */
+  if (BcmClassIDUtil::isValidQueuePerHostClass(
+          cfg::AclLookupClass(getLookupClassId())) ||
+      getLookupClassId() == 0) {
+    // If no classID is set, SDK sets default classID to 0.
+    int classIDToSet =
+        classID.hasValue() ? static_cast<int>(classID.value()) : 0;
+    if (getLookupClassId() != classIDToSet) {
+      setLookupClassId(classIDToSet);
       /*
        * ClassID changed.
        * If addedInHW_ is true, 'replace' it to apply new classID.
