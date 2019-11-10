@@ -822,7 +822,15 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
   forEachChanged(
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
-        if (!oldPort->isEnabled() && newPort->isEnabled()) {
+        if (!newPort->isEnabled()) {
+          // skip if the port is not even enabled
+          return;
+        }
+        // There're only two cases that we should enable the port:
+        // 1) If the old port is disabled
+        // 2) If the speed changes
+        if (!oldPort->isEnabled() ||
+            (oldPort->getSpeed() != newPort->getSpeed())) {
           auto bcmPort = portTable_->getBcmPort(newPort->getID());
           bcmPort->enable(newPort);
           processEnabledPortQueues(newPort);
@@ -830,6 +838,7 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
       });
 
   forEachAdded(delta.getPortsDelta(), [&](const shared_ptr<Port>& port) {
+    // For any newly created port, as long as it needs enable, always enable
     if (port->isEnabled()) {
       auto bcmPort = portTable_->getBcmPort(port->getID());
       bcmPort->enable(port);
