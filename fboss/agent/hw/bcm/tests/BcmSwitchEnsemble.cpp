@@ -10,6 +10,8 @@
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
 #include <memory>
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -19,6 +21,8 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
+
+#include <folly/logging/xlog.h>
 
 DECLARE_bool(setup_thrift);
 
@@ -61,7 +65,17 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     cfg["pbmp_xport_xe"] = "0x1fffffffffffffffffffffffe";
   } else {
     // Load from a local file
-    cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+    if (!FLAGS_bcm_config.empty()) {
+      XLOG(INFO) << "Loading config from " << FLAGS_bcm_config;
+      cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+    } else if (!FLAGS_config.empty()) {
+      XLOG(INFO) << "Loading config from " << FLAGS_config;
+      std::unique_ptr<AgentConfig> agentConfig =
+          AgentConfig::fromFile(FLAGS_config);
+      cfg = (agentConfig->thrift).platform.chip.get_bcm().config;
+    } else {
+      throw FbossError("No config file to load!");
+    }
   }
   BcmAPI::init(cfg);
   auto platform = createTestPlatform();

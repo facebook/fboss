@@ -17,6 +17,7 @@
 
 DECLARE_bool(flexports);
 DECLARE_string(bcm_config);
+DECLARE_string(config);
 
 namespace facebook {
 namespace fboss {
