@@ -117,6 +117,47 @@ class MplsRouteLogger : public RouteLoggerBase<LabelForwardingEntry> {
   std::unique_ptr<UpdateLogHandler> updateLogHandler_;
 };
 
+class LabelsTracker {
+ public:
+  static constexpr LabelForwardingEntry::Label kAll = -1;
+  using Label2Ids = boost::container::flat_map<
+      LabelForwardingEntry::Label,
+      boost::container::flat_set<std::string>>;
+
+  using TrackedLabelsInfo = boost::container::flat_set<
+      std::pair<std::string, LabelForwardingEntry::Label>>;
+
+  LabelsTracker()
+      : label2Ids_{{kAll, boost::container::flat_set<std::string>()}} {}
+
+  void track(
+      LabelForwardingEntry::Label /*label*/,
+      const std::string& /*identifier*/) {
+    // TODO(pshaikh) : implement this
+  }
+  void untrack(
+      LabelForwardingEntry::Label /*label*/,
+      const std::string& /*identifier*/) {
+    // TODO(pshaikh) : implement this
+  }
+  void untrack(const std::string& /*identifier*/) {
+    // TODO(pshaikh) : implement this
+  }
+
+  TrackedLabelsInfo getTrackedLabelsInfo() const {
+    // TODO(pshaikh) : implement this
+    return TrackedLabelsInfo();
+  }
+
+  bool isTracked(LabelForwardingEntry::Label /*label*/) const {
+    // TODO(pshaikh) : implement this
+    return false;
+  }
+
+ private:
+  Label2Ids label2Ids_;
+};
+
 /*
  * Log changes to the routes in SwitchState.
  * Allow subscription to a prefix. When a route to a subscribed prefix
@@ -153,6 +194,8 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
 
   std::vector<RouteUpdateLoggingInstance> getTrackedPrefixes() const;
 
+  LabelsTracker::TrackedLabelsInfo gettTrackedLabels() const;
+
   RouteLogger<folly::IPAddressV4>* getRouteLoggerV4() const {
     return routeLoggerV4_.get();
   }
@@ -166,6 +209,7 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
 
  private:
   RouteUpdateLoggingPrefixTracker prefixTracker_;
+  folly::Synchronized<LabelsTracker> labelTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
   std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6_;
   std::unique_ptr<MplsRouteLogger> mplsRouteLogger_;
