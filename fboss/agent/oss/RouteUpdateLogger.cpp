@@ -15,25 +15,15 @@
 
 #include <memory>
 
-namespace {
-template <typename AddrT>
-std::unique_ptr<facebook::fboss::RouteLogger<AddrT>> getRouteLogger() {
-  return std::make_unique<facebook::fboss::GlogRouteLogger<AddrT>>();
-}
-} // namespace
-
 namespace facebook {
 namespace fboss {
 
-std::unique_ptr<RouteLogger<folly::IPAddressV4>>
-RouteUpdateLogger::getDefaultV4RouteLogger() {
-  return getRouteLogger<folly::IPAddressV4>();
+std::unique_ptr<UpdateLogHandler> UpdateLogHandler::get() {
+  return std::make_unique<GlogUpdateLogHandler>();
 }
 
-std::unique_ptr<RouteLogger<folly::IPAddressV6>>
-RouteUpdateLogger::getDefaultV6RouteLogger() {
-  return getRouteLogger<folly::IPAddressV6>();
-}
+template class RouteLogger<folly::IPAddressV4>;
+template class RouteLogger<folly::IPAddressV6>;
 
 } // namespace fboss
 } // namespace facebook

@@ -8,7 +8,7 @@
  *
  */
 
-#include "RouteUpdateLogger.h"
+#include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 
 namespace facebook {
@@ -56,8 +56,8 @@ void handleAddedRoute(
 RouteUpdateLogger::RouteUpdateLogger(SwSwitch* sw)
     : RouteUpdateLogger(
           sw,
-          getDefaultV4RouteLogger(),
-          getDefaultV6RouteLogger()) {}
+          std::make_unique<RouteLogger<folly::IPAddressV4>>(),
+          std::make_unique<RouteLogger<folly::IPAddressV6>>()) {}
 
 RouteUpdateLogger::RouteUpdateLogger(
     SwSwitch* sw,
@@ -107,6 +107,85 @@ void RouteUpdateLogger::stopLoggingForIdentifier(
 std::vector<RouteUpdateLoggingInstance> RouteUpdateLogger::getTrackedPrefixes()
     const {
   return prefixTracker_.getTrackedPrefixes();
+}
+
+template <typename AddrT>
+void RouteLogger<AddrT>::logAddedRoute(
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto newRouteStr = newRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::ADD,
+        identifier,
+        "route",
+        nullptr,
+        &newRouteStr);
+  }
+}
+
+template <typename AddrT>
+void RouteLogger<AddrT>::logChangedRoute(
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto oldRouteStr = oldRoute->str();
+    auto newRouteStr = newRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::CHANGE,
+        identifier,
+        "route",
+        &oldRouteStr,
+        &newRouteStr);
+  }
+}
+
+template <typename AddrT>
+void RouteLogger<AddrT>::logRemovedRoute(
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto oldRouteStr = oldRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::DELETE,
+        identifier,
+        "route",
+        &oldRouteStr,
+        nullptr);
+  }
+}
+
+void GlogUpdateLogHandler::log(
+    UPDATE_TYPE operation,
+    const std::string& identifier,
+    const std::string& entityType,
+    const std::string* oldEntity,
+    const std::string* newEntity) {
+  XLOG(INFO) << "[" << identifier << "] "
+             << UpdateLogHandler::updateString(operation) << " " << entityType
+             << "." << entityUpdateMessage(entityType, oldEntity, newEntity);
+}
+
+std::string GlogUpdateLogHandler::entityUpdateMessage(
+    const std::string& entityType,
+    const std::string* oldEntity,
+    const std::string* newEntity) {
+  if (oldEntity && newEntity) {
+    return folly::to<std::string>(
+        "old ",
+        entityType,
+        ": ",
+        *oldEntity,
+        "-> new ",
+        entityType,
+        ": ",
+        *newEntity);
+  } else if (oldEntity) {
+    return *oldEntity;
+  } else {
+    return *newEntity;
+  }
 }
 
 } // namespace fboss

@@ -23,53 +23,79 @@
 namespace facebook {
 namespace fboss {
 
-template <typename AddrT>
-class RouteLogger {
+template <typename RouteT>
+class RouteLoggerBase {
  public:
-  virtual ~RouteLogger() {}
+  virtual ~RouteLoggerBase() {}
   virtual void logAddedRoute(
-      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::shared_ptr<RouteT>& newRoute,
       const std::vector<std::string>& identifiers) = 0;
   virtual void logChangedRoute(
-      const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::shared_ptr<RouteT>& oldRoute,
+      const std::shared_ptr<RouteT>& newRoute,
       const std::vector<std::string>& identifiers) = 0;
   virtual void logRemovedRoute(
-      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<RouteT>& oldRoute,
       const std::vector<std::string>& identifiers) = 0;
 };
 
-template <typename AddrT>
-class GlogRouteLogger : public RouteLogger<AddrT> {
- public:
-  void logAddedRoute(
-      const std::shared_ptr<Route<AddrT>>& newRoute,
-      const std::vector<std::string>& identifiers) override {
-    for (const auto& identifier : identifiers) {
-      XLOG(INFO) << "[" << identifier << "] "
-                 << "Added route: " << newRoute->str();
+struct UpdateLogHandler {
+  enum UPDATE_TYPE { ADD, CHANGE, DELETE };
+  virtual ~UpdateLogHandler() {}
+  static std::string updateString(UPDATE_TYPE type) {
+    switch (type) {
+      case ADD:
+        return "Added";
+      case CHANGE:
+        return "Changed";
+      case DELETE:
+        return "Deleted";
     }
   }
 
+  virtual void log(
+      UPDATE_TYPE operation,
+      const std::string& identifier,
+      const std::string& message,
+      const std::string* oldEntity,
+      const std::string* newEntity) = 0;
+
+  static std::unique_ptr<UpdateLogHandler> get();
+};
+
+struct GlogUpdateLogHandler : UpdateLogHandler {
+  void log(
+      UPDATE_TYPE operation,
+      const std::string& identifier,
+      const std::string& message,
+      const std::string* oldEntity,
+      const std::string* newEntity) override;
+
+ private:
+  std::string entityUpdateMessage(
+      const std::string& entityType,
+      const std::string* oldEntity,
+      const std::string* newEntity);
+};
+
+template <typename AddrT>
+class RouteLogger : public RouteLoggerBase<Route<AddrT>> {
+ public:
+  RouteLogger() : updateLogHandler_(UpdateLogHandler::get()) {}
+
+  void logAddedRoute(
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::vector<std::string>& identifiers) override;
   void logChangedRoute(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute,
-      const std::vector<std::string>& identifiers) override {
-    for (const auto& identifier : identifiers) {
-      XLOG(INFO) << "[" << identifier << "] "
-                 << "Updated route. old route: " << oldRoute->str()
-                 << "-> new route: " << newRoute->str();
-    }
-  }
-
+      const std::vector<std::string>& identifiers) override;
   void logRemovedRoute(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::vector<std::string>& identifiers) override {
-    for (const auto& identifier : identifiers) {
-      XLOG(INFO) << "[" << identifier << "] "
-                 << "Removed route: " << oldRoute->str();
-    }
-  }
+      const std::vector<std::string>& identifiers) override;
+
+ private:
+  std::unique_ptr<UpdateLogHandler> updateLogHandler_;
 };
 
 /*
@@ -80,6 +106,7 @@ class GlogRouteLogger : public RouteLogger<AddrT> {
  * we use GLOG.
  */
 class RouteUpdateLogger : public AutoRegisterStateObserver {
+  // TODO(pshaikh): rename RouteUpdateLogger to FibUpdateObserver
  public:
   explicit RouteUpdateLogger(SwSwitch* sw);
   RouteUpdateLogger(
@@ -106,10 +133,6 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   }
 
  private:
-  static std::unique_ptr<RouteLogger<folly::IPAddressV4>>
-  getDefaultV4RouteLogger();
-  static std::unique_ptr<RouteLogger<folly::IPAddressV6>>
-  getDefaultV6RouteLogger();
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
   std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6_;
