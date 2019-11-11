@@ -1187,6 +1187,11 @@ void ThriftHandler::startLoggingRouteUpdates(
   routeUpdateLogger->startLoggingForPrefix(loggingInstance);
 }
 
+void ThriftHandler::startLoggingMplsRouteUpdates(
+    std::unique_ptr<MplsRouteUpdateLoggingInfo> /*info*/) {
+  // TODO(pshaikh) : implement this
+}
+
 void ThriftHandler::stopLoggingRouteUpdates(
     std::unique_ptr<IpPrefix> prefix,
     std::unique_ptr<std::string> identifier) {
@@ -1204,6 +1209,16 @@ void ThriftHandler::stopLoggingAnyRouteUpdates(
   routeUpdateLogger->stopLoggingForIdentifier(*identifier);
 }
 
+void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
+    std::unique_ptr<std::string> /*identifier*/) {
+  // TODO(pshaikh) : implement this
+}
+
+void ThriftHandler::stopLoggingMplsRouteUpdates(
+    std::unique_ptr<MplsRouteUpdateLoggingInfo> /*info*/) {
+  // TODO(pshaikh) : implement this
+}
+
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     std::vector<RouteUpdateLoggingInfo>& infos) {
   auto log = LOG_THRIFT_CALL(DBG1);
@@ -1218,6 +1233,11 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     info.exact = tracked.exact;
     infos.push_back(info);
   }
+}
+
+void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
+    std::vector<MplsRouteUpdateLoggingInfo>& /*infos*/) {
+  // TODO(pshaikh) : implement this
 }
 
 void ThriftHandler::beginPacketDump(int32_t port) {

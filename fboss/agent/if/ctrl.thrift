@@ -407,6 +407,17 @@ struct RouteUpdateLoggingInfo {
   3: bool exact
 }
 
+struct MplsRouteUpdateLoggingInfo {
+  // The label to log route updates for label, -1 for all labels
+  1: mpls.MplsLabel label
+  /*
+   * A name to split up requests for logging. Allows two different clients
+   * to separately request starting/stopping logging for the same prefixes
+   * without affecting each other.
+   */
+  2: string identifier
+}
+
 /*
  * Information about an LLDP neighbor
  */
@@ -718,7 +729,16 @@ service FbossCtrl extends fb303.FacebookService {
   void startLoggingRouteUpdates(1: RouteUpdateLoggingInfo info)
   void stopLoggingRouteUpdates(1: IpPrefix prefix, 2: string identifier)
   void stopLoggingAnyRouteUpdates(1: string identifier)
+
   list<RouteUpdateLoggingInfo> getRouteUpdateLoggingTrackedPrefixes()
+
+  /*
+   * Log all updates to mpls routes for given label
+   */
+  void startLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info)
+  void stopLoggingMplsRouteUpdates(1: MplsRouteUpdateLoggingInfo info)
+  void stopLoggingAnyMplsRouteUpdates(1: string identifier)
+  list<MplsRouteUpdateLoggingInfo> getMplsRouteUpdateLoggingTrackedLabels()
 
   void keepalive()
 
