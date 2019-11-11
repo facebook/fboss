@@ -235,5 +235,26 @@ void MplsRouteLogger::logRemovedRoute(
   }
 }
 
+void RouteUpdateLogger::startLoggingForLabel(
+    LabelForwardingEntry::Label label,
+    std::string& identifier) {
+  labelTracker_.wlock()->track(label, identifier);
+}
+
+void RouteUpdateLogger::stopLoggingForLabel(
+    LabelForwardingEntry::Label label,
+    const std::string& identifier) {
+  labelTracker_.wlock()->untrack(label, identifier);
+}
+
+void RouteUpdateLogger::stopLabelLoggingForIdentifier(
+    const std::string& identifier) {
+  labelTracker_.wlock()->untrack(identifier);
+}
+
+LabelsTracker::TrackedLabelsInfo RouteUpdateLogger::gettTrackedLabels() const {
+  return labelTracker_.rlock()->getTrackedLabelsInfo();
+}
+
 } // namespace fboss
 } // namespace facebook
