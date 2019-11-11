@@ -57,15 +57,18 @@ RouteUpdateLogger::RouteUpdateLogger(SwSwitch* sw)
     : RouteUpdateLogger(
           sw,
           std::make_unique<RouteLogger<folly::IPAddressV4>>(),
-          std::make_unique<RouteLogger<folly::IPAddressV6>>()) {}
+          std::make_unique<RouteLogger<folly::IPAddressV6>>(),
+          std::make_unique<MplsRouteLogger>()) {}
 
 RouteUpdateLogger::RouteUpdateLogger(
     SwSwitch* sw,
     std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4,
-    std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6)
+    std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6,
+    std::unique_ptr<MplsRouteLogger> mplsRouteLogger)
     : AutoRegisterStateObserver(sw, "RouteUpdateLogger"),
       routeLoggerV4_(std::move(routeLoggerV4)),
-      routeLoggerV6_(std::move(routeLoggerV6)) {}
+      routeLoggerV6_(std::move(routeLoggerV6)),
+      mplsRouteLogger_(std::move(mplsRouteLogger)) {}
 
 void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
   for (const auto& rtDelta : delta.getRouteTablesDelta()) {
@@ -185,6 +188,50 @@ std::string GlogUpdateLogHandler::entityUpdateMessage(
     return *oldEntity;
   } else {
     return *newEntity;
+  }
+}
+
+void MplsRouteLogger::logAddedRoute(
+    const std::shared_ptr<LabelForwardingEntry>& newRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto newRouteStr = newRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::ADD,
+        identifier,
+        "label fib entry entry",
+        nullptr,
+        &newRouteStr);
+  }
+}
+
+void MplsRouteLogger::logChangedRoute(
+    const std::shared_ptr<LabelForwardingEntry>& oldRoute,
+    const std::shared_ptr<LabelForwardingEntry>& newRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto oldRouteStr = oldRoute->str();
+    auto newRouteStr = newRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::CHANGE,
+        identifier,
+        "label fib entry entry",
+        &oldRouteStr,
+        &newRouteStr);
+  }
+}
+
+void MplsRouteLogger::logRemovedRoute(
+    const std::shared_ptr<LabelForwardingEntry>& oldRoute,
+    const std::vector<std::string>& identifiers) {
+  for (const auto& identifier : identifiers) {
+    auto oldRouteStr = oldRoute->str();
+    updateLogHandler_->log(
+        UpdateLogHandler::UPDATE_TYPE::DELETE,
+        identifier,
+        "label fib entry entry",
+        &oldRouteStr,
+        nullptr);
   }
 }
 

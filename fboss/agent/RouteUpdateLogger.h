@@ -98,6 +98,25 @@ class RouteLogger : public RouteLoggerBase<Route<AddrT>> {
   std::unique_ptr<UpdateLogHandler> updateLogHandler_;
 };
 
+class MplsRouteLogger : public RouteLoggerBase<LabelForwardingEntry> {
+ public:
+  MplsRouteLogger() : updateLogHandler_(UpdateLogHandler::get()) {}
+
+  void logAddedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& newRoute,
+      const std::vector<std::string>& identifiers) override;
+  void logChangedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& oldRoute,
+      const std::shared_ptr<LabelForwardingEntry>& newRoute,
+      const std::vector<std::string>& identifiers) override;
+  void logRemovedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& oldRoute,
+      const std::vector<std::string>& identifiers) override;
+
+ private:
+  std::unique_ptr<UpdateLogHandler> updateLogHandler_;
+};
+
 /*
  * Log changes to the routes in SwitchState.
  * Allow subscription to a prefix. When a route to a subscribed prefix
@@ -112,7 +131,8 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   RouteUpdateLogger(
       SwSwitch* sw,
       std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4,
-      std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6);
+      std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6,
+      std::unique_ptr<MplsRouteLogger> mplsRouteLogger);
 
   ~RouteUpdateLogger() override = default;
 
@@ -123,6 +143,14 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
       uint8_t mask,
       const std::string& identifier);
   void stopLoggingForIdentifier(const std::string& identifier);
+  void startLoggingForLabel(
+      LabelForwardingEntry::Label label,
+      std::string& identifier);
+  void stopLoggingForLabel(
+      LabelForwardingEntry::Label label,
+      const std::string& identifier);
+  void stopLabelLoggingForIdentifier(const std::string& identifier);
+
   std::vector<RouteUpdateLoggingInstance> getTrackedPrefixes() const;
 
   RouteLogger<folly::IPAddressV4>* getRouteLoggerV4() const {
@@ -132,10 +160,15 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
     return routeLoggerV6_.get();
   }
 
+  MplsRouteLogger* getMplsRouteLogger() const {
+    return mplsRouteLogger_.get();
+  }
+
  private:
   RouteUpdateLoggingPrefixTracker prefixTracker_;
   std::unique_ptr<RouteLogger<folly::IPAddressV4>> routeLoggerV4_;
   std::unique_ptr<RouteLogger<folly::IPAddressV6>> routeLoggerV6_;
+  std::unique_ptr<MplsRouteLogger> mplsRouteLogger_;
 };
 
 } // namespace fboss

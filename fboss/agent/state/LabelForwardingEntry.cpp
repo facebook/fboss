@@ -97,6 +97,11 @@ void LabelForwardingEntryFields::validateLabelNextHopEntry(
     throw FbossError("invalid label forwarding entry");
   }
 }
+
+std::string LabelForwardingEntry::str() const {
+  // TODO(pshaikh) : implement me
+  return "LabelForwardingEntry";
+}
 template class NodeBaseT<LabelForwardingEntry, LabelForwardingEntryFields>;
 
 } // namespace fboss

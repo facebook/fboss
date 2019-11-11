@@ -78,6 +78,8 @@ class LabelForwardingEntry
 
   LabelForwardingEntry* modify(std::shared_ptr<SwitchState>* state);
 
+  std::string str() const;
+
  private:
   void updateLabelNextHop();
   // Inherit the constructors required for clone()

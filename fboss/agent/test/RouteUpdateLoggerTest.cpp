@@ -85,7 +85,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
         sw,
         std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
-        std::make_unique<MockRouteLogger<folly::IPAddressV6>>());
+        std::make_unique<MockRouteLogger<folly::IPAddressV6>>(),
+        nullptr /* TODO(pshaikh) : test mpls route update logging */);
     mockRouteLoggerV4 = static_cast<MockRouteLogger<folly::IPAddressV4>*>(
         routeUpdateLogger->getRouteLoggerV4());
     mockRouteLoggerV6 = static_cast<MockRouteLogger<folly::IPAddressV6>*>(
