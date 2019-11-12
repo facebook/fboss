@@ -2247,28 +2247,5 @@ shared_ptr<SwitchState> applyThriftConfig(
              prevConfig ? prevConfig : &emptyConfig)
       .run();
 }
-
-std::pair<std::shared_ptr<SwitchState>, std::string> applyThriftConfigFile(
-    const std::shared_ptr<SwitchState>& state,
-    const folly::StringPiece path,
-    const Platform* platform,
-    rib::RoutingInformationBase* rib,
-    const cfg::SwitchConfig* prevConfig) {
-  //
-  // This is basically what configerator's getConfigAndParse() code does,
-  // except that we manually read the file from disk for now.
-  // We may not be able to rely on the configerator infrastructure for
-  // distributing the config files.
-  cfg::SwitchConfig config;
-  std::string configStr;
-  if (!folly::readFile(path.toString().c_str(), configStr)) {
-    throw FbossError("unable to read ", path);
-  }
-  apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-      configStr.c_str(), config);
-
-  return std::make_pair(
-      applyThriftConfig(state, &config, platform, rib, prevConfig), configStr);
-}
 } // namespace fboss
 } // namespace facebook
