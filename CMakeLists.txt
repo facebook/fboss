@@ -10,15 +10,7 @@ if (POLICY CMP0054)
 endif()
 project(FBOSS)
 
-include(CheckCXXCompilerFlag)
 include(CMakeParseArguments)
-
-# Check the version
-CHECK_CXX_COMPILER_FLAG("-std=gnu++1z" COMPILER_SUPPORTS_CXX17)
-if(NOT COMPILER_SUPPORTS_CXX17)
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support.")
-endif()
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
