@@ -50,7 +50,7 @@ class SaiSwitch : public HwSwitch {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue) noexcept override;
+      std::optional<uint8_t> queue) noexcept override;
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
@@ -154,7 +154,7 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue) noexcept;
+      std::optional<uint8_t> queue) noexcept;
 
   bool sendPacketSwitchedSyncLocked(
       const std::lock_guard<std::mutex>& lock,

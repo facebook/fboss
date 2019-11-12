@@ -46,11 +46,11 @@ TimePoint writeTimePointToFile(TimePoint tp, const folly::StringPiece path) {
   return tp;
 }
 
-folly::Optional<TimePoint> processStartTime(int pid) {
+std::optional<TimePoint> processStartTime(int pid) {
   std::string statContents;
   auto path = folly::to<std::string>("/proc/", pid, "/stat");
   if (!folly::readFile(path.c_str(), statContents)) {
-    return folly::none;
+    return std::nullopt;
   }
 
   std::vector<folly::StringPiece> tokens;
@@ -58,7 +58,7 @@ folly::Optional<TimePoint> processStartTime(int pid) {
 
   if (tokens.size() <= kStatStartupTimeIndex) {
     // Unexpected output of /proc/<pid>/stat
-    return folly::none;
+    return std::nullopt;
   }
 
   uint64_t millisecondsSinceBoot =
@@ -67,9 +67,9 @@ folly::Optional<TimePoint> processStartTime(int pid) {
   return TimePoint() + milliseconds(millisecondsSinceBoot);
 }
 
-folly::Optional<TimePoint> readAndRemoveTimePointFile(
+std::optional<TimePoint> readAndRemoveTimePointFile(
     const folly::StringPiece path) {
-  folly::Optional<TimePoint> ret{folly::none};
+  std::optional<TimePoint> ret{std::nullopt};
 
   std::string out;
   if (folly::readFile(path.begin(), out)) {
@@ -138,7 +138,7 @@ class RestartTimeTracker {
     }
   }
 
-  folly::Optional<TimePoint> newEvent(RestartEvent type) {
+  std::optional<TimePoint> newEvent(RestartEvent type) {
     auto tp = create(type);
 
     if (tp) {
@@ -171,7 +171,7 @@ class RestartTimeTracker {
     return folly::to<std::string>(prefix_, kTotalCounterSuffix);
   }
 
-  folly::Optional<TimePoint> create(RestartEvent type) {
+  std::optional<TimePoint> create(RestartEvent type) {
     switch (type) {
       case RestartEvent::PARENT_PROCESS_STARTED:
         return processStartTime(getppid());
@@ -196,8 +196,8 @@ class RestartTimeTracker {
 
   const std::string warmBootDir_;
   const std::string prefix_;
-  folly::Optional<TimePoint> firstEvent_;
-  folly::Optional<TimePoint> lastEvent_;
+  std::optional<TimePoint> firstEvent_;
+  std::optional<TimePoint> lastEvent_;
   bool completed_{false};
 };
 } // namespace

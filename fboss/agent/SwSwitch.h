@@ -19,11 +19,11 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IntrusiveList.h>
-#include <folly/Optional.h>
 #include <folly/Range.h>
 #include <folly/SpinLock.h>
 #include <folly/ThreadLocal.h>
 #include <folly/io/async/EventBase.h>
+#include <optional>
 
 #include <atomic>
 #include <memory>
@@ -445,17 +445,17 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void sendNetworkControlPacketAsync(
       std::unique_ptr<TxPacket> pkt,
-      folly::Optional<PortDescriptor> port) noexcept;
+      std::optional<PortDescriptor> port) noexcept;
 
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue = folly::none) noexcept;
+      std::optional<uint8_t> queue = std::nullopt) noexcept;
 
   void sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       AggregatePortID aggPortID,
-      folly::Optional<uint8_t> queue = folly::none) noexcept;
+      std::optional<uint8_t> queue = std::nullopt) noexcept;
 
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
@@ -485,7 +485,7 @@ class SwSwitch : public HwSwitch::Callback {
    */
   void sendL3Packet(
       std::unique_ptr<TxPacket> pkt,
-      folly::Optional<InterfaceID> ifID = folly::none) noexcept;
+      std::optional<InterfaceID> ifID = std::nullopt) noexcept;
 
   /**
    * method to send out a packet from HW to host.

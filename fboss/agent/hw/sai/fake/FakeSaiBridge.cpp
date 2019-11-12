@@ -11,8 +11,8 @@
 #include "FakeSaiBridge.h"
 #include "FakeSai.h"
 
-#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 using facebook::fboss::FakeSai;
 

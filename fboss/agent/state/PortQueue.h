@@ -16,7 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
-#include <folly/Optional.h>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -38,16 +38,16 @@ struct PortQueueFields {
   cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
   cfg::StreamType streamType{cfg::StreamType::UNICAST};
   int weight{1};
-  folly::Optional<int> reservedBytes{folly::none};
-  folly::Optional<cfg::MMUScalingFactor> scalingFactor{folly::none};
-  folly::Optional<std::string> name{folly::none};
-  folly::Optional<int> sharedBytes{folly::none};
+  std::optional<int> reservedBytes{std::nullopt};
+  std::optional<cfg::MMUScalingFactor> scalingFactor{std::nullopt};
+  std::optional<std::string> name{std::nullopt};
+  std::optional<int> sharedBytes{std::nullopt};
   // Using map to avoid manually sorting aqm list from thrift api
   AQMMap aqms;
-  folly::Optional<cfg::PortQueueRate> portQueueRate{folly::none};
+  std::optional<cfg::PortQueueRate> portQueueRate{std::nullopt};
 
-  folly::Optional<int> bandwidthBurstMinKbits;
-  folly::Optional<int> bandwidthBurstMaxKbits;
+  std::optional<int> bandwidthBurstMinKbits;
+  std::optional<int> bandwidthBurstMaxKbits;
 };
 
 /*
@@ -117,7 +117,7 @@ class PortQueue
     }
   }
 
-  folly::Optional<int> getReservedBytes() const {
+  std::optional<int> getReservedBytes() const {
     return getFields()->reservedBytes;
   }
 
@@ -125,7 +125,7 @@ class PortQueue
     writableFields()->reservedBytes = reservedBytes;
   }
 
-  folly::Optional<cfg::MMUScalingFactor> getScalingFactor() const {
+  std::optional<cfg::MMUScalingFactor> getScalingFactor() const {
     return getFields()->scalingFactor;
   }
 
@@ -144,20 +144,20 @@ class PortQueue
     }
   }
 
-  folly::Optional<std::string> getName() const {
+  std::optional<std::string> getName() const {
     return getFields()->name;
   }
   void setName(const std::string& name) {
     writableFields()->name = name;
   }
-  folly::Optional<int> getSharedBytes() const {
+  std::optional<int> getSharedBytes() const {
     return getFields()->sharedBytes;
   }
   void setSharedBytes(int sharedBytes) {
     writableFields()->sharedBytes = sharedBytes;
   }
 
-  folly::Optional<cfg::PortQueueRate> getPortQueueRate() const {
+  std::optional<cfg::PortQueueRate> getPortQueueRate() const {
     return getFields()->portQueueRate;
   }
 
@@ -165,7 +165,7 @@ class PortQueue
     writableFields()->portQueueRate = portQueueRate;
   }
 
-  folly::Optional<int> getBandwidthBurstMinKbits() const {
+  std::optional<int> getBandwidthBurstMinKbits() const {
     return getFields()->bandwidthBurstMinKbits;
   }
 
@@ -173,7 +173,7 @@ class PortQueue
     writableFields()->bandwidthBurstMinKbits = bandwidthBurstMinKbits;
   }
 
-  folly::Optional<int> getBandwidthBurstMaxKbits() const {
+  std::optional<int> getBandwidthBurstMaxKbits() const {
     return getFields()->bandwidthBurstMaxKbits;
   }
 

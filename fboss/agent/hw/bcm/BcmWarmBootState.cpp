@@ -79,7 +79,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   folly::dynamic host = folly::dynamic::object;
   host[kVrf] = hostKey.getVrf();
   host[kIp] = hostKey.addr().str();
-  if (hostKey.intfID().hasValue()) {
+  if (hostKey.intfID().has_value()) {
     host[kIntf] = static_cast<uint32_t>(hostKey.intfID().value());
   }
   host[kPort] = 0;
@@ -198,7 +198,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
 
   mplsNextHopDynamic[kVrf] = key.getVrf();
   mplsNextHopDynamic[kIp] = key.addr().str();
-  if (key.intfID().hasValue()) {
+  if (key.intfID().has_value()) {
     mplsNextHopDynamic[kIntf] = static_cast<uint32_t>(key.intfID().value());
   }
 

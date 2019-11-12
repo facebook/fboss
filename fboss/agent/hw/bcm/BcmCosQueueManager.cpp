@@ -29,7 +29,7 @@ BcmCosQueueManager::BcmCosQueueManager(
 void BcmCosQueueManager::fillOrReplaceCounter(
     const BcmCosQueueCounterType& type,
     QueueStatCounters& counters,
-    const folly::Optional<QueueConfig>& queueConfig) {
+    const std::optional<QueueConfig>& queueConfig) {
   if (type.isScopeQueues()) {
     // TODO(joseph5wu) Right now, we create counters based on queue size, we
     // could have created counters only for the queues we set in the config.
@@ -41,8 +41,8 @@ void BcmCosQueueManager::fillOrReplaceCounter(
        */
       std::string name;
 
-      if (queueConfig.hasValue() && (queueConfig.value().size() != 0) &&
-          queueConfig.value().at(queue)->getName().hasValue()) {
+      if (queueConfig.has_value() && (queueConfig.value().size() != 0) &&
+          queueConfig.value().at(queue)->getName().has_value()) {
         name = folly::to<std::string>(
             portName_,
             ".queue",
@@ -80,7 +80,7 @@ void BcmCosQueueManager::fillOrReplaceCounter(
 
 void BcmCosQueueManager::setupQueueCounter(
     const BcmCosQueueCounterType& type,
-    const folly::Optional<QueueConfig>& queueConfig) {
+    const std::optional<QueueConfig>& queueConfig) {
   // create counters for each type for each queue
   auto curCountersItr = queueCounters_.find(type);
   if (curCountersItr != queueCounters_.end()) {
@@ -94,7 +94,7 @@ void BcmCosQueueManager::setupQueueCounter(
 }
 
 void BcmCosQueueManager::setupQueueCounters(
-    const folly::Optional<QueueConfig>& queueConfig) {
+    const std::optional<QueueConfig>& queueConfig) {
   for (const auto& type : getQueueCounterTypes()) {
     setupQueueCounter(type, queueConfig);
   }

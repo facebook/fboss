@@ -91,7 +91,7 @@ class WedgeQsfp : public TransceiverImpl {
 
   int getNum() const override;
 
-  folly::Optional<TransceiverStats> getTransceiverStats() override;
+  std::optional<TransceiverStats> getTransceiverStats() override;
 
   folly::EventBase* getI2cEventBase() override;
 

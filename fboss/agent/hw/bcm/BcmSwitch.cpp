@@ -15,9 +15,9 @@
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
-#include <folly/Optional.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 #include "common/time/Time.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
@@ -1426,13 +1426,13 @@ void BcmSwitch::processAddedNeighborEntry(const NeighborEntryT* addedEntry) {
   if (addedEntry->isPending()) {
     XLOG(DBG3) << "adding pending neighbor entry to "
                << addedEntry->getIP().str()
-               << (addedEntry->getClassID().hasValue()
+               << (addedEntry->getClassID().has_value()
                        ? static_cast<int>(addedEntry->getClassID().value())
                        : 0);
   } else {
     XLOG(DBG3) << "adding neighbor entry " << addedEntry->getIP().str()
                << " to " << addedEntry->getMac().toString()
-               << (addedEntry->getClassID().hasValue()
+               << (addedEntry->getClassID().has_value()
                        ? static_cast<int>(addedEntry->getClassID().value())
                        : 0);
   }
@@ -1456,14 +1456,14 @@ void BcmSwitch::processChangedNeighborEntry(
   if (newEntry->isPending()) {
     XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
                << " classID: "
-               << (newEntry->getClassID().hasValue()
+               << (newEntry->getClassID().has_value()
                        ? static_cast<int>(newEntry->getClassID().value())
                        : 0)
                << " to pending";
   } else {
     XLOG(DBG3) << "changing neighbor entry " << newEntry->getIP().str()
                << " classID: "
-               << (newEntry->getClassID().hasValue()
+               << (newEntry->getClassID().has_value()
                        ? static_cast<int>(newEntry->getClassID().value())
                        : 0)
                << " to " << newEntry->getMac().toString();
@@ -1818,7 +1818,7 @@ bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
 bool BcmSwitch::sendPacketOutOfPortAsync(
     unique_ptr<TxPacket> pkt,
     PortID portID,
-    folly::Optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));

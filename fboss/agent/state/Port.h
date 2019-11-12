@@ -72,13 +72,13 @@ struct PortFields {
   int64_t sFlowEgressRate{0};
   // specifies whether sFlow sampled packets should be forwarded to the CPU or
   // to remote Mirror destinations
-  folly::Optional<cfg::SampleDestination> sampleDest;
+  std::optional<cfg::SampleDestination> sampleDest;
   QueueConfig queues;
   cfg::PortFEC fec{cfg::PortFEC::OFF}; // TODO: should this default to ON?
   cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
-  folly::Optional<std::string> ingressMirror;
-  folly::Optional<std::string> egressMirror;
-  folly::Optional<std::string> qosPolicy;
+  std::optional<std::string> ingressMirror;
+  std::optional<std::string> egressMirror;
+  std::optional<std::string> qosPolicy;
   LLDPValidations expectedLLDPValues;
   std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
 };
@@ -225,37 +225,37 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->sFlowEgressRate = egressRate;
   }
 
-  folly::Optional<cfg::SampleDestination> getSampleDestination() const {
+  std::optional<cfg::SampleDestination> getSampleDestination() const {
     return getFields()->sampleDest;
   }
 
   void setSampleDestination(
-      const folly::Optional<cfg::SampleDestination>& sampleDest) {
+      const std::optional<cfg::SampleDestination>& sampleDest) {
     writableFields()->sampleDest = sampleDest;
   }
 
-  folly::Optional<std::string> getIngressMirror() const {
+  std::optional<std::string> getIngressMirror() const {
     return getFields()->ingressMirror;
   }
 
-  void setIngressMirror(const folly::Optional<std::string>& mirror) {
-    writableFields()->ingressMirror.assign(mirror);
+  void setIngressMirror(const std::optional<std::string>& mirror) {
+    writableFields()->ingressMirror = mirror;
   }
 
-  folly::Optional<std::string> getEgressMirror() const {
+  std::optional<std::string> getEgressMirror() const {
     return getFields()->egressMirror;
   }
 
-  void setEgressMirror(const folly::Optional<std::string>& mirror) {
-    writableFields()->egressMirror.assign(mirror);
+  void setEgressMirror(const std::optional<std::string>& mirror) {
+    writableFields()->egressMirror = mirror;
   }
 
-  folly::Optional<std::string> getQosPolicy() const {
+  std::optional<std::string> getQosPolicy() const {
     return getFields()->qosPolicy;
   }
 
-  void setQosPolicy(const folly::Optional<std::string>& qosPolicy) {
-    writableFields()->qosPolicy.assign(qosPolicy);
+  void setQosPolicy(const std::optional<std::string>& qosPolicy) {
+    writableFields()->qosPolicy = qosPolicy;
   }
 
   const LLDPValidations& getLLDPValidations() const {

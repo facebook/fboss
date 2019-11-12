@@ -42,7 +42,7 @@ class HwEcmpDataPlaneTestUtil {
       uint8_t deviation);
 
  private:
-  virtual void pumpTrafficThroughPort(folly::Optional<PortID> port) = 0;
+  virtual void pumpTrafficThroughPort(std::optional<PortID> port) = 0;
 
   HwSwitchEnsemble* ensemble_;
   std::unique_ptr<EcmpSetupHelperT> helper_;
@@ -66,7 +66,7 @@ class HwIpEcmpDataPlaneTestUtil
       int ecmpWidth,
       const std::vector<NextHopWeight>& weights) override;
   /* pump IP traffic */
-  void pumpTrafficThroughPort(folly::Optional<PortID> port) override;
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
 
  private:
   std::vector<LabelForwardingAction::LabelStack> stacks_;
@@ -90,7 +90,7 @@ class HwMplsEcmpDataPlaneTestUtil
 
  private:
   /* pump MPLS traffic */
-  void pumpTrafficThroughPort(folly::Optional<PortID> port) override;
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
   MPLSHdr::Label label_;
 };
 

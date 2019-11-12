@@ -19,7 +19,7 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
   explicit HwTestPacketSnooper(HwSwitchEnsemble* ensemble);
   virtual ~HwTestPacketSnooper() override;
   void packetReceived(RxPacket* pkt) noexcept override;
-  folly::Optional<utility::EthFrame> waitForPacket();
+  std::optional<utility::EthFrame> waitForPacket();
 
  private:
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}

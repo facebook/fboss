@@ -60,13 +60,13 @@ IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
   hdr_ = HdrT(cursor);
   if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     // if proto is udp, encapsulate udp
-    udpPayLoad_.assign(UDPDatagram(cursor));
+    udpPayLoad_ = UDPDatagram(cursor);
   }
 }
 
 template <typename AddrT>
 void IPPacket<AddrT>::setUDPCheckSum(folly::IOBuf* buffer) const {
-  CHECK(udpPayLoad_.hasValue());
+  CHECK(udpPayLoad_.has_value());
   folly::io::Cursor start(buffer);
   // jump to  payloag start.
   // skip ipv4 header and udp header to get to the start of payload
@@ -114,9 +114,9 @@ MPLSPacket::MPLSPacket(folly::io::Cursor& cursor) {
     cursor.retreat(1);
     ipver >>= 4; // ip version is in first four bits
     if (ipver == 4) {
-      v4PayLoad_.assign(IPPacket<folly::IPAddressV4>(cursor));
+      v4PayLoad_ = IPPacket<folly::IPAddressV4>(cursor);
     } else if (ipver == 6) {
-      v6PayLoad_.assign(IPPacket<folly::IPAddressV6>(cursor));
+      v6PayLoad_ = IPPacket<folly::IPAddressV6>(cursor);
     }
   }
 }
@@ -155,13 +155,13 @@ EthFrame::EthFrame(folly::io::Cursor& cursor) {
   hdr_ = EthHdr(cursor);
   switch (hdr_.etherType) {
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4):
-      v4PayLoad_.assign(IPPacket<folly::IPAddressV4>(cursor));
+      v4PayLoad_ = IPPacket<folly::IPAddressV4>(cursor);
       break;
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6):
-      v6PayLoad_.assign(IPPacket<folly::IPAddressV6>(cursor));
+      v6PayLoad_ = IPPacket<folly::IPAddressV6>(cursor);
       break;
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS):
-      mplsPayLoad_.assign(MPLSPacket(cursor));
+      mplsPayLoad_ = MPLSPacket(cursor);
       break;
   }
 }

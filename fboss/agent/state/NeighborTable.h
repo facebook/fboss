@@ -84,7 +84,7 @@ class NeighborTable
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intfID,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none);
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip, InterfaceID intfID);

@@ -10,7 +10,7 @@
 #pragma once
 
 #include <folly/MacAddress.h>
-#include <folly/Optional.h>
+#include <optional>
 #include "fboss/agent/state/NodeBase.h"
 
 #include <boost/container/flat_map.hpp>
@@ -102,11 +102,11 @@ class NeighborResponseTable
     return this->getFields()->toFollyDynamic();
   }
 
-  folly::Optional<NeighborResponseEntry> getEntry(AddressType ip) {
+  std::optional<NeighborResponseEntry> getEntry(AddressType ip) {
     const auto& table = getTable();
     auto it = table.find(ip);
     if (it == table.end()) {
-      return folly::Optional<NeighborResponseEntry>();
+      return std::optional<NeighborResponseEntry>();
     }
     return it->second;
   }

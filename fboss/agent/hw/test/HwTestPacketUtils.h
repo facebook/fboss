@@ -11,12 +11,12 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-#include <folly/Optional.h>
 #include <folly/io/Cursor.h>
 
 #include "fboss/agent/TxPacket.h"
@@ -44,8 +44,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
-    folly::Optional<std::vector<uint8_t>> payload =
-        folly::Optional<std::vector<uint8_t>>());
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
 
 template <typename IPHDR>
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
@@ -66,8 +66,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
-    folly::Optional<std::vector<uint8_t>> payload =
-        folly::Optional<std::vector<uint8_t>>());
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
@@ -80,8 +80,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t dscp = 0,
     uint8_t ttl = 255,
-    folly::Optional<std::vector<uint8_t>> payload =
-        folly::Optional<std::vector<uint8_t>>());
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
@@ -94,8 +94,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
-    folly::Optional<std::vector<uint8_t>> payload =
-        folly::Optional<std::vector<uint8_t>>());
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
 
 } // namespace utility
 } // namespace fboss

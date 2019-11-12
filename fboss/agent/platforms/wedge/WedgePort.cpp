@@ -28,7 +28,7 @@ namespace fboss {
 WedgePort::WedgePort(
     PortID id,
     WedgePlatform* platform,
-    folly::Optional<FrontPanelResources> frontPanel)
+    std::optional<FrontPanelResources> frontPanel)
     : BcmPlatformPort(id, platform), frontPanel_(frontPanel) {}
 
 void WedgePort::setBcmPort(BcmPort* port) {
@@ -87,21 +87,21 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
 }
 
 // Get correct transmitter setting.
-folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
+folly::Future<std::optional<TxSettings>> WedgePort::getTxSettings(
     folly::EventBase* evb) const {
   DCHECK(evb);
 
   auto txOverrides = getTxOverrides();
   if (txOverrides.empty()) {
-    return folly::makeFuture<folly::Optional<TxSettings>>(folly::none);
+    return folly::makeFuture<std::optional<TxSettings>>(std::nullopt);
   }
 
   auto getTx = [overrides = std::move(txOverrides)](
-                   TransceiverInfo info) -> folly::Optional<TxSettings> {
+                   TransceiverInfo info) -> std::optional<TxSettings> {
     if (info.__isset.cable &&
         info.cable_ref().value_unchecked().__isset.transmitterTech) {
       if (!info.cable_ref().value_unchecked().__isset.length) {
-        return folly::Optional<TxSettings>();
+        return std::optional<TxSettings>();
       }
       auto cableMeters = std::max(
           1.0,
@@ -118,13 +118,13 @@ folly::Future<folly::Optional<TxSettings>> WedgePort::getTxSettings(
       }
     }
     // not enough cable info. return the default value
-    return folly::Optional<TxSettings>();
+    return std::optional<TxSettings>();
   };
   auto transID = getTransceiverID();
   auto handleErr = [transID](const std::exception& e) {
     XLOG(ERR) << "Error retrieving cable info for transceiver " << *transID
               << " Exception: " << folly::exceptionStr(e);
-    return folly::Optional<TxSettings>();
+    return std::optional<TxSettings>();
   };
   return getTransceiverInfo()
       .via(evb)
@@ -151,13 +151,13 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   speed_ = speed;
 }
 
-folly::Optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
+std::optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
     cfg::PortSpeed speed) {
   auto& platformSettings = getPlatform()->config()->thrift.platform;
 
   auto portsIter = platformSettings.ports.find(getPortID());
   if (portsIter == platformSettings.ports.end()) {
-    return folly::none;
+    return std::nullopt;
   }
 
   auto portConfig = portsIter->second;
@@ -176,9 +176,9 @@ bool WedgePort::isControllingPort() const {
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
-folly::Optional<ChannelID> WedgePort::getChannel() const {
+std::optional<ChannelID> WedgePort::getChannel() const {
   if (!frontPanel_) {
-    return folly::none;
+    return std::nullopt;
   }
   return frontPanel_->channels[0];
 }
@@ -187,7 +187,7 @@ std::vector<int32_t> WedgePort::getChannels() const {
   // TODO(aeckert): this is pretty hacky... we should really model
   // port groups in switch state somehow so this can be served purely
   // from switch state.
-  if (!frontPanel_.hasValue()) {
+  if (!frontPanel_.has_value()) {
     return {};
   }
 

@@ -238,7 +238,7 @@ void getPortInfoHelper(
       pq.name = queue->getName().value();
     }
 
-    if (queue->getPortQueueRate().hasValue()) {
+    if (queue->getPortQueueRate().has_value()) {
       if (queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::pktsPerSec) {
         Range range;

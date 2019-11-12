@@ -142,7 +142,7 @@ class BcmPort {
    * Update this port's statistics.
    */
   void updateStats();
-  folly::Optional<HwPortStats> getPortStats() const;
+  std::optional<HwPortStats> getPortStats() const;
   std::chrono::seconds getTimeRetrieved() const;
 
   /**
@@ -169,10 +169,10 @@ class BcmPort {
     return queueManager_.get();
   }
 
-  folly::Optional<std::string> getIngressPortMirror() const {
+  std::optional<std::string> getIngressPortMirror() const {
     return ingressMirror_;
   }
-  folly::Optional<std::string> getEgressPortMirror() const {
+  std::optional<std::string> getEgressPortMirror() const {
     return egressMirror_;
   }
 
@@ -234,7 +234,7 @@ class BcmPort {
   bool getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort);
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
   void updateMirror(
-      const folly::Optional<std::string>& swMirrorName,
+      const std::optional<std::string>& swMirrorName,
       MirrorDirection direction);
 
   opennsl_pbmp_t getPbmp();
@@ -249,7 +249,7 @@ class BcmPort {
   uint8_t determinePipe() const;
 
   void applyMirrorAction(
-      const folly::Optional<std::string>& mirrorName,
+      const std::optional<std::string>& mirrorName,
       MirrorAction action,
       MirrorDirection direction);
 
@@ -261,8 +261,8 @@ class BcmPort {
   uint8_t pipe_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
-  folly::Optional<std::string> ingressMirror_;
-  folly::Optional<std::string> egressMirror_;
+  std::optional<std::string> ingressMirror_;
+  std::optional<std::string> egressMirror_;
   cfg::SampleDestination sampleDest_;
   TransmitterTechnology transmitterTechnology_{TransmitterTechnology::UNKNOWN};
 
@@ -276,7 +276,7 @@ class BcmPort {
   fb303::ExportedHistogramMapImpl::LockableHistogram inPktLengths_;
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
-  folly::Synchronized<folly::Optional<BcmPortStats>> lastPortStats_;
+  folly::Synchronized<std::optional<BcmPortStats>> lastPortStats_;
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 
   std::atomic<bool> statCollectionEnabled_{false};

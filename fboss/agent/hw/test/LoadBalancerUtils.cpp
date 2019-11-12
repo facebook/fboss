@@ -105,7 +105,7 @@ void pumpTraffic(
     HwSwitch* hw,
     folly::MacAddress cpuMac,
     VlanID vlan,
-    folly::Optional<PortID> frontPanelPortToLoopTraffic) {
+    std::optional<PortID> frontPanelPortToLoopTraffic) {
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
@@ -129,7 +129,7 @@ void pumpMplsTraffic(
     HwSwitch* hw,
     uint32_t label,
     folly::MacAddress cpuMac,
-    folly::Optional<PortID> frontPanelPortToLoopTraffic) {
+    std::optional<PortID> frontPanelPortToLoopTraffic) {
   MPLSHdr::Label mplsLabel{label, 0, true, 128};
   std::unique_ptr<TxPacket> pkt;
   for (auto i = 0; i < 100; ++i) {

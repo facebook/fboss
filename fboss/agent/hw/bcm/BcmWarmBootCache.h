@@ -19,12 +19,12 @@ extern "C" {
 #include <folly/Conv.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
-#include <folly/Optional.h>
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include "fboss/agent/hw/bcm/BcmMirror.h"
@@ -57,7 +57,7 @@ class BcmWarmBootCache {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
   folly::dynamic getWarmBootStateFollyDynamic() const;
-  void populate(folly::Optional<folly::dynamic> warmBootState = folly::none);
+  void populate(std::optional<folly::dynamic> warmBootState = std::nullopt);
   struct VlanInfo {
     VlanInfo(
         VlanID _vlan,
@@ -107,8 +107,8 @@ class BcmWarmBootCache {
   using EgressIdAndEgress = std::pair<EgressId, Egress>;
   using VlanAndMac = std::pair<VlanID, folly::MacAddress>;
   using IntfIdAndMac = std::pair<IntfId, folly::MacAddress>;
-  using HostKey = std::
-      tuple<opennsl_vrf_t, folly::IPAddress, folly::Optional<opennsl_if_t>>;
+  using HostKey =
+      std::tuple<opennsl_vrf_t, folly::IPAddress, std::optional<opennsl_if_t>>;
   /*
    * VRF, IP, Mask
    * TODO - Convert mask to mask len for efficient storage/lookup
@@ -145,7 +145,7 @@ class BcmWarmBootCache {
   using Priority2BcmAclEntryHandle =
       boost::container::flat_map<int, BcmAclEntryHandle>;
   using MirrorEgressPath2Handle = boost::container::flat_map<
-      std::pair<opennsl_gport_t, folly::Optional<MirrorTunnel>>,
+      std::pair<opennsl_gport_t, std::optional<MirrorTunnel>>,
       BcmMirrorHandle>;
   using MirroredPort2Handle = boost::container::
       flat_map<std::pair<opennsl_gport_t, uint32_t>, BcmMirrorHandle>;
@@ -315,7 +315,7 @@ class BcmWarmBootCache {
   EgressId2EgressCitr findEgressFromHost(
       opennsl_vrf_t vrf,
       const folly::IPAddress& addr,
-      folly::Optional<opennsl_if_t> intf);
+      std::optional<opennsl_if_t> intf);
 
   EgressId2EgressCitr findEgressFromLabeledHostKey(
       const BcmLabeledHostKey& key);
@@ -514,7 +514,7 @@ class BcmWarmBootCache {
   MirrorEgressPath2HandleCitr mirrorsEnd() const;
   MirrorEgressPath2HandleCitr findMirror(
       opennsl_gport_t port,
-      const folly::Optional<MirrorTunnel>& tunnel) const;
+      const std::optional<MirrorTunnel>& tunnel) const;
   void programmedMirror(MirrorEgressPath2HandleCitr itr);
 
   using MirroredPort2HandleCitr = typename MirroredPort2Handle::const_iterator;

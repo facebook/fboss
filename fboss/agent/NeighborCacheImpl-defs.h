@@ -212,7 +212,7 @@ void NeighborCacheImpl<NTable>::updateEntryState(
 template <typename NTable>
 void NeighborCacheImpl<NTable>::updateEntryClassID(
     AddressType ip,
-    folly::Optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) {
   auto entry = getCacheEntry(ip);
 
   if (entry) {
@@ -240,7 +240,7 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
           return newState;
         };
 
-    auto classIDStr = classID.hasValue()
+    auto classIDStr = classID.has_value()
         ? folly::to<std::string>(static_cast<int>(classID.value()))
         : "None";
     sw_->updateState(
@@ -431,9 +431,9 @@ std::list<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData() const {
 
 template <typename NTable>
 template <typename NeighborEntryThrift>
-folly::Optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
+std::optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
     AddressType ip) const {
-  folly::Optional<NeighborEntryThrift> cachedNeighborEntry;
+  std::optional<NeighborEntryThrift> cachedNeighborEntry;
   auto entry = getCacheEntry(ip);
   if (entry) {
     NeighborEntryThrift thriftEntry;

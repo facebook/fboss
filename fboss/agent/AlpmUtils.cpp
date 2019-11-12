@@ -14,7 +14,7 @@
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
-#include <folly/Optional.h>
+#include <optional>
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"

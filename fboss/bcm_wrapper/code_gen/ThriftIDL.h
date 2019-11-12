@@ -12,7 +12,7 @@
 #include <string>
 #include <boost/variant.hpp>
 #include <clang/Tooling/Tooling.h>
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook { namespace fboss {
 

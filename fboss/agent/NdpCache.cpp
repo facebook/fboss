@@ -150,7 +150,7 @@ inline void NdpCache::checkReachability(
     srcIP = srcIntf->getAddressToReach(targetIP)->first.asV6();
   }
   // unicast solicitation
-  folly::Optional<PortDescriptor> portDescriptor;
+  std::optional<PortDescriptor> portDescriptor;
   portDescriptor.emplace(port);
   IPv6Handler::sendUnicastNeighborSolicitation(
       getSw(),

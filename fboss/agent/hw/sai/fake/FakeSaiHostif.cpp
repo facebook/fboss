@@ -10,8 +10,8 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 using facebook::fboss::FakeHostifTrapGroupManager;
 using facebook::fboss::FakeHostifTrapManager;

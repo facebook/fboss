@@ -345,7 +345,7 @@ TEST(ArpTest, TableUpdates) {
           "00:02:00:01:02:03",
           vlanID),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
@@ -390,7 +390,7 @@ TEST(ArpTest, TableUpdates) {
           "00:02:00:01:02:03",
           vlanID),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
@@ -431,7 +431,7 @@ TEST(ArpTest, TableUpdates) {
           "00:02:00:01:02:03",
           vlanID),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
@@ -558,7 +558,7 @@ TEST(ArpTest, TableUpdates) {
           "00:02:00:01:02:23",
           vlanID),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
@@ -615,7 +615,7 @@ TEST(ArpTest, TableUpdates) {
           "00:02:00:55:66:77",
           vlanID),
       PortID(5),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
   handle->rxPacket(std::move(buf), PortID(5), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);

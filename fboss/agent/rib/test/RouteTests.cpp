@@ -1399,16 +1399,16 @@ TEST(RouteTypes, toFromRouteNextHops) {
   ASSERT_EQ(4, nhts.size());
 
   auto verify = [&](const std::string& ipaddr,
-                    folly::Optional<InterfaceID> intf) {
+                    std::optional<InterfaceID> intf) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
-    if (intf.hasValue()) {
+    if (intf.has_value()) {
       bAddr.ifName_ref() =
           facebook::fboss::util::createTunIntfName(intf.value());
     }
     bool found = false;
     for (const auto& entry : nhts) {
       if (entry.address == bAddr) {
-        if (intf.hasValue()) {
+        if (intf.has_value()) {
           EXPECT_TRUE(entry.address.__isset.ifName);
           EXPECT_EQ(
               bAddr.ifName_ref().value_unchecked(),
@@ -1422,9 +1422,9 @@ TEST(RouteTypes, toFromRouteNextHops) {
     EXPECT_TRUE(found);
   };
 
-  verify("10.0.0.1", folly::none);
-  verify("169.254.0.1", folly::none);
-  verify("face:b00c::1", folly::none);
+  verify("10.0.0.1", std::nullopt);
+  verify("169.254.0.1", std::nullopt);
+  verify("face:b00c::1", std::nullopt);
   verify("fe80::1", InterfaceID(4));
 
   // Convert back to RouteNextHopSet
@@ -1444,7 +1444,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   {
     NextHop nh = rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
-    EXPECT_EQ(folly::none, nh.intfID());
+    EXPECT_EQ(std::nullopt, nh.intfID());
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
@@ -1453,7 +1453,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   {
     NextHop nh = rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
-    EXPECT_EQ(folly::none, nh.intfID());
+    EXPECT_EQ(std::nullopt, nh.intfID());
   }
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("fe80::1"));
@@ -1474,7 +1474,7 @@ TEST(Route, nextHopTest) {
   EXPECT_TRUE(rnh.isResolved());
   EXPECT_EQ(unh.addr(), addr);
   EXPECT_EQ(rnh.addr(), addr);
-  EXPECT_THROW(unh.intf(), folly::OptionalEmptyException);
+  EXPECT_THROW(unh.intf(), std::bad_optional_access);
   EXPECT_EQ(rnh.intf(), InterfaceID(1));
   EXPECT_NE(unh, rnh);
   auto unh2 = unh;
@@ -1510,7 +1510,7 @@ TEST(Route, withLabelForwardingAction) {
     nexthops.emplace(UnresolvedNextHop(
         nextHopAddrs[i],
         1,
-        folly::make_optional<LabelForwardingAction>(
+        std::make_optional<LabelForwardingAction>(
             LabelForwardingAction::LabelForwardingType::PUSH,
             nextHopStacks[i])));
   }
@@ -1536,11 +1536,11 @@ TEST(Route, withLabelForwardingAction) {
 
   auto entry = route->getBestEntry();
   for (const auto& nh : entry.second->getNextHopSet()) {
-    EXPECT_EQ(nh.labelForwardingAction().hasValue(), true);
+    EXPECT_EQ(nh.labelForwardingAction().has_value(), true);
     EXPECT_EQ(
         nh.labelForwardingAction()->type(),
         LabelForwardingAction::LabelForwardingType::PUSH);
-    EXPECT_EQ(nh.labelForwardingAction()->pushStack().hasValue(), true);
+    EXPECT_EQ(nh.labelForwardingAction()->pushStack().has_value(), true);
     EXPECT_EQ(nh.labelForwardingAction()->pushStack()->size(), 3);
     EXPECT_EQ(
         labeledNextHops[nh.addr().asV4()],
@@ -1570,7 +1570,7 @@ TEST(Route, withNoLabelForwardingAction) {
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
   for (const auto& nh : entry.second->getNextHopSet()) {
-    EXPECT_EQ(nh.labelForwardingAction().hasValue(), false);
+    EXPECT_EQ(nh.labelForwardingAction().has_value(), false);
   }
   EXPECT_EQ(*entry.second, routeNextHopEntry);
 }

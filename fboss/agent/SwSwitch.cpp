@@ -1202,7 +1202,7 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(uint32_t l3Len) {
 
 void SwSwitch::sendNetworkControlPacketAsync(
     std::unique_ptr<TxPacket> pkt,
-    folly::Optional<PortDescriptor> port) noexcept {
+    std::optional<PortDescriptor> port) noexcept {
   if (port) {
     // TODO(joseph5wu): Control this by distinguishing the highest priority
     // queue from the config.
@@ -1226,7 +1226,7 @@ void SwSwitch::sendNetworkControlPacketAsync(
 void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    folly::Optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue) noexcept {
   auto state = getState();
   if (!state->getPorts()->getPortIf(portID)) {
     XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
@@ -1264,7 +1264,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
 void SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID,
-    folly::Optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue) noexcept {
   auto aggPort = getState()->getAggregatePorts()->getAggregatePortIf(aggPortID);
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
@@ -1316,7 +1316,7 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
 
 void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
-    folly::Optional<InterfaceID> maybeIfID) noexcept {
+    std::optional<InterfaceID> maybeIfID) noexcept {
   if (!isFullyInitialized()) {
     XLOG(INFO) << " Dropping L3 packet since device not yet initialized";
     stats()->pktDropped();
@@ -1346,7 +1346,7 @@ void SwSwitch::sendL3Packet(
 
   // Get VlanID associated with interface
   VlanID vlanID = getCPUVlan();
-  if (maybeIfID.hasValue()) {
+  if (maybeIfID.has_value()) {
     auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
       XLOG(ERR) << "Interface " << *maybeIfID << " doesn't exists in state.";

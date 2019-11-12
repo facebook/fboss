@@ -19,17 +19,17 @@ namespace fboss {
 BcmHostKey::BcmHostKey(
     opennsl_vrf_t vrf,
     folly::IPAddress ipAddr,
-    folly::Optional<InterfaceID> intf)
+    std::optional<InterfaceID> intf)
     : vrf_(vrf), addr_(std::move(ipAddr)), intfID_(intf) {
   // need the interface ID if and only if the address is v6 link-local
   if (addr().isV6() && addr().isLinkLocal()) {
-    if (!intfID().hasValue()) {
+    if (!intfID().has_value()) {
       throw FbossError(
           "Missing interface scoping for link-local address {}.", addr().str());
     }
   } else {
     // for not v6 link-local address, do not track the interface ID
-    intfID_ = folly::none;
+    intfID_ = std::nullopt;
   }
 }
 
@@ -56,12 +56,12 @@ bool operator<(const BcmHostKey& a, const BcmHostKey& b) {
     if (a.intfID().has_value() && b.intfID().has_value()) {
       return a.intfID().value() < b.intfID().value();
     } else {
-      // We treat folly::none as the smallest value for
-      // folly::Optional<InterfaceID>:
+      // We treat std::nullopt as the smallest value for
+      // std::optional<InterfaceID>:
       // a.intfID()  b.intfID()  a.intfID() < b.intfID()
-      // InterfaceID folly::none false
-      // folly::none InterfaceID true
-      // folly::none folly::none false
+      // InterfaceID std::nullopt false
+      // std::nullopt InterfaceID true
+      // std::nullopt std::nullopt false
       return b.intfID().has_value();
     }
   }

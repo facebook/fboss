@@ -28,7 +28,7 @@ class BcmLabeledEgress : public BcmEgress {
   void prepareEgressObject(
       opennsl_if_t intfId,
       opennsl_port_t port,
-      const folly::Optional<folly::MacAddress>& mac,
+      const std::optional<folly::MacAddress>& mac,
       RouteForwardAction action,
       opennsl_l3_egress_t* eObj) const override;
 

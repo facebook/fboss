@@ -25,7 +25,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
   auto connStr = platform->getPlatformAttribute(
       cfg::PlatformAttributes::CONNECTION_HANDLE);
-  if (connStr.hasValue()) {
+  if (connStr.has_value()) {
     std::copy(
         connStr->c_str(),
         connStr->c_str() + connStr->size() + 1,

@@ -127,13 +127,13 @@ PlatformPort* SaiPlatform::getPlatformPort(PortID port) const {
   return getPort(port);
 }
 
-folly::Optional<std::string> SaiPlatform::getPlatformAttribute(
+std::optional<std::string> SaiPlatform::getPlatformAttribute(
     cfg::PlatformAttributes platformAttribute) {
   auto& platform = config()->thrift.platform;
 
   auto platformIter = platform.platformSettings.find(platformAttribute);
   if (platformIter == platform.platformSettings.end()) {
-    return folly::none;
+    return std::nullopt;
   }
 
   return platformIter->second;

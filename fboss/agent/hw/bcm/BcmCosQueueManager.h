@@ -98,7 +98,7 @@ class BcmCosQueueManager {
       const = 0;
 
   void setupQueueCounters(
-      const folly::Optional<QueueConfig>& queueConfig = folly::none);
+      const std::optional<QueueConfig>& queueConfig = std::nullopt);
   void destroyQueueCounters();
   void updateQueueStats(
       std::chrono::seconds now,
@@ -181,11 +181,11 @@ class BcmCosQueueManager {
   void fillOrReplaceCounter(
       const BcmCosQueueCounterType& type,
       QueueStatCounters& counters,
-      const folly::Optional<QueueConfig>& queueConfig = folly::none);
+      const std::optional<QueueConfig>& queueConfig = std::nullopt);
 
   void setupQueueCounter(
       const BcmCosQueueCounterType& type,
-      const folly::Optional<QueueConfig>& queueConfig = folly::none);
+      const std::optional<QueueConfig>& queueConfig = std::nullopt);
 
   void updateQueueAggregatedStat(
       const BcmCosQueueCounterType& type,

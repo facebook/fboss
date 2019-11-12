@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <folly/Optional.h>
 #include <folly/experimental/TestUtil.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
+#include <optional>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -33,7 +33,7 @@ class MockPlatformPort : public PlatformPort {
   MOCK_METHOD2(linkStatusChanged, void(bool up, bool adminUp));
   MOCK_METHOD1(linkSpeedChanged, void(const cfg::PortSpeed& speed));
   MOCK_CONST_METHOD0(supportsTransceiver, bool());
-  MOCK_CONST_METHOD0(getTransceiverID, folly::Optional<TransceiverID>());
+  MOCK_CONST_METHOD0(getTransceiverID, std::optional<TransceiverID>());
   MOCK_METHOD6(
       statusIndication,
       void(

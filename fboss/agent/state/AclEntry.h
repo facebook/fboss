@@ -17,7 +17,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
-#include <folly/Optional.h>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -100,24 +100,24 @@ struct AclEntryFields {
   std::string name{nullptr};
   folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
-  folly::Optional<uint8_t> proto{folly::none};
-  folly::Optional<uint8_t> tcpFlagsBitMap{folly::none};
-  folly::Optional<uint16_t> srcPort{folly::none};
-  folly::Optional<uint16_t> dstPort{folly::none};
-  folly::Optional<cfg::IpFragMatch> ipFrag{folly::none};
-  folly::Optional<uint8_t> icmpType{folly::none};
-  folly::Optional<uint8_t> icmpCode{folly::none};
-  folly::Optional<uint8_t> dscp{folly::none};
-  folly::Optional<cfg::IpType> ipType{folly::none};
-  folly::Optional<AclTtl> ttl{folly::none};
-  folly::Optional<folly::MacAddress> dstMac{folly::none};
-  folly::Optional<uint16_t> l4SrcPort{folly::none};
-  folly::Optional<uint16_t> l4DstPort{folly::none};
-  folly::Optional<cfg::AclLookupClass> lookupClassL2{folly::none};
-  folly::Optional<cfg::AclLookupClass> lookupClass{folly::none};
+  std::optional<uint8_t> proto{std::nullopt};
+  std::optional<uint8_t> tcpFlagsBitMap{std::nullopt};
+  std::optional<uint16_t> srcPort{std::nullopt};
+  std::optional<uint16_t> dstPort{std::nullopt};
+  std::optional<cfg::IpFragMatch> ipFrag{std::nullopt};
+  std::optional<uint8_t> icmpType{std::nullopt};
+  std::optional<uint8_t> icmpCode{std::nullopt};
+  std::optional<uint8_t> dscp{std::nullopt};
+  std::optional<cfg::IpType> ipType{std::nullopt};
+  std::optional<AclTtl> ttl{std::nullopt};
+  std::optional<folly::MacAddress> dstMac{std::nullopt};
+  std::optional<uint16_t> l4SrcPort{std::nullopt};
+  std::optional<uint16_t> l4DstPort{std::nullopt};
+  std::optional<cfg::AclLookupClass> lookupClassL2{std::nullopt};
+  std::optional<cfg::AclLookupClass> lookupClass{std::nullopt};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
-  folly::Optional<MatchAction> aclAction{folly::none};
+  std::optional<MatchAction> aclAction{std::nullopt};
 };
 
 /*
@@ -173,7 +173,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     return getFields()->name;
   }
 
-  const folly::Optional<MatchAction> getAclAction() const {
+  const std::optional<MatchAction> getAclAction() const {
     return getFields()->aclAction;
   }
 
@@ -205,7 +205,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->dstIp = ip;
   }
 
-  folly::Optional<uint8_t> getProto() const {
+  std::optional<uint8_t> getProto() const {
     return getFields()->proto;
   }
 
@@ -213,7 +213,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->proto = proto;
   }
 
-  folly::Optional<uint8_t> getTcpFlagsBitMap() const {
+  std::optional<uint8_t> getTcpFlagsBitMap() const {
     return getFields()->tcpFlagsBitMap;
   }
 
@@ -221,7 +221,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->tcpFlagsBitMap = flagsBitMap;
   }
 
-  folly::Optional<uint16_t> getSrcPort() const {
+  std::optional<uint16_t> getSrcPort() const {
     return getFields()->srcPort;
   }
 
@@ -229,7 +229,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->srcPort = port;
   }
 
-  folly::Optional<uint16_t> getDstPort() const {
+  std::optional<uint16_t> getDstPort() const {
     return getFields()->dstPort;
   }
 
@@ -237,7 +237,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->dstPort = port;
   }
 
-  folly::Optional<cfg::IpFragMatch> getIpFrag() const {
+  std::optional<cfg::IpFragMatch> getIpFrag() const {
     return getFields()->ipFrag;
   }
 
@@ -245,7 +245,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->ipFrag = frag;
   }
 
-  folly::Optional<uint8_t> getIcmpCode() const {
+  std::optional<uint8_t> getIcmpCode() const {
     return getFields()->icmpCode;
   }
 
@@ -253,7 +253,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->icmpCode = code;
   }
 
-  folly::Optional<uint8_t> getIcmpType() const {
+  std::optional<uint8_t> getIcmpType() const {
     return getFields()->icmpType;
   }
 
@@ -261,7 +261,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->icmpType = type;
   }
 
-  folly::Optional<uint8_t> getDscp() const {
+  std::optional<uint8_t> getDscp() const {
     return getFields()->dscp;
   }
 
@@ -269,7 +269,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->dscp = dscp;
   }
 
-  folly::Optional<cfg::IpType> getIpType() const {
+  std::optional<cfg::IpType> getIpType() const {
     return getFields()->ipType;
   }
 
@@ -277,7 +277,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->ipType = ipType;
   }
 
-  folly::Optional<AclTtl> getTtl() const {
+  std::optional<AclTtl> getTtl() const {
     return getFields()->ttl;
   }
 
@@ -285,7 +285,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->ttl = ttl;
   }
 
-  folly::Optional<folly::MacAddress> getDstMac() const {
+  std::optional<folly::MacAddress> getDstMac() const {
     return getFields()->dstMac;
   }
 
@@ -293,7 +293,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->dstMac = dstMac;
   }
 
-  folly::Optional<uint16_t> getL4SrcPort() const {
+  std::optional<uint16_t> getL4SrcPort() const {
     return getFields()->l4SrcPort;
   }
 
@@ -301,7 +301,7 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->l4SrcPort = port;
   }
 
-  folly::Optional<uint16_t> getL4DstPort() const {
+  std::optional<uint16_t> getL4DstPort() const {
     return getFields()->l4DstPort;
   }
 
@@ -309,14 +309,14 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->l4DstPort = port;
   }
 
-  folly::Optional<cfg::AclLookupClass> getLookupClassL2() const {
+  std::optional<cfg::AclLookupClass> getLookupClassL2() const {
     return getFields()->lookupClassL2;
   }
   void setLookupClassL2(const cfg::AclLookupClass& lookupClassL2) {
     writableFields()->lookupClassL2 = lookupClassL2;
   }
 
-  folly::Optional<cfg::AclLookupClass> getLookupClass() const {
+  std::optional<cfg::AclLookupClass> getLookupClass() const {
     return getFields()->lookupClass;
   }
   void setLookupClass(const cfg::AclLookupClass& lookupClass) {

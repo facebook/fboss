@@ -14,7 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-#include <folly/Optional.h>
+#include <optional>
 #include <folly/Synchronized.h>
 #include <folly/futures/Future.h>
 
@@ -159,7 +159,7 @@ class QsfpModule : public Transceiver {
   // This transceiver needs customization
   bool needsCustomization_{false};
 
-  folly::Synchronized<folly::Optional<TransceiverInfo>> info_;
+  folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule
    *
@@ -338,7 +338,7 @@ class QsfpModule : public Transceiver {
    * input incorrect data and the accuracy of these fields is
    * important for proper tuning.
    */
-  const folly::Optional<LengthAndGauge> getDACCableOverride() const;
+  const std::optional<LengthAndGauge> getDACCableOverride() const;
 
   bool shouldRemediate(time_t cooldown) const;
 

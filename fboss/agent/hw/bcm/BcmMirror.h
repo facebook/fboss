@@ -55,10 +55,10 @@ class BcmMirror {
     /* if this is programmed in hardware */
     return destination_ != nullptr;
   }
-  folly::Optional<BcmMirrorHandle> getHandle() {
+  std::optional<BcmMirrorHandle> getHandle() {
     return destination_
-        ? folly::Optional<BcmMirrorHandle>(destination_->getHandle())
-        : folly::none;
+        ? std::optional<BcmMirrorHandle>(destination_->getHandle())
+        : std::nullopt;
   }
 
  private:

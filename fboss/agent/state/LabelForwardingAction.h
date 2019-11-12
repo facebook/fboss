@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <folly/Optional.h>
 #include <folly/dynamic.h>
+#include <optional>
 #include <vector>
 
 #include "fboss/agent/FbossError.h"
@@ -73,11 +73,11 @@ class LabelForwardingAction {
     }
   }
 
-  const folly::Optional<Label>& swapWith() const {
+  const std::optional<Label>& swapWith() const {
     return swapWith_;
   }
 
-  const folly::Optional<LabelStack>& pushStack() const {
+  const std::optional<LabelStack>& pushStack() const {
     return pushStack_;
   }
 
@@ -101,14 +101,14 @@ class LabelForwardingAction {
 
   bool operator<(const LabelForwardingAction& rhs) const;
 
-  static folly::Optional<LabelForwardingAction> combinePushLabelStack(
-      const folly::Optional<LabelForwardingAction>& tunnelStack,
-      const folly::Optional<LabelForwardingAction>& adjacencyLabels);
+  static std::optional<LabelForwardingAction> combinePushLabelStack(
+      const std::optional<LabelForwardingAction>& tunnelStack,
+      const std::optional<LabelForwardingAction>& adjacencyLabels);
 
  private:
   LabelForwardingType type_{LabelForwardingType::NOOP};
-  folly::Optional<Label> swapWith_;
-  folly::Optional<LabelStack> pushStack_;
+  std::optional<Label> swapWith_;
+  std::optional<LabelStack> pushStack_;
 };
 
 } // namespace fboss

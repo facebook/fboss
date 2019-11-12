@@ -105,7 +105,7 @@ class IPPacket {
     return hdr_;
   }
 
-  folly::Optional<UDPDatagram> payload() const {
+  std::optional<UDPDatagram> payload() const {
     return udpPayLoad_;
   }
 
@@ -122,7 +122,7 @@ class IPPacket {
  private:
   void setUDPCheckSum(folly::IOBuf* buffer) const;
   HdrT hdr_;
-  folly::Optional<UDPDatagram> udpPayLoad_;
+  std::optional<UDPDatagram> udpPayLoad_;
   // TODO: support TCP segment
 };
 
@@ -151,11 +151,11 @@ class MPLSPacket {
                     : (v6PayLoad_ ? v6PayLoad_->length() : 0));
   }
 
-  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
+  std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
     return v4PayLoad_;
   }
 
-  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
+  std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
     return v6PayLoad_;
   }
 
@@ -172,16 +172,16 @@ class MPLSPacket {
 
  private:
   void setPayLoad(IPPacket<folly::IPAddressV6> payload) {
-    v6PayLoad_.assign(payload);
+    v6PayLoad_ = payload;
   }
 
   void setPayLoad(IPPacket<folly::IPAddressV4> payload) {
-    v4PayLoad_.assign(payload);
+    v4PayLoad_ = payload;
   }
 
   MPLSHdr hdr_{MPLSHdr::Label{0, 0, 0, 0}};
-  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
-  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
+  std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
+  std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
 };
 
 class EthFrame {
@@ -193,7 +193,7 @@ class EthFrame {
   explicit EthFrame(EthHdr hdr) : hdr_(std::move(hdr)) {}
 
   EthFrame(EthHdr hdr, MPLSPacket payload) : hdr_(std::move(hdr)) {
-    mplsPayLoad_.assign(std::move(payload));
+    mplsPayLoad_ = std::move(payload);
     hdr_.etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS);
   }
 
@@ -227,15 +227,15 @@ class EthFrame {
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       const HwSwitch* hw) const;
 
-  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
+  std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
     return v4PayLoad_;
   }
 
-  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
+  std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad() const {
     return v6PayLoad_;
   }
 
-  folly::Optional<MPLSPacket> mplsPayLoad() const {
+  std::optional<MPLSPacket> mplsPayLoad() const {
     return mplsPayLoad_;
   }
 
@@ -249,9 +249,9 @@ class EthFrame {
 
  private:
   EthHdr hdr_;
-  folly::Optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
-  folly::Optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
-  folly::Optional<MPLSPacket> mplsPayLoad_;
+  std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
+  std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
+  std::optional<MPLSPacket> mplsPayLoad_;
 };
 
 template <typename AddrT>

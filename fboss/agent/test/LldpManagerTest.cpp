@@ -135,7 +135,7 @@ TEST(LldpManagerTest, LldpSend) {
       sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
           _,
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
+          std::optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.sendLldpOnAllPorts();
@@ -150,7 +150,7 @@ TEST(LldpManagerTest, LldpSendPeriodic) {
       sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
           _,
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
+          std::optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   LldpManager lldpManager(sw);
   lldpManager.start();
@@ -166,7 +166,7 @@ TEST(LldpManagerTest, NoLldpPktsIfSwitchConfigured) {
       sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
           _,
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
+          std::optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(0));
 }
 
@@ -179,7 +179,7 @@ TEST(LldpManagerTest, LldpPktsPostConfigured) {
       sendPacketOutOfPortAsync_(
           TxPacketMatcher::createMatcher("Lldp PDU", checkLldpPDU()),
           _,
-          folly::Optional<uint8_t>(kNCStrictPriorityQueue)))
+          std::optional<uint8_t>(kNCStrictPriorityQueue)))
       .Times(AtLeast(1));
   // Initial state applied, no more config to apply
   sw->initialConfigApplied(std::chrono::steady_clock::now());

@@ -5,8 +5,8 @@
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 
-#include <folly/Optional.h>
 #include <gmock/gmock.h>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -36,7 +36,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue = folly::none) noexcept override {
+      std::optional<uint8_t> queue = std::nullopt) noexcept override {
     return sendPacketOutOfPortAsyncImpl(pkt.get(), portID, queue);
   }
   // hackery, since GMOCK does no support forwarding
@@ -47,14 +47,14 @@ class MockBcmSwitch : public BcmSwitchIf {
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID) noexcept override {
-    return sendPacketOutOfPortAsyncImpl(pkt.get(), portID, folly::none);
+    return sendPacketOutOfPortAsyncImpl(pkt.get(), portID, std::nullopt);
   }
   GMOCK_METHOD3_(
       ,
       noexcept,
       ,
       sendPacketOutOfPortAsyncImpl,
-      bool(TxPacket* pkt, PortID portID, folly::Optional<uint8_t> queue));
+      bool(TxPacket* pkt, PortID portID, std::optional<uint8_t> queue));
   // and another one
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
       std::unique_ptr<MockRxPacket> pkt) const override {

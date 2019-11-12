@@ -14,7 +14,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
 
-#include <folly/Optional.h>
+#include <optional>
 #include <string>
 #include <utility>
 

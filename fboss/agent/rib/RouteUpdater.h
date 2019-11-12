@@ -110,7 +110,7 @@ class RouteUpdater {
   void getFwdInfoFromNhop(
       NetworkToRouteMap<AddressT>* routes,
       const AddressT& nh,
-      const folly::Optional<LabelForwardingAction>& labelAction,
+      const std::optional<LabelForwardingAction>& labelAction,
       bool* hasToCpu,
       bool* hasDrop,
       RouteNextHopSet& fwd);

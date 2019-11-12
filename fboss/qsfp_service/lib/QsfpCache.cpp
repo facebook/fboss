@@ -73,7 +73,7 @@ void QsfpCache::maybeSync() {
   DCHECK(evb_);
   CHECK(evb_->isInEventBaseThread());
 
-  if (activeReq_.hasValue() && !activeReq_->isFulfilled()) {
+  if (activeReq_.has_value() && !activeReq_->isFulfilled()) {
     // Already an inflight request. This is pretty restrictive, but
     // due to qsfp_service implementation right now there is no reason
     // to support multiple inflight requests.
@@ -184,7 +184,7 @@ void QsfpCache::updateCache(const TcvrMapThrift& tcvrs) {
   });
 }
 
-folly::Optional<TransceiverInfo> QsfpCache::getIf(TransceiverID tcvrId) {
+std::optional<TransceiverInfo> QsfpCache::getIf(TransceiverID tcvrId) {
   if (!initialized_.load(std::memory_order_acquire)) {
     throw std::runtime_error("Cache not yet initialized...");
   }
@@ -194,7 +194,7 @@ folly::Optional<TransceiverInfo> QsfpCache::getIf(TransceiverID tcvrId) {
   if (it != lockedTcvrs->end()) {
     return it->second;
   }
-  return folly::Optional<TransceiverInfo>();
+  return std::optional<TransceiverInfo>();
 }
 
 TransceiverInfo QsfpCache::get(TransceiverID tcvrId) {

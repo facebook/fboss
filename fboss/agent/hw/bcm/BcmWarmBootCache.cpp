@@ -224,7 +224,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     }
     egressIdsInWarmBootFile_.insert(egressId);
 
-    folly::Optional<opennsl_if_t> intf{folly::none};
+    std::optional<opennsl_if_t> intf{std::nullopt};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
     if (ip.isV6() && ip.isLinkLocal()) {
       auto egressIt = hostEntry.find(kEgress);
@@ -248,8 +248,8 @@ void BcmWarmBootCache::populateFromWarmBootState(
 
     XLOG(DBG1) << "Construct a host entry (vrf=" << vrf << ",ip=" << ip
                << ",intf="
-               << (intf.hasValue() ? folly::to<std::string>(intf.value())
-                                   : "None")
+               << (intf.has_value() ? folly::to<std::string>(intf.value())
+                                    : "None")
                << ") pointing to the egress entry, id=" << egressId
                << " classID: " << classID;
   }
@@ -304,7 +304,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
     opennsl_vrf_t vrf,
     const folly::IPAddress& addr,
-    folly::Optional<opennsl_if_t> intf) {
+    std::optional<opennsl_if_t> intf) {
   // Do a cheap check of size to avoid construct the key for lookup.
   // That helps the case after warmboot is done.
   if (vrfIp2EgressFromBcmHostInWarmBootFile_.size() == 0) {
@@ -312,7 +312,7 @@ BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
   }
   // only care about the intf if addr is v6 link-local
   if (!addr.isV6() || !addr.isLinkLocal()) {
-    intf = folly::none;
+    intf = std::nullopt;
   }
   auto key = std::make_tuple(vrf, addr, intf);
   auto it = vrfIp2EgressFromBcmHostInWarmBootFile_.find(key);
@@ -332,7 +332,7 @@ BcmWarmBootCache::findEgressFromLabeledHostKey(const BcmLabeledHostKey& key) {
       : findEgress(iter->second);
 }
 
-void BcmWarmBootCache::populate(folly::Optional<folly::dynamic> warmBootState) {
+void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   if (warmBootState) {
     populateFromWarmBootState(*warmBootState);
   } else {
@@ -912,7 +912,7 @@ void BcmWarmBootCache::programmed(
 
 BcmWarmBootCache::MirrorEgressPath2HandleCitr BcmWarmBootCache::findMirror(
     opennsl_gport_t port,
-    const folly::Optional<MirrorTunnel>& tunnel) const {
+    const std::optional<MirrorTunnel>& tunnel) const {
   return mirrorEgressPath2Handle_.find(std::make_pair(port, tunnel));
 }
 

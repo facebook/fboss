@@ -16,10 +16,10 @@
 #include <fcntl.h>
 #include <ifaddrs.h>
 
-#include <folly/Optional.h>
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include <optional>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -28,7 +28,7 @@
 using namespace std;
 
 namespace {
-folly::Optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
+std::optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
   const std::string whoAmIFn = "/etc/fbwhoami";
   const std::string key = "DEVICE_PRIMARY_IPV6";
 
@@ -46,17 +46,17 @@ folly::Optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
         return folly::IPAddress(kv[1]);
       } catch (std::exception const& e) {
         XLOG(DBG2) << folly::exceptionStr(e);
-        return folly::none;
+        return std::nullopt;
       }
     }
   }
-  return folly::none;
+  return std::nullopt;
 }
 
 folly::IPAddress getLocalIPv6() {
   // We first try to get the local IPv6 in fbwhoami
   auto ret = getLocalIPv6FromWhoAmI();
-  if (ret.hasValue()) {
+  if (ret.has_value()) {
     XLOG(DBG2) << "Got local IPv6 address from fbwhoami";
     return ret.value();
   }

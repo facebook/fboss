@@ -45,13 +45,13 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
       TransmitterTechnology::UNKNOWN);
 }
 
-folly::Future<folly::Optional<TxSettings>> BcmTestPort::getTxSettings(
+folly::Future<std::optional<TxSettings>> BcmTestPort::getTxSettings(
     folly::EventBase* /*evb*/) const {
-  return folly::none;
+  return std::nullopt;
 }
 
-folly::Optional<TransceiverID> BcmTestPort::getTransceiverID() const {
-  return folly::none;
+std::optional<TransceiverID> BcmTestPort::getTransceiverID() const {
+  return std::nullopt;
 }
 
 bool BcmTestPort::supportsTransceiver() const {

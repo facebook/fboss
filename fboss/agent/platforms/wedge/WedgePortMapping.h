@@ -14,7 +14,7 @@
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
 #include <boost/container/flat_map.hpp>
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -35,9 +35,9 @@ class WedgePortMapping {
  public:
   enum : uint8_t { CHANNELS_IN_QSFP28 = 4 };
 
-  using PortTransceiverMap = std::map<PortID, folly::Optional<TransceiverID>>;
+  using PortTransceiverMap = std::map<PortID, std::optional<TransceiverID>>;
   using PortFrontPanelResourceMap =
-      std::map<PortID, folly::Optional<FrontPanelResources>>;
+      std::map<PortID, std::optional<FrontPanelResources>>;
   using MappingIterator =
       boost::container::flat_map<PortID, std::unique_ptr<WedgePort>>::iterator;
   using ConstMappingIterator = boost::container::
@@ -105,7 +105,7 @@ class WedgePortMapping {
  private:
   virtual std::unique_ptr<WedgePort> constructPort(
       const PortID port,
-      const folly::Optional<FrontPanelResources> frontPanel) = 0;
+      const std::optional<FrontPanelResources> frontPanel) = 0;
 
   /* Helper to add associated ports to the port mapping.
    * Optionally specify a front panel port mapping if this
@@ -114,10 +114,10 @@ class WedgePortMapping {
   void addSequentialPorts(
       const PortID start,
       int count,
-      const folly::Optional<TransceiverID> transceiver = folly::none) {
+      const std::optional<TransceiverID> transceiver = std::nullopt) {
     for (int num = 0; num < count; ++num) {
       PortID id(start + num);
-      folly::Optional<FrontPanelResources> frontPanel = folly::none;
+      std::optional<FrontPanelResources> frontPanel = std::nullopt;
       if (transceiver) {
         frontPanel = FrontPanelResources(*transceiver, {ChannelID(num)});
       }
@@ -131,7 +131,7 @@ class WedgePortMapping {
 
   void addPort(
       PortID port,
-      const folly::Optional<FrontPanelResources> frontPanel) {
+      const std::optional<FrontPanelResources> frontPanel) {
     ports_[port] = constructPort(port, frontPanel);
 
     if (frontPanel) {
@@ -154,7 +154,7 @@ class WedgePortMappingT : public WedgePortMapping {
  private:
   std::unique_ptr<WedgePort> constructPort(
       PortID port,
-      folly::Optional<FrontPanelResources> frontPanel) override {
+      std::optional<FrontPanelResources> frontPanel) override {
     return std::make_unique<WedgePortT>(
         port, dynamic_cast<WedgePlatformT*>(platform_), frontPanel);
   }

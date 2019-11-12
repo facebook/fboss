@@ -49,7 +49,7 @@ class BcmControlPlane {
    */
   void setupRxReasonToQueue(const ControlPlane::RxReasonToQueue& reasonToQueue);
 
-  void setupIngressQosPolicy(const folly::Optional<std::string>& qosPolicyName);
+  void setupIngressQosPolicy(const std::optional<std::string>& qosPolicyName);
 
   void updateQueueCounters();
 

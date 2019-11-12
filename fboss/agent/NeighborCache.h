@@ -76,7 +76,7 @@ class NeighborCache {
   }
 
   template <typename NeighborEntryThrift>
-  folly::Optional<NeighborEntryThrift> getCacheData(AddressType ip) {
+  std::optional<NeighborEntryThrift> getCacheData(AddressType ip) {
     std::lock_guard<std::mutex> g(cacheLock_);
     return impl_->template getCacheData<NeighborEntryThrift>(ip);
   }
@@ -99,7 +99,7 @@ class NeighborCache {
 
   void updateEntryClassID(
       AddressType ip,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     impl_->updateEntryClassID(ip, classID);
   }
 

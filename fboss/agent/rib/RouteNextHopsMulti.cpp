@@ -60,7 +60,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
       // TODO: Remove `nextHopAddrs` as protocols (BGP, Open/R) has migrated to
       // using ".nextHops" attribute
       destPair.nextHopAddrs.push_back(network::toBinaryAddress(nh.addr()));
-      if (nh.intfID().hasValue()) {
+      if (nh.intfID().has_value()) {
         auto& nhAddr = destPair.nextHopAddrs.back();
         nhAddr.ifName_ref() =
             facebook::fboss::util::createTunIntfName(nh.intfID().value());

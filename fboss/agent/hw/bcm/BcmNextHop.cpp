@@ -107,7 +107,7 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
     /* l3 next hop for this labeled host is known and l3 egress is resolved */
     /* program to next hop */
     auto bcmHostPortDesc = bcmHostEntry->getEgressPortDescriptor();
-    CHECK(bcmHostPortDesc.hasValue());
+    CHECK(bcmHostPortDesc.has_value());
     auto bcmHostEgressId = bcmHostEntry->getEgressId();
     auto* bcmHostEgress = bcmHostEntry->getEgress();
     auto mac = bcmHostEgress->getMac();
@@ -151,7 +151,7 @@ BcmMplsNextHop::~BcmMplsNextHop() {
     hw_->writableEgressManager()->unresolved(mplsEgress_->getID());
   }
   // This host mapping just went away, update the port -> egress id mapping
-  bool isPortOrTrunkSet = egressPort_.hasValue();
+  bool isPortOrTrunkSet = egressPort_.has_value();
   opennsl_gport_t gPort = getGPort();
   hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), gPort, BcmPort::asGPort(0));
@@ -192,12 +192,11 @@ opennsl_gport_t BcmMplsNextHop::getGPort() {
 }
 
 void BcmMplsNextHop::setPort(opennsl_port_t port) {
-  egressPort_.assign(PortDescriptor(hw_->getPortTable()->getPortId(port)));
+  egressPort_ = PortDescriptor(hw_->getPortTable()->getPortId(port));
 }
 
 void BcmMplsNextHop::setTrunk(opennsl_trunk_t trunk) {
-  egressPort_.assign(
-      PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk)));
+  egressPort_ = PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk));
 }
 
 BcmLabeledEgress* BcmMplsNextHop::getBcmLabeledEgress() const {

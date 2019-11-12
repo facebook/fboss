@@ -17,7 +17,7 @@ namespace fboss {
 Wedge40Port::Wedge40Port(
     PortID id,
     Wedge40Platform* platform,
-    folly::Optional<FrontPanelResources> frontPanel)
+    std::optional<FrontPanelResources> frontPanel)
     : WedgePort(id, platform, frontPanel) {}
 } // namespace fboss
 } // namespace facebook

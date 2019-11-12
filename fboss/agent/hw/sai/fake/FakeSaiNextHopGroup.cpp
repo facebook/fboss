@@ -11,8 +11,8 @@
 #include "FakeSaiNextHopGroup.h"
 #include "FakeSai.h"
 
-#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 using facebook::fboss::FakeNextHopGroup;
 using facebook::fboss::FakeNextHopGroupMember;

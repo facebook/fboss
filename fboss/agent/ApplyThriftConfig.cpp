@@ -809,18 +809,18 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   const auto& oldIngressMirror = orig->getIngressMirror();
   const auto& oldEgressMirror = orig->getEgressMirror();
-  auto newIngressMirror = folly::Optional<std::string>();
-  auto newEgressMirror = folly::Optional<std::string>();
+  auto newIngressMirror = std::optional<std::string>();
+  auto newEgressMirror = std::optional<std::string>();
   if (portConf->__isset.ingressMirror) {
-    newIngressMirror.assign(portConf->ingressMirror_ref().value_unchecked());
+    newIngressMirror = portConf->ingressMirror_ref().value_unchecked();
   }
   if (portConf->__isset.egressMirror) {
-    newEgressMirror.assign(portConf->egressMirror_ref().value_unchecked());
+    newEgressMirror = portConf->egressMirror_ref().value_unchecked();
   }
   bool mirrorsUnChanged = (oldIngressMirror == newIngressMirror) &&
       (oldEgressMirror == newEgressMirror);
 
-  auto newQosPolicy = folly::Optional<std::string>();
+  auto newQosPolicy = std::optional<std::string>();
   if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
     if (auto defaultQosPolicy =
             dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
@@ -835,9 +835,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
-  auto newSampleDest = folly::Optional<cfg::SampleDestination>();
+  auto newSampleDest = std::optional<cfg::SampleDestination>();
   if (portConf->sampleDest_ref()) {
-    newSampleDest.assign(portConf->sampleDest_ref().value());
+    newSampleDest = portConf->sampleDest_ref().value();
 
     if (newSampleDest.value() == cfg::SampleDestination::MIRROR &&
         portConf->sFlowEgressRate > 0) {
@@ -1305,14 +1305,14 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
           &changed,
           &matchAction);
 
-      if (acl->getAclAction().hasValue()) {
+      if (acl->getAclAction().has_value()) {
         const auto& inMirror = acl->getAclAction().value().getIngressMirror();
         const auto& egMirror = acl->getAclAction().value().getIngressMirror();
-        if (inMirror.hasValue() &&
+        if (inMirror.has_value() &&
             !new_->getMirrors()->getMirrorIf(inMirror.value())) {
           throw FbossError("Mirror ", inMirror.value(), " is undefined");
         }
-        if (egMirror.hasValue() &&
+        if (egMirror.has_value() &&
             !new_->getMirrors()->getMirrorIf(egMirror.value())) {
           throw FbossError("Mirror ", egMirror.value(), " is undefined");
         }
@@ -1919,7 +1919,7 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
   }
 
-  folly::Optional<std::string> qosPolicy;
+  std::optional<std::string> qosPolicy;
   ControlPlane::RxReasonToQueue newRxReasonToQueue;
   bool rxReasonToQueueUnchanged = true;
   if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy_ref()) {
@@ -2068,12 +2068,12 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   for (auto& port : *(new_->getPorts())) {
     auto portInMirror = port->getIngressMirror();
     auto portEgMirror = port->getEgressMirror();
-    if (portInMirror.hasValue() &&
+    if (portInMirror.has_value() &&
         newMirrors.find(portInMirror.value()) == newMirrors.end()) {
       throw FbossError(
           "Mirror ", portInMirror.value(), " for port is not found");
     }
-    if (portEgMirror.hasValue() &&
+    if (portEgMirror.has_value() &&
         newMirrors.find(portEgMirror.value()) == newMirrors.end()) {
       throw FbossError(
           "Mirror ", portEgMirror.value(), " for port is not found");
@@ -2098,10 +2098,10 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
         "Must provide either egressPort or tunnel with endpoint ip for mirror");
   }
 
-  folly::Optional<PortID> mirrorEgressPort;
-  folly::Optional<folly::IPAddress> destinationIp;
-  folly::Optional<folly::IPAddress> srcIp;
-  folly::Optional<TunnelUdpPorts> udpPorts;
+  std::optional<PortID> mirrorEgressPort;
+  std::optional<folly::IPAddress> destinationIp;
+  std::optional<folly::IPAddress> srcIp;
+  std::optional<TunnelUdpPorts> udpPorts;
 
   if (mirrorConfig->destination.__isset.egressPort) {
     std::shared_ptr<Port> mirrorToPort{nullptr};
@@ -2127,7 +2127,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     if (mirrorToPort &&
         mirrorToPort->getIngressMirror() != mirrorConfig->name &&
         mirrorToPort->getEgressMirror() != mirrorConfig->name) {
-      mirrorEgressPort.assign(PortID(mirrorToPort->getID()));
+      mirrorEgressPort = PortID(mirrorToPort->getID());
     } else {
       throw FbossError("Invalid port name or ID");
     }
@@ -2136,23 +2136,22 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   if (mirrorConfig->destination.tunnel_ref()) {
     cfg::MirrorTunnel tunnel = mirrorConfig->destination.tunnel_ref().value();
     if (tunnel.sflowTunnel_ref()) {
-      destinationIp.assign(
-          folly::IPAddress(tunnel.sflowTunnel_ref().value().ip));
+      destinationIp = folly::IPAddress(tunnel.sflowTunnel_ref().value().ip);
       cfg::SflowTunnel sflowTunnel = tunnel.sflowTunnel_ref().value();
       if (!sflowTunnel.udpSrcPort_ref() || !sflowTunnel.udpDstPort_ref()) {
         throw FbossError(
             "Both UDP source and UDP destination ports must be provided for \
             sFlow tunneling.");
       }
-      udpPorts.assign(TunnelUdpPorts(
+      udpPorts = TunnelUdpPorts(
           sflowTunnel.udpSrcPort_ref().value(),
-          sflowTunnel.udpDstPort_ref().value()));
+          sflowTunnel.udpDstPort_ref().value());
     } else if (tunnel.greTunnel_ref()) {
-      destinationIp.assign(folly::IPAddress(tunnel.greTunnel_ref().value().ip));
+      destinationIp = folly::IPAddress(tunnel.greTunnel_ref().value().ip);
     }
 
     if (tunnel.srcIp_ref()) {
-      srcIp.assign(folly::IPAddress(tunnel.srcIp_ref().value()));
+      srcIp = folly::IPAddress(tunnel.srcIp_ref().value());
     }
   }
 
@@ -2177,7 +2176,7 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
   if (*newMirror == *orig) {
     return nullptr;
   }
-  if (!orig->isResolved() || !newMirror->getDestinationIp().hasValue()) {
+  if (!orig->isResolved() || !newMirror->getDestinationIp().has_value()) {
     return newMirror;
   }
   if (newMirror->getDestinationIp() == orig->getDestinationIp() &&

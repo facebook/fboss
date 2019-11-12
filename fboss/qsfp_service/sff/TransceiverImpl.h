@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <folly/Optional.h>
+#include <optional>
 #include <folly/String.h>
 #include <folly/io/async/EventBase.h>
 #include <cstdint>
@@ -53,8 +53,8 @@ class TransceiverImpl {
 
   virtual int getNum() const = 0;
 
-  virtual folly::Optional<TransceiverStats> getTransceiverStats() {
-    return folly::Optional<TransceiverStats>();
+  virtual std::optional<TransceiverStats> getTransceiverStats() {
+    return std::optional<TransceiverStats>();
   }
 
   /*

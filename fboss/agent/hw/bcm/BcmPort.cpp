@@ -97,7 +97,6 @@ static const std::vector<opennsl_stat_val_t> kOutPktLengthStats = {
     snmpOpenNSLTransmittedPkts9217to16383Octets,
 };
 
-
 MonotonicCounter* BcmPort::getPortCounterIf(folly::StringPiece statKey) {
   auto pcitr = portCounters_.find(statKey.str());
   return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
@@ -358,7 +357,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 
   // If no sample destination is provided, we configure it to be CPU, which is
   // the switch's default sample destination configuration
-  if (port->getSampleDestination().hasValue()) {
+  if (port->getSampleDestination().has_value()) {
     configureSampleDestination(port->getSampleDestination().value());
   } else {
     configureSampleDestination(cfg::SampleDestination::CPU);
@@ -881,10 +880,10 @@ std::chrono::seconds BcmPort::BcmPortStats::timeRetrieved() const {
   return timeRetrieved_;
 }
 
-folly::Optional<HwPortStats> BcmPort::getPortStats() const {
+std::optional<HwPortStats> BcmPort::getPortStats() const {
   auto bcmStats = lastPortStats_.rlock();
   if (!bcmStats->has_value()) {
-    return folly::none;
+    return std::nullopt;
   }
   return (*bcmStats)->portStats();
 }
@@ -898,7 +897,7 @@ std::chrono::seconds BcmPort::getTimeRetrieved() const {
 }
 
 void BcmPort::applyMirrorAction(
-    const folly::Optional<std::string>& mirrorName,
+    const std::optional<std::string>& mirrorName,
     MirrorAction action,
     MirrorDirection direction) {
   if (!mirrorName) {
@@ -910,7 +909,7 @@ void BcmPort::applyMirrorAction(
 }
 
 void BcmPort::updateMirror(
-    const folly::Optional<std::string>& swMirrorName,
+    const std::optional<std::string>& swMirrorName,
     MirrorDirection direction) {
   applyMirrorAction(
       direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_,
@@ -928,11 +927,11 @@ void BcmPort::updateMirror(
 }
 
 void BcmPort::setIngressPortMirror(const std::string& mirrorName) {
-  ingressMirror_.assign(mirrorName);
+  ingressMirror_ = mirrorName;
 }
 
 void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
-  egressMirror_.assign(mirrorName);
+  egressMirror_ = mirrorName;
 }
 
 bool BcmPort::shouldReportStats() const {
@@ -950,7 +949,7 @@ void BcmPort::destroyAllPortStats() {
 
   {
     auto lockedPortStatsPtr = lastPortStats_.wlock();
-    *lockedPortStatsPtr = folly::none;
+    *lockedPortStatsPtr = std::nullopt;
   }
 }
 

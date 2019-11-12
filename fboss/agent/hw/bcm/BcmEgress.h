@@ -140,7 +140,7 @@ class BcmEgress : public BcmEgressBase {
   virtual void prepareEgressObject(
       opennsl_if_t intfId,
       opennsl_port_t port,
-      const folly::Optional<folly::MacAddress>& mac,
+      const std::optional<folly::MacAddress>& mac,
       RouteForwardAction action,
       opennsl_l3_egress_t* egress) const;
 

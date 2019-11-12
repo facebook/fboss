@@ -11,7 +11,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -30,7 +30,7 @@ class SimSwitch : public HwSwitch {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue = folly::none) noexcept override;
+      std::optional<uint8_t> queue = std::nullopt) noexcept override;
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,

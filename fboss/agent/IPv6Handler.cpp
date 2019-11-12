@@ -406,9 +406,9 @@ void IPv6Handler::handleNeighborSolicitation(
   auto updater = sw_->getNeighborUpdater();
   auto type = ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION;
 
-  if ((!ndpOptions.sourceLinkLayerAddress.hasValue() &&
+  if ((!ndpOptions.sourceLinkLayerAddress.has_value() &&
        hdr.ipv6->dstAddr.isMulticast()) ||
-      (ndpOptions.sourceLinkLayerAddress.hasValue() &&
+      (ndpOptions.sourceLinkLayerAddress.has_value() &&
        hdr.ipv6->srcAddr.isZero())) {
     /* rfc 4861 -  must not be included when the source IP address is the
       unspecified address.  must be included in multicast solicitations a
@@ -429,7 +429,7 @@ void IPv6Handler::handleNeighborSolicitation(
 
   auto entry = vlan->getNdpResponseTable()->getEntry(targetIP);
   auto srcPortDescriptor = PortDescriptor::fromRxPacket(*pkt.get());
-  if (ndpOptions.sourceLinkLayerAddress.hasValue()) {
+  if (ndpOptions.sourceLinkLayerAddress.has_value()) {
     /* rfc 4861 - if the source address is not the unspecified address and,
     on link layers that have addresses, the solicitation includes a Source
     Link-Layer Address option, then the recipient should create or update
@@ -676,7 +676,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
       srcMac,
       targetIP,
       vlanID,
-      folly::Optional<PortDescriptor>(),
+      std::optional<PortDescriptor>(),
       ndpOptions);
 }
 
@@ -688,7 +688,7 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::IPAddressV6& srcIP,
     const folly::MacAddress& srcMac,
     const VlanID& vlanID,
-    const folly::Optional<PortDescriptor>& portDescriptor) {
+    const std::optional<PortDescriptor>& portDescriptor) {
   auto state = sw->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   if (!Interface::isIpAttached(targetIP, vlan->getInterfaceID(), state)) {
@@ -867,7 +867,7 @@ void IPv6Handler::sendNeighborAdvertisement(
     IPAddressV6 srcIP,
     MacAddress dstMac,
     IPAddressV6 dstIP,
-    const folly::Optional<PortDescriptor>& portDescriptor) {
+    const std::optional<PortDescriptor>& portDescriptor) {
   XLOG(DBG4) << "sending neighbor advertisement to " << dstIP.str() << " ("
              << dstMac << "): for " << srcIP << " (" << srcMac << ")";
 
@@ -914,7 +914,7 @@ void IPv6Handler::sendNeighborSolicitation(
     const folly::MacAddress& srcMac,
     const folly::IPAddressV6& neighborIP,
     const VlanID& vlanID,
-    const folly::Optional<PortDescriptor>& portDescriptor,
+    const std::optional<PortDescriptor>& portDescriptor,
     const NDPOptions& ndpOptions) {
   auto state = sw->getState();
 

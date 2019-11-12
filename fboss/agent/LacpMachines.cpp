@@ -830,10 +830,10 @@ Selector::Selection Selector::getSelection() {
   return it->second;
 }
 
-folly::Optional<Selector::Selection> Selector::getSelectionIf() {
+std::optional<Selector::Selection> Selector::getSelectionIf() {
   auto it = portToSelection().find(controller_.portID());
   if (it == portToSelection().end()) {
-    return folly::none;
+    return std::nullopt;
   }
   return it->second;
 }

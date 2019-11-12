@@ -104,9 +104,9 @@ int WedgeQsfp::getNum() const {
   return module_;
 }
 
-folly::Optional<TransceiverStats> WedgeQsfp::getTransceiverStats() {
-  auto result = folly::Optional<TransceiverStats>();
-  result.assign(wedgeQsfpstats_.getStats());
+std::optional<TransceiverStats> WedgeQsfp::getTransceiverStats() {
+  auto result = std::optional<TransceiverStats>();
+  result = wedgeQsfpstats_.getStats();
   return result;
 }
 

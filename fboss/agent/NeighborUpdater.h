@@ -87,7 +87,7 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   void updateEntryClassID(
       VlanID vlan,
       AddrT ip,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     impl_->updateEntryClassID(vlan, ip, classID);
   }
 

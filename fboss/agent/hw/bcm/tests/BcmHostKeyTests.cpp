@@ -19,7 +19,7 @@ void verifyUnlabeledHostKey(
   EXPECT_EQ(key.hasLabel(), hostKey.hasLabel());
   EXPECT_THROW(key.getLabel(), FbossError);
   if (!resolved) {
-    EXPECT_THROW(key.intfID().value(), folly::OptionalEmptyException);
+    EXPECT_THROW(key.intfID().value(), std::bad_optional_access);
   } else {
     EXPECT_EQ(key.intfID(), hostKey.intf());
   }

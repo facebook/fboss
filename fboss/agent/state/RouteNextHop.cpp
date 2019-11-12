@@ -18,10 +18,10 @@ namespace fboss {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
-  folly::Optional<LabelForwardingAction> action = folly::none;
+  std::optional<LabelForwardingAction> action = std::nullopt;
   if (nht.mplsAction_ref()) {
-    action.assign(LabelForwardingAction::fromThrift(
-        nht.mplsAction_ref().value_unchecked()));
+    action = LabelForwardingAction::fromThrift(
+        nht.mplsAction_ref().value_unchecked());
   }
   auto address = network::toIPAddress(nht.address);
   NextHopWeight weight = static_cast<NextHopWeight>(nht.weight);
@@ -41,10 +41,10 @@ NextHop fromThrift(const NextHopThrift& nht) {
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
   folly::IPAddress address(nhopJson[kNexthop()].stringPiece());
   auto it = nhopJson.find(kInterface());
-  folly::Optional<LabelForwardingAction> action = folly::none;
+  std::optional<LabelForwardingAction> action = std::nullopt;
   auto labelAction = nhopJson.find(kLabelForwardingAction());
   if (labelAction != nhopJson.items().end()) {
-    action.assign(LabelForwardingAction::fromFollyDynamic(labelAction->second));
+    action = LabelForwardingAction::fromFollyDynamic(labelAction->second);
   }
   // NOTE: we use the ECMP weight (0) as the default here for proper
   // forward/backward compatibility. A quick explanation of the cases:
@@ -124,7 +124,7 @@ bool operator!=(const NextHop& a, const NextHop& b) {
 UnresolvedNextHop::UnresolvedNextHop(
     const folly::IPAddress& addr,
     const NextHopWeight& weight,
-    const folly::Optional<LabelForwardingAction>& action)
+    const std::optional<LabelForwardingAction>& action)
     : addr_(addr), weight_(weight), labelForwardingAction_(action) {
   if (addr.isV6() and addr.isLinkLocal()) {
     throw FbossError(
@@ -135,7 +135,7 @@ UnresolvedNextHop::UnresolvedNextHop(
 UnresolvedNextHop::UnresolvedNextHop(
     folly::IPAddress&& addr,
     const NextHopWeight& weight,
-    folly::Optional<LabelForwardingAction>&& action)
+    std::optional<LabelForwardingAction>&& action)
     : addr_(std::move(addr)),
       weight_(weight),
       labelForwardingAction_(std::move(action)) {

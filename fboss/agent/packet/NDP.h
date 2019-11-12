@@ -79,9 +79,9 @@ class NDPOptionHdr {
 
 class NDPOptions {
  public:
-  folly::Optional<uint32_t> mtu{folly::none};
-  folly::Optional<folly::MacAddress> sourceLinkLayerAddress{folly::none};
-  folly::Optional<folly::MacAddress> targetLinkLayerAddress{folly::none};
+  std::optional<uint32_t> mtu{std::nullopt};
+  std::optional<folly::MacAddress> sourceLinkLayerAddress{std::nullopt};
+  std::optional<folly::MacAddress> targetLinkLayerAddress{std::nullopt};
 
   NDPOptions() {}
   explicit NDPOptions(folly::io::Cursor& cursor);

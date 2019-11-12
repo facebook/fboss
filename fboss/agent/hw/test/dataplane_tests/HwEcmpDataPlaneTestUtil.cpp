@@ -17,7 +17,7 @@ template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::pumpTraffic(
     int ecmpWidth,
     bool loopThroughFrontPanel) {
-  folly::Optional<PortID> frontPanelPortToLoopTraffic;
+  std::optional<PortID> frontPanelPortToLoopTraffic;
   if (loopThroughFrontPanel) {
     frontPanelPortToLoopTraffic =
         helper_->ecmpPortDescriptorAt(ecmpWidth).phyPortID();
@@ -100,7 +100,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
 
 template <typename AddrT>
 void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
-    folly::Optional<PortID> port) {
+    std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
 
   utility::pumpTraffic(
@@ -138,7 +138,7 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::setupECMPForwarding(
 
 template <typename AddrT>
 void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
-    folly::Optional<PortID> port) {
+    std::optional<PortID> port) {
   /* pump MPLS traffic */
   auto* ensemble = BaseT::getEnsemble();
   pumpMplsTraffic(

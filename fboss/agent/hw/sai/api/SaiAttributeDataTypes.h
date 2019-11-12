@@ -13,8 +13,8 @@
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/lib/TupleUtils.h"
 
-#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 #include <tuple>
 

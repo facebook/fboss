@@ -42,7 +42,7 @@ void addAggPort(
   config->aggregatePorts.push_back(aggPort);
   // Set VLAN for all members to be the same
   std::set<uint32_t> memberPorts(ports.begin(), ports.end());
-  folly::Optional<int32_t> aggVlan;
+  std::optional<int32_t> aggVlan;
   for (auto& vlanPort : config->vlanPorts) {
     if (memberPorts.find(vlanPort.logicalPort) != memberPorts.end()) {
       if (!aggVlan) {

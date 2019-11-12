@@ -6,7 +6,7 @@
 #include <list>
 
 #include <folly/IPAddress.h>
-#include <folly/Optional.h>
+#include <optional>
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -28,7 +28,7 @@ struct TunnelUdpPorts {
 struct MirrorTunnel {
   folly::IPAddress srcIp, dstIp;
   folly::MacAddress srcMac, dstMac;
-  folly::Optional<TunnelUdpPorts> udpPorts;
+  std::optional<TunnelUdpPorts> udpPorts;
   uint8_t ttl;
   uint16_t greProtocol;
   static constexpr auto kTTL = 255;
@@ -45,7 +45,7 @@ struct MirrorTunnel {
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
-      const folly::Optional<TunnelUdpPorts>& udpPorts = folly::none,
+      const std::optional<TunnelUdpPorts>& udpPorts = std::nullopt,
       uint8_t ttl = kTTL,
       uint16_t proto = kProto)
       : srcIp(srcIp),
@@ -81,10 +81,10 @@ struct MirrorTunnel {
 struct MirrorFields {
   MirrorFields(
       const std::string& name,
-      const folly::Optional<PortID>& egressPort,
-      const folly::Optional<folly::IPAddress>& destinationIp,
-      const folly::Optional<folly::IPAddress>& srcIp = folly::none,
-      const folly::Optional<TunnelUdpPorts>& udpPorts = folly::none,
+      const std::optional<PortID>& egressPort,
+      const std::optional<folly::IPAddress>& destinationIp,
+      const std::optional<folly::IPAddress>& srcIp = std::nullopt,
+      const std::optional<TunnelUdpPorts>& udpPorts = std::nullopt,
       const uint8_t& dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
       const bool truncate = false)
       : name(name),
@@ -94,7 +94,7 @@ struct MirrorFields {
         udpPorts(udpPorts),
         dscp(dscp),
         truncate(truncate) {
-    if (egressPort.hasValue()) {
+    if (egressPort.has_value()) {
       configHasEgressPort = true;
     }
   }
@@ -103,13 +103,13 @@ struct MirrorFields {
   void forEachChild(Fn /* unused */) {}
 
   std::string name;
-  folly::Optional<PortID> egressPort;
-  folly::Optional<folly::IPAddress> destinationIp;
-  folly::Optional<folly::IPAddress> srcIp;
-  folly::Optional<TunnelUdpPorts> udpPorts;
+  std::optional<PortID> egressPort;
+  std::optional<folly::IPAddress> destinationIp;
+  std::optional<folly::IPAddress> srcIp;
+  std::optional<TunnelUdpPorts> udpPorts;
   uint8_t dscp;
   bool truncate;
-  folly::Optional<MirrorTunnel> resolvedTunnel;
+  std::optional<MirrorTunnel> resolvedTunnel;
   bool configHasEgressPort{false};
 
   folly::dynamic toFollyDynamic() const;
@@ -119,18 +119,18 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
  public:
   Mirror(
       std::string name,
-      folly::Optional<PortID> egressPort,
-      folly::Optional<folly::IPAddress> destinationIp,
-      folly::Optional<folly::IPAddress> srcIp = folly::none,
-      folly::Optional<TunnelUdpPorts> udpPorts = folly::none,
+      std::optional<PortID> egressPort,
+      std::optional<folly::IPAddress> destinationIp,
+      std::optional<folly::IPAddress> srcIp = std::nullopt,
+      std::optional<TunnelUdpPorts> udpPorts = std::nullopt,
       uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
       bool truncate = false);
   std::string getID() const;
-  folly::Optional<PortID> getEgressPort() const;
-  folly::Optional<folly::IPAddress> getDestinationIp() const;
-  folly::Optional<folly::IPAddress> getSrcIp() const;
-  folly::Optional<TunnelUdpPorts> getTunnelUdpPorts() const;
-  folly::Optional<MirrorTunnel> getMirrorTunnel() const;
+  std::optional<PortID> getEgressPort() const;
+  std::optional<folly::IPAddress> getDestinationIp() const;
+  std::optional<folly::IPAddress> getSrcIp() const;
+  std::optional<TunnelUdpPorts> getTunnelUdpPorts() const;
+  std::optional<MirrorTunnel> getMirrorTunnel() const;
   uint8_t getDscp() const;
   bool getTruncate() const;
   void setEgressPort(PortID egressPort);

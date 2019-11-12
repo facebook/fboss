@@ -87,8 +87,8 @@ class IPv6Handler : public AutoRegisterStateObserver {
       const folly::IPAddressV6& srcIP,
       const folly::MacAddress& srcMac,
       const VlanID& vlanID,
-      const folly::Optional<PortDescriptor>& portDescriptor =
-          folly::Optional<PortDescriptor>());
+      const std::optional<PortDescriptor>& portDescriptor =
+          std::optional<PortDescriptor>());
 
  private:
   struct ICMPHeaders;
@@ -160,8 +160,8 @@ class IPv6Handler : public AutoRegisterStateObserver {
       folly::IPAddressV6 srcIP,
       folly::MacAddress dstMac,
       folly::IPAddressV6 dstIP,
-      const folly::Optional<PortDescriptor>& portDescriptor =
-          folly::Optional<PortDescriptor>());
+      const std::optional<PortDescriptor>& portDescriptor =
+          std::optional<PortDescriptor>());
 
   void resolveDestAndHandlePacket(
       IPv6Hdr hdr,
@@ -178,8 +178,8 @@ class IPv6Handler : public AutoRegisterStateObserver {
       const folly::MacAddress& srcMac,
       const folly::IPAddressV6& neighborIP,
       const VlanID& vlanID,
-      const folly::Optional<PortDescriptor>& portDescriptor =
-          folly::Optional<PortDescriptor>(),
+      const std::optional<PortDescriptor>& portDescriptor =
+          std::optional<PortDescriptor>(),
       const NDPOptions& options = NDPOptions());
 
   SwSwitch* sw_{nullptr};

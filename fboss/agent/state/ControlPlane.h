@@ -36,7 +36,7 @@ struct ControlPlaneFields {
 
   QueueConfig queues;
   RxReasonToQueue rxReasonToQueue;
-  folly::Optional<std::string> qosPolicy;
+  std::optional<std::string> qosPolicy;
 };
 
 /*
@@ -73,10 +73,10 @@ class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
     writableFields()->rxReasonToQueue.swap(rxReasonToQueue);
   }
 
-  const folly::Optional<std::string>& getQosPolicy() const {
+  const std::optional<std::string>& getQosPolicy() const {
     return getFields()->qosPolicy;
   }
-  void resetQosPolicy(folly::Optional<std::string>& qosPolicy) {
+  void resetQosPolicy(std::optional<std::string>& qosPolicy) {
     writableFields()->qosPolicy.swap(qosPolicy);
   }
 

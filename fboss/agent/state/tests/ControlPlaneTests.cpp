@@ -150,7 +150,7 @@ shared_ptr<ControlPlane> generateControlPlane() {
       {cfg::PacketRxReason::CPU_IS_NHOP, 0}};
   controlPlane->resetRxReasonToQueue(reasons);
 
-  folly::Optional<std::string> qosPolicy("qp1");
+  std::optional<std::string> qosPolicy("qp1");
   controlPlane->resetQosPolicy(qosPolicy);
 
   return controlPlane;

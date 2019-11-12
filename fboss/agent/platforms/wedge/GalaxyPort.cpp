@@ -17,7 +17,7 @@ namespace fboss {
 GalaxyPort::GalaxyPort(
     PortID id,
     GalaxyPlatform* platform,
-    folly::Optional<FrontPanelResources> frontPanel)
+    std::optional<FrontPanelResources> frontPanel)
     : WedgePort(id, platform, frontPanel) {}
 } // namespace fboss
 } // namespace facebook

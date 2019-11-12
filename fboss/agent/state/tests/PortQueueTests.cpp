@@ -270,7 +270,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(queues1.at(0)->getReservedBytes().hasValue());
+    EXPECT_TRUE(queues1.at(0)->getReservedBytes().has_value());
 
     // reset reservedBytes
     config.portQueueConfigs["queue_config"][0].__isset.reservedBytes = false;
@@ -278,14 +278,14 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_FALSE(queues2.at(0)->getReservedBytes().hasValue());
+    EXPECT_FALSE(queues2.at(0)->getReservedBytes().has_value());
   }
   {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(queues1.at(0)->getScalingFactor().hasValue());
+    EXPECT_TRUE(queues1.at(0)->getScalingFactor().has_value());
 
     // reset scalingFactor
     config.portQueueConfigs["queue_config"][0].__isset.scalingFactor = false;
@@ -293,7 +293,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_FALSE(queues2.at(0)->getScalingFactor().hasValue());
+    EXPECT_FALSE(queues2.at(0)->getScalingFactor().has_value());
   }
   {
     auto config = generateTestConfig();

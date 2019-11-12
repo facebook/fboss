@@ -15,6 +15,6 @@ namespace fboss {
 void BcmControlPlane::updateQueueCounters() {}
 
 void BcmControlPlane::setupIngressQosPolicy(
-    const folly::Optional<std::string>& /*qosPolicyName*/) {}
+    const std::optional<std::string>& /*qosPolicyName*/) {}
 } // namespace fboss
 } // namespace facebook

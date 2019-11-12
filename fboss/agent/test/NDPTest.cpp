@@ -497,7 +497,7 @@ TEST(NdpTest, UnsolicitedRequest) {
           VlanID(5),
           0xa0),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Send the packet to the SwSwitch
   handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
@@ -679,7 +679,7 @@ TEST(NdpTest, RouterAdvertisement) {
           9000,
           expectedPrefixes),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
@@ -725,7 +725,7 @@ TEST(NdpTest, RouterAdvertisement) {
           9000,
           expectedPrefixes),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   auto pkt2 = PktUtil::parseHexData(
       // dst mac, src mac
@@ -1337,7 +1337,7 @@ TEST(NdpTest, NdpExpiration) {
           VlanID(5),
           false),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   EXPECT_OUT_OF_PORT_PKT(
       sw,
@@ -1351,7 +1351,7 @@ TEST(NdpTest, NdpExpiration) {
           VlanID(5),
           false),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Wait for the second and third entries to expire.
   // We wait 2.5 seconds(plus change):
@@ -1395,7 +1395,7 @@ TEST(NdpTest, NdpExpiration) {
           vlanID,
           false),
       PortID(1),
-      folly::Optional<uint8_t>(kNCStrictPriorityQueue));
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
   // Wait for the first entry to expire
   WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   std::promise<bool> done2;

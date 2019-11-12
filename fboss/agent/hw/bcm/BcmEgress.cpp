@@ -92,7 +92,7 @@ void BcmEgress::program(
   prepareEgressObject(
       intfId,
       port,
-      !mac ? folly::none : folly::make_optional<folly::MacAddress>(*mac),
+      !mac ? std::nullopt : std::make_optional<folly::MacAddress>(*mac),
       action,
       &eObj);
 
@@ -215,7 +215,7 @@ void BcmEgress::programToCPU() {
 void BcmEgress::prepareEgressObject(
     opennsl_if_t intfId,
     opennsl_port_t port,
-    const folly::Optional<folly::MacAddress>& mac,
+    const std::optional<folly::MacAddress>& mac,
     RouteForwardAction action,
     opennsl_l3_egress_t* eObj) const {
   CHECK(eObj);

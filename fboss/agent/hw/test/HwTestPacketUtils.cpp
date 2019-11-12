@@ -52,7 +52,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
-    folly::Optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload) {
   static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
   if (!payload) {
     payload = kDefaultPayload;
@@ -119,7 +119,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    folly::Optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload) {
   // TODO: Refactor such that both tests and DHCPv6Handler to use this
   // function for constructing v6 UDP packets
   if (!payload) {
@@ -151,7 +151,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t dscp,
     uint8_t ttl,
-    folly::Optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload) {
   // TODO: Refactor such that both tests and DHCPv4Handler to use this
   // function for constructing v4 UDP packets
   if (!payload) {
@@ -186,7 +186,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    folly::Optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload) {
   CHECK_EQ(srcIp.isV6(), dstIp.isV6());
   if (srcIp.isV6()) {
     return makeUDPTxPacket(

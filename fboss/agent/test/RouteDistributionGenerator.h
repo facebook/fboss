@@ -85,8 +85,8 @@ class RouteDistributionGenerator {
    * essential state of this class. So allow modifying from const
    * methods.
    */
-  mutable folly::Optional<RouteChunks> generatedRouteChunks_;
-  mutable folly::Optional<SwitchStates> generatedStates_;
+  mutable std::optional<RouteChunks> generatedRouteChunks_;
+  mutable std::optional<SwitchStates> generatedStates_;
 };
 
 } // namespace utility

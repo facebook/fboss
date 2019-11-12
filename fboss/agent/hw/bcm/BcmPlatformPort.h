@@ -80,7 +80,7 @@ class BcmPlatformPort : public PlatformPort {
    * getTxSettings() returns the correct transmitter's amplitude control
    * parameter and Equalization control information.
    */
-  virtual folly::Future<folly::Optional<TxSettings>> getTxSettings(
+  virtual folly::Future<std::optional<TxSettings>> getTxSettings(
       folly::EventBase* evb = nullptr) const = 0;
 
   virtual const XPEs getEgressXPEs() const = 0;

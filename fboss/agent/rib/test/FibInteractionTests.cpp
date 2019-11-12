@@ -31,9 +31,9 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
-#include <folly/Optional.h>
 #include <folly/functional/Partial.h>
 #include <gtest/gtest.h>
+#include <optional>
 
 using facebook::fboss::AdminDistance;
 using facebook::fboss::InterfaceID;
@@ -115,7 +115,7 @@ TEST(RouteNextHopEntry, AttemptToConvertRibUnresolvedNextHopToFibNextHop) {
   EXPECT_THROW(
       facebook::fboss::rib::ForwardingInformationBaseUpdater::toFibNextHop(
           ribUnresolvedNextHop),
-      folly::OptionalEmptyException);
+      std::bad_optional_access);
 }
 
 TEST(Route, RibRouteToFibRoute) {

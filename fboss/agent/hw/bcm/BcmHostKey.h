@@ -33,7 +33,7 @@ struct IHostKey : folly::PolyExtends<
       return folly::poly_call<1>(*this);
     }
 
-    folly::Optional<InterfaceID> intfID() const {
+    std::optional<InterfaceID> intfID() const {
       return folly::poly_call<2>(*this);
     }
 
@@ -82,7 +82,7 @@ class BcmHostKey {
   BcmHostKey(
       opennsl_vrf_t vrf,
       folly::IPAddress addr,
-      folly::Optional<InterfaceID> intfID = folly::none);
+      std::optional<InterfaceID> intfID = std::nullopt);
 
   opennsl_vrf_t getVrf() const {
     return vrf_;
@@ -92,7 +92,7 @@ class BcmHostKey {
     return addr_;
   }
 
-  folly::Optional<InterfaceID> intfID() const {
+  std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
 
@@ -128,7 +128,7 @@ class BcmHostKey {
  private:
   opennsl_vrf_t vrf_;
   folly::IPAddress addr_;
-  folly::Optional<InterfaceID> intfID_;
+  std::optional<InterfaceID> intfID_;
 };
 
 class BcmLabeledHostKey {
@@ -159,7 +159,7 @@ class BcmLabeledHostKey {
     return addr_;
   }
 
-  folly::Optional<InterfaceID> intfID() const {
+  std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
 

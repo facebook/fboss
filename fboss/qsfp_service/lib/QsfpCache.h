@@ -11,9 +11,12 @@
 
 #include <atomic>
 #include <mutex>
+#include <optional>
 
 #include <boost/container/flat_map.hpp>
-#include <folly/Optional.h>
+#include <folly/futures/SharedPromise.h>
+#include <folly/futures/Future.h>
+#include <folly/io/async/AsyncTimeout.h>
 #include <folly/Synchronized.h>
 #include <folly/Unit.h>
 #include <folly/futures/Future.h>
@@ -104,7 +107,7 @@ class QsfpCache : private folly::AsyncTimeout {
    * futureGet: waits for active request, but throws if not in cache afterwards
    */
   TransceiverInfo get(TransceiverID tcvrId);
-  folly::Optional<TransceiverInfo> getIf(TransceiverID tcvrId);
+  std::optional<TransceiverInfo> getIf(TransceiverID tcvrId);
   folly::Future<TransceiverInfo> futureGet(TransceiverID tcvrId);
 
   // output state of the cache. Useful for debugging
@@ -146,7 +149,7 @@ class QsfpCache : private folly::AsyncTimeout {
   folly::Synchronized<
     boost::container::flat_map<PortID, PortCacheValue>> ports_;
 
-  folly::Optional<folly::SharedPromise<folly::Unit>> activeReq_;
+  std::optional<folly::SharedPromise<folly::Unit>> activeReq_;
 
   folly::EventBase* evb_{nullptr};
 

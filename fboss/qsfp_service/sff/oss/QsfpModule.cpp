@@ -11,9 +11,9 @@
 
 namespace facebook { namespace fboss {
 
-const folly::Optional<QsfpModule::LengthAndGauge>
+const std::optional<QsfpModule::LengthAndGauge>
 QsfpModule::getDACCableOverride() const {
-  return folly::none;
+  return std::nullopt;
 }
 
 bool QsfpModule::validateQsfpString(const std::string& /*value*/) const {

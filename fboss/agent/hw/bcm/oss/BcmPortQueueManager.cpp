@@ -50,6 +50,6 @@ void BcmPortQueueManager::programAqm(
     opennsl_gport_t /*gport*/,
     int /*queueIdx*/,
     cfg::QueueCongestionBehavior /*behavior*/,
-    folly::Optional<cfg::QueueCongestionDetection> /*detection*/) {}
+    std::optional<cfg::QueueCongestionDetection> /*detection*/) {}
 } // namespace fboss
 } // namespace facebook

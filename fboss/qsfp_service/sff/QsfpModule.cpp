@@ -627,7 +627,7 @@ bool QsfpModule::cacheIsValid() const {
 
 TransceiverInfo QsfpModule::getTransceiverInfo() {
   auto cachedInfo = info_.rlock();
-  if (!cachedInfo->hasValue()) {
+  if (!cachedInfo->has_value()) {
     throw QsfpModuleError("Still populating data...");
   }
   return **cachedInfo;
@@ -872,7 +872,7 @@ void QsfpModule::refreshLocked() {
   }
 
   // assign
-  info_.wlock()->assign(parseDataLocked());
+  *info_.wlock() = parseDataLocked();
 }
 
 bool QsfpModule::shouldRemediate(time_t cooldown) const {
@@ -1220,7 +1220,7 @@ void QsfpModule::ensureTxEnabled() {
 
 bool QsfpModule::getTransceiverStats(TransceiverStats& stats) {
   auto transceiverStats = qsfpImpl_->getTransceiverStats();
-  if (!transceiverStats.hasValue()) {
+  if (!transceiverStats.has_value()) {
     return false;
   }
   stats = transceiverStats.value();

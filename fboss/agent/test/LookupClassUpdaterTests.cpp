@@ -128,7 +128,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
     if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
       auto entry = neighborTable->getEntry(this->kIp4Addr());
 
-      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(entry->getClassID().has_value());
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
                 << " class: " << static_cast<int>(entry->getClassID().value());
       EXPECT_EQ(
@@ -137,7 +137,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
     } else {
       auto entry = neighborTable->getEntry(this->kIp6Addr());
 
-      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(entry->getClassID().has_value());
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
                 << " class: " << static_cast<int>(entry->getClassID().value());
       EXPECT_EQ(
@@ -177,12 +177,12 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
       auto entry = neighborTable->getEntry(this->kIp4Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_FALSE(entry->getClassID().hasValue());
+      EXPECT_FALSE(entry->getClassID().has_value());
     } else {
       auto entry = neighborTable->getEntry(this->kIp6Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_FALSE(entry->getClassID().hasValue());
+      EXPECT_FALSE(entry->getClassID().has_value());
     }
   });
 }
@@ -222,12 +222,12 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
       auto entry = neighborTable->getEntry(this->kIp4Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_FALSE(entry->getClassID().hasValue());
+      EXPECT_FALSE(entry->getClassID().has_value());
     } else {
       auto entry = neighborTable->getEntry(this->kIp6Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_FALSE(entry->getClassID().hasValue());
+      EXPECT_FALSE(entry->getClassID().has_value());
     }
   });
 }
@@ -270,7 +270,7 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       auto entry = neighborTable->getEntry(this->kIp4Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(entry->getClassID().has_value());
       EXPECT_TRUE(
           entry->getClassID().value() ==
               cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 ||
@@ -281,7 +281,7 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       auto entry = neighborTable->getEntry(this->kIp6Addr());
 
       XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac();
-      EXPECT_TRUE(entry->getClassID().hasValue());
+      EXPECT_TRUE(entry->getClassID().has_value());
       EXPECT_TRUE(
           entry->getClassID().value() ==
               cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3 ||

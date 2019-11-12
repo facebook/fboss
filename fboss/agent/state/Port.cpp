@@ -89,8 +89,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     CHECK(itrSampleDestination != cfg::_SampleDestination_NAMES_TO_VALUES.end())
         << "Unexpected sample destination value: "
         << portThrift.sampleDest.value();
-    port.sampleDest.assign(
-        cfg::SampleDestination(itrSampleDestination->second));
+    port.sampleDest = cfg::SampleDestination(itrSampleDestination->second);
   }
 
   port.pause.tx = portThrift.txPause;
@@ -111,12 +110,14 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   }
 
   if (portThrift.ingressMirror) {
-    port.ingressMirror = portThrift.ingressMirror;
+    port.ingressMirror = portThrift.ingressMirror.value();
   }
   if (portThrift.egressMirror) {
-    port.egressMirror = portThrift.egressMirror;
+    port.egressMirror = portThrift.egressMirror.value();
   }
-  port.qosPolicy.assign(portThrift.qosPolicy);
+  if (portThrift.qosPolicy) {
+    port.qosPolicy = portThrift.qosPolicy.value();
+  }
 
   return port;
 }
@@ -173,12 +174,14 @@ state::PortFields PortFields::toThrift() const {
   }
 
   if (ingressMirror) {
-    port.ingressMirror = ingressMirror;
+    port.ingressMirror = ingressMirror.value();
   }
   if (egressMirror) {
-    port.egressMirror = egressMirror;
+    port.egressMirror = egressMirror.value();
   }
-  port.qosPolicy.assign(qosPolicy);
+  if (qosPolicy) {
+    port.qosPolicy = qosPolicy.value();
+  }
 
   if (sampleDest) {
     port.sampleDest = apache::thrift::util::enumName(sampleDest.value());

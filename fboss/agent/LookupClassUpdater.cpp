@@ -232,7 +232,7 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
        * the classID would be already programmed in the ASIC. Just use the
        * classID to populate this state observer's local cached value.
        */
-      if (newEntry && newEntry->getClassID().hasValue()) {
+      if (newEntry && newEntry->getClassID().has_value()) {
         updateStateObserverLocalCache(stateDelta.newState(), newEntry);
         continue;
       }
@@ -274,7 +274,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
        */
       if (entry->getPort().isPhysicalPort() &&
           entry->getPort().phyPortID() == portID &&
-          entry->getClassID().hasValue()) {
+          entry->getClassID().has_value()) {
         removeNeighborFromLocalCache(entry.get());
         updater->updateEntryClassID(vlanID, entry.get()->getIP());
       }

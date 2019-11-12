@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <folly/Optional.h>
 #include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
 #include <gtest/gtest_prod.h>
+#include <optional>
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -220,7 +220,7 @@ class BcmSwitch : public BcmSwitchIf {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      folly::Optional<uint8_t> queue = folly::none) noexcept override;
+      std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortSync(

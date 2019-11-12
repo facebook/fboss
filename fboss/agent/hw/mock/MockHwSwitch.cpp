@@ -36,7 +36,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
       .WillByDefault(Invoke(
           [=](TxPacket* pkt,
               PortID /*port*/,
-              folly::Optional<uint8_t> /* cos */) -> bool {
+              std::optional<uint8_t> /* cos */) -> bool {
             delete pkt;
             return true;
           }));
@@ -66,7 +66,7 @@ bool MockHwSwitch::sendPacketSwitchedAsync(
 bool MockHwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     facebook::fboss::PortID portID,
-    folly::Optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue) noexcept {
   TxPacket* raw(pkt.release());
   sendPacketOutOfPortAsync_(raw, portID, queue);
   return true;

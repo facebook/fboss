@@ -15,8 +15,8 @@
 
 #include <utility>
 
-#include <folly/Optional.h>
 #include <folly/SharedMutex.h>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -35,7 +35,7 @@ class TrunkToMinimumLinkCountMap {
     delLocked(trunk);
   }
 
-  folly::Optional<uint8_t> get(opennsl_trunk_t trunk) const {
+  std::optional<uint8_t> get(opennsl_trunk_t trunk) const {
     folly::SharedMutexReadPriority::ReadHolder g(&trunkToCountLock_);
     return getLocked(trunk);
   }
@@ -56,10 +56,10 @@ class TrunkToMinimumLinkCountMap {
     trunkToCount_.erase(it);
   }
 
-  folly::Optional<uint8_t> getLocked(opennsl_trunk_t trunk) const {
+  std::optional<uint8_t> getLocked(opennsl_trunk_t trunk) const {
     auto it = trunkToCount_.find(trunk);
-    return it == trunkToCount_.cend() ? folly::none
-                                      : folly::make_optional(it->second);
+    return it == trunkToCount_.cend() ? std::nullopt
+                                      : std::make_optional(it->second);
   }
 
   mutable folly::SharedMutexReadPriority trunkToCountLock_;

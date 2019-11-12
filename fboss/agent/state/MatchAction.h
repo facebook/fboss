@@ -10,8 +10,8 @@
 #pragma once
 
 #include <folly/FBString.h>
-#include <folly/Optional.h>
 #include <folly/dynamic.h>
+#include <optional>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -38,7 +38,7 @@ class MatchAction {
         ingressMirror_(action.ingressMirror_),
         egressMirror_(action.egressMirror_) {}
 
-  folly::Optional<SendToQueue> getSendToQueue() const {
+  std::optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;
   }
 
@@ -50,7 +50,7 @@ class MatchAction {
     return sendToQueue_ && sendToQueue_.value().second;
   }
 
-  folly::Optional<cfg::TrafficCounter> getTrafficCounter() const {
+  std::optional<cfg::TrafficCounter> getTrafficCounter() const {
     return trafficCounter_;
   }
 
@@ -58,7 +58,7 @@ class MatchAction {
     trafficCounter_ = trafficCounter;
   }
 
-  folly::Optional<SetDscp> getSetDscp() const {
+  std::optional<SetDscp> getSetDscp() const {
     return setDscp_;
   }
 
@@ -66,28 +66,28 @@ class MatchAction {
     setDscp_ = setDscp;
   }
 
-  folly::Optional<std::string> getIngressMirror() const {
+  std::optional<std::string> getIngressMirror() const {
     return ingressMirror_;
   }
 
   void setIngressMirror(const std::string& mirror) {
-    ingressMirror_.assign(mirror);
+    ingressMirror_ = mirror;
   }
 
   void unsetIngressMirror() {
-    ingressMirror_.clear();
+    ingressMirror_.reset();
   }
 
-  folly::Optional<std::string> getEgressMirror() const {
+  std::optional<std::string> getEgressMirror() const {
     return egressMirror_;
   }
 
   void unsetEgressMirror() {
-    egressMirror_.clear();
+    egressMirror_.reset();
   }
 
   void setEgressMirror(const std::string& mirror) {
-    egressMirror_.assign(mirror);
+    egressMirror_ = mirror;
   }
 
   bool operator==(const MatchAction& action) const {
@@ -111,11 +111,11 @@ class MatchAction {
   static MatchAction fromFollyDynamic(const folly::dynamic& actionJson);
 
  private:
-  folly::Optional<SendToQueue> sendToQueue_{folly::none};
-  folly::Optional<cfg::TrafficCounter> trafficCounter_{folly::none};
-  folly::Optional<SetDscp> setDscp_{folly::none};
-  folly::Optional<std::string> ingressMirror_{folly::none};
-  folly::Optional<std::string> egressMirror_{folly::none};
+  std::optional<SendToQueue> sendToQueue_{std::nullopt};
+  std::optional<cfg::TrafficCounter> trafficCounter_{std::nullopt};
+  std::optional<SetDscp> setDscp_{std::nullopt};
+  std::optional<std::string> ingressMirror_{std::nullopt};
+  std::optional<std::string> egressMirror_{std::nullopt};
 };
 
 } // namespace fboss

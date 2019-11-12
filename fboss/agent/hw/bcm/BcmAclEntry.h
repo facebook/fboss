@@ -44,8 +44,8 @@ class BcmAclEntry {
       int gid,
       BcmAclEntryHandle handle,
       const std::shared_ptr<AclEntry>& acl);
-  folly::Optional<std::string> getIngressAclMirror();
-  folly::Optional<std::string> getEgressAclMirror();
+  std::optional<std::string> getIngressAclMirror();
+  std::optional<std::string> getEgressAclMirror();
 
   void applyMirrorAction(
       const std::string& mirrorName,

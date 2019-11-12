@@ -171,13 +171,13 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     return fields_.interfaceID;
   }
 
-  folly::Optional<cfg::AclLookupClass> getClassID() const {
+  std::optional<cfg::AclLookupClass> getClassID() const {
     return fields_.classID;
   }
 
   void updateClassID(
-      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
-    fields_.classID.assign(classID);
+      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+    fields_.classID = classID;
   }
 
   bool isPending() const {
@@ -229,7 +229,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     entry.state = getStateName();
     entry.ttl = getTtl();
     entry.classID =
-        getClassID().hasValue() ? static_cast<int>(getClassID().value()) : 0;
+        getClassID().has_value() ? static_cast<int>(getClassID().value()) : 0;
   }
 
  private:

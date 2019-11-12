@@ -33,7 +33,7 @@ folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
   entry[kPort] = port.toFollyDynamic();
   entry[kInterface] = static_cast<uint32_t>(interfaceID);
   entry[kNeighborEntryState] = static_cast<int>(state);
-  if (classID.hasValue()) {
+  if (classID.has_value()) {
     entry[kClassID] = static_cast<int>(classID.value());
   }
 

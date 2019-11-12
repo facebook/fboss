@@ -200,13 +200,13 @@ void BcmTrunk::shrinkTrunkGroupHwNotLocked(
              << " in interrupt context";
 }
 
-folly::Optional<opennsl_trunk_t>
+std::optional<opennsl_trunk_t>
 BcmTrunk::findTrunk(int unit, opennsl_module_t modid, opennsl_port_t port) {
   opennsl_trunk_t trunkOut;
   auto rv = opennsl_trunk_find(unit, modid, port, &trunkOut);
 
   if (rv == OPENNSL_E_NOT_FOUND) {
-    return folly::none;
+    return std::nullopt;
   }
   bcmCheckError(
       rv,

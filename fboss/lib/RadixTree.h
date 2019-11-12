@@ -19,7 +19,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Memory.h>
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook {
 namespace network {
@@ -69,7 +69,7 @@ class RadixTreeNode {
     return !isValueNode();
   }
   bool isValueNode() const {
-    return value_.hasValue();
+    return value_.has_value();
   }
   uint32_t masklen() const {
     return masklen_;
@@ -160,13 +160,13 @@ class RadixTreeNode {
   }
 
   void makeNonValueNode() {
-    value_.clear();
+    value_.reset();
   }
 
  protected:
   IPADDRTYPE ipAddress_;
   uint32_t masklen_{0}; // Number of bits to match.
-  folly::Optional<T> value_;
+  std::optional<T> value_;
   std::unique_ptr<RadixTreeNode> left_{nullptr};
   std::unique_ptr<RadixTreeNode> right_{nullptr};
   RadixTreeNode* parent_{nullptr};

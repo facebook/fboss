@@ -62,7 +62,7 @@ cfg::SflowTunnel getSflowTunnelConfig(
 
 cfg::MirrorTunnel getGREMirrorTunnelConfig(
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress) {
+    std::optional<folly::IPAddress> srcAddress) {
   cfg::MirrorTunnel mirrorTunnel;
   mirrorTunnel.set_greTunnel(getGreTunnelConfig(dstAddress));
   if (srcAddress) {
@@ -75,7 +75,7 @@ cfg::MirrorTunnel getSflowMirrorTunnelConfig(
     folly::IPAddress dstAddress,
     uint16_t sPort,
     uint16_t dPort,
-    folly::Optional<folly::IPAddress> srcAddress) {
+    std::optional<folly::IPAddress> srcAddress) {
   cfg::MirrorTunnel mirrorTunnel;
   mirrorTunnel.set_sflowTunnel(getSflowTunnelConfig(dstAddress, sPort, dPort));
   if (srcAddress) {
@@ -87,7 +87,7 @@ cfg::MirrorTunnel getSflowMirrorTunnelConfig(
 cfg::Mirror getGREMirror(
     const std::string& name,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
@@ -103,7 +103,7 @@ cfg::Mirror getGREMirrorWithPort(
     const std::string& name,
     PortID portID,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
@@ -120,7 +120,7 @@ cfg::Mirror getGREMirrorWithPort(
     const std::string& name,
     const std::string& portName,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
@@ -138,7 +138,7 @@ cfg::Mirror getSFlowMirror(
     uint16_t sPort,
     uint16_t dPort,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate) {
   cfg::Mirror mirror;
@@ -156,7 +156,7 @@ cfg::Mirror getSFlowMirrorWithPort(
     uint16_t sPort,
     uint16_t dPort,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate
 
@@ -177,7 +177,7 @@ cfg::Mirror getSFlowMirrorWithPortName(
     uint16_t sPort,
     uint16_t dPort,
     folly::IPAddress dstAddress,
-    folly::Optional<folly::IPAddress> srcAddress,
+    std::optional<folly::IPAddress> srcAddress,
     uint8_t dscp,
     bool truncate
 

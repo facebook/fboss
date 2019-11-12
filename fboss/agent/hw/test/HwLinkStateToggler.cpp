@@ -25,7 +25,7 @@ void HwLinkStateToggler::linkStateChanged(PortID port, bool up) noexcept {
       return;
     }
     desiredPortEventOccurred_ = true;
-    portIdToWaitFor_ = folly::none;
+    portIdToWaitFor_ = std::nullopt;
   }
   linkEventCV_.notify_one();
 }

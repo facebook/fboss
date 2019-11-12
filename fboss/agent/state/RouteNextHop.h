@@ -48,7 +48,7 @@ struct INextHop {
   // for things like poly_call to work properly.
   template <class Base>
   struct Interface : Base {
-    folly::Optional<InterfaceID> intfID() const {
+    std::optional<InterfaceID> intfID() const {
       return folly::poly_call<0>(*this);
     }
 
@@ -60,12 +60,12 @@ struct INextHop {
       return folly::poly_call<2>(*this);
     }
 
-    folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+    std::optional<LabelForwardingAction> labelForwardingAction() const {
       return folly::poly_call<3>(*this);
     }
 
     bool isResolved() const {
-      return intfID().hasValue();
+      return intfID().has_value();
     }
 
     InterfaceID intf() const {
@@ -73,7 +73,7 @@ struct INextHop {
     }
 
     bool isPopAndLookup() const {
-      return labelForwardingAction().hasValue() &&
+      return labelForwardingAction().has_value() &&
           labelForwardingAction()->type() ==
           LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP;
     }
@@ -138,7 +138,7 @@ class ResolvedNextHop {
       const folly::IPAddress& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
-      const folly::Optional<LabelForwardingAction>& action = folly::none)
+      const std::optional<LabelForwardingAction>& action = std::nullopt)
       : addr_(addr),
         intfID_(intfID),
         weight_(weight),
@@ -147,12 +147,12 @@ class ResolvedNextHop {
       folly::IPAddress&& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
-      folly::Optional<LabelForwardingAction>&& action = folly::none)
+      std::optional<LabelForwardingAction>&& action = std::nullopt)
       : addr_(std::move(addr)),
         intfID_(intfID),
         weight_(weight),
         labelForwardingAction_(std::move(action)) {}
-  folly::Optional<InterfaceID> intfID() const {
+  std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
   folly::IPAddress addr() const {
@@ -161,7 +161,7 @@ class ResolvedNextHop {
   NextHopWeight weight() const {
     return weight_;
   }
-  folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+  std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
 
@@ -169,7 +169,7 @@ class ResolvedNextHop {
   folly::IPAddress addr_;
   InterfaceID intfID_;
   NextHopWeight weight_;
-  folly::Optional<LabelForwardingAction> labelForwardingAction_;
+  std::optional<LabelForwardingAction> labelForwardingAction_;
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -179,13 +179,13 @@ class UnresolvedNextHop {
   UnresolvedNextHop(
       const folly::IPAddress& addr,
       const NextHopWeight& weight,
-      const folly::Optional<LabelForwardingAction>& action = folly::none);
+      const std::optional<LabelForwardingAction>& action = std::nullopt);
   UnresolvedNextHop(
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
-      folly::Optional<LabelForwardingAction>&& action = folly::none);
-  folly::Optional<InterfaceID> intfID() const {
-    return folly::none;
+      std::optional<LabelForwardingAction>&& action = std::nullopt);
+  std::optional<InterfaceID> intfID() const {
+    return std::nullopt;
   }
   folly::IPAddress addr() const {
     return addr_;
@@ -193,14 +193,14 @@ class UnresolvedNextHop {
   NextHopWeight weight() const {
     return weight_;
   }
-  folly::Optional<LabelForwardingAction> labelForwardingAction() const {
+  std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
 
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
-  folly::Optional<LabelForwardingAction> labelForwardingAction_;
+  std::optional<LabelForwardingAction> labelForwardingAction_;
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);

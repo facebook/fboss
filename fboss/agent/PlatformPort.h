@@ -112,9 +112,9 @@ class PlatformPort {
 
   /*
    * Returns the transceiver's id if the port supports a transceiver,
-   * otherwise, returns an empty folly::Optional
+   * otherwise, returns an empty std::optional
    */
-  virtual folly::Optional<TransceiverID> getTransceiverID() const = 0;
+  virtual std::optional<TransceiverID> getTransceiverID() const = 0;
 
   /*
    * statusIndication() will be called by the hardware code once a second.

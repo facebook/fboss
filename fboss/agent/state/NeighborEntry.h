@@ -30,7 +30,7 @@ struct NeighborEntryFields {
       PortDescriptor port,
       InterfaceID interfaceID,
       NeighborState state = NeighborState::REACHABLE,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none)
+      std::optional<cfg::AclLookupClass> classID = std::nullopt)
       : ip(ip),
         mac(mac),
         port(port),
@@ -69,7 +69,7 @@ struct NeighborEntryFields {
   PortDescriptor port;
   InterfaceID interfaceID;
   NeighborState state;
-  folly::Optional<cfg::AclLookupClass> classID;
+  std::optional<cfg::AclLookupClass> classID;
 };
 
 template <typename IPADDR, typename SUBCLASS>
@@ -161,12 +161,12 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
     return this->getFields()->state == NeighborState::REACHABLE;
   }
 
-  folly::Optional<cfg::AclLookupClass> getClassID() const {
+  std::optional<cfg::AclLookupClass> getClassID() const {
     return this->getFields()->classID;
   }
 
-  void setClassID(folly::Optional<cfg::AclLookupClass> classID = folly::none) {
-    this->writableFields()->classID.assign(classID);
+  void setClassID(std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+    this->writableFields()->classID = classID;
   }
 
  private:

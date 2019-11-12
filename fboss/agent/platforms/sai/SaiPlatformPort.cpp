@@ -41,7 +41,7 @@ bool SaiPlatformPort::shouldDisableFEC() const {
   return true;
 }
 
-folly::Optional<cfg::PlatformPortSettings>
+std::optional<cfg::PlatformPortSettings>
 SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
   auto& platformSettings = getPlatform()->config()->thrift.platform;
 
@@ -106,7 +106,7 @@ phy::FecMode SaiPlatformPort::getFecMode(cfg::PortSpeed speed) const {
   return platformSettings->iphy_ref()->fec;
 }
 
-folly::Optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
+std::optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
   // TODO (srikrishnagopu): TransceiverID is now part of AgentConfig in
   // front panel resources which is defined per speed. Declaring default
   // speed for now to get the transceiverid.

@@ -21,7 +21,7 @@ class Wedge40Port : public WedgePort {
   Wedge40Port(
       PortID id,
       Wedge40Platform* platform,
-      folly::Optional<FrontPanelResources> frontPanel);
+      std::optional<FrontPanelResources> frontPanel);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     LaneSpeeds speeds;

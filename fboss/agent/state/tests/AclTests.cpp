@@ -465,7 +465,7 @@ TEST(Acl, AclGeneration) {
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
-  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction().hasValue());
+  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction().has_value());
   EXPECT_EQ(
       8,
       acls->getEntryIf("acl5")->getAclAction()->getSetDscp().value().dscpValue);

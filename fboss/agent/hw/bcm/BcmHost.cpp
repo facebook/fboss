@@ -30,7 +30,7 @@
 
 namespace {
 std::string egressPortStr(
-    const folly::Optional<facebook::fboss::BcmPortDescriptor>& port) {
+    const std::optional<facebook::fboss::BcmPortDescriptor>& port) {
   if (!port) {
     return "port not set";
   }
@@ -177,10 +177,10 @@ void BcmHost::program(
     const MacAddress* mac,
     opennsl_port_t port,
     RouteForwardAction action,
-    folly::Optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) {
   auto replace = false;
 
-  if (classID.hasValue()) {
+  if (classID.has_value()) {
     if (!BcmClassIDUtil::isValidQueuePerHostClass(classID.value())) {
       throw FbossError(
           "Invalid classID specified for port: ",
@@ -202,7 +202,7 @@ void BcmHost::program(
       getLookupClassId() == 0) {
     // If no classID is set, SDK sets default classID to 0.
     int classIDToSet =
-        classID.hasValue() ? static_cast<int>(classID.value()) : 0;
+        classID.has_value() ? static_cast<int>(classID.value()) : 0;
     if (getLookupClassId() != classIDToSet) {
       setLookupClassId(classIDToSet);
       /*
@@ -247,9 +247,9 @@ void BcmHost::program(
     addToBcmHostTable(false, replace);
   }
 
-  folly::Optional<BcmPortDescriptor> newEgressPort = (port == 0)
-      ? folly::none
-      : folly::make_optional<BcmPortDescriptor>(BcmPortId(port));
+  std::optional<BcmPortDescriptor> newEgressPort = (port == 0)
+      ? std::nullopt
+      : std::make_optional<BcmPortDescriptor>(BcmPortId(port));
   XLOG(DBG1) << "Updating egress " << egressPtr->getID() << " from "
              << egressPortStr(egressPort_) << " to "
              << egressPortStr(newEgressPort);
@@ -334,10 +334,9 @@ void BcmHost::programToTrunk(
     addToBcmHostTable();
   }
 
-  folly::Optional<BcmPortDescriptor> newEgressPort =
-      (trunk == BcmTrunk::INVALID)
-      ? folly::none
-      : folly::make_optional<BcmPortDescriptor>(BcmTrunkId(trunk));
+  std::optional<BcmPortDescriptor> newEgressPort = (trunk == BcmTrunk::INVALID)
+      ? std::nullopt
+      : std::make_optional<BcmPortDescriptor>(BcmTrunkId(trunk));
   XLOG(DBG1) << "Updating egress " << egress->getID() << " from "
              << egressPortStr(egressPort_) << " to "
              << egressPortStr(newEgressPort);
@@ -380,7 +379,7 @@ BcmHost::~BcmHost() {
                          : BcmEcmpEgress::Action::SKIP);
 }
 
-folly::Optional<BcmPortDescriptor> BcmHost::getEgressPortDescriptor() const {
+std::optional<BcmPortDescriptor> BcmHost::getEgressPortDescriptor() const {
   return egressPort_;
 }
 
@@ -486,7 +485,7 @@ void BcmHostTable::programHostsToPort(
     opennsl_if_t intf,
     const MacAddress& mac,
     opennsl_port_t port,
-    folly::Optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   CHECK(host);
   host->program(intf, mac, port, classID);
@@ -496,7 +495,7 @@ void BcmHostTable::programHostsToPort(
 void BcmHostTable::programHostsToCPU(
     const BcmHostKey& key,
     opennsl_if_t intf,
-    folly::Optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   if (host) {
     return host->programToCPU(intf, classID);

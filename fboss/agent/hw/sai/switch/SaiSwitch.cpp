@@ -137,7 +137,7 @@ bool SaiSwitch::sendPacketSwitchedAsync(
 bool SaiSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    folly::Optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return sendPacketOutOfPortAsyncLocked(lock, std::move(pkt), portID, queue);
 }
@@ -412,7 +412,7 @@ bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    folly::Optional<uint8_t> /* queue */) noexcept {
+    std::optional<uint8_t> /* queue */) noexcept {
   asyncTxEventBase_.runInEventBaseThread(
       [this, pkt = std::move(pkt), portID]() mutable {
         std::lock_guard<std::mutex> lock(saiSwitchMutex_);

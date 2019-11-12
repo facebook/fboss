@@ -80,10 +80,10 @@ bool LabelForwardingAction::operator<(const LabelForwardingAction& rhs) const {
       std::tie(rhs.type_, rhs.swapWith_, rhs.pushStack_);
 }
 
-folly::Optional<LabelForwardingAction>
+std::optional<LabelForwardingAction>
 LabelForwardingAction::combinePushLabelStack(
-    const folly::Optional<LabelForwardingAction>& tunnelStack,
-    const folly::Optional<LabelForwardingAction>& adjacencyLabels) {
+    const std::optional<LabelForwardingAction>& tunnelStack,
+    const std::optional<LabelForwardingAction>& adjacencyLabels) {
   // create a label stack based on tunnel stack and adjacency labels
   // a tunnel stack - a stack of labels advertised by remote label distribution
   //    peer Y, for prefix X
@@ -91,7 +91,7 @@ LabelForwardingAction::combinePushLabelStack(
   //    remote) label distribution peer to network of Y
   //  Push adjacency labels on top of tunnel stack, egressing IP2MPLS packets
   //  will have adjacency labels on top of stack
-  folly::Optional<LabelForwardingAction> result = folly::none;
+  std::optional<LabelForwardingAction> result = std::nullopt;
   if (!tunnelStack && !adjacencyLabels) {
     return result;
   }

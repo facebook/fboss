@@ -14,11 +14,11 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/Optional.h>
 #include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
@@ -66,7 +66,7 @@ class HwLinkStateToggler {
 
   void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
   mutable std::mutex linkEventMutex_;
-  folly::Optional<PortID> portIdToWaitFor_;
+  std::optional<PortID> portIdToWaitFor_;
   bool waitForPortUp_{false};
   bool desiredPortEventOccurred_{false};
   std::condition_variable linkEventCV_;

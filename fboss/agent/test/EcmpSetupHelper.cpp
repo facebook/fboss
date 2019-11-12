@@ -34,7 +34,7 @@ namespace {
 
 using namespace facebook::fboss;
 
-folly::Optional<AggregatePortID> getAggPortID(
+std::optional<AggregatePortID> getAggPortID(
     const std::shared_ptr<SwitchState>& inputState,
     const PortID& portId) {
   for (auto aggPort : *inputState->getAggregatePorts().get()) {
@@ -42,7 +42,7 @@ folly::Optional<AggregatePortID> getAggPortID(
       return aggPort->getID();
     }
   }
-  return folly::none;
+  return std::nullopt;
 }
 
 flat_map<PortDescriptor, VlanID> computePortDesc2Vlan(
@@ -168,11 +168,11 @@ std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
 }
 
 template <typename AddrT, typename NextHopT>
-folly::Optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
+std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
     const PortDescriptor& port) const {
   auto iter = portDesc2Vlan_.find(port);
   if (iter == portDesc2Vlan_.end()) {
-    return folly::none;
+    return std::nullopt;
   }
   return iter->second;
 }
@@ -180,7 +180,7 @@ folly::Optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
 template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
-    folly::Optional<folly::MacAddress> nextHopMac,
+    std::optional<folly::MacAddress> nextHopMac,
     RouterID routerId)
     : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
   computeNextHops(inputState, nextHopMac);
@@ -189,7 +189,7 @@ EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    folly::Optional<folly::MacAddress> nextHopMac) {
+    std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Vlan_ = computePortDesc2Vlan(inputState);
   auto vlan2Subnet =
       computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
@@ -440,7 +440,7 @@ MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
 template <typename IPAddrT>
 void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    folly::Optional<folly::MacAddress> nextHopMac) {
+    std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Vlan_ = computePortDesc2Vlan(inputState);
   auto vlan2Subnet =
       computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);

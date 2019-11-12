@@ -11,24 +11,24 @@
 #include "fboss/agent/platforms/wedge/GalaxyPort.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 
-using folly::none;
-
 namespace facebook {
 namespace fboss {
 
 std::unique_ptr<WedgePortMapping> GalaxyFCPlatform::createPortMapping() {
+  using std::nullopt;
+
   WedgePortMapping::PortTransceiverMap ports = {
-      {PortID(72), none},  {PortID(76), none},  {PortID(68), none},
-      {PortID(80), none},  {PortID(62), none},  {PortID(58), none},
-      {PortID(54), none},  {PortID(50), none},  {PortID(110), none},
-      {PortID(106), none}, {PortID(102), none}, {PortID(114), none},
-      {PortID(96), none},  {PortID(92), none},  {PortID(84), none},
-      {PortID(88), none},  {PortID(5), none},   {PortID(9), none},
-      {PortID(1), none},   {PortID(13), none},  {PortID(130), none},
-      {PortID(118), none}, {PortID(122), none}, {PortID(126), none},
-      {PortID(42), none},  {PortID(38), none},  {PortID(29), none},
-      {PortID(46), none},  {PortID(34), none},  {PortID(21), none},
-      {PortID(25), none},  {PortID(17), none},
+      {PortID(72), nullopt},  {PortID(76), nullopt},  {PortID(68), nullopt},
+      {PortID(80), nullopt},  {PortID(62), nullopt},  {PortID(58), nullopt},
+      {PortID(54), nullopt},  {PortID(50), nullopt},  {PortID(110), nullopt},
+      {PortID(106), nullopt}, {PortID(102), nullopt}, {PortID(114), nullopt},
+      {PortID(96), nullopt},  {PortID(92), nullopt},  {PortID(84), nullopt},
+      {PortID(88), nullopt},  {PortID(5), nullopt},   {PortID(9), nullopt},
+      {PortID(1), nullopt},   {PortID(13), nullopt},  {PortID(130), nullopt},
+      {PortID(118), nullopt}, {PortID(122), nullopt}, {PortID(126), nullopt},
+      {PortID(42), nullopt},  {PortID(38), nullopt},  {PortID(29), nullopt},
+      {PortID(46), nullopt},  {PortID(34), nullopt},  {PortID(21), nullopt},
+      {PortID(25), nullopt},  {PortID(17), nullopt},
   };
   return WedgePortMapping::create<
       WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this, ports);

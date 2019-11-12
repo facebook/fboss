@@ -23,7 +23,7 @@ void HwTestPacketSnooper::packetReceived(RxPacket* pkt) noexcept {
   cv_.notify_all();
 }
 
-folly::Optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket() {
+std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket() {
   std::unique_lock<std::mutex> lock(mtx_);
   while (!data_) {
     cv_.wait(lock);

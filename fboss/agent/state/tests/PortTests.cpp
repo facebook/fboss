@@ -39,7 +39,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(cfg::PortState::DISABLED, portV0->getAdminState());
   Port::VlanMembership emptyVlans;
   EXPECT_EQ(emptyVlans, portV0->getVlans());
-  EXPECT_FALSE(portV0->getSampleDestination().hasValue());
+  EXPECT_FALSE(portV0->getSampleDestination().has_value());
 
   portV0->publish();
   EXPECT_TRUE(portV0->isPublished());
@@ -85,7 +85,7 @@ TEST(Port, applyConfig) {
   expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false)));
   expectedVlans.insert(make_pair(VlanID(5), Port::VlanInfo(true)));
   EXPECT_EQ(expectedVlans, portV1->getVlans());
-  EXPECT_TRUE(portV1->getSampleDestination().hasValue());
+  EXPECT_TRUE(portV1->getSampleDestination().has_value());
   EXPECT_EQ(
       cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
@@ -111,7 +111,7 @@ TEST(Port, applyConfig) {
   EXPECT_EQ(cfg::PortState::ENABLED, portV2->getAdminState());
   EXPECT_FALSE(portV2->isPublished());
   EXPECT_EQ(expectedVlansV2, portV2->getVlans());
-  EXPECT_TRUE(portV1->getSampleDestination().hasValue());
+  EXPECT_TRUE(portV1->getSampleDestination().has_value());
   EXPECT_EQ(
       cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
@@ -198,7 +198,7 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(port->getPause().tx);
   EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
-  EXPECT_TRUE(port->getSampleDestination().hasValue());
+  EXPECT_TRUE(port->getSampleDestination().has_value());
   EXPECT_EQ(
       cfg::SampleDestination::MIRROR, port->getSampleDestination().value());
 
@@ -223,20 +223,20 @@ TEST(Port, ToFromJSON) {
       cfg::MMUScalingFactor::EIGHT, queues[1]->getScalingFactor().value());
 
   EXPECT_EQ(cfg::StreamType::UNICAST, queues[2]->getStreamType());
-  EXPECT_FALSE(queues[2]->getReservedBytes().hasValue());
+  EXPECT_FALSE(queues[2]->getReservedBytes().has_value());
   EXPECT_EQ(1, queues[2]->getWeight());
   EXPECT_EQ(2, queues[2]->getID());
   EXPECT_EQ(
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[2]->getScheduling());
-  EXPECT_FALSE(queues[2]->getScalingFactor().hasValue());
+  EXPECT_FALSE(queues[2]->getScalingFactor().has_value());
 
   EXPECT_EQ(cfg::StreamType::UNICAST, queues[3]->getStreamType());
-  EXPECT_FALSE(queues[3]->getReservedBytes().hasValue());
+  EXPECT_FALSE(queues[3]->getReservedBytes().has_value());
   EXPECT_EQ(1, queues[3]->getWeight());
   EXPECT_EQ(3, queues[3]->getID());
   EXPECT_EQ(
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[3]->getScheduling());
-  EXPECT_FALSE(queues[3]->getScalingFactor().hasValue());
+  EXPECT_FALSE(queues[3]->getScalingFactor().has_value());
 
   auto dyn1 = port->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);
@@ -487,14 +487,14 @@ TEST(Port, sampleDestinationConfig) {
   auto changeAndVerifySampleDestination =
       [](std::unique_ptr<MockPlatform>& platform,
          std::shared_ptr<SwitchState>& state,
-         folly::Optional<cfg::SampleDestination> newDestination) {
+         std::optional<cfg::SampleDestination> newDestination) {
         auto oldDestination = state->getPort(PortID(1))->getSampleDestination();
         cfg::SwitchConfig config;
         config.ports.resize(1);
         config.ports[0].logicalID = 1;
         config.ports[0].name_ref().value_unchecked() = "port1";
         config.ports[0].state = cfg::PortState::DISABLED;
-        if (newDestination.hasValue()) {
+        if (newDestination.has_value()) {
           config.ports[0].sampleDest_ref() = newDestination.value();
         }
         auto newState = publishAndApplyConfig(state, &config, platform.get());
@@ -511,14 +511,14 @@ TEST(Port, sampleDestinationConfig) {
       };
 
   // Verify the default sample destination is NONE
-  EXPECT_EQ(folly::none, state->getPort(PortID(1))->getSampleDestination());
+  EXPECT_EQ(std::nullopt, state->getPort(PortID(1))->getSampleDestination());
 
   // Now change it and verify change is properly configured
   changeAndVerifySampleDestination(
       platform, state, cfg::SampleDestination::MIRROR);
   changeAndVerifySampleDestination(
       platform, state, cfg::SampleDestination::CPU);
-  changeAndVerifySampleDestination(platform, state, folly::none);
+  changeAndVerifySampleDestination(platform, state, std::nullopt);
 }
 
 TEST(PortMap, registerPorts) {

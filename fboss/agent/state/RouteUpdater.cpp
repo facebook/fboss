@@ -280,7 +280,7 @@ struct NextHopCombinedWeightsKey {
   }
   folly::IPAddress ip;
   InterfaceID intfId;
-  folly::Optional<LabelForwardingAction> action;
+  std::optional<LabelForwardingAction> action;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -472,7 +472,7 @@ void RouteUpdater::getFwdInfoFromNhop(
     RtRibT* nRib,
     ClonedRib* ribCloned,
     const AddrT& nh,
-    const folly::Optional<LabelForwardingAction>& labelAction,
+    const std::optional<LabelForwardingAction>& labelAction,
     bool* hasToCpu,
     bool* hasDrop,
     RouteNextHopSet& fwd) {
@@ -550,7 +550,7 @@ void RouteUpdater::resolveOne(RouteT* route, ClonedRib* ribCloned) {
       //    In this case, the clientId is INTERFACE_ROUTE
       // 2) The nexthop was for v6 link-local address.
       // In both cases, this nexthop is resolved.
-      if (nh.intfID().hasValue()) {
+      if (nh.intfID().has_value()) {
         // It is either an interface route or v6 link-local
         CHECK(
             clientId == kInterfaceRouteClientId or

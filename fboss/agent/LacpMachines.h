@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <folly/Optional.h>
 #include <folly/io/async/AsyncTimeout.h>
+#include <optional>
 
 #include <boost/container/flat_map.hpp>
 
@@ -235,7 +235,7 @@ class Selector {
   void standby();
 
   Selection getSelection();
-  folly::Optional<Selection> getSelectionIf();
+  std::optional<Selection> getSelectionIf();
 
   static PortIDToSelection& portToSelection();
 

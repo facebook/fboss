@@ -14,7 +14,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
 
-#include <folly/Optional.h>
+#include <optional>
 
 #include <vector>
 
@@ -58,14 +58,14 @@ void pumpTraffic(
     HwSwitch* hw,
     folly::MacAddress cpuMac,
     VlanID vlan,
-    folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 void pumpMplsTraffic(
     bool isV6,
     HwSwitch* hw,
     uint32_t label,
     folly::MacAddress cpuMac,
-    folly::Optional<PortID> frontPanelPortToLoopTraffic = folly::none);
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 bool isLoadBalanced(
     HwSwitchEnsemble* hwSwitchEnsemble,

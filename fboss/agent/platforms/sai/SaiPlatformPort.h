@@ -14,7 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook::fboss {
 
@@ -31,7 +31,7 @@ class SaiPlatformPort : public PlatformPort {
   void linkStatusChanged(bool up, bool adminUp) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   bool supportsTransceiver() const override;
-  folly::Optional<TransceiverID> getTransceiverID() const override;
+  std::optional<TransceiverID> getTransceiverID() const override;
   void statusIndication(
       bool enabled,
       bool link,
@@ -48,7 +48,7 @@ class SaiPlatformPort : public PlatformPort {
   virtual TransmitterTechnology getTransmitterTech();
 
  private:
-  folly::Optional<cfg::PlatformPortSettings> getPlatformPortSettings(
+  std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed) const;
 };
 

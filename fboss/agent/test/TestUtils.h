@@ -15,9 +15,9 @@
 
 #include <folly/Function.h>
 #include <folly/MacAddress.h>
-#include <folly/Optional.h>
 #include <folly/Range.h>
 #include <folly/synchronization/Baton.h>
+#include <optional>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/StateObserver.h"
@@ -74,7 +74,7 @@ std::shared_ptr<SwitchState> publishAndApplyConfig(
  */
 std::unique_ptr<HwTestHandle> createTestHandle(
     const std::shared_ptr<SwitchState>& = nullptr,
-    const folly::Optional<folly::MacAddress>& = folly::none,
+    const std::optional<folly::MacAddress>& = std::nullopt,
     SwitchFlags flags = SwitchFlags::DEFAULT);
 std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,

@@ -17,8 +17,8 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
-#include <folly/Optional.h>
 #include <glog/logging.h>
+#include <optional>
 
 namespace {
 

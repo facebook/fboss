@@ -84,7 +84,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     InterfaceID intfID,
-    folly::Optional<cfg::AclLookupClass> classID) {
+    std::optional<cfg::AclLookupClass> classID) {
   CHECK(!this->isPublished());
   auto& nodes = this->writableNodes();
   auto it = nodes.find(ip);

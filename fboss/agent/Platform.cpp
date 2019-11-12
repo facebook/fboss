@@ -90,9 +90,9 @@ void Platform::init(std::unique_ptr<AgentConfig> config) {
 }
 
 MacAddress Platform::getLocalMac() const {
-  static folly::Optional<MacAddress> kLocalMac;
-  if (!kLocalMac.hasValue()) {
-    kLocalMac.assign(localMacAddress());
+  static std::optional<MacAddress> kLocalMac;
+  if (!kLocalMac.has_value()) {
+    kLocalMac = localMacAddress();
   }
   return kLocalMac.value();
 }

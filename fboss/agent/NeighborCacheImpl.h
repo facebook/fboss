@@ -17,9 +17,9 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
-#include <folly/Optional.h>
 #include <folly/Random.h>
 #include <list>
+#include <optional>
 #include <string>
 
 namespace facebook {
@@ -86,7 +86,7 @@ class NeighborCacheImpl {
 
   void updateEntryClassID(
       AddressType ip,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none);
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
 
   std::unique_ptr<EntryFields> cloneEntryFields(AddressType ip);
 
@@ -123,7 +123,7 @@ class NeighborCacheImpl {
   std::list<NeighborEntryThrift> getCacheData() const;
 
   template <typename NeighborEntryThrift>
-  folly::Optional<NeighborEntryThrift> getCacheData(AddressType ip) const;
+  std::optional<NeighborEntryThrift> getCacheData(AddressType ip) const;
 
   void clearEntries();
 

@@ -31,7 +31,7 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
   }
   uint64_t minBwRate = 0, maxBwRate = 0;
   int32_t meterType = SAI_METER_TYPE_BYTES;
-  if (portQueue.getPortQueueRate().hasValue()) {
+  if (portQueue.getPortQueueRate().has_value()) {
     auto portQueueRate = portQueue.getPortQueueRate().value();
     switch (portQueueRate.getType()) {
       case PortQueueRate::Type::pktsPerSec:

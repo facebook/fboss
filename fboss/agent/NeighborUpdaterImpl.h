@@ -84,7 +84,7 @@ class NeighborUpdaterImpl {
   void updateEntryClassID(
       VlanID vlan,
       AddrT ip,
-      folly::Optional<cfg::AclLookupClass> classID = folly::none) {
+      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     using NeighborCacheT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpCache,

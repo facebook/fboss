@@ -21,12 +21,12 @@ BcmAclEntry::BcmAclEntry(
     const std::shared_ptr<AclEntry>& /*acl*/) {}
 BcmAclEntry::~BcmAclEntry() {}
 
-folly::Optional<std::string> BcmAclEntry::getIngressAclMirror() {
-  return folly::Optional<std::string>();
+std::optional<std::string> BcmAclEntry::getIngressAclMirror() {
+  return std::optional<std::string>();
 }
 
-folly::Optional<std::string> BcmAclEntry::getEgressAclMirror() {
-  return folly::Optional<std::string>();
+std::optional<std::string> BcmAclEntry::getEgressAclMirror() {
+  return std::optional<std::string>();
 }
 
 void BcmAclEntry::applyMirrorAction(

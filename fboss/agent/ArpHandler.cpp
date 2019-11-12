@@ -175,7 +175,7 @@ static void sendArp(
     IPAddressV4 senderIP,
     MacAddress targetMac,
     IPAddressV4 targetIP,
-    const folly::Optional<PortDescriptor>& portDesc = folly::none) {
+    const std::optional<PortDescriptor>& portDesc = std::nullopt) {
   XLOG(DBG4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
              << " on vlan " << vlan << " to " << targetIP.str() << " ("
              << targetMac << "): " << senderIP.str() << " is " << senderMac;

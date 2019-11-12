@@ -75,7 +75,7 @@ class BcmMplsNextHop : public BcmNextHop {
 
   BcmSwitch* hw_;
   BcmLabeledHostKey key_;
-  folly::Optional<PortDescriptor> egressPort_;
+  std::optional<PortDescriptor> egressPort_;
   std::unique_ptr<BcmEgress> mplsEgress_;
 };
 

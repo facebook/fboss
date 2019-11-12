@@ -33,9 +33,9 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include <folly/Memory.h>
-#include <folly/Optional.h>
 #include <folly/json.h>
 #include <chrono>
+#include <optional>
 
 using folly::ByteRange;
 using folly::IOBuf;
@@ -79,7 +79,7 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
 
 unique_ptr<SwSwitch> createMockSw(
     const shared_ptr<SwitchState>& state,
-    const folly::Optional<MacAddress>& mac,
+    const std::optional<MacAddress>& mac,
     SwitchFlags flags) {
   auto platform = createMockPlatform();
   if (mac) {
@@ -145,7 +145,7 @@ unique_ptr<MockPlatform> createMockPlatform() {
 
 unique_ptr<HwTestHandle> createTestHandle(
     const shared_ptr<SwitchState>& state,
-    const folly::Optional<MacAddress>& mac,
+    const std::optional<MacAddress>& mac,
     SwitchFlags flags) {
   auto sw = createMockSw(state, mac, flags);
   auto platform = static_cast<MockPlatform*>(sw->getPlatform());

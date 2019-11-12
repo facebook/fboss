@@ -11,8 +11,8 @@
 
 #include <boost/container/flat_map.hpp>
 
-#include <folly/Optional.h>
 #include <folly/futures/Future.h>
+#include <optional>
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -41,7 +41,7 @@ class WedgePort : public BcmPlatformPort {
   WedgePort(
       PortID id,
       WedgePlatform* platform,
-      folly::Optional<FrontPanelResources> frontPanel);
+      std::optional<FrontPanelResources> frontPanel);
 
  public:
   void setBcmPort(BcmPort* port) override;
@@ -67,19 +67,19 @@ class WedgePort : public BcmPlatformPort {
 
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 
-  folly::Optional<TransceiverID> getTransceiverID() const override {
+  std::optional<TransceiverID> getTransceiverID() const override {
     if (!frontPanel_) {
-      return folly::none;
+      return std::nullopt;
     }
     return frontPanel_->transceiver;
   }
 
   bool supportsTransceiver() const override {
-    return frontPanel_.hasValue();
+    return frontPanel_.has_value();
   }
 
   // TODO: deprecate this
-  virtual folly::Optional<ChannelID> getChannel() const;
+  virtual std::optional<ChannelID> getChannel() const;
 
   std::vector<int32_t> getChannels() const;
 
@@ -87,7 +87,7 @@ class WedgePort : public BcmPlatformPort {
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  folly::Future<folly::Optional<TxSettings>> getTxSettings(
+  folly::Future<std::optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
 
   bool shouldUsePortResourceAPIs() const override {
@@ -103,7 +103,7 @@ class WedgePort : public BcmPlatformPort {
 
   // TODO: make return value not optional after all platforms are
   // updated to support port programming like this.
-  folly::Optional<cfg::PlatformPortSettings> getPlatformPortSettings(
+  std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed);
 
  protected:
@@ -112,7 +112,7 @@ class WedgePort : public BcmPlatformPort {
   // TODO(aeckert): deprecate cached speed
   cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};
 
-  folly::Optional<FrontPanelResources> frontPanel_;
+  std::optional<FrontPanelResources> frontPanel_;
   BcmPort* bcmPort_{nullptr};
 
   std::shared_ptr<Port> port_{nullptr};

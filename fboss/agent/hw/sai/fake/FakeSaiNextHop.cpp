@@ -11,8 +11,8 @@
 #include "FakeSaiPort.h"
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
-#include <folly/Optional.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 using facebook::fboss::FakePort;
 using facebook::fboss::FakeSai;

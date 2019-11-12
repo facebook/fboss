@@ -14,7 +14,7 @@
 using boost::container::flat_set;
 using facebook::fboss::DeltaFunctions::isEmpty;
 using folly::IPAddress;
-using folly::Optional;
+using std::optional;
 
 namespace facebook {
 namespace fboss {

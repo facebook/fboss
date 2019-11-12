@@ -37,8 +37,8 @@ class BcmTestPort : public BcmPlatformPort {
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  folly::Optional<TransceiverID> getTransceiverID() const override;
-  folly::Future<folly::Optional<TxSettings>> getTxSettings(
+  std::optional<TransceiverID> getTransceiverID() const override;
+  folly::Future<std::optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
   bool supportsTransceiver() const override;
   void statusIndication(

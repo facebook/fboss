@@ -105,10 +105,9 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       setupECMPForwarding(ecmpHelper4, aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers));
-
     };
     auto verify = [=]() {
-      folly::Optional<PortID> frontPanelPortToLoopTraffic;
+      std::optional<PortID> frontPanelPortToLoopTraffic;
       if (loopThroughFrontPanel) {
         // Next port to loop back traffic through
         frontPanelPortToLoopTraffic =

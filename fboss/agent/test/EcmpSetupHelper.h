@@ -90,7 +90,7 @@ class BaseEcmpSetupHelper {
 
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      folly::Optional<folly::MacAddress> mac) = 0;
+      std::optional<folly::MacAddress> mac) = 0;
 
   std::shared_ptr<SwitchState> resolveNextHopsImpl(
       const std::shared_ptr<SwitchState>& inputState,
@@ -105,7 +105,7 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop) const;
 
-  folly::Optional<VlanID> getVlan(const PortDescriptor& port) const;
+  std::optional<VlanID> getVlan(const PortDescriptor& port) const;
 
  protected:
   std::vector<NextHopT> nhops_;
@@ -123,11 +123,11 @@ class EcmpSetupTargetedPorts
   explicit EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0))
-      : EcmpSetupTargetedPorts(inputState, folly::none, routerId) {}
+      : EcmpSetupTargetedPorts(inputState, std::nullopt, routerId) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      folly::Optional<folly::MacAddress> nextHopMac,
+      std::optional<folly::MacAddress> nextHopMac,
       RouterID routerId = RouterID(0));
 
   virtual ~EcmpSetupTargetedPorts() override {}
@@ -155,7 +155,7 @@ class EcmpSetupTargetedPorts
  private:
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      folly::Optional<folly::MacAddress> mac = folly::none) override;
+      std::optional<folly::MacAddress> mac = std::nullopt) override;
 
   RouterID routerId_;
 };
@@ -180,7 +180,7 @@ class MplsEcmpSetupTargetedPorts
       LabelForwardingEntry::Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType)
       : topLabel_(topLabel), actionType_(actionType) {
-    computeNextHops(inputState, folly::none);
+    computeNextHops(inputState, std::nullopt);
   }
 
   virtual EcmpMplsNextHop<IPAddrT> nhop(PortDescriptor portDesc) const override;
@@ -196,7 +196,7 @@ class MplsEcmpSetupTargetedPorts
  private:
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      folly::Optional<folly::MacAddress> mac = folly::none) override;
+      std::optional<folly::MacAddress> mac = std::nullopt) override;
 
   LabelForwardingEntry::Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;
@@ -210,11 +210,11 @@ class EcmpSetupAnyNPorts {
   explicit EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0))
-      : EcmpSetupAnyNPorts(inputState, folly::none, routerId) {}
+      : EcmpSetupAnyNPorts(inputState, std::nullopt, routerId) {}
 
   EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      const folly::Optional<folly::MacAddress>& nextHopMac,
+      const std::optional<folly::MacAddress>& nextHopMac,
       RouterID routerId = RouterID(0))
       : ecmpSetupTargetedPorts_(inputState, nextHopMac, routerId) {}
 
@@ -275,7 +275,7 @@ class EcmpSetupAnyNPorts {
       const std::vector<NextHopWeight>& weights =
           std::vector<NextHopWeight>()) const;
 
-  folly::Optional<VlanID> getVlan(const PortDescriptor& port) const {
+  std::optional<VlanID> getVlan(const PortDescriptor& port) const {
     return ecmpSetupTargetedPorts_.getVlan(port);
   }
 

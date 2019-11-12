@@ -15,13 +15,13 @@
 namespace {
 template <typename Param>
 bool isPortQueueOptionalAttributeSame(
-    const folly::Optional<Param>& swValue,
+    const std::optional<Param>& swValue,
     bool isConfSet,
     const Param& confValue) {
-  if (!swValue.hasValue() && !isConfSet) {
+  if (!swValue.has_value() && !isConfSet) {
     return true;
   }
-  if (swValue.hasValue() && isConfSet && swValue.value() == confValue) {
+  if (swValue.has_value() && isConfSet && swValue.value() == confValue) {
     return true;
   }
   return false;
@@ -57,7 +57,7 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   queue.id = id;
   queue.weight = weight;
   if (reservedBytes) {
-    queue.reserved = reservedBytes;
+    queue.reserved = reservedBytes.value();
   }
   if (scalingFactor) {
     queue.scalingFactor =
@@ -66,10 +66,10 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   queue.scheduling = cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
   queue.streamType = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
   if (name) {
-    queue.name = name;
+    queue.name = name.value();
   }
   if (sharedBytes) {
-    queue.sharedBytes = sharedBytes;
+    queue.sharedBytes = sharedBytes.value();
   }
   if (!aqms.empty()) {
     std::vector<cfg::ActiveQueueManagement> aqmList;
@@ -80,15 +80,15 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   }
 
   if (portQueueRate) {
-    queue.portQueueRate = portQueueRate;
+    queue.portQueueRate = portQueueRate.value();
   }
 
   if (bandwidthBurstMinKbits) {
-    queue.bandwidthBurstMinKbits = bandwidthBurstMinKbits;
+    queue.bandwidthBurstMinKbits = bandwidthBurstMinKbits.value();
   }
 
   if (bandwidthBurstMaxKbits) {
-    queue.bandwidthBurstMaxKbits = bandwidthBurstMaxKbits;
+    queue.bandwidthBurstMaxKbits = bandwidthBurstMaxKbits.value();
   }
 
   return queue;
@@ -112,7 +112,7 @@ PortQueueFields PortQueueFields::fromThrift(
 
   queue.weight = queueThrift.weight;
   if (queueThrift.reserved) {
-    queue.reservedBytes = queueThrift.reserved;
+    queue.reservedBytes = queueThrift.reserved.value();
   }
   if (queueThrift.scalingFactor) {
     auto itrScalingFactor = cfg::_MMUScalingFactor_NAMES_TO_VALUES.find(
@@ -121,10 +121,10 @@ PortQueueFields PortQueueFields::fromThrift(
     queue.scalingFactor = itrScalingFactor->second;
   }
   if (queueThrift.name) {
-    queue.name = queueThrift.name;
+    queue.name = queueThrift.name.value();
   }
   if (queueThrift.sharedBytes) {
-    queue.sharedBytes = queueThrift.sharedBytes;
+    queue.sharedBytes = queueThrift.sharedBytes.value();
   }
   if (queueThrift.aqms) {
     for (const auto& aqm : queueThrift.aqms.value()) {
@@ -133,15 +133,15 @@ PortQueueFields PortQueueFields::fromThrift(
   }
 
   if (queueThrift.portQueueRate) {
-    queue.portQueueRate = queueThrift.portQueueRate;
+    queue.portQueueRate = queueThrift.portQueueRate.value();
   }
 
   if (queueThrift.bandwidthBurstMinKbits) {
-    queue.bandwidthBurstMinKbits = queueThrift.bandwidthBurstMinKbits;
+    queue.bandwidthBurstMinKbits = queueThrift.bandwidthBurstMinKbits.value();
   }
 
   if (queueThrift.bandwidthBurstMaxKbits) {
-    queue.bandwidthBurstMaxKbits = queueThrift.bandwidthBurstMaxKbits;
+    queue.bandwidthBurstMaxKbits = queueThrift.bandwidthBurstMaxKbits.value();
   }
 
   return queue;

@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-#include <folly/Optional.h>
+#include <optional>
 
 namespace facebook {
 namespace fboss {
