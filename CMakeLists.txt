@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
@@ -19,13 +19,9 @@ if(NOT COMPILER_SUPPORTS_CXX17)
   message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support.")
 endif()
 
-# Ideally, we would use
-#    set_property(TARGET fboss_agent PROPERTY CXX_STANDARD 11)
-# to define the C++ version, but we don't want to depend on
-# cmake 3.1, as it's not currently widely available. We only support
-# building on Linux under GCC right now, so we might as well just hard
-# code the flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1z")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-sign-compare -Wno-bool-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized -Wdeprecated-declarations")
