@@ -54,6 +54,9 @@ struct PlatformConfig {
   4: optional map<i32, PlatformPortEntry> platformPorts
   // The PortProfileID a platform supports.
   5: optional map<switch_config.PortProfileID, phy.PortProfileConfig> supportedProfiles
+  // The global phy chip lists of the platform, including iphy, xphy, transceiver
+  // The name of the chip will be the global id to identify a chip
+  6: optional list<phy.DataPlanePhyChip> chips
 }
 
 struct PlatformPortEntry {

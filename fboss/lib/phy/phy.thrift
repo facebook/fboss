@@ -143,11 +143,26 @@ struct PortProfileConfig {
  * one or multiple line ends and finally the line end will connect to the
  * transceiver.
  */
+enum DataPlanePhyChipType {
+  IPHY = 1
+  XPHY = 2
+  TRANSCEIVER = 3
+}
+
+struct DataPlanePhyChip {
+  // Global id and used by the phy::PinID
+  1: string name
+  2: DataPlanePhyChipType type
+  // Physical id which is used to identify the chip for the phy service.
+  // type=DataPlanePhyChipType::IPHY, which means the ASIC core id
+  // type=DataPlanePhyChipType::XPHY, which means the xphy(gearbox) id
+  // type=DataPlanePhyChipType::TRANSCEIVER, which means the transceiver id
+  3: i32 physicalID
+}
+
 struct PinID {
-  // For iphy, chip means the core id of the ASIC
-  // For xphy, chip means the external phy id
-  // For transceiver, chip means the transciver id
-  1: i32 chip
+  // Match to the name of one chip in the global chip list in platform_config
+  1: string chip
   2: i32 lane
 }
 
