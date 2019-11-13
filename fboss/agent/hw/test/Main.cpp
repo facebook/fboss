@@ -14,7 +14,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=false");
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
 
 int main(int argc, char* argv[]) {
   // Parse command line flags
