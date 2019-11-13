@@ -295,7 +295,6 @@ HwInitResult SaiSwitch::initLocked(
   saiStore->setSwitchId(switchId_);
   saiStore->reload();
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
-  platform_->initPorts();
   callback_ = callback;
   __gSaiSwitch = this;
 

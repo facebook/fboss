@@ -79,6 +79,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
   }
   BcmAPI::init(cfg);
   auto platform = createTestPlatform();
+  platform->initPorts();
   auto hwSwitch = std::make_unique<BcmSwitch>(
       static_cast<BcmPlatform*>(platform.get()), featuresDesired);
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());

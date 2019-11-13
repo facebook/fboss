@@ -87,6 +87,8 @@ void Platform::init(std::unique_ptr<AgentConfig> config) {
   config_ = std::move(config);
   std::ignore = getLocalMac();
   initImpl();
+  // We should always initPorts() here instead of leaving the hw/ to call
+  initPorts();
 }
 
 MacAddress Platform::getLocalMac() const {
