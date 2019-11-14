@@ -107,7 +107,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::unique_ptr<std::thread> thriftThread);
 
  private:
-  std::shared_ptr<SwitchState> programmedState_;
+  std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::shared_ptr<SwitchState> initCfgState_;
   std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
@@ -117,6 +117,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::set<HwSwitchEventObserverIf*> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
+  bool initComplete_{false};
 };
 
 } // namespace fboss
