@@ -190,3 +190,20 @@ TEST_F(QueueManagerTest, loadUCMCQueueWithSameQueueId) {
   checkQueue(ucQueueHandles, portSaiId, cfg::StreamType::UNICAST, {queueIds});
   checkQueue(mcQueueHandles, portSaiId, cfg::StreamType::MULTICAST, {queueIds});
 }
+
+TEST_F(QueueManagerTest, changePortQueue) {
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  PortSaiId portSaiId = portHandle->port->adapterKey();
+  auto streamType = cfg::StreamType::UNICAST;
+  std::vector<uint8_t> queueIds = {1, 3, 5};
+  auto queueConfig = makeQueueConfig({queueIds});
+  auto queueSaiIds = getPortQueueSaiIds(portHandle);
+  portHandle->queues = saiManagerTable->queueManager().loadQueues(
+      portSaiId, queueSaiIds, queueConfig);
+  checkQueue(portHandle->queues, portSaiId, streamType, {queueIds});
+  std::vector<uint8_t> newQueueIds = {3, 4, 5, 6};
+  auto newQueueConfig = makeQueueConfig({newQueueIds});
+  saiManagerTable->portManager().changeQueue(
+      PortID(1), queueConfig, newQueueConfig);
+  checkQueue(portHandle->queues, portSaiId, streamType, {newQueueIds});
+}
