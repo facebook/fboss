@@ -9,14 +9,16 @@
  */
 
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
 namespace facebook {
 namespace fboss {
 
-TEST_F(BcmTest, overflowRoutes) {
+TEST_F(HwTest, overflowRoutes) {
   applyNewConfig(
       utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));
   std::shared_ptr<SwitchState> desiredState;
@@ -55,8 +57,7 @@ TEST_F(BcmTest, overflowRoutes) {
       break;
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
-      CHECK(0) << " TBD";
-
+      XLOG(WARNING) << " No overflow test for 400C yet";
       break;
   }
   if (!desiredState) {

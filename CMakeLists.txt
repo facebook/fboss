@@ -276,6 +276,8 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/HwVlanTests.cpp
     fboss/agent/hw/test/HwRouteScaleTest.cpp
+    fboss/agent/hw/test/HwRouteOverflowTest.cpp
+    fboss/agent/hw/test/HwRouteOverflowTest.cpp
     fboss/agent/hw/test/ConfigFactory.cpp
     fboss/agent/hw/test/HwLinkStateDependentTest.cpp
     fboss/agent/hw/test/HwTestConstants.cpp
