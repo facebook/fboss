@@ -51,6 +51,20 @@ void SaiQueueManager::changeQueue(
       managerTable_->schedulerManager().createScheduler(newPortQueue);
 }
 
+void SaiQueueManager::resetQueue(SaiQueueHandle* queueHandle) {
+  /*
+   * Queues cannot be deleted as it is owned by the adapter but all
+   * the queue attributes has to be reset to default. As a
+   * temporary solution, resetting the queue attributes to their
+   * defaults. For long term, this will be removed and resetting the
+   * objects will be part of SaiObject.
+   */
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
+      SAI_NULL_OBJECT_ID};
+  SaiApiTable::getInstance()->queueApi().setAttribute(
+      queueHandle->queue->adapterKey(), schedulerId);
+}
+
 void SaiQueueManager::ensurePortQueueConfig(
     PortSaiId portSaiId,
     const SaiQueueHandles& queueHandles,

@@ -43,6 +43,10 @@ void FakeSai::clear() {
   fs->vm.clearWithMembers();
 }
 
+sai_object_id_t FakeSai::getCpuPort() {
+  return cpuPortId;
+}
+
 sai_status_t sai_api_initialize(
     uint64_t /* flags */,
     const sai_service_method_table_t* /* services */) {
@@ -61,8 +65,7 @@ sai_status_t sai_api_initialize(
   std::vector<uint32_t> cpuPortLanes;
   cpuPortLanes.push_back(42);
   uint32_t cpuPortSpeed = 0;
-  sai_object_id_t cpuPortId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
-
+  fs->cpuPortId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
   fs->initialized = true;
   return SAI_STATUS_SUCCESS;
 }

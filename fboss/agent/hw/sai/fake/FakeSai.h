@@ -53,6 +53,8 @@ struct FakeSai {
   FakeVirtualRouterManager vrm;
   FakeVlanManager vm;
   bool initialized = false;
+  sai_object_id_t cpuPortId;
+  sai_object_id_t getCpuPort();
 };
 
 } // namespace facebook::fboss

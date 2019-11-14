@@ -154,7 +154,7 @@ TEST_F(PortManagerTest, changePortAdminState) {
   std::shared_ptr<Port> swPort = makePort(p0);
   auto saiId = saiManagerTable->portManager().addPort(swPort);
   swPort->setAdminState(cfg::PortState::DISABLED);
-  saiManagerTable->portManager().changePort(swPort);
+  saiManagerTable->portManager().changePort(swPort, swPort);
   checkPort(swPort->getID(), saiId, false);
 }
 
@@ -163,7 +163,7 @@ TEST_F(PortManagerTest, changePortNoChange) {
   auto saiId = saiManagerTable->portManager().addPort(swPort);
   swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   swPort->setAdminState(cfg::PortState::ENABLED);
-  saiManagerTable->portManager().changePort(swPort);
+  saiManagerTable->portManager().changePort(swPort, swPort);
   checkPort(swPort->getID(), saiId, true);
 }
 
@@ -172,7 +172,8 @@ TEST_F(PortManagerTest, changeNonExistentPort) {
   std::shared_ptr<Port> swPort2 = makePort(p1);
   saiManagerTable->portManager().addPort(swPort);
   swPort2->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
-  EXPECT_THROW(saiManagerTable->portManager().changePort(swPort2), FbossError);
+  EXPECT_THROW(
+      saiManagerTable->portManager().changePort(swPort2, swPort2), FbossError);
 }
 
 TEST_F(PortManagerTest, portConsolidationAddPort) {

@@ -82,7 +82,7 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.oid = kDefaultVlanId;
         break;
       case SAI_SWITCH_ATTR_CPU_PORT:
-        attr[i].value.oid = kCpuPort;
+        attr[i].value.oid = fs->getCpuPort();
         break;
       case SAI_SWITCH_ATTR_PORT_NUMBER:
         attr[i].value.u32 = fs->pm.map().size();

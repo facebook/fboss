@@ -38,9 +38,7 @@ class SaiHostifManager {
   HostifTrapSaiId addHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
   void removeHostifTrap(cfg::PacketRxReason trapId);
   void changeHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
-
   void processControlPlaneDelta(const StateDelta& delta);
-
   static sai_hostif_trap_type_t packetReasonToHostifTrap(
       cfg::PacketRxReason reason);
   static cfg::PacketRxReason hostifTrapToPacketReason(
@@ -51,7 +49,6 @@ class SaiHostifManager {
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
-
   SaiManagerTable* managerTable_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;

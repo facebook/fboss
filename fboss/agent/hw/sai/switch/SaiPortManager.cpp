@@ -139,16 +139,54 @@ void SaiPortManager::removePort(PortID swId) {
   handles_.erase(itr);
 }
 
-void SaiPortManager::changePort(const std::shared_ptr<Port>& swPort) {
-  SaiPortHandle* existingPort = getPortHandle(swPort->getID());
+void SaiPortManager::changeQueue(
+    PortID swId,
+    const QueueConfig& oldQueueConfig,
+    const QueueConfig& newQueueConfig) {
+  SaiPortHandle* portHandle = getPortHandle(swId);
+  if (!portHandle) {
+    throw FbossError("Attempted to change non-existent port ");
+  }
+
+  for (auto newPortQueue : newQueueConfig) {
+    // Queue create or update
+    SaiQueueConfig saiQueueConfig =
+        std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
+    auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+    managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+  }
+
+  for (auto oldPortQueue : oldQueueConfig) {
+    auto portQueueIter = std::find_if(
+        newQueueConfig.begin(),
+        newQueueConfig.end(),
+        [&](const std::shared_ptr<PortQueue> portQueue) {
+          return portQueue->getID() == oldPortQueue->getID();
+        });
+    // Queue Remove
+    if (portQueueIter == newQueueConfig.end()) {
+      SaiQueueConfig saiQueueConfig =
+          std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
+      auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+      managerTable_->queueManager().resetQueue(queueHandle);
+      portHandle->queues.erase(saiQueueConfig);
+    }
+  }
+}
+
+void SaiPortManager::changePort(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  SaiPortHandle* existingPort = getPortHandle(newPort->getID());
   if (!existingPort) {
     throw FbossError("Attempted to change non-existent port ");
   }
-  SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(swPort);
+  SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(newPort);
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   portStore.setObject(portKey, attributes);
-  loadQueues(swPort, existingPort);
+  changeQueue(
+      newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -231,8 +269,8 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
 
 void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
   auto delta = stateDelta.getPortsDelta();
-  auto processChanged = [this](const auto& /* oldPort */, const auto& newPort) {
-    changePort(newPort);
+  auto processChanged = [this](const auto& oldPort, const auto& newPort) {
+    changePort(oldPort, newPort);
   };
   auto processAdded = [this](const auto& newPort) { addPort(newPort); };
   auto processRemoved = [this](const auto& oldPort) {

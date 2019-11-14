@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
@@ -45,7 +46,9 @@ class SaiPortManager {
       ConcurrentIndices* concurrentIndices_);
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
   void removePort(PortID id);
-  void changePort(const std::shared_ptr<Port>& swPort);
+  void changePort(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiPortTraits::CreateAttributes attributesFromSwPort(
       const std::shared_ptr<Port>& swPort) const;
@@ -61,9 +64,11 @@ class SaiPortManager {
   void processPortDelta(const StateDelta& stateDelta);
   void updateStats() {}
   std::map<PortID, HwPortStats> getPortStats() const;
-  void removeQueue(
-      SaiQueueHandles& handle,
-      const SaiQueueConfig& saiQueueConfig);
+  PortSaiId addCpuPort(PortID portId);
+  void changeQueue(
+      PortID swId,
+      const QueueConfig& oldQueueConfig,
+      const QueueConfig& newQueueConfig);
 
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;

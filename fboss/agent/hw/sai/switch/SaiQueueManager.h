@@ -45,6 +45,7 @@ class SaiQueueManager {
       const std::vector<QueueSaiId>& queueSaiIds,
       const QueueConfig& queues);
   void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
+  void resetQueue(SaiQueueHandle* queueHandle);
 
  private:
   SaiManagerTable* managerTable_;
