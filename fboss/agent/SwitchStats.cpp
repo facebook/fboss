@@ -214,10 +214,7 @@ PortStats* SwitchStats::createPortStats(PortID portID, std::string portName) {
 AggregatePortStats* SwitchStats::createAggregatePortStats(
     AggregatePortID id,
     std::string name) {
-  bool inserted = false;
-  AggregatePortStatsMap::iterator it = aggregatePortIDToStats_.end();
-
-  std::tie(it, inserted) = aggregatePortIDToStats_.emplace(
+  auto [it, inserted] = aggregatePortIDToStats_.emplace(
       id, std::make_unique<AggregatePortStats>(id, name));
   CHECK(inserted);
 
