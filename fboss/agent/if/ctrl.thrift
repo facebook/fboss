@@ -504,6 +504,23 @@ service FbossCtrl extends fb303.FacebookService {
   void syncFib(1: i16 clientId, 2: list<UnicastRoute> routes)
     throws (1: fboss.FbossBaseError error)
 
+  void addUnicastRouteInVrf(1: i16 clientId, 2: UnicastRoute r, 3: i32 vrf)
+    throws (1: fboss.FbossBaseError error)
+  void deleteUnicastRouteInVrf(1: i16 clientId, 2: IpPrefix r, 3: i32 vrf)
+    throws (1: fboss.FbossBaseError error)
+  void addUnicastRoutesInVrf(
+    1: i16 clientId,
+    2: list<UnicastRoute> r,
+    3: i32 vrf
+  ) throws (1: fboss.FbossBaseError error)
+  void deleteUnicastRoutesInVrf(
+    1: i16 clientId,
+    2: list<IpPrefix> r,
+    3: i32 vrf
+  ) throws (1: fboss.FbossBaseError error)
+  void syncFibInVrf(1: i16 clientId, 2: list<UnicastRoute> routes, 3: i32 vrf)
+    throws (1: fboss.FbossBaseError error)
+
   /*
    * Begins a packet stream from the switch to a distribution service
    */

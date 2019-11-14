@@ -9,9 +9,6 @@
  */
 #include "fboss/agent/ThriftHandler.h"
 
-#include <fb303/ServiceData.h>
-#include <folly/IPAddressV4.h>
-#include <folly/IPAddressV6.h>
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
@@ -28,6 +25,8 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -48,9 +47,11 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
-
 #include "fboss/lib/LogThriftCall.h"
 
+#include <fb303/ServiceData.h>
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
 #include <folly/functional/Partial.h>
@@ -61,9 +62,6 @@
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 #include <limits>
-
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
-#include "fboss/agent/rib/NetworkToRouteMap.h"
 
 using apache::thrift::ClientReceiveState;
 using apache::thrift::server::TConnectionContext;
@@ -487,22 +485,48 @@ void ThriftHandler::flushCountersNow() {
   fb303::ThreadCachedServiceData::get()->publishStats();
 }
 
+void ThriftHandler::addUnicastRouteInVrf(
+    int16_t client,
+    std::unique_ptr<UnicastRoute> route,
+    int32_t vrf) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  routes->emplace_back(std::move(*route));
+  addUnicastRoutesInVrf(client, std::move(routes), vrf);
+}
+
 void ThriftHandler::addUnicastRoute(
     int16_t client,
     std::unique_ptr<UnicastRoute> route) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  auto routes = std::make_unique<std::vector<UnicastRoute>>();
-  routes->emplace_back(std::move(*route));
-  addUnicastRoutes(client, std::move(routes));
+  addUnicastRouteInVrf(client, std::move(route), 0);
+}
+
+void ThriftHandler::deleteUnicastRouteInVrf(
+    int16_t client,
+    std::unique_ptr<IpPrefix> prefix,
+    int32_t vrf) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->emplace_back(std::move(*prefix));
+  deleteUnicastRoutesInVrf(client, std::move(prefixes), vrf);
 }
 
 void ThriftHandler::deleteUnicastRoute(
     int16_t client,
     std::unique_ptr<IpPrefix> prefix) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
-  prefixes->emplace_back(std::move(*prefix));
-  deleteUnicastRoutes(client, std::move(prefixes));
+  deleteUnicastRouteInVrf(client, std::move(prefix), 0);
+}
+
+void ThriftHandler::addUnicastRoutesInVrf(
+    int16_t client,
+    std::unique_ptr<std::vector<UnicastRoute>> routes,
+    int32_t vrf) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured("addUnicastRoutesInVrf");
+  ensureFibSynced("addUnicastRoutesInVrf");
+  updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
 
 void ThriftHandler::addUnicastRoutes(
@@ -511,7 +535,7 @@ void ThriftHandler::addUnicastRoutes(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured("addUnicastRoutes");
   ensureFibSynced("addUnicastRoutes");
-  updateUnicastRoutesImpl(client, routes, "addUnicastRoutes", false);
+  addUnicastRoutesInVrf(client, std::move(routes), 0);
 }
 
 void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
@@ -519,20 +543,21 @@ void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
   sw_->getProductInfo(productInfo);
 }
 
-void ThriftHandler::deleteUnicastRoutes(
+void ThriftHandler::deleteUnicastRoutesInVrf(
     int16_t client,
-    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+    std::unique_ptr<std::vector<IpPrefix>> prefixes,
+    int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("deleteUnicastRoutes");
-  ensureFibSynced("deleteUnicastRoutes");
+  ensureConfigured("deleteUnicastRoutesInVrf");
+  ensureFibSynced("deleteUnicastRoutesInVrf");
 
   if (sw_->isStandaloneRibEnabled()) {
-    auto defaultVrf = RouterID(0);
+    auto routerID = RouterID(vrf);
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
     auto stats = sw_->getRib()->update(
-        defaultVrf,
+        routerID,
         clientID,
         defaultAdminDistance,
         {} /* routes to add */,
@@ -551,6 +576,10 @@ void ThriftHandler::deleteUnicastRoutes(
                << stats.duration.count() << "us";
 
     return;
+  }
+
+  if (vrf != 0) {
+    throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
   }
 
   RouteUpdateStats stats(sw_, "Delete", prefixes->size());
@@ -579,29 +608,48 @@ void ThriftHandler::deleteUnicastRoutes(
   sw_->updateStateBlocking("delete unicast route", updateFn);
 }
 
-void ThriftHandler::syncFib(
+void ThriftHandler::deleteUnicastRoutes(
     int16_t client,
-    std::unique_ptr<std::vector<UnicastRoute>> routes) {
+    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("syncFib");
-  updateUnicastRoutesImpl(client, routes, "syncFib", true);
+  ensureConfigured("deleteUnicastRoutes");
+  ensureFibSynced("deleteUnicastRoutes");
+  deleteUnicastRoutesInVrf(client, std::move(prefixes), 0);
+}
+
+void ThriftHandler::syncFibInVrf(
+    int16_t client,
+    std::unique_ptr<std::vector<UnicastRoute>> routes,
+    int32_t vrf) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured("syncFibInVrf");
+  updateUnicastRoutesImpl(vrf, client, routes, "syncFibInVrf", true);
   if (!sw_->isFibSynced()) {
     sw_->fibSynced();
   }
 }
 
+void ThriftHandler::syncFib(
+    int16_t client,
+    std::unique_ptr<std::vector<UnicastRoute>> routes) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured("syncFib");
+  syncFibInVrf(client, std::move(routes), 0);
+}
+
 void ThriftHandler::updateUnicastRoutesImpl(
+    int32_t vrf,
     int16_t client,
     const std::unique_ptr<std::vector<UnicastRoute>>& routes,
     const std::string& updType,
     bool sync) {
   if (sw_->isStandaloneRibEnabled()) {
-    auto defaultVrf = RouterID(0);
+    auto routerID = RouterID(vrf);
     auto clientID = ClientID(client);
     auto defaultAdminDistance = sw_->clientIdToAdminDistance(client);
 
     auto stats = sw_->getRib()->update(
-        defaultVrf,
+        routerID,
         clientID,
         defaultAdminDistance,
         *routes /* routes to add */,
@@ -620,6 +668,10 @@ void ThriftHandler::updateUnicastRoutesImpl(
                << stats.duration.count() << "us";
 
     return;
+  }
+
+  if (vrf != 0) {
+    throw FbossError("Multi-VRF only supported with Stand-Alone RIB");
   }
 
   RouteUpdateStats stats(sw_, updType, routes->size());

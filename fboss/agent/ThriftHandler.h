@@ -77,6 +77,27 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       int16_t client,
       std::unique_ptr<std::vector<UnicastRoute>> routes) override;
 
+  void addUnicastRouteInVrf(
+      int16_t client,
+      std::unique_ptr<UnicastRoute> route,
+      int32_t vrf) override;
+  void deleteUnicastRouteInVrf(
+      int16_t client,
+      std::unique_ptr<IpPrefix> prefix,
+      int32_t vrf) override;
+  void addUnicastRoutesInVrf(
+      int16_t client,
+      std::unique_ptr<std::vector<UnicastRoute>> routes,
+      int32_t vrf) override;
+  void deleteUnicastRoutesInVrf(
+      int16_t client,
+      std::unique_ptr<std::vector<IpPrefix>> prefixes,
+      int32_t vrf) override;
+  void syncFibInVrf(
+      int16_t client,
+      std::unique_ptr<std::vector<UnicastRoute>> routes,
+      int32_t vrf) override;
+
   /* MPLS routes */
   void addMplsRoutes(
       int16_t clientId,
@@ -321,10 +342,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::vector<std::string> added,
       std::vector<std::string> deleted);
   void updateUnicastRoutesImpl(
+      int32_t vrf,
       int16_t client,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
+
+  void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
+
   Vlan* getVlan(int32_t vlanId);
   Vlan* getVlan(const std::string& vlanName);
   template <typename ADDR_TYPE, typename ADDR_CONVERTER>
