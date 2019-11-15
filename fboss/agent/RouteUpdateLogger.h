@@ -130,29 +130,12 @@ class LabelsTracker {
   LabelsTracker()
       : label2Ids_{{kAll, boost::container::flat_set<std::string>()}} {}
 
-  void track(
-      LabelForwardingEntry::Label /*label*/,
-      const std::string& /*identifier*/) {
-    // TODO(pshaikh) : implement this
-  }
+  void track(LabelForwardingEntry::Label label, const std::string& identifier);
   void untrack(
-      LabelForwardingEntry::Label /*label*/,
-      const std::string& /*identifier*/) {
-    // TODO(pshaikh) : implement this
-  }
-  void untrack(const std::string& /*identifier*/) {
-    // TODO(pshaikh) : implement this
-  }
-
-  TrackedLabelsInfo getTrackedLabelsInfo() const {
-    // TODO(pshaikh) : implement this
-    return TrackedLabelsInfo();
-  }
-
-  bool isTracked(LabelForwardingEntry::Label /*label*/) const {
-    // TODO(pshaikh) : implement this
-    return false;
-  }
+      LabelForwardingEntry::Label label,
+      const std::string& identifier);
+  void untrack(const std::string& identifier);
+  TrackedLabelsInfo getTrackedLabelsInfo() const;
 
  private:
   Label2Ids label2Ids_;

@@ -256,5 +256,53 @@ LabelsTracker::TrackedLabelsInfo RouteUpdateLogger::gettTrackedLabels() const {
   return labelTracker_.rlock()->getTrackedLabelsInfo();
 }
 
+void LabelsTracker::track(
+    LabelForwardingEntry::Label label,
+    const std::string& identifier) {
+  auto emplaced =
+      label2Ids_.emplace(label, boost::container::flat_set<std::string>());
+  auto itr = emplaced.first;
+  itr->second.emplace(identifier);
+}
+
+void LabelsTracker::untrack(
+    LabelForwardingEntry::Label label,
+    const std::string& identifier) {
+  auto labelItr = label2Ids_.find(label);
+  if (labelItr == label2Ids_.end()) {
+    return;
+  }
+  auto idItr = labelItr->second.find(identifier);
+  if (idItr == labelItr->second.end()) {
+    return;
+  }
+  labelItr->second.erase(idItr);
+  if (labelItr->second.empty()) {
+    label2Ids_.erase(labelItr);
+  }
+}
+
+void LabelsTracker::untrack(const std::string& identifier) {
+  auto itr = label2Ids_.begin();
+  while (itr != label2Ids_.end()) {
+    itr->second.erase(identifier);
+    if (itr->second.empty()) {
+      itr = label2Ids_.erase(itr);
+    } else {
+      itr++;
+    }
+  }
+}
+
+LabelsTracker::TrackedLabelsInfo LabelsTracker::getTrackedLabelsInfo() const {
+  auto info = TrackedLabelsInfo();
+  for (auto label2Id : label2Ids_) {
+    for (auto id : label2Id.second) {
+      info.emplace(std::make_pair(id, label2Id.first));
+    }
+  }
+  return info;
+}
+
 } // namespace fboss
 } // namespace facebook
