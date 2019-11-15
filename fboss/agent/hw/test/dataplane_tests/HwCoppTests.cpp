@@ -33,7 +33,7 @@ constexpr uint8_t kNetworkControlDscp = 48;
 namespace facebook {
 namespace fboss {
 
-class BcmCoppTest : public HwLinkStateDependentTest {
+class HwCoppTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -136,7 +136,7 @@ class BcmCoppTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(BcmCoppTest, VerifyCoppPpsLowPri) {
+TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -200,7 +200,7 @@ TEST_F(BcmCoppTest, VerifyCoppPpsLowPri) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, LocalDstIpBgpPortToHighPriQ) {
+TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -229,7 +229,7 @@ TEST_F(BcmCoppTest, LocalDstIpBgpPortToHighPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
+TEST_F(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -255,7 +255,7 @@ TEST_F(BcmCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
+TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -280,7 +280,7 @@ TEST_F(BcmCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
+TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -321,7 +321,7 @@ TEST_F(BcmCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, SlowProtocolsMacToHighPriQ) {
+TEST_F(HwCoppTest, SlowProtocolsMacToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -338,7 +338,7 @@ TEST_F(BcmCoppTest, SlowProtocolsMacToHighPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, DstIpNetworkControlDscpToHighPriQ) {
+TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -371,7 +371,7 @@ TEST_F(BcmCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
+TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
@@ -407,7 +407,7 @@ TEST_F(BcmCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
+TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
   auto setup = [=]() {
     // COPP is part of initial config already
   };
