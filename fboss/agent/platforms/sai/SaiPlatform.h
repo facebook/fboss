@@ -46,6 +46,7 @@ class SaiPlatform : public Platform {
   void generateHwConfigFile();
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
+  virtual bool getObjectKeysSupported() const = 0;
 
   /*
    * Get ids of all controlling ports

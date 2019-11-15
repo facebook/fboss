@@ -181,7 +181,6 @@ class SaiObject {
     // N.B., fills out attributes_ as a side effect
     // XXX TODO: side-effect mode does NOT work with optionals
     attributes_ = api.getAttribute(adapterKey_, attributes_);
-
     live_ = true;
     adapterHostKey_ =
         detail::adapterHostKey<SaiObjectTraits>(adapterKey_, attributes_);
