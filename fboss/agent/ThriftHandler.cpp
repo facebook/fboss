@@ -1240,8 +1240,10 @@ void ThriftHandler::startLoggingRouteUpdates(
 }
 
 void ThriftHandler::startLoggingMplsRouteUpdates(
-    std::unique_ptr<MplsRouteUpdateLoggingInfo> /*info*/) {
-  // TODO(pshaikh) : implement this
+    std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  routeUpdateLogger->startLoggingForLabel(info->label, info->identifier);
 }
 
 void ThriftHandler::stopLoggingRouteUpdates(
@@ -1262,13 +1264,17 @@ void ThriftHandler::stopLoggingAnyRouteUpdates(
 }
 
 void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
-    std::unique_ptr<std::string> /*identifier*/) {
-  // TODO(pshaikh) : implement this
+    std::unique_ptr<std::string> identifier) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  routeUpdateLogger->stopLabelLoggingForIdentifier(*identifier);
 }
 
 void ThriftHandler::stopLoggingMplsRouteUpdates(
-    std::unique_ptr<MplsRouteUpdateLoggingInfo> /*info*/) {
-  // TODO(pshaikh) : implement this
+    std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  routeUpdateLogger->stopLoggingForLabel(info->label, info->identifier);
 }
 
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
@@ -1288,8 +1294,15 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
 }
 
 void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
-    std::vector<MplsRouteUpdateLoggingInfo>& /*infos*/) {
-  // TODO(pshaikh) : implement this
+    std::vector<MplsRouteUpdateLoggingInfo>& infos) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
+  for (const auto& tracked : routeUpdateLogger->gettTrackedLabels()) {
+    MplsRouteUpdateLoggingInfo info;
+    info.identifier = tracked.first;
+    info.label = tracked.second;
+    infos.push_back(info);
+  }
 }
 
 void ThriftHandler::beginPacketDump(int32_t port) {
