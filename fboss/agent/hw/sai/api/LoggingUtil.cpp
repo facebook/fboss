@@ -198,7 +198,19 @@ folly::StringPiece saiStatusToString(sai_status_t status) {
     case SAI_STATUS_ATTR_NOT_SUPPORTED_MAX:
       return "ATTR NOT SUPPORTED MAX";
     default:
-      throw FbossError("status invalid: ", status);
+      if (SAI_STATUS_IS_INVALID_ATTRIBUTE(status)) {
+        return "INVALID ATTRIBUTE";
+      } else if (SAI_STATUS_IS_INVALID_ATTR_VALUE(status)) {
+        return "INVALID ATTRIBUTE VALUE";
+      } else if (SAI_STATUS_IS_ATTR_NOT_IMPLEMENTED(status)) {
+        return "NOT IMPLEMENTED";
+      } else if (SAI_STATUS_IS_UNKNOWN_ATTRIBUTE(status)) {
+        return "UNKNOWN ATTRIBUTE";
+      } else if (SAI_STATUS_IS_ATTR_NOT_SUPPORTED(status)) {
+        return "NOT SUPPORTED";
+      } else {
+        throw FbossError("status invalid: ", status);
+      }
   }
 }
 } // namespace facebook::fboss
