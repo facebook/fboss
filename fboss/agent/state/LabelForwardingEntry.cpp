@@ -99,8 +99,12 @@ void LabelForwardingEntryFields::validateLabelNextHopEntry(
 }
 
 std::string LabelForwardingEntry::str() const {
-  // TODO(pshaikh) : implement me
-  return "LabelForwardingEntry";
+  return folly::to<std::string>(
+      getID(),
+      "@",
+      getLabelNextHopsByClient().str(),
+      ", =>",
+      getLabelNextHop().str());
 }
 template class NodeBaseT<LabelForwardingEntry, LabelForwardingEntryFields>;
 

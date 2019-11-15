@@ -137,6 +137,10 @@ class LabelsTracker {
   void untrack(const std::string& identifier);
   TrackedLabelsInfo getTrackedLabelsInfo() const;
 
+  void getIdentifiersForLabel(
+      LabelForwardingEntry::Label label,
+      std::vector<std::string>& identifiers) const;
+
  private:
   Label2Ids label2Ids_;
 };
@@ -169,7 +173,7 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   void stopLoggingForIdentifier(const std::string& identifier);
   void startLoggingForLabel(
       LabelForwardingEntry::Label label,
-      std::string& identifier);
+      const std::string& identifier);
   void stopLoggingForLabel(
       LabelForwardingEntry::Label label,
       const std::string& identifier);

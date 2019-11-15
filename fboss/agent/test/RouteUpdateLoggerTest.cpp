@@ -52,6 +52,38 @@ class MockRouteLogger : public RouteLogger<AddrT> {
   std::vector<std::pair<std::string, std::string>> changed;
 };
 
+class MockMplsRouteLogger : public MplsRouteLogger {
+ public:
+  void logAddedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& newEntry,
+      const std::vector<std::string>& identifiers) override {
+    added.push_back(newEntry->str());
+    addedFor.insert(addedFor.end(), identifiers.begin(), identifiers.end());
+  }
+
+  void logChangedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+      const std::shared_ptr<LabelForwardingEntry>& newEntry,
+      const std::vector<std::string>& identifiers) override {
+    changed.push_back({oldEntry->str(), newEntry->str()});
+    changedFor.insert(changedFor.end(), identifiers.begin(), identifiers.end());
+  }
+
+  void logRemovedRoute(
+      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+      const std::vector<std::string>& identifiers) override {
+    removed.push_back(oldEntry->str());
+    removedFor.insert(removedFor.end(), identifiers.begin(), identifiers.end());
+  }
+
+  std::vector<std::string> added;
+  std::vector<std::string> addedFor;
+  std::vector<std::string> removed;
+  std::vector<std::string> removedFor;
+  std::vector<std::pair<std::string, std::string>> changed;
+  std::vector<std::string> changedFor;
+};
+
 class RouteUpdateLoggerTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -86,11 +118,13 @@ class RouteUpdateLoggerTest : public ::testing::Test {
         sw,
         std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
         std::make_unique<MockRouteLogger<folly::IPAddressV6>>(),
-        nullptr /* TODO(pshaikh) : test mpls route update logging */);
+        std::make_unique<MockMplsRouteLogger>());
     mockRouteLoggerV4 = static_cast<MockRouteLogger<folly::IPAddressV4>*>(
         routeUpdateLogger->getRouteLoggerV4());
     mockRouteLoggerV6 = static_cast<MockRouteLogger<folly::IPAddressV6>*>(
         routeUpdateLogger->getRouteLoggerV6());
+    mockMplsRouteLogger = static_cast<MockMplsRouteLogger*>(
+        routeUpdateLogger->getMplsRouteLogger());
     user = "fboss-user";
   }
 
@@ -116,6 +150,22 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 
   void stopLogging(const std::string& addr, uint8_t mask) {
     stopLogging(addr, mask, "");
+  }
+
+  void startLogging(LabelForwardingEntry::Label label) {
+    startLogging(label, "");
+  }
+
+  void startLogging(
+      LabelForwardingEntry::Label label,
+      const std::string& identifier) {
+    routeUpdateLogger->startLoggingForLabel(label, identifier);
+  }
+
+  void stopLogging(
+      LabelForwardingEntry::Label label,
+      const std::string& identifier) {
+    routeUpdateLogger->stopLoggingForLabel(label, identifier);
   }
 
   void logAllRouteUpdates() {
@@ -144,6 +194,35 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     expectNoAdded();
   }
 
+  std::shared_ptr<SwitchState> addLabel(
+      const std::shared_ptr<SwitchState>& state,
+      LabelForwardingEntry::Label label,
+      ClientID client = ClientID::OPENR) {
+    auto newState = state->clone();
+    auto entry = std::make_shared<LabelForwardingEntry>(
+        label,
+        client,
+        LabelNextHopEntry{RouteForwardAction::DROP,
+                          AdminDistance::MAX_ADMIN_DISTANCE});
+    auto labelFib =
+        newState->getLabelForwardingInformationBase()->modify(&newState);
+    labelFib->addNode(entry);
+    newState->publish();
+    return newState;
+  }
+
+  std::shared_ptr<SwitchState> removeLabel(
+      const std::shared_ptr<SwitchState>& state,
+      LabelForwardingEntry::Label label,
+      ClientID client = ClientID::OPENR) {
+    auto newState = state->clone();
+    auto labelFib =
+        newState->getLabelForwardingInformationBase()->modify(&newState);
+    labelFib->unprogramLabel(&newState, label, client);
+    newState->publish();
+    return newState;
+  }
+
   std::shared_ptr<SwitchState> initState;
   std::shared_ptr<SwitchState> stateA;
   std::shared_ptr<StateDelta> deltaAdd;
@@ -152,6 +231,7 @@ class RouteUpdateLoggerTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle;
   MockRouteLogger<folly::IPAddressV4>* mockRouteLoggerV4;
   MockRouteLogger<folly::IPAddressV6>* mockRouteLoggerV6;
+  MockMplsRouteLogger* mockMplsRouteLogger;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger;
   std::string user;
 };
@@ -338,6 +418,86 @@ TEST_F(RouteUpdateLoggerTest, ClearForOneUser) {
   routeUpdateLogger->stateUpdated(*deltaAdd);
   EXPECT_EQ(2, mockRouteLoggerV4->added.size());
   EXPECT_EQ(4, mockRouteLoggerV6->added.size());
+}
+
+TEST_F(RouteUpdateLoggerTest, LabelAdded) {
+  startLogging(100);
+  startLogging(200);
+  startLogging(300);
+
+  auto state = addLabel(initState, 100);
+  state = addLabel(state, 200);
+  state = addLabel(state, 300);
+
+  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  EXPECT_EQ(3, mockMplsRouteLogger->added.size());
+}
+
+TEST_F(RouteUpdateLoggerTest, LabelRemoved) {
+  startLogging(100);
+  startLogging(200);
+  startLogging(300);
+
+  auto state = addLabel(initState, 100);
+  state = addLabel(state, 200);
+  state = addLabel(state, 300);
+  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  EXPECT_EQ(3, mockMplsRouteLogger->added.size());
+
+  auto newState = removeLabel(state, 300);
+  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  EXPECT_EQ(1, mockMplsRouteLogger->removed.size());
+}
+
+TEST_F(RouteUpdateLoggerTest, LabelChanged) {
+  startLogging(100);
+
+  auto state = addLabel(initState, 100);
+  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  EXPECT_EQ(1, mockMplsRouteLogger->added.size());
+  auto newState = removeLabel(state, 100);
+  newState = addLabel(newState, 100, ClientID::STATIC_ROUTE);
+  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
+}
+
+TEST_F(RouteUpdateLoggerTest, MultipleSubscribers) {
+  startLogging(100, "foo");
+  startLogging(100, "bar");
+  startLogging(100, "foobar");
+
+  auto state = addLabel(initState, 100);
+  state = addLabel(state, 200);
+
+  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  EXPECT_EQ(1, mockMplsRouteLogger->added.size());
+  EXPECT_EQ(3, mockMplsRouteLogger->addedFor.size());
+
+  stopLogging(100, "foo");
+  auto newState = removeLabel(state, 100);
+  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  EXPECT_EQ(1, mockMplsRouteLogger->removed.size());
+  EXPECT_EQ(2, mockMplsRouteLogger->removedFor.size());
+
+  startLogging(200, "foo");
+  startLogging(200, "bar");
+  startLogging(200, "foobar");
+  auto anotherNewState = removeLabel(newState, 200);
+  anotherNewState = addLabel(anotherNewState, 200, ClientID::STATIC_ROUTE);
+  routeUpdateLogger->stateUpdated(StateDelta(newState, anotherNewState));
+  EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
+  EXPECT_EQ(3, mockMplsRouteLogger->changedFor.size());
+
+  stopLogging(200, "foobar");
+  mockMplsRouteLogger->changed.clear();
+  mockMplsRouteLogger->changedFor.clear();
+  auto oneMoreNewState =
+      removeLabel(anotherNewState, 200, ClientID::STATIC_ROUTE);
+  oneMoreNewState = addLabel(oneMoreNewState, 200);
+
+  routeUpdateLogger->stateUpdated(StateDelta(anotherNewState, oneMoreNewState));
+  EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
+  EXPECT_EQ(2, mockMplsRouteLogger->changedFor.size());
 }
 
 } // namespace

@@ -87,6 +87,39 @@ void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
         prefixTracker_,
         routeLoggerV6_);
   }
+
+  auto* mplsRouteLogger = mplsRouteLogger_.get();
+  CHECK(mplsRouteLogger);
+  const auto labelTracker = labelTracker_.rlock();
+
+  DeltaFunctions::forEachChanged(
+      delta.getLabelForwardingInformationBaseDelta(),
+      [mplsRouteLogger, &labelTracker](
+          const auto& oldEntry, const auto& newEntry) {
+        std::vector<std::string> identifiers;
+        labelTracker->getIdentifiersForLabel(oldEntry->getID(), identifiers);
+        if (identifiers.empty()) {
+          return;
+        }
+        mplsRouteLogger->logChangedRoute(oldEntry, newEntry, identifiers);
+      },
+      [mplsRouteLogger, &labelTracker](const auto& addedEntry) {
+        std::vector<std::string> identifiers;
+        labelTracker->getIdentifiersForLabel(addedEntry->getID(), identifiers);
+        if (identifiers.empty()) {
+          return;
+        }
+        mplsRouteLogger->logAddedRoute(addedEntry, identifiers);
+      },
+      [mplsRouteLogger, &labelTracker](const auto& removedEntry) {
+        std::vector<std::string> identifiers;
+        labelTracker->getIdentifiersForLabel(
+            removedEntry->getID(), identifiers);
+        if (identifiers.empty()) {
+          return;
+        }
+        mplsRouteLogger->logRemovedRoute(removedEntry, identifiers);
+      });
 }
 
 void RouteUpdateLogger::startLoggingForPrefix(
@@ -237,7 +270,7 @@ void MplsRouteLogger::logRemovedRoute(
 
 void RouteUpdateLogger::startLoggingForLabel(
     LabelForwardingEntry::Label label,
-    std::string& identifier) {
+    const std::string& identifier) {
   labelTracker_.wlock()->track(label, identifier);
 }
 
@@ -304,5 +337,16 @@ LabelsTracker::TrackedLabelsInfo LabelsTracker::getTrackedLabelsInfo() const {
   return info;
 }
 
+void LabelsTracker::getIdentifiersForLabel(
+    LabelForwardingEntry::Label label,
+    std::vector<std::string>& identifiers) const {
+  auto label2IdsItr = label2Ids_.find(label);
+  if (label2IdsItr == label2Ids_.end()) {
+    return;
+  }
+  for (auto id : label2IdsItr->second) {
+    identifiers.emplace_back(id);
+  }
+}
 } // namespace fboss
 } // namespace facebook
