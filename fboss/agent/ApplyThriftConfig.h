@@ -36,7 +36,6 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const std::shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib = nullptr,
-    const cfg::SwitchConfig* prevConfig = nullptr);
+    rib::RoutingInformationBase* rib = nullptr);
 } // namespace fboss
 } // namespace facebook

@@ -1486,8 +1486,7 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
             &newConfig,
             getPlatform(),
             (getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) ? getRib()
-                                                              : nullptr,
-            &curConfig_);
+                                                              : nullptr);
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");

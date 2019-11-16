@@ -161,8 +161,8 @@ TEST(StaticRoutes, configureUnconfigure) {
 
   // Now blow away the static routes from config.
   cfg::SwitchConfig emptyConfig;
-  auto stateV2 = publishAndApplyConfig(
-      stateV1, &emptyConfig, platform.get(), nullptr, &config);
+  auto stateV2 =
+      publishAndApplyConfig(stateV1, &emptyConfig, platform.get(), nullptr);
   ASSERT_NE(nullptr, stateV2);
   auto t2 = stateV2->getRouteTables()->getRouteTableIf(rid0);
   // No routes and hence no routing table

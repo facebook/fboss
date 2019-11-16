@@ -119,10 +119,9 @@ shared_ptr<SwitchState> publishAndApplyConfig(
     shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib,
-    const cfg::SwitchConfig* prevCfg) {
+    rib::RoutingInformationBase* rib) {
   state->publish();
-  return applyThriftConfig(state, config, platform, rib, prevCfg);
+  return applyThriftConfig(state, config, platform, rib);
 }
 
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(

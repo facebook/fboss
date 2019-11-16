@@ -104,13 +104,8 @@ class ThriftConfigApplier {
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
       const Platform* platform,
-      rib::RoutingInformationBase* rib,
-      const cfg::SwitchConfig* prevCfg)
-      : orig_(orig),
-        cfg_(config),
-        platform_(platform),
-        rib_(rib),
-        prevCfg_(prevCfg) {}
+      rib::RoutingInformationBase* rib)
+      : orig_(orig), cfg_(config), platform_(platform), rib_(rib) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -264,7 +259,6 @@ class ThriftConfigApplier {
   const cfg::SwitchConfig* cfg_{nullptr};
   const Platform* platform_{nullptr};
   rib::RoutingInformationBase* rib_{nullptr};
-  const cfg::SwitchConfig* prevCfg_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -2236,16 +2230,9 @@ shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    rib::RoutingInformationBase* rib,
-    const cfg::SwitchConfig* prevConfig) {
+    rib::RoutingInformationBase* rib) {
   cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(
-             state,
-             config,
-             platform,
-             rib,
-             prevConfig ? prevConfig : &emptyConfig)
-      .run();
+  return ThriftConfigApplier(state, config, platform, rib).run();
 }
 } // namespace fboss
 } // namespace facebook
