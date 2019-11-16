@@ -1050,6 +1050,18 @@ struct TrafficCounter {
   2: list<CounterType> types = [PACKETS]
 }
 
+enum L2LearningMode {
+  HARDWARE = 0,
+  SOFTWARE = 1,
+}
+
+/*
+ * Switch specific settings: global to the switch
+ */
+struct SwitchSettings {
+  1: L2LearningMode l2LearningMode
+}
+
 /**
  * The configuration for a switch.
  *
@@ -1148,4 +1160,6 @@ struct SwitchConfig {
 
   // Map of named PortQueueConfigs.
   40: map<PortQueueConfigName, list<PortQueue>> portQueueConfigs = {}
+
+  41: SwitchSettings switchSettings
 }
