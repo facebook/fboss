@@ -18,6 +18,7 @@ class HwAsic {
     MPLS_ECMP,
     TRUNCATE_MIRROR_PACKET,
     TX_VLAN_STRIPPING_ON_PORT,
+    HOT_SWAP,
   };
 
   enum class AsicType {
