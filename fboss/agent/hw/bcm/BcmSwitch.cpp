@@ -524,6 +524,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
   rv = opennsl_switch_control_set(unit_, opennslSwitchNdPktToCpu, 1);
   bcmCheckError(rv, "failed to set NDP trapping");
+  disableHotSwap();
 
   if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();

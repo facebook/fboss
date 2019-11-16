@@ -805,6 +805,10 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<ControlPlane>& oldCPU,
       const std::shared_ptr<ControlPlane>& newCPU);
   /*
+   * Disable hotswap setting
+   */
+  void disableHotSwap() const;
+  /*
    * Member variables
    */
   BcmPlatform* platform_{nullptr};

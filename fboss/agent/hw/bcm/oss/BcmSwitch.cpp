@@ -147,5 +147,7 @@ bool BcmSwitch::isValidLabelForwardingEntry(
 }
 
 void BcmSwitch::processControlPlaneChanges(const StateDelta& /*delta*/) {}
+
+void BcmSwitch::disableHotSwap() const {}
 } // namespace fboss
 } // namespace facebook
