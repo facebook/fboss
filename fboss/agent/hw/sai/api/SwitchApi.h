@@ -67,6 +67,8 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_MAX_NUMBER_OF_SUPPORTED_PORTS,
         sai_uint32_t>;
+    using SwitchShellEnable =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE, bool>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

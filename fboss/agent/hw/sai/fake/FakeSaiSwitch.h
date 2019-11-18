@@ -33,11 +33,18 @@ class FakeSwitch {
   void setInitStatus(bool inited) {
     inited_ = inited;
   }
+  void setShellStatus(bool enabled) {
+    shellEnabled_ = enabled;
+  }
+  bool isShellEnabled() const {
+    return shellEnabled_;
+  }
   sai_object_id_t id;
 
  private:
   folly::MacAddress srcMac_;
   bool inited_{false};
+  bool shellEnabled_{false};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

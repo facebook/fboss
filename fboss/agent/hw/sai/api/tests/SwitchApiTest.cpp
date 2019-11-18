@@ -96,3 +96,10 @@ TEST_F(SwitchApiTest, getCpuPort) {
       switchApi->getAttribute(switchId, SaiSwitchTraits::Attributes::CpuPort{});
   EXPECT_EQ(cpuPort, 0);
 }
+
+TEST_F(SwitchApiTest, setGetShellEnable) {
+  SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
+  switchApi->setAttribute(switchId, shell);
+  SaiSwitchTraits::Attributes::SwitchShellEnable blank{false};
+  EXPECT_TRUE(switchApi->getAttribute(switchId, blank));
+}

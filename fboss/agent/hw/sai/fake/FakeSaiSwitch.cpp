@@ -42,6 +42,10 @@ sai_status_t set_switch_attribute_fn(
       // Number of active ports is read only
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
+    case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
+      sw.setShellStatus(attr->value.booldata);
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -103,6 +107,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_INIT_SWITCH:
         attr[i].value.booldata = sw.isInitialized();
+        break;
+      case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
+        attr[i].value.booldata = sw.isShellEnabled();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
