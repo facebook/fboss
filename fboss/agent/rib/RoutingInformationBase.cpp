@@ -177,10 +177,13 @@ folly::dynamic RoutingInformationBase::toFollyDynamic() const {
 
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
   for (const auto& routeTable : *lockedRouteTables) {
-    auto routerID = static_cast<int>(routeTable.first);
-    rib[routerID] = folly::dynamic::object;
-    rib[routerID]["v4"] = routeTable.second.v4NetworkToRoute.toFollyDynamic();
-    rib[routerID]["v6"] = routeTable.second.v6NetworkToRoute.toFollyDynamic();
+    auto routerIdStr =
+        folly::to<std::string>(static_cast<int>(routeTable.first));
+    rib[routerIdStr] = folly::dynamic::object;
+    rib[routerIdStr]["v4"] =
+        routeTable.second.v4NetworkToRoute.toFollyDynamic();
+    rib[routerIdStr]["v6"] =
+        routeTable.second.v6NetworkToRoute.toFollyDynamic();
   }
 
   return rib;
