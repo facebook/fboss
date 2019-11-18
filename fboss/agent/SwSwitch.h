@@ -185,9 +185,9 @@ class SwSwitch : public HwSwitch::Callback {
    * state is the one that clients should consider (and we return that), since
    * sooner or later, that is what will become the actual applied state too.
    *
-   * This returns a pointer to the current state.  However, note that the state
-   * may be modified by another thread immediately after getState() returns,
-   * in which case the caller may now have an out-of-date copy of the state.
+   * However, note that the state may be modified by another thread immediately
+   * after getState() returns, in which case the caller may now have an out-of-
+   * date copy of the state.
    * See the comments in SwitchState.h for more details about the copy-on-write
    * semantics of SwitchState.
    */
