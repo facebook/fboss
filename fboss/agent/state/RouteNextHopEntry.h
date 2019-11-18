@@ -16,7 +16,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-DECLARE_int32(ecmp_width);
+DECLARE_uint32(ecmp_width);
 
 namespace facebook {
 namespace fboss {
