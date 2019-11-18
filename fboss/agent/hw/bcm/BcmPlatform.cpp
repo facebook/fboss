@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
