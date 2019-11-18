@@ -231,7 +231,7 @@ void IPv4Handler::handlePacket(
   // We will need to manage the rate somehow. Either from HW
   // or a SW control here
   stats->port(port)->ipv4Nexthop();
-  if (!resolveMac(state, port, v4Hdr.dstAddr)) {
+  if (!resolveMac(state, port, v4Hdr.dstAddr, pkt->getSrcVlan())) {
     stats->port(port)->ipv4NoArp();
     XLOG(DBG4) << "Cannot find the interface to send out ARP request for "
                << v4Hdr.dstAddr.str();
@@ -245,14 +245,20 @@ void IPv4Handler::handlePacket(
 bool IPv4Handler::resolveMac(
     std::shared_ptr<SwitchState> state,
     PortID ingressPort,
-    IPAddressV4 dest) {
+    IPAddressV4 dest,
+    VlanID ingressVlan) {
   // need to find out our own IP and MAC addresses so that we can send the
   // ARP request out. Since the request will be broadcast, there is no need to
   // worry about which port to send the packet out.
 
-  // TODO(samank): avoid hard coding VRF
+  auto ingressInterface =
+      state->getInterfaces()->getInterfaceInVlanIf(ingressVlan);
+  if (!ingressInterface) {
+    // Received packed on unknown VLAN
+    return false;
+  }
 
-  auto route = sw_->longestMatch(state, dest, RouterID(0));
+  auto route = sw_->longestMatch(state, dest, ingressInterface->getRouterID());
   if (!route || !route->isResolved()) {
     sw_->portStats(ingressPort)->ipv4DstLookupFailure();
     // No way to reach dest

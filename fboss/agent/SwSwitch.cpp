@@ -1444,7 +1444,7 @@ void SwSwitch::sendL3Packet(
       if (dstAddr.isV6()) {
         ipv6_->sendMulticastNeighborSolicitations(PortID(0), dstAddr.asV6());
       } else {
-        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4());
+        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4(), vlanID);
       }
     }
 
