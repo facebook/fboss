@@ -579,6 +579,8 @@ add_library(fboss_agent STATIC
     fboss/agent/test/RouteDistributionGenerator.cpp
     fboss/agent/test/RouteScaleGenerators.cpp
 
+    fboss/lib/config/PlatformConfigUtils.cpp
+    fboss/lib/config/PlatformConfigUtils.h
     fboss/lib/usb/GalaxyI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.cpp
     fboss/lib/usb/BaseWedgeI2CBus.h

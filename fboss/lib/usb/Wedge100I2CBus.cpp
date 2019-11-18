@@ -33,13 +33,13 @@ void extractPresenceBits(
     bool upperQsfps) {
   for (int byte = 0; byte < 2; byte++) {
     for (int bit = 0; bit < 8; bit++) {
-      int txcvIdx = byte * 8 + bit;
+      int tcvrIdx = byte * 8 + bit;
       if (upperQsfps) {
-        txcvIdx += 16;
+        tcvrIdx += 16;
       }
       ((buf[byte] >> bit) & 1)
-          ? presences[txcvIdx] = facebook::fboss::ModulePresence::ABSENT
-          : presences[txcvIdx] = facebook::fboss::ModulePresence::PRESENT;
+          ? presences[tcvrIdx] = facebook::fboss::ModulePresence::ABSENT
+          : presences[tcvrIdx] = facebook::fboss::ModulePresence::PRESENT;
     }
   }
 }
