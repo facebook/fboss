@@ -7,7 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/rib/RoutingInformationBase.h"
+
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
@@ -15,8 +18,6 @@
 
 #include <memory>
 #include <utility>
-
-#include "fboss/agent/AddressUtil.h"
 
 namespace {
 class Timer {
@@ -255,6 +256,14 @@ RoutingInformationBase::constructRouteTables(
   }
 
   return newRouteTables;
+}
+
+bool RoutingInformationBase::operator==(
+    const RoutingInformationBase& other) const {
+  const auto& routeTables = synchronizedRouteTables_.rlock();
+  const auto& otherTables = other.synchronizedRouteTables_.rlock();
+
+  return *routeTables == *otherTables;
 }
 
 } // namespace rib

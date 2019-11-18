@@ -95,6 +95,11 @@ class RoutingInformationBase {
 
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
 
+  bool operator==(const RoutingInformationBase& other) const;
+  bool operator!=(const RoutingInformationBase& other) const {
+    return !(*this == other);
+  }
+
  private:
   struct RouteTable {
     RouteTable() = default;
@@ -103,6 +108,14 @@ class RoutingInformationBase {
     IPv6NetworkToRouteMap v6NetworkToRoute;
 
     UpdateStatistics lastUpdateStats_;
+
+    bool operator==(const RouteTable& other) const {
+      return v4NetworkToRoute == other.v4NetworkToRoute &&
+          v6NetworkToRoute == other.v6NetworkToRoute;
+    }
+    bool operator!=(const RouteTable& other) const {
+      return !(*this == other);
+    }
   };
 
   /*
