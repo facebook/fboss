@@ -10,44 +10,41 @@
 
 #pragma once
 
-#include <folly/String.h>
+#include <folly/Range.h>
 
 namespace facebook {
 namespace fboss {
 
-auto constexpr kClassID = "classID";
-auto constexpr kEcmpEgress = "ecmpEgress";
-auto constexpr kEcmpEgressId = "ecmpEgressId";
-auto constexpr kEcmpHosts = "ecmpHosts";
-auto constexpr kEgress = "egress";
-auto constexpr kEgressId = "egressId";
-auto constexpr kFlags = "flags";
-auto constexpr kFwdInfo = "forwardingInfo";
-auto constexpr kHostTable = "hostTable";
-auto constexpr kHosts = "hosts";
-auto constexpr kHwSwitch = "hwSwitch";
-auto constexpr kIntf = "intf";
-auto constexpr kIntfId = "intfId";
-auto constexpr kIntfTable = "intfTable";
-auto constexpr kIp = "ip";
-auto constexpr kLabel = "label";
-auto constexpr kMac = "mac";
-auto constexpr kMplsNextHops = "mplsNextHops";
-auto constexpr kMplsTunnel = "mplsTunnel";
-auto constexpr kNextHops = "nexthops";
-auto constexpr kNextHopsMulti = "rib";
-auto constexpr kPaths = "paths";
-auto constexpr kPort = "port";
-auto constexpr kPrefix = "prefix";
-auto constexpr kStack = "stack";
-auto constexpr kSwSwitch = "swSwitch";
-auto constexpr kVlan = "vlan";
-auto constexpr kVrf = "vrf";
-auto constexpr kWarmBootCache = "warmBootCache";
-
-inline folly::StringPiece constexpr kWeight() {
-  return "weight";
-}
+inline constexpr folly::StringPiece kClassID{"classID"};
+inline constexpr folly::StringPiece kEcmpEgressId{"ecmpEgressId"};
+inline constexpr folly::StringPiece kEcmpEgress{"ecmpEgress"};
+inline constexpr folly::StringPiece kEcmpHosts{"ecmpHosts"};
+inline constexpr folly::StringPiece kEgressId{"egressId"};
+inline constexpr folly::StringPiece kEgress{"egress"};
+inline constexpr folly::StringPiece kFlags{"flags"};
+inline constexpr folly::StringPiece kFwdInfo{"forwardingInfo"};
+inline constexpr folly::StringPiece kHostTable{"hostTable"};
+inline constexpr folly::StringPiece kHosts{"hosts"};
+inline constexpr folly::StringPiece kHwSwitch{"hwSwitch"};
+inline constexpr folly::StringPiece kIntfId{"intfId"};
+inline constexpr folly::StringPiece kIntfTable{"intfTable"};
+inline constexpr folly::StringPiece kIntf{"intf"};
+inline constexpr folly::StringPiece kIp{"ip"};
+inline constexpr folly::StringPiece kLabel{"label"};
+inline constexpr folly::StringPiece kMac{"mac"};
+inline constexpr folly::StringPiece kMplsNextHops{"mplsNextHops"};
+inline constexpr folly::StringPiece kMplsTunnel{"mplsTunnel"};
+inline constexpr folly::StringPiece kNextHopsMulti{"rib"};
+inline constexpr folly::StringPiece kNextHops{"nexthops"};
+inline constexpr folly::StringPiece kPaths{"paths"};
+inline constexpr folly::StringPiece kPort{"port"};
+inline constexpr folly::StringPiece kPrefix{"prefix"};
+inline constexpr folly::StringPiece kStack{"stack"};
+inline constexpr folly::StringPiece kSwSwitch{"swSwitch"};
+inline constexpr folly::StringPiece kVlan{"vlan"};
+inline constexpr folly::StringPiece kVrf{"vrf"};
+inline constexpr folly::StringPiece kWarmBootCache{"warmBootCache"};
+inline constexpr folly::StringPiece kWeight{"weight"};
 
 } // namespace fboss
 } // namespace facebook

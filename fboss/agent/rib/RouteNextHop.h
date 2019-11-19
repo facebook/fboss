@@ -15,8 +15,8 @@
 #include <folly/poly/Regular.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/constants.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
@@ -81,7 +81,7 @@ struct INextHop {
     folly::dynamic toFollyDynamic() const {
       folly::dynamic nh = folly::dynamic::object;
       nh[kNexthop()] = addr().str();
-      nh[kWeight()] = folly::to<std::string>(weight());
+      nh[kWeight] = folly::to<std::string>(weight());
       if (isResolved()) {
         nh[kInterface()] = static_cast<uint32_t>(intf());
       }

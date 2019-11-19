@@ -61,7 +61,7 @@ NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson) {
   //   at the SwitchState level seamlessly. TODO: test what happens to
   //   programmed UCMP routes in this case
   NextHopWeight weight(ECMP_WEIGHT);
-  auto weightItr = nhopJson.find(kWeight());
+  auto weightItr = nhopJson.find(kWeight);
   if (weightItr != nhopJson.items().end()) {
     weight = weightItr->second.asInt();
   }

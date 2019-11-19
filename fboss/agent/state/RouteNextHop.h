@@ -81,7 +81,7 @@ struct INextHop {
     folly::dynamic toFollyDynamic() const {
       folly::dynamic nh = folly::dynamic::object;
       nh[kNexthop()] = addr().str();
-      nh[kWeight()] = folly::to<std::string>(weight());
+      nh[kWeight] = folly::to<std::string>(weight());
       if (isResolved()) {
         nh[kInterface()] = static_cast<uint32_t>(intf());
       }
