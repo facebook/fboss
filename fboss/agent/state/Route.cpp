@@ -11,17 +11,12 @@
 #include "Route.h"
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
 using facebook::network::toBinaryAddress;
 
-namespace {
-constexpr auto kPrefix = "prefix";
-constexpr auto kNextHopsMulti = "rib";
-constexpr auto kFwdInfo = "forwardingInfo";
-constexpr auto kFlags = "flags";
-} // namespace
 namespace facebook {
 namespace fboss {
 

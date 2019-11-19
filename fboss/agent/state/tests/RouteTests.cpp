@@ -42,7 +42,7 @@ using std::shared_ptr;
 using ::testing::Return;
 
 namespace {
-const auto kPrefix =
+const auto kDestPrefix =
     RouteV6::Prefix{folly::IPAddressV6("2401:bad:cad:dad::"), 64};
 const auto kDestAddress = folly::IPAddressV6("2401:bad:cad:dad::beef");
 
@@ -2417,15 +2417,15 @@ TEST(Route, unresolvedWithRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
   tables = updater.updateDone();
   EXPECT_NODEMAP_MATCH(tables);
 
-  // route to remote destination under kPrefix advertised by bgp
+  // route to remote destination under kDestPrefix advertised by bgp
   const auto& route =
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
@@ -2459,8 +2459,8 @@ TEST(Route, withTunnelAndRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -2489,7 +2489,7 @@ TEST(Route, withTunnelAndRouteLabels) {
   tables = updater.updateDone();
   EXPECT_NODEMAP_MATCH(tables);
 
-  // route to remote destination under kPrefix advertised by bgp
+  // route to remote destination under kDestPrefix advertised by bgp
   const auto& route =
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
@@ -2543,8 +2543,8 @@ TEST(Route, withOnlyTunnelLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -2573,7 +2573,7 @@ TEST(Route, withOnlyTunnelLabels) {
   tables = updater.updateDone();
   EXPECT_NODEMAP_MATCH(tables);
 
-  // route to remote destination under kPrefix advertised by bgp
+  // route to remote destination under kDestPrefix advertised by bgp
   const auto& route =
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
@@ -2629,8 +2629,8 @@ TEST(Route, updateTunnelLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -2680,7 +2680,7 @@ TEST(Route, updateTunnelLabels) {
   updatedStack.push_back(*(kLabelStacks[0].begin() + 1));
   updatedStack.push_back(*(kLabelStacks[1].begin() + 2));
 
-  // route to remote destination under kPrefix advertised by bgp
+  // route to remote destination under kDestPrefix advertised by bgp
   const auto& route =
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 
@@ -2722,8 +2722,8 @@ TEST(Route, updateRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -2756,12 +2756,13 @@ TEST(Route, updateRouteLabels) {
                                             kLabelStacks[1].begin() + 2})};
 
   RouteUpdater anotherUpdater(tables);
-  anotherUpdater.delRoute(rid, kPrefix.network, kPrefix.mask, ClientID::BGPD);
+  anotherUpdater.delRoute(
+      rid, kDestPrefix.network, kDestPrefix.mask, ClientID::BGPD);
 
   anotherUpdater.addRoute(
       rid,
-      kPrefix.network,
-      kPrefix.mask,
+      kDestPrefix.network,
+      kDestPrefix.mask,
       ClientID::BGPD,
       RouteNextHopEntry(updatedBgpNextHop, DISTANCE));
 
@@ -2773,7 +2774,7 @@ TEST(Route, updateRouteLabels) {
   updatedStack.push_back(*(kLabelStacks[1].begin() + 1));
   updatedStack.push_back(*(kLabelStacks[0].begin() + 2));
 
-  // route to remote destination under kPrefix advertised by bgp
+  // route to remote destination under kDestPrefix advertised by bgp
   const auto& route =
       tables->getRouteTableIf(rid)->getRibV6()->longestMatch(kDestAddress);
 

@@ -33,7 +33,7 @@ namespace {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
-const IpPrefix kPrefix = IpPrefix(
+const IpPrefix kDestPrefix = IpPrefix(
     apache::thrift::FRAGILE,
     facebook::network::toBinaryAddress(folly::IPAddress("fc00::")),
     7);
@@ -95,7 +95,7 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.set_dest(kPrefix);
+  route.set_dest(kDestPrefix);
   route.set_nextHops(nextHopsThrift());
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
@@ -117,7 +117,7 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.set_dest(kPrefix);
+  route.set_dest(kDestPrefix);
   route.set_nextHopAddrs(nextHopsBinaryAddress);
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
@@ -134,7 +134,7 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
 
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   UnicastRoute route;
-  route.set_dest(kPrefix);
+  route.set_dest(kDestPrefix);
   route.set_nextHops(nextHopsThrift());
   route.set_adminDistance(AdminDistance::IBGP);
 
@@ -149,7 +149,7 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
-  route.set_dest(kPrefix);
+  route.set_dest(kDestPrefix);
   route.set_nextHops(noNextHops);
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);

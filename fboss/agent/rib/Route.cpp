@@ -10,14 +10,8 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "Route.h"
 
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/state/RouteTypes.h"
-
-namespace {
-constexpr auto kPrefix = "prefix";
-constexpr auto kNextHopsMulti = "rib";
-constexpr auto kFwdInfo = "forwardingInfo";
-constexpr auto kFlags = "flags";
-} // namespace
 
 namespace facebook {
 namespace fboss {
