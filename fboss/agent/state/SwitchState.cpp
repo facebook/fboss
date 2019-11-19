@@ -24,6 +24,7 @@
 #include "fboss/agent/state/RouteTable.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
@@ -52,6 +53,7 @@ constexpr auto kLoadBalancers = "loadBalancers";
 constexpr auto kMirrors = "mirrors";
 constexpr auto kAggregatePorts = "aggregatePorts";
 constexpr auto kLabelForwardingInformationBase = "labelFib";
+constexpr auto kSwitchSettings = "switchSettings";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -76,7 +78,8 @@ SwitchStateFields::SwitchStateFields()
       loadBalancers(make_shared<LoadBalancerMap>()),
       mirrors(make_shared<MirrorMap>()),
       fibs(make_shared<ForwardingInformationBaseMap>()),
-      labelFib(make_shared<LabelForwardingInformationBase>()) {}
+      labelFib(make_shared<LabelForwardingInformationBase>()),
+      switchSettings(make_shared<SwitchSettings>()) {}
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
   folly::dynamic switchState = folly::dynamic::object;
@@ -93,6 +96,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kMirrors] = mirrors->toFollyDynamic();
   switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
+  switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
   return switchState;
 }
 
@@ -133,6 +137,11 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
     switchState.labelFib = LabelForwardingInformationBase::fromFollyDynamic(
         swJson[kLabelForwardingInformationBase]);
   }
+  if (swJson.find(kSwitchSettings) != swJson.items().end()) {
+    switchState.switchSettings =
+        SwitchSettings::fromFollyDynamic(swJson[kSwitchSettings]);
+  }
+
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -264,6 +273,11 @@ void SwitchState::resetControlPlane(
 void SwitchState::resetLoadBalancers(
     std::shared_ptr<LoadBalancerMap> loadBalancers) {
   writableFields()->loadBalancers.swap(loadBalancers);
+}
+
+void SwitchState::resetSwitchSettings(
+    std::shared_ptr<SwitchSettings> switchSettings) {
+  writableFields()->switchSettings = switchSettings;
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {

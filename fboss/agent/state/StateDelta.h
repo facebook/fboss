@@ -28,6 +28,7 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/RouteDelta.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
 namespace facebook {
@@ -70,6 +71,7 @@ class StateDelta {
   ForwardingInformationBaseMapDelta getFibsDelta() const;
   NodeMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
+  DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

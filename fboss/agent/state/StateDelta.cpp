@@ -107,6 +107,11 @@ ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
       old_->getFibs().get(), new_->getFibs().get());
 }
 
+DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {
+  return DeltaValue<SwitchSettings>(
+      old_->getSwitchSettings(), new_->getSwitchSettings());
+}
+
 NodeMapDelta<LabelForwardingInformationBase>
 StateDelta::getLabelForwardingInformationBaseDelta() const {
   return NodeMapDelta<LabelForwardingInformationBase>(

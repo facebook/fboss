@@ -1059,7 +1059,7 @@ enum L2LearningMode {
  * Switch specific settings: global to the switch
  */
 struct SwitchSettings {
-  1: L2LearningMode l2LearningMode
+  1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE
 }
 
 /**

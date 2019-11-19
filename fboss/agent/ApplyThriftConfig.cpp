@@ -245,6 +245,7 @@ class ThriftConfigApplier {
   shared_ptr<SflowCollector> updateSflowCollector(
       const shared_ptr<SflowCollector>& orig,
       const cfg::SflowCollector* config);
+  shared_ptr<SwitchSettings> updateSwitchSettings();
   shared_ptr<ControlPlane> updateControlPlane();
   std::shared_ptr<MirrorMap> updateMirrors();
   std::shared_ptr<Mirror> createMirror(const cfg::Mirror* config);
@@ -282,6 +283,14 @@ class ThriftConfigApplier {
 shared_ptr<SwitchState> ThriftConfigApplier::run() {
   new_ = orig_->clone();
   bool changed = false;
+
+  {
+    auto newSwitchSettings = updateSwitchSettings();
+    if (newSwitchSettings) {
+      new_->resetSwitchSettings(std::move(newSwitchSettings));
+      changed = true;
+    }
+  }
 
   {
     auto newControlPlane = updateControlPlane();
@@ -1900,6 +1909,19 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setIsVirtual(config->isVirtual);
   newIntf->setIsStateSyncDisabled(config->isStateSyncDisabled);
   return newIntf;
+}
+
+shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
+  auto origSwitchSettings = orig_->getSwitchSettings();
+
+  if (origSwitchSettings->getL2LearningMode() ==
+      cfg_->switchSettings.l2LearningMode) {
+    return nullptr;
+  }
+
+  auto newSwitchSettings = origSwitchSettings->clone();
+  newSwitchSettings->setL2LearningMode(cfg_->switchSettings.l2LearningMode);
+  return newSwitchSettings;
 }
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {

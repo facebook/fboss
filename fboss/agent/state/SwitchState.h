@@ -29,6 +29,7 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
@@ -41,6 +42,7 @@ template <typename AddressT>
 class Route;
 class SflowCollector;
 class SflowCollectorMap;
+class SwitchSettings;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -60,6 +62,7 @@ struct SwitchStateFields {
     fn(mirrors.get());
     fn(fibs.get());
     fn(labelFib.get());
+    fn(switchSettings.get());
   }
   /*
    * Serialize to folly::dynamic
@@ -83,6 +86,7 @@ struct SwitchStateFields {
   std::shared_ptr<MirrorMap> mirrors;
   std::shared_ptr<ForwardingInformationBaseMap> fibs;
   std::shared_ptr<LabelForwardingInformationBase> labelFib;
+  std::shared_ptr<SwitchSettings> switchSettings;
 
   VlanID defaultVlan{0};
 
@@ -238,6 +242,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->controlPlane;
   }
 
+  const std::shared_ptr<SwitchSettings>& getSwitchSettings() const {
+    return getFields()->switchSettings;
+  }
+
   void setArpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getNdpTimeout() const {
@@ -330,6 +338,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       std::shared_ptr<LabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
       std::shared_ptr<ForwardingInformationBaseMap> fibs);
+  void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
 
  private:
   // Inherit the constructor required for clone()
