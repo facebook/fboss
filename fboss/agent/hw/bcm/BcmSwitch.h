@@ -81,6 +81,7 @@ class BcmMirrorTable;
 class ControlPlane;
 class BcmBstStatsMgr;
 class BcmLabelMap;
+class BcmSwitchSettings;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -161,6 +162,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual std::string gatherSdkState() const = 0;
 
   virtual void dumpState(const std::string& path) const = 0;
+
+  virtual const BcmSwitchSettings* getSwitchSettings() const = 0;
 };
 
 /*
@@ -307,6 +310,10 @@ class BcmSwitch : public BcmSwitchIf {
   }
   const BcmTrunkTable* getTrunkTable() const override {
     return trunkTable_.get();
+  }
+
+  const BcmSwitchSettings* getSwitchSettings() const override {
+    return switchSettings_.get();
   }
 
   bool isPortUp(PortID port) const override;
@@ -615,6 +622,8 @@ class BcmSwitch : public BcmSwitchIf {
   void processChangedLabelForwardingInformationBase(const StateDelta& delta);
   bool isValidLabelForwardingEntry(const LabelForwardingEntry* entry) const;
 
+  void processSwitchSettingsChanged(const StateDelta& delta);
+
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
@@ -844,6 +853,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::unique_ptr<std::thread> linkScanBottomHalfThread_;
   folly::EventBase linkScanBottomHalfEventBase_;
+
+  std::unique_ptr<BcmSwitchSettings> switchSettings_;
 
   std::unique_ptr<BcmUnit> unitObject_;
   BootType bootType_{BootType::UNINITIALIZED};

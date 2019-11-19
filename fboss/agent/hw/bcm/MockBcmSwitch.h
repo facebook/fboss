@@ -125,6 +125,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(writableBcmMirrorTable, BcmMirrorTable*());
   MOCK_CONST_METHOD0(writableLabelMap, BcmLabelMap*());
   MOCK_CONST_METHOD0(getBootType, BootType());
+  MOCK_CONST_METHOD0(getSwitchSettings, const BcmSwitchSettings*());
 };
 
 } // namespace fboss

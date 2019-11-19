@@ -50,6 +50,7 @@
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
+#include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
@@ -208,7 +209,8 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       sFlowExporterTable_(new BcmSflowExporterTable()),
       rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)),
       mirrorTable_(new BcmMirrorTable(this)),
-      bstStatsMgr_(new BcmBstStatsMgr(this)) {
+      bstStatsMgr_(new BcmBstStatsMgr(this)),
+      switchSettings_(new BcmSwitchSettings(this)) {
   exportSdkVersion();
 }
 
@@ -249,6 +251,7 @@ void BcmSwitch::resetTables() {
   rtag7LoadBalancer_.reset();
   bcmStatUpdater_.reset();
   bstStatsMgr_.reset();
+  switchSettings_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -323,6 +326,40 @@ bool BcmSwitch::isPortUp(PortID port) const {
 
 std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
+
+  uint32_t flags = 0;
+  for (const auto& kv : *portTable_) {
+    uint32_t port_flags;
+    PortID portID = kv.first;
+
+    auto rv = opennsl_port_learn_get(getUnit(), portID, &port_flags);
+    bcmCheckError(rv, "Unable to get L2 Learning flags for port: ", portID);
+
+    if (flags == 0) {
+      flags = port_flags;
+    } else if (flags != port_flags) {
+      throw FbossError(
+          "Every port should have same L2 Learning setting by default");
+    }
+  }
+
+  // This is cold boot, so there cannot be any L2 update callback registered.
+  // Thus, OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_FWD should be enough to
+  // ascertain HARDWARE as L2 learning mode.
+  cfg::L2LearningMode l2LearningMode;
+  if (flags == (OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_FWD)) {
+    l2LearningMode = cfg::L2LearningMode::HARDWARE;
+  } else if (flags == (OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_PENDING)) {
+    l2LearningMode = cfg::L2LearningMode::SOFTWARE;
+  } else {
+    throw FbossError(
+        "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
+  }
+
+  auto switchSettings = make_shared<SwitchSettings>();
+  switchSettings->setL2LearningMode(l2LearningMode);
+  bootState->resetSwitchSettings(switchSettings);
+
   opennsl_vlan_t defaultVlan;
   auto rv = opennsl_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
@@ -588,6 +625,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   setMacAging(std::chrono::seconds(FLAGS_l2AgeTimerSeconds));
 
+  switchSettings_ = std::make_unique<BcmSwitchSettings>(this);
+
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
   return ret;
@@ -643,6 +682,28 @@ void BcmSwitch::setupPacketRx() {
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
 
+void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
+  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
+  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
+  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+
+  /*
+   * SwitchSettings are mandatory and can thus only be modified.
+   * Every field in SwitchSettings must always be set in new SwitchState.
+   */
+  CHECK(oldSwitchSettings);
+  CHECK(newSwitchSettings);
+
+  if (oldSwitchSettings->getL2LearningMode() !=
+      newSwitchSettings->getL2LearningMode()) {
+    XLOG(DBG3) << "Configuring L2LearningMode old: "
+               << static_cast<int>(oldSwitchSettings->getL2LearningMode())
+               << " new: "
+               << static_cast<int>(newSwitchSettings->getL2LearningMode());
+    switchSettings_->setL2LearningMode(newSwitchSettings->getL2LearningMode());
+  }
+}
+
 std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> g(lock_);
@@ -679,6 +740,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // As the first step, disable ports that are now disabled.
   // This ensures that we immediately stop forwarding traffic on these ports.
   processDisabledPorts(delta);
+
+  processSwitchSettingsChanged(delta);
 
   processLoadBalancerChanges(delta);
 
