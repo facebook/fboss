@@ -16,6 +16,8 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
+#include <folly/Synchronized.h>
+
 #include <memory>
 #include <thread>
 
@@ -114,7 +116,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<Platform> platform_;
   std::unique_ptr<HwSwitch> hwSwitch_;
   uint32_t featuresDesired_{0};
-  std::set<HwSwitchEventObserverIf*> hwEventObservers_;
+  folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
   bool initComplete_{false};
