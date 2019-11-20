@@ -2146,5 +2146,26 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
                                         : MmuState::MMU_LOSSY;
 }
 
+void BcmSwitch::l2LearningCallback(
+    int unit,
+    opennsl_l2_addr_t* l2Addr,
+    int operation,
+    void* userData) {
+  auto* bcmSw = static_cast<BcmSwitch*>(userData);
+  DCHECK_EQ(bcmSw->getUnit(), unit);
+  bcmSw->l2LearningUpdateReceived(l2Addr, operation);
+}
+
+void BcmSwitch::l2LearningUpdateReceived(
+    opennsl_l2_addr_t* /*l2Addr*/,
+    int /*operation*/) noexcept {
+  /*
+   * TODO (skhare)
+   * Dispatch "valid" callbacks
+   * Convert l2Addr to L2Entry(folly::MacAddress, vid, portID),
+   * Convert operation to L2UpdateType
+   * callback_->l2AddrUpdateReceived(l2Entry, l2UpdateType);
+   */
+}
 } // namespace fboss
 } // namespace facebook

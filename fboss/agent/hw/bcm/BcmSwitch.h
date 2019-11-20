@@ -24,6 +24,7 @@
 
 extern "C" {
 #include <opennsl/error.h>
+#include <opennsl/l2.h>
 #include <opennsl/port.h>
 #include <opennsl/rx.h>
 #include <opennsl/types.h>
@@ -477,6 +478,24 @@ class BcmSwitch : public BcmSwitchIf {
    * To that end make tests friends, but no one else
    */
   FRIEND_TEST(BcmTest, fpNoMissingOrQsetChangedGrpsPostInit);
+
+  /*
+   * Private callback called by the Broadcom API. Dispatches to
+   * BcmSwitch::l2AddrUpdteReceived
+   */
+  static void l2LearningCallback(
+      int unit,
+      opennsl_l2_addr_t* l2Addr,
+      int operation,
+      void* userData);
+
+  /*
+   * Private callback called by BcmSwitch::l2AddrCallBack. Dispatches to
+   * callback_->l2LearningUpdateReceived
+   */
+  void l2LearningUpdateReceived(
+      opennsl_l2_addr_t* l2Addr,
+      int operation) noexcept;
 
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
