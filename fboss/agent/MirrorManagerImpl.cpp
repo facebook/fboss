@@ -127,12 +127,19 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
   const auto interface = state->getInterfaces()->getInterfaceIf(nextHop.intf());
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
+  if (udpPorts.has_value()) {
+    return MirrorTunnel(
+        srcIp ? srcIp.value() : iter->first,
+        destinationIp,
+        interface->getMac(),
+        neighbor->getMac(),
+        udpPorts.value());
+  }
   return MirrorTunnel(
       srcIp ? srcIp.value() : iter->first,
       destinationIp,
       interface->getMac(),
-      neighbor->getMac(),
-      udpPorts);
+      neighbor->getMac());
 }
 
 template class MirrorManagerImpl<folly::IPAddressV4>;

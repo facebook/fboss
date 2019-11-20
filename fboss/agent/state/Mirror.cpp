@@ -47,6 +47,7 @@ MirrorTunnel MirrorTunnel::fromFollyDynamic(const folly::dynamic& json) {
   if (json.find(kUdpSrcPort) != json.items().end()) {
     tunnel.udpPorts =
         TunnelUdpPorts(json[kUdpSrcPort].asInt(), json[kUdpDstPort].asInt());
+    tunnel.greProtocol = 0;
   }
 
   return tunnel;

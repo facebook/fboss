@@ -32,29 +32,36 @@ struct MirrorTunnel {
   uint8_t ttl;
   uint16_t greProtocol;
   static constexpr auto kTTL = 255;
-  static constexpr auto kProto = 0x88be;
-
-  MirrorTunnel()
-      : srcMac(folly::MacAddress::ZERO),
-        dstMac(folly::MacAddress::ZERO),
-        ttl(kTTL),
-        greProtocol(kProto) {}
+  static constexpr auto kGreProto = 0x88be;
 
   MirrorTunnel(
       const folly::IPAddress& srcIp,
       const folly::IPAddress& dstIp,
       const folly::MacAddress& srcMac,
       const folly::MacAddress& dstMac,
-      const std::optional<TunnelUdpPorts>& udpPorts = std::nullopt,
-      uint8_t ttl = kTTL,
-      uint16_t proto = kProto)
+      uint8_t ttl = kTTL)
       : srcIp(srcIp),
         dstIp(dstIp),
         srcMac(srcMac),
         dstMac(dstMac),
-        udpPorts(udpPorts),
+        udpPorts(std::nullopt),
         ttl(ttl),
-        greProtocol(proto) {}
+        greProtocol(kGreProto) {}
+
+  MirrorTunnel(
+      const folly::IPAddress& srcIp,
+      const folly::IPAddress& dstIp,
+      const folly::MacAddress& srcMac,
+      const folly::MacAddress& dstMac,
+      const TunnelUdpPorts& sflowPorts,
+      uint8_t ttl = kTTL)
+      : srcIp(srcIp),
+        dstIp(dstIp),
+        srcMac(srcMac),
+        dstMac(dstMac),
+        udpPorts(sflowPorts),
+        ttl(ttl),
+        greProtocol(0) {}
 
   bool operator==(const MirrorTunnel& rhs) const {
     return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
