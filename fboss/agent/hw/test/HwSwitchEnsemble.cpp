@@ -13,6 +13,7 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/state/Interface.h"
@@ -183,5 +184,13 @@ void HwSwitchEnsemble::gracefulExit() {
   switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
   getHwSwitch()->gracefulExit(switchState);
 }
+
+void HwSwitchEnsemble::l2LearningUpdateReceived(
+    L2Entry /*l2Entry*/,
+    L2EntryUpdateType /*l2EntryUpdateType*/) {
+  // TODO(skhare)
+  // handle this
+}
+
 } // namespace fboss
 } // namespace facebook

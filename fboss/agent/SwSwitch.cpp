@@ -18,6 +18,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv4Handler.h"
 #include "fboss/agent/IPv6Handler.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
@@ -1571,6 +1572,14 @@ template std::shared_ptr<Route<folly::IPAddressV6>> SwSwitch::longestMatch(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& address,
     RouterID vrf);
+
+void SwSwitch::l2LearningUpdateReceived(
+    L2Entry /*l2Entry*/,
+    L2EntryUpdateType /*l2EntryUpdateType*/) {
+  // TODO (skhare)
+  // Update SwitchState->vlan->L2Table, and schedule update to program L2 entry
+  // into ASIC.
+}
 
 } // namespace fboss
 } // namespace facebook

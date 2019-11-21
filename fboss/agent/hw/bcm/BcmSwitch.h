@@ -14,6 +14,7 @@
 #include <gtest/gtest_prod.h>
 #include <optional>
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 

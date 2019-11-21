@@ -417,6 +417,9 @@ class SwSwitch : public HwSwitch::Callback {
   // HwSwitch::Callback methods
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) override;
+  void l2LearningUpdateReceived(
+      L2Entry l2Entry,
+      L2EntryUpdateType l2EntryUpdateType) override;
   void exitFatal() const noexcept override;
 
   /*

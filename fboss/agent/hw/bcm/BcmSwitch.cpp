@@ -27,6 +27,7 @@
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
@@ -169,6 +170,57 @@ bool bothStandAloneRibOrRouteTableRibUsed(
     const facebook::fboss::StateDelta& delta) {
   return routeTableModified(delta) && fibModified(delta);
 }
+
+/*
+ * For the devices/SDK we use, the only events we should get (and process)
+ * are ADD and DELETE.
+ * Learning generates ADD, aging generaets DELETE, while Mac move results in
+ * DELETE followed by ADD.
+ * We ASSERT this explicitly via BCM tests.
+ */
+const std::map<int, facebook::fboss::L2EntryUpdateType>
+    kL2AddrUpdateOperationsOfInterest = {
+        {OPENNSL_L2_CALLBACK_DELETE,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
+        {OPENNSL_L2_CALLBACK_ADD,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
+};
+
+using facebook::fboss::AggregatePortID;
+using facebook::fboss::L2Entry;
+using facebook::fboss::L2EntryUpdateType;
+using facebook::fboss::macFromBcm;
+using facebook::fboss::PortDescriptor;
+using facebook::fboss::PortID;
+using facebook::fboss::VlanID;
+
+L2Entry createL2Entry(const opennsl_l2_addr_t* l2Addr) {
+  CHECK(l2Addr);
+
+  // TODO (skhare) Verify/Test Trunk handling
+  if (l2Addr->tgid == 0) {
+    return L2Entry(
+        macFromBcm(l2Addr->mac),
+        VlanID(l2Addr->vid),
+        PortDescriptor(PortID(l2Addr->port)));
+  } else {
+    return L2Entry(
+        macFromBcm(l2Addr->mac),
+        VlanID(l2Addr->vid),
+        PortDescriptor(AggregatePortID(l2Addr->tgid)));
+  }
+}
+
+bool isL2OperationOfInterest(int operation) {
+  return kL2AddrUpdateOperationsOfInterest.find(operation) !=
+      kL2AddrUpdateOperationsOfInterest.end();
+}
+
+L2EntryUpdateType getL2EntryUpdateType(int operation) {
+  CHECK(isL2OperationOfInterest(operation));
+  return kL2AddrUpdateOperationsOfInterest.find(operation)->second;
+}
+
 } // namespace
 
 namespace facebook {
@@ -2158,15 +2210,17 @@ void BcmSwitch::l2LearningCallback(
 }
 
 void BcmSwitch::l2LearningUpdateReceived(
-    opennsl_l2_addr_t* /*l2Addr*/,
-    int /*operation*/) noexcept {
+    opennsl_l2_addr_t* l2Addr,
+    int operation) noexcept {
   /*
    * TODO (skhare)
    * Dispatch "valid" callbacks
-   * Convert l2Addr to L2Entry(folly::MacAddress, vid, portID),
-   * Convert operation to L2UpdateType
-   * callback_->l2AddrUpdateReceived(l2Entry, l2UpdateType);
    */
+  if (l2Addr && isL2OperationOfInterest(operation)) {
+    callback_->l2LearningUpdateReceived(
+        createL2Entry(l2Addr), getL2EntryUpdateType(operation));
+  }
 }
+
 } // namespace fboss
 } // namespace facebook

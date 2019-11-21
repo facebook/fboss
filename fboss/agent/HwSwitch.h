@@ -31,6 +31,8 @@ class SwitchStats;
 class StateDelta;
 class RxPacket;
 class TxPacket;
+class L2Entry;
+enum class L2EntryUpdateType : uint8_t;
 
 struct HwInitResult {
   std::shared_ptr<SwitchState> switchState{nullptr};
@@ -83,6 +85,14 @@ class HwSwitch {
      * status changes on a port.
      */
     virtual void linkStateChanged(PortID port, bool up) = 0;
+
+    /*
+     * l2LearningUpdateReceived() is invoked by the HwSwitch when there is
+     * changes l2 table.
+     */
+    virtual void l2LearningUpdateReceived(
+        L2Entry l2Entry,
+        L2EntryUpdateType l2EntryUpdateType) = 0;
 
     /*
      * Used to notify the SwSwitch of a fatal error so the implementation can
