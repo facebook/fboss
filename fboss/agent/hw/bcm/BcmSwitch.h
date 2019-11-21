@@ -105,6 +105,7 @@ class BcmSwitchIf : public HwSwitch {
   virtual int getUnit() const = 0;
 
   virtual const BcmPortTable* getPortTable() const = 0;
+  virtual BcmPortTable* writablePortTable() const = 0;
 
   virtual const BcmIntfTable* getIntfTable() const = 0;
 
@@ -262,6 +263,9 @@ class BcmSwitch : public BcmSwitchIf {
     return VlanID(vlan);
   }
   const BcmPortTable* getPortTable() const override {
+    return portTable_.get();
+  }
+  BcmPortTable* writablePortTable() const override {
     return portTable_.get();
   }
   const BcmIntfTable* getIntfTable() const override {

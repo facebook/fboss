@@ -92,6 +92,13 @@ class BcmPortTable {
    * for every map entry which meets given predicate, execute given action */
   void forFilteredEach(Filter predicate, FilterAction action) const;
 
+  /*
+   * For some platform that supports add or remove port after bcm unit init.
+   * We need to support BcmPortTable to add and remove such BcmPort objects so
+   * that BcmPortTable will still maintain all manageable bcm port objects.
+   */
+  void addBcmPort(opennsl_port_t logicalPort, bool warmBoot);
+
  private:
   /* Initialize all the port groups that exist. A port group is a set of ports
    * that can act as either a single port or multiple ports.

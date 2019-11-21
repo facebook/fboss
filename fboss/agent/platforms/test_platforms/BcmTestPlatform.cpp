@@ -101,7 +101,8 @@ std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) const {
 
 PlatformPort* BcmTestPlatform::getPlatformPort(PortID portID) const {
   auto it = ports_.find(portID);
-  return it == ports_.end() ? nullptr : it->second.get();
+  CHECK(it != ports_.end());
+  return it->second.get();
 }
 
 } // namespace fboss

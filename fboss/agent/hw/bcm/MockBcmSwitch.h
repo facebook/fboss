@@ -66,6 +66,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(isRxThreadRunning, bool());
   MOCK_CONST_METHOD0(getUnit, int());
   MOCK_CONST_METHOD0(getPortTable, const BcmPortTable*());
+  MOCK_CONST_METHOD0(writablePortTable, BcmPortTable*());
   MOCK_CONST_METHOD0(getIntfTable, const BcmIntfTable*());
   MOCK_CONST_METHOD0(getHostTable, const BcmHostTable*());
   MOCK_CONST_METHOD0(getEgressManager, const BcmEgressManager*());

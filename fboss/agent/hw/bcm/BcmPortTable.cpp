@@ -34,6 +34,24 @@ BcmPortTable::BcmPortTable(BcmSwitch* hw) : hw_(hw) {}
 
 BcmPortTable::~BcmPortTable() {}
 
+void BcmPortTable::addBcmPort(opennsl_port_t logicalPort, bool warmBoot) {
+  // Find the platform port object
+  BcmPlatformPort* platformPort = dynamic_cast<BcmPlatformPort*>(
+      hw_->getPlatform()->getPlatformPort(PortID(logicalPort)));
+  if (platformPort == nullptr) {
+    throw FbossError("Can't find platform port for port:", logicalPort);
+  }
+
+  // Create a BcmPort object
+  PortID fbossPortID = platformPort->getPortID();
+  auto bcmPort = make_unique<BcmPort>(hw_, logicalPort, platformPort);
+  platformPort->setBcmPort(bcmPort.get());
+  bcmPort->init(warmBoot);
+
+  fbossPhysicalPorts_[fbossPortID] = bcmPort.get();
+  bcmPhysicalPorts_[logicalPort] = std::move(bcmPort);
+}
+
 void BcmPortTable::initPorts(
     const opennsl_port_config_t* portConfig,
     bool warmBoot) {
@@ -60,17 +78,10 @@ void BcmPortTable::initPorts(
       throw FbossError(
           "platform attempted to initialize BCM port ",
           bcmPortNum,
-          " which does not exist");
+          " which does not exist in hardware");
     }
 
-    // Create a BcmPort object
-    PortID fbossPortID = platPort->getPortID();
-    auto bcmPort = make_unique<BcmPort>(hw_, bcmPortNum, platPort);
-    platPort->setBcmPort(bcmPort.get());
-    bcmPort->init(warmBoot);
-
-    fbossPhysicalPorts_.emplace(fbossPortID, bcmPort.get());
-    bcmPhysicalPorts_.emplace(bcmPortNum, std::move(bcmPort));
+    addBcmPort(bcmPortNum, warmBoot);
   }
 
   initPortGroups();
