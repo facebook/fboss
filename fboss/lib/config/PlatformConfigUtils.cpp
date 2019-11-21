@@ -112,6 +112,48 @@ std::vector<phy::PinID> getTransceiverLanes(
   return lanes;
 }
 
+std::vector<phy::PinID> getOrderedIphyLanes(
+    const cfg::PlatformPortEntry& port,
+    const std::vector<phy::DataPlanePhyChip>& chips,
+    std::optional<cfg::PortProfileID> profileID) {
+  std::vector<phy::PinID> lanes;
+  if (profileID) {
+    auto itrPortCfg = port.supportedProfiles.find(*profileID);
+    if (itrPortCfg == port.supportedProfiles.end()) {
+      throw FbossError(
+          "Port: ",
+          port.mapping.name,
+          " doesn't support profile:",
+          apache::thrift::util::enumNameSafe(*profileID));
+    }
+    for (const auto& pinCfg : itrPortCfg->second.pins.iphy) {
+      lanes.push_back(pinCfg.id);
+    }
+  } else {
+    // If it's not looking for the lanes list based on profile, return the
+    // static lane mapping
+    auto pins = getPinsByChipType(
+        chips, port.mapping.pins, phy::DataPlanePhyChipType::IPHY);
+    // the return pins should always be PinID for transceiver
+    for (auto pin : pins) {
+      if (pin.getType() != phy::Pin::Type::end) {
+        if (pin.getType() != phy::Pin::Type::end) {
+          throw FbossError("Unsupported pin type for iphy");
+        }
+      }
+      lanes.push_back(pin.get_end());
+    }
+  }
+  if (lanes.empty()) {
+    throw FbossError("Port: ", port.mapping.name, " doesn't have iphy lanes");
+  }
+  // Sort by lane
+  std::sort(lanes.begin(), lanes.end(), [](const auto& lPin, const auto& rPin) {
+    return lPin.lane < rPin.lane;
+  });
+  return lanes;
+}
+
 // Get subsidiary PortID list based on controlling port
 std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
     const facebook::fboss::cfg::PlatformConfig& platformCfg) {
@@ -138,6 +180,19 @@ std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
     }
   }
   return results;
+}
+
+std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    PortID controllingPort) {
+  std::vector<cfg::PlatformPortEntry> ports;
+  int32_t controllingPortID = static_cast<int32_t>(controllingPort);
+  for (const auto& port : platformPorts) {
+    if (port.second.mapping.controllingPort == controllingPortID) {
+      ports.push_back(port.second);
+    }
+  }
+  return ports;
 }
 } // namespace utility
 } // namespace fboss

@@ -724,7 +724,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   forEachAdded(delta.getPortsDelta(), [this](const auto& newPort) {
     if (!portTable_->getBcmPortIf(newPort->getID())) {
-      throw FbossError("Cannot add a port unknown to hardware");
+      throw FbossError(
+          "Cannot add a port:", newPort->getID(), " unknown to hardware");
     }
   });
 

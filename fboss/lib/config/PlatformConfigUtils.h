@@ -22,9 +22,18 @@ std::vector<phy::PinID> getTransceiverLanes(
     const std::vector<phy::DataPlanePhyChip>& chips,
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
+std::vector<phy::PinID> getOrderedIphyLanes(
+    const cfg::PlatformPortEntry& port,
+    const std::vector<phy::DataPlanePhyChip>& chips,
+    std::optional<cfg::PortProfileID> profileID = std::nullopt);
+
 // Get subsidiary PortID list based on controlling port
 std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
     const facebook::fboss::cfg::PlatformConfig& platformCfg);
+
+std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    PortID controllingPort);
 
 } // namespace utility
 } // namespace fboss

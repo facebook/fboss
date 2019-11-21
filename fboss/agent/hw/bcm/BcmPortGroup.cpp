@@ -9,16 +9,17 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-
-#include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
 using facebook::fboss::BcmPortGroup;
@@ -140,8 +141,7 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
   // profile, we can understand how many lanes for such speed on this port from
   // the config.
   auto desiredMode = LaneMode::SINGLE;
-  for (int lane = 0; lane < ports.size(); lane++) {
-    auto port = ports[lane];
+  for (auto port : ports) {
     if (port->isEnabled()) {
       auto profileCfg = supportedProfiles.find(port->getProfileID());
       if (profileCfg == supportedProfiles.end()) {
@@ -155,7 +155,6 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
       if (neededMode > desiredMode) {
         desiredMode = neededMode;
       }
-      checkLaneModeisValid(lane, desiredMode);
     }
   }
   return desiredMode;
@@ -164,18 +163,33 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
 std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
     const std::shared_ptr<SwitchState>& state) const {
   std::vector<std::shared_ptr<Port>> ports;
-  for (auto bcmPort : allPorts_) {
-    auto swPort = bcmPort->getSwitchStatePort(state);
-    // Make sure the ports support the configured speed.
-    // We check this even if the port is disabled.
-    if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
-      throw FbossError(
-          "Port ",
-          swPort->getID(),
-          " does not support speed ",
-          static_cast<int>(swPort->getSpeed()));
+  // with the new data platform config design, we can get all the ports from the
+  // same port group from the config.
+  if (auto platformPorts =
+          hw_->getPlatform()->config()->thrift.platform.platformPorts_ref()) {
+    const auto& portList = utility::getPlatformPortsByControllingPort(
+        *platformPorts, controllingPort_->getPortID());
+    for (const auto& port : portList) {
+      auto swPort = state->getPorts()->getPortIf(PortID(port.mapping.id));
+      // Platform port doesn't exist in sw config, no need to program
+      if (swPort) {
+        ports.push_back(swPort);
+      }
     }
-    ports.push_back(swPort);
+  } else {
+    for (auto bcmPort : allPorts_) {
+      auto swPort = bcmPort->getSwitchStatePort(state);
+      // Make sure the ports support the configured speed.
+      // We check this even if the port is disabled.
+      if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
+        throw FbossError(
+            "Port ",
+            swPort->getID(),
+            " does not support speed ",
+            static_cast<int>(swPort->getSpeed()));
+      }
+      ports.push_back(swPort);
+    }
   }
   return ports;
 }
@@ -242,8 +256,8 @@ void BcmPortGroup::reconfigureLaneMode(
   // The logic for this follows the steps required for flex-port support
   // outlined in the sdk documentation.
   XLOG(DBG1) << "Reconfiguring port " << controllingPort_->getBcmPortId()
-             << " from " << laneMode_ << " active ports to " << newLaneMode
-             << " active ports";
+             << " from using " << laneMode_ << " lanes to " << newLaneMode
+             << " lanes";
 
   // TODO(joseph5wu): Right now, we always assume we can get the swPort from
   // the sw state, which means we don't support the case that we can remove
