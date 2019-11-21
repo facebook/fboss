@@ -9,17 +9,17 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
+
 #include <functional>
 #include <memory>
 #include <thread>
 #include <vector>
-
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/rib/NetworkToRouteMap.h"
 
 namespace facebook {
 namespace fboss {
