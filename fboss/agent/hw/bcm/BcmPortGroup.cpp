@@ -110,7 +110,7 @@ BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
 }
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
-    const std::vector<Port*>& ports,
+    const std::vector<std::shared_ptr<Port>>& ports,
     LaneSpeeds laneSpeeds) {
   auto desiredMode = LaneMode::SINGLE;
   for (int lane = 0; lane < ports.size(); ++lane) {
@@ -130,7 +130,7 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
 }
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
-    const std::vector<Port*>& ports,
+    const std::vector<std::shared_ptr<Port>>& ports,
     const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
         supportedProfiles) {
   // As we support more and more platforms, the existing lane mode calculation
@@ -161,11 +161,11 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
   return desiredMode;
 }
 
-std::vector<Port*> BcmPortGroup::getSwPorts(
+std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
     const std::shared_ptr<SwitchState>& state) const {
-  std::vector<Port*> ports;
+  std::vector<std::shared_ptr<Port>> ports;
   for (auto bcmPort : allPorts_) {
-    auto swPort = bcmPort->getSwitchStatePort(state).get();
+    auto swPort = bcmPort->getSwitchStatePort(state);
     // Make sure the ports support the configured speed.
     // We check this even if the port is disabled.
     if (!bcmPort->supportsSpeed(swPort->getSpeed())) {
@@ -232,12 +232,12 @@ void BcmPortGroup::reconfigureIfNeeded(
     controllingPort_->getPlatformPort()->linkSpeedChanged(ports[0]->getSpeed());
   }
   if (desiredLaneMode != laneMode_) {
-    reconfigureLaneMode(state, desiredLaneMode);
+    reconfigureLaneMode(ports, desiredLaneMode);
   }
 }
 
 void BcmPortGroup::reconfigureLaneMode(
-    const std::shared_ptr<SwitchState>& state,
+    const std::vector<std::shared_ptr<Port>>& ports,
     LaneMode newLaneMode) {
   // The logic for this follows the steps required for flex-port support
   // outlined in the sdk documentation.
@@ -245,15 +245,27 @@ void BcmPortGroup::reconfigureLaneMode(
              << " from " << laneMode_ << " active ports to " << newLaneMode
              << " active ports";
 
+  // TODO(joseph5wu): Right now, we always assume we can get the swPort from
+  // the sw state, which means we don't support the case that we can remove
+  // a port from sw state yet.
+  auto getSwPort = [&ports](PortID id) -> std::shared_ptr<Port> {
+    for (auto port : ports) {
+      if (port->getID() == id) {
+        return port;
+      }
+    }
+    throw FbossError("Can't find sw port: ", id);
+  };
+
   // 1. Disable linkscan, then disable ports.
   for (auto& bcmPort : allPorts_) {
-    auto swPort = bcmPort->getSwitchStatePort(state);
+    auto swPort = getSwPort(bcmPort->getPortID());
     bcmPort->disableLinkscan();
     bcmPort->disable(swPort);
   }
 
   // 2. Set the opennslPortControlLanes setting
-  setActiveLanes(newLaneMode);
+  setActiveLanes(ports, newLaneMode);
 
   // 3. Only enable linkscan, and don't enable ports.
   // Enable port will program the port with the sw config and also adding it
@@ -261,7 +273,7 @@ void BcmPortGroup::reconfigureLaneMode(
   // we should let the caller to decide when it's the best time to enable port,
   // usually the very end of BcmSwitch::stateChangedImpl()
   for (auto& bcmPort : allPorts_) {
-    auto swPort = bcmPort->getSwitchStatePort(state);
+    auto swPort = getSwPort(bcmPort->getPortID());
     if (swPort->isEnabled()) {
       bcmPort->enableLinkscan();
     }

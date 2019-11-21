@@ -76,11 +76,11 @@ class BcmPortGroup {
   bool validConfiguration(const std::shared_ptr<SwitchState>& state) const;
 
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
-      const std::vector<Port*>& ports,
+      const std::vector<std::shared_ptr<Port>>& ports,
       LaneSpeeds supportedLaneSpeeds);
 
   static BcmPortGroup::LaneMode calculateDesiredLaneModeFromConfig(
-      const std::vector<Port*>& ports,
+      const std::vector<std::shared_ptr<Port>>& ports,
       const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
           supportedProfiles);
 
@@ -89,15 +89,17 @@ class BcmPortGroup {
   }
 
  private:
-  std::vector<Port*> getSwPorts(
+  std::vector<std::shared_ptr<Port>> getSwPorts(
       const std::shared_ptr<SwitchState>& state) const;
   LaneMode neededLaneMode(uint8_t lane, cfg::PortSpeed speed) const;
 
   uint8_t getLane(const BcmPort* bcmPort) const;
   int retrieveActiveLanes() const;
-  void setActiveLanes(LaneMode desiredLaneMode);
+  void setActiveLanes(
+      const std::vector<std::shared_ptr<Port>>& ports,
+      LaneMode desiredLaneMode);
   void reconfigureLaneMode(
-      const std::shared_ptr<SwitchState>& state,
+      const std::vector<std::shared_ptr<Port>>& ports,
       LaneMode newLaneMode);
 
   BcmSwitch* hw_;
