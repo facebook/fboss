@@ -121,6 +121,18 @@ void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
       [&pkt](auto observer) { observer->packetReceived(pkt.get()); });
 }
 
+void HwSwitchEnsemble::l2LearningUpdateReceived(
+    L2Entry l2Entry,
+    L2EntryUpdateType l2EntryUpdateType) {
+  auto hwEventObservers = hwEventObservers_.rlock();
+  std::for_each(
+      hwEventObservers->begin(),
+      hwEventObservers->end(),
+      [l2Entry, l2EntryUpdateType](auto observer) {
+        observer->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
+      });
+}
+
 void HwSwitchEnsemble::addHwEventObserver(HwSwitchEventObserverIf* observer) {
   if (!hwEventObservers_->insert(observer).second) {
     throw FbossError("Observer was already added");
@@ -183,13 +195,6 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->unregisterCallbacks();
   switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
   getHwSwitch()->gracefulExit(switchState);
-}
-
-void HwSwitchEnsemble::l2LearningUpdateReceived(
-    L2Entry /*l2Entry*/,
-    L2EntryUpdateType /*l2EntryUpdateType*/) {
-  // TODO(skhare)
-  // handle this
 }
 
 } // namespace fboss

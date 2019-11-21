@@ -18,6 +18,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestConstants.h"
@@ -56,6 +57,9 @@ class HwTest : public ::testing::Test,
 
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
+  void l2LearningUpdateReceived(
+      L2Entry /*l2Entry*/,
+      L2EntryUpdateType /*l2EntryUpdateType*/) override {}
 
   HwSwitchEnsemble* getHwSwitchEnsemble() {
     return hwSwitchEnsemble_.get();

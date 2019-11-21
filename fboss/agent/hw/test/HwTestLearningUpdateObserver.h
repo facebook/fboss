@@ -7,7 +7,6 @@
 #include "fboss/agent/packet/PktFactory.h"
 
 #include <folly/Optional.h>
-#include <folly/io/IOBuf.h>
 #include <condition_variable>
 
 namespace facebook {
@@ -15,23 +14,25 @@ namespace fboss {
 
 class RxPacket;
 
-class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
+class HwTestLearningUpdateObserver
+    : public HwSwitchEnsemble::HwSwitchEventObserverIf {
  public:
-  explicit HwTestPacketSnooper(HwSwitchEnsemble* ensemble);
-  virtual ~HwTestPacketSnooper() override;
-  void packetReceived(RxPacket* pkt) noexcept override;
-  std::optional<utility::EthFrame> waitForPacket();
+  explicit HwTestLearningUpdateObserver(HwSwitchEnsemble* ensemble);
+  virtual ~HwTestLearningUpdateObserver() override;
+
+  void l2LearningUpdateReceived(
+      L2Entry l2Entry,
+      L2EntryUpdateType l2EntryUpdateType) override;
+  std::pair<L2Entry, L2EntryUpdateType>* waitForLearningUpdate();
 
  private:
+  void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
-  void l2LearningUpdateReceived(
-      L2Entry /*l2Entry*/,
-      L2EntryUpdateType /*l2EntryUpdateType*/) override {}
 
   HwSwitchEnsemble* ensemble_;
   std::mutex mtx_;
   std::condition_variable cv_;
-  std::unique_ptr<folly::IOBuf> data_;
+  std::unique_ptr<std::pair<L2Entry, L2EntryUpdateType>> data_;
 };
 
 } // namespace fboss

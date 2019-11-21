@@ -35,6 +35,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     virtual ~HwSwitchEventObserverIf() = default;
     virtual void packetReceived(RxPacket* pkt) noexcept = 0;
     virtual void linkStateChanged(PortID port, bool up) = 0;
+    virtual void l2LearningUpdateReceived(
+        L2Entry l2Entry,
+        L2EntryUpdateType l2EntryUpdateType) = 0;
   };
   explicit HwSwitchEnsemble(uint32_t featuresDesired);
   ~HwSwitchEnsemble() override;
