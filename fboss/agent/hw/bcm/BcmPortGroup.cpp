@@ -80,11 +80,18 @@ BcmPortGroup::BcmPortGroup(
   // We expect all ports to run at the same speed and are passed in in
   // the correct order.
   portSpeed_ = controllingPort_->getSpeed();
-  for (int i = 0; i < allPorts_.size(); ++i) {
-    auto port = allPorts_[i];
-    if (getLane(port) != i) {
-      throw FbossError("Ports passed in are not ordered by lane");
-    }
+  // Instead of demanding the input ports list to be ordered by lane. We can
+  // just sort the list based on the port id since we always assign port id
+  // in the order of the physical lane order
+  std::sort(
+      allPorts_.begin(),
+      allPorts_.end(),
+      [](const auto& lPort, const auto& rPort) {
+        return lPort->getPortID() < rPort->getPortID();
+      });
+  // If any port is enabled in the list, the speed of all the ports should be
+  // the same as controling port
+  for (const auto& port : allPorts_) {
     if (port->isEnabled() && portSpeed_ != port->getSpeed()) {
       throw FbossError("All enabled ports must have same speed");
     }
