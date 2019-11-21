@@ -38,6 +38,9 @@ struct FrontPanelResources {
 
 class WedgePort : public BcmPlatformPort {
  protected:
+  WedgePort(PortID id, WedgePlatform* platform);
+
+  // TODO(joseph5wu) Will deprecate this constructor demanding front panel
   WedgePort(
       PortID id,
       WedgePlatform* platform,
@@ -90,6 +93,9 @@ class WedgePort : public BcmPlatformPort {
   folly::Future<std::optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
 
+  bool supportsAddRemovePort() const override {
+    return false;
+  }
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
@@ -113,8 +119,8 @@ class WedgePort : public BcmPlatformPort {
   cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};
 
   std::optional<FrontPanelResources> frontPanel_;
-  BcmPort* bcmPort_{nullptr};
 
+  BcmPort* bcmPort_{nullptr};
   std::shared_ptr<Port> port_{nullptr};
 
  private:

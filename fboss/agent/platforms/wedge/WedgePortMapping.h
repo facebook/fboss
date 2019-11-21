@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
 #include <boost/container/flat_map.hpp>
@@ -67,6 +68,25 @@ class WedgePortMapping {
       auto port = kv.first;
       auto frontPanel = kv.second;
       mapping->addPort(port, frontPanel);
+    }
+    return std::move(mapping);
+  }
+
+  template <typename MappingT>
+  static std::unique_ptr<WedgePortMapping> createFromConfig(
+      WedgePlatform* platform,
+      const cfg::PlatformConfig& platformConfig) {
+    // TODO(joseph5wu) Right now, the platformPorts is still optional.
+    // Once we roll out the config everywhere, we should always use this
+    // createFromConfig() to generate the platform port mapping.
+    const auto& platformPorts = platformConfig.platformPorts_ref();
+    if (!platformPorts) {
+      throw FbossError("Can't find platformPorts from platform_config");
+    }
+    auto mapping = std::make_unique<MappingT>(platform);
+    for (const auto& port : *platformPorts) {
+      // Will migrate the code to get front panel resource from the config
+      mapping->addPort(PortID(port.first), std::nullopt);
     }
     return std::move(mapping);
   }

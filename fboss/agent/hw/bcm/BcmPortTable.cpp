@@ -48,8 +48,15 @@ void BcmPortTable::initPorts(
     opennsl_port_t bcmPortNum = entry.first;
     BcmPlatformPort* platPort = entry.second;
 
-    // Make sure this port number actually exists on the switch hardware
+    // If the port doesn't support add or remove port, make sure this port
+    // number actually exists on the switch hardware
     if (!OPENNSL_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
+      // If the platform support add or remove port, we can skip for now.
+      // And we'll add or remove ports when we apply agent config for the first
+      // time
+      if (platPort->supportsAddRemovePort()) {
+        continue;
+      }
       throw FbossError(
           "platform attempted to initialize BCM port ",
           bcmPortNum,

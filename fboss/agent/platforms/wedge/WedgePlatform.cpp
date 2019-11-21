@@ -15,6 +15,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
@@ -88,6 +89,11 @@ void WedgePlatform::onHwInitialized(SwSwitch* sw) {
   // Make sure the initial status of the LEDs reflects the current port
   // settings.
   for (const auto& entry : *portMapping_) {
+    // As some platform allows add/remove port at the first time applying the
+    // config, we should skip those ports which doesn't exist in hw.
+    if (!hw_->getPortTable()->getBcmPortIf(entry.first)) {
+      continue;
+    }
     bool up = hw_->isPortUp(entry.first);
     entry.second->linkStatusChanged(up, true);
   }

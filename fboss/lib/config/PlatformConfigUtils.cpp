@@ -83,15 +83,15 @@ std::vector<phy::PinID> getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
   if (profileID) {
-    auto itrPortCfg = port.supportedProfiles.find(*profileID);
-    if (itrPortCfg == port.supportedProfiles.end()) {
+    auto itPortCfg = port.supportedProfiles.find(*profileID);
+    if (itPortCfg == port.supportedProfiles.end()) {
       throw FbossError(
           "Port: ",
           port.mapping.name,
           " doesn't support profile:",
           apache::thrift::util::enumNameSafe(*profileID));
     }
-    if (auto tcvr = itrPortCfg->second.pins.transceiver_ref()) {
+    if (auto tcvr = itPortCfg->second.pins.transceiver_ref()) {
       for (const auto& pinCfg : *tcvr) {
         lanes.push_back(pinCfg.id);
       }

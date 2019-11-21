@@ -60,6 +60,9 @@ class BcmTestPort : public BcmPlatformPort {
     return {0};
   }
 
+  bool supportsAddRemovePort() const override {
+    return false;
+  }
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
