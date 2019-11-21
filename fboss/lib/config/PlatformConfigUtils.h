@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook {
@@ -20,6 +21,10 @@ std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
     const std::vector<phy::DataPlanePhyChip>& chips,
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
+
+// Get subsidiary PortID list based on controlling port
+std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
+    const facebook::fboss::cfg::PlatformConfig& platformCfg);
 
 } // namespace utility
 } // namespace fboss

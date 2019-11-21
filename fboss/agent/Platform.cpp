@@ -82,6 +82,10 @@ const AgentConfig* Platform::reloadConfig() {
   return config_.get();
 }
 
+void Platform::setConfig(std::unique_ptr<AgentConfig> config) {
+  config_ = std::move(config);
+}
+
 const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
     cfg::PortProfileID profileID) {
   if (const auto& supportedProfiles =

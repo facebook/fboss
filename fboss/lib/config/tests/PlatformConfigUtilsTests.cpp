@@ -225,6 +225,35 @@ TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromWrongProfiles) {
       FbossError);
 }
 
+TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDs) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  for (auto controllingPort : {1, 5}) {
+    for (int i = 0; i < 4; i++) {
+      auto portEntry = getPlatformPortEntryWithXPHY();
+      portEntry.mapping.id = controllingPort + i;
+      portEntry.mapping.controllingPort = controllingPort;
+      platformPorts[portEntry.mapping.id] = portEntry;
+    }
+  }
+  cfg::PlatformConfig platformCfg;
+  platformCfg.set_platformPorts(platformPorts);
+  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformCfg);
+  EXPECT_EQ(subsidiaryPorts.size(), 2);
+  for (auto controllingPort : {1, 5}) {
+    auto portsItr = subsidiaryPorts.find(PortID(controllingPort));
+    EXPECT_TRUE(portsItr != subsidiaryPorts.end());
+    for (int i = 0; i < 4; i++) {
+      EXPECT_EQ(portsItr->second[i], PortID(controllingPort + i));
+    }
+  }
+}
+
+TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDsWithEmptyConfig) {
+  cfg::PlatformConfig platformCfg;
+  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformCfg);
+  EXPECT_EQ(subsidiaryPorts.size(), 0);
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

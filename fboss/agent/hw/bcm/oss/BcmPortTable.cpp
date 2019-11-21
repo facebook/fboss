@@ -15,5 +15,11 @@ namespace fboss {
 // stubbed out
 void BcmPortTable::initPortGroups() {}
 
+void BcmPortTable::initPortGroupLegacy(BcmPort* /* controllingPort */) {}
+
+void BcmPortTable::initPortGroupFromConfig(
+    BcmPort* /* controllingPort */,
+    const std::map<PortID, std::vector<PortID>>& /* subsidiaryPortsMap */) {}
+
 } // namespace fboss
 } // namespace facebook

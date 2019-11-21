@@ -60,11 +60,6 @@ BcmPortGroup::BcmPortGroup(
     : hw_(hw),
       controllingPort_(controllingPort),
       allPorts_(std::move(allPorts)) {
-  if (allPorts_.size() != 4) {
-    throw FbossError(
-        "Port groups must have exactly four members. Found ", allPorts_.size());
-  }
-
   // We expect all ports to run at the same speed and are passed in in
   // the correct order.
   portSpeed_ = controllingPort_->getSpeed();
@@ -80,24 +75,23 @@ BcmPortGroup::BcmPortGroup(
 
   // get the number of active lanes
   auto activeLanes = retrieveActiveLanes();
-  switch (activeLanes) {
-    case 1:
-      laneMode_ = LaneMode::SINGLE;
-      break;
-    case 2:
-      laneMode_ = LaneMode::DUAL;
-      break;
-    case 4:
-      laneMode_ = LaneMode::QUAD;
-      break;
-    default:
-      throw FbossError(
-          "Unexpected number of lanes retrieved for bcm port ",
-          controllingPort_->getBcmPortId());
-  }
+  laneMode_ = numLanesToLaneMode(activeLanes);
+
+  XLOG(INFO) << "Create BcmPortGroup with controlling port: "
+             << controllingPort->getPortID()
+             << ", port group size: " << allPorts_.size();
 }
 
 BcmPortGroup::~BcmPortGroup() {}
+
+BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
+  try {
+    return static_cast<LaneMode>(numLanes);
+  } catch (const std::exception& ex) {
+    throw FbossError(
+        "Unexpected number of lanes retrieved for bcm port ", numLanes);
+  }
+}
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     const std::vector<Port*>& ports,

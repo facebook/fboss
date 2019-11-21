@@ -98,6 +98,12 @@ class BcmPortTable {
    */
   void initPortGroups();
 
+  void initPortGroupLegacy(BcmPort* controllingPort);
+
+  void initPortGroupFromConfig(
+      BcmPort* controllingPort,
+      const std::map<PortID, std::vector<PortID>>& subsidiaryPortsMap);
+
   typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
       BcmPortMap;
 

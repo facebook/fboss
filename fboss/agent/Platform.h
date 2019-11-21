@@ -77,6 +77,7 @@ class Platform {
    */
   const AgentConfig* config();
   const AgentConfig* reloadConfig();
+  void setConfig(std::unique_ptr<AgentConfig> config);
 
   /*
    * Get supported port speed profile config based on profile id.

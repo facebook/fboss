@@ -57,6 +57,8 @@ class BcmPortGroup {
       std::vector<BcmPort*> allPorts);
   ~BcmPortGroup();
 
+  static LaneMode numLanesToLaneMode(uint8_t numLanes);
+
   BcmPort* controllingPort() const {
     return controllingPort_;
   }
