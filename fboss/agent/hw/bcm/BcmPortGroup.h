@@ -98,6 +98,9 @@ class BcmPortGroup {
   void setActiveLanes(
       const std::vector<std::shared_ptr<Port>>& ports,
       LaneMode desiredLaneMode);
+  void setActiveLanesWithFlexPortApi(
+      const std::vector<std::shared_ptr<Port>>& ports,
+      LaneMode desiredLaneMode);
   void reconfigureLaneMode(
       const std::vector<std::shared_ptr<Port>>& ports,
       LaneMode newLaneMode);
