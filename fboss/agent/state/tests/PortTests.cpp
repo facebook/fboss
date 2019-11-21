@@ -171,6 +171,7 @@ TEST(Port, ToFromJSON) {
           "portName" : "eth1/1/1",
           "portId" : 100,
           "portOperState" : true,
+          "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
           "portMaxSpeed" : "XG",
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
@@ -195,6 +196,7 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(PortFields::OperState::UP, port->getOperState());
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
+  EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
   EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(port->getPause().tx);
   EXPECT_EQ(cfg::PortLoopbackMode::PHY, port->getLoopbackMode());
@@ -331,6 +333,7 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
           "portMaxSpeed" : "XG",
           "ingressVlan" : 2000,
           "portSpeed" : "XG",
+          "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
           "portFEC" : "OFF",
           "txPause" : true
         }
@@ -350,6 +353,7 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
   EXPECT_EQ(PortFields::OperState::UP, port->getOperState());
   EXPECT_EQ(VlanID(2000), port->getIngressVlan());
   EXPECT_EQ(cfg::PortSpeed::XG, port->getSpeed());
+  EXPECT_EQ(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC, port->getProfileID());
   EXPECT_EQ(cfg::PortFEC::OFF, port->getFEC());
   EXPECT_TRUE(port->getPause().tx);
   EXPECT_EQ(cfg::PortLoopbackMode::NONE, port->getLoopbackMode());

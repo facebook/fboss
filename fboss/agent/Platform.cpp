@@ -82,6 +82,18 @@ const AgentConfig* Platform::reloadConfig() {
   return config_.get();
 }
 
+const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
+    cfg::PortProfileID profileID) {
+  if (auto supportedProfiles =
+          config()->thrift.platform.supportedProfiles_ref()) {
+    auto itProfileConfig = (*supportedProfiles).find(profileID);
+    if (itProfileConfig != (*supportedProfiles).end()) {
+      return itProfileConfig->second;
+    }
+  }
+  return std::nullopt;
+}
+
 void Platform::init(std::unique_ptr<AgentConfig> config) {
   // take ownership of the config if passed in
   config_ = std::move(config);

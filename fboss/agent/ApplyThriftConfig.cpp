@@ -855,6 +855,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
       portConf->speed == orig->getSpeed() &&
+      portConf->profileID == orig->getProfileID() &&
       portConf->pause == orig->getPause() &&
       portConf->sFlowIngressRate == orig->getSflowIngressRate() &&
       portConf->sFlowEgressRate == orig->getSflowEgressRate() &&
@@ -879,6 +880,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setIngressVlan(VlanID(portConf->ingressVlan));
   newPort->setVlans(vlans);
   newPort->setSpeed(portConf->speed);
+  newPort->setProfileId(portConf->profileID);
   newPort->setPause(portConf->pause);
   newPort->setSflowIngressRate(portConf->sFlowIngressRate);
   newPort->setSflowEgressRate(portConf->sFlowEgressRate);

@@ -81,6 +81,7 @@ struct PortFields {
   std::optional<std::string> qosPolicy;
   LLDPValidations expectedLLDPValues;
   std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
+  cfg::PortProfileID profileID{cfg::PortProfileID::PROFILE_DEFAULT};
 };
 
 /*
@@ -188,6 +189,13 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void setSpeed(cfg::PortSpeed speed) {
     writableFields()->speed = speed;
+  }
+
+  cfg::PortProfileID getProfileID() const {
+    return getFields()->profileID;
+  }
+  void setProfileId(cfg::PortProfileID profileID) {
+    writableFields()->profileID = profileID;
   }
 
   cfg::PortPause getPause() const {

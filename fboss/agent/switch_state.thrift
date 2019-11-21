@@ -65,4 +65,6 @@ struct PortFields {
  18: optional string egressMirror
  19: optional string qosPolicy
  20: optional string sampleDest
+ // TODO: this will deprecate port speed and port fec
+ 21: string portProfileID
 }

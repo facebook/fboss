@@ -16,6 +16,7 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -76,6 +77,13 @@ class Platform {
    */
   const AgentConfig* config();
   const AgentConfig* reloadConfig();
+
+  /*
+   * Get supported port speed profile config based on profile id.
+   * Return std::nullopt if the platform doesn't support such speed profile.
+   */
+  const std::optional<phy::PortProfileConfig> getPortProfileConfig(
+      cfg::PortProfileID PortProfileID);
 
   /*
    * Get the HwSwitch for this platform.

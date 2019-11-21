@@ -14,6 +14,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
@@ -65,6 +66,19 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   CHECK(itrSpeed != cfg::_PortSpeed_NAMES_TO_VALUES.end())
       << "Invalid port speed: " << portThrift.portSpeed;
   port.speed = cfg::PortSpeed(itrSpeed->second);
+
+  if (portThrift.portProfileID.empty()) {
+    // warm booting from a previous version that didn't have profileID set
+    XLOG(WARNING) << "Port:" << port.name
+                  << " doesn't have portProfileID, set to default.";
+    port.profileID = cfg::PortProfileID::PROFILE_DEFAULT;
+  } else {
+    auto itProfileID = cfg::_PortProfileID_NAMES_TO_VALUES.find(
+        portThrift.portProfileID.c_str());
+    CHECK(itProfileID != cfg::_PortProfileID_NAMES_TO_VALUES.end())
+        << "Invalid port profile id: " << portThrift.portProfileID;
+    port.profileID = cfg::PortProfileID(itProfileID->second);
+  }
 
   auto itrPortFec =
       cfg::_PortFEC_NAMES_TO_VALUES.find(portThrift.portFEC.c_str());
@@ -143,6 +157,8 @@ state::PortFields PortFields::toThrift() const {
   CHECK(itrSpeed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
       << "Unexpected port speed: " << static_cast<int>(speed);
   port.portSpeed = itrSpeed->second;
+
+  port.portProfileID = apache::thrift::util::enumNameSafe(profileID);
 
   // TODO(aeckert): t24117229 remove this after next version is pushed
   port.portMaxSpeed = port.portSpeed;
