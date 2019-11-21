@@ -10,6 +10,7 @@
 
 #include "fboss/agent/PlatformPort.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 
 namespace facebook {
@@ -28,6 +29,18 @@ std::ostream& operator<<(std::ostream& os, PlatformPort::ExternalState lfs) {
       break;
   }
   return os;
+}
+
+const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
+    const {
+  if (auto platformPorts =
+          platform_->config()->thrift.platform.platformPorts_ref()) {
+    auto itPlatformPort = (*platformPorts).find(id_);
+    if (itPlatformPort != (*platformPorts).end()) {
+      return itPlatformPort->second;
+    }
+  }
+  return std::nullopt;
 }
 
 } // namespace fboss

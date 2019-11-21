@@ -86,6 +86,13 @@ class Platform {
       cfg::PortProfileID PortProfileID);
 
   /*
+   * Get supported data plane phy chip based on chip name.
+   * Return std::nullopt if the platform doesn't support such phy chip.
+   */
+  const std::optional<phy::DataPlanePhyChip> getDataPlanePhyChip(
+      std::string chipName);
+
+  /*
    * Get the HwSwitch for this platform.
    *
    * The HwSwitch object returned should be owned by the Platform, and must

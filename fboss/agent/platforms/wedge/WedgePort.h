@@ -70,16 +70,9 @@ class WedgePort : public BcmPlatformPort {
 
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 
-  std::optional<TransceiverID> getTransceiverID() const override {
-    if (!frontPanel_) {
-      return std::nullopt;
-    }
-    return frontPanel_->transceiver;
-  }
+  std::optional<TransceiverID> getTransceiverID() const override;
 
-  bool supportsTransceiver() const override {
-    return frontPanel_.has_value();
-  }
+  bool supportsTransceiver() const override;
 
   // TODO: deprecate this
   virtual std::optional<ChannelID> getChannel() const;
@@ -133,6 +126,13 @@ class WedgePort : public BcmPlatformPort {
   }
 
   folly::Future<TransceiverInfo> getTransceiverInfo() const;
+
+  // Get Transceiver lanes from config
+  // Return std::nullopt if there's no platform config
+  // Return empty vector if the port doesn't support transceivers
+  // Return non-empty vector to maintain the lanes of the transceivers
+  std::optional<std::vector<phy::PinID>> getTransceiverLanes(
+      std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
 };
 } // namespace fboss
 } // namespace facebook

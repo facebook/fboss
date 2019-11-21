@@ -19,6 +19,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -176,7 +177,58 @@ bool WedgePort::isControllingPort() const {
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
 }
 
+std::optional<TransceiverID> WedgePort::getTransceiverID() const {
+  auto tcvrListOpt = getTransceiverLanes();
+  if (tcvrListOpt) {
+    const auto& tcvrList = *tcvrListOpt;
+    if (tcvrList.empty()) {
+      return std::nullopt;
+    }
+    // All the transceiver lanes should use the same transceiver id
+    auto chipCfg = getPlatform()->getDataPlanePhyChip(tcvrList[0].chip);
+    if (!chipCfg) {
+      throw FbossError(
+          "Port ",
+          getPortID(),
+          " is using platform unsupported chip ",
+          tcvrList[0].chip);
+    }
+    return TransceiverID((*chipCfg).physicalID);
+  }
+
+  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
+  // get all platform port info from config
+  if (!frontPanel_) {
+    return std::nullopt;
+  }
+  return frontPanel_->transceiver;
+}
+
+bool WedgePort::supportsTransceiver() const {
+  auto tcvrListOpt = getTransceiverLanes();
+  if (tcvrListOpt) {
+    return !(*tcvrListOpt).empty();
+  }
+
+  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
+  // get all platform port info from config
+  return frontPanel_ != std::nullopt;
+}
+
 std::optional<ChannelID> WedgePort::getChannel() const {
+  auto tcvrListOpt = getTransceiverLanes();
+  if (tcvrListOpt) {
+    const auto& tcvrList = *tcvrListOpt;
+    if (!tcvrList.empty()) {
+      // All the transceiver lanes should use the same transceiver id
+      return ChannelID(tcvrList[0].lane);
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
+  // get all platform port info from config
   if (!frontPanel_) {
     return std::nullopt;
   }
@@ -237,6 +289,20 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
     status.set_transceiverIdx(getTransceiverMapping());
   }
   return status;
+}
+
+std::optional<std::vector<phy::PinID>> WedgePort::getTransceiverLanes(
+    std::optional<cfg::PortProfileID> profileID) const {
+  auto platformPortEntry = getPlatformPortEntry();
+  auto chips = getPlatform()->config()->thrift.platform.chips_ref();
+  if (platformPortEntry && chips) {
+    return utility::getTransceiverLanes(*platformPortEntry, *chips, profileID);
+  }
+  // If there's no platform port entry or chips from the config, fall back
+  // to use old logic.
+  // TODO(joseph) Will throw exception if there's no config after we fully
+  // roll out the new config
+  return std::nullopt;
 }
 
 } // namespace fboss

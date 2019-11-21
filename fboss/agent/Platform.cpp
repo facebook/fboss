@@ -84,11 +84,23 @@ const AgentConfig* Platform::reloadConfig() {
 
 const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
     cfg::PortProfileID profileID) {
-  if (auto supportedProfiles =
+  if (const auto& supportedProfiles =
           config()->thrift.platform.supportedProfiles_ref()) {
     auto itProfileConfig = (*supportedProfiles).find(profileID);
     if (itProfileConfig != (*supportedProfiles).end()) {
       return itProfileConfig->second;
+    }
+  }
+  return std::nullopt;
+}
+
+const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
+    std::string chipName) {
+  if (const auto& chips = config()->thrift.platform.chips_ref()) {
+    for (auto chip : *chips) {
+      if (chip.name == chipName) {
+        return chip;
+      }
     }
   }
   return std::nullopt;
