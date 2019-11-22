@@ -57,6 +57,7 @@ class StateObserver;
 class TunManager;
 class MirrorManager;
 class LookupClassUpdater;
+class MacTableManager;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -861,6 +862,7 @@ class SwSwitch : public HwSwitch::Callback {
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 
   std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
+  std::unique_ptr<MacTableManager> macTableManager_;
 };
 
 } // namespace fboss

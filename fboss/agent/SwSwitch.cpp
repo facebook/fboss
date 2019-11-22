@@ -23,6 +23,7 @@
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/Platform.h"
@@ -170,7 +171,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)),
-      lookupClassUpdater_(new LookupClassUpdater(this)) {
+      lookupClassUpdater_(new LookupClassUpdater(this)),
+      macTableManager_(new MacTableManager(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
@@ -260,6 +262,7 @@ void SwSwitch::stop() {
   rib_.reset();
 
   lookupClassUpdater_.reset();
+  macTableManager_.reset();
 
   // stops the background and update threads.
   stopThreads();
@@ -1574,11 +1577,9 @@ template std::shared_ptr<Route<folly::IPAddressV6>> SwSwitch::longestMatch(
     RouterID vrf);
 
 void SwSwitch::l2LearningUpdateReceived(
-    L2Entry /*l2Entry*/,
-    L2EntryUpdateType /*l2EntryUpdateType*/) {
-  // TODO (skhare)
-  // Update SwitchState->vlan->L2Table, and schedule update to program L2 entry
-  // into ASIC.
+    L2Entry l2Entry,
+    L2EntryUpdateType l2EntryUpdateType) {
+  macTableManager_->handleL2LearningUpdate(l2Entry, l2EntryUpdateType);
 }
 
 } // namespace fboss

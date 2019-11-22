@@ -459,6 +459,7 @@ add_library(fboss_agent STATIC
     fboss/agent/MirrorManager.cpp
     fboss/agent/MirrorManagerImpl.cpp
     fboss/agent/LookupClassUpdater.cpp
+    fboss/agent/MacTableManager.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp
