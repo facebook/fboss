@@ -17,8 +17,11 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestLearningUpdateObserver.h"
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
@@ -100,6 +103,62 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     }
     return false;
   }
+
+  void verifyL2TableCallback(
+      const std::pair<L2Entry, L2EntryUpdateType>* l2EntryAndUpdateType,
+      L2EntryUpdateType expectedL2EntryUpdateType) {
+    auto [l2Entry, l2EntryUpdateType] = *l2EntryAndUpdateType;
+
+    EXPECT_EQ(l2Entry.getMac(), kSourceMac());
+    EXPECT_EQ(l2Entry.getVlanID(), VlanID(initialConfig().vlanPorts[0].vlanID));
+    EXPECT_TRUE(l2Entry.getPortDescriptor().isPhysicalPort());
+    EXPECT_EQ(
+        l2Entry.getPortDescriptor().phyPortID(), masterLogicalPortIds()[0]);
+    EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
+  }
+
+  void verifyLearningAndAgingHelper(cfg::L2LearningMode l2LearningMode) {
+    constexpr int kMinAgeSecs = 1;
+    bool removed = false;
+
+    // sendPkt here instead of setup b/c the last step of the test
+    // removes the packet, so we need to reset it with each verify()
+    sendPkt();
+
+    // Verify that Mac aging is enabled, that is, >0
+    EXPECT_GT(utility::getMacAgeTimerSeconds(getHwSwitch()), 0);
+
+    // If Learning Mode is SOFTWARE, verify if we get callback for learned MAC
+    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+      HwTestLearningUpdateObserver learnObserver(getHwSwitchEnsemble());
+      verifyL2TableCallback(
+          learnObserver.waitForLearningUpdate(),
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+    }
+
+    // Verify that we really learned that MAC
+    EXPECT_TRUE(
+        wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
+
+    // Force MAC aging to as fast a possible but min is still 1 second
+    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeSecs);
+
+    // If Learning Mode is SOFTWARE, verify if we get callback for aged MAC
+    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+      HwTestLearningUpdateObserver ageObserver(getHwSwitchEnsemble());
+      verifyL2TableCallback(
+          ageObserver.waitForLearningUpdate(),
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+    }
+
+    // Verify the mac has been removed; this call will wait up to
+    // seconds before giving up, which is longer than the 2*kMinAge
+    // needed
+    removed = wasMacLearnt(
+        PortDescriptor(PortID(masterLogicalPortIds()[0])),
+        /* shouldExist */ false); // return true if mac no longer learned
+    EXPECT_TRUE(removed);
+  }
 };
 
 TEST_F(HwMacLearningTest, TrunkCheckMacsLearned) {
@@ -137,28 +196,35 @@ TEST_F(HwMacLearningTest, PortCheckMacsLearned) {
 TEST_F(HwMacLearningTest, MacAging) {
   auto setup = [=]() { /* NOOP */ };
   auto verify = [=]() {
-    constexpr int kMinAgeSecs = 1;
-    bool removed = false;
-
-    // 0: sendPkt here instead of setup b/c the last step of the test
-    // removes the packet, so we need to reset it with each verify()
-    sendPkt();
-    // 1: Verify that Mac aging is enabled, that is, >0
-    EXPECT_GT(utility::getMacAgeTimerSeconds(getHwSwitch()), 0);
-    // 2: Verify that we really learned that MAC
-    EXPECT_TRUE(
-        wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
-    // 3: Force MAC aging to as fast a possible but min is still 1 second
-    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeSecs);
-    // 4: Verify the mac has been removed; this call will wait up to
-    //     5 seconds before giving up, which is longer than the 2*kMinAge
-    //     needed
-    removed = wasMacLearnt(
-        PortDescriptor(PortID(masterLogicalPortIds()[0])),
-        /* shouldExist */ false); // return true if mac no longer learned
-    EXPECT_TRUE(removed);
+    verifyLearningAndAgingHelper(cfg::L2LearningMode::HARDWARE);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwMacLearningTest, VerifyL2TableUpdateOnLearningAndAging) {
+  /*
+   * TODO (skhare)
+   * L2 Learning implementation on TH3 is different from TD2 and TH.
+   * Discussing this with Broadcom in CS9327819, and once the case is revoled,
+   * we would revisit this.
+   */
+  if (getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    return;
+  }
+
+  auto setup = [this] {
+    auto newCfg{initialConfig()};
+    newCfg.switchSettings.l2LearningMode = cfg::L2LearningMode::SOFTWARE;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    verifyLearningAndAgingHelper(cfg::L2LearningMode::SOFTWARE);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace fboss
 } // namespace facebook
