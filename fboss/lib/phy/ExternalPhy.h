@@ -43,6 +43,26 @@ struct ExternalPhyPortStats {
   ExternalPhyPortSideStats line;
 };
 
+struct ExternalPhyLaneDiagInfo {
+  Side side;
+  int16_t lane{-1};
+  int16_t signal_detect{-1};
+  int16_t cdr_lock{-1};
+  int16_t osr_mode{-1};
+  int16_t vga{-1};
+  int16_t rx_ppm{0};
+  int16_t tx_ppm{0};
+  int16_t txfir_pre2{0};
+  int16_t txfir_pre{0};
+  int16_t txfir_main{0};
+  int16_t txfir_post1{0};
+  int16_t txfir_post2{0};
+  int16_t txfir_post3{0};
+  int16_t modulation{-1};
+  int16_t peaking_filter{0};
+  float snr{0};
+};
+
 class ExternalPhy {
  public:
   virtual ~ExternalPhy() {}
@@ -69,6 +89,11 @@ class ExternalPhy {
 
   virtual ExternalPhyPortStats getPortStats(
       const PhyPortSettings& settings) = 0;
+  virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
+      uint32_t sysLanes,
+      uint32_t lineLanes) {
+    return std::vector<ExternalPhyLaneDiagInfo>();
+  };
 
   virtual void reset() = 0;
 
