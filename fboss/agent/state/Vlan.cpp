@@ -149,7 +149,9 @@ VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
       ArpResponseTable::fromFollyDynamic(vlanJson[kArpResponseTable]);
   vlan.ndpResponseTable =
       NdpResponseTable::fromFollyDynamic(vlanJson[kNdpResponseTable]);
-  vlan.macTable = MacTable::fromFollyDynamic(vlanJson[kMacTable]);
+  if (vlanJson.find(kMacTable) != vlanJson.items().end()) {
+    vlan.macTable = MacTable::fromFollyDynamic(vlanJson[kMacTable]);
+  }
   return vlan;
 }
 
