@@ -706,6 +706,7 @@ add_executable(agent_test
        fboss/agent/test/ICMPTest.cpp
        fboss/agent/test/IPv4Test.cpp
        fboss/agent/test/LldpManagerTest.cpp
+       fboss/agent/test/MacTableManagerTests.cpp
        fboss/agent/test/MockTunManager.cpp
        fboss/agent/test/NDPTest.cpp
        fboss/agent/test/ResourceLibUtil.cpp
