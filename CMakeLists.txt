@@ -532,6 +532,8 @@ add_library(fboss_agent STATIC
     fboss/agent/state/LabelForwardingInformationBase.cpp
     fboss/agent/state/LoadBalancer.cpp
     fboss/agent/state/LoadBalancerMap.cpp
+    fboss/agent/state/MacEntry.cpp
+    fboss/agent/state/MacTable.cpp
     fboss/agent/state/Mirror.cpp
     fboss/agent/state/MirrorMap.cpp
     fboss/agent/state/MatchAction.cpp

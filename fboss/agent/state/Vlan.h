@@ -14,6 +14,7 @@
 #include <folly/MacAddress.h>
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/MacTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -28,6 +29,7 @@ namespace facebook {
 namespace fboss {
 
 class SwitchState;
+class MacTable;
 
 namespace cfg {
 class Vlan;
@@ -68,6 +70,7 @@ struct VlanFields {
     fn(arpResponseTable.get());
     fn(ndpTable.get());
     fn(ndpResponseTable.get());
+    fn(macTable.get());
   }
 
   folly::dynamic toFollyDynamic() const;
@@ -94,6 +97,7 @@ struct VlanFields {
   std::shared_ptr<ArpResponseTable> arpResponseTable;
   std::shared_ptr<NdpTable> ndpTable;
   std::shared_ptr<NdpResponseTable> ndpResponseTable;
+  std::shared_ptr<MacTable> macTable;
 };
 
 class Vlan : public NodeBaseT<Vlan, VlanFields> {
@@ -235,6 +239,14 @@ class Vlan : public NodeBaseT<Vlan, VlanFields> {
       NdpTable>>
   getNeighborEntryTable() const {
     return getNdpTable();
+  }
+
+  const std::shared_ptr<MacTable> getMacTable() const {
+    return getFields()->macTable;
+  }
+
+  void setMacTable(std::shared_ptr<MacTable> macTable) {
+    writableFields()->macTable.swap(macTable);
   }
 
  private:

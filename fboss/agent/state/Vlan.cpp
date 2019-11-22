@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
+#include "fboss/agent/state/MacTable.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -30,6 +31,7 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::to;
 using std::make_pair;
+using std::make_shared;
 using std::string;
 
 namespace {
@@ -47,6 +49,7 @@ constexpr auto kArpTable = "arpTable";
 constexpr auto kArpResponseTable = "arpResponseTable";
 constexpr auto kNdpTable = "ndpTable";
 constexpr auto kNdpResponseTable = "ndpResponseTable";
+constexpr auto kMacTable = "macTable";
 } // namespace
 
 namespace facebook {
@@ -66,10 +69,11 @@ VlanFields::PortInfo VlanFields::PortInfo::fromFollyDynamic(
 VlanFields::VlanFields(VlanID _id, string _name)
     : id(_id),
       name(std::move(_name)),
-      arpTable(new ArpTable),
-      arpResponseTable(new ArpResponseTable),
-      ndpTable(new NdpTable),
-      ndpResponseTable(new NdpResponseTable) {}
+      arpTable(make_shared<ArpTable>()),
+      arpResponseTable(make_shared<ArpResponseTable>()),
+      ndpTable(make_shared<NdpTable>()),
+      ndpResponseTable(make_shared<NdpResponseTable>()),
+      macTable(make_shared<MacTable>()) {}
 
 VlanFields::VlanFields(
     VlanID _id,
@@ -84,10 +88,11 @@ VlanFields::VlanFields(
       dhcpV4Relay(v4Relay),
       dhcpV6Relay(v6Relay),
       ports(std::move(ports)),
-      arpTable(new ArpTable),
-      arpResponseTable(new ArpResponseTable),
-      ndpTable(new NdpTable),
-      ndpResponseTable(new NdpResponseTable) {}
+      arpTable(make_shared<ArpTable>()),
+      arpResponseTable(make_shared<ArpResponseTable>()),
+      ndpTable(make_shared<NdpTable>()),
+      ndpResponseTable(make_shared<NdpResponseTable>()),
+      macTable(make_shared<MacTable>()) {}
 
 folly::dynamic VlanFields::toFollyDynamic() const {
   folly::dynamic vlan = folly::dynamic::object;
@@ -115,6 +120,7 @@ folly::dynamic VlanFields::toFollyDynamic() const {
   vlan[kNdpTable] = ndpTable->toFollyDynamic();
   vlan[kArpResponseTable] = arpResponseTable->toFollyDynamic();
   vlan[kNdpResponseTable] = ndpResponseTable->toFollyDynamic();
+  vlan[kMacTable] = macTable->toFollyDynamic();
   return vlan;
 }
 
@@ -143,6 +149,7 @@ VlanFields VlanFields::fromFollyDynamic(const folly::dynamic& vlanJson) {
       ArpResponseTable::fromFollyDynamic(vlanJson[kArpResponseTable]);
   vlan.ndpResponseTable =
       NdpResponseTable::fromFollyDynamic(vlanJson[kNdpResponseTable]);
+  vlan.macTable = MacTable::fromFollyDynamic(vlanJson[kMacTable]);
   return vlan;
 }
 
