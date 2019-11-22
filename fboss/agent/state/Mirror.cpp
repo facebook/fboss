@@ -225,6 +225,16 @@ std::optional<folly::IPAddress> Mirror::getSrcIp() const {
   return getFields()->srcIp;
 }
 
+Mirror::Type Mirror::type() const {
+  if (!getFields()->destinationIp) {
+    return Mirror::Type::SPAN;
+  }
+  if (!getFields()->udpPorts) {
+    return Mirror::Type::ERSPAN;
+  }
+  return Mirror::Type::SFLOW;
+}
+
 template class NodeBaseT<Mirror, MirrorFields>;
 
 } // namespace fboss

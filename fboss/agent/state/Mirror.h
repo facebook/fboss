@@ -124,6 +124,7 @@ struct MirrorFields {
 
 class Mirror : public NodeBaseT<Mirror, MirrorFields> {
  public:
+  enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
   Mirror(
       std::string name,
       std::optional<PortID> egressPort,
@@ -150,6 +151,8 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
 
   bool operator==(const Mirror& rhs) const;
   bool operator!=(const Mirror& rhs) const;
+
+  Type type() const;
 
  private:
   // Inherit the constructors required for clone()
