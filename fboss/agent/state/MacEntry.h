@@ -77,6 +77,8 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
     writableFields()->portDescr_ = portDescr;
   }
 
+  std::string str() const;
+
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;

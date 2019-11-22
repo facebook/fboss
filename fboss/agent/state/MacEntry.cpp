@@ -11,6 +11,8 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 
+#include <sstream>
+
 namespace {
 constexpr auto kMac = "mac";
 constexpr auto kPort = "portId";
@@ -32,6 +34,15 @@ MacEntryFields MacEntryFields::fromFollyDynamic(const folly::dynamic& jsonStr) {
   auto portDescr = PortDescriptor::fromFollyDynamic(jsonStr[kPort]);
 
   return MacEntryFields(mac, portDescr);
+}
+
+std::string MacEntry::str() const {
+  std::ostringstream os;
+
+  os << "MacEntry:: MAC: " << getMac().toString() << " "
+     << getPortDescriptor().str();
+
+  return os.str();
 }
 
 template class NodeBaseT<MacEntry, MacEntryFields>;

@@ -28,6 +28,7 @@ class VlanDelta : public DeltaValue<Vlan> {
  public:
   typedef NodeMapDelta<ArpTable> ArpTableDelta;
   typedef NodeMapDelta<NdpTable> NdpTableDelta;
+  typedef NodeMapDelta<MacTable> MacTableDelta;
 
   using DeltaValue<Vlan>::DeltaValue;
 
@@ -43,6 +44,12 @@ class VlanDelta : public DeltaValue<Vlan> {
   }
   template <typename NTableT>
   NodeMapDelta<NTableT> getNeighborDelta() const;
+
+  MacTableDelta getMacTableDelta() const {
+    return MacTableDelta(
+        getOld() ? getOld()->getMacTable().get() : nullptr,
+        getNew() ? getNew()->getMacTable().get() : nullptr);
+  }
 };
 
 typedef NodeMapDelta<VlanMap, VlanDelta> VlanMapDelta;
