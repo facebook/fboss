@@ -48,6 +48,11 @@ include_directories(${OPENNSL_INCLUDE_DIR})
 message(STATUS "Found OPENNSL: ${OPENNSL}")
 message(STATUS "Found OPENNSL_INCLUDE_DIR: ${OPENNSL_INCLUDE_DIR}")
 
+find_path(SAI_INCLUDE_DIR NAMES sai.h)
+include_directories(${SAI_INCLUDE_DIR})
+
+message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+
 find_library(LIBNL nl-3)
 find_path(LIBNL_INCLUDE_DIR NAMES libnl3/netlink/socket.h)
 include_directories(${LIBNL_INCLUDE_DIR})
