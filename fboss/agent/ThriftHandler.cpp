@@ -448,17 +448,19 @@ class RouteUpdateStats {
 };
 
 ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
-  sw->registerNeighborListener([=](const std::vector<std::string>& added,
-                                   const std::vector<std::string>& deleted) {
-    for (auto& listener : listeners_.accessAllThreads()) {
-      XLOG(INFO) << "Sending notification to bgpD";
-      auto listenerPtr = &listener;
-      listener.eventBase->runInEventBaseThread([=] {
-        XLOG(INFO) << "firing off notification";
-        invokeNeighborListeners(listenerPtr, added, deleted);
-      });
-    }
-  });
+  if (sw) {
+    sw->registerNeighborListener([=](const std::vector<std::string>& added,
+                                     const std::vector<std::string>& deleted) {
+      for (auto& listener : listeners_.accessAllThreads()) {
+        XLOG(INFO) << "Sending notification to bgpD";
+        auto listenerPtr = &listener;
+        listener.eventBase->runInEventBaseThread([=] {
+          XLOG(INFO) << "firing off notification";
+          invokeNeighborListeners(listenerPtr, added, deleted);
+        });
+      }
+    });
+  }
 }
 
 fb_status ThriftHandler::getStatus() {
