@@ -33,9 +33,14 @@ class BcmMirrorDestination {
   ~BcmMirrorDestination();
   BcmMirrorHandle getHandle();
 
+  int getFlags() const {
+    return flags_;
+  }
+
  private:
   int unit_;
   BcmMirrorHandle handle_;
+  int flags_{0};
 };
 
 class BcmMirror {
