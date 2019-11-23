@@ -56,7 +56,7 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
-    folly::MacAddress cpuMac,
+    folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
@@ -64,7 +64,7 @@ void pumpMplsTraffic(
     bool isV6,
     HwSwitch* hw,
     uint32_t label,
-    folly::MacAddress cpuMac,
+    folly::MacAddress intfMac,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 bool isLoadBalanced(

@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -102,12 +103,15 @@ template <typename AddrT>
 void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto firstVlan = *(programmedState->getVlans()->begin());
+  auto mac = utility::getInterfaceMac(programmedState, firstVlan->getID());
 
   utility::pumpTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),
-      ensemble->getPlatform()->getLocalMac(),
-      VlanID(utility::kDefaultVlanId),
+      mac,
+      firstVlan->getID(),
       port);
 }
 
@@ -141,11 +145,14 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   /* pump MPLS traffic */
   auto* ensemble = BaseT::getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto firstVlan = *(programmedState->getVlans()->begin());
+  auto mac = utility::getInterfaceMac(programmedState, firstVlan->getID());
   pumpMplsTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),
       label_.getLabelValue(),
-      ensemble->getPlatform()->getLocalMac(),
+      mac,
       port);
 }
 

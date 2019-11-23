@@ -103,7 +103,7 @@ std::shared_ptr<SwitchState> addLoadBalancers(
 void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
-    folly::MacAddress cpuMac,
+    folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
   for (auto i = 0; i < 100; ++i) {
@@ -113,7 +113,7 @@ void pumpTraffic(
       auto dstIp = folly::IPAddress(
           folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
       auto pkt = makeUDPTxPacket(
-          hw, vlan, cpuMac, cpuMac, srcIp, dstIp, 10000 + i, 20000 + j);
+          hw, vlan, intfMac, intfMac, srcIp, dstIp, 10000 + i, 20000 + j);
       if (frontPanelPortToLoopTraffic) {
         hw->sendPacketOutOfPortSync(
             std::move(pkt), frontPanelPortToLoopTraffic.value());
@@ -128,7 +128,7 @@ void pumpMplsTraffic(
     bool isV6,
     HwSwitch* hw,
     uint32_t label,
-    folly::MacAddress cpuMac,
+    folly::MacAddress intfMac,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
   MPLSHdr::Label mplsLabel{label, 0, true, 128};
   std::unique_ptr<TxPacket> pkt;
@@ -140,16 +140,16 @@ void pumpMplsTraffic(
           folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
 
       auto frame = isV6 ? utility::getEthFrame(
-                              cpuMac,
-                              cpuMac,
+                              intfMac,
+                              intfMac,
                               {mplsLabel},
                               srcIp.asV6(),
                               dstIp.asV6(),
                               10000 + i,
                               20000 + j)
                         : utility::getEthFrame(
-                              cpuMac,
-                              cpuMac,
+                              intfMac,
+                              intfMac,
                               {mplsLabel},
                               srcIp.asV4(),
                               dstIp.asV4(),
