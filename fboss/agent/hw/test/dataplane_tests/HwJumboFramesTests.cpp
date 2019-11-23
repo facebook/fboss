@@ -37,12 +37,13 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
   }
 
   void sendPkt(int payloadSize) {
-    auto cpuMac = getPlatform()->getLocalMac();
+    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
-        VlanID(initialConfig().vlanPorts[0].vlanID),
-        cpuMac,
-        cpuMac,
+        vlanId,
+        mac,
+        mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,

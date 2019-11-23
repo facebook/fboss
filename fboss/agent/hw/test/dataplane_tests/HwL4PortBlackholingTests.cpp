@@ -44,17 +44,18 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
     applyNewState(newState);
   }
   void pumpTraffic(bool isV6) {
-    auto cpuMac = getPlatform()->getLocalMac();
     auto srcIp = IPAddress(isV6 ? "1001::1" : "100.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "200.0.0.1");
+    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {
         auto pkt = utility::makeUDPTxPacket(
             getHwSwitch(),
-            VlanID(utility::kDefaultVlanId),
-            cpuMac,
-            cpuMac,
+            vlanId,
+            mac,
+            mac,
             srcIp,
             dstIp,
             dir == Dir::SRC_PORT ? l4Port : 1,
