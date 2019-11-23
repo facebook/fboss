@@ -20,6 +20,8 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/SwitchState.h"
 
 using namespace facebook::fboss;
 using folly::MacAddress;
@@ -45,6 +47,17 @@ EthHdr makeEthHdr(
 namespace facebook {
 namespace fboss {
 namespace utility {
+
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan) {
+  return state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+}
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intf) {
+  return state->getInterfaces()->getInterface(intf)->getMac();
+}
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     const HwSwitch* hw,

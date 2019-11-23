@@ -31,12 +31,20 @@
 namespace facebook {
 namespace fboss {
 class HwSwitch;
+class SwitchState;
 } // namespace fboss
 } // namespace facebook
 
 namespace facebook {
 namespace fboss {
 namespace utility {
+
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan);
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intf);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     const HwSwitch* hw,
