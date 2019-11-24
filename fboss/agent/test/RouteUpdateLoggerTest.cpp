@@ -500,4 +500,23 @@ TEST_F(RouteUpdateLoggerTest, MultipleSubscribers) {
   EXPECT_EQ(2, mockMplsRouteLogger->changedFor.size());
 }
 
+TEST_F(RouteUpdateLoggerTest, TrackAllLabelsManySubscribers) {
+  startLogging(-1, "foo");
+  startLogging(-1, "bar");
+
+  auto state = addLabel(initState, 100);
+  state = addLabel(state, 200);
+  state = addLabel(state, 300);
+
+  routeUpdateLogger->stateUpdated(StateDelta(initState, state));
+  EXPECT_EQ(3, mockMplsRouteLogger->added.size());
+  EXPECT_EQ(6, mockMplsRouteLogger->addedFor.size());
+
+  stopLogging(-1, "bar");
+  auto newState = removeLabel(state, 100);
+  newState = addLabel(newState, 100, ClientID::STATIC_ROUTE);
+  routeUpdateLogger->stateUpdated(StateDelta(state, newState));
+  EXPECT_EQ(1, mockMplsRouteLogger->changed.size());
+  EXPECT_EQ(1, mockMplsRouteLogger->changedFor.size());
+}
 } // namespace

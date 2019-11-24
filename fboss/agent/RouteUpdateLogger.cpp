@@ -96,29 +96,36 @@ void RouteUpdateLogger::stateUpdated(const StateDelta& delta) {
       delta.getLabelForwardingInformationBaseDelta(),
       [mplsRouteLogger, &labelTracker](
           const auto& oldEntry, const auto& newEntry) {
-        std::vector<std::string> identifiers;
+        std::set<std::string> identifiers;
         labelTracker->getIdentifiersForLabel(oldEntry->getID(), identifiers);
         if (identifiers.empty()) {
           return;
         }
-        mplsRouteLogger->logChangedRoute(oldEntry, newEntry, identifiers);
+        mplsRouteLogger->logChangedRoute(
+            oldEntry,
+            newEntry,
+            std::vector<std::string>(identifiers.begin(), identifiers.end()));
       },
       [mplsRouteLogger, &labelTracker](const auto& addedEntry) {
-        std::vector<std::string> identifiers;
+        std::set<std::string> identifiers;
         labelTracker->getIdentifiersForLabel(addedEntry->getID(), identifiers);
         if (identifiers.empty()) {
           return;
         }
-        mplsRouteLogger->logAddedRoute(addedEntry, identifiers);
+        mplsRouteLogger->logAddedRoute(
+            addedEntry,
+            std::vector<std::string>(identifiers.begin(), identifiers.end()));
       },
       [mplsRouteLogger, &labelTracker](const auto& removedEntry) {
-        std::vector<std::string> identifiers;
+        std::set<std::string> identifiers;
         labelTracker->getIdentifiersForLabel(
             removedEntry->getID(), identifiers);
         if (identifiers.empty()) {
           return;
         }
-        mplsRouteLogger->logRemovedRoute(removedEntry, identifiers);
+        mplsRouteLogger->logRemovedRoute(
+            removedEntry,
+            std::vector<std::string>(identifiers.begin(), identifiers.end()));
       });
 }
 
@@ -339,13 +346,18 @@ LabelsTracker::TrackedLabelsInfo LabelsTracker::getTrackedLabelsInfo() const {
 
 void LabelsTracker::getIdentifiersForLabel(
     LabelForwardingEntry::Label label,
-    std::vector<std::string>& identifiers) const {
+    std::set<std::string>& identifiers) const {
   auto label2IdsItr = label2Ids_.find(label);
-  if (label2IdsItr == label2Ids_.end()) {
-    return;
+  if (label2IdsItr != label2Ids_.end()) {
+    for (auto id : label2IdsItr->second) {
+      identifiers.insert(id);
+    }
   }
-  for (auto id : label2IdsItr->second) {
-    identifiers.emplace_back(id);
+  auto allIdsItr = label2Ids_.find(kAll);
+  if (allIdsItr != label2Ids_.end()) {
+    for (auto id : allIdsItr->second) {
+      identifiers.insert(id);
+    }
   }
 }
 } // namespace fboss

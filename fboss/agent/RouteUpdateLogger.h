@@ -127,8 +127,7 @@ class LabelsTracker {
   using TrackedLabelsInfo = boost::container::flat_set<
       std::pair<std::string, LabelForwardingEntry::Label>>;
 
-  LabelsTracker()
-      : label2Ids_{{kAll, boost::container::flat_set<std::string>()}} {}
+  LabelsTracker() {}
 
   void track(LabelForwardingEntry::Label label, const std::string& identifier);
   void untrack(
@@ -139,7 +138,7 @@ class LabelsTracker {
 
   void getIdentifiersForLabel(
       LabelForwardingEntry::Label label,
-      std::vector<std::string>& identifiers) const;
+      std::set<std::string>& identifiers) const;
 
  private:
   Label2Ids label2Ids_;
