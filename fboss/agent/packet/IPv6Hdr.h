@@ -128,6 +128,9 @@ class IPv6Hdr {
   size_t static size() {
     return SIZE;
   }
+  size_t payloadSize() const {
+    return payloadLength;
+  }
 
  public:
   /*

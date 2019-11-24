@@ -159,6 +159,9 @@ class IPv4Hdr {
   size_t size() const {
     return ihl * 4;
   }
+  size_t payloadSize() const {
+    return length - size();
+  }
   /*
    * Always 0x4
    */
