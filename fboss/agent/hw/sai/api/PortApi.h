@@ -132,17 +132,12 @@ class PortApi : public SaiApi<PortApi> {
       sai_port_stat_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 4, 0)
     return api_->get_port_stats_ext(
         key,
         num_of_counters,
         reinterpret_cast<sai_stat_id_t*>(counter_ids),
         mode,
         counters);
-#else
-    return api_->get_port_stats_ext(
-        key, num_of_counters, counter_ids, mode, counters);
-#endif
   }
 
   sai_port_api_t* api_;
