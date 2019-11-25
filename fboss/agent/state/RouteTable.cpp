@@ -10,17 +10,12 @@
 // Copyright 2004-present Facebook.  All rights reserved.
 #include "RouteTable.h"
 
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SwitchState.h"
-
-namespace {
-constexpr auto kRouterId = "routerId";
-constexpr auto kRibV4 = "ribV4";
-constexpr auto kRibV6 = "ribV6";
-} // namespace
 
 namespace facebook {
 namespace fboss {

@@ -11,6 +11,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RouteNextHopEntry.h"
@@ -179,11 +180,12 @@ folly::dynamic RoutingInformationBase::toFollyDynamic() const {
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
   for (const auto& routeTable : *lockedRouteTables) {
     auto routerIdStr =
-        folly::to<std::string>(static_cast<int>(routeTable.first));
+        folly::to<std::string>(static_cast<uint32_t>(routeTable.first));
     rib[routerIdStr] = folly::dynamic::object;
-    rib[routerIdStr]["v4"] =
+    rib[routerIdStr][kRouterId] = static_cast<uint32_t>(routeTable.first);
+    rib[routerIdStr][kRibV4] =
         routeTable.second.v4NetworkToRoute.toFollyDynamic();
-    rib[routerIdStr]["v6"] =
+    rib[routerIdStr][kRibV6] =
         routeTable.second.v6NetworkToRoute.toFollyDynamic();
   }
 
@@ -199,8 +201,8 @@ RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
     lockedRouteTables->insert(std::make_pair(
         RouterID(routeTable.first.asInt()),
         RouteTable{
-            IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second["v4"]),
-            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second["v6"]),
+            IPv4NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV4]),
+            IPv6NetworkToRouteMap::fromFollyDynamic(routeTable.second[kRibV6]),
             UpdateStatistics{}}));
   }
 
