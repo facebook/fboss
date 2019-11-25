@@ -152,9 +152,6 @@ class NodeMapT : public NodeBaseT<MapTypeT, NodeMapFields<TraitsT>> {
    */
   static std::shared_ptr<MapTypeT> fromFollyDynamic(const folly::dynamic& json);
 
-  static constexpr char kExtraFields[] = "extraFields";
-  static constexpr char kEntries[] = "entries";
-
  private:
   // Inherit the constructor required for clone()
   using NodeBaseT<MapTypeT, NodeMapFields<TraitsT>>::NodeBaseT;

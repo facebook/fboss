@@ -21,6 +21,8 @@ inline constexpr folly::StringPiece kEcmpEgress{"ecmpEgress"};
 inline constexpr folly::StringPiece kEcmpHosts{"ecmpHosts"};
 inline constexpr folly::StringPiece kEgressId{"egressId"};
 inline constexpr folly::StringPiece kEgress{"egress"};
+inline constexpr folly::StringPiece kEntries{"entries"};
+inline constexpr folly::StringPiece kExtraFields{"extraFields"};
 inline constexpr folly::StringPiece kFlags{"flags"};
 inline constexpr folly::StringPiece kFwdInfo{"forwardingInfo"};
 inline constexpr folly::StringPiece kHostTable{"hostTable"};

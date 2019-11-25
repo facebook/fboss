@@ -9,12 +9,14 @@
  */
 #pragma once
 
-#include <vector>
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
-#include "fboss/agent/state/NodeBase-defs.h"
+
+#include <vector>
 
 #define FBOSS_INSTANTIATE_NODE_MAP(MapType, TraitsType) \
   template class ::facebook::fboss::                    \
@@ -23,12 +25,6 @@
 
 namespace facebook {
 namespace fboss {
-
-template <typename MapTypeT, typename TraitsT>
-constexpr char NodeMapT<MapTypeT, TraitsT>::kExtraFields[];
-
-template <typename MapTypeT, typename TraitsT>
-constexpr char NodeMapT<MapTypeT, TraitsT>::kEntries[];
 
 template <typename MapTypeT, typename TraitsT>
 const std::shared_ptr<typename TraitsT::Node>&

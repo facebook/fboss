@@ -30,7 +30,7 @@ LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
   if (json.isNull()) {
     return labelFib;
   }
-  for (const auto& entry : json[BaseT::kEntries]) {
+  for (const auto& entry : json[kEntries]) {
     labelFib->addNode(LabelForwardingEntry::fromFollyDynamic(entry));
   }
   return labelFib;
