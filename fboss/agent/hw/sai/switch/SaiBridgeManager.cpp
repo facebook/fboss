@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -24,9 +26,23 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
   // Lazily re-load or create the default bridge if it is missing
   if (UNLIKELY(!bridgeHandle_)) {
     auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
-    SaiBridgeTraits::CreateAttributes attributes{SAI_BRIDGE_TYPE_1Q};
     bridgeHandle_ = std::make_unique<SaiBridgeHandle>();
-    bridgeHandle_->bridge = store.setObject(std::monostate{}, attributes);
+    if (!platform_->getObjectKeysSupported()) {
+      /*
+       * TODO: This is only a temporary solution till the hw supports
+       * reload of the default 1Q bridge
+       */
+      SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+      BridgeSaiId default1QBridgeId{
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              switchId, SaiSwitchTraits::Attributes::Default1QBridgeId{})};
+      bridgeHandle_->bridge = store.loadObjectOwnedByAdapter(
+          SaiBridgeTraits::AdapterKey{default1QBridgeId});
+    }
+    if (!bridgeHandle_->bridge) {
+      SaiBridgeTraits::CreateAttributes attributes{SAI_BRIDGE_TYPE_1Q};
+      bridgeHandle_->bridge = store.setObject(std::monostate{}, attributes);
+    }
   }
   auto& store = SaiStore::getInstance()->get<SaiBridgePortTraits>();
   SaiBridgePortTraits::AdapterHostKey k{portId};
