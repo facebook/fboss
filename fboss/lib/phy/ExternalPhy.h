@@ -63,11 +63,60 @@ struct ExternalPhyLaneDiagInfo {
   float snr{0};
 };
 
+struct LaneConfig {
+  std::optional<PolaritySwap> polaritySwap;
+  std::optional<TxSettings> tx;
+
+  bool operator==(const LaneConfig& rhs) const;
+  LaneSettings toLaneSettings() const;
+  static LaneConfig fromLaneSettings(const LaneSettings& settings);
+};
+
+struct PhySideConfig {
+  std::map<int32_t, LaneConfig> lanes;
+
+  bool operator==(const PhySideConfig& rhs) const;
+};
+
+struct ExternalPhyConfig {
+  PhySideConfig system;
+  PhySideConfig line;
+
+  bool operator==(const ExternalPhyConfig& rhs) const;
+};
+
+// Same thing as PortProfileConfig, but without xphyLine being optional
+// So we only need to null-check it once
+struct ExternalPhyProfileConfig {
+  cfg::PortSpeed speed;
+  ProfileSideConfig system;
+  ProfileSideConfig line;
+
+  bool operator==(const ExternalPhyProfileConfig& rhs) const;
+  static ExternalPhyProfileConfig fromPortProfileConfig(
+      const PortProfileConfig& portCfg);
+};
+
+struct PhyPortConfig {
+  ExternalPhyConfig config;
+  ExternalPhyProfileConfig profile;
+
+  bool operator==(const PhyPortConfig& rhs) const;
+  bool operator!=(const PhyPortConfig& rhs) const;
+  PhyPortSettings toPhyPortSettings(int16_t phyID) const;
+  static PhyPortConfig fromPhyPortSettings(const PhyPortSettings& settings);
+};
+
 class ExternalPhy {
  public:
   virtual ~ExternalPhy() {}
 
   virtual PhyFwVersion fwVersion() = 0;
+
+  /* TODO (ccpowers): remove all of these old functions using
+    - PhyPortSettings
+    - PhySettings
+    once the new configuration format is fully supported */
 
   // Program all settings in one go. This is a rather inflexible API
   // in that we expect to use all lanes in the external phy and that
@@ -77,6 +126,7 @@ class ExternalPhy {
   // class integration with the switch state.
   virtual void program(PhySettings settings) = 0;
   virtual void programOnePort(PhyPortSettings settings) = 0;
+  virtual void programOnePort(PhyPortConfig config) = 0;
   virtual PhySettings getSettings() = 0;
 
   virtual bool legalSettings(const PhySettings& settings) {
