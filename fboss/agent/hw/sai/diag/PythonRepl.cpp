@@ -18,7 +18,7 @@ PythonRepl::~PythonRepl() noexcept {
   /*
    * Due to a deficiency in Py_Main (and its alternative, PyRun_InteractiveLoop)
    * we cannot cleanly terminate the infinite loops in the pyThread nor the
-   * producerThread. For that reason, DiagRepl has the same lifetime as
+   * producerThread. For that reason, DiagShell has the same lifetime as
    * SaiHandler, so it is only destroyed when FBOSS is exiting and it is safe
    * to detach the threads instead of joining them.
    */
