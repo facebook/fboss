@@ -15,6 +15,7 @@
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
+#include <thrift/lib/cpp2/transport/rsocket/server/RSRoutingHandler.h>
 
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
@@ -30,7 +31,8 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     std::shared_ptr<THRIFT_HANDLER>& handler,
     int port,
     bool isDuplex,
-    bool setupSSL) {
+    bool setupSSL,
+    bool isStreaming) {
   // Start the thrift server
   auto server = std::make_unique<apache::thrift::ThriftServer>();
   server->setTaskExpireTime(
@@ -43,6 +45,11 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
 
   if (setupSSL) {
     serverSSLSetup(*server);
+  }
+
+  if (isStreaming) {
+    server->addRoutingHandler(
+        std::make_unique<apache::thrift::RSRoutingHandler>());
   }
 
   handler->setEventBaseManager(server->getEventBaseManager());

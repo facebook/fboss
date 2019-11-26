@@ -284,7 +284,12 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
 
   // Start the thrift server
   auto server = setupThriftServer(
-      eventBase, handler, FLAGS_port, true /*isDuplex*/, true /*setupSSL*/);
+      eventBase,
+      handler,
+      FLAGS_port,
+      true /*isDuplex*/,
+      true /*setupSSL*/,
+      true /*isStreaming*/);
 
   handler->setSSLPolicy(server->getSSLPolicy());
 
