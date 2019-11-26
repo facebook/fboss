@@ -37,11 +37,12 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     return cfg;
   }
   void pumpTraffic(bool isV6) {
-    auto cpuMac = getPlatform()->getLocalMac();
+    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcIp = IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(
-        getHwSwitch(), VlanID(1), cpuMac, cpuMac, srcIp, dstIp, 10000, 10001);
+        getHwSwitch(), VlanID(1), intfMac, intfMac, srcIp, dstIp, 10000, 10001);
     getHwSwitch()->sendPacketOutOfPortSync(
         std::move(pkt), PortID(masterLogicalPortIds()[0]));
   }
