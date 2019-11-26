@@ -51,15 +51,15 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4DstPort,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0) {
-    auto cpuMac = getPlatform()->getLocalMac();
     auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
-          cpuMac,
-          dstMac ? *dstMac : cpuMac,
+          intfMac,
+          dstMac ? *dstMac : intfMac,
           folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::1"),
           dstIpAddress,
           l4SrcPort,
