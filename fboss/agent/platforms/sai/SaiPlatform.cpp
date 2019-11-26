@@ -11,6 +11,8 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
 
+#include "fboss/agent/hw/sai/switch/SaiHandler.h"
+
 DEFINE_string(
     hw_config_file,
     "hw_config",
@@ -67,7 +69,7 @@ void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
 void SaiPlatform::stop() {}
 
 std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
-  return std::make_unique<ThriftHandler>(sw);
+  return std::make_unique<SaiHandler>(sw, saiSwitch_.get());
 }
 
 TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const {
