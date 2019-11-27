@@ -25,6 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
@@ -962,7 +963,21 @@ BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::findMirroredPort(
 }
 
 void BcmWarmBootCache::programmedMirroredPort(MirroredPort2HandleCitr itr) {
-  mirroredPort2Handle_.erase(itr);
+  auto handle = itr->second;
+  auto flags = itr->first.second;
+  if (isSflowMirror(handle)) {
+    /* if sflow mirror is claimed by first port, then claim it for all ports */
+    auto currItr = mirroredPort2Handle_.cbegin();
+    while (currItr != mirroredPort2Handle_.cend()) {
+      if (currItr->first.second == flags && currItr->second == handle) {
+        currItr = mirroredPort2Handle_.erase(currItr);
+      } else {
+        currItr++;
+      }
+    }
+  } else {
+    mirroredPort2Handle_.erase(itr);
+  }
 }
 
 BcmWarmBootCache::MirroredAcl2HandleCitr BcmWarmBootCache::mirroredAclsBegin()
@@ -989,16 +1004,24 @@ void BcmWarmBootCache::removeUnclaimedMirrors() {
   XLOG(DBG1) << "Unclaimed mirrored port count=" << mirroredPort2Handle_.size()
              << ", unclaimed mirrored acl count=" << mirroredAcl2Handle_.size()
              << ", unclaimed mirror count=" << mirrorEgressPath2Handle_.size();
-  std::for_each(
-      mirroredPort2Handle_.begin(),
-      mirroredPort2Handle_.end(),
-      [this](const auto& mirroredPort2Handle) {
-        this->stopUnclaimedPortMirroring(
-            mirroredPort2Handle.first.first,
-            mirroredPort2Handle.first.second,
-            mirroredPort2Handle.second);
-      });
 
+  std::unordered_set<std::pair<BcmMirrorHandle, int /*flags*/>> sflowHandles;
+  for (auto itr = mirroredPort2Handle_.begin();
+       itr != mirroredPort2Handle_.end();) {
+    if (isSflowMirror(itr->second) &&
+        sflowHandles.end() !=
+            sflowHandles.find(std::make_pair(itr->second, itr->first.second))) {
+      /* if mirror is sflow, only stop unclaimed mirroring once, doing so stops
+       * for all other ports */
+      continue;
+    }
+    this->stopUnclaimedPortMirroring(
+        itr->first.first, itr->first.second, itr->second);
+    if (isSflowMirror(itr->second)) {
+      sflowHandles.insert(std::make_pair(itr->second, itr->first.second));
+      break;
+    }
+  }
   std::for_each(
       mirroredAcl2Handle_.begin(),
       mirroredAcl2Handle_.end(),

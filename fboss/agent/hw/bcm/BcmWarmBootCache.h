@@ -523,6 +523,7 @@ class BcmWarmBootCache {
   MirroredPort2HandleCitr findMirroredPort(opennsl_gport_t port, uint32_t flags)
       const;
   void programmedMirroredPort(MirroredPort2HandleCitr itr);
+  bool isSflowMirror(BcmMirrorHandle handle) const;
 
   using MirroredAcl2HandleCitr = typename MirroredAcl2Handle::const_iterator;
   MirroredAcl2HandleCitr mirroredAclsBegin() const;

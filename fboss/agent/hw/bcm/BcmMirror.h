@@ -28,8 +28,8 @@ class BcmMirrorDestination {
       const MirrorTunnel& mirrorTunnel,
       uint8_t dscp,
       bool truncate);
-  BcmMirrorDestination(int unit, BcmMirrorHandle handle)
-      : unit_(unit), handle_(handle) {}
+  BcmMirrorDestination(int unit, BcmMirrorHandle handle, int flags)
+      : unit_(unit), handle_(handle), flags_(flags) {}
   ~BcmMirrorDestination();
   BcmMirrorHandle getHandle();
 
@@ -74,6 +74,7 @@ class BcmMirror {
   void program(const std::shared_ptr<Mirror>& mirror);
   void applyAclMirrorActions(MirrorAction action);
   void applyPortMirrorActions(MirrorAction action);
+  uint8_t mirroredPorts_{0};
 };
 
 } // namespace fboss
