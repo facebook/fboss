@@ -22,22 +22,17 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
-#include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
-#include "fboss/agent/packet/IPv6Hdr.h"
-#include "fboss/agent/packet/UDPHeader.h"
-#include "fboss/agent/packet/TCPHeader.h"
-
 
 namespace facebook {
 namespace fboss {
 class HwSwitch;
 class SwitchState;
-} // namespace fboss
-} // namespace facebook
+class EthHdr;
+class IPv4Hdr;
+class IPv6Hdr;
+class TCPHeader;
+class UDPHeader;
 
-namespace facebook {
-namespace fboss {
 namespace utility {
 
 folly::MacAddress getInterfaceMac(

@@ -15,6 +15,10 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>

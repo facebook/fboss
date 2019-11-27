@@ -19,7 +19,12 @@
 #include "common/logging/logging.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/TCPHeader.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
