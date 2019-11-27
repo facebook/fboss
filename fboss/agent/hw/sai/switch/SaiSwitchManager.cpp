@@ -89,5 +89,4 @@ SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   }
   return switchInstance->id();
 }
-
 } // namespace facebook::fboss

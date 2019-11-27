@@ -69,6 +69,20 @@ struct SaiSwitchTraits {
         sai_uint32_t>;
     using SwitchShellEnable =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE, bool>;
+    using NumberOfUnicastQueues = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NUMBER_OF_UNICAST_QUEUES,
+        sai_uint32_t>;
+    using NumberOfMulticastQueues = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NUMBER_OF_MULTICAST_QUEUES,
+        sai_uint32_t>;
+    using NumberOfQueues =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_NUMBER_OF_QUEUES, sai_uint32_t>;
+    using NumberOfCpuQueues = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES,
+        sai_uint32_t>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

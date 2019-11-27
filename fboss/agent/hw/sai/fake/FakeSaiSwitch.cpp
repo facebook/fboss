@@ -18,6 +18,11 @@ namespace {
 static constexpr uint64_t kDefaultVlanId = 0;
 static constexpr uint64_t kDefaultVirtualRouterId = 0;
 static constexpr uint64_t kCpuPort = 0;
+static constexpr uint32_t kMaxPortUnicastQueues = 8;
+static constexpr uint32_t kMaxPortMulticastQueues = 8;
+static constexpr uint32_t kMaxPortQueues =
+    kMaxPortUnicastQueues + kMaxPortMulticastQueues;
+static constexpr uint32_t kMaxCpuQueues = 8;
 } // namespace
 
 sai_status_t set_switch_attribute_fn(
@@ -110,6 +115,18 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
         attr[i].value.booldata = sw.isShellEnabled();
+        break;
+      case SAI_SWITCH_ATTR_NUMBER_OF_UNICAST_QUEUES:
+        attr[i].value.u32 = kMaxPortUnicastQueues;
+        break;
+      case SAI_SWITCH_ATTR_NUMBER_OF_MULTICAST_QUEUES:
+        attr[i].value.u32 = kMaxPortMulticastQueues;
+        break;
+      case SAI_SWITCH_ATTR_NUMBER_OF_QUEUES:
+        attr[i].value.u32 = kMaxPortQueues;
+        break;
+      case SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES:
+        attr[i].value.u32 = kMaxCpuQueues;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

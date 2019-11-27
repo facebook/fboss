@@ -225,6 +225,7 @@ class SaiSwitch : public HwSwitch {
       SwitchSaiId switch_id,
       std::unique_ptr<folly::IOBuf> ioBuf,
       std::vector<sai_attribute_t> attrList);
+  uint32_t getMaxPortQueues(cfg::StreamType streamType) const;
 
   /*
    * SaiSwitch must support a few varieties of concurrent access:
@@ -257,6 +258,9 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<std::thread> asyncTxThread_;
   folly::EventBase asyncTxEventBase_;
+
+  uint32_t numberOfUnicastPortQueues_;
+  uint32_t numberOfMulticastPortQueues_;
 };
 
 } // namespace facebook::fboss

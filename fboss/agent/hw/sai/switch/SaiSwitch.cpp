@@ -299,7 +299,11 @@ HwInitResult SaiSwitch::initLocked(
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;
   __gSaiSwitch = this;
-
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  numberOfUnicastPortQueues_ = switchApi.getAttribute(
+      switchId_, SaiSwitchTraits::Attributes::NumberOfUnicastQueues{});
+  numberOfMulticastPortQueues_ = switchApi.getAttribute(
+      switchId_, SaiSwitchTraits::Attributes::NumberOfMulticastQueues{});
   auto state = std::make_shared<SwitchState>();
   ret.switchState = state;
   return ret;
@@ -652,6 +656,11 @@ void SaiSwitch::fdbEventCallbackLocked(
     uint32_t /*count*/,
     const sai_fdb_event_notification_data_t* /*data*/) {
   // TODO  - program macs from learn events to FDB
+}
+
+uint32_t SaiSwitch::getMaxPortQueues(cfg::StreamType streamType) const {
+  return streamType == cfg::StreamType::UNICAST ? numberOfUnicastPortQueues_
+                                                : numberOfMulticastPortQueues_;
 }
 
 } // namespace facebook::fboss
