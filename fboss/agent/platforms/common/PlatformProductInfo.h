@@ -11,25 +11,11 @@
 
 #include <folly/Range.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 
 DECLARE_string(fruid_filepath);
 
-namespace facebook {
-namespace fboss {
-
-enum class PlatformMode : char {
-  WEDGE,
-  WEDGE100,
-  GALAXY_LC,
-  GALAXY_FC,
-  FAKE_WEDGE,
-  MINIPACK,
-  YAMP,
-  FAKE_WEDGE40,
-  WEDGE400C,
-  WEDGE400C_SIM,
-  WEDGE400,
-};
+namespace facebook::fboss {
 
 class PlatformProductInfo {
  public:
@@ -56,5 +42,4 @@ class PlatformProductInfo {
   PlatformMode mode_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
