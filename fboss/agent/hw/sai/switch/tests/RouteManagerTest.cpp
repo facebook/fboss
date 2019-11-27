@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -170,6 +171,109 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
   EXPECT_THROW(
       saiManagerTable->routeManager().removeRoute(RouterID(0), r2), FbossError);
+}
+
+TEST_F(RouteManagerTest, updateNonexistentRoute) {
+  auto r1 = makeRoute(tr1);
+  tr2.nextHopInterfaces = tr1.nextHopInterfaces;
+  auto r2 = makeRoute(tr2);
+  EXPECT_THROW(
+      saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+          RouterID(0), r1, r2),
+      FbossError);
+}
+
+TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
+  auto r1 = makeRoute(tr1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  auto entry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(entry);
+  auto nexthopGroupHandle1 = saiRouteHandle->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle1->nextHopGroupMembers.size(), 4);
+  tr1.nextHopInterfaces.clear();
+  tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
+  tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
+  auto r2 = makeRoute(tr1);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r1, r2);
+  auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 2);
+  EXPECT_NE(nexthopGroupHandle1, nexthopGroupHandle2);
+}
+
+TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
+  RouteFields<folly::IPAddressV4>::Prefix destination;
+  destination.network = tr1.destination.first.asV4();
+  destination.mask = tr1.destination.second;
+  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  RouteNextHopEntry entry(
+      RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
+  r1->update(ClientID{42}, entry);
+  r1->setResolved(entry);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  auto routeEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(routeEntry);
+  auto r2 = makeRoute(tr1);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r1, r2);
+  auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r2, r1);
+  EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
+}
+
+TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
+  tr2.nextHopInterfaces = tr1.nextHopInterfaces;
+  auto r1 = makeRoute(tr1);
+  auto r2 = makeRoute(tr2);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r2);
+  tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
+  tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
+  auto r3 = makeRoute(tr1);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r1, r3);
+  auto routeEntry1 =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
+  SaiRouteHandle* saiRouteHandle1 =
+      saiManagerTable->routeManager().getRouteHandle(routeEntry1);
+  auto nexthopGroupHandle1 = saiRouteHandle1->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle1->nextHopGroupMembers.size(), 6);
+  auto routeEntry2 =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
+  SaiRouteHandle* saiRouteHandle2 =
+      saiManagerTable->routeManager().getRouteHandle(routeEntry2);
+  auto nexthopGroupHandle2 = saiRouteHandle2->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+}
+
+TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
+  RouteFields<folly::IPAddressV4>::Prefix destination;
+  destination.network = tr1.destination.first.asV4();
+  destination.mask = tr1.destination.second;
+  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  RouteNextHopEntry entry(
+      RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
+  r1->update(ClientID{42}, entry);
+  r1->setResolved(entry);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  auto routeEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
+  SaiRouteHandle* saiRouteHandle =
+      saiManagerTable->routeManager().getRouteHandle(routeEntry);
+  auto r2 = makeRoute(tr1);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r1, r2);
+  auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
+  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      RouterID(0), r2, r1);
+  EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
 }
 
 /*
