@@ -116,17 +116,18 @@ DiagShell::DiagShell() {
   // Start listening on pty master
   producerThread_ =
       std::make_unique<std::thread>([this]() { produceOutput(); });
-
-  // Set up REPL using pty slave
-  repl_ = std::make_unique<PythonRepl>(ptys_->file.fd());
-  ts_ = std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
-
-  // TODO: could make this on-demand when we actually get input
-  repl_->run();
 }
 
 void DiagShell::setPublisher(
     apache::thrift::StreamPublisher<std::string>&& publisher) {
+  if (!repl_) {
+    // Set up REPL on first thrift connect
+    repl_ = std::make_unique<PythonRepl>(ptys_->file.fd());
+    ts_ =
+        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
+    repl_->run();
+  }
+
   publisher_ = std::make_unique<apache::thrift::StreamPublisher<std::string>>(
       std::move(publisher));
 }

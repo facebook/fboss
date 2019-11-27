@@ -20,7 +20,7 @@
 
 namespace facebook::fboss {
 
-class PythonRepl;
+class Repl;
 
 namespace detail {
 
@@ -82,7 +82,7 @@ class DiagShell {
   // Buffer to read into from pty master side
   std::array<char, 512> producerBuffer_;
 
-  std::unique_ptr<PythonRepl> repl_;
+  std::unique_ptr<Repl> repl_;
 };
 
 } // namespace facebook::fboss
