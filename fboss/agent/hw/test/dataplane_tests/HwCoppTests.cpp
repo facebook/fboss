@@ -44,7 +44,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void sendUdpPkts(
+  void sendTcpPkts(
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
@@ -55,7 +55,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
     for (int i = 0; i < numPktsToSend; i++) {
-      auto txPacket = utility::makeUDPTxPacket(
+      auto txPacket = utility::makeTCPTxPacket(
           getHwSwitch(),
           vlanId,
           intfMac,
@@ -111,7 +111,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-    sendUdpPkts(
+    sendTcpPkts(
         numPktsToSend,
         dstIpAddress,
         l4SrcPort,
@@ -163,7 +163,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
      * at least kMinDurationInSecs.
      */
     do {
-      sendUdpPkts(
+      sendTcpPkts(
           kNumPktsToSend,
           dstIP,
           utility::kNonSpecialPort1,
