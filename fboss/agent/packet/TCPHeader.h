@@ -26,6 +26,9 @@ class IPv6Hdr;
 
 struct TCPHeader {
  public:
+  TCPHeader(uint16_t _srcPort, uint16_t _dstPort)
+      : srcPort(_srcPort), dstPort(_dstPort) {}
+
   TCPHeader(
       uint16_t _srcPort,
       uint16_t _dstPort,

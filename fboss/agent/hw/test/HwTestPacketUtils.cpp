@@ -228,6 +228,148 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       hopLimit,
       payload);
 }
+
+template <typename IPHDR>
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const HwSwitch* hw,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const TCPHeader& tcpHdr,
+    const std::vector<uint8_t>& payload) {
+  auto txPacket = hw->allocatePacket(
+      EthHdr::SIZE + ipHdr.size() + tcpHdr.size() + payload.size());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+
+  // write TCP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(tcpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(tcpHdr.dstPort);
+  rwCursor.writeBE<uint32_t>(tcpHdr.sequenceNumber);
+  rwCursor.writeBE<uint32_t>(tcpHdr.ackNumber);
+  rwCursor.writeBE<uint8_t>(tcpHdr.dataOffsetAndFlags);
+  rwCursor.writeBE<uint8_t>(tcpHdr.flags);
+  rwCursor.writeBE<uint16_t>(tcpHdr.windowSize);
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  rwCursor.writeBE<uint16_t>(tcpHdr.urgentPointer);
+  folly::io::Cursor payloadStart(rwCursor);
+  rwCursor.push(payload.data(), payload.size());
+  uint16_t csum = tcpHdr.computeChecksum(ipHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = TCPHeader::size() + payloadBytes.size();
+  ipHdr.hopLimit = hopLimit;
+  // TCPHeader
+  TCPHeader tcpHdr(srcPort, dstPort);
+
+  return makeTCPTxPacket(hw, ethHdr, ipHdr, tcpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV4& srcIp,
+    const folly::IPAddressV4& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t dscp,
+    uint8_t ttl,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
+  // IPv4Hdr
+  IPv4Hdr ipHdr(
+      srcIp,
+      dstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP),
+      payloadBytes.size());
+  ipHdr.dscp = dscp;
+  ipHdr.computeChecksum();
+  ipHdr.ttl = ttl;
+  // TCPHeader
+  TCPHeader tcpHdr(srcPort, dstPort);
+
+  return makeTCPTxPacket(hw, ethHdr, ipHdr, tcpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  CHECK_EQ(srcIp.isV6(), dstIp.isV6());
+  if (srcIp.isV6()) {
+    return makeTCPTxPacket(
+        hw,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp.asV6(),
+        dstIp.asV6(),
+        srcPort,
+        dstPort,
+        trafficClass,
+        hopLimit,
+        payload);
+  }
+  return makeTCPTxPacket(
+      hw,
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp.asV4(),
+      dstIp.asV4(),
+      srcPort,
+      dstPort,
+      trafficClass,
+      hopLimit,
+      payload);
+}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
