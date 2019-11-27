@@ -29,14 +29,9 @@ PythonRepl::~PythonRepl() noexcept {
   }
 }
 
-void PythonRepl::run() {
+void PythonRepl::doRun() {
   pyThread_ = std::make_unique<std::thread>(
       [this]() mutable { runPythonInterpreter(); });
-  running_ = true;
-}
-
-bool PythonRepl::running() const {
-  return running_;
 }
 
 void PythonRepl::runPythonInterpreter() {

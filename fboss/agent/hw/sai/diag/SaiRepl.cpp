@@ -1,5 +1,4 @@
 /*
- *  Copyright (c) 2004-present, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -17,7 +16,7 @@
 
 namespace facebook::fboss {
 
-void SaiRepl::run() {
+void SaiRepl::doRun() {
   shellThread_ = std::make_unique<std::thread>([switchId = switchId_]() {
     folly::setThreadName("Sai Repl");
     SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
@@ -25,7 +24,6 @@ void SaiRepl::run() {
         SaiApiTable::getInstance()->switchApi().setAttribute(switchId, shell);
     saiCheckError(rv, "Unable to start shell thread");
   });
-  running_ = true;
 }
 
 SaiRepl::~SaiRepl() noexcept {
@@ -39,10 +37,6 @@ SaiRepl::~SaiRepl() noexcept {
   } catch (...) {
     XLOG(FATAL) << "Failed to detach shell thread during repl tear down";
   }
-}
-
-bool SaiRepl::running() const {
-  return running_;
 }
 
 std::string SaiRepl::getPrompt() const {

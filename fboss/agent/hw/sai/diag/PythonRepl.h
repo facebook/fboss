@@ -10,6 +10,7 @@
 #pragma once
 
 #include <Python.h>
+#include "fboss/agent/hw/sai/diag/Repl.h"
 
 #include <folly/File.h>
 #include <folly/Format.h>
@@ -20,22 +21,20 @@
 
 namespace facebook::fboss {
 
-class PythonRepl {
+class PythonRepl : public Repl {
  public:
   explicit PythonRepl(int fd);
-  ~PythonRepl() noexcept;
-  void run();
-  bool running() const;
-  std::string getPrompt() const;
+  ~PythonRepl() noexcept override;
+  std::string getPrompt() const override;
   // Get the list of streams the repl expects the shell to dup2 with
   // the pty slave fd passed into the repl constructor
-  std::vector<folly::File> getStreams() const;
+  std::vector<folly::File> getStreams() const override;
 
  private:
+  void doRun() override;
   void runPythonInterpreter();
   std::unique_ptr<std::thread> pyThread_;
   int fd_;
-  bool running_{false};
 };
 
 } // namespace facebook::fboss

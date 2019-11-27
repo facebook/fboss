@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/Types.h"
+#include "fboss/agent/hw/sai/diag/Repl.h"
 
 #include <folly/File.h>
 #include <folly/Format.h>
@@ -21,21 +22,19 @@
 namespace facebook::fboss {
 class SaiSwitch;
 
-class SaiRepl {
+class SaiRepl : public Repl {
  public:
   explicit SaiRepl(SwitchSaiId switchId) : switchId_(switchId) {}
-  ~SaiRepl() noexcept;
-  void run();
-  bool running() const;
-  std::string getPrompt() const;
+  ~SaiRepl() noexcept override;
+  std::string getPrompt() const override;
   // Get the list of streams the repl expects the shell to dup2 with
   // the pty slave fd passed into the repl constructor
-  std::vector<folly::File> getStreams() const;
+  std::vector<folly::File> getStreams() const override;
 
  private:
+  void doRun() override;
   std::unique_ptr<std::thread> shellThread_;
   const SwitchSaiId switchId_;
-  bool running_{false};
 };
 
 } // namespace facebook::fboss
