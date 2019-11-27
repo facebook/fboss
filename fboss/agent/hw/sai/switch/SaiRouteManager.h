@@ -73,6 +73,11 @@ class SaiRouteManager {
  private:
   SaiRouteHandle* getRouteHandleImpl(
       const SaiRouteTraits::RouteEntry& entry) const;
+  template <typename AddrT>
+  void addOrUpdateRoute(
+      SaiRouteHandle* routeHandle,
+      RouterID routerId,
+      const std::shared_ptr<Route<AddrT>>& swRoute);
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

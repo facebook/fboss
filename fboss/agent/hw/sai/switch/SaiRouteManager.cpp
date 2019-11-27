@@ -43,10 +43,18 @@ SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
 
 template <typename AddrT>
 void SaiRouteManager::changeRoute(
-    RouterID /* routerId */,
+    RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& /* oldSwRoute */,
-    const std::shared_ptr<Route<AddrT>>& /* newSwRoute */) {
-  // TODO: implement modifying an existing route
+    const std::shared_ptr<Route<AddrT>>& newSwRoute) {
+  SaiRouteTraits::RouteEntry entry =
+      routeEntryFromSwRoute(routerId, newSwRoute);
+  auto itr = handles_.find(entry);
+  if (itr == handles_.end()) {
+    throw FbossError(
+        "Failure to update route. Route does not exist ",
+        newSwRoute->prefix().str());
+  }
+  addOrUpdateRoute(itr->second.get(), routerId, newSwRoute);
 }
 
 std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
@@ -87,16 +95,11 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
 }
 
 template <typename AddrT>
-void SaiRouteManager::addRoute(
+void SaiRouteManager::addOrUpdateRoute(
+    SaiRouteHandle* routeHandle,
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
-  auto itr = handles_.find(entry);
-  if (itr != handles_.end()) {
-    throw FbossError(
-        "Failure to add route. A route already exists to ",
-        swRoute->prefix().str());
-  }
   auto fwd = swRoute->getForwardInfo();
   sai_int32_t packetAction;
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
@@ -155,9 +158,23 @@ void SaiRouteManager::addRoute(
   }
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
   auto route = store.setObject(entry, attributes.value());
-  auto routeHandle = std::make_unique<SaiRouteHandle>();
   routeHandle->route = route;
   routeHandle->nextHopGroupHandle = nextHopGroupHandle;
+}
+
+template <typename AddrT>
+void SaiRouteManager::addRoute(
+    RouterID routerId,
+    const std::shared_ptr<Route<AddrT>>& swRoute) {
+  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
+  auto itr = handles_.find(entry);
+  if (itr != handles_.end()) {
+    throw FbossError(
+        "Failure to add route. A route already exists to ",
+        swRoute->prefix().str());
+  }
+  auto routeHandle = std::make_unique<SaiRouteHandle>();
+  addOrUpdateRoute(routeHandle.get(), routerId, swRoute);
   handles_.emplace(entry, std::move(routeHandle));
 }
 
