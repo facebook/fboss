@@ -9,9 +9,11 @@
  */
 #include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 
+#include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/hw/sai/switch/SaiHandler.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
@@ -19,6 +21,10 @@
 #include "fboss/agent/SwitchStats.h"
 
 #include <memory>
+#include <thread>
+
+DECLARE_int32(thrift_port);
+DECLARE_bool(setup_thrift);
 
 namespace facebook::fboss {
 
@@ -37,13 +43,32 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
         },
         cfg::PortLoopbackMode::MAC);
   }
+  std::unique_ptr<std::thread> thriftThread;
+  if (FLAGS_setup_thrift) {
+    thriftThread = createThriftThread(hwSwitch.get());
+  }
   setupEnsemble(
       std::move(platform),
       std::move(hwSwitch),
       std::move(linkToggler),
-      nullptr // Add support for accessing HW shell once we have a h/w shell for
-              // SAI
-  );
+      std::move(thriftThread));
+}
+
+std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
+    const SaiSwitch* hwSwitch) {
+  return std::make_unique<std::thread>([hwSwitch] {
+    auto handler = std::make_shared<SaiHandler>(nullptr, hwSwitch);
+    folly::EventBase eventBase;
+    auto server = setupThriftServer(
+        eventBase,
+        handler,
+        FLAGS_thrift_port,
+        false /* isDuplex */,
+        false /* setupSSL*/,
+        true /* isStreaming */);
+    // Run the EventBase main loop
+    eventBase.loopForever();
+  });
 }
 
 std::vector<PortID> SaiSwitchEnsemble::logicalPortIds() const {

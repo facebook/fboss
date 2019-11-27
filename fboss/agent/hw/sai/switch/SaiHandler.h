@@ -20,7 +20,7 @@ class SaiSwitch;
 
 class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
  public:
-  SaiHandler(SwSwitch* sw, SaiSwitch* hw);
+  SaiHandler(SwSwitch* sw, const SaiSwitch* hw);
   ~SaiHandler() override;
   apache::thrift::ResponseAndStream<std::string, std::string> startDiagShell()
       override;
@@ -29,7 +29,7 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
       std::unique_ptr<ClientInformation> client) override;
 
  private:
-  SaiSwitch* hw_;
+  const SaiSwitch* hw_;
   DiagShell diagShell_;
 };
 
