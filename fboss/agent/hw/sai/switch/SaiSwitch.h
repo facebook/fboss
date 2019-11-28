@@ -111,6 +111,9 @@ class SaiSwitch : public HwSwitch {
   SwitchSaiId getSwitchId() const {
     return switchId_;
   }
+  const SaiPlatform* getPlatform() const {
+    return platform_;
+  }
 
  private:
   /*

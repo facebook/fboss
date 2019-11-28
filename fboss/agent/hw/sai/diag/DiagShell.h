@@ -21,6 +21,7 @@
 namespace facebook::fboss {
 
 class Repl;
+class SaiSwitch;
 
 namespace detail {
 
@@ -54,7 +55,7 @@ struct TerminalSession {
 
 class DiagShell {
  public:
-  DiagShell();
+  DiagShell(const SaiSwitch* hw);
   ~DiagShell() noexcept;
 
   void consumeInput(std::unique_ptr<std::string> input);
@@ -67,6 +68,7 @@ class DiagShell {
 
  private:
   void produceOutput();
+  std::unique_ptr<Repl> makeRepl() const;
 
   std::unique_ptr<detail::PtyMaster> ptym_;
   std::unique_ptr<detail::PtySlave> ptys_;
@@ -83,6 +85,7 @@ class DiagShell {
   std::array<char, 512> producerBuffer_;
 
   std::unique_ptr<Repl> repl_;
+  const SaiSwitch* hw_;
 };
 
 } // namespace facebook::fboss

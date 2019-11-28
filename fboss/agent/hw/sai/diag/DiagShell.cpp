@@ -9,6 +9,10 @@
  */
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
+#include "fboss/agent/hw/sai/diag/SaiRepl.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -108,7 +112,7 @@ TerminalSession::~TerminalSession() noexcept {
 
 } // namespace detail
 
-DiagShell::DiagShell() {
+DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
   // Set up PTY
   ptym_ = std::make_unique<detail::PtyMaster>();
   ptys_ = std::make_unique<detail::PtySlave>(*ptym_);
@@ -122,7 +126,7 @@ void DiagShell::setPublisher(
     apache::thrift::StreamPublisher<std::string>&& publisher) {
   if (!repl_) {
     // Set up REPL on first thrift connect
-    repl_ = std::make_unique<PythonRepl>(ptys_->file.fd());
+    repl_ = makeRepl();
     ts_ =
         std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
     repl_->run();
@@ -130,6 +134,27 @@ void DiagShell::setPublisher(
 
   publisher_ = std::make_unique<apache::thrift::StreamPublisher<std::string>>(
       std::move(publisher));
+}
+
+std::unique_ptr<Repl> DiagShell::makeRepl() const {
+  switch (hw_->getPlatform()->getMode()) {
+    case PlatformMode::WEDGE:
+    case PlatformMode::WEDGE100:
+    case PlatformMode::GALAXY_LC:
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::MINIPACK:
+    case PlatformMode::YAMP:
+    case PlatformMode::WEDGE400:
+      return std::make_unique<SaiRepl>(hw_->getSwitchId());
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400C_SIM:
+      return std::make_unique<PythonRepl>(ptys_->file.fd());
+    case PlatformMode::FAKE_WEDGE:
+    case PlatformMode::FAKE_WEDGE40:
+      throw FbossError("Shell not supported for fake platforms");
+  }
+  CHECK(0) << " Should never get here";
+  return nullptr;
 }
 
 void DiagShell::resetPublisher() {
