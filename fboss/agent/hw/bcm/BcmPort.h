@@ -235,7 +235,8 @@ class BcmPort {
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
   void updateMirror(
       const std::optional<std::string>& swMirrorName,
-      MirrorDirection direction);
+      MirrorDirection direction,
+      cfg::SampleDestination newDestination);
 
   opennsl_pbmp_t getPbmp();
 
@@ -249,9 +250,9 @@ class BcmPort {
   uint8_t determinePipe() const;
 
   void applyMirrorAction(
-      const std::optional<std::string>& mirrorName,
       MirrorAction action,
-      MirrorDirection direction);
+      MirrorDirection direction,
+      cfg::SampleDestination newDestination);
 
   BcmSwitch* const hw_{nullptr};
   const opennsl_port_t port_; // Broadcom physical port number

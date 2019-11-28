@@ -188,9 +188,8 @@ BcmPort::BcmPort(
 }
 
 BcmPort::~BcmPort() {
-  applyMirrorAction(
-      ingressMirror_, MirrorAction::STOP, MirrorDirection::INGRESS);
-  applyMirrorAction(egressMirror_, MirrorAction::STOP, MirrorDirection::EGRESS);
+  applyMirrorAction(MirrorAction::STOP, MirrorDirection::INGRESS, sampleDest_);
+  applyMirrorAction(MirrorAction::STOP, MirrorDirection::EGRESS, sampleDest_);
 }
 
 void BcmPort::init(bool warmBoot) {
@@ -357,16 +356,15 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 
   // If no sample destination is provided, we configure it to be CPU, which is
   // the switch's default sample destination configuration
+  cfg::SampleDestination dest = cfg::SampleDestination::CPU;
   if (port->getSampleDestination().has_value()) {
-    configureSampleDestination(port->getSampleDestination().value());
-  } else {
-    configureSampleDestination(cfg::SampleDestination::CPU);
+    dest = port->getSampleDestination().value();
   }
 
   /* update mirrors for port, mirror add/update must happen earlier than
    * updating mirrors for port */
-  updateMirror(port->getIngressMirror(), MirrorDirection::INGRESS);
-  updateMirror(port->getEgressMirror(), MirrorDirection::EGRESS);
+  updateMirror(port->getIngressMirror(), MirrorDirection::INGRESS, dest);
+  updateMirror(port->getEgressMirror(), MirrorDirection::EGRESS, dest);
 
   if (port->getQosPolicy()) {
     attachIngressQosPolicy(port->getQosPolicy().value());
@@ -897,33 +895,31 @@ std::chrono::seconds BcmPort::getTimeRetrieved() const {
 }
 
 void BcmPort::applyMirrorAction(
-    const std::optional<std::string>& mirrorName,
     MirrorAction action,
-    MirrorDirection direction) {
+    MirrorDirection direction,
+    cfg::SampleDestination destination) {
+  auto mirrorName =
+      direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_;
   if (!mirrorName) {
     return;
   }
   auto* bcmMirror = hw_->getBcmMirrorTable()->getMirrorIf(mirrorName.value());
   CHECK(bcmMirror != nullptr);
-  bcmMirror->applyPortMirrorAction(getPortID(), action, direction, sampleDest_);
+  bcmMirror->applyPortMirrorAction(getPortID(), action, direction, destination);
 }
 
 void BcmPort::updateMirror(
     const std::optional<std::string>& swMirrorName,
-    MirrorDirection direction) {
-  applyMirrorAction(
-      direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_,
-      MirrorAction::STOP,
-      direction);
+    MirrorDirection direction,
+    cfg::SampleDestination sampleDest) {
+  applyMirrorAction(MirrorAction::STOP, direction, sampleDest_);
   if (direction == MirrorDirection::INGRESS) {
     ingressMirror_ = swMirrorName;
   } else {
     egressMirror_ = swMirrorName;
   }
-  applyMirrorAction(
-      direction == MirrorDirection::INGRESS ? ingressMirror_ : egressMirror_,
-      MirrorAction::START,
-      direction);
+  configureSampleDestination(sampleDest);
+  applyMirrorAction(MirrorAction::START, direction, sampleDest_);
 }
 
 void BcmPort::setIngressPortMirror(const std::string& mirrorName) {
