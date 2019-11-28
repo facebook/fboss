@@ -28,7 +28,7 @@ DEFINE_bool(
 
 DEFINE_int32(
     thrift_port,
-    5908,
+    5909,
     "Port for thrift server to use (use with --setup_thrift");
 
 namespace facebook {
