@@ -217,15 +217,7 @@ class BcmWarmBootCache {
   void populateMirroredPort(opennsl_gport_t port);
   void populateMirroredAcl(BcmAclEntryHandle handle);
 
-  void removeUnclaimedMirrors();
-  void stopUnclaimedPortMirroring(
-      opennsl_gport_t port,
-      uint32_t flags,
-      BcmMirrorHandle mirror);
-  void stopUnclaimedAclMirroring(
-      BcmAclEntryHandle aclEntry,
-      MirrorDirection direction,
-      BcmMirrorHandle mirror);
+  void checkUnclaimedMirrors();
   void removeUnclaimedMirror(BcmMirrorHandle mirror);
 
   void populateLabelSwitchActions();

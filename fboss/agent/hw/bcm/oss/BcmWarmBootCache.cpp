@@ -37,15 +37,6 @@ void BcmWarmBootCache::populateMirroredPorts() {}
 
 void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
-void BcmWarmBootCache::stopUnclaimedPortMirroring(
-    opennsl_gport_t /*port*/,
-    uint32_t /*flags*/,
-    BcmMirrorHandle /*mirror*/) {}
-void BcmWarmBootCache::stopUnclaimedAclMirroring(
-    BcmAclEntryHandle /*aclEntry*/,
-    MirrorDirection /*direction*/,
-    BcmMirrorHandle /*mirror*/) {}
-void BcmWarmBootCache::removeUnclaimedMirror(BcmMirrorHandle /*mirror*/) {}
 void BcmWarmBootCache::populateIngressQosMaps() {}
 void BcmWarmBootCache::populateLabelSwitchActions() {}
 void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {}

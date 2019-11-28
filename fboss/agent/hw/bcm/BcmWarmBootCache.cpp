@@ -809,7 +809,7 @@ void BcmWarmBootCache::clear() {
   priority2BcmAclEntryHandle_.clear();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
-  removeUnclaimedMirrors();
+  checkUnclaimedMirrors();
   ingressQosMaps_.clear();
 }
 
@@ -1000,44 +1000,16 @@ void BcmWarmBootCache::programmedMirroredAcl(MirroredAcl2HandleCitr itr) {
   mirroredAcl2Handle_.erase(itr);
 }
 
-void BcmWarmBootCache::removeUnclaimedMirrors() {
-  XLOG(DBG1) << "Unclaimed mirrored port count=" << mirroredPort2Handle_.size()
-             << ", unclaimed mirrored acl count=" << mirroredAcl2Handle_.size()
-             << ", unclaimed mirror count=" << mirrorEgressPath2Handle_.size();
+void BcmWarmBootCache::checkUnclaimedMirrors() {
+  /* no spurious entries should exist around mirrors */
+  CHECK_EQ(mirroredPort2Handle_.size(), 0)
+      << "Unclaimed mirrored port count=" << mirroredPort2Handle_.size();
 
-  std::unordered_set<std::pair<BcmMirrorHandle, int /*flags*/>> sflowHandles;
-  for (auto itr = mirroredPort2Handle_.begin();
-       itr != mirroredPort2Handle_.end();) {
-    if (isSflowMirror(itr->second) &&
-        sflowHandles.end() !=
-            sflowHandles.find(std::make_pair(itr->second, itr->first.second))) {
-      /* if mirror is sflow, only stop unclaimed mirroring once, doing so stops
-       * for all other ports */
-      continue;
-    }
-    this->stopUnclaimedPortMirroring(
-        itr->first.first, itr->first.second, itr->second);
-    if (isSflowMirror(itr->second)) {
-      sflowHandles.insert(std::make_pair(itr->second, itr->first.second));
-      break;
-    }
-  }
-  std::for_each(
-      mirroredAcl2Handle_.begin(),
-      mirroredAcl2Handle_.end(),
-      [this](const auto& mirroredAcl2Handle) {
-        this->stopUnclaimedAclMirroring(
-            mirroredAcl2Handle.first.first,
-            mirroredAcl2Handle.first.second,
-            mirroredAcl2Handle.second);
-      });
+  CHECK_EQ(mirroredAcl2Handle_.size(), 0)
+      << "Unclaimed mirrored acl count=" << mirroredAcl2Handle_.size();
 
-  std::for_each(
-      mirrorEgressPath2Handle_.begin(),
-      mirrorEgressPath2Handle_.end(),
-      [this](const auto& mirrorEgressPath2Handle) {
-        this->removeUnclaimedMirror(mirrorEgressPath2Handle.second);
-      });
+  CHECK_EQ(mirrorEgressPath2Handle_.size(), 0)
+      << "unclaimed mirror count count=" << mirrorEgressPath2Handle_.size();
 }
 
 void BcmWarmBootCache::programmed(TrunksItr itr) {
