@@ -197,8 +197,7 @@ using facebook::fboss::VlanID;
 L2Entry createL2Entry(const opennsl_l2_addr_t* l2Addr) {
   CHECK(l2Addr);
 
-  // TODO (skhare) Verify/Test Trunk handling
-  if (l2Addr->tgid == 0) {
+  if (!(l2Addr->flags & OPENNSL_L2_TRUNK_MEMBER)) {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
