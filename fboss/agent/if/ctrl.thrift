@@ -124,6 +124,11 @@ struct ArpEntryThrift {
   8: i32 classID,
 }
 
+enum L2EntryType {
+  L2_ENTRY_TYPE_PENDING = 0,
+  L2_ENTRY_TYPE_VALIDATED = 1,
+}
+
 struct L2EntryThrift {
   1: string mac,
   2: i32 port,
@@ -132,6 +137,7 @@ struct L2EntryThrift {
   // trunk ports. Only one of port, trunk is valid. If
   // trunk is set we look at that.
   4: optional i32 trunk
+  5: L2EntryType l2EntryType
 }
 
 enum LacpPortRateThrift {
