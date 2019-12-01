@@ -27,6 +27,12 @@ using folly::StringPiece;
 using std::make_unique;
 using std::string;
 
+DEFINE_string(
+    l2xmsg_mode,
+    "1",
+    "Deliver L2 learning update callback via interrupt,"
+    "drain L2 Mod FIFO on delivering callback");
+
 /*
  * bde_create() must be defined as a symbol when linking against BRCM libs.
  * It should never be invoked in our setup though. So return a error
@@ -40,6 +46,43 @@ extern "C" int bde_create() {
  * We don't set any default values.
  */
 extern "C" void sal_config_init_defaults() {}
+
+namespace {
+
+/*
+ * TODO (skhare)
+ * Configerator change D18746658 introduces l2xmsg_mode to BCM config. It would
+ * be activated as part of next disruptive upgrade which could take of the
+ * order of several months/a year.
+ *
+ * We need l2xmst_mode setting sooner: MH-NIC queue-per-host L2 fix requires
+ * it. Thus, temporarily hard code l2xmsg mode here. We also provide
+ * FLAGS_l2xmsg_mode to disable this if needed.
+ *
+ * Broadcom has explicitly confirmed that setting l2xmsg_mode is safe across
+ * the warmboot, and we have BCM tests that verify it.
+ *
+ * This logic can be removed on a fleet wide disruptive upgrade after D18746658
+ * lands.
+ *
+ * The map is explicitly named as kBcmConfigsSafeAcrossWarmboot as only BCM
+ * configs that can be safely applied post warmboot could be added here as
+ * temporary workaround.
+ */
+const std::map<StringPiece, std::string> kBcmConfigsSafeAcrossWarmboot = {
+    /*
+     * Configure to get the callback via interrupts. Default is polling mode
+     * which is expensive as a thread must periodically poll for the L2 table
+     * updates. It is particularly wasteful given that the L2 table would likely
+     * not change that often.
+     * L2 MOD FIFO is used to queue up callbacks. If l2xmsg_mode is set to 1,
+     * the L2 MOD FIFO is dequeued whenever a callback is delivered, otherwise
+     * L2 MOD FIFO gets built up.
+     */
+    {"l2xmsg_mode", FLAGS_l2xmsg_mode},
+};
+
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -59,12 +102,23 @@ void BcmAPI::initConfig(const std::map<std::string, std::string>& config) {
   }
 }
 
-const char* BcmAPI::getConfigValue(StringPiece name) {
+const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
   auto it = bcmConfig.find(name);
-  if (it == bcmConfig.end()) {
-    return nullptr;
+  if (it != bcmConfig.end()) {
+    return it->second.c_str();
   }
-  return it->second.c_str();
+
+  /*
+   * If a config is not part of bcmConfig, check the list of hard coded
+   * configs, see comment at the top of kBcmConfigsSafeAcrossWarmboot for
+   * additional context.
+   */
+  auto it2 = kBcmConfigsSafeAcrossWarmboot.find(name);
+  if (it2 != kBcmConfigsSafeAcrossWarmboot.end()) {
+    return it2->second.c_str();
+  }
+
+  return nullptr;
 }
 
 BcmAPI::HwConfigMap BcmAPI::getHwConfig() {

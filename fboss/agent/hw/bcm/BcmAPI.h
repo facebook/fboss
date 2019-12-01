@@ -121,7 +121,7 @@ class BcmAPI {
    * The returned StringPiece will point to null data if no value
    * is set for the specified property.
    */
-  static const char* getConfigValue(folly::StringPiece name);
+  static const char* FOLLY_NULLABLE getConfigValue(folly::StringPiece name);
   /*
    * Get hw config
    */
