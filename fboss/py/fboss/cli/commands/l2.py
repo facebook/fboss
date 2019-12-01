@@ -10,6 +10,7 @@
 
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
+from neteng.fboss.ctrl.ttypes import L2EntryType
 
 
 class L2TableCmd(cmds.FbossCmd):
@@ -22,9 +23,14 @@ class L2TableCmd(cmds.FbossCmd):
             print("No L2 Entries Found")
             return
         resp = sorted(resp, key=lambda x: (x.port, x.vlanID, x.mac))
-        tmpl = "{:18} {:>17}  {}"
 
-        print(tmpl.format("MAC Address", "Port/Trunk", "VLAN"))
+        if len(resp) > 0 and hasattr(resp[0], "l2EntryType") and resp[0].l2EntryType is not None:
+            tmpl = "{:18} {:>17}  {:<10} {}"
+            print(tmpl.format("MAC Address", "Port/Trunk", "VLAN", "TYPE"))
+        else:
+            tmpl = "{:18} {:>17}  {}"
+            print(tmpl.format("MAC Address", "Port/Trunk", "VLAN"))
+
         for entry in resp:
             if entry.trunk:
                 port_data = f"{entry.trunk} (Trunk)"
@@ -38,4 +44,14 @@ class L2TableCmd(cmds.FbossCmd):
                     continue
                 port_data = port_info.name if port_info.name else entry.port
 
-            print(tmpl.format(entry.mac, port_data, entry.vlanID))
+            if (hasattr(entry, "l2EntryType")) and entry.l2EntryType is not None:
+                if entry.l2EntryType == L2EntryType.L2_ENTRY_TYPE_PENDING:
+                    entry_type = "Pending"
+                elif entry.l2EntryType == L2EntryType.L2_ENTRY_TYPE_VALIDATED:
+                    entry_type = "Validated"
+                else:
+                    entry_type = "Unknown"
+            else:
+                entry_type = ""
+
+            print(tmpl.format(entry.mac, port_data, entry.vlanID, entry_type))
