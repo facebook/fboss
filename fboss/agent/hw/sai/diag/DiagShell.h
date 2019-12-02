@@ -55,7 +55,7 @@ struct TerminalSession {
 
 class DiagShell {
  public:
-  DiagShell(const SaiSwitch* hw);
+  explicit DiagShell(const SaiSwitch* hw);
   ~DiagShell() noexcept;
 
   void consumeInput(std::unique_ptr<std::string> input);
