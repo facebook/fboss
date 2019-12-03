@@ -39,6 +39,32 @@ SaiQueueConfig makeSaiQueueConfig(
 }
 } // namespace detail
 
+void fillHwQueueStats(
+    uint8_t queueId,
+    const std::vector<uint64_t>& counters,
+    HwPortStats& hwPortStats) {
+  uint16_t index = 0;
+  if (counters.size() != SaiQueueTraits::CounterIds.size()) {
+    throw FbossError("queue counter size does not match counter id size");
+  }
+  for (auto counterId : SaiQueueTraits::CounterIds) {
+    switch (counterId) {
+      case SAI_QUEUE_STAT_PACKETS:
+        hwPortStats.queueOutPackets_[queueId] = counters[index];
+        break;
+      case SAI_QUEUE_STAT_BYTES:
+        hwPortStats.queueOutBytes_[queueId] = counters[index];
+        break;
+      case SAI_QUEUE_STAT_DROPPED_BYTES:
+        hwPortStats.queueOutDiscardBytes_[queueId] = counters[index];
+        break;
+      default:
+        break;
+    }
+    index++;
+  }
+}
+
 SaiQueueManager::SaiQueueManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
@@ -107,5 +133,20 @@ SaiQueueHandles SaiQueueManager::loadQueues(
     queueHandles[saiQueueConfig] = std::move(queueHandle);
   }
   return queueHandles;
+}
+
+void SaiQueueManager::updateStats(SaiQueueHandles& queueHandles) {
+  for (auto& queueHandle : queueHandles) {
+    queueHandle.second->queue->updateStats();
+  }
+}
+
+void SaiQueueManager::getStats(
+    SaiQueueHandles& queueHandles,
+    HwPortStats& hwPortStats) {
+  for (auto& queueHandle : queueHandles) {
+    auto counters = queueHandle.second->queue->getStats();
+    fillHwQueueStats(queueHandle.first.first, counters, hwPortStats);
+  }
 }
 } // namespace facebook::fboss

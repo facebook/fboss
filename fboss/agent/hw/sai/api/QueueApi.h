@@ -58,7 +58,7 @@ struct SaiQueueTraits {
       Attributes::Index,
       Attributes::ParentSchedulerNode>;
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_queue_stat_t, 4> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 4> CounterIds = {
       SAI_QUEUE_STAT_PACKETS,
       SAI_QUEUE_STAT_BYTES,
       SAI_QUEUE_STAT_DROPPED_PACKETS,
@@ -102,15 +102,11 @@ class QueueApi : public SaiApi<QueueApi> {
   sai_status_t _getStats(
       QueueSaiId key,
       uint32_t num_of_counters,
-      sai_queue_stat_t* counter_ids,
+      const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) {
     return api_->get_queue_stats_ext(
-        key,
-        num_of_counters,
-        reinterpret_cast<sai_stat_id_t*>(counter_ids),
-        mode,
-        counters);
+        key, num_of_counters, counter_ids, mode, counters);
   }
 
   sai_queue_api_t* api_;

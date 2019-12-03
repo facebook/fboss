@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
@@ -49,6 +50,8 @@ class SaiQueueManager {
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
       const QueueConfig& queues);
+  void updateStats(SaiQueueHandles& queueHandles);
+  void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
 
  private:
   SaiManagerTable* managerTable_;

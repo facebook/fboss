@@ -74,8 +74,9 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   }
 }
 
-HwPortStats fillHwPortStats(const std::vector<sai_object_id_t>& counters) {
-  HwPortStats hwPortStats;
+void fillHwPortStats(
+    const std::vector<sai_object_id_t>& counters,
+    HwPortStats& hwPortStats) {
   uint16_t index = 0;
   if (counters.size() != SaiPortTraits::CounterIds.size()) {
     throw FbossError("port counter size does not match counter id size");
@@ -129,7 +130,6 @@ HwPortStats fillHwPortStats(const std::vector<sai_object_id_t>& counters) {
     }
     index++;
   }
-  return hwPortStats;
 }
 
 SaiPortManager::SaiPortManager(
@@ -341,6 +341,7 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
 void SaiPortManager::updateStats() const {
   for (const auto& [portId, handle] : handles_) {
     handle->port->updateStats();
+    managerTable_->queueManager().updateStats(handle->queues);
   }
 }
 
@@ -348,7 +349,9 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   std::map<PortID, HwPortStats> portStats;
   for (const auto& [portId, handle] : handles_) {
     auto counters = handle->port->getStats();
-    auto hwPortStats = fillHwPortStats(counters);
+    HwPortStats hwPortStats;
+    fillHwPortStats(counters, hwPortStats);
+    managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);
   }
   return portStats;
