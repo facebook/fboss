@@ -74,6 +74,64 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   }
 }
 
+HwPortStats fillHwPortStats(const std::vector<sai_object_id_t>& counters) {
+  HwPortStats hwPortStats;
+  uint16_t index = 0;
+  if (counters.size() != SaiPortTraits::CounterIds.size()) {
+    throw FbossError("port counter size does not match counter id size");
+  }
+  for (auto counterId : SaiPortTraits::CounterIds) {
+    switch (counterId) {
+      case SAI_PORT_STAT_IF_IN_OCTETS:
+        hwPortStats.inBytes_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
+        hwPortStats.inUnicastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
+        hwPortStats.inMulticastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_IN_BROADCAST_PKTS:
+        hwPortStats.inBroadcastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_IN_DISCARDS:
+        hwPortStats.inDiscards_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_IN_ERRORS:
+        hwPortStats.inErrors_ = counters[index];
+        break;
+      case SAI_PORT_STAT_PAUSE_RX_PKTS:
+        hwPortStats.inPause_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_OCTETS:
+        hwPortStats.outBytes_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
+        hwPortStats.outUnicastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
+        hwPortStats.outMulticastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS:
+        hwPortStats.outBroadcastPkts_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_DISCARDS:
+        hwPortStats.outDiscards_ = counters[index];
+        break;
+      case SAI_PORT_STAT_IF_OUT_ERRORS:
+        hwPortStats.outErrors_ = counters[index];
+        break;
+      case SAI_PORT_STAT_PAUSE_TX_PKTS:
+        hwPortStats.outPause_ = counters[index];
+        break;
+      default:
+        break;
+    }
+    index++;
+  }
+  return hwPortStats;
+}
+
 SaiPortManager::SaiPortManager(
     SaiManagerTable* managerTable,
     SaiPlatform* platform,
@@ -280,10 +338,18 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
       delta, processChanged, processAdded, processRemoved);
 }
 
+void SaiPortManager::updateStats() const {
+  for (const auto& [portId, handle] : handles_) {
+    handle->port->updateStats();
+  }
+}
+
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   std::map<PortID, HwPortStats> portStats;
   for (const auto& [portId, handle] : handles_) {
-    portStats.emplace(portId, handle->lastCollectedStats);
+    auto counters = handle->port->getStats();
+    auto hwPortStats = fillHwPortStats(counters);
+    portStats.emplace(portId, hwPortStats);
   }
   return portStats;
 }

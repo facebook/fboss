@@ -78,7 +78,7 @@ struct SaiPortTraits {
       std::optional<Attributes::PortVlanId>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_port_stat_t, 14> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 14> CounterIds = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
@@ -129,15 +129,11 @@ class PortApi : public SaiApi<PortApi> {
   sai_status_t _getStats(
       PortSaiId key,
       uint32_t num_of_counters,
-      sai_port_stat_t* counter_ids,
+      const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) {
     return api_->get_port_stats_ext(
-        key,
-        num_of_counters,
-        reinterpret_cast<sai_stat_id_t*>(counter_ids),
-        mode,
-        counters);
+        key, num_of_counters, counter_ids, mode, counters);
   }
 
   sai_port_api_t* api_;

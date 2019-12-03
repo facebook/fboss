@@ -38,8 +38,6 @@ struct SaiCpuPortHandle {
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
-  HwPortStats lastCollectedStats;
-  void updateStats();
   SaiQueueHandles queues;
 };
 
@@ -68,7 +66,7 @@ class SaiPortManager {
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
   void processPortDelta(const StateDelta& stateDelta);
-  void updateStats() {}
+  void updateStats() const;
   std::map<PortID, HwPortStats> getPortStats() const;
   PortSaiId addCpuPort(PortID portId);
   void changeQueue(
