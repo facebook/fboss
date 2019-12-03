@@ -82,16 +82,14 @@ SaiPortManager::SaiPortManager(
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
-void SaiPortManager::loadQueues(
-    const std::shared_ptr<Port>& swPort,
-    SaiPortHandle* portHandle) {
+void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
   std::vector<sai_object_id_t> queueList;
   queueList.resize(1);
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
   auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
       portHandle->port->adapterKey(), queueListAttribute);
   if (queueSaiIdList.size() == 0) {
-    throw FbossError("no queues exist for port ", swPort->getID());
+    throw FbossError("no queues exist for port ");
   }
   std::vector<QueueSaiId> queueSaiIds;
   queueSaiIds.reserve(queueSaiIdList.size());
@@ -103,7 +101,7 @@ void SaiPortManager::loadQueues(
         return QueueSaiId(queueId);
       });
   portHandle->queues = managerTable_->queueManager().loadQueues(
-      portHandle->port->adapterKey(), queueSaiIds, swPort->getPortQueues());
+      portHandle->port->adapterKey(), queueSaiIds);
 }
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
@@ -124,7 +122,9 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->port = saiPort;
   handle->bridgePort =
       managerTable_->bridgeManager().addBridgePort(saiPort->adapterKey());
-  loadQueues(swPort, handle.get());
+  loadPortQueues(handle.get());
+  managerTable_->queueManager().ensurePortQueueConfig(
+      saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();

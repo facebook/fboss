@@ -66,9 +66,10 @@ TEST_F(QueueApiTest, createQueue) {
 TEST_F(QueueApiTest, removeQueue) {
   PortSaiId saiPortId{1};
   uint8_t queueIndex = 10;
+  uint8_t numCpuQueues = 8;
   auto saiQueueId = createQueue(saiPortId, true, queueIndex);
   checkQueue(saiQueueId);
-  EXPECT_EQ(fs->qm.map().size(), 1);
+  EXPECT_EQ(fs->qm.map().size(), 1 + numCpuQueues);
   queueApi->remove(saiQueueId);
-  EXPECT_EQ(fs->qm.map().size(), 0);
+  EXPECT_EQ(fs->qm.map().size(), numCpuQueues);
 }

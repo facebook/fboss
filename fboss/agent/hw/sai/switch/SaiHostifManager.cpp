@@ -129,7 +129,7 @@ void SaiHostifManager::changeHostifTrap(
   handleItr->second->trapGroup = hostifTrapGroup;
 }
 
-void SaiHostifManager::processControlPlaneDelta(const StateDelta& delta) {
+void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
   auto controlPlaneDelta = delta.getControlPlaneDelta();
   auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
   auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
@@ -167,7 +167,103 @@ void SaiHostifManager::processControlPlaneDelta(const StateDelta& delta) {
   }
 }
 
-SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
-    : managerTable_(managerTable) {}
+void SaiHostifManager::processQueueDelta(const StateDelta& delta) {
+  auto controlPlaneDelta = delta.getControlPlaneDelta();
+  auto& oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
+  auto& newQueueConfig = controlPlaneDelta.getNew()->getQueues();
+  changeCpuQueue(oldQueueConfig, newQueueConfig);
+}
 
+void SaiHostifManager::processHostifDelta(const StateDelta& delta) {
+  // TODO: Can we have reason code to a queue mapping that does not have
+  // corresponding sai queue oid for cpu port ?
+  processRxReasonToQueueDelta(delta);
+  processQueueDelta(delta);
+}
+
+SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(
+    const SaiQueueConfig& saiQueueConfig) const {
+  auto itr = cpuPortHandle_->queues.find(saiQueueConfig);
+  if (itr == cpuPortHandle_->queues.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiQueueHandle";
+  }
+  return itr->second.get();
+}
+
+const SaiQueueHandle* SaiHostifManager::getQueueHandle(
+    const SaiQueueConfig& saiQueueConfig) const {
+  return getQueueHandleImpl(saiQueueConfig);
+}
+
+SaiQueueHandle* SaiHostifManager::getQueueHandle(
+    const SaiQueueConfig& saiQueueConfig) {
+  return getQueueHandleImpl(saiQueueConfig);
+}
+
+void SaiHostifManager::changeCpuQueue(
+    const QueueConfig& oldQueueConfig,
+    const QueueConfig& newQueueConfig) {
+  for (auto newPortQueue : newQueueConfig) {
+    // Queue create or update
+    SaiQueueConfig saiQueueConfig =
+        std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
+    auto queueHandle = getQueueHandle(saiQueueConfig);
+    managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+  }
+  for (auto oldPortQueue : oldQueueConfig) {
+    auto portQueueIter = std::find_if(
+        newQueueConfig.begin(),
+        newQueueConfig.end(),
+        [&](const std::shared_ptr<PortQueue> portQueue) {
+          return portQueue->getID() == oldPortQueue->getID();
+        });
+    // Queue Remove
+    if (portQueueIter == newQueueConfig.end()) {
+      SaiQueueConfig saiQueueConfig =
+          std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
+      auto queueHandle = getQueueHandle(saiQueueConfig);
+      managerTable_->queueManager().resetQueue(queueHandle);
+      cpuPortHandle_->queues.erase(saiQueueConfig);
+    }
+  }
+}
+
+void SaiHostifManager::loadCpuPortQueues() {
+  std::vector<sai_object_id_t> queueList;
+  queueList.resize(1);
+  SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
+  auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
+      cpuPortHandle_->cpuPortId, queueListAttribute);
+  if (queueSaiIdList.size() == 0) {
+    throw FbossError("no queues exist for cpu port ");
+  }
+  std::vector<QueueSaiId> queueSaiIds;
+  queueSaiIds.reserve(queueSaiIdList.size());
+  std::transform(
+      queueSaiIdList.begin(),
+      queueSaiIdList.end(),
+      queueSaiIds.begin(),
+      [](sai_object_id_t queueId) -> QueueSaiId {
+        return QueueSaiId(queueId);
+      });
+  cpuPortHandle_->queues = managerTable_->queueManager().loadQueues(
+      cpuPortHandle_->cpuPortId, queueSaiIds);
+}
+
+void SaiHostifManager::loadCpuPort() {
+  cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
+      switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+  cpuPortHandle_->cpuPortId = cpuPortId;
+  loadCpuPortQueues();
+}
+
+SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
+    : managerTable_(managerTable) {
+  loadCpuPort();
+}
 } // namespace facebook::fboss

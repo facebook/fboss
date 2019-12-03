@@ -42,18 +42,17 @@ class SaiQueueManager {
   SaiQueueManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
   SaiQueueHandles loadQueues(
       PortSaiId portSaiId,
-      const std::vector<QueueSaiId>& queueSaiIds,
-      const QueueConfig& queues);
+      const std::vector<QueueSaiId>& queueSaiIds);
   void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
   void resetQueue(SaiQueueHandle* queueHandle);
-
- private:
-  SaiManagerTable* managerTable_;
-  const SaiPlatform* platform_;
   void ensurePortQueueConfig(
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
       const QueueConfig& queues);
+
+ private:
+  SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
 };
 
 } // namespace facebook::fboss

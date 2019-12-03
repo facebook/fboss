@@ -30,6 +30,11 @@ class SaiPlatform;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 
+struct SaiCpuPortHandle {
+  PortSaiId cpuPortId;
+  SaiQueueHandles queues;
+};
+
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
@@ -45,6 +50,7 @@ class SaiPortManager {
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices_);
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
+  PortSaiId addCpuPort();
   void removePort(PortID id);
   void changePort(
       const std::shared_ptr<Port>& oldPort,
@@ -75,9 +81,7 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
-  void loadQueues(
-      const std::shared_ptr<Port>& swPort,
-      SaiPortHandle* portHandle);
+  void loadPortQueues(SaiPortHandle* portHandle);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;

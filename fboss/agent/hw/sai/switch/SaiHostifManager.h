@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
@@ -38,7 +39,6 @@ class SaiHostifManager {
   HostifTrapSaiId addHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
   void removeHostifTrap(cfg::PacketRxReason trapId);
   void changeHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
-  void processControlPlaneDelta(const StateDelta& delta);
   static sai_hostif_trap_type_t packetReasonToHostifTrap(
       cfg::PacketRxReason reason);
   static cfg::PacketRxReason hostifTrapToPacketReason(
@@ -46,12 +46,26 @@ class SaiHostifManager {
   static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(
       cfg::PacketRxReason trapId,
       HostifTrapGroupSaiId trapGroupId);
+  void processHostifDelta(const StateDelta& delta);
+  SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
+  const SaiQueueHandle* getQueueHandle(
+      const SaiQueueConfig& saiQueueConfig) const;
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
+  void processQueueDelta(const StateDelta& delta);
+  void processRxReasonToQueueDelta(const StateDelta& delta);
+  void loadCpuPort();
+  void loadCpuPortQueues();
+  void changeCpuQueue(
+      const QueueConfig& oldQueueConfig,
+      const QueueConfig& newQueueConfig);
+  SaiQueueHandle* getQueueHandleImpl(
+      const SaiQueueConfig& saiQueueConfig) const;
   SaiManagerTable* managerTable_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
+  std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
 };
 
 } // namespace facebook::fboss

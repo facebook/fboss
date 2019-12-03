@@ -63,14 +63,6 @@ void ManagerTestBase::SetUp() {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
         auto portSaiId = saiManagerTable->portManager().addPort(swPort);
-        if (setupStage & SetupStage::QUEUE) {
-          QueueConfig queueConfig;
-          for (auto queueId = 0; queueId < kPortQueueMax; queueId++) {
-            auto portQueue = makePortQueue(queueId);
-            queueConfig.push_back(portQueue);
-          }
-          saiManagerTable->queueManager().loadQueues(portSaiId, {}, queueConfig);
-        }
       }
     }
   }

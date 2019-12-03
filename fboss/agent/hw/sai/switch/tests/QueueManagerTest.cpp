@@ -27,7 +27,7 @@ using namespace facebook::fboss;
 class QueueManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::PORT;
+    setupStage = SetupStage::PORT | SetupStage::QUEUE;
     ManagerTestBase::SetUp();
   }
 
@@ -78,132 +78,152 @@ class QueueManagerTest : public ManagerTestBase {
 };
 
 TEST_F(QueueManagerTest, loadQueue) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {4};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles, queueConfig);
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
 }
 
 TEST_F(QueueManagerTest, loadDuplicateQueue) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {4};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles1 = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles1 =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles1, queueConfig);
   checkQueue(queueHandles1, portSaiId, streamType, {queueIds});
-  auto queueHandles2 = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles2 =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles2, queueConfig);
   checkQueue(queueHandles2, portSaiId, streamType, {queueIds});
   compareQueueHandles(queueHandles1, queueHandles2);
 }
 
 TEST_F(QueueManagerTest, loadMultipleQueues) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles, queueConfig);
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
 }
 
 TEST_F(QueueManagerTest, removeQueues) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   {
-    auto queueHandles = saiManagerTable->queueManager().loadQueues(
-        portSaiId, queueSaiIds, queueConfig);
+    auto queueHandles =
+        saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+    saiManagerTable->queueManager().ensurePortQueueConfig(
+        portSaiId, queueHandles, queueConfig);
     checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   }
   for (auto queueId : queueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);
     auto queueHandle = saiManagerTable->portManager().getQueueHandle(
-        PortID(1), saiQueueConfig);
+        PortID(10), saiQueueConfig);
     EXPECT_FALSE(queueHandle);
   }
 }
 
 TEST_F(QueueManagerTest, checkNonExistentQueues) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   std::vector<uint8_t> nonExistentQueueIds = {7, 8, 10};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles, queueConfig);
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   for (auto queueId : nonExistentQueueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);
     auto queueHandle = saiManagerTable->portManager().getQueueHandle(
-        PortID(1), saiQueueConfig);
+        PortID(10), saiQueueConfig);
     EXPECT_FALSE(queueHandle);
   }
 }
 
 TEST_F(QueueManagerTest, getNonExistentQueues) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   std::vector<uint8_t> nonExistentQueueIds = {7, 8, 10};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, queueHandles, queueConfig);
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   for (auto queueId : nonExistentQueueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);
     auto queueHandle = saiManagerTable->portManager().getQueueHandle(
-        PortID(1), saiQueueConfig);
+        PortID(10), saiQueueConfig);
     EXPECT_FALSE(queueHandle);
   }
 }
 
 TEST_F(QueueManagerTest, loadUCMCQueueWithSameQueueId) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   // Fake has queue id 6 allocated for unicast and multicast
   std::vector<uint8_t> queueIds = {6};
   auto ucQueueConfig = makeQueueConfig({queueIds}, cfg::StreamType::UNICAST);
   auto mcQueueConfig = makeQueueConfig({queueIds}, cfg::StreamType::MULTICAST);
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto ucQueueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, ucQueueConfig);
-  auto mcQueueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, mcQueueConfig);
+  auto ucQueueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, ucQueueHandles, ucQueueConfig);
+  auto mcQueueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, mcQueueHandles, mcQueueConfig);
   checkQueue(ucQueueHandles, portSaiId, cfg::StreamType::UNICAST, {queueIds});
   checkQueue(mcQueueHandles, portSaiId, cfg::StreamType::MULTICAST, {queueIds});
 }
 
 TEST_F(QueueManagerTest, changePortQueue) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 3, 5};
   auto queueConfig = makeQueueConfig({queueIds});
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  portHandle->queues = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  portHandle->queues =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  saiManagerTable->queueManager().ensurePortQueueConfig(
+      portSaiId, portHandle->queues, queueConfig);
   checkQueue(portHandle->queues, portSaiId, streamType, {queueIds});
   std::vector<uint8_t> newQueueIds = {3, 4, 5, 6};
   auto newQueueConfig = makeQueueConfig({newQueueIds});
   saiManagerTable->portManager().changeQueue(
-      PortID(1), queueConfig, newQueueConfig);
+      PortID(10), queueConfig, newQueueConfig);
   checkQueue(portHandle->queues, portSaiId, streamType, {newQueueIds});
 }

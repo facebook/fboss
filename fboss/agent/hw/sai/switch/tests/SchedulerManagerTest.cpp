@@ -145,8 +145,8 @@ TEST_F(SchedulerManagerTest, shareSchedulerWithMultipleQueues) {
       minPps,
       maxPps);
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles = saiManagerTable->queueManager().loadQueues(
-      portSaiId, queueSaiIds, queueConfig);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
   std::shared_ptr<SaiScheduler> scheduler = nullptr;
   for (auto& queueHandle : queueHandles) {
     if (!scheduler) {

@@ -386,7 +386,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
       delta);
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
-  managerTableLocked(lock)->hostifManager().processControlPlaneDelta(delta);
+  managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
   return delta.newState();
 }
 

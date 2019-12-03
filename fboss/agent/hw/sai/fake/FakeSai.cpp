@@ -47,6 +47,21 @@ sai_object_id_t FakeSai::getCpuPort() {
   return cpuPortId;
 }
 
+void sai_create_cpu_port() {
+  // Create the CPU port
+  auto fs = FakeSai::getInstance();
+  std::vector<uint32_t> cpuPortLanes{};
+  uint32_t cpuPortSpeed = 0;
+  sai_object_id_t portId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
+  auto& port = fs->pm.get(portId);
+  for (uint8_t queueId = 0; queueId < 8; queueId++) {
+    auto saiQueueId =
+        fs->qm.create(SAI_QUEUE_TYPE_ALL, portId, queueId, portId);
+    port.queueIdList.push_back(saiQueueId);
+  }
+  fs->cpuPortId = portId;
+}
+
 sai_status_t sai_api_initialize(
     uint64_t /* flags */,
     const sai_service_method_table_t* /* services */) {
@@ -62,10 +77,8 @@ sai_status_t sai_api_initialize(
   fs->vrm.create();
 
   // Create the CPU port
-  std::vector<uint32_t> cpuPortLanes;
-  cpuPortLanes.push_back(42);
-  uint32_t cpuPortSpeed = 0;
-  fs->cpuPortId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
+  sai_create_cpu_port();
+
   fs->initialized = true;
   return SAI_STATUS_SUCCESS;
 }

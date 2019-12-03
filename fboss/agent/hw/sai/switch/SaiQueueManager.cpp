@@ -94,8 +94,7 @@ void SaiQueueManager::ensurePortQueueConfig(
 
 SaiQueueHandles SaiQueueManager::loadQueues(
     PortSaiId portSaiId,
-    const std::vector<QueueSaiId>& queueSaiIds,
-    const QueueConfig& queues) {
+    const std::vector<QueueSaiId>& queueSaiIds) {
   SaiQueueHandles queueHandles;
   auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
   std::vector<std::shared_ptr<SaiQueue>> loadedQueues;
@@ -107,8 +106,6 @@ SaiQueueHandles SaiQueueManager::loadQueues(
         detail::makeSaiQueueConfig(queueHandle->queue->adapterHostKey());
     queueHandles[saiQueueConfig] = std::move(queueHandle);
   }
-  ensurePortQueueConfig(portSaiId, queueHandles, queues);
   return queueHandles;
 }
-
 } // namespace facebook::fboss
