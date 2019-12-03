@@ -78,21 +78,19 @@ struct SaiPortTraits {
       std::optional<Attributes::PortVlanId>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_stat_id_t, 14> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 12> CounterIds = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
       SAI_PORT_STAT_IF_IN_BROADCAST_PKTS,
       SAI_PORT_STAT_IF_IN_DISCARDS,
       SAI_PORT_STAT_IF_IN_ERRORS,
-      SAI_PORT_STAT_PAUSE_RX_PKTS,
       SAI_PORT_STAT_IF_OUT_OCTETS,
       SAI_PORT_STAT_IF_OUT_UCAST_PKTS,
       SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS,
       SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS,
       SAI_PORT_STAT_IF_OUT_DISCARDS,
       SAI_PORT_STAT_IF_OUT_ERRORS,
-      SAI_PORT_STAT_PAUSE_TX_PKTS,
   };
 };
 
