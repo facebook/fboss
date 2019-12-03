@@ -48,26 +48,25 @@ class SaiApiError : public FbossError {
 };
 
 template <typename... Args>
-void saiApiCheckError(sai_status_t status, sai_api_t apiType, Args&&... args) {
-  if (status != SAI_STATUS_SUCCESS) {
-    throw SaiApiError(status, apiType, std::forward<Args>(args)...);
-  }
-}
-
-template <typename... Args>
-void saiCheckError(sai_status_t status, Args&&... args) {
-  if (status != SAI_STATUS_SUCCESS) {
-    throw SaiApiError(status, SAI_API_UNSPECIFIED, std::forward<Args>(args)...);
-  }
-}
-
-template <typename... Args>
 void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
     XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "]"
               << folly::to<std::string>(std::forward<Args>(args)...) << ": "
               << saiStatusToString(status);
   }
+}
+
+template <typename... Args>
+void saiApiCheckError(sai_status_t status, sai_api_t apiType, Args&&... args) {
+  if (status != SAI_STATUS_SUCCESS) {
+    saiLogError(status, apiType, (args)...);
+    throw SaiApiError(status, apiType, std::forward<Args>(args)...);
+  }
+}
+
+template <typename... Args>
+void saiCheckError(sai_status_t status, Args&&... args) {
+  saiApiCheckError(status, SAI_API_UNSPECIFIED, std::forward<Args>(args)...);
 }
 
 // TODO: saiLogFatal
