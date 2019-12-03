@@ -53,7 +53,7 @@ void setDefaultCpuTrafficPolicyConfig(
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
-uint64_t getCpuQueueOutPackets(const HwSwitch* hwSwitch, int queueId);
+uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
 
 } // namespace utility
 } // namespace fboss

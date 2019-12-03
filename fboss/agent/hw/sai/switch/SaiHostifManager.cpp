@@ -261,7 +261,7 @@ void SaiHostifManager::loadCpuPortQueues() {
   std::transform(
       queueSaiIdList.begin(),
       queueSaiIdList.end(),
-      queueSaiIds.begin(),
+      std::back_inserter(queueSaiIds),
       [](sai_object_id_t queueId) -> QueueSaiId {
         return QueueSaiId(queueId);
       });
@@ -281,5 +281,15 @@ void SaiHostifManager::loadCpuPort() {
 SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
     : managerTable_(managerTable) {
   loadCpuPort();
+}
+
+void SaiHostifManager::updateStats() const {
+  managerTable_->queueManager().updateStats(cpuPortHandle_->queues);
+}
+
+HwPortStats SaiHostifManager::getCpuPortStats() const {
+  HwPortStats hwPortStats;
+  managerTable_->queueManager().getStats(cpuPortHandle_->queues, hwPortStats);
+  return hwPortStats;
 }
 } // namespace facebook::fboss

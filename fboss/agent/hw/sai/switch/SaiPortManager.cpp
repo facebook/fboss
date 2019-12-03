@@ -155,7 +155,7 @@ void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
   std::transform(
       queueSaiIdList.begin(),
       queueSaiIdList.end(),
-      queueSaiIds.begin(),
+      std::back_inserter(queueSaiIds),
       [](sai_object_id_t queueId) -> QueueSaiId {
         return QueueSaiId(queueId);
       });

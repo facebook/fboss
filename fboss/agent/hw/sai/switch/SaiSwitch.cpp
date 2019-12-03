@@ -524,6 +524,7 @@ void SaiSwitch::updateStatsLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     SwitchStats* /* switchStats */) {
   managerTable_->portManager().updateStats();
+  managerTable_->hostifManager().updateStats();
 }
 
 void SaiSwitch::fetchL2TableLocked(

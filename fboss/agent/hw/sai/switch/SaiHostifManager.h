@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -50,6 +52,8 @@ class SaiHostifManager {
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(
       const SaiQueueConfig& saiQueueConfig) const;
+  void updateStats() const;
+  HwPortStats getCpuPortStats() const;
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);

@@ -13,7 +13,7 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
-uint64_t getCpuQueueOutPackets(const HwSwitch* /*hwSwitch*/, int /*queueId*/) {
+uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
   // TODO
   return 0;
 }

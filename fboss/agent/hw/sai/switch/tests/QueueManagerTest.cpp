@@ -139,11 +139,12 @@ TEST_F(QueueManagerTest, removeQueues) {
         portSaiId, queueHandles, queueConfig);
     checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   }
+  // Queues will not be unloaded till the ports are deleted.
   for (auto queueId : queueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);
     auto queueHandle = saiManagerTable->portManager().getQueueHandle(
         PortID(10), saiQueueConfig);
-    EXPECT_FALSE(queueHandle);
+    EXPECT_TRUE(queueHandle);
   }
 }
 
