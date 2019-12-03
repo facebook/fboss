@@ -61,12 +61,15 @@ struct SaiBridgePortTraits {
         EnumType,
         SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE,
         sai_int32_t>;
+    using AdminState =
+        SaiAttribute<EnumType, SAI_BRIDGE_PORT_ATTR_ADMIN_STATE, bool>;
   };
   using AdapterKey = BridgePortSaiId;
   using AdapterHostKey = Attributes::PortId;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::PortId,
+      Attributes::AdminState,
       std::optional<Attributes::FdbLearningMode>>;
 };
 

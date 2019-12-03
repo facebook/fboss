@@ -22,11 +22,16 @@ class FakeBridgePort {
   explicit FakeBridgePort(
       int32_t type,
       sai_object_id_t portId,
+      bool adminState,
       int32_t learningMode)
-      : type(type), portId(portId), learningMode(learningMode) {}
+      : type(type),
+        portId(portId),
+        adminState(adminState),
+        learningMode(learningMode) {}
   sai_object_id_t id;
   int32_t type;
   sai_object_id_t portId;
+  bool adminState;
   int32_t learningMode;
 };
 

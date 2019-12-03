@@ -88,6 +88,7 @@ sai_status_t create_bridge_port_fn(
   std::optional<sai_object_id_t> portId;
   std::optional<int32_t> type;
   std::optional<int32_t> learningMode;
+  std::optional<bool> adminState;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
@@ -95,6 +96,9 @@ sai_status_t create_bridge_port_fn(
         break;
       case SAI_BRIDGE_PORT_ATTR_TYPE:
         type = attr_list[i].value.s32;
+        break;
+      case SAI_BRIDGE_PORT_ATTR_ADMIN_STATE:
+        adminState = attr_list[i].value.booldata;
         break;
       case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
         learningMode = attr_list[i].value.s32;
@@ -107,7 +111,11 @@ sai_status_t create_bridge_port_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *bridge_port_id = fs->brm.createMember(
-      0, type.value(), portId.value(), learningMode.value());
+      0,
+      type.value(),
+      portId.value(),
+      adminState.value(),
+      learningMode.value());
   return SAI_STATUS_SUCCESS;
 }
 
@@ -130,6 +138,9 @@ sai_status_t get_bridge_port_attribute_fn(
         break;
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
         attr[i].value.oid = bridgePort.portId;
+        break;
+      case SAI_BRIDGE_PORT_ATTR_ADMIN_STATE:
+        attr[i].value.booldata = bridgePort.adminState;
         break;
       case SAI_BRIDGE_PORT_ATTR_TYPE:
         attr[i].value.s32 = bridgePort.type;
@@ -160,6 +171,10 @@ sai_status_t set_bridge_port_attribute_fn(
       break;
     case SAI_BRIDGE_PORT_ATTR_TYPE:
       bridgePort.type = attr->value.s32;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_BRIDGE_PORT_ATTR_ADMIN_STATE:
+      bridgePort.adminState = attr->value.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
     default:

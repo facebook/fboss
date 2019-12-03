@@ -44,19 +44,19 @@ TEST_F(BridgeApiTest, createBridge) {
 }
 
 TEST_F(BridgeApiTest, createBridgePort) {
-  SaiBridgePortTraits::CreateAttributes c{
-      SAI_BRIDGE_PORT_TYPE_PORT,
-      42,
-      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi->create<SaiBridgePortTraits>(c, 0);
   checkBridgePort(bridgePortId);
 }
 
 TEST_F(BridgeApiTest, removeBridgePort) {
-  SaiBridgePortTraits::CreateAttributes c{
-      SAI_BRIDGE_PORT_TYPE_PORT,
-      42,
-      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi->create<SaiBridgePortTraits>(c, 0);
   checkBridgePort(bridgePortId);
   EXPECT_EQ(fs->brm.get(0).fm().map().size(), 1);
@@ -77,10 +77,10 @@ TEST_F(BridgeApiTest, bridgeCount) {
 TEST_F(BridgeApiTest, bridgePortCount) {
   uint32_t count = getObjectCount<SaiBridgePortTraits>(0);
   EXPECT_EQ(count, 0);
-  SaiBridgePortTraits::CreateAttributes c{
-      SAI_BRIDGE_PORT_TYPE_PORT,
-      42,
-      SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION};
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   bridgeApi->create<SaiBridgePortTraits>(c, 0);
   count = getObjectCount<SaiBridgePortTraits>(0);
   EXPECT_EQ(count, 1);
