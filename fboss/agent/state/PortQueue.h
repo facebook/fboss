@@ -48,6 +48,7 @@ struct PortQueueFields {
 
   std::optional<int> bandwidthBurstMinKbits;
   std::optional<int> bandwidthBurstMaxKbits;
+  std::optional<TrafficClass> trafficClass;
 };
 
 /*
@@ -76,7 +77,8 @@ class PortQueue
         getFields()->bandwidthBurstMinKbits ==
         queue.getBandwidthBurstMinKbits() &&
         getFields()->bandwidthBurstMaxKbits ==
-        queue.getBandwidthBurstMaxKbits();
+        queue.getBandwidthBurstMaxKbits() &&
+        getFields()->trafficClass == queue.getTrafficClass();
   }
   bool operator!=(const PortQueue& queue) const {
     return !(*this == queue);
@@ -179,6 +181,14 @@ class PortQueue
 
   void setBandwidthBurstMaxKbits(int bandwidthBurstMaxKbits) {
     writableFields()->bandwidthBurstMaxKbits = bandwidthBurstMaxKbits;
+  }
+
+  std::optional<TrafficClass> getTrafficClass() const {
+    return getFields()->trafficClass;
+  }
+
+  void setTrafficClasses(TrafficClass trafficClass) {
+    writableFields()->trafficClass = trafficClass;
   }
 
  private:
