@@ -17,6 +17,10 @@ uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
   // Required APIs not available in opennsl
   return 0;
 }
+
+std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
+  return std::map<cfg::PacketRxReason, int16_t>{};
+}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

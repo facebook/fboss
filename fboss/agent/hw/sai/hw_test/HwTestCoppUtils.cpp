@@ -29,6 +29,15 @@ uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
   return (queueIter != hwPortStats.queueOutPackets_.end()) ? queueIter->second
                                                            : 0;
 }
+
+std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
+  return std::map<cfg::PacketRxReason, int16_t>{
+      {cfg::PacketRxReason::BGP, kCoppHighPriQueueId},
+      {cfg::PacketRxReason::BGPV6, kCoppHighPriQueueId},
+      {cfg::PacketRxReason::ARP, kCoppHighPriQueueId},
+      {cfg::PacketRxReason::ARP_RESPONSE, kCoppHighPriQueueId},
+      {cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId}};
+}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

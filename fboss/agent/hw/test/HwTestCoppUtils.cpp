@@ -225,6 +225,10 @@ void setDefaultCpuTrafficPolicyConfig(
     trafficConfig.matchToAction[i].action = cpuAcls[i].second;
   }
   cpuConfig.trafficPolicy_ref() = trafficConfig;
+  auto rxReasonToQueues = getCoppRxReasonToQueues();
+  if (rxReasonToQueues.size()) {
+    cpuConfig.set_rxReasonToCPUQueue(rxReasonToQueues);
+  }
   config.cpuTrafficPolicy_ref() = cpuConfig;
 }
 } // namespace utility
