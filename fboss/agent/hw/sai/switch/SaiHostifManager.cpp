@@ -33,6 +33,10 @@ sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
       return SAI_HOSTIF_TRAP_TYPE_DHCP;
     case cfg::PacketRxReason::LLDP:
       return SAI_HOSTIF_TRAP_TYPE_LLDP;
+    case cfg::PacketRxReason::BGP:
+      return SAI_HOSTIF_TRAP_TYPE_BGP;
+    case cfg::PacketRxReason::BGPV6:
+      return SAI_HOSTIF_TRAP_TYPE_BGPV6;
     default:
       throw FbossError("invalid packet reason: ", reason);
   }
@@ -43,8 +47,20 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
   switch (trapType) {
     case SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST:
       return cfg::PacketRxReason::ARP;
+    case SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE:
+      return cfg::PacketRxReason::ARP_RESPONSE;
+    case SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY:
+      return cfg::PacketRxReason::NDP;
+    case SAI_HOSTIF_TRAP_TYPE_IP2ME:
+      return cfg::PacketRxReason::CPU_IS_NHOP;
     case SAI_HOSTIF_TRAP_TYPE_DHCP:
       return cfg::PacketRxReason::DHCP;
+    case SAI_HOSTIF_TRAP_TYPE_LLDP:
+      return cfg::PacketRxReason::LLDP;
+    case SAI_HOSTIF_TRAP_TYPE_BGP:
+      return cfg::PacketRxReason::BGP;
+    case SAI_HOSTIF_TRAP_TYPE_BGPV6:
+      return cfg::PacketRxReason::BGPV6;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }

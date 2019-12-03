@@ -574,6 +574,8 @@ enum PacketRxReason {
   NDP          = 8 // NDP discovery messages
   LLDP         = 9 // LLDP
   ARP_RESPONSE = 10 // ARP RESPONSE
+  BGP          = 11 // V4 BGP
+  BGPV6        = 12 // V6 BGP
 }
 
 enum PortLoopbackMode {
