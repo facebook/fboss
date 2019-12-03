@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #pragma once
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook {
 namespace fboss {
@@ -34,6 +35,7 @@ class HwAsic {
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
+  virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
 };
 
 } // namespace fboss

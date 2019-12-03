@@ -622,6 +622,7 @@ add_library(fboss_agent STATIC
     fboss/qsfp_service/lib/QsfpCache.cpp
 
 )
+
 target_link_libraries(
   fboss_agent PUBLIC
     agent_config_cpp2
@@ -652,6 +653,7 @@ target_link_libraries(
     ${MNL}
 )
 
+target_link_libraries(switch_asics fboss_agent)
 target_link_libraries(bcm_switch_ensemble fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)

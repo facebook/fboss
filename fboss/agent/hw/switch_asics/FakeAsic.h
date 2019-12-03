@@ -15,6 +15,9 @@ class FakeAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_FAKE;
   }
+  cfg::PortSpeed getMaxPortSpeed() const override {
+    return cfg::PortSpeed::HUNDREDG;
+  }
 };
 
 } // namespace fboss

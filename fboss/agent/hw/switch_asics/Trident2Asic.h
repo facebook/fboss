@@ -13,6 +13,9 @@ class Trident2Asic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TRIDENT2;
   }
+  cfg::PortSpeed getMaxPortSpeed() const override {
+    return cfg::PortSpeed::FORTYG;
+  }
 };
 
 } // namespace fboss

@@ -13,6 +13,9 @@ class TomahawkAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK;
   }
+  cfg::PortSpeed getMaxPortSpeed() const override {
+    return cfg::PortSpeed::HUNDREDG;
+  }
 };
 
 } // namespace fboss

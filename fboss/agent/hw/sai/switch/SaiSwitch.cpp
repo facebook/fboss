@@ -617,7 +617,7 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeedLocked(
   // TODO (srikrishnagopu): Use the read-only attribute
   // SAI_PORT_ATTR_SUPPORTED_SPEED to query the list of supported speeds
   // and return the maximum supported speed.
-  return cfg::PortSpeed::HUNDREDG;
+  return platform_->getAsic()->getMaxPortSpeed();
 }
 
 bool SaiSwitch::getAndClearNeighborHitLocked(
