@@ -54,6 +54,7 @@ constexpr auto kMirrors = "mirrors";
 constexpr auto kAggregatePorts = "aggregatePorts";
 constexpr auto kLabelForwardingInformationBase = "labelFib";
 constexpr auto kSwitchSettings = "switchSettings";
+constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -97,6 +98,10 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
+  if (defaultDataPlaneQosPolicy) {
+    switchState[kDefaultDataplaneQosPolicy] =
+        defaultDataPlaneQosPolicy->toFollyDynamic();
+  }
   return switchState;
 }
 
@@ -142,6 +147,10 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
         SwitchSettings::fromFollyDynamic(swJson[kSwitchSettings]);
   }
 
+  if (swJson.find(kDefaultDataplaneQosPolicy) != swJson.items().end()) {
+    switchState.defaultDataPlaneQosPolicy =
+        QosPolicy::fromFollyDynamic(swJson[kDefaultDataplaneQosPolicy]);
+  }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
