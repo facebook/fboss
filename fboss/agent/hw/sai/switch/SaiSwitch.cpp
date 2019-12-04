@@ -86,7 +86,9 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
   utilCreateDir(platform_->getPersistentStateDir());
 }
 
-SaiSwitch::~SaiSwitch() {}
+SaiSwitch::~SaiSwitch() {
+  stopNonCallbackThreads();
+}
 
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
@@ -165,13 +167,7 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
-  {
-    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    gracefulExitLocked(lock, switchState);
-  }
-  if (asyncTxThread_) {
-    asyncTxThread_->join();
-  }
+  stopNonCallbackThreads();
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {
@@ -564,10 +560,11 @@ void SaiSwitch::fetchL2TableLocked(
   }
 }
 
-void SaiSwitch::gracefulExitLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    folly::dynamic& /* switchState */) {
+void SaiSwitch::stopNonCallbackThreads() {
   asyncTxEventBase_.terminateLoopSoon();
+  if (asyncTxThread_) {
+    asyncTxThread_->join();
+  }
 }
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
