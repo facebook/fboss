@@ -58,10 +58,10 @@ class TrafficClassToQosAttributeMapEntry {
  public:
   TrafficClassToQosAttributeMapEntry(TrafficClass trafficClass, QosAttrT attr)
       : trafficClass_(trafficClass), attr_(attr) {}
-  TrafficClass trafficClass() {
+  TrafficClass trafficClass() const {
     return trafficClass_;
   }
-  QosAttrT attr() {
+  QosAttrT attr() const {
     return attr_;
   }
 
