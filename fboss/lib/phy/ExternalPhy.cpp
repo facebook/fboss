@@ -10,6 +10,23 @@
 
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/mdio/MdioError.h"
+#include "folly/json.h"
+
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
+namespace {
+template <typename T>
+folly::dynamic thriftToDynamic(const T& val) {
+  return folly::parseJson(
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(val));
+}
+
+template <typename T>
+folly::dynamic thriftOptToDynamic(const std::optional<T>& opt) {
+  return opt.has_value() ? thriftToDynamic(opt.value()) : "null";
+}
+} // namespace
 
 namespace facebook {
 namespace fboss {
@@ -132,6 +149,49 @@ PhyPortConfig PhyPortConfig::fromPhyPortSettings(
 
   return config;
 }
+
+folly::dynamic LaneConfig::toDynamic() {
+  folly::dynamic obj = folly::dynamic::object;
+  obj["polaritySwap"] = thriftOptToDynamic(polaritySwap);
+  obj["tx"] = thriftOptToDynamic(tx);
+
+  return obj;
+}
+
+folly::dynamic PhySideConfig::toDynamic() {
+  folly::dynamic elements = folly::dynamic::array;
+  for (auto pair : lanes) {
+    elements.push_back(folly::dynamic::object(
+        std::to_string(pair.first), pair.second.toDynamic()));
+  }
+
+  return elements;
+}
+
+folly::dynamic ExternalPhyConfig::toDynamic() {
+  folly::dynamic obj = folly::dynamic::object;
+  obj["system"] = system.toDynamic();
+  obj["line"] = line.toDynamic();
+
+  return obj;
+}
+
+folly::dynamic ExternalPhyProfileConfig::toDynamic() {
+  folly::dynamic obj = folly::dynamic::object;
+  obj["speed"] = apache::thrift::util::enumNameSafe(speed);
+  obj["system"] = thriftToDynamic(system);
+  obj["line"] = thriftToDynamic(line);
+
+  return obj;
+}
+
+folly::dynamic PhyPortConfig::toDynamic() {
+  folly::dynamic obj = folly::dynamic::object;
+  obj["config"] = config.toDynamic();
+  obj["profile"] = profile.toDynamic();
+  return obj;
+}
+
 } // namespace phy
 } // namespace fboss
 } // namespace facebook

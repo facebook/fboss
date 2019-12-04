@@ -15,6 +15,7 @@
 #include <folly/Range.h>
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "folly/dynamic.h"
 
 namespace facebook {
 namespace fboss {
@@ -70,12 +71,16 @@ struct LaneConfig {
   bool operator==(const LaneConfig& rhs) const;
   LaneSettings toLaneSettings() const;
   static LaneConfig fromLaneSettings(const LaneSettings& settings);
+  std::string str();
+  folly::dynamic toDynamic();
 };
 
 struct PhySideConfig {
   std::map<int32_t, LaneConfig> lanes;
 
   bool operator==(const PhySideConfig& rhs) const;
+  std::string str();
+  folly::dynamic toDynamic();
 };
 
 struct ExternalPhyConfig {
@@ -83,6 +88,8 @@ struct ExternalPhyConfig {
   PhySideConfig line;
 
   bool operator==(const ExternalPhyConfig& rhs) const;
+  std::string str();
+  folly::dynamic toDynamic();
 };
 
 // Same thing as PortProfileConfig, but without xphyLine being optional
@@ -95,6 +102,8 @@ struct ExternalPhyProfileConfig {
   bool operator==(const ExternalPhyProfileConfig& rhs) const;
   static ExternalPhyProfileConfig fromPortProfileConfig(
       const PortProfileConfig& portCfg);
+  std::string str();
+  folly::dynamic toDynamic();
 };
 
 struct PhyPortConfig {
@@ -105,6 +114,8 @@ struct PhyPortConfig {
   bool operator!=(const PhyPortConfig& rhs) const;
   PhyPortSettings toPhyPortSettings(int16_t phyID) const;
   static PhyPortConfig fromPhyPortSettings(const PhyPortSettings& settings);
+  std::string str();
+  folly::dynamic toDynamic();
 };
 
 class ExternalPhy {
