@@ -26,16 +26,8 @@ SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
+RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
-  // check if the router interface already exists
-  InterfaceID swId(swInterface->getID());
-  auto handle = getRouterInterfaceHandle(swId);
-  if (handle) {
-    throw FbossError(
-        "Attempted to add duplicate router interface with InterfaceID ", swId);
-  }
-
   // compute the virtual router id for this router interface
   RouterID routerId = swInterface->getRouterID();
   SaiVirtualRouterHandle* virtualRouterHandle =
@@ -90,12 +82,9 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
   // create the ToMe routes for this router interface
   auto toMeRoutes =
       managerTable_->routeManager().makeInterfaceToMeRoutes(swInterface);
-  routerInterfaceHandle->toMeRoutes.insert(
-      routerInterfaceHandle->toMeRoutes.end(),
-      std::make_move_iterator(toMeRoutes.begin()),
-      std::make_move_iterator(toMeRoutes.end()));
+  routerInterfaceHandle->toMeRoutes = std::move(toMeRoutes);
 
-  handles_.emplace(swId, std::move(routerInterfaceHandle));
+  handles_[swInterface->getID()] = std::move(routerInterfaceHandle);
   return routerInterface->adapterKey();
 }
 
@@ -107,10 +96,30 @@ void SaiRouterInterfaceManager::removeRouterInterface(const InterfaceID& swId) {
   handles_.erase(itr);
 }
 
+RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
+    const std::shared_ptr<Interface>& swInterface) {
+  // check if the router interface already exists
+  InterfaceID swId(swInterface->getID());
+  auto handle = getRouterInterfaceHandle(swId);
+  if (handle) {
+    throw FbossError(
+        "Attempted to add duplicate router interface with InterfaceID ", swId);
+  }
+  return addOrUpdateRouterInterface(swInterface);
+}
+
 void SaiRouterInterfaceManager::changeRouterInterface(
-    const std::shared_ptr<Interface>& /* oldInterface */,
-    const std::shared_ptr<Interface>& /* newInterface */) {
-  throw FbossError("Not implemented");
+    const std::shared_ptr<Interface>& oldInterface,
+    const std::shared_ptr<Interface>& newInterface) {
+  CHECK_EQ(oldInterface->getID(), newInterface->getID());
+  InterfaceID swId(newInterface->getID());
+  auto handle = getRouterInterfaceHandle(swId);
+  if (!handle) {
+    throw FbossError(
+        "Attempted to change non existent router interface with InterfaceID ",
+        swId);
+  }
+  addOrUpdateRouterInterface(newInterface);
 }
 
 SaiRouterInterfaceHandle* SaiRouterInterfaceManager::getRouterInterfaceHandle(

@@ -76,6 +76,7 @@ class ManagerTestBase : public ::testing::Test {
     folly::IPAddress routerIp;
     folly::CIDRNetwork subnet;
     std::vector<TestRemoteHost> remoteHosts;
+    int mtu{1500};
     TestInterface() {}
     TestInterface(int id, size_t numHosts) : id(id) {
       if (id > 9) {

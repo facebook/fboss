@@ -36,15 +36,19 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
   void checkRouterInterface(
       RouterInterfaceSaiId saiRouterInterfaceId,
       VlanSaiId expectedSaiVlanId,
-      const folly::MacAddress& expectedSrcMac) {
+      const folly::MacAddress& expectedSrcMac,
+      int expectedMtu = 1500) {
     auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::VlanId{});
     auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::SrcMac{});
     auto vlanIdGot = saiApiTable->vlanApi().getAttribute(
         VlanSaiId{saiVlanIdGot}, SaiVlanTraits::Attributes::VlanId{});
+    auto mtuGot = saiApiTable->routerInterfaceApi().getAttribute(
+        saiRouterInterfaceId, SaiRouterInterfaceTraits::Attributes::Mtu{});
     EXPECT_EQ(VlanSaiId{vlanIdGot}, expectedSaiVlanId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);
+    EXPECT_EQ(mtuGot, expectedMtu);
   }
 
   TestInterface intf0;
@@ -75,6 +79,33 @@ TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
   EXPECT_THROW(
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
       FbossError);
+}
+
+TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMac) {
+  auto swInterface = makeInterface(intf0);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  auto newMac = intf1.routerMac;
+  CHECK_NE(swInterface->getMac(), newMac);
+  auto newInterface = swInterface->clone();
+  newInterface->setMac(newMac);
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      swInterface, newInterface);
+  checkRouterInterface(saiId, VlanSaiId{intf0.id}, newMac);
+}
+
+TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMtu) {
+  auto swInterface = makeInterface(intf0);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac);
+  auto newMtu = intf0.mtu + 1000;
+  auto newInterface = swInterface->clone();
+  newInterface->setMtu(newMtu);
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      swInterface, newInterface);
+  checkRouterInterface(saiId, VlanSaiId{intf0.id}, intf0.routerMac, newMtu);
 }
 
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
