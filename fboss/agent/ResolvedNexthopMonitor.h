@@ -90,21 +90,35 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
 
   template <typename RouteT>
   bool isMonitored(const std::shared_ptr<RouteT>& route) const {
+    if (sw_->getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
+      // TODO : either lookup in standalone RIB, to get best entry OR
+      // ForwardingInformationBaseUpdater::toFibRoute should also pass client
+      // ID info to FibRoute.
+      return false;
+    }
+    auto bestPair = route->getBestEntry();
+    return isClientMonitored(bestPair.first);
+  }
+
+  bool isClientMonitored(ClientID clientId) const {
     for (auto client : *kMonitoredClients.rlock()) {
-      if (sw_->getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
-        // TODO : either lookup in standalone RIB, to get best entry OR
-        // ForwardingInformationBaseUpdater::toFibRoute should also pass client
-        // ID info to FibRoute.
-        return false;
-      }
-      auto bestPair = route->getBestEntry();
-      if (bestPair.first == client) {
+      if (clientId == client) {
         /* route is programmed by client and it's next hops are preferred */
         return true;
       }
     }
     return false;
   }
+
+  bool skipLabelFibEntry(
+      const std::shared_ptr<LabelForwardingEntry>& entry) const;
+  void processChangedLabelFibEntry(
+      const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+      const std::shared_ptr<LabelForwardingEntry>& newEntry);
+  void processAddedLabelFibEntry(
+      const std::shared_ptr<LabelForwardingEntry>& addedEntry);
+  void processRemovedLabelFibEntry(
+      const std::shared_ptr<LabelForwardingEntry>& removedEntry);
 
   SwSwitch* sw_{nullptr};
   std::vector<ResolvedNextHop> added_;

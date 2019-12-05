@@ -93,6 +93,13 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
         this);
   }
 
+  forEachChanged(
+      delta.getLabelForwardingInformationBaseDelta(),
+      &ResolvedNexthopMonitor::processChangedLabelFibEntry,
+      &ResolvedNexthopMonitor::processAddedLabelFibEntry,
+      &ResolvedNexthopMonitor::processRemovedLabelFibEntry,
+      this);
+
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     auto arpDelta = vlanDelta.getArpDelta();
     auto ndpDelta = vlanDelta.getNdpDelta();
@@ -111,6 +118,46 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
 
   if (scheduleProbes_) {
     sw_->getResolvedNexthopProbeScheduler()->schedule();
+  }
+}
+
+bool ResolvedNexthopMonitor::skipLabelFibEntry(
+    const std::shared_ptr<LabelForwardingEntry>& entry) const {
+  if (entry->getLabelNextHop().getAction() !=
+      LabelNextHopEntry::Action::NEXTHOPS) {
+    return true;
+  }
+  auto nexthopByClient = entry->getLabelNextHopsByClient();
+  auto bestEntry = nexthopByClient.getBestEntry();
+  return isClientMonitored(bestEntry.first);
+}
+
+void ResolvedNexthopMonitor::processChangedLabelFibEntry(
+    const std::shared_ptr<LabelForwardingEntry>& oldEntry,
+    const std::shared_ptr<LabelForwardingEntry>& newEntry) {
+  processRemovedLabelFibEntry(oldEntry);
+  processAddedLabelFibEntry(newEntry);
+}
+
+void ResolvedNexthopMonitor::processAddedLabelFibEntry(
+    const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
+  if (skipLabelFibEntry(addedEntry)) {
+    return;
+  }
+  const auto& fwd = addedEntry->getLabelNextHop();
+  for (auto nhop : fwd.normalizedNextHops()) {
+    added_.emplace_back(nhop.addr(), nhop.intf(), 0);
+  }
+}
+
+void ResolvedNexthopMonitor::processRemovedLabelFibEntry(
+    const std::shared_ptr<LabelForwardingEntry>& removedEntry) {
+  if (skipLabelFibEntry(removedEntry)) {
+    return;
+  }
+  const auto& fwd = removedEntry->getLabelNextHop();
+  for (auto nhop : fwd.normalizedNextHops()) {
+    removed_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }
 }
 

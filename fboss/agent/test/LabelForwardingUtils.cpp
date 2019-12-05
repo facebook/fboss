@@ -97,7 +97,7 @@ NextHopThrift getSwapNextHopThrift(int offset) {
   nexthop.address.addr.append(
       reinterpret_cast<const char*>(nexthopIp->bytes()),
       folly::IPAddressV6::byteCount());
-  nexthop.address.ifName_ref() = folly::to<std::string>("fboss0", offset);
+  nexthop.address.ifName_ref() = "fboss1";
   MplsAction action;
   action.action = MplsActionCode::SWAP;
   action.swapLabel_ref() = 601;
