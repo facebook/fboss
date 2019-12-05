@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/Vlan.h"
 
 #include <boost/container/flat_map.hpp>
 
@@ -36,7 +37,15 @@ class ResolvedNexthopProbeScheduler {
     return resolvedNextHop2Probes_;
   }
 
+  void schedule();
+
  private:
+  template <typename AddrT>
+  bool shouldProbe(const AddrT& addr, Vlan* vlan) {
+    auto table = vlan->template getNeighborEntryTable<AddrT>();
+    return table->getEntryIf(addr) == nullptr;
+  }
+
   SwSwitch* sw_{nullptr};
   boost::container::
       flat_map<ResolvedNextHop, std::shared_ptr<ResolvedNextHopProbe>>

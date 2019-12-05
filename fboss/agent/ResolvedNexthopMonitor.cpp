@@ -49,9 +49,16 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
         &ResolvedNexthopMonitor::processRemovedRouteNextHops<RouteV6>,
         this);
   }
-  scheduleProbes_ = !added_.empty() || !removed_.empty();
-  sw_->getResolvedNexthopProbeScheduler()->processChangedResolvedNexthops(
-      std::move(added_), std::move(removed_));
+
+  if (!added_.empty() || !removed_.empty()) {
+    scheduleProbes_ = true;
+    sw_->getResolvedNexthopProbeScheduler()->processChangedResolvedNexthops(
+        std::move(added_), std::move(removed_));
+  }
+
+  if (scheduleProbes_) {
+    sw_->getResolvedNexthopProbeScheduler()->schedule();
+  }
 }
 } // namespace fboss
 } // namespace facebook
