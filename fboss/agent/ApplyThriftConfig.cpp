@@ -222,8 +222,6 @@ class ThriftConfigApplier {
       cfg::QosPolicy& qosPolicy,
       int* numExistingProcessed,
       bool* changed);
-  std::optional<std::string> getDefaultDataPlaneQosPolicyName() const;
-  std::shared_ptr<QosPolicy> updateDataplaneDefaultQosPolicy();
   shared_ptr<QosPolicy> createQosPolicy(const cfg::QosPolicy& qosPolicy);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
@@ -343,14 +341,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newQosPolicies) {
       new_->resetQosPolicies(std::move(newQosPolicies));
       changed = true;
-    }
-  }
-
-  // reset the default qos policy
-  {
-    auto newDefaultQosPolicy = updateDataplaneDefaultQosPolicy();
-    if (new_->getDefaultDataPlaneQosPolicy() != newDefaultQosPolicy) {
-      new_->setDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
     }
   }
 
@@ -835,9 +825,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   auto newQosPolicy = std::optional<std::string>();
   if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
-    if (auto defaultDataPlaneQosPolicy =
+    if (auto defaultQosPolicy =
             dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
-      newQosPolicy = *defaultDataPlaneQosPolicy;
+      newQosPolicy = *defaultQosPolicy;
     }
     if (auto portIdToQosPolicy =
             dataPlaneTrafficPolicy->portIdToQosPolicy_ref()) {
@@ -1179,15 +1169,9 @@ std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
   QosPolicyMap::NodeContainer newQosPolicies;
   bool changed = false;
   int numExistingProcessed = 0;
-  auto defaultDataPlaneQosPolicyName = getDefaultDataPlaneQosPolicyName();
 
   auto qosPolicies = cfg_->qosPolicies;
   for (auto& qosPolicy : qosPolicies) {
-    if (defaultDataPlaneQosPolicyName.has_value() &&
-        defaultDataPlaneQosPolicyName.value() == qosPolicy.name) {
-      // skip default QosPolicy as it will be maintained in switch state
-      continue;
-    }
     auto newQosPolicy =
         updateQosPolicy(qosPolicy, &numExistingProcessed, &changed);
     if (!newQosPolicies.emplace(qosPolicy.name, newQosPolicy).second) {
@@ -1221,38 +1205,6 @@ std::shared_ptr<QosPolicy> ThriftConfigApplier::updateQosPolicy(
   return newQosPolicy;
 }
 
-std::optional<std::string>
-ThriftConfigApplier::getDefaultDataPlaneQosPolicyName() const {
-  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
-    if (auto defaultDataPlaneQosPolicy =
-            dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
-      return *defaultDataPlaneQosPolicy;
-    }
-  }
-  return std::nullopt;
-}
-
-std::shared_ptr<QosPolicy>
-ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
-  auto defaultDataPlaneQosPolicyName = getDefaultDataPlaneQosPolicyName();
-  if (!defaultDataPlaneQosPolicyName) {
-    return nullptr;
-  }
-  std::shared_ptr<QosPolicy> newQosPolicy = nullptr;
-  auto qosPolicies = cfg_->qosPolicies;
-  for (auto& qosPolicy : qosPolicies) {
-    if (defaultDataPlaneQosPolicyName == qosPolicy.name) {
-      newQosPolicy = createQosPolicy(qosPolicy);
-      break;
-    }
-  }
-  auto oldQosPolicy = orig_->getDefaultDataPlaneQosPolicy();
-  if (oldQosPolicy && newQosPolicy && *oldQosPolicy == *newQosPolicy) {
-    return oldQosPolicy;
-  }
-  return newQosPolicy;
-}
-
 shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     const cfg::QosPolicy& qosPolicy) {
   std::set<QosRule> rules;
@@ -1267,28 +1219,7 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       rules.emplace(QosRule(qosRule.queueId, dscpValue));
     }
   }
-  if (rules.empty() == !qosPolicy.qosMap_ref().has_value()) {
-    throw FbossError(
-        "either the qos rules or qos maps must be provided but not both!");
-  }
-
-  if (auto qosMap = qosPolicy.qosMap_ref()) {
-    DscpMap dscpMap(qosMap->dscpMaps);
-    ExpMap expMap(qosMap->expMaps);
-    QosPolicy::TrafficClassToQueueId trafficClassToQueueId;
-    for (auto cfgTrafficClassToQueueId : qosMap->trafficClassToQueueId) {
-      trafficClassToQueueId.emplace(
-          cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
-    }
-    return make_shared<QosPolicy>(
-        qosPolicy.name, rules, dscpMap, expMap, trafficClassToQueueId);
-  }
-  return make_shared<QosPolicy>(
-      qosPolicy.name,
-      rules,
-      DscpMap(TrafficClassToQosAttributeMap<DSCP>()),
-      ExpMap(TrafficClassToQosAttributeMap<EXP>()),
-      QosPolicy::TrafficClassToQueueId());
+  return make_shared<QosPolicy>(qosPolicy.name, rules);
 }
 
 std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls() {
@@ -2030,9 +1961,9 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
      * any front panel port.
      */
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy_ref()) {
-      if (auto defaultDataPlaneQosPolicy =
+      if (auto defaultQosPolicy =
               dataPlaneTrafficPolicy->defaultQosPolicy_ref()) {
-        qosPolicy = *defaultDataPlaneQosPolicy;
+        qosPolicy = *defaultQosPolicy;
       }
     }
   }

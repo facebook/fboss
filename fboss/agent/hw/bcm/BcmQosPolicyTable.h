@@ -29,23 +29,6 @@ class BcmQosPolicyTable {
       const std::shared_ptr<QosPolicy>& newQosPolicy);
   void processRemovedQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
 
-  void processAddedDefaultQosPolicy(
-      const std::shared_ptr<QosPolicy>& qosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processAddedQosPolicy(qosPolicy);
-  }
-  void processChangedDefaultQosPolicy(
-      const std::shared_ptr<QosPolicy>& oldQosPolicy,
-      const std::shared_ptr<QosPolicy>& newQosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processChangedQosPolicy(oldQosPolicy, newQosPolicy);
-  }
-  void processRemovedDefaultQosPolicy(
-      const std::shared_ptr<QosPolicy>& qosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processRemovedQosPolicy(qosPolicy);
-  }
-
   int getNumQosPolicies() const;
   // Throw exception if not found
   BcmQosPolicy* getQosPolicy(const std::string& name) const;

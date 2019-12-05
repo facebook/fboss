@@ -35,7 +35,6 @@ struct PortQueueFields {
 
  13: optional i32 bandwidthBurstMinKbits
  14: optional i32 bandwidthBurstMaxKbits
- 15: optional i16 trafficClass
 }
 
 // Port configuration and oper state fields
