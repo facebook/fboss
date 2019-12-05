@@ -260,5 +260,136 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
   }
 }
 
+TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeTwoUpdates) {
+  updateState(
+      "resolved route added 1", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
+            ResolvedNextHop(
+                folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+
+  updateState(
+      "resolved route added 2", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
+            ResolvedNextHop(
+                folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
+        return addRoute(
+            state, RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
+      });
+
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
+  auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  // weight is ignored in next hop tracking
+  std::vector<ResolvedNextHop> keys{
+      ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 0),
+      ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 0)};
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 2); // 2 routes refer these probes
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+
+  // removed route
+  updateState(
+      "resolved route change", [=](const std::shared_ptr<SwitchState>& state) {
+        return delRoute(state, RoutePrefixV6{IPAddressV6("10:101::"), 64});
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 1); // one route refers probe
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+
+  // remove another route
+  updateState(
+      "resolved route change", [=](const std::shared_ptr<SwitchState>& state) {
+        return delRoute(state, kPrefixV6);
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    // no probe exist
+    ASSERT_EQ(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    ASSERT_EQ(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+}
+
+TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
+  updateState(
+      "resolved route added 1", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
+            ResolvedNextHop(
+                folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
+        auto newState = addRoute(state, kPrefixV6, nhops);
+        return addRoute(
+            newState, RoutePrefixV6{IPAddressV6("10:101::"), 64}, nhops);
+      });
+
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
+  auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  // weight is ignored in next hop tracking
+  std::vector<ResolvedNextHop> keys{
+      ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 0),
+      ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 0)};
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 2);
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+
+  // removed route
+  updateState(
+      "resolved route change", [=](const std::shared_ptr<SwitchState>& state) {
+        return delRoute(state, RoutePrefixV6{IPAddressV6("10:101::"), 64});
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 1);
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+
+  // remove another route
+  updateState(
+      "resolved route change", [=](const std::shared_ptr<SwitchState>& state) {
+        return delRoute(state, kPrefixV6);
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    // no probe exist
+    ASSERT_EQ(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    ASSERT_EQ(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+}
 } // namespace fboss
 } // namespace facebook
