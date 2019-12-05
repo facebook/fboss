@@ -5,9 +5,15 @@
 
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
+
+#include "folly/io/Cursor.h"
 
 #include <gtest/gtest.h>
 
@@ -21,7 +27,7 @@ const std::array<IPAddressV4, 2> kNexthopsV4{IPAddressV4("10.0.10.1"),
                                              IPAddressV4("10.0.10.2")};
 const auto kPrefixV6 = RoutePrefixV6{IPAddressV6("10:100::"), 64};
 const std::array<IPAddressV6, 2> kNexthopsV6{IPAddressV6("10:100::1"),
-                                             IPAddressV6("10:100::1")};
+                                             IPAddressV6("10:100::2")};
 } // namespace
 
 namespace facebook {
@@ -390,6 +396,140 @@ TEST_F(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
         resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
     ASSERT_EQ(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
   }
+}
+
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
+  auto arpTable =
+      sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+  EXPECT_EQ(arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22")), nullptr);
+
+  EXPECT_SWITCHED_PKT(sw_, "ARP request", [](const TxPacket* pkt) {
+    const auto* buf = pkt->buf();
+    EXPECT_EQ(68, buf->computeChainDataLength());
+    folly::io::Cursor cursor(buf);
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("00:02:00:00:00:01")); // sender mac
+    EXPECT_EQ(
+        PktUtil::readIPv4(&cursor),
+        folly::IPAddressV4("10.0.0.1")); // sender ip
+    EXPECT_EQ(PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+    EXPECT_EQ(
+        PktUtil::readIPv4(&cursor),
+        folly::IPAddressV4("10.0.0.22")); // target ip
+  });
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
+        return addRoute(state, kPrefixV4, nhops);
+      });
+  schedulePendingStateUpdates();
+  auto evb = sw_->getBackgroundEvb();
+  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
+
+  schedulePendingStateUpdates();
+  // pending entry must be created
+  arpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getArpTable();
+  auto entry = arpTable->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
+}
+
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
+  updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
+    arpTable->addEntry(
+        folly::IPAddressV4("10.0.0.22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        InterfaceID(1),
+        NeighborState::REACHABLE);
+    return newState;
+  });
+
+  auto entry = sw_->getState()
+                   ->getVlans()
+                   ->getVlan(VlanID(1))
+                   ->getArpTable()
+                   ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
+        return addRoute(state, kPrefixV4, nhops);
+      });
+
+  entry = sw_->getState()
+              ->getVlans()
+              ->getVlan(VlanID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
+
+  EXPECT_SWITCHED_PKT(sw_, "ARP request", [](const TxPacket* pkt) {
+    const auto* buf = pkt->buf();
+    EXPECT_EQ(68, buf->computeChainDataLength());
+    folly::io::Cursor cursor(buf);
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("00:02:00:00:00:01")); // sender mac
+    EXPECT_EQ(
+        PktUtil::readIPv4(&cursor),
+        folly::IPAddressV4("10.0.0.1")); // sender ip
+    EXPECT_EQ(PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+    EXPECT_EQ(
+        PktUtil::readIPv4(&cursor),
+        folly::IPAddressV4("10.0.0.22")); // target ip
+  });
+
+  updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
+    arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
+    return newState;
+  });
+
+  schedulePendingStateUpdates();
+  auto evb = sw_->getBackgroundEvb();
+  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
+  schedulePendingStateUpdates();
+  // pending entry must be created
+  entry = sw_->getState()
+              ->getVlans()
+              ->getVlan(VlanID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
 }
 } // namespace fboss
 } // namespace facebook
