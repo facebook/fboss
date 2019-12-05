@@ -20,6 +20,7 @@ class ResolvedNexthopProbeScheduler {
    */
  public:
   explicit ResolvedNexthopProbeScheduler(SwSwitch* sw);
+  ~ResolvedNexthopProbeScheduler();
   void processChangedResolvedNexthops(
       std::vector<ResolvedNextHop> added,
       std::vector<ResolvedNextHop> removed);
@@ -29,8 +30,17 @@ class ResolvedNexthopProbeScheduler {
     return resolvedNextHop2UseCount_;
   }
 
+  const boost::container::
+      flat_map<ResolvedNextHop, std::shared_ptr<ResolvedNextHopProbe>>&
+      resolvedNextHop2Probes() const {
+    return resolvedNextHop2Probes_;
+  }
+
  private:
   SwSwitch* sw_{nullptr};
+  boost::container::
+      flat_map<ResolvedNextHop, std::shared_ptr<ResolvedNextHopProbe>>
+          resolvedNextHop2Probes_;
   boost::container::flat_map<ResolvedNextHop, uint32_t>
       resolvedNextHop2UseCount_;
 };

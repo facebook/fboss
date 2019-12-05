@@ -461,6 +461,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LookupClassUpdater.cpp
     fboss/agent/MacTableManager.cpp
     fboss/agent/ResolvedNexthopMonitor.cpp
+    fboss/agent/ResolvedNexthopProbe.cpp
     fboss/agent/ResolvedNexthopProbeScheduler.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
@@ -617,6 +618,8 @@ add_library(fboss_agent STATIC
     fboss/lib/usb/WedgeI2CBus.cpp
     fboss/lib/usb/WedgeI2CBus.h
 
+    fboss/lib/ExponentialBackoff.cpp
+    fboss/lib/ExponentialBackoff.h
     fboss/lib/LogThriftCall.cpp
 
     fboss/qsfp_service/oss/StatsPublisher.cpp

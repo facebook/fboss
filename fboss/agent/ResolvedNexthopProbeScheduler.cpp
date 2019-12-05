@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
 
+#include "fboss/agent/ResolvedNexthopProbe.h"
 #include "fboss/agent/SwSwitch.h"
 
 namespace facebook {
@@ -9,6 +10,12 @@ namespace fboss {
 
 ResolvedNexthopProbeScheduler::ResolvedNexthopProbeScheduler(SwSwitch* sw)
     : sw_(sw) {}
+
+ResolvedNexthopProbeScheduler::~ResolvedNexthopProbeScheduler() {
+  for (auto entry : resolvedNextHop2Probes_) {
+    entry.second->stop();
+  }
+}
 
 void ResolvedNexthopProbeScheduler::processChangedResolvedNexthops(
     std::vector<ResolvedNextHop> added,
@@ -18,6 +25,10 @@ void ResolvedNexthopProbeScheduler::processChangedResolvedNexthops(
     if (itr == resolvedNextHop2UseCount_.end()) {
       // add probe
       resolvedNextHop2UseCount_.emplace(nexthop, 1);
+      resolvedNextHop2Probes_.emplace(
+          nexthop,
+          std::make_shared<ResolvedNextHopProbe>(
+              sw_->getBackgroundEvb(), nexthop));
       continue;
     }
     itr->second++;
@@ -29,6 +40,8 @@ void ResolvedNexthopProbeScheduler::processChangedResolvedNexthops(
     if (itr->second == 1) {
       // remove probe
       resolvedNextHop2UseCount_.erase(itr);
+      resolvedNextHop2Probes_[nexthop]->stop();
+      resolvedNextHop2Probes_.erase(nexthop);
     } else {
       itr->second--;
     }
