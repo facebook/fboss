@@ -42,6 +42,11 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
     sw_ = handle_->getSw();
   }
 
+  void TearDown() override {
+    waitForStateUpdates(sw_);
+    waitForBackgroundThread(sw_);
+  }
+
   template <typename AddrT>
   std::shared_ptr<SwitchState> addRoute(
       const std::shared_ptr<SwitchState>& state,
@@ -528,6 +533,167 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
               ->getVlan(VlanID(1))
               ->getArpTable()
               ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
+}
+
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
+  auto ndpTable =
+      sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+  EXPECT_EQ(
+      ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22")),
+      nullptr);
+
+  EXPECT_SWITCHED_PKT(sw_, "NDP request", [](const TxPacket* pkt) {
+    folly::io::Cursor cursor(pkt->buf());
+
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("00:02:00:00:00:01")); // src mac
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+
+    IPv6Hdr v6Hdr(cursor); // v6 hdr
+    EXPECT_EQ(
+        v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+    EXPECT_EQ(
+        v6Hdr.srcAddr,
+        folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
+    EXPECT_EQ(
+        v6Hdr.dstAddr,
+        folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+
+    ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+    EXPECT_EQ(
+        icmp6Hdr.type,
+        static_cast<uint8_t>(
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+    EXPECT_EQ(icmp6Hdr.code, 0);
+    cursor.read<uint32_t>(); // reserved
+    EXPECT_EQ(
+        PktUtil::readIPv6(&cursor),
+        folly::IPAddressV6("2401:db00:2110:3001::22"));
+    EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
+    EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+  });
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{UnresolvedNextHop(
+            folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+
+  schedulePendingStateUpdates();
+  auto evb = sw_->getBackgroundEvb();
+  evb->runInEventBaseThreadAndWait([]() {});
+  schedulePendingStateUpdates();
+  // pending entry must be created
+  ndpTable = sw_->getState()->getVlans()->getVlan(VlanID(1))->getNdpTable();
+  auto entry =
+      ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), true);
+}
+
+TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
+  updateState("add neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
+    ndpTable->addEntry(
+        folly::IPAddressV6("2401:db00:2110:3001::22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        InterfaceID(1),
+        NeighborState::REACHABLE);
+    return newState;
+  });
+
+  auto entry = sw_->getState()
+                   ->getVlans()
+                   ->getVlan(VlanID(1))
+                   ->getNdpTable()
+                   ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
+
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{UnresolvedNextHop(
+            folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+
+  entry = sw_->getState()
+              ->getVlans()
+              ->getVlan(VlanID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
+
+  EXPECT_SWITCHED_PKT(sw_, "NDP request", [](const TxPacket* pkt) {
+    folly::io::Cursor cursor(pkt->buf());
+
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor),
+        folly::MacAddress("00:02:00:00:00:01")); // src mac
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+
+    IPv6Hdr v6Hdr(cursor); // v6 hdr
+    EXPECT_EQ(
+        v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+    EXPECT_EQ(
+        v6Hdr.srcAddr,
+        folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
+    EXPECT_EQ(
+        v6Hdr.dstAddr,
+        folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+
+    ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+    EXPECT_EQ(
+        icmp6Hdr.type,
+        static_cast<uint8_t>(
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+    EXPECT_EQ(icmp6Hdr.code, 0);
+    cursor.read<uint32_t>(); // reserved
+    EXPECT_EQ(
+        PktUtil::readIPv6(&cursor),
+        folly::IPAddressV6("2401:db00:2110:3001::22"));
+    EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
+    EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+    EXPECT_EQ(
+        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+  });
+
+  updateState("remove neighbor", [](const std::shared_ptr<SwitchState> state) {
+    auto newState = state->clone();
+    auto vlan = state->getVlans()->getVlan(VlanID(1));
+    auto ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
+    ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
+    return newState;
+  });
+
+  schedulePendingStateUpdates();
+  auto evb = sw_->getBackgroundEvb();
+  evb->runInEventBaseThreadAndWait([]() {}); // let probe scheduler finish
+  schedulePendingStateUpdates();
+  // pending entry must be created
+  entry = sw_->getState()
+              ->getVlans()
+              ->getVlan(VlanID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
 }
