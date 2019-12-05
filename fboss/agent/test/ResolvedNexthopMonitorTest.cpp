@@ -189,5 +189,76 @@ TEST_F(ResolvedNexthopMonitorTest, ChangeUnresolvedRoutes) {
   EXPECT_FALSE(monitor->probesScheduled());
 }
 
+TEST_F(ResolvedNexthopMonitorTest, ProbeAddRemoveAdd) {
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
+            ResolvedNextHop(
+                folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+  schedulePendingStateUpdates();
+  auto* scheduler = sw_->getResolvedNexthopProbeScheduler();
+  auto resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  auto resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  // weight is ignored in next hop tracking
+  std::vector<ResolvedNextHop> keys{
+      ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 0),
+      ResolvedNextHop(folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 0)};
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 1);
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+
+  // removed next hop
+  updateState(
+      "resolved route change", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    if (key.intfID().value() == InterfaceID(1)) {
+      ASSERT_NE(
+          resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+      EXPECT_EQ(resolvedNextHop2UseCount[key], 1);
+      EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+    } else {
+      EXPECT_EQ(
+          resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+      EXPECT_EQ(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+    }
+  }
+
+  // add next hop
+  updateState(
+      "resolved route added", [=](const std::shared_ptr<SwitchState>& state) {
+        RouteNextHopSet nhops{
+            ResolvedNextHop(folly::IPAddressV6("fe80::22"), InterfaceID(1), 1),
+            ResolvedNextHop(
+                folly::IPAddressV6("fe80:55::22"), InterfaceID(55), 1)};
+        return addRoute(state, kPrefixV6, nhops);
+      });
+  schedulePendingStateUpdates();
+  resolvedNextHop2UseCount = scheduler->resolvedNextHop2UseCount();
+  resolvedNextHop2Probes = scheduler->resolvedNextHop2Probes();
+
+  for (auto key : keys) {
+    ASSERT_NE(
+        resolvedNextHop2UseCount.find(key), resolvedNextHop2UseCount.end());
+    EXPECT_EQ(resolvedNextHop2UseCount[key], 1);
+    EXPECT_NE(resolvedNextHop2Probes.find(key), resolvedNextHop2Probes.end());
+  }
+}
+
 } // namespace fboss
 } // namespace facebook
