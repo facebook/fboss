@@ -461,6 +461,7 @@ add_library(fboss_agent STATIC
     fboss/agent/LookupClassUpdater.cpp
     fboss/agent/MacTableManager.cpp
     fboss/agent/ResolvedNexthopMonitor.cpp
+    fboss/agent/ResolvedNexthopProbeScheduler.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
     fboss/agent/NeighborListenerClient.cpp

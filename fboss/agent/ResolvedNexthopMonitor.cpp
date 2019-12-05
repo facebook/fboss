@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 
+#include "fboss/agent/ResolvedNexthopProbeScheduler.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -49,6 +50,8 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
         this);
   }
   scheduleProbes_ = !added_.empty() || !removed_.empty();
+  sw_->getResolvedNexthopProbeScheduler()->processChangedResolvedNexthops(
+      std::move(added_), std::move(removed_));
 }
 } // namespace fboss
 } // namespace facebook

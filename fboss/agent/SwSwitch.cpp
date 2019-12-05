@@ -30,6 +30,7 @@
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
+#include "fboss/agent/ResolvedNexthopProbeScheduler.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
@@ -171,6 +172,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       mirrorManager_(new MirrorManager(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
+      resolvedNexthopProbeScheduler_(new ResolvedNexthopProbeScheduler(this)),
       rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
@@ -229,6 +231,7 @@ void SwSwitch::stop() {
   tunMgr_.reset();
 
   resolvedNexthopMonitor_.reset();
+  resolvedNexthopProbeScheduler_.reset();
   // Several member variables are performing operations in the background
   // thread.  Ask them to stop, before we shut down the background thread.
   //
