@@ -7,11 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <folly/Memory.h>
-#include <folly/io/Cursor.h>
-#include <folly/io/IOBuf.h>
-#include <algorithm>
-#include <string>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/SwSwitch.h"
@@ -32,7 +28,6 @@
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -41,7 +36,13 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <boost/cast.hpp>
+#include <folly/Memory.h>
+#include <folly/io/Cursor.h>
+#include <folly/io/IOBuf.h>
 #include <gtest/gtest.h>
+
+#include <algorithm>
+#include <string>
 
 using namespace facebook::fboss;
 using folly::IPAddressV4;
