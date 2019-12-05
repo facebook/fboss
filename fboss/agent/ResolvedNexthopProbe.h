@@ -11,9 +11,14 @@
 namespace facebook {
 namespace fboss {
 
+class SwSwitch;
+
 class ResolvedNextHopProbe : public folly::AsyncTimeout {
  public:
-  ResolvedNextHopProbe(folly::EventBase* evb, ResolvedNextHop nexthop);
+  ResolvedNextHopProbe(
+      SwSwitch* sw,
+      folly::EventBase* evb,
+      ResolvedNextHop nexthop);
 
   ~ResolvedNextHopProbe() override {
     stop();
@@ -37,6 +42,8 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
     backoff_.reportSuccess();
   }
   void timeoutExpired() noexcept override;
+
+  SwSwitch* sw_;
   folly::EventBase* evb_;
   ResolvedNextHop nexthop_;
   ExponentialBackoff<std::chrono::milliseconds> backoff_;

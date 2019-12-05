@@ -30,7 +30,7 @@ void ResolvedNexthopProbeScheduler::processChangedResolvedNexthops(
       resolvedNextHop2Probes_.emplace(
           nexthop,
           std::make_shared<ResolvedNextHopProbe>(
-              sw_->getBackgroundEvb(), nexthop));
+              sw_, sw_->getBackgroundEvb(), nexthop));
       continue;
     }
     itr->second++;
