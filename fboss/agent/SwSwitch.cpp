@@ -29,6 +29,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/ResolvedNexthopMonitor.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
@@ -169,6 +170,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       pcapMgr_(new PktCaptureManager(this)),
       mirrorManager_(new MirrorManager(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
+      resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
       rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
@@ -226,6 +228,7 @@ void SwSwitch::stop() {
   // routed from kernel to the front panel tunnel interface.
   tunMgr_.reset();
 
+  resolvedNexthopMonitor_.reset();
   // Several member variables are performing operations in the background
   // thread.  Ask them to stop, before we shut down the background thread.
   //

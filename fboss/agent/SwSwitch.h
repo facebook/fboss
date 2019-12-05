@@ -58,6 +58,7 @@ class TunManager;
 class MirrorManager;
 class LookupClassUpdater;
 class MacTableManager;
+class ResolvedNexthopMonitor;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -554,6 +555,10 @@ class SwSwitch : public HwSwitch::Callback {
     return lagManager_.get();
   }
 
+  ResolvedNexthopMonitor* getResolvedNexthopMonitor() {
+    return resolvedNexthopMonitor_.get();
+  }
+
   rib::RoutingInformationBase* getRib() {
     DCHECK(isStandaloneRibEnabled());
     return rib_.get();
@@ -854,6 +859,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<MirrorManager> mirrorManager_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
+  std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;
   std::unique_ptr<rib::RoutingInformationBase> rib_{nullptr};
 
   BootType bootType_{BootType::UNINITIALIZED};
