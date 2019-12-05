@@ -50,6 +50,16 @@ void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
         this);
   }
 
+  for (const auto& vlanDelta : delta.getVlansDelta()) {
+    auto arpDelta = vlanDelta.getArpDelta();
+    auto ndpDelta = vlanDelta.getNdpDelta();
+    if (arpDelta.getNew() || arpDelta.getOld() || ndpDelta.getNew() ||
+        ndpDelta.getOld()) {
+      scheduleProbes_ = true;
+      break;
+    }
+  }
+
   if (!added_.empty() || !removed_.empty()) {
     scheduleProbes_ = true;
     sw_->getResolvedNexthopProbeScheduler()->processChangedResolvedNexthops(
