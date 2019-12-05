@@ -44,6 +44,11 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
     return scheduleProbes_;
   }
 
+  static void updateMonitoredClients(std::set<ClientID> clients) {
+    auto monitoredClients = kMonitoredClients.wlock();
+    *monitoredClients = std::move(clients);
+  }
+
  private:
   template <typename RouteT>
   void processAddedRouteNextHops(const std::shared_ptr<RouteT>& route) {
@@ -79,13 +84,33 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
   bool skipRoute(const std::shared_ptr<RouteT>& route) const {
     return !route->isResolved() ||
         route->getForwardInfo().getAction() !=
-        RouteNextHopEntry::Action::NEXTHOPS;
+        RouteNextHopEntry::Action::NEXTHOPS ||
+        !isMonitored(route);
+  }
+
+  template <typename RouteT>
+  bool isMonitored(const std::shared_ptr<RouteT>& route) const {
+    for (auto client : *kMonitoredClients.rlock()) {
+      if (sw_->getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB) {
+        // TODO : either lookup in standalone RIB, to get best entry OR
+        // ForwardingInformationBaseUpdater::toFibRoute should also pass client
+        // ID info to FibRoute.
+        return false;
+      }
+      auto bestPair = route->getBestEntry();
+      if (bestPair.first == client) {
+        /* route is programmed by client and it's next hops are preferred */
+        return true;
+      }
+    }
+    return false;
   }
 
   SwSwitch* sw_{nullptr};
   std::vector<ResolvedNextHop> added_;
   std::vector<ResolvedNextHop> removed_;
   bool scheduleProbes_{false}; // trigger next hop probe scheduler
+  static folly::Synchronized<std::set<ClientID>> kMonitoredClients;
 };
 
 } // namespace fboss
