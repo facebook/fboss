@@ -462,6 +462,7 @@ add_library(fboss_agent STATIC
     fboss/agent/MirrorManagerImpl.cpp
     fboss/agent/LookupClassUpdater.cpp
     fboss/agent/MacTableManager.cpp
+    fboss/agent/MacTableUtils.cpp
     fboss/agent/ResolvedNexthopMonitor.cpp
     fboss/agent/ResolvedNexthopProbe.cpp
     fboss/agent/ResolvedNexthopProbeScheduler.cpp

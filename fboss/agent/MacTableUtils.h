@@ -10,26 +10,20 @@
 #pragma once
 
 #include "fboss/agent/L2Entry.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook {
 namespace fboss {
 
-class SwSwitch;
+class SwitchState;
+class Vlan;
 
-class MacTableManager {
+class MacTableUtils {
  public:
-  explicit MacTableManager(SwSwitch* sw);
-
-  void handleL2LearningUpdate(
+  static std::shared_ptr<SwitchState> updateMacTable(
+      const std::shared_ptr<SwitchState>& state,
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType);
-
- private:
-  // Forbidden copy constructor and assignment operator
-  MacTableManager(MacTableManager const&) = delete;
-  MacTableManager& operator=(MacTableManager const&) = delete;
-
-  SwSwitch* sw_{nullptr};
 };
 
 } // namespace fboss
