@@ -99,7 +99,12 @@ class MacTableManagerTest : public ::testing::Test {
   }
 
   void triggerMacCbHelper(L2EntryUpdateType l2EntryUpdateType) {
-    auto l2Entry = L2Entry(kMacAddress(), kVlan(), PortDescriptor(kPortID()));
+    auto l2Entry = L2Entry(
+        kMacAddress(),
+        kVlan(),
+        PortDescriptor(kPortID()),
+        L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
+
     sw_->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
 
     waitForBackgroundThread(sw_);

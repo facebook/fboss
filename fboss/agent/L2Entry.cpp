@@ -14,14 +14,19 @@
 namespace facebook {
 namespace fboss {
 
-L2Entry::L2Entry(folly::MacAddress mac, VlanID vlan, PortDescriptor portDescr)
-    : mac_(mac), vlanID_(vlan), portDescr_(portDescr) {}
+L2Entry::L2Entry(
+    folly::MacAddress mac,
+    VlanID vlan,
+    PortDescriptor portDescr,
+    L2EntryType type)
+    : mac_(mac), vlanID_(vlan), portDescr_(portDescr), type_(type) {}
 
 std::string L2Entry::str() const {
   std::ostringstream os;
 
   os << "L2Entry:: MAC: " << getMac().toString() << " vid: " << getVlanID()
-     << " " << getPortDescriptor().str();
+     << " " << getPortDescriptor().str()
+     << " type: " << (static_cast<int>(type_) == 0 ? "PENDING" : "VALIDATED");
 
   return os.str();
 }

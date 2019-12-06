@@ -149,5 +149,10 @@ bool BcmSwitch::isValidLabelForwardingEntry(
 void BcmSwitch::processControlPlaneChanges(const StateDelta& /*delta*/) {}
 
 void BcmSwitch::disableHotSwap() const {}
+
+bool BcmSwitch::isL2EntryPending(const opennsl_l2_addr_t* /*l2Addr*/) {
+  return true;
+}
+
 } // namespace fboss
 } // namespace facebook

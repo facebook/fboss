@@ -115,7 +115,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
   void verifyL2TableCallback(
       const std::pair<L2Entry, L2EntryUpdateType>* l2EntryAndUpdateType,
-      L2EntryUpdateType expectedL2EntryUpdateType) {
+      L2EntryUpdateType expectedL2EntryUpdateType,
+      L2Entry::L2EntryType expectedL2EntryType) {
     auto [l2Entry, l2EntryUpdateType] = *l2EntryAndUpdateType;
 
     EXPECT_EQ(l2Entry.getMac(), kSourceMac());
@@ -123,6 +124,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_TRUE(l2Entry.getPortDescriptor().isPhysicalPort());
     EXPECT_EQ(
         l2Entry.getPortDescriptor().phyPortID(), masterLogicalPortIds()[0]);
+    EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
 
@@ -148,7 +150,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdate(),
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
     }
 
     // Verify that we really learned that MAC
@@ -166,7 +169,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdate(),
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
     }
 
     // Verify the mac has been removed; this call will wait up to
@@ -241,6 +245,7 @@ TEST_F(HwMacLearningTest, VerifyL2TableUpdateOnLearningAndAging) {
   };
 
   auto verify = [this]() {
+    getHwSwitch()->enableCallbackOnAllL2EntryTypes();
     verifyLearningAndAgingHelper(cfg::L2LearningMode::SOFTWARE);
   };
 

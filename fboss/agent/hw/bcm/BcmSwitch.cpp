@@ -194,19 +194,24 @@ using facebook::fboss::PortDescriptor;
 using facebook::fboss::PortID;
 using facebook::fboss::VlanID;
 
-L2Entry createL2Entry(const opennsl_l2_addr_t* l2Addr) {
+L2Entry createL2Entry(const opennsl_l2_addr_t* l2Addr, bool isPending) {
   CHECK(l2Addr);
+
+  auto l2EntryType = isPending ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
+                               : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 
   if (!(l2Addr->flags & OPENNSL_L2_TRUNK_MEMBER)) {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
-        PortDescriptor(PortID(l2Addr->port)));
+        PortDescriptor(PortID(l2Addr->port)),
+        l2EntryType);
   } else {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
-        PortDescriptor(AggregatePortID(l2Addr->tgid)));
+        PortDescriptor(AggregatePortID(l2Addr->tgid)),
+        l2EntryType);
   }
 }
 
@@ -1694,9 +1699,6 @@ void BcmSwitch::processNeighborTableDelta(
   std::vector<NeighborEntryDeltaT> discardedNeighborEntryDelta;
 
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-    auto oldVlan = vlanDelta.getOld();
-    auto newVlan = vlanDelta.getNew();
-
     for (const auto& delta :
          vlanDelta.template getNeighborDelta<NeighborTableT>()) {
       try {
@@ -2271,10 +2273,54 @@ void BcmSwitch::l2LearningUpdateReceived(
    * TODO (skhare)
    * Dispatch "valid" callbacks
    */
-  if (l2Addr && isL2OperationOfInterest(operation)) {
+  if (l2Addr && isL2OperationOfInterest(operation) &&
+      isL2EntryTypeOfInterest(l2Addr, operation)) {
     callback_->l2LearningUpdateReceived(
-        createL2Entry(l2Addr), getL2EntryUpdateType(operation));
+        createL2Entry(l2Addr, isL2EntryPending(l2Addr)),
+        getL2EntryUpdateType(operation));
   }
+}
+
+/*
+ * Ignore DELETE for PENDING and ADD for VALIDATED.
+ *
+ * Typical Learning workflow:
+ *  - ASIC encounters unknown source MAC+vlan.
+ *  - ASIC creates a PENDING L2 entry for the MAC+vlan and generates callback.
+ *  - In response, wedge_agent will VALIDATE the L2 entry.
+ *  - This VALIDATE, initiated by wedge_agent, triggers another callback with
+ *    operation type of ADD. Ignore it as wedge_agent already knows about it.
+ *  - Furthermore, when PENDING entry changes to VALIDATED, the PENDING entry
+ *    'DELETE' will generate another callback. Ignore it as wedge_agent already
+ *    knows about it.
+ *
+ *    We saw some inconsistencies in ASIC/SDK behavior around this, and DELETE
+ *    for PENDING and ADD for VALIDATED was not always generated. CS9347300
+ *    tracks this with Broadcom. But, since we need to ignore these callbacks
+ *    anyway, we are good even as await answers on CS9347300.
+ *
+ * Typical Aging workflow:
+ *  - SDK thread ages out a stale MAC+vlan entry.
+ *  - This triggers a callback of type DELETE.
+ *  - The MAC+vlan that is aged out would be VALIDATED as when the entry is
+ *    learned, in resposne to PENDING ADD callback, wedge_agent would have
+ *    VALIDATED the entry.
+ */
+bool BcmSwitch::isL2EntryTypeOfInterest(
+    const opennsl_l2_addr_t* l2Addr,
+    int operation) {
+  if (shouldCallbackOnAllL2EntryTypes()) {
+    return true;
+  }
+
+  constexpr auto kAddOperation =
+      static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+  constexpr auto kDeleteOperation =
+      static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+
+  return !(
+      (operation == kAddOperation && (!isL2EntryPending(l2Addr))) ||
+      (operation == kDeleteOperation && isL2EntryPending(l2Addr)));
 }
 
 } // namespace fboss
