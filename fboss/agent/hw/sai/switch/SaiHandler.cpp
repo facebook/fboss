@@ -19,7 +19,7 @@ SaiHandler::SaiHandler(SwSwitch* sw, const SaiSwitch* hw)
 
 SaiHandler::~SaiHandler() {}
 
-apache::thrift::ResponseAndStream<std::string, std::string>
+apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiHandler::startDiagShell() {
   XLOG(INFO) << "New diag shell session connecting";
   if (diagShell_.hasPublisher()) {

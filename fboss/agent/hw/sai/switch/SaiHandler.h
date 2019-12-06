@@ -22,8 +22,8 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
  public:
   SaiHandler(SwSwitch* sw, const SaiSwitch* hw);
   ~SaiHandler() override;
-  apache::thrift::ResponseAndStream<std::string, std::string> startDiagShell()
-      override;
+  apache::thrift::ResponseAndServerStream<std::string, std::string>
+  startDiagShell() override;
   void produceDiagShellInput(
       std::unique_ptr<std::string> input,
       std::unique_ptr<ClientInformation> client) override;
