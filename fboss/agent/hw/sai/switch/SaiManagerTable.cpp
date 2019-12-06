@@ -60,6 +60,20 @@ SaiManagerTable::~SaiManagerTable() {
   // Need to destroy routes before destroying other managers, as the
   // route destructor will trigger calls in those managers
   routeManager().clear();
+  // Reset neighbor mgr before reseting rif mgr, since the
+  // neighbor entries refer to rifs. While at it, also reset fdb
+  // and next hop mgrs. Fdb is reset after neighbor mgr since
+  // neighbor mgr also creates FDB entries. Strictly speaking this
+  // is not necessary, since NeighborHandle holds SaiFdbEntry shared_ptr,
+  // which gets pruned directly via Api layer and does not go through
+  // FdbManager. But that's a implementation detail, we could imagine
+  // NeighborHandle pruning calling Fdb entry prune via FdbManager.
+  // Reasoning along similar lines NextHopGroup and NextHop managers
+  // resets are placed after NeighborManager reset
+  neighborManager_.reset();
+  fdbManager_.reset();
+  nextHopGroupManager_.reset();
+  nextHopManager_.reset();
   routerInterfaceManager_.reset();
   virtualRouterManager_.reset();
   bridgeManager_.reset();
