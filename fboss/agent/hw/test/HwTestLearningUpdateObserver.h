@@ -17,8 +17,10 @@ class RxPacket;
 class HwTestLearningUpdateObserver
     : public HwSwitchEnsemble::HwSwitchEventObserverIf {
  public:
-  explicit HwTestLearningUpdateObserver(HwSwitchEnsemble* ensemble);
-  virtual ~HwTestLearningUpdateObserver() override;
+  void startObserving(HwSwitchEnsemble* ensemble);
+  void stopObserving();
+
+  void reset();
 
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
@@ -29,7 +31,7 @@ class HwTestLearningUpdateObserver
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
 
-  HwSwitchEnsemble* ensemble_;
+  HwSwitchEnsemble* ensemble_{nullptr};
   std::mutex mtx_;
   std::condition_variable cv_;
   std::unique_ptr<std::pair<L2Entry, L2EntryUpdateType>> data_;

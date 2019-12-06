@@ -63,6 +63,15 @@ using utility::enableTrunkPorts;
 
 class HwMacLearningTest : public HwLinkStateDependentTest {
  protected:
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    l2LearningObserver_.startObserving(getHwSwitchEnsemble());
+  }
+
+  void TearDown() override {
+    l2LearningObserver_.stopObserving();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     return utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
@@ -121,18 +130,24 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     constexpr int kMinAgeSecs = 1;
     bool removed = false;
 
+    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+      l2LearningObserver_.reset();
+      // Disable aging: this guarantees no aging callback till we have
+      // opportunity to verify learning callback (avoid aging callback
+      // data overwriting learning callback data).
+      // After learning callback is verified, we would re-enable aging and
+      // verify aging callback.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    }
+
     // sendPkt here instead of setup b/c the last step of the test
     // removes the packet, so we need to reset it with each verify()
     sendPkt();
 
-    // Verify that Mac aging is enabled, that is, >0
-    EXPECT_GT(utility::getMacAgeTimerSeconds(getHwSwitch()), 0);
-
     // If Learning Mode is SOFTWARE, verify if we get callback for learned MAC
     if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
-      HwTestLearningUpdateObserver learnObserver(getHwSwitchEnsemble());
       verifyL2TableCallback(
-          learnObserver.waitForLearningUpdate(),
+          l2LearningObserver_.waitForLearningUpdate(),
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
     }
 
@@ -140,14 +155,17 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_TRUE(
         wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
 
+    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+      l2LearningObserver_.reset();
+    }
+
     // Force MAC aging to as fast a possible but min is still 1 second
     utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeSecs);
 
     // If Learning Mode is SOFTWARE, verify if we get callback for aged MAC
     if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
-      HwTestLearningUpdateObserver ageObserver(getHwSwitchEnsemble());
       verifyL2TableCallback(
-          ageObserver.waitForLearningUpdate(),
+          l2LearningObserver_.waitForLearningUpdate(),
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
     }
 
@@ -159,6 +177,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         /* shouldExist */ false); // return true if mac no longer learned
     EXPECT_TRUE(removed);
   }
+
+ private:
+  HwTestLearningUpdateObserver l2LearningObserver_;
 };
 
 TEST_F(HwMacLearningTest, TrunkCheckMacsLearned) {

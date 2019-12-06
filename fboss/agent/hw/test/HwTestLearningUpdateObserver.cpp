@@ -5,14 +5,20 @@
 namespace facebook {
 namespace fboss {
 
-HwTestLearningUpdateObserver::HwTestLearningUpdateObserver(
-    HwSwitchEnsemble* ensemble)
-    : ensemble_(ensemble) {
+void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
+  ensemble_ = ensemble;
   ensemble_->addHwEventObserver(this);
 }
 
-HwTestLearningUpdateObserver::~HwTestLearningUpdateObserver() {
-  ensemble_->removeHwEventObserver(this);
+void HwTestLearningUpdateObserver::stopObserving() {
+  if (ensemble_) {
+    ensemble_->removeHwEventObserver(this);
+    ensemble_ = nullptr;
+  }
+}
+
+void HwTestLearningUpdateObserver::reset() {
+  data_.reset();
 }
 
 void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
