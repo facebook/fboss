@@ -61,6 +61,7 @@ SaiManagerTable::~SaiManagerTable() {
   // route destructor will trigger calls in those managers
   routeManager().clear();
   routerInterfaceManager_.reset();
+  virtualRouterManager_.reset();
   bridgeManager_.reset();
   vlanManager_.reset();
   portManager_.reset();
