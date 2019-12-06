@@ -37,6 +37,7 @@
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
+#include "fboss/agent/hw/bcm/BcmMacTable.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
@@ -266,7 +267,8 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       rtag7LoadBalancer_(new BcmRtag7LoadBalancer(this)),
       mirrorTable_(new BcmMirrorTable(this)),
       bstStatsMgr_(new BcmBstStatsMgr(this)),
-      switchSettings_(new BcmSwitchSettings(this)) {
+      switchSettings_(new BcmSwitchSettings(this)),
+      macTable_(new BcmMacTable(this)) {
   exportSdkVersion();
 }
 
@@ -308,6 +310,7 @@ void BcmSwitch::resetTables() {
   bcmStatUpdater_.reset();
   bstStatsMgr_.reset();
   switchSettings_.reset();
+  macTable_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -682,6 +685,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   setMacAging(std::chrono::seconds(FLAGS_l2AgeTimerSeconds));
 
   switchSettings_ = std::make_unique<BcmSwitchSettings>(this);
+  macTable_ = std::make_unique<BcmMacTable>(this);
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -760,6 +764,28 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   }
 }
 
+void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
+  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
+    // TODO(skhare)
+    // MAC Move
+
+    auto vlanId = vlanDelta.getOld() ? vlanDelta.getOld()->getID()
+                                     : vlanDelta.getNew()->getID();
+    for (const auto& delta : vlanDelta.getMacTableDelta()) {
+      const auto* oldEntry = delta.getOld().get();
+      const auto* newEntry = delta.getNew().get();
+
+      if (!oldEntry) {
+        macTable_->processMacAdded(newEntry, vlanId);
+      } else if (!newEntry) {
+        macTable_->processMacRemoved(oldEntry, vlanId);
+      } else {
+        macTable_->processMacChanged(oldEntry, newEntry, vlanId);
+      }
+    }
+  }
+}
+
 std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> g(lock_);
@@ -799,6 +825,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processDisabledPorts(delta);
 
   processSwitchSettingsChanged(delta);
+
+  processMacTableChanges(delta);
 
   processLoadBalancerChanges(delta);
 

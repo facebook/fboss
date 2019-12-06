@@ -84,6 +84,7 @@ class ControlPlane;
 class BcmBstStatsMgr;
 class BcmLabelMap;
 class BcmSwitchSettings;
+class BcmMacTable;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -648,6 +649,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processSwitchSettingsChanged(const StateDelta& delta);
 
+  void processMacTableChanges(const StateDelta& delta);
+
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan
    * thread while invoking our link state handler. Link scan thread
@@ -883,6 +886,8 @@ class BcmSwitch : public BcmSwitchIf {
   folly::EventBase linkScanBottomHalfEventBase_;
 
   std::unique_ptr<BcmSwitchSettings> switchSettings_;
+
+  std::unique_ptr<BcmMacTable> macTable_;
 
   std::unique_ptr<BcmUnit> unitObject_;
   BootType bootType_{BootType::UNINITIALIZED};
