@@ -367,6 +367,44 @@ folly::dynamic BcmSwitch::toFollyDynamic() const {
   return warmBootCache_->getWarmBootStateFollyDynamic();
 }
 
+int BcmSwitch::addL2TableCb(
+    int /*unit*/,
+    opennsl_l2_addr_t* l2Addr,
+    void* userData) {
+  auto* bcmSw = static_cast<BcmSwitch*>(userData);
+  bcmSw->callback_->l2LearningUpdateReceived(
+      createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
+      getL2EntryUpdateType(OPENNSL_L2_CALLBACK_ADD));
+
+  return 0;
+}
+
+int BcmSwitch::addL2TableCbForPendingOnly(
+    int /*unit*/,
+    opennsl_l2_addr_t* l2Addr,
+    void* userData) {
+  auto* bcmSw = static_cast<BcmSwitch*>(userData);
+  if (bcmSw->isL2EntryPending(l2Addr)) {
+    bcmSw->callback_->l2LearningUpdateReceived(
+        createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
+        getL2EntryUpdateType(OPENNSL_L2_CALLBACK_ADD));
+  }
+
+  return 0;
+}
+
+int BcmSwitch::deleteL2TableCb(
+    int /*unit*/,
+    opennsl_l2_addr_t* l2Addr,
+    void* userData) {
+  auto* bcmSw = static_cast<BcmSwitch*>(userData);
+  bcmSw->callback_->l2LearningUpdateReceived(
+      createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
+      getL2EntryUpdateType(OPENNSL_L2_CALLBACK_DELETE));
+
+  return 0;
+}
+
 void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
   std::lock_guard<std::mutex> g(lock_);
   switch (newState) {
@@ -374,6 +412,27 @@ void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
       setupLinkscan();
       setupPacketRx();
       break;
+
+    case SwitchRunState::CONFIGURED: {
+      /*
+       * When L2LearningMode::SOFTWARE is set, during warmboot time window,
+       * there is no software running that can receive L2 table update
+       * callbacks. However, the hardware continues to learn unknown source MAC
+       * + VLAN as PENDING entries during that time window. Once agent comes
+       * up, it must update its MAC table and VALIDATE the PENDING entries.
+       */
+      if (bootType_ == BootType::WARM_BOOT &&
+          switchSettings_->getL2LearningMode().has_value()) {
+        if (switchSettings_->getL2LearningMode().value() ==
+            cfg::L2LearningMode::SOFTWARE) {
+          auto rv = opennsl_l2_traverse(
+              getUnit(), BcmSwitch::addL2TableCbForPendingOnly, this);
+          bcmCheckError(rv, "opennsl_l2_traverse failed");
+        }
+      }
+      break;
+    }
+
     default:
       break;
   }

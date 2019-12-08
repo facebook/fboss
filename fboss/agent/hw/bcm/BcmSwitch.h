@@ -503,6 +503,19 @@ class BcmSwitch : public BcmSwitchIf {
       opennsl_l2_addr_t* l2Addr,
       int operation) noexcept;
 
+  /*
+   * Callback handlers for opennsl_l2_traverse that generate L2 table update
+   * callbacks from software. These are used to maintain SwitchState's MAC
+   * Table across warmboot, L2LearningMode changes etc.
+   */
+  static int addL2TableCb(int unit, opennsl_l2_addr_t* l2Addr, void* userData);
+  static int addL2TableCbForPendingOnly(
+      int unit,
+      opennsl_l2_addr_t* l2Addr,
+      void* userData);
+  static int
+  deleteL2TableCb(int unit, opennsl_l2_addr_t* l2Addr, void* userData);
+
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
   // Forbidden copy constructor and assignment operator

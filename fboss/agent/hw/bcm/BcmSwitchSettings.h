@@ -17,6 +17,10 @@ class BcmSwitchSettings {
   explicit BcmSwitchSettings(BcmSwitch* hw) : hw_(hw) {}
   ~BcmSwitchSettings() {}
 
+  std::optional<cfg::L2LearningMode> getL2LearningMode() const {
+    return l2LearningMode_;
+  }
+
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
 
  private:

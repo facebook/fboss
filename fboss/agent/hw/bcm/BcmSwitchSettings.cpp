@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 
 namespace facebook {
 namespace fboss {
@@ -35,6 +36,25 @@ void BcmSwitchSettings::enableL2LearningHardware() {
 
   disableL2LearningCallback();
   disablePendingEntriesOnUnknownSrcL2();
+
+  /*
+   * For every L2 entry previously learned in SOFTWARE mode, remove it from
+   * SwitchState's MAC Table.
+   * This is achieved by traversing L2 table, and generating L2 table update
+   * DELETE callback for each entry in L2 table.
+   *
+   * At this stage, L2 table update callbacks are disabled, so we don't need to
+   * worry about more entries getting added into SwitchState's MAC Table.
+   *
+   * However, this results into BcmSwitch::processMacTableChanges receiving a
+   * stateDelta with all L2 addresses removed. This would cause unknown unicast
+   * flood till the L2 entries are relearned. To avoid,
+   * BcmSwitch::processMacTableChanges is no-op when in
+   * l2LearningMode::HARDWARE>
+   */
+  auto rv =
+      opennsl_l2_traverse(hw_->getUnit(), BcmSwitch::deleteL2TableCb, hw_);
+  bcmCheckError(rv, "opennsl_l2_traverse failed");
 }
 
 void BcmSwitchSettings::enableL2LearningSoftware() {
@@ -45,6 +65,22 @@ void BcmSwitchSettings::enableL2LearningSoftware() {
 
   enableL2LearningCallback();
   enablePendingEntriesOnUnknownSrcL2();
+
+  /*
+   * For every L2 entry previously learned in HARDWARE mode, populate
+   * SwitchState's MAC Table.
+   * This is achieved by traversing L2 table, and generating L2 table update
+   * ADD callback for each entry in L2 table.
+   *
+   * We don't need to worry about MACs learned after this traverse as L2 table
+   * update callbacks are already enabled. However, this also means that we
+   * will end up delivering duplicate callbacks for L2 entries learned in the
+   * time window between enabling L2 table update callback and traversal. This
+   * is fine given how our implementation handles it: a call to add macEntry
+   * that exists is a no-op.
+   */
+  auto rv = opennsl_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
+  bcmCheckError(rv, "opennsl_l2_traverse failed");
 }
 
 } // namespace fboss
