@@ -13,6 +13,8 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
+#include <sstream>
+
 namespace {
 constexpr auto kIpAddr = "ipaddress";
 constexpr auto kMac = "mac";
@@ -72,6 +74,23 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     InterfaceID intfID,
     NeighborState ignored)
     : Parent(ip, intfID, ignored) {}
+
+template <typename IPADDR, typename SUBCLASS>
+std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {
+  std::ostringstream os;
+
+  auto classIDStr = getClassID().has_value()
+      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+      : "None";
+  auto neighborStateStr =
+      isReachable() ? "Reachable" : (isPending() ? "Pending" : "Unverified");
+
+  os << "NeighborEntry:: MAC: " << getMac().toString()
+     << " IP: " << getIP().str() << " classID: " << classIDStr << " "
+     << getPort().str() << " NeighborState: " << neighborStateStr;
+
+  return os.str();
+}
 
 } // namespace fboss
 } // namespace facebook

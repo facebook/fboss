@@ -69,7 +69,7 @@ struct NeighborEntryFields {
   PortDescriptor port;
   InterfaceID interfaceID;
   NeighborState state;
-  std::optional<cfg::AclLookupClass> classID;
+  std::optional<cfg::AclLookupClass> classID{std::nullopt};
 };
 
 template <typename IPADDR, typename SUBCLASS>
@@ -168,6 +168,8 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   void setClassID(std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     this->writableFields()->classID = classID;
   }
+
+  std::string str() const;
 
  private:
   typedef NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> Parent;
