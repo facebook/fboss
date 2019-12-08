@@ -91,7 +91,6 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAcls] = acls->toFollyDynamic();
   switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
   switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
-  switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
   switchState[kControlPlane] = controlPlane->toFollyDynamic();
   switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
   switchState[kMirrors] = mirrors->toFollyDynamic();
@@ -101,6 +100,16 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   if (defaultDataPlaneQosPolicy) {
     switchState[kDefaultDataplaneQosPolicy] =
         defaultDataPlaneQosPolicy->toFollyDynamic();
+    /* to allow canary-off the latest stable be
+     * crashless, use only qosPolicies, since older versions do not treat
+     * default  qos policy differently */
+    /* TODO(pshaikh): remove this after one push */
+    auto qosPoliciesWithDefaultQosPolicy = qosPolicies->clone();
+    qosPoliciesWithDefaultQosPolicy->addNode(defaultDataPlaneQosPolicy);
+    switchState[kQosPolicies] =
+        qosPoliciesWithDefaultQosPolicy->toFollyDynamic();
+  } else {
+    switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
   }
   return switchState;
 }
@@ -150,6 +159,21 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   if (swJson.find(kDefaultDataplaneQosPolicy) != swJson.items().end()) {
     switchState.defaultDataPlaneQosPolicy =
         QosPolicy::fromFollyDynamic(swJson[kDefaultDataplaneQosPolicy]);
+    auto name = switchState.defaultDataPlaneQosPolicy->getName();
+    /* for backward compatibility, this policy is also kept in qos policy map.
+     * remove it, if it exists */
+    /* TODO(pshaikh): remove this after two pushes, after subsequent push, logic
+     * that keeps  default qos policy in qos policy map will be removed. */
+    switchState.qosPolicies->removeNodeIf(name);
+  } else {
+    /* to allow canary on the latest stable be crashless, as older versions
+     * treat default policy same as any other policy */
+    /* TODO(pshaikh): remove this after one push */
+    if (switchState.qosPolicies->size() == 1) {
+      auto name = (*switchState.qosPolicies->begin())->getName();
+      auto qosPolicy = switchState.qosPolicies->removeNode(name);
+      switchState.defaultDataPlaneQosPolicy = std::move(qosPolicy);
+    }
   }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
