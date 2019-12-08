@@ -1550,6 +1550,22 @@ void BcmSwitch::processRemovedIntf(const shared_ptr<Interface>& intf) {
 }
 
 void BcmSwitch::processQosChanges(const StateDelta& delta) {
+  auto oldDefaultQosPolicy = delta.oldState()
+      ? delta.oldState()->getDefaultDataPlaneQosPolicy()
+      : nullptr;
+  auto newDefaultQosPolicy = delta.newState()
+      ? delta.newState()->getDefaultDataPlaneQosPolicy()
+      : nullptr;
+
+  if (oldDefaultQosPolicy && newDefaultQosPolicy) {
+    qosPolicyTable_->processChangedDefaultQosPolicy(
+        oldDefaultQosPolicy, newDefaultQosPolicy);
+  } else if (oldDefaultQosPolicy) {
+    qosPolicyTable_->processRemovedDefaultQosPolicy(oldDefaultQosPolicy);
+  } else if (newDefaultQosPolicy) {
+    qosPolicyTable_->processAddedDefaultQosPolicy(newDefaultQosPolicy);
+  }
+
   forEachChanged(
       delta.getQosPoliciesDelta(),
       &BcmQosPolicyTable::processChangedQosPolicy,

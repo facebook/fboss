@@ -90,6 +90,8 @@ struct SwitchStateFields {
 
   VlanID defaultVlan{0};
 
+  std::shared_ptr<QosPolicy> defaultDataPlaneQosPolicy;
+
   // Timeout settings
   // TODO(aeckert): Figure out a nicer way to store these config fields
   // in an accessible way
@@ -208,6 +210,14 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->defaultVlan;
   }
   void setDefaultVlan(VlanID id);
+
+  const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
+    return getFields()->defaultDataPlaneQosPolicy;
+  }
+
+  void setDefaultDataPlaneQosPolicy(std::shared_ptr<QosPolicy> qosPolicy) {
+    writableFields()->defaultDataPlaneQosPolicy = std::move(qosPolicy);
+  }
 
   const std::shared_ptr<InterfaceMap>& getInterfaces() const {
     return getFields()->interfaces;
@@ -339,6 +349,14 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetForwardingInformationBases(
       std::shared_ptr<ForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
+
+  void publish() override {
+    using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
+    if (auto defaultDataPlaneQosPolicy = getDefaultDataPlaneQosPolicy()) {
+      defaultDataPlaneQosPolicy->publish();
+    }
+    BaseT::publish();
+  }
 
  private:
   // Inherit the constructor required for clone()

@@ -46,7 +46,6 @@ bool comparePortQueueAQMs(
         return behaviorAndAqm.second == aqm;
       });
 }
-
 } // unnamed namespace
 
 namespace facebook {
@@ -89,6 +88,10 @@ state::PortQueueFields PortQueueFields::toThrift() const {
 
   if (bandwidthBurstMaxKbits) {
     queue.bandwidthBurstMaxKbits = bandwidthBurstMaxKbits.value();
+  }
+
+  if (trafficClass) {
+    queue.trafficClass = static_cast<int16_t>(trafficClass.value());
   }
 
   return queue;
@@ -142,6 +145,11 @@ PortQueueFields PortQueueFields::fromThrift(
 
   if (queueThrift.bandwidthBurstMaxKbits) {
     queue.bandwidthBurstMaxKbits = queueThrift.bandwidthBurstMaxKbits.value();
+  }
+
+  if (queueThrift.trafficClass) {
+    queue.trafficClass.emplace(
+        static_cast<TrafficClass>(queueThrift.trafficClass.value()));
   }
 
   return queue;
