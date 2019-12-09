@@ -65,8 +65,7 @@ static void runOldRibTest() {
   auto testHandle = createTestHandle(&config, SwitchFlags::DEFAULT);
   auto sw = testHandle->getSw();
 
-  auto generator = utility::HgridUuRouteScaleGenerator(
-      sw->getAppliedState(), 1337, kEcmpWidth);
+  auto generator = Generator(sw->getAppliedState(), 1337, kEcmpWidth);
 
   // Generate the route chunks which are then cached in the generator and
   // reused when we call `getSwitchStates()`.
