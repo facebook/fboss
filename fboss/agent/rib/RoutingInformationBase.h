@@ -93,6 +93,7 @@ class RoutingInformationBase {
   folly::dynamic toFollyDynamic() const;
   static RoutingInformationBase fromFollyDynamic(const folly::dynamic& ribJson);
 
+  std::vector<RouterID> getVrfList() const;
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
 
   bool operator==(const RoutingInformationBase& other) const;

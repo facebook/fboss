@@ -209,6 +209,15 @@ RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
   return rib;
 }
 
+std::vector<RouterID> RoutingInformationBase::getVrfList() const {
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  std::vector<RouterID> res(lockedRouteTables->size());
+  for (const auto& entry : *lockedRouteTables) {
+    res.push_back(entry.first);
+  }
+  return res;
+}
+
 std::vector<RouteDetails> RoutingInformationBase::getRouteTableDetails(
     RouterID rid) const {
   std::vector<RouteDetails> routeDetails;
