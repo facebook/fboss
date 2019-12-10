@@ -94,11 +94,30 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<Port> newPort);
 
   SwSwitch* sw_;
+
+  /*
+   * Maintains the number of times a classID is used. When a new MAC requires
+   * classID assignment, port2ClassIDAndCount_ is used to determine the least
+   * used classID. This is maintained in a map for every port.
+   */
   boost::container::flat_map<PortID, ClassID2Count> port2ClassIDAndCount_;
 
-  using Mac2ClassID =
-      boost::container::flat_map<folly::MacAddress, cfg::AclLookupClass>;
-  boost::container::flat_map<PortID, Mac2ClassID> port2MacAndClassID_;
+  /*
+   * Maintains:
+   *  - classID assigned to a MAC address.
+   *  - refCnt to count the number of times a classID was requested for a MAC.
+   *    Multiple neighbor IPs could have same MAC (e.g. link-local and global
+   *    IP etc.). First neighbor with previously unseen MAC would cause classID
+   *    assignment, while subsequent neighbors with same MAC would get the same
+   *    classID but bump up the refCnt. As the neighbor entries are
+   *    removed/change to pending, the refCnt is decremented. When the refCnt
+   *    drops to 0, the classID is released.
+   *
+   *  This is also maintained in a map for every port.
+   */
+  using Mac2ClassIDAndRefCnt = boost::container::
+      flat_map<folly::MacAddress, std::pair<cfg::AclLookupClass, int>>;
+  boost::container::flat_map<PortID, Mac2ClassIDAndRefCnt> port2MacEntries_;
 
   bool inited_{false};
 };

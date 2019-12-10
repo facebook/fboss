@@ -42,25 +42,22 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   }
 
   removeNeighborFromLocalCacheForEntry(removedEntry);
-  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << port->getID()
-             << " name: " << port->getName()
-             << " MAC: " << folly::to<std::string>(removedEntry->getMac())
-             << " IP: " << folly::to<std::string>(removedEntry->getIP())
-             << " classID: None";
+  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: "
+             << removedEntry->str() << " classID: None";
 
   updater->updateEntryClassID(vlan, removedEntry->getIP());
 }
 
 bool LookupClassUpdater::isInited(PortID portID) {
-  return port2MacAndClassID_.find(portID) != port2MacAndClassID_.end() &&
+  return port2MacEntries_.find(portID) != port2MacEntries_.end() &&
       port2ClassIDAndCount_.find(portID) != port2ClassIDAndCount_.end();
 }
 
 void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
-  auto& mac2ClassID = port2MacAndClassID_[port->getID()];
+  auto& mac2ClassIDAndRefCnt = port2MacEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
-  mac2ClassID.clear();
+  mac2ClassIDAndRefCnt.clear();
   classID2Count.clear();
 
   for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
@@ -88,23 +85,24 @@ void LookupClassUpdater::updateNeighborClassID(
   }
 
   auto mac = newEntry->getMac();
-  auto& mac2ClassID = port2MacAndClassID_[port->getID()];
+  auto& mac2ClassIDAndRefCnt = port2MacEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
   cfg::AclLookupClass classID;
-  auto iter = mac2ClassID.find(mac);
-  if (iter == mac2ClassID.end()) {
+
+  auto iter = mac2ClassIDAndRefCnt.find(mac);
+  if (iter == mac2ClassIDAndRefCnt.end()) {
     classID = getClassIDwithMinimumNeighbors(classID2Count);
-    mac2ClassID.insert(std::make_pair(mac, classID));
+    mac2ClassIDAndRefCnt.insert(std::make_pair(
+        mac, std::make_pair(classID, 1 /* initialize refCnt */)));
     classID2Count[classID]++;
   } else {
-    classID = iter->second;
+    auto& [_classID, refCnt] = iter->second;
+    classID = _classID;
+    refCnt++;
   }
 
-  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << port->getID()
-             << " name: " << port->getName()
-             << " MAC: " << folly::to<std::string>(newEntry->getMac())
-             << " IP: " << folly::to<std::string>(newEntry->getIP())
+  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << newEntry->str()
              << " classID: " << static_cast<int>(classID);
 
   updater->updateEntryClassID(vlan, newEntry->getIP(), classID);
@@ -339,7 +337,7 @@ void LookupClassUpdater::processPortRemoved(
     }
   }
 
-  port2MacAndClassID_.erase(portID);
+  port2MacEntries_.erase(portID);
   port2ClassIDAndCount_.erase(portID);
 }
 
@@ -410,13 +408,20 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
 
   auto portID = removedEntry->getPort().phyPortID();
   auto mac = removedEntry->getMac();
-  auto& mac2ClassID = port2MacAndClassID_[portID];
-  auto& classID2Count = port2ClassIDAndCount_[portID];
-  auto classID = mac2ClassID[mac];
 
-  mac2ClassID.erase(mac);
-  classID2Count[classID]--;
-  CHECK_GE(classID2Count[classID], 0);
+  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
+  auto& [classID, refCnt] = mac2ClassIDAndRefCnt[mac];
+  auto& classID2Count = port2ClassIDAndCount_[portID];
+
+  CHECK_GT(refCnt, 0);
+
+  refCnt--;
+
+  if (refCnt == 0) {
+    classID2Count[classID]--;
+    CHECK_GE(classID2Count[classID], 0);
+    mac2ClassIDAndRefCnt.erase(mac);
+  }
 }
 
 template <typename NeighborEntryT>
@@ -425,17 +430,20 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();
-  auto& mac2ClassID = port2MacAndClassID_[portID];
+  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
   auto& classID2Count = port2ClassIDAndCount_[portID];
   auto classID = newEntry->getClassID().value();
   auto mac = newEntry->getMac();
 
-  auto iter = mac2ClassID.find(mac);
-  if (iter == mac2ClassID.end()) {
-    mac2ClassID.insert(std::make_pair(mac, classID));
+  auto iter = mac2ClassIDAndRefCnt.find(mac);
+  if (iter == mac2ClassIDAndRefCnt.end()) {
+    mac2ClassIDAndRefCnt.insert(std::make_pair(
+        mac, std::make_pair(classID, 1 /* initialize refCnt */)));
     classID2Count[classID]++;
   } else {
-    iter->second = classID;
+    auto& [classID_, refCnt] = iter->second;
+    CHECK(classID_ == classID);
+    refCnt++;
   }
 }
 
