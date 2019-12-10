@@ -67,7 +67,31 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return IPAddressV6("2401:db00:2110:3001::0002");
   }
 
-  void resolveNeighbor() {
+  IPAddressV4 kIp4Addr2() const {
+    return IPAddressV4("10.0.0.3");
+  }
+
+  IPAddressV4 kIp4Addr3() const {
+    return IPAddressV4("10.0.0.4");
+  }
+
+  IPAddressV6 kIp6Addr2() const {
+    return IPAddressV6("2401:db00:2110:3001::0003");
+  }
+
+  IPAddressV6 kIp6Addr3() const {
+    return IPAddressV6("2401:db00:2110:3001::0004");
+  }
+
+  MacAddress kMacAddress() const {
+    return MacAddress("01:02:03:04:05:06");
+  }
+
+  MacAddress kMacAddress2() const {
+    return MacAddress("01:02:03:04:05:07");
+  }
+
+  void resolveNeighbor(IPAddress ipAddress, MacAddress macAddress) {
     /*
      * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
      * assert if valid CLASSID is associated with the newly resolved neighbor.
@@ -75,15 +99,15 @@ class LookupClassUpdaterTest : public ::testing::Test {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       sw_->getNeighborUpdater()->receivedArpMine(
           kVlan(),
-          kIp4Addr(),
-          MacAddress("01:02:03:04:05:06"),
+          ipAddress.asV4(),
+          macAddress,
           PortDescriptor(kPortID()),
           ArpOpCode::ARP_OP_REPLY);
     } else {
       sw_->getNeighborUpdater()->receivedNdpMine(
           kVlan(),
-          kIp6Addr(),
-          MacAddress("01:02:03:04:05:06"),
+          ipAddress.asV6(),
+          macAddress,
           PortDescriptor(kPortID()),
           ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
           0);
@@ -92,6 +116,43 @@ class LookupClassUpdaterTest : public ::testing::Test {
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);
+  }
+
+  void unresolveNeighbor(IPAddress ipAddress) {
+    sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
+
+    sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
+  }
+
+  void verifyClassIDHelper(
+      folly::IPAddress ipAddress,
+      cfg ::AclLookupClass classID) {
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto state = sw_->getState();
+    auto vlan = state->getVlans()->getVlan(kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      auto entry = neighborTable->getEntry(ipAddress.asV4());
+
+      EXPECT_TRUE(entry->getClassID().has_value());
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
+                << " class: " << static_cast<int>(entry->getClassID().value());
+      EXPECT_EQ(entry->getClassID(), classID);
+    } else {
+      auto entry = neighborTable->getEntry(ipAddress.asV6());
+
+      EXPECT_TRUE(entry->getClassID().has_value());
+      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
+                << " class: " << static_cast<int>(entry->getClassID().value());
+      EXPECT_EQ(entry->getClassID(), classID);
+    }
   }
 
  protected:
@@ -118,32 +179,18 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
       ArpTable,
       NdpTable>;
 
-  this->resolveNeighbor();
+  IPAddress ipAddress;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
 
   this->verifyStateUpdate([=]() {
-    auto state = this->sw_->getState();
-    auto vlan = state->getVlans()->getVlan(this->kVlan());
-    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
-
-    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
-      auto entry = neighborTable->getEntry(this->kIp4Addr());
-
-      EXPECT_TRUE(entry->getClassID().has_value());
-      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
-                << " class: " << static_cast<int>(entry->getClassID().value());
-      EXPECT_EQ(
-          entry->getClassID(),
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-    } else {
-      auto entry = neighborTable->getEntry(this->kIp6Addr());
-
-      EXPECT_TRUE(entry->getClassID().has_value());
-      XLOG(DBG) << "ip: " << entry->getIP() << " mac " << entry->getMac()
-                << " class: " << static_cast<int>(entry->getClassID().value());
-      EXPECT_EQ(
-          entry->getClassID(),
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-    }
+    this->verifyClassIDHelper(
+        ipAddress, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   });
 }
 
@@ -153,7 +200,14 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
       ArpTable,
       NdpTable>;
 
-  this->resolveNeighbor();
+  IPAddress ipAddress;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
 
   /*
    * Force a port down, this will cause previously resolved neighbor to go to
@@ -193,7 +247,14 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
       ArpTable,
       NdpTable>;
 
-  this->resolveNeighbor();
+  IPAddress ipAddress;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
 
   this->updateState(
       "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
@@ -238,7 +299,14 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       ArpTable,
       NdpTable>;
 
-  this->resolveNeighbor();
+  IPAddress ipAddress;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
 
   this->updateState(
       "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
@@ -291,5 +359,82 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
   });
 }
 
+TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDSameMacDifferentIPs) {
+  IPAddress ipAddress;
+  IPAddress ipAddress2;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+    ipAddress2 = IPAddress(this->kIp4Addr2());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+    ipAddress2 = IPAddress(this->kIp6Addr2());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
+  this->resolveNeighbor(ipAddress2, this->kMacAddress());
+
+  // Two IPs with same MAC get same classID
+  this->verifyStateUpdate([=]() {
+    this->verifyClassIDHelper(
+        ipAddress, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->verifyClassIDHelper(
+        ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+}
+
+TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
+  using NeighborTableT = std::conditional_t<
+      std::is_same<TypeParam, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  IPAddress ipAddress;
+  IPAddress ipAddress2;
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+    ipAddress2 = IPAddress(this->kIp4Addr2());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+    ipAddress2 = IPAddress(this->kIp6Addr2());
+  }
+
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
+  this->resolveNeighbor(ipAddress2, this->kMacAddress());
+
+  // Two IPs with same MAC get same classID
+  this->verifyStateUpdate([=]() {
+    this->verifyClassIDHelper(
+        ipAddress, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->verifyClassIDHelper(
+        ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+
+  this->unresolveNeighbor(ipAddress);
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto vlan = state->getVlans()->getVlan(this->kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+      EXPECT_EQ(neighborTable->getEntryIf(ipAddress.asV4()), nullptr);
+    } else {
+      EXPECT_EQ(neighborTable->getEntryIf(ipAddress.asV6()), nullptr);
+    }
+  });
+
+  // Resolve the IP with same MAC, gets same classID as other IP with same MAC
+  this->resolveNeighbor(ipAddress, this->kMacAddress());
+
+  this->verifyStateUpdate([=]() {
+    this->verifyClassIDHelper(
+        ipAddress, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->verifyClassIDHelper(
+        ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+}
 } // namespace fboss
 } // namespace facebook

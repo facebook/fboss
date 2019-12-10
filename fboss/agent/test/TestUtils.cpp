@@ -422,10 +422,16 @@ shared_ptr<SwitchState> testStateAWithLookupClasses() {
   auto newPortMap = newState->getPorts()->modify(&newState);
   for (auto port : *newPortMap) {
     auto newPort = port->clone();
-    newPort->setLookupClassesToDistributeTrafficOn(
-        {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0});
+    newPort->setLookupClassesToDistributeTrafficOn({
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4,
+    });
     newPortMap->updatePort(newPort);
   }
+
   return newState;
 }
 
