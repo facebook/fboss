@@ -11,6 +11,21 @@ using facebook::fboss::DeltaFunctions::isEmpty;
 namespace facebook {
 namespace fboss {
 
+int LookupClassUpdater::getRefCnt(
+    PortID portID,
+    const folly::MacAddress& mac,
+    cfg::AclLookupClass classID) {
+  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
+  auto iter = mac2ClassIDAndRefCnt.find(mac);
+  if (iter == mac2ClassIDAndRefCnt.end()) {
+    return 0;
+  } else {
+    auto& [_classID, _refCnt] = iter->second;
+    CHECK(classID == _classID);
+    return _refCnt;
+  }
+}
+
 cfg::AclLookupClass LookupClassUpdater::getClassIDwithMinimumNeighbors(
     ClassID2Count classID2Count) const {
   auto minItr = std::min_element(

@@ -560,6 +560,10 @@ class SwSwitch : public HwSwitch::Callback {
     return resolvedNexthopMonitor_.get();
   }
 
+  LookupClassUpdater* getLookupClassUpdater() {
+    return lookupClassUpdater_.get();
+  }
+
   rib::RoutingInformationBase* getRib() {
     DCHECK(isStandaloneRibEnabled());
     return rib_.get();

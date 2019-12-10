@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
@@ -380,6 +381,15 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDSameMacDifferentIPs) {
 
     this->verifyClassIDHelper(
         ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    // Verify that refCnt is 2 = 1 for ipAddress + 1 for ipAddress2
+    auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
+    EXPECT_EQ(
+        lookupClassUpdater->getRefCnt(
+            this->kPortID(),
+            this->kMacAddress(),
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        2);
   });
 }
 
@@ -399,6 +409,8 @@ TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
     ipAddress2 = IPAddress(this->kIp6Addr2());
   }
 
+  auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
+
   this->resolveNeighbor(ipAddress, this->kMacAddress());
   this->resolveNeighbor(ipAddress2, this->kMacAddress());
 
@@ -409,6 +421,14 @@ TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
 
     this->verifyClassIDHelper(
         ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    // Verify that refCnt is 2 = 1 for ipAddress + 1 for ipAddress2
+    EXPECT_EQ(
+        lookupClassUpdater->getRefCnt(
+            this->kPortID(),
+            this->kMacAddress(),
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        2);
   });
 
   this->unresolveNeighbor(ipAddress);
@@ -423,6 +443,15 @@ TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
     } else {
       EXPECT_EQ(neighborTable->getEntryIf(ipAddress.asV6()), nullptr);
     }
+
+    // Verify that refCnt is 1 = 1 for ipAddress2 as ipAddress is unersolved
+    EXPECT_EQ(
+        lookupClassUpdater->getRefCnt(
+            this->kPortID(),
+            this->kMacAddress(),
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        1);
+
   });
 
   // Resolve the IP with same MAC, gets same classID as other IP with same MAC
@@ -434,6 +463,14 @@ TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
 
     this->verifyClassIDHelper(
         ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    // Verify that refCnt is 2 = 1 for ipAddress + 1 for ipAddress2
+    EXPECT_EQ(
+        lookupClassUpdater->getRefCnt(
+            this->kPortID(),
+            this->kMacAddress(),
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+        2);
   });
 }
 

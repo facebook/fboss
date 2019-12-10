@@ -16,6 +16,11 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   void stateUpdated(const StateDelta& stateDelta) override;
 
+  int getRefCnt(
+      PortID portID,
+      const folly::MacAddress& mac,
+      cfg::AclLookupClass classID);
+
  private:
   using ClassID2Count = boost::container::flat_map<cfg::AclLookupClass, int>;
 
