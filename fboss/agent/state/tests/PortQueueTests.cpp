@@ -86,6 +86,17 @@ cfg::SwitchConfig generateTestConfig() {
   return config;
 }
 
+cfg::QosPolicy generateQosPolicy(const std::map<uint16_t, uint16_t>& map) {
+  cfg::QosPolicy policy;
+  cfg::QosMap qosMap;
+  for (auto entry : map) {
+    qosMap.trafficClassToQueueId.emplace(entry.first, entry.second);
+  }
+  policy.name = "policy";
+  policy.qosMap_ref() = qosMap;
+  return policy;
+}
+
 PortQueue* generatePortQueue() {
   static PortQueue pqObject(static_cast<uint8_t>(5));
   pqObject.setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
@@ -353,4 +364,87 @@ TEST(PortQueue, checkValidPortQueueConfigRef) {
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(PortQueue, checkNoPortQueueTrafficClass) {
+  auto platform = createMockPlatform();
+  auto state = applyInitConfig();
+
+  auto config = generateTestConfig();
+  state = publishAndApplyConfig(state, &config, platform.get());
+  auto swQueues = state->getPort(PortID(1))->getPortQueues();
+
+  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
+}
+
+TEST(PortQueue, checkPortQueueTrafficClass) {
+  auto platform = createMockPlatform();
+  auto state = applyInitConfig();
+  auto config = generateTestConfig();
+  auto policy = generateQosPolicy({{9, 0}});
+  config.qosPolicies.push_back(policy);
+  cfg::TrafficPolicyConfig policyConfig;
+  policyConfig.defaultQosPolicy_ref() = policy.name;
+  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  state = publishAndApplyConfig(state, &config, platform.get());
+  auto swQueues = state->getPort(PortID(1))->getPortQueues();
+
+  EXPECT_EQ(
+      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(9));
+}
+
+TEST(PortQueue, addPortQueueTrafficClass) {
+  auto platform = createMockPlatform();
+  auto state = applyInitConfig();
+
+  auto config = generateTestConfig();
+  state = publishAndApplyConfig(state, &config, platform.get());
+  auto swQueues = state->getPort(PortID(1))->getPortQueues();
+  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
+
+  auto policy = generateQosPolicy({{9, 0}});
+  config.qosPolicies.push_back(policy);
+  cfg::TrafficPolicyConfig policyConfig;
+  policyConfig.defaultQosPolicy_ref() = policy.name;
+  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  state = publishAndApplyConfig(state, &config, platform.get());
+  swQueues = state->getPort(PortID(1))->getPortQueues();
+  EXPECT_EQ(
+      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(9));
+}
+
+TEST(PortQueue, updatePortQueueTrafficClass) {
+  auto platform = createMockPlatform();
+  auto state = applyInitConfig();
+  auto config = generateTestConfig();
+  auto policy = generateQosPolicy({{9, 0}});
+  config.qosPolicies.push_back(policy);
+  cfg::TrafficPolicyConfig policyConfig;
+  policyConfig.defaultQosPolicy_ref() = policy.name;
+  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  state = publishAndApplyConfig(state, &config, platform.get());
+
+  config.qosPolicies[0].qosMap_ref()->trafficClassToQueueId.clear();
+  config.qosPolicies[0].qosMap_ref()->trafficClassToQueueId.emplace(7, 0);
+  state = publishAndApplyConfig(state, &config, platform.get());
+  auto swQueues = state->getPort(PortID(1))->getPortQueues();
+  EXPECT_EQ(
+      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(7));
+}
+
+TEST(PortQueue, removePortQueueTrafficClass) {
+  auto platform = createMockPlatform();
+  auto state = applyInitConfig();
+  auto config = generateTestConfig();
+  auto policy = generateQosPolicy({{9, 0}});
+  config.qosPolicies.push_back(policy);
+  cfg::TrafficPolicyConfig policyConfig;
+  policyConfig.defaultQosPolicy_ref() = policy.name;
+  config.dataPlaneTrafficPolicy_ref() = policyConfig;
+  state = publishAndApplyConfig(state, &config, platform.get());
+
+  config.qosPolicies[0].qosMap_ref()->trafficClassToQueueId.clear();
+  state = publishAndApplyConfig(state, &config, platform.get());
+  auto swQueues = state->getPort(PortID(1))->getPortQueues();
+  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
 }

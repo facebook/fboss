@@ -179,15 +179,19 @@ class ThriftConfigApplier {
       const cfg::Port* cfg);
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
-      const std::vector<cfg::PortQueue>& cfgPortQueues);
+      const std::vector<cfg::PortQueue>& cfgPortQueues,
+      std::optional<cfg::QosMap> qosMap = std::nullopt);
   // update cfg port queue attribute to state port queue object
   void setPortQueue(
       std::shared_ptr<PortQueue> newQueue,
       const cfg::PortQueue* cfg);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
-      const cfg::PortQueue* cfg);
-  std::shared_ptr<PortQueue> createPortQueue(const cfg::PortQueue* cfg);
+      const cfg::PortQueue* cfg,
+      const std::optional<cfg::QosMap>& qosMap);
+  std::shared_ptr<PortQueue> createPortQueue(
+      const cfg::PortQueue* cfg,
+      std::optional<TrafficClass> trafficClass);
   void checkPortQueueAQMValid(
       const std::vector<cfg::ActiveQueueManagement>& aqms);
   std::shared_ptr<AggregatePortMap> updateAggregatePorts();
@@ -692,21 +696,33 @@ void ThriftConfigApplier::checkPortQueueAQMValid(
 
 std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     const std::shared_ptr<PortQueue>& orig,
-    const cfg::PortQueue* cfg) {
+    const cfg::PortQueue* cfg,
+    const std::optional<cfg::QosMap>& qosMap) {
   CHECK_EQ(orig->getID(), cfg->id);
 
-  if (checkSwConfPortQueueMatch(orig, cfg)) {
+  std::optional<TrafficClass> trafficClass;
+  if (qosMap) {
+    for (auto entry : qosMap->trafficClassToQueueId) {
+      if (entry.second == cfg->id) {
+        trafficClass = static_cast<TrafficClass>(entry.first);
+        break;
+      }
+    }
+  }
+  if (checkSwConfPortQueueMatch(orig, cfg) &&
+      trafficClass == orig->getTrafficClass()) {
     return orig;
   }
 
   // We should always use the PortQueue settings from config, so that if some of
   // the attributes is removed from config, we can make sure that attribute can
   // set back to default
-  return createPortQueue(cfg);
+  return createPortQueue(cfg, trafficClass);
 }
 
 std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
-    const cfg::PortQueue* cfg) {
+    const cfg::PortQueue* cfg,
+    std::optional<TrafficClass> trafficClass) {
   auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(cfg->id));
   queue->setStreamType(cfg->streamType);
   queue->setScheduling(cfg->scheduling);
@@ -742,13 +758,16 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
     queue->setBandwidthBurstMaxKbits(
         cfg->bandwidthBurstMaxKbits_ref().value_unchecked());
   }
-
+  if (trafficClass) {
+    queue->setTrafficClasses(trafficClass.value());
+  }
   return queue;
 }
 
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
-    const std::vector<cfg::PortQueue>& cfgPortQueues) {
+    const std::vector<cfg::PortQueue>& cfgPortQueues,
+    std::optional<cfg::QosMap> qosMap) {
   QueueConfig newPortQueues;
 
   /*
@@ -776,7 +795,8 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     auto newQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     newQueue->setStreamType(origPortQueues.at(i)->getStreamType());
     if (newQueueIter != newQueues.end()) {
-      newQueue = updatePortQueue(origPortQueues.at(i), newQueueIter->second);
+      newQueue =
+          updatePortQueue(origPortQueues.at(i), newQueueIter->second, qosMap);
       newQueues.erase(newQueueIter);
     }
     newPortQueues.push_back(newQueue);
@@ -812,14 +832,6 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     cfgPortQueues = it->second;
   }
 
-  auto portQueues = updatePortQueues(orig->getPortQueues(), cfgPortQueues);
-  bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
-  for (int i = 0; i < portQueues.size() && queuesUnchanged; i++) {
-    if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
-      queuesUnchanged = false;
-    }
-  }
-
   const auto& oldIngressMirror = orig->getIngressMirror();
   const auto& oldEgressMirror = orig->getEgressMirror();
   auto newIngressMirror = std::optional<std::string>();
@@ -845,6 +857,25 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       if (qosPolicyItr != portIdToQosPolicy->end()) {
         newQosPolicy = qosPolicyItr->second;
       }
+    }
+  }
+
+  std::optional<cfg::QosMap> qosMap;
+  if (newQosPolicy) {
+    for (auto qosPolicy : cfg_->qosPolicies) {
+      if (qosPolicy.name == newQosPolicy.value() && qosPolicy.qosMap_ref()) {
+        qosMap = qosPolicy.qosMap_ref().value();
+      }
+    }
+  }
+
+  auto portQueues =
+      updatePortQueues(orig->getPortQueues(), cfgPortQueues, qosMap);
+  bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
+  for (int i = 0; i < portQueues.size() && queuesUnchanged; i++) {
+    if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
+      queuesUnchanged = false;
+      break;
     }
   }
 
@@ -1997,15 +2028,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   auto origCPU = orig_->getControlPlane();
-  // first check whether queue setting changed
-  auto newQueues = updatePortQueues(origCPU->getQueues(), cfg_->cpuQueues);
-  bool queuesUnchanged = newQueues.size() == origCPU->getQueues().size();
-  for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
-    if (*(newQueues.at(i)) != *(origCPU->getQueues().at(i))) {
-      queuesUnchanged = false;
-    }
-  }
-
   std::optional<std::string> qosPolicy;
   ControlPlane::RxReasonToQueue newRxReasonToQueue;
   bool rxReasonToQueueUnchanged = true;
@@ -2038,6 +2060,27 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   }
 
   bool qosPolicyUnchanged = qosPolicy == origCPU->getQosPolicy();
+
+  std::optional<cfg::QosMap> qosMap;
+  if (qosPolicy) {
+    for (auto policy : cfg_->qosPolicies) {
+      if (policy.name == qosPolicy.value() && policy.qosMap_ref()) {
+        qosMap = policy.qosMap_ref().value();
+        break;
+      }
+    }
+  }
+
+  // check whether queue setting changed
+  auto newQueues =
+      updatePortQueues(origCPU->getQueues(), cfg_->cpuQueues, qosMap);
+  bool queuesUnchanged = newQueues.size() == origCPU->getQueues().size();
+  for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
+    if (*(newQueues.at(i)) != *(origCPU->getQueues().at(i))) {
+      queuesUnchanged = false;
+      break;
+    }
+  }
 
   if (queuesUnchanged && qosPolicyUnchanged && rxReasonToQueueUnchanged) {
     return nullptr;
