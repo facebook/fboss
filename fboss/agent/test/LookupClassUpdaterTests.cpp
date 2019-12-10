@@ -436,5 +436,91 @@ TYPED_TEST(LookupClassUpdaterTest, ResolveUnresolveResolve) {
         ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   });
 }
+
+template <typename AddrT>
+class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
+ public:
+  void SetUp() override {
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto newState = testStateAWithLookupClasses();
+
+    auto vlanID = VlanID(1);
+    auto vlan = newState->getVlans()->getVlanIf(vlanID);
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    neighborTable->addEntry(NeighborEntryFields(
+        this->getIpAddr(),
+        this->kMacAddress(),
+        PortDescriptor(this->kPortID()),
+        InterfaceID(1),
+        NeighborState::PENDING));
+
+    neighborTable->updateEntry(
+        this->getIpAddr(),
+        this->kMacAddress(),
+        PortDescriptor(this->kPortID()),
+        InterfaceID(1),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->handle_ = createTestHandle(newState);
+    this->sw_ = this->handle_->getSw();
+  }
+
+  AddrT getIpAddr() {
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      return this->kIp4Addr();
+    } else {
+      return this->kIp6Addr();
+    }
+  }
+};
+
+TYPED_TEST_CASE(LookupClassUpdaterWarmbootTest, TestTypes);
+
+/*
+ * Initialize the SetUp() SwitchState to carry a neighbor with a classID.
+ * LookupClassUpdater::initObserver should consume this to initialize its local
+ * cache (this mimics warmboot).
+ *
+ * Verify if the neighbor indeed has the classID.
+ * Resolve another neighbor with different MAC: it should get next classID.
+ * Resolve another neighbor with same MAC as that of neighbor in SetUp().
+ * Verify if it gets same classID as chosen SetUp(): classIDs are unique per
+ * MAC.
+ */
+TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
+  IPAddress ipAddress;
+  IPAddress ipAddress2;
+  IPAddress ipAddress3;
+
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    ipAddress = IPAddress(this->kIp4Addr());
+    ipAddress2 = IPAddress(this->kIp4Addr2());
+    ipAddress3 = IPAddress(this->kIp4Addr3());
+  } else {
+    ipAddress = IPAddress(this->kIp6Addr());
+    ipAddress2 = IPAddress(this->kIp6Addr2());
+    ipAddress3 = IPAddress(this->kIp6Addr3());
+  }
+
+  this->resolveNeighbor(ipAddress2, this->kMacAddress2());
+  this->resolveNeighbor(ipAddress3, this->kMacAddress());
+
+  this->verifyStateUpdate([=]() {
+    this->verifyClassIDHelper(
+        ipAddress, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->verifyClassIDHelper(
+        ipAddress2, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+    this->verifyClassIDHelper(
+        ipAddress3, cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+}
+
 } // namespace fboss
 } // namespace facebook
