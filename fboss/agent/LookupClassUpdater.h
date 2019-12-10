@@ -39,7 +39,8 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       const NeighborEntryT* oldEntry,
       const NeighborEntryT* newEntry);
 
-  void initPort(std::shared_ptr<Port> port);
+  bool isInited(PortID portID);
+  void initPort(const std::shared_ptr<Port>& port);
 
   template <typename NeighborEntryT>
   void updateNeighborClassID(
@@ -57,12 +58,18 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       ClassID2Count classID2Count) const;
 
   template <typename NeighborEntryT>
-  void updateStateObserverLocalCache(
-      const std::shared_ptr<SwitchState>& switchState,
-      const NeighborEntryT* newEntry);
+  void removeNeighborFromLocalCacheForEntry(const NeighborEntryT* removedEntry);
 
   template <typename NeighborEntryT>
-  void removeNeighborFromLocalCache(const NeighborEntryT* removedEntry);
+  void updateStateObserverLocalCacheForEntry(const NeighborEntryT* newEntry);
+
+  void updateStateObserverLocalCache(
+      const std::shared_ptr<SwitchState>& switchState);
+
+  template <typename AddrT>
+  void updateStateObserverLocalCacheHelper(
+      const std::shared_ptr<Vlan>& vlan,
+      const std::shared_ptr<Port>& port);
 
   template <typename AddrT>
   void clearClassIdsForResolvedNeighbors(
@@ -92,6 +99,8 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   using Mac2ClassID =
       boost::container::flat_map<folly::MacAddress, cfg::AclLookupClass>;
   boost::container::flat_map<PortID, Mac2ClassID> port2MacAndClassID_;
+
+  bool inited_{false};
 };
 } // namespace fboss
 } // namespace facebook
