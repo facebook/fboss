@@ -218,12 +218,6 @@ class HwSwitch {
   virtual folly::dynamic toFollyDynamic() const = 0;
 
   /*
-   * Allow hardware to start any services that can only be
-   * safely started after initial config has been applied.
-   */
-  virtual void initialConfigApplied() = 0;
-
-  /*
    * When SwSwitch changes its SwitchRunState, such as when it transitions
    * to INITIALIZED or CONFIGURED, HwSwitch may need to react. For
    * example, clearing the warm boot cache on FIB_SYNCED, or

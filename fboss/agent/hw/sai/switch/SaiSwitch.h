@@ -66,8 +66,6 @@ class SaiSwitch : public HwSwitch {
 
   folly::dynamic toFollyDynamic() const override;
 
-  void initialConfigApplied() override;
-
   void switchRunStateChanged(SwitchRunState newState) override;
 
   void exitFatal() const override;
@@ -186,8 +184,6 @@ class SaiSwitch : public HwSwitch {
 
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
-
-  void initialConfigAppliedLocked(const std::lock_guard<std::mutex>& lock);
 
   void switchRunStateChangedLocked(
       const std::lock_guard<std::mutex>& lock,

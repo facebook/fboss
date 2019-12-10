@@ -175,11 +175,6 @@ folly::dynamic SaiSwitch::toFollyDynamic() const {
   return toFollyDynamicLocked(lock);
 }
 
-void SaiSwitch::initialConfigApplied() {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  initialConfigAppliedLocked(lock);
-}
-
 void SaiSwitch::switchRunStateChanged(SwitchRunState newState) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   switchRunStateChangedLocked(lock, newState);
@@ -566,9 +561,6 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
   return folly::dynamic::object();
 }
-
-void SaiSwitch::initialConfigAppliedLocked(
-    const std::lock_guard<std::mutex>& /* lock */) {}
 
 void SaiSwitch::switchRunStateChangedLocked(
     const std::lock_guard<std::mutex>& lock,

@@ -359,12 +359,6 @@ class BcmSwitch : public BcmSwitchIf {
   folly::dynamic toFollyDynamic() const override;
 
   /*
-   * Start any services that make sense only
-   * after initial configuration has been applied
-   */
-  void initialConfigApplied() override {}
-
-  /*
    * Handle SwitchRunState changes in SwSwitch
    */
   void switchRunStateChanged(SwitchRunState newState) override;

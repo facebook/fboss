@@ -103,7 +103,6 @@ class MockBcmSwitch : public BcmSwitchIf {
       std::shared_ptr<SwitchState>(const StateDelta& delta));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
-  MOCK_METHOD0(initialConfigApplied, void());
   MOCK_METHOD1(switchRunStateChanged, void(SwitchRunState newState));
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
