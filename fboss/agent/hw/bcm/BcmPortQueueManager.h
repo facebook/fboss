@@ -87,7 +87,7 @@ class BcmPortQueueManager : public BcmCosQueueManager {
       cfg::QueueCongestionBehavior behavior,
       std::optional<cfg::QueueCongestionDetection> detection);
 
-  void programInternalPriorityToCosQ(
+  void programTrafficClass(
       opennsl_gport_t queueGport,
       opennsl_cos_queue_t cosQ,
       int prio);
