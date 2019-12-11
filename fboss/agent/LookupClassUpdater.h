@@ -98,6 +98,20 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<Port> oldPort,
       std::shared_ptr<Port> newPort);
 
+  template <typename AddrT>
+  void validateRemovedPortEntries(
+      const std::shared_ptr<Vlan>& vlan,
+      PortID portID);
+
+  /*
+   * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
+   */
+  template <typename AddrT>
+  auto getTable(const std::shared_ptr<Vlan>& vlan);
+
+  template <typename AddrT>
+  auto getTableDelta(const VlanDelta& vlanDelta);
+
   SwSwitch* sw_;
 
   /*

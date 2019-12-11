@@ -45,7 +45,7 @@ class VlanDelta : public DeltaValue<Vlan> {
   template <typename NTableT>
   NodeMapDelta<NTableT> getNeighborDelta() const;
 
-  MacTableDelta getMacTableDelta() const {
+  MacTableDelta getMacDelta() const {
     return MacTableDelta(
         getOld() ? getOld()->getMacTable().get() : nullptr,
         getNew() ? getNew()->getMacTable().get() : nullptr);

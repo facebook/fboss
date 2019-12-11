@@ -830,7 +830,7 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
 
     auto vlanId = vlanDelta.getOld() ? vlanDelta.getOld()->getID()
                                      : vlanDelta.getNew()->getID();
-    for (const auto& delta : vlanDelta.getMacTableDelta()) {
+    for (const auto& delta : vlanDelta.getMacDelta()) {
       const auto* oldEntry = delta.getOld().get();
       const auto* newEntry = delta.getNew().get();
 

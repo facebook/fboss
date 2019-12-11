@@ -11,6 +11,28 @@ using facebook::fboss::DeltaFunctions::isEmpty;
 namespace facebook {
 namespace fboss {
 
+template <typename AddrT>
+auto LookupClassUpdater::getTable(const std::shared_ptr<Vlan>& vlan) {
+  if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+    return vlan->getMacTable();
+  } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+    return vlan->getArpTable();
+  } else {
+    return vlan->getNdpTable();
+  }
+}
+
+template <typename AddrT>
+auto LookupClassUpdater::getTableDelta(const VlanDelta& vlanDelta) {
+  if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+    return vlanDelta.getMacDelta();
+  } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+    return vlanDelta.getArpDelta();
+  } else {
+    return vlanDelta.getNdpDelta();
+  }
+}
+
 int LookupClassUpdater::getRefCnt(
     PortID portID,
     const folly::MacAddress& mac,
@@ -46,7 +68,6 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
 
   auto portID = removedEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
-  auto updater = sw_->getNeighborUpdater();
 
   if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
     /*
@@ -60,7 +81,13 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: "
              << removedEntry->str() << " classID: None";
 
-  updater->updateEntryClassID(vlan, removedEntry->getIP());
+  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+    // TODO (skhare) update new switch state's MacTable with no classID and
+    // schedule state update.
+  } else {
+    auto updater = sw_->getNeighborUpdater();
+    updater->updateEntryClassID(vlan, removedEntry->getIP());
+  }
 }
 
 bool LookupClassUpdater::isInited(PortID portID) {
@@ -89,7 +116,6 @@ void LookupClassUpdater::updateNeighborClassID(
 
   auto portID = newEntry->getPort().phyPortID();
   auto port = switchState->getPorts()->getPortIf(portID);
-  auto updater = sw_->getNeighborUpdater();
 
   if (!port || port->getLookupClassesToDistributeTrafficOn().size() == 0) {
     /*
@@ -120,7 +146,13 @@ void LookupClassUpdater::updateNeighborClassID(
   XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << newEntry->str()
              << " classID: " << static_cast<int>(classID);
 
-  updater->updateEntryClassID(vlan, newEntry->getIP(), classID);
+  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+    // TODO (skhare) update new switch state's MacTable with no classID and
+    // schedule state update.
+  } else {
+    auto updater = sw_->getNeighborUpdater();
+    updater->updateEntryClassID(vlan, newEntry->getIP(), classID);
+  }
 }
 
 template <typename NeighborEntryT>
@@ -131,8 +163,12 @@ void LookupClassUpdater::processNeighborAdded(
   CHECK(addedEntry);
   CHECK(addedEntry->getPort().isPhysicalPort());
 
-  if (addedEntry->isReachable()) {
+  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
     updateNeighborClassID(switchState, vlan, addedEntry);
+  } else {
+    if (addedEntry->isReachable()) {
+      updateNeighborClassID(switchState, vlan, addedEntry);
+    }
   }
 }
 
@@ -155,37 +191,36 @@ void LookupClassUpdater::processNeighborChanged(
     const NeighborEntryT* newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
-  CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
   CHECK(oldEntry->getPort().isPhysicalPort());
   CHECK(newEntry->getPort().isPhysicalPort());
 
-  if (!oldEntry->isReachable() && newEntry->isReachable()) {
-    updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
-  }
+  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+    // TODO (skhare) handle MAC Move.
+  } else {
+    CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
+    if (!oldEntry->isReachable() && newEntry->isReachable()) {
+      updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+    }
 
-  if (oldEntry->isReachable() && !newEntry->isReachable()) {
-    removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
-  }
+    if (oldEntry->isReachable() && !newEntry->isReachable()) {
+      removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
+    }
 
-  /*
-   * If the neighbor remains reachable as before but resolves to different
-   * MAC/port, remove the classID for oldEntry and add classID for newEntry.
-   */
-  if ((oldEntry->isReachable() && newEntry->isReachable()) &&
-      (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID() ||
-       oldEntry->getMac() != newEntry->getMac())) {
-    removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
-    updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+    /*
+     * If the neighbor remains reachable as before but resolves to different
+     * MAC/port, remove the classID for oldEntry and add classID for newEntry.
+     */
+    if ((oldEntry->isReachable() && newEntry->isReachable()) &&
+        (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID() ||
+         oldEntry->getMac() != newEntry->getMac())) {
+      removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
+      updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+    }
   }
 }
 
 template <typename AddrT>
 void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
     auto newVlan = vlanDelta.getNew();
     if (!newVlan) {
@@ -193,8 +228,7 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
     }
     auto vlan = newVlan->getID();
 
-    for (const auto& delta :
-         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+    for (const auto& delta : getTableDelta<AddrT>(vlanDelta)) {
       const auto* oldEntry = delta.getOld().get();
       const auto* newEntry = delta.getNew().get();
 
@@ -239,12 +273,6 @@ template <typename AddrT>
 void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
     const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
-  auto updater = sw_->getNeighborUpdater();
   auto port = switchState->getPorts()->getPortIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
@@ -253,8 +281,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry :
-         *(vlan->template getNeighborTable<NeighborTableT>())) {
+    for (const auto& entry : *getTable<AddrT>(vlan)) {
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -263,7 +290,13 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
           entry->getPort().phyPortID() == portID &&
           entry->getClassID().has_value()) {
         removeNeighborFromLocalCacheForEntry(entry.get());
-        updater->updateEntryClassID(vlanID, entry.get()->getIP());
+        if constexpr (std::is_same_v<AddrT, MacAddress>) {
+          // TODO (skhare) update new switch state's MacTable with no classID
+          // and schedule state update.
+        } else {
+          auto updater = sw_->getNeighborUpdater();
+          updater->updateEntryClassID(vlanID, entry.get()->getIP());
+        }
       }
     }
   }
@@ -273,11 +306,6 @@ template <typename AddrT>
 void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
     const std::shared_ptr<SwitchState>& switchState,
     PortID portID) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
   auto port = switchState->getPorts()->getPortIf(portID);
   for (auto vlanMember : port->getVlans()) {
     auto vlanID = vlanMember.first;
@@ -286,8 +314,7 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry :
-         *(vlan->template getNeighborTable<NeighborTableT>())) {
+    for (const auto& entry : *getTable<AddrT>(vlan)) {
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -296,6 +323,22 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
           entry->getPort().phyPortID() == portID) {
         updateNeighborClassID(switchState, vlanID, entry.get());
       }
+    }
+  }
+}
+
+template <typename AddrT>
+void LookupClassUpdater::validateRemovedPortEntries(
+    const std::shared_ptr<Vlan>& vlan,
+    PortID portID) {
+  /*
+   * At this point in time, queue-per-host fix is needed (and thus
+   * supported) for physical link only.
+   */
+
+  for (const auto& entry : *getTable<AddrT>(vlan)) {
+    if (entry->getPort().isPhysicalPort()) {
+      CHECK(entry->getPort().phyPortID() != portID);
     }
   }
 }
@@ -334,22 +377,9 @@ void LookupClassUpdater::processPortRemoved(
       continue;
     }
 
-    /*
-     * At this point in time, queue-per-host fix is needed (and thus
-     * supported) for physical link only.
-     */
-
-    for (const auto& entry : *(vlan->template getNeighborTable<ArpTable>())) {
-      if (entry->getPort().isPhysicalPort()) {
-        CHECK(entry->getPort().phyPortID() != portID);
-      }
-    }
-
-    for (const auto& entry : *(vlan->template getNeighborTable<NdpTable>())) {
-      if (entry->getPort().isPhysicalPort()) {
-        CHECK(entry->getPort().phyPortID() != portID);
-      }
-    }
+    validateRemovedPortEntries<folly::MacAddress>(vlan, portID);
+    validateRemovedPortEntries<folly::IPAddressV6>(vlan, portID);
+    validateRemovedPortEntries<folly::IPAddressV4>(vlan, portID);
   }
 
   port2MacEntries_.erase(portID);
@@ -384,6 +414,8 @@ void LookupClassUpdater::processPortChanged(
     return;
   }
 
+  clearClassIdsForResolvedNeighbors<folly::MacAddress>(
+      stateDelta.oldState(), newPort->getID());
   clearClassIdsForResolvedNeighbors<folly::IPAddressV6>(
       stateDelta.oldState(), newPort->getID());
   clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
@@ -391,6 +423,8 @@ void LookupClassUpdater::processPortChanged(
 
   initPort(newPort);
 
+  repopulateClassIdsForResolvedNeighbors<folly::MacAddress>(
+      stateDelta.newState(), newPort->getID());
   repopulateClassIdsForResolvedNeighbors<folly::IPAddressV6>(
       stateDelta.newState(), newPort->getID());
   repopulateClassIdsForResolvedNeighbors<folly::IPAddressV4>(
@@ -466,13 +500,7 @@ template <typename AddrT>
 void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& port) {
-  using NeighborTableT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
-  for (const auto& entry :
-       *(vlan->template getNeighborTable<NeighborTableT>())) {
+  for (const auto& entry : *(getTable<AddrT>(vlan))) {
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
@@ -499,6 +527,7 @@ void LookupClassUpdater::updateStateObserverLocalCache(
       if (!vlan) {
         continue;
       }
+      updateStateObserverLocalCacheHelper<folly::MacAddress>(vlan, port);
       updateStateObserverLocalCacheHelper<folly::IPAddressV6>(vlan, port);
       updateStateObserverLocalCacheHelper<folly::IPAddressV4>(vlan, port);
     }
@@ -511,6 +540,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
     inited_ = true;
   }
 
+  processNeighborUpdates<folly::MacAddress>(stateDelta);
   processNeighborUpdates<folly::IPAddressV6>(stateDelta);
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
 
