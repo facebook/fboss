@@ -1285,6 +1285,14 @@ bool BcmSwitch::isValidPortUpdate(
     XLOG(DBG1) << "Verifying port group config for : " << newPort->getID();
     return !portGroup || portGroup->validConfiguration(newState);
   }
+  if (!isValidPortQueueUpdate(
+          oldPort->getPortQueues(), newPort->getPortQueues())) {
+    return false;
+  }
+  if (!isValidPortQosPolicyUpdate(oldPort, newPort, newState)) {
+    return false;
+  }
+
   return true;
 }
 

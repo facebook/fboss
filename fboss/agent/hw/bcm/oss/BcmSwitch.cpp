@@ -154,5 +154,17 @@ bool BcmSwitch::isL2EntryPending(const opennsl_l2_addr_t* /*l2Addr*/) {
   return true;
 }
 
+bool BcmSwitch::isValidPortQueueUpdate(
+    const std::vector<std::shared_ptr<PortQueue>>& /*oldPortQueueConfig*/,
+    const std::vector<std::shared_ptr<PortQueue>>& /*newPortQueueConfig*/)
+    const {
+  return true;
+}
+bool BcmSwitch::isValidPortQosPolicyUpdate(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& /*newPort*/,
+    const std::shared_ptr<SwitchState>& /*newState*/) const {
+  return true;
+}
 } // namespace fboss
 } // namespace facebook

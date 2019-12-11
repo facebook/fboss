@@ -85,6 +85,7 @@ class BcmBstStatsMgr;
 class BcmLabelMap;
 class BcmSwitchSettings;
 class BcmMacTable;
+class PortQueue;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -808,6 +809,17 @@ class BcmSwitch : public BcmSwitchIf {
    * port group/QSFP. More checks can be added as needed.
    */
   bool isValidPortUpdate(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort,
+      const std::shared_ptr<SwitchState>& newState) const;
+
+  /* check that given port queue traffic classes are valid */
+  bool isValidPortQueueUpdate(
+      const std::vector<std::shared_ptr<PortQueue>>& oldPortQueueConfig,
+      const std::vector<std::shared_ptr<PortQueue>>& newPortQueueConfig) const;
+
+  /* check that feasible qos policy is associated with port */
+  bool isValidPortQosPolicyUpdate(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort,
       const std::shared_ptr<SwitchState>& newState) const;
