@@ -44,6 +44,24 @@ class MacTable : public NodeMapT<MacTable, MacTableTraits> {
     removeNode(mac);
   }
 
+  void updateEntry(
+      folly::MacAddress mac,
+      PortDescriptor portDescr,
+      std::optional<cfg::AclLookupClass> classID) {
+    CHECK(!this->isPublished());
+    auto& nodes = this->writableNodes();
+    auto it = nodes.find(mac);
+    if (it == nodes.end()) {
+      throw FbossError("Mac entry for ", mac.toString(), " does not exist");
+    }
+    auto entry = it->second->clone();
+
+    entry->setMac(mac);
+    entry->setPort(portDescr);
+    entry->setClassID(classID);
+    it->second = entry;
+  }
+
  private:
   // Inherit the constructors required for clone()
   using NodeMapT::NodeMapT;

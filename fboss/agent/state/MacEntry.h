@@ -25,13 +25,10 @@ namespace facebook {
 namespace fboss {
 
 struct MacEntryFields {
-  explicit MacEntryFields(folly::MacAddress mac, PortDescriptor portDescr)
-      : mac_(mac), portDescr_(portDescr) {}
-
   MacEntryFields(
       folly::MacAddress mac,
       PortDescriptor portDescr,
-      cfg::AclLookupClass classID)
+      std::optional<cfg::AclLookupClass> classID = std::nullopt)
       : mac_(mac), portDescr_(portDescr), classID_(classID) {}
 
   template <typename Fn>
@@ -74,12 +71,24 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
     return getFields()->mac_;
   }
 
+  void setMac(folly::MacAddress mac) {
+    this->writableFields()->mac_ = mac;
+  }
+
   PortDescriptor getPort() const {
     return getFields()->portDescr_;
   }
 
+  void setPort(PortDescriptor portDescr) {
+    this->writableFields()->portDescr_ = portDescr;
+  }
+
   std::optional<cfg::AclLookupClass> getClassID() const {
     return getFields()->classID_;
+  }
+
+  void setClassID(std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+    this->writableFields()->classID_ = classID;
   }
 
   folly::MacAddress getID() const {
