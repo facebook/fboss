@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
@@ -82,8 +83,12 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
              << removedEntry->str() << " classID: None";
 
   if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
-    // TODO (skhare) update new switch state's MacTable with no classID and
-    // schedule state update.
+    auto removeMacClassIDFn = [vlan, removedEntry](
+                                  const std::shared_ptr<SwitchState>& state) {
+      return MacTableUtils::removeClassIDForEntry(state, vlan, removedEntry);
+    };
+
+    sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlan, removedEntry->getIP());
@@ -147,8 +152,15 @@ void LookupClassUpdater::updateNeighborClassID(
              << " classID: " << static_cast<int>(classID);
 
   if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
-    // TODO (skhare) update new switch state's MacTable with no classID and
-    // schedule state update.
+    auto updateMacClassIDFn =
+        [vlan, newEntry, classID](const std::shared_ptr<SwitchState>& state) {
+          return MacTableUtils::updateOrAddEntryWithClassID(
+              state, vlan, newEntry, classID);
+        };
+
+    sw_->updateState(
+        folly::to<std::string>("configure lookup classID: ", classID),
+        std::move(updateMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlan, newEntry->getIP(), classID);
@@ -291,8 +303,13 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
           entry->getClassID().has_value()) {
         removeNeighborFromLocalCacheForEntry(entry.get());
         if constexpr (std::is_same_v<AddrT, MacAddress>) {
-          // TODO (skhare) update new switch state's MacTable with no classID
-          // and schedule state update.
+          auto removeMacClassIDFn =
+              [vlanID, entry](const std::shared_ptr<SwitchState>& state) {
+                return MacTableUtils::removeClassIDForEntry(
+                    state, vlanID, entry.get());
+              };
+
+          sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
         } else {
           auto updater = sw_->getNeighborUpdater();
           updater->updateEntryClassID(vlanID, entry.get()->getIP());

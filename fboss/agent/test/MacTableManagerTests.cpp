@@ -28,7 +28,7 @@ class MacTableManagerTest : public ::testing::Test {
   using StateUpdateFn = SwSwitch::StateUpdateFn;
 
   void SetUp() override {
-    handle_ = createTestHandle(testStateAWithLookupClasses());
+    handle_ = createTestHandle(testStateA());
     sw_ = handle_->getSw();
   }
 

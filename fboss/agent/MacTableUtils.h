@@ -29,7 +29,12 @@ class MacTableUtils {
       const std::shared_ptr<SwitchState>& state,
       VlanID vlanID,
       const MacEntry* macEntry,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+      cfg::AclLookupClass classID);
+
+  static std::shared_ptr<SwitchState> removeClassIDForEntry(
+      const std::shared_ptr<SwitchState>& state,
+      VlanID vlanID,
+      const MacEntry* macEntry);
 };
 
 } // namespace fboss
