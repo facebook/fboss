@@ -18,7 +18,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
     L2EntryUpdateType l2EntryUpdateType) {
   auto vlanID = l2Entry.getVlanID();
   auto mac = l2Entry.getMac();
-  auto portDescr = l2Entry.getPortDescriptor();
+  auto portDescr = l2Entry.getPort();
   auto vlan = state->getVlans()->getVlanIf(vlanID).get();
   std::shared_ptr<SwitchState> newState{state};
   auto* macTable = vlan->getMacTable().get();

@@ -16,6 +16,7 @@
 namespace {
 constexpr auto kMac = "mac";
 constexpr auto kPort = "portId";
+constexpr auto kClassID = "classID";
 } // namespace
 
 namespace facebook {
@@ -25,6 +26,9 @@ folly::dynamic MacEntryFields::toFollyDynamic() const {
   folly::dynamic macEntry = folly::dynamic::object;
   macEntry[kMac] = mac_.toString();
   macEntry[kPort] = portDescr_.toFollyDynamic();
+  if (classID_.has_value()) {
+    macEntry[kClassID] = static_cast<int>(classID_.value());
+  }
 
   return macEntry;
 }
@@ -33,14 +37,23 @@ MacEntryFields MacEntryFields::fromFollyDynamic(const folly::dynamic& jsonStr) {
   folly::MacAddress mac(jsonStr[kMac].stringPiece());
   auto portDescr = PortDescriptor::fromFollyDynamic(jsonStr[kPort]);
 
-  return MacEntryFields(mac, portDescr);
+  if (jsonStr.find(kClassID) != jsonStr.items().end()) {
+    auto classID = cfg::AclLookupClass(jsonStr[kClassID].asInt());
+    return MacEntryFields(mac, portDescr, classID);
+  } else {
+    return MacEntryFields(mac, portDescr);
+  }
 }
 
 std::string MacEntry::str() const {
   std::ostringstream os;
 
-  os << "MacEntry:: MAC: " << getMac().toString() << " "
-     << getPortDescriptor().str();
+  auto classIDStr = getClassID().has_value()
+      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+      : "None";
+
+  os << "MacEntry:: MAC: " << getMac().toString() << " " << getPort().str()
+     << " classID: " << classIDStr;
 
   return os.str();
 }

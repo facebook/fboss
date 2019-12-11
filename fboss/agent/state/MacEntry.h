@@ -18,6 +18,7 @@
 #include <folly/MacAddress.h>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 
 namespace facebook {
@@ -27,6 +28,12 @@ struct MacEntryFields {
   explicit MacEntryFields(folly::MacAddress mac, PortDescriptor portDescr)
       : mac_(mac), portDescr_(portDescr) {}
 
+  MacEntryFields(
+      folly::MacAddress mac,
+      PortDescriptor portDescr,
+      cfg::AclLookupClass classID)
+      : mac_(mac), portDescr_(portDescr), classID_(classID) {}
+
   template <typename Fn>
   void forEachChild(Fn) {}
 
@@ -35,6 +42,7 @@ struct MacEntryFields {
 
   folly::MacAddress mac_;
   PortDescriptor portDescr_;
+  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
@@ -58,15 +66,20 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
 
   bool operator==(const MacEntry& macEntry) {
     return getFields()->mac_ == macEntry.getMac() &&
-        getFields()->portDescr_ == macEntry.getPortDescriptor();
+        getFields()->portDescr_ == macEntry.getPort() &&
+        getFields()->classID_ == macEntry.getClassID();
   }
 
   folly::MacAddress getMac() const {
     return getFields()->mac_;
   }
 
-  PortDescriptor getPortDescriptor() const {
+  PortDescriptor getPort() const {
     return getFields()->portDescr_;
+  }
+
+  std::optional<cfg::AclLookupClass> getClassID() const {
+    return getFields()->classID_;
   }
 
   folly::MacAddress getID() const {

@@ -24,9 +24,14 @@ L2Entry::L2Entry(
 std::string L2Entry::str() const {
   std::ostringstream os;
 
+  auto classIDStr = getClassID().has_value()
+      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+      : "None";
+
   os << "L2Entry:: MAC: " << getMac().toString() << " vid: " << getVlanID()
-     << " " << getPortDescriptor().str()
-     << " type: " << (static_cast<int>(type_) == 0 ? "PENDING" : "VALIDATED");
+     << " " << getPort().str()
+     << " type: " << (static_cast<int>(type_) == 0 ? "PENDING" : "VALIDATED")
+     << " classID: " << classIDStr;
 
   return os.str();
 }

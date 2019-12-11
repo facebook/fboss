@@ -74,7 +74,7 @@ class MacTableManagerTest : public ::testing::Test {
 
       EXPECT_NE(nullptr, node);
       EXPECT_EQ(kMacAddress(), node->getMac());
-      EXPECT_EQ(kPortID(), node->getPortDescriptor().phyPortID());
+      EXPECT_EQ(kPortID(), node->getPort().phyPortID());
     });
   }
 

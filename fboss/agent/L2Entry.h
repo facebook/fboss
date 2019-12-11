@@ -57,12 +57,16 @@ class L2Entry {
     return vlanID_;
   }
 
-  PortDescriptor getPortDescriptor() const {
+  PortDescriptor getPort() const {
     return portDescr_;
   }
 
   L2EntryType getType() const {
     return type_;
+  }
+
+  std::optional<cfg::AclLookupClass> getClassID() const {
+    return classID_;
   }
 
   std::string str() const;
@@ -72,6 +76,7 @@ class L2Entry {
   VlanID vlanID_;
   PortDescriptor portDescr_;
   L2EntryType type_;
+  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 } // namespace fboss

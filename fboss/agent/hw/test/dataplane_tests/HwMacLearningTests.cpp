@@ -121,9 +121,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
     EXPECT_EQ(l2Entry.getMac(), kSourceMac());
     EXPECT_EQ(l2Entry.getVlanID(), VlanID(initialConfig().vlanPorts[0].vlanID));
-    EXPECT_TRUE(l2Entry.getPortDescriptor().isPhysicalPort());
-    EXPECT_EQ(
-        l2Entry.getPortDescriptor().phyPortID(), masterLogicalPortIds()[0]);
+    EXPECT_TRUE(l2Entry.getPort().isPhysicalPort());
+    EXPECT_EQ(l2Entry.getPort().phyPortID(), masterLogicalPortIds()[0]);
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
