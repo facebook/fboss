@@ -60,11 +60,11 @@ cfg::AclLookupClass LookupClassUpdater::getClassIDwithMinimumNeighbors(
   return minItr->first;
 }
 
-template <typename NeighborEntryT>
+template <typename RemovedEntryT>
 void LookupClassUpdater::removeClassIDForPortAndMac(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const NeighborEntryT* removedEntry) {
+    const RemovedEntryT* removedEntry) {
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   auto portID = removedEntry->getPort().phyPortID();
@@ -82,7 +82,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: "
              << removedEntry->str() << " classID: None";
 
-  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<RemovedEntryT, MacEntry>) {
     auto removeMacClassIDFn = [vlan, removedEntry](
                                   const std::shared_ptr<SwitchState>& state) {
       return MacTableUtils::removeClassIDForEntry(state, vlan, removedEntry);
@@ -112,11 +112,11 @@ void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
   }
 }
 
-template <typename NeighborEntryT>
+template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const NeighborEntryT* newEntry) {
+    const NewEntryT* newEntry) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();
@@ -151,7 +151,7 @@ void LookupClassUpdater::updateNeighborClassID(
   XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << newEntry->str()
              << " classID: " << static_cast<int>(classID);
 
-  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<NewEntryT, MacEntry>) {
     auto updateMacClassIDFn =
         [vlan, newEntry, classID](const std::shared_ptr<SwitchState>& state) {
           return MacTableUtils::updateOrAddEntryWithClassID(
@@ -167,15 +167,15 @@ void LookupClassUpdater::updateNeighborClassID(
   }
 }
 
-template <typename NeighborEntryT>
+template <typename AddedEntryT>
 void LookupClassUpdater::processNeighborAdded(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const NeighborEntryT* addedEntry) {
+    const AddedEntryT* addedEntry) {
   CHECK(addedEntry);
   CHECK(addedEntry->getPort().isPhysicalPort());
 
-  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<AddedEntryT, MacEntry>) {
     updateNeighborClassID(switchState, vlan, addedEntry);
   } else {
     if (addedEntry->isReachable()) {
@@ -184,29 +184,29 @@ void LookupClassUpdater::processNeighborAdded(
   }
 }
 
-template <typename NeighborEntryT>
+template <typename RemovedEntryT>
 void LookupClassUpdater::processNeighborRemoved(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const NeighborEntryT* removedEntry) {
+    const RemovedEntryT* removedEntry) {
   CHECK(removedEntry);
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   removeClassIDForPortAndMac(switchState, vlan, removedEntry);
 }
 
-template <typename NeighborEntryT>
+template <typename ChangedEntryT>
 void LookupClassUpdater::processNeighborChanged(
     const StateDelta& stateDelta,
     VlanID vlan,
-    const NeighborEntryT* oldEntry,
-    const NeighborEntryT* newEntry) {
+    const ChangedEntryT* oldEntry,
+    const ChangedEntryT* newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
   CHECK(oldEntry->getPort().isPhysicalPort());
   CHECK(newEntry->getPort().isPhysicalPort());
 
-  if constexpr (std::is_same_v<NeighborEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<ChangedEntryT, MacEntry>) {
     // TODO (skhare) handle MAC Move.
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
@@ -467,9 +467,9 @@ void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
   }
 }
 
-template <typename NeighborEntryT>
+template <typename RemovedEntryT>
 void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
-    const NeighborEntryT* removedEntry) {
+    const RemovedEntryT* removedEntry) {
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   auto portID = removedEntry->getPort().phyPortID();
@@ -490,9 +490,9 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
   }
 }
 
-template <typename NeighborEntryT>
+template <typename NewEntryT>
 void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
-    const NeighborEntryT* newEntry) {
+    const NewEntryT* newEntry) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();

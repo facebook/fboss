@@ -27,46 +27,46 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   void processNeighborUpdates(const StateDelta& stateDelta);
 
-  template <typename NeighborEntryT>
+  template <typename AddedEntryT>
   void processNeighborAdded(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const NeighborEntryT* addedEntry);
-  template <typename NeighborEntryT>
+      const AddedEntryT* addedEntry);
+  template <typename RemovedEntryT>
   void processNeighborRemoved(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const NeighborEntryT* removedEntry);
-  template <typename NeighborEntryT>
+      const RemovedEntryT* removedEntry);
+  template <typename ChangedEntryT>
   void processNeighborChanged(
       const StateDelta& stateDelta,
       VlanID vlan,
-      const NeighborEntryT* oldEntry,
-      const NeighborEntryT* newEntry);
+      const ChangedEntryT* oldEntry,
+      const ChangedEntryT* newEntry);
 
   bool isInited(PortID portID);
   void initPort(const std::shared_ptr<Port>& port);
 
-  template <typename NeighborEntryT>
+  template <typename NewEntryT>
   void updateNeighborClassID(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const NeighborEntryT* newEntry);
+      const NewEntryT* newEntry);
 
-  template <typename NeighborEntryT>
+  template <typename RemovedEntryT>
   void removeClassIDForPortAndMac(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const NeighborEntryT* removedEntry);
+      const RemovedEntryT* removedEntry);
 
   cfg::AclLookupClass getClassIDwithMinimumNeighbors(
       ClassID2Count classID2Count) const;
 
-  template <typename NeighborEntryT>
-  void removeNeighborFromLocalCacheForEntry(const NeighborEntryT* removedEntry);
+  template <typename RemovedEntryT>
+  void removeNeighborFromLocalCacheForEntry(const RemovedEntryT* removedEntry);
 
-  template <typename NeighborEntryT>
-  void updateStateObserverLocalCacheForEntry(const NeighborEntryT* newEntry);
+  template <typename NewEntryT>
+  void updateStateObserverLocalCacheForEntry(const NewEntryT* newEntry);
 
   void updateStateObserverLocalCache(
       const std::shared_ptr<SwitchState>& switchState);
