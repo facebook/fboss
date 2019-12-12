@@ -41,4 +41,13 @@ target_link_libraries(fake_sai
     address_util
 )
 
+add_library(agent_config_factory
+    fboss/agent/hw/test/AgentConfigFactory.cpp
+)
+
+target_link_libraries(agent_config_factory
+    Folly::folly
+    agent_config_cpp2
+)
+
 install(TARGETS fake_sai)
