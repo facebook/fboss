@@ -427,6 +427,15 @@ void LookupClassUpdater::processPortChanged(
   sort(oldLookupClasses.begin(), oldLookupClasses.end());
   sort(newLookupClasses.begin(), newLookupClasses.end());
 
+  /*
+   * We don't need to handle port down here: on port down,
+   *  - ARP/NDP neighbors go to pending and processNeighborChanged()
+   *    disassociates classID from the neighbor entry.
+   *  - L2 entries remain in hardware L2 table and thus we retain classID
+   *    assocaited with L2 entries even when port is down. However, L2
+   *    entries on down ports could be aged out. This will be processed by
+   *    processNeighborRemoved() and the classID would be freed up.
+   */
   if (oldLookupClasses == newLookupClasses) {
     return;
   }
