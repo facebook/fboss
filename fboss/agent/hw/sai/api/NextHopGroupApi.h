@@ -61,13 +61,19 @@ struct SaiNextHopGroupMemberTraits {
         EnumType,
         SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID,
         SaiObjectIdT>;
+    using Weight = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT,
+        sai_uint32_t>;
   };
 
   using AdapterKey = NextHopGroupMemberSaiId;
   using AdapterHostKey =
       std::tuple<Attributes::NextHopGroupId, Attributes::NextHopId>;
-  using CreateAttributes =
-      std::tuple<Attributes::NextHopGroupId, Attributes::NextHopId>;
+  using CreateAttributes = std::tuple<
+      Attributes::NextHopGroupId,
+      Attributes::NextHopId,
+      std::optional<Attributes::Weight>>;
 };
 
 class NextHopGroupApi : public SaiApi<NextHopGroupApi> {

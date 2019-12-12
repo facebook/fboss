@@ -21,11 +21,13 @@ class FakeNextHopGroupMember {
  public:
   FakeNextHopGroupMember(
       sai_object_id_t nextHopGroupId,
-      sai_object_id_t nextHopId)
-      : nextHopGroupId(nextHopGroupId), nextHopId(nextHopId) {}
+      sai_object_id_t nextHopId,
+      std::optional<sai_uint32_t> weight)
+      : nextHopGroupId(nextHopGroupId), nextHopId(nextHopId), weight(weight) {}
   sai_object_id_t nextHopGroupId;
   sai_object_id_t nextHopId;
   sai_object_id_t id;
+  std::optional<sai_uint32_t> weight;
 };
 
 class FakeNextHopGroup {

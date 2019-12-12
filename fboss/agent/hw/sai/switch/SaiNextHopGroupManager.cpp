@@ -38,8 +38,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     return nextHopGroupHandle;
   }
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
-  std::vector<NextHopSaiId> nextHopIds;
-  nextHopIds.reserve(swNextHops.size());
+  std::vector<std::pair<NextHopSaiId, NextHopWeight>> nextHopIdsAndWeights;
+  nextHopIdsAndWeights.reserve(swNextHops.size());
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
   // N.B.: creating a next hop group member relies on the next hop group
@@ -75,7 +75,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     } else {
       // if the neighbor is resolved, save that neighbor's next hop id
       // for creating a next hop group member with
-      nextHopIds.push_back(neighborHandle->nextHop->adapterKey());
+      nextHopIdsAndWeights.emplace_back(
+          neighborHandle->nextHop->adapterKey(), swNextHop.weight());
     }
   }
 
@@ -89,11 +90,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
-  for (const auto& nextHopId : nextHopIds) {
+  for (const auto& nextHopIdWeight : nextHopIdsAndWeights) {
+    const auto& nextHopId = nextHopIdWeight.first;
+    const auto& weight =
+        nextHopIdWeight.second == ECMP_WEIGHT ? 1 : nextHopIdWeight.second;
     SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
         nextHopGroupId, nextHopId};
     SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
-        nextHopGroupId, nextHopId};
+        nextHopGroupId, nextHopId, weight};
     nextHopGroupHandle->nextHopGroupMembers[nextHopId] =
         memberStore.setObject(memberAdapterHostKey, memberAttributes);
   }
@@ -137,13 +141,23 @@ void SaiNextHopGroupManager::handleResolvedNeighbor(
       continue;
     }
 
+    const auto& swNextHop = std::find_if(
+        nextHopSet.begin(),
+        nextHopSet.end(),
+        [&neighborEntry](const auto& nextHop) {
+          // TODO: try to use interface here as well as ip
+          return nextHop.addr() == neighborEntry.ip();
+        });
+
     auto& memberStore =
         SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
     auto nextHopGroupId = nextHopGroupHandle->nextHopGroup->adapterKey();
+    const auto& weight =
+        swNextHop->weight() == ECMP_WEIGHT ? 1 : swNextHop->weight();
     SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
         nextHopGroupId, nextHopId};
     SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
-        nextHopGroupId, nextHopId};
+        nextHopGroupId, nextHopId, weight};
     nextHopGroupHandle->nextHopGroupMembers[nextHopId] =
         memberStore.setObject(memberAdapterHostKey, memberAttributes);
   }

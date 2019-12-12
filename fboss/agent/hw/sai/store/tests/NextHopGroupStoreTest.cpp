@@ -38,10 +38,11 @@ class NextHopGroupStoreTest : public ::testing::Test {
 
   NextHopGroupMemberSaiId createNextHopGroupMember(
       sai_object_id_t groupId,
-      sai_object_id_t nextHopId) {
+      sai_object_id_t nextHopId,
+      std::optional<sai_uint32_t> weight) {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
     return nextHopGroupApi.create<SaiNextHopGroupMemberTraits>(
-        {groupId, nextHopId}, 0);
+        {groupId, nextHopId, weight}, 0);
   }
 
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
@@ -73,9 +74,9 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   auto nextHopId1 = createNextHop(ip1);
   auto nextHopId2 = createNextHop(ip2);
   auto nextHopGroupMemberId1 =
-      createNextHopGroupMember(nextHopGroupId, nextHopId1);
+      createNextHopGroupMember(nextHopGroupId, nextHopId1, std::nullopt);
   auto nextHopGroupMemberId2 =
-      createNextHopGroupMember(nextHopGroupId, nextHopId2);
+      createNextHopGroupMember(nextHopGroupId, nextHopId2, std::nullopt);
 
   // perform a warm boot load
   SaiStore s(0);
@@ -108,7 +109,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupLoadCtor) {
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupMemberLoadCtor) {
   auto nhgId = createNextHopGroup();
-  auto id = createNextHopGroupMember(nhgId, NextHopSaiId{10});
+  auto id = createNextHopGroupMember(nhgId, NextHopSaiId{10}, std::nullopt);
   SaiObject<SaiNextHopGroupMemberTraits> obj(id);
   EXPECT_EQ(obj.adapterKey(), id);
 }
@@ -122,7 +123,8 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
 TEST_F(NextHopGroupStoreTest, nextHopGroupMemberCreateCtor) {
   auto nhgId = createNextHopGroup();
   SaiNextHopGroupMemberTraits::AdapterHostKey k{nhgId, 42};
-  SaiNextHopGroupMemberTraits::CreateAttributes c{nhgId, 42};
+  SaiNextHopGroupMemberTraits::CreateAttributes c{nhgId, 42, 2};
   SaiObject<SaiNextHopGroupMemberTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(NextHopGroupMember, NextHopId, obj.attributes()), 42);
+  EXPECT_EQ(GET_OPT_ATTR(NextHopGroupMember, Weight, obj.attributes()), 2);
 }

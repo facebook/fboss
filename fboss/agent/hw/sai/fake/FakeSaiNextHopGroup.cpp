@@ -100,6 +100,7 @@ sai_status_t create_next_hop_group_member_fn(
   auto fs = FakeSai::getInstance();
   std::optional<sai_object_id_t> nextHopGroupId;
   std::optional<sai_object_id_t> nextHopId;
+  std::optional<sai_uint32_t> weight = std::nullopt;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:
@@ -107,6 +108,9 @@ sai_status_t create_next_hop_group_member_fn(
         break;
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID:
         nextHopId = attr_list[i].value.oid;
+        break;
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
+        weight = attr_list[i].value.u64;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -116,7 +120,10 @@ sai_status_t create_next_hop_group_member_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *next_hop_group_member_id = fs->nhgm.createMember(
-      nextHopGroupId.value(), nextHopGroupId.value(), nextHopId.value());
+      nextHopGroupId.value(),
+      nextHopGroupId.value(),
+      nextHopId.value(),
+      weight);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -140,6 +147,11 @@ sai_status_t get_next_hop_group_member_attribute_fn(
         break;
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID:
         attr[i].value.oid = nextHopGroupMember.nextHopId;
+        break;
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
+        if (auto weight = nextHopGroupMember.weight) {
+          attr[i].value.u32 = *weight;
+        }
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

@@ -194,3 +194,24 @@ TEST_F(NextHopGroupManagerTest, derefThenResolve) {
   // Assertion is that nothing crashes because we _would_ have processed
   // these resolutions but the object has been deleted
 }
+
+TEST_F(NextHopGroupManagerTest, testNextHopGroupMemberWeights) {
+  auto arpEntry0 = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), 42};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1};
+  auto saiNextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          swNextHops);
+  auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+
+  auto nextHopGroupId = saiNextHopGroup->adapterKey();
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList memberList{};
+  auto members = nextHopGroupApi.getAttribute(nextHopGroupId, memberList);
+  EXPECT_EQ(members.size(), 1);
+  auto weight = nextHopGroupApi.getAttribute(
+      NextHopGroupMemberSaiId(members[0]),
+      SaiNextHopGroupMemberTraits::Attributes::Weight{});
+  EXPECT_EQ(weight, 42);
+}

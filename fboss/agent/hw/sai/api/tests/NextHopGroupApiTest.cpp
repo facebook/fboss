@@ -29,9 +29,11 @@ class NextHopGroupApiTest : public ::testing::Test {
   }
   void checkNextHopGroupMember(
       const sai_object_id_t& nextHopGroupId,
-      const sai_object_id_t& nextHopGroupMemberId) const {
+      const sai_object_id_t& nextHopGroupMemberId,
+      const std::optional<sai_uint32_t>& weight) const {
     EXPECT_EQ(
         nextHopGroupMemberId, fs->nhgm.getMember(nextHopGroupMemberId).id);
+    EXPECT_EQ(weight, fs->nhgm.getMember(nextHopGroupMemberId).weight);
     EXPECT_EQ(
         nextHopGroupId,
         fs->nhgm.getMember(nextHopGroupMemberId).nextHopGroupId);
@@ -58,12 +60,13 @@ TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
+  sai_uint32_t nextHopWeight = 2;
 
-  typename SaiNextHopGroupMemberTraits::CreateAttributes c{nextHopGroupId,
-                                                           nextHopId};
+  typename SaiNextHopGroupMemberTraits::CreateAttributes c{
+      nextHopGroupId, nextHopId, nextHopWeight};
   auto nextHopGroupMemberId =
       nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
-  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
+  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
@@ -71,10 +74,11 @@ TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
       {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
   checkNextHopGroup(nextHopGroupId);
   sai_object_id_t nextHopId = 42;
-  typename SaiNextHopGroupMemberTraits::CreateAttributes c{nextHopGroupId,
-                                                           nextHopId};
+  sai_uint32_t nextHopWeight = 2;
+  typename SaiNextHopGroupMemberTraits::CreateAttributes c{
+      nextHopGroupId, nextHopId, nextHopWeight};
   auto nextHopGroupMemberId =
       nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
-  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId);
+  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
   nextHopGroupApi->remove(nextHopGroupMemberId);
 }
