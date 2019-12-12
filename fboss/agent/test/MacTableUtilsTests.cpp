@@ -46,6 +46,45 @@ class MacTableUtilsTest : public ::testing::Test {
         L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
   }
 
+  cfg::AclLookupClass kClassID() {
+    return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
+  }
+
+  std::shared_ptr<SwitchState> verifyAddOrUpdateClassIDHelper(
+      const std::shared_ptr<SwitchState>& state) {
+    auto macEntry =
+        std::make_shared<MacEntry>(kMacAddress(), PortDescriptor(kPortID()));
+    auto newState = MacTableUtils::updateOrAddEntryWithClassID(
+        state, kVlan(), macEntry.get(), kClassID());
+
+    auto newMacEntry = getMacEntry(newState);
+    EXPECT_NE(newMacEntry, nullptr);
+    auto classID = newMacEntry->getClassID();
+    EXPECT_TRUE(classID.has_value());
+    EXPECT_EQ(classID.value(), kClassID());
+
+    return newState;
+  }
+
+  std::shared_ptr<SwitchState> verifyRemoveClassIDHelper(
+      const std::shared_ptr<SwitchState>& state,
+      bool macPresent) {
+    auto macEntry =
+        std::make_shared<MacEntry>(kMacAddress(), PortDescriptor(kPortID()));
+    auto newState =
+        MacTableUtils::removeClassIDForEntry(state, kVlan(), macEntry.get());
+
+    auto newMacEntry = getMacEntry(newState);
+    if (macPresent) {
+      EXPECT_NE(newMacEntry, nullptr);
+      EXPECT_FALSE(newMacEntry->getClassID().has_value());
+    } else {
+      EXPECT_EQ(newMacEntry, nullptr);
+    }
+
+    return newState;
+  }
+
   std::shared_ptr<SwitchState> verifyAddMac(
       const std::shared_ptr<SwitchState>& state) {
     return verifyAddAndDeleteMacHelper(
@@ -78,6 +117,12 @@ class MacTableUtilsTest : public ::testing::Test {
     return newState;
   }
 
+  std::shared_ptr<MacEntry> getMacEntry(
+      const std::shared_ptr<SwitchState>& state) {
+    auto vlan = state->getVlans()->getVlanIf(kVlan()).get();
+    auto* macTable = vlan->getMacTable().get();
+    return macTable->getNodeIf(kMacAddress());
+  }
 };
 
 TEST_F(MacTableUtilsTest, VerifyUpdateMacTableAddMac) {
@@ -100,5 +145,25 @@ TEST_F(MacTableUtilsTest, VerifyUpdateMacTableDeleteMacTwice) {
   verifyDeleteMac(state2);
 }
 
+TEST_F(MacTableUtilsTest, VerifyUpdateWithClassID) {
+  auto state = verifyAddMac(testStateA());
+  verifyAddOrUpdateClassIDHelper(state);
+}
+
+TEST_F(MacTableUtilsTest, VerifyAddWithClassID) {
+  auto state = testStateA();
+  verifyAddOrUpdateClassIDHelper(state);
+}
+
+TEST_F(MacTableUtilsTest, VerifyRemoveClassID) {
+  auto state1 = testStateA();
+  auto state2 = verifyAddOrUpdateClassIDHelper(state1);
+  verifyRemoveClassIDHelper(state2, true /* macPresent */);
+}
+
+TEST_F(MacTableUtilsTest, VerifyRemoveClassIDForAbsentEntry) {
+  auto state = testStateA();
+  verifyRemoveClassIDHelper(state, false /* macPresent */);
+}
 } // namespace fboss
 } // namespace facebook
