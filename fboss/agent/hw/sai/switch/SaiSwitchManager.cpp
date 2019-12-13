@@ -34,7 +34,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
   SaiSwitchTraits::Attributes::HwInfo hwInfo(connectionHandle);
   SaiSwitchTraits::Attributes::SrcMac srcMac(platform->getLocalMac());
-  return {initSwitch, hwInfo, srcMac};
+  return {initSwitch, hwInfo, srcMac, std::nullopt};
 }
 } // namespace
 

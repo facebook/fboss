@@ -89,7 +89,8 @@ struct SaiSwitchTraits {
   using CreateAttributes = std::tuple<
       Attributes::InitSwitch,
       std::optional<Attributes::HwInfo>,
-      std::optional<Attributes::SrcMac>>;
+      std::optional<Attributes::SrcMac>,
+      std::optional<Attributes::SwitchShellEnable>>;
 };
 
 class SwitchApi : public SaiApi<SwitchApi> {
