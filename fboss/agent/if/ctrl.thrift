@@ -138,6 +138,7 @@ struct L2EntryThrift {
   // trunk is set we look at that.
   4: optional i32 trunk
   5: L2EntryType l2EntryType
+  6: optional i32 classID,
 }
 
 enum LacpPortRateThrift {
