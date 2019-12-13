@@ -24,12 +24,8 @@ class L2TableCmd(cmds.FbossCmd):
             return
         resp = sorted(resp, key=lambda x: (x.port, x.vlanID, x.mac))
 
-        if len(resp) > 0 and hasattr(resp[0], "l2EntryType") and resp[0].l2EntryType is not None:
-            tmpl = "{:18} {:>17}  {:<10} {}"
-            print(tmpl.format("MAC Address", "Port/Trunk", "VLAN", "TYPE"))
-        else:
-            tmpl = "{:18} {:>17}  {}"
-            print(tmpl.format("MAC Address", "Port/Trunk", "VLAN"))
+        tmpl = "{:18} {:>17}  {:<10} {:15} {}"
+        print(tmpl.format("MAC Address", "Port/Trunk", "VLAN", "TYPE", "CLASSID"))
 
         for entry in resp:
             if entry.trunk:
@@ -52,6 +48,12 @@ class L2TableCmd(cmds.FbossCmd):
                 else:
                     entry_type = "Unknown"
             else:
-                entry_type = ""
+                entry_type = "-"
 
-            print(tmpl.format(entry.mac, port_data, entry.vlanID, entry_type))
+            if (hasattr(entry, "classID")) and entry.classID is not None:
+                class_id = entry.classID
+            else:
+                class_id = "-"
+
+            print(tmpl.format(entry.mac, port_data, entry.vlanID, entry_type,
+                class_id))
