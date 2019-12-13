@@ -1,5 +1,12 @@
 # CMake to build SAI libraries and binaries
 
+
+add_compile_definitions(
+    SAI_VER_MAJOR=1
+    SAI_VER_MINOR=4
+    SAI_VER_RELEASE=0
+)
+
 add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSai.cpp
     fboss/agent/hw/sai/fake/FakeSaiBridge.cpp
@@ -21,14 +28,6 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiVlan.cpp
 )
 
-target_link_libraries(fake_sai Folly::folly)
-
-target_compile_definitions(fake_sai PRIVATE
-    SAI_VER_MAJOR=1
-    SAI_VER_MINOR=4
-    SAI_VER_RELEASE=0
-)
-
 add_library(address_util
     fboss/agent/hw/sai/api/AddressUtil.cpp
 )
@@ -39,6 +38,7 @@ target_link_libraries(address_util
 
 target_link_libraries(fake_sai
     address_util
+    Folly::folly
 )
 
 add_library(agent_config_factory
