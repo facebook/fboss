@@ -8,7 +8,16 @@
 
 namespace facebook { namespace fboss {
 
-WedgeManager::WedgeManager() {}
+WedgeManager::WedgeManager(std::unique_ptr<TransceiverPlatformApi> api) :
+  qsfpPlatApi_(std::move(api)) {
+  /* Constructor for WedgeManager class:
+   * Get the TransceiverPlatformApi object from the creator of this object,
+   * this object will be used for controlling the QSFP devices on board.
+   * Going foward the qsfpPlatApi_ will be used to controll the QSFP devices
+   * on FPGA managed platforms and the wedgeI2cBus_ will be used to control
+   * the QSFP devices on I2C/CPLD managed platforms
+   */
+}
 
 void WedgeManager::initTransceiverMap() {
   // If we can't get access to the USB devices, don't bother to

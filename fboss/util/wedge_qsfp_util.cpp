@@ -57,6 +57,7 @@ DEFINE_bool(cdr_disable, false,
 DEFINE_int32(open_timeout, 30, "Number of seconds to wait to open bus");
 DEFINE_bool(direct_i2c, false,
     "Read Transceiver info from i2c bus instead of qsfp_service");
+DEFINE_bool(qsfp_hard_reset, false, "Issue a hard reset to port QSFP");
 
 bool overrideLowPower(
     TransceiverI2CApi* bus,
@@ -490,6 +491,25 @@ void tryOpenBus(TransceiverI2CApi* bus) {
   }
 }
 
+/* This function does a hard reset of the QSFP in a given platform. It gets
+ * the transceiver FPGA object by calling a function which eventually creates
+ * the FPGA object for that platform. Then it invokes that platform specific
+ * FPGA object's QSFP hard reset function
+ */
+bool doQsfpHardReset(unsigned int port) {
+
+  // Get the FPGA object for the given platform
+  auto busAndError = getTransceiverPlatformAPI();
+  if (busAndError.second) {
+      return false;
+  }
+  auto bus = std::move(busAndError.first);
+
+  // Call the platform specific Fpga object's qsfp reset function
+  bus->triggerQsfpHardReset(port);
+
+  return true;
+}
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
@@ -538,7 +558,7 @@ int main(int argc, char* argv[]) {
   bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
                      FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
                      FLAGS_cdr_enable || FLAGS_cdr_disable ||
-                     FLAGS_set_low_power);
+                     FLAGS_set_low_power || FLAGS_qsfp_hard_reset);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -610,6 +630,10 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_cdr_disable && setCdr(bus.get(), portNum, 0x00)) {
       printf("QSFP %d: CDR disabled\n", portNum);
+    }
+
+    if (FLAGS_qsfp_hard_reset && doQsfpHardReset(portNum)) {
+      printf("QSFP %d: Hard reset done\n", portNum);
     }
 
     if (FLAGS_direct_i2c && printInfo) {

@@ -46,6 +46,11 @@ class TransceiverImpl {
    */
   virtual void ensureOutOfReset(){};
 
+  /* This function does a hard reset of the QSFP and this will be
+   * called when port flap is seen on the port remains down
+   */
+  virtual void triggerQsfpHardReset(){};
+
   /*
    * Returns the name of the port
    */

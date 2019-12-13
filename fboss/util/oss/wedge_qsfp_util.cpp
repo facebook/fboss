@@ -1,6 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/util/wedge_qsfp_util.h"
-
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
@@ -31,4 +30,14 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
      return std::make_pair(std::make_unique<WedgeI2CBus>(), 0);
   }
   return std::make_pair(std::make_unique<Wedge100I2CBus>(), 0);
+}
+
+/* This function creates and returns the Transceiver Platform Api object
+ * for that platform. Cuirrently this is kept empty function and it will
+ * be implemented in coming version
+ */
+std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
+  getTransceiverPlatformAPI() {
+
+  return std::make_pair(nullptr, EX_USAGE);
 }

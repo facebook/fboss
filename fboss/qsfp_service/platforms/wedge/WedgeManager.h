@@ -5,6 +5,7 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/lib/usb/TransceiverPlatformApi.h"
 
 namespace facebook { namespace fboss {
 class WedgeManager : public TransceiverManager {
@@ -12,8 +13,9 @@ class WedgeManager : public TransceiverManager {
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
   using PortMap = std::map<int32_t, PortStatus>;
 
-  WedgeManager();
+  WedgeManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr);
   ~WedgeManager() override {}
+
   void initTransceiverMap() override;
   void getTransceiversInfo(TransceiverMap& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -39,6 +41,12 @@ class WedgeManager : public TransceiverManager {
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   std::unique_ptr<TransceiverI2CApi>
       wedgeI2cBus_; /* thread safe handle to access bus */
+
+  /* This variable stores the TransceiverPlatformApi object for controlling
+   * the QSFP devies on board. This handle is populated from this class
+   * constructor
+   */
+  std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
 
  private:
   // Forbidden copy constructor and assignment operator
