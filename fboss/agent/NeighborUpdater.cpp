@@ -49,7 +49,11 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw)
       sw_(sw) {}
 
 NeighborUpdater::~NeighborUpdater() {
-  waitForPendingUpdates();
+  // we make sure to destroy the NeighborUpdaterImpl on the neighbor
+  // cache thread to avoid racing between background entry processing
+  // and destruction.
+  sw_->getNeighborCacheEvb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [this]() mutable { return impl_.reset(); });
 }
 
 void NeighborUpdater::waitForPendingUpdates() {
