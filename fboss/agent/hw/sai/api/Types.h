@@ -17,6 +17,7 @@ extern "C" {
 
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgePortSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, HashSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopSaiId);
