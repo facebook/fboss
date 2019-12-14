@@ -103,3 +103,13 @@ TEST_F(SwitchApiTest, setGetShellEnable) {
   SaiSwitchTraits::Attributes::SwitchShellEnable blank{false};
   EXPECT_TRUE(switchApi->getAttribute(switchId, blank));
 }
+
+TEST_F(SwitchApiTest, getHashIds) {
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::EcmpHash{}),
+      1234);
+  EXPECT_EQ(
+      switchApi->getAttribute(switchId, SaiSwitchTraits::Attributes::LagHash{}),
+      1234);
+}

@@ -23,6 +23,8 @@ static constexpr uint32_t kMaxPortMulticastQueues = 8;
 static constexpr uint32_t kMaxPortQueues =
     kMaxPortUnicastQueues + kMaxPortMulticastQueues;
 static constexpr uint32_t kMaxCpuQueues = 8;
+static constexpr sai_object_id_t kEcmpHashId = 1234;
+static constexpr sai_object_id_t kLagHashId = 1234;
 } // namespace
 
 sai_status_t set_switch_attribute_fn(
@@ -123,6 +125,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES:
         attr[i].value.u32 = kMaxCpuQueues;
+        break;
+      case SAI_SWITCH_ATTR_ECMP_HASH:
+        attr[i].value.oid = kEcmpHashId;
+        break;
+      case SAI_SWITCH_ATTR_LAG_HASH:
+        attr[i].value.oid = kLagHashId;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

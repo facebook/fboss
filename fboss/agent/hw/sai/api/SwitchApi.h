@@ -83,6 +83,10 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_NUMBER_OF_CPU_QUEUES,
         sai_uint32_t>;
+    using EcmpHash =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECMP_HASH, SaiObjectIdT>;
+    using LagHash =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_LAG_HASH, SaiObjectIdT>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
