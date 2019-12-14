@@ -37,7 +37,7 @@ void BcmWarmBootCache::populateMirroredPorts() {}
 
 void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
-void BcmWarmBootCache::populateIngressQosMaps() {}
+void BcmWarmBootCache::populateQosMaps() {}
 void BcmWarmBootCache::populateLabelSwitchActions() {}
 void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {}
 void BcmWarmBootCache::populateLabelStack2TunnelId(

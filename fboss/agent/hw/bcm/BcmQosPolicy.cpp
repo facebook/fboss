@@ -23,15 +23,15 @@ BcmQosPolicy::BcmQosPolicy(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   auto warmBootCache = hw->getWarmBootCache();
   auto qosMapItr =
-      warmBootCache->findIngressQosMap(qosPolicy->getDscpMap().from());
-  if (qosMapItr != warmBootCache->ingressQosMaps_end()) {
-    l3IngressQosMap_ = std::move(*qosMapItr);
+      warmBootCache->findIngressDscpMap(qosPolicy->getDscpMap().from());
+  if (qosMapItr != warmBootCache->qosMaps_end()) {
+    ingressDscpQosMap_ = std::move(*qosMapItr);
     warmBootCache->programmed(qosMapItr);
   } else {
-    l3IngressQosMap_ =
+    ingressDscpQosMap_ =
         std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::IP_INGRESS);
     for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
-      l3IngressQosMap_->addRule(
+      ingressDscpQosMap_->addRule(
           BcmPortQueueManager::CosQToBcmInternalPriority(
               dscpToTrafficClass.trafficClass()),
           dscpToTrafficClass.attr());
@@ -40,7 +40,7 @@ BcmQosPolicy::BcmQosPolicy(
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle() const {
-  return static_cast<BcmQosPolicyHandle>(l3IngressQosMap_->getHandle());
+  return static_cast<BcmQosPolicyHandle>(ingressDscpQosMap_->getHandle());
 }
 
 void BcmQosPolicy::update(
@@ -58,7 +58,7 @@ void BcmQosPolicy::update(
       newRules.end(),
       std::inserter(toBeRemoved, toBeRemoved.end()));
   for (const auto& qosRule : toBeRemoved) {
-    l3IngressQosMap_->removeRule(
+    ingressDscpQosMap_->removeRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
         qosRule.attr());
   }
@@ -71,7 +71,7 @@ void BcmQosPolicy::update(
       oldRules.end(),
       std::inserter(toBeAdded, toBeAdded.end()));
   for (const auto& qosRule : toBeAdded) {
-    l3IngressQosMap_->addRule(
+    ingressDscpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
         qosRule.attr());
   }
@@ -79,11 +79,11 @@ void BcmQosPolicy::update(
 
 bool BcmQosPolicy::policyMatches(
     const std::shared_ptr<QosPolicy>& qosPolicy) const {
-  if (l3IngressQosMap_->size() != qosPolicy->getDscpMap().from().size()) {
+  if (ingressDscpQosMap_->size() != qosPolicy->getDscpMap().from().size()) {
     return false;
   }
   for (const auto& rule : qosPolicy->getDscpMap().from()) {
-    if (!l3IngressQosMap_->ruleExists(
+    if (!ingressDscpQosMap_->ruleExists(
             BcmPortQueueManager::CosQToBcmInternalPriority(rule.trafficClass()),
             rule.attr())) {
       return false;

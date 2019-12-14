@@ -461,7 +461,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   populateRtag7State();
   populateMirrors();
   populateMirroredPorts();
-  populateIngressQosMaps();
+  populateQosMaps();
   populateLabelSwitchActions();
 }
 
@@ -811,7 +811,7 @@ void BcmWarmBootCache::clear() {
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();
-  ingressQosMaps_.clear();
+  qosMaps_.clear();
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -1019,11 +1019,11 @@ void BcmWarmBootCache::programmed(TrunksItr itr) {
   trunks_.erase(itr);
 }
 
-BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(
+BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findIngressDscpMap(
     const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClassSet) {
   return std::find_if(
-      ingressQosMaps_.begin(),
-      ingressQosMaps_.end(),
+      qosMaps_.begin(),
+      qosMaps_.end(),
       [dscpToTrafficClassSet](
           const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
         if (bcmQosMap->getType() != BcmQosMap::Type::IP_INGRESS ||
@@ -1041,9 +1041,9 @@ BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(
       });
 }
 
-void BcmWarmBootCache::programmed(IngressQosMapsItr itr) {
+void BcmWarmBootCache::programmed(QosMapsItr itr) {
   XLOG(DBG1) << "Programmed QosMap, removing from warm boot cache.";
-  ingressQosMaps_.erase(itr);
+  qosMaps_.erase(itr);
 }
 } // namespace fboss
 } // namespace facebook

@@ -30,7 +30,7 @@ class BcmQosPolicy {
   bool policyMatches(const std::shared_ptr<QosPolicy>& qosPolicy) const;
 
  private:
-  std::unique_ptr<BcmQosMap> l3IngressQosMap_;
+  std::unique_ptr<BcmQosMap> ingressDscpQosMap_;
 };
 
 } // namespace fboss

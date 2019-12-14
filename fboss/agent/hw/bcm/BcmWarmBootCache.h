@@ -152,8 +152,8 @@ class BcmWarmBootCache {
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
   using Trunks = boost::container::flat_map<AggregatePortID, opennsl_trunk_t>;
-  using IngressQosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
-  using IngressQosMapsItr = IngressQosMaps::iterator;
+  using QosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
+  using QosMapsItr = QosMaps::iterator;
 
   // MPLS action
   using Label2LabelActionMap = boost::container::
@@ -210,7 +210,7 @@ class BcmWarmBootCache {
       BcmAclStatHandle aclStatHandle);
 
   void populateRtag7State();
-  void populateIngressQosMaps();
+  void populateQosMaps();
 
   void populateMirrors();
   void populateMirroredPorts();
@@ -479,12 +479,12 @@ class BcmWarmBootCache {
   }
   void programmed(TrunksItr itr);
 
-  IngressQosMapsItr findIngressQosMap(
+  QosMapsItr findIngressDscpMap(
       const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClass);
-  IngressQosMapsItr ingressQosMaps_end() {
-    return ingressQosMaps_.end();
+  QosMapsItr qosMaps_end() {
+    return qosMaps_.end();
   }
-  void programmed(IngressQosMapsItr itr);
+  void programmed(QosMapsItr itr);
 
   /*
    * owner is done programming its entries remove any entries
@@ -638,7 +638,7 @@ class BcmWarmBootCache {
   AclEntry2AclStat aclEntry2AclStat_;
 
   // QoS maps
-  IngressQosMaps ingressQosMaps_;
+  QosMaps qosMaps_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;
