@@ -214,6 +214,56 @@ TEST(QosPolicy, SerializePolicies) {
   }
 }
 
+TEST(QosPolicy, SerializePoliciesWithMap) {
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::QosPolicy p1, p2;
+  p1.name = "qosPolicy_1";
+  p2.name = "qosPolicy_2";
+
+  cfg::QosMap qosMap;
+  qosMap.dscpMaps.resize(8);
+  for (auto i = 0; i < 8; i++) {
+    qosMap.dscpMaps[i].internalTrafficClass = i;
+    for (auto j = 0; j < 8; j++) {
+      qosMap.dscpMaps[i].fromDscpToTrafficClass.push_back(8 * i + j);
+    }
+    qosMap.dscpMaps[i].fromTrafficClassToDscp_ref() = i;
+  }
+  qosMap.expMaps.resize(8);
+  for (auto i = 0; i < 8; i++) {
+    qosMap.expMaps[i].internalTrafficClass = i;
+    qosMap.expMaps[i].fromExpToTrafficClass.push_back(i);
+    qosMap.expMaps[i].fromTrafficClassToExp_ref() = i;
+  }
+
+  for (auto i = 0; i < 8; i++) {
+    qosMap.trafficClassToQueueId.emplace(i, i);
+  }
+  p1.qosMap_ref() = qosMap;
+  p2.qosMap_ref() = qosMap;
+
+  config.qosPolicies.push_back(p1);
+  config.qosPolicies.push_back(p2);
+  auto state = publishAndApplyConfig(stateV0, &config, platform.get());
+
+  auto qosPolicies = state->getQosPolicies();
+  auto serialized = qosPolicies->toFollyDynamic();
+  auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(qosPolicies->size() == qosPoliciesBack->size());
+  for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
+    auto q1 = qosPolicies->getQosPolicyIf(name);
+    auto q2 = qosPoliciesBack->getQosPolicyIf(name);
+    EXPECT_NE(nullptr, q1);
+    EXPECT_NE(nullptr, q2);
+    EXPECT_TRUE(*q1 == *q2);
+  }
+}
+
+
 TEST(QosPolicy, EmptyRules) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();

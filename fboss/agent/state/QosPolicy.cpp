@@ -177,12 +177,16 @@ TrafficClassToQosAttributeMapEntry<EXP>::fromFollyDynamic(folly::dynamic json) {
 template <typename QosAttrT>
 folly::dynamic TrafficClassToQosAttributeMap<QosAttrT>::toFollyDynamic() const {
   folly::dynamic object = folly::dynamic::object;
-  folly::dynamic entries = folly::dynamic::array;
+  folly::dynamic fromEntries = folly::dynamic::array;
   for (const auto& entry : from_) {
-    entries.push_back(entry.toFollyDynamic());
+    fromEntries.push_back(entry.toFollyDynamic());
   }
-  object[kFrom] = entries;
-  object[kTo] = to_ ? to_->toFollyDynamic() : nullptr;
+  object[kFrom] = fromEntries;
+  folly::dynamic toEntries = folly::dynamic::array;
+  for (const auto& entry : to_) {
+    toEntries.push_back(entry.toFollyDynamic());
+  }
+  object[kTo] = toEntries;
   return object;
 }
 
@@ -194,10 +198,13 @@ TrafficClassToQosAttributeMap<QosAttrT>::fromFollyDynamic(folly::dynamic json) {
     map.from_.insert(
         TrafficClassToQosAttributeMapEntry<QosAttrT>::fromFollyDynamic(entry));
   }
-  if (!json["to"].isNull()) {
-    map.to_.emplace(
-        TrafficClassToQosAttributeMapEntry<QosAttrT>::fromFollyDynamic(
-            json[kTo]));
+  if (json.find(kTo) != json.items().end()) {
+    // TODO: remove this check after another push
+    for (const auto& entry : json[kTo]) {
+      map.to_.insert(
+          TrafficClassToQosAttributeMapEntry<QosAttrT>::fromFollyDynamic(
+              entry));
+    }
   }
   return map;
 }

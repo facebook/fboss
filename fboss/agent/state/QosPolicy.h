@@ -103,7 +103,7 @@ class TrafficClassToQosAttributeMap {
     return from_;
   }
 
-  const std::optional<Entry>& to() const {
+  const boost::container::flat_set<Entry>& to() const {
     return to_;
   }
 
@@ -118,7 +118,7 @@ class TrafficClassToQosAttributeMap {
     return !(*this == other);
   }
   bool empty() const {
-    return from_.empty() && !to_.has_value();
+    return from_.empty() && to_.empty();
   }
 
   folly::dynamic toFollyDynamic() const;
@@ -126,7 +126,7 @@ class TrafficClassToQosAttributeMap {
 
  private:
   boost::container::flat_set<Entry> from_;
-  std::optional<Entry> to_;
+  boost::container::flat_set<Entry> to_;
 };
 
 class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
