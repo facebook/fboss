@@ -106,5 +106,43 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
   return isValid;
 }
 
+void BcmQosPolicyTable::processAddedDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  processAddedQosPolicy(qosPolicy);
+  defaultDataPlaneQosPolicy_.emplace(qosPolicy->getName());
+}
+void BcmQosPolicyTable::processChangedDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  processChangedQosPolicy(oldQosPolicy, newQosPolicy);
+}
+void BcmQosPolicyTable::processRemovedDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  defaultDataPlaneQosPolicy_.reset();
+  processRemovedQosPolicy(qosPolicy);
+}
+
+BcmQosPolicy* BcmQosPolicyTable::getDefaultDataPlaneQosPolicyIf() const {
+  if (!defaultDataPlaneQosPolicy_) {
+    return nullptr;
+  }
+  return getQosPolicyIf(defaultDataPlaneQosPolicy_.value());
+}
+
+BcmQosPolicy* BcmQosPolicyTable::getDefaultDataPlaneQosPolicy() const {
+  auto policy = getDefaultDataPlaneQosPolicyIf();
+  if (!policy) {
+    if (defaultDataPlaneQosPolicy_) {
+      throw FbossError(
+          "BcmQosPolicy=",
+          defaultDataPlaneQosPolicy_.value(),
+          " does not exist");
+    } else {
+      throw FbossError("Default BcmQosPolicy does not exist");
+    }
+  }
+  return policy;
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -1566,12 +1566,13 @@ void BcmSwitch::processQosChanges(const StateDelta& delta) {
       : nullptr;
 
   if (oldDefaultQosPolicy && newDefaultQosPolicy) {
-    qosPolicyTable_->processChangedDefaultQosPolicy(
+    qosPolicyTable_->processChangedDefaultDataPlaneQosPolicy(
         oldDefaultQosPolicy, newDefaultQosPolicy);
   } else if (oldDefaultQosPolicy) {
-    qosPolicyTable_->processRemovedDefaultQosPolicy(oldDefaultQosPolicy);
+    qosPolicyTable_->processRemovedDefaultDataPlaneQosPolicy(
+        oldDefaultQosPolicy);
   } else if (newDefaultQosPolicy) {
-    qosPolicyTable_->processAddedDefaultQosPolicy(newDefaultQosPolicy);
+    qosPolicyTable_->processAddedDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
   }
 
   forEachChanged(

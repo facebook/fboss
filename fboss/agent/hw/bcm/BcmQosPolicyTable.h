@@ -29,22 +29,17 @@ class BcmQosPolicyTable {
       const std::shared_ptr<QosPolicy>& newQosPolicy);
   void processRemovedQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
 
-  void processAddedDefaultQosPolicy(
-      const std::shared_ptr<QosPolicy>& qosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processAddedQosPolicy(qosPolicy);
-  }
-  void processChangedDefaultQosPolicy(
+  void processAddedDefaultDataPlaneQosPolicy(
+      const std::shared_ptr<QosPolicy>& qosPolicy);
+  void processChangedDefaultDataPlaneQosPolicy(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
-      const std::shared_ptr<QosPolicy>& newQosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processChangedQosPolicy(oldQosPolicy, newQosPolicy);
-  }
-  void processRemovedDefaultQosPolicy(
-      const std::shared_ptr<QosPolicy>& qosPolicy) {
-    // TODO(pshaikh) - implement this better
-    processRemovedQosPolicy(qosPolicy);
-  }
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void processRemovedDefaultDataPlaneQosPolicy(
+      const std::shared_ptr<QosPolicy>& qosPolicy);
+
+  BcmQosPolicy* getDefaultDataPlaneQosPolicyIf() const;
+
+  BcmQosPolicy* getDefaultDataPlaneQosPolicy() const;
 
   int getNumQosPolicies() const;
   // Throw exception if not found
@@ -59,6 +54,7 @@ class BcmQosPolicyTable {
       boost::container::flat_map<std::string, std::unique_ptr<BcmQosPolicy>>;
 
   BcmSwitch* hw_;
+  std::optional<std::string> defaultDataPlaneQosPolicy_;
   BcmQosPolicyMap qosPolicyMap_;
 };
 
