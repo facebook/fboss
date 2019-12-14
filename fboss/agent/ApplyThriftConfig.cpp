@@ -1286,7 +1286,12 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
 
 shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     const cfg::QosPolicy& qosPolicy) {
-  std::set<QosRule> rules;
+  if (qosPolicy.rules.empty() == !qosPolicy.qosMap_ref().has_value()) {
+    throw FbossError(
+        "either the qos rules or qos maps must be provided but not both!");
+  }
+
+  DscpMap ingressDscpMap;
   for (const auto& qosRule : qosPolicy.rules) {
     if (qosRule.dscp.empty()) {
       throw FbossError("Invalid config: qosPolicy: empty dscp list");
@@ -1295,12 +1300,10 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       if (dscpValue < 0 || dscpValue > 63) {
         throw FbossError("dscp value is invalid (must be [0, 63])");
       }
-      rules.emplace(QosRule(qosRule.queueId, dscpValue));
+      ingressDscpMap.addFromEntry(
+          static_cast<TrafficClass>(qosRule.queueId),
+          static_cast<DSCP>(dscpValue));
     }
-  }
-  if (rules.empty() == !qosPolicy.qosMap_ref().has_value()) {
-    throw FbossError(
-        "either the qos rules or qos maps must be provided but not both!");
   }
 
   if (auto qosMap = qosPolicy.qosMap_ref()) {
@@ -1312,12 +1315,11 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
           cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
     }
     return make_shared<QosPolicy>(
-        qosPolicy.name, rules, dscpMap, expMap, trafficClassToQueueId);
+        qosPolicy.name, dscpMap, expMap, trafficClassToQueueId);
   }
   return make_shared<QosPolicy>(
       qosPolicy.name,
-      rules,
-      DscpMap(TrafficClassToQosAttributeMap<DSCP>()),
+      ingressDscpMap,
       ExpMap(TrafficClassToQosAttributeMap<EXP>()),
       QosPolicy::TrafficClassToQueueId());
 }

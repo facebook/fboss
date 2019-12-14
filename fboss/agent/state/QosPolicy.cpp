@@ -29,31 +29,10 @@ constexpr auto kTo = "to";
 namespace facebook {
 namespace fboss {
 
-folly::dynamic QosRule::toFollyDynamic() const {
-  folly::dynamic qosRule = folly::dynamic::object;
-  qosRule[kQueueId] = queueId;
-  qosRule[kDscp] = dscp;
-  return qosRule;
-}
-
-QosRule QosRule::fromFollyDynamic(const folly::dynamic& qosRuleJson) {
-  if (qosRuleJson.find(kQueueId) == qosRuleJson.items().end()) {
-    throw FbossError("QosRule must have a queueId set");
-  }
-  if (qosRuleJson.find(kDscp) == qosRuleJson.items().end()) {
-    throw FbossError("QosRule must have a dscp value");
-  }
-  return QosRule(qosRuleJson[kQueueId].asInt(), qosRuleJson[kDscp].asInt());
-}
-
 folly::dynamic QosPolicyFields::toFollyDynamic() const {
   folly::dynamic qosPolicy = folly::dynamic::object;
   qosPolicy[kName] = name;
-  folly::dynamic qosPolicys = folly::dynamic::array;
-  for (const auto& rule : rules) {
-    qosPolicys.push_back(rule.toFollyDynamic());
-  }
-  qosPolicy[kRules] = qosPolicys;
+  qosPolicy[kRules] = folly::dynamic::array;
   qosPolicy[kDscpMap] = dscpMap.toFollyDynamic();
   qosPolicy[kExpMap] = expMap.toFollyDynamic();
   qosPolicy[kTrafficClassToQueueId] = folly::dynamic::array;
@@ -69,9 +48,18 @@ folly::dynamic QosPolicyFields::toFollyDynamic() const {
 
 QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
   auto name = json[kName].asString();
-  std::set<QosRule> rules;
+  std::map<uint16_t, std::set<uint8_t>> ingressDscpMap;
+
   for (const auto& rule : json[kRules]) {
-    rules.emplace(QosRule::fromFollyDynamic(rule));
+    auto trafficClass = static_cast<uint16_t>(rule[kQueueId].asInt());
+    auto dscp = static_cast<uint8_t>(rule[kDscp].asInt());
+    auto itr = ingressDscpMap.find(trafficClass);
+    if (itr != ingressDscpMap.end()) {
+      auto& dscpSet = itr->second;
+      dscpSet.insert(dscp);
+    } else {
+      ingressDscpMap.emplace(trafficClass, std::set<uint8_t>{dscp});
+    }
   }
   TrafficClassToQosAttributeMap<DSCP> dscpMap;
   TrafficClassToQosAttributeMap<EXP> expMap;
@@ -93,7 +81,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
     }
   }
   return QosPolicyFields(
-      name, rules, DscpMap(dscpMap), ExpMap(expMap), trafficClassToQueueId);
+      name, DscpMap(dscpMap), ExpMap(expMap), trafficClassToQueueId);
 }
 
 DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)

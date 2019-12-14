@@ -479,7 +479,8 @@ class BcmWarmBootCache {
   }
   void programmed(TrunksItr itr);
 
-  IngressQosMapsItr findIngressQosMap(const std::set<QosRule>& qosRules);
+  IngressQosMapsItr findIngressQosMap(
+      const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClass);
   IngressQosMapsItr ingressQosMaps_end() {
     return ingressQosMaps_.end();
   }

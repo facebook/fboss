@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
@@ -76,11 +77,14 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
   auto kDscpValueMaxCnt = kDscpValueMax - kDscpValueMin + 1;
   std::set<uint8_t> dscpSet;
 
-  for (const auto& qosRule : qosPolicy->getRules()) {
-    if (qosRule.dscp < kDscpValueMin || qosRule.dscp > kDscpValueMax) {
+  for (const auto entry : qosPolicy->getDscpMap().from()) {
+    // TODO(pshaikh): validating traffic class is valid, provide separate
+    // function for the same
+    BcmPortQueueManager::CosQToBcmInternalPriority(entry.trafficClass());
+    if (entry.attr() < kDscpValueMin || entry.attr() > kDscpValueMax) {
       return false;
     }
-    dscpSet.emplace(qosRule.dscp);
+    dscpSet.emplace(entry.attr());
   }
 
   /*

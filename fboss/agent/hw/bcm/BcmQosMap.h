@@ -35,6 +35,9 @@ class BcmQosMap {
   int getUnit() const;
   int getFlags() const;
   int getHandle() const;
+  Type getType() const {
+    return type_;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

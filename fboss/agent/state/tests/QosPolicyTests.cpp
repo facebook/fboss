@@ -39,22 +39,16 @@ std::vector<cfg::QosRule> dscpRules(
 void checkQosPolicyQosRules(
     const cfg::QosPolicy& cfgQosPolicy,
     std::shared_ptr<QosPolicy> swQosPolicy) {
-  int numCfgQosRules = 0;
-  for (const auto& cfgQosRule : cfgQosPolicy.rules) {
-    numCfgQosRules += cfgQosRule.dscp.size();
-  }
-  ASSERT_EQ(swQosPolicy->getRules().size(), numCfgQosRules);
-
-  std::unordered_map<uint8_t, uint8_t> dscpMapping;
+  ASSERT_EQ(swQosPolicy->getName(), cfgQosPolicy.name);
+  auto swStateFromTcToDscp = swQosPolicy->getDscpMap().from();
+  DscpMap cfgDscpMap;
   for (const auto& rule : cfgQosPolicy.rules) {
-    for (const auto& dscp : rule.dscp) {
-      dscpMapping[dscp] = rule.queueId;
+    for (auto dscp : rule.dscp) {
+      cfgDscpMap.addFromEntry(
+          static_cast<TrafficClass>(rule.queueId), static_cast<DSCP>(dscp));
     }
   }
-
-  for (const auto& qosRule : swQosPolicy->getRules()) {
-    ASSERT_EQ(qosRule.queueId, dscpMapping[qosRule.dscp]);
-  }
+  ASSERT_EQ(swStateFromTcToDscp, cfgDscpMap.from());
 }
 
 void checkQosPolicy(

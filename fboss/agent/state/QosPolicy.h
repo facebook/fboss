@@ -23,36 +23,6 @@
 namespace facebook {
 namespace fboss {
 
-struct QosRule {
-  uint8_t queueId;
-  uint8_t dscp;
-
-  explicit QosRule(uint8_t queueId, uint8_t dscp)
-      : queueId(queueId), dscp(dscp) {}
-
-  QosRule(const QosRule& r) {
-    queueId = r.queueId;
-    dscp = r.dscp;
-  }
-
-  bool operator<(const QosRule& r) const {
-    return std::tie(queueId, dscp) < std::tie(r.queueId, r.dscp);
-  }
-
-  bool operator==(const QosRule& r) const {
-    return std::tie(queueId, dscp) == std::tie(r.queueId, r.dscp);
-  }
-
-  QosRule& operator=(const QosRule& r) {
-    queueId = r.queueId;
-    dscp = r.dscp;
-    return *this;
-  }
-
-  folly::dynamic toFollyDynamic() const;
-  static QosRule fromFollyDynamic(const folly::dynamic& rangeJson);
-};
-
 template <typename QosAttrT>
 class TrafficClassToQosAttributeMapEntry {
  public:
@@ -90,6 +60,7 @@ template <typename QosAttrT>
 class TrafficClassToQosAttributeMap {
  public:
   using Entry = TrafficClassToQosAttributeMapEntry<QosAttrT>;
+  using QosAttributeToTrafficClassSet = boost::container::flat_set<Entry>;
   void addFromEntry(TrafficClass trafficClass, QosAttrT attr) {
     from_.emplace(
         TrafficClassToQosAttributeMapEntry<QosAttrT>(trafficClass, attr));
@@ -131,6 +102,7 @@ class TrafficClassToQosAttributeMap {
 
 class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
  public:
+  DscpMap() {}
   explicit DscpMap(const TrafficClassToQosAttributeMap<DSCP>& map)
       : TrafficClassToQosAttributeMap<DSCP>(map) {}
   explicit DscpMap(std::vector<cfg::DscpQosMap> cfg);
@@ -148,25 +120,13 @@ struct QosPolicyFields {
       boost::container::flat_map<TrafficClass, uint16_t>;
   QosPolicyFields(
       const std::string& name,
-      const std::set<QosRule>& rules,
       DscpMap dscpMap,
       ExpMap expMap,
       TrafficClassToQueueId trafficClassToQueueId)
       : name(name),
-        rules(rules),
         dscpMap(std::move(dscpMap)),
         expMap(std::move(expMap)),
         trafficClassToQueueId(std::move(trafficClassToQueueId)) {}
-
-  QosPolicyFields(const std::string& name, const std::set<QosRule>& rules)
-      : QosPolicyFields(
-            name,
-            rules,
-            DscpMap(std::vector<cfg::DscpQosMap>{}),
-            ExpMap(std::vector<cfg::ExpQosMap>{}),
-            TrafficClassToQueueId()) {
-    /* TODO(pshaikh): remove this constructor */
-  }
 
   template <typename Fn>
   void forEachChild(Fn) {}
@@ -175,7 +135,6 @@ struct QosPolicyFields {
   static QosPolicyFields fromFollyDynamic(const folly::dynamic& json);
 
   std::string name{nullptr};
-  std::set<QosRule> rules;
   DscpMap dscpMap;
   ExpMap expMap;
   TrafficClassToQueueId trafficClassToQueueId;
@@ -186,12 +145,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
   using TrafficClassToQueueId = QosPolicyFields::TrafficClassToQueueId;
   QosPolicy(
       const std::string& name,
-      const std::set<QosRule>& rules,
-      // TODO(pshaikh) : remove default argument settings
-      DscpMap dscpMap = DscpMap(std::vector<cfg::DscpQosMap>{}),
+      DscpMap dscpMap,
       ExpMap expMap = ExpMap(std::vector<cfg::ExpQosMap>{}),
       TrafficClassToQueueId trafficClassToQueueId = TrafficClassToQueueId())
-      : NodeBaseT(name, rules, dscpMap, expMap, trafficClassToQueueId) {}
+      : NodeBaseT(name, dscpMap, expMap, trafficClassToQueueId) {}
 
   static std::shared_ptr<QosPolicy> fromFollyDynamic(
       const folly::dynamic& json) {
@@ -209,7 +166,6 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
 
   bool operator==(const QosPolicy& qosPolicy) const {
     return getFields()->name == qosPolicy.getName() &&
-        getFields()->rules == qosPolicy.getRules() &&
         getFields()->dscpMap == qosPolicy.getDscpMap() &&
         getFields()->expMap == qosPolicy.getExpMap() &&
         getFields()->trafficClassToQueueId ==
@@ -222,14 +178,6 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
 
   const std::string& getID() const {
     return getName();
-  }
-
-  const std::set<QosRule>& getRules() const {
-    return getFields()->rules;
-  }
-
-  void setQosRules(const std::set<QosRule>& qosRules) {
-    writableFields()->rules = qosRules;
   }
 
   const DscpMap& getDscpMap() const {

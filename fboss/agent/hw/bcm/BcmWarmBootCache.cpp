@@ -1020,18 +1020,20 @@ void BcmWarmBootCache::programmed(TrunksItr itr) {
 }
 
 BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(
-    const std::set<QosRule>& qosRules) {
+    const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClassSet) {
   return std::find_if(
       ingressQosMaps_.begin(),
       ingressQosMaps_.end(),
-      [qosRules](const std::unique_ptr<BcmQosMap>& qosMap) -> bool {
-        if (qosMap->size() != qosRules.size()) {
+      [dscpToTrafficClassSet](
+          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
+        if (bcmQosMap->getType() != BcmQosMap::Type::IP_INGRESS ||
+            bcmQosMap->size() != dscpToTrafficClassSet.size()) {
           return false;
         }
-        for (const auto& rule : qosRules) {
-          if (!qosMap->ruleExists(
-                  BcmPortQueueManager::CosQToBcmInternalPriority(rule.queueId),
-                  rule.dscp)) {
+        for (const auto& dscpToTrafficClass : dscpToTrafficClassSet) {
+          if (!bcmQosMap->ruleExists(
+                  dscpToTrafficClass.trafficClass(),
+                  dscpToTrafficClass.attr())) {
             return false;
           }
         }
