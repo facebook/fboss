@@ -27,6 +27,7 @@ void FakeSai::clear() {
   auto fs = FakeSai::getInstance();
   fs->brm.clearWithMembers();
   fs->fdbm.clear();
+  fs->hashm.clear();
   fs->htm.clear();
   fs->htgm.clear();
   fs->inSegEntryManager.clear();
@@ -97,6 +98,10 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       break;
     case SAI_API_FDB:
       facebook::fboss::populate_fdb_api((sai_fdb_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_HASH:
+      facebook::fboss::populate_hash_api((sai_hash_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_HOSTIF:

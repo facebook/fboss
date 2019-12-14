@@ -35,16 +35,17 @@ struct SaiHashTraits {
     using NativeHashFieldList = SaiAttribute<
         EnumType,
         SAI_HASH_ATTR_NATIVE_HASH_FIELD_LIST,
-        std::vector<sai_native_hash_field_t>>;
-    using UdfGroupList = SaiAttribute<
+        std::vector<int32_t>>;
+    using UDFGroupList = SaiAttribute<
         EnumType,
         SAI_HASH_ATTR_UDF_GROUP_LIST,
         std::vector<sai_object_id_t>>;
   };
-  using AdaptorKey = HashSaiId;
-  using AdaptorHostKey = Attributes::NativeHashFieldList;
+  using AdapterKey = HashSaiId;
+  using AdapterHostKey =
+      std::tuple<Attributes::NativeHashFieldList, Attributes::UDFGroupList>;
   using CreateAttributes =
-      std::tuple<Attributes::NativeHashFieldList, Attributes::UdfGroupList>;
+      std::tuple<Attributes::NativeHashFieldList, Attributes::UDFGroupList>;
 };
 
 class HashApi : public SaiApi<HashApi> {
