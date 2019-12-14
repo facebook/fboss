@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
