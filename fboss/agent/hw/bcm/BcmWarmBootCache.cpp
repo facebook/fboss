@@ -27,6 +27,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
@@ -1023,8 +1024,18 @@ BcmWarmBootCache::IngressQosMapsItr BcmWarmBootCache::findIngressQosMap(
   return std::find_if(
       ingressQosMaps_.begin(),
       ingressQosMaps_.end(),
-      [&](const std::unique_ptr<BcmQosMap>& qosMap) -> bool {
-        return qosMap->rulesMatch(qosRules);
+      [qosRules](const std::unique_ptr<BcmQosMap>& qosMap) -> bool {
+        if (qosMap->size() != qosRules.size()) {
+          return false;
+        }
+        for (const auto& rule : qosRules) {
+          if (!qosMap->ruleExists(
+                  BcmPortQueueManager::CosQToBcmInternalPriority(rule.queueId),
+                  rule.dscp)) {
+            return false;
+          }
+        }
+        return true;
       });
 }
 

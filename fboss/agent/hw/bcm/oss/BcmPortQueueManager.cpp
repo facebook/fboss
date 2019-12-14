@@ -51,5 +51,10 @@ void BcmPortQueueManager::programAqm(
     int /*queueIdx*/,
     cfg::QueueCongestionBehavior /*behavior*/,
     std::optional<cfg::QueueCongestionDetection> /*detection*/) {}
+
+int BcmPortQueueManager::CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ) {
+  return cosQ;
+}
+
 } // namespace fboss
 } // namespace facebook

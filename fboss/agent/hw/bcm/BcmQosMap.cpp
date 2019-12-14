@@ -18,10 +18,6 @@
 namespace facebook {
 namespace fboss {
 
-bool BcmQosMap::ruleExists(const QosRule& qosRule) const {
-  return entries_.find(qosRule) != entries_.end();
-}
-
 size_t BcmQosMap::size() const {
   return entries_.size();
 }
@@ -36,13 +32,6 @@ int BcmQosMap::getUnit() const {
 
 int BcmQosMap::getHandle() const {
   return handle_;
-}
-
-bool BcmQosMap::rulesMatch(const std::set<QosRule>& qosRules) const {
-  return qosRules.size() == size() &&
-      all_of(qosRules.begin(), qosRules.end(), [=](const QosRule& qosRule) {
-           return this->ruleExists(qosRule);
-         });
 }
 
 } // namespace fboss

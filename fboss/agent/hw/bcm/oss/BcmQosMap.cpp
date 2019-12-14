@@ -15,13 +15,23 @@ namespace fboss {
 
 class BcmQosMapEntry {};
 
-BcmQosMap::BcmQosMap(const BcmSwitchIf* hw) : hw_(hw), flags_(0) {}
+BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, Type type)
+    : hw_(hw), type_(type), flags_(0) {}
 BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
     : hw_(hw), flags_(flags), handle_(mapHandle) {}
 BcmQosMap::~BcmQosMap() {}
-void BcmQosMap::addRule(const QosRule& /*qosRule*/) {}
-void BcmQosMap::clear() {}
-void BcmQosMap::removeRule(const QosRule& /*qosRule*/) {}
+void BcmQosMap::addRule(
+    uint16_t /*internalTrafficClass*/,
+    uint8_t /*externalTrafficClass*/) {}
+void BcmQosMap::BcmQosMap::clear() {}
+void BcmQosMap::removeRule(
+    uint16_t /*internalTrafficClass*/,
+    uint8_t /*externalTrafficClass*/) {}
+bool BcmQosMap::ruleExists(
+    uint16_t /*internalTrafficClass*/,
+    uint8_t /*externalTrafficClass*/) const {
+  return false;
+}
 
 } // namespace fboss
 } // namespace facebook

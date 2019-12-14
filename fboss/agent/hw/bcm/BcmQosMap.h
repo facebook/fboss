@@ -20,15 +20,16 @@ class BcmQosMapEntry;
 
 class BcmQosMap {
  public:
-  explicit BcmQosMap(const BcmSwitchIf* hw);
+  enum Type { IP_INGRESS, IP_EGRESS, MPLS_INGRESS, MPLS_EGRESS };
+  BcmQosMap(const BcmSwitchIf* hw, Type type);
   BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle);
   ~BcmQosMap();
 
   void clear();
-  void addRule(const QosRule& qosRule);
-  void removeRule(const QosRule& qosRule);
-  bool ruleExists(const QosRule& qosRule) const;
-  bool rulesMatch(const std::set<QosRule>& qosRules) const;
+  void addRule(uint16_t internalTrafficClass, uint8_t externalTrafficClass);
+  void removeRule(uint16_t internalTrafficClass, uint8_t externalTrafficClass);
+  bool ruleExists(uint16_t internalTrafficClass, uint8_t externalTrafficClass)
+      const;
   size_t size() const;
 
   int getUnit() const;
@@ -41,9 +42,10 @@ class BcmQosMap {
   BcmQosMap& operator=(const BcmQosMap&) = delete;
 
   const BcmSwitchIf* hw_;
+  Type type_;
   int flags_;
   int handle_;
-  std::map<QosRule, std::unique_ptr<BcmQosMapEntry>> entries_;
+  std::set<std::unique_ptr<BcmQosMapEntry>> entries_;
 };
 
 } // namespace fboss

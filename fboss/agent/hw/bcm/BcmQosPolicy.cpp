@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 
+#include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -23,18 +24,21 @@ BcmQosPolicy::BcmQosPolicy(
   auto warmBootCache = hw->getWarmBootCache();
   auto qosMapItr = warmBootCache->findIngressQosMap(qosPolicy->getRules());
   if (qosMapItr != warmBootCache->ingressQosMaps_end()) {
-    qosMap_ = std::move(*qosMapItr);
+    l3IngressQosMap_ = std::move(*qosMapItr);
     warmBootCache->programmed(qosMapItr);
   } else {
-    qosMap_ = std::make_unique<BcmQosMap>(hw);
+    l3IngressQosMap_ =
+        std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::IP_INGRESS);
     for (const auto& qosRule : qosPolicy->getRules()) {
-      qosMap_->addRule(qosRule);
+      l3IngressQosMap_->addRule(
+          BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.queueId),
+          qosRule.dscp);
     }
   }
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle() const {
-  return static_cast<BcmQosPolicyHandle>(qosMap_->getHandle());
+  return static_cast<BcmQosPolicyHandle>(l3IngressQosMap_->getHandle());
 }
 
 void BcmQosPolicy::update(
@@ -52,7 +56,9 @@ void BcmQosPolicy::update(
       newRules.end(),
       std::inserter(toBeRemoved, toBeRemoved.end()));
   for (const auto& qosRule : toBeRemoved) {
-    qosMap_->removeRule(qosRule);
+    l3IngressQosMap_->removeRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.queueId),
+        qosRule.dscp);
   }
 
   std::vector<QosRule> toBeAdded;
@@ -63,13 +69,25 @@ void BcmQosPolicy::update(
       oldRules.end(),
       std::inserter(toBeAdded, toBeAdded.end()));
   for (const auto& qosRule : toBeAdded) {
-    qosMap_->addRule(qosRule);
+    l3IngressQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.queueId),
+        qosRule.dscp);
   }
 }
 
 bool BcmQosPolicy::policyMatches(
     const std::shared_ptr<QosPolicy>& qosPolicy) const {
-  return qosMap_->rulesMatch(qosPolicy->getRules());
+  if (l3IngressQosMap_->size() != qosPolicy->getRules().size()) {
+    return false;
+  }
+  for (const auto& rule : qosPolicy->getRules()) {
+    if (!l3IngressQosMap_->ruleExists(
+            BcmPortQueueManager::CosQToBcmInternalPriority(rule.queueId),
+            rule.dscp)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 } // namespace fboss
