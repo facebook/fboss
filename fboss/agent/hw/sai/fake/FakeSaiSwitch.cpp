@@ -53,6 +53,12 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
       sw.setLagSeed(attr->value.u32);
       break;
+    case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM:
+      sw.setEcmpAlgorithm(attr->value.s32);
+      break;
+    case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
+      sw.setLagAlgorithm(attr->value.s32);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -141,6 +147,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
         attr[i].value.u32 = sw.lagSeed();
+        break;
+      case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM:
+        attr[i].value.s32 = sw.ecmpAlgorithm();
+        break;
+      case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
+        attr[i].value.s32 = sw.lagAlgorithm();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

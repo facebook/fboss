@@ -42,6 +42,12 @@ class FakeSwitch {
   void setLagSeed(sai_uint32_t seed) {
     lagSeed_ = seed;
   }
+  void setEcmpAlgorithm(sai_int32_t algorithm) {
+    ecmpAlgorithm_ = algorithm;
+  }
+  void setLagAlgorithm(sai_int32_t algorithm) {
+    lagAlgorithm_ = algorithm;
+  }
   bool isShellEnabled() const {
     return shellEnabled_;
   }
@@ -51,6 +57,12 @@ class FakeSwitch {
   sai_uint32_t lagSeed() const {
     return lagSeed_;
   }
+  sai_int32_t ecmpAlgorithm() const {
+    return ecmpAlgorithm_;
+  }
+  sai_int32_t lagAlgorithm() const {
+    return lagAlgorithm_;
+  }
   sai_object_id_t id;
 
  private:
@@ -59,6 +71,8 @@ class FakeSwitch {
   bool shellEnabled_{false};
   sai_uint32_t ecmpSeed_{0};
   sai_uint32_t lagSeed_{0};
+  sai_int32_t ecmpAlgorithm_{SAI_HASH_ALGORITHM_CRC};
+  sai_int32_t lagAlgorithm_{SAI_HASH_ALGORITHM_CRC};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

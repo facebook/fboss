@@ -95,6 +95,14 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED,
         sai_uint32_t>;
+    using EcmpDefaultHashAlgorithm = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM,
+        int32_t>;
+    using LagDefaultHashAlgorithm = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM,
+        int32_t>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -104,7 +112,9 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SrcMac>,
       std::optional<Attributes::SwitchShellEnable>,
       std::optional<Attributes::EcmpDefaultHashSeed>,
-      std::optional<Attributes::LagDefaultHashSeed>>;
+      std::optional<Attributes::LagDefaultHashSeed>,
+      std::optional<Attributes::EcmpDefaultHashAlgorithm>,
+      std::optional<Attributes::LagDefaultHashAlgorithm>>;
 };
 
 class SwitchApi : public SaiApi<SwitchApi> {
