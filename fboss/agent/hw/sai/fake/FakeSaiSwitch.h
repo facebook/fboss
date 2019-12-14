@@ -36,8 +36,20 @@ class FakeSwitch {
   void setShellStatus(bool enabled) {
     shellEnabled_ = enabled;
   }
+  void setEcmpSeed(sai_uint32_t seed) {
+    ecmpSeed_ = seed;
+  }
+  void setLagSeed(sai_uint32_t seed) {
+    lagSeed_ = seed;
+  }
   bool isShellEnabled() const {
     return shellEnabled_;
+  }
+  sai_uint32_t ecmpSeed() const {
+    return ecmpSeed_;
+  }
+  sai_uint32_t lagSeed() const {
+    return lagSeed_;
   }
   sai_object_id_t id;
 
@@ -45,6 +57,8 @@ class FakeSwitch {
   folly::MacAddress srcMac_;
   bool inited_{false};
   bool shellEnabled_{false};
+  sai_uint32_t ecmpSeed_{0};
+  sai_uint32_t lagSeed_{0};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

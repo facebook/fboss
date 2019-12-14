@@ -113,3 +113,18 @@ TEST_F(SwitchApiTest, getHashIds) {
       switchApi->getAttribute(switchId, SaiSwitchTraits::Attributes::LagHash{}),
       1234);
 }
+
+TEST_F(SwitchApiTest, setGetHashSeeds) {
+  SaiSwitchTraits::Attributes::EcmpDefaultHashSeed ecmpSeed{42};
+  switchApi->setAttribute(switchId, ecmpSeed);
+  SaiSwitchTraits::Attributes::LagDefaultHashSeed lagSeed{24};
+  switchApi->setAttribute(switchId, lagSeed);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::EcmpDefaultHashSeed{}),
+      42);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::LagDefaultHashSeed{}),
+      24);
+}

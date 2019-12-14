@@ -36,18 +36,22 @@ sai_status_t set_switch_attribute_fn(
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
+  res = SAI_STATUS_SUCCESS;
   switch (attr->id) {
     case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
       sw.setSrcMac(attr->value.mac);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_SWITCH_ATTR_INIT_SWITCH:
       sw.setInitStatus(attr->value.booldata);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       sw.setShellStatus(attr->value.booldata);
-      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
+      sw.setEcmpSeed(attr->value.u32);
+      break;
+    case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
+      sw.setLagSeed(attr->value.u32);
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -131,6 +135,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_LAG_HASH:
         attr[i].value.oid = kLagHashId;
+        break;
+      case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
+        attr[i].value.u32 = sw.ecmpSeed();
+        break;
+      case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_SEED:
+        attr[i].value.u32 = sw.lagSeed();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
