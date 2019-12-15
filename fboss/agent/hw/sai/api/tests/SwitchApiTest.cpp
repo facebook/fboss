@@ -77,6 +77,13 @@ TEST_F(SwitchApiTest, testSetMac) {
   EXPECT_EQ(switchApi->getAttribute(switchId, blank), newSrcMac);
 }
 
+TEST_F(SwitchApiTest, testSetHwInfo) {
+  SaiSwitchTraits::Attributes::HwInfo hw = std::vector<int8_t>(1, 41);
+  switchApi->setAttribute(switchId, hw);
+  SaiSwitchTraits::Attributes::HwInfo blank;
+  auto hwGot = switchApi->getAttribute(switchId, blank);
+  EXPECT_EQ(hwGot.size(), 1);
+}
 TEST_F(SwitchApiTest, getDefaultVlanId) {
   EXPECT_EQ(
       switchApi->getAttribute(

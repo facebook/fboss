@@ -44,6 +44,11 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_INIT_SWITCH:
       sw.setInitStatus(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
+      sw.setHwInfo(std::vector<int8_t>(
+          attr->value.s8list.list,
+          attr->value.s8list.list + attr->value.s8list.count));
+      break;
     case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       sw.setShellStatus(attr->value.booldata);
       break;
@@ -89,7 +94,7 @@ sai_status_t get_switch_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& sw = fs->swm.get(switch_id);
+  auto& sw = fs->swm.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
@@ -120,6 +125,10 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_INIT_SWITCH:
         attr[i].value.booldata = sw.isInitialized();
+        break;
+      case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
+        attr[i].value.s8list.count = sw.hwInfo().size();
+        attr[i].value.s8list.list = sw.hwInfoData();
         break;
       case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
         attr[i].value.booldata = sw.isShellEnabled();

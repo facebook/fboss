@@ -48,6 +48,9 @@ class FakeSwitch {
   void setLagAlgorithm(sai_int32_t algorithm) {
     lagAlgorithm_ = algorithm;
   }
+  void setHwInfo(std::vector<int8_t> hwInfo) {
+    hwInfo_ = std::move(hwInfo);
+  }
   bool isShellEnabled() const {
     return shellEnabled_;
   }
@@ -63,6 +66,12 @@ class FakeSwitch {
   sai_int32_t lagAlgorithm() const {
     return lagAlgorithm_;
   }
+  const std::vector<int8_t>& hwInfo() const {
+    return hwInfo_;
+  }
+  int8_t* hwInfoData() {
+    return hwInfo_.data();
+  }
   sai_object_id_t id;
 
  private:
@@ -73,6 +82,7 @@ class FakeSwitch {
   sai_uint32_t lagSeed_{0};
   sai_int32_t ecmpAlgorithm_{SAI_HASH_ALGORITHM_CRC};
   sai_int32_t lagAlgorithm_{SAI_HASH_ALGORITHM_CRC};
+  std::vector<int8_t> hwInfo_;
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
