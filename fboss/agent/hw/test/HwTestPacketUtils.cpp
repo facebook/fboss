@@ -33,7 +33,7 @@ using folly::MacAddress;
 using folly::io::RWPrivateCursor;
 
 namespace {
-static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
+auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
 
 EthHdr makeEthHdr(
     MacAddress srcMac,
