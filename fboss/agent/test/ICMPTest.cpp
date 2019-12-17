@@ -585,8 +585,8 @@ TEST(ICMPTest, PacketTooBigV6) {
    * sender is on interface with MTU 9000
    * receiver is on interface with MTU 1500
    */
-  config.interfaces[0].mtu_ref().value_unchecked() = 9000;
-  config.interfaces[1].mtu_ref().value_unchecked() = 1500;
+  config.interfaces[0].mtu_ref() = 9000;
+  config.interfaces[1].mtu_ref() = 1500;
   auto state = testState(config);
   auto handle = createTestHandle(state);
   auto sw = handle->getSw();

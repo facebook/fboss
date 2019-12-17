@@ -66,11 +66,11 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
   config.vlans[0].routable = true;
-  config.vlans[0].intfID_ref().value_unchecked() = 1234;
+  config.vlans[0].intfID_ref() = 1234;
   config.vlans[1].name = "DefaultHWVlan";
   config.vlans[1].id = 1;
   config.vlans[1].routable = true;
-  config.vlans[1].intfID_ref().value_unchecked() = 4321;
+  config.vlans[1].intfID_ref() = 4321;
 
   config.vlanPorts.resize(10);
   config.ports.resize(10);
@@ -91,8 +91,8 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1234;
   config.interfaces[0].vlanID = 5;
-  config.interfaces[0].name_ref().value_unchecked() = "PrimaryInterface";
-  config.interfaces[0].mtu_ref().value_unchecked() = 9000;
+  config.interfaces[0].name_ref() = "PrimaryInterface";
+  config.interfaces[0].mtu_ref() = 9000;
   config.interfaces[0].__isset.mtu = true;
   config.interfaces[0].ipAddresses.resize(5);
   config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
@@ -105,8 +105,8 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
       raInterval.count();
   config.interfaces[1].intfID = 4321;
   config.interfaces[1].vlanID = 1;
-  config.interfaces[1].name_ref().value_unchecked() = "DefaultHWInterface";
-  config.interfaces[1].mtu_ref().value_unchecked() = 9000;
+  config.interfaces[1].name_ref() = "DefaultHWInterface";
+  config.interfaces[1].mtu_ref() = 9000;
   config.interfaces[1].__isset.mtu = true;
   config.interfaces[1].ipAddresses.resize(0);
   config.interfaces[1].ndp_ref().value_unchecked().routerAdvertisementSeconds =
