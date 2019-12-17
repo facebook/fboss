@@ -103,8 +103,6 @@ class RoutingInformationBase {
 
  private:
   struct RouteTable {
-    RouteTable() = default;
-
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
 
