@@ -92,13 +92,39 @@ TEST(ThriftTest, getInterfaceDetail) {
 TEST(ThriftTest, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
   // logic, so we want to ensure that these values don't change.
-  EXPECT_EQ(static_cast<int>(PortSpeed::GIGE), 1000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::XG), 10000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::TWENTYG), 20000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::TWENTYFIVEG), 25000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::FORTYG), 40000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::FIFTYG), 50000);
-  EXPECT_EQ(static_cast<int>(PortSpeed::HUNDREDG), 100000);
+  for (const auto& [key, value] : cfg::_PortSpeed_VALUES_TO_NAMES) {
+    switch (key) {
+      case PortSpeed::DEFAULT:
+        continue;
+      case PortSpeed::GIGE:
+        EXPECT_EQ(static_cast<int>(key), 1000);
+        break;
+      case PortSpeed::XG:
+        EXPECT_EQ(static_cast<int>(key), 10000);
+        break;
+      case PortSpeed::TWENTYG:
+        EXPECT_EQ(static_cast<int>(key), 20000);
+        break;
+      case PortSpeed::TWENTYFIVEG:
+        EXPECT_EQ(static_cast<int>(key), 25000);
+        break;
+      case PortSpeed::FORTYG:
+        EXPECT_EQ(static_cast<int>(key), 40000);
+        break;
+      case PortSpeed::FIFTYG:
+        EXPECT_EQ(static_cast<int>(key), 50000);
+        break;
+      case PortSpeed::HUNDREDG:
+        EXPECT_EQ(static_cast<int>(key), 100000);
+        break;
+      case PortSpeed::TWOHUNDREDG:
+        EXPECT_EQ(static_cast<int>(key), 200000);
+        break;
+      case PortSpeed::FOURHUNDREDG:
+        EXPECT_EQ(static_cast<int>(key), 400000);
+        break;
+    }
+  }
 }
 
 TEST(ThriftTest, LinkLocalRoutes) {
