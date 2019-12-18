@@ -1071,6 +1071,7 @@ void BcmSwitch::processChangedPortQueues(
 
     XLOG(DBG1) << "New cos queue settings on port " << id << " queue "
                << static_cast<int>(newQueue->getID());
+    bcmPort->setupStatsIfNeeded(newPort);
     bcmPort->setupQueue(*newQueue);
   }
 }
