@@ -82,7 +82,6 @@ void fillHwPortStats(
     throw FbossError("port counter size does not match counter id size");
   }
   for (auto counterId : SaiPortTraits::CounterIds) {
-    XLOG(ERR) << "counters: " << counters[index];
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
         hwPortStats.inBytes_ = counters[index];
