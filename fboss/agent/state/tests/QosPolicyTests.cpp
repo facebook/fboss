@@ -257,7 +257,6 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   }
 }
 
-
 TEST(QosPolicy, EmptyRules) {
   cfg::SwitchConfig config;
   auto platform = createMockPlatform();
@@ -414,10 +413,9 @@ TEST(QosPolicy, QosMap) {
   state = publishAndApplyConfig(state, &config, platform.get());
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
 
-  // add Rule expect that exception, either qos rule or maps
+  // allow both qos rule or maps
   policy.rules = dscpRules({{2, {36}}, {3, {34, 35}}});
-  EXPECT_THROW(
-      publishAndApplyConfig(state, &config, platform.get()), FbossError);
+  EXPECT_NO_THROW(publishAndApplyConfig(state, &config, platform.get()));
 }
 
 TEST(QosPolicy, DefaultQosPolicy) {

@@ -1299,8 +1299,9 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
 shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
     const cfg::QosPolicy& qosPolicy) {
   if (qosPolicy.rules.empty() == !qosPolicy.qosMap_ref().has_value()) {
-    throw FbossError(
-        "either the qos rules or qos maps must be provided but not both!");
+    XLOG(WARN) << "both qos rules and qos map are provided in qos policy "
+               << qosPolicy.name
+               << "! dscp map if present in qos map, will override qos rules";
   }
 
   DscpMap ingressDscpMap;
@@ -1327,7 +1328,10 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
           cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
     }
     return make_shared<QosPolicy>(
-        qosPolicy.name, dscpMap, expMap, trafficClassToQueueId);
+        qosPolicy.name,
+        dscpMap.empty() ? ingressDscpMap : dscpMap,
+        expMap,
+        trafficClassToQueueId);
   }
   return make_shared<QosPolicy>(
       qosPolicy.name,
