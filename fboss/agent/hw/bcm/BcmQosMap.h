@@ -39,6 +39,8 @@ class BcmQosMap {
     return type_;
   }
 
+  static int getQosMapFlags(Type type);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmQosMap(const BcmQosMap&) = delete;

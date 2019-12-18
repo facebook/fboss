@@ -21,6 +21,8 @@ class BcmSwitch;
 
 class BcmQosPolicyTable {
  public:
+  using BcmQosPolicyMap =
+      boost::container::flat_map<std::string, std::unique_ptr<BcmQosPolicy>>;
   explicit BcmQosPolicyTable(BcmSwitch* hw) : hw_(hw) {}
 
   void processAddedQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
@@ -49,10 +51,11 @@ class BcmQosPolicyTable {
 
   static bool isValid(const std::shared_ptr<QosPolicy>& qosPolicy);
 
- private:
-  using BcmQosPolicyMap =
-      boost::container::flat_map<std::string, std::unique_ptr<BcmQosPolicy>>;
+  const BcmQosPolicyMap& getQosPolicyMap() const {
+    return qosPolicyMap_;
+  }
 
+ private:
   BcmSwitch* hw_;
   std::optional<std::string> defaultDataPlaneQosPolicy_;
   BcmQosPolicyMap qosPolicyMap_;

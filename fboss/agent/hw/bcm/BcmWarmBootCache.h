@@ -166,6 +166,9 @@ class BcmWarmBootCache {
   using AclEntry2AclStat =
       boost::container::flat_map<BcmAclEntryHandle, AclStatStatus>;
 
+  using QosMapKey = std::pair<std::string, BcmQosMap::Type>;
+  using QosMapKey2QosMapId =
+      boost::container::flat_map<QosMapKey, BcmQosPolicyHandle>;
   /*
    * Callbacks for traversing entries in BCM h/w tables
    */
@@ -225,6 +228,7 @@ class BcmWarmBootCache {
 
   void populateLabelStack2TunnelId(opennsl_l3_egress_t* egress);
   void removeUnclaimedLabeledTunnels();
+  void removeUnclaimedQosMaps();
 
  public:
   /*
@@ -559,6 +563,19 @@ class BcmWarmBootCache {
     return bcmWarmBootState_.get();
   }
 
+  using QosMapKey2QosMapIdItr = typename QosMapKey2QosMapId::const_iterator;
+  QosMapKey2QosMapIdItr findQosMap(
+      const std::string& policyName,
+      BcmQosMap::Type type);
+  void programmed(QosMapKey2QosMapIdItr itr);
+  QosMapKey2QosMapIdItr QosMapKey2QosMapIdBegin() const {
+    return qosMapKey2QosMapId_.cbegin();
+  }
+
+  QosMapKey2QosMapIdItr QosMapKey2QosMapIdEnd() const {
+    return qosMapKey2QosMapId_.cend();
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -646,6 +663,7 @@ class BcmWarmBootCache {
   MirroredAcl2Handle mirroredAcl2Handle_;
   Label2LabelActionMap label2LabelActions_;
   std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
+  QosMapKey2QosMapId qosMapKey2QosMapId_;
 };
 } // namespace fboss
 } // namespace facebook

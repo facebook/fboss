@@ -107,25 +107,44 @@ void BcmQosPolicy::programIngressDscpQosMap(
   auto qosMapItr =
       warmBootCache->findIngressDscpMap(qosPolicy->getDscpMap().from());
   if (qosMapItr != warmBootCache->qosMaps_end()) {
+    // TODO(pshaikh): remove this after a push as earlier version may not have
+    // required bcm switch's warmboot state.
     ingressDscpQosMap_ = std::move(*qosMapItr);
     warmBootCache->programmed(qosMapItr);
-  } else {
-    ingressDscpQosMap_ =
-        std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::IP_INGRESS);
-    for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
-      ingressDscpQosMap_->addRule(
-          BcmPortQueueManager::CosQToBcmInternalPriority(
-              dscpToTrafficClass.trafficClass()),
-          dscpToTrafficClass.attr());
-    }
+    return;
+  }
+
+  auto qosMapItr2 = warmBootCache->findQosMap(
+      qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS);
+  if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
+    ingressDscpQosMap_ = std::make_unique<BcmQosMap>(
+        hw, BcmQosMap::Type::IP_INGRESS, qosMapItr2->second);
+    warmBootCache->programmed(qosMapItr2);
+    return;
+  }
+
+  ingressDscpQosMap_ =
+      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::IP_INGRESS);
+  for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
+    ingressDscpQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(
+            dscpToTrafficClass.trafficClass()),
+        dscpToTrafficClass.attr());
   }
 }
 
 void BcmQosPolicy::programIngressExpQosMap(
     BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  // TODO: implement warmboot
-  if (qosPolicy->getExpMap().from().empty()) {
+  auto warmBootCache = hw->getWarmBootCache();
+  auto qosMapItr = warmBootCache->findQosMap(
+      qosPolicy->getName(), BcmQosMap::Type::MPLS_INGRESS);
+  if (qosMapItr != warmBootCache->QosMapKey2QosMapIdEnd()) {
+    ingressExpQosMap_ = std::make_unique<BcmQosMap>(
+        hw,
+        BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_INGRESS),
+        qosMapItr->second);
+    warmBootCache->programmed(qosMapItr);
     return;
   }
   ingressExpQosMap_ =
@@ -141,8 +160,18 @@ void BcmQosPolicy::programIngressExpQosMap(
 void BcmQosPolicy::programEgressExpQosMap(
     BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  // TODO: implement warmboot
   if (qosPolicy->getExpMap().to().empty()) {
+    return;
+  }
+  auto warmBootCache = hw->getWarmBootCache();
+  auto qosMapItr = warmBootCache->findQosMap(
+      qosPolicy->getName(), BcmQosMap::Type::MPLS_EGRESS);
+  if (qosMapItr != warmBootCache->QosMapKey2QosMapIdEnd()) {
+    egressExpQosMap_ = std::make_unique<BcmQosMap>(
+        hw,
+        BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_EGRESS),
+        qosMapItr->second);
+    warmBootCache->programmed(qosMapItr);
     return;
   }
   egressExpQosMap_ =
@@ -153,6 +182,18 @@ void BcmQosPolicy::programEgressExpQosMap(
             trafficClassToExp.trafficClass()),
         trafficClassToExp.attr());
   }
+}
+
+const BcmQosMap* BcmQosPolicy::getIngressDscpQosMap() const {
+  return ingressDscpQosMap_.get();
+}
+
+const BcmQosMap* BcmQosPolicy::getIngressExpQosMap() const {
+  return ingressExpQosMap_.get();
+}
+
+const BcmQosMap* BcmQosPolicy::getEgressExpQosMap() const {
+  return egressExpQosMap_.get();
 }
 } // namespace fboss
 } // namespace facebook

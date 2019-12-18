@@ -104,6 +104,8 @@ folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
       bcmWarmBootState_->mplsNextHopsToFollyDynamic();
   bcmWarmBootState[kIntfTable] = bcmWarmBootState_->intfTableToFollyDynamic();
   bcmWarmBootState[kWarmBootCache] = toFollyDynamic();
+  bcmWarmBootState[kQosPolicyTable] =
+      bcmWarmBootState_->qosTableToFollyDynamic();
 
   return bcmWarmBootState;
 }
@@ -300,6 +302,35 @@ void BcmWarmBootCache::populateFromWarmBootState(
   for (const auto& intfTableEntry : intfTable) {
     vlan2BcmIfIdInWarmBootFile_.emplace(
         VlanID(intfTableEntry[kVlan].asInt()), intfTableEntry[kIntfId].asInt());
+  }
+
+  // TODO(pshaikh): in earlier warm boot state file, kQosPolicyTable could be
+  // absent after two pushes this condition can be removed
+  const auto& qosPolicyTable =
+      (warmBootState[kHwSwitch].find(kQosPolicyTable) !=
+       warmBootState[kHwSwitch].items().end())
+      ? warmBootState[kHwSwitch][kQosPolicyTable]
+      : folly::dynamic::object();
+  for (const auto& qosPolicy : qosPolicyTable.keys()) {
+    auto policyName = qosPolicy.asString();
+    if (qosPolicyTable[policyName].find(kInDscp) !=
+        qosPolicyTable[policyName].items().end()) {
+      qosMapKey2QosMapId_.emplace(
+          std::make_pair(policyName, BcmQosMap::Type::IP_INGRESS),
+          qosPolicyTable[policyName][kInDscp].asInt());
+    }
+    if (qosPolicyTable[policyName].find(kInExp) !=
+        qosPolicyTable[policyName].items().end()) {
+      qosMapKey2QosMapId_.emplace(
+          std::make_pair(policyName, BcmQosMap::Type::MPLS_INGRESS),
+          qosPolicyTable[policyName][kInExp].asInt());
+    }
+    if (qosPolicyTable[policyName].find(kOutExp) !=
+        qosPolicyTable[policyName].items().end()) {
+      qosMapKey2QosMapId_.emplace(
+          std::make_pair(policyName, BcmQosMap::Type::MPLS_EGRESS),
+          qosPolicyTable[policyName][kOutExp].asInt());
+    }
   }
 }
 
@@ -1045,5 +1076,19 @@ void BcmWarmBootCache::programmed(QosMapsItr itr) {
   XLOG(DBG1) << "Programmed QosMap, removing from warm boot cache.";
   qosMaps_.erase(itr);
 }
+
+BcmWarmBootCache::QosMapKey2QosMapIdItr BcmWarmBootCache::findQosMap(
+    const std::string& policyName,
+    BcmQosMap::Type type) {
+  return qosMapKey2QosMapId_.find(std::make_pair(policyName, type));
+}
+
+void BcmWarmBootCache::programmed(BcmWarmBootCache::QosMapKey2QosMapIdItr itr) {
+  XLOG(DBG1) << "Programmed QosMap of type " << itr->first.second << " with id "
+             << itr->second << " for policy " << itr->first.first
+             << ", removing from warm boot cache.";
+  qosMapKey2QosMapId_.erase(itr);
+}
+
 } // namespace fboss
 } // namespace facebook

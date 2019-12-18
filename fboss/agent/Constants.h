@@ -50,6 +50,10 @@ inline constexpr folly::StringPiece kVlan{"vlan"};
 inline constexpr folly::StringPiece kVrf{"vrf"};
 inline constexpr folly::StringPiece kWarmBootCache{"warmBootCache"};
 inline constexpr folly::StringPiece kWeight{"weight"};
+inline constexpr folly::StringPiece kInDscp{"in_dscp"};
+inline constexpr folly::StringPiece kInExp{"in_exp"};
+inline constexpr folly::StringPiece kOutExp{"out_exp"};
+inline constexpr folly::StringPiece kQosPolicyTable{"qosPolicyTable"};
 
 } // namespace fboss
 } // namespace facebook

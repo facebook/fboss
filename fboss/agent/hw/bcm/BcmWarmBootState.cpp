@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
+#include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -235,6 +236,28 @@ folly::dynamic BcmWarmBootState::intfTableToFollyDynamic() const {
     intfTableDynamic.push_back(intfDynamic);
   }
   return intfTableDynamic;
+}
+
+folly::dynamic BcmWarmBootState::qosTableToFollyDynamic() const {
+  folly::dynamic qosTableDynamic = folly::dynamic::object;
+
+  const auto& qosPolicyMap = hw_->getQosPolicyTable()->getQosPolicyMap();
+  for (const auto& nameToQosPolicy : qosPolicyMap) {
+    folly::dynamic qosPolicy = folly::dynamic::object;
+    const auto& name = nameToQosPolicy.first;
+    const auto policy = nameToQosPolicy.second.get();
+    if (auto ingressDscpMap = policy->getIngressDscpQosMap()) {
+      qosPolicy[kInDscp] = ingressDscpMap->getHandle();
+    }
+    if (auto ingressExpMap = policy->getIngressExpQosMap()) {
+      qosPolicy[kInExp] = ingressExpMap->getHandle();
+    }
+    if (auto egressExpMap = policy->getEgressExpQosMap()) {
+      qosPolicy[kOutExp] = egressExpMap->getHandle();
+    }
+    qosTableDynamic[name] = qosPolicy;
+  }
+  return qosTableDynamic;
 }
 } // namespace fboss
 } // namespace facebook

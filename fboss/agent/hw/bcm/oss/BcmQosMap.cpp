@@ -32,6 +32,9 @@ bool BcmQosMap::ruleExists(
     uint8_t /*externalTrafficClass*/) const {
   return false;
 }
+int BcmQosMap::getQosMapFlags(BcmQosMap::Type /*type*/) {
+  return 0;
+}
 
 } // namespace fboss
 } // namespace facebook

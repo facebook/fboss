@@ -29,6 +29,10 @@ class BcmQosPolicy {
   BcmQosPolicyHandle getHandle(BcmQosMap::Type type) const;
   bool policyMatches(const std::shared_ptr<QosPolicy>& qosPolicy) const;
 
+  const BcmQosMap* getIngressDscpQosMap() const;
+  const BcmQosMap* getIngressExpQosMap() const;
+  const BcmQosMap* getEgressExpQosMap() const;
+
  private:
   void programIngressDscpQosMap(
       BcmSwitch* hw,
