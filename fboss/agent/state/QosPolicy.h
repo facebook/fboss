@@ -192,6 +192,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
     return getFields()->trafficClassToQueueId;
   }
 
+  void setExpMap(ExpMap expMap) {
+    writableFields()->expMap = std::move(expMap);
+  }
+
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;

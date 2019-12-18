@@ -1274,6 +1274,18 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
   for (auto& qosPolicy : qosPolicies) {
     if (defaultDataPlaneQosPolicyName == qosPolicy.name) {
       newQosPolicy = createQosPolicy(qosPolicy);
+      if (newQosPolicy->getExpMap().empty()) {
+        // if exp map is not provided, set some default mapping
+        // TODO(pshaikh): remove this once default config for switches will
+        // always have EXP maps
+        auto expMap = TrafficClassToQosAttributeMap<EXP>();
+        for (auto i = 0; i < 8; i++) {
+          expMap.addToEntry(static_cast<TrafficClass>(i), static_cast<EXP>(i));
+          expMap.addFromEntry(
+              static_cast<TrafficClass>(i), static_cast<EXP>(i));
+        }
+        newQosPolicy->setExpMap(ExpMap(expMap));
+      }
       break;
     }
   }
