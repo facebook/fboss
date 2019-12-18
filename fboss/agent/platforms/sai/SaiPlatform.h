@@ -57,6 +57,11 @@ class SaiPlatform : public Platform {
     return {};
   }
 
+  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
+    // TODO(srikrishnagopu) SAI has a specific api to get default value
+    return 0;
+  }
+
  private:
   void initImpl() override;
   void initSaiProfileValues();

@@ -142,13 +142,13 @@ PortQueue* generateDefaultPortQueue() {
   return &pqObject;
 }
 
-constexpr int kStateTestDefaultNumPortQueues = 4;
+constexpr int kStateTestNumPortQueues = 4;
 std::shared_ptr<SwitchState> applyInitConfig() {
   auto stateV0 = make_shared<SwitchState>();
   stateV0->registerPort(PortID(1), "port1");
   auto port0 = stateV0->getPort(PortID(1));
   QueueConfig initialQueues;
-  for (uint8_t i = 0; i < kStateTestDefaultNumPortQueues; i++) {
+  for (uint8_t i = 0; i < kStateTestNumPortQueues; i++) {
     auto q = std::make_shared<PortQueue>(i);
     q->setScheduling(cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
     q->setWeight(1);
@@ -183,7 +183,7 @@ TEST(PortQueue, stateDelta) {
   config.ports[0].logicalID = 1;
   config.ports[0].name_ref().value_unchecked() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
-  for (int i = 0; i < kStateTestDefaultNumPortQueues; i++) {
+  for (int i = 0; i < kStateTestNumPortQueues; i++) {
     cfg::PortQueue queue;
     queue.id = i;
     queue.weight_ref() = i;
@@ -194,20 +194,38 @@ TEST(PortQueue, stateDelta) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-  EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
+  EXPECT_EQ(
+      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      queues1.size());
+  // The first kStateTestNumPortQueues should have weight changed
+  for (int i = 0; i < kStateTestNumPortQueues; i++) {
+    EXPECT_EQ(i, queues1.at(i)->getWeight());
+  }
+  // The rest queue should be default
+  for (int i = kStateTestNumPortQueues;
+       i < platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+       i++) {
+    auto defaultQ = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
+    defaultQ->setStreamType(cfg::StreamType::UNICAST);
+    EXPECT_EQ(*defaultQ, *(queues1.at(i)));
+  }
 
   config.portQueueConfigs["queue_config"][0].weight_ref().value_unchecked() = 5;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-  EXPECT_EQ(kStateTestDefaultNumPortQueues, queues2.size());
+  EXPECT_EQ(
+      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      queues2.size());
   EXPECT_EQ(5, queues2.at(0)->getWeight());
 
   config.portQueueConfigs["queue_config"].pop_back();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
-  EXPECT_EQ(kStateTestDefaultNumPortQueues, queues3.size());
+  EXPECT_EQ(
+      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      queues3.size());
   EXPECT_EQ(1, queues3.at(3)->getWeight());
 
   cfg::PortQueue queueExtra;
@@ -239,7 +257,9 @@ TEST(PortQueue, aqmState) {
   EXPECT_NE(nullptr, stateV1);
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   // change one queue, won't affect the other queues
-  EXPECT_EQ(kStateTestDefaultNumPortQueues, queues1.size());
+  EXPECT_EQ(
+      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      queues1.size());
   PortQueue::AQMMap aqms{
       {cfg::QueueCongestionBehavior::EARLY_DROP, getEarlyDropAqmConfig()}};
   EXPECT_EQ(queues1.at(0)->getAqms(), aqms);

@@ -373,6 +373,17 @@ TEST(Port, initDefaultConfig) {
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
   state->getPorts()->getPortIf(portID)->setAdminState(cfg::PortState::DISABLED);
+  // Make sure we also update the port queues to default queue so that the
+  // config change won't be triggered because of empty queue cfg
+  QueueConfig queues;
+  for (int i = 0;
+       i < platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+       i++) {
+    auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
+    queue->setStreamType(cfg::StreamType::UNICAST);
+    queues.push_back(queue);
+  }
+  state->getPorts()->getPortIf(portID)->resetPortQueues(queues);
 
   // Applying an empty config should result in no changes.
   cfg::SwitchConfig config;
@@ -393,6 +404,18 @@ TEST(Port, pauseConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
   state->registerPort(PortID(1), "port1");
+  // Make sure we also update the port queues to default queue so that the
+  // config change won't be triggered because of empty queue cfg
+  QueueConfig queues;
+  for (int i = 0;
+       i < platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+       i++) {
+    auto queue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
+    queue->setStreamType(cfg::StreamType::UNICAST);
+    queues.push_back(queue);
+  }
+  state->getPorts()->getPortIf(PortID(1))->resetPortQueues(queues);
+
   auto verifyPause = [&state](cfg::PortPause expectPause) {
     auto port = state->getPort(PortID(1));
     auto pause = port->getPause();
@@ -608,11 +631,25 @@ TEST(PortMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto portsV0 = stateV0->getPorts();
-  portsV0->registerPort(PortID(1), "port1");
-  portsV0->registerPort(PortID(2), "port2");
-  portsV0->registerPort(PortID(3), "port3");
-  portsV0->registerPort(PortID(4), "port4");
+  auto registerPort = [&](int i) {
+    auto port =
+        std::make_shared<Port>(PortID(i), folly::format("port{}", i).str());
+    QueueConfig defaultQueues;
+    for (int q = 0;
+         q < platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+         q++) {
+      auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(q));
+      defaultQueue->setStreamType(cfg::StreamType::UNICAST);
+      defaultQueues.push_back(defaultQueue);
+    }
+    port->resetPortQueues(defaultQueues);
+    portsV0->addPort(port);
+  };
+  for (int i = 1; i <= 4; i++) {
+    registerPort(i);
+  }
   portsV0->publish();
+
   EXPECT_EQ(0, portsV0->getGeneration());
   auto port1 = portsV0->getPort(PortID(1));
   auto port2 = portsV0->getPort(PortID(2));

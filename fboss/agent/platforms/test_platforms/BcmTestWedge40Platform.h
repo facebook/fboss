@@ -75,6 +75,11 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
 
   HwAsic* getAsic() const override;
 
+  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
+    // Wedge40 doesn't support port queue, return 0
+    return 0;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;

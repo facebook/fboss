@@ -85,6 +85,10 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
     return asic_.get();
   }
 
+  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
+    return streamType == cfg::StreamType::UNICAST ? 8 : 10;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawkPlatform(BcmTestWedgeTomahawkPlatform const&) = delete;

@@ -204,6 +204,8 @@ class Platform {
    */
   virtual void initPorts() = 0;
 
+  virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
