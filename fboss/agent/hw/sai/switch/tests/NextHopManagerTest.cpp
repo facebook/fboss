@@ -18,10 +18,6 @@ using namespace facebook::fboss;
 
 class NextHopManagerTest : public ManagerTestBase {
  public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
-  }
-
   void checkNextHop(
       NextHopSaiId nextHopId,
       RouterInterfaceSaiId expectedRifId,

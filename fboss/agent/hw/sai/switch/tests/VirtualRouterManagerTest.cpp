@@ -20,12 +20,7 @@
 
 using namespace facebook::fboss;
 
-class VirtualRouterManagerTest : public ManagerTestBase {
- public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
-  }
-};
+class VirtualRouterManagerTest : public ManagerTestBase {};
 
 TEST_F(VirtualRouterManagerTest, defaultVirtualRouterTest) {
   SaiVirtualRouterHandle* virtualRouterHandle =

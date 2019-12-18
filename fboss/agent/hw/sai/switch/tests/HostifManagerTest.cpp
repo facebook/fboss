@@ -16,12 +16,7 @@
 
 using namespace facebook::fboss;
 
-class HostifManagerTest : public ManagerTestBase {
- public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
-  }
-};
+class HostifManagerTest : public ManagerTestBase {};
 
 TEST_F(HostifManagerTest, createHostifTrap) {
   uint32_t queueId = 4;

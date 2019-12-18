@@ -20,12 +20,7 @@
 
 using namespace facebook::fboss;
 
-class BridgeManagerTest : public ManagerTestBase {
- public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
-  }
-};
+class BridgeManagerTest : public ManagerTestBase {};
 
 TEST_F(BridgeManagerTest, addBridgePort) {
   auto bridgePort =
