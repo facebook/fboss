@@ -41,8 +41,12 @@ struct SaiVirtualRouterTraits {
         SAI_VIRTUAL_ROUTER_ATTR_SRC_MAC_ADDRESS,
         folly::MacAddress>;
   };
-  using CreateAttributes = std::tuple<std::optional<Attributes::SrcMac>>;
+  using CreateAttributes = std::tuple<>;
 };
+
+template <>
+struct IsSaiObjectOwnedByAdapter<SaiVirtualRouterTraits>
+    : public std::true_type {};
 
 class VirtualRouterApi : public SaiApi<VirtualRouterApi> {
  public:

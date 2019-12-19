@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -24,13 +25,26 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {
-  SaiVirtualRouterTraits::AdapterHostKey k;
-  SaiVirtualRouterTraits::CreateAttributes attributes;
   auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();
-  auto defaultVirtualRouter = store.setObject(k, attributes);
-  auto handle = std::make_unique<SaiVirtualRouterHandle>();
-  handle->virtualRouter = defaultVirtualRouter;
-  handles_.emplace(std::make_pair(RouterID(0), std::move(handle)));
+  auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
+  if (!platform_->getObjectKeysSupported()) {
+    /*
+     * TODO: This is only a temporary solution till the hw supports
+     * reload of the default Virtual Router.
+     */
+    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+    VirtualRouterSaiId defaultVrfId{
+        SaiApiTable::getInstance()->switchApi().getAttribute(
+            switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
+    virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
+        SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
+  }
+  if (!virtualRouterHandle->virtualRouter) {
+    SaiVirtualRouterTraits::CreateAttributes attributes{std::make_tuple()};
+    virtualRouterHandle->virtualRouter =
+        store.setObject(std::monostate{}, attributes);
+  }
+  handles_.emplace(std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
 }
 
 VirtualRouterSaiId SaiVirtualRouterManager::addVirtualRouter(

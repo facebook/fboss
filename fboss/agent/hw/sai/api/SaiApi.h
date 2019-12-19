@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
+#include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/lib/TupleUtils.h"
 
