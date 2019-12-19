@@ -26,7 +26,7 @@ class BcmQosPolicy {
   void update(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
-  BcmQosPolicyHandle getHandle() const;
+  BcmQosPolicyHandle getHandle(BcmQosMap::Type type) const;
   bool policyMatches(const std::shared_ptr<QosPolicy>& qosPolicy) const;
 
  private:
@@ -34,11 +34,11 @@ class BcmQosPolicy {
       BcmSwitch* hw,
       const std::shared_ptr<QosPolicy>& qosPolicy);
   void programIngressExpQosMap(
-      BcmSwitch* /*hw*/,
-      const std::shared_ptr<QosPolicy>& /*qosPolicy*/) {}
+      BcmSwitch* hw,
+      const std::shared_ptr<QosPolicy>& qosPolicy);
   void programEgressExpQosMap(
-      BcmSwitch* /*hw*/,
-      const std::shared_ptr<QosPolicy>& /*qosPolicy*/) {}
+      BcmSwitch* hw,
+      const std::shared_ptr<QosPolicy>& qosPolicy);
 
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;
   std::unique_ptr<BcmQosMap> ingressExpQosMap_;
