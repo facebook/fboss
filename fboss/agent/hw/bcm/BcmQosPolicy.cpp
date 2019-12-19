@@ -26,8 +26,29 @@ BcmQosPolicy::BcmQosPolicy(
   programEgressExpQosMap(hw, qosPolicy);
 }
 
-BcmQosPolicyHandle BcmQosPolicy::getHandle() const {
-  return static_cast<BcmQosPolicyHandle>(ingressDscpQosMap_->getHandle());
+BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
+  switch (type) {
+    case BcmQosMap::Type::IP_INGRESS:
+      if (ingressDscpQosMap_) {
+        return static_cast<BcmQosPolicyHandle>(ingressDscpQosMap_->getHandle());
+      }
+      break;
+    case BcmQosMap::Type::IP_EGRESS:
+      return static_cast<BcmQosPolicyHandle>(-1);
+      break;
+    case BcmQosMap::Type::MPLS_INGRESS:
+      if (ingressExpQosMap_) {
+        return static_cast<BcmQosPolicyHandle>(ingressExpQosMap_->getHandle());
+      }
+
+      break;
+    case BcmQosMap::Type::MPLS_EGRESS:
+      if (egressExpQosMap_) {
+        return static_cast<BcmQosPolicyHandle>(egressExpQosMap_->getHandle());
+      }
+      break;
+  }
+  return static_cast<BcmQosPolicyHandle>(-1);
 }
 
 void BcmQosPolicy::update(
@@ -100,5 +121,38 @@ void BcmQosPolicy::programIngressDscpQosMap(
   }
 }
 
+void BcmQosPolicy::programIngressExpQosMap(
+    BcmSwitch* hw,
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  // TODO: implement warmboot
+  if (qosPolicy->getExpMap().from().empty()) {
+    return;
+  }
+  ingressExpQosMap_ =
+      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::MPLS_INGRESS);
+  for (const auto& expToTrafficClass : qosPolicy->getExpMap().from()) {
+    ingressExpQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(
+            expToTrafficClass.trafficClass()),
+        expToTrafficClass.attr());
+  }
+}
+
+void BcmQosPolicy::programEgressExpQosMap(
+    BcmSwitch* hw,
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  // TODO: implement warmboot
+  if (qosPolicy->getExpMap().to().empty()) {
+    return;
+  }
+  egressExpQosMap_ =
+      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::MPLS_EGRESS);
+  for (const auto& trafficClassToExp : qosPolicy->getExpMap().to()) {
+    egressExpQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(
+            trafficClassToExp.trafficClass()),
+        trafficClassToExp.attr());
+  }
+}
 } // namespace fboss
 } // namespace facebook
