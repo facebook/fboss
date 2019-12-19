@@ -13,25 +13,11 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
-#include <folly/logging/xlog.h>
-
-#include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
 
-class FdbStoreTest : public ::testing::Test {
- public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-};
-
-TEST_F(FdbStoreTest, loadFdb) {
+TEST_F(SaiStoreTest, loadFdb) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
@@ -49,7 +35,7 @@ TEST_F(FdbStoreTest, loadFdb) {
       42);
 }
 
-TEST_F(FdbStoreTest, fdbLoadCtor) {
+TEST_F(SaiStoreTest, fdbLoadCtor) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
@@ -64,14 +50,14 @@ TEST_F(FdbStoreTest, fdbLoadCtor) {
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj.attributes()), 42);
 }
 
-TEST_F(FdbStoreTest, fdbCreateCtor) {
+TEST_F(SaiStoreTest, fdbCreateCtor) {
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
   SaiObject<SaiFdbTraits> obj(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42}, 0);
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj.attributes()), 42);
 }
 
-TEST_F(FdbStoreTest, fdbSetBridgePort) {
+TEST_F(SaiStoreTest, fdbSetBridgePort) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);

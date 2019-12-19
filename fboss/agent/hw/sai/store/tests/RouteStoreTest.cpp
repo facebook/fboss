@@ -12,26 +12,11 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-
-#include <folly/logging/xlog.h>
-
-#include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
 
-class RouteStoreTest : public ::testing::Test {
- public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-};
-
-TEST_F(RouteStoreTest, loadRoute) {
+TEST_F(SaiStoreTest, loadRoute) {
   auto& routeApi = saiApiTable->routeApi();
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
@@ -54,7 +39,7 @@ TEST_F(RouteStoreTest, loadRoute) {
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, got->attributes()), 4);
 }
 
-TEST_F(RouteStoreTest, routeLoadCtor) {
+TEST_F(SaiStoreTest, routeLoadCtor) {
   auto& routeApi = saiApiTable->routeApi();
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
@@ -73,7 +58,7 @@ TEST_F(RouteStoreTest, routeLoadCtor) {
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
 }
 
-TEST_F(RouteStoreTest, routeCreateCtor) {
+TEST_F(SaiStoreTest, routeCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
@@ -86,7 +71,7 @@ TEST_F(RouteStoreTest, routeCreateCtor) {
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
 }
 
-TEST_F(RouteStoreTest, routeSetToPunt) {
+TEST_F(SaiStoreTest, routeSetToPunt) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);

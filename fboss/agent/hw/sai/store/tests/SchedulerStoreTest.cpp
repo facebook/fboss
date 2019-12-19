@@ -12,14 +12,11 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-
-#include <folly/logging/xlog.h>
-
-#include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
 
-class SchedulerStoreTest : public ::testing::Test {
+class SchedulerStoreTest : public SaiStoreTest {
  public:
   void SetUp() override {
     fs = FakeSai::getInstance();

@@ -13,23 +13,12 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
-#include <folly/logging/xlog.h>
-
-#include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
 
-class PortStoreTest : public ::testing::Test {
+class PortStoreTest : public SaiStoreTest {
  public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-
   SaiPortTraits::CreateAttributes makeAttrs(
       uint32_t lane,
       uint32_t speed,

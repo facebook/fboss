@@ -12,26 +12,11 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-
-#include <folly/logging/xlog.h>
-
-#include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
 
-class NeighborStoreTest : public ::testing::Test {
- public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-};
-
-TEST_F(NeighborStoreTest, loadNeighbor) {
+TEST_F(SaiStoreTest, loadNeighbor) {
   auto& neighborApi = saiApiTable->neighborApi();
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
@@ -51,7 +36,7 @@ TEST_F(NeighborStoreTest, loadNeighbor) {
       dstMac);
 }
 
-TEST_F(NeighborStoreTest, neighborLoadCtor) {
+TEST_F(SaiStoreTest, neighborLoadCtor) {
   auto& neighborApi = saiApiTable->neighborApi();
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
@@ -64,7 +49,7 @@ TEST_F(NeighborStoreTest, neighborLoadCtor) {
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
 }
 
-TEST_F(NeighborStoreTest, neighborCreateCtor) {
+TEST_F(SaiStoreTest, neighborCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
@@ -74,7 +59,7 @@ TEST_F(NeighborStoreTest, neighborCreateCtor) {
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
 }
 
-TEST_F(NeighborStoreTest, setDstMac) {
+TEST_F(SaiStoreTest, setDstMac) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};

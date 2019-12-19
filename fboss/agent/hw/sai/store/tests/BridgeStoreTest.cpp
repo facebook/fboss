@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 #include <folly/logging/xlog.h>
 
@@ -21,19 +22,7 @@
 
 using namespace facebook::fboss;
 
-class BridgeStoreTest : public ::testing::Test {
- public:
-  void SetUp() override {
-    fs = FakeSai::getInstance();
-    sai_api_initialize(0, nullptr);
-    saiApiTable = SaiApiTable::getInstance();
-    saiApiTable->queryApis();
-  }
-  std::shared_ptr<FakeSai> fs;
-  std::shared_ptr<SaiApiTable> saiApiTable;
-};
-
-TEST_F(BridgeStoreTest, loadBridge) {
+TEST_F(SaiStoreTest, loadBridge) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiBridgeTraits>();
@@ -43,7 +32,7 @@ TEST_F(BridgeStoreTest, loadBridge) {
       SAI_BRIDGE_TYPE_1Q);
 }
 
-TEST_F(BridgeStoreTest, loadBridgePort) {
+TEST_F(SaiStoreTest, loadBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
   SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
                                           42,
@@ -65,7 +54,7 @@ TEST_F(BridgeStoreTest, loadBridgePort) {
  * BridgeStore.reload() anyway.
  */
 
-TEST_F(BridgeStoreTest, bridgePortLoadCtor) {
+TEST_F(SaiStoreTest, bridgePortLoadCtor) {
   auto& bridgeApi = saiApiTable->bridgeApi();
   SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
                                           42,
@@ -77,7 +66,7 @@ TEST_F(BridgeStoreTest, bridgePortLoadCtor) {
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }
 
-TEST_F(BridgeStoreTest, bridgePortCreateCtor) {
+TEST_F(SaiStoreTest, bridgePortCreateCtor) {
   SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
                                           42,
                                           true,
