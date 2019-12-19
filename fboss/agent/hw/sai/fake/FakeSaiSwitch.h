@@ -36,6 +36,12 @@ class FakeSwitch {
   void setShellStatus(bool enabled) {
     shellEnabled_ = enabled;
   }
+  void setEcmpHashV4Id(const sai_object_id_t id) {
+    ecmpHashV4_ = id;
+  }
+  void setEcmpHashV6Id(const sai_object_id_t id) {
+    ecmpHashV6_ = id;
+  }
   void setEcmpSeed(sai_uint32_t seed) {
     ecmpSeed_ = seed;
   }
@@ -53,6 +59,12 @@ class FakeSwitch {
   }
   bool isShellEnabled() const {
     return shellEnabled_;
+  }
+  sai_object_id_t ecmpHashV4Id() const {
+    return ecmpHashV4_;
+  }
+  sai_object_id_t ecmpHashV6Id() const {
+    return ecmpHashV6_;
   }
   sai_uint32_t ecmpSeed() const {
     return ecmpSeed_;
@@ -82,6 +94,8 @@ class FakeSwitch {
   sai_uint32_t lagSeed_{0};
   sai_int32_t ecmpAlgorithm_{SAI_HASH_ALGORITHM_CRC};
   sai_int32_t lagAlgorithm_{SAI_HASH_ALGORITHM_CRC};
+  sai_object_id_t ecmpHashV4_{0};
+  sai_object_id_t ecmpHashV6_{0};
   std::vector<int8_t> hwInfo_;
 };
 

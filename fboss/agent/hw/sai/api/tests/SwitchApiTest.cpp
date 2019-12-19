@@ -152,3 +152,21 @@ TEST_F(SwitchApiTest, setGetHashAlgorithms) {
           switchId, SaiSwitchTraits::Attributes::LagDefaultHashAlgorithm{}),
       SAI_HASH_ALGORITHM_XOR);
 }
+
+TEST_F(SwitchApiTest, setGetEcmpV4Hash) {
+  SaiSwitchTraits::Attributes::EcmpHashV4 ecmpHash{42};
+  switchApi->setAttribute(switchId, ecmpHash);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::EcmpHashV4{}),
+      42);
+}
+
+TEST_F(SwitchApiTest, setGetEcmpV6Hash) {
+  SaiSwitchTraits::Attributes::EcmpHashV6 ecmpHash{42};
+  switchApi->setAttribute(switchId, ecmpHash);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::EcmpHashV6{}),
+      42);
+}

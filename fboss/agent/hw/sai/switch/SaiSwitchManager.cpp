@@ -39,6 +39,8 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
       hwInfo,
       srcMac,
       std::nullopt, // shell
+      std::nullopt, // ecmp hash v4
+      std::nullopt, // ecmp hash v6
       std::nullopt, // ecmp hash seed
       std::nullopt, // lag hash seed
       std::nullopt, // ecmp hash algo

@@ -52,6 +52,12 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_SWITCH_SHELL_ENABLE:
       sw.setShellStatus(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_ECMP_HASH_IPV4:
+      sw.setEcmpHashV4Id(attr->value.oid);
+      break;
+    case SAI_SWITCH_ATTR_ECMP_HASH_IPV6:
+      sw.setEcmpHashV6Id(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
       sw.setEcmpSeed(attr->value.u32);
       break;
@@ -150,6 +156,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_LAG_HASH:
         attr[i].value.oid = kLagHashId;
+        break;
+      case SAI_SWITCH_ATTR_ECMP_HASH_IPV4:
+        attr[i].value.oid = sw.ecmpHashV4Id();
+        break;
+      case SAI_SWITCH_ATTR_ECMP_HASH_IPV6:
+        attr[i].value.oid = sw.ecmpHashV6Id();
         break;
       case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_SEED:
         attr[i].value.u32 = sw.ecmpSeed();
