@@ -159,6 +159,16 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return 1;
   }
 
+  L2Entry::L2EntryType expectedL2EntryTypeOnAdd() const {
+    /*
+     * TD2 and TH learn the entry as PENDING, TH3 learns the entry as VALIDATED
+     */
+    return (getPlatform()->getAsic()->getAsicType() !=
+            HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3)
+        ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
+        : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+  }
+
   void testHwLearningHelper(PortDescriptor portDescr) {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
@@ -205,7 +215,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
           l2LearningObserver_.waitForLearningUpdate(),
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
+          expectedL2EntryTypeOnAdd());
     };
 
     auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
@@ -226,12 +236,15 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       l2LearningObserver_.reset();
       sendPkt();
 
-      // Verify if we get ADD (learn) callback for PENDING entry
+      /*
+       * Verify if we get ADD (learn) callback for PENDING entry for TD2, TH
+       * and VALIDATED entry for TH3.
+       */
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdate(),
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
+          expectedL2EntryTypeOnAdd());
       EXPECT_TRUE(wasMacLearnt(portDescr));
 
       // Force MAC aging to as fast a possible but min is still 1 second
