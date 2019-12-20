@@ -34,58 +34,66 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 namespace facebook {
 namespace fboss {
 
+// As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
+
+enum SffPages {
+  LOWER,
+  PAGE0,
+  PAGE3,
+};
+
 // As per SFF-8636
 static SffFieldInfo::SffFieldMap qsfpFields = {
     // Base page values, including alarms and sensors
-    {SffField::IDENTIFIER, {QsfpPages::LOWER, 0, 1}},
-    {SffField::STATUS, {QsfpPages::LOWER, 1, 2}},
-    {SffField::TEMPERATURE_ALARMS, {QsfpPages::LOWER, 6, 1}},
-    {SffField::VCC_ALARMS, {QsfpPages::LOWER, 7, 1}},
-    {SffField::CHANNEL_RX_PWR_ALARMS, {QsfpPages::LOWER, 9, 2}},
-    {SffField::CHANNEL_TX_BIAS_ALARMS, {QsfpPages::LOWER, 11, 2}},
-    {SffField::CHANNEL_TX_PWR_ALARMS, {QsfpPages::LOWER, 13, 2}},
-    {SffField::TEMPERATURE, {QsfpPages::LOWER, 22, 2}},
-    {SffField::VCC, {QsfpPages::LOWER, 26, 2}},
-    {SffField::CHANNEL_RX_PWR, {QsfpPages::LOWER, 34, 8}},
-    {SffField::CHANNEL_TX_BIAS, {QsfpPages::LOWER, 42, 8}},
-    {SffField::CHANNEL_TX_PWR, {QsfpPages::LOWER, 50, 8}},
-    {SffField::TX_DISABLE, {QsfpPages::LOWER, 86, 1}},
-    {SffField::RATE_SELECT_RX, {QsfpPages::LOWER, 87, 1}},
-    {SffField::RATE_SELECT_TX, {QsfpPages::LOWER, 88, 1}},
-    {SffField::POWER_CONTROL, {QsfpPages::LOWER, 93, 1}},
-    {SffField::CDR_CONTROL, {QsfpPages::LOWER, 98, 1}},
-    {SffField::PAGE_SELECT_BYTE, {QsfpPages::LOWER, 127, 1}},
+    {SffField::IDENTIFIER, {SffPages::LOWER, 0, 1}},
+    {SffField::STATUS, {SffPages::LOWER, 1, 2}},
+    {SffField::TEMPERATURE_ALARMS, {SffPages::LOWER, 6, 1}},
+    {SffField::VCC_ALARMS, {SffPages::LOWER, 7, 1}},
+    {SffField::CHANNEL_RX_PWR_ALARMS, {SffPages::LOWER, 9, 2}},
+    {SffField::CHANNEL_TX_BIAS_ALARMS, {SffPages::LOWER, 11, 2}},
+    {SffField::CHANNEL_TX_PWR_ALARMS, {SffPages::LOWER, 13, 2}},
+    {SffField::TEMPERATURE, {SffPages::LOWER, 22, 2}},
+    {SffField::VCC, {SffPages::LOWER, 26, 2}},
+    {SffField::CHANNEL_RX_PWR, {SffPages::LOWER, 34, 8}},
+    {SffField::CHANNEL_TX_BIAS, {SffPages::LOWER, 42, 8}},
+    {SffField::CHANNEL_TX_PWR, {SffPages::LOWER, 50, 8}},
+    {SffField::TX_DISABLE, {SffPages::LOWER, 86, 1}},
+    {SffField::RATE_SELECT_RX, {SffPages::LOWER, 87, 1}},
+    {SffField::RATE_SELECT_TX, {SffPages::LOWER, 88, 1}},
+    {SffField::POWER_CONTROL, {SffPages::LOWER, 93, 1}},
+    {SffField::CDR_CONTROL, {SffPages::LOWER, 98, 1}},
+    {SffField::PAGE_SELECT_BYTE, {SffPages::LOWER, 127, 1}},
 
     // Page 0 values, including vendor info:
-    {SffField::EXTENDED_IDENTIFIER, {QsfpPages::PAGE0, 129, 1}},
-    {SffField::ETHERNET_COMPLIANCE, {QsfpPages::PAGE0, 131, 1}},
-    {SffField::EXTENDED_RATE_COMPLIANCE, {QsfpPages::PAGE0, 141, 1}},
-    {SffField::LENGTH_SM_KM, {QsfpPages::PAGE0, 142, 1}},
-    {SffField::LENGTH_OM3, {QsfpPages::PAGE0, 143, 1}},
-    {SffField::LENGTH_OM2, {QsfpPages::PAGE0, 144, 1}},
-    {SffField::LENGTH_OM1, {QsfpPages::PAGE0, 145, 1}},
-    {SffField::LENGTH_COPPER, {QsfpPages::PAGE0, 146, 1}},
-    {SffField::DEVICE_TECHNOLOGY, {QsfpPages::PAGE0, 147, 1}},
-    {SffField::VENDOR_NAME, {QsfpPages::PAGE0, 148, 16}},
-    {SffField::VENDOR_OUI, {QsfpPages::PAGE0, 165, 3}},
-    {SffField::PART_NUMBER, {QsfpPages::PAGE0, 168, 16}},
-    {SffField::REVISION_NUMBER, {QsfpPages::PAGE0, 184, 2}},
-    {SffField::OPTIONS, {QsfpPages::PAGE0, 195, 1}},
-    {SffField::VENDOR_SERIAL_NUMBER, {QsfpPages::PAGE0, 196, 16}},
-    {SffField::MFG_DATE, {QsfpPages::PAGE0, 212, 8}},
-    {SffField::DIAGNOSTIC_MONITORING_TYPE, {QsfpPages::PAGE0, 220, 1}},
-    {SffField::ENHANCED_OPTIONS, {QsfpPages::PAGE0, 221, 1}},
+    {SffField::EXTENDED_IDENTIFIER, {SffPages::PAGE0, 129, 1}},
+    {SffField::ETHERNET_COMPLIANCE, {SffPages::PAGE0, 131, 1}},
+    {SffField::EXTENDED_RATE_COMPLIANCE, {SffPages::PAGE0, 141, 1}},
+    {SffField::LENGTH_SM_KM, {SffPages::PAGE0, 142, 1}},
+    {SffField::LENGTH_OM3, {SffPages::PAGE0, 143, 1}},
+    {SffField::LENGTH_OM2, {SffPages::PAGE0, 144, 1}},
+    {SffField::LENGTH_OM1, {SffPages::PAGE0, 145, 1}},
+    {SffField::LENGTH_COPPER, {SffPages::PAGE0, 146, 1}},
+    {SffField::DEVICE_TECHNOLOGY, {SffPages::PAGE0, 147, 1}},
+    {SffField::VENDOR_NAME, {SffPages::PAGE0, 148, 16}},
+    {SffField::VENDOR_OUI, {SffPages::PAGE0, 165, 3}},
+    {SffField::PART_NUMBER, {SffPages::PAGE0, 168, 16}},
+    {SffField::REVISION_NUMBER, {SffPages::PAGE0, 184, 2}},
+    {SffField::OPTIONS, {SffPages::PAGE0, 195, 1}},
+    {SffField::VENDOR_SERIAL_NUMBER, {SffPages::PAGE0, 196, 16}},
+    {SffField::MFG_DATE, {SffPages::PAGE0, 212, 8}},
+    {SffField::DIAGNOSTIC_MONITORING_TYPE, {SffPages::PAGE0, 220, 1}},
+    {SffField::ENHANCED_OPTIONS, {SffPages::PAGE0, 221, 1}},
 
     // These are custom fields FB gets cable vendors to populate.
     // TODO: add support for turning off these fields via a command-line flag
-    {SffField::LENGTH_COPPER_DECIMETERS, {QsfpPages::PAGE0, 236, 1}},
-    {SffField::DAC_GAUGE, {QsfpPages::PAGE0, 237, 1}},
+    {SffField::LENGTH_COPPER_DECIMETERS, {SffPages::PAGE0, 236, 1}},
+    {SffField::DAC_GAUGE, {SffPages::PAGE0, 237, 1}},
 
     // Page 3 values, including alarm and warning threshold values:
-    {SffField::TEMPERATURE_THRESH, {QsfpPages::PAGE3, 128, 8}},
-    {SffField::VCC_THRESH, {QsfpPages::PAGE3, 144, 8}},
-    {SffField::RX_PWR_THRESH, {QsfpPages::PAGE3, 176, 8}},
-    {SffField::TX_BIAS_THRESH, {QsfpPages::PAGE3, 184, 8}},
+    {SffField::TEMPERATURE_THRESH, {SffPages::PAGE3, 128, 8}},
+    {SffField::VCC_THRESH, {SffPages::PAGE3, 144, 8}},
+    {SffField::RX_PWR_THRESH, {SffPages::PAGE3, 176, 8}},
+    {SffField::TX_BIAS_THRESH, {SffPages::PAGE3, 184, 8}},
 };
 
 static SffFieldMultiplier qsfpMultiplier = {
@@ -546,7 +554,7 @@ SffModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
   if (!cacheIsValid()) {
     throw FbossError("Qsfp is either not present or the data is not read");
   }
-  if (dataAddress == QsfpPages::LOWER) {
+  if (dataAddress == SffPages::LOWER) {
     CHECK_LE(offset + length, sizeof(lowerPage_));
     /* Copy data from the cache */
     return (lowerPage_ + offset);
@@ -554,11 +562,11 @@ SffModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
     offset -= MAX_QSFP_PAGE_SIZE;
     CHECK_GE(offset, 0);
     CHECK_LE(offset, MAX_QSFP_PAGE_SIZE);
-    if (dataAddress == QsfpPages::PAGE0) {
+    if (dataAddress == SffPages::PAGE0) {
       CHECK_LE(offset + length, sizeof(page0_));
       /* Copy data from the cache */
       return (page0_ + offset);
-    } else if (dataAddress == QsfpPages::PAGE3 && !flatMem_) {
+    } else if (dataAddress == SffPages::PAGE3 && !flatMem_) {
       CHECK_LE(offset + length, sizeof(page3_));
       /* Copy data from the cache */
       return (page3_ + offset);

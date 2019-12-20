@@ -20,14 +20,6 @@
 
 namespace facebook { namespace fboss {
 
-// As per SFF-8436, QSFP+ 10 Gbs 4X PLUGGABLE TRANSCEIVER spec
-
-enum QsfpPages {
-  LOWER,
-  PAGE0,
-  PAGE3,
-};
-
 class TransceiverImpl;
 
 /**
