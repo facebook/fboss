@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -38,6 +39,7 @@ void SaiManagerTable::createSaiTableManagers(
     ConcurrentIndices* concurrentIndices) {
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
+  hashManager_ = std::make_unique<SaiHashManager>(this);
   hostifManager_ = std::make_unique<SaiHostifManager>(this);
   portManager_ =
       std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
@@ -79,6 +81,7 @@ SaiManagerTable::~SaiManagerTable() {
   bridgeManager_.reset();
   vlanManager_.reset();
   portManager_.reset();
+  hashManager_.reset();
   switchManager_.reset();
 }
 
@@ -96,9 +99,17 @@ const SaiFdbManager& SaiManagerTable::fdbManager() const {
   return *fdbManager_;
 }
 
+SaiHashManager& SaiManagerTable::hashManager() {
+  return *hashManager_;
+}
+const SaiHashManager& SaiManagerTable::hashManager() const {
+  return *hashManager_;
+}
+
 SaiHostifManager& SaiManagerTable::hostifManager() {
   return *hostifManager_;
 }
+
 const SaiHostifManager& SaiManagerTable::hostifManager() const {
   return *hostifManager_;
 }

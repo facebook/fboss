@@ -35,6 +35,7 @@ void SaiApiTable::queryApis() {
   apisQueried_ = true;
   std::get<std::unique_ptr<BridgeApi>>(apis_) = std::make_unique<BridgeApi>();
   std::get<std::unique_ptr<FdbApi>>(apis_) = std::make_unique<FdbApi>();
+  std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();
   std::get<std::unique_ptr<HostifApi>>(apis_) = std::make_unique<HostifApi>();
   std::get<std::unique_ptr<NextHopApi>>(apis_) = std::make_unique<NextHopApi>();
   std::get<std::unique_ptr<NextHopGroupApi>>(apis_) =
@@ -66,6 +67,13 @@ FdbApi& SaiApiTable::fdbApi() {
 }
 const FdbApi& SaiApiTable::fdbApi() const {
   return getApi<FdbApi>();
+}
+
+HashApi& SaiApiTable::hashApi() {
+  return getApi<HashApi>();
+}
+const HashApi& SaiApiTable::hashApi() const {
+  return getApi<HashApi>();
 }
 
 HostifApi& SaiApiTable::hostifApi() {

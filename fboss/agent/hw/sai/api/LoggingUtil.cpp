@@ -39,6 +39,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "neighbor";
     case SAI_API_ACL:
       return "acl";
+    case SAI_API_HASH:
+      return "hash";
     case SAI_API_HOSTIF:
       return "hostif";
     case SAI_API_MIRROR:

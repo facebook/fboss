@@ -16,6 +16,7 @@ namespace facebook::fboss {
 class ConcurrentIndices;
 class SaiBridgeManager;
 class SaiFdbManager;
+class SaiHashManager;
 class SaiHostifManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
@@ -43,6 +44,9 @@ class SaiManagerTable {
 
   SaiFdbManager& fdbManager();
   const SaiFdbManager& fdbManager() const;
+
+  SaiHashManager& hashManager();
+  const SaiHashManager& hashManager() const;
 
   SaiHostifManager& hostifManager();
   const SaiHostifManager& hostifManager() const;
@@ -83,6 +87,7 @@ class SaiManagerTable {
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiFdbManager> fdbManager_;
+  std::unique_ptr<SaiHashManager> hashManager_;
   std::unique_ptr<SaiHostifManager> hostifManager_;
   std::unique_ptr<SaiNeighborManager> neighborManager_;
   std::unique_ptr<SaiNextHopManager> nextHopManager_;

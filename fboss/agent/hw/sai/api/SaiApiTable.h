@@ -52,6 +52,9 @@ class SaiApiTable {
   FdbApi& fdbApi();
   const FdbApi& fdbApi() const;
 
+  HashApi& hashApi();
+  const HashApi& hashApi() const;
+
   HostifApi& hostifApi();
   const HostifApi& hostifApi() const;
 
@@ -102,6 +105,7 @@ class SaiApiTable {
   std::tuple<
       std::unique_ptr<BridgeApi>,
       std::unique_ptr<FdbApi>,
+      std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
       std::unique_ptr<NextHopApi>,
       std::unique_ptr<NextHopGroupApi>,
