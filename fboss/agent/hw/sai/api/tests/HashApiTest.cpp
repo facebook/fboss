@@ -116,3 +116,27 @@ TEST_F(HashApiTest, setUdf) {
   EXPECT_EQ(userDefinedFieldsGot.size(), 1);
   EXPECT_EQ(userDefinedFieldsGot[0], 42);
 }
+
+TEST_F(HashApiTest, nativeFieldHashTest) {
+  auto halfHash = SaiHashTraits::Attributes::NativeHashFieldList{
+      {SAI_NATIVE_HASH_FIELD_SRC_IP, SAI_NATIVE_HASH_FIELD_DST_IP}};
+
+  auto fullHash = SaiHashTraits::Attributes::NativeHashFieldList{
+      {SAI_NATIVE_HASH_FIELD_SRC_IP,
+       SAI_NATIVE_HASH_FIELD_DST_IP,
+       SAI_NATIVE_HASH_FIELD_L4_SRC_PORT,
+       SAI_NATIVE_HASH_FIELD_L4_DST_PORT}};
+
+  auto halfHashKey = SaiHashTraits::AdapterHostKey{halfHash, {}};
+  auto fullHashKey = SaiHashTraits::AdapterHostKey{fullHash, {}};
+
+  EXPECT_NE(
+      std::hash<SaiHashTraits::AdapterHostKey>{}(halfHashKey),
+      std::hash<SaiHashTraits::AdapterHostKey>{}(fullHashKey));
+  EXPECT_EQ(
+      std::hash<SaiHashTraits::AdapterHostKey>{}(halfHashKey),
+      std::hash<SaiHashTraits::AdapterHostKey>{}(halfHashKey));
+  EXPECT_EQ(
+      std::hash<SaiHashTraits::AdapterHostKey>{}(fullHashKey),
+      std::hash<SaiHashTraits::AdapterHostKey>{}(fullHashKey));
+}

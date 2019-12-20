@@ -82,3 +82,11 @@ class HashApi : public SaiApi<HashApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiHashTraits::AdapterHostKey> {
+  size_t operator()(
+      const facebook::fboss::SaiHashTraits::AdapterHostKey& n) const;
+};
+} // namespace std
