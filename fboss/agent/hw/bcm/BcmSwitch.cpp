@@ -61,6 +61,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -2382,10 +2383,6 @@ void BcmSwitch::l2LearningCallback(
 void BcmSwitch::l2LearningUpdateReceived(
     opennsl_l2_addr_t* l2Addr,
     int operation) noexcept {
-  /*
-   * TODO (skhare)
-   * Dispatch "valid" callbacks
-   */
   if (l2Addr && isL2OperationOfInterest(operation) &&
       isL2EntryTypeOfInterest(l2Addr, operation)) {
     callback_->l2LearningUpdateReceived(
@@ -2395,6 +2392,9 @@ void BcmSwitch::l2LearningUpdateReceived(
 }
 
 /*
+ * TD2 and TH
+ * ----------
+ *
  * Ignore DELETE for PENDING and ADD for VALIDATED.
  *
  * Typical Learning workflow:
@@ -2418,6 +2418,18 @@ void BcmSwitch::l2LearningUpdateReceived(
  *  - The MAC+vlan that is aged out would be VALIDATED as when the entry is
  *    learned, in resposne to PENDING ADD callback, wedge_agent would have
  *    VALIDATED the entry.
+ *
+ * TH3
+ * ---
+ *
+ *  For TH3, there is no notion of PENDING
+ *
+ *  The entries are learned as VALIDATED and thus the first callback agent
+ *  receives is for VALIDATED ADD entry, and wedge_agent must process it.
+ *
+ *  In response, the wedge_agent will program the already VALIDATED entry
+ *  again. This has no effect and does not generate additional callback.
+ *
  */
 bool BcmSwitch::isL2EntryTypeOfInterest(
     const opennsl_l2_addr_t* l2Addr,
@@ -2426,14 +2438,20 @@ bool BcmSwitch::isL2EntryTypeOfInterest(
     return true;
   }
 
-  constexpr auto kAddOperation =
-      static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
-  constexpr auto kDeleteOperation =
-      static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+  if (getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    constexpr auto kAddOperation =
+        static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+    constexpr auto kDeleteOperation =
+        static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
 
-  return !(
-      (operation == kAddOperation && (!isL2EntryPending(l2Addr))) ||
-      (operation == kDeleteOperation && isL2EntryPending(l2Addr)));
+    return !(
+        (operation == kAddOperation && (!isL2EntryPending(l2Addr))) ||
+        (operation == kDeleteOperation && isL2EntryPending(l2Addr)));
+  }
+
+  // For TH3
+  return true;
 }
 
 } // namespace fboss
