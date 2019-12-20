@@ -18,11 +18,15 @@ namespace std {
 size_t hash<facebook::fboss::SaiHashTraits::AdapterHostKey>::operator()(
     const facebook::fboss::SaiHashTraits::AdapterHostKey& key) const {
   size_t seed = 0;
-  for (auto field : std::get<0>(key).value()) {
-    boost::hash_combine(seed, field);
+  if (std::get<0>(key)) {
+    for (auto field : std::get<0>(key).value().value()) {
+      boost::hash_combine(seed, field);
+    }
   }
-  for (auto udf : std::get<1>(key).value()) {
-    boost::hash_combine(seed, udf);
+  if (std::get<1>(key)) {
+    for (auto udf : std::get<1>(key).value().value()) {
+      boost::hash_combine(seed, udf);
+    }
   }
   return seed;
 }

@@ -31,7 +31,7 @@ class HashApiTest : public ::testing::Test {
 
 TEST_F(HashApiTest, emptyHash) {
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{{}, {}}, 0);
+      SaiHashTraits::CreateAttributes{{}, std::nullopt}, 0);
   auto dummy1 = SaiHashTraits::Attributes::NativeHashFieldList{};
   auto hashFields = hashApi->getAttribute(
       hashid, SaiHashTraits::Attributes::NativeHashFieldList{});
@@ -49,7 +49,7 @@ TEST_F(HashApiTest, fullHash) {
       SAI_NATIVE_HASH_FIELD_L4_DST_PORT,
   }};
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{hashFields, {}}, 0);
+      SaiHashTraits::CreateAttributes{hashFields, std::nullopt}, 0);
   auto nativeHashFieldsGot = hashApi->getAttribute(
       hashid, SaiHashTraits::Attributes::NativeHashFieldList{});
   auto userDefinedFieldsGot =
@@ -64,7 +64,7 @@ TEST_F(HashApiTest, halfHash) {
       SAI_NATIVE_HASH_FIELD_DST_IP,
   }};
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{hashFields, {}}, 0);
+      SaiHashTraits::CreateAttributes{hashFields, std::nullopt}, 0);
   auto nativeHashFieldsGot = hashApi->getAttribute(
       hashid, SaiHashTraits::Attributes::NativeHashFieldList{});
   auto userDefinedFieldsGot =
@@ -78,8 +78,9 @@ TEST_F(HashApiTest, hashAndUdf) {
       SAI_NATIVE_HASH_FIELD_SRC_IP,
       SAI_NATIVE_HASH_FIELD_DST_IP,
   }};
+  auto udfGroups = SaiHashTraits::Attributes::UDFGroupList{{42}};
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{hashFields, {{42}}}, 0);
+      SaiHashTraits::CreateAttributes{hashFields, udfGroups}, 0);
   auto nativeHashFieldsGot = hashApi->getAttribute(
       hashid, SaiHashTraits::Attributes::NativeHashFieldList{});
   auto userDefinedFieldsGot =
@@ -90,7 +91,7 @@ TEST_F(HashApiTest, hashAndUdf) {
 
 TEST_F(HashApiTest, setHash) {
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{{}, {}}, 0);
+      SaiHashTraits::CreateAttributes{std::nullopt, std::nullopt}, 0);
   auto hashFields = SaiHashTraits::Attributes::NativeHashFieldList{
       {SAI_NATIVE_HASH_FIELD_SRC_IP}};
   hashApi->setAttribute(hashid, hashFields);
@@ -105,7 +106,7 @@ TEST_F(HashApiTest, setHash) {
 
 TEST_F(HashApiTest, setUdf) {
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{{}, {}}, 0);
+      SaiHashTraits::CreateAttributes{std::nullopt, std::nullopt}, 0);
   auto udfFields = SaiHashTraits::Attributes::UDFGroupList{{42}};
   hashApi->setAttribute(hashid, udfFields);
   auto nativeHashFieldsGot = hashApi->getAttribute(
@@ -127,8 +128,8 @@ TEST_F(HashApiTest, nativeFieldHashTest) {
        SAI_NATIVE_HASH_FIELD_L4_SRC_PORT,
        SAI_NATIVE_HASH_FIELD_L4_DST_PORT}};
 
-  auto halfHashKey = SaiHashTraits::AdapterHostKey{halfHash, {}};
-  auto fullHashKey = SaiHashTraits::AdapterHostKey{fullHash, {}};
+  auto halfHashKey = SaiHashTraits::AdapterHostKey{halfHash, std::nullopt};
+  auto fullHashKey = SaiHashTraits::AdapterHostKey{fullHash, std::nullopt};
 
   EXPECT_NE(
       std::hash<SaiHashTraits::AdapterHostKey>{}(halfHashKey),
@@ -139,4 +140,10 @@ TEST_F(HashApiTest, nativeFieldHashTest) {
   EXPECT_EQ(
       std::hash<SaiHashTraits::AdapterHostKey>{}(fullHashKey),
       std::hash<SaiHashTraits::AdapterHostKey>{}(fullHashKey));
+}
+
+TEST_F(HashApiTest, emptyFieldHashTest) {
+  auto emptyHash = SaiHashTraits::AdapterHostKey{std::nullopt, std::nullopt};
+
+  EXPECT_EQ(std::hash<SaiHashTraits::AdapterHostKey>{}(emptyHash), 0);
 }

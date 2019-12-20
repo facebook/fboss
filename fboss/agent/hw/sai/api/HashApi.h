@@ -42,10 +42,12 @@ struct SaiHashTraits {
         std::vector<sai_object_id_t>>;
   };
   using AdapterKey = HashSaiId;
-  using AdapterHostKey =
-      std::tuple<Attributes::NativeHashFieldList, Attributes::UDFGroupList>;
-  using CreateAttributes =
-      std::tuple<Attributes::NativeHashFieldList, Attributes::UDFGroupList>;
+  using AdapterHostKey = std::tuple<
+      std::optional<Attributes::NativeHashFieldList>,
+      std::optional<Attributes::UDFGroupList>>;
+  using CreateAttributes = std::tuple<
+      std::optional<Attributes::NativeHashFieldList>,
+      std::optional<Attributes::UDFGroupList>>;
 };
 
 class HashApi : public SaiApi<HashApi> {
