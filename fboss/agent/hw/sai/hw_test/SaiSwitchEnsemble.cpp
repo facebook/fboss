@@ -20,6 +20,10 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 
+#include <folly/gen/Base.h>
+
+#include <boost/container/flat_set.hpp>
+
 #include <memory>
 #include <thread>
 
@@ -97,7 +101,14 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   SwitchStats dummy;
   getHwSwitch()->updateStats(&dummy);
-  return getHwSwitch()->managerTable()->portManager().getPortStats();
+  auto allPortStats =
+      getHwSwitch()->managerTable()->portManager().getPortStats();
+  boost::container::flat_set<PortID> portIds(ports.begin(), ports.end());
+  return folly::gen::from(allPortStats) |
+      folly::gen::filter([&portIds](const auto& portIdAndStat) {
+           return portIds.find(portIdAndStat.first) != portIds.end();
+         }) |
+      folly::gen::as<std::map<PortID, HwPortStats>>();
 }
 
 void SaiSwitchEnsemble::stopHwCallLogging() const {
