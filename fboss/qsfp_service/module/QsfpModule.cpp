@@ -14,7 +14,7 @@
 #include <iomanip>
 #include "fboss/agent/FbossError.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
-#include "fboss/qsfp_service/module/SffFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 

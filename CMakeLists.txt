@@ -261,8 +261,8 @@ add_executable(qsfp_service
     fboss/qsfp_service/Main.cpp
     fboss/qsfp_service/QsfpServiceHandler.cpp
     fboss/qsfp_service/module/QsfpModule.cpp
-    fboss/qsfp_service/module/SffFieldInfo.cpp
     fboss/qsfp_service/module/oss/QsfpModule.cpp
+    fboss/qsfp_service/module/sff/SffFieldInfo.cpp
     fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
     fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
     fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp

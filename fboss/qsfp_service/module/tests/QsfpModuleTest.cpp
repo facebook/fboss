@@ -17,7 +17,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
-#include "fboss/qsfp_service/module/SffFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <gtest/gtest.h>
