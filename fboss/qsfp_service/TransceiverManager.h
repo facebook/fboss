@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "fboss/agent/types.h"
-#include "fboss/qsfp_service/sff/Transceiver.h"
+#include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook { namespace fboss {

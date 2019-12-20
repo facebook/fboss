@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/qsfp_service/sff/QsfpModule.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 

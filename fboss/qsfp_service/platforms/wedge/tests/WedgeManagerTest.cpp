@@ -12,8 +12,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
-#include "fboss/qsfp_service/sff/tests/MockQsfpModule.h"
-#include "fboss/qsfp_service/sff/tests/MockTransceiverImpl.h"
+#include "fboss/qsfp_service/module/tests/MockQsfpModule.h"
+#include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

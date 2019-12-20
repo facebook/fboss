@@ -4,7 +4,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 

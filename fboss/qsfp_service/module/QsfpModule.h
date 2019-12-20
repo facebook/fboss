@@ -10,7 +10,7 @@
 #pragma once
 #include <cstdint>
 #include <mutex>
-#include "fboss/qsfp_service/sff/Transceiver.h"
+#include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 

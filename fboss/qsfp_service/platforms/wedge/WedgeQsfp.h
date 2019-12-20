@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <mutex>
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
-#include "fboss/qsfp_service/sff/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
 
 namespace facebook { namespace fboss {
 

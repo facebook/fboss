@@ -8,16 +8,16 @@
  *
  */
 
-#include "fboss/qsfp_service/sff/tests/MockQsfpModule.h"
-#include "fboss/qsfp_service/sff/tests/MockTransceiverImpl.h"
+#include "fboss/qsfp_service/module/tests/MockQsfpModule.h"
+#include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 #include <folly/Memory.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/qsfp_service/sff/TransceiverImpl.h"
-#include "fboss/qsfp_service/sff/QsfpModule.h"
-#include "fboss/qsfp_service/sff/SffFieldInfo.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/SffFieldInfo.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <gtest/gtest.h>
