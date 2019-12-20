@@ -115,140 +115,175 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
   void verifyL2TableCallback(
       const std::pair<L2Entry, L2EntryUpdateType>* l2EntryAndUpdateType,
+      PortDescriptor portDescr,
       L2EntryUpdateType expectedL2EntryUpdateType,
       L2Entry::L2EntryType expectedL2EntryType) {
     auto [l2Entry, l2EntryUpdateType] = *l2EntryAndUpdateType;
 
     EXPECT_EQ(l2Entry.getMac(), kSourceMac());
     EXPECT_EQ(l2Entry.getVlanID(), VlanID(initialConfig().vlanPorts[0].vlanID));
-    EXPECT_TRUE(l2Entry.getPort().isPhysicalPort());
-    EXPECT_EQ(l2Entry.getPort().phyPortID(), masterLogicalPortIds()[0]);
+    EXPECT_EQ(l2Entry.getPort(), portDescr);
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
 
-  void verifyLearningAndAgingHelper(cfg::L2LearningMode l2LearningMode) {
-    constexpr int kMinAgeSecs = 1;
-    bool removed = false;
+  void setupHelper(
+      cfg::L2LearningMode l2LearningMode,
+      PortDescriptor portDescr) {
+    auto newCfg{initialConfig()};
+    newCfg.switchSettings.l2LearningMode = l2LearningMode;
 
-    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
-      l2LearningObserver_.reset();
-      // Disable aging: this guarantees no aging callback till we have
-      // opportunity to verify learning callback (avoid aging callback
-      // data overwriting learning callback data).
-      // After learning callback is verified, we would re-enable aging and
-      // verify aging callback.
-      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    if (portDescr.isAggregatePort()) {
+      newCfg.ports[0].state = cfg::PortState::ENABLED;
+      addAggPort(
+          std::numeric_limits<AggregatePortID>::max(),
+          {masterLogicalPortIds()[0]},
+          &newCfg);
+      auto state = applyNewConfig(newCfg);
+      applyNewState(enableTrunkPorts(state));
+    } else {
+      applyNewConfig(newCfg);
     }
+  }
 
-    // sendPkt here instead of setup b/c the last step of the test
-    // removes the packet, so we need to reset it with each verify()
-    sendPkt();
+  PortDescriptor physPortDescr() const {
+    return PortDescriptor(PortID(masterLogicalPortIds()[0]));
+  }
 
-    // If Learning Mode is SOFTWARE, verify if we get callback for learned MAC
-    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+  PortDescriptor aggPortDescr() const {
+    return PortDescriptor(
+        AggregatePortID(std::numeric_limits<AggregatePortID>::max()));
+  }
+
+  int kMinAgeInSecs() {
+    return 1;
+  }
+
+  void testHwLearningHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      sendPkt();
+    };
+
+    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+
+    // MACs learned should be preserved across warm boot
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testHwAgingHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+    };
+
+    auto verify = [this, portDescr]() {
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      sendPkt();
+      EXPECT_TRUE(wasMacLearnt(portDescr));
+
+      // Force MAC aging to as fast a possible but min is still 1 second
+      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testSwLearningHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+
+      l2LearningObserver_.reset();
+      sendPkt();
+
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdate(),
+          portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
           L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
-    }
+    };
 
-    // Verify that we really learned that MAC
-    EXPECT_TRUE(
-        wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
+    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
 
-    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+    // MACs learned should be preserved across warm boot
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testSwAgingHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+    };
+
+    auto verify = [this, portDescr]() {
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+
       l2LearningObserver_.reset();
-    }
+      sendPkt();
 
-    // Force MAC aging to as fast a possible but min is still 1 second
-    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeSecs);
-
-    // If Learning Mode is SOFTWARE, verify if we get callback for aged MAC
-    if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
+      // Verify if we get ADD (learn) callback for PENDING entry
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdate(),
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
           L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
-    }
+      EXPECT_TRUE(wasMacLearnt(portDescr));
 
-    // Verify the mac has been removed; this call will wait up to
-    // seconds before giving up, which is longer than the 2*kMinAge
-    // needed
-    removed = wasMacLearnt(
-        PortDescriptor(PortID(masterLogicalPortIds()[0])),
-        /* shouldExist */ false); // return true if mac no longer learned
-    EXPECT_TRUE(removed);
+      // Force MAC aging to as fast a possible but min is still 1 second
+      l2LearningObserver_.reset();
+      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+
+      // Verify if we get DELETE (aging) callback for VALIDATED entry
+      verifyL2TableCallback(
+          l2LearningObserver_.waitForLearningUpdate(),
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 
  private:
   HwTestLearningUpdateObserver l2LearningObserver_;
 };
 
-TEST_F(HwMacLearningTest, TrunkCheckMacsLearned) {
-  auto setup = [this]() {
-    auto newCfg{initialConfig()};
-    // We enabled the port after applying initial config,
-    // don't disable it again
-    newCfg.ports[0].state = cfg::PortState::ENABLED;
-    addAggPort(
-        std::numeric_limits<AggregatePortID>::max(),
-        {masterLogicalPortIds()[0]},
-        &newCfg);
-    auto state = applyNewConfig(newCfg);
-    applyNewState(enableTrunkPorts(state));
-    sendPkt();
-  };
-  auto verify = [this]() {
-    EXPECT_TRUE(wasMacLearnt(PortDescriptor(
-        AggregatePortID(std::numeric_limits<AggregatePortID>::max()))));
-  };
-  setup();
-  verify();
+TEST_F(HwMacLearningTest, VerifyHwLearningForPort) {
+  testHwLearningHelper(physPortDescr());
 }
 
-TEST_F(HwMacLearningTest, PortCheckMacsLearned) {
-  auto setup = [this]() { sendPkt(); };
-  auto verify = [this]() {
-    EXPECT_TRUE(
-        wasMacLearnt(PortDescriptor(PortID(masterLogicalPortIds()[0]))));
-  };
-  // MACs learned should be preserved across warm boot
-  verifyAcrossWarmBoots(setup, verify);
+TEST_F(HwMacLearningTest, VerifyHwLearningForTrunk) {
+  testHwLearningHelper(aggPortDescr());
 }
 
-TEST_F(HwMacLearningTest, MacAging) {
-  auto setup = [=]() { /* NOOP */ };
-  auto verify = [=]() {
-    verifyLearningAndAgingHelper(cfg::L2LearningMode::HARDWARE);
-  };
-  verifyAcrossWarmBoots(setup, verify);
+TEST_F(HwMacLearningTest, VerifyHwAgingForPort) {
+  testHwAgingHelper(physPortDescr());
 }
 
-TEST_F(HwMacLearningTest, VerifyL2TableUpdateOnLearningAndAging) {
-  /*
-   * TODO (skhare)
-   * L2 Learning implementation on TH3 is different from TD2 and TH.
-   * Discussing this with Broadcom in CS9327819, and once the case is revoled,
-   * we would revisit this.
-   */
-  if (getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    return;
-  }
+TEST_F(HwMacLearningTest, VerifyHwAgingForTrunk) {
+  testHwAgingHelper(aggPortDescr());
+}
 
-  auto setup = [this] {
-    auto newCfg{initialConfig()};
-    newCfg.switchSettings.l2LearningMode = cfg::L2LearningMode::SOFTWARE;
-    applyNewConfig(newCfg);
-  };
+TEST_F(HwMacLearningTest, VerifySwLearningForPort) {
+  testSwLearningHelper(physPortDescr());
+}
 
-  auto verify = [this]() {
-    getHwSwitch()->enableCallbackOnAllL2EntryTypes();
-    verifyLearningAndAgingHelper(cfg::L2LearningMode::SOFTWARE);
-  };
+TEST_F(HwMacLearningTest, VerifySwLearningForTrunk) {
+  testSwLearningHelper(aggPortDescr());
+}
 
-  verifyAcrossWarmBoots(setup, verify);
+TEST_F(HwMacLearningTest, VerifySwAgingForPort) {
+  testSwAgingHelper(physPortDescr());
+}
+
+TEST_F(HwMacLearningTest, VerifySwAgingForTrunk) {
+  testSwAgingHelper(aggPortDescr());
 }
 
 } // namespace fboss
