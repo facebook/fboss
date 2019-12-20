@@ -8,11 +8,11 @@
  *
  */
 
+#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include <folly/Memory.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
-#include "fboss/qsfp_service/module/tests/MockQsfpModule.h"
+#include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 #include <gtest/gtest.h>
@@ -27,14 +27,14 @@ class MockWedgeManager : public WedgeManager {
   explicit MockWedgeManager() : WedgeManager() {}
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-      std::unique_ptr<MockQsfpModule> qsfp =
-        std::make_unique<MockQsfpModule>(nullptr, numPortsPerTransceiver());
+      std::unique_ptr<MockSffModule> qsfp =
+          std::make_unique<MockSffModule>(nullptr, numPortsPerTransceiver());
       mockTransceivers_.push_back(qsfp.get());
       transceivers_.push_back(move(qsfp));
     }
   }
 
-  std::vector<MockQsfpModule*> mockTransceivers_;
+  std::vector<MockSffModule*> mockTransceivers_;
 };
 
 class WedgeManagerTest : public ::testing::Test {
@@ -58,7 +58,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
   // Otherwise, just return the ids requested
   std::vector<int32_t> data = {1, 3, 7};
   for (const auto& i : data) {
-    MockQsfpModule* qsfp = wedgeManager_->mockTransceivers_[i];
+    MockSffModule* qsfp = wedgeManager_->mockTransceivers_[i];
     EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
   }
   wedgeManager_->getTransceiversInfo(transInfo,

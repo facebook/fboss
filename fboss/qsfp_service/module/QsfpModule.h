@@ -28,16 +28,7 @@ enum QsfpPages {
   PAGE3,
 };
 
-enum class SffField;
 class TransceiverImpl;
-
-/*
- * This function takes the QsfpIDPromField name and returns
- * the dataAddress, offset and the length as per the QSFP DOM
- * Document mentioned above.
- */
-void getQsfpFieldAddress(SffField field, int &dataAddress,
-                        int &offset, int &length);
 
 /**
  * This is the QSFP module error which should be throw only if it's module
@@ -69,6 +60,7 @@ class QsfpModule : public Transceiver {
   explicit QsfpModule(
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver);
+  virtual ~QsfpModule() override;
 
   /*
    * Determines if the QSFP is present or not.
@@ -85,16 +77,11 @@ class QsfpModule : public Transceiver {
   TransceiverID getID() const override;
 
   bool detectPresenceLocked();
-  TransceiverInfo parseDataLocked();
+  virtual TransceiverInfo parseDataLocked();
 
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
   void refreshLocked();
-
-  /*
-   * Get the QSFP EEPROM Field
-   */
-  void getFieldValue(SffField fieldName, uint8_t* fieldValue);
 
   /*
    * Customize QSPF fields as necessary
@@ -108,8 +95,6 @@ class QsfpModule : public Transceiver {
    * Returns the entire QSFP information
    */
   TransceiverInfo getTransceiverInfo() override;
-
-  RawDOMData getRawDOMData() override;
 
   void transceiverPortsChanged(
     const std::vector<std::pair<const int, PortStatus>>& ports) override;
@@ -139,14 +124,6 @@ class QsfpModule : public Transceiver {
     DECIMAL_BASE = 10,
     HEX_BASE = 16,
   };
-  // QSFP+ requires a bottom 128 byte page describing important monitoring
-  // information, and then an upper 128 byte page with less frequently
-  // referenced information, including vendor identifiers.  There are
-  // three other optional pages;  the third provides a bunch of
-  // alarm and warning thresholds which we are interested in.
-  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page0_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page3_[MAX_QSFP_PAGE_SIZE];
 
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
@@ -187,16 +164,16 @@ class QsfpModule : public Transceiver {
    * Default speed is set to DEFAULT - this will prevent any speed specific
    * settings from being applied
    */
-  void customizeTransceiverLocked(
-      cfg::PortSpeed speed=cfg::PortSpeed::DEFAULT);
+  virtual void customizeTransceiverLocked(
+      cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT);
 
   /*
    * This function returns a pointer to the value in the static cached
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.
    */
-  const uint8_t* getQsfpValuePtr(int dataAddress, int offset,
-                                 int length) const;
+  virtual const uint8_t*
+  getQsfpValuePtr(int dataAddress, int offset, int length) const = 0;
   /*
    * This function returns the values on the offset and length
    * from the static cached data. The thread needs to have the lock
@@ -209,101 +186,78 @@ class QsfpModule : public Transceiver {
    * The data should be 256 bytes.
    * The thread needs to have the lock before calling the function.
    */
-  void setQsfpIdprom();
+  virtual void setQsfpIdprom() = 0;
   /*
    * Set power mode
    * Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on LR4s.
    */
-  virtual void setPowerOverrideIfSupported(PowerControlState currentState);
+  virtual void setPowerOverrideIfSupported(PowerControlState currentState) = 0;
   /*
    * Enable or disable CDR
    * Which action to take is determined by the port speed
    */
-  virtual void setCdrIfSupported(cfg::PortSpeed speed,
-      FeatureState currentStateTx, FeatureState currentStateRx);
+  virtual void setCdrIfSupported(
+      cfg::PortSpeed speed,
+      FeatureState currentStateTx,
+      FeatureState currentStateRx) = 0;
   /*
    * Set appropriate rate select value for PortSpeed, if supported
    */
-  virtual void setRateSelectIfSupported(cfg::PortSpeed speed,
-      RateSelectState currentState, RateSelectSetting currentSetting);
-  /*
-   * returns individual sensor values after scaling
-   */
-  double getQsfpSensor(SffField field,
-    double (*conversion)(uint16_t value));
-  /*
-   * returns cable length (negative for "longer than we can represent")
-   */
-  double getQsfpCableLength(SffField field) const;
+  virtual void setRateSelectIfSupported(
+      cfg::PortSpeed speed,
+      RateSelectState currentState,
+      RateSelectSetting currentSetting) = 0;
 
   /*
    * returns the freeside transceiver technology type
    */
-  virtual TransmitterTechnology getQsfpTransmitterTechnology() const;
+  virtual TransmitterTechnology getQsfpTransmitterTechnology() const = 0;
   /*
    * Parse out flag values from bitfields
    */
   static FlagLevels getQsfpFlags(const uint8_t* data, int offset);
-  /*
-   * Extract sensor flag levels
-   */
-  FlagLevels getQsfpSensorFlags(SffField fieldName);
-  /*
-   * This function returns various strings from the QSFP EEPROM
-   * caller needs to check if DOM is supported or not
-   */
-  std::string getQsfpString(SffField flag) const;
 
   bool validateQsfpString(const std::string& value) const;
 
   /*
-   * Fills in values for alarm and warning thresholds based on field name
-   */
-  ThresholdLevels getThresholdValues(SffField field,
-                            double (*conversion)(uint16_t value));
-  /*
    * Retreives all alarm and warning thresholds
    */
-  bool getThresholdInfo(AlarmThreshold& threshold);
+  virtual bool getThresholdInfo(AlarmThreshold& threshold) = 0;
   /*
    * Gather the sensor info for thrift queries
    */
-  bool getSensorInfo(GlobalSensors &sensor);
+  virtual bool getSensorInfo(GlobalSensors& sensor) = 0;
   /*
    * Gather per-channel information for thrift queries
    */
-  bool getSensorsPerChanInfo(std::vector<Channel>& channels);
+  virtual bool getSensorsPerChanInfo(std::vector<Channel>& channels) = 0;
   /*
    * Gather the vendor info for thrift queries
    */
-  bool getVendorInfo(Vendor &vendor);
+  virtual bool getVendorInfo(Vendor& vendor) = 0;
   /*
    * Gather the cable info for thrift queries
    */
-  void getCableInfo(Cable &cable);
-  /*
-   * Retrieves the values of settings based on field name and bit placement
-   * Default mask is a noop
-   */
-  virtual uint8_t getSettingsValue(SffField field, uint8_t mask=0xff);
+  virtual void getCableInfo(Cable& cable) = 0;
+
   /*
    * Gather info on what features are enabled and supported
    */
-  virtual bool getTransceiverSettingsInfo(TransceiverSettings &settings);
+  virtual bool getTransceiverSettingsInfo(TransceiverSettings& settings) = 0;
   /*
    * Return which rate select capability is being used, if any
    */
-  RateSelectState getRateSelectValue();
+  virtual RateSelectState getRateSelectValue() = 0;
   /*
    * Return the rate select optimised bit rates for each channel
    */
-  RateSelectSetting getRateSelectSettingValue(
-      RateSelectState state);
+  virtual RateSelectSetting getRateSelectSettingValue(
+      RateSelectState state) = 0;
   /*
    * Return what power control capability is currently enabled
    */
-  PowerControlState getPowerControlValue();
+  virtual PowerControlState getPowerControlValue() = 0;
   /*
    * Return TransceiverStats
    */
@@ -322,23 +276,22 @@ class QsfpModule : public Transceiver {
    * so unless we have reason to believe the transceiver was unplugged
    * there is not much point in refreshing static data on other pages.
    */
-  virtual void updateQsfpData(bool allPages = true);
+  virtual void updateQsfpData(bool allPages = true) = 0;
 
- private:
   /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
    * extra fields that FB has vendors put in the 'Vendor specific'
    * byte range of the SFF spec.
    */
-  double getQsfpDACLength() const;
-  int getQsfpDACGauge() const;
+  virtual double getQsfpDACLength() const = 0;
+  virtual int getQsfpDACGauge() const = 0;
   /*
    * Provides the option to override the length/gauge values read from
    * the DOM for certain transceivers. This is useful when vendors
    * input incorrect data and the accuracy of these fields is
    * important for proper tuning.
    */
-  const std::optional<LengthAndGauge> getDACCableOverride() const;
+  virtual const std::optional<LengthAndGauge> getDACCableOverride() const = 0;
 
   bool shouldRemediate(time_t cooldown) const;
 
@@ -347,14 +300,14 @@ class QsfpModule : public Transceiver {
    * down for a long time. These are actions that are potentially more
    * disruptive, but have worked in the past to recover a transceiver.
    */
-  void remediateFlakyTransceiver();
+  virtual void remediateFlakyTransceiver(){}
 
   // make sure that tx_disable bits are clear
-  void ensureTxEnabled();
+  virtual void ensureTxEnabled(){}
 
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
-  void resetLowPowerMode();
+  virtual void resetLowPowerMode(){}
 
   /*
    * Determine if it is safe to customize the ports based on the

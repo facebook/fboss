@@ -11,23 +11,24 @@
 #pragma once
 
 #include <folly/Memory.h>
-#include "fboss/qsfp_service/module/TransceiverImpl.h"
-#include "fboss/qsfp_service/module/QsfpModule.h"
-#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/SffModule.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 namespace facebook { namespace fboss {
 
-class MockQsfpModule : public QsfpModule {
+class MockSffModule : public SffModule {
  public:
-  explicit MockQsfpModule(
+  explicit MockSffModule(
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver)
-      : QsfpModule(std::move(qsfpImpl), portsPerTransceiver) {
+      : SffModule(std::move(qsfpImpl), portsPerTransceiver) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
   }
@@ -47,15 +48,15 @@ class MockQsfpModule : public QsfpModule {
   // Provide way to call parent
   void actualSetCdrIfSupported(cfg::PortSpeed speed, FeatureState tx,
       FeatureState rx) {
-    QsfpModule::setCdrIfSupported(speed, tx, rx);
+    SffModule::setCdrIfSupported(speed, tx, rx);
   }
   void actualSetRateSelectIfSupported(cfg::PortSpeed speed,
       RateSelectState currentState, RateSelectSetting currentSetting) {
-    QsfpModule::setRateSelectIfSupported(speed, currentState, currentSetting);
+    SffModule::setRateSelectIfSupported(speed, currentState, currentSetting);
   }
   void actualUpdateQsfpData(bool full) {
     present_ = true;
-    QsfpModule::updateQsfpData(full);
+    SffModule::updateQsfpData(full);
   }
   void setFlatMem() {
     flatMem_ = false;
@@ -65,7 +66,7 @@ class MockQsfpModule : public QsfpModule {
   void customizeTransceiver(cfg::PortSpeed speed) override {
     dirty_ = false;
     present_ = true;
-    QsfpModule::customizeTransceiver(speed);
+    SffModule::customizeTransceiver(speed);
   }
 
   bool getTransceiverSettingsInfo(TransceiverSettings& settings) override {
@@ -85,8 +86,8 @@ class MockQsfpModule : public QsfpModule {
     cdrTx_ = tx;
     cdrRx_ = rx;
   }
-  RateSelectSetting getRateSelectSettingValue(RateSelectState state) {
-    return QsfpModule::getRateSelectSettingValue(state);
+  RateSelectSetting getRateSelectSettingValue(RateSelectState state) override {
+    return SffModule::getRateSelectSettingValue(state);
   }
 
  private:

@@ -7,12 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/sff/SffModule.h"
 
-namespace facebook { namespace fboss {
+namespace facebook {
+namespace fboss {
 
-bool QsfpModule::validateQsfpString(const std::string& /*value*/) const {
-  return true;
+const std::optional<QsfpModule::LengthAndGauge>
+SffModule::getDACCableOverride() const {
+  return std::nullopt;
 }
 
-}} //namespace facebook::fboss
+} // namespace fboss
+} // namespace facebook

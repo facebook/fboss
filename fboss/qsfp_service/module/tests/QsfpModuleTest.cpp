@@ -8,17 +8,18 @@
  *
  */
 
-#include "fboss/qsfp_service/module/tests/MockQsfpModule.h"
+#include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 #include <folly/Memory.h>
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/qsfp_service/module/TransceiverImpl.h"
-#include "fboss/qsfp_service/module/QsfpModule.h"
-#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/SffModule.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -40,7 +41,7 @@ class QsfpModuleTest : public ::testing::Test {
     auto implPtr = transceiverImpl.get();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
-    qsfp_ = std::make_unique<MockQsfpModule>(
+    qsfp_ = std::make_unique<MockSffModule>(
         std::move(transceiverImpl), portsPerTransceiver);
 
     gflags::SetCommandLineOptionWithMode(
@@ -61,14 +62,14 @@ class QsfpModuleTest : public ::testing::Test {
       enabled, up, false, tcvr, speed);
   }
 
-  std::unique_ptr<MockQsfpModule> qsfp_;
+  std::unique_ptr<MockSffModule> qsfp_;
   NiceMock<MockTransceiverImpl>* transImpl_;
 };
 
 TEST_F(QsfpModuleTest, setRateSelect) {
   ON_CALL(*qsfp_, setRateSelectIfSupported(_, _, _))
-    .WillByDefault(Invoke(qsfp_.get(),
-          &MockQsfpModule::actualSetRateSelectIfSupported));
+      .WillByDefault(
+          Invoke(qsfp_.get(), &MockSffModule::actualSetRateSelectIfSupported));
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(AtLeast(1));
 
@@ -126,8 +127,8 @@ TEST_F(QsfpModuleTest, retrieveRateSelectSetting) {
 
 TEST_F(QsfpModuleTest, setCdr) {
   ON_CALL(*qsfp_, setCdrIfSupported(_, _, _))
-    .WillByDefault(Invoke(qsfp_.get(),
-          &MockQsfpModule::actualSetCdrIfSupported));
+      .WillByDefault(
+          Invoke(qsfp_.get(), &MockSffModule::actualSetCdrIfSupported));
 
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupported(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setRateSelectIfSupported(_, _, _)).Times(AtLeast(1));
@@ -390,10 +391,10 @@ TEST_F(QsfpModuleTest, updateQsfpDataPartial) {
 
 TEST_F(QsfpModuleTest, updateQsfpDataFull) {
   // Bit of a hack to ensure we have flatMem_ == false.
-  ON_CALL(*transImpl_, readTransceiver(_, _, _, _)).
-    WillByDefault(DoAll(
-      InvokeWithoutArgs(qsfp_.get(), &MockQsfpModule::setFlatMem),
-      Return(0)));
+  ON_CALL(*transImpl_, readTransceiver(_, _, _, _))
+      .WillByDefault(DoAll(
+          InvokeWithoutArgs(qsfp_.get(), &MockSffModule::setFlatMem),
+          Return(0)));
 
   // Full updates do need to write to select higher pages
   EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _, _)).Times(AtLeast(1));

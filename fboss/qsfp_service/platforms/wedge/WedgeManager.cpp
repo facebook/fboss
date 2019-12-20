@@ -3,8 +3,8 @@
 #include <folly/gen/Base.h>
 
 #include <folly/logging/xlog.h>
+#include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
-#include "fboss/qsfp_service/module/QsfpModule.h"
 
 namespace facebook { namespace fboss {
 
@@ -34,7 +34,7 @@ void WedgeManager::initTransceiverMap() {
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
-    auto qsfp = std::make_unique<QsfpModule>(
+    auto qsfp = std::make_unique<SffModule>(
         std::move(qsfpImpl), numPortsPerTransceiver());
     transceivers_.push_back(move(qsfp));
     XLOG(INFO) << "making QSFP for " << idx;

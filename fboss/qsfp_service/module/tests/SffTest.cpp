@@ -8,13 +8,14 @@
  *
  */
 
-#include <cstdint>
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include <cstdint>
 #include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/sff/SffModule.h"
 
 #include <gtest/gtest.h>
 
@@ -206,8 +207,8 @@ TEST(SffTest, simpleRead) {
   int idx = 1;
   std::unique_ptr<SffTransceiver> qsfpImpl =
     std::make_unique<SffTransceiver>(idx);
-  std::unique_ptr<QsfpModule> qsfp =
-    std::make_unique<QsfpModule>(std::move(qsfpImpl), 4);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(std::move(qsfpImpl), 4);
   qsfp->refresh();
 
   TransceiverInfo info = qsfp->getTransceiverInfo();
@@ -231,8 +232,8 @@ TEST(BadSffTest, simpleRead) {
   int idx = 1;
   std::unique_ptr<BadSffTransceiver> qsfpImpl =
     std::make_unique<BadSffTransceiver>(idx);
-  std::unique_ptr<QsfpModule> qsfp =
-    std::make_unique<QsfpModule>(std::move(qsfpImpl), 4);
+  std::unique_ptr<SffModule> qsfp =
+      std::make_unique<SffModule>(std::move(qsfpImpl), 4);
 
   EXPECT_THROW(qsfp->refresh(), QsfpModuleError);
 }
