@@ -18,7 +18,7 @@ namespace facebook {
 namespace fboss {
 
 /*
- * Abstract class for handling the FPGA related API for QSFP transcever
+ * Abstract class for handling the FPGA or I2C related API for QSFP transcever
  * modules. This class will be inherited by platform specific classes
  * which implement/overrides platform specific API for FPGA operations
  */

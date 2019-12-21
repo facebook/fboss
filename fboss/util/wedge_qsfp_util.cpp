@@ -491,22 +491,34 @@ void tryOpenBus(TransceiverI2CApi* bus) {
   }
 }
 
-/* This function does a hard reset of the QSFP in a given platform. It gets
- * the transceiver FPGA object by calling a function which eventually creates
- * the FPGA object for that platform. Then it invokes that platform specific
- * FPGA object's QSFP hard reset function
+/* This function does a hard reset of the QSFP in a given platform. The reset
+ * is done by Fpga or I2C function. This function calls another function which
+ * creates and returns TransceiverPlatformApi object. For Fpga controlled
+ * platform the called function creates Platform specific TransceiverApi object
+ * and returns it. For I2c controlled platform the called function creates
+ * TransceiverPlatformI2cApi object and keeps the platform specific I2CBus
+ * object raw pointer inside it. The returned object's Qsfp control function
+ * is called here to use appropriate Fpga/I2c Api in this function.
  */
-bool doQsfpHardReset(unsigned int port) {
+bool doQsfpHardReset(
+  TransceiverI2CApi *bus,
+  unsigned int port) {
 
-  // Get the FPGA object for the given platform
-  auto busAndError = getTransceiverPlatformAPI();
+  // Call the function to get TransceiverPlatformApi object. For Fpga
+  // controlled platform it returns Platform specific TransceiverApi object.
+  // For I2c controlled platform it returns TransceiverPlatformI2cApi
+  // which contains "bus" as it's internal variable
+  auto busAndError = getTransceiverPlatformAPI(bus);
+
   if (busAndError.second) {
       return false;
   }
-  auto bus = std::move(busAndError.first);
 
-  // Call the platform specific Fpga object's qsfp reset function
-  bus->triggerQsfpHardReset(port);
+  auto qsfpBus = std::move(busAndError.first);
+
+  // This will eventuall call the Fpga or the I2C based platform specific
+  // Qsfp reset function
+  qsfpBus->triggerQsfpHardReset(port);
 
   return true;
 }
@@ -632,7 +644,7 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: CDR disabled\n", portNum);
     }
 
-    if (FLAGS_qsfp_hard_reset && doQsfpHardReset(portNum)) {
+    if (FLAGS_qsfp_hard_reset && doQsfpHardReset(bus.get(), portNum)) {
       printf("QSFP %d: Hard reset done\n", portNum);
     }
 

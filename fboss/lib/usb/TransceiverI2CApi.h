@@ -41,6 +41,7 @@ class TransceiverI2CApi {
  public:
   TransceiverI2CApi(){};
   virtual ~TransceiverI2CApi() {}
+
   virtual void open() = 0;
   virtual void close() = 0;
   virtual void moduleRead(
@@ -49,6 +50,7 @@ class TransceiverI2CApi {
       int offset,
       int len,
       uint8_t* buf) = 0;
+
   virtual void moduleWrite(
       unsigned int module,
       uint8_t i2cAddress,
@@ -69,6 +71,12 @@ class TransceiverI2CApi {
    * detected plugging in.
    */
   virtual void ensureOutOfReset(unsigned int module){};
+
+  /* This function does a hard reset to the QSFP through I2C/CPLD interface
+   * in the given platform. This is a virtual function at this level and it
+   * will be overridden by appropriate platform class like wedge100I2CBus etc.
+   */
+  virtual void triggerQsfpHardReset(unsigned int module){};
 
   /*
    * Function that returns the eventbase that suppose to execute the I2C txn

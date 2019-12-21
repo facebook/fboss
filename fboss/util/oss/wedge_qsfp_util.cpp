@@ -37,7 +37,11 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int>  getTransceiverAPI() {
  * be implemented in coming version
  */
 std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
-  getTransceiverPlatformAPI() {
+  getTransceiverPlatformAPI(TransceiverI2CApi *i2cBus) {
 
+  /* This function needs to create and return Transceiver Platform API object
+   * but currently it is empty function. I will be implemented in coming
+   * version
+  */
   return std::make_pair(nullptr, EX_USAGE);
 }

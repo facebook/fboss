@@ -24,8 +24,17 @@ enum Wedge100Muxes {
 
 enum Wedge100StatusMuxChannels { PRSNT_N_LOW = 2, PRSNT_N_HIGH = 3 };
 
+// Wedge100: SYSTEM CPLD register offset 0x34 to 0x37 controls the QSFP reset
+// for the 32 QSFP modules. Each CPLD register controls reset for 8 QSFP
+// modules in this platform
+enum Wedge100QsfpResetReg { QSFP_RESET_REG_0 = 0x34 };
+
 // Addresses unique to wedge100:
-enum : uint8_t { ADDR_QSFP_PRSNT_LOWER = 0x22, ADDR_QSFP_PRSNT_UPPER = 0x23 };
+enum : uint8_t {
+  ADDR_QSFP_PRSNT_LOWER = 0x22,
+  ADDR_QSFP_PRSNT_UPPER = 0x23,
+  ADDR_SYSTEM_CPLD = 0x32
+};
 
 void extractPresenceBits(
     uint8_t* buf,
@@ -67,6 +76,39 @@ void Wedge100I2CBus::scanPresence(
   } catch (const I2cError& ex) {
     XLOG(ERR) << "Error reading upper QSFP presence bits";
   }
+}
+
+/* Trigger the QSFP hard reset for a given QSFP module in the wedge100.
+ * This function access the CPLD do trigger the hard reset of QSFP module.
+ */
+void Wedge100I2CBus::triggerQsfpHardReset(unsigned int module) {
+  uint8_t buf;
+
+  /* In wedge100 the QSFP reset is controlled by Sys CPLD register 0x34-0x37
+   * Each of these register controls 8 QSFP module reset
+   */
+  auto cpldReg = QSFP_RESET_REG_0 + (module - 1) / 8;
+  auto cpldRegBit = (module - 1) % 8;
+
+  // printf ("Resetting QSFP module %d, writing CPLD address 0x%x,
+  //  offset 0x%x, bit %d\n", module, ADDR_SYSTEM_CPLD, cpldReg, cpldRegBit);
+
+  // Read system CPLD for QSFP reset current values
+  read(ADDR_SYSTEM_CPLD, cpldReg, 1, &buf);
+
+  XLOG(DBG0) << "Resetting the QSFP for port " << module
+             << ", read value from Sys CPLD Reg " << cpldReg << ": " << buf;
+
+  // Put the QSFP in reset (0-Reset, 1-Normal)
+  buf &= ~(1 << cpldRegBit);
+  write(ADDR_SYSTEM_CPLD, cpldReg, 1, &buf);
+
+  // Wait for 10ms
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+  // Take the QSFP out of reset (0-Reset, 1-Normal)
+  buf |= (1 << cpldRegBit);
+  write(ADDR_SYSTEM_CPLD, cpldReg, 1, &buf);
 }
 
 void Wedge100I2CBus::initBus() {

@@ -21,6 +21,11 @@ class Wedge100I2CBus : public PCA9548MuxedBus<32> {
  public:
   void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
 
+  /* Trigger the QSFP hard reset for a given QSFP module in the wedge100.
+   * This function access the CPLD do trigger the hard reset of QSFP module.
+   */
+  void triggerQsfpHardReset(unsigned int module) override;
+
  protected:
   void initBus() override;
 
