@@ -103,6 +103,9 @@ bool BcmQosPolicy::policyMatches(
 void BcmQosPolicy::programIngressDscpQosMap(
     BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
+  if (qosPolicy->getDscpMap().from().empty()) {
+    return;
+  }
   auto warmBootCache = hw->getWarmBootCache();
   auto qosMapItr =
       warmBootCache->findIngressDscpMap(qosPolicy->getDscpMap().from());
@@ -118,7 +121,9 @@ void BcmQosPolicy::programIngressDscpQosMap(
       qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS);
   if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
     ingressDscpQosMap_ = std::make_unique<BcmQosMap>(
-        hw, BcmQosMap::Type::IP_INGRESS, qosMapItr2->second);
+        hw,
+        BcmQosMap::getQosMapFlags(BcmQosMap::Type::IP_INGRESS),
+        qosMapItr2->second);
     warmBootCache->programmed(qosMapItr2);
     return;
   }
@@ -136,6 +141,9 @@ void BcmQosPolicy::programIngressDscpQosMap(
 void BcmQosPolicy::programIngressExpQosMap(
     BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
+  if (qosPolicy->getExpMap().from().empty()) {
+    return;
+  }
   auto warmBootCache = hw->getWarmBootCache();
   auto qosMapItr = warmBootCache->findQosMap(
       qosPolicy->getName(), BcmQosMap::Type::MPLS_INGRESS);
