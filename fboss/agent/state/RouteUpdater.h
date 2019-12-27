@@ -68,7 +68,6 @@ class RouteUpdater {
   typedef RoutePrefixV4 PrefixV4;
   typedef RoutePrefixV6 PrefixV6;
 
-  // method to add a route
   void addRoute(
       RouterID id,
       const folly::IPAddress& network,
@@ -76,23 +75,19 @@ class RouteUpdater {
       ClientID clientId,
       RouteNextHopEntry entry);
 
-  // method to delete a route from a client
   void delRoute(
       RouterID id,
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId);
 
-  // method to delete all routes from a client
   void removeAllRoutesForClient(RouterID rid, ClientID clientId);
 
   std::shared_ptr<RouteTableMap> updateDone();
 
-  // Add all interface routes (directly connected routes) and link local routes
   void addInterfaceAndLinkLocalRoutes(
       const std::shared_ptr<InterfaceMap>& intfs);
 
-  // Helper functions to add or delete link local routes
   void addLinkLocalRoutes(RouterID id);
   void delLinkLocalRoutes(RouterID id);
 
@@ -125,7 +120,6 @@ class RouteUpdater {
   template <typename RibT>
   auto makeClone(RibT* rib) -> decltype(rib->rib.get());
 
-  // Helper functions to add or delete a route
   template <typename PrefixT, typename RibT>
   void addRouteImpl(
       const PrefixT& prefix,
@@ -150,6 +144,7 @@ class RouteUpdater {
       bool* hasToCpu,
       bool* hasDrop,
       RouteNextHopSet& fwd);
+
   // Functions to deduplicate routing tables during sync mode
   template <typename RibT>
   bool dedupRoutes(const RibT* origRib, RibT* newRib);
