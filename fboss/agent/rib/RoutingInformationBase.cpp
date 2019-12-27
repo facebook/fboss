@@ -209,6 +209,11 @@ RoutingInformationBase RoutingInformationBase::fromFollyDynamic(
   return rib;
 }
 
+void RoutingInformationBase::createVrf(RouterID rid) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+}
+
 std::vector<RouterID> RoutingInformationBase::getVrfList() const {
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
   std::vector<RouterID> res(lockedRouteTables->size());
