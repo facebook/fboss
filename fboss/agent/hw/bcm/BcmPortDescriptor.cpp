@@ -5,8 +5,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 opennsl_gport_t BcmPortDescriptor::asGPort() const {
   switch (type()) {
@@ -18,5 +17,4 @@ opennsl_gport_t BcmPortDescriptor::asGPort() const {
   throw FbossError("Unknown type for BcmPortDescriptor");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

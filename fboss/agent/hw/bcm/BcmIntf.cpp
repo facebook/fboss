@@ -24,8 +24,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/Interface.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IPAddress;
 using folly::MacAddress;
@@ -359,5 +358,4 @@ void BcmIntfTable::deleteIntf(const std::shared_ptr<Interface>& intf) {
   bcmIntfs_.erase(bcmIfId);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -29,8 +29,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class BcmTestPlatform;
@@ -41,7 +40,6 @@ class BcmTest : public HwTest {
  public:
   BcmTest();
   ~BcmTest() override;
-
 
   BcmSwitch* getHwSwitch() override {
     return static_cast<BcmSwitch*>(HwTest::getHwSwitch());
@@ -69,5 +67,4 @@ class BcmTest : public HwTest {
   BcmTest& operator=(BcmTest const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -10,8 +10,7 @@
 
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode() {
   // This allows mapping from a speed and port transmission technology
@@ -81,5 +80,4 @@ uint32_t getDesiredPhyLaneConfig(
   throw std::runtime_error("Unsupported tech+speed in port_resource");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

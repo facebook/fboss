@@ -17,8 +17,7 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using PortSpeed2TransmitterTechAndMode = std::
     map<cfg::PortSpeed, std::map<TransmitterTechnology, opennsl_port_if_t>>;
@@ -29,5 +28,4 @@ uint32_t getDesiredPhyLaneConfig(
     TransmitterTechnology tech,
     cfg::PortSpeed speed);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

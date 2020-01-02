@@ -16,8 +16,7 @@ extern "C" {
 #include <opennsl/switch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmRtag7Module;
 class BcmSwitch;
@@ -77,5 +76,4 @@ class BcmRtag7LoadBalancer {
   const BcmSwitch* const hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

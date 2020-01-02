@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 size_t BcmQosMap::size() const {
   return entries_.size();
@@ -34,5 +33,4 @@ int BcmQosMap::getHandle() const {
   return handle_;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

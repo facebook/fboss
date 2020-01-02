@@ -3,8 +3,8 @@
 #include "BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 void BcmMirrorTable::processAddedMirror(const std::shared_ptr<Mirror>& mirror) {
   if (mirrorEntryMap_.find(mirror->getID()) != mirrorEntryMap_.end()) {
     throw FbossError("Mirror ", mirror->getID(), " already exists");
@@ -52,5 +52,4 @@ BcmMirrorTable::getMirrorIf(const std::string& mirrorName) const {
   return iter->second.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

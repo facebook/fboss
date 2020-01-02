@@ -5,8 +5,8 @@
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/state/Mirror.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
 
 class BcmMirrorTable {
@@ -30,5 +30,4 @@ class BcmMirrorTable {
   BcmMirrorMap mirrorEntryMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

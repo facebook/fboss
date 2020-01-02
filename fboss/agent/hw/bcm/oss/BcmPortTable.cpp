@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // stubbed out
 void BcmPortTable::initPortGroups() {}
@@ -21,5 +20,4 @@ void BcmPortTable::initPortGroupFromConfig(
     BcmPort* /* controllingPort */,
     const std::map<PortID, std::vector<PortID>>& /* subsidiaryPortsMap */) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

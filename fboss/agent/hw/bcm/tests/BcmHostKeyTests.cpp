@@ -49,8 +49,7 @@ void verifyLabeledHostKey(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(BcmHostKey, unResolvedNextHop) {
   auto nexthop = UnresolvedNextHop(folly::IPAddressV6("2401::1"), 0);
@@ -146,5 +145,4 @@ TEST(BcmHostKey, LabeledKeyStr) {
           "BcmLabeledHost: ", kLinkLocal, "@I", 3, "@stack[401,402,403,404]"));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

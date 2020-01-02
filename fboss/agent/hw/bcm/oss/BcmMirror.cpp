@@ -2,8 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmMirrorDestination::BcmMirrorDestination(
     int /*unit*/,
@@ -44,5 +43,5 @@ void BcmMirror::applyAclMirrorAction(
 
 void BcmMirror::applyPortMirrorActions(MirrorAction /*action*/) {}
 void BcmMirror::applyAclMirrorActions(MirrorAction /*action*/) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

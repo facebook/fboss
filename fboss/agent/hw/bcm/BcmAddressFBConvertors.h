@@ -16,8 +16,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void macFromBcm(opennsl_mac_t mac, folly::MacAddress* result);
 folly::MacAddress macFromBcm(const opennsl_mac_t mac);
@@ -32,5 +31,4 @@ void networkToBcmIp6(
     opennsl_ip6_t* ip,
     opennsl_ip6_t* mask);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

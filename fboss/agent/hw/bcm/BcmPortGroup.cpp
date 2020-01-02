@@ -67,8 +67,7 @@ void checkLaneModeisValid(int lane, BcmPortGroup::LaneMode desiredMode) {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmPortGroup::BcmPortGroup(
     BcmSwitch* hw,
@@ -301,5 +300,4 @@ void BcmPortGroup::reconfigureLaneMode(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

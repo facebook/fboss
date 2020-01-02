@@ -16,8 +16,7 @@
 #include <folly/Range.h>
 #include <folly/experimental/StringKeyedUnorderedMap.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmUnit;
 class BcmPlatform;
@@ -146,5 +145,4 @@ class BcmAPI {
   HwConfigMap bcmConfig_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

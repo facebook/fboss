@@ -11,8 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmWarmBootCache::populateAcls(
     const int /*groupId*/,
@@ -47,5 +46,5 @@ bool BcmWarmBootCache::isSflowMirror(BcmMirrorHandle /*handle*/) const {
   return false;
 }
 void BcmWarmBootCache::removeUnclaimedQosMaps() {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

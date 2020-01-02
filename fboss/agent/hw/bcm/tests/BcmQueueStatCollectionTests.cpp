@@ -16,14 +16,12 @@
 
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   auto setup = [this] {
     applyNewConfig(utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
-    
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {
@@ -58,5 +56,4 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

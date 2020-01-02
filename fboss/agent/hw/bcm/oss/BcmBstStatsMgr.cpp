@@ -12,8 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // stubbed out
 BcmBstStatsMgr::BcmBstStatsMgr(BcmSwitch* /*hw*/) {}
@@ -24,5 +23,5 @@ bool BcmBstStatsMgr::stopBufferStatCollection() {
   return true;
 }
 void BcmBstStatsMgr::updateStats() {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

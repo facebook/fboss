@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 std::unique_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
     opennsl_cos_queue_t /*cosQ*/) const {
@@ -56,5 +56,4 @@ int BcmPortQueueManager::CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ) {
   return cosQ;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

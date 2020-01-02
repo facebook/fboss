@@ -6,8 +6,8 @@
 #include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/Vlan.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
 
 class BcmMacTable {
@@ -29,5 +29,4 @@ class BcmMacTable {
   BcmSwitch* hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

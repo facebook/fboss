@@ -105,8 +105,7 @@ folly::IPAddress getLocalIPv6() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmSflowExporter::BcmSflowExporter(const folly::SocketAddress& address)
     : address_(address) {
@@ -269,5 +268,4 @@ void BcmSflowExporterTable::sendToAll(const SflowPacketInfo& info) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

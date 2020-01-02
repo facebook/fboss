@@ -22,8 +22,7 @@ extern "C" {
 #include <boost/container/flat_map.hpp>
 #include <mutex>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class SwitchState;
@@ -112,5 +111,4 @@ class BcmPortGroup {
   cfg::PortSpeed portSpeed_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

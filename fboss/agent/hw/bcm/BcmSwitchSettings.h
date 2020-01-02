@@ -8,8 +8,8 @@ extern "C" {
 #include <opennsl/l2.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
 
 class BcmSwitchSettings {
@@ -39,5 +39,4 @@ class BcmSwitchSettings {
   bool l2AddrCallBackRegisterd_{false};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

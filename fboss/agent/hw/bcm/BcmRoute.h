@@ -22,8 +22,7 @@ extern "C" {
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class BcmHost;
@@ -127,5 +126,4 @@ class BcmRouteTable {
   boost::container::flat_map<Key, std::unique_ptr<BcmRoute>> fib_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

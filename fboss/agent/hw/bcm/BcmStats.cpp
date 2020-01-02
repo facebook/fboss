@@ -14,8 +14,7 @@
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::ThreadLocalPtr<BcmStats> BcmStats::stats_;
 
@@ -78,5 +77,4 @@ BcmStats* BcmStats::createThreadStats() {
   return s;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

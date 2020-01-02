@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmQosPolicy::BcmQosPolicy(
     BcmSwitch* hw,
@@ -203,5 +202,5 @@ const BcmQosMap* BcmQosPolicy::getIngressExpQosMap() const {
 const BcmQosMap* BcmQosPolicy::getEgressExpQosMap() const {
   return egressExpQosMap_.get();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

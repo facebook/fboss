@@ -46,8 +46,7 @@ inline void txCallbackImpl(int /*unit*/, opennsl_pkt_t* pkt, void* cookie) {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::mutex& BcmTxPacket::syncPktMutex() {
   static std::mutex _syncPktMutex;
@@ -145,5 +144,5 @@ int BcmTxPacket::sendSync(unique_ptr<BcmTxPacket> pkt) noexcept {
 void BcmTxPacket::setCos(uint8_t cos) {
   pkt_->cos = cos;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

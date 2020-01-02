@@ -2,8 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct BcmMplsTunnelSwitchImplT {};
 
@@ -16,5 +15,4 @@ BcmMplsTunnelSwitchImplT* BcmMplsTunnelSwitchT::get() {
   return impl_.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

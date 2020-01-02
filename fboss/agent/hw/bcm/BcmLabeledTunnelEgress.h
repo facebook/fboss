@@ -9,8 +9,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmLabeledTunnel;
 
@@ -43,5 +42,4 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
   std::shared_ptr<BcmLabeledTunnel> tunnel_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

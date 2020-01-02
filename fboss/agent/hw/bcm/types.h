@@ -14,11 +14,9 @@
 FBOSS_STRONG_TYPE(int, BcmAclStatHandle);
 FBOSS_STRONG_TYPE(int, BcmQosPolicyHandle);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using BcmAclEntryHandle = int;
 using BcmMirrorHandle = int;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

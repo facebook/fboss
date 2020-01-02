@@ -61,8 +61,7 @@ std::unique_ptr<facebook::fboss::AgentConfig> createDefaultAgentConfig() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
@@ -147,5 +146,4 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
   return mapPortStats;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

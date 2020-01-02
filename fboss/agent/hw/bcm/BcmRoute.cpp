@@ -29,8 +29,7 @@ extern "C" {
 
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 auto constexpr kAction = "action";
@@ -354,5 +353,5 @@ template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV4*);
 template void BcmRouteTable::addRoute(opennsl_vrf_t, const RouteV6*);
 template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV4*);
 template void BcmRouteTable::deleteRoute(opennsl_vrf_t, const RouteV6*);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

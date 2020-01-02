@@ -17,8 +17,7 @@
 
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmPort;
 class BcmPlatform;
@@ -99,5 +98,4 @@ class BcmPlatformPort : public PlatformPort {
   virtual TxOverrides getTxOverrides() const = 0;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

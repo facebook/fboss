@@ -8,8 +8,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmMultiPathNextHop::BcmMultiPathNextHop(
     const BcmSwitchIf* hw,
@@ -141,5 +140,4 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

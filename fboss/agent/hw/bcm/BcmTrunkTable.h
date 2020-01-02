@@ -21,8 +21,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/MinimumLinkCountMap.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 class BcmSwitch;
@@ -90,5 +89,4 @@ class BcmTrunkTable {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

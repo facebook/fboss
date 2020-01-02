@@ -16,8 +16,8 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 const std::vector<BcmCosQueueCounterType>&
 BcmPortQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
@@ -108,5 +108,5 @@ const PortQueue& BcmPortQueueManager::getDefaultQueueSettings(
     cfg::StreamType streamType) const {
   return hw_->getPlatform()->getDefaultPortQueueSettings(streamType);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

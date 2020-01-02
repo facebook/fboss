@@ -12,8 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -48,5 +47,4 @@ class BcmAclStat {
   BcmAclStatHandle handle_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

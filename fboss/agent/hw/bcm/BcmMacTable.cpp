@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmMacTable.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmMacTable::processMacAdded(const MacEntry* addedEntry, VlanID vlan) {
   CHECK(addedEntry);
@@ -35,5 +34,5 @@ void BcmMacTable::processMacChanged(
    */
   programMacEntry(newEntry, vlan);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

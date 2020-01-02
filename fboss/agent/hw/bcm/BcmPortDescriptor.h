@@ -13,8 +13,7 @@ extern "C" {
 FBOSS_STRONG_TYPE(opennsl_port_t, BcmPortId)
 FBOSS_STRONG_TYPE(opennsl_trunk_t, BcmTrunkId)
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmPortDescriptor : public PortDescriptorTemplate<BcmPortId, BcmTrunkId> {
  public:
@@ -24,5 +23,4 @@ class BcmPortDescriptor : public PortDescriptorTemplate<BcmPortId, BcmTrunkId> {
   opennsl_gport_t asGPort() const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

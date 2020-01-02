@@ -13,8 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmHostKey::BcmHostKey(
     opennsl_vrf_t vrf,
@@ -132,5 +131,5 @@ HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
       nexthop.addr(),
       nexthop.intfID().value());
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

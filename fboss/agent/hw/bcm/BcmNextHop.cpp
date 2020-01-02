@@ -28,8 +28,7 @@ std::string nextHopKeyStr(const facebook::fboss::BcmMultiPathNextHopKey& key) {
   return str;
 }
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 opennsl_if_t BcmL3NextHop::getEgressId() const {
   return host_->getEgressId();
@@ -236,5 +235,4 @@ template class BcmNextHopTable<BcmHostKey, BcmL3NextHop>;
 template class BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>;
 template class BcmNextHopTable<BcmMultiPathNextHopKey, BcmMultiPathNextHop>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -12,8 +12,7 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/ThreadLocal.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmStats {
  public:
@@ -106,5 +105,4 @@ class BcmStats {
   static folly::ThreadLocalPtr<BcmStats> stats_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

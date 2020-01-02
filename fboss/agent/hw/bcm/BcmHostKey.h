@@ -17,8 +17,7 @@ extern "C" {
 
 #include "fboss/agent/state/RouteNextHop.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct IHostKey : folly::PolyExtends<
                       folly::poly::IEqualityComparable,
@@ -210,5 +209,5 @@ class BcmLabeledHostKey {
 HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop);
 void toAppend(const HostKey& key, std::string* result);
 std::ostream& operator<<(std::ostream& os, const HostKey& key);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

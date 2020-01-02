@@ -13,8 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class QosPolicy;
@@ -49,5 +48,4 @@ class BcmQosPolicy {
   std::unique_ptr<BcmQosMap> egressExpQosMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

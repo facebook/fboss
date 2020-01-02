@@ -10,8 +10,8 @@
 
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 constexpr int BcmAclEntry::kLocalIp4DstClassL3Id;
 constexpr int BcmAclEntry::kLocalIp6DstClassL3Id;
 
@@ -33,5 +33,5 @@ void BcmAclEntry::applyMirrorAction(
     const std::string& /*mirrorName*/,
     MirrorAction /*action*/,
     MirrorDirection /*direction*/) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

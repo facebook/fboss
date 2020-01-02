@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 class CounterPrevAndCur {
@@ -49,5 +49,5 @@ int64_t subtractIncrements(
 void deleteCounter(const std::string& oldCounterName);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

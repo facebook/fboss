@@ -19,13 +19,13 @@ extern "C" {
 namespace folly {
 class IPAddress;
 }
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
-} // namespace fboss
-} // namespace facebook
-namespace facebook {
-namespace fboss {
+
+} // namespace facebook::fboss
+namespace facebook::fboss {
+
 namespace utility {
 
 int getEcmpSizeInHw(int unit, opennsl_if_t ecmp, int sizeInSw);
@@ -38,5 +38,5 @@ opennsl_if_t getEgressIdForRoute(
     uint8_t mask,
     opennsl_vrf_t vrf = 0);
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

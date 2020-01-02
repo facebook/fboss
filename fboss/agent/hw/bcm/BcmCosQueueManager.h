@@ -24,8 +24,8 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 typedef std::map<opennsl_cos_queue_t, opennsl_gport_t> CosQGportMap;
 
 struct CosQueueGports {
@@ -202,5 +202,5 @@ class BcmCosQueueManager {
 
   std::map<BcmCosQueueCounterType, QueueStatCounters> queueCounters_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

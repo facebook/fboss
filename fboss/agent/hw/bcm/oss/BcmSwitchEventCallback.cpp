@@ -13,8 +13,7 @@
 #include <glog/logging.h>
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmSwitchEventUnitNonFatalErrorCallback::callback(
     const int unit,
@@ -51,5 +50,5 @@ void BcmSwitchEventUnitFatalErrorCallback::callback(
               << eventID << ") with params " << arg1 << ", " << arg2 << ", "
               << arg3;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

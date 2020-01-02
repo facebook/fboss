@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmQosPolicy* FOLLY_NULLABLE
 BcmQosPolicyTable::getQosPolicyIf(const std::string& name) const {
@@ -144,5 +143,4 @@ BcmQosPolicy* BcmQosPolicyTable::getDefaultDataPlaneQosPolicy() const {
   return policy;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -22,8 +22,7 @@ extern "C" {
 #include <opennsl/switch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * Utility class to manage the BCM callbacks for critical switch events and
@@ -74,5 +73,5 @@ void defaultCallback(
 void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal);
 
 } // namespace BcmSwitchEventUtils
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -84,8 +84,7 @@ const std::map<StringPiece, std::string> kBcmConfigsSafeAcrossWarmboot = {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static std::atomic<bool> bcmInitialized{false};
 static BcmAPI::HwConfigMap bcmConfig;
@@ -194,5 +193,4 @@ BcmUnit* BcmAPI::getUnit(int unit) {
   return unitObj;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

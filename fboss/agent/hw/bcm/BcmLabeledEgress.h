@@ -8,8 +8,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmLabeledEgress : public BcmEgress {
  public:
@@ -41,5 +40,4 @@ class BcmLabeledEgress : public BcmEgress {
   opennsl_mpls_label_t label_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -21,8 +21,7 @@ extern "C" {
 #include <shared/error.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * A class for errors from the Broadcom SDK.
@@ -82,5 +81,4 @@ void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

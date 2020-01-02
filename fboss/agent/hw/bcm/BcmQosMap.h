@@ -12,8 +12,7 @@
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitchIf;
 class BcmQosMapEntry;
@@ -53,5 +52,4 @@ class BcmQosMap {
   std::set<std::unique_ptr<BcmQosMapEntry>> entries_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

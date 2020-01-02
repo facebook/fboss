@@ -13,8 +13,7 @@
 #include <map>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmConfig {
  public:
@@ -31,5 +30,4 @@ class BcmConfig {
   static ConfigMap parseBcmStyleConfig(folly::StringPiece data);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

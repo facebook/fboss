@@ -12,8 +12,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
     HwSwitch* /* hwSwitch */,
@@ -29,5 +28,5 @@ std::unique_ptr<std::thread> BcmSwitchEnsemble::createThriftThread(
     const BcmSwitch* /*hwSwitch*/) {
   throw FbossError("Starting thrift server not supported");
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

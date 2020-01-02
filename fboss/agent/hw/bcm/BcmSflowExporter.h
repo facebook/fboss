@@ -18,8 +18,7 @@
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSflowExporter {
  public:
@@ -72,5 +71,4 @@ class BcmSflowExporterTable {
   folly::IPAddress localIP_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

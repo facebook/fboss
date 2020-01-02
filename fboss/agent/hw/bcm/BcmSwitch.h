@@ -31,8 +31,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AclEntry;
 class AggregatePort;
@@ -918,5 +917,4 @@ class BcmSwitch : public BcmSwitchIf {
   std::mutex lock_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

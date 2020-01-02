@@ -4,8 +4,8 @@
 
 #include <folly/dynamic.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 /*
  * a class that represents a state of BcmSwitch, which can not be constructed
  * from hardware or SDK APIs, either because required information is unavailable
@@ -39,5 +39,4 @@ class BcmWarmBootState {
   const BcmSwitchIf* hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

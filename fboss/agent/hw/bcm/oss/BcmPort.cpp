@@ -15,8 +15,7 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // stubbed out
 void BcmPort::prepareForGracefulExit() {}
@@ -78,5 +77,5 @@ bool BcmPort::getDesiredFECEnabledStatus(
 void BcmPort::updateBcmStats(
     std::chrono::seconds /*now*/,
     HwPortStats* /*curPortStats*/) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

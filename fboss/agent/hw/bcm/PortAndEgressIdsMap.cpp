@@ -11,8 +11,7 @@
 #include "PortAndEgressIdsMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PortAndEgressIdsMap::PortAndEgressIdsMap() {}
 
@@ -22,5 +21,4 @@ template class NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields>;
 
 FBOSS_INSTANTIATE_NODE_MAP(PortAndEgressIdsMap, PortAndEgressIdsMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

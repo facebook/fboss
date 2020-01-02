@@ -6,8 +6,7 @@ extern "C" {
 #include <opennsl/l3.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmLabeledEgress::prepareEgressObject(
     opennsl_if_t /*intfId*/,
@@ -18,5 +17,4 @@ void BcmLabeledEgress::prepareEgressObject(
   CHECK(0); // no MPLS in OSS
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

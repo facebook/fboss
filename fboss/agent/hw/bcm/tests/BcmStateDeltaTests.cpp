@@ -93,8 +93,7 @@ void setDataPlaneTrafficPolicyForPort(
 }
 
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST_F(BcmTest, addPortFails) {
   const auto& portMap = getProgrammedState()->getPorts();
@@ -175,5 +174,5 @@ TEST_F(BcmTest, expQosMapForPort) {
   auto newState = applyNewConfig(cfg);
   EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

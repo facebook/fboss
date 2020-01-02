@@ -9,12 +9,11 @@
  */
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmControlPlane::updateQueueCounters() {}
 
 void BcmControlPlane::setupIngressQosPolicy(
     const std::optional<std::string>& /*qosPolicyName*/) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

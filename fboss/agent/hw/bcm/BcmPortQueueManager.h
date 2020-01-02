@@ -11,8 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -92,5 +91,5 @@ class BcmPortQueueManager : public BcmCosQueueManager {
       opennsl_cos_queue_t cosQ,
       int prio);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

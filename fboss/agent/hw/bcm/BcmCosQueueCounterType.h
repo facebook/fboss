@@ -11,8 +11,8 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 /*
  * Since bcm stats type is not OpenNSL supported, define our enums instead.
  */
@@ -49,5 +49,5 @@ struct BcmCosQueueCounterType {
         scope == BcmCosQueueCounterScope::QUEUES_AND_AGGREGATED;
   }
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

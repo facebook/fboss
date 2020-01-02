@@ -10,8 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/state/QosPolicy.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmQosMapEntry {};
 
@@ -36,5 +35,4 @@ int BcmQosMap::getQosMapFlags(BcmQosMap::Type /*type*/) {
   return 0;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

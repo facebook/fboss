@@ -69,8 +69,7 @@ bool hasPortQueueChanges(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 static const std::vector<opennsl_stat_val_t> kInPktLengthStats = {
     snmpOpenNSLReceivedPkts64Octets,
@@ -975,5 +974,5 @@ void BcmPort::disableStatCollection() {
 
   destroyAllPortStats();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

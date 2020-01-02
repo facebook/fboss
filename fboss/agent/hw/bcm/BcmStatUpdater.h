@@ -18,8 +18,7 @@
 #include <folly/Synchronized.h>
 #include <queue>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using facebook::stats::MonotonicCounter;
 
@@ -106,5 +105,4 @@ class BcmStatUpdater {
       aclStats_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

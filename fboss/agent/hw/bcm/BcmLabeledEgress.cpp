@@ -5,8 +5,8 @@
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/state/Interface.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 BcmWarmBootCache::EgressId2EgressCitr BcmLabeledEgress::findEgress(
     opennsl_vrf_t vrf,
     opennsl_if_t intfId,
@@ -17,5 +17,4 @@ BcmWarmBootCache::EgressId2EgressCitr BcmLabeledEgress::findEgress(
       BcmLabeledHostKey(vrf, getLabel(), ip, bcmIntf->getInterface()->getID()));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

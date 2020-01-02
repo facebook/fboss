@@ -12,12 +12,9 @@
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 DECLARE_int32(thrift_port);
 
+namespace facebook::fboss {
 
-namespace facebook {
-namespace fboss {
-
-BcmTest::BcmTest() {
-}
+BcmTest::BcmTest() {}
 
 BcmTest::~BcmTest() {}
 
@@ -25,5 +22,4 @@ int BcmTest::getUnit() const {
   return getHwSwitch()->getUnit();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -48,8 +48,7 @@ bool removeFile(const string& filename) {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 DiscBackedBcmWarmBootHelper::DiscBackedBcmWarmBootHelper(
     int unit,
@@ -144,5 +143,4 @@ folly::dynamic DiscBackedBcmWarmBootHelper::getWarmBootState() const {
   return folly::parseJson(warmBootJson);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -11,8 +11,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 const BcmRtag7Module::OutputSelectionControl
 BcmRtag7Module::kEcmpOutputSelectionControl() {
@@ -93,5 +92,5 @@ int BcmRtag7Module::computeL3MPLSHeaderSubfields(
     const LoadBalancer& /*loadBalancer*/) {
   return 0;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

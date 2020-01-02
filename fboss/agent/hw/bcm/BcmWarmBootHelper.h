@@ -4,8 +4,7 @@
 #include <folly/Range.h>
 #include <folly/dynamic.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * This class encapsulates much of the warm boot functionality for an individual
@@ -100,5 +99,4 @@ class DiscBackedBcmWarmBootHelper : public BcmWarmBootHelper {
   bool warmBootStateWritten_{false};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

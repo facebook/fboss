@@ -14,8 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwVlanUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST_F(BcmTest, chipColdBootDefaults) {
   auto setup = [] {};
@@ -39,5 +38,4 @@ TEST_F(BcmTest, chipColdBootDefaults) {
   verify();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

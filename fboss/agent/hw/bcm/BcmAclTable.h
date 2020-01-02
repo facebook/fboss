@@ -15,8 +15,7 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -72,5 +71,4 @@ class BcmAclTable {
   BcmAclStatMap aclStatMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

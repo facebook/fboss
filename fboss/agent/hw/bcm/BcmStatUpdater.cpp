@@ -14,8 +14,7 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using std::chrono::duration_cast;
 using std::chrono::seconds;
@@ -142,5 +141,5 @@ void BcmStatUpdater::refreshAclStats() {
     toBeAddedAclStats_.pop();
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

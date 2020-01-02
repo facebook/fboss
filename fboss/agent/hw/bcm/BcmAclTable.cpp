@@ -17,8 +17,7 @@
 
 #include <folly/CppAttributes.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * Release all acl, stat entries.
@@ -155,5 +154,5 @@ void BcmAclTable::forFilteredEach(Filter predicate, FilterAction action) const {
   auto iterator = FilterIterator(aclEntryMap_, predicate);
   std::for_each(iterator.begin(), iterator.end(), action);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

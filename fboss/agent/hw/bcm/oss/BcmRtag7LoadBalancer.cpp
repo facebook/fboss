@@ -11,13 +11,11 @@
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 opennsl_switch_control_t BcmRtag7LoadBalancer::trunkHashSet0UnicastOffset()
     const {
   throw FbossError("Symbol not exported in OpenNSL");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

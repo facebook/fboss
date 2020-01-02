@@ -17,8 +17,8 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 bool portEnabled(int unit, opennsl_port_t port);
 cfg::PortSpeed currentPortSpeed(int unit, opennsl_port_t port);
@@ -42,5 +42,5 @@ void assertPortsFECStatus(
 opennsl_gport_t getPortGport(int unit, int port);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

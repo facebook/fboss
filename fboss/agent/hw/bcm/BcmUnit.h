@@ -22,8 +22,7 @@ namespace folly {
 struct dynamic;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmWarmBootHelper;
 
@@ -113,5 +112,4 @@ class BcmUnit {
   void* cookie_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

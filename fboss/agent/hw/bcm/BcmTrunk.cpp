@@ -28,8 +28,7 @@ extern "C" {
 
 using std::vector;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTrunk::BcmTrunk(const BcmSwitchIf* hw) : hw_(hw), trunkStats_(hw) {}
 
@@ -221,5 +220,4 @@ BcmTrunkStats& BcmTrunk::stats() {
   return trunkStats_;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

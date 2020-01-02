@@ -12,8 +12,7 @@
 /*
  * Stubbed out.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmSwitchSettings::enableL2LearningCallback() {}
 
@@ -23,5 +22,4 @@ void BcmSwitchSettings::enablePendingEntriesOnUnknownSrcL2() {}
 
 void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

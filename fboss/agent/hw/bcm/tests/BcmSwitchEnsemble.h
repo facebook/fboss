@@ -19,8 +19,7 @@ DECLARE_bool(flexports);
 DECLARE_string(bcm_config);
 DECLARE_string(config);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitchEnsemble : public HwSwitchEnsemble {
  public:
@@ -58,5 +57,4 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::unique_ptr<std::thread> createThriftThread(const BcmSwitch* hwSwitch);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

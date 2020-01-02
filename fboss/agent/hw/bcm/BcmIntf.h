@@ -24,8 +24,7 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Interface;
 class BcmSwitch;
@@ -134,5 +133,4 @@ class BcmIntfTable {
   boost::container::flat_map<opennsl_if_t, BcmIntf*> bcmIntfs_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

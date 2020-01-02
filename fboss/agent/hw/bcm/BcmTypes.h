@@ -4,8 +4,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct BcmMplsTunnelSwitchImplT;
 
@@ -18,5 +17,4 @@ struct BcmMplsTunnelSwitchT {
   std::unique_ptr<BcmMplsTunnelSwitchImplT> impl_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

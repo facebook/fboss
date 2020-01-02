@@ -17,8 +17,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmPlatformPort;
 class BcmWarmBootHelper;
@@ -116,5 +115,4 @@ class BcmPlatform : public Platform {
   BcmPlatform& operator=(BcmPlatform const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

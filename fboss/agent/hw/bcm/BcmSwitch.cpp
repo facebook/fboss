@@ -229,8 +229,8 @@ L2EntryUpdateType getL2EntryUpdateType(int operation) {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 /*
  * Get current port speed from BCM SDK and convert to
  * cfg::PortSpeed
@@ -2454,5 +2454,4 @@ bool BcmSwitch::isL2EntryTypeOfInterest(
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

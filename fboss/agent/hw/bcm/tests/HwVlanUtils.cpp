@@ -34,8 +34,7 @@ std::vector<opennsl_vlan_data_t> getVlans(
   return {vlanList, vlanList + vlanCount};
 }
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::vector<VlanID> getConfiguredVlans(const HwSwitch* hwSwitch) {
   auto hwVlans = getVlans(hwSwitch);
@@ -55,5 +54,5 @@ std::map<VlanID, uint32_t> getVlanToNumPorts(const HwSwitch* hwSwitch) {
   }
   return vlan2NumPorts;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

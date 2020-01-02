@@ -18,8 +18,7 @@
 #include <folly/logging/xlog.h>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IPAddress;
 using folly::MacAddress;
@@ -400,5 +399,4 @@ void BcmEgress::programToTrunk(
   CHECK_NE(id_, INVALID);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

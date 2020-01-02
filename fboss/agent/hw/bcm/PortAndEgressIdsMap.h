@@ -21,8 +21,7 @@ extern "C" {
 
 #include <boost/container/flat_set.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct PortAndEgressIdsFields {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
@@ -141,5 +140,4 @@ class PortAndEgressIdsMap
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

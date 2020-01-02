@@ -2,9 +2,9 @@
 
 #include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 void BcmLabeledTunnel::setupTunnelLabels() {}
 void BcmLabeledTunnel::clearTunnelLabels() {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

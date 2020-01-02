@@ -38,8 +38,7 @@ std::string egressPortStr(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::ostream& operator<<(
     std::ostream& os,
@@ -503,5 +502,4 @@ void BcmHostTable::programHostsToCPU(
   // (TODO) program labeled next hops to the host
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

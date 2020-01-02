@@ -19,8 +19,7 @@ extern "C" {
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitchIf;
 
@@ -74,5 +73,5 @@ class BcmTrunk {
   const BcmSwitchIf* const hw_{nullptr};
   BcmTrunkStats trunkStats_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

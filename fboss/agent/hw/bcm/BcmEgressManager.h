@@ -18,8 +18,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmEgressManager {
  public:
@@ -122,5 +121,4 @@ class BcmEgressManager {
   boost::container::flat_set<opennsl_if_t> resolvedEgresses_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -4,8 +4,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmEgressManager::updatePortToEgressMapping(
     opennsl_if_t egressId,
@@ -106,5 +105,4 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
       unit, removeAllEgressesFromEcmpCallback, &tmpEgressIds);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

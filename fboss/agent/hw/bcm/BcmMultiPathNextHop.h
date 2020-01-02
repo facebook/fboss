@@ -12,8 +12,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * Class to abstract ECMP path
@@ -74,5 +73,4 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   long getEcmpEgressCount() const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

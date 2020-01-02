@@ -16,8 +16,7 @@ extern "C" {
 #include <opennsl/switch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * This abstract class defines the interface for a Bcm switch event callback.
@@ -85,5 +84,4 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
       uint32_t arg3);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

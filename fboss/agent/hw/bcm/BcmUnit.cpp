@@ -31,8 +31,7 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::steady_clock;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmUnit::BcmUnit(int deviceIndex, BcmPlatform* platform)
     : deviceIndex_(deviceIndex), platform_(platform) {
@@ -61,5 +60,5 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
                     fbossWarmBootSyncDone - bcmWarmBootSyncDone)
                     .count();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

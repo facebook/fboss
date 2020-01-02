@@ -11,8 +11,7 @@
 
 #include <folly/Range.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void macFromBcm(opennsl_mac_t mac, folly::MacAddress* result) {
   result->setFromBinary(folly::ByteRange(mac, folly::MacAddress::SIZE));
@@ -56,5 +55,4 @@ void networkToBcmIp6(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

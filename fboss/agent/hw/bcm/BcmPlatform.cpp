@@ -27,8 +27,7 @@ DEFINE_bool(
     "Whether to program host routes in host table. If false, all "
     "routes are programmed in route table");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::string BcmPlatform::getHwConfigDumpFile() const {
   return getVolatileStateDir() + "/" + FLAGS_hw_config_file;
@@ -50,5 +49,4 @@ void BcmPlatform::dumpHwConfig() const {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

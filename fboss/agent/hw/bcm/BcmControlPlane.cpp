@@ -18,8 +18,7 @@ namespace {
 constexpr auto kCPUName = "cpu";
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
     : hw_(hw),
@@ -35,5 +34,4 @@ void BcmControlPlane::setupRxReasonToQueue(
   // TODO(joseph5wu) Implement the logic of setting reason mapping to bcm
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

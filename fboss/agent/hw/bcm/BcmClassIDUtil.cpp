@@ -49,8 +49,7 @@ const std::set<AclLookupClass> kAllLookupClasses = mergeLookupClasses(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 bool BcmClassIDUtil::isValidQueuePerHostClass(cfg::AclLookupClass classID) {
   return kQueuePerHostLookupClasses.find(classID) !=
@@ -61,5 +60,4 @@ bool BcmClassIDUtil::isValidLookupClass(cfg::AclLookupClass classID) {
   return kAllLookupClasses.find(classID) != kAllLookupClasses.end();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

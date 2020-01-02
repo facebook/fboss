@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 void assertPortLoopbackMode(
     int /*unit*/,
@@ -20,5 +20,5 @@ void assertPortLoopbackMode(
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

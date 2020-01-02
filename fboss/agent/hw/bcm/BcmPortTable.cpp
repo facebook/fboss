@@ -23,8 +23,7 @@ extern "C" {
 #include <opennsl/port.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using std::make_pair;
 using std::make_unique;
@@ -131,5 +130,5 @@ void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
   auto iterator = FilterIterator(fbossPhysicalPorts_, predicate);
   std::for_each(iterator.begin(), iterator.end(), action);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

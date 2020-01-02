@@ -26,8 +26,7 @@ DEFINE_string(
 using folly::StringPiece;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmConfig::ConfigMap BcmConfig::loadDefaultConfig() {
   CHECK(!FLAGS_bcm_config.empty()) << "Must set bcm config";
@@ -103,5 +102,4 @@ BcmConfig::ConfigMap BcmConfig::parseBcmStyleConfig(StringPiece data) {
   return results;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

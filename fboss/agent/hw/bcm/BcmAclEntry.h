@@ -13,8 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class AclEntry;
@@ -64,5 +63,4 @@ class BcmAclEntry {
   BcmAclEntryHandle handle_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

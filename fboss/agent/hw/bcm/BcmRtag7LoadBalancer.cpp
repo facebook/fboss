@@ -16,8 +16,7 @@
 #include <memory>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmRtag7LoadBalancer::BcmRtag7LoadBalancer(const BcmSwitch* hw)
     : rtag7Modules_(), hw_(hw) {}
@@ -87,5 +86,4 @@ void BcmRtag7LoadBalancer::programLoadBalancer(
   it->second->program(oldLoadBalancer, newLoadBalancer);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

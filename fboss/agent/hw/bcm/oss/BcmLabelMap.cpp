@@ -2,8 +2,8 @@
 
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmLabelSwitchAction {};
 BcmLabelMap::~BcmLabelMap() {}
 BcmLabelMap::BcmLabelMap(BcmSwitch* /*hw*/) {}
@@ -18,5 +18,4 @@ void BcmLabelMap::processChangedLabelSwitchAction(
     BcmLabel /*topLabel*/,
     const LabelNextHopEntry& /*nexthops*/) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

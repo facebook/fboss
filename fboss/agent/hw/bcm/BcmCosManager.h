@@ -9,8 +9,7 @@
  */
 #pragma once
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmCosManager {
  public:
@@ -19,5 +18,4 @@ class BcmCosManager {
   virtual ~BcmCosManager() {}
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

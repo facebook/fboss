@@ -14,8 +14,8 @@
 
 #include <folly/IPAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 std::multiset<opennsl_if_t>
@@ -47,5 +47,5 @@ opennsl_if_t getEgressIdForRoute(
   return bcmRoute->getEgressId();
 }
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

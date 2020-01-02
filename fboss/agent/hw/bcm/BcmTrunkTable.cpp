@@ -21,8 +21,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/state/AggregatePort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
     : trunks_(), hw_(hw), trunkToMinLinkCount_() {}
@@ -143,5 +142,5 @@ void BcmTrunkTable::updateStats() {
     trunk->stats().update();
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

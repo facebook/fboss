@@ -17,8 +17,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class PortQueue;
@@ -67,5 +66,5 @@ class BcmControlPlane {
   const opennsl_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

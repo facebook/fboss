@@ -26,8 +26,7 @@ struct ibde_t;
 ibde_t* bde;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 #define NUM_UNITS 1
 
@@ -61,5 +60,4 @@ std::string BcmAPI::getThreadName() {
   return "";
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -11,8 +11,7 @@ extern "C" {
 
 #include <folly/dynamic.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -45,5 +44,5 @@ class BcmLabeledTunnel {
   LabelForwardingAction::LabelStack stack_;
   opennsl_if_t labeledTunnel_{INVALID};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

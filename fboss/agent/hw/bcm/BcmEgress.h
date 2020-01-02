@@ -25,8 +25,7 @@ extern "C" {
 #include <boost/container/flat_set.hpp>
 #include <boost/noncopyable.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitchIf;
 
@@ -210,5 +209,4 @@ class BcmEcmpEgress : public BcmEgressBase {
 bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
 opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& egress);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

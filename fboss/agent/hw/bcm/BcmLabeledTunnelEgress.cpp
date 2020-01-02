@@ -13,8 +13,7 @@ facebook::fboss::LabelForwardingAction::LabelStack pushStack(
       stack.begin() + 1, stack.end());
 }
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
     const BcmSwitchIf* hw,
@@ -47,5 +46,4 @@ BcmWarmBootCache::EgressId2EgressCitr BcmLabeledTunnelEgress::findEgress(
           vrf, std::move(labels), ip, bcmIntf->getInterface()->getID()));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

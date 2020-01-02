@@ -15,8 +15,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <>
 folly::dynamic BcmWarmBootState::toFollyDynamic(
@@ -259,5 +258,5 @@ folly::dynamic BcmWarmBootState::qosTableToFollyDynamic() const {
   }
   return qosTableDynamic;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

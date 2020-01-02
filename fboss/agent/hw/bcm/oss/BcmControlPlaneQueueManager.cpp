@@ -11,8 +11,8 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     BcmSwitch* hw,
     const std::string& portName,
@@ -49,5 +49,4 @@ int BcmControlPlaneQueueManager::getNumQueues(
       cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

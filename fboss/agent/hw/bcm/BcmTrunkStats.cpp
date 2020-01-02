@@ -17,8 +17,7 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTrunkStats::BcmTrunkStats(const BcmSwitchIf* hw)
     : hw_(hw), memberPortIDs_(), counters_() {}
@@ -254,5 +253,4 @@ std::string BcmTrunkStats::constructCounterName(
   return folly::to<std::string>(trunkName_, ".", counterKey);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

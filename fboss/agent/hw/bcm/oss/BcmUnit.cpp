@@ -22,8 +22,7 @@ extern "C" {
 using facebook::fboss::BcmAPI;
 using folly::StringPiece;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 int BcmUnit::createHwUnit() {
   // For now we assume that the unit number is 0. This will be changed once
@@ -77,5 +76,5 @@ void BcmUnit::rawRegisterWrite(
 void BcmUnit::detachAndCleanupSDKUnit() {
   // not supported
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

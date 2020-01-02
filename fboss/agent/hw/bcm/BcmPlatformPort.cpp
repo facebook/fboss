@@ -12,10 +12,9 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmPlatformPort::BcmPlatformPort(PortID id, BcmPlatform* platform)
     : PlatformPort(id, platform) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

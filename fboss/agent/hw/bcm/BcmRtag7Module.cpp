@@ -19,8 +19,7 @@ namespace {
 const bool kEnable = true;
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * The below constants use the following nomenclature:
@@ -490,5 +489,5 @@ void BcmRtag7Module::programNonTerminatedMPLSFieldSelection(
       moduleControl_.nonTerminatedMPLSFieldSelectionControl, fields);
   bcmCheckError(rv, "failed to config field selection");
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

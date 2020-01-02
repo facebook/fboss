@@ -30,8 +30,7 @@ extern "C" {
 #include <mutex>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class BcmPortGroup;
@@ -283,5 +282,4 @@ class BcmPort {
   std::atomic<bool> statCollectionEnabled_{false};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

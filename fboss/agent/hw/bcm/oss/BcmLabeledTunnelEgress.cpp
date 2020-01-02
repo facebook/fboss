@@ -2,8 +2,7 @@
 
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmLabeledTunnelEgress::prepareEgressObject(
     opennsl_if_t /*intfId*/,
@@ -14,5 +13,4 @@ void BcmLabeledTunnelEgress::prepareEgressObject(
   CHECK(0); // no MPLS in OSS
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

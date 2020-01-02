@@ -13,8 +13,8 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 BcmCosQueueManager::BcmCosQueueManager(
     BcmSwitch* hw,
     const std::string& portName,
@@ -138,5 +138,5 @@ void BcmCosQueueManager::updateQueueStats(
     }
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

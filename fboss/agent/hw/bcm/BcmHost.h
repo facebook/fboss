@@ -28,8 +28,7 @@ extern "C" {
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmEcmpEgress;
 class BcmEgress;
@@ -271,5 +270,5 @@ class BcmNeighborTable {
   boost::container::flat_map<BcmHostKey, std::shared_ptr<BcmHost>>
       neighborHosts_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

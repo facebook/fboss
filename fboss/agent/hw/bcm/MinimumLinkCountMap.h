@@ -18,8 +18,7 @@
 #include <folly/SharedMutex.h>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class TrunkToMinimumLinkCountMap {
  public:
@@ -65,5 +64,5 @@ class TrunkToMinimumLinkCountMap {
   mutable folly::SharedMutexReadPriority trunkToCountLock_;
   boost::container::flat_map<opennsl_trunk_t, uint8_t> trunkToCount_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -26,8 +26,7 @@ DEFINE_string(
 using folly::StringPiece;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmConfig::ConfigMap BcmConfig::loadConfig(StringPiece cfgrName) {
   // If a command-line flag was specified, it takes precedence.
@@ -108,5 +107,4 @@ BcmConfig::ConfigMap BcmConfig::parseBcmStyleConfig(StringPiece data) {
   return results;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

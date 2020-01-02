@@ -23,8 +23,7 @@
 #include <string>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitchIf;
 
@@ -67,5 +66,4 @@ class BcmTrunkStats {
   std::map<std::string, stats::MonotonicCounter> counters_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

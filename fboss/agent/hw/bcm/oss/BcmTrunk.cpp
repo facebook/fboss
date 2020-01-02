@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 int BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
     int /* unit */,
@@ -35,5 +34,4 @@ void BcmTrunk::suppressTrunkInternalFlood(
   return;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

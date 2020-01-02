@@ -11,8 +11,7 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -61,5 +60,5 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
 
   int maxCPUQueue_{0};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

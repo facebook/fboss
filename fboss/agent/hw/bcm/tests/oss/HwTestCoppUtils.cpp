@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
@@ -22,5 +22,5 @@ std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
   return std::map<cfg::PacketRxReason, int16_t>{};
 }
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

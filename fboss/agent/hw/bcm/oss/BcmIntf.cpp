@@ -2,12 +2,10 @@
 
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 uint32_t BcmStation::getAdditionalFlags() {
   return 0;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

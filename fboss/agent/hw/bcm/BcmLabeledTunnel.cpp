@@ -20,8 +20,7 @@ std::string strLabelStack(const LabelForwardingAction::LabelStack& stack) {
   return out;
 }
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmLabeledTunnel::BcmLabeledTunnel(
     BcmSwitch* hw,
@@ -81,5 +80,5 @@ BcmLabeledTunnel::~BcmLabeledTunnel() {
 std::string BcmLabeledTunnel::str() const {
   return folly::to<std::string>(labeledTunnel_, "->", strLabelStack(stack_));
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

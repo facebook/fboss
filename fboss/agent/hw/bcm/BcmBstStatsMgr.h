@@ -13,8 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * Class for BST configuration and stats update
@@ -61,5 +60,5 @@ class BcmBstStatsMgr {
   bool bufferStatsEnabled_{false};
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

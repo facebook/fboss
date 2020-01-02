@@ -87,8 +87,7 @@ folly::IPAddress getFullMaskIPv6Address() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmWarmBootCache::BcmWarmBootCache(const BcmSwitchIf* hw)
     : hw_(hw),
@@ -1090,5 +1089,4 @@ void BcmWarmBootCache::programmed(BcmWarmBootCache::QosMapKey2QosMapIdItr itr) {
   qosMapKey2QosMapId_.erase(itr);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

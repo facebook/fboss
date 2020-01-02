@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // stubbed out
 int BcmPortGroup::retrieveActiveLanes() const {
@@ -20,5 +19,5 @@ int BcmPortGroup::retrieveActiveLanes() const {
 void BcmPortGroup::setActiveLanes(
     const std::vector<std::shared_ptr<Port>>& /*ports*/,
     LaneMode /*desiredLaneMode*/) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

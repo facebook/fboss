@@ -14,11 +14,10 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(uint32_t featuresDesired) {
   return std::make_unique<BcmSwitchEnsemble>(featuresDesired);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

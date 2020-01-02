@@ -12,8 +12,7 @@
 /*
  * Stubbed out.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmMacTable::programMacEntry(
     const MacEntry* /*macEntry*/,
@@ -22,5 +21,4 @@ void BcmMacTable::unprogramMacEntry(
     const MacEntry* /*macEntry*/,
     VlanID /*vlan*/) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

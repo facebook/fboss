@@ -8,8 +8,7 @@
 #include <gmock/gmock.h>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockBcmSwitch : public BcmSwitchIf {
  public:
@@ -128,5 +127,4 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getSwitchSettings, const BcmSwitchSettings*());
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

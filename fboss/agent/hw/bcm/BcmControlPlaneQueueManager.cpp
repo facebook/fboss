@@ -14,8 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 const std::vector<BcmCosQueueCounterType>&
 BcmControlPlaneQueueManager::getQueueCounterTypes() const {
   static const std::vector<BcmCosQueueCounterType> types = {
@@ -60,5 +60,5 @@ const PortQueue& BcmControlPlaneQueueManager::getDefaultQueueSettings(
     cfg::StreamType streamType) const {
   return hw_->getPlatform()->getDefaultControlPlaneQueueSettings(streamType);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

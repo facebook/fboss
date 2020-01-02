@@ -11,8 +11,8 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 bool portEnabled(int unit, opennsl_port_t port) {
   int enable = -1;
@@ -80,5 +80,5 @@ opennsl_gport_t getPortGport(int unit, int port) {
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

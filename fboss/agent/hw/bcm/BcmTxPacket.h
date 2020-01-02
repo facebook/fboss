@@ -20,8 +20,7 @@ extern "C" {
 #include <opennsl/types.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmTxPacket : public TxPacket {
  public:
@@ -96,5 +95,4 @@ class BcmTxPacket : public TxPacket {
   TimePoint queued_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

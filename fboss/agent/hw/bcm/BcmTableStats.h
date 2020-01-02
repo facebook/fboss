@@ -12,8 +12,7 @@
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_types.h"
 #include "fboss/agent/state/StateDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 
@@ -52,5 +51,5 @@ class BcmHwTableStatManager {
   BcmHwTableStats stats_;
   bool isAlpmEnabled_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

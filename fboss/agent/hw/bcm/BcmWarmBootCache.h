@@ -38,8 +38,8 @@ extern "C" {
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class AclMap;
 class BcmSwitchIf;
 class InterfaceMap;
@@ -665,5 +665,5 @@ class BcmWarmBootCache {
   std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
   QosMapKey2QosMapId qosMapKey2QosMapId_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -22,8 +22,7 @@ extern "C" {
 #include <opennsl/switch.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 #define DECLARE_MODULE_CONTROL_STRONG_TYPE(new_type, primitive) \
   BOOST_STRONG_TYPEDEF(primitive, new_type);
@@ -272,5 +271,4 @@ class BcmRtag7Module {
   static bool fieldControlProgrammed_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

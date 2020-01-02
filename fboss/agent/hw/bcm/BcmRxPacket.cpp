@@ -23,8 +23,7 @@ void freeRxBuf(void* ptr, void* arg) {
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt) : unit_(pkt->unit) {
   // The BCM RX code always uses a single buffer.
@@ -50,5 +49,4 @@ BcmRxPacket::~BcmRxPacket() {
   // to free the packet data
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -4,8 +4,8 @@
 
 #include "fboss/agent/hw/bcm/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
 class AclEntry;
 class Mirror;
@@ -77,5 +77,4 @@ class BcmMirror {
   uint8_t mirroredPorts_{0};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

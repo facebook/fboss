@@ -11,8 +11,7 @@ extern "C" {
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/lib/RefMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmEgress;
 class BcmSwitch;
@@ -109,5 +108,5 @@ class BcmNextHopTable {
 
 using BcmL3NextHopTable = BcmNextHopTable<BcmHostKey, BcmL3NextHop>;
 using BcmMplsNextHopTable = BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

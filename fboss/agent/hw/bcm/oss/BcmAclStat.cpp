@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmAclStat::BcmAclStat(
     BcmSwitch* hw,
@@ -19,5 +18,4 @@ BcmAclStat::BcmAclStat(
     : hw_(hw) {}
 BcmAclStat::~BcmAclStat() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -27,8 +27,7 @@ extern "C" {
 /*
  * Stubbed out.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
   return std::make_unique<BcmRxPacket>(pkt);
@@ -166,5 +165,5 @@ bool BcmSwitch::isValidPortQosPolicyUpdate(
     const std::shared_ptr<SwitchState>& /*newState*/) const {
   return true;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

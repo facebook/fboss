@@ -11,8 +11,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void BcmSwitchSettings::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
   if (l2LearningMode == cfg::L2LearningMode::HARDWARE) {
@@ -83,5 +82,4 @@ void BcmSwitchSettings::enableL2LearningSoftware() {
   bcmCheckError(rv, "opennsl_l2_traverse failed");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

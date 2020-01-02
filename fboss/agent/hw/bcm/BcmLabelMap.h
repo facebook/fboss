@@ -4,8 +4,8 @@
 
 #include "fboss/agent/state/LabelForwardingEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmSwitch;
 class BcmLabelSwitchAction;
 
@@ -30,5 +30,4 @@ class BcmLabelMap {
   BcmLabelSwitchActionMap labelMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

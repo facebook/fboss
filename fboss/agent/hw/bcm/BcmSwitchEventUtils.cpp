@@ -14,8 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace BcmSwitchEventUtils {
 
 // Functor to fix a quirk in pre-c++14 standards
@@ -175,5 +175,5 @@ void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal) {
 }
 
 } // namespace BcmSwitchEventUtils
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
