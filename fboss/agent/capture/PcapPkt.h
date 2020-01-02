@@ -15,8 +15,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 class TxPacket;
@@ -125,5 +124,4 @@ class PcapPkt {
   std::vector<RxReason> reasons_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

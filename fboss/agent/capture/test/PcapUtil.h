@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct PcapPktInfo {
   PcapPktInfo(const struct pcap_pkthdr* h, const uint8_t* d)
@@ -26,5 +25,4 @@ struct PcapPktInfo {
 
 std::vector<PcapPktInfo> readPcapFile(const char* path);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

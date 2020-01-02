@@ -13,8 +13,7 @@
 #include <mutex>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 class TxPacket;
@@ -99,5 +98,4 @@ class PcapQueue {
   std::vector<PcapPkt> queue_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

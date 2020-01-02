@@ -13,8 +13,7 @@
 #include <folly/Range.h>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PcapPkt;
 
@@ -59,5 +58,4 @@ class PcapFile {
   folly::File file_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

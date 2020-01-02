@@ -22,8 +22,7 @@ using folly::StringPiece;
 using std::string;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PktCaptureManager::PktCaptureManager(SwSwitch* sw) {
   auto persistDir = sw->getPlatform()->getPersistentStateDir();
@@ -157,5 +156,4 @@ void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

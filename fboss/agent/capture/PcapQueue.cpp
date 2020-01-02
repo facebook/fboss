@@ -20,8 +20,7 @@ DEFINE_int32(
     "to buffer in memory while waiting them to be written to the "
     "capture file");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PcapQueue::PcapQueue(uint32_t pktCapacity, uint64_t bytesCapacity)
     : pktCapacity_(
@@ -117,5 +116,4 @@ bool PcapQueue::wait(std::vector<PcapPkt>* swapQueue) {
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

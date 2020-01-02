@@ -14,8 +14,7 @@
 
 #include <thread>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * PcapWriter listes to a PcapQueue and writes the packets it receives
@@ -84,5 +83,4 @@ class PcapWriter {
   std::thread thread_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

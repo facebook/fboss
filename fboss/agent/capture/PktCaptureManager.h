@@ -17,8 +17,7 @@
 #include <mutex>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PktCapture;
 class RxPacket;
@@ -96,5 +95,4 @@ class PktCaptureManager {
   std::map<std::string, std::unique_ptr<PktCapture>> inactiveCaptures_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

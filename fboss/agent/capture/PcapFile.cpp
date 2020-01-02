@@ -22,8 +22,7 @@ using folly::writevFull;
 using std::chrono::microseconds;
 using std::chrono::seconds;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PcapFile::PktHeader::PktHeader(const PcapPkt& pkt) {
   auto ts = pkt.timestamp().time_since_epoch();
@@ -101,5 +100,4 @@ int PcapFile::openFlags(bool overwriteExisting) {
   return flags;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -16,8 +16,7 @@
 
 using folly::StringPiece;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PcapWriter::PcapWriter(uint32_t maxBufferedPkts) : queue_(maxBufferedPkts) {}
 
@@ -84,5 +83,4 @@ void PcapWriter::writeLoop() {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

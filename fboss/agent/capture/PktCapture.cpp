@@ -15,8 +15,7 @@
 
 using folly::StringPiece;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PktCapture::PktCapture(
     folly::StringPiece name,
@@ -76,5 +75,4 @@ std::string PktCapture::toString(bool withStats) const {
   }
   return ss.str();
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

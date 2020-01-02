@@ -18,8 +18,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TxPacket.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacketFilter {
  public:
@@ -94,5 +93,4 @@ class PktCapture {
   CaptureDirection direction_{CaptureDirection::CAPTURE_TX_RX};
   PacketFilter packetFilter_;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
