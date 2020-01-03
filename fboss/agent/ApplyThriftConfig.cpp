@@ -1506,39 +1506,6 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 }
 
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
-  // TODO(joseph5wu) The following RangeCheck needs to be deprecated once we
-  // have coop rolled out to use the exact match l4 port struct everywhere.
-  // check l4 port range
-  if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange_ref().value_unchecked().min >
-       AclEntryFields::kMaxL4Port)) {
-    throw FbossError("src's L4 port range has a min value larger than 65535");
-  }
-  if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange_ref().value_unchecked().max >
-       AclEntryFields::kMaxL4Port)) {
-    throw FbossError("src's L4 port range has a max value larger than 65535");
-  }
-  if (config->__isset.srcL4PortRange &&
-      (config->srcL4PortRange_ref().value_unchecked().min !=
-       config->srcL4PortRange_ref().value_unchecked().max)) {
-    throw FbossError("Only support src L4 port range min value == max value");
-  }
-  if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange_ref().value_unchecked().min >
-       AclEntryFields::kMaxL4Port)) {
-    throw FbossError("dst's L4 port range has a min value larger than 65535");
-  }
-  if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange_ref().value_unchecked().max >
-       AclEntryFields::kMaxL4Port)) {
-    throw FbossError("dst's L4 port range has a max value larger than 65535");
-  }
-  if (config->__isset.dstL4PortRange &&
-      (config->dstL4PortRange_ref().value_unchecked().min !=
-       config->dstL4PortRange_ref().value_unchecked().max)) {
-    throw FbossError("Only support dst L4 port range min value == max value");
-  }
   // check l4 port
   if (config->__isset.l4SrcPort &&
       (config->l4SrcPort_ref().value_unchecked() < 0 ||
@@ -1626,14 +1593,6 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (config->__isset.dstPort) {
     newAcl->setDstPort(config->dstPort_ref().value_unchecked());
-  }
-  // TODO(joseph5wu) The following RangeCheck needs to be deprecated once we
-  // have coop rolled out to use the exact match l4 port struct everywhere.
-  if (config->__isset.srcL4PortRange) {
-    newAcl->setL4SrcPort(config->srcL4PortRange_ref().value_unchecked().min);
-  }
-  if (config->__isset.dstL4PortRange) {
-    newAcl->setL4DstPort(config->dstL4PortRange_ref().value_unchecked().min);
   }
   if (config->__isset.l4SrcPort) {
     newAcl->setL4SrcPort(config->l4SrcPort_ref().value_unchecked());

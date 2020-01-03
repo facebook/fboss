@@ -296,11 +296,11 @@ struct AclEntry {
   4: optional string dstIp
 
   /**
-   * [DEPRECATED] TODO(joseph5wu)
+   * [DEPRECATED]
    * L4 port ranges (TCP/UDP)
    */
-  5: optional L4PortRange srcL4PortRange
-  6: optional L4PortRange dstL4PortRange
+  5: optional L4PortRange srcL4PortRange_DEPRECATED
+  6: optional L4PortRange dstL4PortRange_DEPRECATED
 
   /**
    * IP Protocol. e.g, 6 for TCP
@@ -325,10 +325,10 @@ struct AclEntry {
   11: optional i16 dstPort
 
   /**
-   * [DEPRECATED] TODO(joseph5wu)
+   * [DEPRECATED]
    * Packet length range
    */
-  12: optional PktLenRange pktLenRange
+  12: optional PktLenRange pktLenRange_DEPRECATED
 
   /**
    * Ip fragment
