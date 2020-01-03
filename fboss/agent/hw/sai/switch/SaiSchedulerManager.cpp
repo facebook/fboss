@@ -53,8 +53,7 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SaiSchedulerManager::SaiSchedulerManager(
     SaiManagerTable* managerTable,
@@ -71,5 +70,4 @@ std::shared_ptr<SaiScheduler> SaiSchedulerManager::createScheduler(
   return store.setObject(k, attributes);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

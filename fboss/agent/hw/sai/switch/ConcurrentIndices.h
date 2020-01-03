@@ -18,8 +18,7 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct ConcurrentIndices {
   ~ConcurrentIndices();
@@ -34,5 +33,4 @@ struct ConcurrentIndices {
   folly::ConcurrentHashMap<PortSaiId, VlanID> vlanIds;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

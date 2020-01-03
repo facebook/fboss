@@ -15,8 +15,8 @@
 
 #include "fboss/agent/SwitchStats.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
@@ -39,5 +39,5 @@ std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
       {cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId}};
 }
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

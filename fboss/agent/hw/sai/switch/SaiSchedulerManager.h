@@ -20,8 +20,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -41,5 +40,4 @@ class SaiSchedulerManager {
   const SaiPlatform* platform_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

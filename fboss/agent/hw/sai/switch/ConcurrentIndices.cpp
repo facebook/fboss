@@ -10,10 +10,8 @@
 
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ConcurrentIndices::~ConcurrentIndices() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
