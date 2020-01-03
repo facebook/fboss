@@ -14,13 +14,11 @@
 
 #include <string>
 
-
 using std::make_shared;
 using std::shared_ptr;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwVlanTest : public HwTest {
  protected:
@@ -54,5 +52,5 @@ TEST_F(HwVlanTest, VlanApplyConfig) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

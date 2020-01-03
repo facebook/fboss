@@ -17,8 +17,7 @@
 
 #include <gmock/gmock.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockHwSwitch;
 class HwTestHandle;
@@ -78,5 +77,4 @@ class MockPlatform : public Platform {
   std::unique_ptr<MockHwSwitch> hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

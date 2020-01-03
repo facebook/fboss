@@ -12,8 +12,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/sim/gen-cpp2/SimCtrl.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SimSwitch;
 class SwSwitch;
@@ -28,5 +27,4 @@ class SimHandler : virtual public SimCtrlSvIf, public ThriftHandler {
   SimHandler& operator=(SimHandler const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

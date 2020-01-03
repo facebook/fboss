@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BufferStatsLogger {
  public:
@@ -55,5 +54,5 @@ class GlogBufferStatsLogger : public BufferStatsLogger {
       uint64_t pktsDropped,
       const XPEs& xpes) override;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

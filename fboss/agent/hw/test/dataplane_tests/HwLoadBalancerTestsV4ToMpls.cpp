@@ -14,8 +14,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwLoadBalancerTestV4ToMpls
     : public HwLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil> {
@@ -33,5 +32,5 @@ class HwLoadBalancerTestV4ToMpls
 };
 
 RUN_ALL_HW_LOAD_BALANCER_TEST(HwLoadBalancerTestV4ToMpls)
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

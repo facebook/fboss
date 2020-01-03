@@ -17,8 +17,7 @@
 #include <gmock/gmock.h>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockPlatform;
 
@@ -83,5 +82,5 @@ class MockHwSwitch : public HwSwitch {
   MockHwSwitch(MockHwSwitch const&) = delete;
   MockHwSwitch& operator=(MockHwSwitch const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

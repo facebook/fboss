@@ -71,8 +71,7 @@
   RUN_ALL_HW_LOAD_BALANCER_TEST_FRONT_PANEL(TEST_FIXTURE) \
   RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename EcmpTestHelperT>
 class HwLoadBalancerTest : public HwLinkStateDependentTest {
@@ -198,5 +197,4 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   std::unique_ptr<EcmpTestHelperT> helper_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

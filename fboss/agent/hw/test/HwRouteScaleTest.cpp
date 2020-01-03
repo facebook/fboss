@@ -17,8 +17,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwRouteScaleTest : public HwTest {
  protected:
@@ -64,5 +63,5 @@ TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
   runTest<utility::HgridUuRouteScaleGenerator>(
       {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

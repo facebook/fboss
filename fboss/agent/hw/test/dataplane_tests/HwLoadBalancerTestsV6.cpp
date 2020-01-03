@@ -14,8 +14,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwLoadBalancerTestV6
     : public HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {
@@ -24,9 +23,8 @@ class HwLoadBalancerTestV6
     return std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
         getHwSwitchEnsemble(), RouterID(0));
   }
-
 };
 
 RUN_ALL_HW_LOAD_BALANCER_TEST(HwLoadBalancerTestV6)
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

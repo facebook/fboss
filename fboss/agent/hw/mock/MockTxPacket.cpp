@@ -15,8 +15,7 @@
 
 using folly::IOBuf;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MockTxPacket::MockTxPacket(uint32_t size) {
   buf_ = IOBuf::create(size);
@@ -33,5 +32,4 @@ std::unique_ptr<MockTxPacket> MockTxPacket::clone() const {
   return ret;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

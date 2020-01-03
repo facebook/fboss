@@ -26,8 +26,7 @@ using testing::_;
 using testing::Invoke;
 using testing::WithArg;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MockPlatform::MockPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -64,5 +63,4 @@ std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
   return make_unique<MockTestHandle>(std::move(sw), this);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -23,8 +23,8 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitch;
 class SwitchState;
 class EthHdr;
@@ -153,5 +153,5 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
         std::optional<std::vector<uint8_t>>());
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

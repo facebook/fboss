@@ -13,8 +13,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void HwLinkStateDependentTest::SetUp() {
   HwTest::SetUp();
@@ -38,5 +37,5 @@ void HwLinkStateDependentTest::bringDownPorts(
     const std::vector<PortID>& ports) {
   getLinkToggler()->bringDownPorts(getProgrammedState(), ports);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

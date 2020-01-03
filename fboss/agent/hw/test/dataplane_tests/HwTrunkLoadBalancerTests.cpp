@@ -42,8 +42,7 @@ const AggPortInfo k4X2WideAggs{4, 2};
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
  private:
@@ -284,5 +283,5 @@ TEST_F(
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort*/);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

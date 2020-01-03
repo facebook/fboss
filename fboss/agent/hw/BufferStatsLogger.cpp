@@ -15,8 +15,7 @@
 
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void GlogBufferStatsLogger::logDeviceBufferStat(
     uint64_t bytesUsed,
@@ -38,5 +37,5 @@ void GlogBufferStatsLogger::logPortBufferStat(
              << " Packets dropped: " << pktsDropeed
              << " XPEs: " << xpeStr(xpes);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

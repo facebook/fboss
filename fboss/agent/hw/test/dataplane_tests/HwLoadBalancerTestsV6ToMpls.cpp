@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/test/HwTestConstants.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwLoadBalancerTestV6ToMpls
     : public HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {
@@ -35,5 +34,4 @@ class HwLoadBalancerTestV6ToMpls
 
 RUN_ALL_HW_LOAD_BALANCER_TEST(HwLoadBalancerTestV6ToMpls)
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

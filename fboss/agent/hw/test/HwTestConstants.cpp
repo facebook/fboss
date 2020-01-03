@@ -2,8 +2,8 @@
 
 #include "fboss/agent/hw/test/HwTestConstants.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks() {
   return {{101, 102, 103},
@@ -24,5 +24,5 @@ std::vector<uint64_t> kHwTestUcmpWeights() {
   return {10, 20, 30, 40, 50, 60, 70, 80};
 }
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

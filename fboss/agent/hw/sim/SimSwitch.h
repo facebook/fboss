@@ -13,8 +13,7 @@
 
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SimPlatform;
 class SwitchState;
@@ -101,5 +100,4 @@ class SimSwitch : public HwSwitch {
   BootType bootType_{BootType::UNINITIALIZED};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

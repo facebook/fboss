@@ -17,8 +17,8 @@
 /*
  * This utility is to provide utils for bcm olympic tests.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitch;
 namespace utility {
 
@@ -57,5 +57,5 @@ uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
 std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues();
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

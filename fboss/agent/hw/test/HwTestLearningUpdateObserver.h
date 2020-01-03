@@ -9,8 +9,7 @@
 #include <folly/Optional.h>
 #include <condition_variable>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 
@@ -37,5 +36,4 @@ class HwTestLearningUpdateObserver
   std::unique_ptr<std::pair<L2Entry, L2EntryUpdateType>> data_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -27,8 +27,7 @@ using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwJumboFramesTest : public HwLinkStateDependentTest {
  private:
@@ -98,5 +97,4 @@ TEST_F(HwJumboFramesTest, SuperJumboFramesGetDropped) {
   runJumboFrameTest(60000, true);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

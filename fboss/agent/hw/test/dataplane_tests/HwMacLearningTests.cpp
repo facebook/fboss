@@ -55,8 +55,7 @@ getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using utility::addAggPort;
 using utility::enableTrunkPorts;
@@ -299,5 +298,4 @@ TEST_F(HwMacLearningTest, VerifySwAgingForTrunk) {
   testSwAgingHelper(aggPortDescr());
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

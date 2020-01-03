@@ -15,8 +15,7 @@
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST_F(HwTest, overflowRoutes) {
   applyNewConfig(
@@ -67,5 +66,5 @@ TEST_F(HwTest, overflowRoutes) {
   applyNewState(desiredState);
   EXPECT_NE(getProgrammedState(), desiredState);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

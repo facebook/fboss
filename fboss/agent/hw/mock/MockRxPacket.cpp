@@ -22,8 +22,7 @@ using folly::io::Appender;
 using std::make_unique;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MockRxPacket::MockRxPacket(std::unique_ptr<folly::IOBuf> buf) {
   buf_ = std::move(buf);
@@ -48,5 +47,4 @@ void MockRxPacket::padToLength(uint32_t size, uint8_t pad) {
   len_ = buf_->computeChainDataLength();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

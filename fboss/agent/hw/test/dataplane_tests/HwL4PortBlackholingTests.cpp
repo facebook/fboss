@@ -24,8 +24,7 @@ using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
  private:
@@ -95,5 +94,4 @@ TEST_F(HwL4PortBlackHolingTest, v4UDP) {
   runTest(false);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

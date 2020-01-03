@@ -15,8 +15,8 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 void updateHwSwitchStats(HwSwitch* hw) {
   SwitchStats dummy;
   hw->updateStats(&dummy);
@@ -27,5 +27,4 @@ uint64_t getPortOutPkts(HwPortStats portStats) {
       portStats.outBroadcastPkts_;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

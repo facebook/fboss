@@ -5,8 +5,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 HwTestPacketSnooper::HwTestPacketSnooper(HwSwitchEnsemble* ensemble)
     : ensemble_(ensemble) {
@@ -32,5 +31,4 @@ std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket() {
   return utility::EthFrame{cursor};
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

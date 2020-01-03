@@ -14,8 +14,8 @@
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 cfg::PlatformPortSettings getPlatformPortSettingsConfig(
@@ -69,5 +69,5 @@ cfg::AgentConfig getAgentConfig() {
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

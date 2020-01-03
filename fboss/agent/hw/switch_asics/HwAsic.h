@@ -3,8 +3,7 @@
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwAsic {
  public:
@@ -38,5 +37,4 @@ class HwAsic {
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -4,8 +4,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
@@ -20,5 +19,4 @@ class FakeAsic : public HwAsic {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

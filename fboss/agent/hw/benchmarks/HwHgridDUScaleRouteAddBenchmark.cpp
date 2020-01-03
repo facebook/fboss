@@ -12,11 +12,9 @@
 
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ROUTE_ADD_BENCHMARK(
     HwHgridDUScaleRouteAddBenchmark,
     utility::HgridDuRouteScaleGenerator);
-}
-} // namespace facebook
+} // namespace facebook::fboss

@@ -4,8 +4,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Tomahawk3Asic : public HwAsic {
   bool isSupported(Feature) const override;
@@ -17,5 +16,4 @@ class Tomahawk3Asic : public HwAsic {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

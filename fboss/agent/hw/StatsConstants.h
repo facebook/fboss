@@ -11,8 +11,7 @@
 
 #include <folly/Range.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 inline folly::StringPiece constexpr kCapacity() {
   return "capacity";
@@ -105,5 +104,5 @@ inline folly::StringPiece constexpr kOutEcnCounter() {
 inline folly::StringPiece constexpr kOutPkts() {
   return "out_pkts";
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

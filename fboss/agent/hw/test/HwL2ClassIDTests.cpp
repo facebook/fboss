@@ -12,8 +12,7 @@
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwL2ClassIDTest : public HwTest {
  protected:
@@ -92,5 +91,4 @@ TEST_F(HwL2ClassIDTest, VerifyClassID) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

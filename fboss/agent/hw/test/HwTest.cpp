@@ -34,15 +34,13 @@ DEFINE_bool(
     "Set up test for SDK warmboot. Useful for testing individual "
     "tests doing a full process warmboot and verifying expectations");
 
-
 namespace {
 
 auto kStageLogPrefix = "RUNNING STAGE: ";
 
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 HwSwitch* HwTest::getHwSwitch() {
   return hwSwitchEnsemble_->getHwSwitch();
@@ -136,5 +134,5 @@ std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   return hwSwitchEnsemble_->getLatestPortStats(ports);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

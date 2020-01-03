@@ -12,8 +12,8 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitchEnsemble;
 /*
  * API to create appropriate HW ensemble based on the platform
@@ -24,5 +24,5 @@ class HwSwitchEnsemble;
  */
 
 std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(uint32_t featuresDesired);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

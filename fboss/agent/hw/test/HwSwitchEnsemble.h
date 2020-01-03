@@ -21,8 +21,7 @@
 #include <memory>
 #include <thread>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Platform;
 class SwitchState;
@@ -128,5 +127,4 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   bool initComplete_{false};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -16,8 +16,7 @@ namespace folly {
 class IOBuf;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockRxPacket : public RxPacket {
  public:
@@ -42,5 +41,4 @@ class MockRxPacket : public RxPacket {
   MockRxPacket& operator=(MockRxPacket const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

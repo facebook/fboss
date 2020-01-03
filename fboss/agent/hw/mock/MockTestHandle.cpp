@@ -15,8 +15,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/test/TestUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void MockTestHandle::rxPacket(
     std::unique_ptr<folly::IOBuf> buf,
@@ -42,5 +41,4 @@ void MockTestHandle::forcePortFlap(PortID port) {
   forcePortUp(port);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

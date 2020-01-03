@@ -20,8 +20,7 @@
 #include <mutex>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Platform;
 class SwitchState;
@@ -74,5 +73,5 @@ class HwLinkStateToggler {
   StateUpdateFn stateUpdateFn_;
   const cfg::PortLoopbackMode desiredLoopbackMode_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

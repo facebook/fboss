@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // the HwSwitchEnsemble class has lots of abstractions, so we need
 // to create a concrete class just to test it
@@ -43,5 +42,4 @@ TEST(TestHwSwitchEnsemble, Unprogrammed) {
   call_ctor_dtor(); // does the dtor trigger an ASAN error?
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

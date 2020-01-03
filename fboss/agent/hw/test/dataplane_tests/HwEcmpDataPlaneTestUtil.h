@@ -8,8 +8,8 @@
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitchEnsemble;
 namespace utility {
 
@@ -103,5 +103,5 @@ using HwMplsV4EcmpDataPlaneTestUtil =
 using HwMplsV6EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

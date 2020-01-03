@@ -19,13 +19,11 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
-
 using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
  private:
@@ -63,7 +61,6 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         portMap->updatePort(port);
         applyNewState(newState);
       }
-
     };
     auto verify = [=]() {
       auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
@@ -94,5 +91,5 @@ TEST_F(HwInPauseDiscardsCounterTest, rxPauseDisabled) {
 TEST_F(HwInPauseDiscardsCounterTest, rxPauseEnabled) {
   runTest(true);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

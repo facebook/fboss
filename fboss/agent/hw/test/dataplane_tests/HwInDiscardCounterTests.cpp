@@ -22,8 +22,7 @@ using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
  private:
@@ -74,5 +73,4 @@ TEST_F(HwInDiscardsCounterTest, v4) {
   runTest(false);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

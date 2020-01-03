@@ -19,8 +19,7 @@
 
 #include <gmock/gmock.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockPlatformPort : public PlatformPort {
  public:
@@ -47,5 +46,4 @@ class MockPlatformPort : public PlatformPort {
   MOCK_CONST_METHOD0(shouldDisableFEC, bool());
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

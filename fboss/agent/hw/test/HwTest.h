@@ -29,8 +29,7 @@
 DECLARE_bool(setup_for_warmboot);
 DECLARE_int32(thrift_port);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwSwitch;
 class HwSwitchEnsemble;
@@ -151,5 +150,4 @@ class HwTest : public ::testing::Test,
   std::unique_ptr<HwSwitchEnsemble> hwSwitchEnsemble_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

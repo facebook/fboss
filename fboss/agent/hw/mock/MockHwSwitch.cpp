@@ -18,8 +18,7 @@ using std::make_unique;
 using ::testing::_;
 using ::testing::Invoke;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
   // We need to delete the memory allocated by the packet. Ideally, we
@@ -87,5 +86,4 @@ bool MockHwSwitch::sendPacketOutOfPortSync(
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

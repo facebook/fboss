@@ -20,8 +20,8 @@
 /*
  * This utility is to provide utils for test.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 /*
  * Use vlan 1000, as the base vlan for ports in configs generated here.
@@ -69,5 +69,5 @@ cfg::SwitchConfig twoL3IntfConfig(
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

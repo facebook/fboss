@@ -23,8 +23,7 @@ using std::make_unique;
 using std::shared_ptr;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SimSwitch::SimSwitch(SimPlatform* /*platform*/, uint32_t numPorts)
     : numPorts_(numPorts) {}
@@ -91,5 +90,4 @@ folly::dynamic SimSwitch::toFollyDynamic() const {
   return folly::dynamic::object;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

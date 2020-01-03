@@ -31,8 +31,7 @@ DEFINE_int32(
     5909,
     "Port for thrift server to use (use with --setup_thrift");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
     : featuresDesired_(featuresDesired) {}
@@ -196,5 +195,4 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->gracefulExit(switchState);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -14,8 +14,8 @@
 
 #include <folly/MacAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitch;
 namespace utility {
 
@@ -25,5 +25,5 @@ void setMacAgeTimerSeconds(
     uint32_t seconds);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

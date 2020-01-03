@@ -16,8 +16,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockTestHandle : public HwTestHandle {
  public:
@@ -41,5 +40,4 @@ class MockTestHandle : public HwTestHandle {
   MockPlatform* platform_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

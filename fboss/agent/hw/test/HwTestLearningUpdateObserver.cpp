@@ -4,8 +4,7 @@
 
 #include "fboss/agent/MacTableUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
   ensemble_ = ensemble;
@@ -49,5 +48,4 @@ HwTestLearningUpdateObserver::waitForLearningUpdate() {
   return data_.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -2,12 +2,10 @@
 
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 bool Tomahawk3Asic::isSupported(Feature) const {
   return false;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -15,8 +15,8 @@
 #include <map>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class HwSwitch;
 /*
  * APIs to query VLAN information off the underlying HW. Each
@@ -27,5 +27,5 @@ class HwSwitch;
 std::vector<VlanID> getConfiguredVlans(const HwSwitch* hwSwitch);
 
 std::map<VlanID, uint32_t> getVlanToNumPorts(const HwSwitch* hwSwitch);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

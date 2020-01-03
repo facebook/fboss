@@ -10,11 +10,9 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template class HwLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil>;
 template class HwLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

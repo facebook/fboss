@@ -27,8 +27,7 @@ DEFINE_string(
 using std::make_unique;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SimPlatform::SimPlatform(folly::MacAddress mac, uint32_t numPorts)
     : Platform(nullptr), mac_(mac), hw_(new SimSwitch(this, numPorts)) {}
@@ -60,5 +59,4 @@ std::string SimPlatform::getPersistentStateDir() const {
 
 void SimPlatform::initPorts() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

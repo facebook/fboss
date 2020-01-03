@@ -10,8 +10,7 @@
 #include <folly/io/IOBuf.h>
 #include <condition_variable>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 
@@ -34,5 +33,4 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
   std::unique_ptr<folly::IOBuf> data_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

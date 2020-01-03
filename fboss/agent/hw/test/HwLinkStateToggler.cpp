@@ -15,8 +15,7 @@
 
 #include <folly/gen/Base.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void HwLinkStateToggler::linkStateChanged(PortID port, bool up) noexcept {
   {
@@ -97,5 +96,4 @@ void HwLinkStateToggler::bringUpPorts(
   bringUpPorts(newState, portsToBringUp);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

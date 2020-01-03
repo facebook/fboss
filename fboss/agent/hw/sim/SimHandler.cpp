@@ -17,9 +17,8 @@ using folly::StringPiece;
 using std::make_unique;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SimHandler::SimHandler(SwSwitch* sw, SimSwitch* /*hw*/) : ThriftHandler(sw) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

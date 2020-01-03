@@ -30,8 +30,7 @@ const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
 } // unnamed namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwCoppTest : public HwLinkStateDependentTest {
  protected:
@@ -427,5 +426,5 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

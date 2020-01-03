@@ -15,8 +15,7 @@
 
 #include <folly/Benchmark.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * Helper function to benchmark speed of route insertion, deletion
@@ -59,5 +58,5 @@ void routeAddDelBenchmarker(bool measureAdd) {
   BENCHMARK(name) {                                      \
     routeAddDelBenchmarker<RouteScaleGeneratorT>(false); \
   }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

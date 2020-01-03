@@ -10,8 +10,8 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 template <typename EcmpSetupHelperT>
@@ -168,5 +168,5 @@ template class HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 template class HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

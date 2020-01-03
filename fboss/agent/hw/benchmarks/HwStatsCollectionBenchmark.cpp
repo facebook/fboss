@@ -17,8 +17,8 @@
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 /*
  * Collect stats 10K times and benchmark that.
  * Using a fixed number rather than letting framework
@@ -45,5 +45,5 @@ BENCHMARK(HwStatsCollection) {
   }
   ensemble->applyInitialConfigAndBringUpPorts(config);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

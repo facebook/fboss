@@ -11,8 +11,7 @@
 
 #include "fboss/agent/Platform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SimSwitch;
 
@@ -62,5 +61,4 @@ class SimPlatform : public Platform {
   std::unique_ptr<SimSwitch> hw_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
