@@ -15,8 +15,7 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct NeighborResponseEntry {
   NeighborResponseEntry() {}
@@ -138,5 +137,4 @@ class NeighborResponseTable
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

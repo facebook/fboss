@@ -23,8 +23,7 @@
 using std::shared_ptr;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 VlanMap::VlanMap() {}
 
@@ -71,5 +70,4 @@ void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
 
 FBOSS_INSTANTIATE_NODE_MAP(VlanMap, VlanMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

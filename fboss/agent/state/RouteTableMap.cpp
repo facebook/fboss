@@ -14,8 +14,7 @@
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 RouteTableMap::RouteTableMap() {}
 
@@ -55,5 +54,4 @@ RouteTableMap* RouteTableMap::modify(std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(RouteTableMap, RouteTableMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

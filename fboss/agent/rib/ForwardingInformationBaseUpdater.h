@@ -18,14 +18,14 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
-class SwitchState;
-} // namespace fboss
-} // namespace facebook
+namespace facebook::fboss {
 
-namespace facebook {
-namespace fboss {
+class SwitchState;
+
+} // namespace facebook::fboss
+
+namespace facebook::fboss {
+
 namespace rib {
 
 class RouteNextHopEntry;
@@ -60,5 +60,5 @@ class ForwardingInformationBaseUpdater {
 };
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

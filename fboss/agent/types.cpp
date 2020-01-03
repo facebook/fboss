@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace cfg {
 
 std::ostream& operator<<(std::ostream& out, LoadBalancerID id) {
@@ -29,5 +29,5 @@ std::ostream& operator<<(std::ostream& out, LoadBalancerID id) {
 }
 
 } // namespace cfg
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

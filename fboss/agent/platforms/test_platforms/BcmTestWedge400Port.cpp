@@ -12,12 +12,11 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestWedge400Port::BcmTestWedge400Port(
     PortID id,
     BcmTestWedge400Platform* platform)
     : BcmTestPort(id, platform) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

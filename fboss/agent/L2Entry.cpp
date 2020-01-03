@@ -11,8 +11,7 @@
 
 #include <sstream>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 L2Entry::L2Entry(
     folly::MacAddress mac,
@@ -36,5 +35,4 @@ std::string L2Entry::str() const {
   return os.str();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

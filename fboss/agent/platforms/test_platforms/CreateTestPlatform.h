@@ -14,13 +14,11 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Platform;
 
 PlatformMode getPlatformMode();
 std::unique_ptr<Platform> createTestPlatform();
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

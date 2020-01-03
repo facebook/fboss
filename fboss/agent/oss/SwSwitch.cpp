@@ -13,8 +13,7 @@
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 
@@ -38,5 +37,5 @@ void SwSwitch::logSwitchRunStateChange(
       switchRunStateStr(newState));
   XLOG(DBG2) << logMsg;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

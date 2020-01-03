@@ -22,8 +22,7 @@
 #include <optional>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Vlan;
 template <typename NTable>
@@ -166,5 +165,4 @@ class NeighborCacheImpl {
   std::unordered_map<AddressType, std::shared_ptr<Entry>> entries_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

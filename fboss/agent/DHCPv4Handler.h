@@ -15,8 +15,8 @@
 #include <memory>
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwSwitch;
 class RxPacket;
 class UDPHeader;
@@ -71,5 +71,5 @@ class DHCPv4Handler {
       const DHCPv4Packet& dhcpPacketIn,
       DHCPv4Packet& dhcpPacketOut);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

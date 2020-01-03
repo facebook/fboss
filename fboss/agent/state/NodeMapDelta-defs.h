@@ -12,8 +12,7 @@
 #include <glog/logging.h>
 #include "fboss/agent/state/NodeMapDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
 std::shared_ptr<typename MAP::Node>
@@ -110,5 +109,4 @@ void NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator::advance() {
   updateValue();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

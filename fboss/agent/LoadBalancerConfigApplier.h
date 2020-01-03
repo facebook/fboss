@@ -21,8 +21,7 @@
 
 class Platform;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LoadBalancerConfigParser {
  public:
@@ -80,5 +79,4 @@ class LoadBalancerConfigApplier {
   const Platform* platform_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

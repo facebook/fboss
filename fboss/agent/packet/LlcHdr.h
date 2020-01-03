@@ -27,8 +27,7 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * DSAP:
@@ -140,5 +139,4 @@ inline bool operator!=(const LlcHdr& lhs, const LlcHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

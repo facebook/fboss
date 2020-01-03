@@ -10,8 +10,8 @@
 #include "folly/IPAddressV4.h"
 #include "folly/IPAddressV6.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 cfg::MirrorEgressPort getMirrorEgressPort(const std::string& portName);
@@ -101,5 +101,5 @@ cfg::Mirror getSFlowMirrorWithPortName(
 );
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

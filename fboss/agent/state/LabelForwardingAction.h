@@ -13,8 +13,7 @@ namespace {
 auto constexpr kInvalidAction = "Invalid Label Forwarding Action";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /* LabelForwardingAction defines an MPLS forwarding action and parameters
  * required necessary for that action. Label forwarding action is associated
@@ -111,5 +110,4 @@ class LabelForwardingAction {
   std::optional<LabelStack> pushStack_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -21,8 +21,7 @@
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
   auto productInfo =
@@ -53,5 +52,5 @@ std::unique_ptr<Platform> initWedgePlatform(
   platform->init(std::move(config));
   return std::move(platform);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

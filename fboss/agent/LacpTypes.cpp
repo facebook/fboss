@@ -13,8 +13,7 @@
 #include <folly/Conv.h>
 #include <folly/Range.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LACPDU::LACPDU(ParticipantInfo actor, ParticipantInfo partner)
     : actorInfo(actor), partnerInfo(partner) {}
@@ -162,5 +161,4 @@ bool LinkAggregationGroupID::operator==(
       rhs.partnerPortPriority == partnerPortPriority;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

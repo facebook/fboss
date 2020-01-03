@@ -15,8 +15,7 @@
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename PortIdType, typename TrunkIdType>
 class PortDescriptorTemplate {
@@ -126,5 +125,4 @@ inline std::ostream& operator<<(
   return out << pd.str();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

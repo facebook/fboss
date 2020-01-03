@@ -15,8 +15,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<UpdateLogHandler> UpdateLogHandler::get() {
   return std::make_unique<GlogUpdateLogHandler>();
@@ -25,5 +24,4 @@ std::unique_ptr<UpdateLogHandler> UpdateLogHandler::get() {
 template class RouteLogger<folly::IPAddressV4>;
 template class RouteLogger<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

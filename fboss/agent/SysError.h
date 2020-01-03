@@ -17,8 +17,7 @@ extern "C" {
 #include <string.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * A class for errors from the Broadcom SDK.
@@ -71,5 +70,5 @@ void sysLogFatal(int ret, Args&&... msgArgs) {
                 << ": " << strerror_r(err, buf, sizeof(buf));
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

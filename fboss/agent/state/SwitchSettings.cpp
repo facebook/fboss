@@ -16,8 +16,7 @@ namespace {
 constexpr auto kL2LearningMode = "l2LearningMode";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic SwitchSettingsFields::toFollyDynamic() const {
   folly::dynamic switchSettings = folly::dynamic::object;
@@ -57,5 +56,5 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
 }
 
 template class NodeBaseT<SwitchSettings, SwitchSettingsFields>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

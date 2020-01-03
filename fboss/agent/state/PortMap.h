@@ -12,8 +12,7 @@
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class Port;
@@ -58,5 +57,4 @@ class PortMap : public NodeMapT<PortMap, PortMapTraits> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -27,8 +27,7 @@ namespace folly {
 struct dynamic;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -119,5 +118,5 @@ class MapFilter {
   const Map& map_;
   Predicate pred_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -21,8 +21,8 @@
 #include <memory>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class PlatformProductInfo;
 
 class BcmTestPlatform : public BcmPlatform {
@@ -96,5 +96,4 @@ class BcmTestPlatform : public BcmPlatform {
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

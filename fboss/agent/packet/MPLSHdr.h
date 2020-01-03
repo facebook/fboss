@@ -5,8 +5,7 @@
 #include <folly/io/Cursor.h>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct MPLSHdr {
  public:
@@ -68,5 +67,5 @@ struct MPLSHdr {
   };
   std::vector<Label> stack_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

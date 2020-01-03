@@ -117,8 +117,8 @@ rib::Route<AddressT>* longestMatch(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 /* The following method updates the RIB with routes that would result from a
@@ -1889,5 +1889,5 @@ TEST_F(UcmpTest, Ten) {
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

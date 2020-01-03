@@ -22,8 +22,7 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/IPProto.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum : uint8_t {
   IPV6_VERSION = 6,
@@ -184,5 +183,4 @@ inline bool operator!=(const IPv6Hdr& lhs, const IPv6Hdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

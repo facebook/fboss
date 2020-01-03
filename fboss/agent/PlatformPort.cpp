@@ -13,8 +13,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PlatformPort::PlatformPort(PortID id, Platform* platform)
     : id_(id), platform_(platform) {}
@@ -43,5 +42,4 @@ const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
   return std::nullopt;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

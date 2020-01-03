@@ -12,8 +12,7 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ForwardingInformationBaseMap::ForwardingInformationBaseMap() {}
 
@@ -74,5 +73,4 @@ FBOSS_INSTANTIATE_NODE_MAP(
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

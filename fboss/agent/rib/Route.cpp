@@ -13,8 +13,8 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 template <typename AddrT>
@@ -141,5 +141,5 @@ template class Route<folly::IPAddressV4>;
 template class Route<folly::IPAddressV6>;
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

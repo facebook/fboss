@@ -13,8 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
@@ -144,5 +143,5 @@ UnresolvedNextHop::UnresolvedNextHop(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

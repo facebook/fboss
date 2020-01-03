@@ -15,14 +15,9 @@
 
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 class SwitchState;
-}
-} // namespace facebook
 
-namespace facebook {
-namespace fboss {
 namespace utility {
 
 constexpr unsigned int kDefaultChunkSize = 4000;
@@ -69,5 +64,5 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 };
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

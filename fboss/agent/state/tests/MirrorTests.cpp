@@ -12,8 +12,8 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class MirrorTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -645,5 +645,4 @@ TEST_F(MirrorTest, SflowMirrorWithSrcIP) {
   EXPECT_EQ(mirror0->getTunnelUdpPorts().value().udpDstPort, 9889);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

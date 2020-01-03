@@ -19,8 +19,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class IPv4Hdr;
 class IPv6Hdr;
@@ -98,5 +97,5 @@ void UDPHeader::write(CursorType* cursor) const {
   cursor->template writeBE<uint16_t>(length);
   cursor->template writeBE<uint16_t>(csum);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

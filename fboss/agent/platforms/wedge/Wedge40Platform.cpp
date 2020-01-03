@@ -12,8 +12,7 @@
 #include "fboss/agent/platforms/wedge/Wedge40Port.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 Wedge40Platform::Wedge40Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
@@ -43,5 +42,4 @@ std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
       WedgePortMappingT<Wedge40Platform, Wedge40Port>>(this, ports);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

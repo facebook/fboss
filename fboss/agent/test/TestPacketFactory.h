@@ -20,8 +20,8 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class TxPacket;
 class SwSwitch;
 
@@ -42,5 +42,4 @@ folly::IOBuf createV6Packet(
  */
 std::unique_ptr<TxPacket> createTxPacket(SwSwitch* sw, const folly::IOBuf& buf);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

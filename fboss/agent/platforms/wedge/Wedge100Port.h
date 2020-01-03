@@ -14,8 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Wedge100Platform;
 
@@ -76,5 +75,4 @@ class Wedge100Port : public WedgePort {
   void setPortLedColorMode(LedColor);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

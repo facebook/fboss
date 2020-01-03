@@ -14,8 +14,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMapIterator.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * NodeMapFields defines the fields contained inside a NodeMapT instantiation
@@ -158,5 +157,4 @@ class NodeMapT : public NodeBaseT<MapTypeT, NodeMapFields<TraitsT>> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

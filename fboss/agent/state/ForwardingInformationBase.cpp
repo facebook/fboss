@@ -11,8 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddressT>
 ForwardingInformationBase<AddressT>::ForwardingInformationBase() {}
@@ -68,5 +67,4 @@ FBOSS_INSTANTIATE_NODE_MAP(
 template class ForwardingInformationBase<folly::IPAddressV4>;
 template class ForwardingInformationBase<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

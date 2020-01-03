@@ -18,8 +18,7 @@
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 class SwitchState;
@@ -281,5 +280,4 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   using Subports = AggregatePortFields::Subports;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

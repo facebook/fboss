@@ -11,8 +11,7 @@
 #include "ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 NodeMapDelta<ForwardingInformationBaseV4>
 ForwardingInformationBaseContainerDelta::getV4FibDelta() const {
@@ -34,5 +33,4 @@ template class NodeMapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseContainerDelta>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -31,8 +31,7 @@
 #include <thread>
 #include <type_traits>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ArpHandler;
 class ChannelCloser;
@@ -881,5 +880,4 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<MacTableManager> macTableManager_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

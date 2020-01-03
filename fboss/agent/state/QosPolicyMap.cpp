@@ -13,8 +13,7 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 QosPolicyMap::QosPolicyMap() {}
 
@@ -35,5 +34,4 @@ QosPolicyMap* QosPolicyMap::modify(std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(QosPolicyMap, QosPolicyMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

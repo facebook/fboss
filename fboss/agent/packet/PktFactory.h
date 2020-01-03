@@ -12,8 +12,7 @@
 #include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwSwitch;
 
@@ -274,5 +273,5 @@ EthFrame getEthFrame(
     uint16_t dPort);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

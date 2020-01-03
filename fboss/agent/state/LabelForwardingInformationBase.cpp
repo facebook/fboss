@@ -6,8 +6,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LabelForwardingInformationBase::LabelForwardingInformationBase() {}
 
@@ -154,5 +153,4 @@ FBOSS_INSTANTIATE_NODE_MAP(
     LabelForwardingInformationBase,
     LabelForwardingRoute);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

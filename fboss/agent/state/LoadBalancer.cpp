@@ -29,8 +29,7 @@ static constexpr folly::StringPiece kTransportFields{"transportFields"};
 static constexpr folly::StringPiece kMPLSFields{"mplsFields"};
 }; // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LoadBalancerFields::LoadBalancerFields(
     LoadBalancerID id,
@@ -276,5 +275,4 @@ bool LoadBalancer::operator!=(const LoadBalancer& rhs) const {
 
 // template class NodeBaseT<AggregatePort, AggregatePortFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

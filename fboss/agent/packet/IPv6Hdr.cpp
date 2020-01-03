@@ -16,8 +16,7 @@
 #include <stdexcept>
 #include "fboss/agent/packet/PktUtil.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::Endian;
 using folly::IOBuf;
@@ -95,5 +94,4 @@ string IPv6Hdr::toString() const {
   return ss.str();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

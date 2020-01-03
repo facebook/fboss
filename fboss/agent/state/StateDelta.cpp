@@ -37,8 +37,7 @@
 
 using std::shared_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 StateDelta::~StateDelta() {}
 
@@ -170,5 +169,5 @@ template class NodeMapDelta<
 template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -14,8 +14,7 @@
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/RouteTableRib.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RouteTablesDelta : public DeltaValue<RouteTable> {
  public:
@@ -47,5 +46,4 @@ class RouteTablesDelta : public DeltaValue<RouteTable> {
 
 typedef NodeMapDelta<RouteTableMap, RouteTablesDelta> RTMapDelta;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

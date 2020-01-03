@@ -12,8 +12,7 @@
 
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 rib::RoutingInformationBase switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib) {
@@ -66,5 +65,4 @@ void syncFibWithStandaloneRib(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

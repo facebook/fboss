@@ -24,14 +24,9 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 class SwitchState;
-}
-} // namespace facebook
 
-namespace facebook {
-namespace fboss {
 namespace utility {
 
 template <typename IPAddrT>
@@ -345,5 +340,5 @@ class MplsEcmpSetupAnyNPorts {
 using EcmpSetupAnyNPorts4 = EcmpSetupAnyNPorts<folly::IPAddressV4>;
 using EcmpSetupAnyNPorts6 = EcmpSetupAnyNPorts<folly::IPAddressV6>;
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

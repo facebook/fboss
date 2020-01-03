@@ -21,8 +21,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Port.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class WedgePlatform;
 
@@ -134,5 +133,5 @@ class WedgePort : public BcmPlatformPort {
   std::optional<std::vector<phy::PinID>> getTransceiverLanes(
       std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

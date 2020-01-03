@@ -25,8 +25,7 @@
 #include <set>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class MacTable;
@@ -259,5 +258,5 @@ template <typename NTable>
 inline const std::shared_ptr<NTable> Vlan::getNeighborTable() const {
   return this->template getNeighborEntryTable<typename NTable::AddressType>();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

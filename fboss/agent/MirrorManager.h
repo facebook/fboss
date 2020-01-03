@@ -7,8 +7,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MirrorManager : public AutoRegisterStateObserver {
  public:
@@ -31,5 +30,5 @@ class MirrorManager : public AutoRegisterStateObserver {
   std::shared_ptr<SwitchState> resolveMirrors(
       const std::shared_ptr<SwitchState>& state);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

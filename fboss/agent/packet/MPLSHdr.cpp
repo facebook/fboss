@@ -2,8 +2,7 @@
 
 #include "fboss/agent/packet/MPLSHdr.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MPLSHdr::MPLSHdr(folly::io::Cursor* cursor) {
   MPLSLabel mplsLabel;
@@ -23,5 +22,4 @@ void MPLSHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

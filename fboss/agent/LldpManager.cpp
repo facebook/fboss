@@ -62,8 +62,7 @@ bool checkTag(
   return false;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 const MacAddress LldpManager::LLDP_DEST_MAC("01:80:c2:00:00:0e");
 
@@ -347,5 +346,4 @@ void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
              << " and vlan " << port->getIngressVlan();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

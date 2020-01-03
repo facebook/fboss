@@ -50,8 +50,7 @@ std::shared_ptr<SwitchState> modifyClassIDForEntry(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
     const std::shared_ptr<SwitchState>& state,
@@ -100,5 +99,4 @@ std::shared_ptr<SwitchState> MacTableUtils::removeClassIDForEntry(
   return modifyClassIDForEntry(state, vlanID, macEntry);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

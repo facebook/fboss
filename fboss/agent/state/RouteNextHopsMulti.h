@@ -19,8 +19,7 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * Class relationship:
@@ -82,5 +81,4 @@ class RouteNextHopsMulti {
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

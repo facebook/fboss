@@ -156,8 +156,8 @@ static const std::array<int, 128> kMasterLogicalPortIds = {
 constexpr uint8_t kNumPortsPerTransceiver = 1;
 } // unnamed namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 BcmTestMinipackPlatform::BcmTestMinipackPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawk3Platform(
@@ -171,5 +171,5 @@ std::unique_ptr<BcmTestPort> BcmTestMinipackPlatform::createTestPort(
     PortID id) {
   return std::make_unique<BcmTestMinipackPort>(id, this);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

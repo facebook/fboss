@@ -4,8 +4,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 constexpr auto kSrcIp = "srcIp";
@@ -237,5 +236,4 @@ Mirror::Type Mirror::type() const {
 
 template class NodeBaseT<Mirror, MirrorFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

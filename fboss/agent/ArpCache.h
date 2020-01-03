@@ -19,8 +19,7 @@
 #include <list>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum ArpOpCode : uint16_t;
 
@@ -55,5 +54,4 @@ class ArpCache : public NeighborCache<ArpTable> {
   std::list<ArpEntryThrift> getArpCacheData();
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

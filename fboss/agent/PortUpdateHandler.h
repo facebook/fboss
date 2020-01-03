@@ -11,8 +11,7 @@
 
 #include "fboss/agent/StateObserver.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class StateDelta;
 class SwSwitch;
@@ -29,5 +28,5 @@ class PortUpdateHandler : public AutoRegisterStateObserver {
 
   SwSwitch* sw_{nullptr};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

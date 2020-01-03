@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmTestWedgePlatform : public BcmTestPlatform {
  public:
@@ -34,5 +33,4 @@ class BcmTestWedgePlatform : public BcmTestPlatform {
   BcmTestWedgePlatform& operator=(BcmTestWedgePlatform const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

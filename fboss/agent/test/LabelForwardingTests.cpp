@@ -10,8 +10,8 @@
 
 using namespace ::testing;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class LabelForwardingTest : public ::testing::Test {
  public:
   void SetUp() override {
@@ -240,5 +240,5 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
     }
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -21,8 +21,7 @@ constexpr auto kAction = "action";
 constexpr auto kAdminDistance = "adminDistance";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace util {
 
@@ -257,5 +256,5 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
   }
   return normalizedNextHops;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

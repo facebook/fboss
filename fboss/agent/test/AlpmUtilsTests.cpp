@@ -41,8 +41,7 @@ std::shared_ptr<Route<AddrType>> getDefaultRoute(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(AlpmUtilsTests, DefaultNullRoutesAddedOnEmptyState) {
   auto emptyState = std::make_shared<SwitchState>();
@@ -86,5 +85,5 @@ TEST(AlpmUtilsTests, minAlpmV4RouteCount) {
 TEST(AlpmUtilsTests, minAlpmV6RouteCount) {
   EXPECT_EQ(1, numMinAlpmV6Routes());
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

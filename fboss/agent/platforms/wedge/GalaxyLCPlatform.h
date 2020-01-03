@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class WedgePortMapping;
 
@@ -27,5 +26,4 @@ class GalaxyLCPlatform : public GalaxyPlatform {
   GalaxyLCPlatform& operator=(GalaxyLCPlatform const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

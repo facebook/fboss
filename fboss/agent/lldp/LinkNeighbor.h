@@ -14,8 +14,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class LinkProtocol {
   UNKNOWN,
@@ -316,5 +315,4 @@ struct LinkNeighbor {
   std::chrono::steady_clock::time_point expirationTime_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

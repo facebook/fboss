@@ -23,8 +23,7 @@ namespace folly {
 struct dynamic;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class SwitchStats;
@@ -288,5 +287,4 @@ class HwSwitch {
   HwSwitch& operator=(HwSwitch const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

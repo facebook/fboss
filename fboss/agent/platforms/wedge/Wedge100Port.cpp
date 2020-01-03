@@ -117,8 +117,7 @@ std::array<uint8_t, 28> traceGroupMapping = {{
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 Wedge100Port::Wedge100Port(
     PortID id,
@@ -137,5 +136,4 @@ Wedge100Port::TxOverrides Wedge100Port::getTxOverrides() const {
   return TxOverrides();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

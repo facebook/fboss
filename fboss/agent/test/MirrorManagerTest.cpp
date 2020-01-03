@@ -17,8 +17,8 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace {
 constexpr auto kMirrorName = "mirror";
 constexpr AdminDistance DISTANCE = AdminDistance::STATIC_ROUTE;
@@ -1010,5 +1010,5 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
     EXPECT_EQ(tunnel.udpPorts->udpDstPort, 20202);
   });
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -33,8 +33,7 @@ std::pair<uint64_t, uint64_t> numMinV4AndV6AlpmRoutes() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> setupAlpmState(
     std::shared_ptr<SwitchState> curState) {
@@ -85,5 +84,4 @@ uint64_t numMinAlpmV6Routes() {
   return numMinV4AndV6AlpmRoutes().second;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

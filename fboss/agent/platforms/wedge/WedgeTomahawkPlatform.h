@@ -14,8 +14,7 @@
 
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PlatformProductInfo;
 
@@ -72,5 +71,4 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   std::unique_ptr<TomahawkAsic> asic_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

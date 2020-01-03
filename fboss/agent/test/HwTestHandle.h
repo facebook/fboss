@@ -14,8 +14,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class HwTestHandle {
  public:
@@ -41,5 +40,4 @@ class HwTestHandle {
   std::unique_ptr<SwSwitch> sw_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

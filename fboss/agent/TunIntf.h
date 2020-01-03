@@ -15,8 +15,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 class RxPacket;
@@ -166,5 +165,4 @@ class TunIntf : private folly::EventHandler {
   int mtu_{-1};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

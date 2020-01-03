@@ -12,10 +12,8 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SflowCollector.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 FBOSS_INSTANTIATE_NODE_MAP(SflowCollectorMap, SflowCollectorMapTraits);
 
-}
-} // namespace facebook
+} // namespace facebook::fboss

@@ -9,11 +9,9 @@
  */
 #include "fboss/agent/AggregatePortStats.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void AggregatePortStats::aggregatePortNameChanged(
     const std::string& /* nextAggregatePortName */) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

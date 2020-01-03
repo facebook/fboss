@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
@@ -167,5 +167,5 @@ ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
     const Route<folly::IPAddressV6>&);
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

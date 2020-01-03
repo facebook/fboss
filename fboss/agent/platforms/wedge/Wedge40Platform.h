@@ -12,8 +12,7 @@
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class WedgePortMapping;
 class PlatformProductInfo;
@@ -78,5 +77,4 @@ class Wedge40Platform : public WedgePlatform {
   std::unique_ptr<Trident2Asic> asic_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

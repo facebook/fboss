@@ -16,8 +16,8 @@
 #include "fboss/agent/packet/DHCPv6Packet.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwSwitch;
 class RxPacket;
 class UDPHeader;
@@ -72,5 +72,4 @@ class DHCPv6Handler {
       DHCPv6Packet& dhcpPacket);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

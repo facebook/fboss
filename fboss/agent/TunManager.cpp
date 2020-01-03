@@ -37,8 +37,7 @@ namespace {
 const int kDefaultMtu = 1500;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::EventBase;
 using folly::IPAddress;
@@ -803,5 +802,4 @@ void TunManager::applyChanges(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

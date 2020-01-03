@@ -11,11 +11,11 @@
 
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 std::unique_ptr<WedgePlatform> createFBWedgePlatform(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
   return std::unique_ptr<WedgePlatform>{};
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

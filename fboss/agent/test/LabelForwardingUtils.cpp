@@ -14,8 +14,8 @@ const std::array<LabelForwardingAction::LabelStack, 2> kLabelStacks{
     LabelForwardingAction::LabelStack{2001, 2002}};
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace util {
 
 LabelForwardingAction getSwapAction(LabelForwardingAction::Label swapWith) {
@@ -126,5 +126,5 @@ std::vector<MplsRoute> getTestRoutes(int base, int count) {
 }
 
 } // namespace util
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

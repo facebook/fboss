@@ -18,8 +18,7 @@ namespace {
 constexpr auto kRoutes = "routes";
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddrT>
 void RouteTableRibNodeMap<AddrT>::addRoute(
@@ -122,5 +121,4 @@ void RouteTableRib<AddrT>::removeRoute(
 template class RouteTableRib<folly::IPAddressV4>;
 template class RouteTableRib<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

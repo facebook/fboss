@@ -52,8 +52,7 @@ using facebook::fboss::DeltaFunctions::forEachRemoved;
 DEFINE_string(monitor_nexthops_for, "OPENR", kMonitorNexthopsForHelp);
 DEFINE_validator(monitor_nexthops_for, kValidateMonitorNextHopsFor);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::Synchronized<std::set<ClientID>>
     ResolvedNexthopMonitor::kMonitoredClients;
@@ -161,5 +160,4 @@ void ResolvedNexthopMonitor::processRemovedLabelFibEntry(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

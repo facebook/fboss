@@ -13,8 +13,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PortMap::PortMap() {}
 
@@ -47,5 +46,4 @@ PortMap* PortMap::modify(std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(PortMap, PortMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

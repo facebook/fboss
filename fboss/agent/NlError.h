@@ -15,8 +15,7 @@ extern "C" {
 #include <netlink/errno.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * A class for errors from libnl
@@ -46,5 +45,4 @@ void nlCheckError(int ret, Args&&... msgArgs) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

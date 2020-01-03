@@ -20,8 +20,7 @@ constexpr auto kRxReasonToQueue = "rxReasonToQueue";
 constexpr auto kQosPolicy = "defaultQosPolicy";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   folly::dynamic controlPlane = folly::dynamic::object;
@@ -102,5 +101,5 @@ bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
 }
 
 template class NodeBaseT<ControlPlane, ControlPlaneFields>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

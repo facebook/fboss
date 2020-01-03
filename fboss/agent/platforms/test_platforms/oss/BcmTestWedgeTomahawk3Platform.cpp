@@ -10,8 +10,8 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawk3Platform.h"
 #include "fboss/agent/state/PortQueue.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 const PortQueue& BcmTestWedgeTomahawk3Platform::getDefaultPortQueueSettings(
     cfg::StreamType streamType) const {
   static const PortQueue kQueue;
@@ -24,5 +24,5 @@ BcmTestWedgeTomahawk3Platform::getDefaultControlPlaneQueueSettings(
   static const PortQueue kQueue;
   return kQueue;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

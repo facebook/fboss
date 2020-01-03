@@ -11,10 +11,8 @@
 
 #include "fboss/agent/state/NeighborEntry-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template class NeighborEntry<folly::IPAddressV6, NdpEntry>;
 
-}
-} // namespace facebook
+} // namespace facebook::fboss

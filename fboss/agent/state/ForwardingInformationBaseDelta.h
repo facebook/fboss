@@ -14,8 +14,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ForwardingInformationBaseContainerDelta
     : public DeltaValue<ForwardingInformationBaseContainer> {
@@ -30,5 +29,4 @@ using ForwardingInformationBaseMapDelta = NodeMapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseContainerDelta>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

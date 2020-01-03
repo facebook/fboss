@@ -21,8 +21,7 @@
 
 using folly::MacAddress;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MacTableUtilsTest : public ::testing::Test {
  public:
@@ -165,5 +164,5 @@ TEST_F(MacTableUtilsTest, VerifyRemoveClassIDForAbsentEntry) {
   auto state = testStateA();
   verifyRemoveClassIDHelper(state, false /* macPresent */);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

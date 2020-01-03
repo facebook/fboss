@@ -49,8 +49,7 @@ using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename BodyFn>
 std::unique_ptr<TxPacket> createICMPv4Pkt(
@@ -301,5 +300,5 @@ bool IPv4Handler::resolveMac(
 
   return sent;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

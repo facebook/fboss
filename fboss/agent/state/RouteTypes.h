@@ -16,8 +16,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * Route forward actions
@@ -69,5 +68,4 @@ typedef RoutePrefix<folly::IPAddressV6> RoutePrefixV6;
 void toAppend(const RoutePrefixV4& prefix, std::string* result);
 void toAppend(const RoutePrefixV6& prefix, std::string* result);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -116,8 +116,7 @@ void sendDHCPv6Packet(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 bool DHCPv6Handler::isForDHCPv6RelayOrServer(const UDPHeader& udpHdr) {
   // according to RFC 3315 section 5.2, packets to server or agent are
@@ -344,5 +343,4 @@ void DHCPv6Handler::processDHCPv6RelayReply(
       serializeBody);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

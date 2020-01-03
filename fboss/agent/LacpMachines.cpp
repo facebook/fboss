@@ -18,8 +18,7 @@
 #include <algorithm>
 #include <exception>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::ByteRange;
 
@@ -913,5 +912,4 @@ void Selector::standby() {
   it->second.state = SelectionState::STANDBY;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

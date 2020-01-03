@@ -6,8 +6,7 @@ using std::mutex;
 using std::vector;
 using std::chrono::steady_clock;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LinkNeighborDB::NeighborKey::NeighborKey(const LinkNeighbor& neighbor)
     : chassisIdType_(neighbor.getChassisIdType()),
@@ -136,5 +135,4 @@ void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

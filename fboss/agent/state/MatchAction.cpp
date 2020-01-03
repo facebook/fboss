@@ -23,8 +23,7 @@ constexpr auto kCounterName = "name";
 constexpr auto kCounterTypes = "types";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic MatchAction::toFollyDynamic() const {
   folly::dynamic matchAction = folly::dynamic::object;
@@ -97,5 +96,5 @@ MatchAction MatchAction::fromFollyDynamic(const folly::dynamic& actionJson) {
   }
   return matchAction;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

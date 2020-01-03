@@ -11,8 +11,7 @@
 
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // stubbed out
 void Wedge100Port::linkStatusChanged(bool up, bool adminUp) {
@@ -25,5 +24,4 @@ void Wedge100Port::externalState(ExternalState lfs) {
 
 void Wedge100Port::prepareForGracefulExit() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

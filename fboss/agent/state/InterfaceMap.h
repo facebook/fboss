@@ -12,8 +12,7 @@
 #include <vector>
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Interface;
 typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
@@ -122,5 +121,4 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

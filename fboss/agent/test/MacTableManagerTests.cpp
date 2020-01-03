@@ -19,8 +19,7 @@
 
 #include <folly/MacAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MacTableManagerTest : public ::testing::Test {
  public:
@@ -143,5 +142,4 @@ TEST_F(MacTableManagerTest, SameMacAgedCbTwice) {
   verifyMacIsDeleted();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

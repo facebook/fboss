@@ -24,8 +24,7 @@ DEFINE_string(
 // NOTE: we use std::cerr because logging libs are likely not
 // initialized yet...
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<AgentConfig> AgentConfig::fromDefaultFile() {
   return fromFile(FLAGS_config);
@@ -71,5 +70,4 @@ void AgentConfig::dumpConfig(folly::StringPiece path) const {
   folly::writeFile(raw, path.data());
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

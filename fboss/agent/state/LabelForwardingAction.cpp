@@ -2,8 +2,7 @@
 
 #include "fboss/agent/state/LabelForwardingAction.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 constexpr auto kType = "type";
@@ -123,5 +122,4 @@ LabelForwardingAction::combinePushLabelStack(
       LabelForwardingAction::LabelForwardingType::PUSH, std::move(stack));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

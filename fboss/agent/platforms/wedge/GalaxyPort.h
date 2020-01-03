@@ -13,8 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class GalaxyPlatform;
 
@@ -56,5 +55,4 @@ class GalaxyPort : public WedgePort {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

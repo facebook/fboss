@@ -5,8 +5,8 @@
 #include <fboss/agent/state/LabelForwardingEntry.h>
 #include <array>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace util {
 
 LabelForwardingAction getSwapAction(LabelForwardingAction::Label swapWith);
@@ -38,5 +38,5 @@ LabelNextHopEntry getPopLabelNextHopEntry(
 std::vector<MplsRoute> getTestRoutes(int base = 0, int count = 4);
 
 } // namespace util
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

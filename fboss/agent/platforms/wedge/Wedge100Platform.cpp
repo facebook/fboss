@@ -24,8 +24,7 @@ namespace {
 constexpr auto kMaxSetLedTime = std::chrono::seconds(1);
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<BaseWedgeI2CBus> Wedge100Platform::getI2CBus() {
   return std::make_unique<Wedge100I2CBus>();
@@ -84,5 +83,4 @@ void Wedge100Platform::onUnitAttach(int unit) {
   setPciPreemphasis(unit);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -7,8 +7,8 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwSwitch;
 class ResolvedNextHopProbe;
 
@@ -54,5 +54,4 @@ class ResolvedNexthopProbeScheduler {
       resolvedNextHop2UseCount_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

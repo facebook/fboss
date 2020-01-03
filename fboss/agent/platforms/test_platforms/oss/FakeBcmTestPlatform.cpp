@@ -10,8 +10,8 @@
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 const PortQueue& FakeBcmTestPlatform::getDefaultPortQueueSettings(
     cfg::StreamType /*streamType*/) const {
   static const PortQueue kQueue;
@@ -23,5 +23,5 @@ const PortQueue& FakeBcmTestPlatform::getDefaultControlPlaneQueueSettings(
   static const PortQueue kQueue;
   return kQueue;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

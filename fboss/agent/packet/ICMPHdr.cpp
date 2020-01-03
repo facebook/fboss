@@ -21,8 +21,7 @@
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IOBuf;
 using folly::IPAddress;
@@ -113,5 +112,5 @@ void ICMPHdr::serializePktHdr(
 uint32_t ICMPHdr::computeTotalLengthV6(uint32_t payloadLength) {
   return payloadLength + ICMPHdr::SIZE + IPv6Hdr::SIZE + EthHdr::SIZE;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

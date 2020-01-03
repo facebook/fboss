@@ -21,8 +21,7 @@
 using folly::to;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
@@ -230,5 +229,4 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
 
 template class NodeBaseT<Port, PortFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

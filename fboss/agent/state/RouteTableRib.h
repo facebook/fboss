@@ -16,8 +16,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/RadixTree.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddrT>
 class Route;
@@ -222,5 +221,4 @@ class RouteTableRib : public NodeBase {
   std::shared_ptr<RoutesNodeMap> nodeMap_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

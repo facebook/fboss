@@ -13,8 +13,7 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include "fboss/agent/SwSwitch.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void CounterCache::update() {
   fb303::ThreadCachedServiceData::get()->publishStats();
@@ -23,5 +22,4 @@ void CounterCache::update() {
   fb303::fbData->getCounters(current_);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

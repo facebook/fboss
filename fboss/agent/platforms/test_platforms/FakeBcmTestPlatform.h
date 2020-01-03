@@ -13,8 +13,7 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeAsic;
 
@@ -96,5 +95,5 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

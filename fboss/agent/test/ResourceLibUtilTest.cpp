@@ -4,8 +4,7 @@
 
 #include "fboss/agent/test/ResourceLibUtil.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(ResourceLibUtilTest, IPv4Generator) {
   auto generator = utility::IPAddressGenerator<folly::IPAddressV4>();
@@ -246,5 +245,5 @@ TEST(ResourceLibUtilTest, RouteV6Generator) {
     ASSERT_EQ(generatedRoute->prefix(), prefixes[i]);
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

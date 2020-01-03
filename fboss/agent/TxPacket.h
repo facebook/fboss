@@ -13,8 +13,7 @@
 #include "fboss/agent/Packet.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * TxPacket represents a packet that may be transmitted out via the switch.
@@ -89,5 +88,4 @@ void TxPacket::writeEthHeader(
   cursor->template writeBE<uint16_t>(protocol);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

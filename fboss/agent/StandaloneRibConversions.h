@@ -16,8 +16,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 rib::RoutingInformationBase switchStateToStandaloneRib(
     const std::shared_ptr<RouteTableMap>& swStateRib);
@@ -29,5 +28,4 @@ void syncFibWithStandaloneRib(
     rib::RoutingInformationBase& standaloneRib,
     SwSwitch* swSwitch);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

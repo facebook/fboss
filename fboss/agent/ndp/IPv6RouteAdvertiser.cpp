@@ -65,8 +65,7 @@ std::set<Prefix> getPrefixesToAdvertise(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * IPv6RAImpl is the class that actually handles sending out the RA packets.
@@ -277,5 +276,4 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       serializeBody);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

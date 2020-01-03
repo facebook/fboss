@@ -23,8 +23,7 @@
       NodeBaseT<MapType, NodeMapFields<TraitsType>>;    \
   template class ::facebook::fboss::NodeMapT<MapType, TraitsType>;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename MapTypeT, typename TraitsT>
 const std::shared_ptr<typename TraitsT::Node>&
@@ -127,5 +126,4 @@ std::shared_ptr<MapTypeT> NodeMapT<MapTypeT, TraitsT>::fromFollyDynamic(
   return nodeMap;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

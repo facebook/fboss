@@ -16,8 +16,7 @@
 
 #include <folly/functional/ApplyTuple.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename NODE>
 class DeltaValue;
@@ -230,5 +229,4 @@ NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::end() const {
   return Iterator(getOld(), old_->end(), getNew(), new_->end());
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

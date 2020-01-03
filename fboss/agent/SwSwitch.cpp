@@ -144,8 +144,7 @@ facebook::fboss::PortStatus fillInPortStatus(
 }
 } // anonymous namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ChannelCloser : public CloseCallback {
  public:
@@ -1586,5 +1585,4 @@ void SwSwitch::l2LearningUpdateReceived(
   macTableManager_->handleL2LearningUpdate(l2Entry, l2EntryUpdateType);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

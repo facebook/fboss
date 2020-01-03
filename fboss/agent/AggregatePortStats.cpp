@@ -12,8 +12,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/AggregatePort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 AggregatePortStats::AggregatePortStats(
     AggregatePortID aggregatePortID,
@@ -35,5 +34,4 @@ std::string AggregatePortStats::constructCounterName(
   return folly::to<std::string>(aggregatePortName, ".", counterName);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

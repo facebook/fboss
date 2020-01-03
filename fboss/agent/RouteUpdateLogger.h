@@ -20,8 +20,7 @@
 #include <memory>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename RouteT>
 class RouteLoggerBase {
@@ -201,5 +200,4 @@ class RouteUpdateLogger : public AutoRegisterStateObserver {
   std::unique_ptr<MplsRouteLogger> mplsRouteLogger_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

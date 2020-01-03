@@ -12,8 +12,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * This exception is thrown by header parsing code.
@@ -25,5 +24,4 @@ class HdrParseError : public std::runtime_error {
   explicit HdrParseError(const char* what_arg) : std::runtime_error(what_arg) {}
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

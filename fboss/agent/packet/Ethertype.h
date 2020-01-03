@@ -17,8 +17,7 @@
  *   https://en.wikipedia.org/wiki/EtherType
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class ETHERTYPE : uint16_t {
 
@@ -61,5 +60,4 @@ enum class ETHERTYPE : uint16_t {
   // Ethernet passive optical n/ws. Used for pause frames
   ETHERTYPE_EPON = 0x8808,
 };
-}
-} // namespace facebook
+} // namespace facebook::fboss

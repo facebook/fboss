@@ -17,8 +17,8 @@
 
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 // Random test state with 2 ports and 2 vlans
 std::shared_ptr<SwitchState> createTestState(Platform* platform) {
   cfg::SwitchConfig cfg;
@@ -136,5 +136,5 @@ void verifyChunking(
       routeDistributionGen.getSwitchStates(), totalRoutes, chunkSize);
   verifyChunking(routeDistributionGen.get(), totalRoutes, chunkSize);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -22,8 +22,7 @@
 using folly::MacAddress;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestPlatform::BcmTestPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -105,5 +104,4 @@ PlatformPort* BcmTestPlatform::getPlatformPort(PortID portID) const {
   return it->second.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

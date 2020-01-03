@@ -20,8 +20,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 
@@ -81,5 +80,4 @@ class IPHeaderV4 {
   // TODO. Options
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

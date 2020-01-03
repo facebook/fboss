@@ -16,8 +16,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddressT>
 using ForwardingInformationBaseTraits =
@@ -52,5 +51,4 @@ using ForwardingInformationBaseV4 =
 using ForwardingInformationBaseV6 =
     ForwardingInformationBase<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

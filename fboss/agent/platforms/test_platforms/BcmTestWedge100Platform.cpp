@@ -20,8 +20,8 @@ static const std::array<int, 32> kMasterLogicalPortIds = {
 constexpr uint8_t kNumPortsPerTransceiver = 4;
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 BcmTestWedge100Platform::BcmTestWedge100Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawkPlatform(
@@ -36,5 +36,4 @@ std::unique_ptr<BcmTestPort> BcmTestWedge100Platform::createTestPort(
   return std::make_unique<BcmTestWedge100Port>(id, this);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

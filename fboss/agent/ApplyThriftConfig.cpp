@@ -88,8 +88,7 @@ void updateFibFromConfig(
 
 } // anonymous namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * A class for implementing applyThriftConfig().
@@ -2368,5 +2367,5 @@ shared_ptr<SwitchState> applyThriftConfig(
   cfg::SwitchConfig emptyConfig;
   return ThriftConfigApplier(state, config, platform, rib).run();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

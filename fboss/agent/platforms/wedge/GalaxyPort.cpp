@@ -12,12 +12,12 @@
 
 #include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 GalaxyPort::GalaxyPort(
     PortID id,
     GalaxyPlatform* platform,
     std::optional<FrontPanelResources> frontPanel)
     : WedgePort(id, platform, frontPanel) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

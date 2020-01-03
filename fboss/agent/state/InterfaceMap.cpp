@@ -16,8 +16,7 @@
 using folly::IPAddress;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 InterfaceMap::InterfaceMap() {}
 
@@ -102,5 +101,4 @@ std::shared_ptr<InterfaceMap> InterfaceMap::fromFollyDynamic(
 
 FBOSS_INSTANTIATE_NODE_MAP(InterfaceMap, InterfaceMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -28,8 +28,7 @@
  * module.
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class RestartEvent : uint16_t {
   SIGNAL_RECEIVED,
@@ -47,5 +46,4 @@ void mark(RestartEvent event);
 void stop();
 }; // namespace restart_time
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -24,8 +24,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * ICMPv4 type and code definition, RFC 792
@@ -349,5 +348,5 @@ inline bool operator==(const ICMPHdr& lhs, const ICMPHdr& rhs) {
 inline bool operator!=(const ICMPHdr& lhs, const ICMPHdr& rhs) {
   return !operator==(lhs, rhs);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

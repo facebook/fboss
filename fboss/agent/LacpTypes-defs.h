@@ -11,8 +11,7 @@
 
 #include "fboss/agent/LacpTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // TODO(samank): less verbose&cheaper parsing
 // TODO(samank): early&cheaper bounds checking
@@ -103,5 +102,5 @@ void LACPDU::to(CursorType* c) const {
   c->push(
       folly::ByteRange(terminatorReserved.begin(), terminatorReserved.end()));
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

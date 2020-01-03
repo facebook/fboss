@@ -13,8 +13,8 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 namespace util {
@@ -146,5 +146,5 @@ UnresolvedNextHop::UnresolvedNextHop(
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

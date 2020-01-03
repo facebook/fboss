@@ -7,8 +7,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ResolvedNexthopProbeScheduler::ResolvedNexthopProbeScheduler(SwSwitch* sw)
     : sw_(sw) {}
@@ -68,5 +67,4 @@ void ResolvedNexthopProbeScheduler::schedule() {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

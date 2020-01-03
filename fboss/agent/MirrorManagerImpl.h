@@ -10,8 +10,7 @@
 #include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Mirror;
 class MirrorTunnel;
@@ -70,5 +69,4 @@ class MirrorManagerImpl {
 using MirrorManagerV4 = MirrorManagerImpl<folly::IPAddressV4>;
 using MirrorManagerV6 = MirrorManagerImpl<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -26,8 +26,7 @@ using folly::io::Appender;
 using folly::io::Cursor;
 using std::string;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MacAddress PktUtil::readMac(Cursor* cursor) {
   // Common case is that the MAC data is contiguous
@@ -207,5 +206,4 @@ void PktUtil::padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad) {
   app.append(toPad);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

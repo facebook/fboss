@@ -17,14 +17,9 @@
 #include <memory>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 class SwitchState;
-}
-} // namespace facebook
 
-namespace facebook {
-namespace fboss {
 namespace utility {
 
 using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;
@@ -90,5 +85,5 @@ class RouteDistributionGenerator {
 };
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

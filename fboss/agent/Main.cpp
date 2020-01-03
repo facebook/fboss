@@ -93,8 +93,7 @@ void updateStats(SwSwitch* swSwitch) {
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Initializer {
  public:
@@ -329,5 +328,4 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   return 0;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

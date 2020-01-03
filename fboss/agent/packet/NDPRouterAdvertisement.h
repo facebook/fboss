@@ -21,8 +21,7 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * NDP Router Advertisement message.
@@ -177,5 +176,4 @@ inline bool operator!=(
   return !operator==(lhs, rhs);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -19,8 +19,7 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestYampPlatform.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PlatformMode getPlatformMode() {
   try {
@@ -60,5 +59,4 @@ std::unique_ptr<Platform> createTestPlatform() {
   return nullptr;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

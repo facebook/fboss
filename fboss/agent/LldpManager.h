@@ -24,8 +24,8 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class RxPacket;
 class TxPacket;
 
@@ -120,5 +120,4 @@ class LldpManager : private folly::AsyncTimeout {
   LinkNeighborDB db_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

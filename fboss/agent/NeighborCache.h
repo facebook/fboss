@@ -23,8 +23,7 @@
 #include <list>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * This class manages the sw state of the neighbor tables. All of the
@@ -232,5 +231,4 @@ class NeighborCache {
   std::mutex cacheLock_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

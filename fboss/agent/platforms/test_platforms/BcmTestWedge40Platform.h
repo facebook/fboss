@@ -12,8 +12,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class Trident2Asic;
 class PlatformProductInfo;
 
@@ -88,5 +88,5 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
   std::unique_ptr<Trident2Asic> asic_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

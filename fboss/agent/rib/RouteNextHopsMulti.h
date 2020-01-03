@@ -19,8 +19,8 @@
 #include "fboss/agent/rib/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 /**
@@ -84,5 +84,5 @@ class RouteNextHopsMulti {
 };
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

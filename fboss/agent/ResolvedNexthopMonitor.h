@@ -6,8 +6,7 @@
 
 #include "fboss/agent/state/Route.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 class StateDelta;
@@ -127,5 +126,4 @@ class ResolvedNexthopMonitor : public AutoRegisterStateObserver {
   static folly::Synchronized<std::set<ClientID>> kMonitoredClients;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

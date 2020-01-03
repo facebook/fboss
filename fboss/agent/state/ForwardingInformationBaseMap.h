@@ -15,8 +15,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -49,5 +48,4 @@ class ForwardingInformationBaseMap : public NodeMapT<
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

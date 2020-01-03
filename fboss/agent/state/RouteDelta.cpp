@@ -13,8 +13,7 @@
 
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template class NodeMapDelta<RouteTableMap, RouteTablesDelta>;
 
@@ -35,5 +34,5 @@ RouteTablesDelta::RoutesDeltaT<folly::IPAddressV6>
 RouteTablesDelta::getRoutesDelta<folly::IPAddressV6>() const {
   return getRoutesV6Delta();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

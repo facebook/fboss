@@ -84,8 +84,8 @@ flat_map<VlanID, folly::CIDRNetwork> computeVlan2Subnet(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 template <typename AddrT, typename NextHopT>
@@ -580,5 +580,5 @@ template class MplsEcmpSetupTargetedPorts<folly::IPAddressV6>;
 template class MplsEcmpSetupAnyNPorts<folly::IPAddressV4>;
 template class MplsEcmpSetupAnyNPorts<folly::IPAddressV6>;
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

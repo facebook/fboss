@@ -22,15 +22,15 @@
 #include <boost/container/flat_set.hpp>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 template <typename AddressT>
 class Route;
-} // namespace fboss
-} // namespace facebook
 
-namespace facebook {
-namespace fboss {
+} // namespace facebook::fboss
+
+namespace facebook::fboss {
+
 namespace rib {
 
 template <typename AddrT>
@@ -181,5 +181,5 @@ typedef Route<folly::IPAddressV4> RouteV4;
 typedef Route<folly::IPAddressV6> RouteV6;
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -31,8 +31,7 @@
 #include <tuple>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void LinkAggregationManager::recordStatistics(
     facebook::fboss::SwSwitch* sw,
@@ -370,5 +369,4 @@ LinkAggregationManager::getControllersFor(
 
 LinkAggregationManager::~LinkAggregationManager() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

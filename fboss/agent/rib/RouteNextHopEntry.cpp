@@ -38,8 +38,8 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 namespace util {
@@ -241,5 +241,5 @@ facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

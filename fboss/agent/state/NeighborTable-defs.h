@@ -19,8 +19,7 @@
 
 #include <glog/logging.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 NeighborTable<IPADDR, ENTRY, SUBCLASS>::NeighborTable() {}
@@ -136,5 +135,4 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(AddressType ip) {
   this->removeNode(ip);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

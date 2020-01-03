@@ -13,8 +13,7 @@
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using SflowCollectorMapTraits = NodeMapTraits<std::string, SflowCollector>;
 
@@ -33,5 +32,4 @@ class SflowCollectorMap
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

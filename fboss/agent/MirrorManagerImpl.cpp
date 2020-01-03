@@ -18,8 +18,7 @@ template <typename AddrT>
 using NeighborEntryT =
     typename facebook::fboss::MirrorManagerImpl<AddrT>::NeighborEntryT;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddrT>
 std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
@@ -145,5 +144,4 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
 template class MirrorManagerImpl<folly::IPAddressV4>;
 template class MirrorManagerImpl<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

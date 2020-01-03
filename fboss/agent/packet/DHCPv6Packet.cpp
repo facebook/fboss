@@ -32,8 +32,8 @@ using std::string;
 using std::stringstream;
 using std::vector;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwSwitch;
 
 void DHCPv6Option::parse(DHCPv6Packet::Options& optionsIn, int index) {
@@ -182,5 +182,4 @@ bool DHCPv6Packet::operator==(const DHCPv6Packet& r) const {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

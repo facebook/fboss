@@ -11,8 +11,7 @@
 
 using std::make_unique;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::string FakeWedge40Platform::getVolatileStateDir() const {
   return tmpDir_.path().string() + "/volatile";
@@ -22,5 +21,4 @@ std::string FakeWedge40Platform::getPersistentStateDir() const {
   return tmpDir_.path().string() + "/persist";
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

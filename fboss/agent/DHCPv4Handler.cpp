@@ -140,8 +140,7 @@ int processOption(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 constexpr uint16_t DHCPv4Handler::kBootPSPort;
 constexpr uint16_t DHCPv4Handler::kBootPCPort;
@@ -431,5 +430,4 @@ bool DHCPv4Handler::stripAgentOptions(
   return isDHCP;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

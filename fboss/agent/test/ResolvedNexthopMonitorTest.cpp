@@ -30,8 +30,7 @@ const std::array<IPAddressV6, 2> kNexthopsV6{IPAddressV6("10:100::1"),
                                              IPAddressV6("10:100::2")};
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ResolvedNexthopMonitorTest : public ::testing::Test {
  public:
@@ -697,5 +696,5 @@ TEST_F(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   ASSERT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), true);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

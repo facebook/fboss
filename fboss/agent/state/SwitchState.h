@@ -33,8 +33,7 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ControlPlane;
 class Interface;
@@ -364,5 +363,4 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

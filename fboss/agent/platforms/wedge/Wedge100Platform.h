@@ -14,8 +14,7 @@
 #include <folly/Range.h>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class Wedge100Port;
@@ -46,5 +45,4 @@ class Wedge100Platform : public WedgeTomahawkPlatform {
   void setPciPreemphasis(int unit) const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -17,8 +17,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Platform;
 
@@ -182,5 +181,4 @@ class PlatformPort {
 
 std::ostream& operator<<(std::ostream&, PlatformPort::ExternalState);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

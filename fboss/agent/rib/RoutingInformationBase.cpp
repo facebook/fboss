@@ -38,8 +38,8 @@ class Timer {
 };
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 void RoutingInformationBase::reconfigure(
@@ -283,5 +283,5 @@ bool RoutingInformationBase::operator==(
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

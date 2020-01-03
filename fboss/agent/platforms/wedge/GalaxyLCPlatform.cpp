@@ -11,8 +11,7 @@
 #include "fboss/agent/platforms/wedge/GalaxyPort.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<WedgePortMapping> GalaxyLCPlatform::createPortMapping() {
   WedgePortMapping::PortTransceiverMap ports = {
@@ -36,5 +35,4 @@ std::unique_ptr<WedgePortMapping> GalaxyLCPlatform::createPortMapping() {
       WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this, ports);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -23,8 +23,7 @@ class Cursor;
 } // namespace io
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PktUtil {
  public:
@@ -115,5 +114,4 @@ class PktUtil {
   partialChecksumImpl(folly::io::Cursor start, uint64_t length, uint32_t value);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

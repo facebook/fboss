@@ -32,8 +32,7 @@ extern "C" {
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 
@@ -403,5 +402,4 @@ bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -13,8 +13,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using boost::container::flat_set;
 
@@ -160,5 +159,5 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

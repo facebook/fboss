@@ -33,8 +33,7 @@ constexpr auto kPriority = "priority";
 constexpr auto kForwarding = "forwarding";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic AggregatePortFields::Subport::toFollyDynamic(
     const AggregatePortFields::SubportToForwardingState& portStates) const {
@@ -252,5 +251,4 @@ bool AggregatePort::isUp() const {
 
 template class NodeBaseT<AggregatePort, AggregatePortFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

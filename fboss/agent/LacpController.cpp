@@ -15,8 +15,7 @@
 
 #include <cstring>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::io::Cursor;
 using folly::io::RWPrivateCursor;
@@ -211,5 +210,4 @@ void LacpController::standby(
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

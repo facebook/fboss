@@ -16,8 +16,7 @@ using facebook::fboss::DeltaFunctions::isEmpty;
 using folly::IPAddress;
 using std::optional;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void MirrorManager::stateUpdated(const StateDelta& delta) {
   if (!hasMirrorChanges(delta)) {
@@ -70,5 +69,4 @@ bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
            }));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

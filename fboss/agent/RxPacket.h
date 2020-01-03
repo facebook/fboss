@@ -16,8 +16,7 @@
 #include <tuple>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * RxPacket represents a packet that was received via one of the switch ports.
@@ -103,5 +102,4 @@ class RxPacket : public Packet {
   uint32_t len_{0};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

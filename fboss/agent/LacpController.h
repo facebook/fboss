@@ -21,8 +21,7 @@ namespace folly {
 class EventBase;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 class LacpServicerIf;
@@ -105,5 +104,5 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   LacpController(LacpController const&) = delete;
   LacpController& operator=(LacpController const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

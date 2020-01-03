@@ -21,8 +21,7 @@
 #include <string>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AclTtl {
  public:
@@ -329,5 +328,4 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

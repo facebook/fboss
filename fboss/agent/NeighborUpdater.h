@@ -21,8 +21,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class StateDelta;
@@ -108,5 +107,4 @@ class NeighborUpdater : public AutoRegisterStateObserver {
   NeighborUpdater& operator=(NeighborUpdater const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

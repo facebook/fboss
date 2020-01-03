@@ -7,8 +7,7 @@
 
 #include <folly/dynamic.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 auto constexpr kIncomingLabel = "topLabel";
@@ -108,5 +107,4 @@ std::string LabelForwardingEntry::str() const {
 }
 template class NodeBaseT<LabelForwardingEntry, LabelForwardingEntryFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

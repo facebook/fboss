@@ -18,8 +18,7 @@
 
 #include "boost/container/flat_set.hpp"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Platform;
 
@@ -136,5 +135,4 @@ class LoadBalancer : public NodeBaseT<LoadBalancer, LoadBalancerFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -17,8 +17,7 @@
 #include <boost/container/flat_map.hpp>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -92,5 +91,5 @@ class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

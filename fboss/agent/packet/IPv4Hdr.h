@@ -21,8 +21,7 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/IPProto.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum : uint8_t {
   IPV4_VERSION = 4,
@@ -283,5 +282,4 @@ inline std::ostream& operator<<(std::ostream& os, const IPv4Hdr& ipv4Hdr) {
   return os;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

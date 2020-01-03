@@ -13,8 +13,7 @@
 
 #include <folly/Memory.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
@@ -31,5 +30,4 @@ void WedgePlatform::initLEDs() {
   // but should be soon once we get approval for the required OpenNSL APIs.
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -63,8 +63,7 @@ DEFINE_uint32(
     64,
     "Max ecmp width. Also implies ucmp normalization factor");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 SwitchStateFields::SwitchStateFields()
     : ports(make_shared<PortMap>()),
@@ -342,5 +341,4 @@ void SwitchState::resetForwardingInformationBases(
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

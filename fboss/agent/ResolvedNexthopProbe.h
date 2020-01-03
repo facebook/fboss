@@ -8,8 +8,7 @@
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 
@@ -49,5 +48,4 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
   ExponentialBackoff<std::chrono::milliseconds> backoff_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -23,8 +23,7 @@
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 WedgePort::WedgePort(
     PortID id,
@@ -305,5 +304,4 @@ std::optional<std::vector<phy::PinID>> WedgePort::getTransceiverLanes(
   return std::nullopt;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

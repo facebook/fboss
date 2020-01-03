@@ -31,8 +31,7 @@
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class ControlPlane;
@@ -84,5 +83,4 @@ class StateDelta {
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

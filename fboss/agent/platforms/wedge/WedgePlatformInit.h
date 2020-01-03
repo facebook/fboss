@@ -11,8 +11,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AgentConfig;
 class Platform;
@@ -31,5 +30,4 @@ std::unique_ptr<Platform> initWedgePlatform(
 std::unique_ptr<WedgePlatform> createFBWedgePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -17,8 +17,7 @@
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PortStats;
 
@@ -485,5 +484,5 @@ class SwitchStats : public boost::noncopyable {
   // Number of LLDP packets that did not match configured, expected values.
   TLTimeseries LldpValidateMisMatch_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

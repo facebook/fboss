@@ -15,8 +15,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MatchAction {
  public:
@@ -118,5 +117,4 @@ class MatchAction {
   std::optional<std::string> egressMirror_{std::nullopt};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

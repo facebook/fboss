@@ -11,11 +11,9 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestGalaxyPort::BcmTestGalaxyPort(PortID id, BcmTestGalaxyPlatform* platform)
     : BcmTestPort(id, platform) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

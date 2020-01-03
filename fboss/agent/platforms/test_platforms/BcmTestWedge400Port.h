@@ -11,8 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestWedge400Platform;
 
 class BcmTestWedge400Port : public BcmTestPort {
@@ -42,5 +42,5 @@ class BcmTestWedge400Port : public BcmTestPort {
   BcmTestWedge400Port(BcmTestWedge400Port const&) = delete;
   BcmTestWedge400Port& operator=(BcmTestWedge400Port const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

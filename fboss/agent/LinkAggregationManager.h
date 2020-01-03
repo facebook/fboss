@@ -22,8 +22,7 @@
 #include <memory>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LacpController;
 class LacpPartnerPair;
@@ -110,5 +109,5 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
   mutable folly::SharedMutexWritePriority controllersLock_;
   SwSwitch* sw_{nullptr};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

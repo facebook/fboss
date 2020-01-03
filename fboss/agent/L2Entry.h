@@ -15,8 +15,7 @@
 #include <folly/MacAddress.h>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class L2EntryUpdateType : uint8_t {
   L2_ENTRY_UPDATE_TYPE_DELETE = 0,
@@ -79,5 +78,4 @@ class L2Entry {
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

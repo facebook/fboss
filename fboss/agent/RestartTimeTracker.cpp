@@ -23,8 +23,7 @@
 #include <unistd.h>
 #include <mutex>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using namespace std::chrono;
 using TimePoint = time_point<steady_clock>;
@@ -230,5 +229,4 @@ void stop() {
 
 } // namespace restart_time
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

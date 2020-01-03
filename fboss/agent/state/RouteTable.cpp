@@ -17,8 +17,7 @@
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 RouteTableFields::RouteTableFields(RouterID id)
     : id(id),
@@ -65,5 +64,4 @@ bool RouteTable::empty() const {
 
 template class NodeBaseT<RouteTable, RouteTableFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

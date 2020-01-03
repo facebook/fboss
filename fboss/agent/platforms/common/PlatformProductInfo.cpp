@@ -51,8 +51,7 @@ DEFINE_string(
     "/var/facebook/fboss/fruid.json",
     "File for storing the fruid data");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::dynamic;
 using folly::MacAddress;
@@ -202,5 +201,4 @@ void PlatformProductInfo::parse(std::string data) {
   productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

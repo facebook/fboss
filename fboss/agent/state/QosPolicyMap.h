@@ -16,8 +16,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using QosPolicyMapTraits = NodeMapTraits<std::string, QosPolicy>;
 
@@ -40,5 +39,4 @@ class QosPolicyMap : public NodeMapT<QosPolicyMap, QosPolicyMapTraits> {
 
 using QosPolicyMapDelta = NodeMapDelta<QosPolicyMap>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

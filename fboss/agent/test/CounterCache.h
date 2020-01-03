@@ -13,8 +13,7 @@
 #include <map>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 
@@ -68,5 +67,4 @@ class CounterCache {
   std::map<std::string, int64_t> current_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

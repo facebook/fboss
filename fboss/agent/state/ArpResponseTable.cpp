@@ -11,10 +11,8 @@
 
 #include "fboss/agent/state/NeighborResponseTable-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template class NeighborResponseTable<folly::IPAddressV4, ArpResponseTable>;
 
-}
-} // namespace facebook
+} // namespace facebook::fboss

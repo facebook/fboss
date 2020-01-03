@@ -30,8 +30,8 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 static const PrefixV6 kIPv6LinkLocalPrefix{folly::IPAddressV6("fe80::"), 64};
@@ -543,5 +543,5 @@ void RouteUpdater::updateDone() {
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

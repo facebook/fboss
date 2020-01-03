@@ -21,8 +21,7 @@ DEFINE_string(
     "/var/facebook/fboss/bcm_test",
     "Directory for storing persistent state");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestWedgePlatform::BcmTestWedgePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
@@ -41,5 +40,4 @@ std::string BcmTestWedgePlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

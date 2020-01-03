@@ -20,8 +20,7 @@ namespace {
 constexpr auto kNPending = "numPendingEntries";
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class Vlan;
@@ -98,5 +97,4 @@ class NeighborTable
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

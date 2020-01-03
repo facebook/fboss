@@ -14,8 +14,7 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using AclMapTraits = NodeMapTraits<std::string, AclEntry>;
 /*
@@ -100,5 +99,5 @@ using AclMapDelta = NodeMapDelta<
     PrioAclMap,
     DeltaValue<PrioAclMap::Node>,
     MapUniquePointerTraits<PrioAclMap>>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

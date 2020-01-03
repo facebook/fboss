@@ -47,8 +47,7 @@ using folly::io::RWPrivateCursor;
 using std::shared_ptr;
 using std::unique_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename BodyFn>
 std::unique_ptr<TxPacket> createICMPv6Pkt(
@@ -801,7 +800,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
     }
   }
   sw_->portStats(pkt)->pktDropped();
-} // namespace fboss
+}
 
 void IPv6Handler::sendMulticastNeighborSolicitations(
     PortID ingressPort,
@@ -948,5 +947,4 @@ void IPv6Handler::sendNeighborSolicitation(
       serializeBody);
   sw->sendNetworkControlPacketAsync(std::move(pkt), portDescriptor);
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -12,8 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -63,5 +62,5 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

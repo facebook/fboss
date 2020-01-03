@@ -12,10 +12,9 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestYampPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestYampPort::BcmTestYampPort(PortID id, BcmTestYampPlatform* platform)
     : BcmTestPort(id, platform) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

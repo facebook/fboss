@@ -105,8 +105,7 @@ shared_ptr<SwitchState> setAllPortState(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
   return setAllPortState(in, true);
@@ -707,5 +706,5 @@ void WaitForSwitchState::stateUpdated(const StateDelta& delta) {
     cv_.notify_all();
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

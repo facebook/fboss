@@ -57,8 +57,8 @@ std::unique_ptr<facebook::fboss::PlatformProductInfo> fakeProductInfo() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 FakeBcmTestPlatform::FakeBcmTestPlatform()
     : BcmTestPlatform(
           fakeProductInfo(),
@@ -87,5 +87,4 @@ HwAsic* FakeBcmTestPlatform::getAsic() const {
   return asic_.get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

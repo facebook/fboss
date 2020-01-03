@@ -43,8 +43,7 @@ constexpr auto kLookupClass = "lookupClass";
 constexpr auto kAclAction = "aclAction";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic AclTtl::toFollyDynamic() const {
   folly::dynamic ttl = folly::dynamic::object;
@@ -294,5 +293,4 @@ AclEntry::AclEntry(int priority, const std::string& name)
 
 template class NodeBaseT<AclEntry, AclEntryFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

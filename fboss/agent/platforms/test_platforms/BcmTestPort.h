@@ -13,8 +13,8 @@
 
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestPlatform;
 
 class BcmTestPort : public BcmPlatformPort {
@@ -84,5 +84,4 @@ class BcmTestPort : public BcmPlatformPort {
   BcmPort* bcmPort_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -16,8 +16,7 @@
  *   https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class IP_PROTO : uint8_t {
 
@@ -465,5 +464,4 @@ enum class IP_PROTO : uint8_t {
   IP_PROTO_255 = 0xFF,
 };
 
-}
-} // namespace facebook
+} // namespace facebook::fboss

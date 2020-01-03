@@ -11,8 +11,7 @@
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace {
 template <typename AddrT>
@@ -360,5 +359,5 @@ void LabelsTracker::getIdentifiersForLabel(
     }
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

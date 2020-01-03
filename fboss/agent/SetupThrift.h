@@ -20,8 +20,7 @@
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void serverSSLSetup(apache::thrift::ThriftServer& server);
 
@@ -65,5 +64,5 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   server->setup();
   return server;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

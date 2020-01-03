@@ -18,20 +18,20 @@
 
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
-namespace facebook {
-namespace fboss {
-class UnicastRoute;
-} // namespace fboss
-} // namespace facebook
+namespace facebook::fboss {
 
-namespace facebook {
+class UnicastRoute;
+
+} // namespace facebook::fboss
+
+namespace facebook::fboss {
 namespace cfg {
 class StaticRouteWithNextHops;
 } // namespace cfg
-} // namespace facebook
+} // namespace facebook::fboss
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 class RouteNextHopEntry {
@@ -145,5 +145,5 @@ std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 } // namespace util
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -9,8 +9,8 @@
  */
 
 #include "fboss/agent/test/RouteScaleGenerators.h"
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 FSWRouteScaleGenerator::FSWRouteScaleGenerator(
@@ -156,5 +156,5 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
           routerId) {}
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

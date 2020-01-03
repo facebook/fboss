@@ -25,8 +25,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace ncachehelpers {
 
@@ -442,5 +441,5 @@ std::optional<NeighborEntryThrift> NeighborCacheImpl<NTable>::getCacheData(
   }
   return cachedNeighborEntry;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

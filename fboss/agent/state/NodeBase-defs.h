@@ -13,8 +13,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename NodeT, typename FieldsT>
 std::shared_ptr<NodeT> NodeBaseT<NodeT, FieldsT>::clone() const {
@@ -30,5 +29,4 @@ void NodeBaseT<NodeT, FieldsT>::publish() {
   NodeBase::publish();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

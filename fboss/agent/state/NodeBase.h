@@ -21,8 +21,7 @@
 #include <folly/dynamic.h>
 #include <folly/json.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * NodeBase is the base class for all nodes in our SwitchState tree.
@@ -260,5 +259,4 @@ class NodeBaseT : public NodeBase {
   Fields fields_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

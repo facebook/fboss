@@ -11,8 +11,7 @@
 
 #include <stdexcept>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IPAddressV4;
 using folly::MacAddress;
@@ -42,5 +41,4 @@ ArpHdr::ArpHdr(Cursor& cursor) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

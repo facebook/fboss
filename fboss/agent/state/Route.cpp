@@ -17,8 +17,7 @@
 
 using facebook::network::toBinaryAddress;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IPAddress;
 using std::string;
@@ -165,5 +164,4 @@ void Route<AddrT>::clearForward() {
 template class Route<folly::IPAddressV4>;
 template class Route<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

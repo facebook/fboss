@@ -32,8 +32,7 @@ constexpr auto kIsVirtual = "isVirtual";
 constexpr auto kIsStateSyncDisabled = "isStateSyncDisabled";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
   auto intfFields = InterfaceFields(
@@ -110,5 +109,4 @@ bool Interface::isIpAttached(
 
 template class NodeBaseT<Interface, InterfaceFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

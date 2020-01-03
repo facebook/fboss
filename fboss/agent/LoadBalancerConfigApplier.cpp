@@ -14,8 +14,7 @@
 
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
     const cfg::LoadBalancer& loadBalancerConfig) const {
@@ -152,5 +151,5 @@ LoadBalancerConfigApplier::updateLoadBalancers() {
 
   return originalLoadBalancers_->clone(newLoadBalancers);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

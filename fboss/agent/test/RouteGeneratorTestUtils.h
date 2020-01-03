@@ -21,8 +21,8 @@
 #include <memory>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class Platform;
 
 // Random test state with 2 ports and 2 vlans
@@ -68,5 +68,4 @@ void verifyChunking(
     unsigned int totalRoutes,
     unsigned int chunkSize);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

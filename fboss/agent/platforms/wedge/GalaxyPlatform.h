@@ -16,8 +16,7 @@
 #include <map>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class GalaxyPlatform : public WedgeTomahawkPlatform {
  public:
@@ -37,5 +36,4 @@ class GalaxyPlatform : public WedgeTomahawkPlatform {
   folly::ByteRange defaultLed1Code() override;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

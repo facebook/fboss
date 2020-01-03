@@ -14,8 +14,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LoadBalancer;
 
@@ -44,5 +43,4 @@ class LoadBalancerMap
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

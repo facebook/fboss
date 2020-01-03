@@ -20,8 +20,8 @@
 
 #include <folly/IPAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 /**
@@ -117,5 +117,5 @@ class RouteUpdater {
 };
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

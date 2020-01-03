@@ -11,8 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawkPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
  public:
   explicit BcmTestGalaxyPlatform(
@@ -30,5 +30,5 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

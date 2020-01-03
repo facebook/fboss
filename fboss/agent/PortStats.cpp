@@ -14,8 +14,7 @@
 
 using facebook::fb303::SUM;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
@@ -184,5 +183,4 @@ std::string PortStats::getCounterKey(const std::string& key) {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

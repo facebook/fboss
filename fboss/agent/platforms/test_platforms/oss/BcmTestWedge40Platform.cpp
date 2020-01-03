@@ -11,8 +11,7 @@
 
 #include "fboss/agent/state/PortQueue.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 const PortQueue& BcmTestWedge40Platform::getDefaultPortQueueSettings(
     cfg::StreamType streamType) const {
@@ -26,5 +25,4 @@ const PortQueue& BcmTestWedge40Platform::getDefaultControlPlaneQueueSettings(
   return kQueue;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

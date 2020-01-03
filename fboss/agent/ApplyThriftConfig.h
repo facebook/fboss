@@ -12,8 +12,7 @@
 #include <folly/Range.h>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace rib {
 class RoutingInformationBase;
@@ -37,5 +36,5 @@ std::shared_ptr<SwitchState> applyThriftConfig(
     const cfg::SwitchConfig* config,
     const Platform* platform,
     rib::RoutingInformationBase* rib = nullptr);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -13,8 +13,8 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace util {
 
 /**
@@ -25,5 +25,5 @@ bool isTunIntfName(const std::string& ifName);
 InterfaceID getIDFromTunIntfName(const std::string& ifName);
 
 } // namespace util
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

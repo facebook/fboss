@@ -5,8 +5,7 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/StateDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LookupClassUpdater : public AutoRegisterStateObserver {
  public:
@@ -140,5 +139,5 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   bool inited_{false};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

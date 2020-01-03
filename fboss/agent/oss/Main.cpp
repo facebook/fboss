@@ -13,8 +13,7 @@
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void fbossInit(int argc, char** argv) {
   folly::init(&argc, &argv, true);
@@ -24,5 +23,4 @@ void fbossFinalize() {}
 
 void setVersionInfo() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

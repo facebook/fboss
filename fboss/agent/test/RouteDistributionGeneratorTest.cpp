@@ -14,8 +14,7 @@
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
@@ -127,5 +126,5 @@ TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 0);
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

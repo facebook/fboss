@@ -22,8 +22,8 @@ uint8_t nextHeader(const IPv4Hdr& hdr) {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 UDPDatagram::UDPDatagram(folly::io::Cursor& cursor) {
   udpHdr_.parse(&cursor, nullptr);
@@ -329,5 +329,5 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     uint16_t dPort);
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

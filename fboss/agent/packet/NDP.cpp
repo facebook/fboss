@@ -14,8 +14,7 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IOBuf;
 using folly::MacAddress;
@@ -126,5 +125,4 @@ size_t NDPOptions::computeTotalLength() const {
        (!!targetLinkLayerAddress * NDPOptionLength::TARGET_LL_ADDRESS_IEEE802));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

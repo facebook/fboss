@@ -20,8 +20,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 namespace cfg {
 class SwitchConfig;
@@ -151,5 +150,4 @@ class RouteUpdater {
   std::shared_ptr<RouteTableMap> deduplicate(RouteTableMap::NodeContainer* map);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

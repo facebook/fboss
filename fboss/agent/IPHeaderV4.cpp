@@ -17,8 +17,7 @@
 
 using folly::io::Cursor;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void IPHeaderV4::parse(SwSwitch* sw, PortID port, Cursor* cursor) {
   auto len = cursor->pullAtMost(&hdr_[0], sizeof(hdr_));
@@ -38,5 +37,4 @@ void IPHeaderV4::parse(SwSwitch* sw, PortID port, Cursor* cursor) {
   // TODO: other sanity checks (i.e. packet length, checksum...)
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

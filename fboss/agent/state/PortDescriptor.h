@@ -19,8 +19,7 @@
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
  public:
@@ -48,5 +47,5 @@ class PortDescriptor : public PortDescriptorTemplate<PortID, AggregatePortID> {
 inline void toAppend(const PortDescriptor& pd, std::string* result) {
   folly::toAppend(pd.str(), result);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

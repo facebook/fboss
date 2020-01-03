@@ -11,8 +11,7 @@
 
 #include "fboss/agent/RxPacket.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MockTunManager::MockTunManager(SwSwitch* sw, folly::EventBase* evb)
     : TunManager(sw, evb) {}
@@ -25,5 +24,4 @@ bool MockTunManager::sendPacketToHost(
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

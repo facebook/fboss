@@ -17,8 +17,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct SflowCollectorFields {
   SflowCollectorFields(const std::string& ip, const uint16_t port)
@@ -73,5 +72,4 @@ class SflowCollector : public NodeBaseT<SflowCollector, SflowCollectorFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

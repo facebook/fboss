@@ -26,8 +26,7 @@ constexpr auto kFrom = "from";
 constexpr auto kTo = "to";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic QosPolicyFields::toFollyDynamic() const {
   folly::dynamic qosPolicy = folly::dynamic::object;
@@ -204,5 +203,4 @@ template class TrafficClassToQosAttributeMap<DSCP>;
 template class TrafficClassToQosAttributeMap<EXP>;
 template class NodeBaseT<QosPolicy, QosPolicyFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

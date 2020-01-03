@@ -25,8 +25,7 @@
 
 DECLARE_bool(enable_routes_in_host_table);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class BcmSwitch;
 class WedgePort;
@@ -96,5 +95,4 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

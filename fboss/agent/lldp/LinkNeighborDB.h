@@ -9,8 +9,7 @@
 #include <mutex>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LinkNeighbor;
 
@@ -74,5 +73,4 @@ class LinkNeighborDB {
   std::map<PortID, NeighborMap> byLocalPort_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

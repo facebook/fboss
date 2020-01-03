@@ -25,8 +25,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class IPv6Hdr;
 class Interface;
@@ -186,5 +185,4 @@ class IPv6Handler : public AutoRegisterStateObserver {
   RAMap routeAdvertisers_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

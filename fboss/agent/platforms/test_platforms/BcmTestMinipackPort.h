@@ -11,8 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestMinipackPlatform;
 
 class BcmTestMinipackPort : public BcmTestPort {
@@ -42,5 +42,5 @@ class BcmTestMinipackPort : public BcmTestPort {
   BcmTestMinipackPort(BcmTestMinipackPort const&) = delete;
   BcmTestMinipackPort& operator=(BcmTestMinipackPort const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

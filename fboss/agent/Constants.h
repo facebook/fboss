@@ -12,8 +12,7 @@
 
 #include <folly/Range.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 inline constexpr folly::StringPiece kClassID{"classID"};
 inline constexpr folly::StringPiece kEcmpEgressId{"ecmpEgressId"};
@@ -55,5 +54,4 @@ inline constexpr folly::StringPiece kInExp{"in_exp"};
 inline constexpr folly::StringPiece kOutExp{"out_exp"};
 inline constexpr folly::StringPiece kQosPolicyTable{"qosPolicyTable"};
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

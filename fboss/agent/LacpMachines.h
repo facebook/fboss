@@ -20,8 +20,7 @@
 
 #include <iosfwd>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 class LacpController;
@@ -247,5 +246,4 @@ class Selector {
   uint8_t minLinkCount_{0};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

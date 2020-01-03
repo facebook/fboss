@@ -19,8 +19,7 @@ constexpr auto kPort = "portId";
 constexpr auto kClassID = "classID";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic MacEntryFields::toFollyDynamic() const {
   folly::dynamic macEntry = folly::dynamic::object;
@@ -60,5 +59,4 @@ std::string MacEntry::str() const {
 
 template class NodeBaseT<MacEntry, MacEntryFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

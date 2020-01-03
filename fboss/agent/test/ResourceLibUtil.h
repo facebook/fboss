@@ -11,8 +11,8 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 template <typename AddrT>
@@ -214,5 +214,5 @@ class RouteGenerator : public ResourceGenerator<
 };
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

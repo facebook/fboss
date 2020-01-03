@@ -24,8 +24,7 @@ constexpr auto kNeighborEntryState = "state";
 constexpr auto kClassID = "classID";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename IPADDR>
 folly::dynamic NeighborEntryFields<IPADDR>::toFollyDynamic() const {
@@ -92,5 +91,4 @@ std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {
   return os.str();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

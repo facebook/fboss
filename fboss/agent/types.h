@@ -19,8 +19,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #define FBOSS_STRONG_TYPE(primitive, new_type)                    \
-  namespace facebook {                                            \
-  namespace fboss {                                               \
+  namespace facebook::fboss {                                     \
                                                                   \
   BOOST_STRONG_TYPEDEF(primitive, new_type);                      \
                                                                   \
@@ -30,7 +29,6 @@
   }                                                               \
   inline void toAppend(new_type value, folly::fbstring* result) { \
     folly::toAppend(static_cast<primitive>(value), result);       \
-  }                                                               \
   }                                                               \
   } /* facebook::fboss */                                         \
   namespace std {                                                 \
@@ -62,20 +60,14 @@ FBOSS_STRONG_TYPE(uint8_t, EXP);
  */
 FBOSS_STRONG_TYPE(uint64_t, NodeID)
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using LoadBalancerID = cfg::LoadBalancerID;
 
-} // namespace fboss
-} // namespace facebook
-
-namespace facebook {
-namespace fboss {
 namespace cfg {
 
 std::ostream& operator<<(std::ostream& out, LoadBalancerID id);
 
 } // namespace cfg
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

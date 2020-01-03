@@ -17,8 +17,7 @@
 
 #include <folly/MacAddress.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using MacTableTraits = NodeMapTraits<folly::MacAddress, MacEntry>;
 
@@ -70,5 +69,4 @@ class MacTable : public NodeMapT<MacTable, MacTableTraits> {
 
 using MacTableDelta = NodeMapDelta<MacTable>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

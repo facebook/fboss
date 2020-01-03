@@ -13,8 +13,7 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 AclMap::AclMap() {}
 
@@ -40,5 +39,5 @@ template class NodeMapDelta<
     PrioAclMap,
     DeltaValue<PrioAclMap::Node>,
     MapUniquePointerTraits<PrioAclMap>>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -13,8 +13,8 @@
 #include <memory>
 #include <type_traits>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 /*
  * A return type so that user-supplied functions can specify if they want to
  * continue to be called with more changed nodes, or if they want to stop.
@@ -23,8 +23,8 @@ enum class LoopAction : uint32_t {
   BREAK,
   CONTINUE,
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
 
 #include "fboss/agent/state/DeltaFunctions-detail.h"
 
@@ -35,8 +35,8 @@ enum class LoopAction : uint32_t {
  * Notably, these are the forEachChanged(), forEachAdded(), and
  * forEachRemoved() functions.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace DeltaFunctions {
 
 /*
@@ -155,5 +155,5 @@ bool isEmpty(const Delta& delta) {
 }
 
 } // namespace DeltaFunctions
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

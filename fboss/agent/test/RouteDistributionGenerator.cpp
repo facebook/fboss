@@ -40,8 +40,8 @@ folly::CIDRNetwork getNewPrefix(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 RouteDistributionGenerator::RouteDistributionGenerator(
@@ -147,5 +147,5 @@ RouteDistributionGenerator::getSwitchStates() const {
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

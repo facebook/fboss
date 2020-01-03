@@ -19,8 +19,7 @@ using std::string;
 
 static uint16_t ETHERTYPE_LLDP = 0x88cc;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class LinkNeighbor::LldpTlvType : uint8_t {
   END = 0,
@@ -353,5 +352,4 @@ bool LinkNeighbor::parseCdpPayload(
   return true;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

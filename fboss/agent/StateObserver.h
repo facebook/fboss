@@ -14,8 +14,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class StateObserver : public boost::noncopyable {
  public:
@@ -43,5 +42,4 @@ class AutoRegisterStateObserver : public StateObserver {
   SwSwitch* sw_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

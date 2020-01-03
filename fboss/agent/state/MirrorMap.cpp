@@ -5,8 +5,7 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MirrorMap::MirrorMap() {}
 
@@ -40,5 +39,4 @@ MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(MirrorMap, MirrorMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

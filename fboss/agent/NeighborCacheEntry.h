@@ -62,8 +62,7 @@
  * not to call into NeighborCache functions multiple times, as this will likely
  * cause a deadlock.
  */
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class NeighborEntryState : uint8_t {
   UNINITIALIZED,
@@ -421,5 +420,4 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

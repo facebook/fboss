@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawk3Platform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class PlatformProductInfo;
 
@@ -28,5 +27,5 @@ class BcmTestYampPlatform : public BcmTestWedgeTomahawk3Platform {
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

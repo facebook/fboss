@@ -50,8 +50,7 @@ enum : uint8_t {
   ARP_PLEN_IPV4 = 4,
 };
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ArpHandler::ArpHandler(SwSwitch* sw) : sw_(sw) {}
 
@@ -294,5 +293,4 @@ void ArpHandler::sendArpRequest(
       sw, vlan->getID(), intf->getMac(), addrToReach->first.asV4(), targetIP);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

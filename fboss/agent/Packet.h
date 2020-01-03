@@ -13,8 +13,7 @@
 
 #include <cstdint>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * A class for representing network packets.
@@ -66,5 +65,4 @@ class Packet {
   std::unique_ptr<folly::IOBuf> buf_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

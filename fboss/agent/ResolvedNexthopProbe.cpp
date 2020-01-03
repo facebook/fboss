@@ -16,8 +16,7 @@ const std::chrono::milliseconds kMaximumBackoff{10000};
 auto constexpr kJitterPct = 10;
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ResolvedNextHopProbe::ResolvedNextHopProbe(
     SwSwitch* sw,
@@ -72,5 +71,5 @@ void ResolvedNextHopProbe::timeoutExpired() noexcept {
       (folly::Random::rand32() % (backoff.count() * kJitterPct / 100));
   scheduleTimeout(timeout);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

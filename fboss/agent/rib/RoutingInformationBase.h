@@ -21,8 +21,8 @@
 #include <thread>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 class RoutingInformationBase {
@@ -137,5 +137,5 @@ class RoutingInformationBase {
 };
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

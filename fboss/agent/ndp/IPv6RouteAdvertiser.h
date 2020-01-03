@@ -20,8 +20,7 @@ class IPAddressV6;
 
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Interface;
 class IPv6RAImpl;
@@ -68,5 +67,4 @@ class IPv6RouteAdvertiser {
   IPv6RAImpl* adv_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

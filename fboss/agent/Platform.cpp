@@ -55,8 +55,7 @@ MacAddress localMacAddress() {
   return MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 Platform::Platform(std::unique_ptr<PlatformProductInfo> productInfo)
     : productInfo_(std::move(productInfo)) {}
@@ -137,5 +136,4 @@ PlatformMode Platform::getMode() const {
   return productInfo_->getMode();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Wedge40Platform;
 
@@ -43,5 +42,4 @@ class Wedge40Port : public WedgePort {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

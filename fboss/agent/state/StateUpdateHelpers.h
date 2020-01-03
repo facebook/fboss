@@ -21,8 +21,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/state/StateUpdate.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FunctionStateUpdate : public StateUpdate {
  public:
@@ -131,5 +130,4 @@ class BlockingStateUpdate : public StateUpdate {
   std::shared_ptr<BlockingUpdateResult> result_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

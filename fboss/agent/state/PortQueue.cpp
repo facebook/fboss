@@ -48,8 +48,7 @@ bool comparePortQueueAQMs(
 }
 } // unnamed namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 state::PortQueueFields PortQueueFields::toThrift() const {
   state::PortQueueFields queue;
@@ -267,5 +266,4 @@ bool checkSwConfPortQueueMatch(
 
 template class NodeBaseT<PortQueue, PortQueueFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

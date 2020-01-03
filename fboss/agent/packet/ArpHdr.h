@@ -25,8 +25,7 @@
 #include <folly/io/Cursor.h>
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class ARP_HTYPE : uint16_t {
   ARP_HTYPE_ETHERNET = 1,
@@ -167,5 +166,4 @@ inline bool operator!=(const ArpHdr& lhs, const ArpHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

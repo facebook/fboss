@@ -21,8 +21,7 @@
 #include <utility>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct PortQueueFields {
   using AQMMap = boost::container::
@@ -203,5 +202,5 @@ using QueueConfig = std::vector<std::shared_ptr<PortQueue>>;
 bool checkSwConfPortQueueMatch(
     const std::shared_ptr<PortQueue>& swQueue,
     const cfg::PortQueue* cfgQueue);
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

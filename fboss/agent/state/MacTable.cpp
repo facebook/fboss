@@ -12,8 +12,7 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MacTable::MacTable() {}
 
@@ -45,5 +44,4 @@ MacTable* MacTable::modify(VlanID vlanID, std::shared_ptr<SwitchState>* state) {
 
 FBOSS_INSTANTIATE_NODE_MAP(MacTable, MacTableTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

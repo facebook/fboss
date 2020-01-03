@@ -14,8 +14,7 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class ThreadHeartbeat : private folly::AsyncTimeout {
   /*
@@ -62,5 +61,4 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
   int backlogThreshold_ = 10;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

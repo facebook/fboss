@@ -11,8 +11,7 @@
 
 #include "fboss/agent/state/NodeBase-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename IPADDR>
 folly::dynamic NeighborResponseTableFields<IPADDR>::toFollyDynamic() const {
@@ -41,5 +40,4 @@ template <typename IPADDR, typename SUBCLASS>
 NeighborResponseTable<IPADDR, SUBCLASS>::NeighborResponseTable(Table table)
     : Parent(std::move(table)) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

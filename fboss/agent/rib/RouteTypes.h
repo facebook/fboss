@@ -17,15 +17,14 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 template <typename AddrT>
 class RoutePrefix;
-}
-} // namespace facebook
+} // namespace facebook::fboss
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 /**
@@ -81,5 +80,5 @@ void toAppend(const PrefixV4& prefix, std::string* result);
 void toAppend(const PrefixV6& prefix, std::string* result);
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

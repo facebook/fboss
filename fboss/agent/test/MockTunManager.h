@@ -13,8 +13,7 @@
 
 #include "fboss/agent/TunManager.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 class SwitchState;
@@ -35,5 +34,4 @@ class MockTunManager : public TunManager {
   MOCK_METHOD1(doProbe, void(std::lock_guard<std::mutex>&));
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

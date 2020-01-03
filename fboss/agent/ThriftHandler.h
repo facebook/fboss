@@ -27,8 +27,7 @@
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 class Port;
@@ -379,5 +378,5 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   apache::thrift::SSLPolicy sslPolicy_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -12,8 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::MacAddress;
 using folly::io::Cursor;
@@ -65,5 +64,5 @@ string EthHdr::toString() const {
   ss << "}";
   return ss.str();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

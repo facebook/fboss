@@ -21,8 +21,7 @@ extern "C" {
 #include <netlink/socket.h>
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class InterfaceMap;
 class RxPacket;
@@ -249,5 +248,4 @@ class TunManager : public StateObserver {
   };
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

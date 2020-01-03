@@ -25,8 +25,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class DHCPv6Type : uint8_t {
   DHCPv6_SOLICIT = 1,
@@ -166,5 +165,4 @@ struct DHCPv6Option {
   const uint8_t* data;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

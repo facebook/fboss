@@ -17,8 +17,7 @@
 #include "fboss/agent/state/RouteTableRib.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -119,5 +118,4 @@ RouteTable::getRib() const {
   return getRibV6();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

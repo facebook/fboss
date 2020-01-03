@@ -13,8 +13,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortDescriptor.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::MacAddress;
 
@@ -178,5 +177,4 @@ class NeighborEntry : public NodeBaseT<SUBCLASS, NeighborEntryFields<IPADDR>> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

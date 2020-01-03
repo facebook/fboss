@@ -117,8 +117,7 @@ void CHECK_LPM(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST_F(ForwardingInformationBaseV4Test, SparseLPM) {
   // Candidate prefixes: 0/1, 0/4
@@ -277,5 +276,4 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
   EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

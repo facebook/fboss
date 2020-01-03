@@ -21,8 +21,7 @@
 #include <tuple>
 #include <utility>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct MacEntryFields {
   MacEntryFields(
@@ -107,5 +106,4 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

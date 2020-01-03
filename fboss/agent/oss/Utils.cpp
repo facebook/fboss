@@ -11,11 +11,10 @@
 
 #include <folly/system/ThreadName.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void initThread(folly::StringPiece name) {
   folly::setThreadName(name);
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

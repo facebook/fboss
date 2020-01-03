@@ -25,8 +25,7 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/HdrParseError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * A 32-bit Ethernet VLAN tag.
@@ -260,5 +259,5 @@ inline std::ostream& operator<<(std::ostream& os, const EthHdr& ethHdr) {
   os << ethHdr.toString();
   return os;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

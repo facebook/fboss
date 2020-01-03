@@ -27,8 +27,7 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddrT>
 class LookupClassUpdaterTest : public ::testing::Test {
@@ -478,5 +477,4 @@ TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
   });
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -18,8 +18,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AgentConfig;
 class HwSwitch;
@@ -225,5 +224,4 @@ class Platform {
   const std::unique_ptr<PlatformProductInfo> productInfo_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

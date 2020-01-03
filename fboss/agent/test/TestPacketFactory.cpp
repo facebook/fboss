@@ -79,8 +79,7 @@ const std::string kPayload =
     "18 00 00";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::IOBuf createV4Packet(
     folly::IPAddressV4 srcAddr,
@@ -146,5 +145,4 @@ std::unique_ptr<TxPacket> createTxPacket(
   return txPkt;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

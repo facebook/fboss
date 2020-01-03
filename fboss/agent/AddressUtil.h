@@ -11,8 +11,7 @@
 #include <folly/IPAddress.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
 
-namespace facebook {
-namespace network {
+namespace facebook::network {
 
 // Trait for V4 vs V6
 template <typename T>
@@ -66,5 +65,4 @@ inline folly::IPAddress toIPAddress(const thrift::BinaryAddress& addr) {
       addr.addr.size()));
 }
 
-} /* namespace network */
-} /* namespace facebook */
+} // namespace facebook::network

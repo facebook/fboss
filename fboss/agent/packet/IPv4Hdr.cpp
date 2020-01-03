@@ -18,8 +18,7 @@
 using std::string;
 using std::stringstream;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IOBuf;
 using folly::IPAddressV4;
@@ -136,5 +135,4 @@ uint32_t IPv4Hdr::addrPartialCsum(const IPAddressV4& addr) {
   return c.readBE<uint16_t>() + c.readBE<uint16_t>();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

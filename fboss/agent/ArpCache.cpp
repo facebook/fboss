@@ -16,8 +16,7 @@
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ArpCache::ArpCache(
     SwSwitch* sw,
@@ -78,5 +77,4 @@ std::list<ArpEntryThrift> ArpCache::getArpCacheData() {
   return getCacheData<ArpEntryThrift>();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

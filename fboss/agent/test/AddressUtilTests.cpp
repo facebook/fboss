@@ -31,8 +31,7 @@ fbbinary kV6Binary{0, 0xa, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 std::string kV4Str{"10.0.0.0"};
 std::string kV6Str{"000a:0000:0000:0000:0000:0000:0000:0000"};
 } // namespace
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(AddressUtilTests, ToBinaryAddressV4) {
   auto thriftBinary = toBinaryAddress(kV4Ip);
@@ -94,5 +93,4 @@ TEST(AddressUtilTests, fromThriftAddressV6) {
   EXPECT_EQ(kV6Ip, toIPAddress(thriftAddr));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

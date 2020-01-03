@@ -18,8 +18,7 @@
 
 DECLARE_uint32(ecmp_width);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RouteNextHopEntry {
  public:
@@ -122,5 +121,4 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 } // namespace util
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

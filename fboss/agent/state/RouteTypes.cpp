@@ -18,8 +18,7 @@ constexpr auto kToCpu = "ToCPU";
 constexpr auto kNexthops = "Nexthops";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 std::string forwardActionStr(RouteForwardAction action) {
   switch (action) {
@@ -96,5 +95,4 @@ void toAppend(const RoutePrefixV6& prefix, std::string* result) {
 template class RoutePrefix<folly::IPAddressV4>;
 template class RoutePrefix<folly::IPAddressV6>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

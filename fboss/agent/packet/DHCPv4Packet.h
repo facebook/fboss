@@ -19,8 +19,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 
@@ -161,5 +160,4 @@ void DHCPv4Packet::write(CursorType* cursor) const {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

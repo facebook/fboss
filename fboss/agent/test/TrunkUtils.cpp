@@ -14,8 +14,8 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 cfg::AggregatePortMember makePortMember(int32_t port) {
@@ -84,5 +84,5 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
 }
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

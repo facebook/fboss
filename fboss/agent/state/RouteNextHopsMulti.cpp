@@ -17,8 +17,7 @@ namespace {
 constexpr auto kNexthopDelim = "@";
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 //
 // RouteNextHop Class
@@ -152,5 +151,4 @@ std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

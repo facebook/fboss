@@ -23,8 +23,7 @@ class Cursor;
 }
 } // namespace folly
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RxPacket;
 class SwitchState;
@@ -68,5 +67,4 @@ class IPv4Handler {
   SwSwitch* sw_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

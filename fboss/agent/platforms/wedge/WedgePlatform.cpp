@@ -45,8 +45,7 @@ namespace {
 constexpr auto kNumWedge40Qsfps = 16;
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmPlatform(std::move(productInfo)),
@@ -153,5 +152,4 @@ PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
   return getPort(port);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

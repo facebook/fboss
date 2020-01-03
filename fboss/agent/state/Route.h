@@ -21,8 +21,7 @@
 
 #include <boost/container/flat_set.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * RouteFields<> Class
@@ -231,5 +230,4 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
 typedef Route<folly::IPAddressV4> RouteV4;
 typedef Route<folly::IPAddressV6> RouteV6;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

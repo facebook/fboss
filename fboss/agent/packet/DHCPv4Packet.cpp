@@ -23,8 +23,8 @@ using std::back_inserter;
 using std::copy;
 using std::vector;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwSwitch;
 const uint8_t DHCPv4Packet::kOptionsCookie[] = {99, 130, 83, 99};
 
@@ -133,5 +133,4 @@ bool DHCPv4Packet::getOptionSlow(
   return false;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -14,8 +14,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 MacTableManager::MacTableManager(SwSwitch* sw) : sw_(sw) {}
 
@@ -31,5 +30,5 @@ void MacTableManager::handleL2LearningUpdate(
       folly::to<std::string>("Programming : ", l2Entry.str()),
       std::move(updateMacTableFn));
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

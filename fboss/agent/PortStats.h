@@ -11,8 +11,7 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchStats;
 
@@ -95,5 +94,4 @@ class PortStats {
   SwitchStats* switchStats_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

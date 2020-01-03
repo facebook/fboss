@@ -3,8 +3,7 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class LldpTlvType : uint16_t {
   PDU_END = 0,
@@ -41,5 +40,4 @@ enum class LldpPortIdType : uint8_t {
   LOCALLY_ASSIGNED = 7,
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -16,8 +16,7 @@ using facebook::fb303::AVG;
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 // set to empty string, we'll prepend prefix when fbagent collects counters
 std::string SwitchStats::kCounterPrefix = "";
@@ -220,5 +219,5 @@ AggregatePortStats* SwitchStats::createAggregatePortStats(
 
   return it->second.get();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

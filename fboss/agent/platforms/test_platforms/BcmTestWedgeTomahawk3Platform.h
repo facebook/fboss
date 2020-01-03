@@ -14,8 +14,8 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
  public:
   BcmTestWedgeTomahawk3Platform(
@@ -94,5 +94,5 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
       BcmTestWedgeTomahawk3Platform const&) = delete;
   std::unique_ptr<Tomahawk3Asic> asic_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

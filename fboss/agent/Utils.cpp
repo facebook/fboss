@@ -28,8 +28,7 @@
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 void utilCreateDir(folly::StringPiece path) {
   try {
@@ -117,5 +116,5 @@ std::vector<ClientID> AllClientIDs() {
       ClientID::OPENR,
   };
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

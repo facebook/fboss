@@ -14,8 +14,7 @@
 
 #include <folly/io/Cursor.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * Constants for NDP option type fields (RFC 4861 (sec 4.6))
@@ -101,5 +100,5 @@ class NDPOptions {
       folly::io::Cursor& cursor);
   void skipOption(const NDPOptionHdr& ndpHdr, folly::io::Cursor& cursor);
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

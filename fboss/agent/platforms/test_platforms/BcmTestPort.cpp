@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestPort::BcmTestPort(PortID id, BcmTestPlatform* platform)
     : BcmPlatformPort(id, platform) {}
@@ -68,5 +67,4 @@ void BcmTestPort::statusIndication(
 
 void BcmTestPort::prepareForGracefulExit() {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

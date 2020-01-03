@@ -12,8 +12,7 @@
 #include <folly/Conv.h>
 #include "fboss/agent/if/gen-cpp2/fboss_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /**
  * A base class for FBOSS exceptions.
@@ -36,5 +35,4 @@ class FbossError : public thrift::FbossBaseError {
   ~FbossError() throw() override {}
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

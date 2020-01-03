@@ -17,8 +17,7 @@
 #include <boost/container/flat_map.hpp>
 #include <optional>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class WedgePlatform;
 
@@ -180,5 +179,4 @@ class WedgePortMappingT : public WedgePortMapping {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

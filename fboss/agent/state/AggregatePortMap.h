@@ -11,8 +11,7 @@
 
 #include "fboss/agent/state/NodeMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 
@@ -51,5 +50,4 @@ class AggregatePortMap
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

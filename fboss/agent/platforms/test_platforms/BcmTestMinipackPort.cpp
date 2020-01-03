@@ -12,12 +12,11 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestMinipackPort::BcmTestMinipackPort(
     PortID id,
     BcmTestMinipackPlatform* platform)
     : BcmTestPort(id, platform) {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

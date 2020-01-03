@@ -11,8 +11,7 @@
 
 #include "fboss/agent/L2Entry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwSwitch;
 
@@ -32,5 +31,4 @@ class MacTableManager {
   SwSwitch* sw_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

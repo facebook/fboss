@@ -21,8 +21,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -294,5 +293,4 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -9,8 +9,7 @@
  */
 #pragma once
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class FlexPortMode {
   FOURX10G,
@@ -19,5 +18,4 @@ enum class FlexPortMode {
   TWOX50G,
   ONEX100G,
 };
-}
-} // namespace facebook
+} // namespace facebook::fboss

@@ -8,8 +8,7 @@
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 typedef NodeMapTraits<MplsLabel, LabelForwardingEntry> LabelForwardingRoute;
 
@@ -58,5 +57,4 @@ class LabelForwardingInformationBase
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

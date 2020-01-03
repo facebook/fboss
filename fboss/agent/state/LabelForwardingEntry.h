@@ -8,8 +8,7 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/RouteNextHopsMulti.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using LabelNextHop = ResolvedNextHop;
 using LabelNextHopEntry = RouteNextHopEntry;
@@ -87,5 +86,4 @@ class LabelForwardingEntry
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

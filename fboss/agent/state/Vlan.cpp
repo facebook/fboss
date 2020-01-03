@@ -52,8 +52,7 @@ constexpr auto kNdpResponseTable = "ndpResponseTable";
 constexpr auto kMacTable = "macTable";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 folly::dynamic VlanFields::PortInfo::toFollyDynamic() const {
   folly::dynamic port = folly::dynamic::object;
@@ -203,5 +202,4 @@ void Vlan::addPort(PortID id, bool tagged) {
 
 template class NodeBaseT<Vlan, VlanFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

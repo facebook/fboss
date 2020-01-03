@@ -95,8 +95,8 @@ DEFINE_bool(
     false,
     "Allow external mutations of running config");
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace util {
 
 /**
@@ -127,8 +127,8 @@ std::vector<NextHopThrift> thriftNextHopsFromAddresses(
   return nhs;
 }
 } // namespace util
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
 
 namespace {
 
@@ -421,8 +421,7 @@ LinkNeighborThrift thriftLinkNeighbor(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class RouteUpdateStats {
  public:
@@ -1673,5 +1672,5 @@ void ThriftHandler::getMplsRouteDetails(
   mplsRouteDetail.adminDistance = fwd.getAdminDistance();
   mplsRouteDetail.action = forwardActionStr(fwd.getAction());
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

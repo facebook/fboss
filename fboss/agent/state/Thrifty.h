@@ -6,8 +6,7 @@
 
 #include "fboss/agent/state/NodeBase.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 //
 // Special version of NodeBaseT that features methods to convert
@@ -47,5 +46,4 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

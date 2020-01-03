@@ -15,15 +15,14 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwitchState;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 cfg::AggregatePortMember makePortMember(int32_t port);
@@ -37,5 +36,5 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     std::shared_ptr<SwitchState> curState,
     uint8_t minlinks);
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

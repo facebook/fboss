@@ -15,8 +15,8 @@
 
 #include <algorithm>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace rib {
 
 ConfigApplier::ConfigApplier(
@@ -125,5 +125,5 @@ void ConfigApplier::addInterfaceRoutes(
 }
 
 } // namespace rib
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

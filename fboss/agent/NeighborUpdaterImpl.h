@@ -19,8 +19,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 class StateDelta;
@@ -129,5 +128,4 @@ inline std::shared_ptr<NdpCache> NeighborUpdaterImpl::getNeighborCacheFor(
   return getNdpCacheFor(vlan);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

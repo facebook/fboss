@@ -11,8 +11,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 ForwardingInformationBaseContainerFields::
     ForwardingInformationBaseContainerFields(RouterID vrf)
@@ -72,5 +71,4 @@ template class NodeBaseT<
     ForwardingInformationBaseContainer,
     ForwardingInformationBaseContainerFields>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

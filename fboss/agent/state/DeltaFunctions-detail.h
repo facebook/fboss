@@ -15,8 +15,8 @@
  * This file contains template helpers for implementing DeltaFunctions.
  */
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace DeltaFunctions {
 namespace detail {
 
@@ -130,5 +130,5 @@ using EnableIfAddRmFn =
 
 } // namespace detail
 } // namespace DeltaFunctions
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

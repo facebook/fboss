@@ -17,8 +17,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 PortUpdateHandler::PortUpdateHandler(SwSwitch* sw)
     : AutoRegisterStateObserver(sw, "PortUpdateHandler"), sw_(sw) {}
@@ -67,5 +66,5 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
         }
       });
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

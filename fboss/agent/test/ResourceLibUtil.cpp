@@ -3,8 +3,8 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 namespace utility {
 
 template <>
@@ -88,5 +88,5 @@ template class RouteGenerator<folly::IPAddressV4>;
 template class RouteGenerator<folly::IPAddressV6>;
 
 } // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

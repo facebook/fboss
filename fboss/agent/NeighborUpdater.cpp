@@ -38,8 +38,7 @@ using folly::IPAddressV6;
 using folly::MacAddress;
 using std::shared_ptr;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 
@@ -192,5 +191,5 @@ void NeighborUpdater::aggregatePortChanged(
     });
   }
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

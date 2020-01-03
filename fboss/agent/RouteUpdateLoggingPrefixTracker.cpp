@@ -11,8 +11,7 @@
 #include "RouteUpdateLoggingPrefixTracker.h"
 #include <folly/logging/xlog.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 RouteUpdateLoggingInstance::RouteUpdateLoggingInstance(
     const RoutePrefix<folly::IPAddress>& prefix,
@@ -94,5 +93,4 @@ RouteUpdateLoggingPrefixTracker::getTrackedPrefixes() const {
   return allPrefixes;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

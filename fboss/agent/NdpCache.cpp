@@ -18,8 +18,7 @@
 #include <folly/logging/xlog.h>
 #include <netinet/icmp6.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 NdpCache::NdpCache(
     SwSwitch* sw,
@@ -176,5 +175,4 @@ std::list<NdpEntryThrift> NdpCache::getNdpCacheData() {
   return getCacheData<NdpEntryThrift>();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

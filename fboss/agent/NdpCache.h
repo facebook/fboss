@@ -20,8 +20,7 @@
 #include <list>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 enum class ICMPv6Type : uint8_t;
 
@@ -71,5 +70,4 @@ class NdpCache : public NeighborCache<NdpTable> {
       ICMPv6Type type);
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

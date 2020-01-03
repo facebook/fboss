@@ -9,8 +9,7 @@
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::isEmpty;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename AddrT>
 auto LookupClassUpdater::getTable(const std::shared_ptr<Vlan>& vlan) {
@@ -573,5 +572,4 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   processPortUpdates(stateDelta);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

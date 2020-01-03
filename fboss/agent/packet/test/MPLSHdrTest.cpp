@@ -5,8 +5,7 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/MPLSHdr.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 TEST(MPLSHdrTest, parameterized_data_constructor_label) {
   MPLSHdr hdr{MPLSHdr::Label{103, 4, 1, 79}};
@@ -118,5 +117,4 @@ TEST(MPLSHdrTest, cursor_data_constructor_3_labels) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

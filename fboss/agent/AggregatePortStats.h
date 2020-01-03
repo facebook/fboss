@@ -14,8 +14,7 @@
 
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AggregatePort;
 class SwSwitch;
@@ -44,5 +43,4 @@ class AggregatePortStats {
   fb303::ThreadCachedServiceData::TLTimeseries flaps_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

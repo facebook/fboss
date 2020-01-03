@@ -11,12 +11,10 @@
 
 #include "fboss/agent/state/NeighborTable-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 typedef NeighborTableTraits<folly::IPAddressV6, NdpEntry> NdpTableTraits;
 FBOSS_INSTANTIATE_NODE_MAP(NdpTable, NdpTableTraits);
 template class NeighborTable<folly::IPAddressV6, NdpEntry, NdpTable>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

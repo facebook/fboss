@@ -9,8 +9,7 @@
  */
 #include "fboss/agent/packet/LlcHdr.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::io::Cursor;
 
@@ -30,5 +29,4 @@ LlcHdr::LlcHdr(Cursor& cursor) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

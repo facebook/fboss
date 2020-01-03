@@ -11,8 +11,7 @@
 #include <folly/IPAddressV6.h>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -155,5 +154,4 @@ typedef WaitForNeighborEntryCreation<IPAddressV6> WaitForNdpEntryCreation;
 typedef WaitForNeighborEntryPending<IPAddressV6> WaitForNdpEntryPending;
 typedef WaitForNeighborEntryReachable<IPAddressV6> WaitForNdpEntryReachable;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

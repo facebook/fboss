@@ -25,8 +25,7 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MockHwSwitch;
 class MockPlatform;
@@ -414,5 +413,5 @@ class WaitForSwitchState : public AutoRegisterStateObserver {
   bool done_{false};
   std::string name_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

@@ -16,8 +16,7 @@ class ThriftServer;
 }
 } // namespace apache
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class AgentConfig;
 class Platform;
@@ -30,5 +29,4 @@ void fbossInit(int argc, char** argv);
 void fbossFinalize();
 void setVersionInfo();
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

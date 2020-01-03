@@ -14,8 +14,7 @@
 #include <folly/FBString.h>
 #include <folly/IntrusiveList.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class SwitchState;
 
@@ -93,5 +92,4 @@ class StateUpdate {
   friend class SwSwitch;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

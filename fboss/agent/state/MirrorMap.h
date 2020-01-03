@@ -7,8 +7,7 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Mirror;
 
@@ -30,5 +29,4 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

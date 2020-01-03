@@ -12,8 +12,7 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 LoadBalancerMap::LoadBalancerMap() {}
 
@@ -55,5 +54,4 @@ std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
 
 FBOSS_INSTANTIATE_NODE_MAP(LoadBalancerMap, LoadBalancerMapTraits);
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

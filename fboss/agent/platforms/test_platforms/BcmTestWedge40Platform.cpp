@@ -20,8 +20,7 @@ static const std::array<int, 16> kMasterLogicalPortIds =
 constexpr uint8_t kNumPortsPerTransceiver = 4;
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 BcmTestWedge40Platform::BcmTestWedge40Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
@@ -43,5 +42,5 @@ HwAsic* BcmTestWedge40Platform::getAsic() const {
 }
 
 BcmTestWedge40Platform::~BcmTestWedge40Platform() {}
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

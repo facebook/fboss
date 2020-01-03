@@ -10,8 +10,8 @@
 
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class SwitchState;
 
 std::shared_ptr<SwitchState> setupAlpmState(
@@ -25,5 +25,4 @@ uint64_t numMinAlpmRoutes();
 uint64_t numMinAlpmV4Routes();
 uint64_t numMinAlpmV6Routes();
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

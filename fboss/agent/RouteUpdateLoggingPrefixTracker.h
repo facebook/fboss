@@ -17,8 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /* All the information regarding a prefix for which we have
  * subscribed for logging.
@@ -85,5 +84,4 @@ class RouteUpdateLoggingPrefixTracker {
       trackedPrefixes_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

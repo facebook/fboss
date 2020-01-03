@@ -24,8 +24,7 @@ using folly::io::Cursor;
 using std::string;
 using std::stringstream;
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename IPHDR>
 uint16_t UDPHeader::computeChecksumImpl(const IPHDR& ip, const Cursor& cursor)
@@ -100,5 +99,5 @@ string UDPHeader::toString() const {
      << " Source port: " << srcPort << " Destination port: " << dstPort;
   return ss.str();
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

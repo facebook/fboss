@@ -16,8 +16,7 @@
 #include <folly/dynamic.h>
 #include <memory>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 struct ForwardingInformationBaseContainerFields {
   explicit ForwardingInformationBaseContainerFields(RouterID vrf);
@@ -73,5 +72,4 @@ ForwardingInformationBaseContainer::getFib() const {
   return getFibV6();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

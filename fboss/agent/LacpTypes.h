@@ -19,8 +19,7 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LacpEndpoint;
 
@@ -176,5 +175,5 @@ class LinkAggregationGroupID {
   ParticipantInfo::PortPriority actorPortPriority{0};
   ParticipantInfo::PortPriority partnerPortPriority{0};
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

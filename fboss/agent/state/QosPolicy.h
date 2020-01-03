@@ -20,8 +20,7 @@
 
 #include <boost/container/flat_set.hpp>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 template <typename QosAttrT>
 class TrafficClassToQosAttributeMapEntry {
@@ -202,5 +201,4 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
   friend class CloneAllocator;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

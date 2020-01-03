@@ -13,8 +13,7 @@
 
 #include <folly/experimental/TestUtil.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeWedge40Platform : public Wedge40Platform {
  public:
@@ -33,5 +32,5 @@ class FakeWedge40Platform : public Wedge40Platform {
 
   folly::test::TemporaryDirectory tmpDir_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

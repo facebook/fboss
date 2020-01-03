@@ -11,8 +11,8 @@
 
 #include "fboss/agent/platforms/test_platforms/BcmTestPort.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
+
 class BcmTestYampPlatform;
 
 class BcmTestYampPort : public BcmTestPort {
@@ -42,5 +42,5 @@ class BcmTestYampPort : public BcmTestPort {
   BcmTestYampPort(BcmTestYampPort const&) = delete;
   BcmTestYampPort& operator=(BcmTestYampPort const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
