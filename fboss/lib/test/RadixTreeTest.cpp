@@ -30,17 +30,6 @@ IPAddressV4 getIP<IPAddressV4>(const radix_node_t& n) {
   return IPAddressV4("0.0.0.0");
 }
 
-/*
-Make clang happy, unused function, uncomment when needed.
-template<>
-IPAddressV6 getIP<IPAddressV6>(const radix_node_t& n) {
-  if (n.prefix) {
-    return IPAddressV6(n.prefix->add.sin6);
-  }
-  CHECK(false);
-  return IPAddressV6("::");
-}*/
-
 template <typename IPAddrType, typename T>
 struct PyRadixNodeAccessor {
   static const radix_node_t* left(const radix_node_t& n) {
