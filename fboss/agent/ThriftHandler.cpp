@@ -463,12 +463,20 @@ ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
 }
 
 fb_status ThriftHandler::getStatus() {
-  if (sw_->isFullyInitialized()) {
-    return fb_status::ALIVE;
-  } else if (sw_->isExiting()) {
+  if (sw_->isExiting()) {
     return fb_status::STOPPING;
-  } else {
-    return fb_status::STARTING;
+  }
+
+  auto bootType = sw_->getBootType();
+  switch (bootType) {
+    case BootType::UNINITIALIZED:
+      return fb_status::STARTING;
+    case BootType::COLD_BOOT:
+      return (sw_->isFullyConfigured()) ? fb_status::ALIVE
+                                        : fb_status::STARTING;
+    case BootType::WARM_BOOT:
+      return (sw_->isFullyInitialized()) ? fb_status::ALIVE
+                                         : fb_status::STARTING;
   }
 }
 
