@@ -243,7 +243,6 @@ add_executable(wedge_agent
     fboss/agent/platforms/common/PlatformProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
-    fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
 )
 
@@ -504,7 +503,6 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
-    fboss/agent/platforms/wedge/oss/WedgePort.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
