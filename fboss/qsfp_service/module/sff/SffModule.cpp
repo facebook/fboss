@@ -827,11 +827,11 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
     power = uint8_t(PowerControl::POWER_LPMODE);
   }
 
+  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress, offset, length);
+
   // enable target power class
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, sizeof(power), &power);
-
-  getQsfpFieldAddress(SffField::POWER_CONTROL, dataAddress, offset, length);
 
   XLOG(INFO) << "Port " << portStr << ": QSFP set to power setting "
              << apache::thrift::util::enumNameSafe(desiredSetting)
