@@ -51,8 +51,11 @@ LogThriftCall::LogThriftCall(
 LogThriftCall::~LogThriftCall() {
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start_);
+
+  auto result = (std::uncaught_exceptions()) ? "failed" : "succeeded";
+
   FB_LOG_RAW(logger_, level_, file_, line_, "")
-      << func_ << " thrift request succeeded in " << ms.count() << "ms";
+      << func_ << " thrift request " << result << " in " << ms.count() << "ms";
 }
 
 } // namespace fboss
