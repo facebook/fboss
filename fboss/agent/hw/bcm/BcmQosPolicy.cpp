@@ -19,10 +19,11 @@ namespace facebook::fboss {
 
 BcmQosPolicy::BcmQosPolicy(
     BcmSwitch* hw,
-    const std::shared_ptr<QosPolicy>& qosPolicy) {
-  programIngressDscpQosMap(hw, qosPolicy);
-  programIngressExpQosMap(hw, qosPolicy);
-  programEgressExpQosMap(hw, qosPolicy);
+    const std::shared_ptr<QosPolicy>& qosPolicy)
+    : hw_(hw) {
+  programIngressDscpQosMap(qosPolicy);
+  programIngressExpQosMap(qosPolicy);
+  programEgressExpQosMap(qosPolicy);
 }
 
 BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
@@ -54,6 +55,18 @@ void BcmQosPolicy::update(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
   CHECK(oldQosPolicy->getID() == newQosPolicy->getID());
+  updateIngressDscpQosMap(oldQosPolicy, newQosPolicy);
+  updateEgressExpQosMap(oldQosPolicy, newQosPolicy);
+  updateIngressExpQosMap(oldQosPolicy, newQosPolicy);
+}
+
+void BcmQosPolicy::updateIngressDscpQosMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  if (!ingressDscpQosMap_) {
+    programIngressDscpQosMap(newQosPolicy);
+    return;
+  }
   const auto& oldRules = oldQosPolicy->getDscpMap().from();
   const auto& newRules = newQosPolicy->getDscpMap().from();
 
@@ -83,6 +96,81 @@ void BcmQosPolicy::update(
         qosRule.attr());
   }
 }
+void BcmQosPolicy::updateIngressExpQosMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  CHECK(oldQosPolicy->getID() == newQosPolicy->getID());
+  if (!ingressExpQosMap_) {
+    programIngressExpQosMap(newQosPolicy);
+    return;
+  }
+  const auto& oldRules = oldQosPolicy->getExpMap().from();
+  const auto& newRules = newQosPolicy->getExpMap().from();
+
+  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeRemoved;
+  std::set_difference(
+      oldRules.begin(),
+      oldRules.end(),
+      newRules.begin(),
+      newRules.end(),
+      std::inserter(toBeRemoved, toBeRemoved.end()));
+  for (const auto& qosRule : toBeRemoved) {
+    ingressExpQosMap_->removeRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
+        qosRule.attr());
+  }
+
+  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeAdded;
+  std::set_difference(
+      newRules.begin(),
+      newRules.end(),
+      oldRules.begin(),
+      oldRules.end(),
+      std::inserter(toBeAdded, toBeAdded.end()));
+  for (const auto& qosRule : toBeAdded) {
+    ingressExpQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
+        qosRule.attr());
+  }
+}
+
+void BcmQosPolicy::updateEgressExpQosMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+  CHECK(oldQosPolicy->getID() == newQosPolicy->getID());
+  if (!egressExpQosMap_) {
+    programEgressExpQosMap(newQosPolicy);
+    return;
+  }
+  const auto& oldRules = oldQosPolicy->getExpMap().to();
+  const auto& newRules = newQosPolicy->getExpMap().to();
+
+  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeRemoved;
+  std::set_difference(
+      oldRules.begin(),
+      oldRules.end(),
+      newRules.begin(),
+      newRules.end(),
+      std::inserter(toBeRemoved, toBeRemoved.end()));
+  for (const auto& qosRule : toBeRemoved) {
+    egressExpQosMap_->removeRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
+        qosRule.attr());
+  }
+
+  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeAdded;
+  std::set_difference(
+      newRules.begin(),
+      newRules.end(),
+      oldRules.begin(),
+      oldRules.end(),
+      std::inserter(toBeAdded, toBeAdded.end()));
+  for (const auto& qosRule : toBeAdded) {
+    egressExpQosMap_->addRule(
+        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
+        qosRule.attr());
+  }
+}
 
 bool BcmQosPolicy::policyMatches(
     const std::shared_ptr<QosPolicy>& qosPolicy) const {
@@ -100,27 +188,29 @@ bool BcmQosPolicy::policyMatches(
 }
 
 void BcmQosPolicy::programIngressDscpQosMap(
-    BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   if (qosPolicy->getDscpMap().from().empty()) {
     return;
   }
-  auto warmBootCache = hw->getWarmBootCache();
+  auto warmBootCache = hw_->getWarmBootCache();
   auto qosMapItr =
       warmBootCache->findIngressDscpMap(qosPolicy->getDscpMap().from());
+  auto qosMapItr2 = warmBootCache->findQosMap(
+      qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS);
   if (qosMapItr != warmBootCache->qosMaps_end()) {
     // TODO(pshaikh): remove this after a push as earlier version may not have
     // required bcm switch's warmboot state.
     ingressDscpQosMap_ = std::move(*qosMapItr);
     warmBootCache->programmed(qosMapItr);
+    if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
+      warmBootCache->programmed(qosMapItr2);
+    }
     return;
   }
 
-  auto qosMapItr2 = warmBootCache->findQosMap(
-      qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS);
   if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
     ingressDscpQosMap_ = std::make_unique<BcmQosMap>(
-        hw,
+        hw_,
         BcmQosMap::getQosMapFlags(BcmQosMap::Type::IP_INGRESS),
         qosMapItr2->second);
     warmBootCache->programmed(qosMapItr2);
@@ -128,7 +218,7 @@ void BcmQosPolicy::programIngressDscpQosMap(
   }
 
   ingressDscpQosMap_ =
-      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::IP_INGRESS);
+      std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::IP_INGRESS);
   for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
     ingressDscpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(
@@ -138,24 +228,23 @@ void BcmQosPolicy::programIngressDscpQosMap(
 }
 
 void BcmQosPolicy::programIngressExpQosMap(
-    BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   if (qosPolicy->getExpMap().from().empty()) {
     return;
   }
-  auto warmBootCache = hw->getWarmBootCache();
+  auto warmBootCache = hw_->getWarmBootCache();
   auto qosMapItr = warmBootCache->findQosMap(
       qosPolicy->getName(), BcmQosMap::Type::MPLS_INGRESS);
   if (qosMapItr != warmBootCache->QosMapKey2QosMapIdEnd()) {
     ingressExpQosMap_ = std::make_unique<BcmQosMap>(
-        hw,
+        hw_,
         BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_INGRESS),
         qosMapItr->second);
     warmBootCache->programmed(qosMapItr);
     return;
   }
   ingressExpQosMap_ =
-      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::MPLS_INGRESS);
+      std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::MPLS_INGRESS);
   for (const auto& expToTrafficClass : qosPolicy->getExpMap().from()) {
     ingressExpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(
@@ -165,24 +254,23 @@ void BcmQosPolicy::programIngressExpQosMap(
 }
 
 void BcmQosPolicy::programEgressExpQosMap(
-    BcmSwitch* hw,
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   if (qosPolicy->getExpMap().to().empty()) {
     return;
   }
-  auto warmBootCache = hw->getWarmBootCache();
+  auto warmBootCache = hw_->getWarmBootCache();
   auto qosMapItr = warmBootCache->findQosMap(
       qosPolicy->getName(), BcmQosMap::Type::MPLS_EGRESS);
   if (qosMapItr != warmBootCache->QosMapKey2QosMapIdEnd()) {
     egressExpQosMap_ = std::make_unique<BcmQosMap>(
-        hw,
+        hw_,
         BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_EGRESS),
         qosMapItr->second);
     warmBootCache->programmed(qosMapItr);
     return;
   }
   egressExpQosMap_ =
-      std::make_unique<BcmQosMap>(hw, BcmQosMap::Type::MPLS_EGRESS);
+      std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::MPLS_EGRESS);
   for (const auto& trafficClassToExp : qosPolicy->getExpMap().to()) {
     egressExpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(

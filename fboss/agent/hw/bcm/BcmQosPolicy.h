@@ -33,16 +33,21 @@ class BcmQosPolicy {
   const BcmQosMap* getEgressExpQosMap() const;
 
  private:
-  void programIngressDscpQosMap(
-      BcmSwitch* hw,
-      const std::shared_ptr<QosPolicy>& qosPolicy);
-  void programIngressExpQosMap(
-      BcmSwitch* hw,
-      const std::shared_ptr<QosPolicy>& qosPolicy);
-  void programEgressExpQosMap(
-      BcmSwitch* hw,
-      const std::shared_ptr<QosPolicy>& qosPolicy);
+  void updateIngressDscpQosMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void updateIngressExpQosMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void updateEgressExpQosMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      const std::shared_ptr<QosPolicy>& newQosPolicy);
 
+  void programIngressDscpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void programIngressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void programEgressExpQosMap(const std::shared_ptr<QosPolicy>& qosPolicy);
+
+  BcmSwitch* hw_;
   std::unique_ptr<BcmQosMap> ingressDscpQosMap_;
   std::unique_ptr<BcmQosMap> ingressExpQosMap_;
   std::unique_ptr<BcmQosMap> egressExpQosMap_;
