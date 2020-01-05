@@ -38,6 +38,7 @@ folly::dynamic QosPolicyFields::toFollyDynamic() const {
     folly::dynamic entryDynamic = folly::dynamic::object;
     entryDynamic[kQueueId] = folly::to<std::string>(entry.trafficClass());
     entryDynamic[kDscp] = folly::to<std::string>(entry.attr());
+    qosPolicy[kRules].push_back(entryDynamic);
   }
   qosPolicy[kDscpMap] = dscpMap.toFollyDynamic();
   qosPolicy[kExpMap] = expMap.toFollyDynamic();
