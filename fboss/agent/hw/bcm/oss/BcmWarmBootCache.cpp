@@ -45,6 +45,4 @@ void BcmWarmBootCache::removeUnclaimedLabeledTunnels() {}
 bool BcmWarmBootCache::isSflowMirror(BcmMirrorHandle /*handle*/) const {
   return false;
 }
-void BcmWarmBootCache::removeUnclaimedQosMaps() {}
-
 } // namespace facebook::fboss

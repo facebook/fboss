@@ -841,7 +841,7 @@ void BcmWarmBootCache::clear() {
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();
-  qosMaps_.clear();
+  checkUnclaimedQosMaps();
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -1069,6 +1069,55 @@ BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findIngressDscpMap(
         }
         return true;
       });
+}
+
+BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findIngressExpMap(
+    const ExpMap::QosAttributeToTrafficClassSet& expToTrafficClassSet) {
+  return std::find_if(
+      qosMaps_.begin(),
+      qosMaps_.end(),
+      [expToTrafficClassSet](
+          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
+        if (bcmQosMap->getType() != BcmQosMap::Type::MPLS_INGRESS ||
+            bcmQosMap->size() != expToTrafficClassSet.size()) {
+          return false;
+        }
+        for (const auto& expToTrafficClass : expToTrafficClassSet) {
+          if (!bcmQosMap->ruleExists(
+                  expToTrafficClass.trafficClass(), expToTrafficClass.attr())) {
+            return false;
+          }
+        }
+        return true;
+      });
+}
+
+BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findEgressExpMap(
+    const ExpMap::QosAttributeToTrafficClassSet& trafficClassToExpSet) {
+  return std::find_if(
+      qosMaps_.begin(),
+      qosMaps_.end(),
+      [trafficClassToExpSet](
+          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
+        if (bcmQosMap->getType() != BcmQosMap::Type::MPLS_EGRESS
+            /*TODO(pshaikh): uncomment below when T59958035 is resolved */
+            /*|| bcmQosMap->size() != trafficClassToExpSet.size() */
+        ) {
+          return false;
+        }
+        for (const auto& trafficClassToExp : trafficClassToExpSet) {
+          if (!bcmQosMap->ruleExists(
+                  trafficClassToExp.trafficClass(), trafficClassToExp.attr())) {
+            return false;
+          }
+        }
+        return true;
+      });
+}
+
+void BcmWarmBootCache::checkUnclaimedQosMaps() {
+  qosMaps_.clear();
+  CHECK_EQ(qosMapKey2QosMapId_.size(), 0) << "unclaimed qos map entries found";
 }
 
 void BcmWarmBootCache::programmed(QosMapsItr itr) {

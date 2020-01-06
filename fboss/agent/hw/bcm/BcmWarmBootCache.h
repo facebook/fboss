@@ -228,7 +228,7 @@ class BcmWarmBootCache {
 
   void populateLabelStack2TunnelId(opennsl_l3_egress_t* egress);
   void removeUnclaimedLabeledTunnels();
-  void removeUnclaimedQosMaps();
+  void checkUnclaimedQosMaps();
 
  public:
   /*
@@ -485,6 +485,10 @@ class BcmWarmBootCache {
 
   QosMapsItr findIngressDscpMap(
       const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClass);
+  QosMapsItr findIngressExpMap(
+      const ExpMap::QosAttributeToTrafficClassSet& expToTrafficClassSet);
+  QosMapsItr findEgressExpMap(
+      const ExpMap::QosAttributeToTrafficClassSet& trafficClassToExpSet);
   QosMapsItr qosMaps_end() {
     return qosMaps_.end();
   }
