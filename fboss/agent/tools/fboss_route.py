@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
 """Add, change, or delete a route on FBOSS controller
 """
 
@@ -57,7 +59,7 @@ def del_route(args):
 def list_intf(args):
     with get_client(args) as client:
         #for intf in client.getInterfaceList():
-        for idx, intf in client.getAllInterfaces().iteritems():  # noqa: B301 T25377293 Grandfathered in
+        for idx, intf in client.getAllInterfaces().items():  # noqa: B301 T25377293 Grandfathered in
             print ("L3 Interface %d: %s" % (idx, format_interface(intf)))
 
 def format_ip(ip):
@@ -87,13 +89,13 @@ def list_routes(args):
 def list_optics(args):
     with get_qsfp_client(args) as client:
         info = client.getTransceiverInfo()
-        for key, val in info.iteritems():  # noqa: B301 T25377293 Grandfathered in
+        for key, val in info.items():  # noqa: B301 T25377293 Grandfathered in
             print ("Optic %d: %s" % (key, str(val)))
 
 def list_ports(args):
     details = args.details
     with get_client(args) as client:
-        for idx, intf in client.getPortStatus(range(1, 65)).iteritems():  # noqa: B301 T25377293 Grandfathered in
+        for idx, intf in client.getPortStatus(list(range(1, 65))).items():  # noqa: B301 T25377293 Grandfathered in
             stats = ""
             if details:
                 stats = " (%s)" % client.getPortStats(idx)
@@ -114,7 +116,7 @@ def list_vlans(args):
     with get_client(args) as client:
         #for intf in client.getInterfaceList():
         vlans = {}
-        for idx, intf in client.getAllInterfaces().iteritems():
+        for _idx, intf in client.getAllInterfaces().items():
             vlans[intf.vlanId] = True
         for vlan in vlans:
             print("===== Vlan %d ==== " % vlan)
