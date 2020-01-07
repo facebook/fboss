@@ -527,6 +527,8 @@ std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
     newPort->setOperState(bcmPort->isUp());
   }
 
+  getPlatform()->preWarmbootStateApplied();
+
   warmBootState->publish();
   return stateChangedImpl(
       StateDelta(make_shared<SwitchState>(), warmBootState));

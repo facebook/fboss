@@ -47,6 +47,12 @@ class BcmPlatform : public Platform {
   virtual void onUnitAttach(int unit) = 0;
 
   /*
+   * preWarmbootStateApplied() will be called by the BcmSwitch code immediately
+   * before applying the warmboot state.
+   */
+  virtual void preWarmbootStateApplied() {}
+
+  /*
    * The BcmPlatform should return a map of BCM port ID to BcmPlatformPort
    * objects.  The BcmPlatform object will retain ownership of all the
    * BcmPlatformPort objects, and must ensure that they remain valid for as

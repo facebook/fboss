@@ -134,6 +134,32 @@ void WedgePlatform::onUnitCreate(int unit) {
 
 void WedgePlatform::onUnitAttach(int /*unit*/) {}
 
+void WedgePlatform::preWarmbootStateApplied() {
+  // Update QsfpCache with the existing ports
+  QsfpCache::PortMapThrift changedPorts;
+  for (const auto& entry : *portMapping_) {
+    // As some platform allows add/remove port at the first time applying the
+    // config, we should skip those ports which doesn't exist in hw.
+    auto bcmPortIf = hw_->getPortTable()->getBcmPortIf(entry.first);
+    if (!bcmPortIf) {
+      XLOG(WARNING) << "Port:" << entry.first << " is not in hw port table.";
+      continue;
+    }
+
+    if (entry.second->supportsTransceiver()) {
+      PortStatus s;
+      s.enabled = bcmPortIf->isEnabled();
+      s.up = bcmPortIf->isUp();
+      s.speedMbps = static_cast<int>(bcmPortIf->getSpeed());
+      s.transceiverIdx_ref() = entry.second->getTransceiverMapping();
+      changedPorts[entry.first] = s;
+    }
+  }
+  XLOG(INFO) << "[preWarmbootStateApplied]: Will update " << changedPorts.size()
+             << " ports to qsfp cache.";
+  qsfpCache_->portsChanged(changedPorts);
+}
+
 std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
   return make_unique<WedgeI2CBus>();
 }
