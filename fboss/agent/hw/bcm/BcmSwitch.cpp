@@ -2380,37 +2380,14 @@ void BcmSwitch::l2LearningCallback(
   bcmSw->l2LearningUpdateReceived(l2Addr, operation);
 }
 
-void BcmSwitch::l2LearningUpdateReceived(
-    opennsl_l2_addr_t* l2Addr,
-    int operation) noexcept {
-  if (l2Addr && isL2OperationOfInterest(operation) &&
-      isL2EntryTypeOfInterest(l2Addr, operation)) {
-    callback_->l2LearningUpdateReceived(
-        createL2Entry(l2Addr, isL2EntryPending(l2Addr)),
-        getL2EntryUpdateType(operation));
-  }
-}
-
 /*
  * TD2 and TH
  * ----------
- *
- * Ignore DELETE for PENDING and ADD for VALIDATED.
  *
  * Typical Learning workflow:
  *  - ASIC encounters unknown source MAC+vlan.
  *  - ASIC creates a PENDING L2 entry for the MAC+vlan and generates callback.
  *  - In response, wedge_agent will VALIDATE the L2 entry.
- *  - This VALIDATE, initiated by wedge_agent, triggers another callback with
- *    operation type of ADD. Ignore it as wedge_agent already knows about it.
- *  - Furthermore, when PENDING entry changes to VALIDATED, the PENDING entry
- *    'DELETE' will generate another callback. Ignore it as wedge_agent already
- *    knows about it.
- *
- *    We saw some inconsistencies in ASIC/SDK behavior around this, and DELETE
- *    for PENDING and ADD for VALIDATED was not always generated. CS9347300
- *    tracks this with Broadcom. But, since we need to ignore these callbacks
- *    anyway, we are good even as await answers on CS9347300.
  *
  * Typical Aging workflow:
  *  - SDK thread ages out a stale MAC+vlan entry.
@@ -2418,6 +2395,27 @@ void BcmSwitch::l2LearningUpdateReceived(
  *  - The MAC+vlan that is aged out would be VALIDATED as when the entry is
  *    learned, in resposne to PENDING ADD callback, wedge_agent would have
  *    VALIDATED the entry.
+ *
+ * The initial implementation (which used wrong BCM API to register callbacks,
+ * and got L2 mod fifo to fill up), in addition to PENDING ADD callback, when
+ * PENDING entry got VALIDATED, wedge_agent received DELETE for PENDING and ADD
+ * for VALIDATED. Thus, wedge_agent had an explicit logic to ignore DELETE
+ * callback for * PENDING and ADD callback for VALIDATED.
+ *
+ * However, with correct BCM API to register callbacks, we no longer get DELETE
+ * for PENDING and ADD for VALIDATED, and thus those need not be ignored here
+ * (Broadcom case CS9347300).
+ *
+ * Furthermore, there is a legitimate case where wedge_agent receives ADD for
+ * VALIDATED, and thus wedge_agent cannot ignore this callback but must handle
+ * it viz. Mac Move.
+ *
+ * Typical Mac Move workflow:
+ *  - MAC+vlan is learned on a port p1 (say) using typical Learning workflow.
+ *  - ASIC encounters the same source MAC+vlan on a different port p2 (say).
+ *  - In response, the MAC is moved from port p1 to p2 and two callbacks are
+ *    generated viz. DELETE for VALIDATED entry on p1, followed by ADD for
+ *    VALIDATED entry on p2.
  *
  * TH3
  * ---
@@ -2430,24 +2428,17 @@ void BcmSwitch::l2LearningUpdateReceived(
  *  In response, the wedge_agent will program the already VALIDATED entry
  *  again. This has no effect and does not generate additional callback.
  *
+ *  The Mac Move wofkflow for TH3 is same as that for TD2 and TH3 i.e. DELETE
+ *  on old port and ADD on new port both for VALIDATED MACs.
  */
-bool BcmSwitch::isL2EntryTypeOfInterest(
-    const opennsl_l2_addr_t* l2Addr,
-    int operation) {
-  if (getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    constexpr auto kAddOperation =
-        static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
-    constexpr auto kDeleteOperation =
-        static_cast<int>(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
-
-    return !(
-        (operation == kAddOperation && (!isL2EntryPending(l2Addr))) ||
-        (operation == kDeleteOperation && isL2EntryPending(l2Addr)));
+void BcmSwitch::l2LearningUpdateReceived(
+    opennsl_l2_addr_t* l2Addr,
+    int operation) noexcept {
+  if (l2Addr && isL2OperationOfInterest(operation)) {
+    callback_->l2LearningUpdateReceived(
+        createL2Entry(l2Addr, isL2EntryPending(l2Addr)),
+        getL2EntryUpdateType(operation));
   }
-
-  // For TH3
-  return true;
 }
 
 } // namespace facebook::fboss

@@ -863,7 +863,6 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void disableHotSwap() const;
 
-  bool isL2EntryTypeOfInterest(const opennsl_l2_addr_t* l2Addr, int operation);
   bool isL2EntryPending(const opennsl_l2_addr_t* l2Addr);
 
   /*
