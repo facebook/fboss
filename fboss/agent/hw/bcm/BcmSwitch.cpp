@@ -2434,10 +2434,6 @@ void BcmSwitch::l2LearningUpdateReceived(
 bool BcmSwitch::isL2EntryTypeOfInterest(
     const opennsl_l2_addr_t* l2Addr,
     int operation) {
-  if (shouldCallbackOnAllL2EntryTypes()) {
-    return true;
-  }
-
   if (getPlatform()->getAsic()->getAsicType() !=
       HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
     constexpr auto kAddOperation =

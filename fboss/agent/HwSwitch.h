@@ -265,22 +265,8 @@ class HwSwitch {
     return featuresDesired_;
   }
 
-  void enableCallbackOnAllL2EntryTypes() {
-    callbackOnAllL2EntryTypes_ = true;
-  }
-
-  void disableCallbackOnAllL2EntryTypes() {
-    callbackOnAllL2EntryTypes_ = false;
-  }
-
-  bool shouldCallbackOnAllL2EntryTypes() {
-    return callbackOnAllL2EntryTypes_;
-  }
-
  private:
   uint32_t featuresDesired_;
-
-  bool callbackOnAllL2EntryTypes_{false};
 
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;
