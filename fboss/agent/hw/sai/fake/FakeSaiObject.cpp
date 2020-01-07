@@ -42,6 +42,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_ROUTER_INTERFACE:
       *count = fs->rim.map().size();
       break;
+    case SAI_OBJECT_TYPE_HASH:
+      *count = fs->hashm.map().size();
+      break;
     case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP:
       *count = fs->htgm.map().size();
       break;
@@ -154,6 +157,13 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP: {
       for (const auto& htg : fs->htgm.map()) {
         object_list[i++].key.object_id = htg.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_HASH: {
+      *count = fs->hashm.map().size();
+      for (const auto& hash : fs->hashm.map()) {
+        object_list[i++].key.object_id = hash.first;
       }
       break;
     }

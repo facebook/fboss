@@ -180,7 +180,8 @@ class SaiStore {
       detail::SaiObjectStore<SaiHostifTrapGroupTraits>,
       detail::SaiObjectStore<SaiHostifTrapTraits>,
       detail::SaiObjectStore<SaiQueueTraits>,
-      detail::SaiObjectStore<SaiSchedulerTraits>>
+      detail::SaiObjectStore<SaiSchedulerTraits>,
+      detail::SaiObjectStore<SaiHashTraits>>
       stores_;
 };
 
