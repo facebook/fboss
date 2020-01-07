@@ -14,9 +14,7 @@
 
 struct pci_device;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class PciSystem;
 
 /**
@@ -62,5 +60,4 @@ class PciDevice {
   std::shared_ptr<PciSystem> pciSystem_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

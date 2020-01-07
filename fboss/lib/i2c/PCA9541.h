@@ -12,9 +12,7 @@
 #include <stdint.h>
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /* This class represents the PCA9541 device on platforms like Galaxy. This is
  * 2 to 1 upstream to downstream mapping device accessible through I2C. In
  * Galaxy it allows either Cp2112 or the BMC to access the QSFP CPLD on the
@@ -54,5 +52,4 @@ class PCA9541 {
   uint8_t i2cDeviceAddress_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

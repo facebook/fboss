@@ -17,9 +17,7 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 void BaseWedgeI2CBus::open() {
   dev_->open();
 
@@ -165,5 +163,4 @@ void BaseWedgeI2CBus::unselectQsfp() {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

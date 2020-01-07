@@ -11,9 +11,7 @@
 
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 // Handle the intricacies of routing I2C requests to appropriate QSFPs,
 // based on the hardware.
 
@@ -46,5 +44,4 @@ class WedgeI2CBus : public BaseWedgeI2CBus {
   std::pair<uint8_t, uint8_t> getSwitchValues(unsigned int module) const;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

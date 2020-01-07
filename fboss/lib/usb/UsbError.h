@@ -17,9 +17,7 @@
 
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class UsbError : public I2cError {
  public:
   template <typename... Args>
@@ -47,5 +45,4 @@ class UsbDeviceResetError : public UsbError {
   explicit UsbDeviceResetError(const Args&... args) : UsbError(args...) {}
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

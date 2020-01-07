@@ -16,9 +16,7 @@ namespace {
 constexpr uint8_t kMemSpaceAccess = 0x42;
 }
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 PciAccess::PciAccess(std::string devicePath) : devicePath_(devicePath) {}
 
 PciAccess::~PciAccess() {}
@@ -34,5 +32,4 @@ void PciAccess::enableMemSpaceAccess() {
   confFile.close();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

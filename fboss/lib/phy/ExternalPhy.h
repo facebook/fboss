@@ -17,9 +17,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
-namespace facebook {
-namespace fboss {
-namespace phy {
+namespace facebook::fboss::phy {
 
 /*
  * API for programming external phy chips. Down the line all of these
@@ -161,6 +159,4 @@ class ExternalPhy {
   virtual void dump() {}
 };
 
-} // namespace phy
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::phy

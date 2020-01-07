@@ -11,9 +11,7 @@
 
 #include "fboss/lib/RestClient.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class BmcRestClient : public RestClient {
  public:
   BmcRestClient(void);
@@ -23,5 +21,4 @@ class BmcRestClient : public RestClient {
   bool resetCP2112();
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

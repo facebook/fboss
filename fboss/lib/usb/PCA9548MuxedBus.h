@@ -20,9 +20,7 @@
 #include <folly/Format.h>
 #include <folly/String.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class QsfpMux;
 
 struct MuxChannel {
@@ -229,5 +227,4 @@ class PCA9548MuxedBus : public BaseWedgeI2CBus {
   PortLeaves leaves_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

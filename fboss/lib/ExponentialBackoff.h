@@ -9,9 +9,7 @@
 
 #include <chrono>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /**
  * Exponential backoff for generic keys using trial and error.
  *
@@ -93,5 +91,5 @@ class ExponentialBackoff {
   // Time point of last error
   std::chrono::steady_clock::time_point lastErrorTime_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

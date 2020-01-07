@@ -8,9 +8,7 @@
 #include <limits>
 #include <numeric>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * The purpose of this class is to provide a small footprint
  * structure that can record the max and min values over a
@@ -134,6 +132,6 @@ class TimeSeriesWithMinMax {
    */
   folly::Synchronized<boost::circular_buffer<Bucket>> buf_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss
 #include "TimeSeriesWithMinMax-inl.h"

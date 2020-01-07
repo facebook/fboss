@@ -3,9 +3,7 @@
 
 #include <algorithm>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * Add value into bucket. This will place the value in the most
  * recent bucket if it is within the bucket's time frame, else
@@ -240,5 +238,5 @@ typename TimeSeriesWithMinMax<ValueType>::Time
 TimeSeriesWithMinMax<ValueType>::Bucket::getInstantiatedTime() const {
   return startTime_;
 }
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

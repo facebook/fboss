@@ -13,9 +13,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-namespace facebook {
-namespace fboss {
-namespace utility {
+namespace facebook::fboss::utility {
 
 std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
@@ -35,6 +33,4 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     PortID controllingPort);
 
-} // namespace utility
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::utility

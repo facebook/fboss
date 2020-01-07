@@ -16,9 +16,7 @@
 
 #include "fboss/lib/usb/UsbError.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 UsbHandle::UsbHandle(UsbHandle&& other) noexcept : handle_(other.handle_) {
   other.handle_ = nullptr;
 }
@@ -80,5 +78,4 @@ void UsbHandle::claimInterface(int iface) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

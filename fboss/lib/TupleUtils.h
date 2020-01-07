@@ -14,9 +14,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * Regular functions
  *
@@ -91,5 +89,4 @@ struct makeTupleElementsOptional<std::tuple<Ts...>> {
 template <typename T>
 using makeTupleElementsOptional_t = typename makeTupleElementsOptional<T>::type;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

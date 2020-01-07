@@ -114,9 +114,7 @@ void vlogHex(
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 CP2112::CP2112() : ownCtx_(true) {
   lastResetTime_ = std::chrono::steady_clock::now();
   int rc = libusb_init(&ctx_);
@@ -937,5 +935,4 @@ bool CP2112::SMBusConfig::operator!=(const SMBusConfig& other) const {
   return !(*this == other);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

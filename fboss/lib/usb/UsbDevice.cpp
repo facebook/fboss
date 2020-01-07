@@ -16,9 +16,7 @@
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/UsbHandle.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 UsbDevice::UsbDevice(libusb_device* dev, bool increment_ref) : dev_(dev) {
   if (increment_ref) {
     libusb_ref_device(dev_);
@@ -85,5 +83,4 @@ UsbDevice::find(libusb_context* ctx, uint16_t vendor, uint16_t product) {
   throw UsbError("device not found");
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

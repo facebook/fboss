@@ -11,9 +11,7 @@
 
 #include "fboss/lib/usb/PCA9548MuxedBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 // Handle the intricacies of routing I2C requests to appropriate QSFPs,
 // based on the hardware.
 
@@ -36,5 +34,4 @@ class Wedge100I2CBus : public PCA9548MuxedBus<32> {
   std::unique_ptr<PCA9548> qsfpStatusMux_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

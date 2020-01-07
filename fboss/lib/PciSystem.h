@@ -14,9 +14,7 @@
 
 struct pci_device;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /**
  * Singleton class for accessing PCI subsystem access
  */
@@ -27,5 +25,4 @@ class PciSystem {
   static std::shared_ptr<PciSystem> getInstance();
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

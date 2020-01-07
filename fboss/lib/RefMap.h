@@ -15,9 +15,7 @@
 
 #include <boost/container/flat_map.hpp>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * RefMap is a helper class template for managing SAI objects with shared
  * ownership _within_ SAI. If the creation or deletion of an object is
@@ -149,5 +147,4 @@ using UnorderedRefMap = RefMap<RefMapUMap, K, V>;
 template <typename K, typename V>
 using FlatRefMap = RefMap<RefMapFlatMap, K, V>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

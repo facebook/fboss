@@ -14,9 +14,7 @@
 struct libusb_context;
 struct libusb_device;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class UsbHandle;
 
 /*
@@ -65,5 +63,4 @@ class UsbDevice {
   libusb_device* dev_{nullptr};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

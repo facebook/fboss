@@ -16,9 +16,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 enum class ModulePresence { PRESENT, ABSENT, UNKNOWN };
 
 class I2cError : public std::exception {
@@ -95,5 +93,4 @@ class TransceiverI2CApi {
   };
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -39,9 +39,7 @@ constexpr uint8_t BUS_SELECT_RETRIES = 25;
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /* This function checks if the current I2C controller has the I2C bus access to
  * the downstream device like QSFP CPLD in Galaxy. The downstream device sits
  * behind the MUX PCA9541 which is 2 upstream to 1 downstream mux. The bus
@@ -187,5 +185,4 @@ bool PCA9541::getBusControl() {
   return false;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

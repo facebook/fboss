@@ -12,9 +12,7 @@
 #include <glog/logging.h>
 #include <stdint.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class CP2112Intf;
 
 // The PCA9548 chip is a mux that allows internally connecting 0-8
@@ -80,5 +78,4 @@ class PCA9548 {
   uint8_t selected_{0};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

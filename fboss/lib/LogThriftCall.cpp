@@ -15,9 +15,7 @@
 using apache::thrift::Cpp2ConnContext;
 using apache::thrift::Cpp2RequestContext;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 LogThriftCall::LogThriftCall(
     const folly::Logger& logger,
     folly::LogLevel level,
@@ -58,5 +56,4 @@ LogThriftCall::~LogThriftCall() {
       << func_ << " thrift request " << result << " in " << ms.count() << "ms";
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

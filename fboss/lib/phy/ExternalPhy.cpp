@@ -28,9 +28,7 @@ folly::dynamic thriftOptToDynamic(const std::optional<T>& opt) {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
-namespace phy {
+namespace facebook::fboss::phy {
 
 bool LaneConfig::operator==(const LaneConfig& rhs) const {
   return (polaritySwap == rhs.polaritySwap) && (tx == rhs.tx);
@@ -192,6 +190,4 @@ folly::dynamic PhyPortConfig::toDynamic() {
   return obj;
 }
 
-} // namespace phy
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::phy

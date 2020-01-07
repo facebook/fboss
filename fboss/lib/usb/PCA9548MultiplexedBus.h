@@ -12,9 +12,7 @@
 #include <array>
 #include "fboss/lib/usb/BaseWedgeI2CBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 // PCA9548MultiplexedBus represents a I2C bus connected
 // to a bank of PCA9548 multiplexers. We assume that
 // a) multiplexers are at contigous addresses,
@@ -54,5 +52,5 @@ class PCA9548MultiplexedBus : public BaseWedgeI2CBus {
   const unsigned int numPorts_{0};
   const QsfpAddressMap_t qsfpAddressMap_;
 };
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

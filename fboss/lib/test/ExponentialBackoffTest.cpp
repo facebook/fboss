@@ -15,9 +15,7 @@
 
 using namespace facebook;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 TEST(ExponentialBackoffTest, ApiTest) {
   ExponentialBackoff<std::chrono::milliseconds> timer(
       std::chrono::milliseconds(2), std::chrono::milliseconds(10));
@@ -81,5 +79,4 @@ TEST(ExponentialBackoffTest, ApiTest) {
   EXPECT_EQ(timer.getTimeRemainingUntilRetry(), std::chrono::milliseconds(0));
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

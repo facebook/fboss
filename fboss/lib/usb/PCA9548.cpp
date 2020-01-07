@@ -12,9 +12,7 @@
 
 #include <stdint.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 void PCA9548::commit(uint8_t selector) {
   // The multiplexer address is shifted one to the left to
   // work with the underlying I2C libraries.
@@ -23,5 +21,4 @@ void PCA9548::commit(uint8_t selector) {
   selected_ = selector;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

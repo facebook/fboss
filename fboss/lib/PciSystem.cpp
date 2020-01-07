@@ -17,9 +17,7 @@ namespace {
 folly::Singleton<facebook::fboss::PciSystem> _pciSystem;
 }
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 PciSystem::PciSystem() {
   int32_t retVal;
 
@@ -37,5 +35,4 @@ std::shared_ptr<PciSystem> PciSystem::getInstance() {
   return _pciSystem.try_get();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

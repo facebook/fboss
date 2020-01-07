@@ -13,9 +13,7 @@
 #include <chrono>
 #include <string>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class RestClient {
  public:
   RestClient(std::string hostname, int port);
@@ -47,5 +45,4 @@ class RestClient {
   std::string endpoint_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

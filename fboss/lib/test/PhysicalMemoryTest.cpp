@@ -16,9 +16,7 @@ const uint64_t kFakePhysicalAddr = 0xfb000000;
 const uint32_t kFakeSize = 4096;
 } // namespace
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 TEST(PhysicalMemoryTest, lock) {
   // Check parameters
   EXPECT_THROW(
@@ -69,5 +67,4 @@ TEST(PhysicalMemoryTest, io) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

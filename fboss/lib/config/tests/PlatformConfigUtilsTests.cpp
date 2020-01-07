@@ -170,9 +170,7 @@ std::vector<phy::DataPlanePhyChip> getPlatformChips() {
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
-namespace utility {
+namespace facebook::fboss::utility {
 
 TEST(PlatformConfigUtilsTests, GetTransceiverLanesFromProfilesWithXPHY) {
   auto transeiverLanes = utility::getTransceiverLanes(
@@ -338,6 +336,4 @@ TEST(
   EXPECT_EQ(subsidiaryPorts.size(), 0);
 }
 
-} // namespace utility
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::utility

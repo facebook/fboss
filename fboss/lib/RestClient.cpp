@@ -15,9 +15,7 @@
 
 #include <curl/curl.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 RestClient::RestClient(std::string hostname, int port)
     : hostname_(hostname), port_(port) {
   createEndpoint();
@@ -106,5 +104,4 @@ size_t RestClient::writer(
   return data_put;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

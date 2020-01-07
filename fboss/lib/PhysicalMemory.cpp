@@ -23,9 +23,7 @@ constexpr uint64_t kPageSize = 4096;
 constexpr uint64_t kPageMask = (kPageSize - 1);
 } // namespace
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 PhysicalMemory::PhysicalMemory(uint64_t phyAddr, uint32_t size, bool mustLock)
     : phyAddr_(phyAddr), size_(size) {
   // Both size_ and phyAddr_ must be aligned to page size
@@ -110,5 +108,4 @@ void PhysicalMemory::cleanup() noexcept {
   lockFile_.closeNoThrow();
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

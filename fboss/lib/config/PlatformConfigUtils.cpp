@@ -73,9 +73,7 @@ std::vector<Pin> getPinsByChipType(
 }
 } // unnamed namespace
 
-namespace facebook {
-namespace fboss {
-namespace utility {
+namespace facebook::fboss::utility {
 
 std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
@@ -194,6 +192,5 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   }
   return ports;
 }
-} // namespace utility
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss::utility

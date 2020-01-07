@@ -16,9 +16,7 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 WedgeI2CBus::WedgeI2CBus() {}
 
 void WedgeI2CBus::initBus() {
@@ -114,5 +112,4 @@ std::pair<uint8_t, uint8_t> WedgeI2CBus::getSwitchValues(
   return map[port];
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

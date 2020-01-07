@@ -9,9 +9,7 @@
  */
 #include "fboss/lib/usb/PCA9548MuxedBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 void MuxChannel::select() {
   mux->select(channel);
 }
@@ -67,5 +65,4 @@ void selectPath(Path::iterator begin, Path::iterator end) {
 
 } // namespace pca9548_helpers
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

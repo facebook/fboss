@@ -17,9 +17,7 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /* This is class which inherits TransceiverPlatformApi class and contains the
  * TransceiverI2CApi object pointer. This class is used to return the generic
  * object which provides the API to control QSFP using FPGA based interface or
@@ -49,5 +47,4 @@ class TransceiverPlatformI2cApi : public TransceiverPlatformApi {
   TransceiverI2CApi* i2cBus_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

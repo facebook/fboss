@@ -17,9 +17,7 @@
 #include <thrift/lib/cpp2/server/Cpp2ConnContext.h>
 #include <string>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class LogThriftCall {
  public:
   explicit LogThriftCall(
@@ -40,8 +38,7 @@ class LogThriftCall {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
 
 /*
  * This macro returns a LogThriftCall object that prints request

@@ -16,9 +16,7 @@
 using folly::MutableByteRange;
 using std::lock_guard;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 void PCA9548MultiplexedBus::initBus() {
   // We step through them all multiplexer, set them
   // all to zero to clear them. Then in selectQsfpImpl,
@@ -68,5 +66,4 @@ void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {
   selectedPort_ = port;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

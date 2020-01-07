@@ -11,9 +11,7 @@
 
 #include <glog/logging.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 template <typename Duration>
 ExponentialBackoff<Duration>::ExponentialBackoff()
     : initialBackoff_(Duration(1)),
@@ -86,5 +84,5 @@ Duration ExponentialBackoff<Duration>::getMaxBackoff() const {
 template class ExponentialBackoff<std::chrono::microseconds>;
 template class ExponentialBackoff<std::chrono::milliseconds>;
 template class ExponentialBackoff<std::chrono::seconds>;
-} // namespace fboss
-} // namespace facebook
+
+} // namespace facebook::fboss

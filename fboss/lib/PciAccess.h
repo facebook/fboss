@@ -11,9 +11,7 @@
 
 #include <string>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /**
  * Class for managing pci device access.
  */
@@ -28,5 +26,4 @@ class PciAccess {
   std::string devicePath_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

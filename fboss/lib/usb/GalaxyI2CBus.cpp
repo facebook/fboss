@@ -29,9 +29,7 @@ enum GalaxyQsfpResetReg { QSFP_RESET_REG_0 = 0x10 };
 
 } // namespace
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 MuxLayer GalaxyI2CBus::createMuxes() {
   MuxLayer muxes;
   muxes.push_back(std::make_unique<QsfpMux>(dev_.get(), MUX_0_TO_7));
@@ -98,5 +96,4 @@ void GalaxyI2CBus::triggerQsfpHardReset(unsigned int module) {
   write(ADDR_QSFP_CPLD, cpldReg, 1, &buf);
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

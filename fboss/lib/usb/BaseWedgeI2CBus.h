@@ -15,9 +15,7 @@
 #include <folly/Range.h>
 #include <mutex>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * A small wrapper around CP2112 which is aware of the topology of wedge's QSFP
  * I2C bus, and can select specific QSFPs to query.
@@ -72,5 +70,4 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   BaseWedgeI2CBus& operator=(BaseWedgeI2CBus const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

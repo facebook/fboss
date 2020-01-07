@@ -54,8 +54,7 @@ void extractPresenceBits(
 }
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 void Wedge100I2CBus::scanPresence(
     std::map<int32_t, ModulePresence>& presences) {
   // If selectedPort_ != NO_PORT, then unselectAll
@@ -132,5 +131,4 @@ void Wedge100I2CBus::wireUpPorts(Wedge100I2CBus::PortLeaves& leaves) {
   }
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

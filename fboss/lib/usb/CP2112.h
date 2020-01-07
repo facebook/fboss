@@ -19,9 +19,7 @@
 
 struct libusb_transfer;
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class CP2112Intf {
   // Bare-bones virtual interface to the CP2112 class. Used for gmock
   // testing.
@@ -434,5 +432,4 @@ class CP2112 : public CP2112Intf {
   std::chrono::milliseconds minResetInterval_{10000}; /* 10 seconds */
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

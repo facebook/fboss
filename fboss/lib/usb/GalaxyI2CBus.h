@@ -12,9 +12,7 @@
 #include "fboss/lib/i2c/PCA9541.h"
 #include "fboss/lib/usb/PCA9548MuxedBus.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 // Handle the intricacies of routing I2C requests to appropriate QSFPs,
 // based on the hardware.
 
@@ -49,5 +47,4 @@ class GalaxyI2CBus : public PCA9548MuxedBus<16> {
   std::unique_ptr<PCA9541> pca9541Bus_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

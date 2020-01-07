@@ -13,9 +13,7 @@
 
 #include <vector>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class FakePhysicalMemory : public PhysicalMemory {
  public:
   using PhysicalMemory::PhysicalMemory;
@@ -39,5 +37,4 @@ using FakePhysicalMemory8 = PhysicalMemory8<FakePhysicalMemory>;
 using FakePhysicalMemory16 = PhysicalMemory16<FakePhysicalMemory>;
 using FakePhysicalMemory32 = PhysicalMemory32<FakePhysicalMemory>;
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

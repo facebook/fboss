@@ -14,9 +14,7 @@
 
 #include <folly/File.h>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /**
  * A class represents a physical address region.
  */
@@ -118,5 +116,4 @@ class PhysicalMemory32 : public BaseT {
   }
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

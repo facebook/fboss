@@ -14,9 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 /*
  * Abstract class for handling the FPGA or I2C related API for QSFP transcever
  * modules. This class will be inherited by platform specific classes
@@ -36,5 +34,4 @@ class TransceiverPlatformApi {
   virtual void triggerQsfpHardReset(unsigned int module) = 0;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

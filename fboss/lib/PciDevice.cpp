@@ -21,9 +21,7 @@ namespace {
 constexpr auto kMaxPciRegions = 6;
 }
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 PciDevice::~PciDevice() {
   this->close();
 }
@@ -115,5 +113,4 @@ uint64_t PciDevice::getMemoryRegionSize(uint32_t region) const {
   return pciDevice_->regions[region].size;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

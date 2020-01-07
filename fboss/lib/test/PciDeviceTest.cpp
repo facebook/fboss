@@ -19,9 +19,7 @@ extern "C" {
 
 #include "fboss/lib/PciDevice.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 TEST(PciDevice, InitAnyDevice) {
   uint64_t bar0;
   uint64_t barSize0;
@@ -68,5 +66,4 @@ TEST(PciDevice, TwoDevices) {
   ASSERT_NO_THROW(pciDevice2.close());
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
