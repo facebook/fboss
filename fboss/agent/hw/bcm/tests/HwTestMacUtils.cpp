@@ -17,9 +17,7 @@ extern "C" {
 #include <opennsl/l2.h>
 }
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 uint32_t getMacAgeTimerSeconds(const facebook::fboss::HwSwitch* hwSwitch) {
   auto unit =
@@ -39,6 +37,4 @@ void setMacAgeTimerSeconds(
   bcmCheckError(rv, "Unable to set mac age timer value");
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

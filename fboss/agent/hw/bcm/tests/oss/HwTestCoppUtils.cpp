@@ -9,9 +9,7 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
   // Required APIs not available in opennsl
@@ -21,6 +19,5 @@ uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
 std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
   return std::map<cfg::PacketRxReason, int16_t>{};
 }
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

@@ -14,9 +14,7 @@
 
 #include <folly/IPAddress.h>
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 std::multiset<opennsl_if_t>
 getEcmpGroupInHw(int unit, opennsl_if_t ecmp, int sizeInSw) {
@@ -46,6 +44,5 @@ opennsl_if_t getEgressIdForRoute(
   auto bcmRoute = hw->routeTable()->getBcmRoute(vrf, ip, mask);
   return bcmRoute->getEgressId();
 }
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

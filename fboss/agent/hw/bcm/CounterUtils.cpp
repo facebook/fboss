@@ -17,9 +17,7 @@
 
 #include <numeric>
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 CounterPrevAndCur::CounterPrevAndCur(int64_t prev, int64_t cur)
     : prev_(prev), cur_(cur) {
@@ -67,6 +65,4 @@ void deleteCounter(const std::string& oldCounterName) {
   fb303::fbData->clearCounter(oldCounterName);
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility
