@@ -82,6 +82,7 @@ class WedgePortMapping {
     if (!platformPorts) {
       throw FbossError("Can't find platformPorts from platform_config");
     }
+    XLOG(INFO) << "Create Platform Port Mapping from config";
     auto mapping = std::make_unique<MappingT>(platform);
     for (const auto& port : *platformPorts) {
       // Will migrate the code to get front panel resource from the config

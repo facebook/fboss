@@ -25,6 +25,9 @@
 
 namespace facebook::fboss {
 
+WedgePort::WedgePort(PortID id, WedgePlatform* platform)
+    : BcmPlatformPort(id, platform) {}
+
 WedgePort::WedgePort(
     PortID id,
     WedgePlatform* platform,
