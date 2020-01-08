@@ -23,12 +23,12 @@ class BcmSwitchSettings {
 
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
 
+  void enableL2LearningCallback();
+  void disableL2LearningCallback();
+
  private:
   void enableL2LearningHardware();
   void enableL2LearningSoftware();
-
-  void enableL2LearningCallback();
-  void disableL2LearningCallback();
 
   void enablePendingEntriesOnUnknownSrcL2();
   void disablePendingEntriesOnUnknownSrcL2();

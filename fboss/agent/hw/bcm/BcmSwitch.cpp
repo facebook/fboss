@@ -339,6 +339,17 @@ void BcmSwitch::unregisterCallbacks() {
     stopLinkscanThread();
     flags_ &= ~LINKSCAN_REGISTERED;
   }
+
+  /*
+   * SOFTWARE L2 learning mode enables callback when there are updates to L2
+   * table. Disable it: we don't want these callbacks (that call BcmSwitch
+   * method) to fire after BcmSwitch object is destroyed.
+   */
+  if (switchSettings_->getL2LearningMode().has_value() &&
+      switchSettings_->getL2LearningMode().value() ==
+          cfg::L2LearningMode::SOFTWARE) {
+    switchSettings_->disableL2LearningCallback();
+  }
 }
 
 void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
