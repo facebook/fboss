@@ -17,8 +17,8 @@
 
 namespace facebook::fboss {
 class SwitchState;
-
-namespace utility {
+}
+namespace facebook::fboss::utility {
 
 constexpr unsigned int kDefaultChunkSize = 4000;
 constexpr unsigned int kDefaulEcmpWidth = 4;
@@ -63,6 +63,5 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
       unsigned int ecmpWidth = kDefaulEcmpWidth,
       RouterID routerId = RouterID(0));
 };
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

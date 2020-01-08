@@ -2,9 +2,7 @@
 
 #include "fboss/agent/test/MirrorConfigs.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 cfg::MirrorEgressPort getMirrorEgressPort(const std::string& portName) {
   cfg::MirrorEgressPort egressPort;
   egressPort.set_name(portName);
@@ -192,6 +190,4 @@ cfg::Mirror getSFlowMirrorWithPortName(
   return mirror;
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

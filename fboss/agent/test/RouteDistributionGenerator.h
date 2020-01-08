@@ -19,8 +19,9 @@
 
 namespace facebook::fboss {
 class SwitchState;
+}
 
-namespace utility {
+namespace facebook::fboss::utility {
 
 using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;
 
@@ -84,6 +85,4 @@ class RouteDistributionGenerator {
   mutable std::optional<SwitchStates> generatedStates_;
 };
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

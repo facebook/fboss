@@ -40,9 +40,7 @@ folly::CIDRNetwork getNewPrefix(
 }
 } // namespace
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 RouteDistributionGenerator::RouteDistributionGenerator(
     const std::shared_ptr<SwitchState>& startingState,
@@ -146,6 +144,4 @@ RouteDistributionGenerator::getSwitchStates() const {
   return *generatedStates_;
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

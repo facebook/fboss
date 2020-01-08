@@ -3,9 +3,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 template <>
 ResourceCursor<uint32_t>::ResourceCursor() : current_(0) {}
@@ -87,6 +85,4 @@ template class IPAddressGenerator<folly::IPAddressV6>;
 template class RouteGenerator<folly::IPAddressV4>;
 template class RouteGenerator<folly::IPAddressV6>;
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

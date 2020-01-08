@@ -26,8 +26,9 @@
 
 namespace facebook::fboss {
 class SwitchState;
+}
 
-namespace utility {
+namespace facebook::fboss::utility {
 
 template <typename IPAddrT>
 struct EcmpNextHop {
@@ -339,6 +340,5 @@ class MplsEcmpSetupAnyNPorts {
 
 using EcmpSetupAnyNPorts4 = EcmpSetupAnyNPorts<folly::IPAddressV4>;
 using EcmpSetupAnyNPorts6 = EcmpSetupAnyNPorts<folly::IPAddressV6>;
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

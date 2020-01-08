@@ -14,9 +14,7 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/SwitchState.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 cfg::AggregatePortMember makePortMember(int32_t port) {
   static auto constexpr kAggPriority = 32768;
@@ -83,6 +81,4 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
   return newState;
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility
