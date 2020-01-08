@@ -13,9 +13,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/state/RouteTypes.h"
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 template <typename AddrT>
 Route<AddrT>::Route(const Prefix& prefix) : prefix_(prefix) {}
@@ -140,6 +138,4 @@ void Route<AddrT>::clearForward() {
 template class Route<folly::IPAddressV4>;
 template class Route<folly::IPAddressV6>;
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

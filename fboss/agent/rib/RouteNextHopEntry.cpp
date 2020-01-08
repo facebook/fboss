@@ -38,9 +38,7 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
 }
 } // namespace
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 namespace util {
 
@@ -240,6 +238,4 @@ facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
   return RouteNextHopEntry(std::move(nhops), AdminDistance::STATIC_ROUTE);
 }
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

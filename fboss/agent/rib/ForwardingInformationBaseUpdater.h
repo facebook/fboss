@@ -24,9 +24,7 @@ class SwitchState;
 
 } // namespace facebook::fboss
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 class RouteNextHopEntry;
 
@@ -59,6 +57,4 @@ class ForwardingInformationBaseUpdater {
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;
 };
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

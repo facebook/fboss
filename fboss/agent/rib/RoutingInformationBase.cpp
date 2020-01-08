@@ -38,9 +38,7 @@ class Timer {
 };
 } // namespace
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 void RoutingInformationBase::reconfigure(
     const RouterIDAndNetworkToInterfaceRoutes& configRouterIDToInterfaceRoutes,
@@ -282,6 +280,4 @@ bool RoutingInformationBase::operator==(
   return *routeTables == *otherTables;
 }
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

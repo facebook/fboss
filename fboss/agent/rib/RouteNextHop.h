@@ -21,9 +21,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 inline folly::StringPiece constexpr kInterface() {
   return "interface";
@@ -210,6 +208,4 @@ NextHop fromThrift(const NextHopThrift& nht);
 NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
 } // namespace util
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

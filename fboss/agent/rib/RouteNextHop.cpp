@@ -13,9 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
@@ -145,6 +143,4 @@ UnresolvedNextHop::UnresolvedNextHop(
   }
 }
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

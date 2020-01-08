@@ -21,9 +21,7 @@
 #include <thread>
 #include <vector>
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 class RoutingInformationBase {
  public:
@@ -136,6 +134,4 @@ class RoutingInformationBase {
   SynchronizedRouteTables synchronizedRouteTables_;
 };
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

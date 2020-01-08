@@ -24,15 +24,11 @@ class UnicastRoute;
 
 } // namespace facebook::fboss
 
-namespace facebook::fboss {
-namespace cfg {
+namespace facebook::fboss::cfg {
 class StaticRouteWithNextHops;
-} // namespace cfg
-} // namespace facebook::fboss
+} // namespace facebook::fboss::cfg
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 class RouteNextHopEntry {
  public:
@@ -144,6 +140,4 @@ RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
 std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
 } // namespace util
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

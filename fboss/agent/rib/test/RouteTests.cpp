@@ -33,8 +33,6 @@ const ClientID kClientD = ClientID(1004);
 const ClientID kClientE = ClientID(1005);
 } // namespace
 
-namespace rib = facebook::fboss::rib;
-
 using rib::IPv4NetworkToRouteMap;
 using rib::IPv6NetworkToRouteMap;
 using rib::Route;
@@ -49,7 +47,6 @@ using folly::IPAddressV6;
 constexpr AdminDistance kDistance = AdminDistance::MAX_ADMIN_DISTANCE;
 
 namespace {
-using namespace rib;
 // TODO(samank): move helpers into test fixture
 template <typename AddressT>
 rib::Route<AddressT>* getRoute(
@@ -117,9 +114,7 @@ rib::Route<AddressT>* longestMatch(
 
 } // namespace
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 /* The following method updates the RIB with routes that would result from a
  * config with the following interfaces:
@@ -1888,6 +1883,4 @@ TEST_F(UcmpTest, Ten) {
   runVaryFromHundredTest(10, {10, 10, 10, 1});
 }
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

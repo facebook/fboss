@@ -22,9 +22,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 class RouteUpdater;
 
@@ -74,6 +72,4 @@ class ConfigApplier {
   void* cookie_;
 };
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

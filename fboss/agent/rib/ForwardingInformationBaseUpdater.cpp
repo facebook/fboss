@@ -18,9 +18,7 @@
 
 #include <algorithm>
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
     RouterID vrf,
@@ -166,6 +164,4 @@ template std::unique_ptr<facebook::fboss::Route<folly::IPAddressV6>>
 ForwardingInformationBaseUpdater::toFibRoute<folly::IPAddressV6>(
     const Route<folly::IPAddressV6>&);
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

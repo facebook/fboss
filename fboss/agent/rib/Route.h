@@ -29,9 +29,7 @@ class Route;
 
 } // namespace facebook::fboss
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 template <typename AddrT>
 class Route {
@@ -180,6 +178,4 @@ class Route {
 typedef Route<folly::IPAddressV4> RouteV4;
 typedef Route<folly::IPAddressV6> RouteV6;
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib

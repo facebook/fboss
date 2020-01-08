@@ -15,9 +15,7 @@
 
 #include <algorithm>
 
-namespace facebook::fboss {
-
-namespace rib {
+namespace facebook::fboss::rib {
 
 ConfigApplier::ConfigApplier(
     RouterID vrf,
@@ -124,6 +122,4 @@ void ConfigApplier::addInterfaceRoutes(
   }
 }
 
-} // namespace rib
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::rib
