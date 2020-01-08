@@ -5,9 +5,7 @@
 #include <vector>
 #include "fboss/agent/HwSwitch.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks();
 
 std::vector<uint64_t> kHwTestEcmpWeights();
@@ -15,6 +13,5 @@ std::vector<uint64_t> kHwTestEcmpWeights();
 std::vector<uint64_t> kHwTestUcmpWeights();
 
 uint32_t constexpr kHwTestMplsLabel = 1001;
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

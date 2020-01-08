@@ -17,10 +17,9 @@
 /*
  * This utility is to provide utils for bcm olympic tests.
  */
-namespace facebook::fboss {
 
 class HwSwitch;
-namespace utility {
+namespace facebook::fboss::utility {
 
 constexpr int kCPUPort = 0;
 
@@ -56,6 +55,4 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
 std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues();
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

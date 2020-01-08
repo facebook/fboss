@@ -24,7 +24,6 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
-
 class HwSwitch;
 class SwitchState;
 class EthHdr;
@@ -32,8 +31,9 @@ class IPv4Hdr;
 class IPv6Hdr;
 class TCPHeader;
 class UDPHeader;
+} // namespace facebook::fboss
 
-namespace utility {
+namespace facebook::fboss::utility {
 
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
@@ -152,6 +152,4 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

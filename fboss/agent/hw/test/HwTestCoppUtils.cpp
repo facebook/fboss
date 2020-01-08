@@ -30,9 +30,7 @@ const auto kIPv6LinkLocalUcastNetwork =
     folly::IPAddress::createNetwork("fe80::/10");
 } // unnamed namespace
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
@@ -231,6 +229,5 @@ void setDefaultCpuTrafficPolicyConfig(
   }
   config.cpuTrafficPolicy_ref() = cpuConfig;
 }
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

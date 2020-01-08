@@ -79,9 +79,7 @@ std::string getLocalCpuMacStr() {
 }
 } // unnamed namespace
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac("02:00:00:00:00:01");
@@ -217,6 +215,4 @@ cfg::SwitchConfig twoL3IntfConfig(
   return config;
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

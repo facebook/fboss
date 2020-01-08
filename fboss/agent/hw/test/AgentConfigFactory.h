@@ -17,12 +17,10 @@
 /*
  * This utility is to provide utils for test.
  */
-namespace facebook::fboss {
 
-namespace utility {
+namespace facebook::fboss::utility {
 const uint16_t kMaxPorts = 128;
 
 cfg::AgentConfig getAgentConfig();
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

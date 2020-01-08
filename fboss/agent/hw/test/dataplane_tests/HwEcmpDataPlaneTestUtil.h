@@ -9,9 +9,10 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
-
 class HwSwitchEnsemble;
-namespace utility {
+}
+
+namespace facebook::fboss::utility {
 
 template <typename EcmpSetupHelperT>
 class HwEcmpDataPlaneTestUtil {
@@ -102,6 +103,5 @@ using HwMplsV4EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 using HwMplsV6EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

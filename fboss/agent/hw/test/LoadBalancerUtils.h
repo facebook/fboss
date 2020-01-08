@@ -19,7 +19,6 @@
 #include <vector>
 
 namespace facebook::fboss {
-
 class HwSwitch;
 class Platform;
 class SwitchState;
@@ -28,9 +27,7 @@ class HwSwitchEnsemble;
 
 } // namespace facebook::fboss
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 cfg::Fields getHalfHashFields();
 cfg::Fields getFullHashFields();
@@ -79,6 +76,5 @@ bool isLoadBalanced(
     HwSwitchEnsemble* hwSwitchEnsemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     int maxDeviationPct);
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

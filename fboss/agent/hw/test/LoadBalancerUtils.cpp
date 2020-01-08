@@ -22,9 +22,7 @@
 
 #include <folly/gen/Base.h>
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 cfg::Fields getHalfHashFields() {
   cfg::Fields hashFields;
@@ -235,6 +233,4 @@ bool isLoadBalanced(
       maxDeviationPct);
 }
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

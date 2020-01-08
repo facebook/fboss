@@ -49,9 +49,7 @@ EthHdr makeEthHdr(
 
 } // namespace
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
@@ -379,6 +377,5 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
       hopLimit,
       payload);
 }
-} // namespace utility
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility
