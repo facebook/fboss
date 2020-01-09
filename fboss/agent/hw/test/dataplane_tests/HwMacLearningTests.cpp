@@ -262,7 +262,6 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
- private:
   HwTestLearningUpdateObserver l2LearningObserver_;
 };
 
@@ -296,6 +295,113 @@ TEST_F(HwMacLearningTest, VerifySwAgingForPort) {
 
 TEST_F(HwMacLearningTest, VerifySwAgingForTrunk) {
   testSwAgingHelper(aggPortDescr());
+}
+
+class HwMacLearningMacMoveTest : public HwMacLearningTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::oneL3IntfTwoPortConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
+  }
+
+  void sendPkt2() {
+    auto txPacket = utility::makeEthTxPacket(
+        getHwSwitch(),
+        VlanID(initialConfig().vlanPorts[0].vlanID),
+        kSourceMac(),
+        MacAddress::BROADCAST,
+        ETHERTYPE::ETHERTYPE_LLDP);
+
+    getHwSwitch()->sendPacketOutOfPortSync(
+        std::move(txPacket), PortID(masterLogicalPortIds()[1]));
+  }
+
+  PortDescriptor physPortDescr2() const {
+    return PortDescriptor(PortID(masterLogicalPortIds()[1]));
+  }
+
+  void testMacMoveHelper() {
+    auto setup = [this]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, physPortDescr());
+    };
+
+    auto verify = [this]() {
+      auto portDescr = physPortDescr();
+      auto portDescr2 = physPortDescr2();
+
+      // One port up, other down
+      bringUpPort(portDescr.phyPortID());
+      bringDownPort(portDescr2.phyPortID());
+
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+
+      XLOG(DBG2) << "Send pkt on up port, other port is down";
+      l2LearningObserver_.reset();
+      sendPkt();
+
+      /*
+       * Verify if we get ADD (learn) callback for PENDING entry for TD2, TH
+       * and VALIDATED entry for TH3.
+       */
+      verifyL2TableCallback(
+          l2LearningObserver_.waitForLearningUpdates().front(),
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+          expectedL2EntryTypeOnAdd());
+      EXPECT_TRUE(wasMacLearnt(portDescr));
+
+      // Bring up port down, and down port up
+      bringDownPort(portDescr.phyPortID());
+      bringUpPort(portDescr2.phyPortID());
+
+      XLOG(DBG2)
+          << "Trigger MAC Move: Bring up port down, down port up, and send pkt";
+      l2LearningObserver_.reset();
+      sendPkt2();
+
+      // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
+      // port2
+      auto l2EntryAndUpdateTypeList =
+          l2LearningObserver_.waitForLearningUpdates(2);
+      verifyL2TableCallback(
+          l2EntryAndUpdateTypeList.at(0),
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      verifyL2TableCallback(
+          l2EntryAndUpdateTypeList.at(1),
+          portDescr2,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+
+      EXPECT_TRUE(wasMacLearnt(portDescr2));
+
+      // Aging out MAC prepares for subsequent run of verify()
+
+      // Force MAC aging to as fast a possible but min is still 1 second
+      l2LearningObserver_.reset();
+      utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+
+      // Verify if we get DELETE (aging) callback for VALIDATED entry
+      verifyL2TableCallback(
+          l2LearningObserver_.waitForLearningUpdates().front(),
+          portDescr2,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      EXPECT_TRUE(wasMacLearnt(portDescr2, false /* MAC aged */));
+    };
+
+    // MAC Move should work as expected post warmboot as well.
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+TEST_F(HwMacLearningMacMoveTest, VerifyMacMoveForPort) {
+  testMacMoveHelper();
 }
 
 } // namespace facebook::fboss
