@@ -477,6 +477,7 @@ add_library(fboss_agent STATIC
     fboss/agent/NeighborUpdater.cpp
     fboss/agent/NeighborUpdaterImpl.cpp
     fboss/agent/oss/AggregatePortStats.cpp
+    fboss/agent/oss/FbossInit.cpp
     fboss/agent/oss/Main.cpp
     fboss/agent/oss/SetupThrift.cpp
     fboss/agent/oss/RouteUpdateLogger.cpp

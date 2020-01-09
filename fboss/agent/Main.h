@@ -25,7 +25,6 @@ typedef std::unique_ptr<Platform> (*PlatformInitFn)(
     std::unique_ptr<AgentConfig>);
 
 int fbossMain(int argc, char** argv, PlatformInitFn initPlatform);
-void fbossInit(int argc, char** argv);
 void fbossFinalize();
 void setVersionInfo();
 

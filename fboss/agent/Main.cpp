@@ -22,6 +22,7 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RestartTimeTracker.h"

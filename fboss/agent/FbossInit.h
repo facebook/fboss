@@ -7,12 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/Main.h"
 
 namespace facebook::fboss {
 
-void fbossFinalize() {}
+void fbossInit(int argc, char** argv);
 
-void setVersionInfo() {}
-
-} // namespace facebook::fboss
+}
