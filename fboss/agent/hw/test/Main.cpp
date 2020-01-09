@@ -7,6 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
+#include "fboss/agent/FbossInit.h"
+
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
@@ -20,7 +23,7 @@ int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
 
-  folly::init(&argc, &argv, true);
+  facebook::fboss::fbossInit(argc, argv);
 
   // Run the tests
   return RUN_ALL_TESTS();
