@@ -68,8 +68,8 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
   typename facebook::fboss::ForwardingInformationBase<
       AddressT>::Base::NodeContainer updatedFib;
 
-  for (const auto& ribRouteIt : rib) {
-    const facebook::fboss::rib::Route<AddressT>& ribRoute = ribRouteIt->value();
+  for (const auto& entry : rib) {
+    const facebook::fboss::rib::Route<AddressT>& ribRoute = entry.value();
 
     if (!ribRoute.isResolved()) {
       // The recursive resolution algorithm considers a next-hop TO_CPU or
@@ -102,8 +102,8 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
           rib.begin(),
           rib.end(),
           [](const typename std::remove_reference_t<decltype(
-                 rib)>::ConstIterator& entry) {
-            return entry->value().isResolved();
+                 rib)>::ConstIterator::TreeNode& entry) {
+            return entry.value().isResolved();
           }));
 
   return std::make_unique<ForwardingInformationBase<AddressT>>(

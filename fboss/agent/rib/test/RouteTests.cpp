@@ -91,8 +91,8 @@ void EXPECT_ROUTES_MATCH(
     const rib::NetworkToRouteMap<AddrT>* routesA,
     const rib::NetworkToRouteMap<AddrT>* routesB) {
   EXPECT_EQ(routesA->size(), routesB->size());
-  for (const auto& iterA : *routesA) {
-    auto routeA = iterA->value();
+  for (const auto& entryA : *routesA) {
+    auto routeA = entryA.value();
     auto prefixA = routeA.prefix();
 
     auto iterB = routesB->exactMatch(prefixA.network, prefixA.mask);

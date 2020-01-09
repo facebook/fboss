@@ -183,7 +183,7 @@ template <
     typename CURSORNODE,
     typename DESIREDITERTYPE>
 class RadixTreeIteratorImpl
-    : public std::iterator<std::forward_iterator_tag, DESIREDITERTYPE> {
+    : public std::iterator<std::forward_iterator_tag, CURSORNODE> {
  public:
   typedef DESIREDITERTYPE ValueType;
   typedef CURSORNODE TreeNode;
@@ -239,54 +239,30 @@ class RadixTreeIteratorImpl
     return cursor_ != r.cursor_;
   }
 
-  const DESIREDITERTYPE& operator*() const {
+  const CURSORNODE& operator*() const {
     checkDereference();
-    return static_cast<const DESIREDITERTYPE&>(*this);
+    return *cursor_;
   }
 
-  const DESIREDITERTYPE* operator->() const {
+  const CURSORNODE* operator->() const {
     checkDereference();
-    return static_cast<const DESIREDITERTYPE*>(this);
+    return cursor_;
   }
 
-  DESIREDITERTYPE& operator*() {
+  CURSORNODE& operator*() {
     checkDereference();
-    return static_cast<DESIREDITERTYPE&>(*this);
+    return *cursor_;
   }
 
-  DESIREDITERTYPE* operator->() {
+  CURSORNODE* operator->() {
     checkDereference();
-    return static_cast<DESIREDITERTYPE*>(this);
+    return cursor_;
   }
 
   bool atEnd() const {
     return cursor_ == nullptr;
   }
 
-  T& value() const {
-    checkDereference();
-    checkValueNode();
-    return cursor_->value();
-  }
-
-  const IPADDRTYPE& ipAddress() const {
-    checkDereference();
-    return cursor_->ipAddress();
-  }
-
-  uint8_t masklen() const {
-    checkDereference();
-    return cursor_->masklen();
-  }
-
-  // Node at this cursor location
-  CURSORNODE* node() const {
-    return cursor_;
-  }
-  std::string str(bool printValue = true) const {
-    checkDereference();
-    return cursor_->str(printValue);
-  }
   bool includeNonValueNodes() const {
     return includeNonValueNodes_;
   }
@@ -327,7 +303,6 @@ class RadixTreeIterator : public RadixTreeIteratorImpl<
       IteratorImpl;
   typedef typename IteratorImpl::TreeNode TreeNode;
   using IteratorImpl::checkValueNode;
-  using IteratorImpl::node;
 
  private:
   using IteratorImpl::checkDereference;
@@ -383,13 +358,9 @@ struct RadixTreeTraits {
   }
 
   Iterator itrConstCast(ConstIterator citr) const {
-    // Note: since citr might be at the end and thus dereferencing
-    // it via -> or * might throw, use the . operator to access needed
-    // api. Alternatively we could check for citr being at end and
-    // create the Iterator appropriately, however the following is
-    // both more convenient and efficient.
     return Iterator(
-        const_cast<TreeNode*>(citr.node()), citr.includeNonValueNodes());
+        citr.atEnd() ? nullptr : const_cast<TreeNode*>(&(*citr)),
+        citr.includeNonValueNodes());
   }
 
   ConstIterator makeCItr(
@@ -482,7 +453,10 @@ class RadixTree {
 
   // Erase node pointed to be iterator
   bool erase(Iterator itr) {
-    return erase(itr.node());
+    if (itr == end()) {
+      return false;
+    }
+    return erase(&(*itr));
   }
 
   // Erase a node from Radix trees.
@@ -675,7 +649,7 @@ template <
     typename V6ITRTYPE,
     typename DESIREDITERTYPE>
 class IPAddressRadixTreeIteratorImpl
-    : public std::iterator<std::forward_iterator_tag, DESIREDITERTYPE> {
+    : public std::iterator<DESIREDITERTYPE, T> {
  public:
   typedef V4ITRTYPE Iterator4;
   typedef V6ITRTYPE Iterator6;
@@ -778,7 +752,8 @@ class IPAddressRadixTreeIteratorImpl
 
   T& value() const {
     checkDereference();
-    return !iterator4_.atEnd() ? iterator4_->value() : iterator6_->value();
+    return const_cast<T&>(
+        !iterator4_.atEnd() ? iterator4_->value() : iterator6_->value());
   }
 
   folly::IPAddress ipAddress() const {
@@ -801,13 +776,23 @@ class IPAddressRadixTreeIteratorImpl
   }
 
   TreeNode4* node4() const {
-    return iterator4_.node();
+    return &const_cast<TreeNode4&>(*iterator4_);
   }
   TreeNode6* node6() const {
-    return iterator6_.node();
+    return &const_cast<TreeNode6&>(*iterator6_);
   }
   bool includeNonValueNodes() const {
     return iterator4_.includeNonValueNodes();
+  }
+
+  // Internal accessor for iterator4_ and iterator6_ nodes. These are meant to
+  // be used for functions that need a null pointer when the iterator points to
+  // the end of the tree.
+  TreeNode4* node4Unchecked() const {
+    return iterator4_.atEnd() ? nullptr : node4();
+  }
+  TreeNode6* node6Unchecked() const {
+    return iterator6_.atEnd() ? nullptr : node6();
   }
 
  protected:
@@ -823,6 +808,13 @@ class IPAddressRadixTreeIteratorImpl
   }
   Iterator4 iterator4_{nullptr};
   Iterator6 iterator6_{nullptr};
+
+  template <typename U>
+  friend class V4TreeInCompositeTreeTraits;
+  template <typename U>
+  friend class V6TreeInCompositeTreeTraits;
+  template <typename IPADDRTYPE, typename U, typename TreeTraits>
+  friend class RadixTree;
 };
 
 // Template specialization of RadixTreeIterator for IPAddress
@@ -886,8 +878,8 @@ class RadixTreeConstIterator<folly::IPAddress, T>
   RadixTreeConstIterator() {}
   explicit RadixTreeConstIterator(NonConstIterator itr)
       : RadixTreeConstIterator(
-            itr.node4(),
-            itr.node6(),
+            itr.node4Unchecked(),
+            itr.node6Unchecked(),
             itr.includeNonValueNodes()) {}
 };
 
@@ -903,14 +895,9 @@ struct V6TreeInCompositeTreeTraits {
   typedef RadixTreeNode<folly::IPAddressV6, T> TreeNode6;
 
   Iterator itrConstCast(ConstIterator citr) const {
-    // Note: since citr might be at the end and thus dereferencing
-    // it via -> or * might throw, use the . operator to access needed
-    // api. Alternatively we could check for citr being at end and
-    // create the Iterator appropriately, however the following is
-    // both more convenient and efficient.
     return Iterator(
-        const_cast<TreeNode4*>(citr.node4()),
-        const_cast<TreeNode6*>(citr.node6()),
+        const_cast<TreeNode4*>(citr.node4Unchecked()),
+        const_cast<TreeNode6*>(citr.node6Unchecked()),
         citr.includeNonValueNodes());
   }
 
@@ -947,8 +934,8 @@ struct V4TreeInCompositeTreeTraits {
     // create the Iterator appropriately, however the following is
     // both more convenient and efficient.
     return Iterator(
-        const_cast<TreeNode4*>(citr.node4()),
-        const_cast<TreeNode6*>(citr.node6()),
+        const_cast<TreeNode4*>(citr.node4Unchecked()),
+        const_cast<TreeNode6*>(citr.node6Unchecked()),
         citr.includeNonValueNodes());
   }
 
@@ -1095,9 +1082,11 @@ class RadixTree<folly::IPAddress, T> {
   // Erase a IP, mask
   bool erase(const folly::IPAddress& ipaddr, uint8_t masklen) {
     if (ipaddr.isV4()) {
-      return ipv4Tree_.erase(exactMatch(ipaddr, masklen).node4());
+      auto itr = exactMatch(ipaddr, masklen);
+      return ipv4Tree_.erase(itr.node4Unchecked());
     }
-    return ipv6Tree_.erase(exactMatch(ipaddr, masklen).node6());
+    auto itr = exactMatch(ipaddr, masklen);
+    return ipv6Tree_.erase(itr.node6Unchecked());
   }
 
   // Erase node pointed to be iterator
@@ -1110,8 +1099,9 @@ class RadixTree<folly::IPAddress, T> {
       const {
     if (ipaddr.isV4()) {
       auto itr = ipv4Tree_.longestMatch(ipaddr.asV4(), masklen);
-      return itr.node4() ? itr
-                         : ipv4Tree_.traits().makeCItr(itr.node4(), nullptr);
+      return itr.node4Unchecked()
+          ? itr
+          : ipv4Tree_.traits().makeCItr(itr.node4Unchecked(), nullptr);
     }
     return ipv6Tree_.longestMatch(ipaddr.asV6(), masklen);
   }
@@ -1132,8 +1122,9 @@ class RadixTree<folly::IPAddress, T> {
       const {
     if (ipaddr.isV4()) {
       auto itr = ipv4Tree_.exactMatch(ipaddr.asV4(), masklen);
-      return itr.node4() ? itr
-                         : ipv4Tree_.traits().makeCItr(itr.node4(), nullptr);
+      return itr.node4Unchecked()
+          ? itr
+          : ipv4Tree_.traits().makeCItr(itr.node4Unchecked(), nullptr);
     }
     return ipv6Tree_.exactMatch(ipaddr.asV6(), masklen);
   }
@@ -1158,8 +1149,9 @@ class RadixTree<folly::IPAddress, T> {
     if (ipaddr.isV4()) {
       auto itr = ipv4Tree_.longestMatchWithTrail(
           ipaddr.asV4(), masklen, trail, includeNonValueNodes);
-      return itr.node4() ? itr
-                         : ipv4Tree_.traits().makeCItr(itr.node4(), nullptr);
+      return itr.node4Unchecked()
+          ? itr
+          : ipv4Tree_.traits().makeCItr(itr.node4Unchecked(), nullptr);
     }
     return ipv6Tree_.longestMatchWithTrail(
         ipaddr.asV6(), masklen, trail, includeNonValueNodes);
@@ -1190,8 +1182,9 @@ class RadixTree<folly::IPAddress, T> {
     if (ipaddr.isV4()) {
       auto itr = ipv4Tree_.exactMatchWithTrail(
           ipaddr.asV4(), masklen, trail, includeNonValueNodes);
-      return itr.node4() ? itr
-                         : ipv4Tree_.traits().makeCItr(itr.node4(), nullptr);
+      return itr.node4Unchecked()
+          ? itr
+          : ipv4Tree_.traits().makeCItr(itr.node4Unchecked(), nullptr);
     }
     return ipv6Tree_.exactMatchWithTrail(
         ipaddr.asV6(), masklen, trail, includeNonValueNodes);

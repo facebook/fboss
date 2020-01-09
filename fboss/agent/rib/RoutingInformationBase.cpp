@@ -230,12 +230,12 @@ std::vector<RouteDetails> RoutingInformationBase::getRouteTableDetails(
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit.value().toRouteDetails());
+        routeDetails.emplace_back(rit->value().toRouteDetails());
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit.value().toRouteDetails());
+        routeDetails.emplace_back(rit->value().toRouteDetails());
       }
     }
   }

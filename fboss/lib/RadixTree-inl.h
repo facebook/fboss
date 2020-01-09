@@ -429,7 +429,7 @@ typename std::vector<IterType> pathFromRoot(
     IterType itr,
     bool includeNonValueNodes) {
   typename std::vector<IterType> path;
-  auto tmp = itr->node();
+  auto tmp = &(*itr);
   while (tmp) {
     path.push_back(IterType(tmp, includeNonValueNodes));
     tmp = tmp->parent();

@@ -151,8 +151,8 @@ void RouteUpdater::removeAllRoutesFromClientImpl(
     ClientID clientID) {
   std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
 
-  for (auto it : *routes) {
-    Route<AddressT>& route = it->value();
+  for (auto it = routes->begin(); it != routes->end(); ++it) {
+    auto& route = it->value();
     route.delEntryForClient(clientID);
     if (route.hasNoEntry()) {
       // The nexthops we removed was the only one.  Delete the route.
@@ -518,8 +518,8 @@ void RouteUpdater::resolveOne(Route<AddressT>* route) {
 
 template <typename AddressT>
 void RouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
-  for (auto it : *routes) {
-    Route<AddressT>* route = &(it->value());
+  for (auto& entry : *routes) {
+    Route<AddressT>* route = &(entry.value());
     if (route->needResolve()) {
       resolveOne(route);
     }
@@ -528,8 +528,8 @@ void RouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 
 template <typename AddressT>
 void RouteUpdater::updateDoneImpl(NetworkToRouteMap<AddressT>* routes) {
-  for (auto it : *routes) {
-    Route<AddressT>& route = it->value();
+  for (auto& entry : *routes) {
+    Route<AddressT>& route = entry.value();
     route.clearForward();
   }
   resolve(routes);
