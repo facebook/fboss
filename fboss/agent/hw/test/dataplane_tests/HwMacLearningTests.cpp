@@ -113,11 +113,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   void verifyL2TableCallback(
-      const std::pair<L2Entry, L2EntryUpdateType>* l2EntryAndUpdateType,
+      std::pair<L2Entry, L2EntryUpdateType> l2EntryAndUpdateType,
       PortDescriptor portDescr,
       L2EntryUpdateType expectedL2EntryUpdateType,
       L2Entry::L2EntryType expectedL2EntryType) {
-    auto [l2Entry, l2EntryUpdateType] = *l2EntryAndUpdateType;
+    auto [l2Entry, l2EntryUpdateType] = l2EntryAndUpdateType;
 
     EXPECT_EQ(l2Entry.getMac(), kSourceMac());
     EXPECT_EQ(l2Entry.getVlanID(), VlanID(initialConfig().vlanPorts[0].vlanID));
@@ -211,7 +211,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       sendPkt();
 
       verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdate(),
+          l2LearningObserver_.waitForLearningUpdates().front(),
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
           expectedL2EntryTypeOnAdd());
@@ -240,7 +240,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
        * and VALIDATED entry for TH3.
        */
       verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdate(),
+          l2LearningObserver_.waitForLearningUpdates().front(),
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
           expectedL2EntryTypeOnAdd());
@@ -252,7 +252,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
       // Verify if we get DELETE (aging) callback for VALIDATED entry
       verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdate(),
+          l2LearningObserver_.waitForLearningUpdates().front(),
           portDescr,
           L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
           L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);

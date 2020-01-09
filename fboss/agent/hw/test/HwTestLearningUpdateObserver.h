@@ -8,6 +8,7 @@
 
 #include <folly/Optional.h>
 #include <condition_variable>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -24,7 +25,8 @@ class HwTestLearningUpdateObserver
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;
-  std::pair<L2Entry, L2EntryUpdateType>* waitForLearningUpdate();
+  std::vector<std::pair<L2Entry, L2EntryUpdateType>> waitForLearningUpdates(
+      int numUpdates = 1);
 
  private:
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
@@ -33,7 +35,7 @@ class HwTestLearningUpdateObserver
   HwSwitchEnsemble* ensemble_{nullptr};
   std::mutex mtx_;
   std::condition_variable cv_;
-  std::unique_ptr<std::pair<L2Entry, L2EntryUpdateType>> data_;
+  std::vector<std::pair<L2Entry, L2EntryUpdateType>> data_;
 };
 
 } // namespace facebook::fboss

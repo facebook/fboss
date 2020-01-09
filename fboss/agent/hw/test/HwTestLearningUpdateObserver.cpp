@@ -19,7 +19,8 @@ void HwTestLearningUpdateObserver::stopObserving() {
 }
 
 void HwTestLearningUpdateObserver::reset() {
-  data_.reset();
+  std::lock_guard<std::mutex> lock(mtx_);
+  data_.clear();
 }
 
 void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
@@ -32,20 +33,19 @@ void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
       MacTableUtils::updateMacTable(state1, l2Entry, l2EntryUpdateType);
   ensemble_->applyNewState(state2);
 
-  data_ = std::make_unique<std::pair<L2Entry, L2EntryUpdateType>>(
-      std::make_pair(l2Entry, l2EntryUpdateType));
+  data_.push_back(std::make_pair(l2Entry, l2EntryUpdateType));
 
   cv_.notify_all();
 }
 
-std::pair<L2Entry, L2EntryUpdateType>*
-HwTestLearningUpdateObserver::waitForLearningUpdate() {
+std::vector<std::pair<L2Entry, L2EntryUpdateType>>
+HwTestLearningUpdateObserver::waitForLearningUpdates(int numUpdates) {
   std::unique_lock<std::mutex> lock(mtx_);
-  while (!data_) {
+  while (data_.size() != numUpdates) {
     cv_.wait(lock);
   }
 
-  return data_.get();
+  return data_;
 }
 
 } // namespace facebook::fboss
