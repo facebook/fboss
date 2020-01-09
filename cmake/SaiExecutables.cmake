@@ -1,6 +1,5 @@
 # CMake to build SAI libraries and binaries
 
-
 add_compile_definitions(
     SAI_VER_MAJOR=1
     SAI_VER_MINOR=4
@@ -28,6 +27,15 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiVlan.cpp
 )
 
+add_library(sai_api
+    fboss/agent/hw/sai/api/FdbApi.cpp
+    fboss/agent/hw/sai/api/NeighborApi.cpp
+    fboss/agent/hw/sai/api/NextHopGroupApi.cpp
+    fboss/agent/hw/sai/api/RouteApi.cpp
+    fboss/agent/hw/sai/api/SaiApiTable.cpp
+    fboss/agent/hw/sai/api/SwitchApi.cpp
+)
+
 add_library(address_util
     fboss/agent/hw/sai/api/AddressUtil.cpp
 )
@@ -48,6 +56,37 @@ add_library(agent_config_factory
 target_link_libraries(agent_config_factory
     Folly::folly
     agent_config_cpp2
+)
+
+add_library(fboss-error INTERFACE)
+target_link_libraries(fboss-error INTERFACE
+    fboss_cpp2
+    Folly::folly
+)
+
+add_library(logging_util
+    fboss/agent/hw/sai/api/LoggingUtil.cpp
+)
+
+target_link_libraries(logging_util
+    fboss-error
+    Folly::folly
+)
+
+add_library(fboss-types
+    fboss/agent/types.cpp
+)
+
+target_link_libraries(fboss-types
+    switch_config_cpp2
+)
+
+target_link_libraries(sai_api
+    address_util
+    logging_util
+    fboss-error
+    fboss-types
+    Folly::folly
 )
 
 install(TARGETS fake_sai)
