@@ -43,6 +43,7 @@ class PlatformPort {
 
   const std::optional<cfg::PlatformPortEntry> getPlatformPortEntry() const;
 
+  cfg::PortProfileID getProfileIDBySpeed(cfg::PortSpeed speed) const;
   /*
    * preDisable() will be called by the hardware code just before disabling
    * a port.

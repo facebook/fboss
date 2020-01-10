@@ -173,6 +173,12 @@ void BcmWarmBootCache::populateFromWarmBootState(
     const folly::dynamic& warmBootState) {
   dumpedSwSwitchState_ =
       SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+  // TODO(ccpowers): remove this loop once we've fully rolled out the
+  // new configuration, and we store the profile ID in the WB cache
+  for (auto port : *dumpedSwSwitchState_->getPorts()) {
+    auto platformPort = hw_->getPlatform()->getPlatformPort(port->getID());
+    port->setProfileId(platformPort->getProfileIDBySpeed(port->getSpeed()));
+  }
   dumpedSwSwitchState_->publish();
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot";

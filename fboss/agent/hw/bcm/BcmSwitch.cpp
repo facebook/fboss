@@ -509,6 +509,9 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     string name = folly::to<string>("port", portID);
 
     auto swPort = make_shared<Port>(portID, name);
+    auto platformPort = getPlatform()->getPlatformPort(portID);
+    swPort->setProfileId(
+        platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
     swPort->setSpeed(bcmPort->getSpeed());
     if (platform_->isCosSupported()) {
       auto queues = bcmPort->getCurrentQueueSettings();
