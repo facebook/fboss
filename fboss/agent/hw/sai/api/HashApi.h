@@ -55,7 +55,7 @@ class HashApi : public SaiApi<HashApi> {
   static constexpr sai_api_t ApiType = SAI_API_HASH;
   HashApi() {
     auto status = sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
-    // saiApiCheckError(status, ApiType, "Failed to query for hash api");
+    saiApiCheckError(status, ApiType, "Failed to query for hash api");
   };
 
  private:
