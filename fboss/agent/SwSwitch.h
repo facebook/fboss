@@ -732,6 +732,10 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::string getSwitchStateFile() const;
 
+  void dumpBadStateUpdate(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState) const;
+
   /*
    * Notifies all the observers that a state update occured.
    */

@@ -168,6 +168,21 @@ class Platform {
   }
 
   /*
+   * Directory where we store info about state updates that led to a crash
+   */
+  std::string getCrashBadStateUpdateDir() const {
+    return getCrashInfoDir() + "/bad_update";
+  }
+
+  std::string getCrashBadStateUpdateOldStateFile() const {
+    return getCrashBadStateUpdateDir() + "/old_state";
+  }
+
+  std::string getCrashBadStateUpdateNewStateFile() const {
+    return getCrashBadStateUpdateDir() + "/new_state";
+  }
+
+  /*
    * Get location we dump the running config of the switch
    */
   std::string getRunningConfigDumpFile() const {

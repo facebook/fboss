@@ -910,6 +910,9 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     //
     // Another thing we could try here is rolling back to the old state.
     hw_->exitFatal();
+
+    dumpBadStateUpdate(oldState, newState);
+
     XLOG(FATAL) << "error applying state change to hardware: "
                 << folly::exceptionStr(ex);
   }
@@ -928,6 +931,26 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   stats()->stateUpdate(duration);
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return newAppliedState;
+}
+
+void SwSwitch::dumpBadStateUpdate(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) const {
+  // dump the previous state and target state to understand what led to the
+  // crash
+  utilCreateDir(platform_->getCrashBadStateUpdateDir());
+  if (!dumpStateToFile(
+          platform_->getCrashBadStateUpdateOldStateFile(),
+          oldState->toFollyDynamic())) {
+    XLOG(ERR) << "Unable to write old switch state JSON to "
+              << platform_->getCrashBadStateUpdateOldStateFile();
+  }
+  if (!dumpStateToFile(
+          platform_->getCrashBadStateUpdateNewStateFile(),
+          newState->toFollyDynamic())) {
+    XLOG(ERR) << "Unable to write new switch state JSON to "
+              << platform_->getCrashBadStateUpdateNewStateFile();
+  }
 }
 
 PortStats* SwSwitch::portStats(PortID portID) {
