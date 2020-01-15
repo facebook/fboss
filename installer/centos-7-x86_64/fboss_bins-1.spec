@@ -32,6 +32,7 @@ install -m 0755 libnl-3.so.200 %{buildroot}/opt/fboss/libnl-3.so.200
 install -m 0755 libcurl.so.4 %{buildroot}/opt/fboss/libcurl.so.4
 install -m 0755 libsodium.so.23 %{buildroot}/opt/fboss/libsodium.so.23
 install -m 0755 libmnl.so.0 %{buildroot}/opt/fboss/libmnl.so.0
+install -m 0755 libnghttp2.so.14 %{buildroot}/opt/fboss/libnghttp2.so.14
 
 %files
 /opt/fboss/wedge_agent
@@ -45,8 +46,9 @@ install -m 0755 libmnl.so.0 %{buildroot}/opt/fboss/libmnl.so.0
 /opt/fboss/libcurl.so.4
 /opt/fboss/libsodium.so.23
 /opt/fboss/libmnl.so.0
+/opt/fboss/libnghttp2.so.14
 
 %changelog
-* Wed Jan 15 2020 Shrikrishna Khare 1.0.1
+* Wed Jan 15 2020 Shrikrishna Khare 1.0.2
 
 Initial rpm release

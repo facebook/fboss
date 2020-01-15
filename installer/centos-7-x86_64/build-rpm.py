@@ -37,6 +37,7 @@ class BuildRpm:
         'libcurl' : (LIB, ['libcurl.so.4']),
         'libsodium' : (LIB, ['libsodium.so.23']),
         'libmnl' : (LIB, ['libmnl.so.0']),
+        'nghttp2' : (LIB, ['libnghttp2.so.14']),
     }
 
     def __init__(self):
