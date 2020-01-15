@@ -63,6 +63,10 @@ struct SaiPortTraits {
         sai_int32_t>;
     using PortVlanId =
         SaiAttribute<EnumType, SAI_PORT_ATTR_PORT_VLAN_ID, sai_uint16_t>;
+    using Preemphasis = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_SERDES_PREEMPHASIS,
+        std::vector<uint32_t>>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -75,7 +79,8 @@ struct SaiPortTraits {
       std::optional<Attributes::InternalLoopbackMode>,
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
-      std::optional<Attributes::PortVlanId>>;
+      std::optional<Attributes::PortVlanId>,
+      std::optional<Attributes::Preemphasis>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
   static constexpr std::array<sai_stat_id_t, 14> CounterIds = {
@@ -131,11 +136,7 @@ class PortApi : public SaiApi<PortApi> {
       const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) {
-    return api_->get_port_stats(
-        key,
-        num_of_counters,
-        counter_ids,
-        counters);
+    return api_->get_port_stats(key, num_of_counters, counter_ids, counters);
   }
 
   sai_port_api_t* api_;

@@ -30,6 +30,7 @@ sai_status_t create_port_fn(
   std::optional<sai_port_flow_control_mode_t> flowControlMode;
   std::optional<sai_port_media_type_t> mediaType;
   std::optional<sai_vlan_id_t> vlanId;
+  std::vector<uint32_t> preemphasis;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -60,6 +61,11 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_PORT_VLAN_ID:
         vlanId = attr_list[i].value.u16;
         break;
+      case SAI_PORT_ATTR_SERDES_PREEMPHASIS: {
+        for (int j = 0; j < attr_list[i].value.u32list.count; ++j) {
+          preemphasis.push_back(attr_list[i].value.u32list.list[j]);
+        }
+      } break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -86,6 +92,9 @@ sai_status_t create_port_fn(
   }
   if (vlanId.has_value()) {
     port.vlanId = vlanId.value();
+  }
+  if (preemphasis.size()) {
+    port.preemphasis = preemphasis;
   }
 
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
@@ -119,7 +128,7 @@ sai_status_t set_port_attribute_fn(
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
   auto& port = fs->pm.get(port_id);
-  sai_status_t res;
+  sai_status_t res = SAI_STATUS_SUCCESS;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -134,25 +143,19 @@ sai_status_t set_port_attribute_fn(
       for (int j = 0; j < attr->value.u32list.count; ++j) {
         lanes.push_back(attr->value.u32list.list[j]);
       }
-    }
-      res = SAI_STATUS_SUCCESS;
-      break;
+    } break;
     case SAI_PORT_ATTR_SPEED:
       port.speed = attr->value.u32;
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_FEC_MODE:
       port.fecMode = static_cast<sai_port_fec_mode_t>(attr->value.s32);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
       port.internalLoopbackMode =
           static_cast<sai_port_internal_loopback_mode_t>(attr->value.s32);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_MEDIA_TYPE:
       port.mediaType = static_cast<sai_port_media_type_t>(attr->value.s32);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
       port.globalFlowControlMode =
@@ -161,8 +164,14 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_PORT_VLAN_ID:
       port.vlanId = static_cast<sai_vlan_id_t>(attr->value.u16);
-      res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_PORT_ATTR_SERDES_PREEMPHASIS: {
+      auto& preemphasis = port.preemphasis;
+      preemphasis.clear();
+      for (int j = 0; j < attr->value.u32list.count; ++j) {
+        preemphasis.push_back(attr->value.u32list.list[j]);
+      }
+    } break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -220,6 +229,16 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PORT_VLAN_ID:
         attr[i].value.u16 = port.vlanId;
+        break;
+      case SAI_PORT_ATTR_SERDES_PREEMPHASIS:
+        if (port.preemphasis.size() > attr[i].value.u32list.count) {
+          attr[i].value.u32list.count = port.preemphasis.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.preemphasis.size(); ++j) {
+          attr[i].value.u32list.list[j] = port.preemphasis[j];
+        }
+        attr[i].value.u32list.count = port.preemphasis.size();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

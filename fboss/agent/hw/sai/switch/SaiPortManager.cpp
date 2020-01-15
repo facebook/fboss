@@ -272,7 +272,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          internalLoopbackMode,
                                          mediaType,
                                          globalFlowControlMode,
-                                         vlanId};
+                                         vlanId,
+                                         std::nullopt};
 }
 
 // private const getter for use by const and non-const getters
