@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/port.h>
-#include <opennsl/types.h>
+#include <bcm/port.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/Utils.h"
@@ -42,25 +42,25 @@ class BcmPortTable {
    * No other BcmPortTable methods should be accessed before initPorts()
    * completes.
    */
-  void initPorts(const opennsl_port_config_t* portConfig, bool warmBoot);
+  void initPorts(const bcm_port_config_t* portConfig, bool warmBoot);
 
   /*
    * Getters.
    */
-  opennsl_port_t getBcmPortId(PortID id) const {
-    return static_cast<opennsl_port_t>(id);
+  bcm_port_t getBcmPortId(PortID id) const {
+    return static_cast<bcm_port_t>(id);
   }
-  PortID getPortId(opennsl_port_t port) const {
+  PortID getPortId(bcm_port_t port) const {
     return PortID(port);
   }
 
   // throw an error if not found
   BcmPort* getBcmPort(PortID id) const;
-  BcmPort* getBcmPort(opennsl_port_t id) const;
+  BcmPort* getBcmPort(bcm_port_t id) const;
 
   // return nullptr if not found
   BcmPort* getBcmPortIf(PortID id) const;
-  BcmPort* getBcmPortIf(opennsl_port_t id) const;
+  BcmPort* getBcmPortIf(bcm_port_t id) const;
 
   FbossPortMap::const_iterator begin() const {
     return fbossPhysicalPorts_.begin();
@@ -78,7 +78,7 @@ class BcmPortTable {
   bool portExists(PortID port) const {
     return getBcmPortIf(port) != nullptr;
   }
-  bool portExists(opennsl_port_t port) const {
+  bool portExists(bcm_port_t port) const {
     return getBcmPortIf(port) != nullptr;
   }
   void preparePortsForGracefulExit() {
@@ -96,7 +96,7 @@ class BcmPortTable {
    * We need to support BcmPortTable to add and remove such BcmPort objects so
    * that BcmPortTable will still maintain all manageable bcm port objects.
    */
-  void addBcmPort(opennsl_port_t logicalPort, bool warmBoot);
+  void addBcmPort(bcm_port_t logicalPort, bool warmBoot);
 
  private:
   /* Initialize all the port groups that exist. A port group is a set of ports
@@ -110,7 +110,7 @@ class BcmPortTable {
       BcmPort* controllingPort,
       const std::map<PortID, std::vector<PortID>>& subsidiaryPortsMap);
 
-  typedef boost::container::flat_map<opennsl_port_t, std::unique_ptr<BcmPort>>
+  typedef boost::container::flat_map<bcm_port_t, std::unique_ptr<BcmPort>>
       BcmPortMap;
 
   typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
@@ -124,7 +124,7 @@ class BcmPortTable {
   // (Modifiable data in the BcmPort objects themselves does require locking,
   // though.)
 
-  // A mapping from opennsl_port_t to BcmPort.
+  // A mapping from bcm_port_t to BcmPort.
   BcmPortMap bcmPhysicalPorts_;
   // A mapping from FBOSS PortID to BcmPort.
   FbossPortMap fbossPhysicalPorts_;

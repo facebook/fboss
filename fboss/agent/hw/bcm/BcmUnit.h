@@ -15,7 +15,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 extern "C" {
-#include <opennsl/error.h>
+#include <bcm/error.h>
 }
 
 namespace folly {

@@ -12,7 +12,7 @@
 #include <memory>
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/hw/bcm/BcmTrunkStats.h"
@@ -25,14 +25,14 @@ class BcmSwitchIf;
 
 class BcmTrunk {
  public:
-  enum : opennsl_trunk_t {
+  enum : bcm_trunk_t {
     INVALID = -1,
   };
 
   explicit BcmTrunk(const BcmSwitchIf* hw);
   ~BcmTrunk();
 
-  opennsl_trunk_t id() const {
+  bcm_trunk_t id() const {
     return bcmTrunkID_;
   }
 
@@ -43,16 +43,16 @@ class BcmTrunk {
 
   static void shrinkTrunkGroupHwNotLocked(
       int unit,
-      opennsl_trunk_t trunk,
-      opennsl_port_t toDisable);
+      bcm_trunk_t trunk,
+      bcm_port_t toDisable);
   static int getEnabledMemberPortsCountHwNotLocked(
       int unit,
-      opennsl_trunk_t trunk,
-      opennsl_port_t port);
-  static std::optional<int> findTrunk(int, opennsl_module_t, opennsl_port_t);
+      bcm_trunk_t trunk,
+      bcm_port_t port);
+  static std::optional<int> findTrunk(int, bcm_module_t, bcm_port_t);
 
-  static opennsl_gport_t asGPort(opennsl_trunk_t trunk);
-  static bool isValidTrunkPort(opennsl_gport_t gPort);
+  static bcm_gport_t asGPort(bcm_trunk_t trunk);
+  static bool isValidTrunkPort(bcm_gport_t gPort);
 
   BcmTrunkStats& stats();
 
@@ -69,7 +69,7 @@ class BcmTrunk {
   BcmTrunk(const BcmTrunk&) = delete;
   BcmTrunk& operator=(const BcmTrunk&) = delete;
 
-  opennsl_trunk_t bcmTrunkID_{INVALID};
+  bcm_trunk_t bcmTrunkID_{INVALID};
   const BcmSwitchIf* const hw_{nullptr};
   BcmTrunkStats trunkStats_;
 };

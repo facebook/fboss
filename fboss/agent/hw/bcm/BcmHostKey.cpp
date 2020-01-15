@@ -16,7 +16,7 @@
 namespace facebook::fboss {
 
 BcmHostKey::BcmHostKey(
-    opennsl_vrf_t vrf,
+    bcm_vrf_t vrf,
     folly::IPAddress ipAddr,
     std::optional<InterfaceID> intf)
     : vrf_(vrf), addr_(std::move(ipAddr)), intfID_(intf) {
@@ -106,7 +106,7 @@ bool operator==(SelfType const& lhs, SelfType const& rhs) {
   return folly::poly_call<7>(lhs, rhs);
 }
 
-HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop) {
+HostKey getNextHopKey(bcm_vrf_t vrf, const NextHop& nexthop) {
   if (!nexthop.labelForwardingAction() || !nexthop.isResolved() ||
       (nexthop.labelForwardingAction()->type() !=
            LabelForwardingAction::LabelForwardingType::SWAP &&

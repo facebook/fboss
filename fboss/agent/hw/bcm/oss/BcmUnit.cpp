@@ -14,9 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 extern "C" {
-#include <opennsl/init.h>
-#include <opennsl/switch.h>
-#include <sal/driver.h>
+#include <bcm/init.h>
+#include <bcm/switch.h>
 } // extern "C"
 
 using facebook::fboss::BcmAPI;
@@ -26,44 +25,16 @@ namespace facebook::fboss {
 
 int BcmUnit::createHwUnit() {
   // For now we assume that the unit number is 0. This will be changed once
-  // opennsl exposes interfaces to determine which units are on the system
+  // bcm exposes interfaces to determine which units are on the system
   return 0;
 }
 
 BcmUnit::~BcmUnit() {
-  if (attached_.load(std::memory_order_acquire)) {
-    auto rv = opennsl_driver_exit();
-    CHECK(OPENNSL_SUCCESS(rv))
-        << "failed to exit BCM unit " << unit_ << ": " << opennsl_errmsg(rv);
-    if (warmBootHelper()->warmBootStateWritten()) {
-      warmBootHelper()->setCanWarmBoot();
-    }
-    attached_.store(false, std::memory_order_release);
-  }
-  // Unregister ourselves from BcmAPI.
-  BcmAPI::unitDestroyed(this);
+  // TODO(skhare) fix by using BcmUnit.cpp that uses BCM API
 }
 
 void BcmUnit::attach(bool warmBoot) {
-  if (attached_.load(std::memory_order_acquire)) {
-    throw FbossError("unit ", unit_, " already initialized");
-  }
-  auto hwConfigFile = platform_->getHwConfigDumpFile();
-  auto warmBootFile =
-      static_cast<DiscBackedBcmWarmBootHelper*>(warmBootHelper())
-          ->warmBootDataPath();
-  constexpr unsigned int wbFlag = 0x200000;
-  opennsl_init_t initParam = {
-      .cfg_fname = const_cast<char*>(hwConfigFile.c_str()),
-      .flags = warmBootHelper()->canWarmBoot() ? wbFlag : 0,
-      .wb_fname = const_cast<char*>(warmBootFile.c_str()),
-      .rmcfg_fname = nullptr,
-      .cfg_post_fname = nullptr,
-      .opennsl_flags = 0};
-  auto rv = opennsl_driver_init(&initParam);
-  bcmCheckError(rv, "Unable to init driver");
-
-  attached_.store(true, std::memory_order_release);
+  // TODO(skhare) fix by using BcmUnit.cpp that uses BCM API
 }
 
 void BcmUnit::rawRegisterWrite(

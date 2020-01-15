@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include <folly/IPAddress.h>
@@ -35,23 +35,23 @@ class BcmRoute {
  public:
   BcmRoute(
       BcmSwitch* hw,
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       const folly::IPAddress& addr,
       uint8_t len);
   ~BcmRoute();
   void program(const RouteNextHopEntry& fwd);
   static bool deleteLpmRoute(
       int unit,
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       const folly::IPAddress& prefix,
       uint8_t prefixLength);
   static void initL3RouteFromArgs(
-      opennsl_l3_route_t* rt,
-      opennsl_vrf_t vrf,
+      bcm_l3_route_t* rt,
+      bcm_vrf_t vrf,
       const folly::IPAddress& prefix,
       uint8_t prefixLength);
 
-  opennsl_if_t getEgressId() const {
+  bcm_if_t getEgressId() const {
     return egressId_;
   }
 
@@ -62,10 +62,10 @@ class BcmRoute {
 
  private:
   std::shared_ptr<BcmHost> programHostRoute(
-      opennsl_if_t egressId,
+      bcm_if_t egressId,
       const RouteNextHopEntry& fwd,
       bool replace);
-  void programLpmRoute(opennsl_if_t egressId, const RouteNextHopEntry& fwd);
+  void programLpmRoute(bcm_if_t egressId, const RouteNextHopEntry& fwd);
   /*
    * Check whether we can use the host route table. BCM platforms
    * support this from TD2 onwards
@@ -76,14 +76,14 @@ class BcmRoute {
   BcmRoute(const BcmRoute&) = delete;
   BcmRoute& operator=(const BcmRoute&) = delete;
   BcmSwitch* hw_;
-  opennsl_vrf_t vrf_;
+  bcm_vrf_t vrf_;
   folly::IPAddress prefix_;
   uint8_t len_;
   RouteNextHopEntry fwd_{RouteNextHopEntry::Action::DROP,
                          AdminDistance::MAX_ADMIN_DISTANCE};
   bool added_{false}; // if the route added to HW or not
-  opennsl_if_t egressId_{-1};
-  void initL3RouteT(opennsl_l3_route_t* rt) const;
+  bcm_if_t egressId_{-1};
+  void initL3RouteT(bcm_l3_route_t* rt) const;
   std::shared_ptr<BcmMultiPathNextHop>
       nextHopHostReference_; // reference to nexthops
   std::shared_ptr<BcmHost> hostRouteEntry_; // for host routes
@@ -94,13 +94,11 @@ class BcmRouteTable {
   explicit BcmRouteTable(BcmSwitch* hw);
   ~BcmRouteTable();
   // throw an error if not found
-  BcmRoute* getBcmRoute(
-      opennsl_vrf_t vrf,
-      const folly::IPAddress& prefix,
-      uint8_t len) const;
+  BcmRoute*
+  getBcmRoute(bcm_vrf_t vrf, const folly::IPAddress& prefix, uint8_t len) const;
   // return nullptr if not found
   BcmRoute* getBcmRouteIf(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       const folly::IPAddress& prefix,
       uint8_t len) const;
 
@@ -109,15 +107,15 @@ class BcmRouteTable {
    * HW update lock in BcmSwitch::lock_ for the protection.
    */
   template <typename RouteT>
-  void addRoute(opennsl_vrf_t vrf, const RouteT* route);
+  void addRoute(bcm_vrf_t vrf, const RouteT* route);
   template <typename RouteT>
-  void deleteRoute(opennsl_vrf_t vrf, const RouteT* route);
+  void deleteRoute(bcm_vrf_t vrf, const RouteT* route);
 
  private:
   struct Key {
     folly::IPAddress network;
     uint8_t mask;
-    opennsl_vrf_t vrf;
+    bcm_vrf_t vrf;
     bool operator<(const Key& k2) const;
   };
 

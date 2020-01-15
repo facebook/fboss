@@ -20,7 +20,7 @@
 #include <folly/Memory.h>
 
 extern "C" {
-#include <opennsl/port.h>
+#include <bcm/port.h>
 }
 
 namespace facebook::fboss {
@@ -33,7 +33,7 @@ BcmPortTable::BcmPortTable(BcmSwitch* hw) : hw_(hw) {}
 
 BcmPortTable::~BcmPortTable() {}
 
-void BcmPortTable::addBcmPort(opennsl_port_t logicalPort, bool warmBoot) {
+void BcmPortTable::addBcmPort(bcm_port_t logicalPort, bool warmBoot) {
   // Find the platform port object
   BcmPlatformPort* platformPort = dynamic_cast<BcmPlatformPort*>(
       hw_->getPlatform()->getPlatformPort(PortID(logicalPort)));
@@ -52,7 +52,7 @@ void BcmPortTable::addBcmPort(opennsl_port_t logicalPort, bool warmBoot) {
 }
 
 void BcmPortTable::initPorts(
-    const opennsl_port_config_t* portConfig,
+    const bcm_port_config_t* portConfig,
     bool warmBoot) {
   // Ask the platform for the list of ports on this platform,
   // and then associate the BcmPort and BcmPlatformPort objects.
@@ -62,12 +62,12 @@ void BcmPortTable::initPorts(
   // 128 ports, if the platform only defines 32 ports we will only create 32
   // BcmPort objects.
   for (const auto& entry : hw_->getPlatform()->getPlatformPortMap()) {
-    opennsl_port_t bcmPortNum = entry.first;
+    bcm_port_t bcmPortNum = entry.first;
     BcmPlatformPort* platPort = entry.second;
 
     // If the port doesn't support add or remove port, make sure this port
     // number actually exists on the switch hardware
-    if (!OPENNSL_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
+    if (!BCM_PBMP_MEMBER(portConfig->port, bcmPortNum)) {
       // If the platform support add or remove port, we can skip for now.
       // And we'll add or remove ports when we apply agent config for the first
       // time
@@ -86,7 +86,7 @@ void BcmPortTable::initPorts(
   initPortGroups();
 }
 
-BcmPort* BcmPortTable::getBcmPort(opennsl_port_t id) const {
+BcmPort* BcmPortTable::getBcmPort(bcm_port_t id) const {
   auto iter = bcmPhysicalPorts_.find(id);
   if (iter == bcmPhysicalPorts_.end()) {
     throw FbossError("Cannot find the BCM port object for BCM port ", id);
@@ -94,7 +94,7 @@ BcmPort* BcmPortTable::getBcmPort(opennsl_port_t id) const {
   return iter->second.get();
 }
 
-BcmPort* BcmPortTable::getBcmPortIf(opennsl_port_t id) const {
+BcmPort* BcmPortTable::getBcmPortIf(bcm_port_t id) const {
   auto iter = bcmPhysicalPorts_.find(id);
   if (iter == bcmPhysicalPorts_.end()) {
     return nullptr;

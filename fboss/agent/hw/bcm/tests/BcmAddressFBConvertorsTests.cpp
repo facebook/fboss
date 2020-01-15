@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 extern "C" {
@@ -32,7 +32,7 @@ using folly::MacAddress;
 
 TEST(MacConversion, toFromBcm) {
   auto mac = MacAddress("11:22:33:44:55:66");
-  opennsl_mac_t bcmMac;
+  bcm_mac_t bcmMac;
   macToBcm(mac, &bcmMac);
   EXPECT_EQ(mac, macFromBcm(bcmMac));
   MacAddress newMac;
@@ -42,20 +42,20 @@ TEST(MacConversion, toFromBcm) {
 
 TEST(V4Bcm, toBcm6) {
   auto ip = IPAddress(IPAddressV4("10.10.0.0"));
-  opennsl_ip6_t bcmIp;
+  bcm_ip6_t bcmIp;
   ipToBcmIp6(ip, &bcmIp);
-  std::array<uint8_t, sizeof(opennsl_ip6_t)> expectedBcmIp = {
+  std::array<uint8_t, sizeof(bcm_ip6_t)> expectedBcmIp = {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 0, 0};
-  EXPECT_EQ(16, sizeof(opennsl_ip6_t));
-  EXPECT_EQ(0, memcmp(bcmIp, expectedBcmIp.data(), sizeof(opennsl_ip6_t)));
+  EXPECT_EQ(16, sizeof(bcm_ip6_t));
+  EXPECT_EQ(0, memcmp(bcmIp, expectedBcmIp.data(), sizeof(bcm_ip6_t)));
 }
 
 TEST(V4Bcm, fromBcm6) {
   auto ip = IPAddress(IPAddressV4("10.10.0.0"));
-  opennsl_ip6_t bcmIp;
+  bcm_ip6_t bcmIp;
   ipToBcmIp6(ip, &bcmIp);
   auto ipPostConversion = ipFromBcm(bcmIp);
-  // Since we convert IPAddress to opennsl_ip6_t, we lose the knowledge
+  // Since we convert IPAddress to bcm_ip6_t, we lose the knowledge
   // that this was a v4 IP and will thus read it back as a v6 IP with
   // the lowest 4 bytes from the original IP
   EXPECT_NE(ip, ipPostConversion);
@@ -64,17 +64,17 @@ TEST(V4Bcm, fromBcm6) {
 
 TEST(V6Bcm, toBcm6) {
   auto ip = IPAddress(IPAddressV6("ff02::"));
-  opennsl_ip6_t bcmIp;
+  bcm_ip6_t bcmIp;
   ipToBcmIp6(ip, &bcmIp);
-  std::array<uint8_t, sizeof(opennsl_ip6_t)> expectedBcmIp = {
+  std::array<uint8_t, sizeof(bcm_ip6_t)> expectedBcmIp = {
       0xff, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  EXPECT_EQ(16, sizeof(opennsl_ip6_t));
-  EXPECT_EQ(0, memcmp(bcmIp, expectedBcmIp.data(), sizeof(opennsl_ip6_t)));
+  EXPECT_EQ(16, sizeof(bcm_ip6_t));
+  EXPECT_EQ(0, memcmp(bcmIp, expectedBcmIp.data(), sizeof(bcm_ip6_t)));
 }
 
 TEST(V6Bcm, fromBcm6) {
   auto ip = IPAddress(IPAddressV6("ff02::"));
-  opennsl_ip6_t bcmIp;
+  bcm_ip6_t bcmIp;
   ipToBcmIp6(ip, &bcmIp);
   auto ipPostConversion = ipFromBcm(bcmIp);
   EXPECT_EQ(ip, ipPostConversion);

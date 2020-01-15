@@ -24,11 +24,11 @@
 #include <thread>
 
 extern "C" {
-#include <opennsl/error.h>
-#include <opennsl/l2.h>
-#include <opennsl/port.h>
-#include <opennsl/rx.h>
-#include <opennsl/types.h>
+#include <bcm/error.h>
+#include <bcm/l2.h>
+#include <bcm/port.h>
+#include <bcm/rx.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -143,9 +143,9 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual BcmControlPlane* getControlPlane() const = 0;
 
-  virtual opennsl_if_t getDropEgressId() const = 0;
+  virtual bcm_if_t getDropEgressId() const = 0;
 
-  virtual opennsl_if_t getToCPUEgressId() const = 0;
+  virtual bcm_if_t getToCPUEgressId() const = 0;
 
   virtual BcmCosManager* getCosMgr() const = 0;
 
@@ -246,22 +246,22 @@ class BcmSwitch : public BcmSwitchIf {
     return unit_;
   }
 
-  static opennsl_vrf_t getBcmVrfId(RouterID routerId) {
+  static bcm_vrf_t getBcmVrfId(RouterID routerId) {
     static_assert(
-        sizeof(opennsl_vrf_t) == sizeof(RouterID),
-        "Size of opennsl_vrf_t must equal to size of RouterID");
-    return static_cast<opennsl_vrf_t>(routerId);
+        sizeof(bcm_vrf_t) == sizeof(RouterID),
+        "Size of bcm_vrf_t must equal to size of RouterID");
+    return static_cast<bcm_vrf_t>(routerId);
   }
-  static RouterID getRouterId(opennsl_vrf_t vrf) {
+  static RouterID getRouterId(bcm_vrf_t vrf) {
     return RouterID(vrf);
   }
-  static opennsl_if_t getBcmIntfId(InterfaceID intfId) {
+  static bcm_if_t getBcmIntfId(InterfaceID intfId) {
     static_assert(
-        sizeof(opennsl_if_t) == sizeof(InterfaceID),
-        "Size of opennsl_if_t must equal to size of InterfaceID");
-    return static_cast<opennsl_if_t>(intfId);
+        sizeof(bcm_if_t) == sizeof(InterfaceID),
+        "Size of bcm_if_t must equal to size of InterfaceID");
+    return static_cast<bcm_if_t>(intfId);
   }
-  static VlanID getVlanId(opennsl_vlan_t vlan) {
+  static VlanID getVlanId(bcm_vlan_t vlan) {
     return VlanID(vlan);
   }
   const BcmPortTable* getPortTable() const override {
@@ -325,8 +325,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isPortUp(PortID port) const override;
 
-  opennsl_if_t getDropEgressId() const override;
-  opennsl_if_t getToCPUEgressId() const override;
+  bcm_if_t getDropEgressId() const override;
+  bcm_if_t getToCPUEgressId() const override;
 
   BcmControlPlane* getControlPlane() const override {
     return controlPlane_.get();
@@ -373,9 +373,9 @@ class BcmSwitch : public BcmSwitchIf {
    * just forward the call.
    */
   std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
-      opennsl_switch_event_t eventID,
+      bcm_switch_event_t eventID,
       std::shared_ptr<BcmSwitchEventCallback> callback);
-  void unregisterSwitchEventCallback(opennsl_switch_event_t eventID);
+  void unregisterSwitchEventCallback(bcm_switch_event_t eventID);
 
   BcmCosManager* getCosMgr() const override {
     return cosManager_.get();
@@ -443,13 +443,13 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
-  opennsl_gport_t getCpuGPort() const;
+  bcm_gport_t getCpuGPort() const;
   /*
    * Calls linkStateChanged. Invoked by linkscan thread
    * on BCM ASIC as well as explicitly by tests.
    */
   static void
-  linkscanCallback(int unit, opennsl_port_t port, opennsl_port_info_t* info);
+  linkscanCallback(int unit, bcm_port_t port, bcm_port_info_t* info);
 
   BootType getBootType() const override {
     return bootType_;
@@ -485,7 +485,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   static void l2LearningCallback(
       int unit,
-      opennsl_l2_addr_t* l2Addr,
+      bcm_l2_addr_t* l2Addr,
       int operation,
       void* userData);
 
@@ -493,22 +493,17 @@ class BcmSwitch : public BcmSwitchIf {
    * Private callback called by BcmSwitch::l2AddrCallBack. Dispatches to
    * callback_->l2LearningUpdateReceived
    */
-  void l2LearningUpdateReceived(
-      opennsl_l2_addr_t* l2Addr,
-      int operation) noexcept;
+  void l2LearningUpdateReceived(bcm_l2_addr_t* l2Addr, int operation) noexcept;
 
   /*
-   * Callback handlers for opennsl_l2_traverse that generate L2 table update
+   * Callback handlers for bcm_l2_traverse that generate L2 table update
    * callbacks from software. These are used to maintain SwitchState's MAC
    * Table across warmboot, L2LearningMode changes etc.
    */
-  static int addL2TableCb(int unit, opennsl_l2_addr_t* l2Addr, void* userData);
-  static int addL2TableCbForPendingOnly(
-      int unit,
-      opennsl_l2_addr_t* l2Addr,
-      void* userData);
+  static int addL2TableCb(int unit, bcm_l2_addr_t* l2Addr, void* userData);
   static int
-  deleteL2TableCb(int unit, opennsl_l2_addr_t* l2Addr, void* userData);
+  addL2TableCbForPendingOnly(int unit, bcm_l2_addr_t* l2Addr, void* userData);
+  static int deleteL2TableCb(int unit, bcm_l2_addr_t* l2Addr, void* userData);
 
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
@@ -524,7 +519,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   void setupToCpuEgress();
 
-  std::unique_ptr<BcmRxPacket> createRxPacket(opennsl_pkt_t* pkt);
+  std::unique_ptr<BcmRxPacket> createRxPacket(bcm_pkt_t* pkt);
   void changeDefaultVlan(VlanID id);
 
   void processChangedVlan(
@@ -675,7 +670,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Back traces from deadlocked process here
    * https://phabricator.fb.com/P20042479
    */
-  void linkStateChangedHwNotLocked(opennsl_port_t port, bool up);
+  void linkStateChangedHwNotLocked(bcm_port_t port, bool up);
 
   /*
    * For any actions that require a lock or might need to
@@ -693,13 +688,12 @@ class BcmSwitch : public BcmSwitchIf {
    * Private callback called by the Broadcom API. Dispatches to
    * BcmSwitch::packetReceived.
    */
-  static opennsl_rx_t
-  packetRxCallback(int unit, opennsl_pkt_t* pkt, void* cookie);
+  static bcm_rx_t packetRxCallback(int unit, bcm_pkt_t* pkt, void* cookie);
   /*
    * Private callback called by BcmSwitch::packetRxCallback. Dispatches to
    * callback_->packetReceived.
    */
-  opennsl_rx_t packetReceived(opennsl_pkt_t* pkt) noexcept;
+  bcm_rx_t packetReceived(bcm_pkt_t* pkt) noexcept;
 
   /*
    * Update thread-local switch statistics.
@@ -755,7 +749,7 @@ class BcmSwitch : public BcmSwitchIf {
   /*
    * Forces a linkscan pass on the provided ports.
    */
-  void forceLinkscanOn(opennsl_pbmp_t ports);
+  void forceLinkscanOn(bcm_pbmp_t ports);
 
   /*
    * Configure rate limiting of packets sent to the CPU.
@@ -773,7 +767,7 @@ class BcmSwitch : public BcmSwitchIf {
    * Returns true if it is only an sFlow sample.
    * Returns false if it is there for another reason as well.
    */
-  bool handleSflowPacket(opennsl_pkt_t* pkt) noexcept;
+  bool handleSflowPacket(bcm_pkt_t* pkt) noexcept;
 
   /**
    * Exports the sdk version we build against.
@@ -863,7 +857,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void disableHotSwap() const;
 
-  bool isL2EntryPending(const opennsl_l2_addr_t* l2Addr);
+  bool isL2EntryPending(const bcm_l2_addr_t* l2Addr);
 
   /*
    * Member variables

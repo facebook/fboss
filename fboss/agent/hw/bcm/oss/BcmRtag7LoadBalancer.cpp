@@ -13,9 +13,8 @@
 
 namespace facebook::fboss {
 
-opennsl_switch_control_t BcmRtag7LoadBalancer::trunkHashSet0UnicastOffset()
-    const {
-  throw FbossError("Symbol not exported in OpenNSL");
+bcm_switch_control_t BcmRtag7LoadBalancer::trunkHashSet0UnicastOffset() const {
+  throw FbossError("Symbol not exported in Bcm");
 }
 
 } // namespace facebook::fboss

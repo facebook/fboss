@@ -70,7 +70,7 @@ WedgePlatform::BcmPlatformPortMap WedgePlatform::getPlatformPortMap() {
 
   BcmPlatformPortMap mapping;
   for (const auto& kv : *portMapping_) {
-    opennsl_port_t id = kv.first;
+    bcm_port_t id = kv.first;
     mapping[id] = kv.second.get();
   }
   return mapping;

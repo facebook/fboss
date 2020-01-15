@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include <folly/IPAddress.h>
@@ -39,7 +39,7 @@ class BcmHostEgress : public boost::noncopyable {
  public:
   enum class BcmHostEgressType { OWNED, REFERENCED };
 
-  explicit BcmHostEgress(opennsl_if_t egressId)
+  explicit BcmHostEgress(bcm_if_t egressId)
       : type_(BcmHostEgressType::REFERENCED), referencedEgressId_(egressId) {}
   explicit BcmHostEgress(std::unique_ptr<BcmEgressBase> egress)
       : type_(BcmHostEgressType::OWNED), ownedEgress_(std::move(egress)) {}
@@ -53,7 +53,7 @@ class BcmHostEgress : public boost::noncopyable {
     return ownedEgress_.get();
   }
 
-  opennsl_if_t getEgressId() const {
+  bcm_if_t getEgressId() const {
     CHECK_NE((ownedEgress_ != nullptr), (referencedEgressId_.has_value()));
     return ownedEgress_ ? ownedEgress_->getID() : referencedEgressId_.value();
   }
@@ -61,7 +61,7 @@ class BcmHostEgress : public boost::noncopyable {
  private:
   BcmHostEgressType type_;
   std::unique_ptr<BcmEgressBase> ownedEgress_;
-  std::optional<opennsl_if_t> referencedEgressId_;
+  std::optional<bcm_if_t> referencedEgressId_;
 };
 
 class BcmHost {
@@ -85,28 +85,25 @@ class BcmHost {
    * a already created egress entry
    */
   void program(
-      opennsl_if_t intf,
+      bcm_if_t intf,
       folly::MacAddress mac,
-      opennsl_port_t port,
+      bcm_port_t port,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     return program(intf, &mac, port, NEXTHOPS, classID);
   }
   void programToCPU(
-      opennsl_if_t intf,
+      bcm_if_t intf,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     return program(intf, nullptr, 0, TO_CPU, classID);
   }
-  void programToDrop(opennsl_if_t intf) {
+  void programToDrop(bcm_if_t intf) {
     return program(intf, nullptr, 0, DROP);
   }
-  void programToTrunk(
-      opennsl_if_t intf,
-      folly::MacAddress mac,
-      opennsl_trunk_t trunk);
+  void programToTrunk(bcm_if_t intf, folly::MacAddress mac, bcm_trunk_t trunk);
 
-  void setEgressId(opennsl_if_t eid);
+  void setEgressId(bcm_if_t eid);
 
-  opennsl_if_t getEgressId() const {
+  bcm_if_t getEgressId() const {
     if (!egress_) {
       return BcmEgressBase::INVALID;
     }
@@ -119,7 +116,7 @@ class BcmHost {
   bool isPortOrTrunkSet() const {
     return egressPort_.has_value();
   }
-  opennsl_gport_t getSetPortAsGPort() const {
+  bcm_gport_t getSetPortAsGPort() const {
     if (!egressPort_) {
       return BcmPort::asGPort(0);
     }
@@ -135,11 +132,11 @@ class BcmHost {
   void setLookupClassId(int lookupClassId) {
     lookupClassId_ = lookupClassId;
   }
-  static int getLookupClassFromL3Host(const opennsl_l3_host_t& host);
-  static std::string l3HostToString(const opennsl_l3_host_t& host);
+  static int getLookupClassFromL3Host(const bcm_l3_host_t& host);
+  static std::string l3HostToString(const bcm_l3_host_t& host);
   static bool matchLookupClass(
-      const opennsl_l3_host_t& newHost,
-      const opennsl_l3_host_t& existingHost);
+      const bcm_l3_host_t& newHost,
+      const bcm_l3_host_t& existingHost);
   std::optional<BcmPortDescriptor> getEgressPortDescriptor() const;
 
   bool isProgrammedToDrop() const {
@@ -168,15 +165,15 @@ class BcmHost {
   BcmHost(BcmHost const&) = delete;
   BcmHost& operator=(BcmHost const&) = delete;
   void program(
-      opennsl_if_t intf,
+      bcm_if_t intf,
       const folly::MacAddress* mac,
-      opennsl_port_t port,
+      bcm_port_t port,
       RouteForwardAction action,
       std::optional<cfg::AclLookupClass> classID = std::nullopt);
 
-  void initHostCommon(opennsl_l3_host_t* host) const;
+  void initHostCommon(bcm_l3_host_t* host) const;
 
-  void setLookupClassToL3Host(opennsl_l3_host_t* host) const;
+  void setLookupClassToL3Host(bcm_l3_host_t* host) const;
 
   std::unique_ptr<BcmEgress> createEgress();
   const BcmSwitchIf* hw_;
@@ -227,18 +224,18 @@ class BcmHostTable {
 
   void programHostsToTrunk(
       const BcmHostKey& key,
-      opennsl_if_t intf,
+      bcm_if_t intf,
       const MacAddress& mac,
-      opennsl_trunk_t trunk);
+      bcm_trunk_t trunk);
   void programHostsToPort(
       const BcmHostKey& key,
-      opennsl_if_t intf,
+      bcm_if_t intf,
       const MacAddress& mac,
-      opennsl_port_t port,
+      bcm_port_t port,
       std::optional<cfg::AclLookupClass> classID = std::nullopt);
   void programHostsToCPU(
       const BcmHostKey& key,
-      opennsl_if_t intf,
+      bcm_if_t intf,
       std::optional<cfg::AclLookupClass> classID = std::nullopt);
 
   std::shared_ptr<BcmHost> refOrEmplace(const BcmHostKey& key);

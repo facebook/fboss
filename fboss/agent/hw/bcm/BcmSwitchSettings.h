@@ -5,7 +5,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 extern "C" {
-#include <opennsl/l2.h>
+#include <bcm/l2.h>
 }
 
 namespace facebook::fboss {

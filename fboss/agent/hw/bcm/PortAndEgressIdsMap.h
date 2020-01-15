@@ -11,7 +11,7 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 #include <folly/dynamic.h>
@@ -25,13 +25,13 @@ namespace facebook::fboss {
 
 struct PortAndEgressIdsFields {
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
-  PortAndEgressIdsFields(opennsl_gport_t gport, EgressIdSet egressIds)
+  PortAndEgressIdsFields(bcm_gport_t gport, EgressIdSet egressIds)
       : id(gport), egressIds(std::move(egressIds)) {}
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  const opennsl_gport_t id{0};
+  const bcm_gport_t id{0};
   EgressIdSet egressIds;
 };
 
@@ -42,10 +42,10 @@ class PortAndEgressIds
     : public NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields> {
  public:
   typedef PortAndEgressIdsFields::EgressIdSet EgressIdSet;
-  PortAndEgressIds(opennsl_gport_t gport, EgressIdSet egressIds)
+  PortAndEgressIds(bcm_gport_t gport, EgressIdSet egressIds)
       : NodeBaseT(gport, std::move(egressIds)) {}
 
-  opennsl_gport_t getID() const {
+  bcm_gport_t getID() const {
     return getFields()->id;
   }
   const EgressIdSet& getEgressIds() const {
@@ -59,11 +59,11 @@ class PortAndEgressIds
     writableFields()->egressIds = std::move(egressIds);
   }
 
-  void addEgressId(opennsl_if_t egressId) {
+  void addEgressId(bcm_if_t egressId) {
     writableFields()->egressIds.insert(egressId);
   }
 
-  void removeEgressId(opennsl_if_t egressId) {
+  void removeEgressId(bcm_if_t egressId) {
     writableFields()->egressIds.erase(egressId);
   }
 
@@ -84,8 +84,7 @@ class PortAndEgressIds
   friend class CloneAllocator;
 };
 
-using PortAndEgressIdsMapTraits =
-    NodeMapTraits<opennsl_gport_t, PortAndEgressIds>;
+using PortAndEgressIdsMapTraits = NodeMapTraits<bcm_gport_t, PortAndEgressIds>;
 
 /*
  * Container for maintaining mapping from port to
@@ -102,7 +101,7 @@ class PortAndEgressIdsMap
    * Throws an FbossError if the mapping does not exist.
    */
   const std::shared_ptr<PortAndEgressIds>& getPortAndEgressIds(
-      opennsl_gport_t gport) const {
+      bcm_gport_t gport) const {
     return getNode(gport);
   }
   /*
@@ -111,7 +110,7 @@ class PortAndEgressIdsMap
    * Throws an FbossError if the mapping does not exist.
    */
   std::shared_ptr<PortAndEgressIds> getPortAndEgressIdsIf(
-      opennsl_gport_t gport) const {
+      bcm_gport_t gport) const {
     return getNodeIf(gport);
   }
   /*
@@ -130,7 +129,7 @@ class PortAndEgressIdsMap
     updateNode(portAndEgressIds);
   }
 
-  void removePort(opennsl_gport_t gport) {
+  void removePort(bcm_gport_t gport) {
     removeNode(gport);
   }
 

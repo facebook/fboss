@@ -30,11 +30,11 @@ std::string nextHopKeyStr(const facebook::fboss::BcmMultiPathNextHopKey& key) {
 } // namespace
 namespace facebook::fboss {
 
-opennsl_if_t BcmL3NextHop::getEgressId() const {
+bcm_if_t BcmL3NextHop::getEgressId() const {
   return host_->getEgressId();
 }
 
-void BcmL3NextHop::programToCPU(opennsl_if_t intf) {
+void BcmL3NextHop::programToCPU(bcm_if_t intf) {
   host_->programToCPU(intf);
 }
 
@@ -42,11 +42,11 @@ bool BcmL3NextHop::isProgrammed() const {
   return getEgressId() != BcmEgressBase::INVALID;
 }
 
-opennsl_if_t BcmMplsNextHop::getEgressId() const {
+bcm_if_t BcmMplsNextHop::getEgressId() const {
   return mplsEgress_->getID();
 }
 
-void BcmMplsNextHop::programToCPU(opennsl_if_t /*intf*/) {
+void BcmMplsNextHop::programToCPU(bcm_if_t /*intf*/) {
   /* this is called only from BcmMultiPathNextHop, or multipath next hop, and is
   called only if, MPLS nexthop is "not programmed". this should never happen
   because constructor of MPLS nexthop creates egress and programs it either to
@@ -82,10 +82,10 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
     mplsEgress_ = createEgress();
   }
 
-  opennsl_gport_t oldGport = getGPort();
-  opennsl_gport_t newGport = BcmPort::asGPort(0);
-  opennsl_port_t newPort{0};
-  opennsl_trunk_t newTrunk{BcmTrunk::INVALID};
+  bcm_gport_t oldGport = getGPort();
+  bcm_gport_t newGport = BcmPort::asGPort(0);
+  bcm_port_t newPort{0};
+  bcm_trunk_t newTrunk{BcmTrunk::INVALID};
 
   BcmEcmpEgress::Action ecmpAction;
 
@@ -151,7 +151,7 @@ BcmMplsNextHop::~BcmMplsNextHop() {
   }
   // This host mapping just went away, update the port -> egress id mapping
   bool isPortOrTrunkSet = egressPort_.has_value();
-  opennsl_gport_t gPort = getGPort();
+  bcm_gport_t gPort = getGPort();
   hw_->writableEgressManager()->updatePortToEgressMapping(
       mplsEgress_->getID(), gPort, BcmPort::asGPort(0));
   hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
@@ -173,8 +173,8 @@ std::unique_ptr<BcmEgress> BcmMplsNextHop::createEgress() {
       hw_, key_.getLabel(), intf->getBcmIfId(), key_.tunnelLabelStack());
 }
 
-opennsl_gport_t BcmMplsNextHop::getGPort() {
-  opennsl_gport_t gport = BcmPort::asGPort(0);
+bcm_gport_t BcmMplsNextHop::getGPort() {
+  bcm_gport_t gport = BcmPort::asGPort(0);
   if (egressPort_) {
     switch (egressPort_->type()) {
       case PortDescriptor::PortType::AGGREGATE:
@@ -190,11 +190,11 @@ opennsl_gport_t BcmMplsNextHop::getGPort() {
   return gport;
 }
 
-void BcmMplsNextHop::setPort(opennsl_port_t port) {
+void BcmMplsNextHop::setPort(bcm_port_t port) {
   egressPort_ = PortDescriptor(hw_->getPortTable()->getPortId(port));
 }
 
-void BcmMplsNextHop::setTrunk(opennsl_trunk_t trunk) {
+void BcmMplsNextHop::setTrunk(bcm_trunk_t trunk) {
   egressPort_ = PortDescriptor(hw_->getTrunkTable()->getAggregatePortId(trunk));
 }
 

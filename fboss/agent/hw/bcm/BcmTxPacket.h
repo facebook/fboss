@@ -16,8 +16,8 @@
 #include "fboss/agent/TxPacket.h"
 
 extern "C" {
-#include <opennsl/pkt.h>
-#include <opennsl/types.h>
+#include <bcm/pkt.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -26,10 +26,10 @@ class BcmTxPacket : public TxPacket {
  public:
   BcmTxPacket(int unit, uint32_t size);
 
-  opennsl_pkt_t* getPkt() {
+  bcm_pkt_t* getPkt() {
     return pkt_;
   }
-  const opennsl_pkt_t* getPkt() const {
+  const bcm_pkt_t* getPkt() const {
     return pkt_;
   }
 
@@ -41,13 +41,13 @@ class BcmTxPacket : public TxPacket {
   /*
    * set dest port and set mod to 0
    */
-  void setDestModPort(opennsl_port_t port) {
+  void setDestModPort(bcm_port_t port) {
     DCHECK_EQ((port & ~0xff), 0);
     // Need to reset TX_ETHER for packets that are
     // predetermined to go out of a port/trunk
-    pkt_->flags &= ~OPENNSL_TX_ETHER;
-    OPENNSL_PBMP_PORT_SET(pkt_->tx_pbmp, port);
-    OPENNSL_PBMP_PORT_SET(pkt_->tx_upbmp, port);
+    pkt_->flags &= ~BCM_TX_ETHER;
+    BCM_PBMP_PORT_SET(pkt_->tx_pbmp, port);
+    BCM_PBMP_PORT_SET(pkt_->tx_upbmp, port);
   }
 
   void setCos(uint8_t cos);
@@ -60,7 +60,7 @@ class BcmTxPacket : public TxPacket {
    * of the packet, and will automatically delete it when the async send
    * completes.
    *
-   * Returns an OpenNSL error code.
+   * Returns an Bcm error code.
    */
   static int sendAsync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
   /*
@@ -71,14 +71,14 @@ class BcmTxPacket : public TxPacket {
    * of the packet, and will automatically delete it when the sync send
    * completes.
    *
-   * Returns an OpenNSL error code.
+   * Returns an Bcm error code.
    */
   static int sendSync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
 
  private:
   inline static int sendImpl(std::unique_ptr<BcmTxPacket> pkt) noexcept;
-  static void txCallbackAsync(int unit, opennsl_pkt_t* pkt, void* cookie);
-  static void txCallbackSync(int unit, opennsl_pkt_t* pkt, void* cookie);
+  static void txCallbackAsync(int unit, bcm_pkt_t* pkt, void* cookie);
+  static void txCallbackSync(int unit, bcm_pkt_t* pkt, void* cookie);
 
   // Forbidden copy constructor and assignment operator
   BcmTxPacket(BcmTxPacket const&) = delete;
@@ -89,7 +89,7 @@ class BcmTxPacket : public TxPacket {
   static std::condition_variable& syncPktCV();
   static bool& syncPacketSent();
 
-  opennsl_pkt_t* pkt_{nullptr};
+  bcm_pkt_t* pkt_{nullptr};
 
   // time point when the packet is queued to HW
   TimePoint queued_;

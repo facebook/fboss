@@ -19,7 +19,7 @@
 #include <utility>
 
 extern "C" {
-#include <opennsl/switch.h>
+#include <bcm/switch.h>
 }
 
 namespace facebook::fboss {
@@ -27,40 +27,38 @@ namespace facebook::fboss {
 #define DECLARE_MODULE_CONTROL_STRONG_TYPE(new_type, primitive) \
   BOOST_STRONG_TYPEDEF(primitive, new_type);
 
-DECLARE_MODULE_CONTROL_STRONG_TYPE(
-    PreprocessingControl,
-    opennsl_switch_control_t)
-DECLARE_MODULE_CONTROL_STRONG_TYPE(SeedControl, opennsl_switch_control_t)
+DECLARE_MODULE_CONTROL_STRONG_TYPE(PreprocessingControl, bcm_switch_control_t)
+DECLARE_MODULE_CONTROL_STRONG_TYPE(SeedControl, bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv4NonTcpUdpFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv6NonTcpUdpFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv4TcpUdpFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv6TcpUdpFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv4TcpUdpPortsEqualFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     IPv6TcpUdpPortsEqualFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     TerminatedMPLSFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     NonTerminatedMPLSFieldSelectionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     FirstOutputFunctionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 DECLARE_MODULE_CONTROL_STRONG_TYPE(
     SecondOutputFunctionControl,
-    opennsl_switch_control_t)
+    bcm_switch_control_t)
 
 class BcmSwitch;
 class LoadBalancer;
@@ -80,23 +78,23 @@ class BcmRtag7Module {
    *
    * Consider a natural API for programming the RTAG7 engine:
    *
-   *   int opennsl_rtag7_control_set(int unit,
+   *   int bcm_rtag7_control_set(int unit,
    *                                 char module,
    *                                 bcm_rtag7_feature_t feature,
    *                                 int setting);
    *
    * So, for example, to enable pre-processing on module 'A', we would have
    *
-   *   int err = opennsl_rtag7_control_set(0,
+   *   int err = bcm_rtag7_control_set(0,
    *                                      'A',
-   *                                      opennslPreprocessing,
+   *                                      bcmPreprocessing,
    *                                      TRUE);
    *
    * Unfortunately, the Broadcom API joins the second and third arguments into a
    * single compile-time constant. Taking the above example, it would actually
    * have to be expressed as
    *
-   *   int err = opennsl_rtag7_control_set(0,
+   *   int err = bcm_rtag7_control_set(0,
    *                                       enablePreprocessingOnModuleA,
    *                                       TRUE);
    *
@@ -181,7 +179,7 @@ class BcmRtag7Module {
   static const OutputSelectionControl kEcmpOutputSelectionControl();
   static const OutputSelectionControl kTrunkOutputSelectionControl();
 
-  using ModuleState = boost::container::flat_map<opennsl_switch_control_t, int>;
+  using ModuleState = boost::container::flat_map<bcm_switch_control_t, int>;
   using ModuleStateRange = folly::Range<ModuleState::iterator>;
   using ModuleStateConstRange = folly::Range<ModuleState::const_iterator>;
 
@@ -191,11 +189,11 @@ class BcmRtag7Module {
   using OutputSelectionStateConstRange =
       folly::Range<OutputSelectionState::const_iterator>;
 
-  // getUnitControl is a wrapper around opennsl_switch_control_get(...). Its
+  // getUnitControl is a wrapper around bcm_switch_control_get(...). Its
   // only use is in BcmWarmBootCache.cpp, where it is used to retrieve settings
   // related to RTAG7. Because at that callsite there is no instance of
   // BcmRtag7Module, it is a static method on BcmRtag7Module.
-  static int getUnitControl(int unit, opennsl_switch_control_t type);
+  static int getUnitControl(int unit, bcm_switch_control_t type);
   static int getUnitControl(int unit, int type);
 
   static ModuleState retrieveRtag7ModuleState(int unit, ModuleControl control);
@@ -253,7 +251,7 @@ class BcmRtag7Module {
   int getFlowLabelSubfields() const;
   int getBcmHashingAlgorithm(cfg::HashingAlgorithm algorithm) const;
 
-  // This is a small warpper around opennsl_switch_control_set(unit, ...) that
+  // This is a small warpper around bcm_switch_control_set(unit, ...) that
   // defaults the unit to HwSwitch::getUnit()
   template <typename ModuleControlType>
   int setUnitControl(ModuleControlType controlType, int arg);

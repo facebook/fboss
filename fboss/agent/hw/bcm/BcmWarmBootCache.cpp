@@ -46,7 +46,7 @@
 #include "fboss/agent/state/VlanMap.h"
 
 extern "C" {
-#include <opennsl/trunk.h>
+#include <bcm/trunk.h>
 }
 
 using boost::container::flat_map;
@@ -233,7 +233,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     }
     egressIdsInWarmBootFile_.insert(egressId);
 
-    std::optional<opennsl_if_t> intf{std::nullopt};
+    std::optional<bcm_if_t> intf{std::nullopt};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
     if (ip.isV6() && ip.isLinkLocal()) {
       auto egressIt = hostEntry.find(kEgress);
@@ -340,9 +340,9 @@ void BcmWarmBootCache::populateFromWarmBootState(
 }
 
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
-    opennsl_vrf_t vrf,
+    bcm_vrf_t vrf,
     const folly::IPAddress& addr,
-    std::optional<opennsl_if_t> intf) {
+    std::optional<bcm_if_t> intf) {
   // Do a cheap check of size to avoid construct the key for lookup.
   // That helps the case after warmboot is done.
   if (vrfIp2EgressFromBcmHostInWarmBootFile_.size() == 0) {
@@ -376,17 +376,17 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   } else {
     populateFromWarmBootState(getWarmBootState());
   }
-  opennsl_vlan_data_t* vlanList = nullptr;
+  bcm_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {
-    opennsl_vlan_list_destroy(hw_->getUnit(), vlanList, vlanCount);
+    bcm_vlan_list_destroy(hw_->getUnit(), vlanList, vlanCount);
   };
-  auto rv = opennsl_vlan_list(hw_->getUnit(), &vlanList, &vlanCount);
+  auto rv = bcm_vlan_list(hw_->getUnit(), &vlanList, &vlanCount);
   bcmCheckError(rv, "Unable to get vlan information");
   for (auto i = 0; i < vlanCount; ++i) {
-    opennsl_vlan_data_t& vlanData = vlanList[i];
+    bcm_vlan_data_t& vlanData = vlanList[i];
     int portCount = 0;
-    OPENNSL_PBMP_COUNT(vlanData.port_bitmap, portCount);
+    BCM_PBMP_COUNT(vlanData.port_bitmap, portCount);
     XLOG(DBG1) << "Got vlan : " << vlanData.vlan_tag << " with : " << portCount
                << " ports";
     // TODO: Investigate why port_bitmap contains
@@ -397,8 +397,8 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
             VlanID(vlanData.vlan_tag),
             vlanData.port_bitmap,
             vlanData.port_bitmap)));
-    opennsl_l3_intf_t l3Intf;
-    opennsl_l3_intf_t_init(&l3Intf);
+    bcm_l3_intf_t l3Intf;
+    bcm_l3_intf_t_init(&l3Intf);
     // there can be more than one interfaces per vlan, such as one l3 intf
     // and other MPLS tunnels. There is no clear way to identify which is
     // which. so keeping track of l3 interfaces in warmboot state file
@@ -408,16 +408,16 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
     auto iter = vlan2BcmIfIdInWarmBootFile_.find(VlanID(vlanData.vlan_tag));
     if (iter != vlan2BcmIfIdInWarmBootFile_.end()) {
       l3Intf.l3a_intf_id = iter->second;
-      l3Intf.l3a_flags = OPENNSL_L3_WITH_ID;
-      rv = opennsl_l3_intf_get(hw_->getUnit(), &l3Intf);
+      l3Intf.l3a_flags = BCM_L3_WITH_ID;
+      rv = bcm_l3_intf_get(hw_->getUnit(), &l3Intf);
     } else {
       // this can happen for vlan id 1, a special vlan which is returned by
-      // opennsl_vlan_list, this vlan has all ports which has no vlan associated
+      // bcm_vlan_list, this vlan has all ports which has no vlan associated
       // it also has port 0 if all front panel ports are associated with some
       // vlan. this vlan won't be in vlan2BcmIfIdInWarmBootFile_
-      rv = opennsl_l3_intf_find_vlan(hw_->getUnit(), &l3Intf);
+      rv = bcm_l3_intf_find_vlan(hw_->getUnit(), &l3Intf);
     }
-    if (rv != OPENNSL_E_NOT_FOUND) {
+    if (rv != BCM_E_NOT_FOUND) {
       bcmCheckError(rv, "failed to find interface for ", vlanData.vlan_tag);
       intfFound = true;
       vlanAndMac2Intf_[make_pair(
@@ -426,10 +426,10 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       XLOG(DBG1) << "Found l3 interface for vlan : " << vlanData.vlan_tag;
     }
     if (intfFound) {
-      opennsl_l2_station_t l2Station;
-      opennsl_l2_station_t_init(&l2Station);
-      rv = opennsl_l2_station_get(hw_->getUnit(), l3Intf.l3a_vid, &l2Station);
-      if (!OPENNSL_FAILURE(rv)) {
+      bcm_l2_station_t l2Station;
+      bcm_l2_station_t_init(&l2Station);
+      rv = bcm_l2_station_get(hw_->getUnit(), l3Intf.l3a_vid, &l2Station);
+      if (!BCM_FAILURE(rv)) {
         XLOG(DBG1) << " Found l2 station with id : " << l3Intf.l3a_vid;
         vlan2Station_[VlanID(vlanData.vlan_tag)] = l2Station;
       } else {
@@ -438,11 +438,11 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       }
     }
   }
-  opennsl_l3_info_t l3Info;
-  opennsl_l3_info_t_init(&l3Info);
-  opennsl_l3_info(hw_->getUnit(), &l3Info);
+  bcm_l3_info_t l3Info;
+  bcm_l3_info_t_init(&l3Info);
+  bcm_l3_info(hw_->getUnit(), &l3Info);
   // Traverse V4 hosts
-  rv = opennsl_l3_host_traverse(
+  rv = bcm_l3_host_traverse(
       hw_->getUnit(),
       0,
       0,
@@ -451,9 +451,9 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       this);
   bcmCheckError(rv, "Failed to traverse v4 hosts");
   // Traverse V6 hosts
-  rv = opennsl_l3_host_traverse(
+  rv = bcm_l3_host_traverse(
       hw_->getUnit(),
-      OPENNSL_L3_IP6,
+      BCM_L3_IP6,
       0,
       // Diag shell uses this for getting # of v6 host entries
       l3Info.l3info_max_host / 2,
@@ -461,7 +461,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       this);
   bcmCheckError(rv, "Failed to traverse v6 hosts");
   // Traverse V4 routes
-  rv = opennsl_l3_route_traverse(
+  rv = bcm_l3_route_traverse(
       hw_->getUnit(),
       0,
       0,
@@ -470,9 +470,9 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       this);
   bcmCheckError(rv, "Failed to traverse v4 routes");
   // Traverse V6 routes
-  rv = opennsl_l3_route_traverse(
+  rv = bcm_l3_route_traverse(
       hw_->getUnit(),
-      OPENNSL_L3_IP6,
+      BCM_L3_IP6,
       0,
       // Diag shell uses this for getting # of v6 route entries
       l3Info.l3info_max_route / 2,
@@ -480,11 +480,10 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
       this);
   bcmCheckError(rv, "Failed to traverse v6 routes");
   // Get egress entries.
-  rv =
-      opennsl_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
+  rv = bcm_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   bcmCheckError(rv, "Failed to traverse egress");
   // Traverse ecmp egress entries
-  rv = opennsl_l3_egress_ecmp_traverse(
+  rv = bcm_l3_egress_ecmp_traverse(
       hw_->getUnit(), ecmpEgressTraversalCallback, this);
   bcmCheckError(rv, "Failed to traverse ecmp egress");
 
@@ -505,11 +504,11 @@ bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
   auto vlanItr = vlan2VlanInfo_.find(vlan->getID());
   if (vlanItr != vlan2VlanInfo_.end()) {
     Vlan::MemberPorts memberPorts;
-    opennsl_port_t idx;
-    OPENNSL_PBMP_ITER(vlanItr->second.untagged, idx) {
+    bcm_port_t idx;
+    BCM_PBMP_ITER(vlanItr->second.untagged, idx) {
       memberPorts.insert(make_pair(PortID(idx), false));
     }
-    OPENNSL_PBMP_ITER(vlanItr->second.allPorts, idx) {
+    BCM_PBMP_ITER(vlanItr->second.allPorts, idx) {
       if (memberPorts.find(PortID(idx)) == memberPorts.end()) {
         memberPorts.insert(make_pair(PortID(idx), true));
       }
@@ -523,10 +522,10 @@ bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
 int BcmWarmBootCache::hostTraversalCallback(
     int /*unit*/,
     int /*index*/,
-    opennsl_l3_host_t* host,
+    bcm_l3_host_t* host,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  auto ip = host->l3a_flags & OPENNSL_L3_IP6
+  auto ip = host->l3a_flags & BCM_L3_IP6
       ? IPAddress::fromBinary(
             ByteRange(host->l3a_ip6_addr, sizeof(host->l3a_ip6_addr)))
       : IPAddress::fromLongHBO(host->l3a_ip_addr);
@@ -539,7 +538,7 @@ int BcmWarmBootCache::hostTraversalCallback(
 int BcmWarmBootCache::egressTraversalCallback(
     int /*unit*/,
     EgressId egressId,
-    opennsl_l3_egress_t* egress,
+    bcm_l3_egress_t* egress,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   CHECK(cache->egressId2Egress_.find(egressId) == cache->egressId2Egress_.end())
@@ -556,15 +555,14 @@ int BcmWarmBootCache::egressTraversalCallback(
   } else {
     // found egress ID that is not used by any host entry, we shall
     // only have two of them. One is for drop and the other one is for TO CPU.
-    if ((egress->flags & OPENNSL_L3_DST_DISCARD)) {
+    if ((egress->flags & BCM_L3_DST_DISCARD)) {
       if (cache->dropEgressId_ != BcmEgressBase::INVALID) {
         XLOG(FATAL) << "duplicated drop egress found in HW. " << egressId
                     << " and " << cache->dropEgressId_;
       }
       XLOG(DBG1) << "Found drop egress id " << egressId;
       cache->dropEgressId_ = egressId;
-    } else if ((egress->flags &
-                (OPENNSL_L3_L2TOCPU | OPENNSL_L3_COPY_TO_CPU))) {
+    } else if ((egress->flags & (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU))) {
       if (cache->toCPUEgressId_ != BcmEgressBase::INVALID) {
         XLOG(FATAL) << "duplicated generic TO_CPU egress found in HW. "
                     << egressId << " and " << cache->toCPUEgressId_;
@@ -585,10 +583,10 @@ int BcmWarmBootCache::egressTraversalCallback(
 int BcmWarmBootCache::routeTraversalCallback(
     int /*unit*/,
     int /*index*/,
-    opennsl_l3_route_t* route,
+    bcm_l3_route_t* route,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  bool isIPv6 = route->l3a_flags & OPENNSL_L3_IP6;
+  bool isIPv6 = route->l3a_flags & BCM_L3_IP6;
   auto ip = isIPv6 ? IPAddress::fromBinary(ByteRange(
                          route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
                    : IPAddress::fromLongHBO(route->l3a_subnet);
@@ -613,9 +611,9 @@ int BcmWarmBootCache::routeTraversalCallback(
 
 int BcmWarmBootCache::ecmpEgressTraversalCallback(
     int /*unit*/,
-    opennsl_l3_egress_ecmp_t* ecmp,
+    bcm_l3_egress_ecmp_t* ecmp,
     int intfCount,
-    opennsl_if_t* intfArray,
+    bcm_if_t* intfArray,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   EgressIds egressIds;
@@ -685,7 +683,7 @@ void BcmWarmBootCache::clear() {
                << std::get<0>(vrfPfxAndRoute.first)
                << " for prefix : " << std::get<1>(vrfPfxAndRoute.first) << "/"
                << std::get<2>(vrfPfxAndRoute.first);
-    auto rv = opennsl_l3_route_delete(hw_->getUnit(), &(vrfPfxAndRoute.second));
+    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfPfxAndRoute.second));
     bcmLogFatal(
         rv,
         hw_,
@@ -701,7 +699,7 @@ void BcmWarmBootCache::clear() {
     XLOG(DBG1) << "Deleting fully qualified unreferenced route in vrf: "
                << vrfIPAndRoute.first.first
                << " prefix: " << vrfIPAndRoute.first.second;
-    auto rv = opennsl_l3_route_delete(hw_->getUnit(), &(vrfIPAndRoute.second));
+    auto rv = bcm_l3_route_delete(hw_->getUnit(), &(vrfIPAndRoute.second));
     bcmLogFatal(
         rv,
         hw_,
@@ -720,7 +718,7 @@ void BcmWarmBootCache::clear() {
   for (auto vrfIpAndHost : vrfIp2Host_) {
     XLOG(DBG1) << "Deleting host entry in vrf: " << vrfIpAndHost.first.first
                << " for : " << vrfIpAndHost.first.second;
-    auto rv = opennsl_l3_host_delete(hw_->getUnit(), &vrfIpAndHost.second);
+    auto rv = bcm_l3_host_delete(hw_->getUnit(), &vrfIpAndHost.second);
     bcmLogFatal(
         rv,
         hw_,
@@ -738,7 +736,7 @@ void BcmWarmBootCache::clear() {
     auto& ecmp = idsAndEcmp.second;
     XLOG(DBG1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
                << " pointing to : " << toEgressIdsStr(idsAndEcmp.first);
-    auto rv = opennsl_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);
+    auto rv = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);
     bcmLogFatal(
         rv,
         hw_,
@@ -755,8 +753,7 @@ void BcmWarmBootCache::clear() {
   for (auto egressIdAndEgress : egressId2Egress_) {
     // This is not used yet
     XLOG(DBG1) << "Deleting egress object: " << egressIdAndEgress.first;
-    auto rv =
-        opennsl_l3_egress_destroy(hw_->getUnit(), egressIdAndEgress.first);
+    auto rv = bcm_l3_egress_destroy(hw_->getUnit(), egressIdAndEgress.first);
     bcmLogFatal(
         rv, hw_, "failed to destroy egress object ", egressIdAndEgress.first);
   }
@@ -770,7 +767,7 @@ void BcmWarmBootCache::clear() {
     XLOG(DBG1) << "Deleting l3 interface for vlan: "
                << vlanMacAndIntf.first.first
                << " and mac : " << vlanMacAndIntf.first.second;
-    auto rv = opennsl_l3_intf_delete(hw_->getUnit(), &vlanMacAndIntf.second);
+    auto rv = bcm_l3_intf_delete(hw_->getUnit(), &vlanMacAndIntf.second);
     bcmLogFatal(
         rv,
         hw_,
@@ -783,13 +780,13 @@ void BcmWarmBootCache::clear() {
   // Delete stations
   for (auto vlanAndStation : vlan2Station_) {
     XLOG(DBG1) << "Deleting station for vlan : " << vlanAndStation.first;
-    auto rv = opennsl_l2_station_delete(hw_->getUnit(), vlanAndStation.first);
+    auto rv = bcm_l2_station_delete(hw_->getUnit(), vlanAndStation.first);
     bcmLogFatal(
         rv, hw_, "failed to delete station for vlan : ", vlanAndStation.first);
   }
   vlan2Station_.clear();
-  opennsl_vlan_t defaultVlan;
-  auto rv = opennsl_vlan_default_get(hw_->getUnit(), &defaultVlan);
+  bcm_vlan_t defaultVlan;
+  auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
   bcmLogFatal(rv, hw_, "failed to get default VLAN");
   // Finally delete the vlans
   for (auto vlanItr = vlan2VlanInfo_.begin();
@@ -799,7 +796,7 @@ void BcmWarmBootCache::clear() {
       continue; // Can't delete the default vlan
     }
     XLOG(DBG1) << "Deleting vlan : " << vlanItr->first;
-    auto rv = opennsl_vlan_destroy(hw_->getUnit(), vlanItr->first);
+    auto rv = bcm_vlan_destroy(hw_->getUnit(), vlanItr->first);
     bcmLogFatal(rv, hw_, "failed to destroy vlan: ", vlanItr->first);
     vlanItr = vlan2VlanInfo_.erase(vlanItr);
   }
@@ -836,7 +833,7 @@ void BcmWarmBootCache::clear() {
   aclEntry2AclStat_.clear();
 
   // Delete acls, since acl(field process) doesn't support
-  // opennsl, we call BcmAclTable to remove the unclaimed acls
+  // bcm, we call BcmAclTable to remove the unclaimed acls
   XLOG(DBG1) << "Unclaimed acl count=" << priority2BcmAclEntryHandle_.size();
   for (auto aclItr : priority2BcmAclEntryHandle_) {
     XLOG(DBG1) << "Deleting unclaimed acl: prio=" << aclItr.first
@@ -865,7 +862,7 @@ void BcmWarmBootCache::populateRtag7State() {
 
 bool BcmWarmBootCache::unitControlMatches(
     char module,
-    opennsl_switch_control_t switchControl,
+    bcm_switch_control_t switchControl,
     int arg) const {
   const BcmRtag7Module::ModuleState* state = nullptr;
 
@@ -888,7 +885,7 @@ bool BcmWarmBootCache::unitControlMatches(
 
 void BcmWarmBootCache::programmed(
     char module,
-    opennsl_switch_control_t switchControl) {
+    bcm_switch_control_t switchControl) {
   BcmRtag7Module::ModuleState* state = nullptr;
   switch (module) {
     case 'A':
@@ -949,7 +946,7 @@ void BcmWarmBootCache::programmed(
 }
 
 BcmWarmBootCache::MirrorEgressPath2HandleCitr BcmWarmBootCache::findMirror(
-    opennsl_gport_t port,
+    bcm_gport_t port,
     const std::optional<MirrorTunnel>& tunnel) const {
   return mirrorEgressPath2Handle_.find(std::make_pair(port, tunnel));
 }
@@ -994,7 +991,7 @@ BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::mirroredPortsEnd()
 }
 
 BcmWarmBootCache::MirroredPort2HandleCitr BcmWarmBootCache::findMirroredPort(
-    opennsl_gport_t port,
+    bcm_gport_t port,
     uint32_t flags) const {
   return mirroredPort2Handle_.find(std::make_pair(port, flags));
 }

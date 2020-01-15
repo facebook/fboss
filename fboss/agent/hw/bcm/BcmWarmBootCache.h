@@ -9,10 +9,10 @@
  */
 #pragma once
 extern "C" {
-#include <opennsl/l2.h>
-#include <opennsl/l3.h>
-#include <opennsl/port.h>
-#include <opennsl/vlan.h>
+#include <bcm/l2.h>
+#include <bcm/l3.h>
+#include <bcm/port.h>
+#include <bcm/vlan.h>
 }
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -61,28 +61,28 @@ class BcmWarmBootCache {
   struct VlanInfo {
     VlanInfo(
         VlanID _vlan,
-        opennsl_pbmp_t _untagged,
-        opennsl_pbmp_t _allPorts,
+        bcm_pbmp_t _untagged,
+        bcm_pbmp_t _allPorts,
         InterfaceID _intfID)
         : vlan(_vlan), intfID(_intfID) {
-      OPENNSL_PBMP_ASSIGN(untagged, _untagged);
-      OPENNSL_PBMP_ASSIGN(allPorts, _allPorts);
+      BCM_PBMP_ASSIGN(untagged, _untagged);
+      BCM_PBMP_ASSIGN(allPorts, _allPorts);
     }
 
     // This constructor defaults to setting the interfaceID to be the same
     // as the vlan ID. This is our current behavior. If we want to support
     // interface IDs that are different than their corresponding vlan ID
     // the various call-sites need to use the other constructor.
-    VlanInfo(VlanID _vlan, opennsl_pbmp_t _untagged, opennsl_pbmp_t _allPorts)
+    VlanInfo(VlanID _vlan, bcm_pbmp_t _untagged, bcm_pbmp_t _allPorts)
         : VlanInfo(_vlan, _untagged, _allPorts, InterfaceID(_vlan)) {}
 
     VlanID vlan;
-    opennsl_pbmp_t untagged;
-    opennsl_pbmp_t allPorts;
+    bcm_pbmp_t untagged;
+    bcm_pbmp_t allPorts;
     InterfaceID intfID;
   };
-  typedef opennsl_if_t EcmpEgressId;
-  typedef opennsl_if_t EgressId;
+  typedef bcm_if_t EcmpEgressId;
+  typedef bcm_if_t EgressId;
   typedef boost::container::flat_multiset<EgressId> EgressIds;
   typedef boost::container::flat_map<EcmpEgressId, EgressIds> Ecmp2EgressIds;
   static EgressIds toEgressIds(EgressId* egress, int count) {
@@ -101,63 +101,61 @@ class BcmWarmBootCache {
   }
 
  private:
-  using Egress = opennsl_l3_egress_t;
-  using EcmpEgress = opennsl_l3_egress_ecmp_t;
-  using IntfId = opennsl_if_t;
+  using Egress = bcm_l3_egress_t;
+  using EcmpEgress = bcm_l3_egress_ecmp_t;
+  using IntfId = bcm_if_t;
   using EgressIdAndEgress = std::pair<EgressId, Egress>;
   using VlanAndMac = std::pair<VlanID, folly::MacAddress>;
   using IntfIdAndMac = std::pair<IntfId, folly::MacAddress>;
   using HostKey =
-      std::tuple<opennsl_vrf_t, folly::IPAddress, std::optional<opennsl_if_t>>;
+      std::tuple<bcm_vrf_t, folly::IPAddress, std::optional<bcm_if_t>>;
   /*
    * VRF, IP, Mask
    * TODO - Convert mask to mask len for efficient storage/lookup
    */
-  typedef std::tuple<opennsl_vrf_t, folly::IPAddress, folly::IPAddress>
+  typedef std::tuple<bcm_vrf_t, folly::IPAddress, folly::IPAddress>
       VrfAndPrefix;
-  typedef std::pair<opennsl_vrf_t, folly::IPAddress> VrfAndIP;
+  typedef std::pair<bcm_vrf_t, folly::IPAddress> VrfAndIP;
   /*
    * Cache containers
    */
   typedef boost::container::flat_map<VlanID, VlanInfo> Vlan2VlanInfo;
-  typedef boost::container::flat_map<VlanID, opennsl_l2_station_t> Vlan2Station;
-  typedef boost::container::flat_map<VlanAndMac, opennsl_l3_intf_t>
-      VlanAndMac2Intf;
-  typedef boost::container::flat_map<VlanID, opennsl_if_t>
+  typedef boost::container::flat_map<VlanID, bcm_l2_station_t> Vlan2Station;
+  typedef boost::container::flat_map<VlanAndMac, bcm_l3_intf_t> VlanAndMac2Intf;
+  typedef boost::container::flat_map<VlanID, bcm_if_t>
       Vlan2BcmIfIdInWarmBootFile;
 
-  typedef boost::container::flat_map<VrfAndIP, opennsl_l3_host_t> VrfAndIP2Host;
-  typedef boost::container::flat_map<VrfAndPrefix, opennsl_l3_route_t>
+  typedef boost::container::flat_map<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
+  typedef boost::container::flat_map<VrfAndPrefix, bcm_l3_route_t>
       VrfAndPrefix2Route;
   typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
-  using VrfAndIP2Route =
-      boost::container::flat_map<VrfAndIP, opennsl_l3_route_t>;
+  using VrfAndIP2Route = boost::container::flat_map<VrfAndIP, bcm_l3_route_t>;
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
   using MplsNextHop2EgressIdInWarmBootFile =
       boost::container::flat_map<BcmLabeledHostKey, EgressId>;
   using LabelStackKey =
-      std::pair<opennsl_vlan_t, LabelForwardingAction::LabelStack>;
+      std::pair<bcm_vlan_t, LabelForwardingAction::LabelStack>;
   using LabelStackKey2TunnelId =
-      boost::container::flat_map<LabelStackKey, opennsl_if_t>;
+      boost::container::flat_map<LabelStackKey, bcm_if_t>;
 
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle =
       boost::container::flat_map<int, BcmAclEntryHandle>;
   using MirrorEgressPath2Handle = boost::container::flat_map<
-      std::pair<opennsl_gport_t, std::optional<MirrorTunnel>>,
+      std::pair<bcm_gport_t, std::optional<MirrorTunnel>>,
       BcmMirrorHandle>;
   using MirroredPort2Handle = boost::container::
-      flat_map<std::pair<opennsl_gport_t, uint32_t>, BcmMirrorHandle>;
+      flat_map<std::pair<bcm_gport_t, uint32_t>, BcmMirrorHandle>;
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
-  using Trunks = boost::container::flat_map<AggregatePortID, opennsl_trunk_t>;
+  using Trunks = boost::container::flat_map<AggregatePortID, bcm_trunk_t>;
   using QosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
   using QosMapsItr = QosMaps::iterator;
 
   // MPLS action
   using Label2LabelActionMap = boost::container::
-      flat_map<opennsl_mpls_label_t, std::unique_ptr<BcmMplsTunnelSwitchT>>;
+      flat_map<bcm_mpls_label_t, std::unique_ptr<BcmMplsTunnelSwitchT>>;
   struct AclStatStatus {
     BcmAclStatHandle stat{-1};
     bool claimed{false};
@@ -175,28 +173,28 @@ class BcmWarmBootCache {
   static int hostTraversalCallback(
       int unit,
       int index,
-      opennsl_l3_host_t* info,
+      bcm_l3_host_t* info,
       void* user_data);
   static int egressTraversalCallback(
       int unit,
       EgressId intf,
-      opennsl_l3_egress_t* info,
+      bcm_l3_egress_t* info,
       void* user_data);
   static int routeTraversalCallback(
       int unit,
       int index,
-      opennsl_l3_route_t* info,
+      bcm_l3_route_t* info,
       void* userData);
   static int ecmpEgressTraversalCallback(
       int unit,
-      opennsl_l3_egress_ecmp_t* ecmp,
+      bcm_l3_egress_ecmp_t* ecmp,
       int intf_count,
-      opennsl_if_t* intf_array,
+      bcm_if_t* intf_array,
       void* user_data);
 
   /**
    * Helper functions for populate AclEntry since we don't have
-   * OpenNSL support for Field Processor
+   * Bcm support for Field Processor
    */
   // retrieve all bcm acls of the specified group
   void populateAcls(
@@ -217,7 +215,7 @@ class BcmWarmBootCache {
 
   void populateMirrors();
   void populateMirroredPorts();
-  void populateMirroredPort(opennsl_gport_t port);
+  void populateMirroredPort(bcm_gport_t port);
   void populateMirroredAcl(BcmAclEntryHandle handle);
 
   void checkUnclaimedMirrors();
@@ -226,7 +224,7 @@ class BcmWarmBootCache {
   void populateLabelSwitchActions();
   void removeUnclaimedLabelSwitchActions();
 
-  void populateLabelStack2TunnelId(opennsl_l3_egress_t* egress);
+  void populateLabelStack2TunnelId(bcm_l3_egress_t* egress);
   void removeUnclaimedLabeledTunnels();
   void checkUnclaimedQosMaps();
 
@@ -250,7 +248,7 @@ class BcmWarmBootCache {
     vlan2VlanInfo_.erase(vitr);
   }
   /*
-   * Iterators and find functions for finding opennsl_l2_station_t
+   * Iterators and find functions for finding bcm_l2_station_t
    */
   typedef Vlan2Station::const_iterator Vlan2StationCitr;
   Vlan2StationCitr vlan2Station_beg() const {
@@ -268,7 +266,7 @@ class BcmWarmBootCache {
     vlan2Station_.erase(vsitr);
   }
   /*
-   * Iterators and find functions for finding opennsl_l3_intf_t
+   * Iterators and find functions for finding bcm_l3_intf_t
    */
   typedef VlanAndMac2Intf::const_iterator VlanAndMac2IntfCitr;
   VlanAndMac2IntfCitr vlanAndMac2Intf_beg() const {
@@ -287,7 +285,7 @@ class BcmWarmBootCache {
     vlanAndMac2Intf_.erase(vmitr);
   }
   /*
-   * Iterators and find functions for finding opennsl_l3_egress_t
+   * Iterators and find functions for finding bcm_l3_egress_t
    */
   EgressId getDropEgressId() const {
     return dropEgressId_;
@@ -309,9 +307,9 @@ class BcmWarmBootCache {
     return egressId2Egress_.find(id);
   }
   EgressId2EgressCitr findEgressFromHost(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       const folly::IPAddress& addr,
-      std::optional<opennsl_if_t> intf);
+      std::optional<bcm_if_t> intf);
 
   EgressId2EgressCitr findEgressFromLabeledHostKey(
       const BcmLabeledHostKey& key);
@@ -330,7 +328,7 @@ class BcmWarmBootCache {
     return labelStackKey2TunnelId_.end();
   }
   LabelStackKey2TunnelIdCitr findTunnel(
-      opennsl_vlan_t vlan,
+      bcm_vlan_t vlan,
       const LabelForwardingAction::LabelStack& stack) const {
     return labelStackKey2TunnelId_.find(LabelStackKey(vlan, stack));
   }
@@ -339,7 +337,7 @@ class BcmWarmBootCache {
   }
 
   /*
-   * Iterators and find functions for finding opennsl_l3_host_t
+   * Iterators and find functions for finding bcm_l3_host_t
    */
   typedef VrfAndIP2Host::const_iterator VrfAndIP2HostCitr;
   VrfAndIP2HostCitr vrfAndIP2Host_beg() const {
@@ -348,8 +346,7 @@ class BcmWarmBootCache {
   VrfAndIP2HostCitr vrfAndIP2Host_end() const {
     return vrfIp2Host_.end();
   }
-  VrfAndIP2HostCitr findHost(opennsl_vrf_t vrf, const folly::IPAddress& ip)
-      const {
+  VrfAndIP2HostCitr findHost(bcm_vrf_t vrf, const folly::IPAddress& ip) const {
     return vrfIp2Host_.find(VrfAndIP(vrf, ip));
   }
   void programmed(VrfAndIP2HostCitr vrhitr) {
@@ -359,7 +356,7 @@ class BcmWarmBootCache {
     vrfIp2Host_.erase(vrhitr);
   }
   /*
-   * Iterators and find functions for finding opennsl_l3_route_t
+   * Iterators and find functions for finding bcm_l3_route_t
    */
   typedef VrfAndPrefix2Route::const_iterator VrfAndPfx2RouteCitr;
   VrfAndPfx2RouteCitr vrfAndPrefix2Route_beg() const {
@@ -369,7 +366,7 @@ class BcmWarmBootCache {
     return vrfPrefix2Route_.end();
   }
   VrfAndPfx2RouteCitr
-  findRoute(opennsl_vrf_t vrf, const folly::IPAddress& ip, uint8_t mask) {
+  findRoute(bcm_vrf_t vrf, const folly::IPAddress& ip, uint8_t mask) {
     using folly::IPAddress;
     using folly::IPAddressV4;
     using folly::IPAddressV6;
@@ -399,7 +396,7 @@ class BcmWarmBootCache {
     return vrfAndIP2Route_.end();
   }
   VrfAndIP2RouteCitr findHostRouteFromRouteTable(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       const folly::IPAddress& ip) const {
     return vrfAndIP2Route_.find(VrfAndIP(vrf, ip));
   }
@@ -411,7 +408,7 @@ class BcmWarmBootCache {
   }
 
   /*
-   * Iterators and find functions for opennsl_l3_egress_ecmp_t
+   * Iterators and find functions for bcm_l3_egress_ecmp_t
    */
   typedef EgressIds2Ecmp::const_iterator EgressIds2EcmpCItr;
   EgressIds2EcmpCItr egressIds2Ecmp_begin() {
@@ -455,9 +452,9 @@ class BcmWarmBootCache {
 
   bool unitControlMatches(
       char module,
-      opennsl_switch_control_t switchControl,
+      bcm_switch_control_t switchControl,
       int arg) const;
-  void programmed(char module, opennsl_switch_control_t switchControl);
+  void programmed(char module, bcm_switch_control_t switchControl);
   bool unitControlMatches(
       LoadBalancerID loadBalancerID,
       int switchControl,
@@ -514,14 +511,14 @@ class BcmWarmBootCache {
   MirrorEgressPath2HandleCitr mirrorsBegin() const;
   MirrorEgressPath2HandleCitr mirrorsEnd() const;
   MirrorEgressPath2HandleCitr findMirror(
-      opennsl_gport_t port,
+      bcm_gport_t port,
       const std::optional<MirrorTunnel>& tunnel) const;
   void programmedMirror(MirrorEgressPath2HandleCitr itr);
 
   using MirroredPort2HandleCitr = typename MirroredPort2Handle::const_iterator;
   MirroredPort2HandleCitr mirroredPortsBegin() const;
   MirroredPort2HandleCitr mirroredPortsEnd() const;
-  MirroredPort2HandleCitr findMirroredPort(opennsl_gport_t port, uint32_t flags)
+  MirroredPort2HandleCitr findMirroredPort(bcm_gport_t port, uint32_t flags)
       const;
   void programmedMirroredPort(MirroredPort2HandleCitr itr);
   bool isSflowMirror(BcmMirrorHandle handle) const;
@@ -547,7 +544,7 @@ class BcmWarmBootCache {
     return label2LabelActions_.end();
   }
 
-  Label2LabelActionMapCitr findLabelAction(opennsl_mpls_label_t label) const {
+  Label2LabelActionMapCitr findLabelAction(bcm_mpls_label_t label) const {
     return label2LabelActions_.find(label);
   }
   void programmedLabelAction(Label2LabelActionMapCitr itr) {
@@ -618,8 +615,8 @@ class BcmWarmBootCache {
   EgressId2Egress egressId2Egress_;
   EgressIds2Ecmp egressIds2Ecmp_;
   LabelStackKey2TunnelId labelStackKey2TunnelId_;
-  opennsl_if_t dropEgressId_;
-  opennsl_if_t toCPUEgressId_;
+  bcm_if_t dropEgressId_;
+  bcm_if_t toCPUEgressId_;
   // hwSwitchEcmp2EgressIds_ represents what the mapping
   // from ecmp -> set<egressId> in the in memory BcmEcmpEgress
   // entries (and related host tables).

@@ -3,8 +3,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/state/RouteNextHop.h"
@@ -17,17 +17,17 @@ class BcmSwitch;
 
 class BcmLabeledTunnel {
  public:
-  enum : opennsl_if_t {
+  enum : bcm_if_t {
     INVALID = -1,
   };
 
   BcmLabeledTunnel(
       BcmSwitch* hw,
-      opennsl_if_t intf,
+      bcm_if_t intf,
       LabelForwardingAction::LabelStack stack);
   ~BcmLabeledTunnel();
   std::string str() const;
-  opennsl_if_t getTunnelInterface() const {
+  bcm_if_t getTunnelInterface() const {
     return labeledTunnel_;
   }
   const LabelForwardingAction::LabelStack& getTunnelStack() {
@@ -35,14 +35,14 @@ class BcmLabeledTunnel {
   }
 
  private:
-  opennsl_l3_intf_t getTunnelProperties(opennsl_if_t intf) const;
-  void program(opennsl_if_t intf);
+  bcm_l3_intf_t getTunnelProperties(bcm_if_t intf) const;
+  void program(bcm_if_t intf);
   void setupTunnelLabels();
   void clearTunnelLabels();
 
   BcmSwitch* hw_;
   LabelForwardingAction::LabelStack stack_;
-  opennsl_if_t labeledTunnel_{INVALID};
+  bcm_if_t labeledTunnel_{INVALID};
 };
 
 } // namespace facebook::fboss

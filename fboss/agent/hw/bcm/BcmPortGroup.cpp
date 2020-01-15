@@ -284,7 +284,7 @@ void BcmPortGroup::reconfigureLaneMode(
     bcmPort->disable(swPort);
   }
 
-  // 2. Set the opennslPortControlLanes setting
+  // 2. Set the bcmPortControlLanes setting
   setActiveLanes(ports, newLaneMode);
 
   // 3. Only enable linkscan, and don't enable ports.

@@ -94,11 +94,11 @@
 #include "fboss/agent/types.h"
 
 extern "C" {
-#include <opennsl/link.h>
-#include <opennsl/port.h>
-#include <opennsl/stg.h>
-#include <opennsl/switch.h>
-#include <opennsl/vlan.h>
+#include <bcm/link.h>
+#include <bcm/port.h>
+#include <bcm/stg.h>
+#include <bcm/switch.h>
+#include <bcm/vlan.h>
 }
 
 using std::make_pair;
@@ -151,7 +151,7 @@ constexpr int kLogBcmErrorFreqMs = 3000;
 constexpr folly::StringPiece kAlpmSetting = "l3_alpm_enable";
 
 void rethrowIfHwNotFull(const facebook::fboss::BcmError& error) {
-  if (error.getBcmError() != OPENNSL_E_FULL) {
+  if (error.getBcmError() != BCM_E_FULL) {
     // If this is not because of TCAM being full, rethrow the exception.
     throw error;
   }
@@ -182,9 +182,9 @@ bool bothStandAloneRibOrRouteTableRibUsed(
  */
 const std::map<int, facebook::fboss::L2EntryUpdateType>
     kL2AddrUpdateOperationsOfInterest = {
-        {OPENNSL_L2_CALLBACK_DELETE,
+        {BCM_L2_CALLBACK_DELETE,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
-        {OPENNSL_L2_CALLBACK_ADD,
+        {BCM_L2_CALLBACK_ADD,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
 };
 
@@ -196,13 +196,13 @@ using facebook::fboss::PortDescriptor;
 using facebook::fboss::PortID;
 using facebook::fboss::VlanID;
 
-L2Entry createL2Entry(const opennsl_l2_addr_t* l2Addr, bool isPending) {
+L2Entry createL2Entry(const bcm_l2_addr_t* l2Addr, bool isPending) {
   CHECK(l2Addr);
 
   auto l2EntryType = isPending ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
                                : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 
-  if (!(l2Addr->flags & OPENNSL_L2_TRUNK_MEMBER)) {
+  if (!(l2Addr->flags & BCM_L2_TRUNK_MEMBER)) {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
@@ -319,22 +319,21 @@ void BcmSwitch::resetTables() {
 
 void BcmSwitch::unregisterCallbacks() {
   if (flags_ & RX_REGISTERED) {
-    opennsl_rx_stop(unit_, nullptr);
-    auto rv =
-        opennsl_rx_unregister(unit_, packetRxCallback, kRxCallbackPriority);
-    CHECK(OPENNSL_SUCCESS(rv))
-        << "failed to unregister BcmSwitch rx callback: " << opennsl_errmsg(rv);
+    bcm_rx_stop(unit_, nullptr);
+    auto rv = bcm_rx_unregister(unit_, packetRxCallback, kRxCallbackPriority);
+    CHECK(BCM_SUCCESS(rv)) << "failed to unregister BcmSwitch rx callback: "
+                           << bcm_errmsg(rv);
     flags_ &= ~RX_REGISTERED;
   }
-  // Note that we don't explicitly call opennsl_linkscan_detach() here--
+  // Note that we don't explicitly call bcm_linkscan_detach() here--
   // this call is not thread safe and should only be called from the main
-  // thread.  However, opennsl_detach() / _opennsl_shutdown() will clean up the
+  // thread.  However, bcm_detach() / _bcm_shutdown() will clean up the
   // linkscan module properly.
   if (flags_ & LINKSCAN_REGISTERED) {
-    auto rv = opennsl_linkscan_unregister(unit_, linkscanCallback);
-    CHECK(OPENNSL_SUCCESS(rv)) << "failed to unregister BcmSwitch linkscan "
-                                  "callback: "
-                               << opennsl_errmsg(rv);
+    auto rv = bcm_linkscan_unregister(unit_, linkscanCallback);
+    CHECK(BCM_SUCCESS(rv)) << "failed to unregister BcmSwitch linkscan "
+                              "callback: "
+                           << bcm_errmsg(rv);
 
     stopLinkscanThread();
     flags_ &= ~LINKSCAN_REGISTERED;
@@ -381,25 +380,25 @@ folly::dynamic BcmSwitch::toFollyDynamic() const {
 
 int BcmSwitch::addL2TableCb(
     int /*unit*/,
-    opennsl_l2_addr_t* l2Addr,
+    bcm_l2_addr_t* l2Addr,
     void* userData) {
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
   bcmSw->callback_->l2LearningUpdateReceived(
       createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-      getL2EntryUpdateType(OPENNSL_L2_CALLBACK_ADD));
+      getL2EntryUpdateType(BCM_L2_CALLBACK_ADD));
 
   return 0;
 }
 
 int BcmSwitch::addL2TableCbForPendingOnly(
     int /*unit*/,
-    opennsl_l2_addr_t* l2Addr,
+    bcm_l2_addr_t* l2Addr,
     void* userData) {
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
   if (bcmSw->isL2EntryPending(l2Addr)) {
     bcmSw->callback_->l2LearningUpdateReceived(
         createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-        getL2EntryUpdateType(OPENNSL_L2_CALLBACK_ADD));
+        getL2EntryUpdateType(BCM_L2_CALLBACK_ADD));
   }
 
   return 0;
@@ -407,12 +406,12 @@ int BcmSwitch::addL2TableCbForPendingOnly(
 
 int BcmSwitch::deleteL2TableCb(
     int /*unit*/,
-    opennsl_l2_addr_t* l2Addr,
+    bcm_l2_addr_t* l2Addr,
     void* userData) {
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
   bcmSw->callback_->l2LearningUpdateReceived(
       createL2Entry(l2Addr, bcmSw->isL2EntryPending(l2Addr)),
-      getL2EntryUpdateType(OPENNSL_L2_CALLBACK_DELETE));
+      getL2EntryUpdateType(BCM_L2_CALLBACK_DELETE));
 
   return 0;
 }
@@ -437,9 +436,9 @@ void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
           switchSettings_->getL2LearningMode().has_value()) {
         if (switchSettings_->getL2LearningMode().value() ==
             cfg::L2LearningMode::SOFTWARE) {
-          auto rv = opennsl_l2_traverse(
+          auto rv = bcm_l2_traverse(
               getUnit(), BcmSwitch::addL2TableCbForPendingOnly, this);
-          bcmCheckError(rv, "opennsl_l2_traverse failed");
+          bcmCheckError(rv, "bcm_l2_traverse failed");
         }
       }
       break;
@@ -462,7 +461,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     uint32_t port_flags;
     PortID portID = kv.first;
 
-    auto rv = opennsl_port_learn_get(getUnit(), portID, &port_flags);
+    auto rv = bcm_port_learn_get(getUnit(), portID, &port_flags);
     bcmCheckError(rv, "Unable to get L2 Learning flags for port: ", portID);
 
     if (flags == 0) {
@@ -474,12 +473,12 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   }
 
   // This is cold boot, so there cannot be any L2 update callback registered.
-  // Thus, OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_FWD should be enough to
+  // Thus, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD should be enough to
   // ascertain HARDWARE as L2 learning mode.
   cfg::L2LearningMode l2LearningMode;
-  if (flags == (OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_FWD)) {
+  if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) {
     l2LearningMode = cfg::L2LearningMode::HARDWARE;
-  } else if (flags == (OPENNSL_PORT_LEARN_ARL | OPENNSL_PORT_LEARN_PENDING)) {
+  } else if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING)) {
     l2LearningMode = cfg::L2LearningMode::SOFTWARE;
   } else {
     throw FbossError(
@@ -490,8 +489,8 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   switchSettings->setL2LearningMode(l2LearningMode);
   bootState->resetSwitchSettings(switchSettings);
 
-  opennsl_vlan_t defaultVlan;
-  auto rv = opennsl_vlan_default_get(getUnit(), &defaultVlan);
+  bcm_vlan_t defaultVlan;
+  auto rv = bcm_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
   bootState->setDefaultVlan(VlanID(defaultVlan));
   // get cpu queue settings
@@ -568,14 +567,14 @@ void BcmSwitch::setupLinkscan() {
     initThread("fbossLinkScanBH");
     linkScanBottomHalfEventBase_.loopForever();
   });
-  auto rv = opennsl_linkscan_register(unit_, linkscanCallback);
+  auto rv = bcm_linkscan_register(unit_, linkscanCallback);
   bcmCheckError(rv, "failed to register for linkscan events");
   flags_ |= LINKSCAN_REGISTERED;
-  rv = opennsl_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
+  rv = bcm_linkscan_enable_set(unit_, FLAGS_linkscan_interval_us);
   bcmCheckError(rv, "failed to enable linkscan");
   if (getBootType() == BootType::WARM_BOOT) {
-    opennsl_port_config_t pcfg;
-    rv = opennsl_port_config_get(unit_, &pcfg);
+    bcm_port_config_t pcfg;
+    rv = bcm_port_config_get(unit_, &pcfg);
     bcmCheckError(rv, "failed to get port configuration");
     forceLinkscanOn(pcfg.port);
   }
@@ -600,13 +599,13 @@ void BcmSwitch::setMacAging(std::chrono::seconds agingInterval) {
   int currentSeconds;
   int targetSeconds = agingInterval.count(); // force to 32bit
   bcmCheckError(
-      opennsl_l2_age_timer_get(unit_, &currentSeconds),
+      bcm_l2_age_timer_get(unit_, &currentSeconds),
       "failed to get l2_age_timer");
   if (currentSeconds != targetSeconds) {
     XLOG(DBG1) << "Changing MAC Aging timer from " << currentSeconds << " to "
                << targetSeconds;
     bcmCheckError(
-        opennsl_l2_age_timer_set(unit_, targetSeconds),
+        bcm_l2_age_timer_set(unit_, targetSeconds),
         "failed to set l2_age_timer");
   }
 }
@@ -641,15 +640,15 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   auto fatalCob = make_shared<BcmSwitchEventUnitFatalErrorCallback>();
   auto nonFatalCob = make_shared<BcmSwitchEventUnitNonFatalErrorCallback>();
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_STABLE_FULL, fatalCob);
+      unit_, BCM_SWITCH_EVENT_STABLE_FULL, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_STABLE_ERROR, fatalCob);
+      unit_, BCM_SWITCH_EVENT_STABLE_ERROR, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, fatalCob);
+      unit_, BCM_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, fatalCob);
+      unit_, BCM_SWITCH_EVENT_WARM_BOOT_DOWNGRADE, fatalCob);
   BcmSwitchEventUtils::registerSwitchEventCallback(
-      unit_, OPENNSL_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
+      unit_, BCM_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
 
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
@@ -657,8 +656,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   XLOG(INFO) << " Is ALPM enabled: " << isAlpmEnabled();
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
-  opennsl_port_config_t pcfg;
-  auto rv = opennsl_port_config_get(unit_, &pcfg);
+  bcm_port_config_t pcfg;
+  auto rv = bcm_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
 
   if (!warmBoot) {
@@ -673,28 +672,28 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     dumpState(platform_->getWarmBootHelper()->startupSdkDumpFile());
   }
 
-  rv = opennsl_switch_control_set(unit_, opennslSwitchL3EgressMode, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchL3EgressMode, 1);
   bcmCheckError(rv, "failed to set L3 egress mode");
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
   // TODO: We may want to trap ARP on a per-port or per-VLAN basis.
-  rv = opennsl_switch_control_set(unit_, opennslSwitchArpRequestToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchArpRequestToCpu, 1);
   bcmCheckError(rv, "failed to set ARP request trapping");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchArpReplyToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchArpReplyToCpu, 1);
   bcmCheckError(rv, "failed to set ARP reply trapping");
   // Trap IP header TTL or hoplimit 1 to CPU
-  rv = opennsl_switch_control_set(unit_, opennslSwitchL3UcastTtl1ToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchL3UcastTtl1ToCpu, 1);
   bcmCheckError(rv, "failed to set L3 header error trapping");
   // Trap DHCP packets to CPU
-  rv = opennsl_switch_control_set(unit_, opennslSwitchDhcpPktToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchDhcpPktToCpu, 1);
   bcmCheckError(rv, "failed to set DHCP packet trapping");
   // Trap Dest miss
-  rv = opennsl_switch_control_set(unit_, opennslSwitchUnknownL3DestToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchUnknownL3DestToCpu, 1);
   bcmCheckError(rv, "failed to set destination miss trapping");
-  rv = opennsl_switch_control_set(unit_, opennslSwitchV6L3DstMissToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchV6L3DstMissToCpu, 1);
   bcmCheckError(rv, "failed to set IPv6 destination miss trapping");
   // Trap IPv6 Neighbor Discovery Protocol (NDP) packets.
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
-  rv = opennsl_switch_control_set(unit_, opennslSwitchNdPktToCpu, 1);
+  rv = bcm_switch_control_set(unit_, bcmSwitchNdPktToCpu, 1);
   bcmCheckError(rv, "failed to set NDP trapping");
   disableHotSwap();
 
@@ -708,11 +707,11 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   mmuState_ = queryMmuState();
 
   // enable IPv4 and IPv6 on CPU port
-  opennsl_port_t idx;
-  OPENNSL_PBMP_ITER(pcfg.cpu, idx) {
-    rv = opennsl_port_control_set(unit_, idx, opennslPortControlIP4, 1);
+  bcm_port_t idx;
+  BCM_PBMP_ITER(pcfg.cpu, idx) {
+    rv = bcm_port_control_set(unit_, idx, bcmPortControlIP4, 1);
     bcmCheckError(rv, "failed to enable IPv4 on cpu port ", idx);
-    rv = opennsl_port_control_set(unit_, idx, opennslPortControlIP6, 1);
+    rv = bcm_port_control_set(unit_, idx, bcmPortControlIP6, 1);
     bcmCheckError(rv, "failed to enable IPv6 on cpu port ", idx);
     XLOG(DBG2) << "Enabled IPv4/IPv6 on CPU port " << idx;
   }
@@ -722,7 +721,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   if (warmBoot) {
     // This needs to be done after we have set
-    // opennslSwitchL3EgressMode else the egress ids
+    // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
     warmBootCache_->populate();
   }
@@ -740,9 +739,9 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   //
   // Spanning tree group settings
   // TODO: This should eventually be done as part of applyConfig()
-  opennsl_stg_t stg = 1;
-  OPENNSL_PBMP_ITER(pcfg.port, idx) {
-    rv = opennsl_stg_stp_set(unit_, stg, idx, OPENNSL_STG_STP_FORWARD);
+  bcm_stg_t stg = 1;
+  BCM_PBMP_ITER(pcfg.port, idx) {
+    rv = bcm_stg_stp_set(unit_, stg, idx, BCM_STG_STP_FORWARD);
     bcmCheckError(rv, "failed to set spanning tree state on port ", idx);
   }
 
@@ -775,7 +774,7 @@ void BcmSwitch::setupToCpuEgress() {
 }
 
 void BcmSwitch::setupPacketRx() {
-  static opennsl_rx_cfg_t rxCfg = {
+  static bcm_rx_cfg_t rxCfg = {
       (16 * 1032), // packet alloc size (12K packets plus spare)
       16, // Packets per chain
       0, // Default pkt rate, global (all COS, one unit)
@@ -801,11 +800,11 @@ void BcmSwitch::setupPacketRx() {
     return;
   }
   // Register our packet handler callback function.
-  uint32_t rxFlags = OPENNSL_RCO_F_ALL_COS;
-  auto rv = opennsl_rx_register(
+  uint32_t rxFlags = BCM_RCO_F_ALL_COS;
+  auto rv = bcm_rx_register(
       unit_, // int unit
       "fboss_rx", // const char *name
-      packetRxCallback, // opennsl_rx_cb_f callback
+      packetRxCallback, // bcm_rx_cb_f callback
       kRxCallbackPriority, // uint8 priority
       this, // void *cookie
       rxFlags); // uint32 flags
@@ -813,7 +812,7 @@ void BcmSwitch::setupPacketRx() {
   flags_ |= RX_REGISTERED;
 
   if (!isRxThreadRunning()) {
-    rv = opennsl_rx_start(unit_, &rxCfg);
+    rv = bcm_rx_start(unit_, &rxCfg);
   }
   bcmCheckError(rv, "failed to start broadcom packet rx API");
 }
@@ -1435,7 +1434,7 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 void BcmSwitch::changeDefaultVlan(VlanID id) {
-  auto rv = opennsl_vlan_default_set(unit_, id);
+  auto rv = bcm_vlan_default_set(unit_, id);
   bcmCheckError(rv, "failed to set default VLAN to ", id);
 }
 
@@ -1443,12 +1442,12 @@ void BcmSwitch::processChangedVlan(
     const shared_ptr<Vlan>& oldVlan,
     const shared_ptr<Vlan>& newVlan) {
   // Update port membership
-  opennsl_pbmp_t addedPorts;
-  OPENNSL_PBMP_CLEAR(addedPorts);
-  opennsl_pbmp_t addedUntaggedPorts;
-  OPENNSL_PBMP_CLEAR(addedUntaggedPorts);
-  opennsl_pbmp_t removedPorts;
-  OPENNSL_PBMP_CLEAR(removedPorts);
+  bcm_pbmp_t addedPorts;
+  BCM_PBMP_CLEAR(addedPorts);
+  bcm_pbmp_t addedUntaggedPorts;
+  BCM_PBMP_CLEAR(addedUntaggedPorts);
+  bcm_pbmp_t removedPorts;
+  BCM_PBMP_CLEAR(removedPorts);
   const auto& oldPorts = oldVlan->getPorts();
   const auto& newPorts = newVlan->getPorts();
 
@@ -1462,10 +1461,10 @@ void BcmSwitch::processChangedVlan(
         (newIter != newPorts.end() && newIter->first < oldIter->first)) {
       // This port was added
       ++numAdded;
-      opennsl_port_t bcmPort = portTable_->getBcmPortId(newIter->first);
-      OPENNSL_PBMP_PORT_ADD(addedPorts, bcmPort);
+      bcm_port_t bcmPort = portTable_->getBcmPortId(newIter->first);
+      BCM_PBMP_PORT_ADD(addedPorts, bcmPort);
       if (!newIter->second.tagged) {
-        OPENNSL_PBMP_PORT_ADD(addedUntaggedPorts, bcmPort);
+        BCM_PBMP_PORT_ADD(addedUntaggedPorts, bcmPort);
       }
       ++newIter;
     } else if (
@@ -1473,8 +1472,8 @@ void BcmSwitch::processChangedVlan(
         (oldIter != oldPorts.end() && oldIter->first < newIter->first)) {
       // This port was removed
       ++numRemoved;
-      opennsl_port_t bcmPort = portTable_->getBcmPortId(oldIter->first);
-      OPENNSL_PBMP_PORT_ADD(removedPorts, bcmPort);
+      bcm_port_t bcmPort = portTable_->getBcmPortId(oldIter->first);
+      BCM_PBMP_PORT_ADD(removedPorts, bcmPort);
       ++oldIter;
     } else {
       ++oldIter;
@@ -1485,11 +1484,11 @@ void BcmSwitch::processChangedVlan(
   XLOG(DBG2) << "updating VLAN " << newVlan->getID() << ": " << numAdded
              << " ports added, " << numRemoved << " ports removed";
   if (numRemoved) {
-    auto rv = opennsl_vlan_port_remove(unit_, newVlan->getID(), removedPorts);
+    auto rv = bcm_vlan_port_remove(unit_, newVlan->getID(), removedPorts);
     bcmCheckError(rv, "failed to remove ports from VLAN ", newVlan->getID());
   }
   if (numAdded) {
-    auto rv = opennsl_vlan_port_add(
+    auto rv = bcm_vlan_port_add(
         unit_, newVlan->getID(), addedPorts, addedUntaggedPorts);
     bcmCheckError(rv, "failed to add ports to VLAN ", newVlan->getID());
   }
@@ -1499,16 +1498,16 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
   XLOG(DBG2) << "creating VLAN " << vlan->getID() << " with "
              << vlan->getPorts().size() << " ports";
 
-  opennsl_pbmp_t pbmp;
-  opennsl_pbmp_t ubmp;
-  OPENNSL_PBMP_CLEAR(pbmp);
-  OPENNSL_PBMP_CLEAR(ubmp);
+  bcm_pbmp_t pbmp;
+  bcm_pbmp_t ubmp;
+  BCM_PBMP_CLEAR(pbmp);
+  BCM_PBMP_CLEAR(ubmp);
 
   for (const auto& entry : vlan->getPorts()) {
-    opennsl_port_t bcmPort = portTable_->getBcmPortId(entry.first);
-    OPENNSL_PBMP_PORT_ADD(pbmp, bcmPort);
+    bcm_port_t bcmPort = portTable_->getBcmPortId(entry.first);
+    BCM_PBMP_PORT_ADD(pbmp, bcmPort);
     if (!entry.second.tagged) {
-      OPENNSL_PBMP_PORT_ADD(ubmp, bcmPort);
+      BCM_PBMP_PORT_ADD(ubmp, bcmPort);
     }
   }
   typedef BcmWarmBootCache::VlanInfo VlanInfo;
@@ -1519,8 +1518,8 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
   if (vlanItr != warmBootCache_->vlan2VlanInfo_end()) {
     // Compare with existing vlan to determine if we need to reprogram
     auto equivalent = [](VlanInfo newVlan, VlanInfo existingVlan) {
-      return OPENNSL_PBMP_EQ(newVlan.allPorts, existingVlan.allPorts) &&
-          OPENNSL_PBMP_EQ(newVlan.untagged, existingVlan.untagged);
+      return BCM_PBMP_EQ(newVlan.allPorts, existingVlan.allPorts) &&
+          BCM_PBMP_EQ(newVlan.untagged, existingVlan.untagged);
     };
     const auto& existingVlan = vlanItr->second;
     if (!equivalent(VlanInfo(vlan->getID(), ubmp, pbmp), existingVlan)) {
@@ -1536,9 +1535,9 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
   } else {
     XLOG(DBG1) << "creating VLAN " << vlan->getID() << " with "
                << vlan->getPorts().size() << " ports";
-    auto rv = opennsl_vlan_create(unit_, vlan->getID());
+    auto rv = bcm_vlan_create(unit_, vlan->getID());
     bcmCheckError(rv, "failed to add VLAN ", vlan->getID());
-    rv = opennsl_vlan_port_add(unit_, vlan->getID(), pbmp, ubmp);
+    rv = bcm_vlan_port_add(unit_, vlan->getID(), pbmp, ubmp);
     bcmCheckError(rv, "failed to add members to new VLAN ", vlan->getID());
   }
 }
@@ -1546,14 +1545,14 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
 void BcmSwitch::preprocessRemovedVlan(const shared_ptr<Vlan>& vlan) {
   // Remove all ports from this VLAN at this phase.
   XLOG(DBG2) << "preparing to remove VLAN " << vlan->getID();
-  auto rv = opennsl_vlan_gport_delete_all(unit_, vlan->getID());
+  auto rv = bcm_vlan_gport_delete_all(unit_, vlan->getID());
   bcmCheckError(rv, "failed to remove members from VLAN ", vlan->getID());
 }
 
 void BcmSwitch::processRemovedVlan(const shared_ptr<Vlan>& vlan) {
   XLOG(DBG2) << "removing VLAN " << vlan->getID();
 
-  auto rv = opennsl_vlan_destroy(unit_, vlan->getID());
+  auto rv = bcm_vlan_destroy(unit_, vlan->getID());
   bcmCheckError(rv, "failed to remove VLAN ", vlan->getID());
 }
 
@@ -2049,12 +2048,12 @@ void BcmSwitch::processAddedChangedFibRoutes(
 
 void BcmSwitch::linkscanCallback(
     int unit,
-    opennsl_port_t bcmPort,
-    opennsl_port_info_t* info) {
+    bcm_port_t bcmPort,
+    bcm_port_info_t* info) {
   try {
     BcmUnit* unitObj = BcmAPI::getUnit(unit);
     BcmSwitch* hw = static_cast<BcmSwitch*>(unitObj->getCookie());
-    bool up = info->linkstatus == OPENNSL_PORT_LINK_STATUS_UP;
+    bool up = info->linkstatus == BCM_PORT_LINK_STATUS_UP;
 
     hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
         [hw, bcmPort, up]() { hw->linkStateChangedHwNotLocked(bcmPort, up); });
@@ -2065,7 +2064,7 @@ void BcmSwitch::linkscanCallback(
   }
 }
 
-void BcmSwitch::linkStateChangedHwNotLocked(opennsl_port_t bcmPortId, bool up) {
+void BcmSwitch::linkStateChangedHwNotLocked(bcm_port_t bcmPortId, bool up) {
   CHECK(linkScanBottomHalfEventBase_.inRunningEventBaseThread());
 
   if (!up) {
@@ -2083,20 +2082,19 @@ void BcmSwitch::linkStateChangedHwNotLocked(opennsl_port_t bcmPortId, bool up) {
   callback_->linkStateChanged(portTable_->getPortId(bcmPortId), up);
 }
 
-opennsl_rx_t
-BcmSwitch::packetRxCallback(int unit, opennsl_pkt_t* pkt, void* cookie) {
+bcm_rx_t BcmSwitch::packetRxCallback(int unit, bcm_pkt_t* pkt, void* cookie) {
   auto* bcmSw = static_cast<BcmSwitch*>(cookie);
   DCHECK_EQ(bcmSw->getUnit(), unit);
   DCHECK_EQ(bcmSw->getUnit(), pkt->unit);
   return bcmSw->packetReceived(pkt);
 }
 
-opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
+bcm_rx_t BcmSwitch::packetReceived(bcm_pkt_t* pkt) noexcept {
   // Log it if it's an sFlow sample
   if (handleSflowPacket(pkt)) {
     // It was just here because it was an sFlow packet
-    opennsl_rx_free(pkt->unit, pkt);
-    return OPENNSL_RX_HANDLED_OWNED;
+    bcm_rx_free(pkt->unit, pkt);
+    return BCM_RX_HANDLED_OWNED;
   }
 
   // Otherwise, send it to the SwSwitch
@@ -2106,17 +2104,17 @@ opennsl_rx_t BcmSwitch::packetReceived(opennsl_pkt_t* pkt) noexcept {
   } catch (const std::exception& ex) {
     XLOG(ERR) << "failed to allocate BcmRxPacket for receive handling: "
               << folly::exceptionStr(ex);
-    return OPENNSL_RX_NOT_HANDLED;
+    return BCM_RX_NOT_HANDLED;
   }
 
   callback_->packetReceived(std::move(bcmPkt));
-  return OPENNSL_RX_HANDLED_OWNED;
+  return BCM_RX_HANDLED_OWNED;
 }
 
 bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-  return OPENNSL_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketOutOfPortAsync(
@@ -2129,13 +2127,13 @@ bool BcmSwitch::sendPacketOutOfPortAsync(
   if (queue) {
     bcmPkt->setCos(*queue);
   }
-  return OPENNSL_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-  return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketOutOfPortSync(
@@ -2144,7 +2142,7 @@ bool BcmSwitch::sendPacketOutOfPortSync(
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
-  return OPENNSL_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
 }
 
 bool BcmSwitch::sendPacketOutOfPortSync(
@@ -2175,12 +2173,12 @@ void BcmSwitch::updateStats(SwitchStats* switchStats) {
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
-    opennsl_switch_event_t eventID,
+    bcm_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {
   return BcmSwitchEventUtils::registerSwitchEventCallback(
       unit_, eventID, callback);
 }
-void BcmSwitch::unregisterSwitchEventCallback(opennsl_switch_event_t eventID) {
+void BcmSwitch::unregisterSwitchEventCallback(bcm_switch_event_t eventID) {
   return BcmSwitchEventUtils::unregisterSwitchEventCallback(unit_, eventID);
 }
 
@@ -2207,11 +2205,11 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
-opennsl_if_t BcmSwitch::getDropEgressId() const {
+bcm_if_t BcmSwitch::getDropEgressId() const {
   return BcmEgress::getDropEgressId();
 }
 
-opennsl_if_t BcmSwitch::getToCPUEgressId() const {
+bcm_if_t BcmSwitch::getToCPUEgressId() const {
   if (toCPUEgress_) {
     return toCPUEgress_->getID();
   } else {
@@ -2388,7 +2386,7 @@ BcmSwitch::MmuState BcmSwitch::queryMmuState() const {
 
 void BcmSwitch::l2LearningCallback(
     int unit,
-    opennsl_l2_addr_t* l2Addr,
+    bcm_l2_addr_t* l2Addr,
     int operation,
     void* userData) {
   auto* bcmSw = static_cast<BcmSwitch*>(userData);
@@ -2448,7 +2446,7 @@ void BcmSwitch::l2LearningCallback(
  *  on old port and ADD on new port both for VALIDATED MACs.
  */
 void BcmSwitch::l2LearningUpdateReceived(
-    opennsl_l2_addr_t* l2Addr,
+    bcm_l2_addr_t* l2Addr,
     int operation) noexcept {
   if (l2Addr && isL2OperationOfInterest(operation)) {
     callback_->l2LearningUpdateReceived(

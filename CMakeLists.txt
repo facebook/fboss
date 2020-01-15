@@ -44,12 +44,13 @@ find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
 
-find_library(OPENNSL opennsl)
-find_path(OPENNSL_INCLUDE_DIR NAMES opennsl/tx.h)
-include_directories(${OPENNSL_INCLUDE_DIR})
+find_library(OPENNSA libopennsa.a opennsa)
+find_path(OPENNSA_INCLUDE_DIR NAMES bcm/tx.h)
+include_directories(${OPENNSA_INCLUDE_DIR})
 
-message(STATUS "Found OPENNSL: ${OPENNSL}")
-message(STATUS "Found OPENNSL_INCLUDE_DIR: ${OPENNSL_INCLUDE_DIR}")
+message(STATUS "Found OPENNSA: ${OPENNSA}")
+message(STATUS "Found OPENNSA_INCLUDE_DIR: ${OPENNSA_INCLUDE_DIR}")
+
 
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
 include_directories(${SAI_INCLUDE_DIR})
@@ -659,7 +660,6 @@ target_link_libraries(
     wangle::wangle
     fb303::fb303
     FBThrift::thriftcpp2
-    ${OPENNSL}
     ${USB}
     ${IPROUTE2}
     ${NETLINK3}
@@ -667,6 +667,7 @@ target_link_libraries(
     ${CURL}
     ${SODIUM}
     ${MNL}
+    ${OPENNSA}
 )
 
 target_link_libraries(switch_asics fboss_agent)

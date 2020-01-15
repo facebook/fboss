@@ -3,7 +3,7 @@ namespace py neteng.fboss.packettrace
 
 /*
  * This is modelled after Broadcom BroadView Packet Trace (PT)
- * https://github.com/Broadcom-Switch/OpenNSL/blob/master/include/opennsl/switch.h
+ * https://github.com/Broadcom-Switch/Bcm/blob/master/include/bcm/switch.h
  */
 
 struct PacketTraceHashingInfo {

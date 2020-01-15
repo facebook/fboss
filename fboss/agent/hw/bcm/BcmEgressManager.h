@@ -14,8 +14,8 @@
 #include <folly/SpinLock.h>
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -38,15 +38,15 @@ class BcmEgressManager {
    * declaration of BcmSwitch::linkStateChangedHwNotLocked which
    * explains why we can't hold this lock here.
    */
-  void linkDownHwNotLocked(opennsl_port_t port) {
+  void linkDownHwNotLocked(bcm_port_t port) {
     linkStateChangedMaybeLocked(
         BcmPort::asGPort(port), false /*down*/, false /*not locked*/);
   }
-  void trunkDownHwNotLocked(opennsl_trunk_t trunk) {
+  void trunkDownHwNotLocked(bcm_trunk_t trunk) {
     linkStateChangedMaybeLocked(
         BcmTrunk::asGPort(trunk), false /*down*/, false /*not locked*/);
   }
-  void linkDownHwLocked(opennsl_port_t port) {
+  void linkDownHwLocked(bcm_port_t port) {
     // Just call the non locked counterpart here.
     // We don't really need the lock for link down
     // handling
@@ -56,7 +56,7 @@ class BcmEgressManager {
    * link up handling. Only ever called
    * while holding hw lock.
    */
-  void linkUpHwLocked(opennsl_port_t port) {
+  void linkUpHwLocked(bcm_port_t port) {
     linkStateChangedMaybeLocked(
         BcmPort::asGPort(port), true /*up*/, true /*locked*/);
   }
@@ -64,9 +64,9 @@ class BcmEgressManager {
    * Update port to egressIds mapping
    */
   void updatePortToEgressMapping(
-      opennsl_if_t egressId,
-      opennsl_port_t oldPort,
-      opennsl_port_t newPort);
+      bcm_if_t egressId,
+      bcm_port_t oldPort,
+      bcm_port_t newPort);
   /*
    * Get port -> egressIds map
    */
@@ -75,13 +75,13 @@ class BcmEgressManager {
     return portAndEgressIdsDontUseDirectly_;
   }
 
-  bool isResolved(const opennsl_if_t egressId) const {
+  bool isResolved(const bcm_if_t egressId) const {
     return resolvedEgresses_.find(egressId) != resolvedEgresses_.end();
   }
-  void resolved(const opennsl_if_t egressId) {
+  void resolved(const bcm_if_t egressId) {
     resolvedEgresses_.insert(egressId);
   }
-  void unresolved(const opennsl_if_t egressId) {
+  void unresolved(const bcm_if_t egressId) {
     resolvedEgresses_.erase(egressId);
   }
 
@@ -89,7 +89,7 @@ class BcmEgressManager {
   /*
    * Called both while holding and not holding the hw lock.
    */
-  void linkStateChangedMaybeLocked(opennsl_port_t port, bool up, bool locked);
+  void linkStateChangedMaybeLocked(bcm_port_t port, bool up, bool locked);
   static void egressResolutionChangedHwNotLocked(
       int unit,
       const EgressIdSet& affectedEgressIds,
@@ -97,9 +97,9 @@ class BcmEgressManager {
   // Callback for traversal in egressResolutionChangedHwNotLocked
   static int removeAllEgressesFromEcmpCallback(
       int unit,
-      opennsl_l3_egress_ecmp_t* ecmp, // ecmp object being traversed
+      bcm_l3_egress_ecmp_t* ecmp, // ecmp object being traversed
       int intfCount, // number of egresses in the ecmp group
-      opennsl_if_t* intfArray, // array of egresses in the ecmp group
+      bcm_if_t* intfArray, // array of egresses in the ecmp group
       void* userData); // egresses we intend to remove from the ecmp group
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
 
@@ -118,7 +118,7 @@ class BcmEgressManager {
    */
   std::shared_ptr<PortAndEgressIdsMap> portAndEgressIdsDontUseDirectly_;
   mutable folly::SpinLock portAndEgressIdsLock_;
-  boost::container::flat_set<opennsl_if_t> resolvedEgresses_;
+  boost::container::flat_set<bcm_if_t> resolvedEgresses_;
 };
 
 } // namespace facebook::fboss

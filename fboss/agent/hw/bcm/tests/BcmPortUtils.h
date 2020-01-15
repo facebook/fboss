@@ -14,12 +14,12 @@
 #include "fboss/agent/types.h"
 
 extern "C" {
-#include <opennsl/port.h>
+#include <bcm/port.h>
 }
 
 namespace facebook::fboss::utility {
-bool portEnabled(int unit, opennsl_port_t port);
-cfg::PortSpeed currentPortSpeed(int unit, opennsl_port_t port);
+bool portEnabled(int unit, bcm_port_t port);
+cfg::PortSpeed currentPortSpeed(int unit, bcm_port_t port);
 void assertPort(int unit, int port, bool enabled, cfg::PortSpeed speed);
 void assertPortStatus(int unit, int port);
 void assertPortLoopbackMode(int unit, PortID port, int expectedLoopbackMode);
@@ -37,6 +37,6 @@ void assertPortsSampleDestination(
 void assertPortsFECStatus(
     int unit,
     const std::map<PortID, bool>& port2FECEnabled);
-opennsl_gport_t getPortGport(int unit, int port);
+bcm_gport_t getPortGport(int unit, int port);
 
 } // namespace facebook::fboss::utility

@@ -13,7 +13,7 @@
 #include "fboss/agent/types.h"
 
 extern "C" {
-#include <opennsl/switch.h>
+#include <bcm/switch.h>
 }
 
 namespace facebook::fboss {
@@ -63,7 +63,7 @@ class BcmRtag7LoadBalancer {
   BcmRtag7LoadBalancer(const BcmRtag7LoadBalancer&) = delete;
   BcmRtag7LoadBalancer& operator=(const BcmRtag7LoadBalancer&) = delete;
 
-  opennsl_switch_control_t trunkHashSet0UnicastOffset() const;
+  bcm_switch_control_t trunkHashSet0UnicastOffset() const;
 
   /*
    * The following table encodes the allocation scheme outlined above: each

@@ -13,7 +13,7 @@
 #include <set>
 
 extern "C" {
-#include <opennsl/l3.h>
+#include <bcm/l3.h>
 }
 
 namespace folly {
@@ -27,14 +27,13 @@ class BcmSwitch;
 
 namespace facebook::fboss::utility {
 
-int getEcmpSizeInHw(int unit, opennsl_if_t ecmp, int sizeInSw);
-std::multiset<opennsl_if_t>
-getEcmpGroupInHw(int unit, opennsl_if_t ecmp, int sizeInSw);
+int getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw);
+std::multiset<bcm_if_t> getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw);
 
-opennsl_if_t getEgressIdForRoute(
+bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,
     const folly::IPAddress& ip,
     uint8_t mask,
-    opennsl_vrf_t vrf = 0);
+    bcm_vrf_t vrf = 0);
 
 } // namespace facebook::fboss::utility

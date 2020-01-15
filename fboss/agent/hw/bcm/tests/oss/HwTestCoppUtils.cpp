@@ -12,7 +12,7 @@
 namespace facebook::fboss::utility {
 
 uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
-  // Required APIs not available in opennsl
+  // Required APIs not available in bcm
   return 0;
 }
 

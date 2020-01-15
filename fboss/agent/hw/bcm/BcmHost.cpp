@@ -51,17 +51,16 @@ using folly::MacAddress;
 using std::shared_ptr;
 using std::unique_ptr;
 
-std::string BcmHost::l3HostToString(const opennsl_l3_host_t& host) {
+std::string BcmHost::l3HostToString(const bcm_l3_host_t& host) {
   std::ostringstream os;
-  os << "is v6: " << (host.l3a_flags & OPENNSL_L3_IP6 ? "yes" : "no")
-     << ", is multipath: "
-     << (host.l3a_flags & OPENNSL_L3_MULTIPATH ? "yes" : "no")
+  os << "is v6: " << (host.l3a_flags & BCM_L3_IP6 ? "yes" : "no")
+     << ", is multipath: " << (host.l3a_flags & BCM_L3_MULTIPATH ? "yes" : "no")
      << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf
      << ", lookupClass: " << getLookupClassFromL3Host(host);
   return os.str();
 }
 
-void BcmHost::setEgressId(opennsl_if_t eid) {
+void BcmHost::setEgressId(bcm_if_t eid) {
   if (eid == getEgressId()) {
     // This could happen for loopback interface route.
     // For example, for the loopback interface address, 1.1.1.1/32.
@@ -82,8 +81,8 @@ void BcmHost::setEgressId(opennsl_if_t eid) {
   action_ = DROP;
 }
 
-void BcmHost::initHostCommon(opennsl_l3_host_t* host) const {
-  opennsl_l3_host_t_init(host);
+void BcmHost::initHostCommon(bcm_l3_host_t* host) const {
+  bcm_l3_host_t_init(host);
   const auto& addr = key_.addr();
   if (addr.isV4()) {
     host->l3a_ip_addr = addr.asV4().toLongHBO();
@@ -92,7 +91,7 @@ void BcmHost::initHostCommon(opennsl_l3_host_t* host) const {
         &host->l3a_ip6_addr,
         addr.asV6().toByteArray().data(),
         sizeof(host->l3a_ip6_addr));
-    host->l3a_flags |= OPENNSL_L3_IP6;
+    host->l3a_flags |= BCM_L3_IP6;
   }
   host->l3a_vrf = key_.getVrf();
   host->l3a_intf = getEgressId();
@@ -109,13 +108,13 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
     return;
   }
 
-  opennsl_l3_host_t host;
+  bcm_l3_host_t host;
   initHostCommon(&host);
   if (isMultipath) {
-    host.l3a_flags |= OPENNSL_L3_MULTIPATH;
+    host.l3a_flags |= BCM_L3_MULTIPATH;
   }
   if (replace) {
-    host.l3a_flags |= OPENNSL_L3_REPLACE;
+    host.l3a_flags |= BCM_L3_REPLACE;
   }
 
   bool needToAddInHw = true;
@@ -123,16 +122,16 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
   auto vrfIp2HostCitr = warmBootCache->findHost(key_.getVrf(), addr);
   if (vrfIp2HostCitr != warmBootCache->vrfAndIP2Host_end()) {
     // Lambda to compare if hosts are equivalent
-    auto equivalent = [=](const opennsl_l3_host_t& newHost,
-                          const opennsl_l3_host_t& existingHost) {
+    auto equivalent = [=](const bcm_l3_host_t& newHost,
+                          const bcm_l3_host_t& existingHost) {
       // Compare the flags we care about, I have seen garbage
       // values set on actual non flag bits when reading entries
       // back on warm boot.
       bool flagsEqual =
-          ((existingHost.l3a_flags & OPENNSL_L3_IP6) ==
-               (newHost.l3a_flags & OPENNSL_L3_IP6) &&
-           (existingHost.l3a_flags & OPENNSL_L3_MULTIPATH) ==
-               (newHost.l3a_flags & OPENNSL_L3_MULTIPATH));
+          ((existingHost.l3a_flags & BCM_L3_IP6) ==
+               (newHost.l3a_flags & BCM_L3_IP6) &&
+           (existingHost.l3a_flags & BCM_L3_MULTIPATH) ==
+               (newHost.l3a_flags & BCM_L3_MULTIPATH));
       return flagsEqual && existingHost.l3a_vrf == newHost.l3a_vrf &&
           existingHost.l3a_intf == newHost.l3a_intf &&
           matchLookupClass(host, existingHost);
@@ -147,14 +146,14 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
                  << ", new: " << l3HostToString(host)
                  << ", need to replace the existing one";
       // make sure replace flag is set
-      host.l3a_flags |= OPENNSL_L3_REPLACE;
+      host.l3a_flags |= BCM_L3_REPLACE;
     }
   }
 
   if (needToAddInHw) {
-    XLOG(DBG3) << (host.l3a_flags & OPENNSL_L3_REPLACE ? "Replacing" : "Adding")
+    XLOG(DBG3) << (host.l3a_flags & BCM_L3_REPLACE ? "Replacing" : "Adding")
                << " host entry for : " << addr;
-    auto rc = opennsl_l3_host_add(hw_->getUnit(), &host);
+    auto rc = bcm_l3_host_add(hw_->getUnit(), &host);
     bcmCheckError(
         rc,
         "failed to program L3 host object for ",
@@ -172,9 +171,9 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
 }
 
 void BcmHost::program(
-    opennsl_if_t intf,
+    bcm_if_t intf,
     const MacAddress* mac,
-    opennsl_port_t port,
+    bcm_port_t port,
     RouteForwardAction action,
     std::optional<cfg::AclLookupClass> classID) {
   auto replace = false;
@@ -315,9 +314,9 @@ void BcmHost::program(
 }
 
 void BcmHost::programToTrunk(
-    opennsl_if_t intf,
+    bcm_if_t intf,
     const MacAddress mac,
-    opennsl_trunk_t trunk) {
+    bcm_trunk_t trunk) {
   BcmEgress* egress{nullptr};
   // get the egress object and then update it with the new MAC
   if (!egress_ || egress_->getEgressId() == BcmEgressBase::INVALID) {
@@ -354,9 +353,9 @@ void BcmHost::programToTrunk(
 
 BcmHost::~BcmHost() {
   if (addedInHW_) {
-    opennsl_l3_host_t host;
+    bcm_l3_host_t host;
     initHostCommon(&host);
-    auto rc = opennsl_l3_host_delete(hw_->getUnit(), &host);
+    auto rc = bcm_l3_host_delete(hw_->getUnit(), &host);
     bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", key_.str());
     XLOG(DBG3) << "deleted L3 host object for " << key_.str();
   } else {
@@ -405,16 +404,16 @@ BcmHost* FOLLY_NULLABLE BcmHostTable::getBcmHostIf(const BcmHostKey& key) const
 }
 
 void BcmHostTable::warmBootHostEntriesSynced() {
-  opennsl_port_config_t pcfg;
-  auto rv = opennsl_port_config_get(hw_->getUnit(), &pcfg);
+  bcm_port_config_t pcfg;
+  auto rv = bcm_port_config_get(hw_->getUnit(), &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
   // Ideally we should call this only for ports which were
   // down when we went down, but since we don't record that
   // signal up for all up ports.
   XLOG(DBG1) << "Warm boot host entries synced, signalling link "
                 "up for all up ports";
-  opennsl_port_t idx;
-  OPENNSL_PBMP_ITER(pcfg.port, idx) {
+  bcm_port_t idx;
+  BCM_PBMP_ITER(pcfg.port, idx) {
     // Some ports might have come up or gone down during
     // the time controller was down. So call linkUp/DownHwLocked
     // for these. We could track this better by just calling
@@ -470,9 +469,9 @@ BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
 
 void BcmHostTable::programHostsToTrunk(
     const BcmHostKey& key,
-    opennsl_if_t intf,
+    bcm_if_t intf,
     const MacAddress& mac,
-    opennsl_trunk_t trunk) {
+    bcm_trunk_t trunk) {
   auto* host = getBcmHostIf(key);
   CHECK(host);
   host->programToTrunk(intf, mac, trunk);
@@ -481,9 +480,9 @@ void BcmHostTable::programHostsToTrunk(
 
 void BcmHostTable::programHostsToPort(
     const BcmHostKey& key,
-    opennsl_if_t intf,
+    bcm_if_t intf,
     const MacAddress& mac,
-    opennsl_port_t port,
+    bcm_port_t port,
     std::optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   CHECK(host);
@@ -493,7 +492,7 @@ void BcmHostTable::programHostsToPort(
 
 void BcmHostTable::programHostsToCPU(
     const BcmHostKey& key,
-    opennsl_if_t intf,
+    bcm_if_t intf,
     std::optional<cfg::AclLookupClass> classID) {
   auto* host = getBcmHostIf(key);
   if (host) {

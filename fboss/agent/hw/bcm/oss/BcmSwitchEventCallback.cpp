@@ -17,7 +17,7 @@ namespace facebook::fboss {
 
 void BcmSwitchEventUnitNonFatalErrorCallback::callback(
     const int unit,
-    const opennsl_switch_event_t eventID,
+    const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
     const uint32_t arg3) {
@@ -31,7 +31,7 @@ void BcmSwitchEventUnitNonFatalErrorCallback::callback(
 void BcmSwitchEventUnitNonFatalErrorCallback::logNonFatalError(
     int unit,
     const std::string& alarm,
-    opennsl_switch_event_t eventID,
+    bcm_switch_event_t eventID,
     uint32_t arg1,
     uint32_t arg2,
     uint32_t arg3) {
@@ -41,7 +41,7 @@ void BcmSwitchEventUnitNonFatalErrorCallback::logNonFatalError(
 }
 void BcmSwitchEventUnitFatalErrorCallback::callback(
     const int unit,
-    const opennsl_switch_event_t eventID,
+    const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
     const uint32_t arg3) {

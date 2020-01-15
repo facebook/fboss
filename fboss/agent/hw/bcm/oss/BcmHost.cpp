@@ -12,21 +12,21 @@
 namespace facebook::fboss {
 
 // This should be temporary for the oss build until the needed symbols are added
-// to opennsl. Always returning true should be the same as having no expiration.
+// to bcm. Always returning true should be the same as having no expiration.
 bool BcmHost::getAndClearHitBit() const {
   return true;
 }
 
 bool BcmHost::matchLookupClass(
-    const opennsl_l3_host_t& /*newHost*/,
-    const opennsl_l3_host_t& /*existingHost*/) {
-  // opennsl doesn't support lookup class, so no need to compare and always
+    const bcm_l3_host_t& /*newHost*/,
+    const bcm_l3_host_t& /*existingHost*/) {
+  // bcm doesn't support lookup class, so no need to compare and always
   // returns true
   return true;
 }
-// Since opennsl doesn't support lookup class, no ops
-void BcmHost::setLookupClassToL3Host(opennsl_l3_host_t* /*host*/) const {}
-int BcmHost::getLookupClassFromL3Host(const opennsl_l3_host_t& /*host*/) {
+// Since bcm doesn't support lookup class, no ops
+void BcmHost::setLookupClassToL3Host(bcm_l3_host_t* /*host*/) const {}
+int BcmHost::getLookupClassFromL3Host(const bcm_l3_host_t& /*host*/) {
   return 0;
 }
 std::unique_ptr<BcmEgress> BcmHost::createEgress() {

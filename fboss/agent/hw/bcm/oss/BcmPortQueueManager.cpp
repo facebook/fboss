@@ -13,46 +13,46 @@ namespace facebook::fboss {
 
 std::unique_ptr<PortQueue> BcmPortQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
-    opennsl_cos_queue_t /*cosQ*/) const {
+    bcm_cos_queue_t /*cosQ*/) const {
   return std::unique_ptr<PortQueue>{};
 }
 
 void BcmPortQueueManager::program(const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::updateQueueStat(
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_cos_queue_t /*cosQ*/,
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,
     HwPortStats* /*portStats*/) {}
 
 void BcmPortQueueManager::getAlpha(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     PortQueue* /*queue*/) const {}
 
 void BcmPortQueueManager::programAlpha(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::getAqms(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     PortQueue* /*queue*/) const {}
 
 void BcmPortQueueManager::programAqms(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     const PortQueue& /*queue*/) {}
 
 void BcmPortQueueManager::programAqm(
-    opennsl_gport_t /*gport*/,
+    bcm_gport_t /*gport*/,
     int /*queueIdx*/,
     cfg::QueueCongestionBehavior /*behavior*/,
     std::optional<cfg::QueueCongestionDetection> /*detection*/) {}
 
-int BcmPortQueueManager::CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ) {
+int BcmPortQueueManager::CosQToBcmInternalPriority(bcm_cos_queue_t cosQ) {
   return cosQ;
 }
 

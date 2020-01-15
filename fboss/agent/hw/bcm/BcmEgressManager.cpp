@@ -7,9 +7,9 @@
 namespace facebook::fboss {
 
 void BcmEgressManager::updatePortToEgressMapping(
-    opennsl_if_t egressId,
-    opennsl_gport_t oldGPort,
-    opennsl_gport_t newGPort) {
+    bcm_if_t egressId,
+    bcm_gport_t oldGPort,
+    bcm_gport_t newGPort) {
   auto newMapping = getPortAndEgressIdsMap()->clone();
 
   if (BcmPort::isValidLocalPort(oldGPort) ||
@@ -54,7 +54,7 @@ void BcmEgressManager::setPort2EgressIdsInternal(
 }
 
 void BcmEgressManager::linkStateChangedMaybeLocked(
-    opennsl_gport_t gport,
+    bcm_gport_t gport,
     bool up,
     bool locked) {
   auto portAndEgressIdMapping = getPortAndEgressIdsMap();
@@ -77,16 +77,16 @@ void BcmEgressManager::linkStateChangedMaybeLocked(
 
 int BcmEgressManager::removeAllEgressesFromEcmpCallback(
     int unit,
-    opennsl_l3_egress_ecmp_t* ecmp,
+    bcm_l3_egress_ecmp_t* ecmp,
     int intfCount,
-    opennsl_if_t* intfArray,
+    bcm_if_t* intfArray,
     void* userData) {
   // loop over the egresses present in the ecmp group. For each that is
   // in the passed in list of egresses to remove (userData),
   // remove it from the ecmp group.
   EgressIdSet* egressesToRemove = static_cast<EgressIdSet*>(userData);
   for (int i = 0; i < intfCount; ++i) {
-    opennsl_if_t egressInHw = intfArray[i];
+    bcm_if_t egressInHw = intfArray[i];
     if (egressesToRemove->find(egressInHw) != egressesToRemove->end()) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
           unit, ecmp->ecmp_intf, egressInHw);
@@ -101,7 +101,7 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
     bool up) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
-  opennsl_l3_egress_ecmp_traverse(
+  bcm_l3_egress_ecmp_traverse(
       unit, removeAllEgressesFromEcmpCallback, &tmpEgressIds);
 }
 

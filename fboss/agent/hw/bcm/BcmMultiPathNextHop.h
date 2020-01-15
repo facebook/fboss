@@ -3,8 +3,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/hw/bcm/BcmEgress.h"
@@ -25,7 +25,7 @@ namespace facebook::fboss {
  * BcmMultiPathNextHop simply references another egress entry (which maybe
  * either BcmEgress or BcmEcmpEgress).
  */
-using BcmMultiPathNextHopKey = std::pair<opennsl_vrf_t, RouteNextHopSet>;
+using BcmMultiPathNextHopKey = std::pair<bcm_vrf_t, RouteNextHopSet>;
 
 class BcmNextHop;
 
@@ -33,8 +33,8 @@ class BcmMultiPathNextHop {
  public:
   BcmMultiPathNextHop(const BcmSwitchIf* hw, BcmMultiPathNextHopKey key);
   virtual ~BcmMultiPathNextHop();
-  opennsl_if_t getEgressId() const;
-  opennsl_if_t getEcmpEgressId() const {
+  bcm_if_t getEgressId() const;
+  bcm_if_t getEcmpEgressId() const {
     return ecmpEgress_ ? ecmpEgress_->getID() : BcmEgressBase::INVALID;
   }
 
@@ -46,7 +46,7 @@ class BcmMultiPathNextHop {
   std::shared_ptr<BcmNextHop> refOrEmplaceNextHop(const HostKey& key);
 
   const BcmSwitchIf* hw_;
-  opennsl_vrf_t vrf_;
+  bcm_vrf_t vrf_;
   RouteNextHopSet fwd_;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops_;
   std::unique_ptr<BcmEcmpEgress> ecmpEgress_;
@@ -63,7 +63,7 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
       const EgressIdSet& affectedEgressIds,
       BcmEcmpEgress::Action action);
   void egressResolutionChangedHwLocked(
-      opennsl_if_t affectedPath,
+      bcm_if_t affectedPath,
       BcmEcmpEgress::Action action) {
     EgressIdSet affectedEgressIds;
     affectedEgressIds.insert(affectedPath);

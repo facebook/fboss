@@ -19,9 +19,9 @@
 #include <folly/logging/xlog.h>
 
 extern "C" {
-#include <opennsl/error.h>
-#include <opennsl/l2.h>
-#include <opennsl/link.h>
+#include <bcm/error.h>
+#include <bcm/l2.h>
+#include <bcm/link.h>
 }
 
 /*
@@ -29,7 +29,7 @@ extern "C" {
  */
 namespace facebook::fboss {
 
-std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(opennsl_pkt_t* pkt) {
+std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(bcm_pkt_t* pkt) {
   return std::make_unique<BcmRxPacket>(pkt);
 }
 
@@ -53,12 +53,12 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
 }
 
 void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
-  // OpenNSL doesn't yet provide functions for adding field-processor rules
+  // Bcm doesn't yet provide functions for adding field-processor rules
   // for capturing packets
 }
 
 void BcmSwitch::configureRxRateLimiting() {
-  // OpenNSL doesn't yet provide functions for configuring rate-limiting,
+  // Bcm doesn't yet provide functions for configuring rate-limiting,
   // so rate limiting settings must be baked into the binary driver.
 }
 
@@ -69,7 +69,7 @@ bool BcmSwitch::isRxThreadRunning() const {
   return true;
 }
 
-bool BcmSwitch::handleSflowPacket(opennsl_pkt_t* /* pkt */) noexcept {
+bool BcmSwitch::handleSflowPacket(bcm_pkt_t* /* pkt */) noexcept {
   return false;
 }
 
@@ -79,9 +79,9 @@ std::string BcmSwitch::gatherSdkState() const {
 
 void BcmSwitch::stopLinkscanThread() {
   // Disable the linkscan thread
-  auto rv = opennsl_linkscan_enable_set(unit_, 0);
-  CHECK(OPENNSL_SUCCESS(rv))
-      << "failed to stop BcmSwitch linkscan thread " << opennsl_errmsg(rv);
+  auto rv = bcm_linkscan_enable_set(unit_, 0);
+  CHECK(BCM_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "
+                         << bcm_errmsg(rv);
 }
 
 std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
@@ -92,11 +92,11 @@ std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
 void BcmSwitch::exportSdkVersion() const {}
 
 void BcmSwitch::initFieldProcessor() const {
-  // API not available in opennsl
+  // API not available in bcm
 }
 
 void BcmSwitch::createAclGroup() {
-  // API not available in opennsl
+  // API not available in bcm
 }
 
 // Bcm's ContentAware Processing engine API is not open sourced yet
@@ -106,17 +106,16 @@ void BcmSwitch::processChangedAcl(
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
 void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& /*acl*/) {}
 
-opennsl_gport_t BcmSwitch::getCpuGPort() const {
-  // API not available in opennsl
+bcm_gport_t BcmSwitch::getCpuGPort() const {
+  // API not available in bcm
   return 0;
 }
 
 void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}
 
-void BcmSwitch::forceLinkscanOn(opennsl_pbmp_t /*ports*/) {}
+void BcmSwitch::forceLinkscanOn(bcm_pbmp_t /*ports*/) {}
 
-static int
-_addL2Entry(int /*unit*/, opennsl_l2_addr_t* l2addr, void* user_data) {
+static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
   L2EntryThrift entry;
   auto l2Table = static_cast<std::vector<L2EntryThrift>*>(user_data);
   entry.mac = folly::sformat(
@@ -136,8 +135,8 @@ _addL2Entry(int /*unit*/, opennsl_l2_addr_t* l2addr, void* user_data) {
 }
 
 void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
-  int rv = opennsl_l2_traverse(unit_, _addL2Entry, l2Table);
-  bcmCheckError(rv, "opennsl_l2_traverse failed");
+  int rv = bcm_l2_traverse(unit_, _addL2Entry, l2Table);
+  bcmCheckError(rv, "bcm_l2_traverse failed");
 }
 
 bool BcmSwitch::isValidLabelForwardingEntry(
@@ -149,7 +148,7 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& /*delta*/) {}
 
 void BcmSwitch::disableHotSwap() const {}
 
-bool BcmSwitch::isL2EntryPending(const opennsl_l2_addr_t* /*l2Addr*/) {
+bool BcmSwitch::isL2EntryPending(const bcm_l2_addr_t* /*l2Addr*/) {
   return true;
 }
 

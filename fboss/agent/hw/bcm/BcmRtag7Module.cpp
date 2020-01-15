@@ -30,44 +30,44 @@ namespace facebook::fboss {
 const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleAControl() {
   static const ModuleControl moduleAControl = {
       'A',
-      PreprocessingControl(opennslSwitchHashField0PreProcessEnable),
-      SeedControl(opennslSwitchHashSeed0),
+      PreprocessingControl(bcmSwitchHashField0PreProcessEnable),
+      SeedControl(bcmSwitchHashSeed0),
       {0, 15}, // A_0
       {68, 83}, // A_1
-      IPv4NonTcpUdpFieldSelectionControl(opennslSwitchHashIP4Field0),
-      IPv6NonTcpUdpFieldSelectionControl(opennslSwitchHashIP6Field0),
-      IPv4TcpUdpFieldSelectionControl(opennslSwitchHashIP4TcpUdpField0),
-      IPv6TcpUdpFieldSelectionControl(opennslSwitchHashIP6TcpUdpField0),
+      IPv4NonTcpUdpFieldSelectionControl(bcmSwitchHashIP4Field0),
+      IPv6NonTcpUdpFieldSelectionControl(bcmSwitchHashIP6Field0),
+      IPv4TcpUdpFieldSelectionControl(bcmSwitchHashIP4TcpUdpField0),
+      IPv6TcpUdpFieldSelectionControl(bcmSwitchHashIP6TcpUdpField0),
       IPv4TcpUdpPortsEqualFieldSelectionControl(
-          opennslSwitchHashIP4TcpUdpPortsEqualField0),
+          bcmSwitchHashIP4TcpUdpPortsEqualField0),
       IPv6TcpUdpPortsEqualFieldSelectionControl(
-          opennslSwitchHashIP6TcpUdpPortsEqualField0),
+          bcmSwitchHashIP6TcpUdpPortsEqualField0),
       getTerminatedMPLSFieldSelectionControl('A'),
       getNonTerminatedMPLSFieldSelectionControl('A'),
-      FirstOutputFunctionControl(opennslSwitchHashField0Config),
-      SecondOutputFunctionControl(opennslSwitchHashField0Config1)};
+      FirstOutputFunctionControl(bcmSwitchHashField0Config),
+      SecondOutputFunctionControl(bcmSwitchHashField0Config1)};
   return moduleAControl;
 }
 
 const BcmRtag7Module::ModuleControl BcmRtag7Module::kModuleBControl() {
   static const ModuleControl moduleBControl = {
       'B',
-      PreprocessingControl(opennslSwitchHashField1PreProcessEnable),
-      SeedControl(opennslSwitchHashSeed1),
+      PreprocessingControl(bcmSwitchHashField1PreProcessEnable),
+      SeedControl(bcmSwitchHashSeed1),
       {16, 31}, // B_0
       {84, 99}, // B_1
-      IPv4NonTcpUdpFieldSelectionControl(opennslSwitchHashIP4Field1),
-      IPv6NonTcpUdpFieldSelectionControl(opennslSwitchHashIP6Field1),
-      IPv4TcpUdpFieldSelectionControl(opennslSwitchHashIP4TcpUdpField1),
-      IPv6TcpUdpFieldSelectionControl(opennslSwitchHashIP6TcpUdpField1),
+      IPv4NonTcpUdpFieldSelectionControl(bcmSwitchHashIP4Field1),
+      IPv6NonTcpUdpFieldSelectionControl(bcmSwitchHashIP6Field1),
+      IPv4TcpUdpFieldSelectionControl(bcmSwitchHashIP4TcpUdpField1),
+      IPv6TcpUdpFieldSelectionControl(bcmSwitchHashIP6TcpUdpField1),
       IPv4TcpUdpPortsEqualFieldSelectionControl(
-          opennslSwitchHashIP4TcpUdpPortsEqualField1),
+          bcmSwitchHashIP4TcpUdpPortsEqualField1),
       IPv6TcpUdpPortsEqualFieldSelectionControl(
-          opennslSwitchHashIP6TcpUdpPortsEqualField1),
+          bcmSwitchHashIP6TcpUdpPortsEqualField1),
       getTerminatedMPLSFieldSelectionControl('B'),
       getNonTerminatedMPLSFieldSelectionControl('B'),
-      FirstOutputFunctionControl(opennslSwitchHashField1Config),
-      SecondOutputFunctionControl(opennslSwitchHashField1Config1)};
+      FirstOutputFunctionControl(bcmSwitchHashField1Config),
+      SecondOutputFunctionControl(bcmSwitchHashField1Config1)};
   return moduleBControl;
 }
 
@@ -185,7 +185,7 @@ void BcmRtag7Module::programIPv4FieldSelection(
   int arg = computeIPv4Subfields(v4FieldsRange);
   arg |= computeTransportSubfields(transportFieldsRange);
 
-  // TODO(samank): why do we set OPENNSL_HASH_FIELD_{SRC,DST}L4 here...
+  // TODO(samank): why do we set BCM_HASH_FIELD_{SRC,DST}L4 here...
   int rv = setUnitControl(moduleControl_.ipv4NonTcpUdpFieldSelection, arg);
   bcmCheckError(rv, "failed to config field selection");
 
@@ -213,7 +213,7 @@ void BcmRtag7Module::programIPv6FieldSelection(
   int arg = computeIPv6Subfields(v6FieldsRange);
   arg |= computeTransportSubfields(transportFieldsRange);
 
-  // TODO(samank): why do we set OPENNSL_HASH_FIELD_{SRC,DST}L4 here...
+  // TODO(samank): why do we set BCM_HASH_FIELD_{SRC,DST}L4 here...
   int rv = setUnitControl(moduleControl_.ipv6NonTcpUdpFieldSelection, arg);
   bcmCheckError(rv, "failed to config field selection");
 
@@ -237,8 +237,7 @@ void BcmRtag7Module::enableRtag7(LoadBalancerID loadBalancerID) {
 
   switch (loadBalancerID) {
     case LoadBalancerID::ECMP:
-      rv = setUnitControl(
-          opennslSwitchHashControl, OPENNSL_HASH_CONTROL_ECMP_ENHANCE);
+      rv = setUnitControl(bcmSwitchHashControl, BCM_HASH_CONTROL_ECMP_ENHANCE);
       bcmCheckError(rv, "failed to enable RTAG7 for ECMP");
       break;
     case LoadBalancerID::AGGREGATE_PORT:
@@ -334,12 +333,10 @@ int BcmRtag7Module::computeIPv4Subfields(
   for (const auto& v4Field : v4FieldsRange) {
     switch (v4Field) {
       case LoadBalancer::IPv4Field::SOURCE_ADDRESS:
-        subfields |=
-            (OPENNSL_HASH_FIELD_IP4SRC_LO | OPENNSL_HASH_FIELD_IP4SRC_HI);
+        subfields |= (BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI);
         break;
       case LoadBalancer::IPv4Field::DESTINATION_ADDRESS:
-        subfields |=
-            (OPENNSL_HASH_FIELD_IP4DST_LO | OPENNSL_HASH_FIELD_IP4DST_HI);
+        subfields |= (BCM_HASH_FIELD_IP4DST_LO | BCM_HASH_FIELD_IP4DST_HI);
         break;
     }
   }
@@ -354,12 +351,10 @@ int BcmRtag7Module::computeIPv6Subfields(
   for (const auto& v6Field : v6FieldsRange) {
     switch (v6Field) {
       case LoadBalancer::IPv6Field::SOURCE_ADDRESS:
-        subfields |=
-            (OPENNSL_HASH_FIELD_IP6SRC_LO | OPENNSL_HASH_FIELD_IP6SRC_HI);
+        subfields |= (BCM_HASH_FIELD_IP6SRC_LO | BCM_HASH_FIELD_IP6SRC_HI);
         break;
       case LoadBalancer::IPv6Field::DESTINATION_ADDRESS:
-        subfields |=
-            (OPENNSL_HASH_FIELD_IP6DST_LO | OPENNSL_HASH_FIELD_IP6DST_HI);
+        subfields |= (BCM_HASH_FIELD_IP6DST_LO | BCM_HASH_FIELD_IP6DST_HI);
         break;
       case LoadBalancer::IPv6Field::FLOW_LABEL:
         subfields |= getFlowLabelSubfields();
@@ -377,10 +372,10 @@ int BcmRtag7Module::computeTransportSubfields(
   for (const auto& transportField : transportFieldsRange) {
     switch (transportField) {
       case LoadBalancer::TransportField::SOURCE_PORT:
-        subfields |= OPENNSL_HASH_FIELD_SRCL4;
+        subfields |= BCM_HASH_FIELD_SRCL4;
         break;
       case LoadBalancer::TransportField::DESTINATION_PORT:
-        subfields |= OPENNSL_HASH_FIELD_DSTL4;
+        subfields |= BCM_HASH_FIELD_DSTL4;
         break;
     }
   }
@@ -396,14 +391,14 @@ void BcmRtag7Module::programFieldControl() {
   //    otherwise be deep-parsed.
   // 2) If fields from the inner or outer header should be used in the case
   //    of tunneling.
-  auto rv = setUnitControl(opennslSwitchHashSelectControl, kDefault);
+  auto rv = setUnitControl(bcmSwitchHashSelectControl, kDefault);
   bcmCheckError(rv, "failed to program RTAG7 field control");
 }
 
-int BcmRtag7Module::getUnitControl(int unit, opennsl_switch_control_t type) {
+int BcmRtag7Module::getUnitControl(int unit, bcm_switch_control_t type) {
   int val = 0;
 
-  int rv = opennsl_switch_control_get(unit, type, &val);
+  int rv = bcm_switch_control_get(unit, type, &val);
   bcmCheckError(rv, "failed to retrieve value for ", type);
 
   return val;
@@ -418,10 +413,10 @@ int BcmRtag7Module::setUnitControl(ModuleControlType controlType, int arg) {
 
     wbCache->programmed(moduleControl_.module, controlType);
 
-    return OPENNSL_E_NONE;
+    return BCM_E_NONE;
   }
 
-  return opennsl_switch_control_set(hw_->getUnit(), controlType, arg);
+  return bcm_switch_control_set(hw_->getUnit(), controlType, arg);
 }
 
 BcmRtag7Module::ModuleState BcmRtag7Module::retrieveRtag7ModuleState(

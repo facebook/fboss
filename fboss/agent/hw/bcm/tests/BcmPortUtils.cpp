@@ -12,17 +12,17 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 
 namespace facebook::fboss::utility {
-bool portEnabled(int unit, opennsl_port_t port) {
+bool portEnabled(int unit, bcm_port_t port) {
   int enable = -1;
-  auto rv = opennsl_port_enable_get(unit, port, &enable);
+  auto rv = bcm_port_enable_get(unit, port, &enable);
   bcmCheckError(rv, "failed to get port enable status");
   CHECK(enable == 0 || enable == 1);
   return (enable == 1);
 }
 
-cfg::PortSpeed curPortSpeed(int unit, opennsl_port_t port) {
+cfg::PortSpeed curPortSpeed(int unit, bcm_port_t port) {
   int curSpeed;
-  auto ret = opennsl_port_speed_get(unit, port, &curSpeed);
+  auto ret = bcm_port_speed_get(unit, port, &curSpeed);
   bcmCheckError(ret, "Failed to get current speed for port");
   return cfg::PortSpeed(curSpeed);
 }
@@ -55,8 +55,8 @@ void assertPortSampleDestination(
     PortID port,
     int expectedSampleDestination) {
   int sampleDestination;
-  auto rv = opennsl_port_control_get(
-      unit, port, opennslPortControlSampleIngressDest, &sampleDestination);
+  auto rv = bcm_port_control_get(
+      unit, port, bcmPortControlSampleIngressDest, &sampleDestination);
   bcmCheckError(rv, "Failed to get sample destination for port:", port);
   CHECK_EQ(expectedSampleDestination, sampleDestination);
 }
@@ -70,9 +70,9 @@ void assertPortsSampleDestination(
   }
 }
 
-opennsl_gport_t getPortGport(int unit, int port) {
-  opennsl_gport_t portGport;
-  auto rv = opennsl_port_gport_get(unit, port, &portGport);
+bcm_gport_t getPortGport(int unit, int port) {
+  bcm_gport_t portGport;
+  auto rv = bcm_port_gport_get(unit, port, &portGport);
   facebook::fboss::bcmCheckError(rv, "failed to get gport for port");
   return portGport;
 }

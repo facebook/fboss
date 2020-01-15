@@ -10,9 +10,9 @@
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 
 extern "C" {
-#include <opennsl/error.h>
-#include <opennsl/port.h>
-#include <opennsl/trunk.h>
+#include <bcm/error.h>
+#include <bcm/port.h>
+#include <bcm/trunk.h>
 }
 
 #include <folly/container/Enumerate.h>
@@ -39,7 +39,7 @@ BcmTrunk::~BcmTrunk() {
 
   // At least according to Broadcom's own examples, it is not necessary to
   // remove the member ports of a trunk before destroying the trunk itself
-  auto rv = opennsl_trunk_destroy(hw_->getUnit(), bcmTrunkID_);
+  auto rv = bcm_trunk_destroy(hw_->getUnit(), bcmTrunkID_);
   bcmLogFatal(rv, hw_, "failed to destroy trunk ", bcmTrunkID_);
   XLOG(INFO) << "deleted trunk " << bcmTrunkID_;
 }
@@ -58,20 +58,20 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
     return;
   }
 
-  auto rv = opennsl_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
+  auto rv = bcm_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
   bcmCheckError(
       rv, "failed to create trunk for aggregate port ", aggPort->getID());
   XLOG(INFO) << "created trunk " << bcmTrunkID_ << " for AggregatePort "
              << aggPort->getID();
 
-  opennsl_trunk_info_t info;
-  opennsl_trunk_info_t_init(&info);
-  info.dlf_index = OPENNSL_TRUNK_UNSPEC_INDEX;
-  info.mc_index = OPENNSL_TRUNK_UNSPEC_INDEX;
-  info.ipmc_index = OPENNSL_TRUNK_UNSPEC_INDEX;
+  bcm_trunk_info_t info;
+  bcm_trunk_info_t_init(&info);
+  info.dlf_index = BCM_TRUNK_UNSPEC_INDEX;
+  info.mc_index = BCM_TRUNK_UNSPEC_INDEX;
+  info.ipmc_index = BCM_TRUNK_UNSPEC_INDEX;
   info.psc = BcmTrunk::rtag7();
 
-  vector<opennsl_trunk_member_t> members(aggPort->forwardingSubportCount());
+  vector<bcm_trunk_member_t> members(aggPort->forwardingSubportCount());
 
   PortID subport;
   AggregatePort::Forwarding fwdState;
@@ -81,13 +81,13 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
     if (fwdState == AggregatePort::Forwarding::DISABLED) {
       continue;
     }
-    opennsl_trunk_member_t_init(&members[it.index]);
+    bcm_trunk_member_t_init(&members[it.index]);
     members[it.index].gport =
         hw_->getPortTable()->getBcmPort(subport)->getBcmGport();
     trunkStats_.grantMembership(subport);
   }
 
-  rv = opennsl_trunk_set(
+  rv = bcm_trunk_set(
       hw_->getUnit(), bcmTrunkID_, &info, members.size(), members.data());
   bcmCheckError(rv, "failed to set subports for trunk ", bcmTrunkID_);
 
@@ -134,18 +134,18 @@ void BcmTrunk::programForwardingState(
 }
 
 void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
-  opennsl_trunk_member_t member;
-  opennsl_trunk_member_t_init(&member);
+  bcm_trunk_member_t member;
+  bcm_trunk_member_t_init(&member);
   member.gport = hw_->getPortTable()->getBcmPort(memberPort)->getBcmGport();
   if (added) {
-    auto rv = opennsl_trunk_member_add(hw_->getUnit(), bcmTrunkID_, &member);
+    auto rv = bcm_trunk_member_add(hw_->getUnit(), bcmTrunkID_, &member);
     bcmCheckError(
         rv, "failed to add port ", memberPort, " to trunk ", bcmTrunkID_);
     XLOG(INFO) << "added port " << memberPort << " to trunk " << bcmTrunkID_;
     trunkStats_.grantMembership(memberPort);
   } else { // deleted
-    auto rv = opennsl_trunk_member_delete(hw_->getUnit(), bcmTrunkID_, &member);
-    if (rv == OPENNSL_E_NOT_FOUND) {
+    auto rv = bcm_trunk_member_delete(hw_->getUnit(), bcmTrunkID_, &member);
+    if (rv == BCM_E_NOT_FOUND) {
       // The port may have already been deleted in the link-scan thread
       // and the StateDelta at hand may be the result of the SwitchState
       // catching up to the hardware state
@@ -163,28 +163,28 @@ void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
 
 void BcmTrunk::shrinkTrunkGroupHwNotLocked(
     int unit,
-    opennsl_trunk_t trunk,
-    opennsl_port_t toDisable) {
-  opennsl_gport_t toDisableAsGPort;
-  opennsl_trunk_member_t member;
+    bcm_trunk_t trunk,
+    bcm_port_t toDisable) {
+  bcm_gport_t toDisableAsGPort;
+  bcm_trunk_member_t member;
 
-  auto rv = opennsl_port_gport_get(unit, toDisable, &toDisableAsGPort);
+  auto rv = bcm_port_gport_get(unit, toDisable, &toDisableAsGPort);
   bcmCheckError(
       rv,
       "failed to get gport for bcm port ",
       toDisable,
       " in link-down context");
 
-  opennsl_trunk_member_t_init(&member);
-  member.gport = static_cast<opennsl_gport_t>(toDisableAsGPort);
-  rv = opennsl_trunk_member_delete(unit, trunk, &member);
+  bcm_trunk_member_t_init(&member);
+  member.gport = static_cast<bcm_gport_t>(toDisableAsGPort);
+  rv = bcm_trunk_member_delete(unit, trunk, &member);
 
   // Though unlikely, it is possible for the update thread to have already
   // deleted this member port from the trunk, which would cause
-  // opennsl_trunk_member_delete to return OPENNSL_E_NOT_FOUND. With this in
-  // mind, we ignore the OPENNSL_E_NOT_FOUND error code here and fail hard on
+  // bcm_trunk_member_delete to return BCM_E_NOT_FOUND. With this in
+  // mind, we ignore the BCM_E_NOT_FOUND error code here and fail hard on
   // other error codes.
-  if (rv == OPENNSL_E_NOT_FOUND) {
+  if (rv == BCM_E_NOT_FOUND) {
     return;
   }
   bcmCheckError(
@@ -199,12 +199,12 @@ void BcmTrunk::shrinkTrunkGroupHwNotLocked(
              << " in interrupt context";
 }
 
-std::optional<opennsl_trunk_t>
-BcmTrunk::findTrunk(int unit, opennsl_module_t modid, opennsl_port_t port) {
-  opennsl_trunk_t trunkOut;
-  auto rv = opennsl_trunk_find(unit, modid, port, &trunkOut);
+std::optional<bcm_trunk_t>
+BcmTrunk::findTrunk(int unit, bcm_module_t modid, bcm_port_t port) {
+  bcm_trunk_t trunkOut;
+  auto rv = bcm_trunk_find(unit, modid, port, &trunkOut);
 
-  if (rv == OPENNSL_E_NOT_FOUND) {
+  if (rv == BCM_E_NOT_FOUND) {
     return std::nullopt;
   }
   bcmCheckError(

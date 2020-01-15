@@ -19,7 +19,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
 extern "C" {
-#include <opennsl/switch.h>
+#include <bcm/switch.h>
 }
 
 namespace facebook::fboss {
@@ -30,7 +30,7 @@ namespace facebook::fboss {
  */
 namespace BcmSwitchEventUtils {
 // Initializes/resets event handling for a unit.  This will register or
-// unregister a callback with the OpenNSL SDK and allocate/deallocate our
+// unregister a callback with the Bcm SDK and allocate/deallocate our
 // local state.
 void initUnit(const int unit);
 void resetUnit(const int unit);
@@ -40,37 +40,37 @@ void resetUnit(const int unit);
 // exists. Callbacks are not chained.
 std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
     const int unit,
-    const opennsl_switch_event_t eventID,
+    const bcm_switch_event_t eventID,
     std::shared_ptr<BcmSwitchEventCallback> callback);
 
 // removes all callbacks for a given switch event
 void unregisterSwitchEventCallback(
     const int unit,
-    const opennsl_switch_event_t eventID);
+    const bcm_switch_event_t eventID);
 
-// central callback for opennsl library critical event callbacks (this
-// function is registered with opennsl_switch_event_register)
+// central callback for bcm library critical event callbacks (this
+// function is registered with bcm_switch_event_register)
 void callbackDispatch(
     int unit,
-    opennsl_switch_event_t eventID,
+    bcm_switch_event_t eventID,
     uint32_t arg1,
     uint32_t arg2,
     uint32_t arg3,
     void* instance);
 
 // Return the name of the alarm
-std::string getAlarmName(const opennsl_switch_event_t eventID);
+std::string getAlarmName(const bcm_switch_event_t eventID);
 
 // default callback for non-handled switch events.
 void defaultCallback(
     const int unit,
-    const opennsl_switch_event_t eventID,
+    const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
     const uint32_t arg3);
 
 // Export counters
-void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal);
+void exportEventCounters(const bcm_switch_event_t eventID, bool fatal);
 
 } // namespace BcmSwitchEventUtils
 

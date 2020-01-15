@@ -24,26 +24,25 @@ namespace facebook::fboss {
 
 BcmLabeledTunnel::BcmLabeledTunnel(
     BcmSwitch* hw,
-    opennsl_if_t l3Intf,
+    bcm_if_t l3Intf,
     LabelForwardingAction::LabelStack stack)
     : hw_(hw), stack_(std::move(stack)) {
   program(l3Intf);
 }
 
-opennsl_l3_intf_t BcmLabeledTunnel::getTunnelProperties(
-    opennsl_if_t intfId) const {
-  opennsl_l3_intf_t l3Intf;
+bcm_l3_intf_t BcmLabeledTunnel::getTunnelProperties(bcm_if_t intfId) const {
+  bcm_l3_intf_t l3Intf;
   // read interface attribute, over  which to create labeled tunnel
-  opennsl_l3_intf_t_init(&l3Intf);
+  bcm_l3_intf_t_init(&l3Intf);
   l3Intf.l3a_intf_id = intfId;
-  opennsl_l3_intf_get(hw_->getUnit(), &l3Intf);
+  bcm_l3_intf_get(hw_->getUnit(), &l3Intf);
   // clear relevant fields
   l3Intf.l3a_intf_id = INVALID;
   l3Intf.l3a_flags = 0;
   return l3Intf;
 }
 
-void BcmLabeledTunnel::program(opennsl_if_t l3Intf) {
+void BcmLabeledTunnel::program(bcm_if_t l3Intf) {
   auto intfParams = getTunnelProperties(l3Intf);
 
   auto* wbCache = hw_->getWarmBootCache();
@@ -55,7 +54,7 @@ void BcmLabeledTunnel::program(opennsl_if_t l3Intf) {
     return;
   }
 
-  auto rv = opennsl_l3_intf_create(hw_->getUnit(), &intfParams);
+  auto rv = bcm_l3_intf_create(hw_->getUnit(), &intfParams);
   bcmCheckError(
       rv, "failed to create tunnel interface with ", strLabelStack(stack_));
   labeledTunnel_ = intfParams.l3a_intf_id;
@@ -68,11 +67,11 @@ BcmLabeledTunnel::~BcmLabeledTunnel() {
     return;
   }
   clearTunnelLabels();
-  opennsl_l3_intf_t intf;
-  opennsl_l3_intf_t_init(&intf);
+  bcm_l3_intf_t intf;
+  bcm_l3_intf_t_init(&intf);
   intf.l3a_intf_id = labeledTunnel_;
-  intf.l3a_flags |= OPENNSL_L3_WITH_ID;
-  auto rc = opennsl_l3_intf_delete(hw_->getUnit(), &intf);
+  intf.l3a_flags |= BCM_L3_WITH_ID;
+  auto rc = bcm_l3_intf_delete(hw_->getUnit(), &intf);
   bcmCheckError(rc, "failed to delete mpls tunnel ", labeledTunnel_);
   XLOG(DBG3) << "deleted mpls tunnel " << str();
 }

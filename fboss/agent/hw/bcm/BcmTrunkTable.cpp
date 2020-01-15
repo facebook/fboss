@@ -10,7 +10,7 @@
 #include "BcmTrunkTable.h"
 
 extern "C" {
-#include <opennsl/trunk.h>
+#include <bcm/trunk.h>
 }
 
 #include "BcmSwitch.h"
@@ -28,7 +28,7 @@ BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
 
 BcmTrunkTable::~BcmTrunkTable() {}
 
-opennsl_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
+bcm_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
   auto iter = trunks_.find(id);
   if (iter == trunks_.end()) {
     throw FbossError("Cannot find the BCM trunk id for aggregatePort ", id);
@@ -36,7 +36,7 @@ opennsl_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
   return iter->second->id();
 }
 
-AggregatePortID BcmTrunkTable::getAggregatePortId(opennsl_trunk_t trunk) const {
+AggregatePortID BcmTrunkTable::getAggregatePortId(bcm_trunk_t trunk) const {
   for (const auto& idAndTrunk : trunks_) {
     if (idAndTrunk.second->id() == trunk) {
       return idAndTrunk.first;
@@ -96,17 +96,17 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   trunkToMinLinkCount_.del(trunkID);
 }
 
-/* 1. If opennsl_trunk_t == INVALID, then
+/* 1. If bcm_trunk_t == INVALID, then
  *    a. port does _not_ belong to any trunk port, OR
  *    b. port _does_ belong to a trunk port, but the loss of the port does not
  *       affect layer three reachability (ie. there is at least one physical
  *       member port up)
- * 2. If opennsl_trunk_t != INVALID, then all ECMP egress entries which egress
+ * 2. If bcm_trunk_t != INVALID, then all ECMP egress entries which egress
  *    over this physical port must be shrunk to exclude it.
  */
-opennsl_trunk_t BcmTrunkTable::linkDownHwNotLocked(opennsl_port_t port) {
-  auto maybeTrunk = BcmTrunk::findTrunk(
-      hw_->getUnit(), static_cast<opennsl_module_t>(0), port);
+bcm_trunk_t BcmTrunkTable::linkDownHwNotLocked(bcm_port_t port) {
+  auto maybeTrunk =
+      BcmTrunk::findTrunk(hw_->getUnit(), static_cast<bcm_module_t>(0), port);
 
   if (!maybeTrunk) { // (1.a)
     return facebook::fboss::BcmTrunk::INVALID;

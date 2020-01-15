@@ -20,21 +20,20 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
   BcmControlPlaneQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
-      opennsl_gport_t portGport);
+      bcm_gport_t portGport);
 
   ~BcmControlPlaneQueueManager() {}
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
-  opennsl_gport_t getQueueGPort(
-      cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const override;
+  bcm_gport_t getQueueGPort(cfg::StreamType streamType, bcm_cos_queue_t cosQ)
+      const override;
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
   std::unique_ptr<PortQueue> getCurrentQueueSettings(
       cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const override;
+      bcm_cos_queue_t cosQ) const override;
 
   void program(const PortQueue& queue) override;
 
@@ -52,7 +51,7 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
       delete;
 
   void updateQueueStat(
-      opennsl_cos_queue_t cosQ,
+      bcm_cos_queue_t cosQ,
       const BcmCosQueueCounterType& type,
       facebook::stats::MonotonicCounter* counter,
       std::chrono::seconds now,

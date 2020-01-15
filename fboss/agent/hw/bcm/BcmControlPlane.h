@@ -14,7 +14,7 @@
 #include "fboss/agent/state/ControlPlane.h"
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -31,7 +31,7 @@ class BcmControlPlane {
   /*
    * Getters.
    */
-  opennsl_gport_t getCPUGPort() const {
+  bcm_gport_t getCPUGPort() const {
     return gport_;
   }
   BcmCosQueueManager* getQueueManager() const {
@@ -63,7 +63,7 @@ class BcmControlPlane {
 
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
-  const opennsl_gport_t gport_;
+  const bcm_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
 };
 

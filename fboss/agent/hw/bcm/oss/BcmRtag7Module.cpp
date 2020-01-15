@@ -30,38 +30,38 @@ BcmRtag7Module::kTrunkOutputSelectionControl() {
 }
 
 int BcmRtag7Module::getFlowLabelSubfields() const {
-  throw FbossError("Flow label symbols not exported by OpenNSL");
+  throw FbossError("Flow label symbols not exported by Bcm");
   return 0;
 }
 
 void BcmRtag7Module::enableFlowLabelSelection() {
-  throw FbossError("Flow label symbols not exported by OpenNSL");
+  throw FbossError("Flow label symbols not exported by Bcm");
 }
 
 int BcmRtag7Module::getBcmHashingAlgorithm(
     cfg::HashingAlgorithm algorithm) const {
   if (algorithm == cfg::HashingAlgorithm::CRC16_CCITT) {
-    return OPENNSL_HASH_FIELD_CONFIG_CRC16CCITT;
+    return BCM_HASH_FIELD_CONFIG_CRC16CCITT;
   }
 
   throw FbossError("Unrecognized HashingAlgorithm");
 }
 
 int BcmRtag7Module::getMacroFlowIDHashingAlgorithm() {
-  throw FbossError("No XOR-folded hash functions exported by OpenNSL");
+  throw FbossError("No XOR-folded hash functions exported by Bcm");
   return 0;
 }
 
 int BcmRtag7Module::setUnitControl(int controlType, int arg) {
-  return opennsl_switch_control_set(
-      hw_->getUnit(), static_cast<opennsl_switch_control_t>(controlType), arg);
+  return bcm_switch_control_set(
+      hw_->getUnit(), static_cast<bcm_switch_control_t>(controlType), arg);
 }
 
 int BcmRtag7Module::getUnitControl(int unit, int type) {
   int val;
 
-  int rv = opennsl_switch_control_get(
-      unit, static_cast<opennsl_switch_control_t>(type), &val);
+  int rv = bcm_switch_control_get(
+      unit, static_cast<bcm_switch_control_t>(type), &val);
   bcmCheckError(rv, "failed to retrieve value for ", type);
 
   return val;

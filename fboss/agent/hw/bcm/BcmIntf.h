@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include <boost/container/flat_map.hpp>
@@ -61,7 +61,7 @@ class BcmIntf {
 
   explicit BcmIntf(BcmSwitch* hw);
   virtual ~BcmIntf();
-  opennsl_if_t getBcmIfId() const {
+  bcm_if_t getBcmIfId() const {
     return bcmIfId_;
   }
   const std::shared_ptr<Interface>& getInterface() const {
@@ -84,12 +84,12 @@ class BcmIntf {
   // no copy or assignment
   BcmIntf(BcmIntf const&) = delete;
   BcmIntf& operator=(BcmIntf const&) = delete;
-  enum : opennsl_if_t {
+  enum : bcm_if_t {
     INVALID = -1,
   };
   BcmSwitch* hw_;
   std::shared_ptr<Interface> intf_;
-  opennsl_if_t bcmIfId_{INVALID};
+  bcm_if_t bcmIfId_{INVALID};
   // TODO: we now generate one station entry per interface, even if all
   //       interfaces are sharing the same MAC. We can save some station
   //       entries by just generate one per different MAC. But with
@@ -107,11 +107,11 @@ class BcmIntfTable {
 
   // throw an error if not found
   BcmIntf* getBcmIntf(InterfaceID id) const;
-  BcmIntf* getBcmIntf(opennsl_if_t id) const;
+  BcmIntf* getBcmIntf(bcm_if_t id) const;
 
   // return nullptr if not found
   BcmIntf* getBcmIntfIf(InterfaceID id) const;
-  BcmIntf* getBcmIntfIf(opennsl_if_t id) const;
+  BcmIntf* getBcmIntfIf(bcm_if_t id) const;
 
   // The following functions will modify the object. They rely on the global
   // HW update lock in BcmSwitch::lock_ for the protection.
@@ -130,7 +130,7 @@ class BcmIntfTable {
   // Both are mapped to the BcmIntf. The BcmIntf object's life is
   // controlled by table with InterfaceID as the index (intfs_).
   boost::container::flat_map<InterfaceID, std::unique_ptr<BcmIntf>> intfs_;
-  boost::container::flat_map<opennsl_if_t, BcmIntf*> bcmIntfs_;
+  boost::container::flat_map<bcm_if_t, BcmIntf*> bcmIntfs_;
 };
 
 } // namespace facebook::fboss

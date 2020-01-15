@@ -40,7 +40,7 @@ DEFINE_string(
 extern "C" int bde_create() {
   XLOG(ERR) << "unexpected call to bde_create(): probe invoked "
                "via diag shell command?";
-  return OPENNSL_E_UNAVAIL;
+  return BCM_E_UNAVAIL;
 }
 /*
  * We don't set any default values.

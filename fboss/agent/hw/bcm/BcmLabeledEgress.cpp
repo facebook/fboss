@@ -8,8 +8,8 @@
 namespace facebook::fboss {
 
 BcmWarmBootCache::EgressId2EgressCitr BcmLabeledEgress::findEgress(
-    opennsl_vrf_t vrf,
-    opennsl_if_t intfId,
+    bcm_vrf_t vrf,
+    bcm_if_t intfId,
     const folly::IPAddress& ip) const {
   auto* bcmIntf = hw_->getIntfTable()->getBcmIntf(intfId);
 

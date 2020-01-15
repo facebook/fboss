@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/port.h>
-#include <opennsl/types.h>
+#include <bcm/port.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

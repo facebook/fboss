@@ -41,7 +41,7 @@ void WedgePort::setBcmPort(BcmPort* port) {
 /*
  * TODO: Not much code here yet.
  * For now, QSFP handling on wedge is currently managed by separate tool.
- * We need a little more time to sync up on OpenNSL APIs to get the LED
+ * We need a little more time to sync up on Bcm APIs to get the LED
  * handling code open source.
  */
 

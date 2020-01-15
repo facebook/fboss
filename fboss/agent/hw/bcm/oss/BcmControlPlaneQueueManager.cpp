@@ -16,19 +16,19 @@ namespace facebook::fboss {
 BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     BcmSwitch* hw,
     const std::string& portName,
-    opennsl_gport_t portGport)
+    bcm_gport_t portGport)
     : BcmCosQueueManager(hw, portName, portGport) {}
 
 std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
     cfg::StreamType /*streamType*/,
-    opennsl_cos_queue_t /*cosQ*/) const {
+    bcm_cos_queue_t /*cosQ*/) const {
   return std::unique_ptr<PortQueue>{};
 }
 
 void BcmControlPlaneQueueManager::program(const PortQueue& /*queue*/) {}
 
 void BcmControlPlaneQueueManager::updateQueueStat(
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_cos_queue_t /*cosQ*/,
     const BcmCosQueueCounterType& /*type*/,
     facebook::stats::MonotonicCounter* /*counter*/,
     std::chrono::seconds /*now*/,

@@ -14,13 +14,13 @@
 
 #include <map>
 extern "C" {
-#include <opennsl/port.h>
+#include <bcm/port.h>
 }
 
 namespace facebook::fboss {
 
-using PortSpeed2TransmitterTechAndMode = std::
-    map<cfg::PortSpeed, std::map<TransmitterTechnology, opennsl_port_if_t>>;
+using PortSpeed2TransmitterTechAndMode =
+    std::map<cfg::PortSpeed, std::map<TransmitterTechnology, bcm_port_if_t>>;
 
 const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode();
 

@@ -20,16 +20,15 @@ class BcmPortQueueManager : public BcmCosQueueManager {
   BcmPortQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
-      opennsl_gport_t portGport)
+      bcm_gport_t portGport)
       : BcmCosQueueManager(hw, portName, portGport) {}
 
   ~BcmPortQueueManager() {}
 
   int getNumQueues(cfg::StreamType streamType) const override;
 
-  opennsl_gport_t getQueueGPort(
-      cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const override;
+  bcm_gport_t getQueueGPort(cfg::StreamType streamType, bcm_cos_queue_t cosQ)
+      const override;
 
   BcmPortQueueConfig getCurrentQueueSettings() const override;
 
@@ -38,8 +37,8 @@ class BcmPortQueueManager : public BcmCosQueueManager {
   const std::vector<BcmCosQueueCounterType>& getQueueCounterTypes()
       const override;
 
-  static int CosQToBcmInternalPriority(opennsl_cos_queue_t cosQ);
-  static opennsl_cos_queue_t bcmInternalPriorityToCosQ(int prio);
+  static int CosQToBcmInternalPriority(bcm_cos_queue_t cosQ);
+  static bcm_cos_queue_t bcmInternalPriorityToCosQ(int prio);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -51,45 +50,34 @@ class BcmPortQueueManager : public BcmCosQueueManager {
 
   std::unique_ptr<PortQueue> getCurrentQueueSettings(
       cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const override;
+      bcm_cos_queue_t cosQ) const override;
 
   void updateQueueStat(
-      opennsl_cos_queue_t cosQ,
+      bcm_cos_queue_t cosQ,
       const BcmCosQueueCounterType& type,
       facebook::stats::MonotonicCounter* counter,
       std::chrono::seconds now,
       HwPortStats* portStats = nullptr) override;
 
-  void getAlpha(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      PortQueue* queue) const;
-  void programAlpha(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      const PortQueue& queue);
+  void getAlpha(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue)
+      const;
+  void
+  programAlpha(bcm_gport_t gport, bcm_cos_queue_t cosQ, const PortQueue& queue);
 
-  void getAqms(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      PortQueue* queue) const;
+  void getAqms(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue) const;
 
-  void programAqms(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      const PortQueue& queue);
+  void
+  programAqms(bcm_gport_t gport, bcm_cos_queue_t cosQ, const PortQueue& queue);
 
   // if detection is null, the aqm for such behavior will be reset to default
   void programAqm(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       cfg::QueueCongestionBehavior behavior,
       std::optional<cfg::QueueCongestionDetection> detection);
 
-  void programTrafficClass(
-      opennsl_gport_t queueGport,
-      opennsl_cos_queue_t cosQ,
-      int prio);
+  void
+  programTrafficClass(bcm_gport_t queueGport, bcm_cos_queue_t cosQ, int prio);
 };
 
 } // namespace facebook::fboss

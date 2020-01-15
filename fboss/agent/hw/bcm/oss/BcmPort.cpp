@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 
 extern "C" {
-#include <opennsl/port.h>
+#include <bcm/port.h>
 }
 
 namespace facebook::fboss {
@@ -40,16 +40,16 @@ void BcmPort::setAdditionalStats(
 cfg::PortSpeed BcmPort::getMaxSpeed() const {
   int speed;
   auto unit = hw_->getUnit();
-  auto rv = opennsl_port_speed_max(hw_->getUnit(), port_, &speed);
+  auto rv = bcm_port_speed_max(hw_->getUnit(), port_, &speed);
   bcmCheckError(rv, "Failed to get max speed for port ", port_);
   return cfg::PortSpeed(speed);
 }
 
-opennsl_gport_t BcmPort::asGPort(opennsl_port_t /*port*/) {
-  return static_cast<opennsl_gport_t>(0);
+bcm_gport_t BcmPort::asGPort(bcm_port_t /*port*/) {
+  return static_cast<bcm_gport_t>(0);
 }
 
-bool BcmPort::isValidLocalPort(opennsl_gport_t /*gport*/) {
+bool BcmPort::isValidLocalPort(bcm_gport_t /*gport*/) {
   return false;
 }
 

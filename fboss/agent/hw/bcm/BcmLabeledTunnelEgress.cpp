@@ -17,8 +17,8 @@ namespace facebook::fboss {
 
 BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
     const BcmSwitchIf* hw,
-    opennsl_mpls_label_t label,
-    opennsl_if_t interface,
+    bcm_mpls_label_t label,
+    bcm_if_t interface,
     const LabelForwardingAction::LabelStack& labelStack)
     : BcmLabeledEgress(hw, label),
       tunnel_(hw->getIntfTable()->getBcmIntf(interface)->getBcmLabeledTunnel(
@@ -29,8 +29,8 @@ BcmLabeledTunnelEgress::BcmLabeledTunnelEgress(
 BcmLabeledTunnelEgress::~BcmLabeledTunnelEgress() {}
 
 BcmWarmBootCache::EgressId2EgressCitr BcmLabeledTunnelEgress::findEgress(
-    opennsl_vrf_t vrf,
-    opennsl_if_t intfId,
+    bcm_vrf_t vrf,
+    bcm_if_t intfId,
     const folly::IPAddress& ip) const {
   const auto& tunnelStack = tunnel_->getTunnelStack();
   LabelForwardingAction::LabelStack labels;

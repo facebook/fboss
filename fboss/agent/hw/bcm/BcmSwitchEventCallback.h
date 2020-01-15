@@ -13,7 +13,7 @@
 #include <string>
 
 extern "C" {
-#include <opennsl/switch.h>
+#include <bcm/switch.h>
 }
 
 namespace facebook::fboss {
@@ -31,7 +31,7 @@ class BcmSwitchEventCallback {
   // behavior (eg. logging a fatal error and terminating the program).
   virtual void callback(
       const int unit,
-      const opennsl_switch_event_t eventID,
+      const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
       const uint32_t arg3) = 0;
@@ -52,7 +52,7 @@ class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
 
   void callback(
       const int unit,
-      const opennsl_switch_event_t eventID,
+      const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
       const uint32_t arg3) override;
@@ -69,7 +69,7 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
 
   void callback(
       const int unit,
-      const opennsl_switch_event_t eventID,
+      const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
       const uint32_t arg3) override;
@@ -78,7 +78,7 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
   void logNonFatalError(
       int unit,
       const std::string& alarm,
-      opennsl_switch_event_t eventID,
+      bcm_switch_event_t eventID,
       uint32_t arg1,
       uint32_t arg2,
       uint32_t arg3);

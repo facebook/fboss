@@ -17,19 +17,19 @@
 #include <vector>
 
 extern "C" {
-#include <opennsl/port.h>
+#include <bcm/port.h>
 }
 namespace {
-std::vector<opennsl_vlan_data_t> getVlans(
+std::vector<bcm_vlan_data_t> getVlans(
     const facebook::fboss::HwSwitch* hwSwitch) {
   auto unit =
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
-  opennsl_vlan_data_t* vlanList = nullptr;
+  bcm_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {
-    opennsl_vlan_list_destroy(unit, vlanList, vlanCount);
+    bcm_vlan_list_destroy(unit, vlanList, vlanCount);
   };
-  auto rv = opennsl_vlan_list(unit, &vlanList, &vlanCount);
+  auto rv = bcm_vlan_list(unit, &vlanList, &vlanCount);
   facebook::fboss::bcmCheckError(rv, "failed to list all VLANs");
   return {vlanList, vlanList + vlanCount};
 }
@@ -49,7 +49,7 @@ std::map<VlanID, uint32_t> getVlanToNumPorts(const HwSwitch* hwSwitch) {
   std::map<VlanID, uint32_t> vlan2NumPorts;
   for (const auto& vlanData : getVlans(hwSwitch)) {
     int port_count;
-    OPENNSL_PBMP_COUNT(vlanData.port_bitmap, port_count);
+    BCM_PBMP_COUNT(vlanData.port_bitmap, port_count);
     vlan2NumPorts.emplace(vlanData.vlan_tag, port_count);
   }
   return vlan2NumPorts;

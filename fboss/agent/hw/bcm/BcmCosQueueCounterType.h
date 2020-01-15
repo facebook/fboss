@@ -14,7 +14,7 @@
 namespace facebook::fboss {
 
 /*
- * Since bcm stats type is not OpenNSL supported, define our enums instead.
+ * Since bcm stats type is not Bcm supported, define our enums instead.
  */
 enum class BcmCosQueueStatType {
   DROPPED_PACKETS,

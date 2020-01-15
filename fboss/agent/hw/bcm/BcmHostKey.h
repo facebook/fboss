@@ -12,7 +12,7 @@
 #include <folly/poly/Regular.h>
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/state/RouteNextHop.h"
@@ -24,7 +24,7 @@ struct IHostKey : folly::PolyExtends<
                       folly::poly::IStrictlyOrderable> {
   template <class Base>
   struct Interface : Base {
-    opennsl_vrf_t getVrf() const {
+    bcm_vrf_t getVrf() const {
       return folly::poly_call<0>(*this);
     }
 
@@ -74,16 +74,16 @@ using HostKey = folly::Poly<IHostKey>;
 class BcmHostKey {
  public:
   // Constructor based on the forward info
-  BcmHostKey(opennsl_vrf_t vrf, const NextHop& fwd)
+  BcmHostKey(bcm_vrf_t vrf, const NextHop& fwd)
       : BcmHostKey(vrf, fwd.addr(), fwd.intfID()) {}
 
   // Constructor based on the IP address
   BcmHostKey(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       folly::IPAddress addr,
       std::optional<InterfaceID> intfID = std::nullopt);
 
-  opennsl_vrf_t getVrf() const {
+  bcm_vrf_t getVrf() const {
     return vrf_;
   }
 
@@ -125,7 +125,7 @@ class BcmHostKey {
   friend bool operator<(const BcmHostKey& a, const BcmHostKey& b);
 
  private:
-  opennsl_vrf_t vrf_;
+  bcm_vrf_t vrf_;
   folly::IPAddress addr_;
   std::optional<InterfaceID> intfID_;
 };
@@ -133,14 +133,14 @@ class BcmHostKey {
 class BcmLabeledHostKey {
  public:
   BcmLabeledHostKey(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       uint32_t label,
       folly::IPAddress addr,
       InterfaceID intfID)
       : vrf_(vrf), label_(label), addr_(addr), intfID_(intfID) {}
 
   BcmLabeledHostKey(
-      opennsl_vrf_t vrf,
+      bcm_vrf_t vrf,
       LabelForwardingAction::LabelStack labels,
       folly::IPAddress addr,
       InterfaceID intfID)
@@ -150,7 +150,7 @@ class BcmLabeledHostKey {
     }
   }
 
-  opennsl_vrf_t getVrf() const {
+  bcm_vrf_t getVrf() const {
     return vrf_;
   }
 
@@ -199,14 +199,14 @@ class BcmLabeledHostKey {
       const BcmLabeledHostKey& lhs);
 
  private:
-  opennsl_vrf_t vrf_;
+  bcm_vrf_t vrf_;
   uint32_t label_{0};
   LabelForwardingAction::LabelStack labels_;
   folly::IPAddress addr_;
   InterfaceID intfID_;
 };
 
-HostKey getNextHopKey(opennsl_vrf_t vrf, const NextHop& nexthop);
+HostKey getNextHopKey(bcm_vrf_t vrf, const NextHop& nexthop);
 void toAppend(const HostKey& key, std::string* result);
 std::ostream& operator<<(std::ostream& os, const HostKey& key);
 

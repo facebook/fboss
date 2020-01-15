@@ -3,8 +3,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -22,8 +22,8 @@ class BcmLabeledTunnelEgress;
 class BcmNextHop {
  public:
   virtual ~BcmNextHop() {}
-  virtual opennsl_if_t getEgressId() const = 0;
-  virtual void programToCPU(opennsl_if_t intf) = 0;
+  virtual bcm_if_t getEgressId() const = 0;
+  virtual void programToCPU(bcm_if_t intf) = 0;
   virtual bool isProgrammed() const = 0;
 };
 
@@ -31,9 +31,9 @@ class BcmL3NextHop : public BcmNextHop {
  public:
   BcmL3NextHop(BcmSwitch* hw, BcmHostKey key);
 
-  opennsl_if_t getEgressId() const override;
+  bcm_if_t getEgressId() const override;
 
-  void programToCPU(opennsl_if_t intf) override;
+  void programToCPU(bcm_if_t intf) override;
 
   bool isProgrammed() const override;
 
@@ -49,9 +49,9 @@ class BcmMplsNextHop : public BcmNextHop {
 
   ~BcmMplsNextHop() override;
 
-  opennsl_if_t getEgressId() const override;
+  bcm_if_t getEgressId() const override;
 
-  void programToCPU(opennsl_if_t intf) override;
+  void programToCPU(bcm_if_t intf) override;
 
   bool isProgrammed() const override;
 
@@ -65,12 +65,12 @@ class BcmMplsNextHop : public BcmNextHop {
 
   BcmLabeledTunnelEgress* getBcmLabeledTunnelEgress() const;
 
-  opennsl_gport_t getGPort();
+  bcm_gport_t getGPort();
 
  private:
   std::unique_ptr<BcmEgress> createEgress();
-  void setPort(opennsl_port_t port);
-  void setTrunk(opennsl_trunk_t trunk);
+  void setPort(bcm_port_t port);
+  void setTrunk(bcm_trunk_t trunk);
 
   BcmSwitch* hw_;
   BcmLabeledHostKey key_;

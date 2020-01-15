@@ -13,54 +13,54 @@ namespace facebook::fboss {
 
 int BcmCosQueueManager::getControlValue(
     cfg::StreamType /*streamType*/,
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     BcmCosQueueControlType /*ctrlType*/) const {
   return 0;
 }
 
 void BcmCosQueueManager::programControlValue(
     cfg::StreamType /*streamType*/,
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     BcmCosQueueControlType /*ctrlType*/,
     int /*value*/) {}
 
 void BcmCosQueueManager::getSchedulingAndWeight(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     PortQueue* /*queue*/) const {}
 
 void BcmCosQueueManager::programSchedulingAndWeight(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getReservedBytes(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     PortQueue* /*queue*/) const {}
 void BcmCosQueueManager::programReservedBytes(
-    opennsl_gport_t /*gport*/,
+    bcm_gport_t /*gport*/,
     int /*queueIdx*/,
     const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getSharedBytes(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     PortQueue* /*queue*/) const {}
 void BcmCosQueueManager::programSharedBytes(
-    opennsl_gport_t /*gport*/,
+    bcm_gport_t /*gport*/,
     int /*queueIdx*/,
     const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::getBandwidth(
-    opennsl_gport_t /*gport*/,
+    bcm_gport_t /*gport*/,
     int /*queueIdx*/,
     PortQueue* /*queue*/) const {}
 void BcmCosQueueManager::programBandwidth(
-    opennsl_gport_t /*gport*/,
-    opennsl_cos_queue_t /*cosQ*/,
+    bcm_gport_t /*gport*/,
+    bcm_cos_queue_t /*cosQ*/,
     const PortQueue& /*queue*/) {}
 
 void BcmCosQueueManager::updateQueueAggregatedStat(

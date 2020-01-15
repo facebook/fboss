@@ -64,9 +64,9 @@ int BcmPortQueueManager::getNumQueues(cfg::StreamType streamType) const {
       apache::thrift::util::enumNameSafe(streamType));
 }
 
-opennsl_gport_t BcmPortQueueManager::getQueueGPort(
+bcm_gport_t BcmPortQueueManager::getQueueGPort(
     cfg::StreamType streamType,
-    opennsl_cos_queue_t cosQ) const {
+    bcm_cos_queue_t cosQ) const {
   if (streamType == cfg::StreamType::UNICAST) {
     return cosQueueGports_.unicast.at(cosQ);
   } else if (streamType == cfg::StreamType::MULTICAST) {

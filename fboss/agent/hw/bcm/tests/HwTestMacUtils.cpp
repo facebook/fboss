@@ -14,7 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 extern "C" {
-#include <opennsl/l2.h>
+#include <bcm/l2.h>
 }
 
 namespace facebook::fboss::utility {
@@ -23,7 +23,7 @@ uint32_t getMacAgeTimerSeconds(const facebook::fboss::HwSwitch* hwSwitch) {
   auto unit =
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
   int seconds{0};
-  auto rv = opennsl_l2_age_timer_get(unit, &seconds);
+  auto rv = bcm_l2_age_timer_get(unit, &seconds);
   bcmCheckError(rv, "Unable to get mac age timer value");
   return seconds;
 }
@@ -33,7 +33,7 @@ void setMacAgeTimerSeconds(
     uint32_t seconds) {
   auto unit =
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
-  auto rv = opennsl_l2_age_timer_set(unit, seconds);
+  auto rv = bcm_l2_age_timer_set(unit, seconds);
   bcmCheckError(rv, "Unable to set mac age timer value");
 }
 

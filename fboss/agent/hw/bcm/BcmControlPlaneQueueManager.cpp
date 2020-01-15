@@ -40,9 +40,9 @@ BcmPortQueueConfig BcmControlPlaneQueueManager::getCurrentQueueSettings()
   return BcmPortQueueConfig({}, std::move(multicastQueues));
 }
 
-opennsl_gport_t BcmControlPlaneQueueManager::getQueueGPort(
+bcm_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     cfg::StreamType streamType,
-    opennsl_cos_queue_t cosQ) const {
+    bcm_cos_queue_t cosQ) const {
   if (!hw_->getPlatform()->isCosSupported()) {
     throw FbossError(
         "Failed to retrieve queue gport because platform doesn't support cosq");

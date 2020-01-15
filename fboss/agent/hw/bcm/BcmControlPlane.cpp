@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 namespace {
@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
     : hw_(hw),
-      gport_(OPENNSL_GPORT_LOCAL_CPU),
+      gport_(BCM_GPORT_LOCAL_CPU),
       queueManager_(new BcmControlPlaneQueueManager(hw_, kCPUName, gport_)) {}
 
 void BcmControlPlane::setupQueue(const PortQueue& queue) {

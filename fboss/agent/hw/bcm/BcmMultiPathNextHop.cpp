@@ -55,7 +55,7 @@ std::shared_ptr<BcmNextHop> BcmMultiPathNextHop::refOrEmplaceNextHop(
       folly::poly_cast<facebook::fboss::BcmHostKey>(key));
 }
 
-opennsl_if_t BcmMultiPathNextHop::getEgressId() const {
+bcm_if_t BcmMultiPathNextHop::getEgressId() const {
   return nexthops_.size() > 1 ? getEcmpEgressId()
                               : nexthops_.front()->getEgressId();
 }

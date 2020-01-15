@@ -21,9 +21,8 @@
 #include <chrono>
 
 extern "C" {
-#include <opennsl/init.h>
-#include <opennsl/switch.h>
-#include <sal/driver.h>
+#include <bcm/init.h>
+#include <bcm/switch.h>
 } // extern "C"
 
 using std::chrono::duration;
@@ -42,7 +41,7 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(INFO) << " [Exit] Syncing BRCM switch state to file";
   // Force the device to write out its warm boot state
-  auto rv = opennsl_switch_control_set(unit_, opennslSwitchControlSync, 1);
+  auto rv = bcm_switch_control_set(unit_, bcmSwitchControlSync, 1);
   bcmCheckError(rv, "Unable to sync state for L2 warm boot");
 
   steady_clock::time_point bcmWarmBootSyncDone = steady_clock::now();

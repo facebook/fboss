@@ -28,7 +28,7 @@ struct EnumClassHash {
 
 // Map to store all the callbacks
 using PerUnitCallbackMap = std::unordered_map<
-    opennsl_switch_event_t,
+    bcm_switch_event_t,
     std::shared_ptr<BcmSwitchEventCallback>,
     EnumClassHash>;
 using CallbackMap = std::unordered_map<int, PerUnitCallbackMap>;
@@ -38,14 +38,13 @@ folly::Synchronized<CallbackMap> callbacks;
 void initUnit(const int unit) {
   SYNCHRONIZED(callbacks) {
     if (callbacks.count(unit) > 0) {
-      auto rv =
-          opennsl_switch_event_unregister(unit, callbackDispatch, nullptr);
+      auto rv = bcm_switch_event_unregister(unit, callbackDispatch, nullptr);
       bcmCheckError(rv, "failed to unregister switch event");
     }
 
     // Add a new CallbackMap
     callbacks[unit].clear();
-    auto rv = opennsl_switch_event_register(unit, callbackDispatch, nullptr);
+    auto rv = bcm_switch_event_register(unit, callbackDispatch, nullptr);
     bcmCheckError(rv, "failed to register switch event");
   }
 }
@@ -58,7 +57,7 @@ void resetUnit(const int unit) {
     }
 
     callbacks.erase(unit);
-    auto rv = opennsl_switch_event_unregister(unit, callbackDispatch, nullptr);
+    auto rv = bcm_switch_event_unregister(unit, callbackDispatch, nullptr);
     bcmCheckError(rv, "failed to unregister switch event");
   }
 }
@@ -71,7 +70,7 @@ void resetUnit(const int unit) {
 //          nullptr if no callback for this event exists
 std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
     const int unit,
-    opennsl_switch_event_t eventID,
+    bcm_switch_event_t eventID,
     std::shared_ptr<BcmSwitchEventCallback> callback) {
   std::shared_ptr<BcmSwitchEventCallback> result;
   SYNCHRONIZED(callbacks) {
@@ -92,7 +91,7 @@ std::shared_ptr<BcmSwitchEventCallback> registerSwitchEventCallback(
 // event to the default behavior, which is to log and ignore.
 void unregisterSwitchEventCallback(
     const int unit,
-    const opennsl_switch_event_t eventID) {
+    const bcm_switch_event_t eventID) {
   SYNCHRONIZED(callbacks) {
     auto unitCallbacks = callbacks.find(unit);
     if (unitCallbacks != callbacks.end()) {
@@ -104,7 +103,7 @@ void unregisterSwitchEventCallback(
 // central location for all switch event callbacks
 void callbackDispatch(
     int unit,
-    opennsl_switch_event_t eventID,
+    bcm_switch_event_t eventID,
     uint32_t arg1,
     uint32_t arg2,
     uint32_t arg3,
@@ -129,20 +128,20 @@ void callbackDispatch(
   }
 }
 
-std::string getAlarmName(const opennsl_switch_event_t eventID) {
+std::string getAlarmName(const bcm_switch_event_t eventID) {
   switch (eventID) {
-    case OPENNSL_SWITCH_EVENT_STABLE_FULL:
-      return "OPENNSL_SWITCH_EVENT_STABLE_FULL";
-    case OPENNSL_SWITCH_EVENT_STABLE_ERROR:
-      return "OPENNSL_SWITCH_EVENT_STABLE_ERROR";
-    case OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
-      return "OPENNSL_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
-    case OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
-      return "OPENNSL_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
-    case OPENNSL_SWITCH_EVENT_PARITY_ERROR:
-      return "OPENNSL_SWITCH_EVENT_PARITY_ERROR";
-    case OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER:
-      return "OPENNSL_SWITCH_EVENT_MMU_BST_TRIGGER";
+    case BCM_SWITCH_EVENT_STABLE_FULL:
+      return "BCM_SWITCH_EVENT_STABLE_FULL";
+    case BCM_SWITCH_EVENT_STABLE_ERROR:
+      return "BCM_SWITCH_EVENT_STABLE_ERROR";
+    case BCM_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN:
+      return "BCM_SWITCH_EVENT_UNCONTROLLED_SHUTDOWN";
+    case BCM_SWITCH_EVENT_WARM_BOOT_DOWNGRADE:
+      return "BCM_SWITCH_EVENT_WARM_BOOT_DOWNGRADE";
+    case BCM_SWITCH_EVENT_PARITY_ERROR:
+      return "BCM_SWITCH_EVENT_PARITY_ERROR";
+    case BCM_SWITCH_EVENT_MMU_BST_TRIGGER:
+      return "BCM_SWITCH_EVENT_MMU_BST_TRIGGER";
     default:
       return "UNKNOWN";
   }
@@ -152,7 +151,7 @@ std::string getAlarmName(const opennsl_switch_event_t eventID) {
 // to preserve original system behavior, don't terminate the program
 void defaultCallback(
     const int unit,
-    const opennsl_switch_event_t eventID,
+    const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
     const uint32_t arg3) {
@@ -162,8 +161,8 @@ void defaultCallback(
             << arg2 << ", " << arg3 << ")";
 }
 
-void exportEventCounters(const opennsl_switch_event_t eventID, bool fatal) {
-  if (eventID != OPENNSL_SWITCH_EVENT_PARITY_ERROR) {
+void exportEventCounters(const bcm_switch_event_t eventID, bool fatal) {
+  if (eventID != BCM_SWITCH_EVENT_PARITY_ERROR) {
     BcmStats::get()->asicError();
   } else {
     if (fatal) {

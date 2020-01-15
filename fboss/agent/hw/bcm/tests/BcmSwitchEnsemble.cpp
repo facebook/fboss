@@ -134,7 +134,7 @@ void BcmSwitchEnsemble::dumpHwCounters() const {
 
 std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  auto rv = opennsl_stat_sync(getHwSwitch()->getUnit());
+  auto rv = bcm_stat_sync(getHwSwitch()->getUnit());
   bcmCheckError(rv, "Unable to sync stats ");
   updateHwSwitchStats(getHwSwitch());
   std::map<PortID, HwPortStats> mapPortStats;

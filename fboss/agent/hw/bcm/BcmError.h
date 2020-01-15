@@ -16,8 +16,8 @@
 #include <folly/logging/xlog.h>
 
 extern "C" {
-#include <opennsl/error.h>
-#include <opennsl/pkt.h>
+#include <bcm/error.h>
+#include <bcm/pkt.h>
 #include <shared/error.h>
 }
 
@@ -30,48 +30,48 @@ class BcmError : public FbossError {
  public:
   template <typename... Args>
   BcmError(int err, Args&&... args)
-      : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
-        err_(static_cast<opennsl_error_t>(err)) {}
+      : FbossError(std::forward<Args>(args)..., ": ", bcm_errmsg(err)),
+        err_(static_cast<bcm_error_t>(err)) {}
 
   template <typename... Args>
-  BcmError(opennsl_error_t err, Args&&... args)
-      : FbossError(std::forward<Args>(args)..., ": ", opennsl_errmsg(err)),
+  BcmError(bcm_error_t err, Args&&... args)
+      : FbossError(std::forward<Args>(args)..., ": ", bcm_errmsg(err)),
         err_(err) {}
 
   ~BcmError() throw() override {}
 
-  opennsl_error_t getBcmError() const {
+  bcm_error_t getBcmError() const {
     return err_;
   }
 
  private:
-  opennsl_error_t err_;
+  bcm_error_t err_;
 };
 
 template <typename... Args>
 void bcmCheckError(int err, Args&&... msgArgs) {
-  if (OPENNSL_FAILURE(err)) {
+  if (BCM_FAILURE(err)) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
-              << opennsl_errmsg(err) << ", " << err;
+              << bcm_errmsg(err) << ", " << err;
     throw BcmError(err, std::forward<Args>(msgArgs)...);
   }
 }
 
 template <typename... Args>
 void bcmLogError(int err, Args&&... msgArgs) {
-  if (OPENNSL_FAILURE(err)) {
+  if (BCM_FAILURE(err)) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
-              << opennsl_errmsg(err) << ", " << err;
+              << bcm_errmsg(err) << ", " << err;
   }
 }
 
 template <typename... Args>
 void bcmLogFatal(int err, const BcmSwitchIf* hw, Args&&... msgArgs) {
-  if (OPENNSL_FAILURE(err)) {
+  if (BCM_FAILURE(err)) {
     auto errMsg = folly::sformat(
         "{}: {}, {}",
         folly::to<std::string>(std::forward<Args>(msgArgs)...),
-        opennsl_errmsg(err),
+        bcm_errmsg(err),
         err);
 
     // Make sure we log the error message, in case hw->exitFatal throws.

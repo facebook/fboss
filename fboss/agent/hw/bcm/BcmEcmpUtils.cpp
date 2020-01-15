@@ -16,31 +16,30 @@
 
 namespace facebook::fboss::utility {
 
-std::multiset<opennsl_if_t>
-getEcmpGroupInHw(int unit, opennsl_if_t ecmp, int sizeInSw) {
-  std::multiset<opennsl_if_t> ecmpGroup;
-  opennsl_l3_egress_ecmp_t existing;
-  opennsl_l3_egress_ecmp_t_init(&existing);
+std::multiset<bcm_if_t>
+getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
+  std::multiset<bcm_if_t> ecmpGroup;
+  bcm_l3_egress_ecmp_t existing;
+  bcm_l3_egress_ecmp_t_init(&existing);
   existing.ecmp_intf = ecmp;
-  opennsl_if_t pathsInHw[sizeInSw];
+  bcm_if_t pathsInHw[sizeInSw];
   int pathsInHwCount;
-  opennsl_l3_egress_ecmp_get(
-      unit, &existing, sizeInSw, pathsInHw, &pathsInHwCount);
+  bcm_l3_egress_ecmp_get(unit, &existing, sizeInSw, pathsInHw, &pathsInHwCount);
   for (size_t i = 0; i < pathsInHwCount; ++i) {
     ecmpGroup.insert(pathsInHw[i]);
   }
   return ecmpGroup;
 }
 
-int getEcmpSizeInHw(int unit, opennsl_if_t ecmp, int sizeInSw) {
+int getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
   return getEcmpGroupInHw(unit, ecmp, sizeInSw).size();
 }
 
-opennsl_if_t getEgressIdForRoute(
+bcm_if_t getEgressIdForRoute(
     const BcmSwitch* hw,
     const folly::IPAddress& ip,
     uint8_t mask,
-    opennsl_vrf_t vrf) {
+    bcm_vrf_t vrf) {
   auto bcmRoute = hw->routeTable()->getBcmRoute(vrf, ip, mask);
   return bcmRoute->getEgressId();
 }

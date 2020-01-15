@@ -13,15 +13,15 @@ namespace facebook::fboss {
 
 int BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
     int /* unit */,
-    opennsl_trunk_t /* trunk */,
-    opennsl_port_t /* port */) {
+    bcm_trunk_t /* trunk */,
+    bcm_port_t /* port */) {
   return 0;
 }
 
-opennsl_gport_t BcmTrunk::asGPort(opennsl_trunk_t /* trunk */) {
-  return static_cast<opennsl_gport_t>(0);
+bcm_gport_t BcmTrunk::asGPort(bcm_trunk_t /* trunk */) {
+  return static_cast<bcm_gport_t>(0);
 }
-bool BcmTrunk::isValidTrunkPort(opennsl_gport_t /* gPort */) {
+bool BcmTrunk::isValidTrunkPort(bcm_gport_t /* gPort */) {
   return false;
 }
 

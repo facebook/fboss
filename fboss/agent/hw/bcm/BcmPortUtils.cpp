@@ -17,40 +17,40 @@ const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode() {
   // to a broadcom supported interface
   static const PortSpeed2TransmitterTechAndMode kPortTypeMapping = {
       {cfg::PortSpeed::HUNDREDG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-        {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR4},
+        {TransmitterTechnology::OPTICAL, BCM_PORT_IF_CAUI},
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CAUI}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_CAUI}}},
       {cfg::PortSpeed::FIFTYG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR2},
-        {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR2},
+        {TransmitterTechnology::OPTICAL, BCM_PORT_IF_CAUI},
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR2}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_CR2}}},
       {cfg::PortSpeed::FORTYG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR4},
-        {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_XLAUI},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR4},
+        {TransmitterTechnology::OPTICAL, BCM_PORT_IF_XLAUI},
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_XLAUI}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_XLAUI}}},
       {cfg::PortSpeed::TWENTYFIVEG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-        {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_CAUI},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR},
+        {TransmitterTechnology::OPTICAL, BCM_PORT_IF_CAUI},
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_CR}}},
       {cfg::PortSpeed::TWENTYG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR},
         // We don't expect 20G optics
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_CR}}},
       {cfg::PortSpeed::XG,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_CR},
-        {TransmitterTechnology::OPTICAL, OPENNSL_PORT_IF_SFI},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_CR},
+        {TransmitterTechnology::OPTICAL, BCM_PORT_IF_SFI},
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_CR}}},
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_CR}}},
       {cfg::PortSpeed::GIGE,
-       {{TransmitterTechnology::COPPER, OPENNSL_PORT_IF_GMII},
+       {{TransmitterTechnology::COPPER, BCM_PORT_IF_GMII},
         // We don't expect 1G optics
         // What to default to
-        {TransmitterTechnology::UNKNOWN, OPENNSL_PORT_IF_GMII}}}};
+        {TransmitterTechnology::UNKNOWN, BCM_PORT_IF_GMII}}}};
   return kPortTypeMapping;
 }
 

@@ -10,8 +10,8 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/l3.h>
-#include <opennsl/types.h>
+#include <bcm/l3.h>
+#include <bcm/types.h>
 }
 
 #include <folly/IPAddress.h>
@@ -29,64 +29,60 @@ namespace facebook::fboss {
 
 class BcmSwitchIf;
 
-bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
+bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);
 
 class BcmEgressBase : public boost::noncopyable {
  public:
-  enum : opennsl_if_t {
+  enum : bcm_if_t {
     INVALID = -1,
   };
-  opennsl_if_t getID() const {
+  bcm_if_t getID() const {
     return id_;
   }
   virtual ~BcmEgressBase() {}
   virtual bool isEcmp() const = 0;
   virtual bool hasLabel() const = 0;
-  virtual opennsl_mpls_label_t getLabel() const = 0;
+  virtual bcm_mpls_label_t getLabel() const = 0;
   virtual folly::MacAddress getMac() const = 0;
 
  protected:
   explicit BcmEgressBase(const BcmSwitchIf* hw) : hw_(hw) {}
   // this is used for unittesting
-  BcmEgressBase(const BcmSwitchIf* hw, opennsl_if_t testId)
+  BcmEgressBase(const BcmSwitchIf* hw, bcm_if_t testId)
       : hw_(hw), id_(testId) {}
   const BcmSwitchIf* hw_{nullptr};
-  opennsl_if_t id_{INVALID};
+  bcm_if_t id_{INVALID};
 };
 
 class BcmEgress : public BcmEgressBase {
  public:
   explicit BcmEgress(const BcmSwitchIf* hw) : BcmEgressBase(hw) {}
   // the following c-tor is used for unit-testing
-  BcmEgress(const BcmSwitchIf* hw, opennsl_if_t testId)
+  BcmEgress(const BcmSwitchIf* hw, bcm_if_t testId)
       : BcmEgressBase(hw, testId) {}
   ~BcmEgress() override;
   void programToPort(
-      opennsl_if_t intfId,
-      opennsl_vrf_t vrf,
+      bcm_if_t intfId,
+      bcm_vrf_t vrf,
       const folly::IPAddress& ip,
       folly::MacAddress mac,
-      opennsl_port_t port) {
+      bcm_port_t port) {
     return program(intfId, vrf, ip, &mac, port, NEXTHOPS);
   }
-  void programToCPU(
-      opennsl_if_t intfId,
-      opennsl_vrf_t vrf,
-      const folly::IPAddress& ip) {
+  void
+  programToCPU(bcm_if_t intfId, bcm_vrf_t vrf, const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, TO_CPU);
   }
-  void programToDrop(
-      opennsl_if_t intfId,
-      opennsl_vrf_t vrf,
-      const folly::IPAddress& ip) {
+  void
+  programToDrop(bcm_if_t intfId, bcm_vrf_t vrf, const folly::IPAddress& ip) {
     return program(intfId, vrf, ip, nullptr, 0, DROP);
   }
   void programToTrunk(
-      opennsl_if_t intfId,
-      opennsl_vrf_t /* vrf */,
+      bcm_if_t intfId,
+      bcm_vrf_t /* vrf */,
       const folly::IPAddress& /* ip */,
       folly::MacAddress mac,
-      opennsl_trunk_t trunk);
+      bcm_trunk_t trunk);
 
   bool isEcmp() const override {
     return false;
@@ -105,7 +101,7 @@ class BcmEgress : public BcmEgressBase {
    * to use. Therefore, just use the default one.
    * verifyDropEgressId() is to verify this assumption is correct or not.
    */
-  static opennsl_if_t getDropEgressId() {
+  static bcm_if_t getDropEgressId() {
     return 100000;
   }
   /**
@@ -115,15 +111,15 @@ class BcmEgress : public BcmEgressBase {
   static void verifyDropEgress(int unit);
 
   // Returns if the egress object is programmed to drop
-  static bool programmedToDrop(const opennsl_l3_egress_t& egr) {
-    return egr.flags & OPENNSL_L3_DST_DISCARD;
+  static bool programmedToDrop(const bcm_l3_egress_t& egr) {
+    return egr.flags & BCM_L3_DST_DISCARD;
   }
 
   bool hasLabel() const override {
     return false;
   }
 
-  opennsl_mpls_label_t getLabel() const override {
+  bcm_mpls_label_t getLabel() const override {
     throw FbossError("labeled requested on unlabeled egress");
   }
 
@@ -131,40 +127,38 @@ class BcmEgress : public BcmEgressBase {
     return mac_;
   }
 
-  opennsl_if_t getIntfId() const {
+  bcm_if_t getIntfId() const {
     return intfId_;
   }
 
  protected:
   virtual void prepareEgressObject(
-      opennsl_if_t intfId,
-      opennsl_port_t port,
+      bcm_if_t intfId,
+      bcm_port_t port,
       const std::optional<folly::MacAddress>& mac,
       RouteForwardAction action,
-      opennsl_l3_egress_t* egress) const;
+      bcm_l3_egress_t* egress) const;
 
  private:
-  virtual BcmWarmBootCache::EgressId2EgressCitr findEgress(
-      opennsl_vrf_t vrf,
-      opennsl_if_t intfId,
-      const folly::IPAddress& ip) const;
+  virtual BcmWarmBootCache::EgressId2EgressCitr
+  findEgress(bcm_vrf_t vrf, bcm_if_t intfId, const folly::IPAddress& ip) const;
 
-  bool alreadyExists(const opennsl_l3_egress_t& newEgress) const;
+  bool alreadyExists(const bcm_l3_egress_t& newEgress) const;
   void program(
-      opennsl_if_t intfId,
-      opennsl_vrf_t vrf,
+      bcm_if_t intfId,
+      bcm_vrf_t vrf,
       const folly::IPAddress& ip,
       const folly::MacAddress* mac,
-      opennsl_port_t port,
+      bcm_port_t port,
       RouteForwardAction action);
 
   folly::MacAddress mac_;
-  opennsl_if_t intfId_{INVALID};
+  bcm_if_t intfId_{INVALID};
 };
 
 class BcmEcmpEgress : public BcmEgressBase {
  public:
-  using EgressId = opennsl_if_t;
+  using EgressId = bcm_if_t;
   using EgressIdSet = boost::container::flat_set<EgressId>;
   using Paths = boost::container::flat_multiset<EgressId>;
   enum class Action { SHRINK, EXPAND, SKIP };
@@ -182,7 +176,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   bool hasLabel() const override {
     return false;
   }
-  opennsl_mpls_label_t getLabel() const override {
+  bcm_mpls_label_t getLabel() const override {
     throw FbossError("labeled requested on multipath egress");
   }
   folly::MacAddress getMac() const override {
@@ -206,7 +200,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   const Paths paths_;
 };
 
-bool operator==(const opennsl_l3_egress_t& lhs, const opennsl_l3_egress_t& rhs);
-opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& egress);
+bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);
+bcm_mpls_label_t getLabel(const bcm_l3_egress_t& egress);
 
 } // namespace facebook::fboss

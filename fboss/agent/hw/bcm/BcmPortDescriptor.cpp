@@ -7,7 +7,7 @@
 
 namespace facebook::fboss {
 
-opennsl_gport_t BcmPortDescriptor::asGPort() const {
+bcm_gport_t BcmPortDescriptor::asGPort() const {
   switch (type()) {
     case PortType::PHYSICAL:
       return BcmPort::asGPort(phyPortID());

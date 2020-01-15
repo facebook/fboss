@@ -6,7 +6,7 @@
 #include "fboss/agent/state/LabelForwardingAction.h"
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -17,8 +17,8 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
  public:
   BcmLabeledTunnelEgress(
       const BcmSwitchIf* hw,
-      opennsl_mpls_label_t label,
-      opennsl_if_t interface,
+      bcm_mpls_label_t label,
+      bcm_if_t interface,
       const LabelForwardingAction::LabelStack& labelStack);
   ~BcmLabeledTunnelEgress() override;
   BcmLabeledTunnel* getTunnel() const {
@@ -27,16 +27,16 @@ class BcmLabeledTunnelEgress : public BcmLabeledEgress {
 
  private:
   void prepareEgressObject(
-      opennsl_if_t intfId,
-      opennsl_port_t port,
+      bcm_if_t intfId,
+      bcm_port_t port,
       const std::optional<folly::MacAddress>& mac,
       RouteForwardAction action,
-      opennsl_l3_egress_t* eObj) const override;
+      bcm_l3_egress_t* eObj) const override;
 
  private:
   BcmWarmBootCache::EgressId2EgressCitr findEgress(
-      opennsl_vrf_t vrf,
-      opennsl_if_t intfId,
+      bcm_vrf_t vrf,
+      bcm_if_t intfId,
       const folly::IPAddress& ip) const override;
 
   std::shared_ptr<BcmLabeledTunnel> tunnel_;

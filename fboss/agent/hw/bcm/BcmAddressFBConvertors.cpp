@@ -13,21 +13,21 @@
 
 namespace facebook::fboss {
 
-void macFromBcm(opennsl_mac_t mac, folly::MacAddress* result) {
+void macFromBcm(bcm_mac_t mac, folly::MacAddress* result) {
   result->setFromBinary(folly::ByteRange(mac, folly::MacAddress::SIZE));
 }
-folly::MacAddress macFromBcm(const opennsl_mac_t mac) {
+folly::MacAddress macFromBcm(const bcm_mac_t mac) {
   return folly::MacAddress::fromBinary(
       folly::ByteRange(mac, folly::MacAddress::SIZE));
 }
-void macToBcm(folly::MacAddress mac, opennsl_mac_t* result) {
+void macToBcm(folly::MacAddress mac, bcm_mac_t* result) {
   memcpy(result, mac.bytes(), folly::MacAddress::SIZE);
 }
 
 // On some dual stack BCM functions, both v4 and v6 addresses are packed into
-// the _same_ opennsl_ip6_t class.
-void ipToBcmIp6(const folly::IPAddress& ip, opennsl_ip6_t* bcmIp6) {
-  memset(bcmIp6, 0, sizeof(opennsl_ip6_t));
+// the _same_ bcm_ip6_t class.
+void ipToBcmIp6(const folly::IPAddress& ip, bcm_ip6_t* bcmIp6) {
+  memset(bcmIp6, 0, sizeof(bcm_ip6_t));
   if (ip.isV6()) {
     memcpy(bcmIp6, ip.bytes(), ip.byteCount());
   } else {
@@ -35,14 +35,14 @@ void ipToBcmIp6(const folly::IPAddress& ip, opennsl_ip6_t* bcmIp6) {
   }
 }
 
-folly::IPAddress ipFromBcm(opennsl_ip6_t bcmIp6) {
+folly::IPAddress ipFromBcm(bcm_ip6_t bcmIp6) {
   return folly::IPAddress::fromBinary(folly::ByteRange(bcmIp6, 16));
 }
 
 void networkToBcmIp6(
     const folly::CIDRNetwork& network,
-    opennsl_ip6_t* ip,
-    opennsl_ip6_t* mask) {
+    bcm_ip6_t* ip,
+    bcm_ip6_t* mask) {
   ipToBcmIp6(network.first, ip);
   if (network.first.isV4()) {
     ipToBcmIp6(

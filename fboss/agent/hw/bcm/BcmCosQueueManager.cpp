@@ -18,7 +18,7 @@ namespace facebook::fboss {
 BcmCosQueueManager::BcmCosQueueManager(
     BcmSwitch* hw,
     const std::string& portName,
-    opennsl_gport_t portGport)
+    bcm_gport_t portGport)
     : hw_(hw), portName_(portName), portGport_(portGport) {
   if (hw_->getPlatform()->isCosSupported()) {
     // Make sure we get all the queue gports from hardware for portGport

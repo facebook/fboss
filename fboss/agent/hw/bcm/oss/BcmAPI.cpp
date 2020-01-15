@@ -13,9 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 #include <stdlib.h>
-extern "C" {
-#include <sal/driver.h>
-}
+extern "C" {}
 
 /*
  * Linking with BCM libs requires us to define a ibde_t*

@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 extern "C" {
-#include <opennsl/rx.h>
+#include <bcm/rx.h>
 }
 
 using folly::IOBuf;
@@ -18,17 +18,17 @@ namespace {
 
 void freeRxBuf(void* ptr, void* arg) {
   intptr_t unit = reinterpret_cast<intptr_t>(arg);
-  opennsl_rx_free(unit, ptr);
+  bcm_rx_free(unit, ptr);
 }
 
 } // namespace
 
 namespace facebook::fboss {
 
-BcmRxPacket::BcmRxPacket(const opennsl_pkt_t* pkt) : unit_(pkt->unit) {
+BcmRxPacket::BcmRxPacket(const bcm_pkt_t* pkt) : unit_(pkt->unit) {
   // The BCM RX code always uses a single buffer.
   // As long as there is just a single buffer, we don't need to allocate
-  // a separate array of opennsl_pkt_blk_t objects.
+  // a separate array of bcm_pkt_blk_t objects.
 
   CHECK_EQ(pkt->blk_count, 1);
   CHECK_EQ(pkt->pkt_data, &pkt->_pkt_data);

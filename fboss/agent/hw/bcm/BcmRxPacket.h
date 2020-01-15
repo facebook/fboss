@@ -12,7 +12,7 @@
 #include "fboss/agent/RxPacket.h"
 
 extern "C" {
-#include <opennsl/pkt.h>
+#include <bcm/pkt.h>
 }
 
 namespace facebook::fboss {
@@ -20,12 +20,12 @@ namespace facebook::fboss {
 class BcmRxPacket : public RxPacket {
  public:
   /*
-   * Create a BcmRxPacket from a opennsl_pkt_t received by an rx callback.
+   * Create a BcmRxPacket from a bcm_pkt_t received by an rx callback.
    *
-   * The rx callback should return OPENNSL_RX_HANDLED_OWNED after successful
+   * The rx callback should return BCM_RX_HANDLED_OWNED after successful
    * creation of the BcmRxPacket.
    */
-  explicit BcmRxPacket(const opennsl_pkt_t* pkt);
+  explicit BcmRxPacket(const bcm_pkt_t* pkt);
 
   ~BcmRxPacket() override;
 

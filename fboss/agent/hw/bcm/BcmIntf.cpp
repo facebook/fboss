@@ -10,7 +10,7 @@
 #include "BcmIntf.h"
 
 extern "C" {
-#include <opennsl/l2.h>
+#include <bcm/l2.h>
 }
 
 #include <folly/IPAddress.h>
@@ -36,21 +36,21 @@ BcmStation::~BcmStation() {
   if (id_ == INVALID) {
     return;
   }
-  auto rc = opennsl_l2_station_delete(hw_->getUnit(), id_);
+  auto rc = bcm_l2_station_delete(hw_->getUnit(), id_);
   bcmLogFatal(rc, hw_, "failed to delete station entry ", id_);
   XLOG(DBG3) << "deleted station entry " << id_;
 }
 
 void BcmStation::program(MacAddress mac, int id) {
   CHECK_EQ(INVALID, id_);
-  opennsl_l2_station_t params;
-  opennsl_l2_station_t_init(&params);
+  bcm_l2_station_t params;
+  bcm_l2_station_t_init(&params);
   memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
-  params.flags |= OPENNSL_L2_STATION_IPV4 | OPENNSL_L2_STATION_IPV6 |
-      OPENNSL_L2_STATION_ARP_RARP | BcmStation::getAdditionalFlags();
+  params.flags |= BCM_L2_STATION_IPV4 | BCM_L2_STATION_IPV6 |
+      BCM_L2_STATION_ARP_RARP | BcmStation::getAdditionalFlags();
   if (id != INVALID) {
-    params.flags |= OPENNSL_L2_STATION_WITH_ID;
+    params.flags |= BCM_L2_STATION_WITH_ID;
   }
   int rc;
   bool addStation = false;
@@ -58,8 +58,8 @@ void BcmStation::program(MacAddress mac, int id) {
   auto vlanStationItr = warmBootCache->findVlanStation(VlanID(id));
   if (vlanStationItr != warmBootCache->vlan2Station_end()) {
     // Lambda to compare with existing entry to check if we need to reprogram
-    auto equivalent = [=](const opennsl_l2_station_t& newStation,
-                          const opennsl_l2_station_t& oldStation) {
+    auto equivalent = [=](const bcm_l2_station_t& newStation,
+                          const bcm_l2_station_t& oldStation) {
       return macFromBcm(oldStation.dst_mac) == macFromBcm(newStation.dst_mac) &&
           macFromBcm(oldStation.dst_mac_mask) ==
           macFromBcm(newStation.dst_mac_mask);
@@ -68,7 +68,7 @@ void BcmStation::program(MacAddress mac, int id) {
     if (!equivalent(params, existingStation)) {
       // Delete old station end and set addStation to true
       XLOG(DBG1) << "Updating BCM station with Mac : " << mac << " and " << id;
-      rc = opennsl_l2_station_delete(hw_->getUnit(), id);
+      rc = bcm_l2_station_delete(hw_->getUnit(), id);
       bcmCheckError(rc, "failed to delete station entry ", id);
       addStation = true;
     } else {
@@ -84,7 +84,7 @@ void BcmStation::program(MacAddress mac, int id) {
     if (vlanStationItr != warmBootCache->vlan2Station_end()) {
       XLOG(DBG1) << "Adding BCM station with Mac : " << mac << " and " << id;
     }
-    rc = opennsl_l2_station_add(hw_->getUnit(), &id, &params);
+    rc = bcm_l2_station_add(hw_->getUnit(), &id, &params);
     bcmCheckError(
         rc, "failed to program station entry ", id, " to ", mac.toString());
     id_ = id;
@@ -136,10 +136,10 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
 
   // Lambda to compare with existing intf to determine if we need to
   // reprogram
-  auto updateIntfIfNeeded = [&](opennsl_l3_intf_t& newIntf,
-                                const opennsl_l3_intf_t& oldIntf) {
-    auto equivalent = [=](const opennsl_l3_intf_t& newIntf,
-                          const opennsl_l3_intf_t& existingIntf) {
+  auto updateIntfIfNeeded = [&](bcm_l3_intf_t& newIntf,
+                                const bcm_l3_intf_t& oldIntf) {
+    auto equivalent = [=](const bcm_l3_intf_t& newIntf,
+                          const bcm_l3_intf_t& existingIntf) {
       CHECK(newIntf.l3a_vrf == existingIntf.l3a_vrf);
       return macFromBcm(newIntf.l3a_mac_addr) ==
           macFromBcm(existingIntf.l3a_mac_addr) &&
@@ -152,22 +152,22 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
                  << " and mac: " << intf->getMac();
       CHECK_NE(bcmIfId_, INVALID);
       newIntf.l3a_intf_id = bcmIfId_;
-      newIntf.l3a_flags = OPENNSL_L3_WITH_ID | OPENNSL_L3_REPLACE;
+      newIntf.l3a_flags = BCM_L3_WITH_ID | BCM_L3_REPLACE;
       return true;
     }
     return false;
   };
 
   const auto intftoIfparam = [=](const auto& Intf) {
-    opennsl_l3_intf_t ifParams;
-    opennsl_l3_intf_t_init(&ifParams);
+    bcm_l3_intf_t ifParams;
+    bcm_l3_intf_t_init(&ifParams);
 #ifndef IS_OSS
     // Something about the open source build breaks here in ubuntu 16_04
     //
     // Specifically g++-5.4 seems to segfault (!!) compiling this line.
     // It's a simple assignment from ultimately a
     // BOOST_STRONG_TYPE RouterID (which is an int) to
-    // a opennsl_vrf_t (which is also an int!!).  The casting should
+    // a bcm_vrf_t (which is also an int!!).  The casting should
     // be a NOOP but somehow kills g++'s type checking system
     // This is not a problem with g++-6 that the ONL OSS build uses
     //
@@ -215,7 +215,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
         XLOG(DBG1) << "Adding interface for vlan : " << intf->getVlanID()
                    << " and mac: " << intf->getMac();
       }
-      auto rc = opennsl_l3_intf_create(hw_->getUnit(), &ifParams);
+      auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
       bcmIfId_ = ifParams.l3a_intf_id;
     }
@@ -228,7 +228,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
   if (oldIntf) {
     auto oldIfParams = intftoIfparam(oldIntf);
     if (updateIntfIfNeeded(ifParams, oldIfParams)) {
-      auto rc = opennsl_l3_intf_create(hw_->getUnit(), &ifParams);
+      auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to update L3 interface ", intf->getID());
     }
   }
@@ -264,11 +264,11 @@ BcmIntf::~BcmIntf() {
   }
   // remove all BcmHost objects
   hosts_.clear();
-  opennsl_l3_intf_t ifParams;
-  opennsl_l3_intf_t_init(&ifParams);
+  bcm_l3_intf_t ifParams;
+  bcm_l3_intf_t_init(&ifParams);
   ifParams.l3a_intf_id = bcmIfId_;
-  ifParams.l3a_flags |= OPENNSL_L3_WITH_ID;
-  auto rc = opennsl_l3_intf_delete(hw_->getUnit(), &ifParams);
+  ifParams.l3a_flags |= BCM_L3_WITH_ID;
+  auto rc = bcm_l3_intf_delete(hw_->getUnit(), &ifParams);
   bcmLogFatal(rc, hw_, "failed to delete L3 interface ", bcmIfId_);
   XLOG(DBG3) << "deleted L3 interface " << bcmIfId_;
 }
@@ -298,7 +298,7 @@ BcmIntfTable::BcmIntfTable(BcmSwitch* hw) : hw_(hw) {}
 
 BcmIntfTable::~BcmIntfTable() {}
 
-BcmIntf* BcmIntfTable::getBcmIntfIf(opennsl_if_t id) const {
+BcmIntf* BcmIntfTable::getBcmIntfIf(bcm_if_t id) const {
   auto iter = bcmIntfs_.find(id);
   if (iter == bcmIntfs_.end()) {
     return nullptr;
@@ -306,7 +306,7 @@ BcmIntf* BcmIntfTable::getBcmIntfIf(opennsl_if_t id) const {
   return iter->second;
 }
 
-BcmIntf* BcmIntfTable::getBcmIntf(opennsl_if_t id) const {
+BcmIntf* BcmIntfTable::getBcmIntf(bcm_if_t id) const {
   auto ptr = getBcmIntfIf(id);
   if (ptr == nullptr) {
     throw FbossError("Cannot find interface ", id);

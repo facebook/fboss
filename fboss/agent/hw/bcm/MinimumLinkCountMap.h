@@ -24,45 +24,45 @@ class TrunkToMinimumLinkCountMap {
  public:
   TrunkToMinimumLinkCountMap() : trunkToCountLock_(), trunkToCount_() {}
 
-  void addOrUpdate(opennsl_trunk_t trunk, uint8_t count) {
+  void addOrUpdate(bcm_trunk_t trunk, uint8_t count) {
     folly::SharedMutexReadPriority::WriteHolder g(&trunkToCountLock_);
     addLocked(trunk, count);
   }
 
-  void del(opennsl_trunk_t trunk) {
+  void del(bcm_trunk_t trunk) {
     folly::SharedMutexReadPriority::WriteHolder g(&trunkToCountLock_);
     delLocked(trunk);
   }
 
-  std::optional<uint8_t> get(opennsl_trunk_t trunk) const {
+  std::optional<uint8_t> get(bcm_trunk_t trunk) const {
     folly::SharedMutexReadPriority::ReadHolder g(&trunkToCountLock_);
     return getLocked(trunk);
   }
 
  private:
-  void addLocked(opennsl_trunk_t trunk, uint8_t count) {
+  void addLocked(bcm_trunk_t trunk, uint8_t count) {
     bool inserted;
-    boost::container::flat_map<opennsl_trunk_t, uint8_t>::iterator it;
+    boost::container::flat_map<bcm_trunk_t, uint8_t>::iterator it;
     std::tie(it, inserted) = trunkToCount_.emplace(trunk, count);
     if (!inserted) {
       it->second = count;
     }
   }
 
-  void delLocked(opennsl_trunk_t trunk) {
+  void delLocked(bcm_trunk_t trunk) {
     auto it = trunkToCount_.find(trunk);
     CHECK(it != trunkToCount_.end());
     trunkToCount_.erase(it);
   }
 
-  std::optional<uint8_t> getLocked(opennsl_trunk_t trunk) const {
+  std::optional<uint8_t> getLocked(bcm_trunk_t trunk) const {
     auto it = trunkToCount_.find(trunk);
     return it == trunkToCount_.cend() ? std::nullopt
                                       : std::make_optional(it->second);
   }
 
   mutable folly::SharedMutexReadPriority trunkToCountLock_;
-  boost::container::flat_map<opennsl_trunk_t, uint8_t> trunkToCount_;
+  boost::container::flat_map<bcm_trunk_t, uint8_t> trunkToCount_;
 };
 
 } // namespace facebook::fboss

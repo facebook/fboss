@@ -51,9 +51,8 @@ void BcmSwitchSettings::enableL2LearningHardware() {
    * BcmSwitch::processMacTableChanges is no-op when in
    * l2LearningMode::HARDWARE>
    */
-  auto rv =
-      opennsl_l2_traverse(hw_->getUnit(), BcmSwitch::deleteL2TableCb, hw_);
-  bcmCheckError(rv, "opennsl_l2_traverse failed");
+  auto rv = bcm_l2_traverse(hw_->getUnit(), BcmSwitch::deleteL2TableCb, hw_);
+  bcmCheckError(rv, "bcm_l2_traverse failed");
 }
 
 void BcmSwitchSettings::enableL2LearningSoftware() {
@@ -78,8 +77,8 @@ void BcmSwitchSettings::enableL2LearningSoftware() {
    * is fine given how our implementation handles it: a call to add macEntry
    * that exists is a no-op.
    */
-  auto rv = opennsl_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
-  bcmCheckError(rv, "opennsl_l2_traverse failed");
+  auto rv = bcm_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
+  bcmCheckError(rv, "bcm_l2_traverse failed");
 }
 
 } // namespace facebook::fboss

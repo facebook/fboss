@@ -82,7 +82,7 @@ void BcmTestPlatform::initPorts() {
 BcmTestPlatform::BcmPlatformPortMap BcmTestPlatform::getPlatformPortMap() {
   BcmPlatformPortMap ports;
   for (const auto& port : ports_) {
-    ports[static_cast<opennsl_port_t>(port.first)] = port.second.get();
+    ports[static_cast<bcm_port_t>(port.first)] = port.second.get();
   }
   return ports;
 }

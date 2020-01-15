@@ -14,7 +14,7 @@
 #include "fboss/agent/Platform.h"
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
@@ -29,7 +29,7 @@ class PortQueue;
  */
 class BcmPlatform : public Platform {
  public:
-  typedef std::map<opennsl_port_t, BcmPlatformPort*> BcmPlatformPortMap;
+  typedef std::map<bcm_port_t, BcmPlatformPort*> BcmPlatformPortMap;
 
   using Platform::Platform;
 

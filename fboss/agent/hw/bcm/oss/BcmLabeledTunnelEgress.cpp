@@ -5,11 +5,11 @@
 namespace facebook::fboss {
 
 void BcmLabeledTunnelEgress::prepareEgressObject(
-    opennsl_if_t /*intfId*/,
-    opennsl_port_t /*port*/,
+    bcm_if_t /*intfId*/,
+    bcm_port_t /*port*/,
     const std::optional<folly::MacAddress>& /*mac*/,
     RouteForwardAction /*action*/,
-    opennsl_l3_egress_t* /*eObj*/) const {
+    bcm_l3_egress_t* /*eObj*/) const {
   CHECK(0); // no MPLS in OSS
 }
 

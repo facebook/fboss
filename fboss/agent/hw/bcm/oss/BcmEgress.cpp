@@ -13,12 +13,10 @@
 
 namespace facebook::fboss {
 
-bool operator==(
-    const opennsl_l3_egress_t& lhs,
-    const opennsl_l3_egress_t& rhs) {
+bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs) {
   bool sameMacs = !memcmp(lhs.mac_addr, rhs.mac_addr, sizeof(lhs.mac_addr));
-  bool lhsTrunk = lhs.flags & OPENNSL_L3_TGID;
-  bool rhsTrunk = rhs.flags & OPENNSL_L3_TGID;
+  bool lhsTrunk = lhs.flags & BCM_L3_TGID;
+  bool rhsTrunk = rhs.flags & BCM_L3_TGID;
   bool sameTrunks = lhsTrunk && rhsTrunk && lhs.trunk == rhs.trunk;
   bool samePhysicalPorts = !lhsTrunk && !rhsTrunk && rhs.port == lhs.port;
   bool samePorts = sameTrunks || samePhysicalPorts;
@@ -28,19 +26,19 @@ bool operator==(
 
 bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int /*unit*/,
-    opennsl_if_t /*ecmpId*/,
-    opennsl_if_t /*toRemove*/) {
-  return false; // Not supported in opennsl;
+    bcm_if_t /*ecmpId*/,
+    bcm_if_t /*toRemove*/) {
+  return false; // Not supported in bcm;
 }
 
 bool BcmEcmpEgress::addEgressIdHwLocked(
     int /*unit*/,
-    opennsl_if_t /*ecmpId*/,
+    bcm_if_t /*ecmpId*/,
     const Paths& /*egressIdInSw*/,
-    opennsl_if_t /*toAdd*/) {
-  return false; // Not supported in opennsl
+    bcm_if_t /*toAdd*/) {
+  return false; // Not supported in bcm
 }
-opennsl_mpls_label_t getLabel(const opennsl_l3_egress_t& /*egress*/) {
+bcm_mpls_label_t getLabel(const bcm_l3_egress_t& /*egress*/) {
   return 0xffffffff;
 }
 

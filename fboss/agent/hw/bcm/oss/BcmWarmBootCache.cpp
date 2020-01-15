@@ -34,13 +34,13 @@ void BcmWarmBootCache::populateMirrors() {}
 
 void BcmWarmBootCache::populateMirroredPorts() {}
 
-void BcmWarmBootCache::populateMirroredPort(opennsl_gport_t /*port*/) {}
+void BcmWarmBootCache::populateMirroredPort(bcm_gport_t /*port*/) {}
 void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle /*handle*/) {}
 void BcmWarmBootCache::populateQosMaps() {}
 void BcmWarmBootCache::populateLabelSwitchActions() {}
 void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {}
 void BcmWarmBootCache::populateLabelStack2TunnelId(
-    opennsl_l3_egress_t* /*egress*/) {}
+    bcm_l3_egress_t* /*egress*/) {}
 void BcmWarmBootCache::removeUnclaimedLabeledTunnels() {}
 bool BcmWarmBootCache::isSflowMirror(BcmMirrorHandle /*handle*/) const {
   return false;

@@ -12,7 +12,7 @@
 #include <memory>
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 #include <boost/container/flat_map.hpp>
@@ -40,8 +40,8 @@ class BcmTrunkTable {
       const std::shared_ptr<AggregatePort>& newAggPort);
   void deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort);
 
-  opennsl_trunk_t getBcmTrunkId(AggregatePortID id) const;
-  AggregatePortID getAggregatePortId(opennsl_trunk_t trunk) const;
+  bcm_trunk_t getBcmTrunkId(AggregatePortID id) const;
+  AggregatePortID getAggregatePortId(bcm_trunk_t trunk) const;
 
   size_t numTrunkPorts() const {
     return trunks_.size();
@@ -51,7 +51,7 @@ class BcmTrunkTable {
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
 
-  opennsl_trunk_t linkDownHwNotLocked(opennsl_port_t port);
+  bcm_trunk_t linkDownHwNotLocked(bcm_port_t port);
 
   void updateStats();
 

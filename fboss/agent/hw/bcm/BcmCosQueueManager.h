@@ -21,15 +21,15 @@
 #include <vector>
 
 extern "C" {
-#include <opennsl/types.h>
+#include <bcm/types.h>
 }
 
 namespace facebook::fboss {
 
-typedef std::map<opennsl_cos_queue_t, opennsl_gport_t> CosQGportMap;
+typedef std::map<bcm_cos_queue_t, bcm_gport_t> CosQGportMap;
 
 struct CosQueueGports {
-  opennsl_gport_t scheduler;
+  bcm_gport_t scheduler;
   CosQGportMap unicast;
   CosQGportMap multicast;
 };
@@ -56,7 +56,7 @@ class BcmCosQueueManager {
   BcmCosQueueManager(
       BcmSwitch* hw,
       const std::string& portName,
-      opennsl_gport_t portGport);
+      bcm_gport_t portGport);
 
   virtual ~BcmCosQueueManager() = default;
 
@@ -68,13 +68,12 @@ class BcmCosQueueManager {
 
   virtual int getNumQueues(cfg::StreamType streamType) const = 0;
 
-  opennsl_cos_queue_t getCosQueue(
-      cfg::StreamType streamType,
-      opennsl_gport_t gport) const;
+  bcm_cos_queue_t getCosQueue(cfg::StreamType streamType, bcm_gport_t gport)
+      const;
 
-  virtual opennsl_gport_t getQueueGPort(
+  virtual bcm_gport_t getQueueGPort(
       cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const = 0;
+      bcm_cos_queue_t cosQ) const = 0;
 
   void setPortName(const std::string& portName) {
     portName_ = portName;
@@ -105,58 +104,54 @@ class BcmCosQueueManager {
       HwPortStats* portStats = nullptr);
 
   void getCosQueueGportsFromHw();
-  opennsl_gport_t getPortGport() const {
+  bcm_gport_t getPortGport() const {
     return portGport_;
   }
 
  protected:
   void getSchedulingAndWeight(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       PortQueue* queue) const;
   void programSchedulingAndWeight(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
   int getControlValue(
       cfg::StreamType streamType,
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       BcmCosQueueControlType ctrlType) const;
 
   void programControlValue(
       cfg::StreamType streamType,
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       BcmCosQueueControlType ctrlType,
       int value);
 
   void getReservedBytes(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       PortQueue* queue) const;
   void programReservedBytes(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
-  void getSharedBytes(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      PortQueue* queue) const;
+  void getSharedBytes(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue)
+      const;
   void programSharedBytes(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
-  void getBandwidth(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
-      PortQueue* queue) const;
+  void getBandwidth(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue)
+      const;
   void programBandwidth(
-      opennsl_gport_t gport,
-      opennsl_cos_queue_t cosQ,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
   virtual const PortQueue& getDefaultQueueSettings(
@@ -166,7 +161,7 @@ class BcmCosQueueManager {
   // owner port name of this cosq manager
   std::string portName_;
   // owner port gport of this cosq manager
-  opennsl_gport_t portGport_;
+  bcm_gport_t portGport_;
   CosQueueGports cosQueueGports_;
 
  private:
@@ -176,7 +171,7 @@ class BcmCosQueueManager {
 
   virtual std::unique_ptr<PortQueue> getCurrentQueueSettings(
       cfg::StreamType streamType,
-      opennsl_cos_queue_t cosQ) const = 0;
+      bcm_cos_queue_t cosQ) const = 0;
 
   void fillOrReplaceCounter(
       const BcmCosQueueCounterType& type,

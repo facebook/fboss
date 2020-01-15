@@ -10,9 +10,9 @@
 #pragma once
 
 extern "C" {
-#include <opennsl/port.h>
-#include <opennsl/stat.h>
-#include <opennsl/types.h>
+#include <bcm/port.h>
+#include <bcm/stat.h>
+#include <bcm/types.h>
 }
 
 #include <fb303/ThreadCachedServiceData.h>
@@ -50,7 +50,7 @@ class BcmPort {
    * the port yet.  init() will be called soon after construction, and any
    * actual initialization logic should be performed there.
    */
-  BcmPort(BcmSwitch* hw, opennsl_port_t port, BcmPlatformPort* platformPort);
+  BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort);
   ~BcmPort();
 
   void init(bool warmBoot);
@@ -76,10 +76,10 @@ class BcmPort {
   BcmSwitch* getHW() const {
     return hw_;
   }
-  opennsl_port_t getBcmPortId() const {
+  bcm_port_t getBcmPortId() const {
     return port_;
   }
-  opennsl_gport_t getBcmGport() const {
+  bcm_gport_t getBcmGport() const {
     return gport_;
   }
   BcmPortGroup* getPortGroup() const {
@@ -162,8 +162,8 @@ class BcmPort {
    */
   void linkStatusChanged(const std::shared_ptr<Port>& port);
 
-  static opennsl_gport_t asGPort(opennsl_port_t port);
-  static bool isValidLocalPort(opennsl_gport_t gport);
+  static bcm_gport_t asGPort(bcm_port_t port);
+  static bool isValidLocalPort(bcm_gport_t gport);
   BcmCosQueueManager* getQueueManager() const {
     return queueManager_.get();
   }
@@ -211,22 +211,22 @@ class BcmPort {
   void updateStat(
       std::chrono::seconds now,
       folly::StringPiece statName,
-      opennsl_stat_val_t type,
+      bcm_stat_val_t type,
       int64_t* portStatVal);
   void updateBcmStats(std::chrono::seconds now, HwPortStats* curPortStats);
   void updatePktLenHist(
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
-      const std::vector<opennsl_stat_val_t>& stats);
+      const std::vector<bcm_stat_val_t>& stats);
   void initCustomStats() const;
   // Set stats that are either FB specific, not available in
-  // open source opennsl release.
+  // open source bcm release.
   void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);
   std::string statName(folly::StringPiece statName, folly::StringPiece portName)
       const;
 
   cfg::PortSpeed getDesiredPortSpeed(const std::shared_ptr<Port>& swPort);
-  opennsl_port_if_t getDesiredInterfaceMode(
+  bcm_port_if_t getDesiredInterfaceMode(
       cfg::PortSpeed speed,
       PortID id,
       const std::string& name);
@@ -237,7 +237,7 @@ class BcmPort {
       MirrorDirection direction,
       cfg::SampleDestination newDestination);
 
-  opennsl_pbmp_t getPbmp();
+  bcm_pbmp_t getPbmp();
 
   void setInterfaceMode(const std::shared_ptr<Port>& swPort);
   void setFEC(const std::shared_ptr<Port>& swPort);
@@ -254,10 +254,10 @@ class BcmPort {
       cfg::SampleDestination newDestination);
 
   BcmSwitch* const hw_{nullptr};
-  const opennsl_port_t port_; // Broadcom physical port number
+  const bcm_port_t port_; // Broadcom physical port number
   // The gport_ is logically a const, but needs to be initialized as a parameter
   // to SDK call.
-  opennsl_gport_t gport_; // Broadcom global port number
+  bcm_gport_t gport_; // Broadcom global port number
   uint8_t pipe_;
   BcmPlatformPort* const platformPort_{nullptr};
   int unit_{-1};
