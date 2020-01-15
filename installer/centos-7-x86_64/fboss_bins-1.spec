@@ -27,7 +27,6 @@ install -m 0755 bcm_test %{buildroot}/opt/fboss/bcm_test
 install -m 0755 libgflags.so.2.2 %{buildroot}/opt/fboss/libgflags.so.2.2
 install -m 0755 libglog.so.0 %{buildroot}/opt/fboss/libglog.so.0
 install -m 0755 libzstd.so.1.3.8 %{buildroot}/opt/fboss/libzstd.so.1.3.8
-install -m 0755 libopennsl.so.1 %{buildroot}/opt/fboss/libopennsl.so.1
 install -m 0755 libusb-1.0.so.0 %{buildroot}/opt/fboss/libusb-1.0.so.0
 install -m 0755 libnl-3.so.200 %{buildroot}/opt/fboss/libnl-3.so.200
 install -m 0755 libcurl.so.4 %{buildroot}/opt/fboss/libcurl.so.4
@@ -41,7 +40,6 @@ install -m 0755 libmnl.so.0 %{buildroot}/opt/fboss/libmnl.so.0
 /opt/fboss/libgflags.so.2.2
 /opt/fboss/libglog.so.0
 /opt/fboss/libzstd.so.1.3.8
-/opt/fboss/libopennsl.so.1
 /opt/fboss/libusb-1.0.so.0
 /opt/fboss/libnl-3.so.200
 /opt/fboss/libcurl.so.4
@@ -49,6 +47,6 @@ install -m 0755 libmnl.so.0 %{buildroot}/opt/fboss/libmnl.so.0
 /opt/fboss/libmnl.so.0
 
 %changelog
-* Sat Jun 15 2019 Shrikrishna Khare 1.0.0
+* Wed Jan 15 2020 Shrikrishna Khare 1.0.1
 
 Initial rpm release
