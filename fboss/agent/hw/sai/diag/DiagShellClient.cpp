@@ -46,26 +46,27 @@ void subscribeToDiagShell(folly::EventBase* evb, const folly::IPAddress& ip) {
       responseAndStream.response.size());
   auto streamFuture =
       std::move(responseAndStream.stream)
-          .via(evb)
-          .subscribe(
-              [](const std::string& shellOut) {
-                folly::writeFull(
-                    STDOUT_FILENO, shellOut.c_str(), shellOut.size());
-              },
-              // Typically, neither the error, nor completed events will occur,
-              // we expect most streams to end when the client is terminated by
-              // the user.
-              [evb](folly::exception_wrapper e) {
-                auto msg = folly::exceptionStr(std::move(e));
-                // N.B., can't use folly logging, because it messes with the
-                // terminal mode such that backspace, ctrl+D, etc.. don't seem
-                // to work anymore.
-                std::cout << "error in stream: " << msg << "\n";
-                evb->terminateLoopSoon();
-              },
-              [evb]() {
-                std::cout << "stream completed!\n";
-                evb->terminateLoopSoon();
+          .subscribeExTry(
+              evb,
+              [evb](auto&& t) {
+                if (t.hasValue()) {
+                  const auto& shellOut = t.value();
+                  folly::writeFull(
+                      STDOUT_FILENO, shellOut.c_str(), shellOut.size());
+                  // Typically, neither the error, nor completed events will
+                  // occur, we expect most streams to end when the client is
+                  // terminated by the user.
+                } else if (t.hasException()) {
+                  auto msg = folly::exceptionStr(std::move(t.exception()));
+                  // N.B., can't use folly logging, because it messes with the
+                  // terminal mode such that backspace, ctrl+D, etc.. don't seem
+                  // to work anymore.
+                  std::cout << "error in stream: " << msg << "\n";
+                  evb->terminateLoopSoon();
+                } else {
+                  std::cout << "stream completed!\n";
+                  evb->terminateLoopSoon();
+                }
               })
           .futureJoin();
   evb->loop();
