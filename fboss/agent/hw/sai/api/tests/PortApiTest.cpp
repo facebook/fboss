@@ -199,6 +199,13 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portVlanId);
   auto gotPortVlanId = portApi->getAttribute(portId, portVlanId);
   EXPECT_EQ(gotPortVlanId, saiPortVlanId);
+
+  // Port serdes preemphasis
+  std::vector<uint32_t> preemphasis{42, 43};
+  SaiPortTraits::Attributes::Preemphasis portPreemphasis{preemphasis};
+  portApi->setAttribute(portId, portPreemphasis);
+  auto gotPortPreemphasis = portApi->getAttribute(portId, portPreemphasis);
+  EXPECT_EQ(gotPortPreemphasis, preemphasis);
 }
 
 // ObjectApi tests

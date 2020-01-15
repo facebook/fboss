@@ -113,6 +113,24 @@ TEST_F(PortStoreTest, portUnsetAdminState) {
   */
 }
 
+TEST_F(PortStoreTest, portSetPreempasis) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, Preemphasis, portObj.attributes()),
+      std::vector<uint32_t>{});
+  auto newAttrs = makeAttrs(0, 25000);
+  const std::vector<uint32_t> kPreemphasis{42, 43};
+  std::get<std::optional<SaiPortTraits::Attributes::Preemphasis>>(newAttrs) =
+      kPreemphasis;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, Preemphasis, portObj.attributes()), kPreemphasis);
+  auto apiPreemphasis = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::Preemphasis{});
+  EXPECT_EQ(apiPreemphasis, kPreemphasis);
+}
+
 /*
  * Confirm that moving out of a SaiObject<SaiPortTraits> works as expected
  */
