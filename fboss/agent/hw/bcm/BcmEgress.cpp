@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmEgress.h"
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
@@ -17,6 +17,10 @@
 
 #include <folly/logging/xlog.h>
 #include <string>
+
+extern "C" {
+#include <bcm/l3.h>
+}
 
 namespace facebook::fboss {
 
@@ -395,6 +399,120 @@ void BcmEgress::programToTrunk(
   mac_ = mac;
 
   CHECK_NE(id_, INVALID);
+}
+
+bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs) {
+  bool sameMacs = !memcmp(lhs.mac_addr, rhs.mac_addr, sizeof(lhs.mac_addr));
+  bool lhsTrunkPort = lhs.flags & BCM_L3_TGID;
+  bool rhsTrunkPort = rhs.flags & BCM_L3_TGID;
+  bool sameTrunks = lhsTrunkPort && rhsTrunkPort && lhs.trunk == rhs.trunk;
+  bool samePhysicalPorts =
+      !lhsTrunkPort && !rhsTrunkPort && rhs.port == lhs.port;
+  bool samePorts = sameTrunks || samePhysicalPorts;
+  return sameMacs && samePorts && rhs.intf == lhs.intf &&
+      rhs.flags == lhs.flags && lhs.mpls_label == rhs.mpls_label;
+}
+
+bool BcmEcmpEgress::removeEgressIdHwNotLocked(
+    int unit,
+    EgressId ecmpId,
+    EgressId toRemove) {
+  bcm_l3_egress_ecmp_t obj;
+  bcm_l3_egress_ecmp_t_init(&obj);
+  obj.ecmp_intf = ecmpId;
+  auto ret = bcm_l3_egress_ecmp_delete(unit, &obj, toRemove);
+  if (ret && ret != BCM_E_NOT_FOUND) {
+    // If ret == BCM_E_NOT_FOUND this means that
+    // egress entry was not present in ECMP group (likely
+    // Already deleted). This is fine as marking entries
+    // as pending/resolved, adding them back etc happens
+    // in the update thread whereas removing entries
+    // happens in link scan callback itself, we could get into a
+    // case where a link goes down, comes back up and then goes
+    // down again. In which case the neither
+    // a) Marking entries as pending (which breaks the port association)
+    // b) adding back of egress entries
+    // may not have happened before the second down event.
+
+    // This may get called from linkscan handler which would
+    // swallow an exception. So fail hard in case of error
+    XLOG(FATAL) << "Error removing " << toRemove << " from: " << ecmpId << " "
+                << bcm_errmsg(ret);
+    return false;
+  }
+  if (ret != BCM_E_NOT_FOUND) {
+    XLOG(DBG1) << " Removed  " << toRemove << " from: " << ecmpId;
+  }
+  return true;
+}
+
+bool BcmEcmpEgress::addEgressIdHwLocked(
+    int unit,
+    EgressId ecmpId,
+    const Paths& pathsInSw,
+    EgressId toAdd) {
+  if (pathsInSw.find(toAdd) == pathsInSw.end()) {
+    // Egress id is not part of this ecmp group. Nothing
+    // to do.
+    return false;
+  }
+
+  // We always check for egress Id already existing before adding it to the
+  // ECMP group for 2 use cases:
+  // a) Port X goes down and we remove Egress object (say) PE from all ecmp
+  //    objects. Subsquently we add another ecmp egress object say Y that
+  //    includes PE, now when port comes back up we will try to add PE back to
+  //    all ecmp egress objects that include it, but Y already has PE and we
+  //    will get an error. So check before adding.
+  // b) On warm boot host table calls linkUpHwLocked for all ports that are up
+  //    (since ports may have come up while we were not running). Thus there
+  //    may be ports which were up both before and after, for which we would
+  //    try to add egressIds that already are in h/w, hence the check.
+  //
+  // (a) can be tackled by guarding against routes pointing to unresolved
+  // egress entries, but not (b)
+  // It might appear that there is a race b/w getting the ECMP entry from HW,
+  // checking for presence of egressId to be added and then adding that. Indeed
+  // we could get a removeEgressIdHwNotLocked event which removes the concerned
+  // egressId just after we checked that the egressId is present. This is
+  // actually safe removeEgressIdHwNotLocked is only called from the link scan
+  // handler when ports go down. On port going down, we remove the concerned
+  // egress entries, mark ARP/NDP for those entries as pending. Then on port
+  // up, ARP/NDP will resolve and we will get a second chance to add the egress
+  // ID back.
+  bcm_l3_egress_ecmp_t existing;
+  bcm_l3_egress_ecmp_t_init(&existing);
+  existing.ecmp_intf = ecmpId;
+
+  bcm_if_t pathsInHw[pathsInSw.size()];
+  int totalPathsInHw;
+  auto ret = bcm_l3_egress_ecmp_get(
+      unit, &existing, pathsInSw.size(), pathsInHw, &totalPathsInHw);
+  bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+  int countInHw = 0;
+  for (size_t i = 0; i < totalPathsInHw; ++i) {
+    if (toAdd == pathsInHw[i]) {
+      ++countInHw;
+    }
+  }
+  auto countInSw = pathsInSw.count(toAdd);
+  if (countInSw <= countInHw) {
+    return false; // Already exists no need to update
+  }
+  for (int i = 0; i < countInSw - countInHw; ++i) {
+    // Egress id exists in s/w but not in HW, add it
+    bcm_l3_egress_ecmp_t obj;
+    bcm_l3_egress_ecmp_t_init(&obj);
+    obj.ecmp_intf = ecmpId;
+    ret = bcm_l3_egress_ecmp_add(unit, &obj, toAdd);
+    bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
+    XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+  }
+  return true;
+}
+
+bcm_mpls_label_t getLabel(const bcm_l3_egress_t& egress) {
+  return reinterpret_cast<const bcm_l3_egress_t&>(egress).mpls_label;
 }
 
 } // namespace facebook::fboss
