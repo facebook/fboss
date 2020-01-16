@@ -48,7 +48,7 @@ void BcmStation::program(MacAddress mac, int id) {
   memcpy(&params.dst_mac, mac.bytes(), sizeof(params.dst_mac));
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
   params.flags |= BCM_L2_STATION_IPV4 | BCM_L2_STATION_IPV6 |
-      BCM_L2_STATION_ARP_RARP | BcmStation::getAdditionalFlags();
+      BCM_L2_STATION_ARP_RARP | BCM_L2_STATION_MPLS;
   if (id != INVALID) {
     params.flags |= BCM_L2_STATION_WITH_ID;
   }

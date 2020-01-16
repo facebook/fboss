@@ -37,7 +37,6 @@ class BcmStation {
   explicit BcmStation(BcmSwitch* hw) : hw_(hw) {}
   ~BcmStation();
   void program(folly::MacAddress mac, int id);
-  static uint32_t getAdditionalFlags();
 
  private:
   // no copy or assignment
