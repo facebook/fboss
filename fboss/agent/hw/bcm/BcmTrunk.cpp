@@ -220,4 +220,67 @@ BcmTrunkStats& BcmTrunk::stats() {
   return trunkStats_;
 }
 
+int BcmTrunk::rtag7() {
+  return BCM_TRUNK_PSC_PORTFLOW; // use RTAG7 hashing
+}
+
+void BcmTrunk::suppressTrunkInternalFlood(
+    const std::shared_ptr<AggregatePort>& aggPort) {
+  auto trafficToBlock = BCM_PORT_FLOOD_BLOCK_BCAST |
+      BCM_PORT_FLOOD_BLOCK_UNKNOWN_UCAST | BCM_PORT_FLOOD_BLOCK_UNKNOWN_MCAST |
+      BCM_PORT_FLOOD_BLOCK_ALL;
+
+  for (auto ingressSubport : aggPort->sortedSubports()) {
+    auto ingressPortID =
+        hw_->getPortTable()->getBcmPortId(ingressSubport.portID);
+    for (auto egressSubport : aggPort->sortedSubports()) {
+      if (ingressSubport == egressSubport) {
+        continue;
+      }
+      auto egressPortID =
+          hw_->getPortTable()->getBcmPortId(egressSubport.portID);
+      bcm_port_flood_block_set(
+          hw_->getUnit(), ingressPortID, egressPortID, trafficToBlock);
+    }
+  }
+}
+
+bcm_gport_t BcmTrunk::asGPort(bcm_trunk_t trunk) {
+  bcm_gport_t rtn;
+  BCM_GPORT_TRUNK_SET(rtn, trunk);
+  return rtn;
+}
+
+bool BcmTrunk::isValidTrunkPort(bcm_gport_t gport) {
+  return BCM_GPORT_IS_TRUNK(gport) &&
+      BCM_GPORT_TRUNK_GET(gport) != static_cast<bcm_trunk_t>(BcmTrunk::INVALID);
+}
+
+/* The Broadcom SDK uses a type of int to hold the "maximum number of
+ * ports per (front panel) trunk group". Since the return value of this method
+ * is a count of the _enabled_ ports in a trunk group, int is of sufficient
+ * width.
+ */
+int BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
+    int unit,
+    bcm_trunk_t trunk,
+    bcm_port_t port) {
+  bcm_pbmp_t enabledMemberPorts;
+  BCM_PBMP_CLEAR(enabledMemberPorts);
+
+  BCM_PBMP_PORT_ADD(enabledMemberPorts, port);
+
+  auto rv = bcm_trunk_bitmap_expand(unit, &enabledMemberPorts);
+  bcmCheckError(
+      rv,
+      "failed to retrieve enabled member ports for trunk ",
+      trunk,
+      " with port ",
+      port);
+
+  int enabledMemberPortsCount;
+  BCM_PBMP_COUNT(enabledMemberPorts, enabledMemberPortsCount);
+  return enabledMemberPortsCount;
+}
+
 } // namespace facebook::fboss
