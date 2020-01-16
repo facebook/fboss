@@ -304,8 +304,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   SSLType getSSLPolicy() override;
 
  protected:
-  void ensureConfigured(folly::StringPiece function);
-  void ensureConfigured() {
+  void ensureConfigured(folly::StringPiece function) const;
+  void ensureConfigured() const {
     // This version of ensureConfigured() won't log
     ensureConfigured(folly::StringPiece(nullptr, nullptr));
   }

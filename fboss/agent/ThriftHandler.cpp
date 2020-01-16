@@ -1452,7 +1452,7 @@ BootType ThriftHandler::getBootType() {
   return sw_->getBootType();
 }
 
-void ThriftHandler::ensureConfigured(StringPiece function) {
+void ThriftHandler::ensureConfigured(StringPiece function) const {
   if (sw_->isFullyConfigured()) {
     return;
   }
