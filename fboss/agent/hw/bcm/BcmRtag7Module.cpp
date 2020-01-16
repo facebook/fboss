@@ -8,12 +8,18 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
+
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
+#include <folly/lang/Assume.h>
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
+
+extern "C" {
+#include <bcm/switch.h>
+}
 
 namespace {
 const bool kEnable = true;
@@ -483,6 +489,226 @@ void BcmRtag7Module::programNonTerminatedMPLSFieldSelection(
   auto rv = setUnitControl(
       moduleControl_.nonTerminatedMPLSFieldSelectionControl, fields);
   bcmCheckError(rv, "failed to config field selection");
+}
+
+const BcmRtag7Module::OutputSelectionControl
+BcmRtag7Module::kEcmpOutputSelectionControl() {
+  static const OutputSelectionControl ecmpOutputSelectionControl = {
+      LoadBalancerID::ECMP,
+      bcmSwitchHashUseFlowSelEcmp,
+      bcmSwitchMacroFlowHashFieldConfig,
+      bcmSwitchMacroFlowHashUseMSB,
+      bcmSwitchMacroFlowHashMinOffset,
+      bcmSwitchMacroFlowHashMaxOffset,
+      bcmSwitchMacroFlowHashStrideOffset};
+
+  return ecmpOutputSelectionControl;
+}
+
+const BcmRtag7Module::OutputSelectionControl
+BcmRtag7Module::kTrunkOutputSelectionControl() {
+  static const OutputSelectionControl trunkOutputSelectionControl = {
+      LoadBalancerID::AGGREGATE_PORT,
+      bcmSwitchHashUseFlowSelTrunkUc,
+      bcmSwitchMacroFlowHashFieldConfig,
+      bcmSwitchMacroFlowHashUseMSB,
+      bcmSwitchMacroFlowTrunkHashMinOffset,
+      bcmSwitchMacroFlowTrunkHashMaxOffset,
+      bcmSwitchMacroFlowTrunkHashStrideOffset};
+  return trunkOutputSelectionControl;
+}
+
+int BcmRtag7Module::setUnitControl(int controlType, int arg) {
+  auto wbCache = hw_->getWarmBootCache();
+
+  if (wbCache->unitControlMatches(outputControl_.id, controlType, arg)) {
+    XLOG(DBG2) << "Skipping assigning " << arg << " to " << controlType;
+
+    wbCache->programmed(outputControl_.id, controlType);
+
+    return BCM_E_NONE;
+  }
+
+  return bcm_switch_control_set(
+      hw_->getUnit(), static_cast<bcm_switch_control_t>(controlType), arg);
+}
+
+int BcmRtag7Module::getFlowLabelSubfields() const {
+  return BCM_HASH_FIELD_FLOWLABEL_LO | BCM_HASH_FIELD_FLOWLABEL_HI;
+}
+
+void BcmRtag7Module::enableFlowLabelSelection() {
+  bcm_switch_control_t ipv6EnableFlowLabelSelection;
+
+  switch (moduleControl_.module) {
+    case 'A':
+      ipv6EnableFlowLabelSelection = bcmSwitchHashField0Ip6FlowLabel;
+      break;
+    case 'B':
+      ipv6EnableFlowLabelSelection = bcmSwitchHashField1Ip6FlowLabel;
+      break;
+    default:
+      folly::assume_unreachable();
+  }
+
+  int rv = setUnitControl(
+      static_cast<bcm_switch_control_t>(ipv6EnableFlowLabelSelection), kEnable);
+  bcmCheckError(rv, "failed to allocate bins 0 and 1 to IPv6 flow label");
+}
+
+int BcmRtag7Module::getBcmHashingAlgorithm(
+    cfg::HashingAlgorithm algorithm) const {
+  switch (algorithm) {
+    case cfg::HashingAlgorithm::CRC16_CCITT:
+      return BCM_HASH_FIELD_CONFIG_CRC16CCITT;
+    case cfg::HashingAlgorithm::CRC32_LO:
+      return BCM_HASH_FIELD_CONFIG_CRC32LO;
+    case cfg::HashingAlgorithm::CRC32_HI:
+      return BCM_HASH_FIELD_CONFIG_CRC32HI;
+    case cfg::HashingAlgorithm::CRC32_ETHERNET_LO:
+      return BCM_HASH_FIELD_CONFIG_CRC32_ETH_LO;
+    case cfg::HashingAlgorithm::CRC32_ETHERNET_HI:
+      return BCM_HASH_FIELD_CONFIG_CRC32_ETH_HI;
+    case cfg::HashingAlgorithm::CRC32_KOOPMAN_LO:
+      return BCM_HASH_FIELD_CONFIG_CRC32_KOOPMAN_LO;
+    case cfg::HashingAlgorithm::CRC32_KOOPMAN_HI:
+      return BCM_HASH_FIELD_CONFIG_CRC32_KOOPMAN_HI;
+  }
+
+  throw FbossError("Unrecognized HashingAlgorithm");
+}
+
+int BcmRtag7Module::getMacroFlowIDHashingAlgorithm() {
+  return BCM_HASH_FIELD_CONFIG_CRC16XOR8;
+}
+
+int BcmRtag7Module::getUnitControl(int unit, int type) {
+  int val;
+
+  int rv = bcm_switch_control_get(
+      unit, static_cast<bcm_switch_control_t>(type), &val);
+  bcmCheckError(rv, "failed to retrieve value for ", type);
+
+  return val;
+}
+
+BcmRtag7Module::OutputSelectionState BcmRtag7Module::retrieveRtag7OutputState(
+    int unit,
+    OutputSelectionControl control) {
+  OutputSelectionState state;
+
+  state[control.flowBasedOutputSelection] =
+      getUnitControl(unit, control.flowBasedOutputSelection);
+
+  state[control.macroFlowIDFunctionControl] =
+      getUnitControl(unit, control.macroFlowIDFunctionControl);
+
+  state[control.macroFlowIDIndexControl] =
+      getUnitControl(unit, control.macroFlowIDIndexControl);
+
+  state[control.flowBasedHashTableStartingBitIndex] =
+      getUnitControl(unit, control.flowBasedHashTableStartingBitIndex);
+
+  state[control.flowBasedHashTableEndingBitIndex] =
+      getUnitControl(unit, control.flowBasedHashTableEndingBitIndex);
+
+  state[control.flowBasedHashTableBarrelShiftStride] =
+      getUnitControl(unit, control.flowBasedHashTableBarrelShiftStride);
+
+  return state;
+}
+
+TerminatedMPLSFieldSelectionControl
+BcmRtag7Module::getTerminatedMPLSFieldSelectionControl(char module) {
+  CHECK(module == 'A' || module == 'B') << "invalid module " << module;
+  return module == 'A'
+      ? TerminatedMPLSFieldSelectionControl(
+            static_cast<bcm_switch_control_t>(bcmSwitchHashL3MPLSField0))
+      : TerminatedMPLSFieldSelectionControl(
+            static_cast<bcm_switch_control_t>(bcmSwitchHashL3MPLSField1));
+}
+
+NonTerminatedMPLSFieldSelectionControl
+BcmRtag7Module::getNonTerminatedMPLSFieldSelectionControl(char module) {
+  CHECK(module == 'A' || module == 'B') << "invalid module " << module;
+  return module == 'A'
+      ? NonTerminatedMPLSFieldSelectionControl(
+            static_cast<bcm_switch_control_t>(bcmSwitchHashMPLSTunnelField0))
+      : NonTerminatedMPLSFieldSelectionControl(
+            static_cast<bcm_switch_control_t>(bcmSwitchHashMPLSTunnelField1));
+}
+
+int BcmRtag7Module::computeL3MPLSPayloadSubfields(
+    const LoadBalancer& loadBalancer,
+    bool forTunnelTermination) {
+  int fields = 0;
+
+  for (const auto& v4Field : loadBalancer.getIPv4Fields()) {
+    switch (v4Field) {
+      case LoadBalancer::IPv4Field::SOURCE_ADDRESS:
+        // upper and lower 16 bits of v4 src address
+        fields |=
+            (BCM_HASH_MPLS_FIELD_IP4SRC_LO | BCM_HASH_MPLS_FIELD_IP4SRC_HI);
+        break;
+      case LoadBalancer::IPv4Field::DESTINATION_ADDRESS:
+        // upper and lower 16 bits of v4 dst address
+        fields |=
+            (BCM_HASH_MPLS_FIELD_IP4DST_LO | BCM_HASH_MPLS_FIELD_IP4DST_HI);
+        break;
+    }
+  }
+
+  for (const auto& v6Field : loadBalancer.getIPv6Fields()) {
+    switch (v6Field) {
+      case LoadBalancer::IPv6Field::SOURCE_ADDRESS:
+        // upper and lower 16 bits of collapsed v6 src address
+        fields |=
+            (BCM_HASH_MPLS_FIELD_IP4SRC_LO | BCM_HASH_MPLS_FIELD_IP4SRC_HI);
+        break;
+      case LoadBalancer::IPv6Field::DESTINATION_ADDRESS:
+        // upper and lower 16 bits of collapsed v6 dst address
+        fields |=
+            (BCM_HASH_MPLS_FIELD_IP4DST_LO | BCM_HASH_MPLS_FIELD_IP4DST_HI);
+        break;
+      case LoadBalancer::IPv6Field::FLOW_LABEL:
+        fields |= (BCM_HASH_FIELD_FLOWLABEL_LO | BCM_HASH_FIELD_FLOWLABEL_HI);
+        break;
+    }
+  }
+
+  if (forTunnelTermination) {
+    // transport fields are available for hashing terminated L3 MPLS
+    fields |= computeTransportSubfields(loadBalancer.getTransportFields());
+  } else {
+    // flow label is not available for hashing non-terminated L3 MPLS
+    fields &= ~(BCM_HASH_FIELD_FLOWLABEL_LO | BCM_HASH_FIELD_FLOWLABEL_HI);
+  }
+  return fields;
+}
+
+int BcmRtag7Module::computeL3MPLSHeaderSubfields(
+    const LoadBalancer& loadBalancer) {
+  int fields = 0;
+  for (auto mplsLabel : loadBalancer.getMPLSFields()) {
+    switch (mplsLabel) {
+      case LoadBalancer::MPLSField::TOP_LABEL:
+        // pick lower 16 bits and 4 upper bits of top label
+        fields |=
+            (BCM_HASH_MPLS_FIELD_TOP_LABEL | BCM_HASH_MPLS_FIELD_LABELS_4MSB);
+        break;
+      case LoadBalancer::MPLSField::SECOND_LABEL:
+        // pick lower 16 bits and 4 upper bits second label from top
+        fields |=
+            (BCM_HASH_MPLS_FIELD_2ND_LABEL | BCM_HASH_MPLS_FIELD_LABELS_4MSB);
+        break;
+      case LoadBalancer::MPLSField::THIRD_LABEL:
+        // pick lower 16 bits third label from top and 4 upper bits
+        fields |=
+            (BCM_HASH_MPLS_FIELD_3RD_LABEL | BCM_HASH_MPLS_FIELD_LABELS_4MSB);
+        break;
+    }
+  }
+  return fields;
 }
 
 } // namespace facebook::fboss
