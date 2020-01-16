@@ -8,8 +8,17 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
+extern "C" {
+#include <bcm/port.h>
+#include <bcm/switch.h>
+}
 
 namespace facebook::fboss {
 
@@ -79,6 +88,130 @@ void BcmSwitchSettings::enableL2LearningSoftware() {
    */
   auto rv = bcm_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
   bcmCheckError(rv, "bcm_l2_traverse failed");
+}
+
+void BcmSwitchSettings::enableL2LearningCallback() {
+  auto unit = hw_->getUnit();
+
+  /*
+   * For TH3 below API is not supported/needed. Registering L2 learning
+   * callback is sufficient.
+   */
+  if (hw_->getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    /*
+     * Configure callback for L2 table update events, and configure the udpate
+     * events to generate callback for.
+     */
+    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuAddEvent, 1);
+    bcmCheckError(rv, "Failed to subscribe to L2 CPU Add Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 1);
+    bcmCheckError(rv, "Failed to subscribe to L2 CPU Delete Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 1);
+    bcmCheckError(rv, "Failed to subscribe to L2 CPU Learn Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2AgingEvent, 1);
+    bcmCheckError(rv, "Failed to subscribe to L2 CPU Aging Event");
+  }
+
+  auto rv = bcm_l2_addr_register(
+      unit,
+      BcmSwitch::l2LearningCallback, // bcm_l2_addr_callback_t
+      hw_); // void *userdata
+  bcmCheckError(rv, "Failed to register l2 addr callback");
+
+  l2AddrCallBackRegisterd_ = true;
+}
+
+void BcmSwitchSettings::disableL2LearningCallback() {
+  /*
+   * If callback was not registered, there is nothing to unregister (this could
+   * happen if agent comes up with HARDWARE learning.
+   */
+  if (!l2AddrCallBackRegisterd_) {
+    return;
+  }
+
+  auto unit = hw_->getUnit();
+
+  /*
+   * For TH3, below API is not supported/needed. Registering L2 learning
+   * callback is sufficient.
+   */
+  if (hw_->getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    /*
+     * Unconfigure callback for L2 table update events.
+     */
+    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuAddEvent, 0);
+    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Add Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 0);
+    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Delete Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 0);
+    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Learn Event");
+    rv = bcm_switch_control_set(unit, bcmSwitchL2AgingEvent, 0);
+    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Aging Event");
+  }
+
+  auto rv = bcm_l2_addr_unregister(
+      unit,
+      BcmSwitch::l2LearningCallback, // bcm_l2_addr_callback_t
+      hw_); // void *userdata
+  bcmCheckError(rv, "Failed to unregister l2 addr callback");
+
+  l2AddrCallBackRegisterd_ = false;
+}
+
+void BcmSwitchSettings::enablePendingEntriesOnUnknownSrcL2() {
+  /*
+   * Disables L2 Learning in hardware for every port.
+   * Furthermore, when a packet with unknown source MAC + vlan is seen, the
+   * hardware would added such MAC + vlan to L2 table but mark it as PENDING.
+   * Packets with PENDING as destination are treated as unknown destination
+   * (and flooded) till the software explicitly "validates" the PENDING entry
+   * via call to bcm_l2_addr_add. Subsequent packets with same source MAC +
+   * vlan find that the entry exists in the L2 table (PENDING or validated) and
+   * do not generate further callbacks or traps to CPU.
+   * (We don't pass BCM_PORT_LEARN_CPU flag, so the packets would not have
+   * trapped to CPU anyway).
+   *
+   * For TH3, there are no PENDING entries, and thus below API is not
+   * supported/needed.
+   */
+  if (hw_->getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    auto unit = hw_->getUnit();
+    for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
+      auto portID = portIDAndBcmPort.first;
+      auto rv = bcm_port_learn_set(
+          unit, portID, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING);
+      bcmCheckError(
+          rv, "Failed to enable software learning for port: ", portID);
+    }
+  }
+}
+
+void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {
+  /*
+   * Enable L2 Learning in hardware for every port.
+   * This is usual hardware L2 learning: packets with unknown source MAC + vlan
+   * result into new entry added to L2 table for source MAC + vlan with
+   * srcPort. Packets to this L2 entry are switched directly to the port in the
+   * L2 entry (no flooded). No traps to CPU on such packets.
+   *
+   * For TH3, there are no PENDING entries, and thus below API is not
+   * supported/needed.
+   */
+  if (hw_->getPlatform()->getAsic()->getAsicType() !=
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    auto unit = hw_->getUnit();
+    for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
+      auto portID = portIDAndBcmPort.first;
+      auto rv = bcm_port_learn_set(
+          unit, portID, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD);
+      bcmCheckError(
+          rv, "Failed to disable software learning for port: ", portID);
+    }
+  }
 }
 
 } // namespace facebook::fboss
