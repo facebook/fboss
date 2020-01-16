@@ -8,6 +8,8 @@
  *
  */
 #include "BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmHost.h"
+
 #include <iostream>
 #include <string>
 
@@ -27,6 +29,10 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/Interface.h"
+
+extern "C" {
+#include <bcm/l3.h>
+}
 
 namespace {
 std::string egressPortStr(
@@ -499,6 +505,42 @@ void BcmHostTable::programHostsToCPU(
     return host->programToCPU(intf, classID);
   }
   // (TODO) program labeled next hops to the host
+}
+
+bool BcmHost::getAndClearHitBit() const {
+  if (!addedInHW_) {
+    // For BcmHost not added in HW, definitely not hit.
+    return false;
+  }
+
+  bcm_l3_host_t host;
+  initHostCommon(&host);
+
+  // Clears the hw hit bit if set
+  host.l3a_flags = host.l3a_flags | BCM_L3_HIT_CLEAR;
+  auto rc = bcm_l3_host_find(hw_->getUnit(), &host);
+  bcmCheckError(rc, "failed to lookup L3 host entry");
+
+  return host.l3a_flags & BCM_L3_HIT;
+}
+
+bool BcmHost::matchLookupClass(
+    const bcm_l3_host_t& newHost,
+    const bcm_l3_host_t& existingHost) {
+  return newHost.l3a_lookup_class == existingHost.l3a_lookup_class;
+}
+
+void BcmHost::setLookupClassToL3Host(bcm_l3_host_t* host) const {
+  host->l3a_lookup_class = lookupClassId_;
+}
+
+int BcmHost::getLookupClassFromL3Host(const bcm_l3_host_t& host) {
+  return host.l3a_lookup_class;
+}
+
+std::unique_ptr<BcmEgress> BcmHost::createEgress() {
+  CHECK(!key_.hasLabel());
+  return std::make_unique<BcmEgress>(hw_);
 }
 
 } // namespace facebook::fboss
