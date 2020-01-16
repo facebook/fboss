@@ -63,8 +63,6 @@ class BcmRtag7LoadBalancer {
   BcmRtag7LoadBalancer(const BcmRtag7LoadBalancer&) = delete;
   BcmRtag7LoadBalancer& operator=(const BcmRtag7LoadBalancer&) = delete;
 
-  bcm_switch_control_t trunkHashSet0UnicastOffset() const;
-
   /*
    * The following table encodes the allocation scheme outlined above: each
    * module is dedicated to one LoadBalancer.

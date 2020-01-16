@@ -423,7 +423,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
     fboss/agent/hw/bcm/oss/BcmQosMap.cpp
-    fboss/agent/hw/bcm/oss/BcmRtag7LoadBalancer.cpp
     fboss/agent/hw/bcm/oss/BcmRtag7Module.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
