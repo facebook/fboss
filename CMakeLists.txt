@@ -437,7 +437,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmLabeledTunnelEgress.cpp
     fboss/agent/hw/bcm/oss/BcmTypesImpl.cpp
     fboss/agent/hw/bcm/oss/BcmSwitchSettings.cpp
-    fboss/agent/hw/bcm/oss/BcmMacTable.cpp
     fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
     fboss/agent/hw/mock/MockHwSwitch.cpp
     fboss/agent/hw/mock/MockPlatform.cpp
