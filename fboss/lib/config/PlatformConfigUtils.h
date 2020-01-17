@@ -11,6 +11,7 @@
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss::utility {
@@ -19,6 +20,10 @@ std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
     const std::vector<phy::DataPlanePhyChip>& chips,
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
+
+std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
+    const std::vector<phy::PinConnection>& pinConnections,
+    const std::vector<phy::PinConfig>& iphyPinConfigs);
 
 std::vector<phy::PinID> getOrderedIphyLanes(
     const cfg::PlatformPortEntry& port,

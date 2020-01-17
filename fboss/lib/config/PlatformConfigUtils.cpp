@@ -110,6 +110,41 @@ std::vector<phy::PinID> getTransceiverLanes(
   return lanes;
 }
 
+std::map<int32_t, phy::PolaritySwap> getIphyPolaritySwapMap(
+    const std::vector<phy::PinConnection>& pinConnections) {
+  std::map<int32_t, phy::PolaritySwap> polaritySwapMap;
+
+  for (const auto& pinConnection : pinConnections) {
+    if (pinConnection.polaritySwap_ref()) {
+      polaritySwapMap.emplace(
+          pinConnection.a.lane, *pinConnection.polaritySwap_ref());
+    }
+  }
+
+  return polaritySwapMap;
+}
+
+std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
+    const std::vector<phy::PinConnection>& pinConnections,
+    const std::vector<phy::PinConfig>& iphyPinConfigs) {
+  std::map<int32_t, phy::LaneConfig> laneConfigs;
+  auto iphyPolaritySwapMap = getIphyPolaritySwapMap(pinConnections);
+
+  for (auto pinConfig : iphyPinConfigs) {
+    phy::LaneConfig laneConfig;
+    if (pinConfig.tx_ref()) {
+      laneConfig.tx = *pinConfig.tx_ref();
+    }
+    auto polaritySwap = iphyPolaritySwapMap.find(pinConfig.id.lane);
+    if (polaritySwap != iphyPolaritySwapMap.end()) {
+      laneConfig.polaritySwap = polaritySwap->second;
+    }
+    laneConfigs.emplace(pinConfig.id.lane, laneConfig);
+  }
+
+  return laneConfigs;
+}
+
 std::vector<phy::PinID> getOrderedIphyLanes(
     const cfg::PlatformPortEntry& port,
     const std::vector<phy::DataPlanePhyChip>& chips,
