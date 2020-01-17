@@ -33,4 +33,8 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     PortID controllingPort);
 
+std::optional<phy::DataPlanePhyChip> getXphyChip(
+    const cfg::PlatformPortEntry& port,
+    const std::vector<phy::DataPlanePhyChip>& chips);
+
 } // namespace facebook::fboss::utility

@@ -193,4 +193,27 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   return ports;
 }
 
+std::optional<phy::DataPlanePhyChip> getXphyChip(
+    const cfg::PlatformPortEntry& port,
+    const std::vector<phy::DataPlanePhyChip>& chips) {
+  auto pins = getPinsByChipType(
+      chips, port.mapping.pins, phy::DataPlanePhyChipType::XPHY);
+  if (pins.empty()) {
+    return std::nullopt;
+  }
+
+  auto pin = pins.front();
+  if (pin.getType() != phy::Pin::Type::junction) {
+    throw FbossError("Unsupported pin type for xphy");
+  }
+
+  auto chipName = pin.get_junction().system.chip;
+  auto chip = std::find_if(chips.begin(), chips.end(), [chipName](auto chip) {
+    return chipName == chip.name;
+  });
+  CHECK(chip != chips.end());
+
+  return *chip;
+}
+
 } // namespace facebook::fboss::utility

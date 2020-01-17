@@ -158,6 +158,8 @@ class ExternalPhy {
     return std::vector<ExternalPhyLaneDiagInfo>();
   };
 
+  virtual ExternalPhyPortStats getPortStats(const PhyPortConfig& config) = 0;
+
   virtual void reset() = 0;
 
   virtual void dump() {}
