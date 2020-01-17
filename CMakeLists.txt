@@ -362,6 +362,8 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmControlPlane.cpp
     fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
     fboss/agent/hw/bcm/BcmCosQueueManager.cpp
+    fboss/agent/hw/bcm/BcmCosQueueFBConvertors.cpp
+    fboss/agent/hw/bcm/BcmCosQueueManagerUtils.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
@@ -412,14 +414,11 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
-    fboss/agent/hw/bcm/oss/BcmControlPlaneQueueManager.cpp
-    fboss/agent/hw/bcm/oss/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmLabelMap.cpp
     fboss/agent/hw/bcm/oss/BcmLabeledTunnel.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
-    fboss/agent/hw/bcm/oss/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
