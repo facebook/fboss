@@ -355,6 +355,8 @@ add_library(fboss_agent STATIC
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/L2Entry.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
+    fboss/agent/hw/bcm/BcmAclEntry.cpp
+    fboss/agent/hw/bcm/BcmAclStat.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
     fboss/agent/hw/bcm/BcmConfig.cpp
@@ -364,6 +366,8 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmCosQueueFBConvertors.cpp
     fboss/agent/hw/bcm/BcmCosQueueManagerUtils.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
+    fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
+    fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
     fboss/agent/hw/bcm/BcmIntf.cpp
@@ -372,6 +376,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmLabelSwitchAction.cpp
     fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
     fboss/agent/hw/bcm/BcmMirrorTable.cpp
+    fboss/agent/hw/bcm/BcmMirrorUtils.cpp
     fboss/agent/hw/bcm/BcmPortDescriptor.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmPlatformPort.cpp
@@ -413,8 +418,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmSwitchSettings.cpp
     fboss/agent/hw/bcm/BcmTypesImpl.cpp
     fboss/agent/hw/bcm/BcmMacTable.cpp
-    fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
-    fboss/agent/hw/bcm/oss/BcmAclStat.cpp
+    fboss/agent/hw/bcm/SocUtils.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
