@@ -368,8 +368,11 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
     fboss/agent/hw/bcm/BcmIntf.cpp
-    fboss/agent/hw/bcm/BcmMirrorTable.cpp
     fboss/agent/hw/bcm/BcmLabeledTunnel.cpp
+    fboss/agent/hw/bcm/BcmLabelMap.cpp
+    fboss/agent/hw/bcm/BcmLabelSwitchAction.cpp
+    fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
+    fboss/agent/hw/bcm/BcmMirrorTable.cpp
     fboss/agent/hw/bcm/BcmPortDescriptor.cpp
     fboss/agent/hw/bcm/BcmPlatform.cpp
     fboss/agent/hw/bcm/BcmPlatformPort.cpp
@@ -409,14 +412,13 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmLabeledTunnelEgress.cpp
     fboss/agent/hw/bcm/BcmClassIDUtil.cpp
     fboss/agent/hw/bcm/BcmSwitchSettings.cpp
+    fboss/agent/hw/bcm/BcmTypesImpl.cpp
     fboss/agent/hw/bcm/BcmMacTable.cpp
     fboss/agent/hw/bcm/oss/BcmAclEntry.cpp
     fboss/agent/hw/bcm/oss/BcmAclStat.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
-    fboss/agent/hw/bcm/oss/BcmLabelMap.cpp
-    fboss/agent/hw/bcm/oss/BcmLabeledTunnel.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmPortTable.cpp
@@ -427,9 +429,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
-    fboss/agent/hw/bcm/oss/BcmLabeledEgress.cpp
-    fboss/agent/hw/bcm/oss/BcmLabeledTunnelEgress.cpp
-    fboss/agent/hw/bcm/oss/BcmTypesImpl.cpp
     fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
     fboss/agent/hw/mock/MockHwSwitch.cpp
     fboss/agent/hw/mock/MockPlatform.cpp

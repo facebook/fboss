@@ -4,8 +4,6 @@
 
 namespace facebook::fboss {
 
-struct BcmMplsTunnelSwitchImplT {};
-
 BcmMplsTunnelSwitchT::BcmMplsTunnelSwitchT()
     : impl_(std::make_unique<BcmMplsTunnelSwitchImplT>()) {}
 

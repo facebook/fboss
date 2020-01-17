@@ -6,7 +6,14 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+
+#include <folly/logging/xlog.h>
+
+extern "C" {
+#include <bcm/mpls.h>
+}
 
 namespace {
 using namespace facebook::fboss;
@@ -19,6 +26,28 @@ std::string strLabelStack(const LabelForwardingAction::LabelStack& stack) {
   out += "}";
   return out;
 }
+
+void setupLabelStack(
+    bcm_mpls_egress_label_t* labels,
+    const LabelForwardingAction::LabelStack& stack,
+    std::optional<BcmQosPolicyHandle> qosMapId) {
+  // TODO(pshaikh) - handle qos parameters as required for MPLS domain
+  for (auto i = 0; i < stack.size(); i++) {
+    /* the loop skips over first item of stack, this is the bottom most label
+    this label is associated with labeled egress, and so tunnel does not include
+    in label stack */
+    bcm_mpls_egress_label_t_init(&labels[i]);
+    labels[i].label = stack[i];
+    // copy ttl from l3 packet after decrementing it by while encapsulating
+    labels[i].flags =
+        (BCM_MPLS_EGRESS_LABEL_TTL_COPY | BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT);
+    if (qosMapId) {
+      labels[i].flags |= BCM_MPLS_EGRESS_LABEL_EXP_REMARK;
+      labels[i].qos_map_id = qosMapId.value();
+    }
+  }
+}
+
 } // namespace
 namespace facebook::fboss {
 
@@ -78,6 +107,34 @@ BcmLabeledTunnel::~BcmLabeledTunnel() {
 
 std::string BcmLabeledTunnel::str() const {
   return folly::to<std::string>(labeledTunnel_, "->", strLabelStack(stack_));
+}
+
+void BcmLabeledTunnel::setupTunnelLabels() {
+  std::unique_ptr<bcm_mpls_egress_label_t[]> labelStack = nullptr;
+  std::optional<BcmQosPolicyHandle> qosMapId;
+  auto defaultDataPlaneQosPolicy =
+      hw_->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
+  if (defaultDataPlaneQosPolicy) {
+    qosMapId.emplace(static_cast<int>(
+        defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_EGRESS)));
+  }
+  int numLabels = stack_.size();
+  if (numLabels) {
+    labelStack = std::make_unique<bcm_mpls_egress_label_t[]>(numLabels);
+    setupLabelStack(&labelStack[0], stack_, qosMapId);
+  }
+  auto rv = bcm_mpls_tunnel_initiator_set(
+      hw_->getUnit(), labeledTunnel_, numLabels, labelStack.get());
+  bcmCheckError(
+      rv, "failed to set mpls tunnel initiator parameters to ", str());
+  XLOG(DBG3) << "setup mpls tunnel " << str();
+}
+
+void BcmLabeledTunnel::clearTunnelLabels() {
+  auto rv = bcm_mpls_tunnel_initiator_clear(hw_->getUnit(), labeledTunnel_);
+  bcmCheckError(
+      rv, "failed to clear mpls tunnel initiator parameters for ", str());
+  XLOG(DBG3) << "cleared mpls tunnel " << str();
 }
 
 } // namespace facebook::fboss

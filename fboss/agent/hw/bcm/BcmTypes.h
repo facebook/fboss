@@ -4,9 +4,15 @@
 
 #include <memory>
 
+extern "C" {
+#include <bcm/mpls.h>
+}
+
 namespace facebook::fboss {
 
-struct BcmMplsTunnelSwitchImplT;
+struct BcmMplsTunnelSwitchImplT {
+  bcm_mpls_tunnel_switch_t data;
+};
 
 struct BcmMplsTunnelSwitchT {
   BcmMplsTunnelSwitchT();

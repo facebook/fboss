@@ -1,10 +1,15 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
+
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/Interface.h"
+
+extern "C" {
+#include <bcm/l3.h>
+}
 
 namespace {
 facebook::fboss::LabelForwardingAction::LabelStack pushStack(
@@ -44,6 +49,16 @@ BcmWarmBootCache::EgressId2EgressCitr BcmLabeledTunnelEgress::findEgress(
   return hw_->getWarmBootCache()->findEgressFromLabeledHostKey(
       BcmLabeledHostKey(
           vrf, std::move(labels), ip, bcmIntf->getInterface()->getID()));
+}
+
+void BcmLabeledTunnelEgress::prepareEgressObject(
+    bcm_if_t intfId,
+    bcm_port_t port,
+    const std::optional<folly::MacAddress>& mac,
+    RouteForwardAction action,
+    bcm_l3_egress_t* eObj) const {
+  BcmLabeledEgress::prepareEgressObject(intfId, port, mac, action, eObj);
+  eObj->intf = tunnel_->getTunnelInterface();
 }
 
 } // namespace facebook::fboss
