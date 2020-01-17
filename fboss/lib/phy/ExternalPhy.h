@@ -14,6 +14,7 @@
 
 #include <folly/Range.h>
 
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
@@ -88,6 +89,9 @@ struct ExternalPhyConfig {
   bool operator==(const ExternalPhyConfig& rhs) const;
   std::string str();
   folly::dynamic toDynamic();
+  static ExternalPhyConfig fromConfigeratorTypes(
+      PortPinConfig portPinConfig,
+      const std::map<int32_t, PolaritySwap>& linePolaritySwapMap);
 };
 
 // Same thing as PortProfileConfig, but without xphyLine being optional

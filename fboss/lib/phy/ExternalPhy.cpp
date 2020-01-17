@@ -70,6 +70,43 @@ bool ExternalPhyProfileConfig::operator==(
   return (speed == rhs.speed) && (system == rhs.system) && (line == rhs.line);
 }
 
+ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
+    PortPinConfig portPinConfig,
+    const std::map<int32_t, PolaritySwap>& linePolaritySwapMap) {
+  ExternalPhyConfig xphyCfg;
+
+  if (!portPinConfig.xphySys_ref()) {
+    throw MdioError("Port pin config is missing xphySys");
+  }
+  if (!portPinConfig.xphyLine_ref()) {
+    throw MdioError("Port pin config is missing xphyLine");
+  }
+
+  auto fillLaneConfigs =
+      [](const std::vector<PinConfig>& pinConfigs,
+         const std::map<int32_t, PolaritySwap>& polaritySwapMap,
+         std::map<int32_t, LaneConfig>& laneConfigs) {
+        std::map<int32_t, TxSettings> txMap;
+        for (auto pinCfg : pinConfigs) {
+          LaneConfig laneCfg;
+          if (pinCfg.tx_ref()) {
+            laneCfg.tx = *pinCfg.tx_ref();
+          }
+          if (auto it = polaritySwapMap.find(pinCfg.id.lane);
+              it != polaritySwapMap.end()) {
+            laneCfg.polaritySwap = it->second;
+          }
+          laneConfigs.emplace(pinCfg.id.lane, laneCfg);
+        }
+      };
+
+  fillLaneConfigs(*portPinConfig.xphySys_ref(), {}, xphyCfg.system.lanes);
+  fillLaneConfigs(
+      *portPinConfig.xphyLine_ref(), linePolaritySwapMap, xphyCfg.line.lanes);
+
+  return xphyCfg;
+}
+
 bool PhyPortConfig::operator==(const PhyPortConfig& rhs) const {
   return config == rhs.config && profile == rhs.profile;
 }
