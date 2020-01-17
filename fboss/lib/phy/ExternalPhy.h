@@ -80,6 +80,7 @@ struct PhySideConfig {
   bool operator==(const PhySideConfig& rhs) const;
   std::string str();
   folly::dynamic toDynamic();
+  static PhySideConfig fromPhyPortSideSettings(const PhyPortSideSettings& rhs);
 };
 
 struct ExternalPhyConfig {

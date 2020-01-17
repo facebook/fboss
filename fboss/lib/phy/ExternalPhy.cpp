@@ -61,6 +61,17 @@ bool PhySideConfig::operator==(const PhySideConfig& rhs) const {
       lanes.begin(), lanes.end(), rhs.lanes.begin(), rhs.lanes.end());
 }
 
+PhySideConfig PhySideConfig::fromPhyPortSideSettings(
+    const PhyPortSideSettings& settings) {
+  PhySideConfig phySideConfig;
+
+  for (auto in : settings.lanes) {
+    phySideConfig.lanes.insert(std::pair<int32_t, LaneConfig>(
+        in.first, LaneConfig::fromLaneSettings(in.second)));
+  }
+  return phySideConfig;
+}
+
 bool ExternalPhyConfig::operator==(const ExternalPhyConfig& rhs) const {
   return (system == rhs.system) && (line == rhs.line);
 }
@@ -152,37 +163,33 @@ PhyPortSettings PhyPortConfig::toPhyPortSettings(int16_t phyID) const {
 
 PhyPortConfig PhyPortConfig::fromPhyPortSettings(
     const PhyPortSettings& settings) {
-  PhyPortConfig config;
-  ProfileSideConfig systemSpeedSettings;
-  ProfileSideConfig lineSpeedSettings;
-  PhySideConfig systemPhySettings;
-  PhySideConfig linePhySettings;
+  PhyPortConfig result;
 
   for (auto in : settings.system.lanes) {
-    systemPhySettings.lanes.insert(std::pair<int32_t, LaneConfig>(
+    result.config.system.lanes.insert(std::pair<int32_t, LaneConfig>(
         in.first, LaneConfig::fromLaneSettings(in.second)));
   }
-  config.config.system = systemPhySettings;
 
   for (auto in : settings.line.lanes) {
-    linePhySettings.lanes.insert(std::pair<int32_t, LaneConfig>(
+    result.config.line.lanes.insert(std::pair<int32_t, LaneConfig>(
         in.first, LaneConfig::fromLaneSettings(in.second)));
   }
-  config.config.line = linePhySettings;
 
-  lineSpeedSettings.numLanes = settings.line.lanes.size();
-  lineSpeedSettings.modulation = settings.line.modulation;
-  lineSpeedSettings.fec = settings.line.fec;
+  result.config.system =
+      PhySideConfig::fromPhyPortSideSettings(settings.system);
+  result.config.line = PhySideConfig::fromPhyPortSideSettings(settings.line);
 
-  systemSpeedSettings.numLanes = settings.system.lanes.size();
-  systemSpeedSettings.modulation = settings.system.modulation;
-  systemSpeedSettings.fec = settings.system.fec;
+  result.profile.line.numLanes = settings.line.lanes.size();
+  result.profile.line.modulation = settings.line.modulation;
+  result.profile.line.fec = settings.line.fec;
 
-  config.profile.speed = settings.speed;
-  config.profile.line = lineSpeedSettings;
-  config.profile.system = systemSpeedSettings;
+  result.profile.system.numLanes = settings.system.lanes.size();
+  result.profile.system.modulation = settings.system.modulation;
+  result.profile.system.fec = settings.system.fec;
 
-  return config;
+  result.profile.speed = settings.speed;
+
+  return result;
 }
 
 folly::dynamic LaneConfig::toDynamic() {
