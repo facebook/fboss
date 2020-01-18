@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmPort.h"
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 
@@ -17,65 +18,24 @@ extern "C" {
 
 namespace facebook::fboss {
 
-// stubbed out
-void BcmPort::prepareForGracefulExit() {}
-void BcmPort::setFEC(const std::shared_ptr<Port>& /*swPort*/) {}
-void BcmPort::setPause(const std::shared_ptr<Port>& /*swPort*/) {}
-void BcmPort::setTxSetting(const std::shared_ptr<Port>& /*swPort*/) {}
-void BcmPort::setLoopbackMode(const std::shared_ptr<Port>& /*swPort*/) {}
-
-bool BcmPort::isFECEnabled() {
-  return false;
-}
-
-void BcmPort::setSflowRates(const std::shared_ptr<Port>& /* swPort */) {}
-void BcmPort::disableSflow() {}
-
-void BcmPort::initCustomStats() const {}
-
-void BcmPort::setAdditionalStats(
-    std::chrono::seconds /*now*/,
-    HwPortStats* /*curPortStats*/) {}
-
 cfg::PortSpeed BcmPort::getMaxSpeed() const {
+#if (!defined(OPENNSL_VERSION_3_7_0_1_ODP)) && \
+    (!defined(OPENNSL_VERSION_3_9_0_1_ODP))
+#include <soc/opensoc.h>
+  uint32 flags;
+  bcm_port_interface_info_t interface_info;
+  bcm_port_mapping_info_t mapping_info;
+
+  auto ret = bcm_port_get(unit_, port_, &flags, &interface_info, &mapping_info);
+  bcmCheckError(ret, "Failed to get speed info for port ", port_);
+  return cfg::PortSpeed(interface_info.max_speed);
+#else
   int speed;
   auto unit = hw_->getUnit();
   auto rv = bcm_port_speed_max(hw_->getUnit(), port_, &speed);
   bcmCheckError(rv, "Failed to get max speed for port ", port_);
   return cfg::PortSpeed(speed);
+#endif
 }
-
-bcm_gport_t BcmPort::asGPort(bcm_port_t /*port*/) {
-  return static_cast<bcm_gport_t>(0);
-}
-
-bool BcmPort::isValidLocalPort(bcm_gport_t /*gport*/) {
-  return false;
-}
-
-uint8_t BcmPort::determinePipe() const {
-  return 0;
-}
-
-QueueConfig BcmPort::getCurrentQueueSettings() {
-  return QueueConfig();
-}
-
-void BcmPort::setupQueue(const PortQueue& /*queue*/) {}
-
-void BcmPort::attachIngressQosPolicy(const std::string& /*name*/) {}
-
-void BcmPort::detachIngressQosPolicy() {}
-
-void BcmPort::setPortResource(const std::shared_ptr<Port>& /*swPort*/) {}
-
-bool BcmPort::getDesiredFECEnabledStatus(
-    const std::shared_ptr<Port>& /*swPort*/) {
-  return false;
-}
-
-void BcmPort::updateBcmStats(
-    std::chrono::seconds /*now*/,
-    HwPortStats* /*curPortStats*/) {}
 
 } // namespace facebook::fboss

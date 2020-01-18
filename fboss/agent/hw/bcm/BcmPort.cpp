@@ -9,35 +9,49 @@
  */
 #include "fboss/agent/hw/bcm/BcmPort.h"
 
+#include <boost/algorithm/string.hpp>
+#include <algorithm>
 #include <chrono>
 #include <map>
 
 #include <fb303/ServiceData.h>
 #include <folly/Conv.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "common/stats/MonotonicCounter.h"
 
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/StatsConstants.h"
+#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
+#include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/CounterUtils.h"
+#include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
 extern "C" {
+#include <bcm/cosq.h>
+#include <bcm/init.h>
 #include <bcm/link.h>
 #include <bcm/port.h>
+#include <bcm/qos.h>
 #include <bcm/stat.h>
+#include <bcm/types.h>
 }
 
 using std::shared_ptr;
@@ -65,6 +79,101 @@ bool hasPortQueueChanges(
   }
 
   return false;
+}
+
+using namespace facebook::fboss;
+
+bcm_port_resource_t getCurrentPortResource(int unit, bcm_gport_t gport) {
+  bcm_port_resource_t portResource;
+  bcm_port_resource_t_init(&portResource);
+  auto rv = bcm_port_resource_speed_get(unit, gport, &portResource);
+  bcmCheckError(rv, "failed to get port resource on port ", gport);
+  XLOG(DBG4) << "Get current port resorce: port=" << portResource.port
+             << ", physical_port=" << portResource.physical_port
+             << ", speed=" << portResource.speed
+             << ", fec_type=" << portResource.fec_type << ", phy_lane_config=0x"
+             << std::hex << portResource.phy_lane_config
+             << ", link_training=" << std::dec << portResource.link_training;
+  return portResource;
+}
+
+bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
+  switch (fec) {
+    case cfg::PortFEC::ON:
+    case cfg::PortFEC::RS_544:
+      return bcmPortPhyFecRs544;
+      break;
+    case cfg::PortFEC::RS_528:
+      return bcmPortPhyFecRsFec;
+      break;
+    case cfg::PortFEC::RS_544_2_N:
+      return bcmPortPhyFecRs544_2xN;
+      break;
+    case cfg::PortFEC::OFF:
+      return bcmPortPhyFecNone;
+      break;
+  }
+  throw std::runtime_error("Unsupported fec type in port resource");
+}
+
+uint32_t getPhyLaneConfig(
+    phy::IpModulation modulation,
+    TransmitterTechnology tech) {
+  uint32_t laneConfig = 0;
+
+  uint32_t medium = 0;
+  switch (tech) {
+    case TransmitterTechnology::COPPER:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE;
+      break;
+    case TransmitterTechnology::BACKPLANE:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
+      break;
+    case TransmitterTechnology::OPTICAL:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
+      break;
+    case TransmitterTechnology::UNKNOWN:
+      XLOG(WARNING)
+          << "Unknown transmitter technology, fall back to use backplane";
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
+      break;
+  };
+  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
+
+  switch (modulation) {
+    case phy::IpModulation::PAM4:
+      // PAM4 + NS
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NS_SET(laneConfig);
+      break;
+    case phy::IpModulation::NRZ:
+      // NRZ
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NRZ_SET(laneConfig);
+      break;
+  };
+
+  // always enable DFE
+  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_DFE_SET(laneConfig);
+
+  return laneConfig;
+}
+
+void updateBcmStat(
+    int unit,
+    bcm_port_t port,
+    std::chrono::seconds now,
+    facebook::stats::MonotonicCounter* stat,
+    bcm_stat_val_t type,
+    int64_t* statVal) {
+  // Use the non-sync API to just get the values accumulated in software.
+  // The Broadom SDK's counter thread syncs the HW counters to software every
+  // 500000us (defined in config.bcm).
+  uint64_t value;
+  auto ret = bcm_stat_get(unit, port, type, &value);
+  bcmCheckError(ret, "Failed to get bcm stat ", type, " for port ", port);
+
+  stat->updateValue(now, value);
+  *statVal = value;
 }
 
 } // namespace
@@ -945,6 +1054,496 @@ void BcmPort::disableStatCollection() {
   statCollectionEnabled_.store(false);
 
   destroyAllPortStats();
+}
+
+// Set and disable sFlow Rates.  These need to be here because the bcm function
+// is not open sourced yet.
+// CS8721100 setting sflow rates must come before setting sample destination.
+// setting an ingress rate of 0 after setting sample destination will clear
+// the sample destination.
+void BcmPort::setSflowRates(const std::shared_ptr<Port>& swPort) {
+  if (!swPort->getSflowIngressRate() && !swPort->getSflowEgressRate()) {
+    disableSflow();
+    return;
+  }
+  auto rv = bcm_port_sample_rate_set(
+      unit_,
+      port_,
+      swPort->getSflowIngressRate(),
+      swPort->getSflowEgressRate());
+  bcmCheckError(
+      rv,
+      folly::sformat(
+          "Failed to configure sFlow rate for unit:port {}:{}. Error: '{}' ",
+          unit_,
+          port_,
+          bcm_errmsg(rv)));
+
+  XLOG(DBG1) << folly::sformat(
+      "Enabled sFlow for unit:port {}:{} ingress rate {} egress rate {}",
+      unit_,
+      port_,
+      swPort->getSflowIngressRate(),
+      swPort->getSflowEgressRate());
+}
+
+void BcmPort::disableSflow() {
+  auto rv = bcm_port_sample_rate_set(unit_, port_, 0, 0);
+  bcmCheckError(rv, "Failed to disable sFlow. Error ", bcm_errmsg(rv));
+
+  XLOG(DBG1) << folly::sformat(
+      "Disabled sFlow for unit:port {}:{}", unit_, port_);
+
+  bcmCheckError(
+      rv, "Failed to disable sFlow port control. Error ", bcm_errmsg(rv));
+}
+
+void BcmPort::prepareForGracefulExit() {
+  platformPort_->prepareForGracefulExit();
+}
+
+bool BcmPort::getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort) {
+  // Ideally FEC should only be enabled for 100G optical ports.
+  // But there are NICs which always turn these on regardless
+  // of whether they are using optics or not. So to work around
+  // that and also to avoid the (very small) latency incurred by
+  // FEC where we can, base the decision on both speed and what
+  // the platform port tells us
+
+  // Any speed less than 100G should use the OFF option
+  auto at_least_100g = swPort->getSpeed() >= cfg::PortSpeed::HUNDREDG;
+  return (at_least_100g || swPort->getFEC() != cfg::PortFEC::OFF) &&
+      !platformPort_->shouldDisableFEC();
+}
+
+uint32_t BcmPort::getCL91FECStatus() const {
+  uint32_t cl91Status{0};
+  if (SocUtils::isTomahawk(unit_)) {
+    auto rv = bcm_port_phy_control_get(
+        unit_,
+        port_,
+        BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
+        &cl91Status);
+    if (rv == BCM_E_UNAVAIL) {
+      XLOG(INFO) << "Failed to read if CL91 FEC is enabled: " << bcm_errmsg(rv);
+      return 0;
+    }
+    bcmCheckError(rv, "failed to read if CL91 FEC is enabled");
+  }
+  return cl91Status;
+}
+
+bool BcmPort::isCL91FECApplicable() const {
+  return SocUtils::isTomahawk(unit_);
+}
+
+void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
+  // Change FEC setting on an UP port could cause port flap.
+  // Only do it when the port is not UP.
+  //
+  // We are extra conservative here due to bcm case #1134023, where we
+  // cannot rely on the value of bcm_port_phy_control_get for
+  // BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION on 6.4.10
+  if (isUp()) {
+    XLOG(DBG1) << "Skip FEC setting on port " << swPort->getID()
+               << ", which is UP";
+    return;
+  }
+
+  auto shouldEnableFec = getDesiredFECEnabledStatus(swPort);
+  auto desiredFecStatus = shouldEnableFec ? BCM_PORT_PHY_CONTROL_FEC_ON
+                                          : BCM_PORT_PHY_CONTROL_FEC_OFF;
+
+  uint32_t currentFecStatus{0};
+  auto rv = bcm_port_phy_control_get(
+      unit_,
+      port_,
+      BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION,
+      &currentFecStatus);
+  bcmCheckError(rv, "failed to read if FEC is enabled");
+
+  XLOG(DBG1) << "FEC for port " << swPort->getID() << " is "
+             << (currentFecStatus == BCM_PORT_PHY_CONTROL_FEC_ON ? "ON"
+                                                                 : "OFF");
+
+  if (desiredFecStatus != currentFecStatus) {
+    XLOG(DBG1) << (shouldEnableFec ? "Enabling" : "Disabling")
+               << " FEC on port " << swPort->getID();
+    rv = bcm_port_phy_control_set(
+        unit_,
+        port_,
+        BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION,
+        desiredFecStatus);
+    bcmCheckError(rv, "failed to enable/disable fec");
+  }
+
+  if (SocUtils::isTomahawk(unit_)) {
+    // HACK: assume CL91 fec if 100g port, CL74 otherwise.
+    //
+    // We also make sure cl91 is disabled if we don't want fec to be
+    // enabled at all.
+    int desiredCl91Status =
+        shouldEnableFec && swPort->getSpeed() == cfg::PortSpeed::HUNDREDG;
+
+    auto cl91Status = getCL91FECStatus();
+    if (desiredCl91Status != cl91Status) {
+      XLOG(DBG1) << "Turning CL91 " << (desiredCl91Status ? "on" : "off")
+                 << " for port " << swPort->getID();
+      rv = bcm_port_phy_control_set(
+          unit_,
+          port_,
+          BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
+          desiredCl91Status);
+      if (rv == BCM_E_UNAVAIL) {
+        XLOG(INFO) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
+        return;
+      }
+      bcmCheckError(rv, "failed to set cl91 fec setting");
+    }
+  }
+}
+
+// Set the preemphasis (pre-tap; main-tap; post-tap) setting for the transmitter
+// and the amplitude control (driver current) values
+void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
+  // Changing the preemphasis/driver-current setting won't cause link flap,
+  // so it's safe to not check for port status
+  folly::EventBase evb;
+  // Get current preemphasis setting
+  auto tx = getPlatformPort()->getTxSettings(&evb).getVia(&evb);
+  if (!tx.has_value()) {
+    // If TxSetting returns no values, it means that we don't need to update
+    // tx setting for the port. So do nothing
+    return;
+  }
+  auto correctTx = tx.value();
+  uint32_t dc;
+  uint32_t preTap;
+  uint32_t mainTap;
+  uint32_t postTap;
+
+  // Get current Tx Setting used. Register names can be found on page 20 of
+  // broadcom debug document
+  auto rv = bcm_port_phy_control_get(
+      unit_, port_, BCM_PORT_PHY_CONTROL_DRIVER_CURRENT, &dc);
+  bcmCheckError(rv, "failed to get driver current");
+  auto pre = bcm_port_phy_control_get(
+      unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, &preTap);
+  bcmCheckError(pre, "failed to get pre-tap");
+  auto main = bcm_port_phy_control_get(
+      unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, &mainTap);
+  bcmCheckError(main, "failed to get main-tap");
+  auto post = bcm_port_phy_control_get(
+      unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, &postTap);
+  bcmCheckError(post, "failed to get post-tap");
+
+  XLOG(DBG4) << "Drive current on port " << swPort->getID() << " is " << dc;
+  XLOG(DBG4) << "Pre-tap on port " << swPort->getID() << " is " << preTap;
+  XLOG(DBG4) << "Main-tap on port " << swPort->getID() << " is " << mainTap;
+  XLOG(DBG4) << "Post-tap on port " << swPort->getID() << " is " << postTap;
+
+  // only perform an overwrite if the current setting doesn't match the
+  // current one
+  if (dc != correctTx.driveCurrent && correctTx.driveCurrent != 0) {
+    bcm_port_phy_control_set(
+        unit_,
+        port_,
+        BCM_PORT_PHY_CONTROL_DRIVER_CURRENT,
+        correctTx.driveCurrent);
+
+    XLOG(DBG1) << "Set drive current on port " << swPort->getID() << " to be "
+               << static_cast<uint32_t>(correctTx.driveCurrent) << " from "
+               << dc;
+  }
+  if (preTap != correctTx.preTap && correctTx.preTap != 0) {
+    bcm_port_phy_control_set(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, correctTx.preTap);
+    XLOG(DBG1) << "Set pre-tap on port " << swPort->getID() << " to be "
+               << static_cast<uint32_t>(correctTx.preTap) << " from " << preTap;
+  }
+  if (mainTap != correctTx.mainTap && correctTx.mainTap != 0) {
+    bcm_port_phy_control_set(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, correctTx.mainTap);
+    XLOG(DBG1) << "Set main-tap on port " << swPort->getID() << " to be "
+               << static_cast<uint32_t>(correctTx.mainTap) << " from "
+               << mainTap;
+  }
+  if (postTap != correctTx.postTap && correctTx.postTap != 0) {
+    bcm_port_phy_control_set(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, correctTx.postTap);
+    XLOG(DBG1) << "Set post-tap on port " << swPort->getID() << " to be "
+               << static_cast<uint32_t>(correctTx.postTap) << " from "
+               << postTap;
+  }
+}
+
+void BcmPort::setLoopbackMode(const std::shared_ptr<Port>& swPort) {
+  int newLoopbackMode{BCM_PORT_LOOPBACK_NONE};
+  switch (swPort->getLoopbackMode()) {
+    case cfg::PortLoopbackMode::NONE:
+      newLoopbackMode = BCM_PORT_LOOPBACK_NONE;
+      break;
+    case cfg::PortLoopbackMode::PHY:
+      newLoopbackMode = BCM_PORT_LOOPBACK_PHY;
+      break;
+    case cfg::PortLoopbackMode::MAC:
+      newLoopbackMode = BCM_PORT_LOOPBACK_MAC;
+      break;
+  }
+  int oldLoopbackMode;
+  auto rv = bcm_port_loopback_get(unit_, port_, &oldLoopbackMode);
+  bcmCheckError(
+      rv, "failed to get loopback mode state for port", swPort->getID());
+  if (oldLoopbackMode != newLoopbackMode) {
+    rv = bcm_port_loopback_set(unit_, port_, newLoopbackMode);
+    bcmCheckError(
+        rv,
+        "failed to set loopback mode state to ",
+        swPort->getLoopbackMode(),
+        " for port",
+        swPort->getID());
+  }
+}
+
+bool BcmPort::isFECEnabled() {
+  if (platformPort_->shouldUsePortResourceAPIs()) {
+    auto curPortResource = getCurrentPortResource(unit_, gport_);
+    return curPortResource.fec_type != bcmPortPhyFecNone;
+  }
+
+  uint32_t value = BCM_PORT_PHY_CONTROL_FEC_OFF;
+  auto rv = bcm_port_phy_control_get(
+      unit_, port_, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, &value);
+  bcmCheckError(rv, "failed to read if FEC is enabled");
+  // compare against 'OFF' because result could be 'ON'
+  // or 'AUTO'  - not clear how to verify AUTO has gone to yes
+  return (
+      value != BCM_PORT_PHY_CONTROL_FEC_OFF ||
+      (isCL91FECApplicable() && getCL91FECStatus()));
+}
+
+void BcmPort::initCustomStats() const {
+  int rv = 0;
+  if (SocUtils::isTomahawk3(unit_)) {
+    rv = bcm_stat_custom_add(
+        0, port_, snmpBcmCustomReceive3, bcmDbgCntRxL3DstDiscardDrop);
+  } else {
+    rv = bcm_stat_custom_add(
+        0, port_, snmpBcmCustomReceive3, bcmDbgCntDSTDISCARDDROP);
+  }
+  bcmCheckError(rv, "Unable to set up custom stat for DST discard drops");
+}
+
+void BcmPort::setAdditionalStats(
+    std::chrono::seconds now,
+    HwPortStats* curPortStats) {
+  queueManager_->updateQueueStats(now, curPortStats);
+}
+
+bcm_gport_t BcmPort::asGPort(bcm_port_t port) {
+  bcm_gport_t rtn;
+  BCM_GPORT_LOCAL_SET(rtn, port);
+  return rtn;
+}
+
+bool BcmPort::isValidLocalPort(bcm_gport_t gport) {
+  return BCM_GPORT_IS_LOCAL(gport) &&
+      BCM_GPORT_LOCAL_GET(gport) != static_cast<bcm_port_t>(0);
+}
+
+void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {
+  auto pause = swPort->getPause();
+  int expectTx = (pause.tx) ? 1 : 0;
+  int expectRx = (pause.rx) ? 1 : 0;
+
+  int curTx = 0;
+  int curRx = 0;
+  auto rv = bcm_port_pause_get(unit_, port_, &curTx, &curRx);
+  bcmCheckError(rv, "failed to get pause setting from HW for port ", port_);
+
+  auto logHelper = [](int tx, int rx) {
+    return folly::to<std::string>(
+        tx ? "True/" : "False/", rx ? "True" : "False");
+  };
+
+  if (expectTx == curTx && expectRx == curRx) {
+    // nothing to do
+    XLOG(DBG4) << "Skip same pause setting for port " << port_
+               << ", Tx/Rx==" << logHelper(expectTx, expectRx);
+    return;
+  }
+
+  rv = bcm_port_pause_set(unit_, port_, expectTx, expectRx);
+  bcmCheckError(
+      rv,
+      "failed to set pause setting for port ",
+      port_,
+      ", Tx/Rx=>",
+      logHelper(expectTx, expectRx));
+
+  XLOG(DBG1) << "set pause setting for port " << port_ << ", Tx/Rx=>"
+             << logHelper(expectTx, expectRx);
+}
+
+uint8_t BcmPort::determinePipe() const {
+  // almost certainly open sourced since we updated bcm...
+  bcm_info_t info;
+  auto rv = bcm_info_get(unit_, &info);
+  bcmCheckError(rv, "failed to get unit info");
+
+  bcm_port_config_t portConfig;
+  rv = bcm_port_config_get(unit_, &portConfig);
+  bcmCheckError(rv, "failed to get port configuration");
+
+  for (int i = 0; i < info.num_pipes; ++i) {
+    if (BCM_PBMP_MEMBER(portConfig.per_pipe[i], port_)) {
+      return i;
+    }
+  }
+
+  throw FbossError("Port ", port_, " not associated w/ any pipe");
+}
+
+QueueConfig BcmPort::getCurrentQueueSettings() {
+  // BcmPortQueueManager will return both unicast and multicast queue settings.
+  // But for now, BcmPort only cares unicast
+  return queueManager_->getCurrentQueueSettings().unicast;
+}
+
+void BcmPort::setupQueue(const PortQueue& queue) {
+  queueManager_->program(queue);
+}
+
+void BcmPort::attachIngressQosPolicy(const std::string& name) {
+  /*
+   * In practice, we noticed that below call to bcm_qos_port_map_set had a
+   * side-effect: it  set dscp map mode to BCM_PORT_DSCP_MAP_ALL.
+   * However, this is not documented, and Broadcom recommended explicitly
+   * calling bcm_port_dscp_map_mode_set.
+   */
+  auto rv =
+      bcm_port_dscp_map_mode_set(hw_->getUnit(), port_, BCM_PORT_DSCP_MAP_ALL);
+  bcmCheckError(rv, "failed to get dscp map mode");
+
+  auto qosPolicy = hw_->getQosPolicyTable()->getQosPolicy(name);
+  rv = bcm_qos_port_map_set(
+      hw_->getUnit(),
+      gport_,
+      qosPolicy->getHandle(BcmQosMap::Type::IP_INGRESS),
+      -1);
+  bcmCheckError(rv, "failed to set qos map");
+}
+
+void BcmPort::detachIngressQosPolicy() {
+  auto rv = bcm_qos_port_map_set(hw_->getUnit(), gport_, 0, 0);
+  bcmCheckError(rv, "failed to unset qos map");
+}
+
+void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
+  // Since BRCM SDK 6.5.13, there're a lot of port apis deprecated for PM8x50
+  // ports(like TH3). And a new powerful, atomic api bcm_port_resource_get/set
+  // is created. Therefore, we're able to configure different attributes for a
+  // bcm_port_resource, e.g. speed, fec_type and etc, all together.
+  auto curPortResource = getCurrentPortResource(unit_, gport_);
+  auto desiredPortResource = curPortResource;
+
+  TransmitterTechnology tech = getTransmitterTechnology(swPort->getName());
+  XLOG(DBG1) << swPort->getName() << " has medium type: "
+             << apache::thrift::util::enumNameSafe(tech);
+  if (swPort->getProfileID() != cfg::PortProfileID::PROFILE_DEFAULT) {
+    auto profileID = swPort->getProfileID();
+    const auto profileConf =
+        hw_->getPlatform()->getPortProfileConfig(profileID);
+    if (!profileConf) {
+      throw FbossError(
+          "Platform doesn't support speed profile: ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
+
+    XLOG(DBG1) << "Program port resource based on speed profile: "
+               << apache::thrift::util::enumNameSafe(profileID);
+    desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
+    desiredPortResource.fec_type =
+        utility::phyFecModeToBcmPortPhyFec((*profileConf).get_iphy().get_fec());
+    desiredPortResource.phy_lane_config =
+        getPhyLaneConfig((*profileConf).get_iphy().get_modulation(), tech);
+  } else {
+    // in case we don't have the new config yet
+    cfg::PortSpeed desiredPortSpeed = getDesiredPortSpeed(swPort);
+    desiredPortResource.speed = static_cast<int>(getDesiredPortSpeed(swPort));
+    bool enableFec = getDesiredFECEnabledStatus(swPort);
+    cfg::PortFEC desiredFEC = enableFec ? swPort->getFEC() : cfg::PortFEC::OFF;
+    desiredPortResource.fec_type = getDesiredFECType(desiredFEC);
+    desiredPortResource.phy_lane_config =
+        getDesiredPhyLaneConfig(tech, desiredPortSpeed);
+  }
+
+  auto isPortResourceSame = [](const bcm_port_resource_t& current,
+                               const bcm_port_resource_t& desired) {
+    // Right now, we only need to care the speed and fec_type and medium
+    return current.speed == desired.speed &&
+        current.fec_type == desired.fec_type &&
+        current.phy_lane_config == desired.phy_lane_config;
+  };
+
+  if (isPortResourceSame(curPortResource, desiredPortResource)) {
+    XLOG(DBG2)
+        << "Desired port resource is the same as current one. No need to "
+        << "reprogram it. Port: " << swPort->getName()
+        << ", id: " << swPort->getID()
+        << ", speed: " << desiredPortResource.speed
+        << ", fec_type: " << desiredPortResource.fec_type
+        << ", phy_lane_config: 0x" << std::hex
+        << desiredPortResource.phy_lane_config;
+    return;
+  }
+
+  if (isUp()) {
+    XLOG(WARNING) << "Changing port resource on up port. This might "
+                  << "disrupt traffic. Port: " << swPort->getName()
+                  << ", id: " << swPort->getID();
+  }
+
+  XLOG(DBG1) << "Changing port resource Port " << swPort->getName() << ", id "
+             << swPort->getID() << ": from speed=" << curPortResource.speed
+             << ", fec_type=" << curPortResource.fec_type
+             << ", phy_lane_config=0x" << std::hex
+             << curPortResource.phy_lane_config << ", to speed=" << std::dec
+             << desiredPortResource.speed
+             << ", fec_type=" << desiredPortResource.fec_type
+             << ", phy_lane_config=0x" << std::hex
+             << desiredPortResource.phy_lane_config;
+
+  auto rv = bcm_port_resource_speed_set(unit_, gport_, &desiredPortResource);
+  bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
+
+  if (curPortResource.speed != desiredPortResource.speed) {
+    getPlatformPort()->linkSpeedChanged(
+        cfg::PortSpeed(desiredPortResource.speed));
+  }
+}
+
+void BcmPort::updateBcmStats(
+    std::chrono::seconds now,
+    HwPortStats* curPortStats) {
+  // Stat types supported on 6.5.13 or later only
+  if (hw_->getPlatform()->isCosSupported()) {
+    // Stats not supported bny TD2
+    updateBcmStat(
+        unit_,
+        port_,
+        now,
+        getPortCounterIf(kOutEcnCounter()),
+        snmpBcmTxEcnErrors,
+        &curPortStats->outEcnCounter_);
+  }
+  updateBcmStat(
+      unit_,
+      port_,
+      now,
+      getPortCounterIf(kInDstNullDiscards()),
+      snmpBcmCustomReceive3,
+      &curPortStats->inDstNullDiscards_);
 }
 
 } // namespace facebook::fboss
