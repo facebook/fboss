@@ -10,14 +10,17 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 
 #include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Memory.h>
+#include <folly/logging/xlog.h>
 
 extern "C" {
 #include <bcm/port.h>
@@ -129,6 +132,112 @@ void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
     const {
   auto iterator = FilterIterator(fbossPhysicalPorts_, predicate);
   std::for_each(iterator.begin(), iterator.end(), action);
+}
+
+void BcmPortTable::initPortGroups() {
+  auto subsidiaryPortsMap = utility::getSubsidiaryPortIDs(
+      hw_->getPlatform()->config()->thrift.platform);
+
+  for (auto& entry : bcmPhysicalPorts_) {
+    BcmPort* bcmPort = entry.second.get();
+
+    // TODO(joseph5wu) For now, the following logic doesn't work for different
+    // lane settings for TH3. So skip portGroup setup for TH3 platform only.
+    if (!bcmPort->getPlatformPort()->shouldSetupPortGroup()) {
+      XLOG(DBG2) << "Skip setting up port group for port:"
+                 << bcmPort->getPortID();
+      continue;
+    }
+
+    if (bcmPort->getPortGroup()) {
+      // if port is part of a group already skip it.
+      continue;
+    }
+
+    // The existing design is based on the assumption that port group == core.
+    // This works on TD2/TH, which a core has 4 lanes, and can have up to 4
+    // logical ports. But for TH3 Blackhawk core or future more powerful cores,
+    // a core can have 8 lanes and can have up to 8 logical ports. And the
+    // portgroup also depends on the hardware design. For example, for Wedge400,
+    // we split one core into two front panel ports, and each of these front
+    // panel ports can break into up to 4 logical ports. If we use
+    // `bcm_port_subsidiary_ports_get` to get all the subsidiary ports, we'll
+    // get 7 ports. i.e. eth1/17/1 [logical port: 20-23], eth1/18/1 [24-27],
+    // if we pass logical port id:20, we'll get 21/22/23/24/25/26/27 back, which
+    // is not we want for PortGroup, as we still want eth1/17/1 as one group,
+    // while eth1/18/1 is another.
+    // Hence, we introduced the recent PlatformPort refactor to use config to
+    // tell us which ports are expected to be in the same group.
+    // If we can't get subsidiary ports map from config, we fall back to use
+    // the old logic to get port group.
+    subsidiaryPortsMap.empty()
+        ? initPortGroupLegacy(bcmPort)
+        : initPortGroupFromConfig(bcmPort, subsidiaryPortsMap);
+  }
+}
+
+void BcmPortTable::initPortGroupLegacy(BcmPort* controllingPort) {
+  bcm_pbmp_t pbmp;
+  auto rv = bcm_port_subsidiary_ports_get(
+      hw_->getUnit(), controllingPort->getBcmPortId(), &pbmp);
+  if (rv == BCM_E_PORT) {
+    // not a controlling port, skip
+    return;
+  } else if (rv != BCM_E_NONE) {
+    bcmLogFatal(
+        rv,
+        hw_,
+        "Failed to get subsidiary ports for port ",
+        controllingPort->getBcmPortId());
+  } else {
+    std::vector<BcmPort*> subsidiaryPorts;
+    bcm_port_t subsidiaryPort;
+    BCM_PBMP_ITER(pbmp, subsidiaryPort) {
+      subsidiaryPorts.push_back(getBcmPort(subsidiaryPort));
+    }
+
+    // Note that the subsidiary_ports pbmp includes the controlling port, so
+    // we don't need to add the controlling port manually
+    auto group = std::make_unique<BcmPortGroup>(
+        hw_, controllingPort, std::move(subsidiaryPorts));
+
+    auto members = group->allPorts();
+    for (auto& member : members) {
+      member->registerInPortGroup(group.get());
+    }
+    bcmPortGroups_.push_back(std::move(group));
+  }
+}
+
+void BcmPortTable::initPortGroupFromConfig(
+    BcmPort* controllingPort,
+    const std::map<PortID, std::vector<PortID>>& subsidiaryPortsMap) {
+  auto itSubsidiaryPorts =
+      subsidiaryPortsMap.find(controllingPort->getPortID());
+  if (itSubsidiaryPorts == subsidiaryPortsMap.end()) {
+    // not a controlling port, skip
+    return;
+  }
+  std::vector<BcmPort*> subsidiaryPorts;
+  for (auto portId : itSubsidiaryPorts->second) {
+    // only put the BcmPort pointer to the group if the port exists in
+    // the hardware. With the new flex port features on TH3 allowing us to
+    // add and remove port, we might have some PlatformPort not created in
+    // bcm yet.
+    // TODO(joseph5wu): We might also need to add some check to make sure
+    // the ports in config is allowed to be in the same group.
+    if (auto* subBcmPort = getBcmPortIf(portId)) {
+      subsidiaryPorts.push_back(subBcmPort);
+    }
+  }
+  auto group = std::make_unique<BcmPortGroup>(
+      hw_, controllingPort, std::move(subsidiaryPorts));
+
+  auto members = group->allPorts();
+  for (auto& member : members) {
+    member->registerInPortGroup(group.get());
+  }
+  bcmPortGroups_.push_back(std::move(group));
 }
 
 } // namespace facebook::fboss
