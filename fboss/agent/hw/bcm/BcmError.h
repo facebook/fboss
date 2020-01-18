@@ -17,8 +17,14 @@
 
 extern "C" {
 #include <bcm/error.h>
-#include <bcm/pkt.h>
 #include <shared/error.h>
+
+#if (!defined(BCM_VER_MAJOR))
+#define BCM_WARM_BOOT_SUPPORT
+#include <soc/opensoc.h>
+#else
+#include <soc/error.h>
+#endif
 }
 
 namespace facebook::fboss {
@@ -38,6 +44,13 @@ class BcmError : public FbossError {
       : FbossError(std::forward<Args>(args)..., ": ", bcm_errmsg(err)),
         err_(err) {}
 
+  template <typename... Args>
+  BcmError(soc_error_t err, Args&&... args)
+      : FbossError(std::forward<Args>(args)..., ": ", bcm_errmsg(err)),
+        // Fortunately bcm_error_t and soc_error_t both use the exact same
+        // enum values, so we don't bother distinguishing them.
+        err_(static_cast<bcm_error_t>(err)) {}
+
   ~BcmError() throw() override {}
 
   bcm_error_t getBcmError() const {
@@ -49,19 +62,19 @@ class BcmError : public FbossError {
 };
 
 template <typename... Args>
-void bcmCheckError(int err, Args&&... msgArgs) {
-  if (BCM_FAILURE(err)) {
-    XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
-              << bcm_errmsg(err) << ", " << err;
-    throw BcmError(err, std::forward<Args>(msgArgs)...);
-  }
-}
-
-template <typename... Args>
 void bcmLogError(int err, Args&&... msgArgs) {
   if (BCM_FAILURE(err)) {
     XLOG(ERR) << folly::to<std::string>(std::forward<Args>(msgArgs)...) << ": "
               << bcm_errmsg(err) << ", " << err;
+  }
+}
+
+template <typename... Args>
+void bcmCheckError(int err, Args&&... msgArgs) {
+  if (BCM_FAILURE(err)) {
+    // log the error before throwing in case the throw() also has an error
+    bcmLogError(err, std::forward<Args>(msgArgs)...);
+    throw BcmError(err, std::forward<Args>(msgArgs)...);
   }
 }
 
