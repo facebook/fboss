@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmWarmBootCache.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -19,23 +20,32 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
+#include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmQosMap.h"
+#include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
@@ -46,6 +56,11 @@
 #include "fboss/agent/state/VlanMap.h"
 
 extern "C" {
+#include <bcm/field.h>
+#include <bcm/l3.h>
+#include <bcm/mpls.h>
+#include <bcm/port.h>
+#include <bcm/qos.h>
 #include <bcm/trunk.h>
 }
 
@@ -1139,6 +1154,368 @@ void BcmWarmBootCache::programmed(BcmWarmBootCache::QosMapKey2QosMapIdItr itr) {
              << itr->second << " for policy " << itr->first.first
              << ", removing from warm boot cache.";
   qosMapKey2QosMapId_.erase(itr);
+}
+
+namespace {
+std::optional<MirrorTunnel> getMirrorTunnel(
+    const bcm_mirror_destination_t* mirror_dest) {
+  std::optional<TunnelUdpPorts> udpPorts;
+  if (!(mirror_dest->flags &
+        (BCM_MIRROR_DEST_TUNNEL_SFLOW | BCM_MIRROR_DEST_TUNNEL_IP_GRE))) {
+    return std::nullopt;
+  }
+  if (mirror_dest->flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
+    udpPorts =
+        TunnelUdpPorts(mirror_dest->udp_src_port, mirror_dest->udp_dst_port);
+  }
+  if (mirror_dest->version == 4) {
+    return udpPorts ? MirrorTunnel(
+                          folly::IPAddress::fromLongHBO(mirror_dest->src_addr),
+                          folly::IPAddress::fromLongHBO(mirror_dest->dst_addr),
+                          macFromBcm(mirror_dest->src_mac),
+                          macFromBcm(mirror_dest->dst_mac),
+                          udpPorts.value(),
+                          mirror_dest->ttl)
+                    : MirrorTunnel(
+                          folly::IPAddress::fromLongHBO(mirror_dest->src_addr),
+                          folly::IPAddress::fromLongHBO(mirror_dest->dst_addr),
+                          macFromBcm(mirror_dest->src_mac),
+                          macFromBcm(mirror_dest->dst_mac),
+                          mirror_dest->ttl);
+  } else {
+    return udpPorts ? MirrorTunnel(
+                          folly::IPAddress::fromBinary(
+                              folly::ByteRange(mirror_dest->src6_addr, 16)),
+                          folly::IPAddress::fromBinary(
+                              folly::ByteRange(mirror_dest->dst6_addr, 16)),
+                          macFromBcm(mirror_dest->src_mac),
+                          macFromBcm(mirror_dest->dst_mac),
+                          udpPorts.value(),
+                          mirror_dest->ttl)
+                    : MirrorTunnel(
+                          folly::IPAddress::fromBinary(
+                              folly::ByteRange(mirror_dest->src6_addr, 16)),
+                          folly::IPAddress::fromBinary(
+                              folly::ByteRange(mirror_dest->dst6_addr, 16)),
+                          macFromBcm(mirror_dest->src_mac),
+                          macFromBcm(mirror_dest->dst_mac),
+                          mirror_dest->ttl);
+  }
+}
+
+std::string tunnelInitiatorString(
+    bcm_if_t intf,
+    bcm_vlan_t vid,
+    const LabelForwardingAction::LabelStack& labels) {
+  return folly::to<std::string>(
+      "mpls tunnel(",
+      intf,
+      "/",
+      vid,
+      ")",
+      folly::to<std::string>("@stack[", folly::join(",", labels), "]"));
+}
+} // namespace
+void BcmWarmBootCache::populateAcls(
+    const int groupId,
+    AclEntry2AclStat& stats,
+    Priority2BcmAclEntryHandle& acls) {
+  int entryCount = 0;
+  // first get the count of field entries of this group
+  auto rv = bcm_field_entry_multi_get(
+      hw_->getUnit(), groupId, 0, nullptr, &entryCount);
+  bcmCheckError(rv, "Unable to get count of field entry for group: ", groupId);
+  XLOG(DBG1) << "Existing entry count=" << entryCount
+             << " for group=" << groupId;
+
+  if (!entryCount) {
+    return;
+  }
+  std::vector<bcm_field_entry_t> bcmEntries(entryCount);
+  rv = bcm_field_entry_multi_get(
+      hw_->getUnit(), groupId, entryCount, bcmEntries.data(), &entryCount);
+  bcmCheckError(
+      rv, "Unable to get field entry information for group=", groupId);
+  for (auto bcmEntry : bcmEntries) {
+    // Get acl stat associated to each acl entry
+    populateAclStats(bcmEntry, stats);
+    // Get priority
+    int priority = 0;
+    rv = bcm_field_entry_prio_get(hw_->getUnit(), bcmEntry, &priority);
+    bcmCheckError(rv, "Unable to get priority for entry=", bcmEntry);
+    // Right now we don't support to have the same priority for two acls.
+    CHECK(acls.find(priority) == acls.end());
+    // convert the prio back to s/w priority
+    acls.emplace(utility::swPriorityToHwPriority(priority), bcmEntry);
+
+    populateMirroredAcl(bcmEntry);
+  }
+}
+
+void BcmWarmBootCache::populateAclStats(
+    const BcmAclEntryHandle aclHandle,
+    AclEntry2AclStat& stats) {
+  AclStatStatus statStatus;
+  int statHandle;
+  auto rv = bcm_field_entry_stat_get(hw_->getUnit(), aclHandle, &statHandle);
+  if (rv == BCM_E_NOT_FOUND) {
+    return;
+  }
+  bcmCheckError(rv, "Unable to get stat_id of field entry=", aclHandle);
+  statStatus.stat = statHandle;
+  stats.emplace(aclHandle, statStatus);
+}
+
+void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle handle) {
+  auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle);
+  bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
+}
+
+void BcmWarmBootCache::detachBcmAclStat(
+    BcmAclEntryHandle aclHandle,
+    BcmAclStatHandle aclStatHandle) {
+  auto rv =
+      bcm_field_entry_stat_detach(hw_->getUnit(), aclHandle, aclStatHandle);
+  bcmLogFatal(
+      rv,
+      hw_,
+      "failed to detach stat=",
+      aclStatHandle,
+      " from bcmAcl=",
+      aclHandle);
+}
+
+void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle handle) {
+  auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle);
+  bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
+}
+
+void BcmWarmBootCache::populateMirrors() {
+  auto saveMirrorDescriptor = [&](bcm_mirror_destination_t* mirror_dest) {
+    /* save in map the mirror descriptor matching properties of input mirror */
+    auto bcmEgressPort = mirror_dest->gport;
+    auto bcmMirrorTunnel = getMirrorTunnel(mirror_dest);
+    mirrorEgressPath2Handle_.emplace(
+        std::make_pair(bcmEgressPort, bcmMirrorTunnel),
+        mirror_dest->mirror_dest_id);
+  };
+
+  auto mirrorTraverseCb =
+      [](int /*unit*/, bcm_mirror_destination_t* mirror_dest, void* saver) {
+        (*static_cast<decltype(saveMirrorDescriptor)*>(saver))(mirror_dest);
+        return 0;
+      };
+
+  /* traverse all mirrors and save mirror descriptors
+   */
+  auto rv = bcm_mirror_destination_traverse(
+      hw_->getUnit(), mirrorTraverseCb, &saveMirrorDescriptor);
+  bcmCheckError(rv, "Failed to traverse mirrors");
+}
+
+void BcmWarmBootCache::populateMirroredPorts() {
+  bcm_port_config_t config;
+  memset(&config, 0, sizeof(bcm_port_config_t));
+  bcm_port_config_get(hw_->getUnit(), &config);
+  bcm_port_t port;
+  bcm_gport_t gport;
+  BCM_PBMP_ITER(config.port, port) {
+    BCM_GPORT_MODPORT_SET(gport, hw_->getUnit(), port);
+    populateMirroredPort(gport);
+  }
+}
+
+void BcmWarmBootCache::populateMirroredPort(bcm_gport_t port) {
+  std::vector<MirrorDirection> directions{MirrorDirection::INGRESS,
+                                          MirrorDirection::EGRESS};
+  std::vector<cfg::SampleDestination> destinations{
+      cfg::SampleDestination::CPU, cfg::SampleDestination::MIRROR};
+
+  for (auto direction : directions) {
+    for (auto destination : destinations) {
+      // sampling to mirrors is not valid 1. with egress samples and 2. if sflow
+      // isn't supported
+      if (destination == cfg::SampleDestination::MIRROR &&
+          (direction == MirrorDirection::EGRESS ||
+           !getHw()->getPlatform()->sflowSamplingSupported())) {
+        continue;
+      }
+      bcm_gport_t mirror_dest = 0;
+      int mirror_dest_count = 0;
+      uint32_t flag = directionToBcmPortMirrorFlag(direction) |
+          sampleDestinationToBcmPortMirrorSflowFlag(destination);
+      auto rv = bcm_mirror_port_dest_get(
+          hw_->getUnit(), port, flag, 1, &mirror_dest, &mirror_dest_count);
+      bcmCheckError(rv, "Failed to get mirror port destination");
+      CHECK_LE(mirror_dest_count, 1);
+      if (mirror_dest_count) {
+        mirroredPort2Handle_.emplace(std::make_pair(port, flag), mirror_dest);
+      }
+    }
+  }
+}
+
+void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle entry) {
+  std::vector<MirrorDirection> directions{MirrorDirection::INGRESS,
+                                          MirrorDirection::EGRESS};
+
+  for (auto direction : directions) {
+    uint32_t param0 = 0;
+    uint32_t param1 = 0;
+    bcm_field_action_get(
+        hw_->getUnit(),
+        entry,
+        directionToBcmAclMirrorAction(direction),
+        &param0,
+        &param1);
+    if (param1) {
+      mirroredAcl2Handle_.emplace(std::make_pair(entry, direction), param1);
+    }
+  }
+}
+
+void BcmWarmBootCache::populateQosMaps() {
+  /* TODO(pshaikh) : remove this function after one push, as qos map id are put
+   * in saved switch state */
+  constexpr auto kQosMapIngressL3Flags = BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3;
+  constexpr auto kQosMapIngressMplsFlags =
+      BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_MPLS;
+  constexpr auto kQosMapEgressMplslags = BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS;
+
+  auto mapIdsAndFlags = getBcmQosMapIdsAndFlags(hw_->getUnit());
+  for (auto mapIdAndFlag : mapIdsAndFlags) {
+    int id = std::get<0>(mapIdAndFlag);
+    int flags = std::get<1>(mapIdAndFlag);
+    if ((flags & kQosMapIngressL3Flags) == kQosMapIngressL3Flags) {
+      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+    } else if ((flags & kQosMapIngressMplsFlags) == kQosMapIngressMplsFlags) {
+      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+    } else if ((flags & kQosMapEgressMplslags) == kQosMapEgressMplslags) {
+      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+    }
+  }
+}
+
+void BcmWarmBootCache::populateLabelSwitchActions() {
+  auto saveLabelSwitchAction = [this](bcm_mpls_tunnel_switch_t* info) {
+    auto bcmMplsTunnelSwitch = std::make_unique<BcmMplsTunnelSwitchT>();
+    bcmMplsTunnelSwitch->get()->data = *info;
+    label2LabelActions_.emplace(info->label, std::move(bcmMplsTunnelSwitch));
+  };
+
+  auto mplsTunnelSwitchTraverse =
+      [](int /*unit*/, bcm_mpls_tunnel_switch_t* info, void* user_data) -> int {
+    (*static_cast<decltype(saveLabelSwitchAction)*>(user_data))(info);
+    return 0;
+  };
+
+  auto rv = bcm_mpls_tunnel_switch_traverse(
+      hw_->getUnit(), mplsTunnelSwitchTraverse, &saveLabelSwitchAction);
+  bcmCheckError(rv, "Failed to traverse label switch actions");
+}
+
+void BcmWarmBootCache::removeUnclaimedLabelSwitchActions() {
+  for (const auto& entries : label2LabelActions_) {
+    auto& bcmMplsTunnelSwitch = entries.second;
+    auto& info = bcmMplsTunnelSwitch->get()->data;
+    auto rv = bcm_mpls_tunnel_switch_delete(hw_->getUnit(), &info);
+    bcmCheckError(
+        rv,
+        "failed to remove unclaimed label switch action for label:",
+        info.label);
+  }
+  label2LabelActions_.clear();
+}
+
+void BcmWarmBootCache::populateLabelStack2TunnelId(bcm_l3_egress_t* egress) {
+  CHECK(egress);
+  auto* bcm_egress = reinterpret_cast<bcm_l3_egress_t*>(egress);
+  if (bcm_egress->mpls_label == BCM_MPLS_LABEL_INVALID) {
+    return;
+  }
+  int label_count = 0;
+  std::vector<bcm_mpls_egress_label_t> egress_labels{
+      hw_->getPlatform()->maxLabelStackDepth()};
+
+  // TODO(pshaikh): case to open as bcm_mpls_tunnel_initiator_get doesn't work
+  // if 3rd arg is 0 and 4th arg is nullptr. ideally, we would want that to
+  // get count of labels and then reset labels vector accordingly
+  auto rv = bcm_mpls_tunnel_initiator_get(
+      hw_->getUnit(),
+      bcm_egress->intf,
+      hw_->getPlatform()->maxLabelStackDepth(),
+      egress_labels.data(),
+      &label_count);
+  if (rv == BCM_E_NOT_FOUND) {
+    // not an MPLS tunnel
+    return;
+  }
+  egress_labels.clear();
+  bcm_l3_intf_t intf;
+  bcm_l3_intf_t_init(&intf);
+  intf.l3a_intf_id = bcm_egress->intf;
+  intf.l3a_flags = BCM_L3_WITH_ID;
+  rv = bcm_l3_intf_get(hw_->getUnit(), &intf);
+
+  if (label_count) {
+    egress_labels.resize(label_count);
+    bcm_mpls_tunnel_initiator_get(
+        hw_->getUnit(),
+        intf.l3a_intf_id,
+        label_count,
+        egress_labels.data(),
+        &label_count);
+  }
+  LabelForwardingAction::LabelStack labels;
+
+  std::transform(
+      std::begin(egress_labels),
+      std::end(egress_labels),
+      std::back_inserter(labels),
+      [](const bcm_mpls_egress_label_t& egress_label) {
+        return egress_label.label;
+      });
+
+  auto key = BcmWarmBootCache::LabelStackKey(intf.l3a_vid, std::move(labels));
+  if (labelStackKey2TunnelId_.find(key) != labelStackKey2TunnelId_.end()) {
+    return;
+  }
+
+  XLOG(DBG4) << "found "
+             << tunnelInitiatorString(intf.l3a_intf_id, intf.l3a_vid, labels);
+  labelStackKey2TunnelId_.emplace(std::move(key), intf.l3a_intf_id);
+}
+
+void BcmWarmBootCache::removeUnclaimedLabeledTunnels() {
+  auto iter = std::begin(labelStackKey2TunnelId_);
+
+  while (iter != std::end(labelStackKey2TunnelId_)) {
+    auto vid = iter->first.first;
+    const auto& labels = iter->first.second;
+    auto intfId = iter->second;
+    auto name = tunnelInitiatorString(intfId, vid, labels);
+    auto rv = bcm_mpls_tunnel_initiator_clear(hw_->getUnit(), intfId);
+    bcmCheckError(rv, "failed to clear ", name);
+    XLOG(DBG3) << "cleared " << name;
+    bcm_l3_intf_t intf;
+    bcm_l3_intf_t_init(&intf);
+    intf.l3a_intf_id = intfId;
+    intf.l3a_flags = BCM_L3_WITH_ID;
+    rv = bcm_l3_intf_delete(hw_->getUnit(), &intf);
+    bcmCheckError(rv, "failed to delete ", name);
+    iter = labelStackKey2TunnelId_.erase(iter);
+  }
+}
+
+bool BcmWarmBootCache::isSflowMirror(BcmMirrorHandle handle) const {
+  bcm_mirror_destination_t mirror_dest;
+  bcm_mirror_destination_t_init(&mirror_dest);
+  auto rv = bcm_mirror_destination_get(hw_->getUnit(), handle, &mirror_dest);
+  bcmCheckError(rv, "failed to get mirror port:", handle);
+  if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW) {
+    return true;
+  }
+  return false;
 }
 
 } // namespace facebook::fboss

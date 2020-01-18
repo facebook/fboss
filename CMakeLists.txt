@@ -389,6 +389,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmQosMapEntry.cpp
     fboss/agent/hw/bcm/BcmQosPolicy.cpp
     fboss/agent/hw/bcm/BcmQosPolicyTable.cpp
+    fboss/agent/hw/bcm/BcmQosUtils.cpp
     fboss/agent/hw/bcm/BcmRoute.cpp
     fboss/agent/hw/bcm/BcmRtag7LoadBalancer.cpp
     fboss/agent/hw/bcm/BcmRtag7Module.cpp
@@ -427,7 +428,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
     fboss/agent/hw/bcm/oss/BcmUnit.cpp
-    fboss/agent/hw/bcm/oss/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
