@@ -421,6 +421,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmSwitchSettings.cpp
     fboss/agent/hw/bcm/BcmTypesImpl.cpp
     fboss/agent/hw/bcm/BcmMacTable.cpp
+    fboss/agent/hw/bcm/RxUtils.cpp
     fboss/agent/hw/bcm/SocUtils.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp

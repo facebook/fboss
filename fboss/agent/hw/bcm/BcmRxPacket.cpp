@@ -8,6 +8,14 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
+
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/RxUtils.h"
+
+#include <folly/Format.h>
+#include <tuple>
+
 extern "C" {
 #include <bcm/rx.h>
 }
@@ -20,6 +28,8 @@ void freeRxBuf(void* ptr, void* arg) {
   intptr_t unit = reinterpret_cast<intptr_t>(arg);
   bcm_rx_free(unit, ptr);
 }
+
+const char* const kRxReasonNames[] = BCM_RX_REASON_NAMES_INITIALIZER;
 
 } // namespace
 
@@ -47,6 +57,49 @@ BcmRxPacket::BcmRxPacket(const bcm_pkt_t* pkt) : unit_(pkt->unit) {
 BcmRxPacket::~BcmRxPacket() {
   // Nothing to do.  The IOBuf destructor will call freeRxBuf()
   // to free the packet data
+}
+
+FbBcmRxPacket::FbBcmRxPacket(const bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch)
+    : BcmRxPacket(pkt), _cosQueue(pkt->cos) {
+  auto bcm_pkt = reinterpret_cast<const bcm_pkt_t*>(pkt);
+
+  if (pkt->flags & BCM_PKT_F_TRUNK) {
+    isFromAggregatePort_ = true;
+    srcAggregatePort_ =
+        bcmSwitch->getTrunkTable()->getAggregatePortId(bcm_pkt->src_trunk);
+  }
+
+#ifdef BCM_VERSION_3_5_0_1_ODP
+  _priority = 0;
+//  _reasons = pkt->rx_reason;
+#else
+  // Hacky solution for now, but prio_int and rx_reasons
+  // are not open sourced yet and this seemed better than
+  // changing all the apis to get a bcm_pkt_t (since this is
+  // called from open-sourced code).
+  // TODO(aeckert): remove this cast once these fields are
+  // open sourced.
+  _priority = bcm_pkt->prio_int;
+  _reasons = bcm_pkt->rx_reasons;
+#endif
+}
+
+std::string FbBcmRxPacket::describeDetails() const {
+  return folly::sformat(
+      "cos={} priority={} reasons={}",
+      _cosQueue,
+      _priority,
+      RxUtils::describeReasons(_reasons));
+}
+
+std::vector<BcmRxPacket::RxReason> FbBcmRxPacket::getReasons() {
+  std::vector<BcmRxPacket::RxReason> reasons;
+  for (int n = 0; n < bcmRxReasonCount; n++) {
+    if (BCM_RX_REASON_GET(_reasons, n)) {
+      reasons.push_back({n, kRxReasonNames[n]});
+    }
+  }
+  return reasons;
 }
 
 } // namespace facebook::fboss

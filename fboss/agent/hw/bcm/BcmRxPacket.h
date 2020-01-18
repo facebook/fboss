@@ -11,6 +11,8 @@
 
 #include "fboss/agent/RxPacket.h"
 
+#include <vector>
+
 extern "C" {
 #include <bcm/pkt.h>
 }
@@ -31,6 +33,29 @@ class BcmRxPacket : public RxPacket {
 
  private:
   int unit_{-1};
+};
+
+// TODO (skhare) Simplify/fold into BcmRxPacket
+class BcmSwitch;
+
+class FbBcmRxPacket : public BcmRxPacket {
+ public:
+  explicit FbBcmRxPacket(const bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch);
+
+  std::string describeDetails() const override;
+  int cosQueue() const override {
+    return _cosQueue;
+  }
+  std::vector<RxReason> getReasons() override;
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  FbBcmRxPacket(FbBcmRxPacket const&) = delete;
+  FbBcmRxPacket& operator=(FbBcmRxPacket const&) = delete;
+
+  uint8_t _cosQueue{0};
+  uint8_t _priority{0};
+  bcm_rx_reasons_t _reasons;
 };
 
 } // namespace facebook::fboss
