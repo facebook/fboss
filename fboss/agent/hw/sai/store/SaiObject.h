@@ -275,21 +275,6 @@ class SaiObject {
       api.remove(adapterKey_);
     }
   }
-  template <typename AttrT>
-  void setNewAttributeHelper(const AttrT& newAttr) {
-    auto& api =
-        SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
-    api.setAttribute(adapterKey(), newAttr);
-  }
-  template <typename AttrT>
-  void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
-    if (newAttrOpt) {
-      setNewAttributeHelper(newAttrOpt.value());
-    } else {
-      // TODO(borisb): handle un-setting optional attributes to default
-      // properly
-    }
-  }
 
   template <typename T = SaiObjectTraits>
   std::enable_if_t<AdapterKeyIsObjectId<T>::value, typename T::AdapterKey>
@@ -320,6 +305,21 @@ class SaiObject {
   }
 
  private:
+  template <typename AttrT>
+  void setNewAttributeHelper(const AttrT& newAttr) {
+    auto& api =
+        SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
+    api.setAttribute(adapterKey(), newAttr);
+  }
+  template <typename AttrT>
+  void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
+    if (newAttrOpt) {
+      setNewAttributeHelper(newAttrOpt.value());
+    } else {
+      // TODO(borisb): handle un-setting optional attributes to default
+      // properly
+    }
+  }
   bool live_{false};
   typename SaiObjectTraits::AdapterKey adapterKey_;
   typename SaiObjectTraits::AdapterHostKey adapterHostKey_;
