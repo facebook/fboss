@@ -375,6 +375,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmLabelMap.cpp
     fboss/agent/hw/bcm/BcmLabelSwitchAction.cpp
     fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
+    fboss/agent/hw/bcm/BcmMirror.cpp
     fboss/agent/hw/bcm/BcmMirrorTable.cpp
     fboss/agent/hw/bcm/BcmMirrorUtils.cpp
     fboss/agent/hw/bcm/BcmPortDescriptor.cpp
@@ -422,7 +423,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmMacTable.cpp
     fboss/agent/hw/bcm/SocUtils.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
-    fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
