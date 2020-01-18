@@ -431,7 +431,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
-    fboss/agent/hw/bcm/oss/BcmUnit.cpp
     fboss/agent/hw/bcm/oss/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/oss/BcmTableStats.cpp
     fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
