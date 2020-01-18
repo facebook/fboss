@@ -41,6 +41,7 @@ BcmLabelSwitchAction::BcmLabelSwitchAction(
   auto defaultDataPlaneQosPolicy =
       hw->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
   if (defaultDataPlaneQosPolicy) {
+    action_.flags |= BCM_MPLS_SWITCH_INT_PRI_MAP;
     action_.qos_map_id =
         defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_INGRESS);
   }
