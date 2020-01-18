@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <map>
@@ -29,3 +30,9 @@ uint32_t getDesiredPhyLaneConfig(
     cfg::PortSpeed speed);
 
 } // namespace facebook::fboss
+
+namespace facebook::fboss::utility {
+
+bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(facebook::fboss::phy::FecMode fec);
+
+} // namespace facebook::fboss::utility

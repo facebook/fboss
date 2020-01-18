@@ -11,10 +11,12 @@
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/Port.h"
@@ -63,6 +65,12 @@ void checkLaneModeisValid(int lane, BcmPortGroup::LaneMode desiredMode) {
       throw FbossError("Only lanes 0 or 2 can be enabled in DUAL mode");
     }
   }
+}
+
+void setLanesControl(int unit, bcm_port_t port, unsigned lanes) {
+  int rv = bcm_port_control_set(unit, port, bcmPortControlLanes, lanes);
+  facebook::fboss::bcmCheckError(
+      rv, "Failed to configure ", lanes, " active lanes for bcm port", port);
 }
 
 } // namespace
@@ -298,6 +306,111 @@ void BcmPortGroup::reconfigureLaneMode(
       bcmPort->enableLinkscan();
     }
   }
+}
+
+int BcmPortGroup::retrieveActiveLanes() const {
+  int activeLanes;
+  int rv = bcm_port_control_get(
+      hw_->getUnit(),
+      controllingPort_->getBcmPortId(),
+      bcmPortControlLanes,
+      &activeLanes);
+  bcmCheckError(
+      rv,
+      "Failed to get the number of active lanes for port ",
+      controllingPort_->getBcmPortId());
+  return activeLanes;
+}
+
+void BcmPortGroup::setActiveLanes(
+    const std::vector<std::shared_ptr<Port>>& ports,
+    LaneMode desiredLaneMode) {
+  if (controllingPort_->getPlatformPort()->shouldUsePortResourceAPIs()) {
+    if (!controllingPort_->getPlatformPort()->supportsAddRemovePort()) {
+      // To set a new active lanes, we might need to remove and add ports via
+      // the brand new port resource api. If the platform port doesn't support
+      // to add or remove port, we should throw error.
+      throw FbossError(
+          "Port: ",
+          controllingPort_->getPortID(),
+          " doesn't support add or remove ports via port resource apis");
+    }
+    setActiveLanesWithFlexPortApi(ports, desiredLaneMode);
+  } else {
+    // If the platform port doesn't support port resource apis, fall back to
+    // use legacy way to change lane mode just for control port.
+    /* The sdk has complex rules for which port configurations are valid
+     * and how to transition between modes. Here are the supported
+     * modes, copied from trident2.c:
+     *
+     *  Each TSC can be configured into following 5 mode:
+     *   Lane number    0    1    2    3
+     *   ------------  ---  ---  ---  ---
+     *    single port  40G   x    x    x  (quad lane mode)
+     *      dual port  20G   x   20G   x  (dual lane mode)
+     *   tri_023 port  20G   x   10G  10G
+     *   tri_012 port  10G  10G  20G   x
+     *      quad port  10G  10G  10G  10G (single lane mode)
+     *
+     * The sdk also does not support going directly from a quad port to
+     * a dual port, or vice versa. See trident2.c for more details.
+     *
+     * Note that we are not explicitly supporting tri_012 or tri_023
+     * modes in fboss.
+     */
+    bcm_port_t basePort = controllingPort_->getBcmPortId();
+    if ((laneMode_ == LaneMode::SINGLE && desiredLaneMode == LaneMode::DUAL) ||
+        (laneMode_ == LaneMode::DUAL && desiredLaneMode == LaneMode::SINGLE)) {
+      // We can't go directly from single to dual or vice versa, so just
+      // configure it into quad mode first. This isn't the recommended
+      // path in the sdk, but I tested it a bunch and it works the
+      // same. The ports should all be disabled during this call anyways,
+      // so we don't have to worry about packet loss during the transition.
+      setLanesControl(hw_->getUnit(), basePort, 4);
+    }
+    setLanesControl(hw_->getUnit(), basePort, desiredLaneMode);
+    laneMode_ = desiredLaneMode;
+  }
+}
+
+void BcmPortGroup::setActiveLanesWithFlexPortApi(
+    const std::vector<std::shared_ptr<Port>>& ports,
+    LaneMode desiredLaneMode) {
+  auto portResBuilder = std::make_unique<BcmPortResourceBuilder>(
+      hw_, controllingPort_, desiredLaneMode);
+  // First remove all the existing ports
+  portResBuilder->removePorts(allPorts_);
+  // And then add the new ports
+  const auto& addedPorts = portResBuilder->addPorts(ports);
+  // Finally program them all at once
+  portResBuilder->program();
+
+  auto controllingPortID = controllingPort_->getPortID();
+  // Since we've done some port add/remove ops, we need to update port table
+  std::vector<BcmPort*> newPorts;
+  for (auto port : addedPorts) {
+    // write it to port table
+    hw_->writablePortTable()->addBcmPort(port->getID(), false /* warmboot */);
+    // make sure it eixsts in port table
+    auto* newPort = hw_->getPortTable()->getBcmPort(port->getID());
+    newPorts.push_back(newPort);
+  }
+  // Then we need to update current port group to the new state
+  controllingPort_ = hw_->getPortTable()->getBcmPort(controllingPortID);
+  int beforePortGroupSize = allPorts_.size();
+  allPorts_ = std::move(newPorts);
+  // Finally register this portgroup to all the members
+  for (auto& member : allPorts_) {
+    member->registerInPortGroup(this);
+  }
+
+  // update laneMode_ to the new desiredMode
+  XLOG(INFO) << "Finished reconfiguring port group of control port: "
+             << controllingPort_->getPortID() << ", from " << laneMode_
+             << " lanes to " << desiredLaneMode << " lanes"
+             << ", port group size from " << beforePortGroupSize << " to "
+             << allPorts_.size();
+  laneMode_ = desiredLaneMode;
 }
 
 } // namespace facebook::fboss

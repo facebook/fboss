@@ -384,6 +384,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortUtils.cpp
     fboss/agent/hw/bcm/BcmPortGroup.cpp
     fboss/agent/hw/bcm/BcmPortQueueManager.cpp
+    fboss/agent/hw/bcm/BcmPortResourceBuilder.cpp
     fboss/agent/hw/bcm/BcmPortTable.cpp
     fboss/agent/hw/bcm/BcmQosMap.cpp
     fboss/agent/hw/bcm/BcmQosMapEntry.cpp
@@ -423,7 +424,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
-    fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
     fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
     fboss/agent/hw/bcm/oss/BcmUnit.cpp

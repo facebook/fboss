@@ -10,6 +10,10 @@
 
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 
+#include "fboss/agent/FbossError.h"
+
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 namespace facebook::fboss {
 
 const PortSpeed2TransmitterTechAndMode& getSpeedToTransmitterTechAndMode() {
@@ -81,3 +85,26 @@ uint32_t getDesiredPhyLaneConfig(
 }
 
 } // namespace facebook::fboss
+
+namespace facebook::fboss::utility {
+
+bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(phy::FecMode fec) {
+  switch (fec) {
+    case phy::FecMode::NONE:
+      return bcmPortPhyFecNone;
+    case phy::FecMode::CL74:
+      return bcmPortPhyFecBaseR;
+    case phy::FecMode::CL91:
+      return bcmPortPhyFecRsFec;
+    case phy::FecMode::RS528:
+      return bcmPortPhyFecRsFec;
+    case phy::FecMode::RS544:
+      return bcmPortPhyFecRs544;
+    case phy::FecMode::RS544_2N:
+      return bcmPortPhyFecRs544_2xN;
+  };
+  throw facebook::fboss::FbossError(
+      "Unsupported fec type: ", apache::thrift::util::enumNameSafe(fec));
+}
+
+} // namespace facebook::fboss::utility
