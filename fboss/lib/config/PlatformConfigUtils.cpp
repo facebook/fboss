@@ -145,6 +145,25 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
   return laneConfigs;
 }
 
+std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
+    const std::vector<phy::PinConnection>& pinConnections,
+    const std::vector<phy::DataPlanePhyChip>& chips) {
+  std::map<int32_t, phy::PolaritySwap> xphyPolaritySwapMap;
+  const auto& xphyPinList =
+      getPinsByChipType(chips, pinConnections, phy::DataPlanePhyChipType::XPHY);
+  for (const auto& pin : xphyPinList) {
+    if (pin.getType() != phy::Pin::Type::junction) {
+      throw FbossError("Unsupported pin type for xphy");
+    }
+    for (const auto& connection : pin.get_junction().line) {
+      if (auto pn = connection.polaritySwap_ref()) {
+        xphyPolaritySwapMap.emplace(connection.a.lane, *pn);
+      }
+    }
+  }
+  return xphyPolaritySwapMap;
+}
+
 std::vector<phy::PinID> getOrderedIphyLanes(
     const cfg::PlatformPortEntry& port,
     const std::vector<phy::DataPlanePhyChip>& chips,

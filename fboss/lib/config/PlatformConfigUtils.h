@@ -42,4 +42,8 @@ std::optional<phy::DataPlanePhyChip> getXphyChip(
     const cfg::PlatformPortEntry& port,
     const std::vector<phy::DataPlanePhyChip>& chips);
 
+std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
+    const std::vector<phy::PinConnection>& pinConnections,
+    const std::vector<phy::DataPlanePhyChip>& chips);
+
 } // namespace facebook::fboss::utility
