@@ -9,23 +9,31 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include <fstream>
-
 #include <boost/cast.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#include <map>
+#include <optional>
+#include <utility>
+
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
-#include <optional>
+
 #include "common/time/Time.h"
+
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
@@ -33,10 +41,14 @@
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
+#include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
+#include "fboss/agent/hw/bcm/BcmLogBuffer.h"
 #include "fboss/agent/hw/bcm/BcmMacTable.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
@@ -54,13 +66,18 @@
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
+#include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
+#include "fboss/agent/hw/bcm/PacketTraceUtils.h"
+#include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
+#include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
+#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
@@ -99,6 +116,13 @@ extern "C" {
 #include <bcm/stg.h>
 #include <bcm/switch.h>
 #include <bcm/vlan.h>
+
+#if (!defined(BCM_VER_MAJOR))
+#define BCM_WARM_BOOT_SUPPORT
+#include <soc/opensoc.h>
+#else
+#include <soc/drv.h>
+#endif
 }
 
 using std::make_pair;
@@ -114,9 +138,14 @@ using std::chrono::seconds;
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
+
 using folly::IPAddress;
+using folly::IPAddressV4;
+using folly::IPAddressV6;
 
 using namespace std::chrono;
+
+using namespace facebook::fboss::utility;
 
 /**
  * Set L2 Aging to 5 mins by default, same as Arista -
@@ -137,6 +166,29 @@ DEFINE_string(
     script_pre_asic_init,
     "script_pre_asic_init",
     "Broadcom script file to be run before ASIC init");
+
+DEFINE_int32(cosq_hipri, 9, "The high priority cos queue number");
+
+DEFINE_int32(cosq_midpri, 2, "The medium priority cos queue number");
+
+DEFINE_int32(cosq_default, 1, "The default cos queue number");
+
+DEFINE_int32(cosq_lopri, 0, "The low priority cos queue number");
+
+DEFINE_int32(
+    ll_mcast_gid,
+    201,
+    "Content aware processor group ID for copying link-local multicast "
+    "packets to CPU.");
+
+DEFINE_int32(acl_gid, 128, "Content aware processor group ID for ACLs");
+DEFINE_int32(
+    copp_acl_entry_priority_start,
+    1,
+    "Starting ACL entry priority for CoPP");
+
+DEFINE_int32(acl_g_pri, 0, "Group priority for ACL field group");
+DEFINE_int32(ll_mcast_g_pri, 2, "Group pri for link local mcast field group");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -225,6 +277,79 @@ bool isL2OperationOfInterest(int operation) {
 L2EntryUpdateType getL2EntryUpdateType(int operation) {
   CHECK(isL2OperationOfInterest(operation));
   return kL2AddrUpdateOperationsOfInterest.find(operation)->second;
+}
+
+/*
+ * How many bytes we copy for sFlow sampling
+ */
+const unsigned int kMaxSflowSnapLen = 128;
+
+/**
+ * Link-local multicast network
+ */
+const auto kIPv6LinkLocalMcastNetwork = IPAddress::createNetwork("ff02::/16");
+
+/*
+ * Set warm boot flag in case its not already set
+ * so. On exit restore warm boot flag to original.
+ * This is useful as a wrapper around bcm api calls
+ * which should always be called as if we were in
+ * warm boot mode. An example of this is when we call
+ * bcm_linkscan_enable_set to disable linkscan on
+ * exit. Without warm boot flag set disabling linkscan
+ * tries to re-enable all ports which were configured
+ * as enabled. This should be a noop but in reality
+ * causes a small number of packets to be dropped during
+ * controller shutdown.
+ */
+class WarmBootRAII {
+ public:
+  explicit WarmBootRAII(int unit) : unit_(unit) {
+    warmBootSet_ = SOC_WARM_BOOT(unit);
+    if (!warmBootSet_) {
+      SOC_WARM_BOOT_START(unit_);
+    }
+  }
+  ~WarmBootRAII() {
+    if (!warmBootSet_) {
+      SOC_WARM_BOOT_DONE(unit_);
+    }
+  }
+
+ private:
+  int unit_;
+  bool warmBootSet_;
+};
+
+bool isValidLabeledNextHopSet(
+    facebook::fboss::BcmPlatform* platform,
+    const facebook::fboss::LabelNextHopSet& nexthops) {
+  if (!facebook::fboss::LabelForwardingInformationBase::isValidNextHopSet(
+          nexthops)) {
+    return false;
+  }
+  std::optional<facebook::fboss::LabelForwardingAction::LabelForwardingType>
+      forwardingType;
+  for (const auto& nexthop : nexthops) {
+    const auto& labelForwardingAction = nexthop.labelForwardingAction();
+    if (labelForwardingAction->type() ==
+            facebook::fboss::LabelForwardingAction::LabelForwardingType::PUSH &&
+        labelForwardingAction->pushStack()->size() >
+            platform->maxLabelStackDepth()) {
+      // label stack to push exceeds what platform can support
+      XLOG(ERR) << "next hoop " << nexthop.str() << " label stack exceeds "
+                << platform->maxLabelStackDepth();
+      return false;
+    }
+    if (!forwardingType.has_value()) {
+      forwardingType = labelForwardingAction->type();
+    } else if (forwardingType != labelForwardingAction->type()) {
+      //  each next hop must have same LabelForwardingAction type.
+      XLOG(ERR) << "more than one forwarding action in next hop set";
+      return false;
+    }
+  }
+  return true;
 }
 
 } // namespace
@@ -2462,6 +2587,478 @@ void BcmSwitch::setupCos() {
 
   // set up cpu queue stats counter
   controlPlane_->getQueueManager()->setupQueueCounters();
+}
+
+std::unique_ptr<BcmRxPacket> BcmSwitch::createRxPacket(bcm_pkt_t* pkt) {
+  return std::make_unique<FbBcmRxPacket>(pkt, this);
+}
+
+bool BcmSwitch::isRxThreadRunning() const {
+  return bcm_rx_active(unit_);
+}
+
+void BcmSwitch::stopLinkscanThread() {
+  WarmBootRAII wb(unit_);
+  // Disable the linkscan thread
+  auto rv = bcm_linkscan_enable_set(unit_, 0);
+  CHECK(BCM_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "
+                         << bcm_errmsg(rv);
+  if (linkScanBottomHalfThread_) {
+    linkScanBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this] { linkScanBottomHalfEventBase_.terminateLoopSoon(); });
+    linkScanBottomHalfThread_->join();
+  }
+}
+
+void BcmSwitch::createAclGroup() {
+  // Install the master ACL group here, whose content may change overtime
+  createFPGroup(
+      unit_,
+      getAclQset(getPlatform()->getAsic()->getAsicType()),
+      FLAGS_acl_gid,
+      FLAGS_acl_g_pri);
+}
+
+void BcmSwitch::dropDhcpPackets() {
+  // Don't flood broadcast DHCP packets to other hosts in the vlan. We
+  // should still trap the packet to the cpu in this case though.
+  auto rv = bcm_switch_control_set(unit_, bcmSwitchDhcpPktDrop, 1);
+  bcmCheckError(rv, "failed to set DHCP packet dropping");
+}
+
+void BcmSwitch::setL3MtuFailPackets() {
+  // trap packets for which L3 MTU check fails
+  auto rv = bcm_switch_control_set(unit_, bcmSwitchL3MtuFailToCpu, 1);
+  bcmCheckError(rv, "Failed to set L3 MTU fail to CPU");
+}
+
+void BcmSwitch::initFieldProcessor() const {
+  auto rv = bcm_field_init(unit_);
+  bcmCheckError(rv, "failed to set up ContentAware processing");
+}
+
+void BcmSwitch::initMirrorModule() const {
+  auto rv = bcm_switch_control_set(unit_, bcmSwitchDirectedMirroring, 1);
+  bcmCheckError(rv, "Failed to set Switch Directed Mirroring");
+  rv = bcm_mirror_init(unit_);
+  bcmCheckError(rv, "failed to set up Mirroring");
+  rv = bcm_mirror_mode_set(unit_, BCM_MIRROR_L2);
+  bcmCheckError(rv, "Failed to set mirror mode");
+}
+
+void BcmSwitch::initMplsModule() const {
+  auto rv = bcm_mpls_init(unit_);
+  bcmCheckError(rv, "failed to set up label switching");
+}
+
+void BcmSwitch::setupFPGroups() {
+  for (auto grpId : {FLAGS_acl_gid, FLAGS_ll_mcast_gid}) {
+    auto gid = static_cast<bcm_field_group_t>(grpId);
+    XLOG(DBG1) << "Setting up FP group : " << gid;
+    if (gid == FLAGS_acl_gid) {
+      createAclGroup();
+    } else if (gid == FLAGS_ll_mcast_gid) {
+      copyIPv6LinkLocalMcastPackets();
+    } else {
+      throw FbossError("Unknown group id : ", gid);
+    }
+  }
+}
+
+bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
+  std::map<std::pair<int32_t, int32_t>, bcm_field_qset_t> grp2Qset = {
+      {{FLAGS_acl_gid, FLAGS_acl_g_pri},
+       getAclQset(getPlatform()->getAsic()->getAsicType())},
+      {{FLAGS_ll_mcast_gid, FLAGS_ll_mcast_g_pri}, getLLMcastQset()}};
+  for (const auto& grpAndQset : grp2Qset) {
+    auto gid = static_cast<bcm_field_group_t>(grpAndQset.first.first);
+    auto qset = grpAndQset.second;
+    if (!fpGroupExists(unit_, gid)) {
+      XLOG(DBG1) << " FP group : " << gid << " does not exist";
+      return true;
+    } else if (!FPGroupDesiredQsetCmp(unit_, gid, qset).hasDesiredQset()) {
+      XLOG(INFO) << " FP group : " << gid << " has a changed QSET";
+      return true;
+    }
+  }
+  XLOG(DBG1) << " All FP groups have desired QSETs ";
+  return false;
+}
+
+void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
+  // We will add a special field processor rule to capture IPv6 the link local
+  // multicast packets.
+
+  // create the group
+  const bcm_field_group_t gid = FLAGS_ll_mcast_gid;
+  const int g_pri = FLAGS_ll_mcast_g_pri;
+  createFPGroup(unit_, getLLMcastQset(), gid, g_pri);
+
+  // Get destination ipv6 addr with mask in bcm format
+  bcm_ip6_t ip;
+  bcm_ip6_t mask;
+  const auto& network = kIPv6LinkLocalMcastNetwork;
+  auto bytes = network.first.asV6().toByteArray();
+  memcpy(&ip, &bytes, bytes.size());
+  auto maskBytes = IPAddressV6::fetchMask(network.second);
+  memcpy(&mask, &maskBytes, maskBytes.size());
+
+  // Create entry
+  bcm_field_entry_t entry;
+  auto rv = bcm_field_entry_create(unit_, gid, &entry);
+  bcmCheckError(rv, "failed to create fp entry");
+
+  // Qualify the destination address
+  rv = bcm_field_qualify_DstIp6(unit_, entry, ip, mask);
+  bcmCheckError(rv, "failed to add Dst IP field: ", network.first);
+
+  // Setup CopyToCpu action on FP rule
+  rv = bcm_field_action_add(unit_, entry, bcmFieldActionCopyToCpu, 0, 0);
+  bcmCheckError(rv, "failed to add set CPU Q field action");
+
+  // Install field processor entry
+  bcm_field_entry_install(unit_, entry);
+  bcmCheckError(rv, "Failed to install link-local mcast field processor rule");
+}
+
+void BcmSwitch::configureRxRateLimiting() {
+  // Configure several cos queues
+  // TODO: It would probably be good to support configuring these via the
+  // config file.
+  auto mgr = BcmCosManager::convert(cosManager_.get());
+  CHECK_GE(mgr->getMaxCPUQueues(), 10);
+
+  // Define mappings to these queues.
+
+  // Protocol packets.
+  // Note that these packets generally seem to have bcmRxReasonProtocol set,
+  // but the T2 doesn't support mapping based on this reason.
+  // (bcm_rx_cosq_mapping_reasons_get() shows which reasons are supported
+  // for use in mapping.)
+  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonArp);
+
+  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonDhcp);
+
+  // We don't support BPDU, and should never really be
+  // getting these in our (non spanning tree enabled) n/w
+  // However BRCM traps LLDP packets with reason Bpdu, since
+  // we do care about LLDP, punt these to mid-pri queue
+  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonBpdu);
+
+  // TTL expired packets seem to show up with bcmRxReasonL3Slowpath.
+  // (We perhaps don't register for TTL expired packets to come to the CPU
+  // explicitly.)
+  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonL3Slowpath);
+  // Trap dest miss packets to low-pri queue on CPU. This would catch
+  // packets for which we did not have a matching route in h/w route
+  // tables
+  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonL3DestMiss);
+  // Add bcmRxReasonTtl1 too.
+  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonTtl1);
+
+  // Packets to one of our IP addresses as well as any IP Address
+  // in our subnet show up with bcmRxReasonNhop.
+  // (The CPU port is the next-hop in the routing table.)
+  // We want the packets
+  // to our IP Addresses to go to hi-pri queue, but not the ones to
+  // our subnet. Packets to our IP directed to hi-pri queue via
+  // a FP rule (see configureCosQMappingForLocalInterfaces), so
+  // for other packets with a reason next hop, send it to low-pri queue
+  // so we don't get DOS when a bunch of traffic shows up for a destination
+  // in our subnet
+  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonNhop);
+  // Add a catch-all match to put anything else in the default queue.
+  // Note that the mappings are checked in the order in which we define them.
+  auto emptyReasons = RxUtils::genReasons();
+  mgr->addCPUMapping(FLAGS_cosq_default, emptyReasons, emptyReasons);
+}
+
+bcm_gport_t BcmSwitch::getCpuGPort() const {
+  return BCM_GPORT_LOCAL_CPU;
+}
+
+// TODO(petr): this is here only because bcmRxReasonSampleSource and the like
+// are not yet open sourced.
+bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
+  auto bcmPkt = reinterpret_cast<const bcm_pkt_t*>(pkt);
+
+  bool ingressSample =
+      _SHR_RX_REASON_GET(bcmPkt->rx_reasons, bcmRxReasonSampleSource);
+  bool egressSample =
+      _SHR_RX_REASON_GET(bcmPkt->rx_reasons, bcmRxReasonSampleDest);
+  if (!ingressSample && !egressSample) {
+    return false;
+  }
+
+  // Assemble packet metadata
+  SflowPacketInfo info;
+
+  auto currentTime = std::chrono::high_resolution_clock::now();
+  auto duration =
+      duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch());
+  info.timestamp.seconds =
+      duration_cast<std::chrono::seconds>(duration).count();
+  info.timestamp.nanoseconds = duration_cast<std::chrono::nanoseconds>(
+                                   duration % std::chrono::seconds(1))
+                                   .count();
+  info.ingressSampled = ingressSample;
+  info.egressSampled = egressSample;
+  info.srcPort = pkt->src_port;
+  info.dstPort = pkt->dest_port;
+  info.vlan = pkt->vlan;
+
+  auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt->pkt_data->len));
+
+  XLOG(DBG6) << "sFlow captured packet of size " << pkt->pkt_data->len;
+  XLOG(DBG6) << "Packet dump following (max 128 bytes):\n "
+             << folly::hexDump(pkt->pkt_data->data, snapLen);
+
+  {
+    std::string packetData(pkt->pkt_data->data, pkt->pkt_data->data + snapLen);
+    info.packetData = std::move(packetData);
+  }
+
+  // Print it for debugging
+  XLOG(DBG6) << "sFlowSample: (" << info.timestamp.seconds << ','
+             << info.timestamp.nanoseconds << ',' << info.ingressSampled << ','
+             << info.egressSampled << ',' << info.srcPort << ',' << info.dstPort
+             << ',' << info.vlan << ',' << info.packetData.length() << ")\n";
+
+  sFlowExporterTable_->sendToAll(info);
+
+  // If it is only here because of sFlow, we're done
+  if ((pkt->rx_reason ^ bcmRxReasonSampleSource ^ bcmRxReasonSampleDest) == 0) {
+    return true;
+  }
+
+  return false;
+}
+
+std::string BcmSwitch::gatherSdkState() const {
+  if (!platform_->isBcmShellSupported()) {
+    XLOG(INFO) << "Cannot dump SDK state since the platform does not support "
+                  "bcm shell";
+    return "";
+  }
+  BcmLogBuffer logBuffer;
+  printDiagCmd("portstat");
+  printDiagCmd("l2 show");
+  printDiagCmd("l3 l3table show");
+  printDiagCmd("l3 ip6host show");
+  printDiagCmd("l3 defip show");
+  printDiagCmd("l3 ip6route show");
+  printDiagCmd("l3 intf show");
+  printDiagCmd("l3 egress show");
+  printDiagCmd("l3 multipath show");
+  printDiagCmd("trunk show");
+  return logBuffer.getBuffer()->moveToFbString().toStdString();
+}
+
+/*
+ * BroadView is currently only supported in certain BCM SDK version. We will
+ * remove this (and move to Bcm) once all 6.3.x BCM SDK is removed.
+ */
+std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
+    std::unique_ptr<MockRxPacket> pkt) const {
+  // Check if the port actually exists.
+  if (!getPortTable()->portExists(pkt->getSrcPort())) {
+    XLOG(ERR) << "Cannot getPacketTrace from non-existing port";
+    return nullptr;
+  }
+
+  // Construct the arguments for bcm_switch_pkt_trace_info_get()
+  unsigned int options = 0; // Unused now
+  auto port = getPortTable()->getBcmPortId(pkt->getSrcPort());
+  auto packetLength = pkt->getLength();
+  auto packetData = pkt->buf()->writableData();
+  bcm_switch_pkt_trace_info_t bcmPacketTraceInfo;
+  auto rv = bcm_switch_pkt_trace_info_get(
+      unit_, options, port, packetLength, packetData, &bcmPacketTraceInfo);
+  bcmCheckError(rv, "Failed to get packet trace info (no support on Trident2)");
+
+  // Parse bcmPacketTraceInfo
+  std::unique_ptr<PacketTraceInfo> packetTraceInfo =
+      std::make_unique<PacketTraceInfo>();
+  transformPacketTraceInfo(
+      this,
+      bcmPacketTraceInfo, /* bcm_switch_pkt_trace_info_t */
+      *packetTraceInfo /* fboss::PacketTraceInfo */
+  );
+  return packetTraceInfo;
+}
+
+static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
+  L2EntryThrift entry;
+  auto l2Table = static_cast<std::vector<L2EntryThrift>*>(user_data);
+  entry.mac = folly::sformat(
+      "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
+      l2addr->mac[0],
+      l2addr->mac[1],
+      l2addr->mac[2],
+      l2addr->mac[3],
+      l2addr->mac[4],
+      l2addr->mac[5]);
+  entry.vlanID = l2addr->vid;
+  entry.port = 0;
+  entry.trunk_ref().value_unchecked() = BcmTrunk::INVALID;
+  if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
+    // Ideally we would return the corresponding BcmTrunk aggregatePortId here
+    // rather than the SDK assigned trunk ids. However since this function does
+    // not synchronize with update thread, it would be racy to look agg port
+    // id here. So for now, make do with SDK trunk id
+    entry.trunk_ref() = l2addr->tgid;
+    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
+               << " Trunk: " << entry.trunk_ref().value_unchecked();
+  } else {
+    entry.port = l2addr->port;
+    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
+               << " Port: " << entry.port;
+  }
+
+  entry.l2EntryType = (l2addr->flags & BCM_L2_PENDING)
+      ? L2EntryType::L2_ENTRY_TYPE_PENDING
+      : L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+
+  // If classID is not set, this field is set to 0 by default.
+  // Set in L2EntryThrift only if set to non-default
+  if (l2addr->group != 0) {
+    entry.classID_ref() = l2addr->group;
+  }
+
+  l2Table->push_back(entry);
+  return 0;
+}
+
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
+  int rv = bcm_l2_traverse(unit_, _addL2Entry, l2Table);
+  bcmCheckError(rv, "bcm_l2_traverse failed");
+}
+
+void BcmSwitch::processChangedAcl(
+    const std::shared_ptr<AclEntry>& oldAcl,
+    const std::shared_ptr<AclEntry>& newAcl) {
+  // Unfortunately, we cannot modify a field entry due to BCM limitation
+  XLOG(DBG3) << "processChangedAcl, ACL=" << oldAcl->getID();
+  processRemovedAcl(oldAcl);
+  processAddedAcl(newAcl);
+}
+
+void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {
+  XLOG(DBG3) << "processRemovedAcl, ACL=" << acl->getID();
+  aclTable_->processRemovedAcl(acl);
+}
+
+void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {
+  XLOG(DBG3) << "processAddedAcl, ACL=" << acl->getID();
+  aclTable_->processAddedAcl(FLAGS_acl_gid, acl);
+}
+
+void BcmSwitch::forceLinkscanOn(bcm_pbmp_t ports) {
+  if (!(flags_ & LINKSCAN_REGISTERED)) {
+    XLOG(INFO) << "Linkscan not registered, skipping force scan";
+    return;
+  }
+  // will immediately scan ports in the passed in port bitmap. Useful
+  // for guaranteeing link status is updated during initialization.
+  auto rv = bcm_linkscan_update(unit_, ports);
+  bcmCheckError(rv, "failed initial scan of link status");
+}
+
+bool BcmSwitch::isValidLabelForwardingEntry(
+    const LabelForwardingEntry* entry) const {
+  if (!isValidLabeledNextHopSet(
+          platform_, entry->getLabelNextHop().getNextHopSet())) {
+    return false;
+  }
+
+  for (auto client : AllClientIDs()) {
+    const auto* entryForClient = entry->getEntryForClient(client);
+    if (!entryForClient) {
+      continue;
+    }
+    if (!isValidLabeledNextHopSet(platform_, entryForClient->getNextHopSet())) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
+  const auto controlPlaneDelta = delta.getControlPlaneDelta();
+  const auto& oldCPU = controlPlaneDelta.getOld();
+  const auto& newCPU = controlPlaneDelta.getNew();
+
+  processChangedControlPlaneQueues(oldCPU, newCPU);
+  if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
+    controlPlane_->setupIngressQosPolicy(newCPU->getQosPolicy());
+  }
+  // TODO(joseph5wu) Add reason-port mapping
+
+  // COPP ACL will be handled just as regular ACL in processAclChanges()
+}
+
+void BcmSwitch::disableHotSwap() const {
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOT_SWAP)) {
+    switch (getPlatform()->getAsic()->getAsicType()) {
+      case HwAsic::AsicType::ASIC_TYPE_FAKE:
+      case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+        // For TD2 and TH, we patch the SDK to disable hot swap,
+        break;
+      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3: {
+        auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
+        bcmCheckError(rv, "Failed to disable hotswap");
+      } break;
+      case HwAsic::AsicType::ASIC_TYPE_GIBRALTAR:
+        CHECK(0) << " Invalid ASIC type";
+    }
+  }
+}
+
+bool BcmSwitch::isL2EntryPending(const bcm_l2_addr_t* l2Addr) {
+  return reinterpret_cast<const bcm_l2_addr_t*>(l2Addr)->flags & BCM_L2_PENDING;
+}
+
+bool BcmSwitch::isValidPortQueueUpdate(
+    const std::vector<std::shared_ptr<PortQueue>>& /*oldPortQueueConfig*/,
+    const std::vector<std::shared_ptr<PortQueue>>& newPortQueueConfig) const {
+  if (newPortQueueConfig.empty()) {
+    return true;
+  }
+
+  std::map<TrafficClass, int> tcToQueue;
+  // validate that a traffic class has only one associated queue
+  for (const auto& portQueue : newPortQueueConfig) {
+    auto trafficClass = portQueue->getTrafficClass()
+        ? portQueue->getTrafficClass().value()
+        : static_cast<TrafficClass>(portQueue->getID());
+    if (trafficClass > BCM_PRIO_MAX || trafficClass < BCM_PRIO_MIN) {
+      return false;
+    }
+    if (tcToQueue.find(trafficClass) != tcToQueue.end()) {
+      // this traffic class has already been mapped to some queue
+      return false;
+    }
+    tcToQueue.emplace(trafficClass, portQueue->getID());
+  }
+  return true;
+}
+
+bool BcmSwitch::isValidPortQosPolicyUpdate(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& newPort,
+    const std::shared_ptr<SwitchState>& newState) const {
+  auto portQosPolicyName = newPort->getQosPolicy();
+  if (!portQosPolicyName.has_value() ||
+      portQosPolicyName.value() ==
+          newState->getDefaultDataPlaneQosPolicy()->getName()) {
+    // either no policy or global default poliicy is provided
+    return true;
+  }
+  auto qosPolicy = newState->getQosPolicy(portQosPolicyName.value());
+  // qos policy for port must not have exp, since this is not supported
+  return qosPolicy->getExpMap().to().empty() &&
+      qosPolicy->getExpMap().from().empty();
 }
 
 } // namespace facebook::fboss

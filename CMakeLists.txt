@@ -377,6 +377,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmLabelMap.cpp
     fboss/agent/hw/bcm/BcmLabelSwitchAction.cpp
     fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
+    fboss/agent/hw/bcm/BcmLogBuffer.cpp
     fboss/agent/hw/bcm/BcmMirror.cpp
     fboss/agent/hw/bcm/BcmMirrorTable.cpp
     fboss/agent/hw/bcm/BcmMirrorUtils.cpp
