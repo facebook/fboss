@@ -420,7 +420,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmMacTable.cpp
     fboss/agent/hw/bcm/SocUtils.cpp
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
-    fboss/agent/hw/bcm/oss/BcmControlPlane.cpp
     fboss/agent/hw/bcm/oss/BcmMirror.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
     fboss/agent/hw/bcm/oss/BcmPortGroup.cpp
