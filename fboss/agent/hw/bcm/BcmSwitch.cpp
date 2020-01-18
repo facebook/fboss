@@ -2455,4 +2455,13 @@ void BcmSwitch::l2LearningUpdateReceived(
   }
 }
 
+void BcmSwitch::setupCos() {
+  // TODO(joseph5wu) Deprecate BcmCosManager in the future
+  cosManager_.reset(new BcmCosManager(this));
+  controlPlane_.reset(new BcmControlPlane(this));
+
+  // set up cpu queue stats counter
+  controlPlane_->getQueueManager()->setupQueueCounters();
+}
+
 } // namespace facebook::fboss

@@ -37,11 +37,6 @@ void BcmSwitch::dropDhcpPackets() {}
 
 void BcmSwitch::setL3MtuFailPackets() {}
 
-void BcmSwitch::setupCos() {
-  cosManager_.reset(new BcmCosManager());
-  controlPlane_.reset(new BcmControlPlane(this));
-}
-
 void BcmSwitch::setupFPGroups() {}
 
 void BcmSwitch::initMirrorModule() const {}

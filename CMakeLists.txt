@@ -365,6 +365,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmCosQueueManager.cpp
     fboss/agent/hw/bcm/BcmCosQueueFBConvertors.cpp
     fboss/agent/hw/bcm/BcmCosQueueManagerUtils.cpp
+    fboss/agent/hw/bcm/BcmCosManager.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
