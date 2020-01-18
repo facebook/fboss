@@ -7,15 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
+
+extern "C" {
+#include <shared/bslext.h>
+} // extern "C"
 
 namespace facebook::fboss {
 
-/*
- * Initialize the Broadcom SDK and create the BcmAPI singleton.
- *
- * This must be called before using any other Broadcom SDK functions.
- */
-void BcmAPI::initImpl() {}
-
+void BcmFacebookAPI::initBSL() {
+  bsl_config_t bsl_config;
+  bsl_config_t_init(&bsl_config);
+  bsl_init(&bsl_config);
+}
 } // namespace facebook::fboss

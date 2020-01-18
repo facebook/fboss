@@ -10,9 +10,13 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+
+#include <folly/experimental/StringKeyedUnorderedMap.h>
 
 #include <folly/Memory.h>
 #include <folly/String.h>
@@ -22,6 +26,28 @@
 
 #include <atomic>
 #include <unordered_map>
+
+extern "C" {
+#include <sal/core/boot.h>
+
+#if (!defined(BCM_VER_MAJOR))
+#include <soc/opensoc.h>
+#define SYS_BE_PACKET 0
+#else
+#include <sal/core/thread.h>
+#endif
+
+#include <soc/cmext.h>
+#include <systems/bde/linux/linux-bde.h>
+}
+
+extern "C" {
+/*
+ * Define the bde global variable.
+ * This is declared in <ibde.h>, but needs to be defined by our code.
+ */
+ibde_t* bde;
+}
 
 using folly::StringPiece;
 using std::make_unique;
@@ -85,6 +111,8 @@ const std::map<StringPiece, std::string> kBcmConfigsSafeAcrossWarmboot = {
 } // namespace
 
 namespace facebook::fboss {
+
+std::atomic<BcmUnit*> bcmUnits[SOC_MAX_NUM_SWITCH_DEVICES];
 
 static std::atomic<bool> bcmInitialized{false};
 static BcmAPI::HwConfigMap bcmConfig;
@@ -155,7 +183,26 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
   }
 
   initConfig(config);
+
+  BcmFacebookAPI::initBSL();
+
+  // Initialize the Broadcom core support libraries
+  int rv = sal_core_init();
+  bcmCheckError(rv, "error initializing core SAL");
+
+  rv = soc_cm_init();
+
+  bcmCheckError(rv, "error initializing config manager");
+
   BcmAPI::initImpl();
+
+  // Initialize the BDE singleton (Broadcom Device Enumerator)
+  linux_bde_bus_t bus;
+  bus.be_pio = (folly::Endian::order == folly::Endian::Order::BIG);
+  bus.be_packet = SYS_BE_PACKET; // Always false, regardless of host byte order
+  bus.be_other = (folly::Endian::order == folly::Endian::Order::BIG);
+  rv = linux_bde_create(&bus, &bde);
+  bcmCheckError(rv, "failed to initialize BDE");
 
   bcmInitialized.store(true, std::memory_order_release);
 }
@@ -191,6 +238,33 @@ BcmUnit* BcmAPI::getUnit(int unit) {
     throw FbossError("no BcmUnit created for unit number ", unit);
   }
   return unitObj;
+}
+
+/*
+ * Get the number of Broadcom switching devices in this system.
+ */
+size_t BcmAPI::getNumSwitches() {
+  return bde->num_devices(BDE_SWITCH_DEVICES);
+}
+
+/*
+ * Get the number of Broadcom switching devices in this system.
+ */
+size_t BcmAPI::getMaxSwitches() {
+  return SOC_MAX_NUM_SWITCH_DEVICES;
+}
+
+/*
+ * Get the thread name defined for this thread by the Broadcom SDK.
+ */
+std::string BcmAPI::getThreadName() {
+  auto thread = sal_thread_self();
+  if (thread == sal_thread_main_get()) {
+    return "Main";
+  }
+  char threadName[80];
+  sal_thread_name(thread, threadName, sizeof(threadName));
+  return threadName;
 }
 
 } // namespace facebook::fboss
