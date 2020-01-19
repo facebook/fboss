@@ -304,6 +304,17 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
     fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
 
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.cpp
+
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
