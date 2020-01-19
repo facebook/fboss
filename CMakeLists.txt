@@ -301,6 +301,9 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmAclUtils.cpp
     fboss/agent/hw/bcm/tests/BcmTestPacketTrapAclEntry.cpp
 
+    fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
+    fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
+
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
