@@ -292,8 +292,19 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwTestConstants.cpp
     fboss/agent/hw/test/HwTestCoppUtils.cpp
     fboss/agent/hw/test/Main.cpp
+
+    fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
+    fboss/agent/hw/bcm/tests/BcmAclPriorityTests.cpp
+    fboss/agent/hw/bcm/tests/BcmAclQualifierTests.cpp
+    fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
+    fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp
+    fboss/agent/hw/bcm/tests/BcmAclUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTestPacketTrapAclEntry.cpp
+
     fboss/agent/hw/bcm/tests/BcmTest.cpp
+    fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
     fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
     fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
     fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
