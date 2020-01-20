@@ -282,6 +282,25 @@ add_library(bcm_switch_ensemble STATIC
 )
 
 add_executable(bcm_test
+    # TODO (skhare) Factor into packet library
+    fboss/agent/packet/PktFactory.cpp
+    fboss/agent/packet/ArpHdr.cpp
+    fboss/agent/packet/EthHdr.cpp
+    fboss/agent/packet/IPv6Hdr.cpp
+    fboss/agent/packet/NDP.cpp
+    fboss/agent/packet/PktUtil.cpp
+    fboss/agent/packet/UDPHeader.cpp
+    fboss/agent/packet/DHCPv4Packet.cpp
+    fboss/agent/packet/ICMPHdr.cpp
+    fboss/agent/packet/LlcHdr.cpp
+    fboss/agent/packet/NDPRouterAdvertisement.cpp
+    fboss/agent/packet/SflowStructs.cpp
+    fboss/agent/packet/DHCPv6Packet.cpp
+    fboss/agent/packet/IPv4Hdr.cpp
+    fboss/agent/packet/MPLSHdr.cpp
+    fboss/agent/packet/PktFactory.cpp
+    fboss/agent/packet/TCPHeader.cpp
+
     fboss/agent/hw/test/HwTest.cpp
     fboss/agent/hw/test/HwTestStatUtils.cpp
     fboss/agent/hw/test/HwVlanTests.cpp
@@ -291,6 +310,8 @@ add_executable(bcm_test
     fboss/agent/hw/test/HwLinkStateDependentTest.cpp
     fboss/agent/hw/test/HwTestConstants.cpp
     fboss/agent/hw/test/HwTestCoppUtils.cpp
+    fboss/agent/hw/test/HwTestPacketSnooper.cpp
+    fboss/agent/hw/test/HwTestPacketUtils.cpp
     fboss/agent/hw/test/Main.cpp
 
     fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
@@ -309,6 +330,23 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.cpp
     fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.cpp
     fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/Bcm2QueueToOlympicQoSTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmAclCounterTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmBstTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.h
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigVerifyQosTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmDscpQueueMappingTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmEcnTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMPLSTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMirroringTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMultiAqmProfileTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmOlympicQoSTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmPortBandwidthTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmQueuePerHostTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmSendPacketToQueueTests.cpp
+    fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
+
     fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
     fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
