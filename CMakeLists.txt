@@ -322,6 +322,24 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmLabeledEgressTest.cpp
     fboss/agent/hw/bcm/tests/BcmLabelSwitchActionTests.cpp
 
+    fboss/agent/hw/bcm/tests/BcmHostTests.cpp
+    fboss/agent/hw/bcm/tests/BcmMatchActionsTests.cpp
+    fboss/agent/hw/bcm/tests/BcmRouteTests.cpp
+    fboss/agent/hw/bcm/tests/BcmSwitchStateReplayTest.cpp
+    fboss/agent/hw/bcm/tests/BcmAddDelEcmpTests.cpp
+    fboss/agent/hw/bcm/tests/BcmControlPlaneTests.cpp
+    fboss/agent/hw/bcm/tests/BcmCosQueueManagerCounterTests.cpp
+    fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.cpp
+    fboss/agent/hw/bcm/tests/BcmEcmpTests.cpp
+    fboss/agent/hw/bcm/tests/BcmEcmpTrunkTests.cpp
+    fboss/agent/hw/bcm/tests/BcmNeighborTests.cpp
+    fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
+    fboss/agent/hw/bcm/tests/BcmQosMapTests.cpp
+    fboss/agent/hw/bcm/tests/BcmQosPolicyTests.cpp
+    fboss/agent/hw/bcm/tests/BcmRtag7Test.cpp
+    fboss/agent/test/TrunkUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
+
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
@@ -399,6 +417,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmCosQueueFBConvertors.cpp
     fboss/agent/hw/bcm/BcmCosQueueManagerUtils.cpp
     fboss/agent/hw/bcm/BcmCosManager.cpp
+    fboss/agent/hw/bcm/BcmEcmpUtils.cpp
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
