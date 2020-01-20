@@ -339,6 +339,16 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmRtag7Test.cpp
     fboss/agent/test/TrunkUtils.cpp
     fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
+    fboss/agent/hw/bcm/tests/BcmBstStatsMgrTest.cpp
+    fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h
+    fboss/agent/hw/bcm/tests/BcmDeathTests.cpp
+    fboss/agent/hw/bcm/tests/BcmMirrorTests.cpp
+    fboss/agent/hw/bcm/tests/BcmPortTests.cpp
+    fboss/agent/hw/bcm/tests/BcmInterfaceTests.cpp
+    fboss/agent/hw/bcm/tests/BcmFieldProcessorTests.cpp
+    fboss/agent/hw/bcm/tests/BcmEmptyEcmpTests.cpp
+    fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
+    fboss/agent/hw/bcm/tests/FlexPortTests.cpp
 
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmTestUtils.cpp

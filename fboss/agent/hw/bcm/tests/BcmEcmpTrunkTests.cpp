@@ -9,8 +9,9 @@
  */
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+
+#include "fboss/agent/hw/bcm/tests/BcmEcmpTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/facebook/BcmEcmpTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"

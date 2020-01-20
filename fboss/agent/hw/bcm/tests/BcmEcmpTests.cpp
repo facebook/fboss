@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/facebook/BcmEcmpTests.h"
+#include "fboss/agent/hw/bcm/tests/BcmEcmpTests.h"
 
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
