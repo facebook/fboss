@@ -315,6 +315,13 @@ add_executable(bcm_test
     fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
     fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.cpp
 
+    fboss/agent/hw/bcm/tests/BcmLabelEdgeRouteTests.cpp
+    fboss/agent/test/LabelForwardingUtils.cpp
+    fboss/agent/hw/bcm/tests/BcmLabelForwardingTests.cpp
+    fboss/agent/hw/bcm/tests/BcmLabelSwitchRouteTests.cpp
+    fboss/agent/hw/bcm/tests/BcmLabeledEgressTest.cpp
+    fboss/agent/hw/bcm/tests/BcmLabelSwitchActionTests.cpp
+
     fboss/agent/hw/bcm/tests/BcmTest.cpp
     fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
     fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
@@ -744,6 +751,7 @@ add_executable(agent_test
        fboss/agent/test/ICMPTest.cpp
        fboss/agent/test/IPv4Test.cpp
        fboss/agent/test/LldpManagerTest.cpp
+       fboss/agent/test/LabelForwardingUtils.cpp
        fboss/agent/test/MacTableManagerTests.cpp
        fboss/agent/test/MacTableUtilsTests.cpp
        fboss/agent/test/MockTunManager.cpp
