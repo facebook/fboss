@@ -66,6 +66,7 @@ namespace facebook::fboss {
 BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   auto platform = createTestPlatform();
+  std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
   if (getPlatformMode() == PlatformMode::FAKE_WEDGE) {
     FLAGS_flexports = true;
@@ -73,43 +74,39 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
       addFlexPort(cfg, n, 40);
     }
     cfg["pbmp_xport_xe"] = "0x1fffffffffffffffffffffffe";
-    platform->setConfig(createDefaultAgentConfig());
+    agentConfig = createDefaultAgentConfig();
   } else {
     // Load from a local file
     if (!FLAGS_bcm_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_bcm_config;
       cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
-      platform->setConfig(createDefaultAgentConfig());
+      agentConfig = createDefaultAgentConfig();
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;
-      std::unique_ptr<AgentConfig> agentConfig =
-          AgentConfig::fromFile(FLAGS_config);
-      platform->setConfig(std::move(agentConfig));
+      agentConfig = AgentConfig::fromFile(FLAGS_config);
       cfg = (platform->config()->thrift).platform.chip.get_bcm().config;
     } else {
       throw FbossError("No config file to load!");
     }
   }
   BcmAPI::init(cfg);
-  platform->initPorts();
-  auto hwSwitch = std::make_unique<BcmSwitch>(
-      static_cast<BcmPlatform*>(platform.get()), featuresDesired);
+  // TODO pass agent config to platform init
+  platform->init(std::move(agentConfig), featuresDesired);
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
 
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = createLinkToggler(
-        hwSwitch.get(), bcmTestPlatform->desiredLoopbackMode());
+        static_cast<BcmSwitch*>(platform->getHwSwitch()),
+        bcmTestPlatform->desiredLoopbackMode());
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
-    thriftThread = createThriftThread(hwSwitch.get());
+    thriftThread =
+        createThriftThread(static_cast<BcmSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform),
-      std::move(hwSwitch),
-      std::move(linkToggler),
-      std::move(thriftThread));
+      std::move(platform), std::move(linkToggler), std::move(thriftThread));
 }
 
 std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {

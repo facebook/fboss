@@ -24,6 +24,7 @@
 namespace facebook::fboss {
 
 class PlatformProductInfo;
+class BcmSwitch;
 
 class BcmTestPlatform : public BcmPlatform {
  public:
@@ -89,11 +90,12 @@ class BcmTestPlatform : public BcmPlatform {
   BcmTestPlatform(BcmTestPlatform const&) = delete;
   BcmTestPlatform& operator=(BcmTestPlatform const&) = delete;
 
-  void initImpl(uint32_t /*hwFeaturesDesired*/) override {}
+  void initImpl(uint32_t hwFeaturesDesired) override;
   virtual std::unique_ptr<BcmTestPort> createTestPort(PortID portID) = 0;
 
   std::map<PortID, std::unique_ptr<BcmTestPort>> ports_;
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
+  std::unique_ptr<BcmSwitch> bcmSwitch_;
 };
 
 } // namespace facebook::fboss

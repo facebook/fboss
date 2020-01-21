@@ -68,11 +68,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual const Platform* getPlatform() const {
     return platform_.get();
   }
-  virtual HwSwitch* getHwSwitch() {
-    return hwSwitch_.get();
-  }
+  virtual HwSwitch* getHwSwitch();
   virtual const HwSwitch* getHwSwitch() const {
-    return hwSwitch_.get();
+    return const_cast<HwSwitchEnsemble*>(this)->getHwSwitch();
   }
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(PortID port, bool up) override;
@@ -109,7 +107,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    */
   void setupEnsemble(
       std::unique_ptr<Platform> platform,
-      std::unique_ptr<HwSwitch> hwSwitch,
       std::unique_ptr<HwLinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread);
 
@@ -119,7 +116,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
-  std::unique_ptr<HwSwitch> hwSwitch_;
   uint32_t featuresDesired_{0};
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;

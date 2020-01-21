@@ -36,12 +36,10 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   // TODO pass in agent config
   auto platform = initSaiPlatform(nullptr, featuresDesired);
-  auto hwSwitch = std::make_unique<SaiSwitch>(
-      static_cast<SaiPlatform*>(platform.get()), featuresDesired);
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(
-        hwSwitch.get(),
+        static_cast<SaiSwitch*>(platform->getHwSwitch()),
         [this](const std::shared_ptr<SwitchState>& toApply) {
           applyNewState(toApply);
         },
@@ -49,13 +47,11 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
-    thriftThread = createThriftThread(hwSwitch.get());
+    thriftThread =
+        createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform),
-      std::move(hwSwitch),
-      std::move(linkToggler),
-      std::move(thriftThread));
+      std::move(platform), std::move(linkToggler), std::move(thriftThread));
 }
 
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(

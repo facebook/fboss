@@ -69,6 +69,10 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   }
 }
 
+HwSwitch* HwSwitchEnsemble::getHwSwitch() {
+  return platform_->getHwSwitch();
+}
+
 std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
   CHECK(programmedState_->isPublished());
   return programmedState_;
@@ -81,7 +85,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
   }
   newState->publish();
   StateDelta delta(programmedState_, newState);
-  programmedState_ = hwSwitch_->stateChanged(delta);
+  programmedState_ = getHwSwitch()->stateChanged(delta);
   if (!allowPartialStateApplication_) {
     // Assert that our desired state was applied exactly
     CHECK_EQ(newState, programmedState_);
@@ -97,7 +101,7 @@ void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
       << "applyInitialConfigAndBringUpPorts";
   linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
-  hwSwitch_->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   linkToggler_->bringUpPorts(getProgrammedState(), initCfg);
   initCfgState_ = getProgrammedState();
 }
@@ -146,14 +150,12 @@ void HwSwitchEnsemble::removeHwEventObserver(
 
 void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<Platform> platform,
-    std::unique_ptr<HwSwitch> hwSwitch,
     std::unique_ptr<HwLinkStateToggler> linkToggler,
     std::unique_ptr<std::thread> thriftThread) {
   platform_ = std::move(platform);
-  hwSwitch_ = std::move(hwSwitch);
   linkToggler_ = std::move(linkToggler);
 
-  programmedState_ = hwSwitch_->init(this).switchState;
+  programmedState_ = getHwSwitch()->init(this).switchState;
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is
   // normally responsible for publishing it.  Go ahead and call publish now.
   // This will catch errors if test cases accidentally try to modify this
@@ -173,7 +175,7 @@ void HwSwitchEnsemble::setupEnsemble(
 
   thriftThread_ = std::move(thriftThread);
 
-  hwSwitch_->switchRunStateChanged(SwitchRunState::INITIALIZED);
+  getHwSwitch()->switchRunStateChanged(SwitchRunState::INITIALIZED);
   initComplete_ = true;
 }
 

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -41,9 +42,7 @@ BcmTestPlatform::BcmTestPlatform(
 BcmTestPlatform::~BcmTestPlatform() {}
 
 HwSwitch* BcmTestPlatform::getHwSwitch() const {
-  // We don't create a BcmSwitch, since the various tests
-  // will create their own BcmSwitch objects to use for testing.
-  return nullptr;
+  return bcmSwitch_.get();
 }
 
 void BcmTestPlatform::onUnitCreate(int unit) {
@@ -57,6 +56,11 @@ void BcmTestPlatform::onHwInitialized(SwSwitch* /*sw*/) {}
 void BcmTestPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
 
 void BcmTestPlatform::stop() {}
+
+void BcmTestPlatform::initImpl(uint32_t hwFeaturesDesired) {
+  initPorts();
+  bcmSwitch_ = std::make_unique<BcmSwitch>(this, hwFeaturesDesired);
+}
 
 std::unique_ptr<ThriftHandler> BcmTestPlatform::createHandler(
     SwSwitch* /*sw*/) {
