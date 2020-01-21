@@ -111,11 +111,11 @@ const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
 
 void Platform::init(
     std::unique_ptr<AgentConfig> config,
-    uint32_t /*hwFeaturesDesired*/) {
+    uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
   std::ignore = getLocalMac();
-  initImpl();
+  initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
 }

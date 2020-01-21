@@ -64,7 +64,7 @@ class MockPlatform : public Platform {
   void createTmpDir();
   void cleanupTmpDir();
 
-  void initImpl() override {}
+  void initImpl(uint32_t hwFeaturesDesired) override {}
 
   /*
    * A temporary directory that contains the volatile and persistent state

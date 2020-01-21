@@ -51,9 +51,9 @@ WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmPlatform(std::move(productInfo)),
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
-void WedgePlatform::initImpl() {
+void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {
   BcmAPI::init(loadConfig());
-  hw_.reset(new BcmSwitch(this));
+  hw_.reset(new BcmSwitch(this, hwFeaturesDesired));
 }
 
 WedgePlatform::~WedgePlatform() {}

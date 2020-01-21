@@ -63,7 +63,7 @@ class SaiPlatform : public Platform {
   }
 
  private:
-  void initImpl() override;
+  void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;

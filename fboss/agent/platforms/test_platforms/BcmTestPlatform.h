@@ -89,7 +89,7 @@ class BcmTestPlatform : public BcmPlatform {
   BcmTestPlatform(BcmTestPlatform const&) = delete;
   BcmTestPlatform& operator=(BcmTestPlatform const&) = delete;
 
-  void initImpl() override {}
+  void initImpl(uint32_t /*hwFeaturesDesired*/) override {}
   virtual std::unique_ptr<BcmTestPort> createTestPort(PortID portID) = 0;
 
   std::map<PortID, std::unique_ptr<BcmTestPort>> ports_;

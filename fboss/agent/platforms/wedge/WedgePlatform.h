@@ -36,7 +36,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   explicit WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
   ~WedgePlatform() override;
 
-  void initImpl() override;
   void initPorts() override;
   BcmPlatformPortMap getPlatformPortMap() override;
 
@@ -75,6 +74,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
 
  protected:
   std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
+  void initImpl(uint32_t hwFeaturesDesired) override;
 
  private:
   // Forbidden copy constructor and assignment operator

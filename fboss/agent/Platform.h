@@ -228,7 +228,7 @@ class Platform {
    * vendor-specific APIs are instantiated and where a platform
    * creates the HwSwitch instance it must serve back to SwSwitch.
    */
-  virtual void initImpl() = 0;
+  virtual void initImpl(uint32_t hwFeaturesDesired) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

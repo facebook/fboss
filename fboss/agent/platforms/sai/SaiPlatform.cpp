@@ -93,9 +93,9 @@ void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
 }
 
-void SaiPlatform::initImpl() {
+void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
   initSaiProfileValues();
-  saiSwitch_ = std::make_unique<SaiSwitch>(this);
+  saiSwitch_ = std::make_unique<SaiSwitch>(this, hwFeaturesDesired);
   generateHwConfigFile();
 }
 
