@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -37,7 +38,10 @@ void ManagerTestBase::SetUp() {
   auto thriftAgentConfig = utility::getAgentConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");
-  saiPlatform->init(std::move(agentConfig));
+  saiPlatform->init(
+      std::move(agentConfig),
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
   saiPlatform->initPorts();
   saiApiTable = SaiApiTable::getInstance();
   saiApiTable->queryApis();

@@ -21,10 +21,14 @@ namespace facebook::fboss {
 class AgentConfig;
 class Platform;
 
-typedef std::unique_ptr<Platform> (*PlatformInitFn)(
-    std::unique_ptr<AgentConfig>);
+typedef std::unique_ptr<Platform> (
+    *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
 
-int fbossMain(int argc, char** argv, PlatformInitFn initPlatform);
+int fbossMain(
+    int argc,
+    char** argv,
+    uint32_t hwFeaturesDesired,
+    PlatformInitFn initPlatform);
 void fbossFinalize();
 void setVersionInfo();
 

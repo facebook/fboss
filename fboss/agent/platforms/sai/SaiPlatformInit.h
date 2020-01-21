@@ -26,6 +26,7 @@ std::unique_ptr<SaiPlatform> chooseFBSaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo);
 
 std::unique_ptr<Platform> initSaiPlatform(
-    std::unique_ptr<AgentConfig> config = nullptr);
+    std::unique_ptr<AgentConfig> config,
+    uint32_t hwFeaturesDesired);
 
 } // namespace facebook::fboss

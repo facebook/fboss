@@ -249,7 +249,11 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
   }
 }
 
-int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
+int fbossMain(
+    int argc,
+    char** argv,
+    uint32_t hwFeaturesDesired,
+    PlatformInitFn initPlatform) {
   setVersionInfo();
 
   // Read the config and set default command line arguments
@@ -271,7 +275,8 @@ int fbossMain(int argc, char** argv, PlatformInitFn initPlatform) {
   freopen("/dev/null", "r", stdin);
 
   // Now that we have parsed the command line flags, create the Platform object
-  unique_ptr<Platform> platform = initPlatform(std::move(config));
+  unique_ptr<Platform> platform =
+      initPlatform(std::move(config), hwFeaturesDesired);
 
   // Create the SwSwitch and thrift handler
   SwSwitch sw(std::move(platform));

@@ -60,7 +60,7 @@ class Platform {
    * control platform initialization using the same config mechanism
    * as other parts of the agent.
    */
-  void init(std::unique_ptr<AgentConfig> config);
+  void init(std::unique_ptr<AgentConfig> config, uint32_t hwFeaturesDesired);
 
   /*
    * Allows the platorm to run any necessary cleanup steps like

@@ -30,7 +30,8 @@ DEFINE_string(
 namespace facebook::fboss {
 
 unique_ptr<Platform> initSimPlatform(
-    std::unique_ptr<AgentConfig> config = nullptr) {
+    std::unique_ptr<AgentConfig> config,
+    uint32_t hwFeaturesDesired) {
   // Disable the tun interface code by default.
   // We normally don't want the sim switch to create real interfaces
   // on the host.
@@ -39,12 +40,17 @@ unique_ptr<Platform> initSimPlatform(
 
   MacAddress localMac(FLAGS_local_mac);
   auto platform = make_unique<SimPlatform>(localMac, FLAGS_num_ports);
-  platform->init(std::move(config));
+  platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }
 
 } // namespace facebook::fboss
 
 int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(argc, argv, initSimPlatform);
+  return facebook::fboss::fbossMain(
+      argc,
+      argv,
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
+      initSimPlatform);
 }

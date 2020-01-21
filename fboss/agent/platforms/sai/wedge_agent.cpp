@@ -9,11 +9,18 @@
  */
 #include "fboss/agent/Main.h"
 
-#include <memory>
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+
+#include <memory>
 
 using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(argc, argv, initSaiPlatform);
+  return facebook::fboss::fbossMain(
+      argc,
+      argv,
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
+      initSaiPlatform);
 }

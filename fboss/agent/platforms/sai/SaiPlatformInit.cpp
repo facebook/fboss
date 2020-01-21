@@ -29,13 +29,15 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   return chooseFBSaiPlatform(std::move(productInfo));
 }
 
-std::unique_ptr<Platform> initSaiPlatform(std::unique_ptr<AgentConfig> config) {
+std::unique_ptr<Platform> initSaiPlatform(
+    std::unique_ptr<AgentConfig> config,
+    uint32_t hwFeaturesDesired) {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
 
   auto platform = chooseSaiPlatform(std::move(productInfo));
-  platform->init(std::move(config));
+  platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }
 

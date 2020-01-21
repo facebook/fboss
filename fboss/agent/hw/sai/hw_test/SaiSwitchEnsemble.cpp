@@ -35,7 +35,7 @@ namespace facebook::fboss {
 SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   // TODO pass in agent config
-  auto platform = initSaiPlatform();
+  auto platform = initSaiPlatform(nullptr, featuresDesired);
   auto hwSwitch = std::make_unique<SaiSwitch>(
       static_cast<SaiPlatform*>(platform.get()), featuresDesired);
   std::unique_ptr<HwLinkStateToggler> linkToggler;

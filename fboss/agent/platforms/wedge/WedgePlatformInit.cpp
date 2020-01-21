@@ -47,9 +47,10 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
 }
 
 std::unique_ptr<Platform> initWedgePlatform(
-    std::unique_ptr<AgentConfig> config) {
+    std::unique_ptr<AgentConfig> config,
+    uint32_t hwFeaturesDesired) {
   auto platform = chooseWedgePlatform();
-  platform->init(std::move(config));
+  platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }
 

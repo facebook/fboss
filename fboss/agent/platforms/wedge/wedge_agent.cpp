@@ -7,11 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 
 using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
-  return facebook::fboss::fbossMain(argc, argv, initWedgePlatform);
+  return facebook::fboss::fbossMain(
+      argc,
+      argv,
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
+      initWedgePlatform);
 }
