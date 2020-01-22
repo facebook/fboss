@@ -64,8 +64,6 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
   auto* macTable = vlan->getMacTable().get();
   auto node = macTable->getNodeIf(mac);
 
-  // TODO (skhare) MAC Move handling
-
   // Delete if the entry to delete exists, otherwise do nothing.
   if (node &&
       l2EntryUpdateType == L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE) {

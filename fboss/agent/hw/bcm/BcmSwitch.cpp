@@ -965,9 +965,6 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
 
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-    // TODO(skhare)
-    // MAC Move
-
     auto vlanId = vlanDelta.getOld() ? vlanDelta.getOld()->getID()
                                      : vlanDelta.getNew()->getID();
     for (const auto& delta : vlanDelta.getMacDelta()) {
