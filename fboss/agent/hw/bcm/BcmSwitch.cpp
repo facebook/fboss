@@ -884,7 +884,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   setMacAging(std::chrono::seconds(FLAGS_l2AgeTimerSeconds));
 
-  switchSettings_ = std::make_unique<BcmSwitchSettings>(this);
   macTable_ = std::make_unique<BcmMacTable>(this);
 
   ret.bootTime =

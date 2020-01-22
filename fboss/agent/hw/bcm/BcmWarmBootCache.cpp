@@ -513,6 +513,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   populateMirroredPorts();
   populateQosMaps();
   populateLabelSwitchActions();
+  populateSwitchSettings();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -1516,6 +1517,39 @@ bool BcmWarmBootCache::isSflowMirror(BcmMirrorHandle handle) const {
     return true;
   }
   return false;
+}
+
+void BcmWarmBootCache::populateSwitchSettings() {
+  uint32_t flags = 0;
+
+  bcm_port_config_t config;
+  memset(&config, 0, sizeof(bcm_port_config_t));
+  bcm_port_config_get(hw_->getUnit(), &config);
+  bcm_port_t port;
+
+  BCM_PBMP_ITER(config.port, port) {
+    uint32_t port_flags;
+    auto rv = bcm_port_learn_get(hw_->getUnit(), port, &port_flags);
+    bcmCheckError(rv, "Unable to get L2 Learning flags for port: ", port);
+
+    if (flags == 0) {
+      flags = port_flags;
+    } else if (flags != port_flags) {
+      throw FbossError("Every port should have same L2 Learning setting");
+    }
+  }
+
+  // This is warm boot, so there cannot be any L2 update callback registered.
+  // Thus, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD should be enough to
+  // ascertain HARDWARE as L2 learning mode.
+  if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) {
+    l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
+  } else if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING)) {
+    l2LearningMode_ = cfg::L2LearningMode::SOFTWARE;
+  } else {
+    throw FbossError(
+        "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
+  }
 }
 
 } // namespace facebook::fboss

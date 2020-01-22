@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
@@ -23,22 +24,23 @@ extern "C" {
 namespace facebook::fboss {
 
 void BcmSwitchSettings::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-  if (l2LearningMode == cfg::L2LearningMode::HARDWARE) {
-    enableL2LearningHardware();
-  } else if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
-    enableL2LearningSoftware();
-  } else {
-    throw FbossError(
-        "Invalid L2LearningMode, only SOFTWARE and HARDWRE modes are supported: ",
-        static_cast<int>(l2LearningMode));
+  switch (l2LearningMode) {
+    case cfg::L2LearningMode::HARDWARE:
+      enableL2LearningHardware();
+      break;
+    case cfg::L2LearningMode::SOFTWARE:
+      enableL2LearningSoftware();
+      break;
   }
 
   l2LearningMode_ = l2LearningMode;
 }
 
 void BcmSwitchSettings::enableL2LearningHardware() {
-  if (l2LearningMode_.has_value() &&
-      l2LearningMode_.value() == cfg::L2LearningMode::HARDWARE) {
+  if ((hw_->getWarmBootCache()->getL2LearningMode() ==
+       cfg::L2LearningMode::HARDWARE) ||
+      (l2LearningMode_.has_value() &&
+       l2LearningMode_.value() == cfg::L2LearningMode::HARDWARE)) {
     return;
   }
 
@@ -70,24 +72,39 @@ void BcmSwitchSettings::enableL2LearningSoftware() {
     return;
   }
 
+  /*
+   * Graceful warmboot exit unregisters the callback. We must register the
+   * callback again post warmboot even if the mode currently programmed in ASIC
+   * is Software Learning.
+   */
   enableL2LearningCallback();
-  enablePendingEntriesOnUnknownSrcL2();
 
   /*
-   * For every L2 entry previously learned in HARDWARE mode, populate
-   * SwitchState's MAC Table.
-   * This is achieved by traversing L2 table, and generating L2 table update
-   * ADD callback for each entry in L2 table.
-   *
-   * We don't need to worry about MACs learned after this traverse as L2 table
-   * update callbacks are already enabled. However, this also means that we
-   * will end up delivering duplicate callbacks for L2 entries learned in the
-   * time window between enabling L2 table update callback and traversal. This
-   * is fine given how our implementation handles it: a call to add macEntry
-   * that exists is a no-op.
+   * If the mode is Software learning mode prior to warmboot, do nothing: ASIC
+   * is already programmed correctly and switch state's MAC table will be
+   * populated from the warmboot state.
+   * Otherwise, program the ASIC and update switch state's MAC table.
    */
-  auto rv = bcm_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
-  bcmCheckError(rv, "bcm_l2_traverse failed");
+
+  if (hw_->getWarmBootCache()->getL2LearningMode() !=
+      cfg::L2LearningMode::SOFTWARE) {
+    enablePendingEntriesOnUnknownSrcL2();
+    /*
+     * For every L2 entry previously learned in HARDWARE mode, populate
+     * SwitchState's MAC Table.
+     * This is achieved by traversing L2 table, and generating L2 table update
+     * ADD callback for each entry in L2 table.
+     *
+     * We don't need to worry about MACs learned after this traverse as L2 table
+     * update callbacks are already enabled. However, this also means that we
+     * will end up delivering duplicate callbacks for L2 entries learned in the
+     * time window between enabling L2 table update callback and traversal. This
+     * is fine given how our implementation handles it: a call to add macEntry
+     * that exists is a no-op.
+     */
+    auto rv = bcm_l2_traverse(hw_->getUnit(), BcmSwitch::addL2TableCb, hw_);
+    bcmCheckError(rv, "bcm_l2_traverse failed");
+  }
 }
 
 void BcmSwitchSettings::enableL2LearningCallback() {

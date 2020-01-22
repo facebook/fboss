@@ -228,6 +228,8 @@ class BcmWarmBootCache {
   void removeUnclaimedLabeledTunnels();
   void checkUnclaimedQosMaps();
 
+  void populateSwitchSettings();
+
  public:
   /*
    * Iterators and find functions for finding VlanInfo
@@ -577,6 +579,10 @@ class BcmWarmBootCache {
     return qosMapKey2QosMapId_.cend();
   }
 
+  cfg::L2LearningMode getL2LearningMode() const {
+    return l2LearningMode_;
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -665,6 +671,8 @@ class BcmWarmBootCache {
   Label2LabelActionMap label2LabelActions_;
   std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
   QosMapKey2QosMapId qosMapKey2QosMapId_;
+
+  cfg::L2LearningMode l2LearningMode_;
 };
 
 } // namespace facebook::fboss
