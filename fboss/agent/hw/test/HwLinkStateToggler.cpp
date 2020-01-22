@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/Port.h"
 
 #include <folly/gen/Base.h>
@@ -61,7 +63,15 @@ void HwLinkStateToggler::portStateChangeImpl(
   }
 }
 
-void HwLinkStateToggler::applyInitialConfig(
+void HwLinkStateToggler::applyInitialConfigAndBringUpPorts(
+    const std::shared_ptr<SwitchState>& curState,
+    const Platform* platform,
+    const cfg::SwitchConfig& initCfg) {
+  auto newState = applyInitialConfig(curState, platform, initCfg);
+  bringUpPorts(newState, initCfg);
+}
+
+std::shared_ptr<SwitchState> HwLinkStateToggler::applyInitialConfig(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg) {
@@ -83,6 +93,8 @@ void HwLinkStateToggler::applyInitialConfig(
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
   stateUpdateFn_(newState);
+  platform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  return newState;
 }
 
 void HwLinkStateToggler::bringUpPorts(
