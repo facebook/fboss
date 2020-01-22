@@ -36,6 +36,7 @@ cfg::SwitchConfig genPortVlanCfg(
     config.ports[portIndex].name_ref() =
         "eth1/" + std::to_string(*portItr) + "/1";
     config.ports[portIndex].logicalID = *portItr;
+    config.ports[portIndex].maxFrameSize = 9412;
     config.ports[portIndex].speed = maxPortSpeed(hwSwitch, *portItr);
     config.ports[portIndex].state = cfg::PortState::ENABLED;
     config.ports[portIndex].loopbackMode = lbMode;
