@@ -379,4 +379,63 @@ TEST_F(BcmQosPolicyTest, QosPolicySdkAssertions) {
   }
 }
 
+TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
+  auto setup = [=]() {
+    auto config = initialConfig();
+    config.qosPolicies.resize(1);
+    config.qosPolicies[0].name = "qp";
+    config.qosPolicies[0].rules.resize(8);
+    for (auto i = 0; i < 8; i++) {
+      config.qosPolicies[0].rules[i].queueId = i;
+      config.qosPolicies[0].rules[i].dscp.resize(8);
+      for (auto j = 0; j < 8; j++) {
+        config.qosPolicies[0].rules[i].dscp[j] = 8 * i + j;
+      }
+    }
+    cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    applyNewConfig(config);
+  };
+
+  auto verify = [=]() {
+    checkSwHwQosMapsMatch(getHwSwitch(), getProgrammedState());
+    for (auto index : {0, 1}) {
+      checkPortQosMap(getHwSwitch(), masterLogicalPortIds()[index], "qp");
+    }
+  };
+
+  auto setupPostWb = [=]() {
+    auto config = initialConfig();
+    cfg::QosMap qosMap;
+    qosMap.dscpMaps.resize(8);
+    for (auto i = 0; i < 8; i++) {
+      qosMap.dscpMaps[i].internalTrafficClass = i;
+      for (auto j = 0; j < 8; j++) {
+        qosMap.dscpMaps[i].fromDscpToTrafficClass.push_back(8 * i + j);
+      }
+    }
+    qosMap.expMaps.resize(8);
+    for (auto i = 0; i < 8; i++) {
+      qosMap.expMaps[i].internalTrafficClass = i;
+      qosMap.expMaps[i].fromExpToTrafficClass.push_back(i);
+      qosMap.expMaps[i].fromTrafficClassToExp_ref() = i;
+    }
+
+    for (auto i = 0; i < 8; i++) {
+      qosMap.trafficClassToQueueId.emplace(i, i);
+    }
+
+    config.qosPolicies.resize(1);
+    config.qosPolicies[0].name = "qp";
+    config.qosPolicies[0].qosMap_ref() = qosMap;
+
+    cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+    dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+    config.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+    applyNewConfig(config);
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
+}
+
 } // namespace facebook::fboss

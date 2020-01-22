@@ -510,3 +510,55 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   const auto port1 = state->getPort(PortID(2));
   ASSERT_EQ("qosPolicy0", port1->getQosPolicy().value());
 }
+
+TEST(QosPolicy, QosPolicyConfigMigrateNoDelta) {
+  cfg::SwitchConfig config;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  std::vector<std::pair<uint8_t, std::vector<int16_t>>> rules{
+      {0, {6, 7, 8, 9, 12, 13, 14, 15}},
+      {1, {0,  1,  2,  3,  4,  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28,
+           29, 30, 31, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+           47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63}},
+      {2, {5}},
+      {4, {10, 11}},
+      {6, {32, 35, 26, 27}},
+      {7, {46}}};
+  cfg::QosPolicy p1;
+  p1.name = "qosPolicy_1";
+  p1.rules = dscpRules(rules);
+  config.qosPolicies.push_back(p1);
+  cfg::TrafficPolicyConfig policy;
+  policy.defaultQosPolicy_ref() = "qosPolicy_1";
+  config.dataPlaneTrafficPolicy_ref() = policy;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+
+  cfg::QosPolicy p2;
+  p2.name = "qosPolicy_1";
+  cfg::QosMap qosMap;
+  for (const auto& entry : rules) {
+    cfg::DscpQosMap dscpMap;
+    dscpMap.internalTrafficClass = entry.first;
+    for (auto dscp : entry.second) {
+      dscpMap.fromDscpToTrafficClass.push_back(dscp);
+    }
+    qosMap.dscpMaps.push_back(dscpMap);
+  }
+
+  for (auto i = 0; i < 8; i++) {
+    cfg::ExpQosMap expMap;
+    expMap.internalTrafficClass = i;
+    expMap.fromExpToTrafficClass.push_back(i);
+    expMap.fromTrafficClassToExp_ref() = i;
+    qosMap.expMaps.push_back(expMap);
+    qosMap.trafficClassToQueueId.emplace(i, i);
+  }
+  p2.qosMap_ref() = qosMap;
+  config.qosPolicies[0] = p2;
+  auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
+
+  StateDelta delta(stateV1, stateV2);
+  const auto& policyDelta = delta.getQosPoliciesDelta();
+  ASSERT_EQ(policyDelta.begin(), policyDelta.end());
+}
