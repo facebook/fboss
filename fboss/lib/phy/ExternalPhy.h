@@ -147,6 +147,14 @@ class ExternalPhy {
     // optionally overridable by subclasses
     return true;
   }
+  virtual bool legalOnePortConfig(const PhyPortConfig& /* config */) {
+    // optionally overridable by subclasses
+    return true;
+  }
+  virtual bool legalOnePortSettings(const PhyPortSettings& /* config */) {
+    // optionally overridable by subclasses
+    return true;
+  }
   // loopback
   virtual Loopback getLoopback(Side side) = 0;
   virtual void setLoopback(Side side, Loopback loopback) = 0;
