@@ -54,6 +54,19 @@ void BcmPortTable::addBcmPort(bcm_port_t logicalPort, bool warmBoot) {
   bcmPhysicalPorts_[logicalPort] = std::move(bcmPort);
 }
 
+void BcmPortTable::removeBcmPort(bcm_port_t logicalPort) {
+  // Find the platform port object
+  BcmPlatformPort* platformPort = dynamic_cast<BcmPlatformPort*>(
+      hw_->getPlatform()->getPlatformPort(PortID(logicalPort)));
+  if (platformPort == nullptr) {
+    throw FbossError("Can't find platform port for port:", logicalPort);
+  }
+
+  PortID fbossPortID = platformPort->getPortID();
+  fbossPhysicalPorts_.erase(fbossPortID);
+  bcmPhysicalPorts_.erase(logicalPort);
+}
+
 void BcmPortTable::initPorts(
     const bcm_port_config_t* portConfig,
     bool warmBoot) {

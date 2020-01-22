@@ -387,6 +387,11 @@ void BcmPortGroup::setActiveLanesWithFlexPortApi(
 
   auto controllingPortID = controllingPort_->getPortID();
   // Since we've done some port add/remove ops, we need to update port table
+  // Remove all old entries from the port table, then add back the
+  // newly added ports
+  for (auto port : allPorts_) {
+    hw_->writablePortTable()->removeBcmPort(port->getPortID());
+  }
   std::vector<BcmPort*> newPorts;
   for (auto port : addedPorts) {
     // write it to port table
@@ -395,6 +400,7 @@ void BcmPortGroup::setActiveLanesWithFlexPortApi(
     auto* newPort = hw_->getPortTable()->getBcmPort(port->getID());
     newPorts.push_back(newPort);
   }
+
   // Then we need to update current port group to the new state
   controllingPort_ = hw_->getPortTable()->getBcmPort(controllingPortID);
   int beforePortGroupSize = allPorts_.size();

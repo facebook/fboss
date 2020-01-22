@@ -98,6 +98,8 @@ class BcmPortTable {
    */
   void addBcmPort(bcm_port_t logicalPort, bool warmBoot);
 
+  void removeBcmPort(bcm_port_t logicalPort);
+
  private:
   /* Initialize all the port groups that exist. A port group is a set of ports
    * that can act as either a single port or multiple ports.
