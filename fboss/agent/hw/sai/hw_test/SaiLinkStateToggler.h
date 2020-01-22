@@ -12,9 +12,12 @@
 
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
+#include <memory>
+
 namespace facebook::fboss {
 
 class SaiSwitch;
+class Port;
 
 class SaiLinkStateToggler : public HwLinkStateToggler {
  public:
@@ -28,9 +31,12 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {
     // TODO
   }
-  void setPortPreemphasis(PortID /*port*/, int /*preemphasis*/) override {
+  void setPortPreemphasis(
+      const std::shared_ptr<Port>& /*port*/,
+      int /*preemphasis*/) override {
     // TODO
   }
+
   SaiSwitch* hw_;
 };
 

@@ -13,6 +13,9 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/state/Port.h"
+
+#include <memory>
 
 extern "C" {
 #include <bcm/port.h>
@@ -30,9 +33,14 @@ void BcmLinkStateToggler::invokeLinkScanIfNeeded(PortID port, bool isUp) {
   }
 }
 
-void BcmLinkStateToggler::setPortPreemphasis(PortID port, int preemphasis) {
+void BcmLinkStateToggler::setPortPreemphasis(
+    const std::shared_ptr<Port>& port,
+    int preemphasis) {
   auto rv = bcm_port_phy_control_set(
-      hw_->getUnit(), port, BCM_PORT_PHY_CONTROL_PREEMPHASIS, preemphasis);
+      hw_->getUnit(),
+      port->getID(),
+      BCM_PORT_PHY_CONTROL_PREEMPHASIS,
+      preemphasis);
   bcmCheckError(rv, "Failed to set port preemphasis");
 }
 

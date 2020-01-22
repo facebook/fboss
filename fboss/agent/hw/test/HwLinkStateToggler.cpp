@@ -69,7 +69,8 @@ void HwLinkStateToggler::applyInitialConfig(
   for (auto& port : cfg.ports) {
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
-    setPortPreemphasis(PortID(port.logicalID), 0);
+    setPortPreemphasis(
+        curState->getPorts()->getPort(PortID(port.logicalID)), 0);
     // Bring ports down by setting loopback mode to NONE
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
   }
