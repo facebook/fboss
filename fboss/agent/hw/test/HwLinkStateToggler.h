@@ -36,7 +36,7 @@ class HwLinkStateToggler {
         desiredLoopbackMode_(desiredLoopbackMode) {}
   virtual ~HwLinkStateToggler() {}
 
-  void applyInitialConfigAndBringUpPorts(
+  void applyInitialConfig(
       const std::shared_ptr<SwitchState>& curState,
       const Platform* platform,
       const cfg::SwitchConfig& initCfg);
@@ -53,7 +53,7 @@ class HwLinkStateToggler {
   }
 
  private:
-  std::shared_ptr<SwitchState> applyInitialConfig(
+  std::shared_ptr<SwitchState> applyInitialConfigWithPortsDown(
       const std::shared_ptr<SwitchState>& curState,
       const Platform* platform,
       const cfg::SwitchConfig& initCfg);

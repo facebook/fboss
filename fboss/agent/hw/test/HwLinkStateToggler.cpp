@@ -63,15 +63,16 @@ void HwLinkStateToggler::portStateChangeImpl(
   }
 }
 
-void HwLinkStateToggler::applyInitialConfigAndBringUpPorts(
+void HwLinkStateToggler::applyInitialConfig(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg) {
-  auto newState = applyInitialConfig(curState, platform, initCfg);
+  auto newState = applyInitialConfigWithPortsDown(curState, platform, initCfg);
   bringUpPorts(newState, initCfg);
 }
 
-std::shared_ptr<SwitchState> HwLinkStateToggler::applyInitialConfig(
+std::shared_ptr<SwitchState>
+HwLinkStateToggler::applyInitialConfigWithPortsDown(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg) {

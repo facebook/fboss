@@ -94,12 +94,11 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
   return programmedState_;
 }
 
-void HwSwitchEnsemble::applyInitialConfigAndBringUpPorts(
-    const cfg::SwitchConfig& initCfg) {
+void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   CHECK(featuresDesired_ & HwSwitch::LINKSCAN_DESIRED)
       << "Link scan feature must be enabled for exercising "
-      << "applyInitialConfigAndBringUpPorts";
-  linkToggler_->applyInitialConfigAndBringUpPorts(
+      << "applyInitialConfig";
+  linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
   initCfgState_ = getProgrammedState();
 }

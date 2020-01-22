@@ -43,7 +43,7 @@ BENCHMARK(HwStatsCollection) {
   for (auto i = 0; i < 10'000; ++i) {
     hwSwitch->updateStats(&dummy);
   }
-  ensemble->applyInitialConfigAndBringUpPorts(config);
+  ensemble->applyInitialConfig(config);
 }
 
 } // namespace facebook::fboss

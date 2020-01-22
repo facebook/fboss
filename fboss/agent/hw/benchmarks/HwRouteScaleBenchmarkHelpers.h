@@ -30,7 +30,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfigAndBringUpPorts(config);
+  ensemble->applyInitialConfig(config);
   static const auto states =
       RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
   if (measureAdd) {

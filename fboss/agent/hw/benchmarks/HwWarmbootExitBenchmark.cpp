@@ -56,7 +56,7 @@ void runBenchmark() {
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfigAndBringUpPorts(config);
+  ensemble->applyInitialConfig(config);
 
   std::shared_ptr<SwitchState> toApply;
   if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {

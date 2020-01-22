@@ -42,7 +42,7 @@ void runTxSlowPathBenchmark() {
   auto hwSwitch = ensemble->getHwSwitch();
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
-  ensemble->applyInitialConfigAndBringUpPorts(config);
+  ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
   auto ecmpRouteState = ecmpHelper.setupECMPForwarding(

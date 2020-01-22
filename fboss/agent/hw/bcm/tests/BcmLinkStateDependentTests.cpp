@@ -21,7 +21,7 @@ void BcmLinkStateDependentTests::SetUp() {
     // No setup beyond init required for warm boot. We should
     // recover back to the state the switch went down with prior
     // to warm boot
-    getHwSwitchEnsemble()->applyInitialConfigAndBringUpPorts(initialConfig());
+    getHwSwitchEnsemble()->applyInitialConfig(initialConfig());
   }
 }
 
