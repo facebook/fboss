@@ -15,6 +15,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/Port.h"
 
+#include <boost/container/flat_map.hpp>
 #include <folly/gen/Base.h>
 
 namespace facebook::fboss {
@@ -76,13 +77,23 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
     const std::shared_ptr<SwitchState>& curState,
     const Platform* platform,
     const cfg::SwitchConfig& initCfg) {
+  // Goal of this function is twofold
+  // - Apply initial config.
+  // - Set preemphasis on all ports to 0
+  // We do this in 2 steps
+  // i)  Apply initial config, but with ports disabled. This is done to cater
+  // for platforms where ports only show up after first config application
+  // ii) Set preempahsis for all ports to 0
+  // iii) Apply initial config with the correct port state.
+  // Coupled with preempahsis set to 0 and lbmode=NONE, this will keep ports
+  // down. We will then set the enabled ports to desired loopback mode in
+  // bringUpPorts API
   auto cfg = initCfg;
+  boost::container::flat_map<int, cfg::PortState> portId2DesiredState;
   for (auto& port : cfg.ports) {
-    // Set all port preemphasis values to 0 so that we can bring ports up and
-    // down by setting their loopback mode to PHY and NONE respectively.
-    setPortPreemphasis(
-        curState->getPorts()->getPort(PortID(port.logicalID)), 0);
-    // Bring ports down by setting loopback mode to NONE
+    portId2DesiredState[port.logicalID] = port.state;
+    // Keep ports down by disabling them and setting loopback mode to NONE
+    port.state = cfg::PortState::DISABLED;
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
   }
   // i) Set preempahsis to 0, so ports state can be manipulated by just setting
@@ -93,6 +104,15 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // init (since there are no portup events in init + initial config
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
+  stateUpdateFn_(newState);
+  for (auto& port : cfg.ports) {
+    // Set all port preemphasis values to 0 so that we can bring ports up and
+    // down by setting their loopback mode to PHY and NONE respectively.
+    setPortPreemphasis(
+        newState->getPorts()->getPort(PortID(port.logicalID)), 0);
+    port.state = portId2DesiredState[port.logicalID];
+  }
+  newState = applyThriftConfig(newState, &cfg, platform);
   stateUpdateFn_(newState);
   platform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return newState;
