@@ -427,12 +427,9 @@ add_executable(bcm_test
 add_library(switch_asics STATIC
     fboss/agent/hw/switch_asics/FakeAsic.h
     fboss/agent/hw/switch_asics/HwAsic.h
-    fboss/agent/hw/switch_asics/Tomahawk3Asic.h
-    fboss/agent/hw/switch_asics/TomahawkAsic.h
-    fboss/agent/hw/switch_asics/Trident2Asic.h
-    fboss/agent/hw/switch_asics/oss/Tomahawk3Asic.cpp
-    fboss/agent/hw/switch_asics/oss/TomahawkAsic.cpp
-    fboss/agent/hw/switch_asics/oss/Trident2Asic.cpp
+    fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
+    fboss/agent/hw/switch_asics/TomahawkAsic.cpp
+    fboss/agent/hw/switch_asics/Trident2Asic.cpp
 )
 
 add_library(fboss_agent STATIC
