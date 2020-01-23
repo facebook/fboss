@@ -91,22 +91,29 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     getHwSwitch()->sendPacketOutOfPortSync(
         std::move(txPacket), PortID(masterLogicalPortIds()[0]));
   }
+
   bool wasMacLearnt(PortDescriptor portDescr, bool shouldExist = true) const {
     /***
      * shouldExist - if set to true (default), retry until mac is found.
      *             - if set to false, retry until mac is no longer learned
      * @return true if the desired condition occurs before timeout, else false
      */
+    auto l2LearningMode =
+        getProgrammedState()->getSwitchSettings()->getL2LearningMode();
+
     int retries = 5;
     while (retries--) {
-      auto isTrunk = portDescr.isAggregatePort();
-      int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
-      auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
-      if (shouldExist == (macs.find(kSourceMac()) != macs.end())) {
+      if (((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
+            wasMacLearntInSwitchState(shouldExist)) ||
+           (l2LearningMode == cfg::L2LearningMode::HARDWARE)) &&
+          wasMacLearntInHw(portDescr, shouldExist)) {
         return true;
       }
-      // Typically the MAC learning is immediate post a packet sent,
-      // but adding a few retries just to avoid test noise
+
+      // State udpate that will add/remove MacEntry happens asynchronously in
+      // Event base. Give it chance to run.
+      // Typically the MAC learning is immediate post a packet sent, but retries
+      // help avoid test noise.
       sleep(1);
     }
     return false;
@@ -262,7 +269,103 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void testHwToSwLearningHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      sendPkt();
+    };
+
+    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+
+    auto setupPostWarmboot = [this, portDescr]() {
+      l2LearningObserver_.reset();
+      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+    };
+
+    auto verifyPostWarmboot = [this, portDescr]() {
+      verifyL2TableCallback(
+          l2LearningObserver_.waitForLearningUpdates().front(),
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      EXPECT_TRUE(wasMacLearnt(portDescr));
+    };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+  }
+
+  void testSwToHwLearningHelper(PortDescriptor portDescr) {
+    auto setup = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+      // Disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+
+      l2LearningObserver_.reset();
+      sendPkt();
+
+      verifyL2TableCallback(
+          l2LearningObserver_.waitForLearningUpdates().front(),
+          portDescr,
+          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+          expectedL2EntryTypeOnAdd());
+    };
+
+    auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
+
+    auto setupPostWarmboot = [this, portDescr]() {
+      setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+    };
+
+    auto verifyPostWarmboot = [this, portDescr]() {
+      /*
+       * We only maintain MacTable in the SwitchState in SOFTWARE
+       * l2LearningMode.
+       *
+       * Thus, when we transition from SOFTWRE l2LearningMode to HARDWARE
+       * l2Learning:
+       * - BCM layer traverses l2Table and calls deleteCb for every entry.
+       * - The deleteCb processing removes l2 entries from the switch state.
+       * - However, this causes subsequent state update to
+       *   'processMacTableChanges' and remove L2 entries programmed in ASIC.
+       *
+       * If the traffic is flowing, the L2 entries would be immediately
+       * relearned (by HARDWARE learning).
+       *
+       * We could modify processMacTableChanges to omit processing of updates
+       * when l2LearningMode is HARDWARE. But, for cleaner design, we chose to
+       * maintain the abstraction of HwSwitch just applying switch states
+       * passed down to it.
+       *
+       * Thus, here we ASSERT that the MAC is removed.
+       */
+      EXPECT_TRUE(wasMacLearnt(portDescr, false /* MAC aged */));
+    };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+  }
+
   HwTestLearningUpdateObserver l2LearningObserver_;
+
+ private:
+  bool wasMacLearntInHw(PortDescriptor portDescr, bool shouldExist) const {
+    auto isTrunk = portDescr.isAggregatePort();
+    int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
+    auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
+
+    return (shouldExist == (macs.find(kSourceMac()) != macs.end()));
+  }
+
+  bool wasMacLearntInSwitchState(bool shouldExist) const {
+    auto vlanID = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto state = getProgrammedState();
+    auto vlan = state->getVlans()->getVlanIf(vlanID);
+    auto* macTable = vlan->getMacTable().get();
+
+    return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
+  }
 };
 
 TEST_F(HwMacLearningTest, VerifyHwLearningForPort) {
@@ -295,6 +398,14 @@ TEST_F(HwMacLearningTest, VerifySwAgingForPort) {
 
 TEST_F(HwMacLearningTest, VerifySwAgingForTrunk) {
   testSwAgingHelper(aggPortDescr());
+}
+
+TEST_F(HwMacLearningTest, VerifyHwToSwLearningForPort) {
+  testHwToSwLearningHelper(physPortDescr());
+}
+
+TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
+  testSwToHwLearningHelper(physPortDescr());
 }
 
 class HwMacLearningMacMoveTest : public HwMacLearningTest {
