@@ -135,7 +135,6 @@ sai_status_t set_port_attribute_fn(
   switch (attr->id) {
     case SAI_PORT_ATTR_ADMIN_STATE:
       port.adminState = attr->value.booldata;
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_HW_LANE_LIST: {
       auto& lanes = port.lanes;
@@ -160,7 +159,6 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
       port.globalFlowControlMode =
           static_cast<sai_port_flow_control_mode_t>(attr->value.s32);
-      res = SAI_STATUS_SUCCESS;
       break;
     case SAI_PORT_ATTR_PORT_VLAN_ID:
       port.vlanId = static_cast<sai_vlan_id_t>(attr->value.u16);
