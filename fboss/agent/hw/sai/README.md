@@ -11,8 +11,10 @@ additional documentation can be found in the README.md file in the corresponding
 directories.
 * api: Libraries that wrap raw C SAI for additional safety. The main concepts
 are SaiAttribute and SaiApi, which wrap the corresponding entities in SAI.
+* store: Library that provides RAII wrappers around SAI objects, and
+ref-counted storage for those objects. Relies on the api library.
 * switch: Contains SaiSwitch -- the actual implementation of HwSwitch. Uses the
-api library to handle usage of SAI.
+api and store libraries to handle usage of SAI.
 * fake: An all software SAI implementation used for unit testing api and switch.
 * impl: Build targets for linking in a particular SAI implementation.
 
