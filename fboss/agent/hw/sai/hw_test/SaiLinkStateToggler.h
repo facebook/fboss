@@ -31,11 +31,8 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
   void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {
     // TODO
   }
-  void setPortPreemphasis(
-      const std::shared_ptr<Port>& /*port*/,
-      int /*preemphasis*/) override {
-    // TODO
-  }
+  void setPortPreemphasis(const std::shared_ptr<Port>& port, int preemphasis)
+      override;
 
   SaiSwitch* hw_;
 };
