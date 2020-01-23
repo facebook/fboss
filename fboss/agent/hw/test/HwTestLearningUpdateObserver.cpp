@@ -8,6 +8,12 @@ namespace facebook::fboss {
 
 void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
   ensemble_ = ensemble;
+
+  applyStateUpdateThread_ = std::make_unique<std::thread>([=]() {
+    initThread("apply state");
+    applyStateUpdateEventBase_.loopForever();
+  });
+
   ensemble_->addHwEventObserver(this);
 }
 
@@ -15,6 +21,12 @@ void HwTestLearningUpdateObserver::stopObserving() {
   if (ensemble_) {
     ensemble_->removeHwEventObserver(this);
     ensemble_ = nullptr;
+  }
+
+  if (applyStateUpdateThread_) {
+    applyStateUpdateEventBase_.runInEventBaseThreadAndWait(
+        [this] { applyStateUpdateEventBase_.terminateLoopSoon(); });
+    applyStateUpdateThread_->join();
   }
 }
 
@@ -28,14 +40,32 @@ void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
     L2EntryUpdateType l2EntryUpdateType) {
   std::lock_guard<std::mutex> lock(mtx_);
 
-  auto state1 = ensemble_->getProgrammedState();
-  auto state2 =
-      MacTableUtils::updateMacTable(state1, l2Entry, l2EntryUpdateType);
-  ensemble_->applyNewState(state2);
+  /*
+   * The state delta processing of modified L2Learning mode causes the BCM
+   * layer to traverse L2 table and generate callbacks. Thus, this code may
+   * execute in the context of state delta processing. We cannot schedule
+   * another state update or else we will try to acquire same lock and hang.
+   * To avoid, schedule state delta processing in a different context.
+   */
+  applyStateUpdateEventBase_.runInEventBaseThread(
+      [this, l2Entry, l2EntryUpdateType]() {
+        this->applyStateUpdateHelper(l2Entry, l2EntryUpdateType);
+      });
 
   data_.push_back(std::make_pair(l2Entry, l2EntryUpdateType));
 
   cv_.notify_all();
+}
+
+void HwTestLearningUpdateObserver::applyStateUpdateHelper(
+    L2Entry l2Entry,
+    L2EntryUpdateType l2EntryUpdateType) {
+  CHECK(applyStateUpdateEventBase_.inRunningEventBaseThread());
+
+  auto state1 = ensemble_->getProgrammedState();
+  auto state2 =
+      MacTableUtils::updateMacTable(state1, l2Entry, l2EntryUpdateType);
+  ensemble_->applyNewState(state2);
 }
 
 std::vector<std::pair<L2Entry, L2EntryUpdateType>>

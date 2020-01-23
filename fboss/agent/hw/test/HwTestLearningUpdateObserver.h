@@ -32,10 +32,17 @@ class HwTestLearningUpdateObserver
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
 
+  void applyStateUpdateHelper(
+      L2Entry l2Entry,
+      L2EntryUpdateType l2EntryUpdateType);
+
   HwSwitchEnsemble* ensemble_{nullptr};
   std::mutex mtx_;
   std::condition_variable cv_;
   std::vector<std::pair<L2Entry, L2EntryUpdateType>> data_;
+
+  std::unique_ptr<std::thread> applyStateUpdateThread_;
+  folly::EventBase applyStateUpdateEventBase_;
 };
 
 } // namespace facebook::fboss
