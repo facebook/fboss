@@ -178,7 +178,14 @@ TEST(Port, ToFromJSON) {
           "portFEC" : "OFF",
           "txPause" : true,
           "sampleDest" : "MIRROR",
-          "portLoopbackMode" : "PHY"
+          "portLoopbackMode" : "PHY",
+          "lookupClassesToDistrubuteTrafficOn": [
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
         }
   )";
   auto port = Port::fromJson(jsonStr);
@@ -239,6 +246,15 @@ TEST(Port, ToFromJSON) {
   EXPECT_EQ(
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN, queues[3]->getScheduling());
   EXPECT_FALSE(queues[3]->getScalingFactor().has_value());
+
+  std::vector<cfg::AclLookupClass> expectedLookupClasses = {
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4};
+  EXPECT_EQ(
+      port->getLookupClassesToDistributeTrafficOn(), expectedLookupClasses);
 
   auto dyn1 = port->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);

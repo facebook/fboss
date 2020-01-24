@@ -132,6 +132,9 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     port.qosPolicy = portThrift.qosPolicy.value();
   }
 
+  port.lookupClassesToDistrubuteTrafficOn =
+      portThrift.lookupClassesToDistrubuteTrafficOn;
+
   return port;
 }
 
@@ -201,6 +204,9 @@ state::PortFields PortFields::toThrift() const {
   if (sampleDest) {
     port.sampleDest = apache::thrift::util::enumName(sampleDest.value());
   }
+
+  port.lookupClassesToDistrubuteTrafficOn = lookupClassesToDistrubuteTrafficOn;
+
   return port;
 }
 

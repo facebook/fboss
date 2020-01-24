@@ -68,4 +68,5 @@ struct PortFields {
  20: optional string sampleDest
  // TODO: this will deprecate port speed and port fec
  21: string portProfileID
+ 22: list<switch_config.AclLookupClass> lookupClassesToDistrubuteTrafficOn
 }
