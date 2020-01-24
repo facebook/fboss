@@ -30,7 +30,7 @@ namespace facebook::fboss {
 
 class SaiPlatform : public Platform {
  public:
-  explicit SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  using Platform::Platform;
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
   void onInitialConfigApplied(SwSwitch* sw) override;

@@ -24,8 +24,7 @@ namespace facebook::fboss {
 
 class SaiHwPlatform : public SaiPlatform {
  public:
-  explicit SaiHwPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiPlatform(std::move(productInfo)) {}
+  using SaiPlatform::SaiPlatform;
   std::string getPersistentStateDir() const override;
   std::string getVolatileStateDir() const override;
 };

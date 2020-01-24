@@ -14,8 +14,7 @@ namespace facebook::fboss {
 
 class SaiBcmPlatform : public SaiHwPlatform {
  public:
-  explicit SaiBcmPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiHwPlatform(std::move(productInfo)) {}
+  using SaiHwPlatform::SaiHwPlatform;
   std::string getHwConfig() override;
   bool getObjectKeysSupported() const override {
     return true;

@@ -99,9 +99,6 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
   generateHwConfigFile();
 }
 
-SaiPlatform::SaiPlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-    : Platform(std::move(productInfo)) {}
-
 void SaiPlatform::initPorts() {
   auto& platformSettings = config()->thrift.platform;
   auto platformMode = getMode();
