@@ -333,14 +333,16 @@ void SaiSwitch::packetRxCallbackBottomHalf(
 
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   if (portItr == concurrentIndices_->portIds.cend()) {
-    XLOG(WARNING) << "RX packet had port with unknown sai id: " << portSaiId;
+    XLOG(WARNING) << "RX packet had port with unknown sai id: 0x" << std::hex
+                  << portSaiId;
     return;
   }
   PortID swPortId = portItr->second;
 
   const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
   if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-    XLOG(WARNING) << "RX packet had port in no known vlan: " << portSaiId;
+    XLOG(WARNING) << "RX packet had port in no known vlan: 0x" << std::hex
+                  << portSaiId;
     return;
   }
   VlanID swVlanId = vlanItr->second;
