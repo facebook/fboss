@@ -29,7 +29,7 @@ class FakeHostifTrap {
         priority(priority),
         trapGroup(trapGroup) {}
   sai_hostif_trap_type_t trapType;
-  sai_packet_action_t packetAction;
+  sai_int32_t packetAction;
   uint32_t priority;
   sai_object_id_t trapGroup;
   sai_object_id_t id;

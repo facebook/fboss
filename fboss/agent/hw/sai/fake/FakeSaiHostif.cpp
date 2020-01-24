@@ -88,9 +88,20 @@ sai_status_t remove_hostif_trap_fn(sai_object_id_t hostif_trap_id) {
 }
 
 sai_status_t set_hostif_trap_attribute_fn(
-    sai_object_id_t /* hostif_trap_id */,
+    sai_object_id_t hostif_trap_id,
     const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& trap = fs->htm.get(hostif_trap_id);
   switch (attr->id) {
+    case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
+      trap.packetAction = attr->value.s32;
+      break;
+    case SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY:
+      trap.priority = attr->value.u32;
+      break;
+    case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
+      trap.trapGroup = attr->value.oid;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }

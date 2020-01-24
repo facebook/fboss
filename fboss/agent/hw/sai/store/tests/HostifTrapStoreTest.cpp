@@ -116,4 +116,9 @@ TEST_F(HostifTrapStoreTest, trapSetAction) {
   EXPECT_EQ(
       GET_ATTR(HostifTrap, PacketAction, obj.attributes()),
       SAI_PACKET_ACTION_DROP);
+
+  SaiHostifTrapTraits::Attributes::PacketAction packetAction{};
+  EXPECT_EQ(
+      saiApiTable->hostifApi().getAttribute(obj.adapterKey(), packetAction),
+      SAI_PACKET_ACTION_DROP);
 }
