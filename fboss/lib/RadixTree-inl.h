@@ -3,8 +3,7 @@
 #error "This should only be included by RadixTree.h"
 #endif
 
-namespace facebook {
-namespace network {
+namespace facebook::network {
 
 template <typename IPADDRTYPE, typename T>
 typename RadixTreeNode<IPADDRTYPE, T>::TreeDirection
@@ -497,5 +496,4 @@ void RadixTreeIteratorImpl<IPADDRTYPE, T, CURSORNODE, DESIREDITERTYPE>::
   normalize();
 }
 
-} // namespace network
-} // namespace facebook
+} // namespace facebook::network

@@ -21,8 +21,7 @@
 #include <folly/Memory.h>
 #include <optional>
 
-namespace facebook {
-namespace network {
+namespace facebook::network {
 /*
  * Node in RadixTree, holds IP, mask. Will hold  value for nodes
  * created as a result of user inserts. Other type of nodes are
@@ -1226,8 +1225,7 @@ std::string trailStr(
 template <typename T>
 class RadixTreeNode<folly::IPAddress, T>;
 
-} // namespace network
-} // namespace facebook
+} // namespace facebook::network
 
 #include "RadixTree-inl.h"
 
