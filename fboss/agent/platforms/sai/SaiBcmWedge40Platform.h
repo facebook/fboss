@@ -21,9 +21,6 @@ class SaiBcmWedge40Platform : public SaiBcmPlatform {
   ~SaiBcmWedge40Platform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
-  bool getObjectKeysSupported() const override {
-    return true;
-  }
 
  private:
   std::unique_ptr<Trident2Asic> asic_;

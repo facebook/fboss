@@ -14,6 +14,8 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
 
@@ -25,6 +27,10 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     return std::make_unique<SaiBcmWedge100Platform>(std::move(productInfo));
   } else if (productInfo->getMode() == PlatformMode::WEDGE) {
     return std::make_unique<SaiBcmWedge40Platform>(std::move(productInfo));
+  } else if (productInfo->getMode() == PlatformMode::GALAXY_FC) {
+    return std::make_unique<SaiBcmGalaxyFCPlatform>(std::move(productInfo));
+  } else if (productInfo->getMode() == PlatformMode::GALAXY_LC) {
+    return std::make_unique<SaiBcmGalaxyLCPlatform>(std::move(productInfo));
   }
   return chooseFBSaiPlatform(std::move(productInfo));
 }

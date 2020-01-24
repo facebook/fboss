@@ -9,16 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatform.h"
 namespace facebook::fboss {
 
 class TomahawkAsic;
 
-class SaiBcmWedge100Platform : public SaiBcmPlatform {
+class SaiBcmGalaxyLCPlatform : public SaiBcmGalaxyPlatform {
  public:
-  explicit SaiBcmWedge100Platform(
+  explicit SaiBcmGalaxyLCPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo);
-  ~SaiBcmWedge100Platform() override;
+  ~SaiBcmGalaxyLCPlatform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
 
