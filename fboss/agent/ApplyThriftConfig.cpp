@@ -908,6 +908,22 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
+  /*
+   * The list of lookup classes would be different when first enabling the
+   * feature and if we had to change the number of lookup classes (unlikely) or
+   * disable the queue-per-host feature (for emergency).
+   *
+   * To avoid unncessary shuffling when only the order of lookup classes
+   * changes, (e.g. due to config change), sort and compare. This requires a
+   * deep copy and sorting, but in practice, the list of lookup classes would
+   * be small (< 10).
+   */
+  auto origLookupClasses{orig->getLookupClassesToDistributeTrafficOn()};
+  auto newLookupClasses{portConf->lookupClasses};
+  sort(origLookupClasses.begin(), origLookupClasses.end());
+  sort(newLookupClasses.begin(), newLookupClasses.end());
+  auto lookupClassesUnchanged = (origLookupClasses == newLookupClasses);
+
   // Ensure portConf has actually changed, before applying
   if (portConf->state == orig->getAdminState() &&
       VlanID(portConf->ingressVlan) == orig->getIngressVlan() &&
@@ -922,7 +938,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       vlans == orig->getVlans() && portConf->fec == orig->getFEC() &&
       queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
-      portConf->expectedLLDPValues == orig->getLLDPValidations()) {
+      portConf->expectedLLDPValues == orig->getLLDPValidations() &&
+      lookupClassesUnchanged) {
     return nullptr;
   }
 
