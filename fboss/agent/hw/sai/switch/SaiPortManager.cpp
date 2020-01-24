@@ -25,7 +25,7 @@
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
-
+namespace {
 sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
   if (pause.tx && pause.rx) {
     return SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
@@ -131,6 +131,7 @@ void fillHwPortStats(
     index++;
   }
 }
+} // namespace
 
 SaiPortManager::SaiPortManager(
     SaiManagerTable* managerTable,
