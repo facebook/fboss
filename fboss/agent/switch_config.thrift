@@ -621,7 +621,7 @@ struct Port {
    * maxFrameSize.  This should generally match the MTUs for the VLANs that
    * this port belongs to.
    */
-  4: i32 maxFrameSize
+  4: i32 maxFrameSize = 9412
   /*
    * This parameter controls how packets ingressing on this port will be
    * parsed.  If set to L2, only the L2 headers will be parsed.  You need to
