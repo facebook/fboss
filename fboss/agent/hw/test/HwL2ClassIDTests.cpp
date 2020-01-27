@@ -60,14 +60,13 @@ class HwL2ClassIDTest : public HwTest {
     getHwSwitch()->fetchL2Table(&l2Entries);
 
     for (auto& l2Entry : l2Entries) {
-      if (l2Entry.mac == kSourceMac().toString()) {
-        if (classID.has_value() && l2Entry.get_classID() &&
-            (static_cast<int>(classID.value()) == (*l2Entry.get_classID()))) {
-          return true;
-        }
-
-        if (!classID.has_value() && !l2Entry.get_classID()) {
-          return true;
+      if (l2Entry.mac == kSourceMac().toString() &&
+          VlanID(l2Entry.vlanID) == kVlanID()) {
+        if (classID.has_value()) {
+          return l2Entry.get_classID() &&
+              (static_cast<int>(classID.value()) == (*l2Entry.get_classID()));
+        } else {
+          return !l2Entry.get_classID();
         }
       }
     }
