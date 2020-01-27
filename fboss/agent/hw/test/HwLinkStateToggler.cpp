@@ -13,6 +13,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 
 #include <boost/container/flat_map.hpp>
@@ -105,11 +106,15 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
   stateUpdateFn_(newState);
+  auto preemhasisSettingSupported =
+      platform->getAsic()->isSupported(HwAsic::Feature::PORT_PREEMPHASIS);
   for (auto& port : cfg.ports) {
-    // Set all port preemphasis values to 0 so that we can bring ports up and
-    // down by setting their loopback mode to PHY and NONE respectively.
-    setPortPreemphasis(
-        newState->getPorts()->getPort(PortID(port.logicalID)), 0);
+    if (preemhasisSettingSupported) {
+      // Set all port preemphasis values to 0 so that we can bring ports up and
+      // down by setting their loopback mode to PHY and NONE respectively.
+      setPortPreemphasis(
+          newState->getPorts()->getPort(PortID(port.logicalID)), 0);
+    }
     port.state = portId2DesiredState[port.logicalID];
   }
   newState = applyThriftConfig(newState, &cfg, platform);

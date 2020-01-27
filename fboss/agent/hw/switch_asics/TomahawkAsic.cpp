@@ -12,6 +12,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::HOT_SWAP:
+    case HwAsic::Feature::PORT_PREEMPHASIS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

@@ -19,6 +19,7 @@ class HwAsic {
     TRUNCATE_MIRROR_PACKET,
     TX_VLAN_STRIPPING_ON_PORT,
     HOT_SWAP,
+    PORT_PREEMPHASIS,
   };
 
   enum class AsicType {
