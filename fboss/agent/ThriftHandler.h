@@ -304,6 +304,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   SSLType getSSLPolicy() override;
 
  protected:
+  void getPortStatusImpl(
+      std::map<int32_t, PortStatus>& statusMap,
+      const std::unique_ptr<std::vector<int32_t>>& ports) const;
+
   void ensureConfigured(folly::StringPiece function) const;
   void ensureConfigured() const {
     // This version of ensureConfigured() won't log

@@ -966,10 +966,9 @@ void ThriftHandler::patchCurrentStateJSON(
   sw_->updateStateBlocking("JSON patch", std::move(updateFn));
 }
 
-void ThriftHandler::getPortStatus(
-    map<int32_t, PortStatus>& statusMap,
-    unique_ptr<vector<int32_t>> ports) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+void ThriftHandler::getPortStatusImpl(
+    std::map<int32_t, PortStatus>& statusMap,
+    const std::unique_ptr<std::vector<int32_t>>& ports) const {
   ensureConfigured();
   if (ports->empty()) {
     statusMap = sw_->getPortStatus();
@@ -978,6 +977,13 @@ void ThriftHandler::getPortStatus(
       statusMap[port] = sw_->getPortStatus(PortID(port));
     }
   }
+}
+
+void ThriftHandler::getPortStatus(
+    map<int32_t, PortStatus>& statusMap,
+    unique_ptr<vector<int32_t>> ports) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  getPortStatusImpl(statusMap, ports);
 }
 
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
