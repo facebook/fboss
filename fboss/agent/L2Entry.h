@@ -46,7 +46,8 @@ class L2Entry {
       folly::MacAddress mac,
       VlanID vlan,
       PortDescriptor portDescr,
-      L2EntryType type);
+      L2EntryType type,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
 
   const folly::MacAddress& getMac() const {
     return mac_;

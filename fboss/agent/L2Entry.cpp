@@ -17,8 +17,13 @@ L2Entry::L2Entry(
     folly::MacAddress mac,
     VlanID vlan,
     PortDescriptor portDescr,
-    L2EntryType type)
-    : mac_(mac), vlanID_(vlan), portDescr_(portDescr), type_(type) {}
+    L2EntryType type,
+    std::optional<cfg::AclLookupClass> classID)
+    : mac_(mac),
+      vlanID_(vlan),
+      portDescr_(portDescr),
+      type_(type),
+      classID_(classID) {}
 
 std::string L2Entry::str() const {
   std::ostringstream os;

@@ -259,13 +259,15 @@ L2Entry createL2Entry(const bcm_l2_addr_t* l2Addr, bool isPending) {
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
         PortDescriptor(PortID(l2Addr->port)),
-        l2EntryType);
+        l2EntryType,
+        facebook::fboss::cfg::AclLookupClass(l2Addr->group));
   } else {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
         PortDescriptor(AggregatePortID(l2Addr->tgid)),
-        l2EntryType);
+        l2EntryType,
+        facebook::fboss::cfg::AclLookupClass(l2Addr->group));
   }
 }
 
