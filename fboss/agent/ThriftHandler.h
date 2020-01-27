@@ -101,10 +101,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addMplsRoutes(
       int16_t clientId,
       std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) override;
-  void addMplsRoutesImpl(
-      std::shared_ptr<SwitchState>* state,
-      ClientID clientId,
-      const std::vector<MplsRoute>& mplsRoutes) const;
 
   void deleteMplsRoutes(
       int16_t client,
@@ -304,6 +300,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   SSLType getSSLPolicy() override;
 
  protected:
+  void addMplsRoutesImpl(
+      std::shared_ptr<SwitchState>* state,
+      ClientID clientId,
+      const std::vector<MplsRoute>& mplsRoutes) const;
   void getPortStatusImpl(
       std::map<int32_t, PortStatus>& statusMap,
       const std::unique_ptr<std::vector<int32_t>>& ports) const;
