@@ -30,12 +30,19 @@ void WedgeManager::initTransceiverMap() {
     return;
   }
 
+  // Also try to load the config file here so that we have transceiver to port
+  // mapping and port name recognization.
+  loadConfig();
+
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     auto qsfp = std::make_unique<SffModule>(
-        std::move(qsfpImpl), numPortsPerTransceiver());
+        std::move(qsfpImpl),
+        (portGroupMap_.size() == 0 ?
+          numPortsPerTransceiver() :
+          portGroupMap_[idx].size()));
     transceivers_.push_back(move(qsfp));
     XLOG(INFO) << "making QSFP for " << idx;
   }
