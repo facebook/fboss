@@ -23,7 +23,7 @@
 #include <folly/gen/Base.h>
 
 namespace facebook::fboss::utility {
-
+namespace {
 cfg::Fields getHalfHashFields() {
   cfg::Fields hashFields;
   hashFields.set_ipv4Fields(std::set<cfg::IPv4Field>(
@@ -56,7 +56,7 @@ cfg::LoadBalancer getFullHashConfig(cfg::LoadBalancerID id) {
   loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
-
+} // namespace
 cfg::LoadBalancer getEcmpHalfHashConfig() {
   return getHalfHashConfig(cfg::LoadBalancerID::ECMP);
 }

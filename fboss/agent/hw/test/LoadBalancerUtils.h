@@ -29,10 +29,6 @@ class HwSwitchEnsemble;
 
 namespace facebook::fboss::utility {
 
-cfg::Fields getHalfHashFields();
-cfg::Fields getFullHashFields();
-cfg::LoadBalancer getHalfHashConfig(cfg::LoadBalancerID id);
-cfg::LoadBalancer getFullHashConfig(cfg::LoadBalancerID id);
 cfg::LoadBalancer getEcmpHalfHashConfig();
 cfg::LoadBalancer getEcmpFullHashConfig();
 cfg::LoadBalancer getTrunkHalfHashConfig();
