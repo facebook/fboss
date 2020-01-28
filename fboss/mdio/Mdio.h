@@ -9,12 +9,18 @@
  */
 #pragma once
 
+#include <folly/Conv.h>
 #include "fboss/mdio/Phy.h"
+#include "folly/File.h"
 
 #include <cstdint>
 #include <mutex>
 
 #include <folly/Synchronized.h>
+
+namespace {
+constexpr auto kMdioLockFilePath = "/var/lock/mdio";
+}
 
 namespace facebook {
 namespace fboss {
@@ -66,8 +72,12 @@ class MdioController {
   using LockedPtr = typename folly::Synchronized<IO, std::mutex>::LockedPtr;
 
   template <typename... Args>
-  explicit MdioController(Args&&... args)
-      : io_(IO(std::forward<Args>(args)...)) {}
+  explicit MdioController(int id, Args&&... args)
+      : io_(IO(id, std::forward<Args>(args)...)),
+        lockFile_(std::make_shared<folly::File>(
+            folly::to<std::string>(kMdioLockFilePath, id),
+            O_RDWR | O_CREAT,
+            0666)) {}
 
   phy::Cl45Data readCl45(
       phy::PhyAddress physAddr,
@@ -95,8 +105,52 @@ class MdioController {
     return io_.lock();
   }
 
+  // Functions for synchronizing multiple processes' access to
+  // MDIO. The calling thread must hold a LockedPtr lock for
+  // inter-thread exclusion before attempting to acquire or release
+  // an inter-process lock.
+
+  struct ProcLock {
+    ProcLock(std::shared_ptr<folly::File> lockFile) : lockFile_(lockFile) {
+      lockFile_->lock();
+    };
+
+    // Delete move and copy constructors.
+    // Copying or moving the object will usually result in the destructor being
+    // called multiple times
+    explicit ProcLock(ProcLock&&) = delete;
+    explicit ProcLock(ProcLock&) = delete;
+
+    ~ProcLock() {
+      lockFile_->unlock();
+    }
+
+   private:
+    std::shared_ptr<folly::File> lockFile_;
+  };
+
+  class FullyLockedMdio {
+   public:
+    FullyLockedMdio(LockedPtr&& threadLock, std::shared_ptr<folly::File> lockFile_)
+        : locked_(std::move(threadLock)), procLock_(lockFile_) {}
+
+    LockedPtr& operator->() {
+      return locked_;
+    }
+
+   private:
+    LockedPtr locked_;
+    ProcLock procLock_;
+  };
+
+  FullyLockedMdio fully_lock() {
+    auto threadLock = lock();
+    return FullyLockedMdio(std::move(threadLock), lockFile_);
+  }
+
  private:
   folly::Synchronized<IO, std::mutex> io_;
+  std::shared_ptr<folly::File> lockFile_;
 };
 
 template <typename IO>
