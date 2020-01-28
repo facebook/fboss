@@ -309,7 +309,9 @@ class SaiObject {
   void setNewAttributeHelper(const AttrT& newAttr) {
     auto& api =
         SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
-    api.setAttribute(adapterKey(), newAttr);
+    auto rv = api.setAttribute(adapterKey(), newAttr);
+    saiCheckError(
+        rv, SaiObjectTraits::SaiApiT::ApiType, "Attribute set failed");
   }
   template <typename AttrT>
   void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
