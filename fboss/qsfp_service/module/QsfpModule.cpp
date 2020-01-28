@@ -166,7 +166,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
 bool QsfpModule::safeToCustomize() const {
   if (ports_.size() < portsPerTransceiver_) {
-    XLOG(DBG2) << "Not all ports present in transceiver " << getID()
+    XLOG(INFO) << "Not all ports present in transceiver " << getID()
                << " (expected=" << portsPerTransceiver_
                << "). Skip customization";
 

@@ -13,11 +13,13 @@ class WedgeManager : public TransceiverManager {
  public:
   using TransceiverMap = std::map<int32_t, TransceiverInfo>;
   using PortMap = std::map<int32_t, PortStatus>;
+  using PortNameMap = std::map<std::string, int32_t>;
+  using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
 
   WedgeManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr);
   ~WedgeManager() override {}
 
-  void loadConfig() override;
+  void loadConfig() override {}
   void initTransceiverMap() override;
   void getTransceiversInfo(TransceiverMap& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -50,6 +52,8 @@ class WedgeManager : public TransceiverManager {
    */
   std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
   std::unique_ptr<AgentConfig> config_;
+  PortNameMap portName2Module_;
+  PortGroups portGroupMap_;
 
  private:
   // Forbidden copy constructor and assignment operator
