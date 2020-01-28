@@ -2,6 +2,7 @@
 
 #include <boost/container/flat_map.hpp>
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
@@ -16,6 +17,7 @@ class WedgeManager : public TransceiverManager {
   WedgeManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr);
   ~WedgeManager() override {}
 
+  void loadConfig() override;
   void initTransceiverMap() override;
   void getTransceiversInfo(TransceiverMap& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -47,6 +49,7 @@ class WedgeManager : public TransceiverManager {
    * constructor
    */
   std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
+  std::unique_ptr<AgentConfig> config_;
 
  private:
   // Forbidden copy constructor and assignment operator

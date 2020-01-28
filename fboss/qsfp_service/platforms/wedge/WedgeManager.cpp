@@ -19,6 +19,17 @@ WedgeManager::WedgeManager(std::unique_ptr<TransceiverPlatformApi> api) :
    */
 }
 
+void WedgeManager::loadConfig() {
+  try {
+    config_ = AgentConfig::fromDefaultFile();
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Fail to load config file from default path:" << e.what();
+    return;
+  }
+
+  //TODO: We can fill in the port related maps here
+}
+
 void WedgeManager::initTransceiverMap() {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
