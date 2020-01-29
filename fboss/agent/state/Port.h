@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/Mirror.h"
@@ -81,6 +82,8 @@ struct PortFields {
   LLDPValidations expectedLLDPValues;
   std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
   cfg::PortProfileID profileID{cfg::PortProfileID::PROFILE_DEFAULT};
+  // Default value from switch_config.thrift
+  int32_t maxFrameSize{cfg::switch_config_constants::DEFAULT_PORT_MTU()};
 };
 
 /*
@@ -202,6 +205,12 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
   }
   void setPause(cfg::PortPause pause) {
     writableFields()->pause = pause;
+  }
+  int32_t getMaxFrameSize() const {
+    return getFields()->maxFrameSize;
+  }
+  void setMaxFrameSize(int32_t maxFrameSize) {
+    writableFields()->maxFrameSize = maxFrameSize;
   }
 
   cfg::PortFEC getFEC() const {

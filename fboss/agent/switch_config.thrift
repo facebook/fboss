@@ -602,6 +602,7 @@ enum SampleDestination {
 
 typedef string PortQueueConfigName
 
+const i32 DEFAULT_PORT_MTU = 9412
 /**
  * Configuration for a single logical port
  */
@@ -621,7 +622,7 @@ struct Port {
    * maxFrameSize.  This should generally match the MTUs for the VLANs that
    * this port belongs to.
    */
-  4: i32 maxFrameSize = 9412
+  4: i32 maxFrameSize = DEFAULT_PORT_MTU
   /*
    * This parameter controls how packets ingressing on this port will be
    * parsed.  If set to L2, only the L2 headers will be parsed.  You need to

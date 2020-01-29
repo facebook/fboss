@@ -131,6 +131,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   if (portThrift.qosPolicy) {
     port.qosPolicy = portThrift.qosPolicy.value();
   }
+  port.maxFrameSize = portThrift.maxFrameSize;
 
   port.lookupClassesToDistrubuteTrafficOn =
       portThrift.lookupClassesToDistrubuteTrafficOn;
@@ -206,7 +207,7 @@ state::PortFields PortFields::toThrift() const {
   }
 
   port.lookupClassesToDistrubuteTrafficOn = lookupClassesToDistrubuteTrafficOn;
-
+  port.maxFrameSize = maxFrameSize;
   return port;
 }
 

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -185,13 +186,15 @@ TEST(Port, ToFromJSON) {
             12,
             13,
             14
-          ]
+          ],
+          "maxFrameSize" : 9000
         }
   )";
   auto port = Port::fromJson(jsonStr);
 
   EXPECT_EQ(100, port->getSflowIngressRate());
   EXPECT_EQ(200, port->getSflowEgressRate());
+  EXPECT_EQ(9000, port->getMaxFrameSize());
   auto vlans = port->getVlans();
   EXPECT_EQ(1, vlans.size());
   EXPECT_TRUE(vlans.at(VlanID(2000)).tagged);
@@ -260,6 +263,69 @@ TEST(Port, ToFromJSON) {
   auto dyn2 = folly::parseJson(jsonStr);
 
   EXPECT_EQ(dyn1, dyn2);
+}
+
+TEST(Port, ToFromJSONMissingMaxFrameSize) {
+  std::string jsonStr = R"(
+        {
+          "queues" : [
+            {
+                "streamType": "UNICAST",
+                "weight": 1,
+                "reserved": 3328,
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 0,
+                "scalingFactor": "ONE"
+            },
+            {
+                "streamType": "UNICAST",
+                "weight": 9,
+                "reserved": 19968,
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 1,
+                "scalingFactor": "EIGHT"
+            },
+            {
+                "streamType": "UNICAST",
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 2,
+                "weight": 1
+            },
+            {
+                "streamType": "UNICAST",
+                "scheduling": "WEIGHTED_ROUND_ROBIN",
+                "id": 3,
+                "weight": 1
+            }
+          ],
+          "sFlowIngressRate" : 100,
+          "vlanMemberShips" : {
+            "2000" : {
+              "tagged" : true
+            }
+          },
+          "rxPause" : true,
+          "portState" : "ENABLED",
+          "sFlowEgressRate" : 200,
+          "portDescription" : "TEST",
+          "portName" : "eth1/1/1",
+          "portId" : 100,
+          "portOperState" : true,
+          "portProfileID": "PROFILE_10G_1_NRZ_NOFEC",
+          "portMaxSpeed" : "XG",
+          "ingressVlan" : 2000,
+          "portSpeed" : "XG",
+          "portFEC" : "OFF",
+          "txPause" : true,
+          "sampleDest" : "MIRROR",
+          "portLoopbackMode" : "PHY"
+        }
+  )";
+  auto port = Port::fromJson(jsonStr);
+
+  EXPECT_EQ(
+      cfg::switch_config_constants::DEFAULT_PORT_MTU(),
+      port->getMaxFrameSize());
 }
 
 TEST(AggregatePort, ToFromJSON) {
