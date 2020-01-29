@@ -69,19 +69,8 @@ FbBcmRxPacket::FbBcmRxPacket(const bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch)
         bcmSwitch->getTrunkTable()->getAggregatePortId(bcm_pkt->src_trunk);
   }
 
-#ifdef BCM_VERSION_3_5_0_1_ODP
-  _priority = 0;
-//  _reasons = pkt->rx_reason;
-#else
-  // Hacky solution for now, but prio_int and rx_reasons
-  // are not open sourced yet and this seemed better than
-  // changing all the apis to get a bcm_pkt_t (since this is
-  // called from open-sourced code).
-  // TODO(aeckert): remove this cast once these fields are
-  // open sourced.
   _priority = bcm_pkt->prio_int;
   _reasons = bcm_pkt->rx_reasons;
-#endif
 }
 
 std::string FbBcmRxPacket::describeDetails() const {
