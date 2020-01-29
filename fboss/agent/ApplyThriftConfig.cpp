@@ -939,6 +939,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       queuesUnchanged && portConf->loopbackMode == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       portConf->expectedLLDPValues == orig->getLLDPValidations() &&
+      portConf->maxFrameSize == orig->getMaxFrameSize() &&
       lookupClassesUnchanged) {
     return nullptr;
   }
@@ -969,6 +970,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setQosPolicy(newQosPolicy);
   newPort->setExpectedLLDPValues(lldpmap);
   newPort->setLookupClassesToDistributeTrafficOn(portConf->lookupClasses);
+  newPort->setMaxFrameSize(portConf->maxFrameSize);
   return newPort;
 }
 
