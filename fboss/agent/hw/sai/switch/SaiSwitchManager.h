@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
+#include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/types.h"
 
 #include "folly/MacAddress.h"
@@ -21,8 +22,10 @@
 
 namespace facebook::fboss {
 
+class LoadBalancer;
 class SaiManagerTable;
 class SaiPlatform;
+class StateDelta;
 
 class SaiSwitchInstance {
  public:
@@ -55,11 +58,22 @@ class SaiSwitchManager {
   SaiSwitchInstance* getSwitch();
   SwitchSaiId getSwitchSaiId() const;
 
+  void processLoadBalancerDelta(const StateDelta& delta);
+
  private:
+  void programLoadBalancerParams(
+      cfg::LoadBalancerID id,
+      std::optional<sai_uint32_t> seed,
+      std::optional<cfg::HashingAlgorithm> algo);
+  void addOrUpdateLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
+  void removeLoadBalancer(const std::shared_ptr<LoadBalancer>& oldLb);
+
   SaiSwitchInstance* getSwitchImpl() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchInstance> switch_;
+  std::shared_ptr<SaiHash> ecmpV4Hash_;
+  std::shared_ptr<SaiHash> ecmpV6Hash_;
 };
 
 } // namespace facebook::fboss

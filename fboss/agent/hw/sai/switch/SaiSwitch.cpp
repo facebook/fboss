@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
@@ -30,7 +31,6 @@
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -45,8 +45,6 @@ extern "C" {
 namespace facebook::fboss {
 
 static SaiSwitch* hwSwitch;
-
-using facebook::fboss::DeltaFunctions::forEachAdded;
 
 // We need this global SaiSwitch* to support registering SAI callbacks
 // which can then use SaiSwitch to do their work. The current callback
@@ -375,6 +373,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
   managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
+  managerTableLocked(lock)->switchManager().processLoadBalancerDelta(delta);
   return delta.newState();
 }
 

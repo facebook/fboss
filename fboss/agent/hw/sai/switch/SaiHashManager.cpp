@@ -62,8 +62,8 @@ namespace facebook::fboss {
 std::shared_ptr<SaiHash> SaiHashManager::getOrCreate(
     const cfg::Fields& hashFields) {
   auto nativeHashFields = toNativeHashFieldList(hashFields);
-  SaiHashTraits::AdapterHostKey adapterHostKey{nativeHashFields, {}};
-  SaiHashTraits::CreateAttributes createAttrs{nativeHashFields, {}};
+  SaiHashTraits::AdapterHostKey adapterHostKey{nativeHashFields, std::nullopt};
+  SaiHashTraits::CreateAttributes createAttrs{nativeHashFields, std::nullopt};
 
   return handles_
       .refOrEmplace(
