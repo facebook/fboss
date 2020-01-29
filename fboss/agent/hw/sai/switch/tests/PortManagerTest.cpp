@@ -33,7 +33,11 @@ class PortManagerTest : public ManagerTestBase {
   }
   // TODO: make it properly handle different lanes/speeds for different
   // port ids...
-  void checkPort(const PortID& swId, PortSaiId saiId, bool enabled) {
+  void checkPort(
+      const PortID& swId,
+      PortSaiId saiId,
+      bool enabled,
+      sai_uint32_t mtu = 9412) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
     SaiPortTraits::Attributes::AdminState adminStateAttribute;
@@ -41,6 +45,7 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::Speed speedAttribute;
     SaiPortTraits::Attributes::FecMode fecMode;
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
+    SaiPortTraits::Attributes::Mtu mtuAttribute;
     auto gotAdminState = portApi.getAttribute(saiId, adminStateAttribute);
     EXPECT_EQ(enabled, gotAdminState);
     auto gotLanes = portApi.getAttribute(saiId, hwLaneListAttribute);
@@ -53,6 +58,8 @@ class PortManagerTest : public ManagerTestBase {
     auto gotIlbMode = portApi.getAttribute(saiId, ilbMode);
     EXPECT_EQ(
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
+    auto gotMtu = portApi.getAttribute(saiId, mtuAttribute);
+    EXPECT_EQ(mtu, gotMtu);
   }
 
   /**
@@ -78,6 +85,7 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::CreateAttributes a{lanes,
                                       speed,
                                       adminState,
+                                      std::nullopt,
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt,
@@ -157,6 +165,14 @@ TEST_F(PortManagerTest, changePortAdminState) {
   swPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(swPort, swPort);
   checkPort(swPort->getID(), saiId, false);
+}
+
+TEST_F(PortManagerTest, changePortMtu) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  swPort->setMaxFrameSize(9000);
+  saiManagerTable->portManager().changePort(swPort, swPort);
+  checkPort(swPort->getID(), saiId, true, 9000);
 }
 
 TEST_F(PortManagerTest, changePortNoChange) {

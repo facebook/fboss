@@ -274,7 +274,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          mediaType,
                                          globalFlowControlMode,
                                          vlanId,
-                                         std::nullopt};
+                                         std::nullopt,
+                                         swPort->getMaxFrameSize()};
 }
 
 // private const getter for use by const and non-const getters

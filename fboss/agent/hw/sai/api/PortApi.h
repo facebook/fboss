@@ -67,6 +67,7 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_SERDES_PREEMPHASIS,
         std::vector<uint32_t>>;
+    using Mtu = SaiAttribute<EnumType, SAI_PORT_ATTR_MTU, sai_uint32_t>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -80,7 +81,8 @@ struct SaiPortTraits {
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>,
-      std::optional<Attributes::Preemphasis>>;
+      std::optional<Attributes::Preemphasis>,
+      std::optional<Attributes::Mtu>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
   static constexpr std::array<sai_stat_id_t, 14> CounterIds = {

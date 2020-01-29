@@ -33,6 +33,7 @@ class PortStoreTest : public SaiStoreTest {
                                            std::nullopt,
                                            std::nullopt,
                                            std::nullopt,
+                                           std::nullopt,
                                            std::nullopt};
   }
 
@@ -129,6 +130,20 @@ TEST_F(PortStoreTest, portSetPreempasis) {
   auto apiPreemphasis = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::Preemphasis{});
   EXPECT_EQ(apiPreemphasis, kPreemphasis);
+}
+
+TEST_F(PortStoreTest, portSetMtu) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  EXPECT_EQ(GET_OPT_ATTR(Port, Mtu, portObj.attributes()), 1514);
+  auto newAttrs = makeAttrs(0, 25000);
+  constexpr sai_uint32_t kMtu{9000};
+  std::get<std::optional<SaiPortTraits::Attributes::Mtu>>(newAttrs) = kMtu;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(GET_OPT_ATTR(Port, Mtu, portObj.attributes()), kMtu);
+  auto apiMtu = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::Mtu{});
+  EXPECT_EQ(apiMtu, kMtu);
 }
 
 /*

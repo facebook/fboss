@@ -39,6 +39,7 @@ class PortApiTest : public ::testing::Test {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt,
+                                      std::nullopt,
                                       std::nullopt};
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -206,6 +207,13 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portPreemphasis);
   auto gotPortPreemphasis = portApi->getAttribute(portId, portPreemphasis);
   EXPECT_EQ(gotPortPreemphasis, preemphasis);
+
+  // Port MTU
+  sai_uint32_t mtu{9000};
+  SaiPortTraits::Attributes::Mtu portMtu{mtu};
+  portApi->setAttribute(portId, portMtu);
+  auto gotPortMtu = portApi->getAttribute(portId, portMtu);
+  EXPECT_EQ(gotPortMtu, mtu);
 }
 
 // ObjectApi tests

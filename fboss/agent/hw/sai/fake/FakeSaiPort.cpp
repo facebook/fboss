@@ -31,6 +31,7 @@ sai_status_t create_port_fn(
   std::optional<sai_port_media_type_t> mediaType;
   std::optional<sai_vlan_id_t> vlanId;
   std::vector<uint32_t> preemphasis;
+  sai_uint32_t mtu{1514};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -66,6 +67,9 @@ sai_status_t create_port_fn(
           preemphasis.push_back(attr_list[i].value.u32list.list[j]);
         }
       } break;
+      case SAI_PORT_ATTR_MTU:
+        mtu = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -96,7 +100,7 @@ sai_status_t create_port_fn(
   if (preemphasis.size()) {
     port.preemphasis = preemphasis;
   }
-
+  port.mtu = mtu;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 7; queueId++) {
     auto saiQueueId =
@@ -170,6 +174,9 @@ sai_status_t set_port_attribute_fn(
         preemphasis.push_back(attr->value.u32list.list[j]);
       }
     } break;
+    case SAI_PORT_ATTR_MTU:
+      port.mtu = attr->value.u32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -237,6 +244,9 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.u32list.list[j] = port.preemphasis[j];
         }
         attr[i].value.u32list.count = port.preemphasis.size();
+        break;
+      case SAI_PORT_ATTR_MTU:
+        attr->value.u32 = port.mtu;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

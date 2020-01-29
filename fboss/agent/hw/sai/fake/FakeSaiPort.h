@@ -37,6 +37,7 @@ class FakePort {
   sai_vlan_id_t vlanId{0};
   std::vector<sai_object_id_t> queueIdList;
   std::vector<uint32_t> preemphasis;
+  sai_uint32_t mtu{1514};
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
