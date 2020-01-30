@@ -58,6 +58,18 @@ DEFINE_int32(open_timeout, 30, "Number of seconds to wait to open bus");
 DEFINE_bool(direct_i2c, false,
     "Read Transceiver info from i2c bus instead of qsfp_service");
 DEFINE_bool(qsfp_hard_reset, false, "Issue a hard reset to port QSFP");
+DEFINE_bool(electrical_loopback, false,
+            "Set the module to be electrical loopback, only for Miniphoton");
+DEFINE_bool(optical_loopback, false,
+            "Set the module to be optical loopback, only for Miniphoton");
+DEFINE_bool(clear_loopback, false,
+            "Clear the module loopback bits, only for Miniphoton");
+
+enum LoopbackMode {
+  noLoopback,
+  electricalLoopback,
+  opticalLoopback
+};
 
 bool overrideLowPower(
     TransceiverI2CApi* bus,
@@ -523,6 +535,27 @@ bool doQsfpHardReset(
   return true;
 }
 
+bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode) {
+  try {
+    // Make sure we have page128 selected.
+    uint8_t page128 = 128;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page128);
+
+    uint8_t loopback = 0;
+    if (mode == electricalLoopback) {
+      loopback = 0b01010101;
+    } else if (mode == opticalLoopback) {
+      loopback = 0b10101010;
+    }
+    fprintf(stderr, "loopback value: %x\n", loopback);
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 245, 1, &loopback);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
+    return false;
+  }
+  return true;
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -570,7 +603,9 @@ int main(int argc, char* argv[]) {
   bool printInfo = !(FLAGS_clear_low_power || FLAGS_tx_disable ||
                      FLAGS_tx_enable || FLAGS_set_100g || FLAGS_set_40g ||
                      FLAGS_cdr_enable || FLAGS_cdr_disable ||
-                     FLAGS_set_low_power || FLAGS_qsfp_hard_reset);
+                     FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
+                     FLAGS_electrical_loopback || FLAGS_optical_loopback ||
+                     FLAGS_clear_loopback);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -646,6 +681,21 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_qsfp_hard_reset && doQsfpHardReset(bus.get(), portNum)) {
       printf("QSFP %d: Hard reset done\n", portNum);
+    }
+
+    if (FLAGS_electrical_loopback &&
+        doMiniphotonLoopback(bus.get(), portNum, electricalLoopback)) {
+      printf("QSFP %d: done setting module to electrical loopback.\n", portNum);
+    }
+
+    if (FLAGS_optical_loopback &&
+        doMiniphotonLoopback(bus.get(), portNum, opticalLoopback)) {
+      printf("QSFP %d: done setting module to optical loopback.\n", portNum);
+    }
+
+    if (FLAGS_clear_loopback &&
+        doMiniphotonLoopback(bus.get(), portNum, noLoopback)) {
+      printf("QSFP %d: done clear module to loopback.\n", portNum);
     }
 
     if (FLAGS_direct_i2c && printInfo) {
