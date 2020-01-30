@@ -274,157 +274,6 @@ add_executable(qsfp_service
     fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
 )
 
-add_library(bcm_switch_ensemble STATIC
-    fboss/agent/hw/test/HwSwitchEnsemble.cpp
-    fboss/agent/hw/test/HwLinkStateToggler.cpp
-    fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
-    fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
-)
-
-# TODO (skhare) Refactor and remove this
-add_executable(bcm_test_old
-    # TODO (skhare) Factor into packet library
-    fboss/agent/packet/PktFactory.cpp
-    fboss/agent/packet/ArpHdr.cpp
-    fboss/agent/packet/EthHdr.cpp
-    fboss/agent/packet/IPv6Hdr.cpp
-    fboss/agent/packet/NDP.cpp
-    fboss/agent/packet/PktUtil.cpp
-    fboss/agent/packet/UDPHeader.cpp
-    fboss/agent/packet/DHCPv4Packet.cpp
-    fboss/agent/packet/ICMPHdr.cpp
-    fboss/agent/packet/LlcHdr.cpp
-    fboss/agent/packet/NDPRouterAdvertisement.cpp
-    fboss/agent/packet/SflowStructs.cpp
-    fboss/agent/packet/DHCPv6Packet.cpp
-    fboss/agent/packet/IPv4Hdr.cpp
-    fboss/agent/packet/MPLSHdr.cpp
-    fboss/agent/packet/PktFactory.cpp
-    fboss/agent/packet/TCPHeader.cpp
-
-    fboss/agent/hw/test/HwTest.cpp
-    fboss/agent/hw/test/HwTestStatUtils.cpp
-    fboss/agent/hw/test/HwVlanTests.cpp
-    fboss/agent/hw/test/HwRouteScaleTest.cpp
-    fboss/agent/hw/test/HwRouteOverflowTest.cpp
-    fboss/agent/hw/test/ConfigFactory.cpp
-    fboss/agent/hw/test/HwLinkStateDependentTest.cpp
-    fboss/agent/hw/test/HwTestConstants.cpp
-    fboss/agent/hw/test/HwTestCoppUtils.cpp
-    fboss/agent/hw/test/HwTestPacketSnooper.cpp
-    fboss/agent/hw/test/HwTestPacketUtils.cpp
-    fboss/agent/hw/test/Main.cpp
-
-    fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
-    fboss/agent/hw/bcm/tests/BcmAclPriorityTests.cpp
-    fboss/agent/hw/bcm/tests/BcmAclQualifierTests.cpp
-    fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
-    fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp
-    fboss/agent/hw/bcm/tests/BcmAclUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTestPacketTrapAclEntry.cpp
-
-    fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
-    fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
-
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/Bcm2QueueToOlympicQoSTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmAclCounterTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmBstTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.h
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigVerifyQosTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmDscpQueueMappingTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmEcnTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMPLSTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMirroringTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmMultiAqmProfileTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmOlympicQoSTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmPortBandwidthTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmQueuePerHostTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmSendPacketToQueueTests.cpp
-    fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
-
-    fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.cpp
-
-    fboss/agent/hw/bcm/tests/BcmLabelEdgeRouteTests.cpp
-    fboss/agent/test/LabelForwardingUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmLabelForwardingTests.cpp
-    fboss/agent/hw/bcm/tests/BcmLabelSwitchRouteTests.cpp
-    fboss/agent/hw/bcm/tests/BcmLabeledEgressTest.cpp
-    fboss/agent/hw/bcm/tests/BcmLabelSwitchActionTests.cpp
-
-    fboss/agent/hw/bcm/tests/BcmHostTests.cpp
-    fboss/agent/hw/bcm/tests/BcmMatchActionsTests.cpp
-    fboss/agent/hw/bcm/tests/BcmRouteTests.cpp
-    fboss/agent/hw/bcm/tests/BcmSwitchStateReplayTest.cpp
-    fboss/agent/hw/bcm/tests/BcmAddDelEcmpTests.cpp
-    fboss/agent/hw/bcm/tests/BcmControlPlaneTests.cpp
-    fboss/agent/hw/bcm/tests/BcmCosQueueManagerCounterTests.cpp
-    fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.cpp
-    fboss/agent/hw/bcm/tests/BcmEcmpTests.cpp
-    fboss/agent/hw/bcm/tests/BcmEcmpTrunkTests.cpp
-    fboss/agent/hw/bcm/tests/BcmNeighborTests.cpp
-    fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
-    fboss/agent/hw/bcm/tests/BcmQosMapTests.cpp
-    fboss/agent/hw/bcm/tests/BcmQosPolicyTests.cpp
-    fboss/agent/hw/bcm/tests/BcmRtag7Test.cpp
-    fboss/agent/test/TrunkUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
-    fboss/agent/hw/bcm/tests/BcmBstStatsMgrTest.cpp
-    fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h
-    fboss/agent/hw/bcm/tests/BcmDeathTests.cpp
-    fboss/agent/hw/bcm/tests/BcmMirrorTests.cpp
-    fboss/agent/hw/bcm/tests/BcmPortTests.cpp
-    fboss/agent/hw/bcm/tests/BcmInterfaceTests.cpp
-    fboss/agent/hw/bcm/tests/BcmFieldProcessorTests.cpp
-    fboss/agent/hw/bcm/tests/BcmEmptyEcmpTests.cpp
-    fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
-    fboss/agent/hw/bcm/tests/FlexPortTests.cpp
-
-    fboss/agent/hw/bcm/tests/BcmTest.cpp
-    fboss/agent/hw/bcm/tests/BcmTestUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmPortUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
-    fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
-    fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
-    fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
-    fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
-    fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
-    fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
-    fboss/agent/platforms/test_platforms/BcmTestPort.cpp
-    fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge40Port.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge100Port.cpp
-    fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.cpp
-    fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestMinipackPort.cpp
-    fboss/agent/platforms/test_platforms/BcmTestYampPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestYampPort.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestWedge400Port.cpp
-    fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
-    fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
-    fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
-    fboss/agent/platforms/test_platforms/BcmTestPort.cpp
-    fboss/agent/platforms/test_platforms/CreateTestPlatform.cpp
-    fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawkPlatform.cpp
-    fboss/agent/platforms/test_platforms/oss/BcmTestWedgeTomahawk3Platform.cpp
-    fboss/agent/platforms/test_platforms/oss/BcmTestWedge40Platform.cpp
-    fboss/agent/platforms/test_platforms/oss/FakeBcmTestPlatform.cpp
-)
-
 # TODO (skhare) refactor fboss_agent and remove this library
 add_library(switch_asics_old STATIC
     fboss/agent/hw/switch_asics/FakeAsic.h
@@ -764,28 +613,9 @@ target_link_libraries(
 )
 
 target_link_libraries(switch_asics_old fboss_agent)
-target_link_libraries(bcm_switch_ensemble fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
-
-target_compile_definitions(bcm_test_old
-  PUBLIC
-    ${LIBGMOCK_DEFINES}
-)
-
-target_include_directories(bcm_test_old
-  PUBLIC
-    ${LIBGMOCK_INCLUDE_DIR}
-)
-
-target_link_libraries(bcm_test_old
-  PUBLIC
-    fboss_agent
-    bcm_switch_ensemble
-    ${GTEST}
-    ${LIBGMOCK_LIBRARIES}
-)
 
 add_executable(cp2112_util
     fboss/util/cp2112_util.cpp
@@ -865,7 +695,6 @@ add_test(test agent_test)
 
 #TODO: Add tests from other folders aside from agent/test
 
-install(TARGETS bcm_test_old)
 install(TARGETS wedge_agent)
 
 # Build and install SAI executables
