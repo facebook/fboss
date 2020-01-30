@@ -60,6 +60,8 @@ class SaiSwitchManager {
 
   void processLoadBalancerDelta(const StateDelta& delta);
 
+  void resetHashes();
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,

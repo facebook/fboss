@@ -81,6 +81,8 @@ SaiManagerTable::~SaiManagerTable() {
   bridgeManager_.reset();
   vlanManager_.reset();
   portManager_.reset();
+  // Hash manager is going away, reset hashes
+  switchManager_->resetHashes();
   hashManager_.reset();
   switchManager_.reset();
 }

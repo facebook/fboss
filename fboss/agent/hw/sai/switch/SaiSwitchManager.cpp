@@ -123,6 +123,11 @@ SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   return switchInstance->id();
 }
 
+void SaiSwitchManager::resetHashes() {
+  ecmpV4Hash_.reset();
+  ecmpV6Hash_.reset();
+}
+
 void SaiSwitchManager::programLoadBalancerParams(
     cfg::LoadBalancerID /*id*/,
     std::optional<sai_uint32_t> seed,
