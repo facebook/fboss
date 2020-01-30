@@ -424,7 +424,8 @@ add_executable(bcm_test
     fboss/agent/platforms/test_platforms/oss/FakeBcmTestPlatform.cpp
 )
 
-add_library(switch_asics STATIC
+# TODO (skhare) refactor fboss_agent and remove this library
+add_library(switch_asics_old STATIC
     fboss/agent/hw/switch_asics/FakeAsic.h
     fboss/agent/hw/switch_asics/HwAsic.h
     fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
@@ -734,7 +735,7 @@ add_library(fboss_agent STATIC
 target_link_libraries(
   fboss_agent PUBLIC
     agent_config_cpp2
-    switch_asics
+    switch_asics_old
     switch_config_cpp2
     switch_state_cpp2
     sflow_cpp2
@@ -761,7 +762,7 @@ target_link_libraries(
     ${OPENNSA}
 )
 
-target_link_libraries(switch_asics fboss_agent)
+target_link_libraries(switch_asics_old fboss_agent)
 target_link_libraries(bcm_switch_ensemble fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
@@ -869,5 +870,7 @@ install(TARGETS wedge_agent)
 # Build and install SAI executables
 include(SaiExecutables)
 
+include(Lib)
 include(Agent)
+include(AgentState)
 include(AgentHwTest)
