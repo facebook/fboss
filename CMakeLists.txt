@@ -281,7 +281,8 @@ add_library(bcm_switch_ensemble STATIC
     fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
 )
 
-add_executable(bcm_test
+# TODO (skhare) Refactor and remove this
+add_executable(bcm_test_old
     # TODO (skhare) Factor into packet library
     fboss/agent/packet/PktFactory.cpp
     fboss/agent/packet/ArpHdr.cpp
@@ -768,17 +769,17 @@ target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
 
-target_compile_definitions(bcm_test
+target_compile_definitions(bcm_test_old
   PUBLIC
     ${LIBGMOCK_DEFINES}
 )
 
-target_include_directories(bcm_test
+target_include_directories(bcm_test_old
   PUBLIC
     ${LIBGMOCK_INCLUDE_DIR}
 )
 
-target_link_libraries(bcm_test
+target_link_libraries(bcm_test_old
   PUBLIC
     fboss_agent
     bcm_switch_ensemble
@@ -864,13 +865,27 @@ add_test(test agent_test)
 
 #TODO: Add tests from other folders aside from agent/test
 
-install(TARGETS bcm_test)
+install(TARGETS bcm_test_old)
 install(TARGETS wedge_agent)
 
 # Build and install SAI executables
 include(SaiExecutables)
 
-include(Lib)
 include(Agent)
-include(AgentState)
+include(AgentCapture)
+include(AgentHwBcm)
+include(AgentHwBcmTests)
+include(AgentHwSwitchAsics)
 include(AgentHwTest)
+include(AgentLldp)
+include(AgentPacket)
+include(AgentPlatformsCommon)
+include(AgentPlatformsTestPlatforms)
+include(AgentRib)
+include(AgentState)
+include(AgentTest)
+include(Lib)
+include(LibConfig)
+include(LibPhy)
+
+install(TARGETS bcm_test)

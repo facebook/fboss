@@ -4,6 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(switch_asics
+  fboss/agent/hw/switch_asics/FakeAsic.h
+  fboss/agent/hw/switch_asics/HwAsic.h
   fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
   fboss/agent/hw/switch_asics/TomahawkAsic.cpp
   fboss/agent/hw/switch_asics/Trident2Asic.cpp

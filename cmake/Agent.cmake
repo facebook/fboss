@@ -3,6 +3,32 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(setup_thrift
+  fboss/agent/SetupThrift.cpp
+  fboss/agent/oss/SetupThrift.cpp
+)
+
+target_link_libraries(setup_thrift
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_library(fboss_init
+  fboss/agent/oss/FbossInit.cpp
+)
+
+target_link_libraries(fboss_init
+  Folly::folly
+)
+
+add_library(address_utils
+  fboss/agent/AddressUtil.h
+)
+
+target_link_libraries(address_utils
+  Folly::folly
+)
+
 add_library(utils
   fboss/agent/AlpmUtils.cpp
   fboss/agent/Utils.cpp
@@ -95,13 +121,16 @@ target_link_libraries(core
   network_to_route_map
   standalone_rib
   state
-  state_utuls
+  state_utils
   exponential_back_off
   fboss_config_utils
   phy_cpp2
   pcap_pubsub_cpp2
   transceiver_cpp2
   Folly::folly
+  ${IPROUTE2}
+  ${NETLINK3}
+  ${NETLINKROUTE3}
 )
 
 add_library(error
@@ -113,8 +142,30 @@ target_link_libraries(error
   Folly::folly
 )
 
+add_library(handler
+  fboss/agent/ThriftHandler.cpp
+)
+
+target_link_libraries(handler
+  core
+  fb303::fb303
+  ctrl_cpp2
+  log_thrift_call
+  Folly::folly
+)
+
 target_link_libraries(fboss_types
   switch_config_cpp2
+  Folly::folly
+)
+
+add_library(fboss_error
+  fboss/agent/FbossError.h
+  fboss/agent/SysError.h
+)
+
+target_link_libraries(fboss_error
+  fboss_cpp2
   Folly::folly
 )
 

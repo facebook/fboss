@@ -1,0 +1,124 @@
+# CMake to build libraries and binaries in fboss/agent/hw/bcm
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
+add_library(bcm
+  fboss/agent/hw/bcm/BcmAclEntry.cpp
+  fboss/agent/hw/bcm/BcmAclStat.cpp
+  fboss/agent/hw/bcm/BcmAclTable.cpp
+  fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
+  fboss/agent/hw/bcm/BcmAPI.cpp
+  fboss/agent/hw/bcm/BcmFacebookAPI.cpp
+  fboss/agent/hw/bcm/BcmControlPlane.cpp
+  fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
+  fboss/agent/hw/bcm/BcmCosQueueManager.cpp
+  fboss/agent/hw/bcm/BcmCosQueueFBConvertors.cpp
+  fboss/agent/hw/bcm/BcmCosQueueManagerUtils.cpp
+  fboss/agent/hw/bcm/BcmCosManager.cpp
+  fboss/agent/hw/bcm/BcmEcmpUtils.cpp
+  fboss/agent/hw/bcm/BcmEgress.cpp
+  fboss/agent/hw/bcm/BcmEgressManager.cpp
+  fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
+  fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
+  fboss/agent/hw/bcm/BcmHost.cpp
+  fboss/agent/hw/bcm/BcmHostKey.cpp
+  fboss/agent/hw/bcm/BcmIntf.cpp
+  fboss/agent/hw/bcm/BcmLabelMap.cpp
+  fboss/agent/hw/bcm/BcmLabelSwitchAction.cpp
+  fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
+  fboss/agent/hw/bcm/BcmLabeledEgress.cpp
+  fboss/agent/hw/bcm/BcmLabeledTunnel.cpp
+  fboss/agent/hw/bcm/BcmLabeledTunnelEgress.cpp
+  fboss/agent/hw/bcm/BcmLogBuffer.cpp
+  fboss/agent/hw/bcm/BcmMirror.cpp
+  fboss/agent/hw/bcm/BcmMirrorTable.cpp
+  fboss/agent/hw/bcm/BcmMirrorUtils.cpp
+  fboss/agent/hw/bcm/BcmMultiPathNextHop.cpp
+  fboss/agent/hw/bcm/BcmNextHop.cpp
+  fboss/agent/hw/bcm/BcmPort.cpp
+  fboss/agent/hw/bcm/BcmPortUtils.cpp
+  fboss/agent/hw/bcm/BcmPortDescriptor.cpp
+  fboss/agent/hw/bcm/BcmPortTable.cpp
+  fboss/agent/hw/bcm/BcmPortGroup.cpp
+  fboss/agent/hw/bcm/BcmPortQueueManager.cpp
+  fboss/agent/hw/bcm/BcmPortResourceBuilder.cpp
+  fboss/agent/hw/bcm/BcmPlatform.cpp
+  fboss/agent/hw/bcm/BcmPlatformPort.cpp
+  fboss/agent/hw/bcm/BcmQosPolicy.cpp
+  fboss/agent/hw/bcm/BcmQosMap.cpp
+  fboss/agent/hw/bcm/BcmQosMapEntry.cpp
+  fboss/agent/hw/bcm/BcmQosPolicyTable.cpp
+  fboss/agent/hw/bcm/BcmRoute.cpp
+  fboss/agent/hw/bcm/BcmRtag7LoadBalancer.cpp
+  fboss/agent/hw/bcm/BcmRtag7Module.cpp
+  fboss/agent/hw/bcm/BcmSflowExporter.cpp
+  fboss/agent/hw/bcm/BcmRxPacket.cpp
+  fboss/agent/hw/bcm/BcmStats.cpp
+  fboss/agent/hw/bcm/BcmStatUpdater.cpp
+  fboss/agent/hw/bcm/BcmSwitch.cpp
+  fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
+  fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
+  fboss/agent/hw/bcm/BcmTrunk.cpp
+  fboss/agent/hw/bcm/BcmTrunkStats.cpp
+  fboss/agent/hw/bcm/BcmTrunkTable.cpp
+  fboss/agent/hw/bcm/BcmTxPacket.cpp
+  fboss/agent/hw/bcm/BcmQosUtils.cpp
+  fboss/agent/hw/bcm/BcmUnit.cpp
+  fboss/agent/hw/bcm/BcmWarmBootCache.cpp
+  fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
+  fboss/agent/hw/bcm/BcmWarmBootState.cpp
+  fboss/agent/hw/bcm/CounterUtils.cpp
+  fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
+  fboss/agent/hw/bcm/BcmClassIDUtil.cpp
+  fboss/agent/hw/bcm/BcmSwitchSettings.cpp
+  fboss/agent/hw/bcm/BcmMacTable.cpp
+  fboss/agent/hw/bcm/PacketTraceUtils.cpp
+  fboss/agent/hw/bcm/RxUtils.cpp
+  fboss/agent/hw/bcm/SocUtils.cpp
+  fboss/agent/hw/bcm/oss/BcmSwitch.cpp
+  fboss/agent/hw/bcm/oss/BcmAPI.cpp
+  fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
+  fboss/agent/hw/bcm/oss/BcmPort.cpp
+  fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
+  fboss/agent/hw/bcm/oss/BcmTableStats.cpp
+  fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
+)
+
+target_link_libraries(bcm
+  bcm_types
+  handler
+  core
+  Folly::folly
+  ${OPENNSA}
+)
+
+add_library(config
+  fboss/agent/hw/bcm/BcmConfig.cpp
+)
+
+target_link_libraries(config
+  bcm_config_cpp2
+  error
+  switch_config_cpp2
+  Folly::folly
+)
+
+add_library(bcm_types
+  fboss/agent/hw/bcm/BcmTypesImpl.cpp
+)
+
+target_link_libraries(bcm_types
+  ${OPENNSA}
+)
+
+add_library(bcm_mpls_utils
+  fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
+)
+
+target_link_libraries(bcm_mpls_utils
+  error
+  mpls_cpp2
+  label_forwarding_utils
+  ${OPENNSA}
+)

@@ -11,3 +11,20 @@ add_library(radix_tree
 target_link_libraries(radix_tree
   Folly::folly
 )
+
+add_library(log_thrift_call
+  fboss/lib/LogThriftCall.cpp
+)
+
+target_link_libraries(log_thrift_call
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_library(exponential_back_off
+  fboss/lib/ExponentialBackoff.cpp
+)
+
+target_link_libraries(exponential_back_off
+  Folly::folly
+)

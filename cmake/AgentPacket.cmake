@@ -50,5 +50,7 @@ add_library(packet_factory
 
 target_link_libraries(packet_factory
   packet
+  ctrl_cpp2
+  switch_config_cpp2
   Folly::folly
 )
