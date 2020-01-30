@@ -75,3 +75,11 @@ struct PlatformPortConfig {
   1: optional list<i32> subsumedPorts
   2: phy.PortPinConfig pins
 }
+
+// TODO: Will deprecate the optional fields in PlatformConfig and start using
+// this new struct in agent code
+struct PlatformMapping {
+  1: map<i32, PlatformPortEntry> ports
+  2: map<switch_config.PortProfileID, phy.PortProfileConfig> supportedProfiles
+  3: list<phy.DataPlanePhyChip> chips
+}

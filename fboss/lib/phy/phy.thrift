@@ -27,6 +27,7 @@ enum InterfaceMode {
   KR = 1
   KR2 = 2
   KR4 = 3
+  KR8 = 4
   // Copper
   CR = 10
   CR2 = 11
