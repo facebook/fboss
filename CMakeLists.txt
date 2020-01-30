@@ -868,3 +868,6 @@ install(TARGETS wedge_agent)
 
 # Build and install SAI executables
 include(SaiExecutables)
+
+include(Agent)
+include(AgentHwTest)
