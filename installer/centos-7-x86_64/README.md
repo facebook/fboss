@@ -72,7 +72,7 @@ Install tools needed for bulding FBOSS software.
 ## 1.5 Build FBOSS binaries
 
 - export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
-- export PATH=/opt/rh/devtoolset-8/root/usr/bin/:$PATH
+- export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
 - cd fboss.git
 - ./build/fbcode_builder/getdeps.py build fboss
 
