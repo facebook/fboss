@@ -57,4 +57,5 @@ struct BcmHwTableStats {
   36: i32 mirrors_max = STAT_UNINITIALIZED
   37: i32 mirrors_span = STAT_UNINITIALIZED
   38: i32 mirrors_erspan = STAT_UNINITIALIZED
+  39: i32 mirrors_sflow = STAT_UNINITIALIZED
 }

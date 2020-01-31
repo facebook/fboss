@@ -991,9 +991,10 @@ TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors.resize(2);
+    cfg.mirrors.resize(3);
     cfg.mirrors[0] = this->getSpanMirror();
     cfg.mirrors[1] = this->getErspanMirror();
+    cfg.mirrors[2] = this->getSflowMirror();
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1001,14 +1002,28 @@ TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
     auto newMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
-    newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
     newMirror->setMirrorTunnel(MirrorTunnel(
-        params.ipAddrs[2],
-        params.ipAddrs[3],
-        params.macAddrs[2],
-        params.macAddrs[3]));
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1]));
     mirrors->updateNode(newMirror);
 
+    auto sflowMirror = mirrors->getMirrorIf(kSflow);
+    auto newSflowMirror = std::make_shared<Mirror>(
+        sflowMirror->getID(),
+        sflowMirror->getEgressPort(),
+        sflowMirror->getDestinationIp(),
+        sflowMirror->getSrcIp(),
+        sflowMirror->getTunnelUdpPorts());
+    newSflowMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
+    newSflowMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1],
+        sflowMirror->getTunnelUdpPorts().value()));
+    mirrors->updateNode(newSflowMirror);
     auto newState = this->getProgrammedState()->clone();
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
@@ -1018,11 +1033,17 @@ TYPED_TEST(BcmMirrorTest, BcmResolvedMirrorStat) {
     auto span = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+
+    auto sflowMirror =
+        this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
     EXPECT_TRUE(span->isResolved());
     EXPECT_TRUE(erspan->isResolved());
-    EXPECT_EQ(stats.mirrors_used, 2);
+    EXPECT_TRUE(sflowMirror->isResolved());
+
+    EXPECT_EQ(stats.mirrors_used, 3);
     EXPECT_EQ(stats.mirrors_span, 1);
     EXPECT_EQ(stats.mirrors_erspan, 1);
+    EXPECT_EQ(stats.mirrors_sflow, 1);
   };
   if (this->skipMirrorTest()) {
     return;
@@ -1034,9 +1055,10 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
   auto setup = [=]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
-    cfg.mirrors.resize(2);
+    cfg.mirrors.resize(3);
     cfg.mirrors[0] = this->getSpanMirror();
     cfg.mirrors[1] = this->getErspanMirror();
+    cfg.mirrors[2] = this->getSflowMirror();
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1044,13 +1066,28 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
     auto resolvedMirror = std::make_shared<Mirror>(
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     resolvedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
-    resolvedMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
     resolvedMirror->setMirrorTunnel(MirrorTunnel(
-        params.ipAddrs[2],
-        params.ipAddrs[3],
-        params.macAddrs[2],
-        params.macAddrs[3]));
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1]));
     mirrors->updateNode(resolvedMirror);
+
+    auto sflowMirror = mirrors->getMirrorIf(kSflow);
+    auto newSflowMirror = std::make_shared<Mirror>(
+        sflowMirror->getID(),
+        sflowMirror->getEgressPort(),
+        sflowMirror->getDestinationIp(),
+        sflowMirror->getSrcIp(),
+        sflowMirror->getTunnelUdpPorts());
+    newSflowMirror->setEgressPort(PortID(this->masterLogicalPortIds()[1]));
+    newSflowMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1],
+        newSflowMirror->getTunnelUdpPorts().value()));
+    mirrors->updateNode(sflowMirror);
 
     auto newState = this->getProgrammedState()->clone();
     newState->resetMirrors(mirrors);
@@ -1063,6 +1100,12 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
         resolvedMirror->getDestinationIp());
     EXPECT_TRUE(!unresolvedMirror->isResolved());
     mirrors->updateNode(unresolvedMirror);
+    auto unresolvedSflowMirror = std::make_shared<Mirror>(
+        newSflowMirror->getID(),
+        newSflowMirror->getEgressPort(),
+        newSflowMirror->getDestinationIp());
+    EXPECT_TRUE(!unresolvedSflowMirror->isResolved());
+    mirrors->updateNode(unresolvedSflowMirror);
     newState = this->getProgrammedState()->clone();
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
@@ -1072,11 +1115,14 @@ TYPED_TEST(BcmMirrorTest, BcmUnresolvedMirrorStat) {
     auto span = this->getProgrammedState()->getMirrors()->getMirrorIf(kSpan);
     auto erspan =
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
+    auto sflowMirror =
+        this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
     EXPECT_TRUE(span->isResolved());
     EXPECT_TRUE(!erspan->isResolved());
     EXPECT_EQ(stats.mirrors_used, 1);
     EXPECT_EQ(stats.mirrors_span, 1);
     EXPECT_EQ(stats.mirrors_erspan, 0);
+    EXPECT_EQ(stats.mirrors_sflow, 0);
   };
   if (this->skipMirrorTest()) {
     return;
