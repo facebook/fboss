@@ -155,13 +155,17 @@ TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPFullTrunkHalfHash4X3WideTrunksV6CpuTraffic) {
   runLoadBalanceTest(
-      true /* isV6 */, getEcmpFullTrunkHalfHashConfig(), k4X3WideAggs);
+      true /* isV6 */,
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
+      k4X3WideAggs);
 }
 TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPFullTrunkHalfHash4X3WideTrunksV4CpuTraffic) {
   runLoadBalanceTest(
-      false /* isV6 */, getEcmpFullTrunkHalfHashConfig(), k4X3WideAggs);
+      false /* isV6 */,
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
+      k4X3WideAggs);
 }
 
 TEST_F(
@@ -169,7 +173,7 @@ TEST_F(
     ECMPFullTrunkHalf4X3WideTrunksV6FrontPanelTraffic) {
   runLoadBalanceTest(
       true /* isV6 */,
-      getEcmpFullTrunkHalfHashConfig(),
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
 }
@@ -179,7 +183,7 @@ TEST_F(
     ECMPFullTrunkHalf4X3WideTrunksV4FrontPanelTraffic) {
   runLoadBalanceTest(
       false /* isV6 */,
-      getEcmpFullTrunkHalfHashConfig(),
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort*/);
 }
@@ -188,13 +192,17 @@ TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPFullTrunkHalfHash4X2WideTrunksV6CpuTraffic) {
   runLoadBalanceTest(
-      true /* isV6 */, getEcmpFullTrunkHalfHashConfig(), k4X2WideAggs);
+      true /* isV6 */,
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
+      k4X2WideAggs);
 }
 TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic) {
   runLoadBalanceTest(
-      false /* isV6 */, getEcmpFullTrunkHalfHashConfig(), k4X2WideAggs);
+      false /* isV6 */,
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
+      k4X2WideAggs);
 }
 
 TEST_F(
@@ -202,7 +210,7 @@ TEST_F(
     ECMPFullTrunkHalf4X2WideTrunksV6FrontPanelTraffic) {
   runLoadBalanceTest(
       true /* isV6 */,
-      getEcmpFullTrunkHalfHashConfig(),
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
 }
@@ -212,7 +220,7 @@ TEST_F(
     ECMPFullTrunkHalf4X2WideTrunksV4FrontPanelTraffic) {
   runLoadBalanceTest(
       false /* isV6 */,
-      getEcmpFullTrunkHalfHashConfig(),
+      getEcmpFullTrunkHalfHashConfig(getPlatform()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort*/);
 }
@@ -222,13 +230,17 @@ TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPHalfTrunkFullHash4X3WideTrunksV6CpuTraffic) {
   runLoadBalanceTest(
-      true /* isV6 */, getEcmpHalfTrunkFullHashConfig(), k4X3WideAggs);
+      true /* isV6 */,
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
+      k4X3WideAggs);
 }
 TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPHalfTrunkFullHash4X3WideTrunksV4CpuTraffic) {
   runLoadBalanceTest(
-      false /* isV6 */, getEcmpHalfTrunkFullHashConfig(), k4X3WideAggs);
+      false /* isV6 */,
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
+      k4X3WideAggs);
 }
 
 TEST_F(
@@ -236,7 +248,7 @@ TEST_F(
     ECMPHalfTrunkFull4X3WideTrunksV6FrontPanelTraffic) {
   runLoadBalanceTest(
       true /* isV6 */,
-      getEcmpHalfTrunkFullHashConfig(),
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort */);
 }
@@ -246,7 +258,7 @@ TEST_F(
     ECMPHalfTrunkFull4X3WideTrunksV4FrontPanelTraffic) {
   runLoadBalanceTest(
       false /* isV6 */,
-      getEcmpHalfTrunkFullHashConfig(),
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
       k4X3WideAggs,
       true /* loopThroughFrontPanelPort*/);
 }
@@ -255,13 +267,17 @@ TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPHalfTrunkFullHash4X2WideTrunksV6CpuTraffic) {
   runLoadBalanceTest(
-      true /* isV6 */, getEcmpHalfTrunkFullHashConfig(), k4X2WideAggs);
+      true /* isV6 */,
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
+      k4X2WideAggs);
 }
 TEST_F(
     HwTrunkLoadBalancerTest,
     ECMPHalfTrunkFullHash4X2WideTrunksV4CpuTraffic) {
   runLoadBalanceTest(
-      false /* isV6 */, getEcmpHalfTrunkFullHashConfig(), k4X2WideAggs);
+      false /* isV6 */,
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
+      k4X2WideAggs);
 }
 
 TEST_F(
@@ -269,7 +285,7 @@ TEST_F(
     ECMPHalfTrunkFull4X2WideTrunksV6FrontPanelTraffic) {
   runLoadBalanceTest(
       true /* isV6 */,
-      getEcmpHalfTrunkFullHashConfig(),
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort */);
 }
@@ -279,7 +295,7 @@ TEST_F(
     ECMPHalfTrunkFull4X2WideTrunksV4FrontPanelTraffic) {
   runLoadBalanceTest(
       false /* isV6 */,
-      getEcmpHalfTrunkFullHashConfig(),
+      getEcmpHalfTrunkFullHashConfig(getPlatform()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort*/);
 }

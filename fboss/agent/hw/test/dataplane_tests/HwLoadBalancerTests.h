@@ -32,7 +32,8 @@
         (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != "Cpu");                         \
     runLoadBalanceTest(                                                      \
         8,                                                                   \
-        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(),          \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
+            getPlatform()),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
         kLoopThroughFrontPanelPort);                                         \
   }
@@ -40,7 +41,9 @@
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
   TEST_F(TEST_FIXTURE, ECMP_SHRINK_EXPAND_TEST_NAME(HASH_TYPE)) {        \
     runEcmpShrinkExpandLoadBalanceTest(                                  \
-        8, facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig());  \
+        8,                                                               \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(        \
+            getPlatform()));                                             \
   }
 
 #define RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE) \

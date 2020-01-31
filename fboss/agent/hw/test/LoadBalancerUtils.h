@@ -29,12 +29,12 @@ class HwSwitchEnsemble;
 
 namespace facebook::fboss::utility {
 
-cfg::LoadBalancer getEcmpHalfHashConfig();
-cfg::LoadBalancer getEcmpFullHashConfig();
-cfg::LoadBalancer getTrunkHalfHashConfig();
-cfg::LoadBalancer getTrunkFullHashConfig();
-std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig();
-std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig();
+cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform);
+cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform);
+std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
+    const Platform* platform);
+std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
+    const Platform* platform);
 
 std::shared_ptr<SwitchState> addLoadBalancer(
     const Platform* platform,

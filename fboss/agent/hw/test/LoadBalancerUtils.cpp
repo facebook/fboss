@@ -42,39 +42,45 @@ cfg::Fields getFullHashFields() {
   return hashFields;
 }
 
-cfg::LoadBalancer getHalfHashConfig(cfg::LoadBalancerID id) {
+cfg::LoadBalancer getHalfHashConfig(
+    const Platform* /*platform*/,
+    cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   loadBalancer.id = id;
   loadBalancer.fieldSelection = getHalfHashFields();
   loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
-cfg::LoadBalancer getFullHashConfig(cfg::LoadBalancerID id) {
+cfg::LoadBalancer getFullHashConfig(
+    const Platform* /*platform*/,
+    cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   loadBalancer.id = id;
   loadBalancer.fieldSelection = getFullHashFields();
   loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
+cfg::LoadBalancer getTrunkHalfHashConfig(const Platform* platform) {
+  return getHalfHashConfig(platform, cfg::LoadBalancerID::AGGREGATE_PORT);
+}
+cfg::LoadBalancer getTrunkFullHashConfig(const Platform* platform) {
+  return getFullHashConfig(platform, cfg::LoadBalancerID::AGGREGATE_PORT);
+}
 } // namespace
-cfg::LoadBalancer getEcmpHalfHashConfig() {
-  return getHalfHashConfig(cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform) {
+  return getHalfHashConfig(platform, cfg::LoadBalancerID::ECMP);
 }
-cfg::LoadBalancer getEcmpFullHashConfig() {
-  return getFullHashConfig(cfg::LoadBalancerID::ECMP);
-}
-cfg::LoadBalancer getTrunkHalfHashConfig() {
-  return getHalfHashConfig(cfg::LoadBalancerID::AGGREGATE_PORT);
-}
-cfg::LoadBalancer getTrunkFullHashConfig() {
-  return getFullHashConfig(cfg::LoadBalancerID::AGGREGATE_PORT);
+cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform) {
+  return getFullHashConfig(platform, cfg::LoadBalancerID::ECMP);
 }
 
-std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig() {
-  return {getEcmpFullHashConfig(), getTrunkHalfHashConfig()};
+std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
+    const Platform* platform) {
+  return {getEcmpFullHashConfig(platform), getTrunkHalfHashConfig(platform)};
 }
-std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig() {
-  return {getEcmpHalfHashConfig(), getTrunkFullHashConfig()};
+std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
+    const Platform* platform) {
+  return {getEcmpHalfHashConfig(platform), getTrunkFullHashConfig(platform)};
 }
 
 std::shared_ptr<SwitchState> addLoadBalancer(
