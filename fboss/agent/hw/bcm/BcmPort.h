@@ -242,7 +242,11 @@ class BcmPort {
   void setInterfaceMode(const std::shared_ptr<Port>& swPort);
   void setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
+
   void setTxSetting(const std::shared_ptr<Port>& swPort);
+  void setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort);
+  void setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort);
+
   void setLoopbackMode(const std::shared_ptr<Port>& swPort);
 
   bool isMmuLossy() const;

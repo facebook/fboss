@@ -22,7 +22,6 @@ std::vector<phy::PinID> getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
 std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
-    const std::vector<phy::PinConnection>& pinConnections,
     const std::vector<phy::PinConfig>& iphyPinConfigs);
 
 std::vector<phy::PinID> getOrderedIphyLanes(

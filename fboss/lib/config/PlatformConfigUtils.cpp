@@ -125,20 +125,14 @@ std::map<int32_t, phy::PolaritySwap> getIphyPolaritySwapMap(
 }
 
 std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
-    const std::vector<phy::PinConnection>& pinConnections,
     const std::vector<phy::PinConfig>& iphyPinConfigs) {
   std::map<int32_t, phy::LaneConfig> laneConfigs;
-  auto iphyPolaritySwapMap = getIphyPolaritySwapMap(pinConnections);
-
   for (auto pinConfig : iphyPinConfigs) {
+    if (!pinConfig.tx_ref()) {
+      continue;
+    }
     phy::LaneConfig laneConfig;
-    if (pinConfig.tx_ref()) {
-      laneConfig.tx = *pinConfig.tx_ref();
-    }
-    auto polaritySwap = iphyPolaritySwapMap.find(pinConfig.id.lane);
-    if (polaritySwap != iphyPolaritySwapMap.end()) {
-      laneConfig.polaritySwap = polaritySwap->second;
-    }
+    laneConfig.tx = *pinConfig.tx_ref();
     laneConfigs.emplace(pinConfig.id.lane, laneConfig);
   }
 

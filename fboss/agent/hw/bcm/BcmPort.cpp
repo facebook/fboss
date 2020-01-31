@@ -43,6 +43,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 extern "C" {
 #include <bcm/cosq.h>
@@ -1203,9 +1204,17 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
+  if (platformPort_->shouldUsePortResourceAPIs()) {
+    setTxSettingViaPhyTx(swPort);
+  } else {
+    setTxSettingViaPhyControl(swPort);
+  }
+}
+
 // Set the preemphasis (pre-tap; main-tap; post-tap) setting for the transmitter
 // and the amplitude control (driver current) values
-void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
+void BcmPort::setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort) {
   // Changing the preemphasis/driver-current setting won't cause link flap,
   // so it's safe to not check for port status
   folly::EventBase evb;
@@ -1274,6 +1283,128 @@ void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
     XLOG(DBG1) << "Set post-tap on port " << swPort->getID() << " to be "
                << static_cast<uint32_t>(correctTx.postTap) << " from "
                << postTap;
+  }
+}
+
+void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
+  auto profileID = swPort->getProfileID();
+  if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+    throw FbossError("Found default profile for port ", swPort->getName());
+  }
+
+  auto platformPortEntry = getPlatformPort()->getPlatformPortEntry();
+  if (!platformPortEntry.has_value()) {
+    throw FbossError("No PlatformPortEntry found for ", swPort->getName());
+  }
+
+  auto platformPortConfig =
+      platformPortEntry.value().supportedProfiles.find(profileID);
+  if (platformPortConfig == platformPortEntry.value().supportedProfiles.end()) {
+    throw FbossError(
+        "No speed profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformPortEntry for ",
+        swPort->getName());
+  }
+
+  auto portProfileConfig = hw_->getPlatform()->getPortProfileConfig(profileID);
+  if (!portProfileConfig.has_value()) {
+    throw FbossError(
+        "No port profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformConfig for ",
+        swPort->getName());
+  }
+
+  const auto& iphyLaneConfigs =
+      utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy);
+  if (iphyLaneConfigs.empty()) {
+    XLOG(INFO) << "No iphy lane configs needed to program for "
+               << swPort->getName();
+    return;
+  }
+
+  auto modulation = portProfileConfig->iphy.modulation;
+  auto desiredSignalling = (modulation == phy::IpModulation::PAM4)
+      ? bcmPortPhySignallingModePAM4
+      : bcmPortPhySignallingModeNRZ;
+
+  // We currently pass the absolute lane index through the
+  // config. Based on experimentation there was a non-backwards
+  // compatible change between 6.5.14 and 6.5.16. In 6.5.16 the
+  // phy apis expect lanes starting at 0 up to number of lanes in
+  // a port. In 6.5.14, they expect the exact lane number
+  int minLane = -1;
+  for (const auto& it : iphyLaneConfigs) {
+    if (minLane < 0 || it.first < minLane) {
+      minLane = it.first;
+    }
+  }
+
+  bool needsReprogramming{false};
+  for (const auto& it : iphyLaneConfigs) {
+    auto lane = it.first - minLane;
+    auto txSettings = it.second.tx;
+
+    if (!txSettings.has_value()) {
+      throw FbossError(
+          "Missing tx for port ", swPort->getName(), " lane ", lane);
+    }
+
+    bcm_gport_t gport;
+    BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, port_);
+
+    bcm_port_phy_tx_t tx;
+    bcm_port_phy_tx_t_init(&tx);
+
+    auto rv = bcm_port_phy_tx_get(unit_, gport, &tx);
+    bcmCheckError(
+        rv,
+        "Unable to get tx settings on lane ",
+        lane,
+        " for ",
+        swPort->getName());
+
+    if (desiredSignalling != tx.signalling_mode ||
+        tx.pre2 != txSettings->pre2 || tx.pre != txSettings->pre ||
+        tx.main != txSettings->main || tx.post != txSettings->post ||
+        tx.post2 != txSettings->post2 || tx.post3 != txSettings->post3) {
+      // settings don't match, reprogram all lanes
+      needsReprogramming = true;
+      break;
+    }
+  }
+
+  if (!needsReprogramming) {
+    return;
+  }
+
+  for (const auto& it : iphyLaneConfigs) {
+    auto lane = it.first - minLane;
+    auto txSettings = it.second.tx;
+
+    bcm_gport_t gport;
+    BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, port_);
+
+    bcm_port_phy_tx_t tx;
+    bcm_port_phy_tx_t_init(&tx);
+
+    tx.pre2 = txSettings->pre2;
+    tx.pre = txSettings->pre;
+    tx.main = txSettings->main;
+    tx.post = txSettings->post;
+    tx.post2 = txSettings->post2;
+    tx.post3 = txSettings->post3;
+    tx.tx_tap_mode = bcmPortPhyTxTapMode6Tap;
+    tx.signalling_mode = desiredSignalling;
+
+    auto rv = bcm_port_phy_tx_set(unit_, gport, &tx);
+    bcmCheckError(
+        rv,
+        "Unable to set tx settings on lane ",
+        lane,
+        " for ",
+        swPort->getName());
   }
 }
 
