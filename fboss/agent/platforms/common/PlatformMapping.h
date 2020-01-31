@@ -32,6 +32,14 @@ class PlatformMapping {
     return chips_;
   }
 
+  void setPlatformPort(int32_t portID, cfg::PlatformPortEntry port) {
+    platformPorts_.emplace(portID, port);
+  }
+
+  void setChip(const std::string& chipName, phy::DataPlanePhyChip chip) {
+    chips_.emplace(chipName, chip);
+  }
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;

@@ -72,6 +72,38 @@ std::vector<Pin> getPinsByChipType(
   }
   return results;
 }
+
+void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
+  switch (expectedType) {
+    case DataPlanePhyChipType::IPHY:
+      if (pin.getType() != Pin::Type::end) {
+        throw facebook::fboss::FbossError("Unsupported pin type for iphy");
+      }
+      break;
+    case DataPlanePhyChipType::XPHY:
+      if (pin.getType() != Pin::Type::junction) {
+        throw facebook::fboss::FbossError("Unsupported pin type for xphy");
+      }
+      break;
+    case DataPlanePhyChipType::TRANSCEIVER:
+      if (pin.getType() != Pin::Type::end) {
+        throw facebook::fboss::FbossError(
+            "Unsupported pin type for transceiver");
+      }
+      break;
+    default:
+      throw facebook::fboss::FbossError(
+          "Unsupported pin type:",
+          apache::thrift::util::enumNameSafe(expectedType));
+  }
+}
+
+std::string getChipName(const Pin& pin) {
+  if (pin.getType() == Pin::Type::junction) {
+    return pin.get_junction().system.chip;
+  }
+  return pin.get_end().chip;
+}
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
@@ -102,9 +134,7 @@ std::vector<phy::PinID> getTransceiverLanes(
         chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::TRANSCEIVER);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      if (pin.getType() != phy::Pin::Type::end) {
-        throw FbossError("Unsupported pin type for transceiver");
-      }
+      checkPinType(pin, phy::DataPlanePhyChipType::TRANSCEIVER);
       lanes.push_back(pin.get_end());
     }
   }
@@ -147,9 +177,7 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
   const auto& xphyPinList = getPinsByChipType(
       chipsMap, pinConnections, phy::DataPlanePhyChipType::XPHY);
   for (const auto& pin : xphyPinList) {
-    if (pin.getType() != phy::Pin::Type::junction) {
-      throw FbossError("Unsupported pin type for xphy");
-    }
+    checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
     for (const auto& connection : pin.get_junction().line) {
       if (auto pn = connection.polaritySwap_ref()) {
         xphyPolaritySwapMap.emplace(connection.a.lane, *pn);
@@ -183,11 +211,7 @@ std::vector<phy::PinID> getOrderedIphyLanes(
         chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::IPHY);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
-      if (pin.getType() != phy::Pin::Type::end) {
-        if (pin.getType() != phy::Pin::Type::end) {
-          throw FbossError("Unsupported pin type for iphy");
-        }
-      }
+      checkPinType(pin, phy::DataPlanePhyChipType::IPHY);
       lanes.push_back(pin.get_end());
     }
   }
@@ -240,26 +264,35 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   return ports;
 }
 
-std::optional<phy::DataPlanePhyChip> getXphyChip(
+std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
-  auto pins = getPinsByChipType(
-      chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::XPHY);
-  if (pins.empty()) {
-    return std::nullopt;
-  }
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    std::optional<phy::DataPlanePhyChipType> chipType) {
+  std::map<std::string, phy::DataPlanePhyChip> chips;
 
-  auto pin = pins.front();
-  if (pin.getType() != phy::Pin::Type::junction) {
-    throw FbossError("Unsupported pin type for xphy");
-  }
-
-  auto chipName = pin.get_junction().system.chip;
-  if (auto chip = chipsMap.find(chipName); chip != chipsMap.end()) {
-    return chip->second;
+  // if not specifying chipType, we return all the chips for such port
+  std::vector<phy::DataPlanePhyChipType> types;
+  if (chipType) {
+    types.push_back(*chipType);
   } else {
-    throw FbossError("Unrecognized chip name: ", chipName);
+    types.push_back(phy::DataPlanePhyChipType::IPHY);
+    types.push_back(phy::DataPlanePhyChipType::XPHY);
+    types.push_back(phy::DataPlanePhyChipType::TRANSCEIVER);
   }
-}
 
+  for (auto type : types) {
+    auto pins = getPinsByChipType(chipsMap, port.mapping.pins, type);
+    if (pins.empty()) {
+      continue;
+    }
+    for (auto pin : pins) {
+      checkPinType(pin, type);
+      std::string chipName = getChipName(pin);
+      if (auto itChip = chipsMap.find(chipName); itChip != chipsMap.end()) {
+        chips.emplace(itChip->first, itChip->second);
+      }
+    }
+  }
+  return chips;
+}
 } // namespace facebook::fboss::utility

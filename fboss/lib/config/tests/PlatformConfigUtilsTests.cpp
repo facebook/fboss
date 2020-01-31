@@ -18,6 +18,7 @@ using namespace facebook::fboss;
 constexpr int kDefaultAsicLaneStart = 6;
 constexpr auto kDefaultIphyChipName = "BC0";
 constexpr auto kDefaultTcvrChipName = "eth2/2";
+constexpr auto kDefaultXphyChipName = "XPHY8";
 
 cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
   cfg::PlatformPortEntry entry;
@@ -38,14 +39,14 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
     phy::Pin xphyPin;
     phy::PinJunction xphy;
     phy::PinID xphySys;
-    xphySys.chip = "XPHY8";
+    xphySys.chip = kDefaultXphyChipName;
     xphySys.lane = xphySysLaneStart + i;
     xphy.system = xphySys;
 
     for (int j = 0; j < 2; j++) {
       phy::PinConnection linePin;
       phy::PinID xphyLine;
-      xphyLine.chip = "XPHY8";
+      xphyLine.chip = kDefaultXphyChipName;
       xphyLine.lane = xphyLineLaneStart + i * 2 + j;
       linePin.a = xphyLine;
 
@@ -76,13 +77,13 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
     portCfg.pins.iphy.push_back(iphyCfg);
 
     phy::PinConfig xphySysCfg;
-    xphySysCfg.id.chip = "XPHY8";
+    xphySysCfg.id.chip = kDefaultXphyChipName;
     xphySysCfg.id.lane = xphySysLaneStart + i;
     xphySys.push_back(xphySysCfg);
 
     for (int j = 0; j < 2; j++) {
       phy::PinConfig xphyLineCfg;
-      xphyLineCfg.id.chip = "XPHY8";
+      xphyLineCfg.id.chip = kDefaultXphyChipName;
       xphyLineCfg.id.lane = xphyLineLaneStart + i * 2 + j;
       xphyLine.push_back(xphyLineCfg);
 
@@ -155,7 +156,7 @@ std::map<std::string, phy::DataPlanePhyChip> getPlatformChips() {
   chips[iphy.name] = iphy;
 
   phy::DataPlanePhyChip xphy;
-  xphy.name = "XPHY8";
+  xphy.name = kDefaultXphyChipName;
   xphy.type = phy::DataPlanePhyChipType::XPHY;
   xphy.physicalID = 8;
   chips[xphy.name] = xphy;
@@ -334,6 +335,23 @@ TEST(
   const auto& subsidiaryPorts = utility::getPlatformPortsByControllingPort(
       platformPorts, PortID(controllingPortID));
   EXPECT_EQ(subsidiaryPorts.size(), 0);
+}
+
+TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsAll) {
+  const auto& portChips = utility::getDataPlanePhyChips(
+      getPlatformPortEntryWithXPHY(), getPlatformChips());
+  EXPECT_EQ(portChips.size(), 3);
+}
+
+TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsXphy) {
+  const auto& portChips = utility::getDataPlanePhyChips(
+      getPlatformPortEntryWithXPHY(),
+      getPlatformChips(),
+      phy::DataPlanePhyChipType::XPHY);
+  EXPECT_EQ(portChips.size(), 1);
+  EXPECT_EQ(portChips.begin()->first, kDefaultXphyChipName);
+  EXPECT_EQ(portChips.begin()->second.type, phy::DataPlanePhyChipType::XPHY);
+  EXPECT_EQ(portChips.begin()->second.physicalID, 8);
 }
 
 } // namespace facebook::fboss::utility

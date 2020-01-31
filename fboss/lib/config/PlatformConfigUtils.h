@@ -37,9 +37,10 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
     PortID controllingPort);
 
-std::optional<phy::DataPlanePhyChip> getXphyChip(
+std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
     const cfg::PlatformPortEntry& port,
-    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
+    std::optional<phy::DataPlanePhyChipType> chipType = std::nullopt);
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::vector<phy::PinConnection>& pinConnections,
