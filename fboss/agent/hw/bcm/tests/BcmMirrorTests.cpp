@@ -1900,6 +1900,95 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
+  auto setup = [=]() {
+    auto params = this->testParams();
+    auto cfg = this->initialConfig();
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors.push_back(this->getSflowMirror());
+    for (auto& port : cfg.ports) {
+      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      port.sFlowIngressRate = 90000;
+      port.ingressMirror_ref() = cfg.mirrors[0].name;
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
+    auto mirror = mirrors->getMirrorIf(kSflow);
+    auto newMirror = std::make_shared<Mirror>(
+        mirror->getID(),
+        mirror->getEgressPort(),
+        mirror->getDestinationIp(),
+        mirror->getSrcIp(),
+        mirror->getTunnelUdpPorts().value());
+    newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
+    newMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1],
+        newMirror->getTunnelUdpPorts().value()));
+    mirrors->updateNode(newMirror);
+    auto newState = this->getProgrammedState()->clone();
+    newState->resetMirrors(mirrors);
+    this->applyNewState(newState);
+  };
+  auto verify = [=]() {
+    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
+    this->verifyResolvedBcmMirror(mirror);
+    std::vector<bcm_gport_t> destinations;
+    this->getAllMirrorDestinations(destinations);
+    ASSERT_EQ(destinations.size(), 1);
+    for (auto port : this->masterLogicalPortIds()) {
+      this->verifyPortMirrorDestination(
+          port,
+          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          destinations[0]);
+    }
+  };
+  auto setupPostWb = [=] {
+    auto params = this->testParams();
+    auto cfg = this->initialConfig();
+    cfg.mirrors.push_back(this->getSflowMirror());
+    // update destination port now
+    cfg.mirrors[0]
+        .destination.tunnel_ref()
+        ->sflowTunnel_ref()
+        ->udpDstPort_ref() = 9898;
+    /* sampling all ports and send traffic to sflow mirror */
+    for (auto& port : cfg.ports) {
+      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      port.sFlowIngressRate = 90000;
+      port.ingressMirror_ref() = cfg.mirrors[0].name;
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
+    auto mirror = mirrors->getMirrorIf(kSflow);
+    auto newMirror = std::make_shared<Mirror>(
+        mirror->getID(),
+        mirror->getEgressPort(),
+        mirror->getDestinationIp(),
+        mirror->getSrcIp(),
+        mirror->getTunnelUdpPorts().value());
+    newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
+    newMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1],
+        newMirror->getTunnelUdpPorts().value()));
+    mirrors->updateNode(newMirror);
+    auto newState = this->getProgrammedState()->clone();
+    newState->resetMirrors(mirrors);
+    this->applyNewState(newState);
+  };
+  if (this->skipMirrorTest() || this->skipSflowTest()) {
+    return;
+  }
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
+}
+
 TYPED_TEST(BcmMirrorTest, RemoveSampleAllPorts) {
   auto setup = [=]() {
     auto params = this->testParams();
