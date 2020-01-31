@@ -30,6 +30,7 @@ using facebook::fboss::LaneSpeeds;
 using facebook::fboss::Port;
 using facebook::fboss::PortID;
 using facebook::fboss::cfg::PortSpeed;
+
 BcmPortGroup::LaneMode neededLaneModeForSpeed(
     PortSpeed speed,
     LaneSpeeds laneSpeeds) {
@@ -108,9 +109,6 @@ BcmPortGroup::BcmPortGroup(
     : hw_(hw),
       controllingPort_(controllingPort),
       allPorts_(std::move(allPorts)) {
-  // We expect all ports to run at the same speed and are passed in in
-  // the correct order.
-  portSpeed_ = controllingPort_->getSpeed();
   // Instead of demanding the input ports list to be ordered by lane. We can
   // just sort the list based on the port id since we always assign port id
   // in the order of the physical lane order
@@ -120,13 +118,6 @@ BcmPortGroup::BcmPortGroup(
       [](const auto& lPort, const auto& rPort) {
         return lPort->getPortID() < rPort->getPortID();
       });
-  // If any port is enabled in the list, the speed of all the ports should be
-  // the same as controling port
-  for (const auto& port : allPorts_) {
-    if (port->isEnabled() && portSpeed_ != port->getSpeed()) {
-      throw FbossError("All enabled ports must have same speed");
-    }
-  }
 
   // get the number of active lanes
   auto activeLanes = retrieveActiveLanes();
@@ -267,9 +258,6 @@ void BcmPortGroup::reconfigureIfNeeded(
   auto oldPorts = getSwPorts(oldState);
   auto newPorts = getSwPorts(newState);
 
-  CHECK(!newPorts.empty());
-  auto speedChanged = newPorts[0]->getSpeed() != portSpeed_;
-
   LaneMode desiredLaneMode;
   // TODO(joseph5wu) Once we roll out new config everywhere, we can get rid of
   // the old way to calculate lane mode
@@ -283,12 +271,17 @@ void BcmPortGroup::reconfigureIfNeeded(
         newPorts, controllingPort_->supportedLaneSpeeds());
   }
 
-  if (speedChanged) {
-    controllingPort_->getPlatformPort()->linkSpeedChanged(
-        newPorts[0]->getSpeed());
-  }
   if (desiredLaneMode != laneMode_) {
     reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
+  }
+
+  for (const auto& port : allPorts_) {
+    auto oldPort = getSwPortIf(oldPorts, port->getPortID());
+    auto newPort = getSwPortIf(newPorts, port->getPortID());
+
+    if (oldPort && newPort && (oldPort->getSpeed() != newPort->getSpeed())) {
+      port->getPlatformPort()->linkSpeedChanged(newPort->getSpeed());
+    }
   }
 }
 

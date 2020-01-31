@@ -111,7 +111,6 @@ class BcmPortGroup {
   BcmPort* controllingPort_{nullptr};
   std::vector<BcmPort*> allPorts_;
   LaneMode laneMode_;
-  cfg::PortSpeed portSpeed_;
 };
 
 } // namespace facebook::fboss
