@@ -25,9 +25,22 @@
       ECMPShrinkExpandLoadBalance,              \
       BOOST_PP_CAT(HASH_NAME(HASH_TYPE), TRAFFIC_NAME(Cpu)))
 
+/*
+ * Run a particular combination of HwLoadBalancer test
+ * For ASICs that don't support customization of hash fields, full hash
+ * and half hash tests are identical. So skip half hash tests and just
+ * run full hash tests
+ * */
 #define RUN_HW_LOAD_BALANCER_TEST(                                           \
     TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
   TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
+    if (!getPlatform()->getAsic()->isSupported(                              \
+            HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION) &&                   \
+        BOOST_PP_STRINGIZE(HASH_TYPE) == "Half") {                           \
+      XLOG(INFO) << " Skipping half hash test since chip does not support "  \
+                    " hash field customization";                             \
+      return;                                                                \
+    }                                                                        \
     static bool kLoopThroughFrontPanelPort =                                 \
         (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != "Cpu");                         \
     runLoadBalanceTest(                                                      \
