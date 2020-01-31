@@ -57,8 +57,11 @@ MacAddress localMacAddress() {
 } // namespace
 namespace facebook::fboss {
 
-Platform::Platform(std::unique_ptr<PlatformProductInfo> productInfo)
-    : productInfo_(std::move(productInfo)) {}
+Platform::Platform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : productInfo_(std::move(productInfo)),
+      platformMapping_(std::move(platformMapping)) {}
 Platform::~Platform() {}
 
 std::string Platform::getCrashHwStateFile() const {

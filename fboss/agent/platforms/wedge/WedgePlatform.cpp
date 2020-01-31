@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/state/Port.h"
@@ -47,8 +48,10 @@ constexpr auto kNumWedge40Qsfps = 16;
 
 namespace facebook::fboss {
 
-WedgePlatform::WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo)
-    : BcmPlatform(std::move(productInfo)),
+WedgePlatform::WedgePlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : BcmPlatform(std::move(productInfo), std::move(platformMapping)),
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {

@@ -15,6 +15,7 @@
 #include <memory>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -47,7 +48,9 @@ enum class PlatformMode : char;
  */
 class Platform {
  public:
-  explicit Platform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit Platform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
   virtual ~Platform();
 
   /*
@@ -241,6 +244,7 @@ class Platform {
   Platform& operator=(Platform const&) = delete;
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;
+  const std::unique_ptr<PlatformMapping> platformMapping_;
 };
 
 } // namespace facebook::fboss

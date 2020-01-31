@@ -33,7 +33,9 @@ class PlatformProductInfo;
 
 class WedgePlatform : public BcmPlatform, public StateObserver {
  public:
-  explicit WedgePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit WedgePlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
   ~WedgePlatform() override;
 
   void initPorts() override;
