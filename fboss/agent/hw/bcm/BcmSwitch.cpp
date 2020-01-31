@@ -1009,8 +1009,11 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     }
   });
 
-  forEachRemoved(delta.getPortsDelta(), [](const auto& /*oldPort*/) {
-    throw FbossError("Ports cannot be removed");
+  forEachRemoved(delta.getPortsDelta(), [this](const auto& oldPort) {
+    if (portTable_->getBcmPortIf(oldPort->getID())) {
+      throw FbossError(
+          "Cannot remove a port:", oldPort->getID(), " still in port table");
+    }
   });
   auto appliedState = delta.newState();
   // TODO: This function contains high-level logic for how to apply the
@@ -1343,17 +1346,19 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
   // those methods as enabling or changing the speed of a port may require
   // changing the configuration of a port group.
 
+  auto oldState = delta.oldState();
   auto newState = delta.newState();
   forEachChanged(
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
         auto enabled = !oldPort->isEnabled() && newPort->isEnabled();
-        auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
+        auto speedProfileChanged =
+            oldPort->getProfileID() != newPort->getProfileID();
         auto sFlowChanged = (oldPort->getSflowIngressRate() !=
                              newPort->getSflowIngressRate()) ||
             (oldPort->getSflowEgressRate() != newPort->getSflowEgressRate());
 
-        if (enabled || speedChanged || sFlowChanged) {
+        if (enabled || speedProfileChanged || sFlowChanged) {
           if (!isValidPortUpdate(oldPort, newPort, newState)) {
             // Fail hard
             throw FbossError("Invalid port configuration passed in ");
@@ -1361,7 +1366,7 @@ void BcmSwitch::reconfigurePortGroups(const StateDelta& delta) {
           auto bcmPort = portTable_->getBcmPort(newPort->getID());
           auto portGroup = bcmPort->getPortGroup();
           if (portGroup) {
-            portGroup->reconfigureIfNeeded(newState);
+            portGroup->reconfigureIfNeeded(oldState, newState);
           }
         }
       });

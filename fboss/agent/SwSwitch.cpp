@@ -1119,12 +1119,11 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
   auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
     auto* port = newState->getPorts()->getPortIf(portId).get();
-    if (not port) {
-      throw FbossError("Port ", portId, " doesn't exists in SwitchState.");
-    }
 
-    port = port->modify(&newState);
-    port->setOperState(up);
+    if (port) {
+      port = port->modify(&newState);
+      port->setOperState(up);
+    }
 
     return newState;
   };

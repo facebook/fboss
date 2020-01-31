@@ -30,6 +30,7 @@
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
@@ -656,17 +657,24 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
     changed |= updateMap(&newPorts, origPort, newPort);
   }
 
-  // Find all ports that didn't have a config listed
-  // and reset them to their default (disabled) state.
   for (const auto& origPort : *origPorts) {
+    // This port was listed in the config, and has already been configured
     if (newPorts.find(origPort->getID()) != newPorts.end()) {
-      // This port was listed in the config, and has already been configured
       continue;
     }
-    cfg::Port defaultConfig;
-    origPort->initDefaultConfigState(&defaultConfig);
-    auto newPort = updatePort(origPort, &defaultConfig);
-    changed |= updateMap(&newPorts, origPort, newPort);
+
+    // For platforms that support add/removing ports, we should leave the ports
+    // without configs out of the switch state. For BCM tests + hardware that
+    // doesn't allow add/remove, we need to leave the ports in the switch state
+    // with a default (disabled) config.
+    if (platform_->supportsAddRemovePort()) {
+      changed = true;
+    } else {
+      cfg::Port defaultConfig;
+      origPort->initDefaultConfigState(&defaultConfig);
+      auto newPort = updatePort(origPort, &defaultConfig);
+      changed |= updateMap(&newPorts, origPort, newPort);
+    }
   }
 
   if (!changed) {
@@ -706,9 +714,9 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::updatePortQueue(
     return orig;
   }
 
-  // We should always use the PortQueue settings from config, so that if some of
-  // the attributes is removed from config, we can make sure that attribute can
-  // set back to default
+  // We should always use the PortQueue settings from config, so that if some
+  // of the attributes is removed from config, we can make sure that attribute
+  // can set back to default
   return createPortQueue(cfg, trafficClass);
 }
 
@@ -799,7 +807,8 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
         }
       }
 
-      // If the cfgQueue doesn't exist in original port queues, create a new one
+      // If the cfgQueue doesn't exist in original port queues, create a new
+      // one
       newQueue = origPortQueues.size() > i
           ? updatePortQueue(
                 origPortQueues.at(i), newQueueIter->second, trafficClass)

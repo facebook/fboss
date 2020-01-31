@@ -79,7 +79,6 @@ void BcmPortTable::initPorts(
   // BcmPort objects.
   for (const auto& entry : hw_->getPlatform()->getPlatformPortMap()) {
     bcm_port_t bcmPortNum = entry.first;
-    BcmPlatformPort* platPort = entry.second;
 
     // If the port doesn't support add or remove port, make sure this port
     // number actually exists on the switch hardware
@@ -87,7 +86,7 @@ void BcmPortTable::initPorts(
       // If the platform support add or remove port, we can skip for now.
       // And we'll add or remove ports when we apply agent config for the first
       // time
-      if (platPort->supportsAddRemovePort()) {
+      if (hw_->getPlatform()->supportsAddRemovePort()) {
         continue;
       }
       throw FbossError(

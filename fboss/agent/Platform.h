@@ -220,6 +220,10 @@ class Platform {
 
   virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
 
+  virtual bool supportsAddRemovePort() const {
+    return false;
+  }
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is

@@ -27,6 +27,8 @@ namespace {
 using facebook::fboss::BcmPortGroup;
 using facebook::fboss::FbossError;
 using facebook::fboss::LaneSpeeds;
+using facebook::fboss::Port;
+using facebook::fboss::PortID;
 using facebook::fboss::cfg::PortSpeed;
 BcmPortGroup::LaneMode neededLaneModeForSpeed(
     PortSpeed speed,
@@ -71,6 +73,28 @@ void setLanesControl(int unit, bcm_port_t port, unsigned lanes) {
   int rv = bcm_port_control_set(unit, port, bcmPortControlLanes, lanes);
   facebook::fboss::bcmCheckError(
       rv, "Failed to configure ", lanes, " active lanes for bcm port", port);
+}
+
+std::shared_ptr<Port> getSwPortIf(
+    const std::vector<std::shared_ptr<Port>>& ports,
+    PortID id) {
+  for (auto port : ports) {
+    if (port->getID() == id) {
+      return port;
+    }
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Port> getSwPort(
+    const std::vector<std::shared_ptr<Port>>& ports,
+    PortID id) {
+  auto port = getSwPortIf(ports, id);
+  if (port) {
+    return port;
+  }
+
+  throw FbossError("Can't find sw port: ", id);
 }
 
 } // namespace
@@ -234,14 +258,17 @@ bool BcmPortGroup::validConfiguration(
 }
 
 void BcmPortGroup::reconfigureIfNeeded(
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) {
   // This logic is a bit messy. We could encode some notion of port
   // groups into the swith state somehow so it is easy to generate
   // deltas for these. For now, we need pass around the SwitchState
   // object and get the relevant ports manually.
-  auto ports = getSwPorts(state);
-  // ports is guaranteed to be the same size as allPorts_
-  auto speedChanged = ports[0]->getSpeed() != portSpeed_;
+  auto oldPorts = getSwPorts(oldState);
+  auto newPorts = getSwPorts(newState);
+
+  CHECK(!newPorts.empty());
+  auto speedChanged = newPorts[0]->getSpeed() != portSpeed_;
 
   LaneMode desiredLaneMode;
   // TODO(joseph5wu) Once we roll out new config everywhere, we can get rid of
@@ -250,22 +277,24 @@ void BcmPortGroup::reconfigureIfNeeded(
                                    ->config()
                                    ->thrift.platform.supportedProfiles_ref()) {
     desiredLaneMode =
-        calculateDesiredLaneModeFromConfig(ports, *supportedProfiles);
+        calculateDesiredLaneModeFromConfig(newPorts, *supportedProfiles);
   } else {
     desiredLaneMode = calculateDesiredLaneMode(
-        ports, controllingPort_->supportedLaneSpeeds());
+        newPorts, controllingPort_->supportedLaneSpeeds());
   }
 
   if (speedChanged) {
-    controllingPort_->getPlatformPort()->linkSpeedChanged(ports[0]->getSpeed());
+    controllingPort_->getPlatformPort()->linkSpeedChanged(
+        newPorts[0]->getSpeed());
   }
   if (desiredLaneMode != laneMode_) {
-    reconfigureLaneMode(ports, desiredLaneMode);
+    reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
   }
 }
 
 void BcmPortGroup::reconfigureLaneMode(
-    const std::vector<std::shared_ptr<Port>>& ports,
+    const std::vector<std::shared_ptr<Port>>& oldPorts,
+    const std::vector<std::shared_ptr<Port>>& newPorts,
     LaneMode newLaneMode) {
   // The logic for this follows the steps required for flex-port support
   // outlined in the sdk documentation.
@@ -273,35 +302,25 @@ void BcmPortGroup::reconfigureLaneMode(
              << " from using " << laneMode_ << " lanes to " << newLaneMode
              << " lanes";
 
-  // TODO(joseph5wu): Right now, we always assume we can get the swPort from
-  // the sw state, which means we don't support the case that we can remove
-  // a port from sw state yet.
-  auto getSwPort = [&ports](PortID id) -> std::shared_ptr<Port> {
-    for (auto port : ports) {
-      if (port->getID() == id) {
-        return port;
-      }
-    }
-    throw FbossError("Can't find sw port: ", id);
-  };
-
-  // 1. Disable linkscan, then disable ports.
+  // 1. For all existing ports, disable linkscan, then disable
   for (auto& bcmPort : allPorts_) {
-    auto swPort = getSwPort(bcmPort->getPortID());
+    auto swPort = getSwPort(oldPorts, bcmPort->getPortID());
     bcmPort->disableLinkscan();
     bcmPort->disable(swPort);
   }
 
   // 2. Set the bcmPortControlLanes setting
-  setActiveLanes(ports, newLaneMode);
+  setActiveLanes(newPorts, newLaneMode);
 
   // 3. Only enable linkscan, and don't enable ports.
   // Enable port will program the port with the sw config and also adding it
   // to vlan, which means there's a dependency on vlan readiness. Therefore,
   // we should let the caller to decide when it's the best time to enable port,
   // usually the very end of BcmSwitch::stateChangedImpl()
-  for (auto& bcmPort : allPorts_) {
-    auto swPort = getSwPort(bcmPort->getPortID());
+  // (only do this for ports that exist in the new state)
+  // Also update allPorts to only include active ports
+  for (auto& swPort : newPorts) {
+    auto bcmPort = hw_->getPortTable()->getBcmPort(swPort->getID());
     if (swPort->isEnabled()) {
       bcmPort->enableLinkscan();
     }
@@ -326,7 +345,7 @@ void BcmPortGroup::setActiveLanes(
     const std::vector<std::shared_ptr<Port>>& ports,
     LaneMode desiredLaneMode) {
   if (controllingPort_->getPlatformPort()->shouldUsePortResourceAPIs()) {
-    if (!controllingPort_->getPlatformPort()->supportsAddRemovePort()) {
+    if (!hw_->getPlatform()->supportsAddRemovePort()) {
       // To set a new active lanes, we might need to remove and add ports via
       // the brand new port resource api. If the platform port doesn't support
       // to add or remove port, we should throw error.

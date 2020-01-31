@@ -70,7 +70,9 @@ class BcmPortGroup {
     return allPorts_.size();
   }
 
-  void reconfigureIfNeeded(const std::shared_ptr<SwitchState>& state);
+  void reconfigureIfNeeded(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState);
 
   bool validConfiguration(const std::shared_ptr<SwitchState>& state) const;
 
@@ -101,7 +103,8 @@ class BcmPortGroup {
       const std::vector<std::shared_ptr<Port>>& ports,
       LaneMode desiredLaneMode);
   void reconfigureLaneMode(
-      const std::vector<std::shared_ptr<Port>>& ports,
+      const std::vector<std::shared_ptr<Port>>& oldPorts,
+      const std::vector<std::shared_ptr<Port>>& newPorts,
       LaneMode newLaneMode);
 
   BcmSwitch* hw_;

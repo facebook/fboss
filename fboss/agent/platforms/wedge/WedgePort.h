@@ -85,9 +85,6 @@ class WedgePort : public BcmPlatformPort {
   folly::Future<std::optional<TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
 
-  bool supportsAddRemovePort() const override {
-    return false;
-  }
   bool shouldUsePortResourceAPIs() const override {
     return false;
   }
