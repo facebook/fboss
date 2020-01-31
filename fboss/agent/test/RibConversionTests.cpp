@@ -86,18 +86,24 @@ static void runConversionTest() {
   EXPECT_EQ(fibRouteCount, ribRouteCount);
 }
 
-TEST(RibConversions, RibConversionFSW) {
+#if defined(__OPTIMIZE__)
+#define OPTIMIZED_ONLY_TEST(CATEGORY, NAME) TEST(CATEGORY, NAME)
+#else
+#define OPTIMIZED_ONLY_TEST(CATEGORY, NAME) TEST(CATEGORY, DISABLED_##NAME)
+#endif
+
+OPTIMIZED_ONLY_TEST(RibConversions, RibConversionFSW) {
   runConversionTest<utility::FSWRouteScaleGenerator>();
 }
 
-TEST(RibConversions, RibConversionTHAlpm) {
+OPTIMIZED_ONLY_TEST(RibConversions, RibConversionTHAlpm) {
   runConversionTest<utility::THAlpmRouteScaleGenerator>();
 }
 
-TEST(RibConversions, RibConversionHgridDu) {
+OPTIMIZED_ONLY_TEST(RibConversions, RibConversionHgridDu) {
   runConversionTest<utility::HgridDuRouteScaleGenerator>();
 }
 
-TEST(RibConversions, RibConversionHgridUu) {
+OPTIMIZED_ONLY_TEST(RibConversions, RibConversionHgridUu) {
   runConversionTest<utility::HgridUuRouteScaleGenerator>();
 }
