@@ -147,8 +147,8 @@ void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
 }
 
 void BcmPortTable::initPortGroups() {
-  auto subsidiaryPortsMap = utility::getSubsidiaryPortIDs(
-      hw_->getPlatform()->config()->thrift.platform);
+  auto subsidiaryPortsMap =
+      utility::getSubsidiaryPortIDs(hw_->getPlatform()->getPlatformPorts());
 
   for (auto& entry : bcmPhysicalPorts_) {
     BcmPort* bcmPort = entry.second.get();

@@ -194,10 +194,10 @@ std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
   std::vector<std::shared_ptr<Port>> ports;
   // with the new data platform config design, we can get all the ports from the
   // same port group from the config.
-  if (auto platformPorts =
-          hw_->getPlatform()->config()->thrift.platform.platformPorts_ref()) {
+  const auto& platformPorts = hw_->getPlatform()->getPlatformPorts();
+  if (!platformPorts.empty()) {
     const auto& portList = utility::getPlatformPortsByControllingPort(
-        *platformPorts, controllingPort_->getPortID());
+        platformPorts, controllingPort_->getPortID());
     for (const auto& port : portList) {
       auto swPort = state->getPorts()->getPortIf(PortID(port.mapping.id));
       // Platform port doesn't exist in sw config, no need to program

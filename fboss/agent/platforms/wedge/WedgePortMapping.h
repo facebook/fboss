@@ -12,15 +12,13 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
 #include <boost/container/flat_map.hpp>
 #include <optional>
 
 namespace facebook::fboss {
-
-class WedgePlatform;
-
 /*
  * This class begins encapsulating all port mapping logic in a more
  * organized manner. The main mechanism for this is the
@@ -73,18 +71,17 @@ class WedgePortMapping {
 
   template <typename MappingT>
   static std::unique_ptr<WedgePortMapping> createFromConfig(
-      WedgePlatform* platform,
-      const cfg::PlatformConfig& platformConfig) {
+      WedgePlatform* platform) {
     // TODO(joseph5wu) Right now, the platformPorts is still optional.
     // Once we roll out the config everywhere, we should always use this
     // createFromConfig() to generate the platform port mapping.
-    const auto& platformPorts = platformConfig.platformPorts_ref();
-    if (!platformPorts) {
-      throw FbossError("Can't find platformPorts from platform_config");
+    const auto& platformPorts = platform->getPlatformPorts();
+    if (platformPorts.empty()) {
+      throw FbossError("Can't find platformPorts from platform config");
     }
     XLOG(INFO) << "Create Platform Port Mapping from config";
     auto mapping = std::make_unique<MappingT>(platform);
-    for (const auto& port : *platformPorts) {
+    for (const auto& port : platformPorts) {
       // Will migrate the code to get front panel resource from the config
       mapping->addPort(PortID(port.first), std::nullopt);
     }

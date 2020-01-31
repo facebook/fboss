@@ -12,7 +12,6 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
@@ -28,8 +27,9 @@ DECLARE_bool(enable_routes_in_host_table);
 namespace facebook::fboss {
 
 class BcmSwitch;
-class WedgePort;
 class PlatformProductInfo;
+class WedgePort;
+class WedgePortMapping;
 
 class WedgePlatform : public BcmPlatform, public StateObserver {
  public:
@@ -75,7 +75,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   }
 
  protected:
-  std::unique_ptr<WedgePortMapping> portMapping_{nullptr};
+  std::unique_ptr<WedgePortMapping> portMapping_;
   void initImpl(uint32_t hwFeaturesDesired) override;
 
  private:

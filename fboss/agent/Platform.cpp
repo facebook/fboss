@@ -54,6 +54,9 @@ MacAddress localMacAddress() {
   MacAddress eth0Mac(out.first.substr(idx + 11, 17));
   return MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
+
+const std::map<int32_t, facebook::fboss::cfg::PlatformPortEntry>
+    kEmptyPlatformPorts = {};
 } // namespace
 namespace facebook::fboss {
 
@@ -88,28 +91,73 @@ void Platform::setConfig(std::unique_ptr<AgentConfig> config) {
   config_ = std::move(config);
 }
 
-const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
-    cfg::PortProfileID profileID) {
-  if (const auto& supportedProfiles =
-          config()->thrift.platform.supportedProfiles_ref()) {
-    auto itProfileConfig = (*supportedProfiles).find(profileID);
-    if (itProfileConfig != (*supportedProfiles).end()) {
-      return itProfileConfig->second;
+const std::map<int32_t, cfg::PlatformPortEntry>& Platform::getPlatformPorts() {
+  // First check whehther platformMapping_ is not null, if not, use
+  // platformMapping_ to get profile. Otherwise, look for the profile from the
+  // real config file.
+  // TODO: Will remove the else case once we support platformMapping_ in
+  // all platforms.
+  if (platformMapping_) {
+    return platformMapping_->getPlatformPorts();
+  } else {
+    if (auto platformPorts = config()->thrift.platform.platformPorts_ref()) {
+      return *platformPorts;
+    } else {
+      return kEmptyPlatformPorts;
     }
   }
-  return std::nullopt;
+}
+
+const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
+    cfg::PortProfileID profileID) {
+  // First check whehther platformMapping_ is not null, if not, use
+  // platformMapping_ to get profile. Otherwise, look for the profile from the
+  // real config file.
+  // TODO: Will remove the else case once we support platformMapping_ in
+  // all platforms.
+  if (platformMapping_) {
+    const auto& supportedProfiles = platformMapping_->getSupportedProfiles();
+    auto itProfileConfig = supportedProfiles.find(profileID);
+    if (itProfileConfig != supportedProfiles.end()) {
+      return itProfileConfig->second;
+    }
+    return std::nullopt;
+  } else {
+    if (const auto& supportedProfiles =
+            config()->thrift.platform.supportedProfiles_ref()) {
+      auto itProfileConfig = (*supportedProfiles).find(profileID);
+      if (itProfileConfig != (*supportedProfiles).end()) {
+        return itProfileConfig->second;
+      }
+    }
+    return std::nullopt;
+  }
 }
 
 const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
     std::string chipName) {
-  if (const auto& chips = config()->thrift.platform.chips_ref()) {
-    for (auto chip : *chips) {
+  // First check whehther platformMapping_ is not null, if not, use
+  // platformMapping_ to get profile. Otherwise, look for the profile from the
+  // real config file.
+  // TODO: Will remove the else case once we support platformMapping_ in
+  // all platforms.
+  if (platformMapping_) {
+    for (const auto& chip : platformMapping_->getChips()) {
       if (chip.name == chipName) {
         return chip;
       }
     }
+    return std::nullopt;
+  } else {
+    if (const auto& chips = config()->thrift.platform.chips_ref()) {
+      for (auto chip : *chips) {
+        if (chip.name == chipName) {
+          return chip;
+        }
+      }
+    }
+    return std::nullopt;
   }
-  return std::nullopt;
 }
 
 void Platform::init(

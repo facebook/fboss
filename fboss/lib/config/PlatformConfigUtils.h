@@ -31,7 +31,7 @@ std::vector<phy::PinID> getOrderedIphyLanes(
 
 // Get subsidiary PortID list based on controlling port
 std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
-    const facebook::fboss::cfg::PlatformConfig& platformCfg);
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
 
 std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,

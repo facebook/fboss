@@ -81,6 +81,8 @@ class Platform {
   const AgentConfig* reloadConfig();
   void setConfig(std::unique_ptr<AgentConfig> config);
 
+  const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts();
+
   /*
    * Get supported port speed profile config based on profile id.
    * Return std::nullopt if the platform doesn't support such speed profile.

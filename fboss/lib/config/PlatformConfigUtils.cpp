@@ -202,28 +202,26 @@ std::vector<phy::PinID> getOrderedIphyLanes(
 
 // Get subsidiary PortID list based on controlling port
 std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
-    const facebook::fboss::cfg::PlatformConfig& platformCfg) {
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
   std::map<PortID, std::vector<PortID>> results;
-  if (auto platformPorts = platformCfg.platformPorts_ref()) {
-    for (auto itPort : *platformPorts) {
-      auto controlPortID =
-          facebook::fboss::PortID(itPort.second.mapping.controllingPort);
-      if (results.find(controlPortID) == results.end()) {
-        results[controlPortID] = std::vector<PortID>();
-      }
-      // Note that the subsidiary_ports map includes the controlling port
-      results[controlPortID].push_back(facebook::fboss::PortID(itPort.first));
+  for (auto itPort : platformPorts) {
+    auto controlPortID =
+        facebook::fboss::PortID(itPort.second.mapping.controllingPort);
+    if (results.find(controlPortID) == results.end()) {
+      results[controlPortID] = std::vector<PortID>();
     }
+    // Note that the subsidiary_ports map includes the controlling port
+    results[controlPortID].push_back(facebook::fboss::PortID(itPort.first));
+  }
 
-    // Sort subsidiary port ids
-    for (auto itControlPort : results) {
-      std::sort(
-          itControlPort.second.begin(),
-          itControlPort.second.end(),
-          [](const auto& lPortID, const auto& rPortID) {
-            return lPortID < rPortID;
-          });
-    }
+  // Sort subsidiary port ids
+  for (auto itControlPort : results) {
+    std::sort(
+        itControlPort.second.begin(),
+        itControlPort.second.end(),
+        [](const auto& lPortID, const auto& rPortID) {
+          return lPortID < rPortID;
+        });
   }
   return results;
 }

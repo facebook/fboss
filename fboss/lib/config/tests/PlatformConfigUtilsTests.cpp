@@ -235,9 +235,7 @@ TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDs) {
       platformPorts[portEntry.mapping.id] = portEntry;
     }
   }
-  cfg::PlatformConfig platformCfg;
-  platformCfg.set_platformPorts(platformPorts);
-  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformCfg);
+  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformPorts);
   EXPECT_EQ(subsidiaryPorts.size(), 2);
   for (auto controllingPort : {1, 5}) {
     auto portsItr = subsidiaryPorts.find(PortID(controllingPort));
@@ -249,8 +247,8 @@ TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDs) {
 }
 
 TEST(PlatformConfigUtilsTests, GetSubsidiaryPortIDsWithEmptyConfig) {
-  cfg::PlatformConfig platformCfg;
-  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformCfg);
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformPorts);
   EXPECT_EQ(subsidiaryPorts.size(), 0);
 }
 
@@ -331,8 +329,10 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByControllingPort) {
 TEST(
     PlatformConfigUtilsTests,
     GetPlatformPortsByControllingPortWithEmptyConfig) {
-  cfg::PlatformConfig platformCfg;
-  auto subsidiaryPorts = utility::getSubsidiaryPortIDs(platformCfg);
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  int controllingPortID = 5;
+  const auto& subsidiaryPorts = utility::getPlatformPortsByControllingPort(
+      platformPorts, PortID(controllingPortID));
   EXPECT_EQ(subsidiaryPorts.size(), 0);
 }
 
