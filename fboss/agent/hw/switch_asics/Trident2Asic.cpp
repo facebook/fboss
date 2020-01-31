@@ -11,6 +11,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::PORT_PREEMPHASIS:
+    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

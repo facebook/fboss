@@ -20,6 +20,7 @@ class HwAsic {
     TX_VLAN_STRIPPING_ON_PORT,
     HOT_SWAP,
     PORT_PREEMPHASIS,
+    HASH_FIELDS_CUSTOMIZATION,
   };
 
   enum class AsicType {

@@ -14,6 +14,8 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -43,20 +45,26 @@ cfg::Fields getFullHashFields() {
 }
 
 cfg::LoadBalancer getHalfHashConfig(
-    const Platform* /*platform*/,
+    const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   loadBalancer.id = id;
-  loadBalancer.fieldSelection = getHalfHashFields();
+  if (platform->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    loadBalancer.fieldSelection = getHalfHashFields();
+  }
   loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getFullHashConfig(
-    const Platform* /*platform*/,
+    const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
   loadBalancer.id = id;
-  loadBalancer.fieldSelection = getFullHashFields();
+  if (platform->getAsic()->isSupported(
+          HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    loadBalancer.fieldSelection = getFullHashFields();
+  }
   loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
