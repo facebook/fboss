@@ -59,6 +59,10 @@ add_library(fboss_types
   fboss/agent/types.cpp
 )
 
+target_link_libraries(fboss_types
+  switch_config_cpp2
+)
+
 add_library(core
   fboss/agent/AgentConfig.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -166,6 +170,7 @@ add_library(fboss_error
 
 target_link_libraries(fboss_error
   fboss_cpp2
+  fboss_types
   Folly::folly
 )
 

@@ -51,7 +51,6 @@ include_directories(${OPENNSA_INCLUDE_DIR})
 message(STATUS "Found OPENNSA: ${OPENNSA}")
 message(STATUS "Found OPENNSA_INCLUDE_DIR: ${OPENNSA_INCLUDE_DIR}")
 
-
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
 include_directories(${SAI_INCLUDE_DIR})
 
@@ -697,9 +696,6 @@ add_test(test agent_test)
 
 install(TARGETS wedge_agent)
 
-# Build and install SAI executables
-include(SaiExecutables)
-
 include(Agent)
 include(AgentCapture)
 include(AgentHwBcm)
@@ -718,3 +714,11 @@ include(LibConfig)
 include(LibPhy)
 
 install(TARGETS bcm_test)
+
+set(SAI_VER_MAJOR_VAR "1")
+set(SAI_VER_MINOR_VAR "4")
+set(SAI_VER_RELEASE_VAR "0")
+
+# Build and install SAI executables
+include(AgentHwSaiApi)
+include(AgentHwSaiFake)
