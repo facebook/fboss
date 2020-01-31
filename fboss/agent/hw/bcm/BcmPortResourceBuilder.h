@@ -42,13 +42,16 @@ class BcmPortResourceBuilder {
   std::vector<std::shared_ptr<Port>> filterSubSumedPorts(
       const std::vector<std::shared_ptr<Port>>& ports);
 
+  int getBaseLane(
+      PortID portID,
+      const std::vector<phy::DataPlanePhyChip>& chips);
+
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
   BcmPortGroup::LaneMode desiredLaneMode_;
   int numRemovedPorts_{0};
   int numAddedPorts_{0};
   bcm_port_t basePhysicalPort_{-1};
-  int basePhysicalLane_{-1};
   std::vector<bcm_port_resource_t> ports_;
 };
 

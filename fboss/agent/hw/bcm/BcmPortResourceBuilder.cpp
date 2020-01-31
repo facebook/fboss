@@ -61,19 +61,6 @@ void BcmPortResourceBuilder::removePorts(const std::vector<BcmPort*>& ports) {
     if (basePhysicalPort_ == -1 ||
         basePhysicalPort_ > oldPortRes.physical_port) {
       basePhysicalPort_ = oldPortRes.physical_port;
-      // get the base physical lane from the start port
-      auto platformPortEntry = hw_->getPlatform()
-                                   ->getPlatformPort(port->getPortID())
-                                   ->getPlatformPortEntry();
-      if (!platformPortEntry) {
-        throw FbossError(
-            "Port: ",
-            port->getPortID(),
-            " doesn't have PlatformPortEntry. Not allowed to use flex port api");
-      }
-      const auto& iphyLanes =
-          utility::getOrderedIphyLanes(*platformPortEntry, *chips);
-      basePhysicalLane_ = iphyLanes[0].lane;
     }
     oldPortRes.physical_port = -1; /* -1: delete port */
     ports_.push_back(oldPortRes);
@@ -126,6 +113,22 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
   return filteredPorts;
 }
 
+int BcmPortResourceBuilder::getBaseLane(
+    PortID portID,
+    const std::vector<phy::DataPlanePhyChip>& chips) {
+  auto platformPortEntry =
+      hw_->getPlatform()->getPlatformPort(portID)->getPlatformPortEntry();
+  if (!platformPortEntry) {
+    throw FbossError(
+        "Port: ",
+        portID,
+        " doesn't have PlatformPortEntry. Not allowed to use flex port api");
+  }
+  const auto& iphyLanes =
+      utility::getOrderedIphyLanes(*platformPortEntry, chips);
+  return iphyLanes[0].lane;
+}
+
 std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     const std::vector<std::shared_ptr<Port>>& ports) {
   // BRCM SDK limits all the remove ports should be in front of the final array
@@ -139,6 +142,14 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
   auto chips = hw_->getPlatform()->config()->thrift.platform.chips_ref();
   if (!chips) {
     throw FbossError("Not platform data plane phy chips");
+  }
+
+  int basePhysicalLane_{-1};
+  for (const auto& port : ports) {
+    auto baseLane = getBaseLane(port->getID(), *chips);
+    if (basePhysicalLane_ == -1 || basePhysicalLane_ > baseLane) {
+      basePhysicalLane_ = baseLane;
+    }
   }
 
   for (auto port : filteredPorts) {
