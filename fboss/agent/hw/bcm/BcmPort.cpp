@@ -1523,6 +1523,7 @@ uint8_t BcmPort::determinePipe() const {
   bcmCheckError(rv, "failed to get unit info");
 
   bcm_port_config_t portConfig;
+  bcm_port_config_t_init(&portConfig);
   rv = bcm_port_config_get(unit_, &portConfig);
   bcmCheckError(rv, "failed to get port configuration");
 

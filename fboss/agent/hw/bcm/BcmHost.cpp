@@ -411,6 +411,7 @@ BcmHost* FOLLY_NULLABLE BcmHostTable::getBcmHostIf(const BcmHostKey& key) const
 
 void BcmHostTable::warmBootHostEntriesSynced() {
   bcm_port_config_t pcfg;
+  bcm_port_config_t_init(&pcfg);
   auto rv = bcm_port_config_get(hw_->getUnit(), &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
   // Ideally we should call this only for ports which were

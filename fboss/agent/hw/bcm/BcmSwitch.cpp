@@ -701,6 +701,7 @@ void BcmSwitch::setupLinkscan() {
   bcmCheckError(rv, "failed to enable linkscan");
   if (getBootType() == BootType::WARM_BOOT) {
     bcm_port_config_t pcfg;
+    bcm_port_config_t_init(&pcfg);
     rv = bcm_port_config_get(unit_, &pcfg);
     bcmCheckError(rv, "failed to get port configuration");
     forceLinkscanOn(pcfg.port);
@@ -784,6 +785,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   bcm_port_config_t pcfg;
+  bcm_port_config_t_init(&pcfg);
   auto rv = bcm_port_config_get(unit_, &pcfg);
   bcmCheckError(rv, "failed to get port configuration");
 

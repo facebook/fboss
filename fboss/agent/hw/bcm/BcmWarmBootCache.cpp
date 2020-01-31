@@ -1316,7 +1316,7 @@ void BcmWarmBootCache::populateMirrors() {
 
 void BcmWarmBootCache::populateMirroredPorts() {
   bcm_port_config_t config;
-  memset(&config, 0, sizeof(bcm_port_config_t));
+  bcm_port_config_t_init(&config);
   bcm_port_config_get(hw_->getUnit(), &config);
   bcm_port_t port;
   bcm_gport_t gport;
@@ -1523,7 +1523,7 @@ void BcmWarmBootCache::populateSwitchSettings() {
   uint32_t flags = 0;
 
   bcm_port_config_t config;
-  memset(&config, 0, sizeof(bcm_port_config_t));
+  bcm_port_config_t_init(&config);
   bcm_port_config_get(hw_->getUnit(), &config);
   bcm_port_t port;
 
