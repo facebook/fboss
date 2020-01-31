@@ -28,14 +28,14 @@ class PlatformMapping {
     return supportedProfiles_;
   }
 
-  const std::vector<phy::DataPlanePhyChip>& getChips() const {
+  const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;
   }
 
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;
-  std::vector<phy::DataPlanePhyChip> chips_;
+  std::map<std::string, phy::DataPlanePhyChip> chips_;
 
  private:
   // Forbidden copy constructor and assignment operator

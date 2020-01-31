@@ -96,6 +96,7 @@ class Platform {
    */
   const std::optional<phy::DataPlanePhyChip> getDataPlanePhyChip(
       std::string chipName);
+  const std::map<std::string, phy::DataPlanePhyChip>& getDataPlanePhyChips();
 
   /*
    * Get the HwSwitch for this platform.

@@ -57,6 +57,9 @@ MacAddress localMacAddress() {
 
 const std::map<int32_t, facebook::fboss::cfg::PlatformPortEntry>
     kEmptyPlatformPorts = {};
+
+const std::map<std::string, facebook::fboss::phy::DataPlanePhyChip>
+    kEmptyChips = {};
 } // namespace
 namespace facebook::fboss {
 
@@ -141,22 +144,25 @@ const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
   // real config file.
   // TODO: Will remove the else case once we support platformMapping_ in
   // all platforms.
-  if (platformMapping_) {
-    for (const auto& chip : platformMapping_->getChips()) {
-      if (chip.name == chipName) {
-        return chip;
-      }
-    }
-    return std::nullopt;
+  const auto& chips = getDataPlanePhyChips();
+  if (auto chip = chips.find(chipName); chip != chips.end()) {
+    return chip->second;
   } else {
-    if (const auto& chips = config()->thrift.platform.chips_ref()) {
-      for (auto chip : *chips) {
-        if (chip.name == chipName) {
-          return chip;
-        }
-      }
-    }
     return std::nullopt;
+  }
+}
+
+const std::map<std::string, phy::DataPlanePhyChip>&
+Platform::getDataPlanePhyChips() {
+  // First check whehther platformMapping_ is not null, if not, use
+  // platformMapping_ to get profile. Otherwise, look for the profile from the
+  // real config file.
+  // TODO: Will remove the else case once we support platformMapping_ in
+  // all platforms.
+  if (platformMapping_) {
+    return platformMapping_->getChips();
+  } else {
+    return kEmptyChips;
   }
 }
 

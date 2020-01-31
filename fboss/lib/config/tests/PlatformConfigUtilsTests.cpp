@@ -146,25 +146,25 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
   return entry;
 }
 
-std::vector<phy::DataPlanePhyChip> getPlatformChips() {
-  std::vector<phy::DataPlanePhyChip> chips;
+std::map<std::string, phy::DataPlanePhyChip> getPlatformChips() {
+  std::map<std::string, phy::DataPlanePhyChip> chips;
   phy::DataPlanePhyChip iphy;
   iphy.name = kDefaultIphyChipName;
   iphy.type = phy::DataPlanePhyChipType::IPHY;
   iphy.physicalID = 0;
-  chips.push_back(iphy);
+  chips[iphy.name] = iphy;
 
   phy::DataPlanePhyChip xphy;
   xphy.name = "XPHY8";
   xphy.type = phy::DataPlanePhyChipType::XPHY;
   xphy.physicalID = 8;
-  chips.push_back(xphy);
+  chips[xphy.name] = xphy;
 
   phy::DataPlanePhyChip tcvr;
   tcvr.name = kDefaultTcvrChipName;
   tcvr.type = phy::DataPlanePhyChipType::TRANSCEIVER;
   tcvr.physicalID = 2;
-  chips.push_back(tcvr);
+  chips[tcvr.name] = tcvr;
 
   return chips;
 }

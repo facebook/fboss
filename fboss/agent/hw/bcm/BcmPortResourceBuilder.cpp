@@ -39,8 +39,8 @@ void BcmPortResourceBuilder::removePorts(const std::vector<BcmPort*>& ports) {
         ports_.size());
   }
 
-  auto chips = hw_->getPlatform()->config()->thrift.platform.chips_ref();
-  if (!chips) {
+  const auto& chips = hw_->getPlatform()->getDataPlanePhyChips();
+  if (chips.empty()) {
     throw FbossError("Not platform data plane phy chips");
   }
 
@@ -113,9 +113,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
   return filteredPorts;
 }
 
-int BcmPortResourceBuilder::getBaseLane(
-    PortID portID,
-    const std::vector<phy::DataPlanePhyChip>& chips) {
+int BcmPortResourceBuilder::getBaseLane(PortID portID) {
   auto platformPortEntry =
       hw_->getPlatform()->getPlatformPort(portID)->getPlatformPortEntry();
   if (!platformPortEntry) {
@@ -124,8 +122,8 @@ int BcmPortResourceBuilder::getBaseLane(
         portID,
         " doesn't have PlatformPortEntry. Not allowed to use flex port api");
   }
-  const auto& iphyLanes =
-      utility::getOrderedIphyLanes(*platformPortEntry, chips);
+  const auto& iphyLanes = utility::getOrderedIphyLanes(
+      *platformPortEntry, hw_->getPlatform()->getDataPlanePhyChips());
   return iphyLanes[0].lane;
 }
 
@@ -139,14 +137,14 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
   }
   auto filteredPorts = filterSubSumedPorts(ports);
 
-  auto chips = hw_->getPlatform()->config()->thrift.platform.chips_ref();
-  if (!chips) {
+  const auto& chips = hw_->getPlatform()->getDataPlanePhyChips();
+  if (chips.empty()) {
     throw FbossError("Not platform data plane phy chips");
   }
 
   int basePhysicalLane_{-1};
   for (const auto& port : ports) {
-    auto baseLane = getBaseLane(port->getID(), *chips);
+    auto baseLane = getBaseLane(port->getID());
     if (basePhysicalLane_ == -1 || basePhysicalLane_ > baseLane) {
       basePhysicalLane_ = baseLane;
     }
@@ -177,7 +175,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     newPortRes.port = port->getID();
 
     const auto& iphyLanes = utility::getOrderedIphyLanes(
-        *platformPortEntry, *chips, port->getProfileID());
+        *platformPortEntry, chips, port->getProfileID());
     newPortRes.physical_port =
         basePhysicalPort_ + (iphyLanes[0].lane - basePhysicalLane_);
 

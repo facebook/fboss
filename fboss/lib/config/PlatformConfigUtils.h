@@ -18,7 +18,7 @@ namespace facebook::fboss::utility {
 
 std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
 std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
@@ -26,7 +26,7 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
 
 std::vector<phy::PinID> getOrderedIphyLanes(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID = std::nullopt);
 
 // Get subsidiary PortID list based on controlling port
@@ -39,10 +39,10 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
 
 std::optional<phy::DataPlanePhyChip> getXphyChip(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips);
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::vector<phy::PinConnection>& pinConnections,
-    const std::vector<phy::DataPlanePhyChip>& chips);
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 
 } // namespace facebook::fboss::utility

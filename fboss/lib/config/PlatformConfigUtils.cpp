@@ -54,20 +54,21 @@ void recurseGetPinsByChipType(
 }
 
 std::vector<Pin> getPinsByChipType(
-    const std::vector<DataPlanePhyChip>& chips,
+    const std::map<std::string, DataPlanePhyChip>& chipsMap,
     const std::vector<PinConnection>& pinConns,
     DataPlanePhyChipType type) {
   // First get all the expected chip type into a map to make search easier
-  std::map<std::string, DataPlanePhyChip> chipsMap;
-  for (const auto chip : chips) {
-    if (chip.type == type) {
-      chipsMap[chip.name] = chip;
+  std::map<std::string, DataPlanePhyChip> filteredChips;
+  for (const auto itChip : chipsMap) {
+    if (itChip.second.type == type) {
+      filteredChips[itChip.first] = itChip.second;
     }
   }
+
   // use the recurse function to get all the expected chip pin
   std::vector<Pin> results;
   for (const auto& pinConn : pinConns) {
-    recurseGetPinsByChipType(pinConn, chipsMap, results);
+    recurseGetPinsByChipType(pinConn, filteredChips, results);
   }
   return results;
 }
@@ -77,7 +78,7 @@ namespace facebook::fboss::utility {
 
 std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
   if (profileID) {
@@ -98,7 +99,7 @@ std::vector<phy::PinID> getTransceiverLanes(
     // If it's not looking for the lanes list based on profile, return the
     // static lane mapping
     auto pins = getPinsByChipType(
-        chips, port.mapping.pins, phy::DataPlanePhyChipType::TRANSCEIVER);
+        chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::TRANSCEIVER);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
       if (pin.getType() != phy::Pin::Type::end) {
@@ -141,10 +142,10 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
 
 std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::vector<phy::PinConnection>& pinConnections,
-    const std::vector<phy::DataPlanePhyChip>& chips) {
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
   std::map<int32_t, phy::PolaritySwap> xphyPolaritySwapMap;
-  const auto& xphyPinList =
-      getPinsByChipType(chips, pinConnections, phy::DataPlanePhyChipType::XPHY);
+  const auto& xphyPinList = getPinsByChipType(
+      chipsMap, pinConnections, phy::DataPlanePhyChipType::XPHY);
   for (const auto& pin : xphyPinList) {
     if (pin.getType() != phy::Pin::Type::junction) {
       throw FbossError("Unsupported pin type for xphy");
@@ -160,7 +161,7 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
 
 std::vector<phy::PinID> getOrderedIphyLanes(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
   if (profileID) {
@@ -179,7 +180,7 @@ std::vector<phy::PinID> getOrderedIphyLanes(
     // If it's not looking for the lanes list based on profile, return the
     // static lane mapping
     auto pins = getPinsByChipType(
-        chips, port.mapping.pins, phy::DataPlanePhyChipType::IPHY);
+        chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::IPHY);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
       if (pin.getType() != phy::Pin::Type::end) {
@@ -241,9 +242,9 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
 
 std::optional<phy::DataPlanePhyChip> getXphyChip(
     const cfg::PlatformPortEntry& port,
-    const std::vector<phy::DataPlanePhyChip>& chips) {
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
   auto pins = getPinsByChipType(
-      chips, port.mapping.pins, phy::DataPlanePhyChipType::XPHY);
+      chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::XPHY);
   if (pins.empty()) {
     return std::nullopt;
   }
@@ -254,12 +255,11 @@ std::optional<phy::DataPlanePhyChip> getXphyChip(
   }
 
   auto chipName = pin.get_junction().system.chip;
-  auto chip = std::find_if(chips.begin(), chips.end(), [chipName](auto chip) {
-    return chipName == chip.name;
-  });
-  CHECK(chip != chips.end());
-
-  return *chip;
+  if (auto chip = chipsMap.find(chipName); chip != chipsMap.end()) {
+    return chip->second;
+  } else {
+    throw FbossError("Unrecognized chip name: ", chipName);
+  }
 }
 
 } // namespace facebook::fboss::utility

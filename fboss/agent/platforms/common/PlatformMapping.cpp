@@ -20,7 +20,9 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
           jsonPlatformMappingStr);
   platformPorts_ = std::move(mapping.ports);
   supportedProfiles_ = std::move(mapping.supportedProfiles);
-  chips_ = std::move(mapping.chips);
+  for (auto chip : mapping.chips) {
+    chips_[chip.name] = chip;
+  }
 }
 } // namespace fboss
 } // namespace facebook
