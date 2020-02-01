@@ -7,22 +7,22 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawk3Platform.h"
-#include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawkPlatform.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 
 namespace facebook::fboss {
 
-const PortQueue& BcmTestWedgeTomahawk3Platform::getDefaultPortQueueSettings(
+const PortQueue& BcmTestWedgeTomahawkPlatform::getDefaultPortQueueSettings(
     cfg::StreamType streamType) const {
-  static const PortQueue kQueue;
-  return kQueue;
+  return utility::getDefaultPortQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
 }
 
 const PortQueue&
-BcmTestWedgeTomahawk3Platform::getDefaultControlPlaneQueueSettings(
+BcmTestWedgeTomahawkPlatform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const {
-  static const PortQueue kQueue;
-  return kQueue;
+  return utility::getDefaultControlPlaneQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
 }
 
 } // namespace facebook::fboss

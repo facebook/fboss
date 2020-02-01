@@ -8,10 +8,11 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.h"
+
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/FakeBcmTestPort.h"
-
-#include "fboss/agent/hw/switch_asics/FakeAsic.h"
 
 #include <folly/FileUtil.h>
 #include <folly/experimental/TestUtil.h>
@@ -85,6 +86,18 @@ std::string FakeBcmTestPlatform::getPersistentStateDir() const {
 
 HwAsic* FakeBcmTestPlatform::getAsic() const {
   return asic_.get();
+}
+
+const PortQueue& FakeBcmTestPlatform::getDefaultPortQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultPortQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
+}
+
+const PortQueue& FakeBcmTestPlatform::getDefaultControlPlaneQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultControlPlaneQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
 }
 
 } // namespace facebook::fboss

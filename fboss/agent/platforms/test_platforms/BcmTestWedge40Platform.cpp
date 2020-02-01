@@ -8,10 +8,11 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.h"
+
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Port.h"
-
-#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
 namespace {
 static const std::array<int, 16> kMasterLogicalPortIds =
@@ -42,5 +43,17 @@ HwAsic* BcmTestWedge40Platform::getAsic() const {
 }
 
 BcmTestWedge40Platform::~BcmTestWedge40Platform() {}
+
+const PortQueue& BcmTestWedge40Platform::getDefaultPortQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultPortQueueSettings(
+      utility::BcmChip::TRIDENT2, streamType);
+}
+
+const PortQueue& BcmTestWedge40Platform::getDefaultControlPlaneQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultControlPlaneQueueSettings(
+      utility::BcmChip::TRIDENT2, streamType);
+}
 
 } // namespace facebook::fboss
