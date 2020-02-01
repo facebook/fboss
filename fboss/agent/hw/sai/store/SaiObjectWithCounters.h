@@ -41,7 +41,7 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
   }
 
   template <typename T = SaiObjectTraits>
-  std::vector<uint64_t>& getStats() {
+  const std::vector<uint64_t>& getStats() const {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
     return counters_;
   }

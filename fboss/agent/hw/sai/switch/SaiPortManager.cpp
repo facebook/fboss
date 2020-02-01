@@ -351,7 +351,7 @@ void SaiPortManager::updateStats() const {
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   std::map<PortID, HwPortStats> portStats;
   for (const auto& [portId, handle] : handles_) {
-    auto counters = handle->port->getStats();
+    const auto& counters = handle->port->getStats();
     HwPortStats hwPortStats;
     fillHwPortStats(counters, hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
