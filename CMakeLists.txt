@@ -300,6 +300,7 @@ add_library(fboss_agent STATIC
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/L2Entry.cpp
     fboss/agent/hw/BufferStatsLogger.cpp
+    fboss/agent/hw/CounterUtils.cpp
     fboss/agent/hw/bcm/BcmAclEntry.cpp
     fboss/agent/hw/bcm/BcmAclStat.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
@@ -359,7 +360,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmWarmBootCache.cpp
     fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
     fboss/agent/hw/bcm/BcmWarmBootState.cpp
-    fboss/agent/hw/bcm/CounterUtils.cpp
     fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
     fboss/agent/hw/bcm/BcmEgressManager.cpp
     fboss/agent/hw/bcm/BcmNextHop.cpp
@@ -698,6 +698,7 @@ install(TARGETS wedge_agent)
 
 include(Agent)
 include(AgentCapture)
+include(AgentHw)
 include(AgentHwBcm)
 include(AgentHwBcmTests)
 include(AgentHwSwitchAsics)

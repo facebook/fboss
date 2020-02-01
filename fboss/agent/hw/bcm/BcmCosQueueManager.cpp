@@ -11,12 +11,12 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/CounterUtils.h"
 
 extern "C" {
 

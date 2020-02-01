@@ -19,6 +19,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "common/stats/MonotonicCounter.h"
+#include "fboss/agent/hw/CounterUtils.h"
 
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
@@ -36,7 +37,6 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/CounterUtils.h"
 #include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/state/Port.h"

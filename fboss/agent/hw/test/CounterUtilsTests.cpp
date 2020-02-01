@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/CounterUtils.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <gtest/gtest.h>

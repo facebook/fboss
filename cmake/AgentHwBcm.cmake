@@ -68,7 +68,6 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmWarmBootCache.cpp
   fboss/agent/hw/bcm/BcmWarmBootHelper.cpp
   fboss/agent/hw/bcm/BcmWarmBootState.cpp
-  fboss/agent/hw/bcm/CounterUtils.cpp
   fboss/agent/hw/bcm/PortAndEgressIdsMap.cpp
   fboss/agent/hw/bcm/BcmClassIDUtil.cpp
   fboss/agent/hw/bcm/BcmSwitchSettings.cpp
@@ -89,6 +88,7 @@ target_link_libraries(bcm
   bcm_types
   handler
   core
+  counter_utils
   Folly::folly
   ${OPENNSA}
 )

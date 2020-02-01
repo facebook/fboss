@@ -69,6 +69,7 @@ target_link_libraries(bcm_test
   bcm
   bcm_mpls_utils
   config
+  counter_utils
   hw_switch_test
   hw_test_main
   product_info
