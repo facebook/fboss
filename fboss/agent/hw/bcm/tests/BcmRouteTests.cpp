@@ -611,19 +611,6 @@ int getHwRoute(
   return bcm_l3_route_get(unit, &route);
 }
 
-int findHwHost(int unit, const IPAddress& networkIP) {
-  bcm_l3_host_t host;
-  bcm_l3_host_t_init(&host);
-  if (networkIP.isV4()) {
-    host.l3a_ip_addr = networkIP.asV4().toLongHBO();
-  } else { // IPv6
-    ipToBcmIp6(networkIP, &host.l3a_ip6_addr);
-    host.l3a_flags = BCM_L3_IP6;
-  }
-
-  return bcm_l3_host_find(unit, &host);
-}
-
 int findHwHost(int unit, const IPAddress& networkIP, bcm_l3_host_t& host) {
   bcm_l3_host_t_init(&host);
   if (networkIP.isV4()) {
