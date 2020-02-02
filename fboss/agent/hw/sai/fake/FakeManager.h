@@ -11,6 +11,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <stdexcept>
 #include <unordered_map>
 
 extern "C" {
@@ -36,6 +37,9 @@ class FakeManager {
   typename std::enable_if<!std::is_same<E, sai_object_id_t>::value, void>::type
   create(const K& k, Args&&... args) {
     auto ins = map_.emplace(k, T{std::forward<Args>(args)...});
+    if (!ins.second) {
+      throw std::runtime_error("Object already exists, create failed");
+    }
     count_++;
   }
 
