@@ -24,5 +24,22 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
     chips_[chip.name] = chip;
   }
 }
+
+void PlatformMapping::merge(PlatformMapping* mapping) {
+  for (auto port : mapping->platformPorts_) {
+    platformPorts_.emplace(port.first, std::move(port.second));
+  }
+  mapping->platformPorts_.clear();
+
+  for (auto profile : mapping->supportedProfiles_) {
+    supportedProfiles_.emplace(profile.first, std::move(profile.second));
+  }
+  mapping->supportedProfiles_.clear();
+
+  for (auto chip : mapping->chips_) {
+    chips_.emplace(chip.first, std::move(chip.second));
+  }
+  mapping->chips_.clear();
+}
 } // namespace fboss
 } // namespace facebook

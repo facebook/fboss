@@ -40,6 +40,14 @@ class PlatformMapping {
     chips_.emplace(chipName, chip);
   }
 
+  void setSupportedProfile(
+      cfg::PortProfileID profileID,
+      phy::PortProfileConfig profile) {
+    supportedProfiles_.emplace(profileID, profile);
+  }
+
+  void merge(PlatformMapping* mapping);
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;
