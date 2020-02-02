@@ -8,21 +8,13 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
-#include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/platforms/wedge/WedgePort.h"
 
-#include <folly/Memory.h>
+#include "fboss/agent/ThriftHandler.h"
 
 namespace facebook::fboss {
 
 std::unique_ptr<ThriftHandler> WedgePlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<ThriftHandler>(sw);
-}
-
-std::map<std::string, std::string> WedgePlatform::loadConfig() {
-  // TODO: use bcm config to support more expressive configuration
-  std::map<std::string, std::string> config;
-  return config;
 }
 
 void WedgePlatform::initLEDs() {

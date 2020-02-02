@@ -444,17 +444,15 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
     fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
-    fboss/agent/platforms/wedge/oss/Wedge40Platform.cpp
-    fboss/agent/platforms/wedge/oss/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/oss/Wedge40Port.cpp
     fboss/agent/platforms/wedge/oss/Wedge100Port.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
     fboss/agent/platforms/common/oss/PlatformProductInfo.cpp
-    fboss/agent/platforms/wedge/oss/WedgeTomahawkPlatform.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/wedge/Wedge40Platform.cpp
     fboss/agent/platforms/wedge/Wedge40Port.cpp
+    fboss/agent/platforms/wedge/WedgeLedCode.cpp
     fboss/agent/platforms/wedge/FakeWedge40Platform.cpp
     fboss/agent/platforms/wedge/Wedge100Platform.cpp
     fboss/agent/platforms/wedge/GalaxyPort.cpp
@@ -462,6 +460,7 @@ add_library(fboss_agent STATIC
     fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/Wedge100Port.cpp
+    fboss/agent/platforms/wedge/WedgeTomahawkPlatform.cpp
     fboss/agent/platforms/common/PlatformProductInfo.cpp
     fboss/agent/platforms/wedge/WedgePlatformInit.cpp
     fboss/agent/PortStats.cpp
@@ -707,6 +706,7 @@ include(AgentLldp)
 include(AgentPacket)
 include(AgentPlatformsCommon)
 include(AgentPlatformsTestPlatforms)
+include(AgentPlatformsWedge)
 include(AgentRib)
 include(AgentState)
 include(AgentTest)

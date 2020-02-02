@@ -15,6 +15,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
@@ -39,13 +40,18 @@ DEFINE_string(
     "/var/facebook/fboss",
     "Directory for storing persistent state");
 
+DEFINE_string(
+    fabric_location,
+    "",
+    "Provides location of fabric , LEFT or RIGHT");
+
 using folly::MacAddress;
 using std::make_unique;
 using std::string;
 
 namespace {
 constexpr auto kNumWedge40Qsfps = 16;
-}
+} // namespace
 
 namespace facebook::fboss {
 
@@ -182,4 +188,11 @@ PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
   return getPort(port);
 }
 
+std::map<std::string, std::string> WedgePlatform::loadConfig() {
+  auto cfg = config();
+  if (cfg) {
+    return cfg->thrift.platform.chip.get_bcm().config;
+  }
+  return BcmConfig::loadDefaultConfig();
+}
 } // namespace facebook::fboss

@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 namespace facebook::fboss {
@@ -17,14 +18,17 @@ WedgeTomahawkPlatform::WedgeTomahawkPlatform(
     : WedgePlatform(std::move(productInfo)) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
+
 const PortQueue& WedgeTomahawkPlatform::getDefaultPortQueueSettings(
-    cfg::StreamType /*streamType*/) const {
-  throw FbossError("PortQueue setting is not supported");
+    cfg::StreamType streamType) const {
+  return utility::getDefaultPortQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
 }
 
 const PortQueue& WedgeTomahawkPlatform::getDefaultControlPlaneQueueSettings(
-    cfg::StreamType /*streamType*/) const {
-  throw FbossError("PortQueue setting is not supported");
+    cfg::StreamType streamType) const {
+  return utility::getDefaultControlPlaneQueueSettings(
+      utility::BcmChip::TOMAHAWK, streamType);
 }
 
 } // namespace facebook::fboss

@@ -8,9 +8,14 @@
  *
  */
 #include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/Wedge40Port.h"
+#include "fboss/agent/platforms/wedge/WedgeLedCode.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
+
+#include <folly/Range.h>
 
 namespace facebook::fboss {
 
@@ -40,6 +45,26 @@ std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {
       {PortID(61), TransceiverID(15)}};
   return WedgePortMapping::create<
       WedgePortMappingT<Wedge40Platform, Wedge40Port>>(this, ports);
+}
+
+folly::ByteRange Wedge40Platform::defaultLed0Code() {
+  return WEDGE40_DEFAULT_LEDCODE;
+}
+
+folly::ByteRange Wedge40Platform::defaultLed1Code() {
+  return defaultLed0Code();
+}
+
+const PortQueue& Wedge40Platform::getDefaultPortQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultPortQueueSettings(
+      utility::BcmChip::TRIDENT2, streamType);
+}
+
+const PortQueue& Wedge40Platform::getDefaultControlPlaneQueueSettings(
+    cfg::StreamType streamType) const {
+  return utility::getDefaultControlPlaneQueueSettings(
+      utility::BcmChip::TRIDENT2, streamType);
 }
 
 } // namespace facebook::fboss

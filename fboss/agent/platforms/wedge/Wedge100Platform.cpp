@@ -10,12 +10,16 @@
 #include "fboss/agent/platforms/wedge/Wedge100Platform.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/platforms/wedge/Wedge100Port.h"
+#include "fboss/agent/platforms/wedge/WedgeLedCode.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 #include <folly/Memory.h>
+#include <folly/Range.h>
 #include <folly/logging/xlog.h>
 
 #include <chrono>
@@ -81,6 +85,37 @@ void Wedge100Platform::onHwInitialized(SwSwitch* sw) {
 
 void Wedge100Platform::onUnitAttach(int unit) {
   setPciPreemphasis(unit);
+}
+
+folly::ByteRange Wedge100Platform::defaultLed0Code() {
+  return WEDGE100_DEFAULT_LEDCODE;
+}
+
+folly::ByteRange Wedge100Platform::defaultLed1Code() {
+  return defaultLed0Code();
+}
+void Wedge100Platform::setPciPreemphasis(int unit) const {
+  /* This sets the PCIe pre-emphasis values on the tomahawk chip that
+   * is needed on the Wedge100 board. It is unfortunate that this
+   * includes bcm sdk calls, but the logic is only specific to the
+   * wedge100 board so I think the logic still makes sense to be in
+   * the platform.
+   *
+   * These values were determined by the HW team during testing.
+   */
+  auto phy = 0x1c5;
+  auto reg1 = 0x1f;
+  auto reg2 = 0x14;
+  auto unitObj = BcmAPI::getUnit(unit);
+
+  unitObj->rawRegisterWrite(phy, reg1, 0x4000);
+  unitObj->rawRegisterWrite(phy, reg2, 0x6620);
+  unitObj->rawRegisterWrite(phy, reg1, 0x4010);
+  unitObj->rawRegisterWrite(phy, reg2, 0x6620);
+  unitObj->rawRegisterWrite(phy, reg1, 0x4020);
+  unitObj->rawRegisterWrite(phy, reg2, 0x6620);
+  unitObj->rawRegisterWrite(phy, reg1, 0x4030);
+  unitObj->rawRegisterWrite(phy, reg2, 0x6620);
 }
 
 } // namespace facebook::fboss
