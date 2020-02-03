@@ -19,6 +19,7 @@ extern "C" {
 #include <folly/Conv.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/container/F14Map.h>
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>
@@ -125,9 +126,8 @@ class BcmWarmBootCache {
   typedef boost::container::flat_map<VlanID, bcm_if_t>
       Vlan2BcmIfIdInWarmBootFile;
 
-  typedef boost::container::flat_map<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
-  typedef boost::container::flat_map<VrfAndPrefix, bcm_l3_route_t>
-      VrfAndPrefix2Route;
+  typedef folly::F14FastMap<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
+  typedef folly::F14FastMap<VrfAndPrefix, bcm_l3_route_t> VrfAndPrefix2Route;
   typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
   using VrfAndIP2Route = boost::container::flat_map<VrfAndIP, bcm_l3_route_t>;
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
