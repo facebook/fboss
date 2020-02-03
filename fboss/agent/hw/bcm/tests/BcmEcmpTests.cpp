@@ -239,22 +239,55 @@ TEST_F(BcmEcmpTest, L2ResolveOneNhopThenLinkDown) {
 }
 
 TEST_F(BcmEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
-  programRouteWithUnresolvedNhops();
-  auto nhop = ecmpHelper_->nhop(0);
-  resolveNhops(1);
-  auto ecmpEgress = getEcmpEgress();
-  auto egressIdsInSw = ecmpEgress->paths();
-  ASSERT_EQ(numNextHops_, egressIdsInSw.size());
-  ASSERT_EQ(
-      1, getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-  bringDownPort(nhop.portDesc.phyPortID());
-  // ECMP shrunk on port down
-  ASSERT_EQ(
-      0, getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-  bringUpPort(nhop.portDesc.phyPortID());
-  // ECMP stays shrunk on port up
-  ASSERT_EQ(
-      0, getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
+  auto setup = [=]() {
+    programRouteWithUnresolvedNhops();
+    resolveNhops(1);
+
+    auto nhop = ecmpHelper_->nhop(0);
+    auto ecmpEgress = getEcmpEgress();
+    auto egressIdsInSw = ecmpEgress->paths();
+
+    ASSERT_EQ(numNextHops_, egressIdsInSw.size());
+    ASSERT_EQ(
+        1,
+        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
+
+    bringDownPort(nhop.portDesc.phyPortID());
+  };
+
+  auto verify = [=]() {
+    auto ecmpEgress = getEcmpEgress();
+    auto egressIdsInSw = ecmpEgress->paths();
+
+    // ECMP shrunk on port down
+    ASSERT_EQ(
+        0,
+        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
+  };
+
+  auto setupPostWarmboot = [=]() {
+    auto nhop = ecmpHelper_->nhop(0);
+    bringUpPort(nhop.portDesc.phyPortID());
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    auto nhop = ecmpHelper_->nhop(0);
+    auto ecmpEgress = getEcmpEgress();
+    auto egressIdsInSw = ecmpEgress->paths();
+
+    // ECMP stays shrunk on port up
+    ASSERT_EQ(
+        0,
+        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
+
+    // Bring port back down so we can warmboot more than once. This is
+    // necessary because verify() and verifyPostWarmboot() assume that the port
+    // is down and the nexthop unresolved, which won't be true if we warmboot
+    // after bringing the port up in setupPostWarmboot().
+    bringDownPort(nhop.portDesc.phyPortID());
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(BcmEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
