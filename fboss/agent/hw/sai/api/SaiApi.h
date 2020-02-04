@@ -165,8 +165,9 @@ class SaiApi {
   }
 
   template <typename AdapterKeyT, typename AttrT>
-  sai_status_t setAttribute(const AdapterKeyT& key, const AttrT& attr) {
-    return impl()._setAttribute(key, saiAttr(attr));
+  void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
+    auto status = impl()._setAttribute(key, saiAttr(attr));
+    saiApiCheckError(status, ApiT::ApiType, "Failed to set attribute");
   }
 
   template <typename SaiObjectTraits>

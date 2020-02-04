@@ -70,9 +70,14 @@ TEST_F(RouterInterfaceApiTest, setVrId) {
       virtualRouterIdAttribute2;
   EXPECT_EQ(
       42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
-  EXPECT_EQ(
-      SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute(rifId, virtualRouterIdAttribute));
+  EXPECT_THROW(
+      try {
+        routerInterfaceApi->setAttribute(rifId, virtualRouterIdAttribute);
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
   EXPECT_EQ(
       42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
 }
@@ -82,9 +87,15 @@ TEST_F(RouterInterfaceApiTest, setVlanId) {
   SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute(10);
   SaiRouterInterfaceTraits::Attributes::VlanId vlanIdAttribute2;
   EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
-  EXPECT_EQ(
-      SAI_STATUS_INVALID_PARAMETER,
-      routerInterfaceApi->setAttribute(rifId, vlanIdAttribute));
+  EXPECT_THROW(
+      try {
+        routerInterfaceApi->setAttribute(rifId, vlanIdAttribute);
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
+
   EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, vlanIdAttribute2));
 }
 

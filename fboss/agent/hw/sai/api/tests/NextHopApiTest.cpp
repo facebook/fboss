@@ -66,7 +66,12 @@ TEST_F(NextHopApiTest, getIp) {
 TEST_F(NextHopApiTest, setIp) {
   auto nextHopId = createNextHop(ip4);
   SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
-  EXPECT_EQ(
-      nextHopApi->setAttribute(nextHopId, ipAttribute),
-      SAI_STATUS_INVALID_PARAMETER);
+  EXPECT_THROW(
+      try {
+        nextHopApi->setAttribute(nextHopId, ipAttribute);
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
 }

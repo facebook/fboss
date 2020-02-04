@@ -50,8 +50,7 @@ TEST_F(SwitchApiTest, getNumPorts) {
 
 TEST_F(SwitchApiTest, setNumPorts) {
   SaiSwitchTraits::Attributes::PortNumber pn{100};
-  EXPECT_THROW(
-      saiCheckError(switchApi->setAttribute(switchId, pn)), SaiApiError);
+  EXPECT_THROW(switchApi->setAttribute(switchId, pn), SaiApiError);
 }
 
 TEST_F(SwitchApiTest, testGetPortIds) {
@@ -92,10 +91,15 @@ TEST_F(SwitchApiTest, getDefaultVlanId) {
 }
 
 TEST_F(SwitchApiTest, setDefaultVlanId) {
-  EXPECT_EQ(
-      switchApi->setAttribute(
-          switchId, SaiSwitchTraits::Attributes::DefaultVlanId(42)),
-      SAI_STATUS_INVALID_PARAMETER);
+  EXPECT_THROW(
+      try {
+        switchApi->setAttribute(
+            switchId, SaiSwitchTraits::Attributes::DefaultVlanId(42));
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
 }
 
 TEST_F(SwitchApiTest, getCpuPort) {

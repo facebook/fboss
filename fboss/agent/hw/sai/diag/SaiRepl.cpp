@@ -20,9 +20,7 @@ void SaiRepl::doRun() {
   shellThread_ = std::make_unique<std::thread>([switchId = switchId_]() {
     folly::setThreadName("Sai Repl");
     SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
-    auto rv =
-        SaiApiTable::getInstance()->switchApi().setAttribute(switchId, shell);
-    saiCheckError(rv, "Unable to start shell thread");
+    SaiApiTable::getInstance()->switchApi().setAttribute(switchId, shell);
   });
 }
 
