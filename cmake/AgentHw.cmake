@@ -14,3 +14,13 @@ target_link_libraries(counter_utils
   hardware_stats_cpp2
 )
 
+add_library(hw_port_fb303_stats
+  fboss/agent/hw/HwPortFb303Stats.cpp
+)
+
+target_link_libraries(hw_port_fb303_stats
+  fb303::fb303
+  FBThrift::thriftcpp2
+  hardware_stats_cpp2
+  Folly::folly
+)
