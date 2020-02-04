@@ -27,6 +27,7 @@ namespace facebook::fboss {
 class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
+class HwPortFb303Stats;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 
@@ -47,6 +48,7 @@ class SaiPortManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices_);
+  ~SaiPortManager();
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
   PortSaiId addCpuPort();
   void removePort(PortID id);
@@ -66,7 +68,7 @@ class SaiPortManager {
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
   void processPortDelta(const StateDelta& stateDelta);
-  void updateStats() const;
+  void updateStats();
   std::map<PortID, HwPortStats> getPortStats() const;
   PortSaiId addCpuPort(PortID portId);
   void changeQueue(
@@ -84,6 +86,7 @@ class SaiPortManager {
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
   folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>> handles_;
+  folly::F14FastMap<PortID, std::unique_ptr<HwPortFb303Stats>> portStats_;
 };
 
 } // namespace facebook::fboss

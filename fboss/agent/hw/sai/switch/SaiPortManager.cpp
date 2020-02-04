@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -23,6 +24,10 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/logging/xlog.h>
+
+#include <chrono>
+
+using namespace std::chrono;
 
 namespace facebook::fboss {
 namespace {
@@ -141,6 +146,8 @@ SaiPortManager::SaiPortManager(
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
+SaiPortManager::~SaiPortManager() {}
+
 void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
   std::vector<sai_object_id_t> queueList;
   queueList.resize(1);
@@ -185,6 +192,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
+  portStats_.emplace(
+      swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();
 }
@@ -196,6 +205,7 @@ void SaiPortManager::removePort(PortID swId) {
   }
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   handles_.erase(itr);
+  portStats_.erase(swId);
 }
 
 void SaiPortManager::changeQueue(
@@ -246,6 +256,10 @@ void SaiPortManager::changePort(
   portStore.setObject(portKey, attributes);
   changeQueue(
       newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
+  if (oldPort->getName() != newPort->getName()) {
+    portStats_.find(newPort->getID())
+        ->second->reinitPortStats(newPort->getName());
+  }
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -341,9 +355,14 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
       delta, processChanged, processAdded, processRemoved);
 }
 
-void SaiPortManager::updateStats() const {
+void SaiPortManager::updateStats() {
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   for (const auto& [portId, handle] : handles_) {
     handle->port->updateStats();
+    const auto& counters = handle->port->getStats();
+    HwPortStats hwPortStats;
+    fillHwPortStats(counters, hwPortStats);
+    portStats_[portId]->updateStats(hwPortStats, now);
     managerTable_->queueManager().updateStats(handle->queues);
   }
 }

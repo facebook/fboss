@@ -50,7 +50,6 @@ class HwPortFb303Stats {
       folly::StringPiece statKey) const;
   void reinitPortStat(folly::StringPiece statKey, const std::string& portName);
   folly::F14FastMap<std::string, stats::MonotonicCounter> portCounters_;
-  HwPortStats portStats_;
   std::chrono::seconds timeRetrieved_{0};
 };
 
