@@ -16,6 +16,17 @@
 #include <gtest/gtest.h>
 using namespace facebook::fboss;
 using namespace facebook::fb303;
+namespace {
+std::array<folly::StringPiece, 19> kStatNames = {
+    kInBytes(),         kInUnicastPkts(),     kInMulticastPkts(),
+    kInBroadcastPkts(), kInDiscardsRaw(),     kInDiscards(),
+    kInErrors(),        kInPause(),           kInIpv4HdrErrors(),
+    kInIpv6HdrErrors(), kInDstNullDiscards(), kOutBytes(),
+    kOutUnicastPkts(),  kOutMulticastPkts(),  kOutBroadcastPkts(),
+    kOutDiscards(),     kOutErrors(),         kOutPause(),
+    kOutEcnCounter(),
+};
+}
 
 TEST(HwPortFb303StatsTest, StatsInit) {
   HwPortFb303Stats stats("eth1/1/1");
@@ -32,5 +43,19 @@ TEST(HwPortFb303StatsTest, StatsDeInit) {
   }
   for (const auto& statName : statNames) {
     EXPECT_FALSE(fbData->getStatMap()->contains(statName));
+  }
+}
+
+TEST(HwPortFb303StatsTest, ReInit) {
+  constexpr auto kOrigPortName = "eth1/1/1";
+  constexpr auto kNewPortName = "eth1/2/1";
+
+  HwPortFb303Stats stats(kOrigPortName);
+  stats.reinitPortStats(kNewPortName);
+  for (const auto& sName : kStatNames) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(sName, kNewPortName)));
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(sName, kOrigPortName)));
   }
 }
