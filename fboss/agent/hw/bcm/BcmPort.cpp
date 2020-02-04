@@ -1289,7 +1289,10 @@ void BcmPort::setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort) {
 void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
   auto profileID = swPort->getProfileID();
   if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
-    throw FbossError("Found default profile for port ", swPort->getName());
+    XLOG(WARNING)
+        << swPort->getName()
+        << " has default profile, skip tx_setting programming for now";
+    return;
   }
 
   auto platformPortEntry = getPlatformPort()->getPlatformPortEntry();
