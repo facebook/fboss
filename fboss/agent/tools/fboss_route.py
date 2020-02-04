@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2004-present Facebook. All Rights Reserved
 
 from __future__ import division
