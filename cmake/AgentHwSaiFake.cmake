@@ -35,5 +35,3 @@ set_target_properties(fake_sai PROPERTIES COMPILE_FLAGS
   -DSAI_VER_MINOR=${SAI_VER_MINOR_VAR} \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE_VAR}"
 )
-
-install(TARGETS fake_sai)

@@ -695,31 +695,16 @@ add_test(test agent_test)
 
 install(TARGETS wedge_agent)
 
-include(Agent)
-include(AgentCapture)
-include(AgentHw)
-include(AgentHwBcm)
-include(AgentHwBcmTests)
-include(AgentHwSwitchAsics)
-include(AgentHwTest)
-include(AgentLldp)
-include(AgentPacket)
-include(AgentPlatformsCommon)
-include(AgentPlatformsTestPlatforms)
-include(AgentPlatformsWedge)
-include(AgentRib)
-include(AgentState)
-include(AgentTest)
-include(Lib)
-include(LibConfig)
-include(LibPhy)
-
-install(TARGETS bcm_test)
-
 set(SAI_VER_MAJOR_VAR "1")
 set(SAI_VER_MINOR_VAR "4")
 set(SAI_VER_RELEASE_VAR "0")
 
-# Build and install SAI executables
-include(AgentHwSaiApi)
-include(AgentHwSaiFake)
+# Build all cmake files under cmake/*cmake
+file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
+foreach(cmakeFile ${cmakeFiles})
+  message(status "INCLUDE ${cmakeFile}")
+  INCLUDE(${cmakeFile})
+endforeach(cmakeFile)
+
+install(TARGETS bcm_test)
+install(TARGETS fake_sai)
