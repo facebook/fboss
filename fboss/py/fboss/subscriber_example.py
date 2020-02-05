@@ -1,11 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import argparse
 import time
 
-from fboss.pcap_subscriber import PcapSubscriber, PcapListener
+from fboss.pcap_subscriber import PcapListener, PcapSubscriber
 
 
 class TestSubscriber(PcapSubscriber):
@@ -38,5 +36,5 @@ def main():
     server.server_thread.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

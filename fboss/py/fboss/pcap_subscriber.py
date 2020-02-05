@@ -1,7 +1,5 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import asyncio
 import socket
 import threading
@@ -12,7 +10,6 @@ from thrift.server import TAsyncioServer
 
 
 class PcapSubscriber(ThriftSub.Iface):
-
     def __init__(self, port):
         self.hostname = socket.gethostname()
         self.port = port
@@ -29,8 +26,7 @@ class PcapSubscriber(ThriftSub.Iface):
     # additionally, these functions need to be thread-safe
 
 
-class PcapListener():
-
+class PcapListener:
     def __init__(self, sub):
         self.subscriber = sub
 
