@@ -252,6 +252,7 @@ TEST_F(BcmQosPolicyTest, QosPolicyRemoveDefault) {
       checkPortNoQosMap(getHwSwitch(), masterLogicalPortIds()[index]);
     }
   };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmQosPolicyTest, QosPolicyOverrideDefault) {
