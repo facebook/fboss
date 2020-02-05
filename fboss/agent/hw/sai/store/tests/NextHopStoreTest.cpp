@@ -20,7 +20,7 @@ class NextHopStoreTest : public SaiStoreTest {
  public:
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     return saiApiTable->nextHopApi().create<SaiNextHopTraits>(
-        {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
+        {SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt}, 0);
   }
 };
 
@@ -34,8 +34,12 @@ TEST_F(NextHopStoreTest, loadNextHops) {
   s.reload();
   auto& store = s.get<SaiNextHopTraits>();
 
-  SaiNextHopTraits::AdapterHostKey k1{42, ip1};
-  SaiNextHopTraits::AdapterHostKey k2{42, ip2};
+  // hack to refer loaded object correctly, an optional needs a
+  // default value which is empty vector for labelstacl
+  SaiNextHopTraits::AdapterHostKey k1{
+      42, ip1, std::make_optional(std::vector<sai_uint32_t>())};
+  SaiNextHopTraits::AdapterHostKey k2{
+      42, ip2, std::make_optional(std::vector<sai_uint32_t>())};
   auto got = store.get(k1);
   EXPECT_EQ(got->adapterKey(), nextHopSaiId1);
   got = store.get(k2);
@@ -52,8 +56,9 @@ TEST_F(NextHopStoreTest, nextHopLoadCtor) {
 
 TEST_F(NextHopStoreTest, nextHopCreateCtor) {
   auto ip = folly::IPAddress("::");
-  SaiNextHopTraits::CreateAttributes c{SAI_NEXT_HOP_TYPE_IP, 42, ip};
-  SaiNextHopTraits::AdapterHostKey k{42, ip};
+  SaiNextHopTraits::CreateAttributes c{
+      SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt};
+  SaiNextHopTraits::AdapterHostKey k{42, ip, std::nullopt};
   SaiObject<SaiNextHopTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(NextHop, Ip, obj.attributes()), ip);
 }

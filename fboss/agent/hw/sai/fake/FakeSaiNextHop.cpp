@@ -37,6 +37,9 @@ sai_status_t create_next_hop_fn(
       case SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID:
         routerInterfaceId = attr_list[i].value.oid;
         break;
+      case SAI_NEXT_HOP_ATTR_LABELSTACK:
+        // TODO(pshaikh): support this in fake sdk, currently no-op
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -81,6 +84,9 @@ sai_status_t get_next_hop_attribute_fn(
         break;
       case SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID:
         attr[i].value.oid = nextHop.routerInterfaceId;
+        break;
+      case SAI_NEXT_HOP_ATTR_LABELSTACK:
+        // TODO(pshaikh): support this in fake sdk, currently no-op
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

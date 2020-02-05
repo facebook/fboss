@@ -36,14 +36,23 @@ struct SaiNextHopTraits {
         EnumType,
         SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID,
         SaiObjectIdT>;
+    using LabelStack = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_ATTR_LABELSTACK,
+        std::vector<sai_uint32_t>>;
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
   };
 
   using AdapterKey = NextHopSaiId;
-  using AdapterHostKey =
-      std::tuple<Attributes::RouterInterfaceId, Attributes::Ip>;
-  using CreateAttributes = std::
-      tuple<Attributes::Type, Attributes::RouterInterfaceId, Attributes::Ip>;
+  using AdapterHostKey = std::tuple<
+      Attributes::RouterInterfaceId,
+      Attributes::Ip,
+      std::optional<Attributes::LabelStack>>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::RouterInterfaceId,
+      Attributes::Ip,
+      std::optional<Attributes::LabelStack>>;
 };
 
 class NextHopApi : public SaiApi<NextHopApi> {

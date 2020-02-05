@@ -33,7 +33,8 @@ class NextHopApiTest : public ::testing::Test {
         0);
     SaiNextHopTraits::Attributes::Ip ipAttribute(ip4);
     auto nextHopId = nextHopApi->create<SaiNextHopTraits>(
-        {typeAttribute, routerInterfaceIdAttribute, ipAttribute}, 0);
+        {typeAttribute, routerInterfaceIdAttribute, ipAttribute, std::nullopt},
+        0);
     auto fnh = fs->nhm.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_IP, fnh.type);
     EXPECT_EQ(ip, fnh.ip);
