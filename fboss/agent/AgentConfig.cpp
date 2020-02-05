@@ -70,4 +70,10 @@ void AgentConfig::dumpConfig(folly::StringPiece path) const {
   folly::writeFile(raw, path.data());
 }
 
+std::unique_ptr<facebook::fboss::AgentConfig> createEmptyAgentConfig() {
+  facebook::fboss::cfg::AgentConfig agentCfg;
+  return std::make_unique<facebook::fboss::AgentConfig>(
+      agentCfg,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(agentCfg));
+}
 } // namespace facebook::fboss

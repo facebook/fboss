@@ -12,6 +12,8 @@
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include <memory>
+
 namespace facebook::fboss {
 
 struct AgentConfig {
@@ -32,5 +34,7 @@ struct AgentConfig {
   const cfg::AgentConfig thrift;
   const std::string raw;
 };
+
+std::unique_ptr<facebook::fboss::AgentConfig> createEmptyAgentConfig();
 
 } // namespace facebook::fboss

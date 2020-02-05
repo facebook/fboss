@@ -50,15 +50,6 @@ void addFlexPort(
   addPort(cfg, start + 3, speed / 4, false);
 }
 
-std::unique_ptr<facebook::fboss::AgentConfig> createDefaultAgentConfig() {
-  facebook::fboss::cfg::AgentConfig agentCfg;
-  // Create an empty AgentConfig for now, once we fully roll out the new
-  // platform config, we should generate a mock platform config for the fake
-  // bcm test
-  return std::make_unique<facebook::fboss::AgentConfig>(
-      agentCfg,
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(agentCfg));
-}
 } // namespace
 
 namespace facebook::fboss {
@@ -74,13 +65,16 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
       addFlexPort(cfg, n, 40);
     }
     cfg["pbmp_xport_xe"] = "0x1fffffffffffffffffffffffe";
-    agentConfig = createDefaultAgentConfig();
+    // Create an empty AgentConfig for now, once we fully roll out the new
+    // platform config, we should generate a mock platform config for the fake
+    // bcm test
+    agentConfig = createEmptyAgentConfig();
   } else {
     // Load from a local file
     if (!FLAGS_bcm_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_bcm_config;
       cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
-      agentConfig = createDefaultAgentConfig();
+      agentConfig = createEmptyAgentConfig();
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;
       agentConfig = AgentConfig::fromFile(FLAGS_config);
