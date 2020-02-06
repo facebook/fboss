@@ -8,36 +8,35 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+import re
 import socket
 import sys
-import re
 import typing as t
-
 from collections import defaultdict
 from typing import DefaultDict, Dict, List, Tuple
 
-from libfb.py.decorators import retryable
 from facebook.network.Address.ttypes import BinaryAddress
+from libfb.py.decorators import retryable
 from neteng.fboss.ctrl.ttypes import NextHopThrift
-from neteng.fboss.mpls.ttypes import MplsActionCode, MplsAction
+from neteng.fboss.mpls.ttypes import MplsAction, MplsActionCode
 
 
-AGENT_KEYWORD = 'agent'
-BGP_KEYWORD = 'bgp'
-COOP_KEYWORD = 'coop'
-SDK_KEYWORD = 'sdk'
-SSL_KEYWORD = 'ssl'
+AGENT_KEYWORD = "agent"
+BGP_KEYWORD = "bgp"
+COOP_KEYWORD = "coop"
+SDK_KEYWORD = "sdk"
+SSL_KEYWORD = "ssl"
 
-KEYWORD_CONFIG = 'config'
+KEYWORD_CONFIG = "config"
 
-KEYWORD_CONFIG_SHOW = 'show'
-KEYWORD_CONFIG_RELOAD = 'reload'
+KEYWORD_CONFIG_SHOW = "show"
+KEYWORD_CONFIG_RELOAD = "reload"
 
 
 def get_colors() -> Tuple[str, str, str]:
     if sys.stdout.isatty():
-        return ('\033[31m', '\033[32m', '\033[m')
-    return ('', '', '')
+        return ("\033[31m", "\033[32m", "\033[m")
+    return ("", "", "")
 
 
 def ip_to_binary(ip):
@@ -47,7 +46,7 @@ def ip_to_binary(ip):
         except socket.error:
             continue
         return BinaryAddress(addr=data)
-    raise socket.error('illegal IP address string: {}'.format(ip))
+    raise socket.error("illegal IP address string: {}".format(ip))
 
 
 def ip_ntop(addr):
@@ -56,19 +55,19 @@ def ip_ntop(addr):
     elif len(addr) == 16:
         return socket.inet_ntop(socket.AF_INET6, addr)
     else:
-        raise ValueError('bad binary address %r' % (addr,))
+        raise ValueError("bad binary address %r" % (addr,))
 
 
 def port_sort_fn(port):
     if not port.name:
-        return '', port.portId, 0, 0
+        return "", port.portId, 0, 0
     return port_name_sort_fn(port.name)
 
 
 def port_name_sort_fn(port_name):
-    m = re.match(r'([a-z][a-z][a-z])(\d+)/(\d+)/(\d)', port_name)
+    m = re.match(r"([a-z][a-z][a-z])(\d+)/(\d+)/(\d)", port_name)
     if not m:
-        return '', 0, 0, 0
+        return "", 0, 0, 0
     return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
 
 
@@ -78,7 +77,7 @@ def make_error_string(msg):
 
 
 def get_status_strs(status, is_present):
-    ''' Get port status attributes '''
+    """ Get port status attributes """
 
     COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors()
     attrs = {}
@@ -100,8 +99,8 @@ def get_status_strs(status, is_present):
         if status.enabled and is_present:
             color_start = COLOR_RED
         else:
-            color_start = ''
-            color_end = ''
+            color_start = ""
+            color_end = ""
     if is_present is None:
         present = "Unknown"
     elif not is_present:
@@ -109,15 +108,15 @@ def get_status_strs(status, is_present):
 
     if color_start:
         padding = 10 - len(link_status)
-    color_align = ' ' * padding
+    color_align = " " * padding
 
     link_status = color_start + link_status + color_end
 
-    attrs['admin_status'] = admin_status
-    attrs['link_status'] = link_status
-    attrs['color_align'] = color_align
-    attrs['present'] = present
-    attrs['speed'] = speed
+    attrs["admin_status"] = admin_status
+    attrs["link_status"] = link_status
+    attrs["color_align"] = color_align
+    attrs["present"] = present
+    attrs["speed"] = speed
 
     return attrs
 
@@ -130,25 +129,21 @@ def get_qsfp_info_map(qsfp_client, qsfps, continue_on_error=False):
     except Exception as e:
         if not continue_on_error:
             raise
-        print(make_error_string(
-            "Could not get qsfp info; continue anyway\n{}".format(e)))
+        print(
+            make_error_string("Could not get qsfp info; continue anyway\n{}".format(e))
+        )
         return {}
 
 
 @retryable(num_tries=3, sleep_time=0.1)
 def get_vlan_port_map(
-    agent_client,
-    qsfp_client,
-    colors=True,
-    details=True,
+    agent_client, qsfp_client, colors=True, details=True
 ) -> DefaultDict[str, DefaultDict[str, List[str]]]:
-    ''' fetch port info and map vlan -> ports '''
+    """ fetch port info and map vlan -> ports """
     all_port_info_map = agent_client.getAllPortInfo()
     port_status_map = agent_client.getPortStatus()
 
-    qsfp_info_map = get_qsfp_info_map(
-        qsfp_client, None, continue_on_error=True
-    )
+    qsfp_info_map = get_qsfp_info_map(qsfp_client, None, continue_on_error=True)
 
     vlan_port_map: DefaultDict[str, DefaultDict[str, List[str]]] = defaultdict(
         lambda: defaultdict(lambda: [])
@@ -173,7 +168,7 @@ def get_vlan_port_map(
         speed = int(port_status.speedMbps / 1000)
         # ports with transceiver data
 
-        fab_port = 'fab' in port.name
+        fab_port = "fab" in port.name
 
         if port_status.transceiverIdx:
             channels = port_status.transceiverIdx.channels
@@ -195,7 +190,7 @@ def get_vlan_port_map(
             speed,
             up,
             colors,
-            details
+            details,
         )
 
         if not port_summary:
@@ -215,20 +210,20 @@ def get_port_summary(
     speed: int,
     up: bool,
     details: bool,
-    colors: bool
+    colors: bool,
 ) -> str:
-    ''' build the port summary output taking into account various state '''
+    """ build the port summary output taking into account various state """
     COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors() if colors else ("", "", "")
     port_speed_display = get_port_speed_display(speed, enabled, up) if details else ""
     # port has channels assigned with sfp present or fab port, is enabled/up
     if ((channels and qsfp_present) or fab_port) and enabled and up:
-        return f'{COLOR_GREEN}{port_name}{COLOR_RESET} {port_speed_display}'
+        return f"{COLOR_GREEN}{port_name}{COLOR_RESET} {port_speed_display}"
     # port has channels assigned with sfp present or fab port, is enabled/down
     if ((channels and qsfp_present) or fab_port) and enabled and not up:
-        return f'{COLOR_RED}{port_name}{COLOR_RESET} {port_speed_display}'
+        return f"{COLOR_RED}{port_name}{COLOR_RESET} {port_speed_display}"
     # port has channels assigned with no sfp present, is enabled/up
     if (channels and not qsfp_present) and enabled:
-        return f'{port_name} {port_speed_display}'
+        return f"{port_name} {port_speed_display}"
     # port is of no interest (no channel assigned, no SFP, or disabled)
     return ""
 
@@ -248,7 +243,7 @@ def get_port_speed_display(speed, enabled, up):
 
 @retryable(num_tries=3, sleep_time=0.1)
 def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
-    ''' fetch aggregate port table and map vlan -> port channel name'''
+    """ fetch aggregate port table and map vlan -> port channel name"""
     aggregate_port_table = client.getAggregatePortTable()
     vlan_aggregate_port_map: Dict = {}
     for aggregate_port in aggregate_port_table:
@@ -261,9 +256,7 @@ def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
     return vlan_aggregate_port_map
 
 
-def label_forwarding_action_to_str(
-    label_forwarding_action: MplsAction
-) -> str:
+def label_forwarding_action_to_str(label_forwarding_action: MplsAction) -> str:
     if not label_forwarding_action:
         return ""
     code = MplsActionCode._VALUES_TO_NAMES[label_forwarding_action.action]
