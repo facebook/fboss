@@ -123,9 +123,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
-  void beginPacketDump(int32_t port) override;
-  void killDistributionProcess() override;
-
   void sendPkt(
       int32_t port,
       int32_t vlan,
@@ -202,10 +199,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   BootType getBootType() override;
 
   void getLldpNeighbors(std::vector<LinkNeighborThrift>& results) override;
-
-  void startPktCapture(std::unique_ptr<CaptureInfo> info) override;
-  void stopPktCapture(std::unique_ptr<std::string> name) override;
-  void stopAllPktCaptures() override;
 
   void startLoggingRouteUpdates(
       std::unique_ptr<RouteUpdateLoggingInfo> info) override;

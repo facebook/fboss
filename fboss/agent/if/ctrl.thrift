@@ -358,46 +358,11 @@ struct PortStatus {
   5: i64 speedMbps,  // TODO: i32 (someone is optimistic about port speeds)
 }
 
-enum CaptureDirection {
-  CAPTURE_ONLY_RX = 0,
-  CAPTURE_ONLY_TX = 1,
-  CAPTURE_TX_RX = 2
-}
-
-
 enum CpuCosQueueId {
   LOPRI = 0,
   DEFAULT = 1,
   MIDPRI = 2,
   HIPRI = 9
-}
-
-struct RxCaptureFilter {
-  1: list<CpuCosQueueId> cosQueues
-  # can put additional Rx filters here if need be
-}
-
-struct CaptureFilter {
-  1: RxCaptureFilter rxCaptureFilter;
-}
-
-struct CaptureInfo {
-  // A name identifying the packet capture
-  1: string name
-  /*
-   * Stop capturing after the specified number of packets.
-   *
-   * This parameter is required to make sure the capture will stop.
-   * In case your filter matches more packets than you expect, we don't want
-   * to consume lots of space and other resources by capturing an extremely
-   * large number of packets.
-   */
-  2: i32 maxPackets
-  3: CaptureDirection direction = CAPTURE_TX_RX
-  /*
-   * set of criteria that packet must meet to be captured
-   */
-  4: CaptureFilter  filter
 }
 
 struct RouteUpdateLoggingInfo {
@@ -525,16 +490,6 @@ service FbossCtrl extends fb303.FacebookService {
   ) throws (1: fboss.FbossBaseError error)
   void syncFibInVrf(1: i16 clientId, 2: list<UnicastRoute> routes, 3: i32 vrf)
     throws (1: fboss.FbossBaseError error)
-
-  /*
-   * Begins a packet stream from the switch to a distribution service
-   */
-  void beginPacketDump(1: i32 port)
-
-  /*
-   * Kill the pcap distribution process
-   */
-  void killDistributionProcess()
 
   /*
    * Send packets in binary or hex format to controller.
@@ -732,16 +687,6 @@ service FbossCtrl extends fb303.FacebookService {
    * Get the list of neighbors discovered via LLDP
    */
   list<LinkNeighborThrift> getLldpNeighbors()
-    throws (1: fboss.FbossBaseError error)
-
-  /*
-   * Start a packet capture
-   */
-  void startPktCapture(1: CaptureInfo info)
-    throws (1: fboss.FbossBaseError error)
-  void stopPktCapture(1: string name)
-    throws (1: fboss.FbossBaseError error)
-  void stopAllPktCaptures()
     throws (1: fboss.FbossBaseError error)
 
   /*

@@ -39,8 +39,6 @@ class IPv4Handler;
 class IPv6Handler;
 class LinkAggregationManager;
 class LldpManager;
-class PcapPushSubscriberAsyncClient;
-class PktCaptureManager;
 class Platform;
 class Port;
 class PortDescriptor;
@@ -329,19 +327,6 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
-   * Construct and destroy a client to dump packets to the packet distribution
-   * service.
-   */
-  void constructPushClient(uint16_t port);
-
-  void destroyPushClient();
-
-  /*
-   * Send a kill message to the distribution process.
-   */
-  void killDistributionProcess();
-
-  /*
    * Check if the passed in state is valid.
    * For now we just check for the new port speeds being valid.
    * This could be extended as needed
@@ -531,13 +516,6 @@ class SwSwitch : public HwSwitch::Callback {
   }
 
   /*
-   * Get the PktCaptureManager object.
-   */
-  PktCaptureManager* getCaptureMgr() {
-    return pcapMgr_.get();
-  }
-
-  /*
    * Get the LldpManager object
    */
   LldpManager* getLldpMgr() {
@@ -652,9 +630,6 @@ class SwSwitch : public HwSwitch::Callback {
     folly::SpinLockGuard guard(stateLock_);
     return desiredStateDontUseDirectly_;
   }
-
-  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
-  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
   /*
    * Clear PortStats of the specified port.
@@ -817,12 +792,6 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
-   * A thread for sending packets to the distribution process
-   */
-  std::unique_ptr<std::thread> pcapDistributionThread_;
-  folly::EventBase pcapDistributionEventBase_;
-
-  /*
    * A thread for processing SwitchState updates.
    */
   std::unique_ptr<std::thread> updateThread_;
@@ -859,15 +828,10 @@ class SwSwitch : public HwSwitch::Callback {
    */
   std::map<StateObserver*, std::string> stateObservers_;
 
-  std::unique_ptr<ChannelCloser> closer_; // must be before pcapPusher_
-  std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
-  std::atomic<bool> distributionServiceReady_{false};
-
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
   std::unique_ptr<IPv6Handler> ipv6_;
   std::unique_ptr<NeighborUpdater> nUpdater_;
-  std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<MirrorManager> mirrorManager_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;

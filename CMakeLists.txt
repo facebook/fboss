@@ -195,13 +195,6 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/hardware_stats.thrift
 )
 add_fbthrift_cpp_library(
-  pcap_pubsub_cpp2
-  fboss/pcap_distribution_service/if/pcap_pubsub.thrift
-  SERVICES
-    PcapPushSubscriber
-    PcapSubscriber
-)
-add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
@@ -272,12 +265,6 @@ add_library(fboss_agent STATIC
     fboss/agent/ArpCache.cpp
     fboss/agent/ArpHandler.cpp
     fboss/agent/StandaloneRibConversions.cpp
-    fboss/agent/capture/PcapFile.cpp
-    fboss/agent/capture/PcapPkt.cpp
-    fboss/agent/capture/PcapQueue.cpp
-    fboss/agent/capture/PcapWriter.cpp
-    fboss/agent/capture/PktCapture.cpp
-    fboss/agent/capture/PktCaptureManager.cpp
     fboss/agent/DHCPv4Handler.cpp
     fboss/agent/DHCPv6Handler.cpp
     fboss/agent/L2Entry.cpp
@@ -575,7 +562,6 @@ target_link_libraries(
     bcmswitch_cpp2
     hardware_stats_cpp2
     mpls_cpp2
-    pcap_pubsub_cpp2
     qsfp_cpp2
     Folly::folly
     wangle::wangle
