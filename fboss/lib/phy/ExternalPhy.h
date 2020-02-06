@@ -172,6 +172,12 @@ class ExternalPhy {
   virtual void reset() = 0;
 
   virtual void dump() {}
+
+  static bool compareConfigs(
+      const PhyPortConfig& lhs,
+      const PhyPortConfig& rhs) {
+    return lhs == rhs;
+  }
 };
 
 } // namespace facebook::fboss::phy
