@@ -214,15 +214,6 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
     mpls_cpp2
 )
-add_fbthrift_cpp_library(
-  netlink_manager_service_cpp2
-  fboss/netlink_manager/if/netlink_manager_service.thrift
-  SERVICES
-    NetlinkManagerService
-  DEPENDS
-    fb303_cpp2
-    ctrl_cpp2
-)
 
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
@@ -244,15 +235,6 @@ add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePort.cpp
     fboss/agent/platforms/wedge/wedge_agent.cpp
     fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
-)
-
-add_executable(netlink_manager
-    fboss/netlink_manager/NlResources.cpp
-    fboss/netlink_manager/NetlinkManager.cpp
-    fboss/netlink_manager/NetlinkPoller.cpp
-    fboss/netlink_manager/main.cpp
-    fboss/netlink_manager/utils/AddressUtils.cpp
-    fboss/netlink_manager/NetlinkManagerHandler.cpp
 )
 
 add_executable(qsfp_service
@@ -595,7 +577,6 @@ target_link_libraries(
     mpls_cpp2
     pcap_pubsub_cpp2
     qsfp_cpp2
-    netlink_manager_service_cpp2
     Folly::folly
     wangle::wangle
     fb303::fb303
@@ -612,7 +593,6 @@ target_link_libraries(
 
 target_link_libraries(switch_asics_old fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
-target_link_libraries(netlink_manager fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
 
 add_executable(cp2112_util

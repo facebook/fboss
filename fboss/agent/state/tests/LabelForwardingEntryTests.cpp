@@ -81,7 +81,6 @@ TEST(LabelForwardingEntryTests, getEntryForClient) {
     EXPECT_EQ(
         *nexthopEntry, clientNextHop.second(AdminDistance::DIRECTLY_CONNECTED));
   }
-  EXPECT_EQ(nullptr, entry->getEntryForClient(ClientID::NETLINK_LISTENER));
 }
 
 TEST(LabelForwardingEntryTests, delEntryForClient) {

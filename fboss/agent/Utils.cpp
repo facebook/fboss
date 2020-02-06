@@ -111,7 +111,6 @@ std::vector<ClientID> AllClientIDs() {
       ClientID::STATIC_ROUTE,
       ClientID::INTERFACE_ROUTE,
       ClientID::LINKLOCAL_ROUTE,
-      ClientID::NETLINK_LISTENER,
       ClientID::STATIC_INTERNAL,
       ClientID::OPENR,
   };
