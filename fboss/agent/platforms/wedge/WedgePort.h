@@ -18,6 +18,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
+#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Port.h"
 
@@ -100,6 +101,8 @@ class WedgePort : public BcmPlatformPort {
   // updated to support port programming like this.
   std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed);
+
+  BcmPortGroup::LaneMode getLaneMode() const;
 
  protected:
   bool isControllingPort() const;

@@ -11,7 +11,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
 namespace facebook::fboss {
@@ -68,7 +67,6 @@ class Wedge100Port : public WedgePort {
 
   TxOverrides getTxOverrides() const override;
 
-  BcmPortGroup::LaneMode laneMode();
   bool useCompactMode();
   LedColor getLedColor(bool up, bool adminUp);
   LedColor internalLedState_;

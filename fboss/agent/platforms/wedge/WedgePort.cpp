@@ -307,4 +307,21 @@ std::optional<std::vector<phy::PinID>> WedgePort::getTransceiverLanes(
   return std::nullopt;
 }
 
+BcmPortGroup::LaneMode WedgePort::getLaneMode() const {
+  // TODO (aeckert): it would be nicer if the BcmPortGroup wrote its
+  // lane mode to a member variable of ours on changes. That way we
+  // don't need to traverse these pointers so often. That also has the
+  // benefit of changing LED on portgroup changes, not just on/off.
+  // The one shortcoming of this is that we need to write four times
+  // (once for each WedgePort). We could add a notion of PortGroups
+  // to the platform as well, though that is probably a larger change
+  // since the bcm code does not know if the platform supports
+  // PortGroups or not.
+  auto myPortGroup = bcmPort_->getPortGroup();
+  if (!myPortGroup) {
+    // assume single
+    return BcmPortGroup::LaneMode::SINGLE;
+  }
+  return myPortGroup->laneMode();
+}
 } // namespace facebook::fboss
