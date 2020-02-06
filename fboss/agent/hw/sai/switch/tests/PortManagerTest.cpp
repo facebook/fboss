@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -16,6 +18,8 @@
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
+
+#include <fb303/ServiceData.h>
 
 #include <string>
 
@@ -209,4 +213,18 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
   checkPort(portId, saiId0, true);
   // expect it to return the existing port rather than create a new one
   EXPECT_EQ(saiId0, saiId1);
+}
+
+TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInBytes(), swPort->getName())));
+  auto newPort = swPort->clone();
+  newPort->setName("eth1/1/1");
+  saiManagerTable->portManager().changePort(swPort, newPort);
+  EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInBytes(), swPort->getName())));
+  EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+      HwPortFb303Stats::statName(kInBytes(), newPort->getName())));
 }
