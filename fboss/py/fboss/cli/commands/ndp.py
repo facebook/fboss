@@ -10,6 +10,7 @@
 
 from fboss.cli.commands import commands as cmds
 
+
 class NdpTableCmd(cmds.PrintNeighborTableCmd):
     WIDTH = 40
 

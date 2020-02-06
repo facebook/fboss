@@ -9,8 +9,8 @@
 #
 
 
-class AgentSnapshotClient():
-    '''
+class AgentSnapshotClient:
+    """
     This class's snapshots are backwards compatible
     iff features are added or deleted only. What this means
     is that adding a new field or function to this class will
@@ -18,11 +18,23 @@ class AgentSnapshotClient():
     Modifying existing functions and member variables
     will result in the CLI unable to parse
     the snapshot file correctly.
-    '''
+    """
+
     def __init__(
-        self, agent_config, ndp_table, lldp_neighbors, all_port_info,
-        l2_info, route_table, route_table_details, port_status, interfaces,
-        interface_names, arp_table, product_info, build_info
+        self,
+        agent_config,
+        ndp_table,
+        lldp_neighbors,
+        all_port_info,
+        l2_info,
+        route_table,
+        route_table_details,
+        port_status,
+        interfaces,
+        interface_names,
+        arp_table,
+        product_info,
+        build_info,
     ):
         self.agent_config = agent_config
         self.ndp_table = ndp_table

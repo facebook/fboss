@@ -10,8 +10,8 @@
 
 import json
 
-from fboss.cli.utils.utils import KEYWORD_CONFIG_SHOW, KEYWORD_CONFIG_RELOAD
 from fboss.cli.commands import commands as cmds
+from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from neteng.fboss.ttypes import FbossBaseError
 
 
@@ -24,24 +24,23 @@ class AgentConfigCmd(cmds.FbossCmd):
             print("No Agent Config Info Found")
             return
         parsed = json.loads(resp)
-        print(json.dumps(parsed, indent=4, sort_keys=True,
-                         separators=(',', ': ')))
+        print(json.dumps(parsed, indent=4, sort_keys=True, separators=(",", ": ")))
 
     def _reload_config(self):
-        ''' Reload agent config without restarting '''
+        """ Reload agent config without restarting """
         with self._create_agent_client() as client:
             try:
                 client.reloadConfig()
                 print("Config reloaded")
                 return 0
             except FbossBaseError as e:
-                print('Fboss Error: ' + e)
+                print("Fboss Error: " + e)
                 return 2
 
     def run(self, cmd_type):
-        if (cmd_type == KEYWORD_CONFIG_SHOW):
+        if cmd_type == KEYWORD_CONFIG_SHOW:
             self._print_config()
-        elif (cmd_type == KEYWORD_CONFIG_RELOAD):
+        elif cmd_type == KEYWORD_CONFIG_RELOAD:
             self._reload_config()
         else:
-            raise Exception('Unknown command `{}`'.format(cmd_type))
+            raise Exception("Unknown command `{}`".format(cmd_type))

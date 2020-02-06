@@ -39,8 +39,7 @@ class ProductInfoCmd(cmds.FbossCmd):
         print("Product Production State: %s" % (productInfo.productionState))
         print("Product Sub-Version: %s" % (productInfo.subVersion))
         print("Product Version: %s" % (productInfo.productVersion))
-        print("System Assembly Part Number: %s" %
-                                            (productInfo.systemPartNumber))
+        print("System Assembly Part Number: %s" % (productInfo.systemPartNumber))
         print("System Manufacturing Date: %s" % (productInfo.mfgDate))
         print("PCB Manufacturer: %s" % (productInfo.pcbManufacturer))
         print("Facebook PCBA Part Number: %s" % (productInfo.fbPcbaPartNumber))

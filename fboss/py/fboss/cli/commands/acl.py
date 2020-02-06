@@ -8,9 +8,10 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+import socket
+
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
-import socket
 
 
 class AclTableCmd(cmds.FbossCmd):
@@ -20,7 +21,6 @@ class AclTableCmd(cmds.FbossCmd):
         if proto == socket.IPPROTO_UDP:
             return "udp"
         return str(proto)
-
 
     def run(self):
         with self._create_agent_client() as client:
@@ -34,14 +34,19 @@ class AclTableCmd(cmds.FbossCmd):
             print("Acl: %s" % entry.name)
             print("   priority: %d" % entry.priority)
             if entry.srcIp.addr:
-                print("   src ip: %s/%d" %
-                (utils.ip_ntop(entry.srcIp.addr), entry.srcIpPrefixLength))
+                print(
+                    "   src ip: %s/%d"
+                    % (utils.ip_ntop(entry.srcIp.addr), entry.srcIpPrefixLength)
+                )
             if entry.dstIp.addr:
-                print("   dst ip: %s/%d" %
-                (utils.ip_ntop(entry.dstIp.addr), entry.dstIpPrefixLength))
+                print(
+                    "   dst ip: %s/%d"
+                    % (utils.ip_ntop(entry.dstIp.addr), entry.dstIpPrefixLength)
+                )
             if entry.proto:
-                print("   proto: %d(%s)" %
-                (entry.proto, self.getProtoString(entry.proto)))
+                print(
+                    "   proto: %d(%s)" % (entry.proto, self.getProtoString(entry.proto))
+                )
             if entry.srcPort:
                 print("   src port: %d" % entry.srcPort)
             if entry.dstPort:
@@ -59,11 +64,15 @@ class AclTableCmd(cmds.FbossCmd):
             if entry.ttl:
                 print("   icmp code: %d" % entry.ttl)
             if entry.l4SrcPort:
-                print("   L4 src port: %d(%s)" %
-                (entry.l4SrcPort, socket.getservbyport(entry.l4SrcPort)))
+                print(
+                    "   L4 src port: %d(%s)"
+                    % (entry.l4SrcPort, socket.getservbyport(entry.l4SrcPort))
+                )
             if entry.l4DstPort:
-                print("   L4 dst port: %d(%s)" %
-                (entry.l4DstPort, socket.getservbyport(entry.l4DstPort)))
+                print(
+                    "   L4 dst port: %d(%s)"
+                    % (entry.l4DstPort, socket.getservbyport(entry.l4DstPort))
+                )
             if entry.dstMac:
                 print("   dst mac: %s" % entry.dstMac)
             print("   action: %s" % entry.actionType)

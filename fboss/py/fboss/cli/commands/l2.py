@@ -9,7 +9,6 @@
 #
 
 from fboss.cli.commands import commands as cmds
-from fboss.cli.utils import utils
 from neteng.fboss.ctrl.ttypes import L2EntryType
 
 
@@ -55,5 +54,4 @@ class L2TableCmd(cmds.FbossCmd):
             else:
                 class_id = "-"
 
-            print(tmpl.format(entry.mac, port_data, entry.vlanID, entry_type,
-                class_id))
+            print(tmpl.format(entry.mac, port_data, entry.vlanID, entry_type, class_id))

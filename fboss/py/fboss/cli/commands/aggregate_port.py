@@ -12,6 +12,7 @@ import re
 
 from fboss.cli.commands import commands as cmds
 
+
 AGG_PORT_NUM_RE = re.compile(r".*?(?P<port_num>[0-9]+)$")
 
 
@@ -19,7 +20,7 @@ def get_port_num(port: str) -> str:
 
     port_num_match = AGG_PORT_NUM_RE.match(port)
     if port_num_match:
-        return port_num_match.group('port_num')
+        return port_num_match.group("port_num")
 
     return ""
 
@@ -50,9 +51,7 @@ def _print_agg_port_sum(agg_port) -> None:
 
 
 def _get_active_member_count(subports) -> int:
-    active_members = [
-        subport for subport in subports if subport.isForwarding
-    ]
+    active_members = [subport for subport in subports if subport.isForwarding]
     return len(active_members)
 
 

@@ -13,7 +13,7 @@ from fboss.cli.data.oui_to_vendor_ieee import oui_vendor_map
 
 
 class NicCmd(cmds.PrintNeighborTableCmd):
-    '''Class for host NIC related commands in fboss.'''
+    """Class for host NIC related commands in fboss."""
 
     _LENGTH_OF_OUI = 8
     _NO_MAC_FOUND_MESSAGE = "No MAC address found in ARP/NDP tables!"
@@ -31,7 +31,7 @@ class NicCmd(cmds.PrintNeighborTableCmd):
 
         mac_address_set = set(arp_mac_addresses + ndp_mac_addresses)
         # Ignore the broadcast mac.
-        mac_address_set -= set(['ff:ff:ff:ff:ff:ff', 'FF:FF:FF:FF:FF:FF'])
+        mac_address_set -= {"ff:ff:ff:ff:ff:ff", "FF:FF:FF:FF:FF:FF"}
 
         if not len(mac_address_set):
             print(self._NO_MAC_FOUND_MESSAGE)
@@ -39,7 +39,7 @@ class NicCmd(cmds.PrintNeighborTableCmd):
 
         mac_nic_dictionary = {}
         for mac in mac_address_set:
-            oui = mac[:self._LENGTH_OF_OUI].upper()
+            oui = mac[: self._LENGTH_OF_OUI].upper()
             nic_vendor_map = oui_vendor_map()
             if oui in nic_vendor_map.keys():
                 mac_nic_dictionary[mac] = nic_vendor_map[oui]
@@ -58,8 +58,9 @@ class NicCmd(cmds.PrintNeighborTableCmd):
         if len(nic_vendor_set) == 0:
             response = self._NO_MAC_FOUND_MESSAGE
         elif len(nic_vendor_set) > 1:
-            response += ", ".join(str(nic_vendor_iterator)
-                                  for nic_vendor_iterator in nic_vendor_set)
+            response += ", ".join(
+                str(nic_vendor_iterator) for nic_vendor_iterator in nic_vendor_set
+            )
         else:
             response += nic_vendor_set.pop()
 

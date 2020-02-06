@@ -10,23 +10,22 @@
 
 import ipaddress
 import typing as t
+from contextlib import ExitStack
 
-from facebook.network.Address.ttypes import Address, AddressType
-from fboss.cli.utils import utils
+from facebook.network.Address.ttypes import Address, AddressType, BinaryAddress
 from fboss.cli.commands import commands as cmds
-from neteng.fboss.ctrl.ttypes import IpPrefix
-from neteng.fboss.ctrl.ttypes import NextHopThrift
-from neteng.fboss.ctrl.ttypes import UnicastRoute
-from facebook.network.Address.ttypes import BinaryAddress
+from fboss.cli.utils import utils
+from neteng.fboss.ctrl.ttypes import IpPrefix, NextHopThrift, UnicastRoute
 
 
 def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
     suffix = ""
-    if (entry.isConnected):
+    if entry.isConnected:
         suffix += " (connected)"
-    print("Network Address: %s/%d %s" %
-          (utils.ip_ntop(entry.dest.ip.addr), entry.dest.prefixLength,
-           suffix))
+    print(
+        "Network Address: %s/%d %s"
+        % (utils.ip_ntop(entry.dest.ip.addr), entry.dest.prefixLength, suffix)
+    )
     for clAndNxthops in entry.nextHopMulti:
         print("  Nexthops from client %d" % clAndNxthops.clientId)
         if clAndNxthops.nextHopAddrs:
@@ -39,14 +38,20 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
     if entry.nextHops and len(entry.nextHops) > 0:
         print("  Forwarding via:")
         for nextHop in entry.nextHops:
-            print("    {}".format(
-                utils.nexthop_to_str(nextHop, vlan_aggregate_port_map, vlan_port_map))
+            print(
+                "    {}".format(
+                    utils.nexthop_to_str(
+                        nextHop, vlan_aggregate_port_map, vlan_port_map
+                    )
+                )
             )
     elif len(entry.fwdInfo) > 0:
         print("  Forwarding via:")
         for ifAndIp in entry.fwdInfo:
-            print("    (i/f %d) %s" % (ifAndIp.interfaceID,
-                                       utils.ip_ntop(ifAndIp.ip.addr)))
+            print(
+                "    (i/f %d) %s"
+                % (ifAndIp.interfaceID, utils.ip_ntop(ifAndIp.ip.addr))
+            )
     else:
         print("  No Forwarding Info")
     print("  Admin Distance: %s" % entry.adminDistance)
@@ -55,8 +60,10 @@ def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
 
 def parse_prefix(prefix):
     network = ipaddress.ip_network(prefix)
-    return IpPrefix(ip=BinaryAddress(addr=network.network_address.packed),
-                    prefixLength=network.prefixlen)
+    return IpPrefix(
+        ip=BinaryAddress(addr=network.network_address.packed),
+        prefixLength=network.prefixlen,
+    )
 
 
 def is_ucmp_active(next_hops: t.Iterator[NextHopThrift]) -> bool:
@@ -80,20 +87,19 @@ def parse_nexthops(nexthops):
         iface = None
         weight = 0
         # Nexthop may have weight.
-        if 'x' in nh:
-            addr_iface, _, weight = nh.rpartition('x')
+        if "x" in nh:
+            addr_iface, _, weight = nh.rpartition("x")
             weight = int(weight)
         else:
             addr_iface = nh
         # Nexthop may or may not be link-local. Handle it here well
-        if '@' in addr_iface:
-            addr, _, iface = addr_iface.rpartition('@')
-        elif '%' in addr_iface:
-            addr, _, iface = addr_iface.rpartition('%')
+        if "@" in addr_iface:
+            addr, _, iface = addr_iface.rpartition("@")
+        elif "%" in addr_iface:
+            addr, _, iface = addr_iface.rpartition("%")
         else:
             addr = addr_iface
-        binaddr = BinaryAddress(
-            addr=ipaddress.ip_address(addr).packed, ifName=iface)
+        binaddr = BinaryAddress(addr=ipaddress.ip_address(addr).packed, ifName=iface)
         nhts.append(NextHopThrift(address=binaddr, weight=weight))
     return nhts
 
@@ -104,8 +110,12 @@ class RouteAddCmd(cmds.FbossCmd):
         nexthops = parse_nexthops(nexthops)
         with self._create_agent_client() as client:
             client.addUnicastRoutes(
-                client_id, [UnicastRoute(dest=prefix, nextHops=nexthops,
-                                         adminDistance=admin_distance)]
+                client_id,
+                [
+                    UnicastRoute(
+                        dest=prefix, nextHops=nexthops, adminDistance=admin_distance
+                    )
+                ],
             )
 
 
@@ -128,18 +138,19 @@ class RouteIpCmd(cmds.FbossCmd):
     ):
         resp = client.getIpRouteDetails(addr, vrf)
         if not resp.nextHopMulti:
-            print('No route to ' + addr.addr + ', Vrf: %d' % vrf)
+            print("No route to " + addr.addr + ", Vrf: %d" % vrf)
             return
-        print('Route to ' + addr.addr + ', Vrf: %d' % vrf)
+        print("Route to " + addr.addr + ", Vrf: %d" % vrf)
         printRouteDetailEntry(resp, vlan_aggregate_port_map, vlan_port_map)
 
     def run(self, ip, vrf):
         addr = Address(addr=ip, type=AddressType.V4)
         if not addr.addr:
-            print('No ip address provided')
+            print("No ip address provided")
             return
-        with self._create_agent_client() as client, \
-                self._create_qsfp_client() as qsfp_client:
+        with ExitStack() as stack:
+            client = stack.enter_context(self._create_agent_client())
+            qsfp_client = stack.enter_context(self._create_qsfp_client())
             # Getting the port/agg to VLAN map in order to display them
             vlan_port_map = utils.get_vlan_port_map(
                 client, qsfp_client, colors=False, details=False
@@ -151,10 +162,10 @@ class RouteIpCmd(cmds.FbossCmd):
 
 
 class RouteTableCmd(cmds.FbossCmd):
-
     def run(self, client_id, ipv4, ipv6):
-        with self._create_agent_client() as agent_client, \
-                self._create_qsfp_client() as qsfp_client:
+        with ExitStack() as stack:
+            agent_client = stack.enter_context(self._create_agent_client())
+            qsfp_client = stack.enter_context(self._create_qsfp_client())
             if client_id is None:
                 resp = agent_client.getRouteTable()
             else:
@@ -183,13 +194,22 @@ class RouteTableCmd(cmds.FbossCmd):
                 # Need to check the nextHopAddresses
                 if entry.nextHops:
                     for nextHop in entry.nextHops:
-                        print("\tvia %s" % (utils.nexthop_to_str(nextHop,
-                            vlan_aggregate_port_map=vlan_aggregate_port_map,
-                            vlan_port_map=vlan_port_map, ucmp_active=ucmp_active)))
+                        print(
+                            "\tvia %s"
+                            % (
+                                utils.nexthop_to_str(
+                                    nextHop,
+                                    vlan_aggregate_port_map=vlan_aggregate_port_map,
+                                    vlan_port_map=vlan_port_map,
+                                    ucmp_active=ucmp_active,
+                                )
+                            )
+                        )
                 else:
                     for address in entry.nextHopAddrs:
-                        print("\tvia %s" % utils.nexthop_to_str(
-                            NextHopThrift(address=address))
+                        print(
+                            "\tvia %s"
+                            % utils.nexthop_to_str(NextHopThrift(address=address))
                         )
 
 
@@ -197,6 +217,7 @@ class RouteTableSummaryCmd(cmds.FbossCmd):
     """ Print rough statistics of various route types
         Useful for understanding HW table capacity/usage
     """
+
     def run(self):
         with self._create_agent_client() as agent_client:
             resp = agent_client.getRouteTable()
@@ -217,20 +238,23 @@ class RouteTableSummaryCmd(cmds.FbossCmd):
         # salt rather than a fraction of available space
         hw_entries_used = n_v4_routes + 2 * n_v6_small + 4 * n_v6_big
         n_v6 = n_v6_big + n_v6_small
-        print(f"""Route Table Summary:
+        print(
+            f"""Route Table Summary:
 
 {n_v4_routes:-10} v4 routes
 {n_v6_small:-10} v6 routes (/64 or smaller)
 {n_v6_big:-10} v6 routes (bigger than /64)
 {n_v6:-10} v6 routes (total)
 {hw_entries_used:-10} approximate hw entries used
-""")
+"""
+        )
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
     def run(self, ipv4, ipv6):
-        with self._create_agent_client() as client, \
-                self._create_qsfp_client() as qsfp_client:
+        with ExitStack() as stack:
+            client = stack.enter_context(self._create_agent_client())
+            qsfp_client = stack.enter_context(self._create_qsfp_client())
             vlan_port_map = utils.get_vlan_port_map(
                 client, qsfp_client, colors=False, details=False
             )
