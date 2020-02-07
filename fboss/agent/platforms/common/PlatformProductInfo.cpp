@@ -14,6 +14,7 @@
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
 #include <folly/dynamic.h>
+#include <folly/experimental/TestUtil.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 
@@ -201,4 +202,39 @@ void PlatformProductInfo::parse(std::string data) {
   productInfo_.macRangeSize = info[kExtMacSize].asInt() - 1;
 }
 
+std::unique_ptr<PlatformProductInfo> fakeProductInfo() {
+  // Dummy Fruid for fake platform
+  static const std::string kFakeFruidJson = R"<json>({"Information": {
+      "PCB Manufacturer" : "Facebook",
+      "System Assembly Part Number" : "42",
+      "ODM PCBA Serial Number" : "SN",
+      "Product Name" : "fake_wedge",
+      "Location on Fabric" : "",
+      "ODM PCBA Part Number" : "PN",
+      "CRC8" : "0xcc",
+      "Version" : "1",
+      "Product Asset Tag" : "42",
+      "Product Part Number" : "42",
+      "Assembled At" : "Facebook",
+      "System Manufacturer" : "Facebook",
+      "Product Production State" : "42",
+      "Facebook PCB Part Number" : "42",
+      "Product Serial Number" : "SN",
+      "Local MAC" : "42:42:42:42:42:42",
+      "Extended MAC Address Size" : "1",
+      "Extended MAC Base" : "42:42:42:42:42:42",
+      "System Manufacturing Date" : "01-01-01",
+      "Product Version" : "42",
+      "Product Sub-Version" : "22",
+      "Facebook PCBA Part Number" : "42"
+    }, "Actions": [], "Resources": []})<json>";
+
+  folly::test::TemporaryDirectory tmpDir;
+  auto fruidFilename = tmpDir.path().string() + "fruid.json";
+  folly::writeFile(kFakeFruidJson, fruidFilename.c_str());
+  auto productInfo =
+      std::make_unique<facebook::fboss::PlatformProductInfo>(fruidFilename);
+  productInfo->initialize();
+  return productInfo;
+}
 } // namespace facebook::fboss

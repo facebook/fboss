@@ -42,4 +42,8 @@ class PlatformProductInfo {
   PlatformMode mode_;
 };
 
+/*
+ * Convenience API to create product info for fake platforms
+ */
+std::unique_ptr<PlatformProductInfo> fakeProductInfo();
 } // namespace facebook::fboss
