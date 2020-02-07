@@ -18,6 +18,8 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 extern "C" {
 #include <bcm/port.h>
 }
@@ -129,6 +131,10 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
     for (auto index : {0, 1}) {
       newCfg.ports[index].loopbackMode = cfg::PortLoopbackMode::MAC;
       newCfg.ports[index].speed = cfg::PortSpeed::FORTYG;
+      newCfg.ports[index].profileID =
+          getPlatform()
+              ->getPlatformPort(PortID(newCfg.ports[index].logicalID))
+              ->getProfileIDBySpeed(newCfg.ports[index].speed);
     }
     applyNewConfig(newCfg);
   };
@@ -153,6 +159,10 @@ TEST_F(BcmPortTest, PortLoopbackModePHY40G) {
     for (auto index : {0, 1}) {
       newCfg.ports[index].loopbackMode = cfg::PortLoopbackMode::PHY;
       newCfg.ports[index].speed = cfg::PortSpeed::FORTYG;
+      newCfg.ports[index].profileID =
+          getPlatform()
+              ->getPlatformPort(PortID(newCfg.ports[index].logicalID))
+              ->getProfileIDBySpeed(newCfg.ports[index].speed);
     }
     applyNewConfig(newCfg);
   };
@@ -177,6 +187,10 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC100G) {
     for (auto index : {0, 1}) {
       newCfg.ports[index].loopbackMode = cfg::PortLoopbackMode::MAC;
       newCfg.ports[index].speed = cfg::PortSpeed::HUNDREDG;
+      newCfg.ports[index].profileID =
+          getPlatform()
+              ->getPlatformPort(PortID(newCfg.ports[index].logicalID))
+              ->getProfileIDBySpeed(newCfg.ports[index].speed);
     }
     applyNewConfig(newCfg);
   };
@@ -201,6 +215,10 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
     for (auto index : {0, 1}) {
       newCfg.ports[index].loopbackMode = cfg::PortLoopbackMode::PHY;
       newCfg.ports[index].speed = cfg::PortSpeed::HUNDREDG;
+      newCfg.ports[index].profileID =
+          getPlatform()
+              ->getPlatformPort(PortID(newCfg.ports[index].logicalID))
+              ->getProfileIDBySpeed(newCfg.ports[index].speed);
     }
     applyNewConfig(newCfg);
   };
@@ -383,6 +401,10 @@ TEST_F(BcmPortTest, FECStatus100GPort) {
     for (auto index : {0, 1}) {
       newCfg.ports[index].loopbackMode = cfg::PortLoopbackMode::MAC;
       newCfg.ports[index].speed = cfg::PortSpeed::HUNDREDG;
+      newCfg.ports[index].profileID =
+          getPlatform()
+              ->getPlatformPort(PortID(newCfg.ports[index].logicalID))
+              ->getProfileIDBySpeed(newCfg.ports[index].speed);
     }
     applyNewConfig(newCfg);
   };
@@ -455,6 +477,8 @@ TEST_F(BcmPortTest, AssertMode) {
                                 .at(platformPort->getTransmitterTech().value());
         EXPECT_EQ(expectedMode, curMode);
       } else {
+        // On platforms that use port resource APIs, phy lane config determines
+        // the interface mode.
         bcm_port_resource_t portResource;
         auto ret =
             bcm_port_resource_get(getUnit(), port->getID(), &portResource);
@@ -462,10 +486,20 @@ TEST_F(BcmPortTest, AssertMode) {
             ret,
             "Failed to get current port resource settings for: ",
             port->getName());
-        // On platforms that use port resource APIs, phy lane config determines
-        // the interface mode.
-        auto expectedPhyLaneConfig = getDesiredPhyLaneConfig(
-            platformPort->getTransmitterTech().value(), cfg::PortSpeed(speed));
+
+        int expectedPhyLaneConfig = 0;
+        if (const auto profileConf =
+                getPlatform()->getPortProfileConfig(port->getProfileID())) {
+          expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(
+              profileConf->get_iphy().get_modulation(),
+              platformPort->getTransmitterTech().value());
+        } else {
+          // TODO(@ccpowers) We'll support Minipack/Yamp platform using
+          // PlatformMapping once we can support generate complete test config.
+          expectedPhyLaneConfig = getDesiredPhyLaneConfig(
+              platformPort->getTransmitterTech().value(),
+              cfg::PortSpeed(speed));
+        }
         EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
       }
     }

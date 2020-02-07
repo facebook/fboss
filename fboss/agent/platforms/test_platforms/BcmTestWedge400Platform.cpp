@@ -10,15 +10,7 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge400Port.h"
-
-namespace {
-static const std::array<int, 48> kMasterLogicalPortIds = {
-    36, 37, 56, 57, 17,  18,  76,  77,  96,  97,  156, 157, 116, 117, 136, 137,
-    20, 24, 28, 32, 40,  44,  48,  52,  1,   5,   9,   13,  60,  64,  68,  72,
-    80, 84, 88, 92, 140, 144, 148, 152, 100, 104, 108, 112, 120, 124, 128, 132};
-
-constexpr uint8_t kNumPortsPerTransceiver = 1;
-} // unnamed namespace
+#include "fboss/agent/platforms/wedge/wedge400/Wedge400PlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -26,10 +18,7 @@ BcmTestWedge400Platform::BcmTestWedge400Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawk3Platform(
           std::move(productInfo),
-          std::vector<PortID>(
-              kMasterLogicalPortIds.begin(),
-              kMasterLogicalPortIds.end()),
-          kNumPortsPerTransceiver) {}
+          std::make_unique<Wedge400PlatformMapping>()) {}
 
 std::unique_ptr<BcmTestPort> BcmTestWedge400Platform::createTestPort(
     PortID id) {

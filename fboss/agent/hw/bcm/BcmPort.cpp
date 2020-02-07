@@ -117,48 +117,6 @@ bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
   throw std::runtime_error("Unsupported fec type in port resource");
 }
 
-uint32_t getPhyLaneConfig(
-    phy::IpModulation modulation,
-    TransmitterTechnology tech) {
-  uint32_t laneConfig = 0;
-
-  uint32_t medium = 0;
-  switch (tech) {
-    case TransmitterTechnology::COPPER:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE;
-      break;
-    case TransmitterTechnology::BACKPLANE:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
-      break;
-    case TransmitterTechnology::OPTICAL:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
-      break;
-    case TransmitterTechnology::UNKNOWN:
-      XLOG(WARNING)
-          << "Unknown transmitter technology, fall back to use backplane";
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
-      break;
-  };
-  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
-
-  switch (modulation) {
-    case phy::IpModulation::PAM4:
-      // PAM4 + NS
-      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);
-      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NS_SET(laneConfig);
-      break;
-    case phy::IpModulation::NRZ:
-      // NRZ
-      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NRZ_SET(laneConfig);
-      break;
-  };
-
-  // always enable DFE
-  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_DFE_SET(laneConfig);
-
-  return laneConfig;
-}
-
 void updateBcmStat(
     int unit,
     bcm_port_t port,
@@ -1600,8 +1558,8 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
     desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
     desiredPortResource.fec_type =
         utility::phyFecModeToBcmPortPhyFec((*profileConf).get_iphy().get_fec());
-    desiredPortResource.phy_lane_config =
-        getPhyLaneConfig((*profileConf).get_iphy().get_modulation(), tech);
+    desiredPortResource.phy_lane_config = utility::getDesiredPhyLaneConfig(
+        (*profileConf).get_iphy().get_modulation(), tech);
   } else {
     // in case we don't have the new config yet
     cfg::PortSpeed desiredPortSpeed = getDesiredPortSpeed(swPort);

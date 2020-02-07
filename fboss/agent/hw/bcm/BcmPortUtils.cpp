@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
@@ -105,6 +106,48 @@ bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(phy::FecMode fec) {
   };
   throw facebook::fboss::FbossError(
       "Unsupported fec type: ", apache::thrift::util::enumNameSafe(fec));
+}
+
+uint32_t getDesiredPhyLaneConfig(
+    phy::IpModulation modulation,
+    TransmitterTechnology tech) {
+  uint32_t laneConfig = 0;
+
+  uint32_t medium = 0;
+  switch (tech) {
+    case TransmitterTechnology::COPPER:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE;
+      break;
+    case TransmitterTechnology::BACKPLANE:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
+      break;
+    case TransmitterTechnology::OPTICAL:
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
+      break;
+    case TransmitterTechnology::UNKNOWN:
+      XLOG(WARNING)
+          << "Unknown transmitter technology, fall back to use backplane";
+      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
+      break;
+  };
+  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
+
+  switch (modulation) {
+    case phy::IpModulation::PAM4:
+      // PAM4 + NS
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NS_SET(laneConfig);
+      break;
+    case phy::IpModulation::NRZ:
+      // NRZ
+      BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_NRZ_SET(laneConfig);
+      break;
+  };
+
+  // always enable DFE
+  BCM_PORT_RESOURCE_PHY_LANE_CONFIG_DFE_SET(laneConfig);
+
+  return laneConfig;
 }
 
 } // namespace facebook::fboss::utility

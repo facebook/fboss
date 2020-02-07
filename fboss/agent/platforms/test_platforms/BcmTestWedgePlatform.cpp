@@ -32,6 +32,11 @@ BcmTestWedgePlatform::BcmTestWedgePlatform(
           masterLogicalPortIds,
           numPortsPerTranceiver) {}
 
+BcmTestWedgePlatform::BcmTestWedgePlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : BcmTestPlatform(std::move(productInfo), std::move(platformMapping)) {}
+
 std::string BcmTestWedgePlatform::getVolatileStateDir() const {
   return FLAGS_volatile_state_dir;
 }

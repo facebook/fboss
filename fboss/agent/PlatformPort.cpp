@@ -48,7 +48,7 @@ cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
   // an exception will still be thrown when trying to actually program
   // platforms using the new config with PROFILE_DEFAULT in real use)
   auto platformPortEntry = getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
+  if (!platformPortEntry.has_value() || speed == cfg::PortSpeed::DEFAULT) {
     return cfg::PortProfileID::PROFILE_DEFAULT;
   }
 

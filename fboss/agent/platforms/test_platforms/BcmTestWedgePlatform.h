@@ -20,6 +20,10 @@ class BcmTestWedgePlatform : public BcmTestPlatform {
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
 
+  BcmTestWedgePlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
+
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
 

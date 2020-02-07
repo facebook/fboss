@@ -14,8 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
-
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Memory.h>
 #include <folly/logging/xlog.h>
@@ -36,6 +36,24 @@ BcmTestPlatform::BcmTestPlatform(
     for (int i = 0; i < numPortsPerTranceiver; ++i) {
       logicalPortIds_.push_back(PortID(masterPort + i));
     }
+  }
+}
+
+BcmTestPlatform::BcmTestPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : BcmPlatform(std::move(productInfo), std::move(platformMapping)) {
+  const auto& portsByMasterPort =
+      utility::getSubsidiaryPortIDs(getPlatformPorts());
+  for (auto itPort : portsByMasterPort) {
+    masterLogicalPortIds_.push_back(itPort.first);
+    // TODO(ccpowers) We haven't enabled supportsAddRemovePort() for TH3
+    // platforms yet. Once we support FlexPort testing on TH3 platform, we
+    // can put all the subsidary ports into logicalPortIds
+    logicalPortIds_.push_back(itPort.first);
+    // for (auto itSubPort : itPort.second) {
+    //   logicalPortIds_.push_back(itSubPort);
+    // }
   }
 }
 

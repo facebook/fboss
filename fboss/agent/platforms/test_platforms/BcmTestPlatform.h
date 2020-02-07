@@ -28,10 +28,15 @@ class BcmSwitch;
 
 class BcmTestPlatform : public BcmPlatform {
  public:
+  // TODO(joseph5wu) We can deprecate the old constructor once we have
+  // PlatformMapping for all platforms.
   BcmTestPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::vector<PortID> masterLogicalPortIds,
       int numPortsPerTranceiver);
+  BcmTestPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~BcmTestPlatform() override;
 
   HwSwitch* getHwSwitch() const override;
