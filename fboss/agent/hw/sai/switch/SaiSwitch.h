@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/io/async/EventBase.h>
 
@@ -23,7 +24,6 @@
 namespace facebook::fboss {
 
 class ConcurrentIndices;
-class SaiPlatform;
 
 class SaiSwitch : public HwSwitch {
  public:
@@ -109,7 +109,7 @@ class SaiSwitch : public HwSwitch {
   SwitchSaiId getSwitchId() const {
     return switchId_;
   }
-  const SaiPlatform* getPlatform() const {
+  SaiPlatform* getPlatform() const override {
     return platform_;
   }
 

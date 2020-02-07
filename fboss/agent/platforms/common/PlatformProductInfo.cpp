@@ -75,14 +75,6 @@ void PlatformProductInfo::initialize() {
   initMode();
 }
 
-void PlatformProductInfo::getInfo(ProductInfo& info) {
-  info = productInfo_;
-}
-
-PlatformMode PlatformProductInfo::getMode() const {
-  return mode_;
-}
-
 std::string PlatformProductInfo::getFabricLocation() {
   return productInfo_.fabricLocation;
 }

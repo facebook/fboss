@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/types.h"
@@ -111,6 +112,8 @@ class HwSwitch {
            FeaturesDesired::LINKSCAN_DESIRED))
       : featuresDesired_(featuresDesired) {}
   virtual ~HwSwitch() {}
+
+  virtual Platform* getPlatform() const = 0;
 
   /*
    * Initialize the hardware.

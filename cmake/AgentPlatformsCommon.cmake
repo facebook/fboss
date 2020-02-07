@@ -12,3 +12,11 @@ target_link_libraries(product_info
   ctrl_cpp2
   Folly::folly
 )
+
+add_library(platform_mapping
+  fboss/agent/platforms/common/PlatformMapping.cpp
+)
+
+target_link_libraries(platform_mapping
+  platform_config_cpp2
+)

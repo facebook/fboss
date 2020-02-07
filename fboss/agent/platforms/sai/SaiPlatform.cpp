@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -57,6 +59,13 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 } // namespace
 
 namespace facebook::fboss {
+
+SaiPlatform::SaiPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : Platform(std::move(productInfo), std::move(platformMapping)) {}
+
+SaiPlatform::~SaiPlatform() {}
 
 HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();

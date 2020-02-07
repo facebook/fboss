@@ -64,7 +64,6 @@ target_link_libraries(fboss_types
 )
 
 add_library(core
-  fboss/agent/AgentConfig.cpp
   fboss/agent/ApplyThriftConfig.cpp
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
@@ -89,8 +88,6 @@ add_library(core
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
-  fboss/agent/Platform.cpp
-  fboss/agent/PlatformPort.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
@@ -120,6 +117,7 @@ target_link_libraries(core
   lldp
   packet
   product_info
+  platform_base
   fib_updater
   network_to_route_map
   standalone_rib
@@ -172,6 +170,21 @@ target_link_libraries(fboss_error
   Folly::folly
 )
 
+add_library(platform_base
+  fboss/agent/AgentConfig.cpp
+  fboss/agent/Platform.cpp
+  fboss/agent/PlatformPort.cpp
+)
+
+target_link_libraries(platform_base
+  agent_config_cpp2
+  ctrl_cpp2
+  error
+  fboss_types
+  Folly::folly
+  platform_mapping
+)
+
 add_library(hw_switch
   fboss/agent/HwSwitch.cpp
 )
@@ -181,4 +194,5 @@ target_link_libraries(hw_switch
   ctrl_cpp2
   fboss_cpp2
   Folly::folly
+  platform_base
 )

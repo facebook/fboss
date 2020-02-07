@@ -12,14 +12,13 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <gmock/gmock.h>
 #include <optional>
 
 namespace facebook::fboss {
-
-class MockPlatform;
 
 /*
  * MockPlatform is a mockable interface to a Platform. Non-critical
@@ -74,6 +73,10 @@ class MockHwSwitch : public HwSwitch {
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
   MOCK_CONST_METHOD0(getBootType, BootType());
+
+  MockPlatform* getPlatform() const override {
+    return platform_;
+  }
 
  private:
   MockPlatform* platform_;

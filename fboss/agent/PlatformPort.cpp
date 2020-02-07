@@ -11,7 +11,6 @@
 #include "fboss/agent/PlatformPort.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 

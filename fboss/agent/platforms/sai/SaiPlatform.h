@@ -13,7 +13,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
@@ -28,9 +27,15 @@ extern "C" {
 
 namespace facebook::fboss {
 
+class SaiSwitch;
+
 class SaiPlatform : public Platform {
  public:
-  using Platform::Platform;
+  explicit SaiPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
+  ~SaiPlatform() override;
+
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(SwSwitch* sw) override;
   void onInitialConfigApplied(SwSwitch* sw) override;

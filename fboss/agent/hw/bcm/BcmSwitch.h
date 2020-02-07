@@ -16,6 +16,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -52,7 +53,6 @@ class BcmMultiPathNextHopTable;
 class BcmNeighborTable;
 template <class K, class V>
 class BcmNextHopTable;
-class BcmPlatform;
 class BcmPortTable;
 class BcmQosPolicyTable;
 class BcmRouteTable;

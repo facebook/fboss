@@ -21,8 +21,12 @@ class PlatformProductInfo {
  public:
   explicit PlatformProductInfo(folly::StringPiece path);
 
-  void getInfo(ProductInfo& info);
-  PlatformMode getMode() const;
+  void getInfo(ProductInfo& info) {
+    info = productInfo_;
+  }
+  PlatformMode getMode() const {
+    return mode_;
+  }
   void initialize();
   std::string getFabricLocation();
   std::string getProductName();

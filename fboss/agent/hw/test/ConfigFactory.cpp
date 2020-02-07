@@ -8,8 +8,10 @@
  *
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/FbossError.h"
 
 #include <folly/Format.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;
@@ -33,11 +35,28 @@ cfg::SwitchConfig genPortVlanCfg(
   auto portItr = ports.begin();
   int portIndex = 0;
   for (; portItr != ports.end(); portItr++, portIndex++) {
-    config.ports[portIndex].name_ref() =
-        "eth1/" + std::to_string(*portItr) + "/1";
     config.ports[portIndex].logicalID = *portItr;
-    config.ports[portIndex].maxFrameSize = 9412;
     config.ports[portIndex].speed = maxPortSpeed(hwSwitch, *portItr);
+    auto platformPort = hwSwitch->getPlatform()->getPlatformPort(*portItr);
+    if (auto entry = platformPort->getPlatformPortEntry()) {
+      config.ports[portIndex].name_ref() = entry->mapping.name;
+      config.ports[portIndex].profileID =
+          platformPort->getProfileIDBySpeed(config.ports[portIndex].speed);
+      if (config.ports[portIndex].profileID ==
+          cfg::PortProfileID::PROFILE_DEFAULT) {
+        throw FbossError(
+            entry->mapping.name,
+            " has max speed: ",
+            apache::thrift::util::enumNameSafe(config.ports[portIndex].speed),
+            " which has profile: ",
+            apache::thrift::util::enumNameSafe(
+                config.ports[portIndex].profileID));
+      }
+    } else {
+      config.ports[portIndex].name_ref() =
+          "eth1/" + std::to_string(*portItr) + "/1";
+    }
+    config.ports[portIndex].maxFrameSize = 9412;
     config.ports[portIndex].state = cfg::PortState::ENABLED;
     config.ports[portIndex].loopbackMode = lbMode;
     config.ports[portIndex].ingressVlan = port2vlan.find(*portItr)->second;

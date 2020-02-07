@@ -10,12 +10,12 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/sim/SimPlatform.h"
 
 #include <optional>
 
 namespace facebook::fboss {
 
-class SimPlatform;
 class SwitchState;
 
 class SimSwitch : public HwSwitch {
@@ -89,11 +89,16 @@ class SimSwitch : public HwSwitch {
     return bootType_;
   }
 
+  SimPlatform* getPlatform() const override {
+    return platform_;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
   SimSwitch& operator=(SimSwitch const&) = delete;
 
+  SimPlatform* platform_;
   HwSwitch::Callback* callback_{nullptr};
   uint32_t numPorts_{0};
   uint64_t txCount_{0};
