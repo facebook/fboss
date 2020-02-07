@@ -17,28 +17,7 @@
 
 namespace facebook::fboss {
 
-namespace detail {
-SaiQueueTraits::CreateAttributes makeQueueAttributes(
-    PortSaiId portSaiId,
-    const PortQueue& portQueue) {
-  auto type = portQueue.getStreamType() == cfg::StreamType::UNICAST
-      ? SAI_QUEUE_TYPE_UNICAST
-      : SAI_QUEUE_TYPE_MULTICAST;
-  return SaiQueueTraits::CreateAttributes{
-      type, portSaiId, portQueue.getID(), portSaiId};
-}
-
-SaiQueueConfig makeSaiQueueConfig(
-    const SaiQueueTraits::AdapterHostKey& adapterHostKey) {
-  auto queueIndex = std::get<SaiQueueTraits::Attributes::Index>(adapterHostKey);
-  auto queueType = std::get<SaiQueueTraits::Attributes::Type>(adapterHostKey);
-  cfg::StreamType streamType = queueType.value() == SAI_QUEUE_TYPE_UNICAST
-      ? cfg::StreamType::UNICAST
-      : cfg::StreamType::MULTICAST;
-  return std::make_pair(queueIndex.value(), streamType);
-}
-} // namespace detail
-
+namespace {
 void fillHwQueueStats(
     uint8_t queueId,
     const std::vector<uint64_t>& counters,
@@ -64,6 +43,29 @@ void fillHwQueueStats(
     index++;
   }
 }
+} // namespace
+
+namespace detail {
+SaiQueueTraits::CreateAttributes makeQueueAttributes(
+    PortSaiId portSaiId,
+    const PortQueue& portQueue) {
+  auto type = portQueue.getStreamType() == cfg::StreamType::UNICAST
+      ? SAI_QUEUE_TYPE_UNICAST
+      : SAI_QUEUE_TYPE_MULTICAST;
+  return SaiQueueTraits::CreateAttributes{
+      type, portSaiId, portQueue.getID(), portSaiId};
+}
+
+SaiQueueConfig makeSaiQueueConfig(
+    const SaiQueueTraits::AdapterHostKey& adapterHostKey) {
+  auto queueIndex = std::get<SaiQueueTraits::Attributes::Index>(adapterHostKey);
+  auto queueType = std::get<SaiQueueTraits::Attributes::Type>(adapterHostKey);
+  cfg::StreamType streamType = queueType.value() == SAI_QUEUE_TYPE_UNICAST
+      ? cfg::StreamType::UNICAST
+      : cfg::StreamType::MULTICAST;
+  return std::make_pair(queueIndex.value(), streamType);
+}
+} // namespace detail
 
 SaiQueueManager::SaiQueueManager(
     SaiManagerTable* managerTable,
