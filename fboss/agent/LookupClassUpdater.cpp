@@ -206,7 +206,13 @@ void LookupClassUpdater::processNeighborChanged(
   CHECK(newEntry->getPort().isPhysicalPort());
 
   if constexpr (std::is_same_v<ChangedEntryT, MacEntry>) {
-    // TODO (skhare) handle MAC Move.
+    /*
+     * MAC Move
+     */
+    if (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID()) {
+      removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
+      updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+    }
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
     if (!oldEntry->isReachable() && newEntry->isReachable()) {
