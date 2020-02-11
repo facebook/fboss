@@ -84,6 +84,7 @@ SaiManagerTable::~SaiManagerTable() {
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
   hashManager_.reset();
+  hostifManager_.reset();
   switchManager_.reset();
 }
 
