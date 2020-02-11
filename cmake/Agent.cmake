@@ -110,6 +110,7 @@ target_link_libraries(core
   stats
   utils
   fb303::fb303
+  capture
   hardware_stats_cpp2
   switch_asics
   ctrl_cpp2
@@ -126,6 +127,7 @@ target_link_libraries(core
   exponential_back_off
   fboss_config_utils
   phy_cpp2
+  pcap_pubsub_cpp2
   transceiver_cpp2
   Folly::folly
   ${IPROUTE2}

@@ -21,6 +21,8 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/capture/PktCapture.h"
+#include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -1218,6 +1220,29 @@ void ThriftHandler::async_eb_registerForNeighborChanged(
   cb->done();
 }
 
+void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured();
+  auto* mgr = sw_->getCaptureMgr();
+  auto capture = make_unique<PktCapture>(
+      info->name, info->maxPackets, info->direction, info->filter);
+  mgr->startCapture(std::move(capture));
+}
+
+void ThriftHandler::stopPktCapture(unique_ptr<std::string> name) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured();
+  auto* mgr = sw_->getCaptureMgr();
+  mgr->forgetCapture(*name);
+}
+
+void ThriftHandler::stopAllPktCaptures() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured();
+  auto* mgr = sw_->getCaptureMgr();
+  mgr->forgetAllCaptures();
+}
+
 void ThriftHandler::startLoggingRouteUpdates(
     std::unique_ptr<RouteUpdateLoggingInfo> info) {
   auto log = LOG_THRIFT_CALL(DBG1);
@@ -1293,6 +1318,17 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
     info.label = tracked.second;
     infos.push_back(info);
   }
+}
+
+void ThriftHandler::beginPacketDump(int32_t port) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  // Client construction is serialized via SwSwitch event base
+  sw_->constructPushClient(port);
+}
+
+void ThriftHandler::killDistributionProcess() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  sw_->killDistributionProcess();
 }
 
 void ThriftHandler::sendPkt(

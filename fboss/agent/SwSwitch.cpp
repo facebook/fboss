@@ -39,6 +39,7 @@
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
@@ -48,6 +49,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/pcap_distribution_service/if/gen-cpp2/PcapPushSubscriber.h"
+#include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_constants.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
@@ -92,6 +95,10 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::async;
 
 DEFINE_int32(thread_heartbeat_ms, 1000, "Thread heartbeat interval (ms)");
+DEFINE_int32(
+    distribution_timeout_ms,
+    1000,
+    "Timeout for sending to distribution_service (ms)");
 
 namespace {
 
@@ -139,13 +146,28 @@ facebook::fboss::PortStatus fillInPortStatus(
 
 namespace facebook::fboss {
 
+class ChannelCloser : public CloseCallback {
+ public:
+  explicit ChannelCloser(SwSwitch* s) : s_(s) {}
+
+  void channelClosed() override {
+    CHECK(s_);
+    s_->destroyPushClient();
+  }
+
+ private:
+  SwSwitch* s_ = nullptr;
+};
+
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     : hw_(platform->getHwSwitch()),
       platform_(std::move(platform)),
+      closer_(new ChannelCloser(this)),
       arp_(new ArpHandler(this)),
       ipv4_(new IPv4Handler(this)),
       ipv6_(new IPv6Handler(this)),
       nUpdater_(new NeighborUpdater(this)),
+      pcapMgr_(new PktCaptureManager(this)),
       mirrorManager_(new MirrorManager(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
@@ -158,6 +180,33 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+
+  // doesnt need to be guarded, only accessed by 1 event base
+  pcapPusher_ = nullptr;
+}
+
+void SwSwitch::destroyPushClient() {
+  distributionServiceReady_.store(false);
+}
+
+void SwSwitch::constructPushClient(uint16_t port) {
+  auto creation = [&, port]() {
+    SocketAddress addr("::1", port);
+    auto socket =
+        TAsyncSocket::newSocket(&pcapDistributionEventBase_, addr, 2000);
+    auto chan = HeaderClientChannel::newChannel(socket);
+    chan->setTimeout(FLAGS_distribution_timeout_ms);
+    chan->setCloseCallback(closer_.get());
+    pcapPusher_ =
+        std::make_unique<PcapPushSubscriberAsyncClient>(std::move(chan));
+    distributionServiceReady_.store(true);
+  };
+  pcapDistributionEventBase_.runInEventBaseThread(creation);
+}
+
+void SwSwitch::killDistributionProcess() {
+  pcapPusher_->future_kill();
+  XLOG(INFO) << "KILLING DISTRIBUTION PROCESS FROM AGENT";
 }
 
 SwSwitch::~SwSwitch() {
@@ -358,6 +407,44 @@ void SwSwitch::exitFatal() const noexcept {
   }
 }
 
+void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype) {
+  RxPacketData pubPkt;
+  pubPkt.srcPort = pkt->getSrcPort();
+  pubPkt.srcVlan = pkt->getSrcVlan();
+
+  for (const auto& r : pkt->getReasons()) {
+    RxReason reason;
+    reason.bytes = r.bytes;
+    reason.description = r.description;
+    pubPkt.reasons.push_back(reason);
+  }
+
+  folly::IOBuf buf_copy;
+  pkt->buf()->cloneInto(buf_copy);
+  pubPkt.packetData = buf_copy.moveToFbString();
+  auto onError = [&](const folly::exception_wrapper& /* unused */) {
+    stats()->pcapDistFailure();
+    FB_LOG_EVERY_MS(ERROR, 1000)
+        << "Unable to push packet to distribution service\n";
+  };
+  pcapPusher_->future_receiveRxPacket(pubPkt, ethertype)
+      .thenError(std::move(onError));
+}
+
+void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
+  TxPacketData pubPkt;
+  folly::IOBuf copy_buf;
+  pkt->buf()->cloneInto(copy_buf);
+  pubPkt.packetData = copy_buf.moveToFbString();
+  auto onError = [&](const folly::exception_wrapper& /* unused */) {
+    stats()->pcapDistFailure();
+    FB_LOG_EVERY_MS(ERROR, 1000)
+        << "Unable to push packet to distribution service\n";
+  };
+  pcapPusher_->future_receiveTxPacket(pubPkt, ethertype)
+      .thenError(std::move(onError));
+}
+
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
@@ -483,6 +570,8 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       });
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
+
+  constructPushClient(pcap_pubsub_constants::PCAP_PUBSUB_PORT());
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
@@ -943,6 +1032,8 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   PortID port = pkt->getSrcPort();
   portStats(port)->trappedPkt();
 
+  pcapMgr_->packetReceived(pkt.get());
+
   // The minimum required frame length for ethernet is 64 bytes.
   // Abort processing early if the packet is too short.
   auto len = pkt->getLength();
@@ -960,6 +1051,10 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     // 802.1Q
     c += 2; // Advance over the VLAN tag.  We ignore it for now
     ethertype = c.readBE<uint16_t>();
+  }
+
+  if (distributionServiceReady_.load()) {
+    publishRxPacket(pkt.get(), ethertype);
   }
 
   XLOG(DBG5) << "trapped packet: src_port=" << pkt->getSrcPort()
@@ -1048,6 +1143,10 @@ void SwSwitch::startThreads() {
       [=] { this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
   packetTxThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossPktTxThread", &packetTxEventBase_); }));
+  pcapDistributionThread_.reset(new std::thread([=] {
+    this->threadLoop(
+        "fbossPcapDistributionThread", &pcapDistributionEventBase_);
+  }));
   lacpThread_.reset(new std::thread(
       [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
   neighborCacheThread_.reset(new std::thread([=] {
@@ -1074,6 +1173,10 @@ void SwSwitch::stopThreads() {
     packetTxEventBase_.runInEventBaseThread(
         [this] { packetTxEventBase_.terminateLoopSoon(); });
   }
+  if (pcapDistributionThread_) {
+    pcapDistributionEventBase_.runInEventBaseThread(
+        [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
+  }
   if (lacpThread_) {
     lacpEventBase_.runInEventBaseThread(
         [this] { lacpEventBase_.terminateLoopSoon(); });
@@ -1090,6 +1193,9 @@ void SwSwitch::stopThreads() {
   }
   if (packetTxThread_) {
     packetTxThread_->join();
+  }
+  if (pcapDistributionThread_) {
+    pcapDistributionThread_->join();
   }
   if (lacpThread_) {
     lacpThread_->join();
@@ -1158,6 +1264,8 @@ void SwSwitch::sendPacketOutOfPortAsync(
     return;
   }
 
+  pcapMgr_->packetSent(pkt.get());
+
   Cursor c(pkt->buf());
   // unused to parse the ethertype correctly
   PktUtil::readMac(&c);
@@ -1167,6 +1275,10 @@ void SwSwitch::sendPacketOutOfPortAsync(
     // 802.1Q
     c += 2; // Advance over the VLAN tag.  We ignore it for now
     ethertype = c.readBE<uint16_t>();
+  }
+
+  if (distributionServiceReady_.load()) {
+    publishTxPacket(pkt.get(), ethertype);
   }
 
   if (!hw_->sendPacketOutOfPortAsync(std::move(pkt), portID, queue)) {
@@ -1221,6 +1333,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
 }
 
 void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
+  pcapMgr_->packetSent(pkt.get());
   if (!hw_->sendPacketSwitchedAsync(std::move(pkt))) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacketSwitchedAsync()
