@@ -27,7 +27,7 @@ template <typename Generator>
 static void runConversionTest() {
   auto constexpr kEcmpWidth = 4;
 
-  SimPlatform plat(folly::MacAddress(), 100);
+  SimPlatform plat(folly::MacAddress(), 128);
   std::vector<PortID> ports;
   for (int i = 0; i < 128; ++i) {
     ports.push_back(PortID(i));

@@ -55,7 +55,7 @@ static void runOldRibTest() {
   // Suspend benchamrking for setup.
   folly::BenchmarkSuspender suspender;
 
-  SimPlatform plat(folly::MacAddress(), 100);
+  SimPlatform plat(folly::MacAddress(), 128);
   std::vector<PortID> ports;
   for (int i = 0; i < 128; ++i) {
     ports.push_back(PortID(i));
@@ -92,7 +92,7 @@ static void runNewRibTest() {
 
   const RouterID vrfZero{0};
 
-  SimPlatform plat(folly::MacAddress(), 100);
+  SimPlatform plat(folly::MacAddress(), 128);
   std::vector<PortID> ports;
   for (int i = 0; i < 128; ++i) {
     ports.push_back(PortID(i));

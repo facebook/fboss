@@ -10,8 +10,11 @@
 #include "fboss/agent/hw/sim/SimPlatform.h"
 
 #include <folly/Memory.h>
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/sim/SimHandler.h"
+#include "fboss/agent/hw/sim/SimPlatformMapping.h"
+#include "fboss/agent/hw/sim/SimPlatformPort.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
@@ -30,7 +33,12 @@ using std::unique_ptr;
 namespace facebook::fboss {
 
 SimPlatform::SimPlatform(folly::MacAddress mac, uint32_t numPorts)
-    : Platform(nullptr), mac_(mac), hw_(new SimSwitch(this, numPorts)) {}
+    : Platform(nullptr, std::make_unique<SimPlatformMapping>(numPorts)),
+      mac_(mac),
+      hw_(new SimSwitch(this, numPorts)),
+      numPorts_(numPorts) {
+  initPorts();
+}
 
 SimPlatform::~SimPlatform() {}
 
@@ -57,6 +65,19 @@ std::string SimPlatform::getPersistentStateDir() const {
   return FLAGS_persistent_state_dir;
 }
 
-void SimPlatform::initPorts() {}
+void SimPlatform::initPorts() {
+  for (auto i = 0; i < numPorts_; i++) {
+    auto portID = PortID(i);
+    portMapping_.emplace(
+        portID, std::make_unique<SimPlatformPort>(portID, this));
+  }
+}
+
+PlatformPort* SimPlatform::getPlatformPort(PortID id) const {
+  if (auto port = portMapping_.find(id); port != portMapping_.end()) {
+    return port->second.get();
+  }
+  throw FbossError("Can't find SimPlatform PlatformPort for ", id);
+}
 
 } // namespace facebook::fboss

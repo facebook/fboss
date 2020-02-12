@@ -14,6 +14,7 @@
 namespace facebook::fboss {
 
 class SimSwitch;
+class SimPlatformPort;
 
 class SimPlatform : public Platform {
  public:
@@ -35,9 +36,7 @@ class SimPlatform : public Platform {
   TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
     return TransceiverIdxThrift();
   }
-  PlatformPort* getPlatformPort(PortID /* unused */) const override {
-    return nullptr;
-  }
+  PlatformPort* getPlatformPort(PortID id) const override;
 
   HwAsic* getAsic() const override {
     throw std::runtime_error("getAsic not implemented for SimPlatform");
@@ -59,6 +58,8 @@ class SimPlatform : public Platform {
 
   folly::MacAddress mac_;
   std::unique_ptr<SimSwitch> hw_;
+  uint32_t numPorts_;
+  std::unordered_map<PortID, std::unique_ptr<SimPlatformPort>> portMapping_;
 };
 
 } // namespace facebook::fboss
