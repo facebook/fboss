@@ -2586,7 +2586,6 @@ void BcmSwitch::l2LearningUpdateReceived(
 }
 
 void BcmSwitch::setupCos() {
-  // TODO(joseph5wu) Deprecate BcmCosManager in the future
   cosManager_.reset(new BcmCosManager(this));
   controlPlane_.reset(new BcmControlPlane(this));
 
@@ -2730,7 +2729,7 @@ void BcmSwitch::configureRxRateLimiting() {
   // Configure several cos queues
   // TODO: It would probably be good to support configuring these via the
   // config file.
-  auto mgr = BcmCosManager::convert(cosManager_.get());
+  auto mgr = cosManager_.get();
   CHECK_GE(mgr->getMaxCPUQueues(), 10);
 
   // Define mappings to these queues.

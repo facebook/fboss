@@ -182,12 +182,4 @@ void BcmCosManager::checkCPUQueueNumber(int queue) const {
   }
 }
 
-BcmCosManager* BcmCosManager::convert(BcmCosManager* cosManager) {
-  auto result = dynamic_cast<BcmCosManager*>(cosManager);
-  if (!result) {
-    throw FbossError("Failed to cast BcmCosManager to BcmCosManager");
-  }
-  return result;
-}
-
 } // namespace facebook::fboss

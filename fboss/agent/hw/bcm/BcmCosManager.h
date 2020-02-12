@@ -69,12 +69,6 @@ class BcmCosManager {
   void deviceStatClear(int32_t bid);
   uint64_t deviceStatGet(int32_t bid, bool clearAfter = true);
 
-  /*
-   * We need this since BcmCosManager is not open-sourced and yet
-   * BcmCosManager is required in BcmSwitch.h
-   */
-  static BcmCosManager* convert(BcmCosManager* cosManager);
-
  private:
   void checkCPUQueueNumber(int) const;
 
