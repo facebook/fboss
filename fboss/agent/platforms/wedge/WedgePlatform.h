@@ -78,6 +78,10 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   std::unique_ptr<WedgePortMapping> portMapping_;
   void initImpl(uint32_t hwFeaturesDesired) override;
 
+  virtual void updateQsfpCache(const StateDelta& delta);
+
+  virtual void updatePorts(const StateDelta& delta);
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgePlatform(WedgePlatform const&) = delete;

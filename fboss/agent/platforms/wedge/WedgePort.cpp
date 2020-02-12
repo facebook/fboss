@@ -238,34 +238,24 @@ std::optional<ChannelID> WedgePort::getChannel() const {
 }
 
 std::vector<int32_t> WedgePort::getChannels() const {
-  // TODO(aeckert): this is pretty hacky... we should really model
-  // port groups in switch state somehow so this can be served purely
-  // from switch state.
-  if (!frontPanel_.has_value()) {
+  if (!port_) {
     return {};
   }
-
-  // TODO: change to combining frontPanel_->channels in all member ports
-  auto base = static_cast<int32_t>(*getChannel());
-
-  uint8_t numChannels = 1;
-  if (bcmPort_ && bcmPort_->getPortGroup()) {
-    auto pg = bcmPort_->getPortGroup();
-    if (pg->laneMode() == BcmPortGroup::LaneMode::QUAD) {
-      if (base != 0) {
-        return {};
-      }
-      numChannels = 4;
-    } else if (pg->laneMode() == BcmPortGroup::LaneMode::DUAL) {
-      if (base != 0 && base != 2) {
-        return {};
-      }
-      numChannels = 2;
-    }
+  const auto tcvrListOpt = getTransceiverLanes(port_->getProfileID());
+  if (tcvrListOpt) {
+    return folly::gen::from(tcvrListOpt.value()) |
+        folly::gen::map([&](const phy::PinID& entry) { return entry.lane; }) |
+        folly::gen::as<std::vector<int32_t>>();
   }
 
-  return folly::gen::range(base, base + numChannels) |
-      folly::gen::as<std::vector>();
+  // fallback to the frontPanel way of getting channels
+  // TODO: remove this when all platforms support platform mapping since
+  // getTransceiverLanes needs it
+  if (!frontPanel_) {
+    return {};
+  }
+  return std::vector<int32_t>(
+      frontPanel_->channels.begin(), frontPanel_->channels.end());
 }
 
 TransceiverIdxThrift WedgePort::getTransceiverMapping() const {

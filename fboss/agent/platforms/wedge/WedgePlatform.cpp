@@ -110,6 +110,11 @@ void WedgePlatform::onHwInitialized(SwSwitch* sw) {
 }
 
 void WedgePlatform::stateUpdated(const StateDelta& delta) {
+  updatePorts(delta);
+  updateQsfpCache(delta);
+}
+
+void WedgePlatform::updateQsfpCache(const StateDelta& delta) {
   QsfpCache::PortMapThrift changedPorts;
   auto portsDelta = delta.getPortsDelta();
   for (const auto& entry : portsDelta) {
@@ -122,6 +127,15 @@ void WedgePlatform::stateUpdated(const StateDelta& delta) {
     }
   }
   qsfpCache_->portsChanged(changedPorts);
+}
+
+void WedgePlatform::updatePorts(const StateDelta& delta) {
+  for (const auto& entry : delta.getPortsDelta()) {
+    const auto newPort = entry.getNew();
+    if (newPort) {
+      getPort(newPort->getID())->portChanged(newPort);
+    }
+  }
 }
 
 HwSwitch* WedgePlatform::getHwSwitch() const {
