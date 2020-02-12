@@ -22,9 +22,9 @@ namespace facebook::fboss {
 std::shared_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
     RouterInterfaceSaiId routerInterfaceId,
     const folly::IPAddress& ip) {
-  SaiNextHopTraits::AdapterHostKey k{routerInterfaceId, ip, std::nullopt};
+  SaiNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
   SaiNextHopTraits::CreateAttributes attributes{
-      SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip, std::nullopt};
+      SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip};
   auto& store = SaiStore::getInstance()->get<SaiNextHopTraits>();
   return store.setObject(k, attributes);
 }

@@ -37,7 +37,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     auto& nextHopApi = saiApiTable->nextHopApi();
     return nextHopApi.create<SaiNextHopTraits>(
-        {SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt}, 0);
+        {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
 };
 
@@ -73,8 +73,8 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   auto& store = s.get<SaiNextHopGroupTraits>();
 
   SaiNextHopGroupTraits::AdapterHostKey k;
-  k.insert({42, ip1, std::nullopt});
-  k.insert({42, ip2, std::nullopt});
+  k.insert({42, ip1});
+  k.insert({42, ip2});
   auto got = store.get(k);
   EXPECT_TRUE(got);
   EXPECT_EQ(got->adapterKey(), nextHopGroupId);

@@ -26,6 +26,7 @@ sai_status_t create_next_hop_fn(
   std::optional<sai_next_hop_type_t> type;
   std::optional<folly::IPAddress> ip;
   std::optional<sai_object_id_t> routerInterfaceId;
+  std::vector<sai_uint32_t> labelStack;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_ATTR_TYPE:
@@ -38,7 +39,13 @@ sai_status_t create_next_hop_fn(
         routerInterfaceId = attr_list[i].value.oid;
         break;
       case SAI_NEXT_HOP_ATTR_LABELSTACK:
-        // TODO(pshaikh): support this in fake sdk, currently no-op
+        if (type != SAI_NEXT_HOP_TYPE_MPLS) {
+          return SAI_STATUS_INVALID_PARAMETER;
+        }
+        labelStack.resize(attr_list[i].value.u32list.count);
+        for (auto j = 0; j < attr_list[i].value.u32list.count; j++) {
+          labelStack[j] = attr_list[i].value.u32list.list[j];
+        }
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -47,8 +54,9 @@ sai_status_t create_next_hop_fn(
   if (!type || !ip || !routerInterfaceId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_id =
-      fs->nhm.create(type.value(), ip.value(), routerInterfaceId.value());
+  *next_hop_id = fs->nhm.create(
+      type.value(), ip.value(), routerInterfaceId.value(), labelStack);
+
   return SAI_STATUS_SUCCESS;
 }
 
@@ -86,7 +94,16 @@ sai_status_t get_next_hop_attribute_fn(
         attr[i].value.oid = nextHop.routerInterfaceId;
         break;
       case SAI_NEXT_HOP_ATTR_LABELSTACK:
-        // TODO(pshaikh): support this in fake sdk, currently no-op
+        if (static_cast<int32_t>(nextHop.type) != SAI_NEXT_HOP_TYPE_MPLS) {
+          return SAI_STATUS_INVALID_PARAMETER;
+        }
+        if (attr[i].value.u32list.count < nextHop.labelStack.size()) {
+          attr[i].value.u32list.count = nextHop.labelStack.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (auto j = 0; j < attr[i].value.u32list.count; j++) {
+          attr[i].value.u32list.list[j] = nextHop.labelStack[j];
+        }
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

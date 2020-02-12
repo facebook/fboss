@@ -57,7 +57,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     }
     auto rifId = routerInterfaceHandle->routerInterface->adapterKey();
     folly::IPAddress ip = swNextHop.addr();
-    SaiNextHopTraits::AdapterHostKey nhk{rifId, ip, std::nullopt};
+    SaiNextHopTraits::AdapterHostKey nhk{rifId, ip};
     nextHopGroupAdapterHostKey.insert(nhk);
 
     // Compute the neighbor that has the sai NextHop for this next hop

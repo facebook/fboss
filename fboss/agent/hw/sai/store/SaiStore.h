@@ -77,6 +77,20 @@ class SaiObjectStore {
           << "Attempted to reload() on a SaiObjectStore without a switchId";
     }
     auto keys = getObjectKeys<SaiObjectTraits>(switchId_.value());
+    if constexpr (SaiObjectHasConditionalAttributes<SaiObjectTraits>::value) {
+      keys.erase(
+          std::remove_if(
+              keys.begin(),
+              keys.end(),
+              [](auto key) {
+                typename SaiObjectTraits::ConditionAttributes args;
+                SaiApiTable::getInstance()
+                    ->getApi<typename SaiObjectTraits::SaiApiT>()
+                    .getAttribute(key, args);
+                return !SaiObjectTraits::isConditionMet(args);
+              }),
+          keys.end());
+    }
     for (const auto k : keys) {
       ObjectType obj(k);
       auto adapterHostKey = obj.adapterHostKey();
@@ -175,6 +189,7 @@ class SaiStore {
       detail::SaiObjectStore<SaiFdbTraits>,
       detail::SaiObjectStore<SaiVirtualRouterTraits>,
       detail::SaiObjectStore<SaiNextHopTraits>,
+      detail::SaiObjectStore<SaiMplsNextHopTraits>,
       detail::SaiObjectStore<SaiNextHopGroupTraits>,
       detail::SaiObjectStore<SaiNextHopGroupMemberTraits>,
       detail::SaiObjectStore<SaiHostifTrapGroupTraits>,

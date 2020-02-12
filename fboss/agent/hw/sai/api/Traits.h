@@ -152,4 +152,7 @@ struct IsSaiObjectOwnedByAdapter : public std::false_type {};
 template <typename SaiObjectTraits>
 struct SaiObjectHasStats : public std::false_type {};
 
+template <typename SaiObjectTraits>
+struct SaiObjectHasConditionalAttributes : public std::false_type {};
+
 } // namespace facebook::fboss
