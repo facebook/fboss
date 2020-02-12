@@ -12,7 +12,6 @@ add_library(platform
   fboss/agent/platforms/wedge/Wedge100Port.cpp
   fboss/agent/platforms/wedge/Wedge40Platform.cpp
   fboss/agent/platforms/wedge/Wedge40Port.cpp
-  fboss/agent/platforms/wedge/WedgeLedCode.cpp
   fboss/agent/platforms/wedge/WedgePlatform.cpp
   fboss/agent/platforms/wedge/WedgePlatformInit.cpp
   fboss/agent/platforms/wedge/WedgePort.cpp
