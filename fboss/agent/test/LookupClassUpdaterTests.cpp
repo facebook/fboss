@@ -347,6 +347,7 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
         lookupClassUpdater->getRefCnt(
             this->kPortID(),
             this->kMacAddress(),
+            this->kVlan(),
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
         2);
   }
@@ -394,6 +395,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
         lookupClassUpdater->getRefCnt(
             this->kPortID(),
             this->kMacAddress(),
+            this->kVlan(),
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
         1);
   });

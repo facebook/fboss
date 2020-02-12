@@ -35,11 +35,12 @@ auto LookupClassUpdater::getTableDelta(const VlanDelta& vlanDelta) {
 
 int LookupClassUpdater::getRefCnt(
     PortID portID,
-    const folly::MacAddress& mac,
+    const folly::MacAddress mac,
+    VlanID vlanID,
     cfg::AclLookupClass classID) {
-  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
-  auto iter = mac2ClassIDAndRefCnt.find(mac);
-  if (iter == mac2ClassIDAndRefCnt.end()) {
+  auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[portID];
+  auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
+  if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
     return 0;
   } else {
     auto& [_classID, _refCnt] = iter->second;
@@ -77,7 +78,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     return;
   }
 
-  removeNeighborFromLocalCacheForEntry(removedEntry);
+  removeNeighborFromLocalCacheForEntry(removedEntry, vlan);
   XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: "
              << removedEntry->str() << " classID: None";
 
@@ -95,15 +96,16 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
 }
 
 bool LookupClassUpdater::isInited(PortID portID) {
-  return port2MacEntries_.find(portID) != port2MacEntries_.end() &&
+  return port2MacAndVlanEntries_.find(portID) !=
+      port2MacAndVlanEntries_.end() &&
       port2ClassIDAndCount_.find(portID) != port2ClassIDAndCount_.end();
 }
 
 void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
-  auto& mac2ClassIDAndRefCnt = port2MacEntries_[port->getID()];
+  auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
-  mac2ClassIDAndRefCnt.clear();
+  macAndVlan2ClassIDAndRefCnt.clear();
   classID2Count.clear();
 
   for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
@@ -114,7 +116,7 @@ void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
 template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
-    VlanID vlan,
+    VlanID vlanID,
     const NewEntryT* newEntry) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
@@ -130,16 +132,17 @@ void LookupClassUpdater::updateNeighborClassID(
   }
 
   auto mac = newEntry->getMac();
-  auto& mac2ClassIDAndRefCnt = port2MacEntries_[port->getID()];
+  auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
   cfg::AclLookupClass classID;
 
-  auto iter = mac2ClassIDAndRefCnt.find(mac);
-  if (iter == mac2ClassIDAndRefCnt.end()) {
+  auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
+  if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
     classID = getClassIDwithMinimumNeighbors(classID2Count);
-    mac2ClassIDAndRefCnt.insert(std::make_pair(
-        mac, std::make_pair(classID, 1 /* initialize refCnt */)));
+    macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
+        std::make_pair(mac, vlanID),
+        std::make_pair(classID, 1 /* initialize refCnt */)));
     classID2Count[classID]++;
   } else {
     auto& [_classID, refCnt] = iter->second;
@@ -152,9 +155,9 @@ void LookupClassUpdater::updateNeighborClassID(
 
   if constexpr (std::is_same_v<NewEntryT, MacEntry>) {
     auto updateMacClassIDFn =
-        [vlan, newEntry, classID](const std::shared_ptr<SwitchState>& state) {
+        [vlanID, newEntry, classID](const std::shared_ptr<SwitchState>& state) {
           return MacTableUtils::updateOrAddEntryWithClassID(
-              state, vlan, newEntry, classID);
+              state, vlanID, newEntry, classID);
         };
 
     sw_->updateState(
@@ -162,7 +165,7 @@ void LookupClassUpdater::updateNeighborClassID(
         std::move(updateMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
-    updater->updateEntryClassID(vlan, newEntry->getIP(), classID);
+    updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
   }
 }
 
@@ -306,7 +309,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       if (entry->getPort().isPhysicalPort() &&
           entry->getPort().phyPortID() == portID &&
           entry->getClassID().has_value()) {
-        removeNeighborFromLocalCacheForEntry(entry.get());
+        removeNeighborFromLocalCacheForEntry(entry.get(), vlanID);
         if constexpr (std::is_same_v<AddrT, MacAddress>) {
           auto removeMacClassIDFn =
               [vlanID, entry](const std::shared_ptr<SwitchState>& state) {
@@ -404,7 +407,7 @@ void LookupClassUpdater::processPortRemoved(
     validateRemovedPortEntries<folly::IPAddressV4>(vlan, portID);
   }
 
-  port2MacEntries_.erase(portID);
+  port2MacAndVlanEntries_.erase(portID);
   port2ClassIDAndCount_.erase(portID);
 }
 
@@ -483,14 +486,16 @@ void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
 
 template <typename RemovedEntryT>
 void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
-    const RemovedEntryT* removedEntry) {
+    const RemovedEntryT* removedEntry,
+    VlanID vlanID) {
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   auto portID = removedEntry->getPort().phyPortID();
   auto mac = removedEntry->getMac();
 
-  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
-  auto& [classID, refCnt] = mac2ClassIDAndRefCnt[mac];
+  auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[portID];
+  auto& [classID, refCnt] =
+      macAndVlan2ClassIDAndRefCnt[std::make_pair(mac, vlanID)];
   auto& classID2Count = port2ClassIDAndCount_[portID];
 
   CHECK_GT(refCnt, 0);
@@ -500,25 +505,27 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
   if (refCnt == 0) {
     classID2Count[classID]--;
     CHECK_GE(classID2Count[classID], 0);
-    mac2ClassIDAndRefCnt.erase(mac);
+    macAndVlan2ClassIDAndRefCnt.erase(std::make_pair(mac, vlanID));
   }
 }
 
 template <typename NewEntryT>
 void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
-    const NewEntryT* newEntry) {
+    const NewEntryT* newEntry,
+    VlanID vlanID) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();
-  auto& mac2ClassIDAndRefCnt = port2MacEntries_[portID];
+  auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[portID];
   auto& classID2Count = port2ClassIDAndCount_[portID];
   auto classID = newEntry->getClassID().value();
   auto mac = newEntry->getMac();
 
-  auto iter = mac2ClassIDAndRefCnt.find(mac);
-  if (iter == mac2ClassIDAndRefCnt.end()) {
-    mac2ClassIDAndRefCnt.insert(std::make_pair(
-        mac, std::make_pair(classID, 1 /* initialize refCnt */)));
+  auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
+  if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
+    macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
+        std::make_pair(mac, vlanID),
+        std::make_pair(classID, 1 /* initialize refCnt */)));
     classID2Count[classID]++;
   } else {
     auto& [classID_, refCnt] = iter->second;
@@ -535,7 +542,7 @@ void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
-      updateStateObserverLocalCacheForEntry(entry.get());
+      updateStateObserverLocalCacheForEntry(entry.get(), vlan->getID());
     }
   }
 }

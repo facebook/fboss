@@ -17,7 +17,8 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   int getRefCnt(
       PortID portID,
-      const folly::MacAddress& mac,
+      const folly::MacAddress mac,
+      VlanID vlanID,
       cfg::AclLookupClass classID);
 
  private:
@@ -62,10 +63,14 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       ClassID2Count classID2Count) const;
 
   template <typename RemovedEntryT>
-  void removeNeighborFromLocalCacheForEntry(const RemovedEntryT* removedEntry);
+  void removeNeighborFromLocalCacheForEntry(
+      const RemovedEntryT* removedEntry,
+      VlanID vlanID);
 
   template <typename NewEntryT>
-  void updateStateObserverLocalCacheForEntry(const NewEntryT* newEntry);
+  void updateStateObserverLocalCacheForEntry(
+      const NewEntryT* newEntry,
+      VlanID vlanID);
 
   void updateStateObserverLocalCache(
       const std::shared_ptr<SwitchState>& switchState);
@@ -114,28 +119,35 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   SwSwitch* sw_;
 
   /*
-   * Maintains the number of times a classID is used. When a new MAC requires
-   * classID assignment, port2ClassIDAndCount_ is used to determine the least
-   * used classID. This is maintained in a map for every port.
+   * Maintains the number of times a classID is used. When a new MAC + vlan
+   * requires classID assignment, port2ClassIDAndCount_ is used to determine
+   * the least used classID. This is maintained in a map for every port.
    */
   boost::container::flat_map<PortID, ClassID2Count> port2ClassIDAndCount_;
 
   /*
    * Maintains:
-   *  - classID assigned to a MAC address.
-   *  - refCnt to count the number of times a classID was requested for a MAC.
-   *    Multiple neighbor IPs could have same MAC (e.g. link-local and global
-   *    IP etc.). First neighbor with previously unseen MAC would cause classID
-   *    assignment, while subsequent neighbors with same MAC would get the same
-   *    classID but bump up the refCnt. As the neighbor entries are
-   *    removed/change to pending, the refCnt is decremented. When the refCnt
-   *    drops to 0, the classID is released.
+   *  - classID assigned to a (MAC address + vlan).
+   *  - refCnt to count the number of times a classID was requested for a
+   *    (MAC address + vlan).
+   *
+   *    For ARP/NDP neighbors:
+   *
+   *    Multiple neighbor IPs could have same MAC + vlan (e.g. link-local and
+   *    global IP etc.). First neighbor with previously unseen MAC + vlan
+   *    would cause classID assignment, while subsequent neighbors with same
+   *    MAC + vlan would get the same classID but bump up the refCnt.
+   *
+   *    As the neighbor entries are removed/change to pending, the refCnt is
+   *    decremented. When the refCnt drops to 0, the classID is released.
    *
    *  This is also maintained in a map for every port.
    */
-  using Mac2ClassIDAndRefCnt = boost::container::
-      flat_map<folly::MacAddress, std::pair<cfg::AclLookupClass, int>>;
-  boost::container::flat_map<PortID, Mac2ClassIDAndRefCnt> port2MacEntries_;
+  using MacAndVlan2ClassIDAndRefCnt = boost::container::flat_map<
+      std::pair<folly::MacAddress, VlanID>,
+      std::pair<cfg::AclLookupClass, int>>;
+  boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
+      port2MacAndVlanEntries_;
 
   bool inited_{false};
 };
