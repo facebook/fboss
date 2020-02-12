@@ -71,7 +71,7 @@ struct LaneConfig {
   LaneSettings toLaneSettings() const;
   static LaneConfig fromLaneSettings(const LaneSettings& settings);
   std::string str();
-  folly::dynamic toDynamic();
+  folly::dynamic toDynamic() const;
 };
 
 struct PhySideConfig {
@@ -79,7 +79,7 @@ struct PhySideConfig {
 
   bool operator==(const PhySideConfig& rhs) const;
   std::string str();
-  folly::dynamic toDynamic();
+  folly::dynamic toDynamic() const;
   static PhySideConfig fromPhyPortSideSettings(const PhyPortSideSettings& rhs);
 };
 
@@ -89,7 +89,7 @@ struct ExternalPhyConfig {
 
   bool operator==(const ExternalPhyConfig& rhs) const;
   std::string str();
-  folly::dynamic toDynamic();
+  folly::dynamic toDynamic() const;
   static ExternalPhyConfig fromConfigeratorTypes(
       PortPinConfig portPinConfig,
       const std::map<int32_t, PolaritySwap>& linePolaritySwapMap);
@@ -106,7 +106,7 @@ struct ExternalPhyProfileConfig {
   static ExternalPhyProfileConfig fromPortProfileConfig(
       const PortProfileConfig& portCfg);
   std::string str();
-  folly::dynamic toDynamic();
+  folly::dynamic toDynamic() const;
 };
 
 struct PhyPortConfig {
@@ -118,7 +118,7 @@ struct PhyPortConfig {
   PhyPortSettings toPhyPortSettings(int16_t phyID) const;
   static PhyPortConfig fromPhyPortSettings(const PhyPortSettings& settings);
   std::string str();
-  folly::dynamic toDynamic();
+  folly::dynamic toDynamic() const;
 };
 
 class ExternalPhy {

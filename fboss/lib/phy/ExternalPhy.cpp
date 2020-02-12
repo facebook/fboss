@@ -192,7 +192,7 @@ PhyPortConfig PhyPortConfig::fromPhyPortSettings(
   return result;
 }
 
-folly::dynamic LaneConfig::toDynamic() {
+folly::dynamic LaneConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["polaritySwap"] = thriftOptToDynamic(polaritySwap);
   obj["tx"] = thriftOptToDynamic(tx);
@@ -200,7 +200,7 @@ folly::dynamic LaneConfig::toDynamic() {
   return obj;
 }
 
-folly::dynamic PhySideConfig::toDynamic() {
+folly::dynamic PhySideConfig::toDynamic() const {
   folly::dynamic elements = folly::dynamic::array;
   for (auto pair : lanes) {
     elements.push_back(folly::dynamic::object(
@@ -210,7 +210,7 @@ folly::dynamic PhySideConfig::toDynamic() {
   return elements;
 }
 
-folly::dynamic ExternalPhyConfig::toDynamic() {
+folly::dynamic ExternalPhyConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["system"] = system.toDynamic();
   obj["line"] = line.toDynamic();
@@ -218,7 +218,7 @@ folly::dynamic ExternalPhyConfig::toDynamic() {
   return obj;
 }
 
-folly::dynamic ExternalPhyProfileConfig::toDynamic() {
+folly::dynamic ExternalPhyProfileConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["speed"] = apache::thrift::util::enumNameSafe(speed);
   obj["system"] = thriftToDynamic(system);
@@ -227,7 +227,7 @@ folly::dynamic ExternalPhyProfileConfig::toDynamic() {
   return obj;
 }
 
-folly::dynamic PhyPortConfig::toDynamic() {
+folly::dynamic PhyPortConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["config"] = config.toDynamic();
   obj["profile"] = profile.toDynamic();
