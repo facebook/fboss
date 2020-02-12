@@ -22,4 +22,5 @@ target_link_libraries(platform_mapping
   error
   fboss_config_utils
   platform_config_cpp2
+  ${RE2}
 )

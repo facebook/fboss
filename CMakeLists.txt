@@ -229,6 +229,10 @@ include_directories(${CURL_INCLUDE_DIR})
 find_library(MNL mnl)
 find_library(SODIUM sodium)
 
+find_library(RE2 re2)
+find_path(RE2_INCLUDE_DIR NAMES re2/re2.h)
+include_directories(${RE2_INCLUDE_DIR})
+
 add_executable(wedge_agent
     fboss/agent/platforms/wedge/WedgePlatform.cpp
     fboss/agent/platforms/common/PlatformProductInfo.cpp
