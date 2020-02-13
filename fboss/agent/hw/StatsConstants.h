@@ -61,6 +61,14 @@ inline folly::StringPiece constexpr kInDstNullDiscards() {
   return "in_dst_null_discards";
 }
 
+inline folly::StringPiece constexpr kInDroppedPkts() {
+  return "in_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kInPkts() {
+  return "in_pkts";
+}
+
 inline folly::StringPiece constexpr kOutBytes() {
   return "out_bytes";
 }
