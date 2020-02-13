@@ -1926,8 +1926,7 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
     const Interface::Addresses& addrs) {
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->__isset.mtu ? config->mtu_ref().value_unchecked()
-                                 : Interface::kDefaultMtu;
+  auto mtu = config->mtu_ref().value_or(Interface::kDefaultMtu);
   auto intf = make_shared<Interface>(
       InterfaceID(config->intfID),
       RouterID(config->routerID),
@@ -2009,8 +2008,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   }
   auto name = getInterfaceName(config);
   auto mac = getInterfaceMac(config);
-  auto mtu = config->__isset.mtu ? config->mtu_ref().value_unchecked()
-                                 : Interface::kDefaultMtu;
+  auto mtu = config->mtu_ref().value_or(Interface::kDefaultMtu);
   if (orig->getRouterID() == RouterID(config->routerID) &&
       orig->getVlanID() == VlanID(config->vlanID) && orig->getName() == name &&
       orig->getMac() == mac && orig->getAddresses() == addrs &&

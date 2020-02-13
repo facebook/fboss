@@ -207,7 +207,7 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
    * This needs to be public, as std::make_shared requires
    * operator new() to be available.
    */
-  static const int kDefaultMtu{1500};
+  inline static const int kDefaultMtu{1500};
 
  private:
   using NodeBaseT::NodeBaseT;
