@@ -26,6 +26,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class HwPortStats;
 
 using SaiQueue = SaiObjectWithCounters<SaiQueueTraits>;
 using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
@@ -50,7 +51,7 @@ class SaiQueueManager {
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
       const QueueConfig& queues);
-  void updateStats(SaiQueueHandles& queueHandles);
+  void updateStats(SaiQueueHandles& queueHandles, HwPortStats& stats);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
 
  private:

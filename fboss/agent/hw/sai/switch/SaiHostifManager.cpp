@@ -284,7 +284,8 @@ SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
 }
 
 void SaiHostifManager::updateStats() const {
-  managerTable_->queueManager().updateStats(cpuPortHandle_->queues);
+  HwPortStats dummy; // TODO - use this to pushout cpu fb303 counters
+  managerTable_->queueManager().updateStats(cpuPortHandle_->queues, dummy);
 }
 
 HwPortStats SaiHostifManager::getCpuPortStats() const {

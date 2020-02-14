@@ -362,8 +362,8 @@ void SaiPortManager::updateStats() {
     const auto& counters = handle->port->getStats();
     HwPortStats hwPortStats;
     fillHwPortStats(counters, hwPortStats);
+    managerTable_->queueManager().updateStats(handle->queues, hwPortStats);
     portStats_[portId]->updateStats(hwPortStats, now);
-    managerTable_->queueManager().updateStats(handle->queues);
   }
 }
 

@@ -137,10 +137,13 @@ SaiQueueHandles SaiQueueManager::loadQueues(
   return queueHandles;
 }
 
-void SaiQueueManager::updateStats(SaiQueueHandles& queueHandles) {
+void SaiQueueManager::updateStats(
+    SaiQueueHandles& queueHandles,
+    HwPortStats& hwPortStats) {
   for (auto& queueHandle : queueHandles) {
     queueHandle.second->queue->updateStats();
   }
+  getStats(queueHandles, hwPortStats);
 }
 
 void SaiQueueManager::getStats(
