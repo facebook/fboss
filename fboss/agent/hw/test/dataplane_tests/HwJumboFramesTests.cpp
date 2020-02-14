@@ -34,8 +34,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    cfg.interfaces[0].mtu_ref().value_unchecked() = 9000;
-    cfg.interfaces[0].__isset.mtu = true;
+    cfg.interfaces[0].mtu_ref() = 9000;
     return cfg;
   }
 
