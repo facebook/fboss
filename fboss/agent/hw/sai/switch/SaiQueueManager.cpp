@@ -150,7 +150,7 @@ void SaiQueueManager::getStats(
     SaiQueueHandles& queueHandles,
     HwPortStats& hwPortStats) {
   for (auto& queueHandle : queueHandles) {
-    auto counters = queueHandle.second->queue->getStats();
+    const auto& counters = queueHandle.second->queue->getStats();
     fillHwQueueStats(queueHandle.first.first, counters, hwPortStats);
   }
 }
