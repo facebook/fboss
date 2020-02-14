@@ -85,6 +85,7 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
     saiApiCheckError(status, ApiType, "Failed to query for next hop group api");
   }
   NextHopGroupApi(const NextHopGroupApi& other) = delete;
+  NextHopGroupApi& operator=(const NextHopGroupApi& other) = delete;
 
  private:
   sai_status_t _create(
