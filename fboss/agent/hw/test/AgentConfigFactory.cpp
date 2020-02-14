@@ -21,7 +21,7 @@ cfg::PlatformPortSettings getPlatformPortSettingsConfig(
     uint16_t numOfLanes) {
   cfg::PlatformPortSettings platformPortSettings;
   phy::LaneSettings laneSettings;
-  platformPortSettings.__isset.iphy = true;
+  platformPortSettings.iphy_ref() = {};
   for (auto i = 0; i < numOfLanes; i++) {
     platformPortSettings.iphy_ref()->lanes.emplace(portId + i, laneSettings);
     if (i > 0) {
@@ -58,7 +58,6 @@ cfg::AgentConfig getAgentConfig() {
   cfg::AgentConfig config;
   for (uint16_t portId = 0; portId < kMaxPorts; portId++) {
     auto platformPortConfig = getPlatformPortConfig(portId);
-    config.__isset.platform = true;
     config.platform.ports.emplace(portId, platformPortConfig);
   }
   config.platform.platformSettings.insert(std::make_pair(
