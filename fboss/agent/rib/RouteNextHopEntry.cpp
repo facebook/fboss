@@ -183,9 +183,7 @@ RouteNextHopEntry RouteNextHopEntry::from(
 
   RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
 
-  auto adminDistance = route.__isset.adminDistance
-      ? route.adminDistance_ref().value_unchecked()
-      : defaultAdminDistance;
+  auto adminDistance = route.adminDistance_ref().value_or(defaultAdminDistance);
 
   return nexthops.size()
       ? RouteNextHopEntry(std::move(nexthops), adminDistance)

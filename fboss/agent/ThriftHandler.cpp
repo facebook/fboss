@@ -700,9 +700,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     for (const auto& route : *routes) {
       folly::IPAddress network = toIPAddress(route.dest.ip);
       uint8_t mask = static_cast<uint8_t>(route.dest.prefixLength);
-      auto adminDistance = route.__isset.adminDistance
-          ? route.adminDistance_ref().value_unchecked()
-          : clientIdToAdmin;
+      auto adminDistance = route.adminDistance_ref().value_or(clientIdToAdmin);
       std::vector<NextHopThrift> nhts;
       if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
         nhts = util::thriftNextHopsFromAddresses(route.nextHopAddrs);
