@@ -43,7 +43,7 @@ std::array<folly::StringPiece, 20> HwPortFb303Stats::kPortStatKeys() {
 }
 
 std::array<folly::StringPiece, 3> HwPortFb303Stats::kQueueStatKeys() {
-  return {kOutBytes(), kOutCongestionDiscards(), kOutPkts()};
+  return {kOutCongestionDiscards(), kOutBytes(), kOutPkts()};
 }
 
 HwPortFb303Stats::~HwPortFb303Stats() {
@@ -168,15 +168,6 @@ void HwPortFb303Stats::reinitStat(
   }
 }
 
-void HwPortFb303Stats::reinitQueueStats(
-    int queueId,
-    std::optional<std::string> oldQueueName) {
-  for (auto statKey : {kOutBytes, kOutCongestionDiscards, kOutPkts}) {
-  }
-  auto qitr = queueId2Name_.find(queueId);
-  CHECK(qitr != queueId2Name_.end());
-}
-
 void HwPortFb303Stats::updateStat(
     const std::chrono::seconds& now,
     const std::string& statName,
@@ -215,7 +206,38 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kOutCongestionDiscards(),
       curPortStats.outCongestionDiscardPkts_);
+
   updateStat(timeRetrieved_, kOutEcnCounter(), curPortStats.outEcnCounter_);
+  // Update queue stats
+  auto updateQueueStat = [this](
+                             folly::StringPiece statKey,
+                             int queueId,
+                             const std::map<int16_t, int64_t>& queueStats) {
+    auto qitr = queueStats.find(queueId);
+    CHECK(qitr != queueStats.end())
+        << "Missing stat: " << statKey
+        << " for queue: :" << queueId2Name_[queueId];
+    updateStat(timeRetrieved_, statKey, queueId, qitr->second);
+  };
+  for (const auto& queueIdAndName : queueId2Name_) {
+    updateQueueStat(
+        kOutCongestionDiscards(),
+        queueIdAndName.first,
+        curPortStats.queueOutDiscardBytes_);
+    updateQueueStat(
+        kOutBytes(), queueIdAndName.first, curPortStats.queueOutBytes_);
+    updateQueueStat(
+        kOutPkts(), queueIdAndName.first, curPortStats.queueOutPackets_);
+  }
+}
+
+void HwPortFb303Stats::updateStat(
+    const std::chrono::seconds& now,
+    folly::StringPiece statKey,
+    int queueId,
+    int64_t val) {
+  updateStat(
+      now, statName(statKey, portName_, queueId, queueId2Name_[queueId]), val);
 }
 
 void HwPortFb303Stats::updateStat(

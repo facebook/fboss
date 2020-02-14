@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/StatsConstants.h"
 
 #include <fb303/ServiceData.h>
+#include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
 using namespace facebook::fboss;
@@ -100,15 +101,20 @@ TEST(HwPortFb303Stats, UpdateStats) {
       17, // outErrors
       18, // outPause
       19, // outCongestionDiscardPkts
-      {}, // queueOutDiscards
-      {}, // queueOutBytes
+      {{1, 1}, {2, 1}}, // queueOutDiscards
+      {{1, 2}, {2, 2}}, // queueOutBytes
       20, // outEcnCounter
-      {}, // queueOutPackets
+      {{1, 3}, {2, 3}}, // queueOutPackets
   };
-  HwPortFb303Stats portStats(kPortName);
+  HwPortFb303Stats portStats(kPortName, kQueue2Name);
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   // To get last increment from monotonic counter we need to update it twice
-  portStats.updateStats(HwPortStats{}, now);
+  HwPortStats empty{};
+  // Need to populate queue stats, since by default these
+  // maps are empty
+  empty.queueOutDiscardBytes_ = empty.queueOutBytes_ =
+      empty.queueOutPackets_ = {{1, 0}, {2, 0}};
+  portStats.updateStats(empty, now);
   portStats.updateStats(stats, now);
   auto curValue{1};
   for (auto counterName : HwPortFb303Stats::kPortStatKeys()) {
@@ -117,5 +123,18 @@ TEST(HwPortFb303Stats, UpdateStats) {
         portStats.getCounterLastIncrement(
             HwPortFb303Stats::statName(counterName, kPortName)),
         curValue++ + 1);
+  }
+  curValue = 1;
+  for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
+    for (const auto& queueIdAndName : kQueue2Name) {
+      EXPECT_EQ(
+          portStats.getCounterLastIncrement(HwPortFb303Stats::statName(
+              counterName,
+              kPortName,
+              queueIdAndName.first,
+              queueIdAndName.second)),
+          curValue);
+    }
+    ++curValue;
   }
 }

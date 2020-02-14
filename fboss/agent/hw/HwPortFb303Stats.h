@@ -44,8 +44,6 @@ class HwPortFb303Stats {
   void addOrUpdateQueue(int queueId, const std::string& queueName);
   void removeQueue(int queueId);
 
-  std::vector<std::string> statNames() const;
-
   /*
    * Port stat name
    */
@@ -67,7 +65,6 @@ class HwPortFb303Stats {
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
  private:
-  void reinitQueueStats(int queueId, std::optional<std::string> oldQueueName);
   void reinitStats(std::optional<std::string> oldPortName);
   int getQueueId(const std::string& queueName) const;
   /*
@@ -99,6 +96,14 @@ class HwPortFb303Stats {
       folly::StringPiece statKey,
       int64_t val);
   /*
+   * update port queue stat
+   */
+  void updateStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      int queueId,
+      int64_t val);
+  /*
    * Update port or port queue stat
    */
   void updateStat(
@@ -108,6 +113,8 @@ class HwPortFb303Stats {
   stats::MonotonicCounter* getCounterIf(const std::string& statName);
   const stats::MonotonicCounter* getCounterIf(
       const std::string& statName) const;
+
+  std::vector<std::string> statNames() const;
 
   std::chrono::seconds timeRetrieved_{0};
   std::string portName_;
