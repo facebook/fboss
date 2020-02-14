@@ -47,10 +47,11 @@ std::array<folly::StringPiece, 3> HwPortFb303Stats::kQueueStatKeys() {
 }
 
 HwPortFb303Stats::~HwPortFb303Stats() {
-  for (const auto& statName : statNames()) {
-    utility::deleteCounter(statName);
+  for (const auto& statNameAndStat : portCounters_) {
+    utility::deleteCounter(statNameAndStat.second.getName());
   }
 }
+
 std::string HwPortFb303Stats::statName(
     folly::StringPiece statName,
     folly::StringPiece portName) {
@@ -64,15 +65,6 @@ std::string HwPortFb303Stats::statName(
     folly::StringPiece queueName) {
   return folly::to<std::string>(
       portName, ".", "queue", queueId, ".", queueName, ".", statName);
-}
-
-std::vector<std::string> HwPortFb303Stats::statNames() const {
-  std::vector<std::string> stats{portCounters_.size()};
-  auto idx = 0;
-  for (const auto& statKeyAndStat : portCounters_) {
-    stats[idx++] = statKeyAndStat.second.getName();
-  }
-  return stats;
 }
 
 int HwPortFb303Stats::getQueueId(const std::string& queueName) const {

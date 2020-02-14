@@ -114,8 +114,6 @@ class HwPortFb303Stats {
   const stats::MonotonicCounter* getCounterIf(
       const std::string& statName) const;
 
-  std::vector<std::string> statNames() const;
-
   std::chrono::seconds timeRetrieved_{0};
   std::string portName_;
   folly::F14FastMap<std::string, stats::MonotonicCounter> portCounters_;
