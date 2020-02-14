@@ -17,6 +17,35 @@
 
 namespace facebook::fboss {
 
+std::array<folly::StringPiece, 20> HwPortFb303Stats::kPortStatKeys() {
+  return {
+      kInBytes(),
+      kInUnicastPkts(),
+      kInMulticastPkts(),
+      kInBroadcastPkts(),
+      kInDiscards(),
+      kInErrors(),
+      kInPause(),
+      kInIpv4HdrErrors(),
+      kInIpv6HdrErrors(),
+      kInDstNullDiscards(),
+      kInDiscardsRaw(),
+      kOutBytes(),
+      kOutUnicastPkts(),
+      kOutMulticastPkts(),
+      kOutBroadcastPkts(),
+      kOutDiscards(),
+      kOutErrors(),
+      kOutPause(),
+      kOutCongestionDiscards(),
+      kOutEcnCounter(),
+  };
+}
+
+std::array<folly::StringPiece, 3> HwPortFb303Stats::kQueueStatKeys() {
+  return {kOutBytes(), kOutCongestionDiscards(), kOutPkts()};
+}
+
 HwPortFb303Stats::~HwPortFb303Stats() {
   for (const auto& statName : statNames()) {
     utility::deleteCounter(statName);
@@ -28,6 +57,15 @@ std::string HwPortFb303Stats::statName(
   return folly::to<std::string>(portName, ".", statName);
 }
 
+std::string HwPortFb303Stats::statName(
+    folly::StringPiece statName,
+    folly::StringPiece portName,
+    int queueId,
+    folly::StringPiece queueName) {
+  return folly::to<std::string>(
+      portName, ".", "queue", queueId, ".", queueName, ".", statName);
+}
+
 std::vector<std::string> HwPortFb303Stats::statNames() const {
   std::vector<std::string> stats{portCounters_.size()};
   auto idx = 0;
@@ -37,71 +75,113 @@ std::vector<std::string> HwPortFb303Stats::statNames() const {
   return stats;
 }
 
-void HwPortFb303Stats::reinitPortStat(
-    folly::StringPiece statKey,
-    const std::string& portName) {
-  auto stat = getPortCounterIf(statKey);
-
-  if (!stat) {
-    portCounters_.emplace(
-        statKey.str(),
-        stats::MonotonicCounter(
-            statName(statKey, portName), fb303::SUM, fb303::RATE));
-  } else if (stat->getName() != statName(statKey, portName)) {
-    stats::MonotonicCounter newStat{
-        statName(statKey, portName), fb303::SUM, fb303::RATE};
-    stat->swap(newStat);
-    utility::deleteCounter(newStat.getName());
+int HwPortFb303Stats::getQueueId(const std::string& queueName) const {
+  for (const auto& queueIdAndName : queueId2Name_) {
+    if (queueIdAndName.second == queueName) {
+      return queueIdAndName.first;
+    }
   }
+  CHECK(false) << " Unable to find queueID for :" << queueName;
 }
 
-const stats::MonotonicCounter* HwPortFb303Stats::getPortCounterIf(
-    folly::StringPiece statKey) const {
-  auto pcitr = portCounters_.find(statKey.str());
+const stats::MonotonicCounter* HwPortFb303Stats::getCounterIf(
+    const std::string& statName) const {
+  auto pcitr = portCounters_.find(statName);
   return pcitr != portCounters_.end() ? &pcitr->second : nullptr;
 }
 
-stats::MonotonicCounter* HwPortFb303Stats::getPortCounterIf(
-    folly::StringPiece statKey) {
+stats::MonotonicCounter* HwPortFb303Stats::getCounterIf(
+    const std::string& statName) {
   return const_cast<stats::MonotonicCounter*>(
-      const_cast<const HwPortFb303Stats*>(this)->getPortCounterIf(statKey));
+      const_cast<const HwPortFb303Stats*>(this)->getCounterIf(statName));
 }
-int64_t HwPortFb303Stats::getPortCounterLastIncrement(
+
+int64_t HwPortFb303Stats::getCounterLastIncrement(
     folly::StringPiece statKey) const {
-  return getPortCounterIf(statKey)->get();
+  return getCounterIf(statKey.str())->get();
 }
 
-void HwPortFb303Stats::reinitPortStats(const std::string& portName) {
-  XLOG(DBG2) << "Reinitializing stats for " << portName;
+void HwPortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
+  XLOG(DBG2) << "Reinitializing stats for " << portName_;
 
-  reinitPortStat(kInBytes(), portName);
-  reinitPortStat(kInUnicastPkts(), portName);
-  reinitPortStat(kInMulticastPkts(), portName);
-  reinitPortStat(kInBroadcastPkts(), portName);
-  reinitPortStat(kInDiscards(), portName);
-  reinitPortStat(kInErrors(), portName);
-  reinitPortStat(kInPause(), portName);
-  reinitPortStat(kInIpv4HdrErrors(), portName);
-  reinitPortStat(kInIpv6HdrErrors(), portName);
-  reinitPortStat(kInDstNullDiscards(), portName);
-  reinitPortStat(kInDiscardsRaw(), portName);
+  for (auto statKey : kPortStatKeys()) {
+    reinitStat(statKey, portName_, oldPortName);
+  }
+  for (auto queueIdAndName : queueId2Name_) {
+    for (auto statKey : kQueueStatKeys()) {
+      auto newStatName = statName(
+          statKey, portName_, queueIdAndName.first, queueIdAndName.second);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(statName(
+                statKey,
+                *oldPortName,
+                queueIdAndName.first,
+                queueIdAndName.second))
+          : std::nullopt;
+      reinitStat(newStatName, oldStatName);
+    }
+  }
+}
 
-  reinitPortStat(kOutBytes(), portName);
-  reinitPortStat(kOutUnicastPkts(), portName);
-  reinitPortStat(kOutMulticastPkts(), portName);
-  reinitPortStat(kOutBroadcastPkts(), portName);
-  reinitPortStat(kOutDiscards(), portName);
-  reinitPortStat(kOutErrors(), portName);
-  reinitPortStat(kOutPause(), portName);
-  reinitPortStat(kOutCongestionDiscards(), portName);
-  reinitPortStat(kOutEcnCounter(), portName);
+/*
+ * Reinit port stat
+ */
+void HwPortFb303Stats::reinitStat(
+    folly::StringPiece statKey,
+    const std::string& portName,
+    std::optional<std::string> oldPortName) {
+  reinitStat(
+      statName(statKey, portName),
+      oldPortName ? std::optional<std::string>(statName(statKey, *oldPortName))
+                  : std::nullopt);
+}
+
+/*
+ * Reinit port queue stat
+ */
+void HwPortFb303Stats::reinitStat(
+    folly::StringPiece statKey,
+    int queueId,
+    std::optional<std::string> oldQueueName) {
+  reinitStat(
+      statName(statKey, portName_, queueId, queueId2Name_[queueId]),
+      oldQueueName
+          ? std::optional<std::string>(statName(
+                statKey, portName_, getQueueId(*oldQueueName), *oldQueueName))
+          : std::nullopt);
+}
+
+/*
+ * Reinit port or port queue stat
+ */
+void HwPortFb303Stats::reinitStat(
+    const std::string& statName,
+    std::optional<std::string> oldStatName) {
+  if (oldStatName) {
+    auto stat = getCounterIf(*oldStatName);
+    stats::MonotonicCounter newStat{statName, fb303::SUM, fb303::RATE};
+    stat->swap(newStat);
+    utility::deleteCounter(newStat.getName());
+  } else {
+    portCounters_.emplace(
+        statName, stats::MonotonicCounter(statName, fb303::SUM, fb303::RATE));
+  }
+}
+
+void HwPortFb303Stats::reinitQueueStats(
+    int queueId,
+    std::optional<std::string> oldQueueName) {
+  for (auto statKey : {kOutBytes, kOutCongestionDiscards, kOutPkts}) {
+  }
+  auto qitr = queueId2Name_.find(queueId);
+  CHECK(qitr != queueId2Name_.end());
 }
 
 void HwPortFb303Stats::updateStat(
     const std::chrono::seconds& now,
-    folly::StringPiece statKey,
+    const std::string& statName,
     int64_t val) {
-  auto stat = getPortCounterIf(statKey);
+  auto stat = getCounterIf(statName);
   stat->updateValue(now, val);
 }
 
@@ -136,5 +216,12 @@ void HwPortFb303Stats::updateStats(
       kOutCongestionDiscards(),
       curPortStats.outCongestionDiscardPkts_);
   updateStat(timeRetrieved_, kOutEcnCounter(), curPortStats.outEcnCounter_);
+}
+
+void HwPortFb303Stats::updateStat(
+    const std::chrono::seconds& now,
+    folly::StringPiece statKey,
+    int64_t val) {
+  updateStat(now, statName(statKey, portName_), val);
 }
 } // namespace facebook::fboss

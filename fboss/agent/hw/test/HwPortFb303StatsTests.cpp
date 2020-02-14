@@ -19,59 +19,62 @@ using namespace facebook::fb303;
 using namespace std::chrono;
 
 namespace {
-std::array<folly::StringPiece, 20> kStatNames = {
-    kInBytes(),
-    kInUnicastPkts(),
-    kInMulticastPkts(),
-    kInBroadcastPkts(),
-    kInDiscards(),
-    kInErrors(),
-    kInPause(),
-    kInIpv4HdrErrors(),
-    kInIpv6HdrErrors(),
-    kInDstNullDiscards(),
-    kInDiscardsRaw(),
-    kOutBytes(),
-    kOutUnicastPkts(),
-    kOutMulticastPkts(),
-    kOutBroadcastPkts(),
-    kOutDiscards(),
-    kOutErrors(),
-    kOutPause(),
-    kOutCongestionDiscards(),
-    kOutEcnCounter(),
+constexpr auto kPortName = "eth1/1/1";
+HwPortFb303Stats::QueueId2Name kQueue2Name = {
+    {1, "gold"},
+    {2, "silver"},
 };
+} // namespace
+
+TEST(HwPortFb303StatsTest, StatName) {
+  EXPECT_EQ(
+      HwPortFb303Stats::statName(kOutBytes(), kPortName),
+      folly::to<std::string>(kPortName, '.', kOutBytes()));
+  EXPECT_EQ(
+      HwPortFb303Stats::statName(kOutBytes(), kPortName, 1, "gold"),
+      folly::to<std::string>(kPortName, '.', "queue1.gold.", kOutBytes()));
 }
 
 TEST(HwPortFb303StatsTest, StatsInit) {
-  HwPortFb303Stats stats("eth1/1/1");
-  for (const auto& statName : stats.statNames()) {
-    EXPECT_TRUE(fbData->getStatMap()->contains(statName));
+  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    for (const auto& queueIdAndName : kQueue2Name) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
+          statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
+    }
   }
 }
 
 TEST(HwPortFb303StatsTest, StatsDeInit) {
-  std::vector<std::string> statNames;
-  {
-    HwPortFb303Stats stats("eth1/1/1");
-    statNames = stats.statNames();
-  }
-  for (const auto& statName : statNames) {
-    EXPECT_FALSE(fbData->getStatMap()->contains(statName));
+  { HwPortFb303Stats stats(kPortName); }
+  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
   }
 }
 
 TEST(HwPortFb303StatsTest, ReInit) {
-  constexpr auto kOrigPortName = "eth1/1/1";
   constexpr auto kNewPortName = "eth1/2/1";
 
-  HwPortFb303Stats stats(kOrigPortName);
-  stats.reinitPortStats(kNewPortName);
-  for (const auto& sName : kStatNames) {
+  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  stats.portNameChanged(kNewPortName);
+  for (const auto& sName : HwPortFb303Stats::kPortStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(sName, kNewPortName)));
     EXPECT_FALSE(fbData->getStatMap()->contains(
-        HwPortFb303Stats::statName(sName, kOrigPortName)));
+        HwPortFb303Stats::statName(sName, kPortName)));
+  }
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    for (const auto& queueIdAndName : kQueue2Name) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
+          statKey, kNewPortName, queueIdAndName.first, queueIdAndName.second)));
+      EXPECT_FALSE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
+          statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
+    }
   }
 }
 
@@ -102,16 +105,17 @@ TEST(HwPortFb303Stats, UpdateStats) {
       20, // outEcnCounter
       {}, // queueOutPackets
   };
-  constexpr auto kPortName = "eth1/1/1";
   HwPortFb303Stats portStats(kPortName);
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   // To get last increment from monotonic counter we need to update it twice
   portStats.updateStats(HwPortStats{}, now);
   portStats.updateStats(stats, now);
   auto curValue{1};
-  for (auto counterName : kStatNames) {
+  for (auto counterName : HwPortFb303Stats::kPortStatKeys()) {
     // +1 because first initialization is to -1
     EXPECT_EQ(
-        portStats.getPortCounterLastIncrement(counterName), curValue++ + 1);
+        portStats.getCounterLastIncrement(
+            HwPortFb303Stats::statName(counterName, kPortName)),
+        curValue++ + 1);
   }
 }

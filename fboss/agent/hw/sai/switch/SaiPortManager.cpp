@@ -258,7 +258,7 @@ void SaiPortManager::changePort(
       newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
   if (oldPort->getName() != newPort->getName()) {
     portStats_.find(newPort->getID())
-        ->second->reinitPortStats(newPort->getName());
+        ->second->portNameChanged(newPort->getName());
   }
 }
 
