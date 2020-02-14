@@ -255,6 +255,16 @@ sai_status_t get_port_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t get_port_stats_fn(
+    sai_object_id_t /*port*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
 namespace facebook::fboss {
 
 static sai_port_api_t _port_api;
@@ -264,6 +274,7 @@ void populate_port_api(sai_port_api_t** port_api) {
   _port_api.remove_port = &remove_port_fn;
   _port_api.set_port_attribute = &set_port_attribute_fn;
   _port_api.get_port_attribute = &get_port_attribute_fn;
+  _port_api.get_port_stats = &get_port_stats_fn;
   *port_api = &_port_api;
 }
 
