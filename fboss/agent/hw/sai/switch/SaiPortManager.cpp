@@ -192,8 +192,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
-  portStats_.emplace(
-      swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
+  if (swPort->isEnabled()) {
+    portStats_.emplace(
+        swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
+  }
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   return saiPort->adapterKey();
 }
@@ -256,9 +258,20 @@ void SaiPortManager::changePort(
   portStore.setObject(portKey, attributes);
   changeQueue(
       newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
-  if (oldPort->getName() != newPort->getName()) {
-    portStats_.find(newPort->getID())
-        ->second->portNameChanged(newPort->getName());
+  if (newPort->isEnabled()) {
+    if (!oldPort->isEnabled()) {
+      // Port transitioned from disabled to enabled, setup port stats
+      portStats_.emplace(
+          newPort->getID(),
+          std::make_unique<HwPortFb303Stats>(newPort->getName()));
+    } else if (oldPort->getName() != newPort->getName()) {
+      // Port was already enabled, but Port name changed - update stats
+      portStats_.find(newPort->getID())
+          ->second->portNameChanged(newPort->getName());
+    }
+  } else if (oldPort->isEnabled()) {
+    // Port transitioned from enabled to disabled, remove stats
+    portStats_.erase(newPort->getID());
   }
 }
 
