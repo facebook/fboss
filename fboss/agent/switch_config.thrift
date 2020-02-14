@@ -573,9 +573,17 @@ struct TrafficPolicyConfig {
   3: optional map<i32, string> portIdToQosPolicy
 }
 
+struct PacketRxReasonToQueue {
+  1: required PacketRxReason rxReason
+  2: required i16 queueId
+}
+
 struct CPUTrafficPolicyConfig {
   1: optional TrafficPolicyConfig trafficPolicy
+  // TODO(joseph5wu) Will be deprecated once we begin to use rxReasonToQueueList
   2: optional map<PacketRxReason, i16> rxReasonToCPUQueue
+  // Order of entries determines priority of reasons when applied
+  3: optional list<PacketRxReasonToQueue> rxReasonToQueueOrderedList
 }
 
 enum PacketRxReason {
