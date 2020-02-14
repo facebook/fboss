@@ -138,3 +138,44 @@ TEST(HwPortFb303Stats, UpdateStats) {
     ++curValue;
   }
 }
+
+TEST(HwPortFb303StatsTest, RenameQueue) {
+  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  stats.addOrUpdateQueue(1, "platinum");
+  auto newQueueMapping = kQueue2Name;
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 1, "platinum")));
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 1, "gold")));
+    // No impact on silver
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 2, "silver")));
+  }
+}
+
+TEST(HwPortFb303StatsTest, AddQueue) {
+  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  stats.addOrUpdateQueue(3, "platinum");
+  auto newQueueMapping = kQueue2Name;
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 1, "gold")));
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 2, "silver")));
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 3, "platinum")));
+  }
+}
+
+TEST(HwPortFb303StatsTest, RemoveQueue) {
+  HwPortFb303Stats stats(kPortName, kQueue2Name);
+  stats.removeQueue(1);
+  auto newQueueMapping = kQueue2Name;
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 1, "gold")));
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName, 2, "silver")));
+  }
+}

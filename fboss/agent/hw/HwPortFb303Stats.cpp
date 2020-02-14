@@ -67,15 +67,6 @@ std::string HwPortFb303Stats::statName(
       portName, ".", "queue", queueId, ".", queueName, ".", statName);
 }
 
-int HwPortFb303Stats::getQueueId(const std::string& queueName) const {
-  for (const auto& queueIdAndName : queueId2Name_) {
-    if (queueIdAndName.second == queueName) {
-      return queueIdAndName.first;
-    }
-  }
-  CHECK(false) << " Unable to find queueID for :" << queueName;
-}
-
 const stats::MonotonicCounter* HwPortFb303Stats::getCounterIf(
     const std::string& statName) const {
   auto pcitr = portCounters_.find(statName);
@@ -137,10 +128,9 @@ void HwPortFb303Stats::reinitStat(
     std::optional<std::string> oldQueueName) {
   reinitStat(
       statName(statKey, portName_, queueId, queueId2Name_[queueId]),
-      oldQueueName
-          ? std::optional<std::string>(statName(
-                statKey, portName_, getQueueId(*oldQueueName), *oldQueueName))
-          : std::nullopt);
+      oldQueueName ? std::optional<std::string>(
+                         statName(statKey, portName_, queueId, *oldQueueName))
+                   : std::nullopt);
 }
 
 /*
@@ -158,6 +148,30 @@ void HwPortFb303Stats::reinitStat(
     portCounters_.emplace(
         statName, stats::MonotonicCounter(statName, fb303::SUM, fb303::RATE));
   }
+}
+
+void HwPortFb303Stats::addOrUpdateQueue(
+    int queueId,
+    const std::string& queueName) {
+  auto qitr = queueId2Name_.find(queueId);
+  std::optional<std::string> oldQueueName = qitr == queueId2Name_.end()
+      ? std::nullopt
+      : std::optional<std::string>(qitr->second);
+  queueId2Name_[queueId] = queueName;
+  for (auto statKey : kQueueStatKeys()) {
+    reinitStat(statKey, queueId, oldQueueName);
+  }
+}
+
+void HwPortFb303Stats::removeQueue(int queueId) {
+  auto qitr = queueId2Name_.find(queueId);
+  for (auto statKey : kQueueStatKeys()) {
+    auto stat = getCounterIf(
+        statName(statKey, portName_, queueId, queueId2Name_[queueId]));
+    utility::deleteCounter(stat->getName());
+    portCounters_.erase(stat->getName());
+  }
+  queueId2Name_.erase(queueId);
 }
 
 void HwPortFb303Stats::updateStat(

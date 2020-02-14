@@ -66,7 +66,6 @@ class HwPortFb303Stats {
 
  private:
   void reinitStats(std::optional<std::string> oldPortName);
-  int getQueueId(const std::string& queueName) const;
   /*
    * Reinit port stat
    */
