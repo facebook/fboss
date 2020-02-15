@@ -230,17 +230,16 @@ cfg::SwitchConfig testConfigA() {
   cfg.ports.resize(kPortCount);
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports[p].logicalID = p + 1;
-    cfg.ports[p].name_ref().value_unchecked() =
-        folly::to<string>("port", p + 1);
+    cfg.ports[p].name_ref() = folly::to<string>("port", p + 1);
   }
 
   cfg.vlans.resize(2);
   cfg.vlans[0].id = 1;
   cfg.vlans[0].name = "Vlan1";
-  cfg.vlans[0].intfID_ref().value_unchecked() = 1;
+  cfg.vlans[0].intfID_ref() = 1;
   cfg.vlans[1].id = 55;
   cfg.vlans[1].name = "Vlan55";
-  cfg.vlans[1].intfID_ref().value_unchecked() = 55;
+  cfg.vlans[1].intfID_ref() = 55;
 
   cfg.vlanPorts.resize(20);
   for (int p = 0; p < kPortCount; ++p) {
@@ -252,9 +251,9 @@ cfg::SwitchConfig testConfigA() {
   cfg.interfaces[0].intfID = 1;
   cfg.interfaces[0].routerID = 0;
   cfg.interfaces[0].vlanID = 1;
-  cfg.interfaces[0].name_ref().value_unchecked() = "interface1";
-  cfg.interfaces[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
-  cfg.interfaces[0].mtu_ref().value_unchecked() = 9000;
+  cfg.interfaces[0].name_ref() = "interface1";
+  cfg.interfaces[0].mac_ref() = "00:02:00:00:00:01";
+  cfg.interfaces[0].mtu_ref() = 9000;
   cfg.interfaces[0].ipAddresses.resize(3);
   cfg.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
   cfg.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
@@ -263,9 +262,9 @@ cfg::SwitchConfig testConfigA() {
   cfg.interfaces[1].intfID = 55;
   cfg.interfaces[1].routerID = 0;
   cfg.interfaces[1].vlanID = 55;
-  cfg.interfaces[1].name_ref().value_unchecked() = "interface55";
-  cfg.interfaces[1].mac_ref().value_unchecked() = "00:02:00:00:00:55";
-  cfg.interfaces[1].mtu_ref().value_unchecked() = 9000;
+  cfg.interfaces[1].name_ref() = "interface55";
+  cfg.interfaces[1].mac_ref() = "00:02:00:00:00:55";
+  cfg.interfaces[1].mtu_ref() = 9000;
   cfg.interfaces[1].ipAddresses.resize(3);
   cfg.interfaces[1].ipAddresses[0] = "10.0.55.1/24";
   cfg.interfaces[1].ipAddresses[1] = "192.168.55.1/24";
@@ -297,9 +296,9 @@ shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
         InterfaceID(cfgInterface.intfID),
         RouterID(0), /* TODO - vrf is 0 */
         VlanID(cfgInterface.vlanID),
-        cfgInterface.name_ref().value_unchecked(),
-        folly::MacAddress(cfgInterface.mac_ref().value_unchecked()),
-        cfgInterface.mtu_ref().value_unchecked(),
+        cfgInterface.name_ref().value_or({}),
+        folly::MacAddress(cfgInterface.mac_ref().value_or({})),
+        cfgInterface.mtu_ref().value_or({}),
         false, /* is virtual */
         false /* is state_sync disabled */
     );
