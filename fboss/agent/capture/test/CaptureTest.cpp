@@ -57,7 +57,6 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   thriftIface.vlanID = 1;
   thriftIface.ipAddresses.push_back("10.0.0.1/24");
   thriftIface.mac_ref() = "02:01:02:03:04:05";
-  thriftIface.__isset.mac = "02:01:02:03:04:05";
   thriftCfg.interfaces.push_back(thriftIface);
 
   for (int idx = 1; idx < 40; ++idx) {
