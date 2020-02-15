@@ -35,15 +35,12 @@ TEST(StaticRoutes, configureUnconfigure) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.__isset.staticRoutesToNull = true;
-  config.__isset.staticRoutesToCPU = true;
   config.staticRoutesToNull.resize(2);
   config.staticRoutesToNull[0].prefix = "1.1.1.1/32";
   config.staticRoutesToNull[1].prefix = "2001::1/128";
   config.staticRoutesToCPU.resize(2);
   config.staticRoutesToCPU[0].prefix = "2.2.2.2/32";
   config.staticRoutesToCPU[1].prefix = "2001::2/128";
-  config.__isset.staticRoutesWithNhops = true;
   config.staticRoutesWithNhops.resize(4);
   config.staticRoutesWithNhops[0].prefix = "3.3.3.3/32";
   config.staticRoutesWithNhops[0].nexthops.resize(1);

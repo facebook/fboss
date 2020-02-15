@@ -1838,49 +1838,43 @@ std::shared_ptr<RouteTableMap> ThriftConfigApplier::syncStaticRoutes(
   auto staticAdminDistance = AdminDistance::STATIC_ROUTE;
   updater.removeAllRoutesForClient(RouterID(0), staticClientId);
 
-  if (cfg_->__isset.staticRoutesToNull) {
-    for (const auto& route : cfg_->staticRoutesToNull) {
-      auto prefix = folly::IPAddress::createNetwork(route.prefix);
-      updater.addRoute(
-          RouterID(route.routerID),
-          prefix.first,
-          prefix.second,
-          staticClientId,
-          RouteNextHopEntry(RouteForwardAction::DROP, staticAdminDistance));
-    }
+  for (const auto& route : *cfg_->staticRoutesToNull_ref()) {
+    auto prefix = folly::IPAddress::createNetwork(route.prefix);
+    updater.addRoute(
+        RouterID(route.routerID),
+        prefix.first,
+        prefix.second,
+        staticClientId,
+        RouteNextHopEntry(RouteForwardAction::DROP, staticAdminDistance));
   }
-  if (cfg_->__isset.staticRoutesToCPU) {
-    for (const auto& route : cfg_->staticRoutesToCPU) {
-      auto prefix = folly::IPAddress::createNetwork(route.prefix);
-      updater.addRoute(
-          RouterID(route.routerID),
-          prefix.first,
-          prefix.second,
-          staticClientId,
-          RouteNextHopEntry(RouteForwardAction::TO_CPU, staticAdminDistance));
-    }
+  for (const auto& route : *cfg_->staticRoutesToCPU_ref()) {
+    auto prefix = folly::IPAddress::createNetwork(route.prefix);
+    updater.addRoute(
+        RouterID(route.routerID),
+        prefix.first,
+        prefix.second,
+        staticClientId,
+        RouteNextHopEntry(RouteForwardAction::TO_CPU, staticAdminDistance));
   }
-  if (cfg_->__isset.staticRoutesWithNhops) {
-    for (const auto& route : cfg_->staticRoutesWithNhops) {
-      auto prefix = folly::IPAddress::createNetwork(route.prefix);
-      RouteNextHopSet nhops;
-      // NOTE: Static routes use the default UCMP weight so that they can be
-      // compatible with UCMP, i.e., so that we can do ucmp where the next
-      // hops resolve to a static route.  If we define recursive static
-      // routes, that may lead to unexpected behavior where some interface
-      // gets more traffic.  If necessary, in the future, we can make it
-      // possible to configure strictly ECMP static routes
-      for (auto& nhopStr : route.nexthops) {
-        nhops.emplace(
-            UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
-      }
-      updater.addRoute(
-          RouterID(route.routerID),
-          prefix.first,
-          prefix.second,
-          staticClientId,
-          RouteNextHopEntry(std::move(nhops), staticAdminDistance));
+  for (const auto& route : *cfg_->staticRoutesWithNhops_ref()) {
+    auto prefix = folly::IPAddress::createNetwork(route.prefix);
+    RouteNextHopSet nhops;
+    // NOTE: Static routes use the default UCMP weight so that they can be
+    // compatible with UCMP, i.e., so that we can do ucmp where the next
+    // hops resolve to a static route.  If we define recursive static
+    // routes, that may lead to unexpected behavior where some interface
+    // gets more traffic.  If necessary, in the future, we can make it
+    // possible to configure strictly ECMP static routes
+    for (auto& nhopStr : route.nexthops) {
+      nhops.emplace(
+          UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
     }
+    updater.addRoute(
+        RouterID(route.routerID),
+        prefix.first,
+        prefix.second,
+        staticClientId,
+        RouteNextHopEntry(std::move(nhops), staticAdminDistance));
   }
   return updater.updateDone();
 }
