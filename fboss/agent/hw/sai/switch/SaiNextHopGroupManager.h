@@ -32,14 +32,40 @@ class SaiPlatform;
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 
-class SaiNextHopGroupMemberHandle {
+/*
+ * An object that represents an association between next hop group and next hop
+ * group member This association always exist as long as next hop is member of
+ * next hop set defining next hop group. However this association is
+ * non-transferable and unique to next hop group and next hop.
+ *
+ * This membership exports two main functions
+ *  - join next hop group : a member is added to next hop group
+ *  - leave next hop group : a member is removed from next hop group
+ *
+ * This happens in response to triggers such as neighbor state change.
+ *
+ * A membership is created or destroyed solely based on next hop and next hop
+ * group association which exists for as long as next hop is part of next hop
+ * set.
+ */
+class SaiNextHopGroupMembership {
  public:
-  SaiNextHopGroupMemberHandle(
-      std::shared_ptr<SaiNextHopHandle> nextHopHandle,
-      std::shared_ptr<SaiNextHopGroupMember> member)
-      : nextHopHandle_(nextHopHandle), member_(member) {}
+  SaiNextHopGroupMembership(
+      SaiNextHopGroupTraits::AdapterKey groupId,
+      const ResolvedNextHop& nexthop);
+
+  void joinNextHopGroup(SaiManagerTable* managerTable);
+  void leaveNextHopGroup();
+
+  SaiNextHopGroupMembership(const SaiNextHopGroupMembership&) = delete;
+  SaiNextHopGroupMembership(SaiNextHopGroupMembership&&) = delete;
+  SaiNextHopGroupMembership& operator=(const SaiNextHopGroupMembership&) =
+      delete;
+  SaiNextHopGroupMembership& operator=(SaiNextHopGroupMembership&&) = delete;
 
  private:
+  SaiNextHopGroupTraits::AdapterKey groupId_;
+  ResolvedNextHop nexthop_;
   std::shared_ptr<SaiNextHopHandle> nextHopHandle_;
   std::shared_ptr<SaiNextHopGroupMember> member_;
 };
@@ -48,8 +74,8 @@ struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
-      std::vector<std::shared_ptr<SaiNextHopGroupMemberHandle>>>
-      nextHopGroupMembers;
+      std::vector<std::shared_ptr<SaiNextHopGroupMembership>>>
+      neighbor2Memberships;
 };
 
 class SaiNextHopGroupManager {

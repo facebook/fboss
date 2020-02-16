@@ -24,6 +24,31 @@
 
 namespace facebook::fboss {
 
+SaiNextHopGroupMembership::SaiNextHopGroupMembership(
+    SaiNextHopGroupTraits::AdapterKey groupId,
+    const ResolvedNextHop& nexthop)
+    : groupId_(groupId), nexthop_(nexthop) {}
+
+void SaiNextHopGroupMembership::joinNextHopGroup(
+    SaiManagerTable* managerTable) {
+  auto& memberStore =
+      SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
+  nextHopHandle_ = managerTable->nextHopManager().refOrEmplace(nexthop_);
+
+  SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
+      groupId_, nextHopHandle_->adapterKey()};
+  SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
+      groupId_,
+      nextHopHandle_->adapterKey(),
+      (nexthop_.weight() == ECMP_WEIGHT ? 1 : nexthop_.weight())};
+  member_ = memberStore.setObject(memberAdapterHostKey, memberAttributes);
+}
+
+void SaiNextHopGroupMembership::leaveNextHopGroup() {
+  member_.reset();
+  nextHopHandle_.reset();
+}
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
@@ -68,23 +93,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     // Index this set of next hops by the neighbor for lookup on
     // resolved/unresolved
     nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
-    auto neighborHandle =
-        managerTable_->neighborManager().getNeighborHandle(neighborEntry);
-    if (!neighborHandle) {
-      XLOG(INFO) << "L2 Unresolved neighbor for " << ip;
-      continue;
-    } else {
-      // if the neighbor is resolved, save that neighbor's next hop id
-      // for creating a next hop group member with
-      neighbor2NextHops.emplace_back(
-          neighborEntry, folly::poly_cast<ResolvedNextHop>(swNextHop));
-    }
+    neighbor2NextHops.emplace_back(
+        neighborEntry, folly::poly_cast<ResolvedNextHop>(swNextHop));
   }
 
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = SaiStore::getInstance()->get<SaiNextHopGroupTraits>();
-  auto& memberStore =
-      SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
       SAI_NEXT_HOP_GROUP_TYPE_ECMP};
   nextHopGroupHandle->nextHopGroup =
@@ -94,17 +108,24 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   for (const auto& neighbor2NextHop : neighbor2NextHops) {
     const auto& neighborEntry = neighbor2NextHop.first;
     const auto& nexthop = neighbor2NextHop.second;
-    auto nexthopHandle = managerTable_->nextHopManager().refOrEmplace(nexthop);
-    auto nextHopId = nexthopHandle->adapterKey();
-    auto weight = nexthop.weight() == ECMP_WEIGHT ? 1 : nexthop.weight();
-    SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
-        nextHopGroupId, nextHopId};
-    SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
-        nextHopGroupId, nextHopId, weight};
-    auto member = memberStore.setObject(memberAdapterHostKey, memberAttributes);
-    nextHopGroupHandle->nextHopGroupMembers[neighborEntry].push_back(
-        std::make_shared<SaiNextHopGroupMemberHandle>(
-            std::move(nexthopHandle), std::move(member)));
+    auto membership =
+        std::make_shared<SaiNextHopGroupMembership>(nextHopGroupId, nexthop);
+    nextHopGroupHandle->neighbor2Memberships[neighborEntry].push_back(
+        membership);
+  }
+
+  for (auto neighbor2MembershipsEntry :
+       nextHopGroupHandle->neighbor2Memberships) {
+    auto neighborHandle = managerTable_->neighborManager().getNeighborHandle(
+        neighbor2MembershipsEntry.first);
+    if (!neighborHandle) {
+      XLOG(INFO) << "L2 Unresolved neighbor for "
+                 << neighbor2MembershipsEntry.first.ip();
+      continue;
+    }
+    for (auto membership : neighbor2MembershipsEntry.second) {
+      membership->joinNextHopGroup(managerTable_);
+    }
   }
   return nextHopGroupHandle;
 }
@@ -125,32 +146,10 @@ void SaiNextHopGroupManager::handleResolvedNeighbor(
           << "resolved neighbor " << neighborEntry.ip();
       continue;
     }
-
-    const auto& swNextHop = std::find_if(
-        nextHopSet.begin(),
-        nextHopSet.end(),
-        [&neighborEntry](const auto& nextHop) {
-          // TODO: try to use interface here as well as ip
-          return nextHop.addr() == neighborEntry.ip();
-        });
-
-    auto& memberStore =
-        SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
-    auto nextHopGroupId = nextHopGroupHandle->nextHopGroup->adapterKey();
-    const auto& weight =
-        swNextHop->weight() == ECMP_WEIGHT ? 1 : swNextHop->weight();
-
-    auto nexthopHandle = managerTable_->nextHopManager().refOrEmplace(
-        folly::poly_cast<ResolvedNextHop>(*swNextHop));
-    auto nextHopId = nexthopHandle->adapterKey();
-    SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
-        nextHopGroupId, nextHopId};
-    SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
-        nextHopGroupId, nextHopId, weight};
-    auto member = memberStore.setObject(memberAdapterHostKey, memberAttributes);
-    nextHopGroupHandle->nextHopGroupMembers[neighborEntry].push_back(
-        std::make_shared<SaiNextHopGroupMemberHandle>(
-            std::move(nexthopHandle), std::move(member)));
+    for (auto membership :
+         nextHopGroupHandle->neighbor2Memberships[neighborEntry]) {
+      membership->joinNextHopGroup(managerTable_);
+    }
   }
 }
 
@@ -169,7 +168,10 @@ void SaiNextHopGroupManager::handleUnresolvedNeighbor(
           << "No next hop group using next hop set associated with newly "
           << "unresolved neighbor " << neighborEntry.ip();
     }
-    nextHopGroupHandle->nextHopGroupMembers.erase(neighborEntry);
+    for (auto membership :
+         nextHopGroupHandle->neighbor2Memberships[neighborEntry]) {
+      membership->leaveNextHopGroup();
+    }
   }
 }
 

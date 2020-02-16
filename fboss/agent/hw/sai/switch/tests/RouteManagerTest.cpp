@@ -191,7 +191,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopGroupHandle1 = saiRouteHandle->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle1->nextHopGroupMembers.size(), 4);
+  EXPECT_EQ(nexthopGroupHandle1->neighbor2Memberships.size(), 4);
   tr1.nextHopInterfaces.clear();
   tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
   tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
@@ -199,7 +199,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       RouterID(0), r1, r2);
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 2);
+  EXPECT_EQ(nexthopGroupHandle2->neighbor2Memberships.size(), 2);
   EXPECT_NE(nexthopGroupHandle1, nexthopGroupHandle2);
 }
 
@@ -221,7 +221,7 @@ TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       RouterID(0), r1, r2);
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+  EXPECT_EQ(nexthopGroupHandle2->neighbor2Memberships.size(), 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       RouterID(0), r2, r1);
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
@@ -243,13 +243,13 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
   SaiRouteHandle* saiRouteHandle1 =
       saiManagerTable->routeManager().getRouteHandle(routeEntry1);
   auto nexthopGroupHandle1 = saiRouteHandle1->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle1->nextHopGroupMembers.size(), 6);
+  EXPECT_EQ(nexthopGroupHandle1->neighbor2Memberships.size(), 6);
   auto routeEntry2 =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
   SaiRouteHandle* saiRouteHandle2 =
       saiManagerTable->routeManager().getRouteHandle(routeEntry2);
   auto nexthopGroupHandle2 = saiRouteHandle2->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+  EXPECT_EQ(nexthopGroupHandle2->neighbor2Memberships.size(), 4);
 }
 
 TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
@@ -270,7 +270,7 @@ TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       RouterID(0), r1, r2);
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
-  EXPECT_EQ(nexthopGroupHandle2->nextHopGroupMembers.size(), 4);
+  EXPECT_EQ(nexthopGroupHandle2->neighbor2Memberships.size(), 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       RouterID(0), r2, r1);
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
