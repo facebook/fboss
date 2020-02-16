@@ -26,14 +26,29 @@
 namespace facebook::fboss {
 
 class SaiManagerTable;
+class SaiNextHopHandle;
 class SaiPlatform;
 
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 
+class SaiNextHopGroupMemberHandle {
+ public:
+  SaiNextHopGroupMemberHandle(
+      std::shared_ptr<SaiNextHopHandle> nextHopHandle,
+      std::shared_ptr<SaiNextHopGroupMember> member)
+      : nextHopHandle_(nextHopHandle), member_(member) {}
+
+ private:
+  std::shared_ptr<SaiNextHopHandle> nextHopHandle_;
+  std::shared_ptr<SaiNextHopGroupMember> member_;
+};
+
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  folly::F14FastMap<NextHopSaiId, std::shared_ptr<SaiNextHopGroupMember>>
+  folly::F14FastMap<
+      SaiNeighborTraits::NeighborEntry,
+      std::vector<std::shared_ptr<SaiNextHopGroupMemberHandle>>>
       nextHopGroupMembers;
 };
 
@@ -49,11 +64,9 @@ class SaiNextHopGroupManager {
   void unregisterNeighborResolutionHandling(
       const RouteNextHopEntry::NextHopSet& swNextHops);
   void handleResolvedNeighbor(
-      const SaiNeighborTraits::NeighborEntry& neighborEntry,
-      NextHopSaiId nextHopId);
+      const SaiNeighborTraits::NeighborEntry& neighborEntry);
   void handleUnresolvedNeighbor(
-      const SaiNeighborTraits::NeighborEntry& neighborEntry,
-      NextHopSaiId nextHopId);
+      const SaiNeighborTraits::NeighborEntry& neighborEntry);
 
  private:
   SaiManagerTable* managerTable_;

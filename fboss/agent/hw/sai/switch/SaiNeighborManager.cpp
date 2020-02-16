@@ -95,16 +95,11 @@ void SaiNeighborManager::addNeighbor(
     auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
         swEntry->getIntfID(), swEntry->getMac(), swEntry->getPort());
     auto neighbor = store.setObject(saiEntry, attributes);
-    /* add next hop to discovered neighbor over */
-    auto nextHop = managerTable_->nextHopManager().addNextHop(
-        RouterInterfaceSaiId{saiEntry.routerInterfaceId()}, swEntry->getIP());
     auto neighborHandle = std::make_unique<SaiNeighborHandle>();
     neighborHandle->neighbor = neighbor;
     neighborHandle->fdbEntry = fdbEntry;
-    neighborHandle->nextHop = nextHop;
     handles_.emplace(saiEntry, std::move(neighborHandle));
-    managerTable_->nextHopGroupManager().handleResolvedNeighbor(
-        saiEntry, nextHop->adapterKey());
+    managerTable_->nextHopGroupManager().handleResolvedNeighbor(saiEntry);
   }
 }
 
@@ -121,8 +116,7 @@ void SaiNeighborManager::removeNeighbor(
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto neighborHandle = getNeighborHandle(saiEntry);
   if (neighborHandle) {
-    managerTable_->nextHopGroupManager().handleUnresolvedNeighbor(
-        saiEntry, neighborHandle->nextHop->adapterKey());
+    managerTable_->nextHopGroupManager().handleUnresolvedNeighbor(saiEntry);
     handles_.erase(saiEntry);
   } else {
     auto count = unresolvedNeighbors_.erase(saiEntry);
