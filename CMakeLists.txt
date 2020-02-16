@@ -592,6 +592,7 @@ target_link_libraries(
     ${SODIUM}
     ${MNL}
     ${OPENNSA}
+    wedge40_platform_mapping
 )
 
 target_link_libraries(switch_asics_old fboss_agent)

@@ -10,8 +10,6 @@
 
 #include "fboss/agent/platforms/wedge/wedge400/Wedge400PlatformMapping.h"
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {

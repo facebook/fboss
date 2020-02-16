@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
 
@@ -67,6 +68,21 @@ TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
   setExpection(128, 32, 32, 128, expectedProfiles);
 
   auto mapping = std::make_unique<Minipack16QPimPlatformMapping>();
+  verify(mapping.get());
+}
+
+TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC};
+
+  // Wedge40 has 16 * 4 = 64 logical ports
+  // 16 TD2 Warp cores + 16 transceivers
+  setExpection(64, 16, 0, 16, expectedProfiles);
+
+  auto mapping = std::make_unique<Wedge40PlatformMapping>();
   verify(mapping.get());
 }
 } // namespace test

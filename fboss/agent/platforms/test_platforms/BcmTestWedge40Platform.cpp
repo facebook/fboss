@@ -13,13 +13,7 @@
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestWedge40Port.h"
-
-namespace {
-static const std::array<int, 16> kMasterLogicalPortIds =
-    {1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61};
-
-constexpr uint8_t kNumPortsPerTransceiver = 4;
-} // namespace
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -27,10 +21,7 @@ BcmTestWedge40Platform::BcmTestWedge40Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgePlatform(
           std::move(productInfo),
-          std::vector<PortID>(
-              kMasterLogicalPortIds.begin(),
-              kMasterLogicalPortIds.end()),
-          kNumPortsPerTransceiver) {
+          std::make_unique<Wedge40PlatformMapping>()) {
   asic_ = std::make_unique<Trident2Asic>();
 }
 
