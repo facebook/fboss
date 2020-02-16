@@ -7,13 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge100Platform.h"
+#include "fboss/agent/platforms/wedge/wedge100/Wedge100Platform.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
-#include "fboss/agent/platforms/wedge/Wedge100Port.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
+#include "fboss/agent/platforms/wedge/wedge100/Wedge100Port.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
@@ -52,7 +52,7 @@ const auto kWedge100LedCode = folly::make_array<unsigned char>(
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00
 );
-// clang-format off
+// clang-format on
 } // namespace
 
 namespace facebook::fboss {

@@ -7,9 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge100Port.h"
+#include "fboss/agent/platforms/wedge/wedge100/Wedge100Port.h"
 
-#include "fboss/agent/platforms/wedge/Wedge100Platform.h"
+#include "fboss/agent/platforms/wedge/wedge100/Wedge100Platform.h"
 
 namespace {
 using facebook::fboss::TransmitterTechnology;
