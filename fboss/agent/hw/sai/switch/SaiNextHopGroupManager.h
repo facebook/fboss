@@ -61,8 +61,6 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
-  void unregisterNeighborResolutionHandling(
-      const RouteNextHopEntry::NextHopSet& swNextHops);
   void handleResolvedNeighbor(
       const SaiNeighborTraits::NeighborEntry& neighborEntry);
   void handleUnresolvedNeighbor(

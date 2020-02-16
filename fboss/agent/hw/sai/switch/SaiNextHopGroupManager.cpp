@@ -109,25 +109,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   return nextHopGroupHandle;
 }
 
-void SaiNextHopGroupManager::unregisterNeighborResolutionHandling(
-    const RouteNextHopEntry::NextHopSet& swNextHops) {
-  for (const auto& swNextHop : swNextHops) {
-    InterfaceID interfaceId = swNextHop.intf();
-    auto routerInterfaceHandle =
-        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
-            interfaceId);
-    if (!routerInterfaceHandle) {
-      XLOG(WARNING) << "Missing SAI router interface for " << interfaceId;
-      continue;
-    }
-    folly::IPAddress ip = swNextHop.addr();
-    auto switchId = managerTable_->switchManager().getSwitchSaiId();
-    SaiNeighborTraits::NeighborEntry neighborEntry{
-        switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
-    nextHopsByNeighbor_[neighborEntry].erase(swNextHops);
-  }
-}
-
 void SaiNextHopGroupManager::handleResolvedNeighbor(
     const SaiNeighborTraits::NeighborEntry& neighborEntry) {
   auto itr = nextHopsByNeighbor_.find(neighborEntry);
