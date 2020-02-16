@@ -7,13 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40Platform.h"
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
-#include "fboss/agent/platforms/wedge/Wedge40Port.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40Port.h"
 
 #include <folly/Range.h>
 

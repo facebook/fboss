@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/Wedge40Port.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40Port.h"
 
 #include <folly/logging/xlog.h>
 

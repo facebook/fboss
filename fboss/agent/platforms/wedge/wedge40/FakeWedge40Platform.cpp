@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/wedge/FakeWedge40Platform.h"
+#include "fboss/agent/platforms/wedge/wedge40/FakeWedge40Platform.h"
 
 using std::make_unique;
 

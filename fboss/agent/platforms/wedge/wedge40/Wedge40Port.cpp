@@ -8,9 +8,9 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/Wedge40Port.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40Port.h"
 
-#include "fboss/agent/platforms/wedge/Wedge40Platform.h"
+#include "fboss/agent/platforms/wedge/wedge40/Wedge40Platform.h"
 
 namespace facebook::fboss {
 
