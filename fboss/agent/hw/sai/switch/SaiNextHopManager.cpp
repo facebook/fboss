@@ -37,28 +37,7 @@ SaiNextHopManager::SaiNextHopManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-SaiNextHopHandle::SaiNextHopHandle(
-    const SaiIpNextHopTraits::AdapterHostKey& key) {
-  const auto& [intf, ip] = key;
-  auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
-  nexthop_ = store.setObject(key, {SAI_NEXT_HOP_TYPE_IP, intf, ip});
-  // TODO(pshaikh): define a way to access variant member based on object traits
-  id_ = std::get<0>(nexthop_)->adapterKey();
-}
-
-SaiNextHopHandle::SaiNextHopHandle(
-    const SaiMplsNextHopTraits::AdapterHostKey& key) {
-  const auto& [intf, ip, labelStack] = key;
-  SaiMplsNextHopTraits::CreateAttributes attributes;
-  auto& store = SaiStore::getInstance()->get<SaiMplsNextHopTraits>();
-  nexthop_ =
-      store.setObject(key, {SAI_NEXT_HOP_TYPE_MPLS, intf, ip, labelStack});
-  // TODO(pshaikh): define a way to access variant member based on object traits
-  id_ = std::get<1>(nexthop_)->adapterKey();
-}
-
-std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
-    const ResolvedNextHop& swNextHop) {
+SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
   auto interfaceId = swNextHop.intfID().value();
   auto routerInterfaceHandle =
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
@@ -86,22 +65,25 @@ std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
       rifId, ip, swNextHop.labelForwardingAction()->pushStack().value());
 }
 
-std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
+SaiNextHop SaiNextHopManager::refOrEmplace(
     SaiRouterInterfaceTraits::AdapterKey interface,
     const folly::IPAddress& ip) {
   SaiIpNextHopTraits::AdapterHostKey k{interface, ip};
-  auto emplaced = ipNextHops_.refOrEmplace(k, k);
-  return emplaced.first;
+  auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
+  return store.setObject(
+      k,
+      SaiIpNextHopTraits::CreateAttributes{
+          SAI_NEXT_HOP_TYPE_IP, interface, ip});
 }
 
-std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
+SaiNextHop SaiNextHopManager::refOrEmplace(
     SaiRouterInterfaceTraits::AdapterKey interface,
     const folly::IPAddress& ip,
     LabelForwardingAction::Label label) {
   return refOrEmplace(interface, ip, LabelForwardingAction::LabelStack{label});
 }
 
-std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
+SaiNextHop SaiNextHopManager::refOrEmplace(
     SaiRouterInterfaceTraits::AdapterKey interface,
     const folly::IPAddress& ip,
     const LabelForwardingAction::LabelStack& stack) {
@@ -110,8 +92,11 @@ std::shared_ptr<SaiNextHopHandle> SaiNextHopManager::refOrEmplace(
     labels.push_back(label);
   }
   SaiMplsNextHopTraits::AdapterHostKey k{interface, ip, std::move(labels)};
-  auto emplaced = mplsNextHops_.refOrEmplace(k, k);
-  return emplaced.first;
+  auto& store = SaiStore::getInstance()->get<SaiMplsNextHopTraits>();
+  return store.setObject(
+      k,
+      SaiMplsNextHopTraits::CreateAttributes{
+          SAI_NEXT_HOP_TYPE_MPLS, interface, ip, labels});
 }
 
 } // namespace facebook::fboss

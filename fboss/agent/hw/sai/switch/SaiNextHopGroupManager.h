@@ -11,6 +11,8 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
+
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -26,11 +28,11 @@
 namespace facebook::fboss {
 
 class SaiManagerTable;
-class SaiNextHopHandle;
 class SaiPlatform;
 
 using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
+using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 
 /*
  * An object that represents an association between next hop group and next hop
@@ -66,7 +68,7 @@ class SaiNextHopGroupMembership {
  private:
   SaiNextHopGroupTraits::AdapterKey groupId_;
   ResolvedNextHop nexthop_;
-  std::shared_ptr<SaiNextHopHandle> nextHopHandle_;
+  std::optional<SaiNextHop> saiNextHop_;
   std::shared_ptr<SaiNextHopGroupMember> member_;
 };
 

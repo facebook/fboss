@@ -31,22 +31,25 @@ SaiNextHopGroupMembership::SaiNextHopGroupMembership(
 
 void SaiNextHopGroupMembership::joinNextHopGroup(
     SaiManagerTable* managerTable) {
-  auto& memberStore =
-      SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
-  nextHopHandle_ = managerTable->nextHopManager().refOrEmplace(nexthop_);
+  saiNextHop_ = managerTable->nextHopManager().refOrEmplace(nexthop_);
+  CHECK(saiNextHop_.has_value()) << "failed to get next hop";
+  auto nexthopId = std::visit(
+      [](const auto& arg) { return arg->adapterKey(); }, saiNextHop_.value());
 
-  SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{
-      groupId_, nextHopHandle_->adapterKey()};
+  SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{groupId_,
+                                                                   nexthopId};
   SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
       groupId_,
-      nextHopHandle_->adapterKey(),
+      nexthopId,
       (nexthop_.weight() == ECMP_WEIGHT ? 1 : nexthop_.weight())};
+  auto& memberStore =
+      SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
   member_ = memberStore.setObject(memberAdapterHostKey, memberAttributes);
 }
 
 void SaiNextHopGroupMembership::leaveNextHopGroup() {
   member_.reset();
-  nextHopHandle_.reset();
+  saiNextHop_.reset();
 }
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
