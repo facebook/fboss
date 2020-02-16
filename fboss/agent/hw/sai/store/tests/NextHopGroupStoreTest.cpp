@@ -36,7 +36,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
 
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     auto& nextHopApi = saiApiTable->nextHopApi();
-    return nextHopApi.create<SaiNextHopTraits>(
+    return nextHopApi.create<SaiIpNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
 };

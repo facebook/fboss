@@ -188,7 +188,7 @@ class SaiStore {
       detail::SaiObjectStore<SaiNeighborTraits>,
       detail::SaiObjectStore<SaiFdbTraits>,
       detail::SaiObjectStore<SaiVirtualRouterTraits>,
-      detail::SaiObjectStore<SaiNextHopTraits>,
+      detail::SaiObjectStore<SaiIpNextHopTraits>,
       detail::SaiObjectStore<SaiMplsNextHopTraits>,
       detail::SaiObjectStore<SaiNextHopGroupTraits>,
       detail::SaiObjectStore<SaiNextHopGroupMemberTraits>,

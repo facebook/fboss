@@ -139,11 +139,11 @@ struct SaiNextHopTraitsT {
   }
 };
 
-// rename SaiNextHopTraits to SaiIpNextHopTraits
-using SaiNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>;
+// rename SaiIpNextHopTraits to SaiIpNextHopTraits
+using SaiIpNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>;
 using SaiMplsNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_MPLS>;
 template <>
-struct SaiObjectHasConditionalAttributes<SaiNextHopTraits>
+struct SaiObjectHasConditionalAttributes<SaiIpNextHopTraits>
     : public std::true_type {};
 template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsNextHopTraits>

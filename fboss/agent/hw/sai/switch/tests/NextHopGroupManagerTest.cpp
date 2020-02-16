@@ -49,7 +49,7 @@ class NextHopGroupManagerTest : public ManagerTestBase {
           NextHopGroupMemberSaiId(member),
           SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
       folly::IPAddress ip = nextHopApi.getAttribute(
-          NextHopSaiId(nextHopId), SaiNextHopTraits::Attributes::Ip{});
+          NextHopSaiId(nextHopId), SaiIpNextHopTraits::Attributes::Ip{});
       EXPECT_TRUE(gotNextHopIps.insert(ip).second);
     }
     EXPECT_EQ(gotNextHopIps, expectedNextHopIps);

@@ -31,7 +31,7 @@ using SaiNeighbor = SaiObject<SaiNeighborTraits>;
 struct SaiNeighborHandle {
   std::shared_ptr<SaiNeighbor> neighbor;
   std::shared_ptr<SaiFdbEntry> fdbEntry;
-  std::shared_ptr<SaiNextHop> nextHop;
+  std::shared_ptr<SaiIpNextHop> nextHop;
 };
 
 class SaiNeighborManager {

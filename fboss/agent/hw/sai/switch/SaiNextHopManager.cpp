@@ -19,13 +19,13 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<SaiNextHop> SaiNextHopManager::addNextHop(
+std::shared_ptr<SaiIpNextHop> SaiNextHopManager::addNextHop(
     RouterInterfaceSaiId routerInterfaceId,
     const folly::IPAddress& ip) {
-  SaiNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
-  SaiNextHopTraits::CreateAttributes attributes{
+  SaiIpNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
+  SaiIpNextHopTraits::CreateAttributes attributes{
       SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip};
-  auto& store = SaiStore::getInstance()->get<SaiNextHopTraits>();
+  auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
   return store.setObject(k, attributes);
 }
 

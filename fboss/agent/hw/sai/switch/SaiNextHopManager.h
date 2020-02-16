@@ -24,12 +24,12 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
-using SaiNextHop = SaiObject<SaiNextHopTraits>;
+using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 
 class SaiNextHopManager {
  public:
   SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-  std::shared_ptr<SaiNextHop> addNextHop(
+  std::shared_ptr<SaiIpNextHop> addNextHop(
       RouterInterfaceSaiId routerInterfaceId,
       const folly::IPAddress& ip);
 

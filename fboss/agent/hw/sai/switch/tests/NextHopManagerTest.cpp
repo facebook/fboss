@@ -23,13 +23,13 @@ class NextHopManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId expectedRifId,
       const folly::IPAddress& expectedIp) {
     auto rifIdGot = saiApiTable->nextHopApi().getAttribute(
-        nextHopId, SaiNextHopTraits::Attributes::RouterInterfaceId());
+        nextHopId, SaiIpNextHopTraits::Attributes::RouterInterfaceId());
     EXPECT_EQ(rifIdGot, expectedRifId);
     auto ipGot = saiApiTable->nextHopApi().getAttribute(
-        nextHopId, SaiNextHopTraits::Attributes::Ip());
+        nextHopId, SaiIpNextHopTraits::Attributes::Ip());
     EXPECT_EQ(ipGot, expectedIp);
     auto typeGot = saiApiTable->nextHopApi().getAttribute(
-        nextHopId, SaiNextHopTraits::Attributes::Type());
+        nextHopId, SaiIpNextHopTraits::Attributes::Type());
     EXPECT_EQ(typeGot, SAI_NEXT_HOP_TYPE_IP);
   }
 };
@@ -37,7 +37,7 @@ class NextHopManagerTest : public ManagerTestBase {
 TEST_F(NextHopManagerTest, testAddNextHop) {
   RouterInterfaceSaiId rifId{42};
   folly::IPAddress ip4{"42.42.42.42"};
-  std::shared_ptr<SaiNextHop> nextHop =
+  std::shared_ptr<SaiIpNextHop> nextHop =
       saiManagerTable->nextHopManager().addNextHop(rifId, ip4);
   checkNextHop(nextHop->adapterKey(), rifId, ip4);
 }

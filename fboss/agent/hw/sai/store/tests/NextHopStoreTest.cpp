@@ -19,7 +19,7 @@ using namespace facebook::fboss;
 class NextHopStoreTest : public SaiStoreTest {
  public:
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
-    return saiApiTable->nextHopApi().create<SaiNextHopTraits>(
+    return saiApiTable->nextHopApi().create<SaiIpNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
   NextHopSaiId createMplsNextHop(
@@ -42,10 +42,10 @@ TEST_F(NextHopStoreTest, loadNextHops) {
 
   SaiStore s(0);
   s.reload();
-  auto& store = s.get<SaiNextHopTraits>();
+  auto& store = s.get<SaiIpNextHopTraits>();
 
-  SaiNextHopTraits::AdapterHostKey k1{42, ip1};
-  SaiNextHopTraits::AdapterHostKey k2{42, ip2};
+  SaiIpNextHopTraits::AdapterHostKey k1{42, ip1};
+  SaiIpNextHopTraits::AdapterHostKey k2{42, ip2};
   auto got = store.get(k1);
   EXPECT_EQ(got->adapterKey(), nextHopSaiId1);
   got = store.get(k2);
@@ -67,15 +67,15 @@ TEST_F(NextHopStoreTest, loadNextHops) {
 TEST_F(NextHopStoreTest, nextHopLoadCtor) {
   auto ip = folly::IPAddress("::");
   auto nextHopSaiId = createNextHop(ip);
-  SaiObject<SaiNextHopTraits> obj(nextHopSaiId);
+  SaiObject<SaiIpNextHopTraits> obj(nextHopSaiId);
   EXPECT_EQ(obj.adapterKey(), nextHopSaiId);
-  EXPECT_EQ(GET_ATTR(NextHop, Ip, obj.attributes()), ip);
+  EXPECT_EQ(GET_ATTR(IpNextHop, Ip, obj.attributes()), ip);
 }
 
 TEST_F(NextHopStoreTest, nextHopCreateCtor) {
   auto ip = folly::IPAddress("::");
-  SaiNextHopTraits::CreateAttributes c{SAI_NEXT_HOP_TYPE_IP, 42, ip};
-  SaiNextHopTraits::AdapterHostKey k{42, ip};
-  SaiObject<SaiNextHopTraits> obj(k, c, 0);
-  EXPECT_EQ(GET_ATTR(NextHop, Ip, obj.attributes()), ip);
+  SaiIpNextHopTraits::CreateAttributes c{SAI_NEXT_HOP_TYPE_IP, 42, ip};
+  SaiIpNextHopTraits::AdapterHostKey k{42, ip};
+  SaiObject<SaiIpNextHopTraits> obj(k, c, 0);
+  EXPECT_EQ(GET_ATTR(IpNextHop, Ip, obj.attributes()), ip);
 }
