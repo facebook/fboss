@@ -117,23 +117,6 @@ bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
   throw std::runtime_error("Unsupported fec type in port resource");
 }
 
-void updateBcmStat(
-    int unit,
-    bcm_port_t port,
-    std::chrono::seconds now,
-    facebook::stats::MonotonicCounter* stat,
-    bcm_stat_val_t type,
-    int64_t* statVal) {
-  // Use the non-sync API to just get the values accumulated in software.
-  // The Broadom SDK's counter thread syncs the HW counters to software every
-  // 500000us (defined in config.bcm).
-  uint64_t value;
-  auto ret = bcm_stat_get(unit, port, type, &value);
-  bcmCheckError(ret, "Failed to get bcm stat ", type, " for port ", port);
-
-  stat->updateValue(now, value);
-  *statVal = value;
-}
 
 } // namespace
 
@@ -795,8 +778,19 @@ void BcmPort::updateStats() {
   updateStat(now, kOutErrors(), snmpIfOutErrors, &curPortStats.outErrors_);
   updateStat(now, kOutPause(), snmpDot3OutPauseFrames, &curPortStats.outPause_);
 
-  updateBcmStats(now, &curPortStats);
-
+  if (hw_->getPlatform()->isCosSupported()) {
+    // Stats not supported by TD2
+    updateStat(
+        now,
+        kOutEcnCounter(),
+        snmpBcmTxEcnErrors,
+        &curPortStats.outEcnCounter_);
+  }
+  updateStat(
+      now,
+      kInDstNullDiscards(),
+      snmpBcmCustomReceive3,
+      &curPortStats.inDstNullDiscards_);
   setAdditionalStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -1614,29 +1608,6 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
     getPlatformPort()->linkSpeedChanged(
         cfg::PortSpeed(desiredPortResource.speed));
   }
-}
-
-void BcmPort::updateBcmStats(
-    std::chrono::seconds now,
-    HwPortStats* curPortStats) {
-  // Stat types supported on 6.5.13 or later only
-  if (hw_->getPlatform()->isCosSupported()) {
-    // Stats not supported bny TD2
-    updateBcmStat(
-        unit_,
-        port_,
-        now,
-        getPortCounterIf(kOutEcnCounter()),
-        snmpBcmTxEcnErrors,
-        &curPortStats->outEcnCounter_);
-  }
-  updateBcmStat(
-      unit_,
-      port_,
-      now,
-      getPortCounterIf(kInDstNullDiscards()),
-      snmpBcmCustomReceive3,
-      &curPortStats->inDstNullDiscards_);
 }
 
 } // namespace facebook::fboss

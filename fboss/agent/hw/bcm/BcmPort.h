@@ -213,7 +213,6 @@ class BcmPort {
       folly::StringPiece statName,
       bcm_stat_val_t type,
       int64_t* portStatVal);
-  void updateBcmStats(std::chrono::seconds now, HwPortStats* curPortStats);
   void updatePktLenHist(
       std::chrono::seconds now,
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
