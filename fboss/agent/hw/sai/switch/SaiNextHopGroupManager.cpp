@@ -90,9 +90,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     auto switchId = managerTable_->switchManager().getSwitchSaiId();
     SaiNeighborTraits::NeighborEntry neighborEntry{
         switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
-    // Index this set of next hops by the neighbor for lookup on
-    // resolved/unresolved
-    nextHopsByNeighbor_[neighborEntry].insert(swNextHops);
     neighbor2NextHops.emplace_back(
         neighborEntry, folly::poly_cast<ResolvedNextHop>(swNextHop));
   }
@@ -132,22 +129,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
 
 void SaiNextHopGroupManager::handleResolvedNeighbor(
     const SaiNeighborTraits::NeighborEntry& neighborEntry) {
-  auto itr = nextHopsByNeighbor_.find(neighborEntry);
-  if (itr == nextHopsByNeighbor_.end()) {
-    XLOG(INFO) << "No next hop group using newly resolved neighbor "
-               << neighborEntry.ip();
-    return;
-  }
-  for (const auto& nextHopSet : itr->second) {
-    SaiNextHopGroupHandle* nextHopGroupHandle = handles_.get(nextHopSet);
-    if (!nextHopGroupHandle) {
-      XLOG(WARNING)
-          << "No next hop group using next hop set associated with newly "
-          << "resolved neighbor " << neighborEntry.ip();
+  for (auto itr : handles_) {
+    auto groupHandle = itr.second.lock();
+    auto neighborIter = groupHandle->neighbor2Memberships.find(neighborEntry);
+    if (neighborIter == groupHandle->neighbor2Memberships.end()) {
       continue;
     }
-    for (auto membership :
-         nextHopGroupHandle->neighbor2Memberships[neighborEntry]) {
+    for (auto membership : groupHandle->neighbor2Memberships[neighborEntry]) {
       membership->joinNextHopGroup(managerTable_);
     }
   }
@@ -155,21 +143,13 @@ void SaiNextHopGroupManager::handleResolvedNeighbor(
 
 void SaiNextHopGroupManager::handleUnresolvedNeighbor(
     const SaiNeighborTraits::NeighborEntry& neighborEntry) {
-  auto itr = nextHopsByNeighbor_.find(neighborEntry);
-  if (itr == nextHopsByNeighbor_.end()) {
-    XLOG(DBG2) << "No next hop group using newly unresolved neighbor "
-               << neighborEntry.ip();
-    return;
-  }
-  for (const auto& nextHopSet : itr->second) {
-    SaiNextHopGroupHandle* nextHopGroupHandle = handles_.get(nextHopSet);
-    if (!nextHopGroupHandle) {
-      XLOG(FATAL)
-          << "No next hop group using next hop set associated with newly "
-          << "unresolved neighbor " << neighborEntry.ip();
+  for (auto itr : handles_) {
+    auto groupHandle = itr.second.lock();
+    auto neighborIter = groupHandle->neighbor2Memberships.find(neighborEntry);
+    if (neighborIter == groupHandle->neighbor2Memberships.end()) {
+      continue;
     }
-    for (auto membership :
-         nextHopGroupHandle->neighbor2Memberships[neighborEntry]) {
+    for (auto membership : groupHandle->neighbor2Memberships[neighborEntry]) {
       membership->leaveNextHopGroup();
     }
   }

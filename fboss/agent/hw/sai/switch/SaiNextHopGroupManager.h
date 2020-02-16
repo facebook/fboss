@@ -99,10 +99,6 @@ class SaiNextHopGroupManager {
   // support the next hop group use case correctly, rather than this
   // abomination of multiple levels of RefMaps :(
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
-  folly::F14FastMap<
-      SaiNeighborTraits::NeighborEntry,
-      boost::container::flat_set<RouteNextHopEntry::NextHopSet>>
-      nextHopsByNeighbor_;
 };
 
 } // namespace facebook::fboss
