@@ -352,4 +352,35 @@ class SaiObject {
       .value()                                                       \
       .value()
 
+/*
+ * A typical SAI object is shared ptr to SaiObject for a given ObjectTrait.
+ * This trait defines SaiObjectType for object trait.
+ */
+template <typename ObjectTrait>
+using SaiObjectPtr = typename std::shared_ptr<SaiObject<ObjectTrait>>;
+
+/*
+ * Defines SaiObjectType for condition object trait.
+ * A condition object trait is composed of more than one object traits,
+ * typically of same api. An example is next hop trait, which is condition trait
+ * with two taits : ip next hop trait and mpls next hop traits This requires
+ * SaiObjectType of condition object trait be a variant, where each member of
+ * variant is a SaiObjectType of member object trait
+ */
+template <typename... ConditionObjectTrait>
+struct ConditionSaiObjectType {
+  static_assert(
+      (... && SaiObjectHasConditionalAttributes<ConditionObjectTrait>::value),
+      "non condition object trait can not use ConditionAdapterHostKeyTraits");
+  using type = typename std::variant<SaiObjectPtr<ConditionObjectTrait>...>;
+};
+
+/*
+ * Specialization of above trait to properly variant with elements in the same
+ * order as defined in condition object trait */
+template <typename... ConditionObjectTrait>
+struct ConditionSaiObjectType<std::tuple<ConditionObjectTrait...>> {
+  using type = typename ConditionSaiObjectType<ConditionObjectTrait...>::type;
+};
+
 } // namespace facebook::fboss

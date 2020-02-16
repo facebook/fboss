@@ -149,6 +149,15 @@ template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsNextHopTraits>
     : public std::true_type {};
 
+using SaiNextHopTraits =
+    typename ConditionObjectTraits<SaiIpNextHopTraits, SaiMplsNextHopTraits>::
+        ObjectTrait;
+using SaiNextHopAdapterHostKey =
+    typename ConditionAdapterHostKeyTraits<SaiNextHopTraits>::AdapterHostKey;
+using SaiNextHopAdaptertKey =
+    typename ConditionAdapterKeyTraits<NextHopSaiId, SaiNextHopTraits>::
+        AdapterKey;
+
 class NextHopApi : public SaiApi<NextHopApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP;

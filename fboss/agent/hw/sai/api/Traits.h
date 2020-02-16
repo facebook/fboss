@@ -9,6 +9,7 @@
  */
 #pragma once
 #include <type_traits>
+#include <variant>
 
 extern "C" {
 #include <sai.h>
@@ -155,4 +156,68 @@ struct SaiObjectHasStats : public std::false_type {};
 template <typename SaiObjectTraits>
 struct SaiObjectHasConditionalAttributes : public std::false_type {};
 
+template <typename ObjectTrait>
+using AdapterHostKeyTrait = typename ObjectTrait::AdapterHostKey;
+
+/*
+ * For a condition object trait, define adapter host key type
+ * Adapter host key type for condition object trait is a variant of all object
+ * traits forming a condition object trait
+ */
+template <typename... ConditionObjectTraits>
+struct ConditionAdapterHostKeyTraits {
+  static_assert(
+      (... && SaiObjectHasConditionalAttributes<ConditionObjectTraits>::value),
+      "non condition object trait can not use ConditionAdapterHostKeyTraits");
+  using AdapterHostKey =
+      typename std::variant<AdapterHostKeyTrait<ConditionObjectTraits>...>;
+};
+
+/*
+ * Specialization of above trait to extract adapter host key out of tuple type
+ */
+template <typename... ConditionObjectTraits>
+struct ConditionAdapterHostKeyTraits<std::tuple<ConditionObjectTraits...>> {
+  using AdapterHostKey = typename ConditionAdapterHostKeyTraits<
+      ConditionObjectTraits...>::AdapterHostKey;
+};
+
+/*
+ * For a condition object trait, define adapter key type
+ * Adapter key type for condition object trait is will remain of one type since
+ * each object trait member of condition object trait uses same SAI API.
+ */
+template <typename AdapterKeyType, typename... ConditionObjectTraits>
+struct ConditionAdapterKeyTraits {
+  static_assert(
+      (... && SaiObjectHasConditionalAttributes<ConditionObjectTraits>::value),
+      "non condition object trait can not use ConditionAdapterHostKeyTraits");
+  using AdapterKey = AdapterKeyType;
+};
+
+/*
+ * Specialization of above trait to extract adapter key out of tuple type
+ */
+template <typename AdapterKeyType, typename... ConditionObjectTraits>
+struct ConditionAdapterKeyTraits<
+    AdapterKeyType,
+    std::tuple<ConditionObjectTraits...>> {
+  using AdapterKey =
+      typename ConditionAdapterKeyTraits<ConditionObjectTraits...>::AdapterKey;
+};
+
+/*
+ * Condition object trait is a trait for an object which uses condition
+ * attribute. a condition attribute leads to more than one object traits for
+ * same object api. a typical example is next hop api, which needs condition
+ * object trait. since each condition object trait is composed of more than one
+ * object traits below traits gives a definition of this composition.
+ */
+template <typename... ObjectTraits>
+struct ConditionObjectTraits {
+  static_assert(
+      (... && SaiObjectHasConditionalAttributes<ObjectTraits>::value),
+      "non condition object trait can not use can not use  on ConditionObjectTraits");
+  using ObjectTrait = std::tuple<ObjectTraits...>;
+};
 } // namespace facebook::fboss

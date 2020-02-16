@@ -29,6 +29,7 @@ class ResolvedNextHop;
 
 using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
+using SaiNextHop = typename ConditionSaiObjectType<SaiNextHopTraits>::type;
 
 /*
  * SaiNextHopHandle holds reference to either ip next hop or mpls next hop
@@ -56,8 +57,6 @@ class SaiNextHopHandle {
  private:
   // TODO(pshaikh): define object type for object with condition attribute and
   // its adapter host key
-  using SaiNextHop = std::
-      variant<std::shared_ptr<SaiIpNextHop>, std::shared_ptr<SaiMplsNextHop>>;
   SaiNextHop nexthop_;
   NextHopSaiId id_{0};
 };
