@@ -133,7 +133,6 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   config.vlanPorts[0].vlanID = 1000;
   config.vlanPorts[0].emitTags = false;
 
-  config.__isset.aggregatePorts = true;
   config.aggregatePorts.resize(1);
   config.aggregatePorts[0].key = 1;
   config.aggregatePorts[0].name = "port-channel";
@@ -190,7 +189,6 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   // This config has an aggregate port comprised of two physical ports
   auto config = baseConfig;
-  config.__isset.aggregatePorts = true;
   config.aggregatePorts.resize(1);
   config.aggregatePorts[0].key = 1;
   config.aggregatePorts[0].name = "port-channel";
@@ -243,7 +241,6 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   baseConfig.vlanPorts[1].vlanID = 1000;
   baseConfig.vlanPorts[1].emitTags = false;
 
-  baseConfig.__isset.aggregatePorts = true;
   baseConfig.aggregatePorts.resize(1);
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
@@ -301,7 +298,6 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   baseConfig.vlanPorts[1].vlanID = 1000;
   baseConfig.vlanPorts[1].emitTags = false;
 
-  baseConfig.__isset.aggregatePorts = true;
   baseConfig.aggregatePorts.resize(1);
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
@@ -363,7 +359,6 @@ TEST(AggregatePort, noTrunk) {
   baseConfig.vlanPorts[1].vlanID = 1000;
   baseConfig.vlanPorts[1].emitTags = false;
 
-  baseConfig.__isset.aggregatePorts = true;
   baseConfig.aggregatePorts.resize(1);
   baseConfig.aggregatePorts[0].key = 1;
   baseConfig.aggregatePorts[0].name = "port-channel";
