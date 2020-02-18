@@ -295,8 +295,7 @@ TEST_F(BcmPortTest, IngressMirror) {
     tunnel.greTunnel_ref() = greTunnel;
     newCfg.mirrors[0].destination.tunnel_ref() = tunnel;
 
-    newCfg.ports[1].ingressMirror_ref().value_unchecked() = "mirror";
-    newCfg.ports[1].__isset.ingressMirror = true;
+    newCfg.ports[1].ingressMirror_ref() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
@@ -319,8 +318,7 @@ TEST_F(BcmPortTest, EgressMirror) {
     tunnel.greTunnel_ref() = greTunnel;
     newCfg.mirrors[0].destination.tunnel_ref() = tunnel;
 
-    newCfg.ports[1].egressMirror_ref().value_unchecked() = "mirror";
-    newCfg.ports[1].__isset.egressMirror = true;
+    newCfg.ports[1].egressMirror_ref() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
