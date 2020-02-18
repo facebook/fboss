@@ -379,8 +379,7 @@ struct ConditionSaiObjectType {
  * Specialization of above trait to properly variant with elements in the same
  * order as defined in condition object trait */
 template <typename... ConditionObjectTrait>
-struct ConditionSaiObjectType<std::tuple<ConditionObjectTrait...>> {
+struct ConditionSaiObjectType<ConditionObjectTraits<ConditionObjectTrait...>> {
   using type = typename ConditionSaiObjectType<ConditionObjectTrait...>::type;
 };
-
 } // namespace facebook::fboss

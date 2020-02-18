@@ -150,13 +150,10 @@ struct SaiObjectHasConditionalAttributes<SaiMplsNextHopTraits>
     : public std::true_type {};
 
 using SaiNextHopTraits =
-    typename ConditionObjectTraits<SaiIpNextHopTraits, SaiMplsNextHopTraits>::
-        ObjectTrait;
-using SaiNextHopAdapterHostKey =
-    typename ConditionAdapterHostKeyTraits<SaiNextHopTraits>::AdapterHostKey;
+    ConditionObjectTraits<SaiIpNextHopTraits, SaiMplsNextHopTraits>;
+using SaiNextHopAdapterHostKey = typename SaiNextHopTraits::AdapterHostKey;
 using SaiNextHopAdaptertKey =
-    typename ConditionAdapterKeyTraits<NextHopSaiId, SaiNextHopTraits>::
-        AdapterKey;
+    typename SaiNextHopTraits::AdapterKey<NextHopSaiId>;
 
 class NextHopApi : public SaiApi<NextHopApi> {
  public:

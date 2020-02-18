@@ -174,15 +174,6 @@ struct ConditionAdapterHostKeyTraits {
 };
 
 /*
- * Specialization of above trait to extract adapter host key out of tuple type
- */
-template <typename... ConditionObjectTraits>
-struct ConditionAdapterHostKeyTraits<std::tuple<ConditionObjectTraits...>> {
-  using AdapterHostKey = typename ConditionAdapterHostKeyTraits<
-      ConditionObjectTraits...>::AdapterHostKey;
-};
-
-/*
  * For a condition object trait, define adapter key type
  * Adapter key type for condition object trait is will remain of one type since
  * each object trait member of condition object trait uses same SAI API.
@@ -193,17 +184,6 @@ struct ConditionAdapterKeyTraits {
       (... && SaiObjectHasConditionalAttributes<ConditionObjectTraits>::value),
       "non condition object trait can not use ConditionAdapterHostKeyTraits");
   using AdapterKey = AdapterKeyType;
-};
-
-/*
- * Specialization of above trait to extract adapter key out of tuple type
- */
-template <typename AdapterKeyType, typename... ConditionObjectTraits>
-struct ConditionAdapterKeyTraits<
-    AdapterKeyType,
-    std::tuple<ConditionObjectTraits...>> {
-  using AdapterKey =
-      typename ConditionAdapterKeyTraits<ConditionObjectTraits...>::AdapterKey;
 };
 
 /*
@@ -219,5 +199,14 @@ struct ConditionObjectTraits {
       (... && SaiObjectHasConditionalAttributes<ObjectTraits>::value),
       "non condition object trait can not use can not use  on ConditionObjectTraits");
   using ObjectTrait = std::tuple<ObjectTraits...>;
+  static auto constexpr ObjectTraitCount = sizeof...(ObjectTraits);
+  using ConditionAttributes =
+      typename std::tuple_element_t<0, ObjectTrait>::ConditionAttributes;
+  using AdapterHostKey =
+      typename ConditionAdapterHostKeyTraits<ObjectTraits...>::AdapterHostKey;
+  template <typename AdapterKeyType>
+  using AdapterKey =
+      typename ConditionAdapterKeyTraits<AdapterKeyType, ObjectTraits...>::
+          AdapterKey;
 };
 } // namespace facebook::fboss
