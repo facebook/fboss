@@ -53,7 +53,6 @@ cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   config.vlanPorts[1].vlanID = 3;
   config.vlanPorts[1].emitTags = false;
 
-  config.__isset.aggregatePorts = true;
   config.aggregatePorts.resize(1);
   config.aggregatePorts[0].key = static_cast<uint16_t>(id);
   config.aggregatePorts[0].name = name;
