@@ -63,9 +63,8 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   defaultQ.streamType = cfg::StreamType::MULTICAST;
   defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   defaultQ.weight_ref() = 1;
-  defaultQ.portQueueRate_ref().value_unchecked().set_pktsPerSec(
-      getRange(0, 200));
-  defaultQ.__isset.portQueueRate = true;
+  defaultQ.portQueueRate_ref() = cfg::PortQueueRate();
+  defaultQ.portQueueRate_ref()->set_pktsPerSec(getRange(0, 200));
   defaultQ.reservedBytes_ref() = 1040;
   defaultQ.sharedBytes_ref() = 10192;
   cpuQueues.push_back(defaultQ);
@@ -76,8 +75,8 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   low.streamType = cfg::StreamType::MULTICAST;
   low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   low.weight_ref() = 1;
-  low.portQueueRate_ref().value_unchecked().set_pktsPerSec(getRange(0, 100));
-  low.__isset.portQueueRate = true;
+  low.portQueueRate_ref() = cfg::PortQueueRate();
+  low.portQueueRate_ref()->set_pktsPerSec(getRange(0, 100));
   low.reservedBytes_ref() = 1040;
   low.sharedBytes_ref() = 10192;
   cpuQueues.push_back(low);
@@ -294,8 +293,8 @@ TEST(ControlPlane, changeLowPrioQueue) {
   auto newCfgCpuQueues = getConfigCPUQueues();
   // change low queue pps from 100 to 1000. the last one is low queue
   auto& lowQueue = newCfgCpuQueues.at(newCfgCpuQueues.size() - 1);
-  lowQueue.portQueueRate_ref().value_unchecked().set_pktsPerSec(
-      getRange(0, 1000));
+  lowQueue.portQueueRate_ref() = cfg::PortQueueRate();
+  lowQueue.portQueueRate_ref()->set_pktsPerSec(getRange(0, 1000));
 
   cfg::SwitchConfig newConfig;
   newConfig.cpuQueues = newCfgCpuQueues;
