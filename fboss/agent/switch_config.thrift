@@ -398,6 +398,7 @@ struct AclEntry {
 enum StreamType {
   UNICAST = 0,
   MULTICAST = 1,
+  ALL = 2,
 }
 
 struct QueueMatchAction {
