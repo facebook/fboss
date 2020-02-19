@@ -7,6 +7,7 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSai.cpp
     fboss/agent/hw/sai/fake/FakeSaiBridge.cpp
     fboss/agent/hw/sai/fake/FakeSaiFdb.cpp
+    fboss/agent/hw/sai/fake/FakeSaiHash.cpp
     fboss/agent/hw/sai/fake/FakeSaiHostif.cpp
     fboss/agent/hw/sai/fake/FakeSaiInSegEntry.cpp
     fboss/agent/hw/sai/fake/FakeSaiInSegEntryManager.cpp
@@ -31,7 +32,7 @@ target_link_libraries(fake_sai
 )
 
 set_target_properties(fake_sai PROPERTIES COMPILE_FLAGS
-  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR_VAR} \
-  -DSAI_VER_MINOR=${SAI_VER_MINOR_VAR} \
-  -DSAI_VER_RELEASE=${SAI_VER_RELEASE_VAR}"
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR} \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )

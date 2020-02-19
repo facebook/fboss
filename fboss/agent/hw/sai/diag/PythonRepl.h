@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <Python.h>
 #include "fboss/agent/hw/sai/diag/Repl.h"
 
 #include <folly/File.h>

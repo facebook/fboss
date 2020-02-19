@@ -7,7 +7,6 @@ add_library(counter_utils
   fboss/agent/hw/CounterUtils.cpp
 )
 
-
 target_link_libraries(counter_utils
   fb303::fb303
   FBThrift::thriftcpp2
@@ -19,6 +18,7 @@ add_library(hw_port_fb303_stats
 )
 
 target_link_libraries(hw_port_fb303_stats
+  counter_utils
   fb303::fb303
   FBThrift::thriftcpp2
   hardware_stats_cpp2

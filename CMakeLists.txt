@@ -215,6 +215,15 @@ add_fbthrift_cpp_library(
     mpls_cpp2
 )
 
+add_fbthrift_cpp_library(
+  sai_ctrl_cpp2
+  fboss/agent/hw/sai/switch/sai_ctrl.thrift
+  SERVICES
+    SaiCtrl
+  DEPENDS
+    ctrl_cpp2
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
@@ -679,16 +688,20 @@ add_test(test agent_test)
 
 install(TARGETS wedge_agent)
 
-set(SAI_VER_MAJOR_VAR "1")
-set(SAI_VER_MINOR_VAR "4")
-set(SAI_VER_RELEASE_VAR "0")
+set(SAI_VER_MAJOR "1")
+set(SAI_VER_MINOR "5")
+set(SAI_VER_RELEASE "0")
 
 # Build all cmake files under cmake/*cmake
 file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
-  message(status "INCLUDE ${cmakeFile}")
+  message(status " INCLUDE ${cmakeFile}")
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
 install(TARGETS bcm_test)
 install(TARGETS fake_sai)
+
+install(
+  TARGETS
+  sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE})

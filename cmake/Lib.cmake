@@ -21,6 +21,18 @@ target_link_libraries(log_thrift_call
   FBThrift::thriftcpp2
 )
 
+add_library(ref_map
+  fboss/lib/RefMap.h
+)
+
+set_target_properties(ref_map PROPERTIES LINKER_LANGUAGE CXX)
+
+add_library(tuple_utils
+  fboss/lib/TupleUtils.h
+)
+
+set_target_properties(tuple_utils PROPERTIES LINKER_LANGUAGE CXX)
+
 add_library(exponential_back_off
   fboss/lib/ExponentialBackoff.cpp
 )

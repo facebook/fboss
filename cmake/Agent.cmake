@@ -150,6 +150,7 @@ add_library(handler
 
 target_link_libraries(handler
   core
+  pkt
   fb303::fb303
   ctrl_cpp2
   log_thrift_call
