@@ -48,7 +48,7 @@ TEST(Port, applyConfig) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   config.ports[0].sampleDest_ref() = cfg::SampleDestination::MIRROR;
   config.ports[0].sFlowIngressRate = 10;
@@ -65,12 +65,10 @@ TEST(Port, applyConfig) {
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 2;
   config.interfaces[0].vlanID = 2;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces[0].mac_ref() = "00:00:00:00:00:22";
   config.interfaces[1].intfID = 5;
   config.interfaces[1].vlanID = 5;
-  config.interfaces[1].__isset.mac = true;
-  config.interfaces[1].mac_ref().value_unchecked() = "00:00:00:00:00:55";
+  config.interfaces[1].mac_ref() = "00:00:00:00:00:55";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portV1 = stateV1->getPort(PortID(1));
@@ -471,7 +469,7 @@ TEST(Port, initDefaultConfig) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[0].state = cfg::PortState::DISABLED;
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
@@ -509,7 +507,7 @@ TEST(Port, pauseConfig) {
     cfg::SwitchConfig config;
     config.ports.resize(1);
     config.ports[0].logicalID = 1;
-    config.ports[0].name_ref().value_unchecked() = "port1";
+    config.ports[0].name_ref() = "port1";
     config.ports[0].state = cfg::PortState::DISABLED;
     config.ports[0].pause = newPause;
     auto newState = publishAndApplyConfig(state, &config, platform.get());
@@ -559,7 +557,7 @@ TEST(Port, loopbackModeConfig) {
         cfg::SwitchConfig config;
         config.ports.resize(1);
         config.ports[0].logicalID = 1;
-        config.ports[0].name_ref().value_unchecked() = "port1";
+        config.ports[0].name_ref() = "port1";
         config.ports[0].state = cfg::PortState::DISABLED;
         config.ports[0].loopbackMode = newLoopbackMode;
         auto newState = publishAndApplyConfig(state, &config, platform.get());
@@ -601,7 +599,7 @@ TEST(Port, sampleDestinationConfig) {
         cfg::SwitchConfig config;
         config.ports.resize(1);
         config.ports[0].logicalID = 1;
-        config.ports[0].name_ref().value_unchecked() = "port1";
+        config.ports[0].name_ref() = "port1";
         config.ports[0].state = cfg::PortState::DISABLED;
         if (newDestination.has_value()) {
           config.ports[0].sampleDest_ref() = newDestination.value();
@@ -742,13 +740,13 @@ TEST(PortMap, applyConfig) {
   cfg::SwitchConfig config;
   config.ports.resize(4);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[1].logicalID = 2;
-  config.ports[1].name_ref().value_unchecked() = "port2";
+  config.ports[1].name_ref() = "port2";
   config.ports[2].logicalID = 3;
-  config.ports[2].name_ref().value_unchecked() = "port3";
+  config.ports[2].name_ref() = "port3";
   config.ports[3].logicalID = 4;
-  config.ports[3].name_ref().value_unchecked() = "port4";
+  config.ports[3].name_ref() = "port4";
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
@@ -825,13 +823,13 @@ TEST(PortMap, applyConfig) {
   // If we remove port3 from the config, it should be marked down
   config.ports.resize(3);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   config.ports[1].logicalID = 2;
-  config.ports[1].name_ref().value_unchecked() = "port2";
+  config.ports[1].name_ref() = "port2";
   config.ports[1].state = cfg::PortState::ENABLED;
   config.ports[2].logicalID = 4;
-  config.ports[2].name_ref().value_unchecked() = "port4";
+  config.ports[2].name_ref() = "port4";
   config.ports[2].state = cfg::PortState::ENABLED;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
