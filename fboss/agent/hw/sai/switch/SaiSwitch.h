@@ -255,6 +255,8 @@ class SaiSwitch : public HwSwitch {
    */
   void stopNonCallbackThreads();
 
+  std::shared_ptr<SwitchState> getColdBootSwitchState();
+
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
   SaiPlatform* platform_;

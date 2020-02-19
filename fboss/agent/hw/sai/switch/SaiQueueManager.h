@@ -53,6 +53,7 @@ class SaiQueueManager {
       const QueueConfig& queues);
   void updateStats(SaiQueueHandles& queueHandles, HwPortStats& stats);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
+  QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
  private:
   SaiManagerTable* managerTable_;

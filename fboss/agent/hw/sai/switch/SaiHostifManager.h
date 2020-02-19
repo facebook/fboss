@@ -54,6 +54,7 @@ class SaiHostifManager {
       const SaiQueueConfig& saiQueueConfig) const;
   void updateStats() const;
   HwPortStats getCpuPortStats() const;
+  QueueConfig getQueueSettings() const;
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);

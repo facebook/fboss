@@ -265,6 +265,21 @@ SaiManagerTable* SaiSwitch::managerTable() {
 
 // Begin Locked functions with actual SaiSwitch functionality
 
+std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
+  auto state = std::make_shared<SwitchState>();
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::QUEUE)) {
+    // get cpu queue settings
+    auto cpu = std::make_shared<ControlPlane>();
+    auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
+    cpu->resetQueues(cpuQueues);
+    state->resetControlPlane(cpu);
+    state->publish();
+  }
+
+  return state;
+}
+
 HwInitResult SaiSwitch::initLocked(
     const std::lock_guard<std::mutex>& lock,
     Callback* callback) noexcept {
@@ -288,8 +303,7 @@ HwInitResult SaiSwitch::initLocked(
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;
   __gSaiSwitch = this;
-  auto state = std::make_shared<SwitchState>();
-  ret.switchState = state;
+  ret.switchState = getColdBootSwitchState();
   return ret;
 }
 

@@ -166,4 +166,18 @@ void SaiQueueManager::getStats(
     fillHwQueueStats(queueHandle.first.first, counters, hwPortStats);
   }
 }
+
+QueueConfig SaiQueueManager::getQueueSettings(
+    const SaiQueueHandles& queueHandles) const {
+  QueueConfig queueConfig;
+  for (auto& queueHandle : queueHandles) {
+    auto portQueue = std::make_shared<PortQueue>(queueHandle.first.first);
+    portQueue->setStreamType(queueHandle.first.second);
+    managerTable_->schedulerManager().fillSchedulerSettings(
+        queueHandle.second->scheduler.get(), portQueue.get());
+    queueConfig.push_back(std::move(portQueue));
+  }
+  return queueConfig;
+}
+
 } // namespace facebook::fboss

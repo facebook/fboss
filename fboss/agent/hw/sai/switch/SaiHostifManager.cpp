@@ -293,4 +293,8 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
   managerTable_->queueManager().getStats(cpuPortHandle_->queues, hwPortStats);
   return hwPortStats;
 }
+
+QueueConfig SaiHostifManager::getQueueSettings() const {
+  return managerTable_->queueManager().getQueueSettings(cpuPortHandle_->queues);
+}
 } // namespace facebook::fboss

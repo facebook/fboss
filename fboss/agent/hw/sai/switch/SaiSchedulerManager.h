@@ -33,6 +33,9 @@ class SaiSchedulerManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   std::shared_ptr<SaiScheduler> createScheduler(const PortQueue& portQueue);
+  void fillSchedulerSettings(
+      const SaiScheduler* scheduler,
+      PortQueue* portQueue) const;
 
  private:
   SaiApiTable* apiTable_;
