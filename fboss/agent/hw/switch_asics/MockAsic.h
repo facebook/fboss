@@ -6,11 +6,13 @@
 
 namespace facebook::fboss {
 
-class TomahawkAsic : public HwAsic {
+class MockAsic : public HwAsic {
  public:
-  bool isSupported(Feature) const override;
+  bool isSupported(Feature) const override {
+    return true; // Mock supports all features
+  }
   AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_TOMAHAWK;
+    return AsicType::ASIC_TYPE_MOCK;
   }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;

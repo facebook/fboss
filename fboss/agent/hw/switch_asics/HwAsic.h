@@ -25,6 +25,7 @@ class HwAsic {
 
   enum class AsicType {
     ASIC_TYPE_FAKE,
+    ASIC_TYPE_MOCK,
 
     ASIC_TYPE_TRIDENT2,
     ASIC_TYPE_TOMAHAWK,
@@ -37,6 +38,7 @@ class HwAsic {
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
+  virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;
 };
 
 } // namespace facebook::fboss

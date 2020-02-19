@@ -14,6 +14,13 @@ class Tomahawk3Asic : public HwAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
+  std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const override {
+    if (cpu) {
+      return {cfg::StreamType::MULTICAST};
+    } else {
+      return {cfg::StreamType::UNICAST};
+    }
+  }
 };
 
 } // namespace facebook::fboss

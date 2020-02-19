@@ -3014,6 +3014,7 @@ void BcmSwitch::disableHotSwap() const {
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
       case HwAsic::AsicType::ASIC_TYPE_GIBRALTAR:
+      case HwAsic::AsicType::ASIC_TYPE_MOCK:
         CHECK(0) << " Invalid ASIC type";
     }
   }

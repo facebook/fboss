@@ -13,6 +13,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/types.h"
 
 #include <gmock/gmock.h>
@@ -39,6 +40,7 @@ class MockPlatform : public Platform {
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
   std::unique_ptr<HwTestHandle> createTestHandle(std::unique_ptr<SwSwitch> sw);
+  HwAsic* getAsic() const override;
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
@@ -48,12 +50,6 @@ class MockPlatform : public Platform {
   MOCK_METHOD0(stop, void());
   MOCK_METHOD1(onHwInitialized, void(SwSwitch* sw));
   MOCK_METHOD1(onInitialConfigApplied, void(SwSwitch* sw));
-  MOCK_CONST_METHOD0(_getAsic, HwAsic*());
-
-  HwAsic* getAsic() const override {
-    return _getAsic();
-  }
-
   MOCK_METHOD0(initPorts, void());
 
   int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
@@ -75,6 +71,7 @@ class MockPlatform : public Platform {
    */
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<MockHwSwitch> hw_;
+  std::unique_ptr<MockAsic> asic_;
 };
 
 } // namespace facebook::fboss

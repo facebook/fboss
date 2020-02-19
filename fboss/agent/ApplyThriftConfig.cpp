@@ -55,6 +55,8 @@
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::CIDRNetwork;
@@ -180,7 +182,7 @@ class ThriftConfigApplier {
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
       const std::vector<cfg::PortQueue>& cfgPortQueues,
-      int expectedNumQueues,
+      uint16_t maxQueues,
       cfg::StreamType streamType,
       std::optional<cfg::QosMap> qosMap = std::nullopt);
   // update cfg port queue attribute to state port queue object
@@ -767,7 +769,7 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
-    int expectedNumQueues,
+    uint16_t maxQueues,
     cfg::StreamType streamType,
     std::optional<cfg::QosMap> qosMap) {
   QueueConfig newPortQueues;
@@ -778,12 +780,16 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
    */
   flat_map<int, const cfg::PortQueue*> newQueues;
   for (const auto& queue : cfgPortQueues) {
-    newQueues.emplace(std::make_pair(queue.id, &queue));
+    if (streamType == queue.streamType) {
+      newQueues.emplace(std::make_pair(queue.id, &queue));
+    }
   }
 
   if (newQueues.empty()) {
     for (const auto& queue : cfg_->defaultPortQueues) {
-      newQueues.emplace(std::make_pair(queue.id, &queue));
+      if (streamType == queue.streamType) {
+        newQueues.emplace(std::make_pair(queue.id, &queue));
+      }
     }
   }
 
@@ -792,35 +798,42 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   // if there is a config present for any of these queues, we update the
   // PortQueue according to this
   // Otherwise we reset it to the default values for this queue type
-  for (int i = 0; i < expectedNumQueues; i++) {
-    std::shared_ptr<PortQueue> newQueue;
-    auto newQueueIter = newQueues.find(i);
+  for (auto queueId = 0; queueId < maxQueues; queueId++) {
+    auto newQueueIter = newQueues.find(queueId);
+    std::shared_ptr<PortQueue> newPortQueue;
     if (newQueueIter != newQueues.end()) {
-      // Get traffic class for such queue if exists
       std::optional<TrafficClass> trafficClass;
       if (qosMap) {
+        // Get traffic class for such queue if exists
         for (auto entry : qosMap->trafficClassToQueueId) {
-          if (entry.second == i) {
+          if (entry.second == queueId) {
             trafficClass = static_cast<TrafficClass>(entry.first);
             break;
           }
         }
       }
-
-      // If the cfgQueue doesn't exist in original port queues, create a new
-      // one
-      newQueue = origPortQueues.size() > i
-          ? updatePortQueue(
-                origPortQueues.at(i), newQueueIter->second, trafficClass)
+      auto origQueueIter = std::find_if(
+          origPortQueues.begin(),
+          origPortQueues.end(),
+          [&](const auto& origQueue) { return queueId == origQueue->getID(); });
+      newPortQueue = (origQueueIter != origPortQueues.end())
+          ? updatePortQueue(*origQueueIter, newQueueIter->second, trafficClass)
           : createPortQueue(newQueueIter->second, trafficClass);
       newQueues.erase(newQueueIter);
     } else {
-      // Create a default port queue to reset such queue in HW.
-      newQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
-      newQueue->setStreamType(streamType);
+      newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
+      newPortQueue->setStreamType(streamType);
     }
-    newPortQueues.push_back(newQueue);
+    newPortQueues.push_back(newPortQueue);
   }
+
+  std::sort(
+      newPortQueues.begin(),
+      newPortQueues.end(),
+      [](const std::shared_ptr<PortQueue>& q1,
+         const std::shared_ptr<PortQueue>& q2) {
+        return q1->getID() < q2->getID();
+      });
 
   if (newQueues.size() > 0) {
     throw FbossError(
@@ -890,12 +903,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   // For now, we only support update unicast port queues for ports
-  auto portQueues = updatePortQueues(
-      orig->getPortQueues(),
-      cfgPortQueues,
-      platform_->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
-      cfg::StreamType::UNICAST,
-      qosMap);
+  QueueConfig portQueues;
+  for (auto streamType : platform_->getAsic()->getQueueStreamTypes(false)) {
+    auto maxQueues = platform_->getDefaultNumPortQueues(streamType);
+    auto tmpPortQueues = updatePortQueues(
+        orig->getPortQueues(), cfgPortQueues, maxQueues, streamType, qosMap);
+    portQueues.insert(
+        portQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+  }
   bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
   for (int i = 0; i < portQueues.size() && queuesUnchanged; i++) {
     if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
@@ -919,8 +934,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   /*
    * The list of lookup classes would be different when first enabling the
-   * feature and if we had to change the number of lookup classes (unlikely) or
-   * disable the queue-per-host feature (for emergency).
+   * feature and if we had to change the number of lookup classes (unlikely)
+   * or disable the queue-per-host feature (for emergency).
    *
    * To avoid unncessary shuffling when only the order of lookup classes
    * changes, (e.g. due to config change), sort and compare. This requires a
@@ -2085,12 +2100,17 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   }
 
   // check whether queue setting changed
-  auto newQueues = updatePortQueues(
-      origCPU->getQueues(),
-      cfg_->cpuQueues,
-      origCPU->getQueues().size(),
-      cfg::StreamType::MULTICAST,
-      qosMap);
+  QueueConfig newQueues;
+  for (auto streamType : platform_->getAsic()->getQueueStreamTypes(true)) {
+    auto tmpPortQueues = updatePortQueues(
+        origCPU->getQueues(),
+        cfg_->cpuQueues,
+        origCPU->getQueues().size(),
+        streamType,
+        qosMap);
+    newQueues.insert(
+        newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+  }
   bool queuesUnchanged = newQueues.size() == origCPU->getQueues().size();
   for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
     if (*(newQueues.at(i)) != *(origCPU->getQueues().at(i))) {

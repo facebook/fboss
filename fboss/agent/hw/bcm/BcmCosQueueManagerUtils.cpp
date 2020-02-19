@@ -223,6 +223,8 @@ const PortQueue& getDefaultPortQueueSettings(
         case BcmChip::TOMAHAWK3:
           return getTH3DefaultMCPortQueueSettings();
       }
+    case cfg::StreamType::ALL:
+      break;
   }
   throw FbossError(
       "Port queue doesn't support streamType:",
@@ -294,6 +296,7 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
           return getTH3DefaultMCCPUQueueSettings();
       }
     case cfg::StreamType::UNICAST:
+    case cfg::StreamType::ALL:
       throw FbossError("Control Plane doesn't support unicast queue");
   }
   throw FbossError(

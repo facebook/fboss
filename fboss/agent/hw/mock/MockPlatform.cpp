@@ -37,6 +37,7 @@ MockPlatform::MockPlatform(
   ON_CALL(*hw_, stateChanged(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
+  asic_ = std::make_unique<MockAsic>();
 }
 
 MockPlatform::MockPlatform()
@@ -61,6 +62,10 @@ string MockPlatform::getPersistentStateDir() const {
 std::unique_ptr<HwTestHandle> MockPlatform::createTestHandle(
     std::unique_ptr<SwSwitch> sw) {
   return make_unique<MockTestHandle>(std::move(sw), this);
+}
+
+HwAsic* MockPlatform::getAsic() const {
+  return asic_.get();
 }
 
 } // namespace facebook::fboss
