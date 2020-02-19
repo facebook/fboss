@@ -130,9 +130,21 @@ typename std::
     NextHopSaiId nextHopSaiId{apiTable->nextHopGroupApi().getAttribute(
         NextHopGroupMemberSaiId(memberId),
         SaiNextHopGroupMemberTraits::Attributes::NextHopId{})};
-    SaiIpNextHopTraits::AdapterHostKey nhk{};
-    apiTable->nextHopApi().getAttribute(nextHopSaiId, nhk);
-    ret.insert(nhk);
+    /* next hop group member could be either mpls or ip next hop, so first read
+     * condition attribute and then read adapter host key for  object trait
+     * matching condition, */
+    auto conditionAttributes = SaiNextHopTraits::ConditionAttributes{};
+    apiTable->nextHopApi().getAttribute(nextHopSaiId, conditionAttributes);
+    const auto nextHopType = static_cast<sai_next_hop_type_t>(
+        std::get<0>(conditionAttributes).value());
+    SaiNextHopTraits::AdapterHostKey nhk; // default is ip next hop
+    if (nextHopType == SAI_NEXT_HOP_TYPE_IP) {
+      auto nhk = SaiIpNextHopTraits::AdapterHostKey{};
+      ret.insert(apiTable->nextHopApi().getAttribute(nextHopSaiId, nhk));
+    } else if (nextHopType == SAI_NEXT_HOP_TYPE_MPLS) {
+      auto nhk = SaiMplsNextHopTraits::AdapterHostKey{};
+      ret.insert(apiTable->nextHopApi().getAttribute(nextHopSaiId, nhk));
+    }
   }
   return ret;
 }

@@ -43,7 +43,8 @@ struct SaiNextHopGroupTraits {
   };
 
   using AdapterKey = NextHopGroupSaiId;
-  using AdapterHostKey = std::set<typename SaiIpNextHopTraits::AdapterHostKey>;
+  using NextHopMemberKey = SaiNextHopTraits::AdapterHostKey;
+  using AdapterHostKey = std::set<NextHopMemberKey>;
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
 

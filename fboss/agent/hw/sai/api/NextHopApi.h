@@ -139,7 +139,6 @@ struct SaiNextHopTraitsT {
   }
 };
 
-// rename SaiIpNextHopTraits to SaiIpNextHopTraits
 using SaiIpNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>;
 using SaiMplsNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_MPLS>;
 template <>

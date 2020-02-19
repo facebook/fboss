@@ -39,6 +39,14 @@ class NextHopGroupStoreTest : public SaiStoreTest {
     return nextHopApi.create<SaiIpNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_IP, 42, ip}, 0);
   }
+
+  NextHopSaiId createMplsNextHop(
+      const folly::IPAddress& ip,
+      std::vector<sai_uint32_t> labels) {
+    auto& nextHopApi = saiApiTable->nextHopApi();
+    return nextHopApi.create<SaiMplsNextHopTraits>(
+        {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, labels}, 0);
+  }
 };
 
 TEST_F(NextHopGroupStoreTest, loadEmptyNextHopGroup) {
@@ -60,12 +68,21 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   // Create two next hops and two next hop group members
   folly::IPAddress ip1{"10.10.10.1"};
   folly::IPAddress ip2{"10.10.10.2"};
+  folly::IPAddress ip3{"10.10.10.3"};
+  folly::IPAddress ip4{"10.10.10.4"};
   auto nextHopId1 = createNextHop(ip1);
   auto nextHopId2 = createNextHop(ip2);
+  auto nextHopId3 = createMplsNextHop(ip3, {102, 103});
+  auto nextHopId4 = createMplsNextHop(ip4, {201, 203});
+
   auto nextHopGroupMemberId1 =
       createNextHopGroupMember(nextHopGroupId, nextHopId1, std::nullopt);
   auto nextHopGroupMemberId2 =
       createNextHopGroupMember(nextHopGroupId, nextHopId2, std::nullopt);
+  auto nextHopGroupMemberId3 =
+      createNextHopGroupMember(nextHopGroupId, nextHopId3, std::nullopt);
+  auto nextHopGroupMemberId4 =
+      createNextHopGroupMember(nextHopGroupId, nextHopId4, std::nullopt);
 
   // perform a warm boot load
   SaiStore s(0);
@@ -73,8 +90,12 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   auto& store = s.get<SaiNextHopGroupTraits>();
 
   SaiNextHopGroupTraits::AdapterHostKey k;
-  k.insert({42, ip1});
-  k.insert({42, ip2});
+  k.insert(SaiIpNextHopTraits::AdapterHostKey{42, ip1});
+  k.insert(SaiIpNextHopTraits::AdapterHostKey{42, ip2});
+  k.insert(SaiMplsNextHopTraits::AdapterHostKey{
+      42, ip3, std::vector<sai_uint32_t>{102, 103}});
+  k.insert(SaiMplsNextHopTraits::AdapterHostKey{
+      42, ip4, std::vector<sai_uint32_t>{201, 203}});
   auto got = store.get(k);
   EXPECT_TRUE(got);
   EXPECT_EQ(got->adapterKey(), nextHopGroupId);
@@ -82,12 +103,19 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
   auto& memberStore = s.get<SaiNextHopGroupMemberTraits>();
   SaiNextHopGroupMemberTraits::AdapterHostKey k1{nextHopGroupId, nextHopId1};
   SaiNextHopGroupMemberTraits::AdapterHostKey k2{nextHopGroupId, nextHopId2};
+  SaiNextHopGroupMemberTraits::AdapterHostKey k3{nextHopGroupId, nextHopId3};
+  SaiNextHopGroupMemberTraits::AdapterHostKey k4{nextHopGroupId, nextHopId4};
+
   auto got1 = memberStore.get(k1);
   auto got2 = memberStore.get(k2);
+  auto got3 = memberStore.get(k3);
+  auto got4 = memberStore.get(k4);
   EXPECT_TRUE(got1);
   EXPECT_TRUE(got2);
   EXPECT_EQ(got1->adapterKey(), nextHopGroupMemberId1);
   EXPECT_EQ(got2->adapterKey(), nextHopGroupMemberId2);
+  EXPECT_EQ(got3->adapterKey(), nextHopGroupMemberId3);
+  EXPECT_EQ(got4->adapterKey(), nextHopGroupMemberId4);
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupLoadCtor) {
