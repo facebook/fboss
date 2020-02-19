@@ -49,20 +49,16 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig config;
   config.ports.resize(1);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
 
   config.acls.resize(1);
   config.acls[0].name = "acl1";
   config.acls[0].actionType = cfg::AclActionType::DENY;
-  config.acls[0].__isset.srcIp = true;
-  config.acls[0].__isset.dstIp = true;
-  config.acls[0].srcIp_ref().value_unchecked() = "192.168.0.1";
-  config.acls[0].dstIp_ref().value_unchecked() = "192.168.0.0/24";
-  config.acls[0].__isset.srcPort = true;
-  config.acls[0].srcPort_ref().value_unchecked() = 5;
-  config.acls[0].__isset.dstPort = true;
-  config.acls[0].dstPort_ref().value_unchecked() = 8;
+  config.acls[0].srcIp_ref() = "192.168.0.1";
+  config.acls[0].dstIp_ref() = "192.168.0.0/24";
+  config.acls[0].srcPort_ref() = 5;
+  config.acls[0].dstPort_ref() = 8;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -77,13 +73,13 @@ TEST(Acl, applyConfig) {
 
   EXPECT_FALSE(aclV1->isPublished());
 
-  config.acls[0].dstIp_ref().value_unchecked() = "invalid address";
+  config.acls[0].dstIp_ref() = "invalid address";
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()),
       folly::IPAddressFormatException);
 
   config.acls[0].name = "acl2";
-  config.acls[0].__isset.dstIp = false;
+  config.acls[0].dstIp_ref().reset();
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto aclV2 = stateV2->getAcl("acl2");
@@ -105,7 +101,7 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig configV1;
   configV1.ports.resize(1);
   configV1.ports[0].logicalID = 1;
-  configV1.ports[0].name_ref().value_unchecked() = "port1";
+  configV1.ports[0].name_ref() = "port1";
   configV1.ports[0].state = cfg::PortState::ENABLED;
 
   configV1.acls.resize(1);
@@ -115,27 +111,18 @@ TEST(Acl, applyConfig) {
   configV1.acls[0].l4DstPort_ref() = 3;
   // Make sure it's used so that it isn't ignored
   configV1.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
-  configV1.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(
+  configV1.dataPlaneTrafficPolicy_ref()->matchToAction.resize(
       1, cfg::MatchToAction());
+  configV1.dataPlaneTrafficPolicy_ref()->matchToAction[0].matcher = "acl3";
+  configV1.dataPlaneTrafficPolicy_ref()->matchToAction[0].action =
+      cfg::MatchAction();
   configV1.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .matcher = "acl3";
+      ->matchToAction[0]
+      .action.sendToQueue_ref() = cfg::QueueMatchAction();
   configV1.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action = cfg::MatchAction();
-  configV1.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
+      ->matchToAction[0]
       .action.sendToQueue_ref()
-      .value_unchecked() = cfg::QueueMatchAction();
-  configV1.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action.sendToQueue_ref()
-      .value_unchecked()
-      .queueId = 1;
+      ->queueId = 1;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
@@ -158,38 +145,27 @@ TEST(Acl, applyConfig) {
   cfg::SwitchConfig configV2;
   configV2.ports.resize(1);
   configV2.ports[0].logicalID = 1;
-  configV2.ports[0].name_ref().value_unchecked() = "port1";
+  configV2.ports[0].name_ref() = "port1";
   configV2.ports[0].state = cfg::PortState::ENABLED;
   configV2.acls.resize(1);
   configV2.acls[0].name = "acl3";
   // Make sure it's used so that it isn't ignored
   configV2.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
-  configV2.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(
+  configV2.dataPlaneTrafficPolicy_ref()->matchToAction.resize(
       1, cfg::MatchToAction());
+  configV2.dataPlaneTrafficPolicy_ref()->matchToAction[0].matcher = "acl3";
+  configV2.dataPlaneTrafficPolicy_ref()->matchToAction[0].action =
+      cfg::MatchAction();
   configV2.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .matcher = "acl3";
+      ->matchToAction[0]
+      .action.sendToQueue_ref() = cfg::QueueMatchAction();
   configV2.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action = cfg::MatchAction();
-  configV2.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
+      ->matchToAction[0]
       .action.sendToQueue_ref()
-      .value_unchecked() = cfg::QueueMatchAction();
-  configV2.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action.sendToQueue_ref()
-      .value_unchecked()
-      .queueId = 1;
+      ->queueId = 1;
 
   // set the ip frag option
-  configV2.acls[0].ipFrag_ref().value_unchecked() =
-      cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
-  configV2.acls[0].__isset.ipFrag = true;
+  configV2.acls[0].ipFrag_ref() = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
 
   auto stateV5 = publishAndApplyConfig(stateV3, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV5);
@@ -199,8 +175,7 @@ TEST(Acl, applyConfig) {
 
   // set dst Mac
   auto dstMacStr = "01:01:01:01:01:01";
-  configV2.acls[0].__isset.dstMac = true;
-  configV2.acls[0].dstMac_ref().value_unchecked() = dstMacStr;
+  configV2.acls[0].dstMac_ref() = dstMacStr;
 
   auto stateV6 = publishAndApplyConfig(stateV5, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV6);
@@ -209,7 +184,7 @@ TEST(Acl, applyConfig) {
 
   EXPECT_EQ(MacAddress(dstMacStr), aclV6->getDstMac());
   // Remove src, dst Mac
-  configV2.acls[0].__isset.dstMac = false;
+  configV2.acls[0].dstMac_ref().reset();
 
   auto stateV7 = publishAndApplyConfig(stateV6, &configV2, platform.get());
   EXPECT_NE(nullptr, stateV7);
@@ -227,33 +202,25 @@ TEST(Acl, stateDelta) {
   config.acls.resize(4);
   config.acls[0].name = "acl0";
   config.acls[0].actionType = cfg::AclActionType::DENY;
-  config.acls[0].__isset.srcIp = true;
-  config.acls[0].srcIp_ref().value_unchecked() = "192.168.0.1";
-  config.acls[0].__isset.srcPort = true;
-  config.acls[0].srcPort_ref().value_unchecked() = 1;
+  config.acls[0].srcIp_ref() = "192.168.0.1";
+  config.acls[0].srcPort_ref() = 1;
   config.acls[1].name = "acl1";
-  config.acls[1].__isset.srcIp = true;
-  config.acls[1].srcIp_ref().value_unchecked() = "192.168.0.2";
+  config.acls[1].srcIp_ref() = "192.168.0.2";
   config.acls[1].actionType = cfg::AclActionType::DENY;
   config.acls[2].name = "acl3";
   config.acls[2].actionType = cfg::AclActionType::DENY;
-  config.acls[2].__isset.srcIp = true;
-  config.acls[2].srcIp_ref().value_unchecked() = "192.168.0.3";
-  config.acls[2].__isset.srcPort = true;
-  config.acls[2].srcPort_ref().value_unchecked() = 5;
-  config.acls[2].__isset.dstPort = true;
-  config.acls[2].dstPort_ref().value_unchecked() = 8;
+  config.acls[2].srcIp_ref() = "192.168.0.3";
+  config.acls[2].srcPort_ref() = 5;
+  config.acls[2].dstPort_ref() = 8;
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
-  config.acls[3].__isset.srcIp = true;
-  config.acls[3].srcIp_ref().value_unchecked() = "192.168.0.4";
+  config.acls[3].srcIp_ref() = "192.168.0.4";
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(stateV2, nullptr);
 
   // Only change one action
-  config.acls[0].srcPort_ref().value_unchecked() = 2;
-  ;
+  config.acls[0].srcPort_ref() = 2;
   auto stateV3 = publishAndApplyConfig(stateV1, &config, platform.get());
   StateDelta delta13(stateV1, stateV3);
   auto aclDelta13 = delta13.getAclsDelta();
@@ -300,12 +267,9 @@ TEST(Acl, Icmp) {
   config.acls.resize(1);
   config.acls[0].name = "acl1";
   config.acls[0].actionType = cfg::AclActionType::DENY;
-  config.acls[0].proto_ref().value_unchecked() = 58;
-  config.acls[0].__isset.proto = true;
-  config.acls[0].icmpType_ref().value_unchecked() = 128;
-  config.acls[0].__isset.icmpType = true;
-  config.acls[0].icmpCode_ref().value_unchecked() = 0;
-  config.acls[0].__isset.icmpCode = true;
+  config.acls[0].proto_ref() = 58;
+  config.acls[0].icmpType_ref() = 128;
+  config.acls[0].icmpCode_ref() = 0;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -317,15 +281,14 @@ TEST(Acl, Icmp) {
   EXPECT_EQ(0, aclV1->getIcmpCode().value());
 
   // test config exceptions
-  config.acls[0].proto_ref().value_unchecked() = 4;
+  config.acls[0].proto_ref() = 4;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls[0].__isset.proto = false;
+  config.acls[0].proto_ref().reset();
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls[0].proto_ref().value_unchecked() = 58;
-  config.acls[0].__isset.proto = true;
-  config.acls[0].__isset.icmpType = false;
+  config.acls[0].proto_ref() = 58;
+  config.acls[0].icmpType_ref().reset();
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
@@ -352,102 +315,61 @@ TEST(Acl, AclGeneration) {
   cfg::SwitchConfig config;
   config.ports.resize(2);
   config.ports[0].logicalID = 1;
-  config.ports[0].name_ref().value_unchecked() = "port1";
+  config.ports[0].name_ref() = "port1";
   config.ports[0].state = cfg::PortState::ENABLED;
   config.ports[1].logicalID = 2;
-  config.ports[1].name_ref().value_unchecked() = "port2";
+  config.ports[1].name_ref() = "port2";
   config.ports[1].state = cfg::PortState::ENABLED;
 
   config.acls.resize(5);
   config.acls[0].name = "acl1";
   config.acls[0].actionType = cfg::AclActionType::DENY;
-  config.acls[0].__isset.srcIp = true;
-  config.acls[0].__isset.dstIp = true;
-  config.acls[0].srcIp_ref().value_unchecked() = "192.168.0.1";
-  config.acls[0].dstIp_ref().value_unchecked() = "192.168.0.0/24";
-  config.acls[0].__isset.srcPort = true;
-  config.acls[0].srcPort_ref().value_unchecked() = 5;
-  config.acls[0].__isset.dstPort = true;
-  config.acls[0].dstPort_ref().value_unchecked() = 8;
+  config.acls[0].srcIp_ref() = "192.168.0.1";
+  config.acls[0].dstIp_ref() = "192.168.0.0/24";
+  config.acls[0].srcPort_ref() = 5;
+  config.acls[0].dstPort_ref() = 8;
   config.acls[1].name = "acl2";
-  config.acls[1].dscp_ref().value_unchecked() = 16;
-  config.acls[1].__isset.dscp = true;
+  config.acls[1].dscp_ref() = 16;
   config.acls[2].name = "acl3";
-  config.acls[2].dscp_ref().value_unchecked() = 16;
-  config.acls[2].__isset.dscp = true;
+  config.acls[2].dscp_ref() = 16;
   config.acls[3].name = "acl4";
   config.acls[3].actionType = cfg::AclActionType::DENY;
   config.acls[4].name = "acl5";
-  config.acls[4].__isset.srcIp = true;
-  config.acls[4].srcIp_ref().value_unchecked() =
-      "2401:db00:21:7147:face:0:7:0/128";
-  config.acls[4].__isset.srcPort = true;
-  config.acls[4].srcPort_ref().value_unchecked() = 5;
+  config.acls[4].srcIp_ref() = "2401:db00:21:7147:face:0:7:0/128";
+  config.acls[4].srcPort_ref() = 5;
 
-  config.__isset.dataPlaneTrafficPolicy = true;
-  config.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(
+  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction.resize(
       3, cfg::MatchToAction());
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[0].matcher = "acl2";
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[0].action =
+      cfg::MatchAction();
   config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .matcher = "acl2";
+      ->matchToAction[0]
+      .action.sendToQueue_ref() = cfg::QueueMatchAction();
   config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action = cfg::MatchAction();
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
+      ->matchToAction[0]
       .action.sendToQueue_ref()
-      .value_unchecked() = cfg::QueueMatchAction();
+      ->queueId = 1;
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[1].matcher = "acl3";
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[1].action =
+      cfg::MatchAction();
   config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
+      ->matchToAction[1]
+      .action.sendToQueue_ref() = cfg::QueueMatchAction();
+  config.dataPlaneTrafficPolicy_ref()
+      ->matchToAction[1]
       .action.sendToQueue_ref()
-      .value_unchecked()
-      .queueId = 1;
+      ->queueId = 2;
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[2].matcher = "acl5";
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[2].action =
+      cfg::MatchAction();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[2].action.setDscp_ref() =
+      cfg::SetDscpMatchAction();
   config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[1]
-      .matcher = "acl3";
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[1]
-      .action = cfg::MatchAction();
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[1]
-      .action.sendToQueue_ref()
-      .value_unchecked() = cfg::QueueMatchAction();
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[1]
-      .action.sendToQueue_ref()
-      .value_unchecked()
-      .queueId = 2;
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[2]
-      .matcher = "acl5";
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[2]
-      .action = cfg::MatchAction();
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[2]
+      ->matchToAction[2]
       .action.setDscp_ref()
-      .value_unchecked() = cfg::SetDscpMatchAction();
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[2]
-      .action.__isset.setDscp = true;
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[2]
-      .action.setDscp_ref()
-      .value_unchecked()
-      .dscpValue = 8;
+      ->dscpValue = 8;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
@@ -566,9 +488,9 @@ TEST(Acl, Ttl) {
   config.acls[0].name = "acl1";
   config.acls[0].actionType = cfg::AclActionType::DENY;
   // set ttl
-  config.acls[0].ttl_ref().value_unchecked().value = 42;
-  config.acls[0].ttl_ref().value_unchecked().mask = 0xff;
-  config.acls[0].__isset.ttl = true;
+  config.acls[0].ttl_ref() = cfg::Ttl();
+  config.acls[0].ttl_ref()->value = 42;
+  config.acls[0].ttl_ref()->mask = 0xff;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -579,17 +501,17 @@ TEST(Acl, Ttl) {
   EXPECT_EQ(aclV1->getTtl().value().getMask(), 0xff);
 
   // check invalid configs
-  config.acls[0].ttl_ref().value_unchecked().value = 256;
+  config.acls[0].ttl_ref()->value = 256;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls[0].ttl_ref().value_unchecked().value = -1;
+  config.acls[0].ttl_ref()->value = -1;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls[0].ttl_ref().value_unchecked().value = 42;
-  config.acls[0].ttl_ref().value_unchecked().mask = 256;
+  config.acls[0].ttl_ref()->value = 42;
+  config.acls[0].ttl_ref()->mask = 256;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls[0].ttl_ref().value_unchecked().mask = -1;
+  config.acls[0].ttl_ref()->mask = -1;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
@@ -631,8 +553,7 @@ TEST(Acl, IpType) {
   config.acls[0].actionType = cfg::AclActionType::DENY;
   // set IpType
   auto ipType = cfg::IpType::IP6;
-  config.acls[0].__isset.ipType = true;
-  config.acls[0].ipType_ref().value_unchecked() = ipType;
+  config.acls[0].ipType_ref() = ipType;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -650,21 +571,11 @@ TEST(Acl, InvalidTrafficCounter) {
   config.acls.resize(1);
   config.acls[0].name = "acl0";
   config.acls[0].actionType = cfg::AclActionType::PERMIT;
-  config.__isset.dataPlaneTrafficPolicy = true;
-  config.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(1);
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .matcher = "acl0";
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action.counter_ref()
-      .value_unchecked() = "stat0";
-  config.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction[0]
-      .action.__isset.counter = true;
+  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction.resize(1);
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[0].matcher = "acl0";
+  config.dataPlaneTrafficPolicy_ref()->matchToAction[0].action.counter_ref() =
+      "stat0";
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -680,15 +591,13 @@ TEST(Acl, TrafficCounterCompatibility) {
   config.acls.resize(1);
   config.acls[0].name = "acl0";
   config.acls[0].actionType = cfg::AclActionType::PERMIT;
-  config.__isset.dataPlaneTrafficPolicy = true;
-  config.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(1);
-  auto& mta =
-      config.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction[0];
+  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy_ref()->matchToAction.resize(1);
+  auto& mta = config.dataPlaneTrafficPolicy_ref()->matchToAction[0];
   mta.matcher = "acl0";
   config.trafficCounters.resize(1);
   config.trafficCounters[0].name = "stat0";
-  mta.action.counter_ref().value_unchecked() = "stat0";
-  mta.action.__isset.counter = true;
+  mta.action.counter_ref() = "stat0";
   auto refState = publishAndApplyConfig(stateV0, &config, platform.get());
 
   // Manually craft the deprecated state with the 'packetCounter' field
