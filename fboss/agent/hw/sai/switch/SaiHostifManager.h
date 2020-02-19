@@ -30,8 +30,8 @@ using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
 using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
 
 struct SaiHostifTrapHandle {
-  std::shared_ptr<SaiHostifTrap> trap;
   std::shared_ptr<SaiHostifTrapGroup> trapGroup;
+  std::shared_ptr<SaiHostifTrap> trap;
 };
 
 class SaiHostifManager {
