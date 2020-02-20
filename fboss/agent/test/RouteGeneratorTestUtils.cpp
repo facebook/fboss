@@ -40,11 +40,11 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
     auto id = i + 1;
     // port
     cfg.ports[i].logicalID = id;
-    cfg.ports[i].name_ref().value_unchecked() = folly::to<string>("port", id);
+    cfg.ports[i].name_ref() = folly::to<string>("port", id);
     // vlans
     cfg.vlans[i].id = id;
     cfg.vlans[i].name = folly::to<string>("Vlan", id);
-    cfg.vlans[i].intfID_ref().value_unchecked() = id;
+    cfg.vlans[i].intfID_ref() = id;
     // vlan ports
     cfg.vlanPorts[i].logicalPort = id;
     cfg.vlanPorts[i].vlanID = id;
@@ -52,11 +52,9 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
     cfg.interfaces[i].intfID = id;
     cfg.interfaces[i].routerID = 0;
     cfg.interfaces[i].vlanID = id;
-    cfg.interfaces[i].name_ref().value_unchecked() =
-        folly::to<string>("interface", id);
-    cfg.interfaces[i].mac_ref().value_unchecked() =
-        folly::to<string>("00:02:00:00:00:", id);
-    cfg.interfaces[i].mtu_ref().value_unchecked() = 9000;
+    cfg.interfaces[i].name_ref() = folly::to<string>("interface", id);
+    cfg.interfaces[i].mac_ref() = folly::to<string>("00:02:00:00:00:", id);
+    cfg.interfaces[i].mtu_ref() = 9000;
     cfg.interfaces[i].ipAddresses.resize(2);
     cfg.interfaces[i].ipAddresses[0] = v4IntefacePrefixes[i];
     cfg.interfaces[i].ipAddresses[1] = v6IntefacePrefixes[i];
