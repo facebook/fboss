@@ -369,7 +369,7 @@ void LookupClassUpdater::validateRemovedPortEntries(
 
 void LookupClassUpdater::processPortAdded(
     const std::shared_ptr<SwitchState>& /* unused */,
-    std::shared_ptr<Port> addedPort) {
+    const std::shared_ptr<Port>& addedPort) {
   CHECK(addedPort);
   if (addedPort->getLookupClassesToDistributeTrafficOn().size() == 0) {
     /*
@@ -386,7 +386,7 @@ void LookupClassUpdater::processPortAdded(
 
 void LookupClassUpdater::processPortRemoved(
     const std::shared_ptr<SwitchState>& switchState,
-    std::shared_ptr<Port> removedPort) {
+    const std::shared_ptr<Port>& removedPort) {
   CHECK(removedPort);
   auto portID = removedPort->getID();
 
@@ -412,8 +412,8 @@ void LookupClassUpdater::processPortRemoved(
 
 void LookupClassUpdater::processPortChanged(
     const StateDelta& stateDelta,
-    std::shared_ptr<Port> oldPort,
-    std::shared_ptr<Port> newPort) {
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
   CHECK(oldPort && newPort);
   CHECK_EQ(oldPort->getID(), newPort->getID());
   /*
@@ -510,7 +510,7 @@ void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
 
 template <typename NewEntryT>
 void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
-    const NewEntryT* newEntry,
+    const std::shared_ptr<NewEntryT>& newEntry,
     VlanID vlanID) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
@@ -541,7 +541,7 @@ void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
-      updateStateObserverLocalCacheForEntry(entry.get(), vlan->getID());
+      updateStateObserverLocalCacheForEntry(entry, vlan->getID());
     }
   }
 }

@@ -69,7 +69,7 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   template <typename NewEntryT>
   void updateStateObserverLocalCacheForEntry(
-      const NewEntryT* newEntry,
+      const std::shared_ptr<NewEntryT>& newEntry,
       VlanID vlanID);
 
   void updateStateObserverLocalCache(
@@ -93,14 +93,14 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
 
   void processPortAdded(
       const std::shared_ptr<SwitchState>& switchState,
-      std::shared_ptr<Port> addedPort);
+      const std::shared_ptr<Port>& addedPort);
   void processPortRemoved(
       const std::shared_ptr<SwitchState>& switchState,
-      std::shared_ptr<Port> port);
+      const std::shared_ptr<Port>& port);
   void processPortChanged(
       const StateDelta& stateDelta,
-      std::shared_ptr<Port> oldPort,
-      std::shared_ptr<Port> newPort);
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   template <typename AddrT>
   void validateRemovedPortEntries(
