@@ -51,8 +51,8 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
   auto loadBalancerID = parseLoadBalancerID(cfg);
   auto fields = parseFields(cfg);
   auto algorithm = cfg.algorithm; // TODO(samank): handle not being set
-  auto seed = cfg.__isset.seed
-      ? cfg.seed_ref().value_unchecked()
+  auto seed = cfg.seed_ref()
+      ? *cfg.seed_ref()
       : LoadBalancer::generateDeterministicSeed(loadBalancerID, platform_);
 
   return std::make_shared<LoadBalancer>(
