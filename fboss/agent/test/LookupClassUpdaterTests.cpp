@@ -60,6 +60,10 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return PortID(1);
   }
 
+  PortID kPortID2() const {
+    return PortID(2);
+  }
+
   IPAddressV4 kIp4Addr() const {
     return IPAddressV4("10.0.0.2");
   }
@@ -324,6 +328,50 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       this->getIpAddress(),
       this->kMacAddress(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+}
+
+TYPED_TEST(LookupClassUpdaterTest, MacMove) {
+  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
+    return;
+  } else if constexpr (std::is_same<TypeParam, folly::IPAddressV6>::value) {
+    return;
+  }
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+
+  this->updateState(
+      "Trigger MAC Move", [=](const std::shared_ptr<SwitchState>& state) {
+        std::shared_ptr<SwitchState> newState{state};
+
+        auto vlan = state->getVlans()->getVlanIf(this->kVlan()).get();
+        auto* macTable = vlan->getMacTable().get();
+        auto node = macTable->getNodeIf(this->kMacAddress());
+
+        EXPECT_NE(node, nullptr);
+
+        macTable = macTable->modify(&vlan, &newState);
+
+        macTable->removeEntry(this->kMacAddress());
+        auto macEntry = std::make_shared<MacEntry>(
+            this->kMacAddress(), PortDescriptor(this->kPortID2()));
+        macTable->addEntry(macEntry);
+
+        return newState;
+      });
+
+  waitForStateUpdates(this->sw_);
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  auto state = this->sw_->getState();
+
+  auto vlan = state->getVlans()->getVlanIf(this->kVlan());
+  auto* macTable = vlan->getMacTable().get();
+  auto node = macTable->getNodeIf(this->kMacAddress());
+
+  EXPECT_NE(node, nullptr);
+  EXPECT_EQ(node->getPort(), PortDescriptor(this->kPortID2()));
 }
 
 /*
