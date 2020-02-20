@@ -11,7 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
+#include "fboss/agent/platforms/sai/SaiWedge400CPort.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 

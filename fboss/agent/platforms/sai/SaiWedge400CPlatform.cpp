@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
-#include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
+#include "fboss/agent/platforms/sai/SaiWedge400CPort.h"
 
 #include <algorithm>
 
