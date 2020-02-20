@@ -249,7 +249,8 @@ struct QueueStats {
  * started.
  */
 struct PortCounters {
-  1: i64 bytes,
+  // avoid typechecker error here as bytes is a py3 reserved keyword
+  1: i64 bytes (py3.name = "bytes_"),
   2: i64 ucastPkts,
   3: i64 multicastPkts,
   4: i64 broadcastPkts,
