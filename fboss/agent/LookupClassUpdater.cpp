@@ -64,7 +64,7 @@ template <typename RemovedEntryT>
 void LookupClassUpdater::removeClassIDForPortAndMac(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const RemovedEntryT* removedEntry) {
+    const std::shared_ptr<RemovedEntryT>& removedEntry) {
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   auto portID = removedEntry->getPort().phyPortID();
@@ -117,7 +117,7 @@ template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
-    const NewEntryT* newEntry) {
+    const std::shared_ptr<NewEntryT>& newEntry) {
   CHECK(newEntry->getPort().isPhysicalPort());
 
   auto portID = newEntry->getPort().phyPortID();
@@ -173,7 +173,7 @@ template <typename AddedEntryT>
 void LookupClassUpdater::processNeighborAdded(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const AddedEntryT* addedEntry) {
+    const std::shared_ptr<AddedEntryT>& addedEntry) {
   CHECK(addedEntry);
   CHECK(addedEntry->getPort().isPhysicalPort());
 
@@ -190,7 +190,7 @@ template <typename RemovedEntryT>
 void LookupClassUpdater::processNeighborRemoved(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const RemovedEntryT* removedEntry) {
+    const std::shared_ptr<RemovedEntryT>& removedEntry) {
   CHECK(removedEntry);
   CHECK(removedEntry->getPort().isPhysicalPort());
 
@@ -201,8 +201,8 @@ template <typename ChangedEntryT>
 void LookupClassUpdater::processNeighborChanged(
     const StateDelta& stateDelta,
     VlanID vlan,
-    const ChangedEntryT* oldEntry,
-    const ChangedEntryT* newEntry) {
+    const std::shared_ptr<ChangedEntryT>& oldEntry,
+    const std::shared_ptr<ChangedEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
   CHECK(oldEntry->getPort().isPhysicalPort());
@@ -249,9 +249,8 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
     auto vlan = newVlan->getID();
 
     for (const auto& delta : getTableDelta<AddrT>(vlanDelta)) {
-      const auto* oldEntry = delta.getOld().get();
-      const auto* newEntry = delta.getNew().get();
-
+      auto oldEntry = delta.getOld();
+      auto newEntry = delta.getNew();
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -309,12 +308,12 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       if (entry->getPort().isPhysicalPort() &&
           entry->getPort().phyPortID() == portID &&
           entry->getClassID().has_value()) {
-        removeNeighborFromLocalCacheForEntry(entry.get(), vlanID);
+        removeNeighborFromLocalCacheForEntry(entry, vlanID);
         if constexpr (std::is_same_v<AddrT, MacAddress>) {
           auto removeMacClassIDFn =
               [vlanID, entry](const std::shared_ptr<SwitchState>& state) {
                 return MacTableUtils::removeClassIDForEntry(
-                    state, vlanID, entry.get());
+                    state, vlanID, entry);
               };
 
           sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
@@ -346,7 +345,7 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
        */
       if (entry->getPort().isPhysicalPort() &&
           entry->getPort().phyPortID() == portID) {
-        updateNeighborClassID(switchState, vlanID, entry.get());
+        updateNeighborClassID(switchState, vlanID, entry);
       }
     }
   }
@@ -486,7 +485,7 @@ void LookupClassUpdater::processPortUpdates(const StateDelta& stateDelta) {
 
 template <typename RemovedEntryT>
 void LookupClassUpdater::removeNeighborFromLocalCacheForEntry(
-    const RemovedEntryT* removedEntry,
+    const std::shared_ptr<RemovedEntryT>& removedEntry,
     VlanID vlanID) {
   CHECK(removedEntry->getPort().isPhysicalPort());
 

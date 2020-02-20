@@ -31,18 +31,18 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   void processNeighborAdded(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const AddedEntryT* addedEntry);
+      const std::shared_ptr<AddedEntryT>& addedEntry);
   template <typename RemovedEntryT>
   void processNeighborRemoved(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const RemovedEntryT* removedEntry);
+      const std::shared_ptr<RemovedEntryT>& removedEntry);
   template <typename ChangedEntryT>
   void processNeighborChanged(
       const StateDelta& stateDelta,
       VlanID vlan,
-      const ChangedEntryT* oldEntry,
-      const ChangedEntryT* newEntry);
+      const std::shared_ptr<ChangedEntryT>& oldEntry,
+      const std::shared_ptr<ChangedEntryT>& newEntry);
 
   bool isInited(PortID portID);
   void initPort(const std::shared_ptr<Port>& port);
@@ -51,20 +51,20 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   void updateNeighborClassID(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const NewEntryT* newEntry);
+      const std::shared_ptr<NewEntryT>& newEntry);
 
   template <typename RemovedEntryT>
   void removeClassIDForPortAndMac(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const RemovedEntryT* removedEntry);
+      const std::shared_ptr<RemovedEntryT>& removedEntry);
 
   cfg::AclLookupClass getClassIDwithMinimumNeighbors(
       ClassID2Count classID2Count) const;
 
   template <typename RemovedEntryT>
   void removeNeighborFromLocalCacheForEntry(
-      const RemovedEntryT* removedEntry,
+      const std::shared_ptr<RemovedEntryT>& removedEntry,
       VlanID vlanID);
 
   template <typename NewEntryT>

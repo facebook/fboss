@@ -19,7 +19,7 @@ using facebook::fboss::cfg::AclLookupClass;
 std::shared_ptr<SwitchState> modifyClassIDForEntry(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanID,
-    const MacEntry* macEntry,
+    const std::shared_ptr<MacEntry>& macEntry,
     std::optional<AclLookupClass> classID = std::nullopt) {
   auto classIDStr = classID.has_value()
       ? folly::to<std::string>(static_cast<int>(classID.value()))
@@ -85,7 +85,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
 std::shared_ptr<SwitchState> MacTableUtils::updateOrAddEntryWithClassID(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanID,
-    const MacEntry* macEntry,
+    const std::shared_ptr<MacEntry>& macEntry,
     cfg::AclLookupClass classID) {
   return modifyClassIDForEntry(state, vlanID, macEntry, classID);
 }
@@ -93,7 +93,7 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddEntryWithClassID(
 std::shared_ptr<SwitchState> MacTableUtils::removeClassIDForEntry(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanID,
-    const MacEntry* macEntry) {
+    const std::shared_ptr<MacEntry>& macEntry) {
   return modifyClassIDForEntry(state, vlanID, macEntry);
 }
 

@@ -54,7 +54,7 @@ class MacTableUtilsTest : public ::testing::Test {
     auto macEntry =
         std::make_shared<MacEntry>(kMacAddress(), PortDescriptor(kPortID()));
     auto newState = MacTableUtils::updateOrAddEntryWithClassID(
-        state, kVlan(), macEntry.get(), kClassID());
+        state, kVlan(), macEntry, kClassID());
 
     auto newMacEntry = getMacEntry(newState);
     EXPECT_NE(newMacEntry, nullptr);
@@ -71,7 +71,7 @@ class MacTableUtilsTest : public ::testing::Test {
     auto macEntry =
         std::make_shared<MacEntry>(kMacAddress(), PortDescriptor(kPortID()));
     auto newState =
-        MacTableUtils::removeClassIDForEntry(state, kVlan(), macEntry.get());
+        MacTableUtils::removeClassIDForEntry(state, kVlan(), macEntry);
 
     auto newMacEntry = getMacEntry(newState);
     if (macPresent) {

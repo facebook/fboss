@@ -42,7 +42,7 @@ class HwL2ClassIDTest : public HwTest {
     auto macEntry = std::make_shared<MacEntry>(kSourceMac(), physPortDescr());
     auto state = getProgrammedState();
     auto newState = MacTableUtils::updateOrAddEntryWithClassID(
-        state, kVlanID(), macEntry.get(), kClassID());
+        state, kVlanID(), macEntry, kClassID());
     applyNewState(newState);
   }
 
@@ -50,7 +50,7 @@ class HwL2ClassIDTest : public HwTest {
     auto macEntry = std::make_shared<MacEntry>(kSourceMac(), physPortDescr());
     auto state = getProgrammedState();
     auto newState =
-        MacTableUtils::removeClassIDForEntry(state, kVlanID(), macEntry.get());
+        MacTableUtils::removeClassIDForEntry(state, kVlanID(), macEntry);
     applyNewState(newState);
   }
 
