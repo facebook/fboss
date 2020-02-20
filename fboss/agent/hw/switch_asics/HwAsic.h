@@ -32,7 +32,7 @@ class HwAsic {
     ASIC_TYPE_TOMAHAWK,
     ASIC_TYPE_TOMAHAWK3,
 
-    ASIC_TYPE_GIBRALTAR,
+    ASIC_TYPE_TAJO,
   };
 
   virtual ~HwAsic() {}
