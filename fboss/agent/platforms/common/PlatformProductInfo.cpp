@@ -105,7 +105,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("FAB") == 0) {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
       mode_ = PlatformMode::GALAXY_FC;
-    } else if (modelName.find("MINIPACK") == 0) {
+    } else if (
+        modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
       mode_ = PlatformMode::MINIPACK;
     } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
       mode_ = PlatformMode::YAMP;
