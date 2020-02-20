@@ -7,13 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+#include "fboss/agent/platforms/sai/facebook/SaiWedge400CPort.h"
 
-namespace facebook::fboss {
-
-std::unique_ptr<SaiPlatform> chooseFBSaiPlatform(
-    std::unique_ptr<PlatformProductInfo> /*productInfo*/) {
-  return nullptr;
-}
-
-} // namespace facebook::fboss
+namespace facebook::fboss {} // namespace facebook::fboss

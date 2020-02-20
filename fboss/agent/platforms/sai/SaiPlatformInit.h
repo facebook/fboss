@@ -22,8 +22,6 @@ class PlatformProductInfo;
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     std::unique_ptr<PlatformProductInfo> productIfo);
-std::unique_ptr<SaiPlatform> chooseFBSaiPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo);
 
 std::unique_ptr<Platform> initSaiPlatform(
     std::unique_ptr<AgentConfig> config,
