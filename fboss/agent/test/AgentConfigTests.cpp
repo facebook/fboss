@@ -26,11 +26,11 @@ cfg::SwitchConfig createSwitchConfig() {
   config.vlans[0].name = "PrimaryVlan";
   config.vlans[0].id = 5;
   config.vlans[0].routable = true;
-  config.vlans[0].intfID_ref().value_unchecked() = 1234;
+  config.vlans[0].intfID_ref() = 1234;
   config.vlans[1].name = "DefaultHWVlan";
   config.vlans[1].id = 1;
   config.vlans[1].routable = true;
-  config.vlans[1].intfID_ref().value_unchecked() = 4321;
+  config.vlans[1].intfID_ref() = 4321;
 
   config.vlanPorts.resize(10);
   config.ports.resize(10);
@@ -51,26 +51,23 @@ cfg::SwitchConfig createSwitchConfig() {
   config.interfaces.resize(2);
   config.interfaces[0].intfID = 1234;
   config.interfaces[0].vlanID = 5;
-  config.interfaces[0].name_ref().value_unchecked() = "PrimaryInterface";
-  config.interfaces[0].mtu_ref().value_unchecked() = 9000;
-  config.interfaces[0].__isset.mtu = true;
+  config.interfaces[0].name_ref() = "PrimaryInterface";
+  config.interfaces[0].mtu_ref() = 9000;
   config.interfaces[0].ipAddresses.resize(5);
   config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
   config.interfaces[0].ipAddresses[1] = "10.164.4.1/24";
   config.interfaces[0].ipAddresses[2] = "10.164.4.2/24";
   config.interfaces[0].ipAddresses[3] = "2401:db00:2110:3004::/64";
   config.interfaces[0].ipAddresses[4] = "2401:db00:2110:3004::000a/64";
-  config.interfaces[0].__isset.ndp = true;
-  config.interfaces[0].ndp_ref().value_unchecked().routerAdvertisementSeconds =
-      1;
+  config.interfaces[0].ndp_ref() = cfg::NdpConfig();
+  config.interfaces[0].ndp_ref()->routerAdvertisementSeconds = 1;
   config.interfaces[1].intfID = 4321;
   config.interfaces[1].vlanID = 1;
-  config.interfaces[1].name_ref().value_unchecked() = "DefaultHWInterface";
-  config.interfaces[1].mtu_ref().value_unchecked() = 9000;
-  config.interfaces[1].__isset.mtu = true;
+  config.interfaces[1].name_ref() = "DefaultHWInterface";
+  config.interfaces[1].mtu_ref() = 9000;
   config.interfaces[1].ipAddresses.resize(0);
-  config.interfaces[1].ndp_ref().value_unchecked().routerAdvertisementSeconds =
-      1;
+  config.interfaces[1].ndp_ref() = cfg::NdpConfig();
+  config.interfaces[1].ndp_ref()->routerAdvertisementSeconds = 1;
   config.arpTimeoutSeconds = 1;
   return config;
 }
