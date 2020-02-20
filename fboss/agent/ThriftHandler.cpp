@@ -216,11 +216,10 @@ void getPortInfoHelper(
         ActiveQueueManagement aqmThrift;
         switch (aqm.second.detection.getType()) {
           case facebook::fboss::cfg::QueueCongestionDetection::Type::linear:
-            aqmThrift.detection.linear_ref().value_unchecked().minimumLength =
+            aqmThrift.detection.linear_ref()->minimumLength =
                 aqm.second.detection.get_linear().minimumLength;
-            aqmThrift.detection.linear_ref().value_unchecked().maximumLength =
+            aqmThrift.detection.linear_ref()->maximumLength =
                 aqm.second.detection.get_linear().maximumLength;
-            aqmThrift.detection.__isset.linear = true;
             break;
           case facebook::fboss::cfg::QueueCongestionDetection::Type::__EMPTY__:
             XLOG(WARNING) << "Invalid queue congestion detection config";
@@ -229,8 +228,8 @@ void getPortInfoHelper(
         aqmThrift.behavior = QueueCongestionBehavior(aqm.first);
         aqms.push_back(aqmThrift);
       }
-      pq.aqms_ref().value_unchecked().swap(aqms);
-      pq.__isset.aqms = true;
+      pq.aqms_ref() = {};
+      pq.aqms_ref()->swap(aqms);
     }
     if (queue->getName()) {
       pq.name = queue->getName().value();
@@ -247,8 +246,7 @@ void getPortInfoHelper(
         PortQueueRate portQueueRate;
         portQueueRate.set_pktsPerSec(range);
 
-        pq.portQueueRate_ref().value_unchecked() = portQueueRate;
-        pq.__isset.portQueueRate = true;
+        pq.portQueueRate_ref() = portQueueRate;
       } else if (
           queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::kbitsPerSec) {
@@ -260,8 +258,7 @@ void getPortInfoHelper(
         PortQueueRate portQueueRate;
         portQueueRate.set_kbitsPerSec(range);
 
-        pq.portQueueRate_ref().value_unchecked() = portQueueRate;
-        pq.__isset.portQueueRate = true;
+        pq.portQueueRate_ref() = portQueueRate;
       }
     }
 
