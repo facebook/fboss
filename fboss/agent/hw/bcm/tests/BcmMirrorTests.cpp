@@ -84,9 +84,8 @@ class BcmMirrorTest : public BcmTest {
       const bool truncate = false) const {
     cfg::Mirror mirror;
     cfg::MirrorDestination destination;
-    destination.egressPort_ref().value_unchecked().set_logicalID(
-        masterLogicalPortIds()[0]);
-    destination.__isset.egressPort = true;
+    destination.egressPort_ref() = cfg::MirrorEgressPort();
+    destination.egressPort_ref()->set_logicalID(masterLogicalPortIds()[0]);
 
     cfg::Mirror mirrorConfig;
     mirrorConfig.name = mirrorName;
@@ -367,23 +366,19 @@ class BcmMirrorTest : public BcmTest {
       cfg::SwitchConfig& cfg) {
     cfg.acls.push_back(acl);
     cfg::MatchAction mirrorAction;
-    mirrorAction.__isset.ingressMirror = true;
-    mirrorAction.__isset.egressMirror = true;
-    mirrorAction.ingressMirror_ref().value_unchecked() = mirror;
-    mirrorAction.egressMirror_ref().value_unchecked() = mirror;
+    mirrorAction.ingressMirror_ref() = mirror;
+    mirrorAction.egressMirror_ref() = mirror;
 
     cfg::MatchToAction match2Action;
     match2Action.matcher = acl.name;
     match2Action.action = mirrorAction;
 
-    if (!cfg.__isset.dataPlaneTrafficPolicy) {
+    if (!cfg.dataPlaneTrafficPolicy_ref()) {
       cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
       dataPlaneTrafficPolicy.matchToAction.push_back(match2Action);
       cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
     } else {
-      cfg.dataPlaneTrafficPolicy_ref()
-          .value_unchecked()
-          .matchToAction.push_back(match2Action);
+      cfg.dataPlaneTrafficPolicy_ref()->matchToAction.push_back(match2Action);
     }
   }
 };
@@ -678,10 +673,8 @@ TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -701,10 +694,8 @@ TYPED_TEST(BcmMirrorTest, PortMirroringIfResolved) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -750,10 +741,8 @@ TYPED_TEST(BcmMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -811,10 +800,8 @@ TYPED_TEST(BcmMirrorTest, PortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -857,10 +844,8 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -880,14 +865,10 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
     this->applyNewState(newState);
 
     cfg.mirrors[0] = this->getSpanMirror();
-    cfg.ports[0].ingressMirror_ref().value_unchecked().clear();
-    cfg.ports[0].egressMirror_ref().value_unchecked().clear();
-    cfg.ports[0].__isset.ingressMirror = false;
-    cfg.ports[0].__isset.egressMirror = false;
-    cfg.ports[1].ingressMirror_ref().value_unchecked().assign(kSpan);
-    cfg.ports[1].egressMirror_ref().value_unchecked().assign(kSpan);
-    cfg.ports[1].__isset.ingressMirror = true;
-    cfg.ports[1].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref().reset();
+    cfg.ports[0].egressMirror_ref().reset();
+    cfg.ports[1].ingressMirror_ref() = kSpan;
+    cfg.ports[1].egressMirror_ref() = kSpan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -922,10 +903,8 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getErspanMirror());
-    cfg.ports[0].ingressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].egressMirror_ref().value_unchecked().assign(kErspan);
-    cfg.ports[0].__isset.ingressMirror = true;
-    cfg.ports[0].__isset.egressMirror = true;
+    cfg.ports[0].ingressMirror_ref() = kErspan;
+    cfg.ports[0].egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -943,10 +922,8 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    cfg.ports[0].ingressMirror_ref().value_unchecked().clear();
-    cfg.ports[0].egressMirror_ref().value_unchecked().clear();
-    cfg.ports[0].__isset.ingressMirror = false;
-    cfg.ports[0].__isset.egressMirror = false;
+    cfg.ports[0].ingressMirror_ref().reset();
+    cfg.ports[0].egressMirror_ref().reset();
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -1217,11 +1194,10 @@ TYPED_TEST(BcmMirrorTest, UpdateAclMirror) {
 
     cfg.mirrors.clear();
     cfg.mirrors.push_back(this->getSpanMirror());
-    for (auto& match2Action :
-         cfg.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction) {
+    for (auto& match2Action : cfg.dataPlaneTrafficPolicy_ref()->matchToAction) {
       if (match2Action.matcher == "acl0") {
-        match2Action.action.ingressMirror_ref().value_unchecked() = kSpan;
-        match2Action.action.egressMirror_ref().value_unchecked() = kSpan;
+        match2Action.action.ingressMirror_ref() = kSpan;
+        match2Action.action.egressMirror_ref() = kSpan;
       }
     }
     this->applyNewConfig(cfg);
@@ -1285,13 +1261,10 @@ TYPED_TEST(BcmMirrorTest, RemoveAclMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    for (auto& match2Action :
-         cfg.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction) {
+    for (auto& match2Action : cfg.dataPlaneTrafficPolicy_ref()->matchToAction) {
       if (match2Action.matcher == "acl0") {
-        match2Action.action.ingressMirror_ref().value_unchecked().clear();
-        match2Action.action.__isset.ingressMirror = false;
-        match2Action.action.egressMirror_ref().value_unchecked().clear();
-        match2Action.action.__isset.egressMirror = false;
+        match2Action.action.ingressMirror_ref().reset();
+        match2Action.action.egressMirror_ref().reset();
       }
     }
     this->applyNewConfig(cfg);

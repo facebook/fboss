@@ -73,14 +73,14 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
 
   void _configureBandwidth(cfg::SwitchConfig* config) const {
     auto& queue0 = config->portQueueConfigs["queue_config"][kQueueId0()];
-    queue0.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+    queue0.portQueueRate_ref() = cfg::PortQueueRate();
+    queue0.portQueueRate_ref()->set_pktsPerSec(
         utility::getRange(kMinPps(), kMaxPps()));
-    queue0.__isset.portQueueRate = true;
 
     auto& queue1 = config->portQueueConfigs["queue_config"][kQueueId1()];
-    queue1.portQueueRate_ref().value_unchecked().set_kbitsPerSec(
+    queue1.portQueueRate_ref() = cfg::PortQueueRate();
+    queue1.portQueueRate_ref()->set_kbitsPerSec(
         utility::getRange(kMinKbps(), kMaxKbps()));
-    queue1.__isset.portQueueRate = true;
   }
 
   template <typename ECMP_HELPER>

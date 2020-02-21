@@ -65,15 +65,12 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
   void addTtlAclStat(cfg::SwitchConfig* config) const {
     constexpr auto kAclName = "ttld-acl";
     auto acl = utility::addAcl(config, kAclName);
-    acl->srcIp_ref().value_unchecked() = "2001::/64";
-    acl->__isset.srcIp = true;
-    acl->proto_ref().value_unchecked() = 0x11;
-    acl->__isset.proto = true;
-    acl->ipType_ref().value_unchecked() = cfg::IpType::IP6;
-    acl->__isset.ipType = true;
-    acl->ttl_ref().value_unchecked().value = 128;
-    acl->ttl_ref().value_unchecked().mask = 128;
-    acl->__isset.ttl = true;
+    acl->srcIp_ref() = "2001::/64";
+    acl->proto_ref() = 0x11;
+    acl->ipType_ref() = cfg::IpType::IP6;
+    acl->ttl_ref() = cfg::Ttl();
+    acl->ttl_ref()->value = 128;
+    acl->ttl_ref()->mask = 128;
     utility::addAclStat(config, kAclName, kCounterName);
   }
   void setupECMPForwarding() {

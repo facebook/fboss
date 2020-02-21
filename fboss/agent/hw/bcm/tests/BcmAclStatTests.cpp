@@ -241,9 +241,7 @@ TEST_F(BcmAclStatTest, AclStatMultipleActions) {
     cfg::MatchToAction action = cfg::MatchToAction();
     action.matcher = "acl0";
     action.action = matchAction;
-    newCfg.dataPlaneTrafficPolicy_ref()
-        .value_unchecked()
-        .matchToAction.push_back(action);
+    newCfg.dataPlaneTrafficPolicy_ref()->matchToAction.push_back(action);
     applyNewConfig(newCfg);
   };
 
@@ -429,8 +427,7 @@ TEST_F(BcmAclStatTest, AclStatModify) {
   auto setupPostWB = [=]() {
     auto newCfg = initialConfig();
     auto acl = addAcl(&newCfg, "acl0");
-    acl->proto_ref().value_unchecked() = 58;
-    acl->__isset.proto = true;
+    acl->proto_ref() = 58;
     addAclStat(&newCfg, "acl0", "stat0");
     applyNewConfig(newCfg);
   };

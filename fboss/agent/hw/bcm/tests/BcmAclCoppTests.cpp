@@ -52,8 +52,7 @@ void addInterface(cfg::SwitchConfig* config) {
   config->vlans[2].id = 2;
   config->interfaces[1].vlanID = 2;
   config->interfaces[1].routerID = 0;
-  config->interfaces[1].__isset.mac = true;
-  config->interfaces[1].mac_ref().value_unchecked() = "00:01:00:11:22:33";
+  config->interfaces[1].mac_ref() = "00:01:00:11:22:33";
   config->interfaces[1].ipAddresses.resize(1);
   config->interfaces[1].ipAddresses[0] = "::11:11:11/120";
 }

@@ -80,18 +80,18 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
 
     cfg::PortQueue queue0;
     queue0.id = 0;
-    queue0.name_ref().value_unchecked() = "low-pri";
+    queue0.name_ref() = "low-pri";
     queue0.streamType = cfg::StreamType::UNICAST;
     queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     portQueues.push_back(queue0);
 
     cfg::PortQueue queue2;
     queue2.id = kEcnQueueId();
-    queue2.name_ref().value_unchecked() = "ecn1";
+    queue2.name_ref() = "ecn1";
     queue2.streamType = cfg::StreamType::UNICAST;
     queue2.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue2.aqms_ref().value_unchecked().push_back(kGetEcnConfig());
-    queue2.__isset.aqms = true;
+    queue2.aqms_ref() = {};
+    queue2.aqms_ref()->push_back(kGetEcnConfig());
     portQueues.push_back(queue2);
 
     config->portQueueConfigs["queue_config"] = portQueues;

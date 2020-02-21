@@ -46,9 +46,7 @@ void checkSwAclSendToQueue(
       queueId);
 }
 void popOneMatchToAction(cfg::SwitchConfig* config) {
-  config->dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction.pop_back();
+  config->dataPlaneTrafficPolicy_ref()->matchToAction.pop_back();
 }
 void checkSwActionDscpValue(
     std::shared_ptr<SwitchState> state,

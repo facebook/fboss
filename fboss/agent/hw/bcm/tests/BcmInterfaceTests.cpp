@@ -165,8 +165,7 @@ class BcmInterfaceTest : public BcmTest {
 TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    newCfg.interfaces[0].mtu_ref().value_unchecked() = 9000;
-    newCfg.interfaces[0].__isset.mtu = true;
+    newCfg.interfaces[0].mtu_ref() = 9000;
     applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -184,11 +183,10 @@ TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
 TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    newCfg.interfaces[0].mtu_ref().value_unchecked() = 9000;
-    newCfg.interfaces[0].__isset.mtu = true;
+    newCfg.interfaces[0].mtu_ref() = 9000;
     applyNewConfig(newCfg);
 
-    newCfg.interfaces[0].mtu_ref().value_unchecked() = Interface::kDefaultMtu;
+    newCfg.interfaces[0].mtu_ref() = Interface::kDefaultMtu;
     applyNewConfig(newCfg);
   };
   auto verify = [=]() {
