@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
+#include "fboss/agent/hw/HwCpuFb303Stats.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -52,7 +53,7 @@ class SaiHostifManager {
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(
       const SaiQueueConfig& saiQueueConfig) const;
-  void updateStats() const;
+  void updateStats();
   HwPortStats getCpuPortStats() const;
   QueueConfig getQueueSettings() const;
 
@@ -71,6 +72,7 @@ class SaiHostifManager {
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
+  HwCpuFb303Stats cpuStats_;
 };
 
 } // namespace facebook::fboss

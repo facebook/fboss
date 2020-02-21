@@ -16,6 +16,10 @@
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+#include <chrono>
+
+using namespace std::chrono;
+
 namespace facebook::fboss {
 
 sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
@@ -228,6 +232,10 @@ void SaiHostifManager::changeCpuQueue(
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+    auto queueName = newPortQueue->getName()
+        ? *newPortQueue->getName()
+        : folly::to<std::string>("cpuQueue", newPortQueue->getID());
+    cpuStats_.addOrUpdateQueue(newPortQueue->getID(), queueName);
   }
   for (auto oldPortQueue : oldQueueConfig) {
     auto portQueueIter = std::find_if(
@@ -243,6 +251,7 @@ void SaiHostifManager::changeCpuQueue(
       auto queueHandle = getQueueHandle(saiQueueConfig);
       managerTable_->queueManager().resetQueue(queueHandle);
       cpuPortHandle_->queues.erase(saiQueueConfig);
+      cpuStats_.removeQueue(oldPortQueue->getID());
     }
   }
 }
@@ -283,9 +292,12 @@ SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
   loadCpuPort();
 }
 
-void SaiHostifManager::updateStats() const {
-  HwPortStats dummy; // TODO - use this to pushout cpu fb303 counters
-  managerTable_->queueManager().updateStats(cpuPortHandle_->queues, dummy);
+void SaiHostifManager::updateStats() {
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  HwPortStats cpuQueueStats;
+  managerTable_->queueManager().updateStats(
+      cpuPortHandle_->queues, cpuQueueStats);
+  cpuStats_.updateStats(cpuQueueStats, now);
 }
 
 HwPortStats SaiHostifManager::getCpuPortStats() const {
