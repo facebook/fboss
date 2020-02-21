@@ -236,7 +236,7 @@ void SaiPortManager::changeQueue(
     if (pitr != portStats_.end()) {
       // Port stats map is sparse, since we don't maintain/publish stats
       // for disabled ports
-      pitr->second->addOrUpdateQueue(newPortQueue->getID(), queueName);
+      pitr->second->queueChanged(newPortQueue->getID(), queueName);
     }
   }
 
@@ -257,7 +257,7 @@ void SaiPortManager::changeQueue(
       if (pitr != portStats_.end()) {
         // Port stats map is sparse, since we don't maintain/publish stats
         // for disabled ports
-        pitr->second->removeQueue(oldPortQueue->getID());
+        pitr->second->queueRemoved(oldPortQueue->getID());
       }
     }
   }

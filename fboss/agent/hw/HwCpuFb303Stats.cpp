@@ -46,7 +46,7 @@ void HwCpuFb303Stats::setupStats() {
   }
 }
 
-void HwCpuFb303Stats::addOrUpdateQueue(
+void HwCpuFb303Stats::queueChanged(
     int queueId,
     const std::string& queueName) {
   auto qitr = queueId2Name_.find(queueId);
@@ -63,7 +63,7 @@ void HwCpuFb303Stats::addOrUpdateQueue(
   }
 }
 
-void HwCpuFb303Stats::removeQueue(int queueId) {
+void HwCpuFb303Stats::queueRemoved(int queueId) {
   auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueStatKeys()) {
     queueCounters_.removeStat(

@@ -39,8 +39,8 @@ class HwPortFb303Stats {
     portName_ = newName;
     reinitStats(oldPortName);
   }
-  void addOrUpdateQueue(int queueId, const std::string& queueName);
-  void removeQueue(int queueId);
+  void queueChanged(int queueId, const std::string& queueName);
+  void queueRemoved(int queueId);
 
   /*
    * Port stat name

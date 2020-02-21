@@ -116,7 +116,7 @@ TEST(HwCpuFb303Stats, UpdateStats) {
 }
 TEST(HwCpuFb303StatsTest, RenameQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
-  stats.addOrUpdateQueue(1, "very_high");
+  stats.queueChanged(1, "very_high");
   auto newQueueMapping = kQueue2Name;
   for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -131,7 +131,7 @@ TEST(HwCpuFb303StatsTest, RenameQueue) {
 
 TEST(HwCpuFb303StatsTest, AddQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
-  stats.addOrUpdateQueue(3, "very_high");
+  stats.queueChanged(3, "very_high");
   auto newQueueMapping = kQueue2Name;
   for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -144,7 +144,7 @@ TEST(HwCpuFb303StatsTest, AddQueue) {
 }
 TEST(HwCpuFb303StatsTest, RemoveQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
-  stats.removeQueue(1);
+  stats.queueRemoved(1);
   auto newQueueMapping = kQueue2Name;
   for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
@@ -157,8 +157,8 @@ TEST(HwCpuFb303StatsTest, RemoveQueue) {
 TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
   HwCpuFb303Stats cpuStats(kQueue2Name);
   updateStats(cpuStats);
-  cpuStats.addOrUpdateQueue(1, "very_high");
-  cpuStats.addOrUpdateQueue(2, "very_low");
+  cpuStats.queueChanged(1, "very_high");
+  cpuStats.queueChanged(2, "very_low");
   HwCpuFb303Stats::QueueId2Name newQueues = {{1, "very_high"}, {2, "very_low"}};
   for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
     for (const auto& queueIdAndName : newQueues) {

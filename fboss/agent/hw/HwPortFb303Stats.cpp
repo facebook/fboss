@@ -115,7 +115,7 @@ void HwPortFb303Stats::reinitStat(
                    : std::nullopt);
 }
 
-void HwPortFb303Stats::addOrUpdateQueue(
+void HwPortFb303Stats::queueChanged(
     int queueId,
     const std::string& queueName) {
   auto qitr = queueId2Name_.find(queueId);
@@ -128,7 +128,7 @@ void HwPortFb303Stats::addOrUpdateQueue(
   }
 }
 
-void HwPortFb303Stats::removeQueue(int queueId) {
+void HwPortFb303Stats::queueRemoved(int queueId) {
   auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueStatKeys()) {
     portCounters_.removeStat(
