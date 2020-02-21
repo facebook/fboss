@@ -93,24 +93,20 @@ cfg::SwitchConfig createSwitchConfig(seconds raInterval, seconds ndpTimeout) {
   config.interfaces[0].vlanID = 5;
   config.interfaces[0].name_ref() = "PrimaryInterface";
   config.interfaces[0].mtu_ref() = 9000;
-  config.interfaces[0].__isset.mtu = true;
   config.interfaces[0].ipAddresses.resize(5);
   config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
   config.interfaces[0].ipAddresses[1] = "10.164.4.1/24";
   config.interfaces[0].ipAddresses[2] = "10.164.4.2/24";
   config.interfaces[0].ipAddresses[3] = "2401:db00:2110:3004::/64";
   config.interfaces[0].ipAddresses[4] = "2401:db00:2110:3004::000a/64";
-  config.interfaces[0].__isset.ndp = true;
-  config.interfaces[0].ndp_ref().value_unchecked().routerAdvertisementSeconds =
+  config.interfaces[0].ndp_ref() = cfg::NdpConfig();
+  config.interfaces[0].ndp_ref()->routerAdvertisementSeconds =
       raInterval.count();
   config.interfaces[1].intfID = 4321;
   config.interfaces[1].vlanID = 1;
   config.interfaces[1].name_ref() = "DefaultHWInterface";
   config.interfaces[1].mtu_ref() = 9000;
-  config.interfaces[1].__isset.mtu = true;
   config.interfaces[1].ipAddresses.resize(0);
-  config.interfaces[1].ndp_ref().value_unchecked().routerAdvertisementSeconds =
-      raInterval.count();
 
   if (ndpTimeout.count() > 0) {
     config.arpTimeoutSeconds = ndpTimeout.count();
