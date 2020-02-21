@@ -9,8 +9,8 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPort.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -149,6 +149,10 @@ std::optional<std::string> SaiPlatform::getPlatformAttribute(
 
 sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
+}
+
+int SaiPlatform::getDefaultNumPortQueues(cfg::StreamType streamType) const {
+  return getAsic()->getDefaultNumPortQueues(streamType);
 }
 
 } // namespace facebook::fboss

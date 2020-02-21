@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
@@ -16,6 +17,15 @@ class TajoAsic : public HwAsic {
   }
   std::set<cfg::StreamType> getQueueStreamTypes(bool /* cpu */) const override {
     return {cfg::StreamType::ALL};
+  }
+  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
+    switch (streamType) {
+      case cfg::StreamType::UNICAST:
+      case cfg::StreamType::MULTICAST:
+        throw FbossError("no queue exist for this stream type");
+      case cfg::StreamType::ALL:
+        return 8;
+    }
   }
 };
 

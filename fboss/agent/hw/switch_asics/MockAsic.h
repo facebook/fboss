@@ -24,6 +24,9 @@ class MockAsic : public HwAsic {
       return {cfg::StreamType::UNICAST};
     }
   }
+  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
+    return 10;
+  }
 };
 
 } // namespace facebook::fboss

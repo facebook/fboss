@@ -52,6 +52,7 @@ class SaiPlatform : public Platform {
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
   virtual bool getObjectKeysSupported() const = 0;
+  int getDefaultNumPortQueues(cfg::StreamType streamType) const override;
 
   /*
    * Get ids of all controlling ports
@@ -60,11 +61,6 @@ class SaiPlatform : public Platform {
     // TODO make this pure virtual when we cook up a platform
     // for fake SAI
     return {};
-  }
-
-  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
-    // TODO(srikrishnagopu) SAI has a specific api to get default value
-    return 0;
   }
 
  private:
