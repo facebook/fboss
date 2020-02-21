@@ -79,6 +79,7 @@ class SaiPortManager {
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
  private:
+  const std::vector<sai_stat_id_t>& supportedStats() const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,

@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -80,13 +81,14 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
 }
 
 void fillHwPortStats(
+    const std::vector<sai_stat_id_t>& counterIds,
     const std::vector<sai_object_id_t>& counters,
     HwPortStats& hwPortStats) {
-  uint16_t index = 0;
-  if (counters.size() != SaiPortTraits::CounterIds.size()) {
+  auto index = 0;
+  if (counters.size() != counterIds.size()) {
     throw FbossError("port counter size does not match counter id size");
   }
-  for (auto counterId : SaiPortTraits::CounterIds) {
+  for (auto counterId : counterIds) {
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
         hwPortStats.inBytes_ = counters[index];
@@ -384,6 +386,25 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
       delta, processChanged, processAdded, processRemoved);
 }
 
+const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
+  static std::vector<sai_stat_id_t> counterIds;
+  if (counterIds.size()) {
+    return counterIds;
+  }
+  auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
+  counterIds.resize(
+      ecnSupported ? SaiPortTraits::CounterIds.size()
+                   : SaiPortTraits::CounterIds.size() - 1);
+  std::copy_if(
+      SaiPortTraits::CounterIds.begin(),
+      SaiPortTraits::CounterIds.end(),
+      counterIds.begin(),
+      [ecnSupported](auto statId) {
+        return ecnSupported || statId != SAI_PORT_STAT_ECN_MARKED_PACKETS;
+      });
+  return counterIds;
+}
+
 void SaiPortManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   for (const auto& [portId, handle] : handles_) {
@@ -391,10 +412,10 @@ void SaiPortManager::updateStats() {
       // We don't maintain port stats for disabled ports.
       continue;
     }
-    handle->port->updateStats();
+    handle->port->updateStats(supportedStats());
     const auto& counters = handle->port->getStats();
     HwPortStats hwPortStats;
-    fillHwPortStats(counters, hwPortStats);
+    fillHwPortStats(supportedStats(), counters, hwPortStats);
     managerTable_->queueManager().updateStats(handle->queues, hwPortStats);
     portStats_[portId]->updateStats(hwPortStats, now);
   }
@@ -408,8 +429,9 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
       continue;
     }
     const auto& counters = handle->port->getStats();
+    auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats;
-    fillHwPortStats(counters, hwPortStats);
+    fillHwPortStats(supportedStats(), counters, hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);
   }
