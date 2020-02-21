@@ -78,6 +78,8 @@ class QueueManagerTest : public ManagerTestBase {
   }
 };
 
+enum class ExpectExport { NO_EXPORT, EXPORT };
+
 TEST_F(QueueManagerTest, loadQueue) {
   auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
   PortSaiId portSaiId = portHandle->port->adapterKey();
@@ -238,19 +240,22 @@ void checkCounterExportAndValue(
     const std::string& portName,
     int queueId,
     const std::string& queueName,
-    bool expectExport,
+    ExpectExport expectExport,
     const HwPortFb303Stats* portStat) {
   for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
-    if (expectExport) {
-      EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-          HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
-      EXPECT_EQ(
-          portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
-              statKey, portName, queueId, queueName)),
-          0);
-    } else {
-      EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-          HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+    switch (expectExport) {
+      case ExpectExport::EXPORT:
+        EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+        EXPECT_EQ(
+            portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
+                statKey, portName, queueId, queueName)),
+            0);
+        break;
+      case ExpectExport::NO_EXPORT:
+        EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+        break;
     }
   }
 }
@@ -258,7 +263,7 @@ void checkCounterExportAndValue(
 void checkCounterExportAndValue(
     const std::string& portName,
     const QueueConfig& queueConfig,
-    bool expectExport,
+    ExpectExport expectExport,
     const HwPortFb303Stats* portStat) {
   for (const auto& portQueue : queueConfig) {
     checkCounterExportAndValue(
@@ -273,7 +278,7 @@ void checkCounterExportAndValue(
 void checkCounterExportAndValue(
     const std::string& portName,
     const std::vector<int>& queueIds,
-    bool expectExport,
+    ExpectExport expectExport,
     const HwPortFb303Stats* portStat) {
   for (auto queueId : queueIds) {
     checkCounterExportAndValue(
@@ -298,7 +303,7 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
   checkCounterExportAndValue(
-      swPort->getName(), queueConfig, true /*export*/, portStat);
+      swPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
 }
 
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
@@ -320,9 +325,9 @@ TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newPort->getID());
   checkCounterExportAndValue(
-      newNewPort->getName(), newQueueConfig, true /*export*/, portStat);
+      newNewPort->getName(), newQueueConfig, ExpectExport::EXPORT, portStat);
   checkCounterExportAndValue(
-      newNewPort->getName(), {3, 4}, false /*export*/, portStat);
+      newNewPort->getName(), {3, 4}, ExpectExport::NO_EXPORT, portStat);
 }
 
 TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
@@ -342,7 +347,28 @@ TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
   checkCounterExportAndValue(
-      newNewPort->getName(), 1, "portQueue", true, portStat);
+      newNewPort->getName(), 1, "portQueue", ExpectExport::EXPORT, portStat);
   checkCounterExportAndValue(
-      newNewPort->getName(), 1, "queue", false, portStat);
+      newNewPort->getName(), 1, "queue", ExpectExport::NO_EXPORT, portStat);
+}
+
+TEST_F(QueueManagerTest, changePortNameAndCheckStats) {
+  auto p0 = testInterfaces[0].remoteHosts[0].port;
+  std::shared_ptr<Port> oldPort = makePort(p0);
+  auto newPort = oldPort->clone();
+  auto streamType = cfg::StreamType::UNICAST;
+  std::vector<uint8_t> queueIds = {1};
+  auto queueConfig = makeQueueConfig({queueIds});
+  newPort->resetPortQueues(queueConfig);
+  saiManagerTable->portManager().changePort(oldPort, newPort);
+  auto newNewPort = newPort->clone();
+  newNewPort->setName("eth1/1/1");
+  saiManagerTable->portManager().changePort(newPort, newNewPort);
+  saiManagerTable->portManager().updateStats();
+  auto portStat =
+      saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
+  checkCounterExportAndValue(
+      newNewPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+  checkCounterExportAndValue(
+      newPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
 }
