@@ -56,6 +56,9 @@ class SaiHostifManager {
   void updateStats();
   HwPortStats getCpuPortStats() const;
   QueueConfig getQueueSettings() const;
+  const HwCpuFb303Stats& getCpuFb303Stats() const {
+    return cpuStats_;
+  }
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);

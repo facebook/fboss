@@ -90,6 +90,7 @@ SaiQueueManager::SaiQueueManager(
 void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
+  CHECK(queueHandle);
   queueHandle->scheduler =
       managerTable_->schedulerManager().createScheduler(newPortQueue);
 }
