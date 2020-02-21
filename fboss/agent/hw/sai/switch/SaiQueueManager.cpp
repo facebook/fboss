@@ -38,6 +38,9 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_DROPPED_BYTES:
         hwPortStats.queueOutDiscardBytes_[queueId] = counters[index];
         break;
+      case SAI_QUEUE_STAT_DROPPED_PACKETS:
+        hwPortStats.queueOutDiscardPackets_[queueId] = counters[index];
+        break;
       default:
         break;
     }
