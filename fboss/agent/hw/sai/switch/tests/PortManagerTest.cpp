@@ -228,3 +228,18 @@ TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
   EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
       HwPortFb303Stats::statName(kInBytes(), newPort->getName())));
 }
+
+TEST_F(PortManagerTest, updateStats) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  checkPort(PortID(0), saiId, true);
+  saiManagerTable->portManager().updateStats();
+  auto portStat =
+      saiManagerTable->portManager().getLastPortStat(swPort->getID());
+  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+    EXPECT_EQ(
+        portStat->getCounterLastIncrement(
+            HwPortFb303Stats::statName(statKey, swPort->getName())),
+        0);
+  }
+}

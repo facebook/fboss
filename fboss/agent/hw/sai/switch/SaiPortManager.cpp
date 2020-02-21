@@ -392,4 +392,8 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   return portStats;
 }
 
+const HwPortFb303Stats* SaiPortManager::getLastPortStat(PortID port) const {
+  auto pitr = portStats_.find(port);
+  return pitr != portStats_.end() ? pitr->second.get() : nullptr;
+}
 } // namespace facebook::fboss

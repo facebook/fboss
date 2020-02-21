@@ -76,6 +76,8 @@ class SaiPortManager {
       const QueueConfig& oldQueueConfig,
       const QueueConfig& newQueueConfig);
 
+  const HwPortFb303Stats* getLastPortStat(PortID port) const;
+
  private:
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
