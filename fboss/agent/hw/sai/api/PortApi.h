@@ -85,7 +85,7 @@ struct SaiPortTraits {
       std::optional<Attributes::Mtu>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_stat_id_t, 14> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 15> CounterIds = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
@@ -99,7 +99,9 @@ struct SaiPortTraits {
       SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS,
       SAI_PORT_STAT_IF_OUT_DISCARDS,
       SAI_PORT_STAT_IF_OUT_ERRORS,
-      SAI_PORT_STAT_PAUSE_TX_PKTS};
+      SAI_PORT_STAT_PAUSE_TX_PKTS,
+      SAI_PORT_STAT_ECN_MARKED_PACKETS,
+  };
 };
 
 template <>

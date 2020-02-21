@@ -130,6 +130,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_PAUSE_TX_PKTS:
         hwPortStats.outPause_ = counters[index];
         break;
+      case SAI_PORT_STAT_ECN_MARKED_PACKETS:
+        hwPortStats.outEcnCounter_ = counters[index];
+        break;
       default:
         throw FbossError("Got unexpected port counter id: ", counterId);
     }
