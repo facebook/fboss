@@ -288,3 +288,16 @@ TEST_F(PortManagerTest, portReenableReStartsCounterExport) {
   saiManagerTable->portManager().changePort(newPort, newNewPort);
   checkCounterExport(swPort->getName(), ExpectExport::EXPORT);
 }
+
+TEST_F(PortManagerTest, collectStatsAfterPortDisable) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  CHECK(swPort->isEnabled());
+  saiManagerTable->portManager().addPort(swPort);
+  checkCounterExport(swPort->getName(), ExpectExport::EXPORT);
+  auto newPort = swPort->clone();
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().changePort(swPort, newPort);
+  saiManagerTable->portManager().updateStats();
+  EXPECT_EQ(saiManagerTable->portManager().getPortStats().size(), 0);
+  checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
+}

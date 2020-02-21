@@ -377,6 +377,10 @@ void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
 void SaiPortManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   for (const auto& [portId, handle] : handles_) {
+    if (portStats_.find(portId) == portStats_.end()) {
+      // We don't maintain port stats for disabled ports.
+      continue;
+    }
     handle->port->updateStats();
     const auto& counters = handle->port->getStats();
     HwPortStats hwPortStats;
@@ -389,6 +393,10 @@ void SaiPortManager::updateStats() {
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   std::map<PortID, HwPortStats> portStats;
   for (const auto& [portId, handle] : handles_) {
+    if (portStats_.find(portId) == portStats_.end()) {
+      // We don't maintain port stats for disabled ports.
+      continue;
+    }
     const auto& counters = handle->port->getStats();
     HwPortStats hwPortStats;
     fillHwPortStats(counters, hwPortStats);
