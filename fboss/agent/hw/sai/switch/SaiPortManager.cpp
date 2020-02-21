@@ -131,7 +131,7 @@ void fillHwPortStats(
         hwPortStats.outPause_ = counters[index];
         break;
       default:
-        throw FbossError("Got unexpected counter id: ", counterId);
+        throw FbossError("Got unexpected port counter id: ", counterId);
     }
     index++;
   }

@@ -42,7 +42,7 @@ void fillHwQueueStats(
         hwPortStats.queueOutDiscardPackets_[queueId] = counters[index];
         break;
       default:
-        break;
+        throw FbossError("Got unexpected queue counter id: ", counterId);
     }
     index++;
   }
