@@ -32,6 +32,7 @@ target_link_libraries(sai_switch
   # Don't unconditionally link with fake_sai. Instead, allow linking with sai
   # implementation (--unresolved-symbols = <ignore..>).
   fake_sai
+  hw_fb303_stats
   hw_cpu_fb303_stats
   hw_port_fb303_stats
   sai_api

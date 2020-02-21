@@ -10,9 +10,8 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-
-#include "common/stats/MonotonicCounter.h"
 
 #include "folly/container/F14Map.h"
 
@@ -28,8 +27,6 @@ class HwCpuFb303Stats {
       : queueId2Name_(queueId2Name) {
     setupStats();
   }
-  ~HwCpuFb303Stats();
-
   void updateStats(
       const HwPortStats& latestStats,
       const std::chrono::seconds& retrievedAt);
@@ -51,25 +48,13 @@ class HwCpuFb303Stats {
  private:
   void setupStats();
 
-  /*
-   * Reinit queue stat
-   */
-  void reinitStat(
-      const std::string& statName,
-      std::optional<std::string> oldStatName);
-  /*
-   * Update queue stat
-   */
   void updateStat(
       const std::chrono::seconds& now,
       const std::string& statName,
       int64_t val);
-  stats::MonotonicCounter* getCounterIf(const std::string& statName);
-  const stats::MonotonicCounter* getCounterIf(
-      const std::string& statName) const;
 
   std::chrono::seconds timeRetrieved_{0};
-  folly::F14FastMap<std::string, stats::MonotonicCounter> queueCounters_;
+  HwFb303Stats queueCounters_;
   QueueId2Name queueId2Name_;
 };
 

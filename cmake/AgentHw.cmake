@@ -13,6 +13,10 @@ target_link_libraries(counter_utils
   hardware_stats_cpp2
 )
 
+add_library(hw_fb303_stats
+  fboss/agent/hw/HwFb303Stats.cpp
+)
+
 add_library(hw_port_fb303_stats
   fboss/agent/hw/HwPortFb303Stats.cpp
 )
@@ -21,16 +25,21 @@ add_library(hw_cpu_fb303_stats
   fboss/agent/hw/HwCpuFb303Stats.cpp
 )
 
-target_link_libraries(hw_port_fb303_stats
+target_link_libraries(hw_fb303_stats
   counter_utils
   fb303::fb303
+  Folly::folly
+)
+
+target_link_libraries(hw_port_fb303_stats
+  counter_utils
   FBThrift::thriftcpp2
   hardware_stats_cpp2
   Folly::folly
 )
 
 target_link_libraries(hw_cpu_fb303_stats
-  fb303::fb303
+  counter_utils
   FBThrift::thriftcpp2
   hardware_stats_cpp2
   Folly::folly

@@ -21,12 +21,6 @@ std::array<folly::StringPiece, 2> HwCpuFb303Stats::kQueueStatKeys() {
   return {kInPkts(), kInDroppedPkts()};
 }
 
-HwCpuFb303Stats::~HwCpuFb303Stats() {
-  for (const auto& statNameAndStat : queueCounters_) {
-    utility::deleteCounter(statNameAndStat.second.getName());
-  }
-}
-
 std::string HwCpuFb303Stats::statName(
     folly::StringPiece statName,
     int queueId,
@@ -35,21 +29,9 @@ std::string HwCpuFb303Stats::statName(
       "cpu.queue", queueId, ".cpuQueue-", queueName, ".", statName);
 }
 
-const stats::MonotonicCounter* HwCpuFb303Stats::getCounterIf(
-    const std::string& statName) const {
-  auto pcitr = queueCounters_.find(statName);
-  return pcitr != queueCounters_.end() ? &pcitr->second : nullptr;
-}
-
-stats::MonotonicCounter* HwCpuFb303Stats::getCounterIf(
-    const std::string& statName) {
-  return const_cast<stats::MonotonicCounter*>(
-      const_cast<const HwCpuFb303Stats*>(this)->getCounterIf(statName));
-}
-
 int64_t HwCpuFb303Stats::getCounterLastIncrement(
     folly::StringPiece statKey) const {
-  return getCounterIf(statKey.str())->get();
+  return queueCounters_.getCounterLastIncrement(statKey.str());
 }
 
 void HwCpuFb303Stats::setupStats() {
@@ -59,30 +41,8 @@ void HwCpuFb303Stats::setupStats() {
     for (auto statKey : kQueueStatKeys()) {
       auto newStatName =
           statName(statKey, queueIdAndName.first, queueIdAndName.second);
-      reinitStat(newStatName, std::nullopt);
+      queueCounters_.reinitStat(newStatName, std::nullopt);
     }
-  }
-}
-
-/*
- * Reinit port or port queue stat
- */
-void HwCpuFb303Stats::reinitStat(
-    const std::string& statName,
-    std::optional<std::string> oldStatName) {
-  if (oldStatName) {
-    if (oldStatName == statName) {
-      return;
-    }
-    auto stat = getCounterIf(*oldStatName);
-    stats::MonotonicCounter newStat{statName, fb303::SUM, fb303::RATE};
-    stat->swap(newStat);
-    utility::deleteCounter(newStat.getName());
-    queueCounters_.insert(std::make_pair(statName, std::move(*stat)));
-    queueCounters_.erase(*oldStatName);
-  } else {
-    queueCounters_.emplace(
-        statName, stats::MonotonicCounter(statName, fb303::SUM, fb303::RATE));
   }
 }
 
@@ -95,7 +55,7 @@ void HwCpuFb303Stats::addOrUpdateQueue(
       : std::optional<std::string>(qitr->second);
   queueId2Name_[queueId] = queueName;
   for (auto statKey : kQueueStatKeys()) {
-    reinitStat(
+    queueCounters_.reinitStat(
         statName(statKey, queueId, queueName),
         oldQueueName ? std::optional<std::string>(
                            statName(statKey, queueId, *oldQueueName))
@@ -106,21 +66,10 @@ void HwCpuFb303Stats::addOrUpdateQueue(
 void HwCpuFb303Stats::removeQueue(int queueId) {
   auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueStatKeys()) {
-    auto stat =
-        getCounterIf(statName(statKey, queueId, queueId2Name_[queueId]));
-    utility::deleteCounter(stat->getName());
-    queueCounters_.erase(stat->getName());
+    queueCounters_.removeStat(
+        statName(statKey, queueId, queueId2Name_[queueId]));
   }
   queueId2Name_.erase(queueId);
-}
-
-void HwCpuFb303Stats::updateStat(
-    const std::chrono::seconds& now,
-    const std::string& statName,
-    int64_t val) {
-  auto stat = getCounterIf(statName);
-  CHECK(stat);
-  stat->updateValue(now, val);
 }
 
 void HwCpuFb303Stats::updateStats(
@@ -136,7 +85,7 @@ void HwCpuFb303Stats::updateStats(
     CHECK(qitr != queueStats.end())
         << "Missing stat: " << statKey
         << " for queue: :" << queueId2Name_[queueId];
-    updateStat(
+    queueCounters_.updateStat(
         timeRetrieved_,
         statName(statKey, queueId, queueId2Name_[queueId]),
         qitr->second);
