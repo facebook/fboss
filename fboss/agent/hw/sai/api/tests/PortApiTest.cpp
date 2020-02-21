@@ -236,3 +236,16 @@ TEST_F(PortApiTest, portKeys) {
   std::sort(keys.begin(), keys.end());
   EXPECT_EQ(keys, portIds);
 }
+
+TEST_F(PortApiTest, getAllStats) {
+  auto id = createPort(100000, {42}, true);
+  auto stats = portApi->getStats<SaiPortTraits>(id);
+  EXPECT_EQ(stats.size(), SaiPortTraits::CounterIds.size());
+}
+
+TEST_F(PortApiTest, getSome) {
+  auto id = createPort(100000, {42}, true);
+  auto stats = portApi->getStats<SaiPortTraits>(
+      id, {SAI_PORT_STAT_IF_IN_OCTETS, SAI_PORT_STAT_IF_IN_UCAST_PKTS});
+  EXPECT_EQ(stats.size(), 2);
+}
