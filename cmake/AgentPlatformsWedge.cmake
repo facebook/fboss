@@ -4,15 +4,15 @@
 # cmake/FooBar.cmake
 
 add_library(platform
-  fboss/agent/platforms/wedge/GalaxyFCPlatform.cpp
-  fboss/agent/platforms/wedge/GalaxyLCPlatform.cpp
-  fboss/agent/platforms/wedge/GalaxyPort.cpp
   fboss/agent/platforms/wedge/WedgePlatform.cpp
   fboss/agent/platforms/wedge/WedgePlatformInit.cpp
   fboss/agent/platforms/wedge/WedgePort.cpp
   fboss/agent/platforms/wedge/WedgeTomahawkPlatform.cpp
-  fboss/agent/platforms/wedge/oss/GalaxyPlatform.cpp
-  fboss/agent/platforms/wedge/oss/GalaxyPort.cpp
+  fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatform.cpp
+  fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatform.cpp
+  fboss/agent/platforms/wedge/galaxy/GalaxyPort.cpp
+  fboss/agent/platforms/wedge/galaxy/oss/GalaxyPlatform.cpp
+  fboss/agent/platforms/wedge/galaxy/oss/GalaxyPort.cpp
   fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   fboss/agent/platforms/wedge/oss/WedgePlatformInit.cpp
   fboss/agent/platforms/wedge/wedge100/Wedge100Platform.cpp

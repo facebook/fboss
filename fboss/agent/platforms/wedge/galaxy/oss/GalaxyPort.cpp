@@ -8,16 +8,17 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/GalaxyPort.h"
-
-#include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyPort.h"
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
-GalaxyPort::GalaxyPort(
-    PortID id,
-    GalaxyPlatform* platform,
-    std::optional<FrontPanelResources> frontPanel)
-    : WedgePort(id, platform, frontPanel) {}
+void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {
+  WedgePort::linkStatusChanged(up, adminUp);
+}
+
+void GalaxyPort::externalState(ExternalState lfs) {
+  XLOG(DBG1) << lfs;
+}
 
 } // namespace facebook::fboss

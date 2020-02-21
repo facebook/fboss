@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/wedge/GalaxyPlatform.h"
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyPlatform.h"
 
 namespace facebook::fboss {
 
