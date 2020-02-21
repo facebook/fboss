@@ -234,6 +234,57 @@ TEST_F(QueueManagerTest, changePortQueue) {
   checkQueue(portHandle->queues, portSaiId, streamType, {newQueueIds});
 }
 
+void checkCounterExportAndValue(
+    const std::string& portName,
+    int queueId,
+    const std::string& queueName,
+    bool expectExport,
+    const HwPortFb303Stats* portStat) {
+  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+    if (expectExport) {
+      EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+      EXPECT_EQ(
+          portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
+              statKey, portName, queueId, queueName)),
+          0);
+    } else {
+      EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
+          HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+    }
+  }
+}
+
+void checkCounterExportAndValue(
+    const std::string& portName,
+    const QueueConfig& queueConfig,
+    bool expectExport,
+    const HwPortFb303Stats* portStat) {
+  for (const auto& portQueue : queueConfig) {
+    checkCounterExportAndValue(
+        portName,
+        portQueue->getID(),
+        *portQueue->getName(),
+        expectExport,
+        portStat);
+  }
+}
+
+void checkCounterExportAndValue(
+    const std::string& portName,
+    const std::vector<int>& queueIds,
+    bool expectExport,
+    const HwPortFb303Stats* portStat) {
+  for (auto queueId : queueIds) {
+    checkCounterExportAndValue(
+        portName,
+        queueId,
+        folly::to<std::string>("queue", queueId),
+        expectExport,
+        portStat);
+  }
+}
+
 TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> swPort = makePort(p0);
@@ -246,23 +297,8 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
   saiManagerTable->portManager().updateStats();
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
-  for (const auto& portQueue : queueConfig) {
-    for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
-      EXPECT_TRUE(
-          facebook::fbData->getStatMap()->contains(HwPortFb303Stats::statName(
-              statKey,
-              swPort->getName(),
-              portQueue->getID(),
-              *portQueue->getName())));
-      EXPECT_EQ(
-          portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
-              statKey,
-              swPort->getName(),
-              portQueue->getID(),
-              *portQueue->getName())),
-          0);
-    }
-  }
+  checkCounterExportAndValue(
+      swPort->getName(), queueConfig, true /*export*/, portStat);
 }
 
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
@@ -283,33 +319,10 @@ TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   saiManagerTable->portManager().updateStats();
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newPort->getID());
-  for (const auto& portQueue : newQueueConfig) {
-    for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
-      EXPECT_TRUE(
-          facebook::fbData->getStatMap()->contains(HwPortFb303Stats::statName(
-              statKey,
-              newNewPort->getName(),
-              portQueue->getID(),
-              *portQueue->getName())));
-      EXPECT_EQ(
-          portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
-              statKey,
-              newNewPort->getName(),
-              portQueue->getID(),
-              *portQueue->getName())),
-          0);
-    }
-  }
-  for (auto queueId : {3, 4}) {
-    for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
-      EXPECT_FALSE(
-          facebook::fbData->getStatMap()->contains(HwPortFb303Stats::statName(
-              statKey,
-              newNewPort->getName(),
-              queueId,
-              folly::to<std::string>("queue", queueId))));
-    }
-  }
+  checkCounterExportAndValue(
+      newNewPort->getName(), newQueueConfig, true /*export*/, portStat);
+  checkCounterExportAndValue(
+      newNewPort->getName(), {3, 4}, false /*export*/, portStat);
 }
 
 TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
@@ -328,16 +341,8 @@ TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
   saiManagerTable->portManager().changePort(newPort, newNewPort);
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
-    EXPECT_TRUE(
-        facebook::fbData->getStatMap()->contains(HwPortFb303Stats::statName(
-            statKey, newNewPort->getName(), 1, "portQueue")));
-    EXPECT_FALSE(
-        facebook::fbData->getStatMap()->contains(HwPortFb303Stats::statName(
-            statKey, newNewPort->getName(), 1, "queue1")));
-    EXPECT_EQ(
-        portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
-            statKey, oldPort->getName(), 1, "portQueue")),
-        0);
-  }
+  checkCounterExportAndValue(
+      newNewPort->getName(), 1, "portQueue", true, portStat);
+  checkCounterExportAndValue(
+      newNewPort->getName(), 1, "queue", false, portStat);
 }
