@@ -218,7 +218,7 @@ void SaiPortManager::changeQueue(
   if (!portHandle) {
     throw FbossError("Attempted to change non-existent port ");
   }
-
+  auto pitr = portStats_.find(swId);
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
@@ -228,8 +228,11 @@ void SaiPortManager::changeQueue(
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());
-    portStats_.find(swId)->second->addOrUpdateQueue(
-        newPortQueue->getID(), queueName);
+    if (pitr != portStats_.end()) {
+      // Port stats map is sparse, since we don't maintain/publish stats
+      // for disabled ports
+      pitr->second->addOrUpdateQueue(newPortQueue->getID(), queueName);
+    }
   }
 
   for (auto oldPortQueue : oldQueueConfig) {
@@ -246,7 +249,11 @@ void SaiPortManager::changeQueue(
       auto queueHandle = getQueueHandle(swId, saiQueueConfig);
       managerTable_->queueManager().resetQueue(queueHandle);
       portHandle->queues.erase(saiQueueConfig);
-      portStats_.find(swId)->second->removeQueue(oldPortQueue->getID());
+      if (pitr != portStats_.end()) {
+        // Port stats map is sparse, since we don't maintain/publish stats
+        // for disabled ports
+        pitr->second->removeQueue(oldPortQueue->getID());
+      }
     }
   }
 }
@@ -262,8 +269,6 @@ void SaiPortManager::changePort(
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   portStore.setObject(portKey, attributes);
-  changeQueue(
-      newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
@@ -279,6 +284,8 @@ void SaiPortManager::changePort(
     // Port transitioned from enabled to disabled, remove stats
     portStats_.erase(newPort->getID());
   }
+  changeQueue(
+      newPort->getID(), oldPort->getPortQueues(), newPort->getPortQueues());
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(

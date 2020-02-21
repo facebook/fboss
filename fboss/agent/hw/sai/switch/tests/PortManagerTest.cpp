@@ -274,7 +274,7 @@ TEST_F(PortManagerTest, portDisableStopsCounterExport) {
   checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
 }
 
-TEST_F(PortManagerTest, portReenableReStartsCounterExport) {
+TEST_F(PortManagerTest, portReenableRestartsCounterExport) {
   std::shared_ptr<Port> swPort = makePort(p0);
   CHECK(swPort->isEnabled());
   saiManagerTable->portManager().addPort(swPort);

@@ -372,3 +372,61 @@ TEST_F(QueueManagerTest, changePortNameAndCheckStats) {
   checkCounterExportAndValue(
       newPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
 }
+
+TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
+  auto p0 = testInterfaces[0].remoteHosts[0].port;
+  std::shared_ptr<Port> oldPort = makePort(p0);
+  CHECK(oldPort->isEnabled());
+  auto newPort = oldPort->clone();
+  auto streamType = cfg::StreamType::UNICAST;
+  std::vector<uint8_t> queueIds = {1};
+  auto queueConfig = makeQueueConfig({queueIds});
+  newPort->resetPortQueues(queueConfig);
+  saiManagerTable->portManager().changePort(oldPort, newPort);
+  auto portStat =
+      saiManagerTable->portManager().getLastPortStat(newPort->getID());
+  checkCounterExportAndValue(
+      newPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+  auto newNewPort = newPort->clone();
+  newNewPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().changePort(newPort, newNewPort);
+  saiManagerTable->portManager().updateStats();
+  portStat =
+      saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
+  EXPECT_EQ(portStat, nullptr);
+  checkCounterExportAndValue(
+      newNewPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
+}
+
+TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
+  auto p0 = testInterfaces[0].remoteHosts[0].port;
+  std::shared_ptr<Port> oldPort = makePort(p0);
+  CHECK(oldPort->isEnabled());
+  auto newPort = oldPort->clone();
+  auto streamType = cfg::StreamType::UNICAST;
+  std::vector<uint8_t> queueIds = {1};
+  auto queueConfig = makeQueueConfig({queueIds});
+  newPort->resetPortQueues(queueConfig);
+  saiManagerTable->portManager().changePort(oldPort, newPort);
+  auto portStat =
+      saiManagerTable->portManager().getLastPortStat(newPort->getID());
+  checkCounterExportAndValue(
+      newPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+  auto newNewPort = newPort->clone();
+  newNewPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().changePort(newPort, newNewPort);
+  saiManagerTable->portManager().updateStats();
+  portStat =
+      saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
+  EXPECT_EQ(portStat, nullptr);
+  checkCounterExportAndValue(
+      newNewPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
+  auto evenNewerPort = newNewPort->clone();
+  evenNewerPort->setAdminState(cfg::PortState::ENABLED);
+  saiManagerTable->portManager().changePort(newNewPort, evenNewerPort);
+  portStat =
+      saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
+  EXPECT_NE(portStat, nullptr);
+  checkCounterExportAndValue(
+      evenNewerPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+}
