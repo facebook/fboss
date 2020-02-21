@@ -103,6 +103,8 @@ class PortManagerTest : public ManagerTestBase {
   TestPort p1;
 };
 
+enum class ExpectExport { NO_EXPORT, EXPORT };
+
 TEST_F(PortManagerTest, addPort) {
   std::shared_ptr<Port> swPort = makePort(p0);
   auto saiId = saiManagerTable->portManager().addPort(swPort);
@@ -215,18 +217,35 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
   EXPECT_EQ(saiId0, saiId1);
 }
 
+void checkCounterExport(
+    const std::string& portName,
+    ExpectExport expectExport) {
+  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+    switch (expectExport) {
+      case ExpectExport::EXPORT:
+        EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, portName)));
+        break;
+      case ExpectExport::NO_EXPORT:
+        EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
+            HwPortFb303Stats::statName(statKey, portName)));
+        break;
+    }
+  }
+}
+
 TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
-  EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-      HwPortFb303Stats::statName(kInBytes(), swPort->getName())));
+  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+    EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, swPort->getName())));
+  }
   auto newPort = swPort->clone();
   newPort->setName("eth1/1/1");
   saiManagerTable->portManager().changePort(swPort, newPort);
-  EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-      HwPortFb303Stats::statName(kInBytes(), swPort->getName())));
-  EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-      HwPortFb303Stats::statName(kInBytes(), newPort->getName())));
+  checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
+  checkCounterExport(newPort->getName(), ExpectExport::EXPORT);
 }
 
 TEST_F(PortManagerTest, updateStats) {
@@ -242,4 +261,30 @@ TEST_F(PortManagerTest, updateStats) {
             HwPortFb303Stats::statName(statKey, swPort->getName())),
         0);
   }
+}
+
+TEST_F(PortManagerTest, portDisableStopsCounterExport) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  CHECK(swPort->isEnabled());
+  saiManagerTable->portManager().addPort(swPort);
+  checkCounterExport(swPort->getName(), ExpectExport::EXPORT);
+  auto newPort = swPort->clone();
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().changePort(swPort, newPort);
+  checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
+}
+
+TEST_F(PortManagerTest, portReenableReStartsCounterExport) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  CHECK(swPort->isEnabled());
+  saiManagerTable->portManager().addPort(swPort);
+  checkCounterExport(swPort->getName(), ExpectExport::EXPORT);
+  auto newPort = swPort->clone();
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().changePort(swPort, newPort);
+  checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
+  auto newNewPort = newPort->clone();
+  newNewPort->setAdminState(cfg::PortState::ENABLED);
+  saiManagerTable->portManager().changePort(newPort, newNewPort);
+  checkCounterExport(swPort->getName(), ExpectExport::EXPORT);
 }
