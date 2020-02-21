@@ -140,10 +140,15 @@ void HwPortFb303Stats::reinitStat(
     const std::string& statName,
     std::optional<std::string> oldStatName) {
   if (oldStatName) {
+    if (oldStatName == statName) {
+      return;
+    }
     auto stat = getCounterIf(*oldStatName);
     stats::MonotonicCounter newStat{statName, fb303::SUM, fb303::RATE};
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
+    portCounters_.insert(std::make_pair(statName, std::move(*stat)));
+    portCounters_.erase(*oldStatName);
   } else {
     portCounters_.emplace(
         statName, stats::MonotonicCounter(statName, fb303::SUM, fb303::RATE));
