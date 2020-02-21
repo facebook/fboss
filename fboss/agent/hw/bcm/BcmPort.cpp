@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -116,7 +117,6 @@ bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
   }
   throw std::runtime_error("Unsupported fec type in port resource");
 }
-
 
 } // namespace
 
@@ -778,8 +778,8 @@ void BcmPort::updateStats() {
   updateStat(now, kOutErrors(), snmpIfOutErrors, &curPortStats.outErrors_);
   updateStat(now, kOutPause(), snmpDot3OutPauseFrames, &curPortStats.outPause_);
 
-  if (hw_->getPlatform()->isCosSupported()) {
-    // Stats not supported by TD2
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
+    // ECN stats not supported by TD2
     updateStat(
         now,
         kOutEcnCounter(),

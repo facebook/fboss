@@ -22,6 +22,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
+    case HwAsic::Feature::ECN:
       return false;
   }
   return false;

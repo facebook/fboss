@@ -21,6 +21,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
+    case HwAsic::Feature::ECN:
       return true;
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::PORT_PREEMPHASIS:

@@ -22,6 +22,7 @@ class HwAsic {
     PORT_PREEMPHASIS,
     HASH_FIELDS_CUSTOMIZATION,
     QUEUE,
+    ECN,
   };
 
   enum class AsicType {
