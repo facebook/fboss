@@ -200,8 +200,8 @@ struct ConditionObjectTraits {
       "non condition object trait can not use can not use  on ConditionObjectTraits");
   using ObjectTrait = std::tuple<ObjectTraits...>;
   static auto constexpr ObjectTraitCount = sizeof...(ObjectTraits);
-  using ConditionAttributes =
-      typename std::tuple_element_t<0, ObjectTrait>::ConditionAttributes;
+  using ConditionAttributes = std::remove_const_t<
+      typename std::tuple_element_t<0, ObjectTrait>::ConditionAttributes>;
   using AdapterHostKey =
       typename ConditionAdapterHostKeyTraits<ObjectTraits...>::AdapterHostKey;
   template <typename AdapterKeyType>

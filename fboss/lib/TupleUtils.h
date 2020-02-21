@@ -89,4 +89,9 @@ struct makeTupleElementsOptional<std::tuple<Ts...>> {
 template <typename T>
 using makeTupleElementsOptional_t = typename makeTupleElementsOptional<T>::type;
 
+template <typename>
+struct IsTuple : std::false_type {};
+
+template <typename... T>
+struct IsTuple<std::tuple<T...>> : std::true_type {};
 } // namespace facebook::fboss

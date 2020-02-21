@@ -117,8 +117,12 @@ class SaiApi {
    */
 
   // Default "real attr". This is the base case of the recursion
-  template <typename AdapterKeyT, typename AttrT>
-  typename std::remove_reference<AttrT>::type::ValueType getAttribute(
+  template <
+      typename AdapterKeyT,
+      typename AttrT,
+      typename = std::enable_if_t<
+          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
+  typename std::remove_reference_t<AttrT>::ValueType getAttribute(
       const AdapterKeyT& key,
       AttrT&& attr) {
     static_assert(
@@ -144,17 +148,27 @@ class SaiApi {
   }
 
   // std::tuple of attributes
-  template <typename AdapterKeyT, typename... AttrTs>
-  auto getAttribute(const AdapterKeyT& key, std::tuple<AttrTs...>& attrTuple) {
+  template <
+      typename AdapterKeyT,
+      typename TupleT,
+      typename =
+          std::enable_if_t<IsTuple<std::remove_reference_t<TupleT>>::value>>
+  const std::remove_reference_t<TupleT> getAttribute(
+      const AdapterKeyT& key,
+      TupleT&& attrTuple) {
     // TODO: assert on All<IsSaiAttribute>
     auto recurse = [&key, this](auto&& attr) {
-      return getAttribute(key, attr);
+      return getAttribute(key, std::forward<decltype(attr)>(attr));
     };
-    return tupleMap(recurse, attrTuple);
+    return tupleMap(recurse, std::forward<TupleT>(attrTuple));
   }
 
   // std::optional of attribute
-  template <typename AdapterKeyT, typename AttrT>
+  template <
+      typename AdapterKeyT,
+      typename AttrT,
+      typename = std::enable_if_t<
+          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
   auto getAttribute(
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
