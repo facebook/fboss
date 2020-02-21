@@ -211,20 +211,25 @@ TEST_F(QueueManagerTest, loadUCMCQueueWithSameQueueId) {
 }
 
 TEST_F(QueueManagerTest, changePortQueue) {
-  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(10));
-  PortSaiId portSaiId = portHandle->port->adapterKey();
+  auto p0 = testInterfaces[0].remoteHosts[0].port;
+  std::shared_ptr<Port> oldPort = makePort(p0);
   auto streamType = cfg::StreamType::UNICAST;
   std::vector<uint8_t> queueIds = {1, 3, 5};
   auto queueConfig = makeQueueConfig({queueIds});
-  auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  portHandle->queues =
-      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
-  saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, portHandle->queues, queueConfig);
-  checkQueue(portHandle->queues, portSaiId, streamType, {queueIds});
+  auto newPort = oldPort->clone();
+  newPort->resetPortQueues(queueConfig);
+  saiManagerTable->portManager().changePort(oldPort, newPort);
+
+  auto newNewPort = newPort->clone();
+  ;
   std::vector<uint8_t> newQueueIds = {3, 4, 5, 6};
   auto newQueueConfig = makeQueueConfig({newQueueIds});
-  saiManagerTable->portManager().changeQueue(
-      PortID(10), queueConfig, newQueueConfig);
+  newNewPort->resetPortQueues(newQueueConfig);
+  saiManagerTable->portManager().changePort(newPort, newNewPort);
+
+  auto portHandle =
+      saiManagerTable->portManager().getPortHandle(newNewPort->getID());
+  PortSaiId portSaiId = portHandle->port->adapterKey();
+
   checkQueue(portHandle->queues, portSaiId, streamType, {newQueueIds});
 }

@@ -225,6 +225,11 @@ void SaiPortManager::changeQueue(
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+    auto queueName = newPortQueue->getName()
+        ? *newPortQueue->getName()
+        : folly::to<std::string>("queue", newPortQueue->getID());
+    portStats_.find(swId)->second->addOrUpdateQueue(
+        newPortQueue->getID(), queueName);
   }
 
   for (auto oldPortQueue : oldQueueConfig) {
@@ -241,6 +246,7 @@ void SaiPortManager::changeQueue(
       auto queueHandle = getQueueHandle(swId, saiQueueConfig);
       managerTable_->queueManager().resetQueue(queueHandle);
       portHandle->queues.erase(saiQueueConfig);
+      portStats_.find(swId)->second->removeQueue(oldPortQueue->getID());
     }
   }
 }
