@@ -19,6 +19,15 @@ auto constexpr kChunkSize = 4000;
 }
 namespace facebook::fboss {
 
+TEST(RouteScaleGeneratorsTest, RSWDistribution) {
+  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto routeDistributionGen = utility::RSWRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
+
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 7947);
+  verifyChunking(routeDistributionGen, 7947, kChunkSize);
+}
+
 TEST(RouteScaleGeneratorsTest, FSWDistribution) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::FSWRouteScaleGenerator(

@@ -12,6 +12,46 @@
 
 namespace facebook::fboss::utility {
 
+/*
+ * RSW distribution was discussed here
+ * https://fb.workplace.com/groups/266410803370065/permalink/3170120682999048/
+ * There are 2 changes to this distritbution here.
+ * i) We found /128 did not factor in pod local RSW loopbacks. So /128 should
+ * have been 49 instead of 1. To give some room, I have doubled them to be 100.
+ * ii) We increased static routes for ILA/IP per task from 384 to 1024 as part
+ * of S185053, so upping the scale limits here too.
+ */
+RSWRouteScaleGenerator::RSWRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    RouterID routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          // v6 distribution
+          {
+              {46, 96},
+              {54, 624},
+              {66, 96},
+              {57, 16},
+              {59, 96},
+              {60, 96},
+              {64, 3718},
+              {127, 128},
+              {128, 100},
+          },
+          // v4 distribution
+          {
+              {19, 80},
+              {24, 592},
+              {26, 1},
+              {31, 128},
+              {32, 2176},
+          },
+          chunkSize,
+          ecmpWidth,
+          routerId) {}
+
 FSWRouteScaleGenerator::FSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
     unsigned int chunkSize,

@@ -28,6 +28,15 @@ constexpr unsigned int kDefaulEcmpWidth = 4;
  * to generate a sequence of switch states that can be used to program
  * the required route distribution.
  */
+class RSWRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  explicit RSWRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
+};
+
 class FSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit FSWRouteScaleGenerator(
