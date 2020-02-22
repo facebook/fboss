@@ -27,6 +27,13 @@ class SffModule : public QsfpModule {
   }
 
   /*
+   * Return the spec this transceiver follows.
+   */
+   TransceiverManagementInterface managementInterface() const override {
+     return TransceiverManagementInterface::SFF;
+   }
+
+  /*
    * Get the QSFP EEPROM Field
    */
   void getFieldValue(SffField fieldName, uint8_t* fieldValue);

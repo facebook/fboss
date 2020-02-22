@@ -22,6 +22,10 @@ using std::make_unique;
 using folly::StringPiece;
 using std::unique_ptr;
 
+namespace {
+constexpr uint8_t kCMISIdentifier = 0x1e;
+}
+
 namespace facebook { namespace fboss {
 
 WedgeQsfp::WedgeQsfp(int module, TransceiverI2CApi* wedgeI2CBus)
@@ -112,5 +116,14 @@ std::optional<TransceiverStats> WedgeQsfp::getTransceiverStats() {
 
 folly::EventBase* WedgeQsfp::getI2cEventBase() {
   return threadSafeI2CBus_->getEventBase(module_ + 1);
+}
+
+TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
+  std::array<uint8_t, 1> buf;
+  threadSafeI2CBus_->moduleRead(
+      module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
+  XLOG(DBG3) << "Transceiver identifier: " << buf[0];
+  return buf[0] == kCMISIdentifier ? TransceiverManagementInterface::CMIS
+                                   : TransceiverManagementInterface::SFF;
 }
 }}

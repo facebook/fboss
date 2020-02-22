@@ -95,6 +95,11 @@ enum TransceiverType {
   QSFP = 1,
 }
 
+enum TransceiverManagementInterface {
+  SFF = 0,
+  CMIS = 1,
+}
+
 enum FeatureState {
   UNSUPPORTED = 0,
   ENABLED = 1,

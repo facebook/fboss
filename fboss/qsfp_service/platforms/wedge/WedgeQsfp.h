@@ -95,6 +95,8 @@ class WedgeQsfp : public TransceiverImpl {
 
   folly::EventBase* getI2cEventBase() override;
 
+  TransceiverManagementInterface getTransceiverManagementInterface();
+
  private:
   int module_;
   std::string moduleName_;
