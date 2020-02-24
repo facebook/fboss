@@ -234,34 +234,34 @@ bool checkSwConfPortQueueMatch(
       swQueue->getStreamType() == cfgQueue->streamType &&
       swQueue->getScheduling() == cfgQueue->scheduling &&
       (cfgQueue->scheduling == cfg::QueueScheduling::STRICT_PRIORITY ||
-       swQueue->getWeight() == cfgQueue->weight_ref().value_unchecked()) &&
+       swQueue->getWeight() == cfgQueue->weight_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getReservedBytes(),
-             cfgQueue->__isset.reservedBytes,
-             cfgQueue->reservedBytes_ref().value_unchecked()) &&
+             (bool)cfgQueue->reservedBytes_ref(),
+             cfgQueue->reservedBytes_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getScalingFactor(),
-             cfgQueue->__isset.scalingFactor,
-             cfgQueue->scalingFactor_ref().value_unchecked()) &&
+             (bool)cfgQueue->scalingFactor_ref(),
+             cfgQueue->scalingFactor_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getSharedBytes(),
-             cfgQueue->__isset.sharedBytes,
-             cfgQueue->sharedBytes_ref().value_unchecked()) &&
+             (bool)cfgQueue->sharedBytes_ref().value_or({}),
+             cfgQueue->sharedBytes_ref().value_or({})) &&
       comparePortQueueAQMs(
-             swQueue->getAqms(), cfgQueue->aqms_ref().value_unchecked()) &&
-      swQueue->getName() == cfgQueue->name_ref().value_unchecked() &&
+             swQueue->getAqms(), cfgQueue->aqms_ref().value_or({})) &&
+      swQueue->getName() == cfgQueue->name_ref().value_or({}) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getPortQueueRate(),
-             cfgQueue->__isset.portQueueRate,
-             cfgQueue->portQueueRate_ref().value_unchecked()) &&
+             (bool)cfgQueue->portQueueRate_ref(),
+             cfgQueue->portQueueRate_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getBandwidthBurstMinKbits(),
-             cfgQueue->__isset.bandwidthBurstMinKbits,
-             cfgQueue->bandwidthBurstMinKbits_ref().value_unchecked()) &&
+             (bool)cfgQueue->bandwidthBurstMinKbits_ref(),
+             cfgQueue->bandwidthBurstMinKbits_ref().value_or({})) &&
       isPortQueueOptionalAttributeSame(
              swQueue->getBandwidthBurstMaxKbits(),
-             cfgQueue->__isset.bandwidthBurstMaxKbits,
-             cfgQueue->bandwidthBurstMaxKbits_ref().value_unchecked());
+             (bool)cfgQueue->bandwidthBurstMaxKbits_ref(),
+             cfgQueue->bandwidthBurstMaxKbits_ref().value_or({}));
 }
 
 template class NodeBaseT<PortQueue, PortQueueFields>;

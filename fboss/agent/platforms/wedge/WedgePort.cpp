@@ -74,9 +74,8 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
   }
   int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
-    if (info.__isset.cable &&
-        info.cable_ref().value_unchecked().__isset.transmitterTech) {
-      return info.cable_ref().value_unchecked().transmitterTech;
+    if (auto cable = info.cable_ref()) {
+      return cable->transmitterTech;
     }
     return TransmitterTechnology::UNKNOWN;
   };
@@ -101,21 +100,14 @@ folly::Future<std::optional<TxSettings>> WedgePort::getTxSettings(
 
   auto getTx = [overrides = std::move(txOverrides)](
                    TransceiverInfo info) -> std::optional<TxSettings> {
-    if (info.__isset.cable &&
-        info.cable_ref().value_unchecked().__isset.transmitterTech) {
-      if (!info.cable_ref().value_unchecked().__isset.length) {
+    if (auto cable = info.cable_ref()) {
+      auto length = cable->length_ref();
+      if (!length) {
         return std::optional<TxSettings>();
       }
-      auto cableMeters = std::max(
-          1.0,
-          std::min(
-              3.0,
-              info.cable_ref()
-                  .value_unchecked()
-                  .length_ref()
-                  .value_unchecked()));
-      const auto it = overrides.find(std::make_pair(
-          info.cable_ref().value_unchecked().transmitterTech, cableMeters));
+      auto cableMeters = std::max(1.0, std::min(3.0, *length));
+      const auto it =
+          overrides.find(std::make_pair(cable->transmitterTech, cableMeters));
       if (it != overrides.cend()) {
         return it->second;
       }

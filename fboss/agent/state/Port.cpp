@@ -217,7 +217,7 @@ void Port::initDefaultConfigState(cfg::Port* config) const {
   // Copy over port identifiers and reset to (default)
   // admin disabled state.
   config->logicalID = getID();
-  config->name_ref().value_unchecked() = getName();
+  config->name_ref() = getName();
   config->state = cfg::PortState::DISABLED;
 }
 
