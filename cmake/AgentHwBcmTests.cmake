@@ -16,14 +16,19 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmAclQualifierTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclPriorityTests.cpp
+  fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmAddDelEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmBstStatsMgrTest.cpp
   fboss/agent/hw/bcm/tests/BcmControlPlaneTests.cpp
   fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.cpp
   fboss/agent/hw/bcm/tests/BcmCosQueueManagerCounterTests.cpp
+  fboss/agent/hw/bcm/tests/BcmDeathTests.cpp
   fboss/agent/hw/bcm/tests/BcmEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmEcmpTrunkTests.cpp
+  fboss/agent/hw/bcm/tests/BcmEmptyEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmFieldProcessorTests.cpp
+  fboss/agent/hw/bcm/tests/BcmHostKeyTests.cpp
   fboss/agent/hw/bcm/tests/BcmHostTests.cpp
   fboss/agent/hw/bcm/tests/BcmInterfaceTests.cpp
   fboss/agent/hw/bcm/tests/BcmLabelEdgeRouteTests.cpp
@@ -36,21 +41,48 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmMatchActionsTests.cpp
   fboss/agent/hw/bcm/tests/BcmMirrorTests.cpp
   fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmNeighborTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortTests.cpp
   fboss/agent/hw/bcm/tests/BcmQosPolicyTests.cpp
   fboss/agent/hw/bcm/tests/BcmQosMapTests.cpp
+  fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
   fboss/agent/hw/bcm/tests/BcmRtag7Test.cpp
   fboss/agent/hw/bcm/tests/BcmRouteTests.cpp
+  fboss/agent/hw/bcm/tests/BcmStateDeltaTests.cpp
   fboss/agent/hw/bcm/tests/BcmSwitchStateReplayTest.cpp
+  fboss/agent/hw/bcm/tests/BcmTestPacketTrapAclEntry.cpp
   fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
+  fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
   fboss/agent/hw/bcm/tests/FlexPortTests.cpp
   fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
   fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
   fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
+
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmBstTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmQueuePerHostTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmMPLSTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmSendPacketToQueueTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmMultiAqmProfileTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmOlympicQoSTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmAclCounterTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigVerifyQosTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/Bcm2QueueToOlympicQoSTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmMirroringTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmPortBandwidthTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmDscpQueueMappingTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmEcnTests.cpp
 )
 
 target_compile_definitions(bcm_test
