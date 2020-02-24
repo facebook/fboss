@@ -39,6 +39,16 @@ class HwRouteScaleTest : public HwTest {
   }
 };
 
+TEST_F(HwRouteScaleTest, rswRouteScale) {
+  runTest<utility::RSWRouteScaleGenerator>({PlatformMode::WEDGE,
+                                            PlatformMode::WEDGE100,
+                                            PlatformMode::GALAXY_LC,
+                                            PlatformMode::GALAXY_FC,
+                                            PlatformMode::MINIPACK,
+                                            PlatformMode::YAMP,
+                                            PlatformMode::WEDGE400});
+}
+
 TEST_F(HwRouteScaleTest, fswRouteScale) {
   runTest<utility::FSWRouteScaleGenerator>({PlatformMode::WEDGE100,
                                             PlatformMode::GALAXY_LC,
