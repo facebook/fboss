@@ -179,7 +179,7 @@ class BcmDataPlaneMPLSTest : public BcmLinkStateDependentTests {
     getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
   }
   bool skipTest() {
-    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS);
+    return !isSupported(HwAsic::Feature::MPLS);
   }
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };

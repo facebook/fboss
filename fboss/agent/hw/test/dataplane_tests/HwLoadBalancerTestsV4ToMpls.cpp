@@ -20,7 +20,7 @@ class HwLoadBalancerTestV4ToMpls
     : public HwLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil> {
  public:
   bool skipTest() const override {
-    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS_ECMP);
+    return !isSupported(HwAsic::Feature::MPLS_ECMP);
   }
 
  private:

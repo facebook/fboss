@@ -278,8 +278,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, Swap) {
 }
 
 TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
-  if (!this->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::MPLS_ECMP)) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
   auto setup = [=]() {
@@ -294,8 +293,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
 }
 
 TYPED_TEST(BcmLabelSwitchRouteTest, EcmpSwap) {
-  if (!this->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::MPLS_ECMP)) {
+  if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
   auto setup = [=]() {

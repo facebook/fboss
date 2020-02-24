@@ -20,6 +20,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestConstants.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
@@ -53,6 +54,8 @@ class HwTest : public ::testing::Test,
   virtual const Platform* getPlatform() const {
     return const_cast<HwTest*>(this)->getPlatform();
   }
+  const HwAsic* getAsic() const;
+  bool isSupported(HwAsic::Feature feature) const;
 
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}

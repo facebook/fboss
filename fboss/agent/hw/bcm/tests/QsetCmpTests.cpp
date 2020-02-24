@@ -32,8 +32,8 @@ namespace facebook::fboss {
 TEST_F(BcmTest, QsetCmp) {
   // Qset comparison with itself
   ASSERT_TRUE(qsetsEqual(
-      getAclQset(getPlatform()->getAsic()->getAsicType()),
-      getAclQset(getPlatform()->getAsic()->getAsicType())));
+      getAclQset(getAsic()->getAsicType()),
+      getAclQset(getAsic()->getAsicType())));
   ASSERT_TRUE(qsetsEqual(getLLMcastQset(), getLLMcastQset()));
   auto aclEffectiveQset =
       getGroupQset(getUnit(), static_cast<bcm_field_group_t>(FLAGS_acl_gid));
@@ -43,12 +43,12 @@ TEST_F(BcmTest, QsetCmp) {
   ASSERT_TRUE(qsetsEqual(llMcastEffectiveQset, llMcastEffectiveQset));
 
   // Qset comparison with another fails
-  ASSERT_FALSE(qsetsEqual(
-      getAclQset(getPlatform()->getAsic()->getAsicType()), getLLMcastQset()));
+  ASSERT_FALSE(
+      qsetsEqual(getAclQset(getAsic()->getAsicType()), getLLMcastQset()));
 
   // Just doing a Qset cmp on qsets obtained from configured groups fails
-  ASSERT_FALSE(qsetsEqual(
-      getAclQset(getPlatform()->getAsic()->getAsicType()), aclEffectiveQset));
+  ASSERT_FALSE(
+      qsetsEqual(getAclQset(getAsic()->getAsicType()), aclEffectiveQset));
   ASSERT_FALSE(qsetsEqual(getLLMcastQset(), llMcastEffectiveQset));
 
   // Comparing via FPGroupDesiredQsetCmp succeeds when comparing qsets
@@ -56,7 +56,7 @@ TEST_F(BcmTest, QsetCmp) {
   ASSERT_TRUE(FPGroupDesiredQsetCmp(
                   getUnit(),
                   static_cast<bcm_field_group_t>(FLAGS_acl_gid),
-                  getAclQset(getPlatform()->getAsic()->getAsicType()))
+                  getAclQset(getAsic()->getAsicType()))
                   .hasDesiredQset());
   ASSERT_TRUE(FPGroupDesiredQsetCmp(
                   getUnit(),

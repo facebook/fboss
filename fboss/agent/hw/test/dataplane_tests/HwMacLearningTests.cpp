@@ -169,8 +169,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     /*
      * TD2 and TH learn the entry as PENDING, TH3 learns the entry as VALIDATED
      */
-    return (getPlatform()->getAsic()->getAsicType() !=
-            HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3)
+    return (getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3)
         ? L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING
         : L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
   }

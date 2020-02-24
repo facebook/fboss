@@ -356,8 +356,8 @@ class BcmMirrorTest : public BcmTest {
   template <typename T = AddrT>
   bool skipSflowTest() {
     return std::is_same<T, folly::IPAddressV6>::value
-        ? !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)
-        : !getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOWv4);
+        ? !isSupported(HwAsic::Feature::SFLOWv6)
+        : !isSupported(HwAsic::Feature::SFLOWv4);
   }
 
   void addAclMirror(

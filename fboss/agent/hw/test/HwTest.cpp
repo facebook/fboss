@@ -50,6 +50,14 @@ Platform* HwTest::getPlatform() {
   return hwSwitchEnsemble_->getPlatform();
 }
 
+const HwAsic* HwTest::getAsic() const {
+  return getPlatform()->getAsic();
+}
+
+bool HwTest::isSupported(HwAsic::Feature feature) const {
+  return getAsic()->isSupported(feature);
+}
+
 std::shared_ptr<SwitchState> HwTest::getProgrammedState() const {
   return hwSwitchEnsemble_->getProgrammedState();
 }
