@@ -25,7 +25,7 @@ class BuildRpm:
     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
     NAME_TO_EXECUTABLES = {
-        "fboss": (BIN, ["wedge_agent", "bcm_test"]),
+        "fboss": (BIN, ["wedge_agent", "bcm_test", "sai_test-fake-1.5.0"]),
         "gflags": (LIB, ["libgflags.so.2.2"]),
         "glog": (LIB64, ["libglog.so.0"]),
         "zstd": (LIB64, ["libzstd.so.1.3.8"]),

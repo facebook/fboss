@@ -102,6 +102,7 @@ The built FBOSS binaries will be available here:
 ## 1.7 Building RPM packages
 
 - cd fboss.git
+- export QA_RPATHS=$[ 0x0001|0x0002|0x0004|0x0008|0x0010|0x0020 ]
 - /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/build-rpm.py
 
 The built RPM package will contain the FBOSS binaries and all the dependent

@@ -22,6 +22,7 @@ install -m 0755 -d $RPM_BUILD_ROOT/opt/fboss
 # install binaries
 install -m 0755 wedge_agent %{buildroot}/opt/fboss/wedge_agent
 install -m 0755 bcm_test %{buildroot}/opt/fboss/bcm_test
+install -m 0755 sai_test-fake-1.5.0 %{buildroot}/opt/fboss/sai_test-fake-1.5.0
 
 #install dependent libraries
 install -m 0755 libgflags.so.2.2 %{buildroot}/opt/fboss/libgflags.so.2.2
@@ -37,6 +38,7 @@ install -m 0755 libnghttp2.so.14 %{buildroot}/opt/fboss/libnghttp2.so.14
 %files
 /opt/fboss/wedge_agent
 /opt/fboss/bcm_test
+/opt/fboss/sai_test-fake-1.5.0
 
 /opt/fboss/libgflags.so.2.2
 /opt/fboss/libglog.so.0
@@ -49,6 +51,6 @@ install -m 0755 libnghttp2.so.14 %{buildroot}/opt/fboss/libnghttp2.so.14
 /opt/fboss/libnghttp2.so.14
 
 %changelog
-* Wed Jan 15 2020 Shrikrishna Khare 1.0.2
+* Sat Feb 22  2020 Shrikrishna Khare 1.0.3
 
 Initial rpm release
