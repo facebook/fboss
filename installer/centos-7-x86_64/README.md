@@ -110,6 +110,102 @@ libraries. The RPM would be available here:
 
 $HOME/rpmbuild/RPMS/x86_64/fboss_bins-1-1.el7.centos.x86_64.rpm
 
+## 1.8 Building SAI tests for your SAI implementation
+
+The above build steps would build SAI tests that link with SAI implementation
+provided by fake_sai library e.g.: sai_test-fake-1.5.0
+
+To build SAI tests that link with your SAI implementation, we need to add that
+SAI implementation as a dependency for FBOSS and specify how to retrieve the
+SAI implementation. This could be achieved using steps below:
+
+- Build a static library for your SAI implementation and name it libsai_impl.a
+- mkdir lib
+- copy libsai_impl.a in lib
+- tar czvf libsai_impl.tar.gz lib/libsai_impl.a
+- sha256sum libsai_impl.tar.gz
+- Create a manifest for SAI implementation
+
+cat fboss.git/build/fbcode_builder/manifests/sai_impl
+[manifest]
+name = sai_impl
+
+[download]
+url = http://localhost:8000/libsai_impl.tar.gz
+sha256 = insert sha256sum libsai_impl.tar.gz output here
+
+[build]
+builder = nop
+
+[install.files]
+lib = lib
+
+- Edit FBOSS manifest so it depends on the sai_impl
+For example:
+
+diff --git a/build/fbcode_builder/manifests/fboss
+b/build/fbcode_builder/manifests/fboss
+index e07e1e7..2a1016e 100644
+--- a/build/fbcode_builder/manifests/fboss
++++ b/build/fbcode_builder/manifests/fboss
+@@ -32,6 +32,7 @@ libnl
+ libsai
+ OpenNSA
+ re2
++sai_impl
+
+- cd to the directory that has libsai_impl.tar.gz, and start a webserver locally.
+python3 -m http.server
+
+- Build FBOSS binaries (refer Section 1.5 for how)
+
+In addition to SAI tests that link with fake_sai, this would build and install
+SAI tests that link with sai_impl e.g. sai_test-sai_impl-1.5.0.
+
+## 1.9 Building RPM package with SAI tests for your SAI implementation
+
+In order for the RPM package to include these new SAI tests, the RPM spec and
+RPM build script has to be modified.
+
+Make changes on the lines below and build RPM as usual (refer Section 1.7 for how)
+
+diff --git a/installer/centos-7-x86_64/build-rpm.py b/installer/centos-7-x86_64/build-rpm.py
+index e12b43f..ba5ff87 100755
+--- a/installer/centos-7-x86_64/build-rpm.py
++++ b/installer/centos-7-x86_64/build-rpm.py
+@@ -25,7 +25,7 @@ class BuildRpm:
+     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
+
+     NAME_TO_EXECUTABLES = {
+-        "fboss": (BIN, ["wedge_agent", "bcm_test", "sai_test-fake-1.5.0"]),
++        "fboss": (BIN, ["wedge_agent", "bcm_test", "sai_test-fake-1.5.0", "sai_test-sai_impl-1.5.0"]),
+         "gflags": (LIB, ["libgflags.so.2.2"]),
+         "glog": (LIB64, ["libglog.so.0"]),
+         "zstd": (LIB64, ["libzstd.so.1.3.8"]),
+diff --git a/installer/centos-7-x86_64/fboss_bins-1.spec b/installer/centos-7-x86_64/fboss_bins-1.spec
+index 2a451d5..bc647f7 100644
+--- a/installer/centos-7-x86_64/fboss_bins-1.spec
++++ b/installer/centos-7-x86_64/fboss_bins-1.spec
+@@ -22,6 +22,7 @@ install -m 0755 -d $RPM_BUILD_ROOT/opt/fboss
+ # install binaries
+ install -m 0755 wedge_agent %{buildroot}/opt/fboss/wedge_agent
+ install -m 0755 bcm_test %{buildroot}/opt/fboss/bcm_test
+ install -m 0755 sai_test-fake-1.5.0 %{buildroot}/opt/fboss/sai_test-fake-1.5.0
++install -m 0755 sai_test-fake-1.5.0 %{buildroot}/opt/fboss/sai_test-sai_impl-1.5.0
+
+ #install dependent libraries
+ install -m 0755 libgflags.so.2.2 %{buildroot}/opt/fboss/libgflags.so.2.2
+@@ -37,6 +38,7 @@ install -m 0755 libnghttp2.so.14 %{buildroot}/opt/fboss/libnghttp2.so.14
+ %files
+ /opt/fboss/wedge_agent
+ /opt/fboss/bcm_test
+ /opt/fboss/sai_test-fake-1.5.0
++/opt/fboss/sai_test-sai_impl-1.5.0
+
+ /opt/fboss/libgflags.so.2.2
+ /opt/fboss/libglog.so.0
+
+## 1.8 Building SAI tests for your SAI implementation
 
 # 2. Installing FBOSS
 
