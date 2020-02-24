@@ -51,6 +51,13 @@ include_directories(${OPENNSA_INCLUDE_DIR})
 message(STATUS "Found OPENNSA: ${OPENNSA}")
 message(STATUS "Found OPENNSA_INCLUDE_DIR: ${OPENNSA_INCLUDE_DIR}")
 
+find_library(PYTHON_3_7_6 python3.7m)
+find_path(PYTHON_3_7_6_INCLUDE_DIR NAMES python3.7m/Python.h)
+include_directories(${PYTHON_3_7_6_INCLUDE_DIR})
+
+message(STATUS "Found PYTHON_3_7_6: ${PYTHON_3_7_6}")
+message(STATUS "Found PYTHON_3_7_6_INCLUDE_DIR: ${PYTHON_3_7_6_INCLUDE_DIR}")
+
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
 include_directories(${SAI_INCLUDE_DIR})
 
@@ -618,9 +625,6 @@ add_executable(wedge_qsfp_util
     fboss/util/oss/wedge_qsfp_util.cpp
 )
 target_link_libraries(wedge_qsfp_util fboss_agent)
-
-
-
 
 # Unit Testing
 add_definitions (-DIS_OSS=true)
