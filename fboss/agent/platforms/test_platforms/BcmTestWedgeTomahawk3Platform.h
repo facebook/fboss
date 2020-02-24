@@ -83,10 +83,6 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
     return 9;
   }
 
-  bool isMultiPathLabelSwitchActionSupported() const override {
-    return true;
-  }
-
   HwAsic* getAsic() const override {
     return asic_.get();
   }

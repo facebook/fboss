@@ -66,9 +66,6 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
     return 3;
   }
 
-  bool isMultiPathLabelSwitchActionSupported() const override {
-    return true;
-  }
   bool canUseHostTableForHostRoutes() const override {
     /*
      * We run some TH nodes with host route optimization enabled (wedge100,

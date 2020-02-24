@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -277,7 +278,8 @@ TYPED_TEST(BcmLabelSwitchRouteTest, Swap) {
 }
 
 TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
-  if (!this->getPlatform()->isMultiPathLabelSwitchActionSupported()) {
+  if (!this->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
   auto setup = [=]() {
@@ -292,7 +294,8 @@ TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
 }
 
 TYPED_TEST(BcmLabelSwitchRouteTest, EcmpSwap) {
-  if (!this->getPlatform()->isMultiPathLabelSwitchActionSupported()) {
+  if (!this->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
   auto setup = [=]() {

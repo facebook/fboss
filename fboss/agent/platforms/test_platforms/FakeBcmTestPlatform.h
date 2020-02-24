@@ -75,10 +75,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return 9;
   }
 
-  bool isMultiPathLabelSwitchActionSupported() const override {
-    return true;
-  }
-
   HwAsic* getAsic() const override;
 
   int getDefaultNumPortQueues(cfg::StreamType streamType) const override {

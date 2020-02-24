@@ -60,10 +60,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return 2;
   }
 
-  bool isMultiPathLabelSwitchActionSupported() const override {
-    return false;
-  }
-
   cfg::PortLoopbackMode desiredLoopbackMode() const override {
     // Changing loopback mode to MAC on a 40G port on trident2 changes
     // the speed to 10G unexpectedly.

@@ -58,10 +58,6 @@ class Wedge40Platform : public WedgePlatform {
     return false;
   }
 
-  bool isMultiPathLabelSwitchActionSupported() const override {
-    return false;
-  }
-
   HwAsic* getAsic() const override {
     return asic_.get();
   }

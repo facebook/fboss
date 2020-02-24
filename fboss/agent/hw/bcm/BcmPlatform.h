@@ -105,8 +105,6 @@ class BcmPlatform : public Platform {
   virtual bool useQueueGportForCos() const = 0;
   virtual uint32_t maxLabelStackDepth() const = 0;
 
-  virtual bool isMultiPathLabelSwitchActionSupported() const = 0;
-
  protected:
   /*
    * Dump map containing switch h/w config as a key, value pair
