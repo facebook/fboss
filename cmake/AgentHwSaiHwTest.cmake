@@ -32,6 +32,7 @@ add_executable(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE
 )
 
 target_link_libraries(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+  fake_sai
   # --whole-archive is needed for gtest to find these tests
   -Wl,--whole-archive
   sai_switch_ensemble
@@ -39,7 +40,6 @@ target_link_libraries(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_
   hw_test_main
   -Wl,--no-whole-archive
   ref_map
-  fake_sai
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

@@ -27,11 +27,10 @@ add_library(sai_switch
 )
 
 target_link_libraries(sai_switch
+  # implementation for sai_api would be provided by lib that links later. Thus,
+  # allow unresolved-symbols here.
+  -Wl,--unresolved-symbols=ignore-all
   core
-  # TODO (skhare)
-  # Don't unconditionally link with fake_sai. Instead, allow linking with sai
-  # implementation (--unresolved-symbols = <ignore..>).
-  fake_sai
   hw_fb303_stats
   hw_cpu_fb303_stats
   hw_port_fb303_stats
