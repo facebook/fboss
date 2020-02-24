@@ -99,15 +99,25 @@ The built FBOSS binaries will be available here:
   vcpus/memory/swap size etc. Or, if that is not possible, consider reducing
   the number of concurrent jobs using --num-jobs.
 
-## 1.7 Building RPM packages
+## 1.7 Packaging FBOSS binaries and dependencies
+
+- cd fboss.git
+- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py
+
+This creates a temporary directory with prefix /tmp/fboss_bins and copies all
+the FBOSS binaries and dependencies from different directories to it.
+
+This directory could then be scp -r'ed on to the test switch for running.
+
+Optionally, the script could also be used to build an RPM package with all the
+FBOSS binaries and all the dependent libraries. It would be orders of magnitude
+slower to build RPM though:
 
 - cd fboss.git
 - export QA_RPATHS=$[ 0x0001|0x0002|0x0004|0x0008|0x0010|0x0020 ]
-- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/build-rpm.py
+- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py -rpm
 
-The built RPM package will contain the FBOSS binaries and all the dependent
-libraries. The RPM would be available here:
-
+The built RPM would be available here:
 $HOME/rpmbuild/RPMS/x86_64/fboss_bins-1-1.el7.centos.x86_64.rpm
 
 ## 1.8 Building SAI tests for your SAI implementation
@@ -162,17 +172,18 @@ python3 -m http.server
 In addition to SAI tests that link with fake_sai, this would build and install
 SAI tests that link with sai_impl e.g. sai_test-sai_impl-1.5.0.
 
-## 1.9 Building RPM package with SAI tests for your SAI implementation
+## 1.9 Packaging SAI tests and dependencies for your SAI implementation
 
-In order for the RPM package to include these new SAI tests, the RPM spec and
-RPM build script has to be modified.
+In order for the packaging/RPM package to include these SAI tests, the
+packaging script and RPM spec has to be modified. If you are not building RPM
+package, modifying only the packaging script is enough.
 
-Make changes on the lines below and build RPM as usual (refer Section 1.7 for how)
+Make changes on the lines below and build as usual (refer Section 1.7 for how)
 
-diff --git a/installer/centos-7-x86_64/build-rpm.py b/installer/centos-7-x86_64/build-rpm.py
+diff --git a/installer/centos-7-x86_64/package-fboss.py b/installer/centos-7-x86_64/package-fboss.py
 index e12b43f..ba5ff87 100755
---- a/installer/centos-7-x86_64/build-rpm.py
-+++ b/installer/centos-7-x86_64/build-rpm.py
+--- a/installer/centos-7-x86_64/package-fboss.py
++++ b/installer/centos-7-x86_64/package-fboss.py
 @@ -25,7 +25,7 @@ class BuildRpm:
      DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
