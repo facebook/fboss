@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 
 #include "fboss/agent/state/RouteUpdater.h"
@@ -191,6 +192,9 @@ class BcmLabelSwitchActionTest : public BcmTest {
 };
 
 TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {
+  if (!isSupported(HwAsic::Feature::MPLS)) {
+    return;
+  }
   auto setup = [=]() { addAllTestLabelForwardingEntries(); };
   auto verify = [=]() { verifyAllTestLabelForwardingEntries(); };
 
@@ -198,6 +202,10 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {
 }
 
 TEST_F(BcmLabelSwitchActionTest, addLabelSwitchActionWithL3Routes) {
+  if (!isSupported(HwAsic::Feature::MPLS) ||
+      !isSupported(HwAsic::Feature::MPLS_ECMP)) {
+    return;
+  }
   auto setup = [=]() {
     addAllTestLabelForwardingEntries();
     addL3Routes();
@@ -208,6 +216,9 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchActionWithL3Routes) {
 }
 
 TEST_F(BcmLabelSwitchActionTest, removeLabelSwitchAction) {
+  if (!isSupported(HwAsic::Feature::MPLS)) {
+    return;
+  }
   auto setup = [=]() {
     addAllTestLabelForwardingEntries();
     removeAllTestLabelForwardingEntries();
