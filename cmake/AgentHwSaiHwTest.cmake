@@ -25,28 +25,47 @@ set_target_properties(sai_switch_ensemble PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
-add_executable(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
-  fboss/agent/hw/sai/hw_test/HwTestMacUtils.cpp
-  fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
-  fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
-)
+function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
-target_link_libraries(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
-  fake_sai
-  # --whole-archive is needed for gtest to find these tests
-  -Wl,--whole-archive
-  sai_switch_ensemble
-  hw_switch_test
-  hw_test_main
-  -Wl,--no-whole-archive
-  ref_map
-  ${GTEST}
-  ${LIBGMOCK_LIBRARIES}
-)
+  message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
-set_target_properties(sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
-  PROPERTIES COMPILE_FLAGS
-  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-)
+  add_executable(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+    fboss/agent/hw/sai/hw_test/HwTestMacUtils.cpp
+    fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp
+    fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
+  )
+
+  target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+    ${SAI_IMPL_ARG}
+    # --whole-archive is needed for gtest to find these tests
+    -Wl,--whole-archive
+    sai_switch_ensemble
+    hw_switch_test
+    hw_test_main
+    -Wl,--no-whole-archive
+    ref_map
+    ${GTEST}
+    ${LIBGMOCK_LIBRARIES}
+  )
+
+  set_target_properties(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+      PROPERTIES COMPILE_FLAGS
+      "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+      -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+      -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+    )
+
+endfunction()
+
+BUILD_SAI_TEST("fake" fake_sai)
+
+# If libsai_impl is provided, build sai tests linking with it
+find_library(SAI_IMPL sai_impl)
+message(STATUS "SAI_IMPL: ${SAI_IMPL}")
+
+if(${SAI_IMPL})
+  BUILD_SAI_TEST("sai_impl" ${SAI_IMPL})
+  install(
+    TARGETS
+    sai_test-sai_impl-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE})
+endif()
