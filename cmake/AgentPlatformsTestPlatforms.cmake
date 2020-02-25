@@ -34,6 +34,7 @@ target_link_libraries(bcm_test_platforms
   config_factory
   product_info
   minipack_platform_mapping
+  wedge100_platform_mapping
   wedge40_platform_mapping
   wedge400_platform_mapping
   yamp_platform_mapping

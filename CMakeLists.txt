@@ -609,6 +609,7 @@ target_link_libraries(
     ${MNL}
     ${OPENNSA}
     wedge40_platform_mapping
+    wedge100_platform_mapping
 )
 
 target_link_libraries(switch_asics_old fboss_agent)

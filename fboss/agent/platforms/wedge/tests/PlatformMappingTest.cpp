@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/wedge/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
@@ -83,6 +84,24 @@ TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
   setExpection(64, 16, 0, 16, expectedProfiles);
 
   auto mapping = std::make_unique<Wedge40PlatformMapping>();
+  verify(mapping.get());
+}
+
+TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91};
+
+  // Wedge40 has 32 * 4 = 128 logical ports
+  // 32 TH Falcon cores + 32 transceivers
+  setExpection(128, 32, 0, 32, expectedProfiles);
+
+  auto mapping = std::make_unique<Wedge100PlatformMapping>();
   verify(mapping.get());
 }
 } // namespace test

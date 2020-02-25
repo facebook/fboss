@@ -9,13 +9,15 @@
  */
 #include "fboss/agent/platforms/wedge/WedgeTomahawkPlatform.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 
 WedgeTomahawkPlatform::WedgeTomahawkPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
-    : WedgePlatform(std::move(productInfo)) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : WedgePlatform(std::move(productInfo), std::move(platformMapping)) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

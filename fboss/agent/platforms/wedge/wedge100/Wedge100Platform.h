@@ -17,11 +17,11 @@
 namespace facebook::fboss {
 
 class BcmSwitch;
-class Wedge100Port;
+class PlatformProductInfo;
 
 class Wedge100Platform : public WedgeTomahawkPlatform {
  public:
-  using WedgeTomahawkPlatform::WedgeTomahawkPlatform;
+  explicit Wedge100Platform(std::unique_ptr<PlatformProductInfo> productInfo);
 
   std::unique_ptr<WedgePortMapping> createPortMapping() override;
   void onHwInitialized(SwSwitch* sw) override;
