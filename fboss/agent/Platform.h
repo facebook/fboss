@@ -81,22 +81,23 @@ class Platform {
   const AgentConfig* reloadConfig();
   void setConfig(std::unique_ptr<AgentConfig> config);
 
-  const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts();
+  const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts() const;
 
   /*
    * Get supported port speed profile config based on profile id.
    * Return std::nullopt if the platform doesn't support such speed profile.
    */
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
-      cfg::PortProfileID PortProfileID);
+      cfg::PortProfileID PortProfileID) const;
 
   /*
    * Get supported data plane phy chip based on chip name.
    * Return std::nullopt if the platform doesn't support such phy chip.
    */
   const std::optional<phy::DataPlanePhyChip> getDataPlanePhyChip(
-      std::string chipName);
-  const std::map<std::string, phy::DataPlanePhyChip>& getDataPlanePhyChips();
+      std::string chipName) const;
+  const std::map<std::string, phy::DataPlanePhyChip>& getDataPlanePhyChips()
+      const;
 
   /*
    * Get the HwSwitch for this platform.

@@ -114,11 +114,19 @@ BcmTestPlatform::BcmPlatformPortMap BcmTestPlatform::getPlatformPortMap() {
 
 std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) const {
   std::vector<PortID> allPortsinGroup;
-  auto portItr = std::find(
-      masterLogicalPortIds_.begin(), masterLogicalPortIds_.end(), portID);
-  CHECK(portItr != masterLogicalPortIds_.end());
-  for (int i = 0; i < numPortsPerTranceiver_; ++i) {
-    allPortsinGroup.push_back(PortID(portID + i));
+  if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.push_back(PortID(port.mapping.id));
+    }
+  } else {
+    auto portItr = std::find(
+        masterLogicalPortIds_.begin(), masterLogicalPortIds_.end(), portID);
+    CHECK(portItr != masterLogicalPortIds_.end());
+    for (int i = 0; i < numPortsPerTranceiver_; ++i) {
+      allPortsinGroup.push_back(PortID(portID + i));
+    }
   }
   return allPortsinGroup;
 }
