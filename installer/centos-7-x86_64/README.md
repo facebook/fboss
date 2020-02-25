@@ -216,7 +216,49 @@ index 2a451d5..bc647f7 100644
  /opt/fboss/libgflags.so.2.2
  /opt/fboss/libglog.so.0
 
-## 1.8 Building SAI tests for your SAI implementation
+## 1.10 Validating new OpenNSA releases
+
+Before releasing next version of OpenNSA on github, following steps could be
+used to validate whether the new OpenNSA would build with FBOSS.
+
+- Copy over OpenNSA-next-release.tar.gz on the build VM where you want to build FBOSS.
+- From the same directory, start local web server: python3 -m http.server &
+- Edit: fboss.git/build/fbcode_builder/manifests/OpenNSA to update url, sha256 sum, subdir etc.:
+
+    diff --git a/build/fbcode_builder/manifests/OpenNSA b/buildfbcode_builder/manifests/OpenNSA
+    --- a/build/fbcode_builder/manifests/OpenNSA
+    +++ b/build/fbcode_builder/manifests/OpenNSA
+    @@ -2,15 +2,15 @@
+     name = OpenNSA
+
+     [download]
+    -url = https://bitbucket.org/fboss/opennsa-fork/get/release/v1.0.tar.gz
+    -sha256 = 40e56460b85a8be4cfdc4591569453eb19aea3344f3c297b1d8b5a9ebf29bdf0
+    +url = http://localhost:8000/OpenNSA-next-release.tar.gz
+    +sha256 = From command line, run sha256sum OpenNSA-next-release.tar.gz, and insert o/p here
+
+     [build]
+     builder = nop
+    -subdir = fboss-opennsa-fork-1e7cd6e7f059
+    +subdir = fboss-opennsa-fork-26d1e23b9867 # Replace with appropriate subdir name
+
+- Build OpenNSA. Since OpenNSA has precompiled libraries, this does not do a
+  real build, but simply copies over the files in the right directories for
+  fbcode_builder to consume while building FBOSS.
+
+    export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
+    export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
+    cd fboss.git
+    ./build/fbcode_builder/getdeps.py build OpenNSA
+    ./build/fbcode_builder/getdeps.py show-inst-dir OpenNSA
+    ls <output of show-inst-dir> to verify if the OpenNSA-next-release libs are available.
+
+- ./build/fbcode_builder/getdeps.py clean
+- Build FBOSS (refer 1.5).
+
+This will build and link FBOSS build with OpenNSA-next-release. If the build is
+successful, it validates that the next OpenNSA release can build with FBOSS.
+
 
 # 2. Installing FBOSS
 
