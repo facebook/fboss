@@ -27,7 +27,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
 
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto qosPolicyName = "qp1";
       utility::setDefaultQosPolicy(&cfg, qosPolicyName);
       utility::addDscpQosPolicy(&cfg, qosPolicyName, {{kQueueId(), {kDscp()}}});
@@ -140,7 +140,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
 };
 
 TEST_F(BcmMultiAqmProfileTest, verifyWred) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -158,7 +158,7 @@ TEST_F(BcmMultiAqmProfileTest, verifyWred) {
 }
 
 TEST_F(BcmMultiAqmProfileTest, verifyEcn) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

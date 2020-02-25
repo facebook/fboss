@@ -83,7 +83,7 @@ class Bcm2QueueToOlympicQoSTest : public BcmLinkStateDependentTests {
 };
 
 TEST_F(Bcm2QueueToOlympicQoSTest, VerifyDscpQueueMapping) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

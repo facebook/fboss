@@ -121,7 +121,7 @@ TEST_F(BcmBstTest, VerifyDefaultQueue) {
 TEST_F(BcmBstTest, VerifyNonDefaultQueue) {
   // NOTE: failures in this test often suggest unexpected port flaps
   // on warm boot.
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

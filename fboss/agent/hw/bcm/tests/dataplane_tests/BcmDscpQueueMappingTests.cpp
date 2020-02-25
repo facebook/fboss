@@ -94,7 +94,7 @@ class BcmDscpQueueMappingTest : public BcmLinkStateDependentTests {
 };
 
 TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMapping) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
   auto setup = [=]() {
@@ -123,7 +123,7 @@ TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMapping) {
 }
 
 TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMappingQosMaps) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
   auto setup = [=]() {
@@ -150,7 +150,7 @@ TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMappingQosMaps) {
 }
 
 TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
   auto setup = [=]() {
@@ -188,7 +188,7 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
 }
 
 TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
   // The QoS map sends packets to queue 7 while the ACL sends them to queue 2

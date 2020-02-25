@@ -30,7 +30,7 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
 
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicQueueConfig(&cfg);
       utility::addOlympicQoSMaps(&cfg);
       _configureBandwidth(&cfg);
@@ -137,7 +137,7 @@ void BcmPortBandwidthTest::verifyRateHelper(
     uint8_t dscpVal,
     uint32_t maxRate,
     GetQueueOutCntT getQueueOutCntFunc) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

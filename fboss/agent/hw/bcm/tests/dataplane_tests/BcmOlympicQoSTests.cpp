@@ -38,7 +38,7 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicQueueConfig(&cfg);
     }
     return cfg;
@@ -148,7 +148,7 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
   }
 
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
-    if (!getPlatform()->isCosSupported()) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
@@ -180,7 +180,7 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
 };
 
 void BcmOlympicQoSTest::verifyDscpQueueMapping() {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -213,7 +213,7 @@ void BcmOlympicQoSTest::verifyDscpQueueMapping() {
 }
 
 void BcmOlympicQoSTest::verifyWRR() {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -242,7 +242,7 @@ void BcmOlympicQoSTest::verifyWRR() {
 }
 
 void BcmOlympicQoSTest::verifySP() {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -292,7 +292,7 @@ class BcmOlympicQoSAclTest : public BcmOlympicQoSTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = BcmOlympicQoSTest::initialConfig();
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicAcls(&cfg);
     }
     return cfg;
@@ -323,7 +323,7 @@ class BcmOlympicQoSMapTest : public BcmOlympicQoSTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = BcmOlympicQoSTest::initialConfig();
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicQoSMaps(&cfg);
     }
     return cfg;

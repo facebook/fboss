@@ -44,7 +44,7 @@ TEST_F(BcmQueueManagerCounterTest, SetupPortQueueCounters) {
     auto curCountersItr = queueCounters.find(type);
     EXPECT_TRUE(curCountersItr != queueCounters.end());
     if (type.isScopeQueues()) {
-      if (!getPlatform()->isCosSupported()) {
+      if (!isSupported(HwAsic::Feature::L3_QOS)) {
         EXPECT_EQ(curCountersItr->second.queues.size(), 0);
       } else {
         EXPECT_EQ(

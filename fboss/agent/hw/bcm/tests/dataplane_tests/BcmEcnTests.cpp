@@ -27,7 +27,7 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
 
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addDscpAclToCfg(&cfg, kAclName(), kEcnDscp());
       utility::addQueueMatcher(&cfg, kAclName(), kEcnQueueId());
       _createEcnQueue(&cfg);
@@ -130,7 +130,7 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
 };
 
 TEST_F(BcmEcnTest, verifyEcn) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

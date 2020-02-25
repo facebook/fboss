@@ -170,7 +170,7 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
 TEST_F(BcmPortQueueManagerTest, DefaultPortQueuesCheckWithoutConfig) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -194,7 +194,7 @@ TEST_F(BcmPortQueueManagerTest, DefaultPortQueuesCheckWithoutConfig) {
 TEST_F(BcmPortQueueManagerTest, ConfigPortQueuesSetup) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -215,7 +215,7 @@ TEST_F(BcmPortQueueManagerTest, ConfigPortQueuesSetup) {
 TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -277,7 +277,7 @@ TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
 TEST_F(BcmPortQueueManagerTest, ClearPortQueueSettings) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -320,7 +320,7 @@ TEST_F(BcmPortQueueManagerTest, ClearPortQueueSettings) {
 TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -378,7 +378,7 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
 TEST_F(BcmPortQueueManagerTest, InternalPriorityMappings) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }
@@ -428,7 +428,7 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappings) {
 TEST_F(BcmPortQueueManagerTest, InternalPriorityMappingsOverride) {
   // Since Wedge40 couldn't get CosQueue gport from gportTraversalCallback,
   // return directly if platfotm is Wedge40
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     XLOG(WARNING) << "Platform doesn't support port cos queue setting";
     return;
   }

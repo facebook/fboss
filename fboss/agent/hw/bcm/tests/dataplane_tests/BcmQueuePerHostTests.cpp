@@ -28,7 +28,7 @@ class BcmQueuePerHostTest : public BcmLinkStateDependentTests {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    if (getPlatform()->isCosSupported()) {
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addQueuePerHostQueueConfig(&cfg);
       utility::addQueuePerHostAcls(&cfg);
     }
@@ -224,7 +224,7 @@ using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 TYPED_TEST_CASE(BcmQueuePerHostTest, TestTypes);
 
 TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
-  if (!this->getPlatform()->isCosSupported()) {
+  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
@@ -251,7 +251,7 @@ TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
 }
 
 TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
-  if (!this->getPlatform()->isCosSupported()) {
+  if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 

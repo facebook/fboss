@@ -40,7 +40,7 @@ class BcmSendPacketToQueueTest : public BcmLinkStateDependentTests {
 void BcmSendPacketToQueueTest::checkSendPacket(
     std::optional<uint8_t> ucQueue,
     bool isOutOfPort) {
-  if (!getPlatform()->isCosSupported()) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
 
