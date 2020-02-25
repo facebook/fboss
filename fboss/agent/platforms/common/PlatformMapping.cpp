@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include "fboss/agent/FbossError.h"
 
 namespace facebook {
 namespace fboss {
@@ -40,6 +41,36 @@ void PlatformMapping::merge(PlatformMapping* mapping) {
     chips_.emplace(chip.first, std::move(chip.second));
   }
   mapping->chips_.clear();
+}
+
+cfg::PortProfileID PlatformMapping::getPortMaxSpeedProfile(
+    PortID portID) const {
+  auto itPlatformPort = platformPorts_.find(portID);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("Unrecoganized port:", portID);
+  }
+
+  cfg::PortProfileID maxProfile{cfg::PortProfileID::PROFILE_DEFAULT};
+  cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
+  for (auto profile : itPlatformPort->second.supportedProfiles) {
+    if (auto itProfileCfg = supportedProfiles_.find(profile.first);
+        itProfileCfg != supportedProfiles_.end() &&
+        static_cast<int>(maxSpeed) <
+            static_cast<int>(itProfileCfg->second.speed)) {
+      maxSpeed = itProfileCfg->second.speed;
+      maxProfile = itProfileCfg->first;
+    }
+  }
+  return maxProfile;
+}
+
+cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
+  auto maxProfile = getPortMaxSpeedProfile(portID);
+  if (auto itProfileCfg = supportedProfiles_.find(maxProfile);
+      itProfileCfg != supportedProfiles_.end()) {
+    return itProfileCfg->second.speed;
+  }
+  return cfg::PortSpeed::DEFAULT;
 }
 } // namespace fboss
 } // namespace facebook

@@ -127,6 +127,10 @@ Platform::getDataPlanePhyChips() const {
   return platformMapping_ ? platformMapping_->getChips() : kEmptyChips;
 }
 
+cfg::PortSpeed Platform::getPortMaxSpeed(PortID portID) const {
+  return platformMapping_->getPortMaxSpeed(portID);
+}
+
 void Platform::init(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired) {

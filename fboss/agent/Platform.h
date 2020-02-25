@@ -100,6 +100,11 @@ class Platform {
       const;
 
   /*
+   * Get port max speed based on the platform rather than hw switch.
+   */
+  cfg::PortSpeed getPortMaxSpeed(PortID portID) const;
+
+  /*
    * Get the HwSwitch for this platform.
    *
    * The HwSwitch object returned should be owned by the Platform, and must

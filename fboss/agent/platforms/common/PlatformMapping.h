@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/types.h"
 
 namespace facebook {
 namespace fboss {
@@ -47,6 +48,9 @@ class PlatformMapping {
   }
 
   void merge(PlatformMapping* mapping);
+
+  cfg::PortProfileID getPortMaxSpeedProfile(PortID portID) const;
+  cfg::PortSpeed getPortMaxSpeed(PortID portID) const;
 
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;

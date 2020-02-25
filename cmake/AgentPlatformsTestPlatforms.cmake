@@ -20,6 +20,7 @@ add_library(bcm_test_platforms
   fboss/agent/platforms/test_platforms/BcmTestYampPlatform.cpp
   fboss/agent/platforms/test_platforms/BcmTestYampPort.cpp
   fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
+  fboss/agent/platforms/test_platforms/FakeBcmTestPlatformMapping.cpp
   fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
   fboss/agent/platforms/test_platforms/CreateTestPlatform.cpp
   fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawkPlatform.cpp

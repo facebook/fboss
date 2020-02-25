@@ -45,6 +45,7 @@ BcmTestPlatform::BcmTestPlatform(
     : BcmPlatform(std::move(productInfo), std::move(platformMapping)) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());
+  CHECK(portsByMasterPort.size() > 1);
   for (auto itPort : portsByMasterPort) {
     masterLogicalPortIds_.push_back(itPort.first);
     // TODO(ccpowers) We haven't enabled supportsAddRemovePort() for TH3

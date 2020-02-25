@@ -47,6 +47,7 @@ void enableAllLanes(
   int portIndex = 0;
   for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
     config->ports[portIndex].speed = enabledLaneSpeed;
+    config->ports[portIndex].state = cfg::PortState::ENABLED;
   }
 }
 

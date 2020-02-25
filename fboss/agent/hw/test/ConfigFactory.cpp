@@ -19,7 +19,13 @@ using namespace facebook::fboss::utility;
 namespace {
 
 cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
-  return hwSwitch->getPortMaxSpeed(port);
+  // If Hardware can't decide the max speed, we use Platform(PlatformMapping) to
+  // decide the max speed.
+  if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
+      maxSpeed != cfg::PortSpeed::DEFAULT) {
+    return maxSpeed;
+  }
+  return hwSwitch->getPlatform()->getPortMaxSpeed(port);
 }
 
 cfg::SwitchConfig genPortVlanCfg(
@@ -46,7 +52,7 @@ cfg::SwitchConfig genPortVlanCfg(
           cfg::PortProfileID::PROFILE_DEFAULT) {
         throw FbossError(
             entry->mapping.name,
-            " has max speed: ",
+            " has speed: ",
             apache::thrift::util::enumNameSafe(config.ports[portIndex].speed),
             " which has profile: ",
             apache::thrift::util::enumNameSafe(
