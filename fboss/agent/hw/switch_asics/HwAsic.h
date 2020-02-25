@@ -23,6 +23,7 @@ class HwAsic {
     HASH_FIELDS_CUSTOMIZATION,
     QUEUE,
     ECN,
+    L3_QOS,
   };
 
   enum class AsicType {
