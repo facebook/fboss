@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 
+#include "fboss/lib/TupleUtils.h"
+
 #include <folly/Singleton.h>
 
 extern "C" {
@@ -161,4 +163,17 @@ const VlanApi& SaiApiTable::vlanApi() const {
   return getApi<VlanApi>();
 }
 
+void SaiApiTable::enableDebugLogging() const {
+  tupleForEach(
+      [](const auto& api) {
+        auto rv = sai_log_set(api->ApiType, SAI_LOG_LEVEL_DEBUG);
+        // Log a error but continue on if we can't set log level
+        // for a api type. A adaptor may not support debug logging
+        // for a particular API (e.g. in cases where we have had
+        // to add stubs for a yet to be supported API). Make this
+        // a non fatal condition.
+        saiLogError(rv, api->ApiType, "Failed to set debug log for api");
+      },
+      apis_);
+}
 } // namespace facebook::fboss

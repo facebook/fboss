@@ -12,6 +12,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
@@ -42,6 +43,9 @@
 extern "C" {
 #include <sai.h>
 }
+
+DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
+
 namespace facebook::fboss {
 
 static SaiSwitch* hwSwitch;
@@ -304,6 +308,9 @@ HwInitResult SaiSwitch::initLocked(
   callback_ = callback;
   __gSaiSwitch = this;
   ret.switchState = getColdBootSwitchState();
+  if (FLAGS_enable_sai_debug_log) {
+    SaiApiTable::getInstance()->enableDebugLogging();
+  }
   return ret;
 }
 

@@ -101,6 +101,8 @@ class SaiApiTable {
     return *std::get<std::unique_ptr<SaiApiT>>(apis_);
   }
 
+  void enableDebugLogging() const;
+
  private:
   std::tuple<
       std::unique_ptr<BridgeApi>,
