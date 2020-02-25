@@ -9,7 +9,9 @@
  */
 
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
+
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 namespace facebook::fboss {
 
@@ -39,8 +41,6 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "neighbor";
     case SAI_API_ACL:
       return "acl";
-    case SAI_API_HASH:
-      return "hash";
     case SAI_API_HOSTIF:
       return "hostif";
     case SAI_API_MIRROR:
@@ -65,10 +65,46 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "scheduler-group";
     case SAI_API_BUFFER:
       return "buffer";
+    case SAI_API_HASH:
+      return "hash";
+    case SAI_API_UDF:
+      return "udf";
+    case SAI_API_TUNNEL:
+      return "tunnel";
+    case SAI_API_L2MC:
+      return "l2mc";
+    case SAI_API_IPMC:
+      return "ipmc";
+    case SAI_API_RPF_GROUP:
+      return "rpf_group";
+    case SAI_API_L2MC_GROUP:
+      return "l2mc_group";
+    case SAI_API_IPMC_GROUP:
+      return "ipmc_group";
+    case SAI_API_MCAST_FDB:
+      return "mcast_fdb";
     case SAI_API_BRIDGE:
       return "bridge";
+    case SAI_API_TAM:
+      return "tam";
+    case SAI_API_SEGMENTROUTE:
+      return "segmentroute";
     case SAI_API_MPLS:
       return "mpls";
+    case SAI_API_DTEL:
+      return "dtel";
+    case SAI_API_BFD:
+      return "bfd";
+    case SAI_API_ISOLATION_GROUP:
+      return "isolation_group";
+#if SAI_API_VERSION >= SAI_VERSION(1, 5, 0)
+    case SAI_API_NAT:
+      return "nat";
+    case SAI_API_COUNTER:
+      return "counter";
+    case SAI_API_DEBUG_COUNTER:
+      return "debug_counter";
+#endif
     default:
       throw FbossError("api type invalid: ", apiType);
   }
