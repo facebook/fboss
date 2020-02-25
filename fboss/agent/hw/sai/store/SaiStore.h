@@ -83,11 +83,14 @@ class SaiObjectStore {
               keys.begin(),
               keys.end(),
               [](auto key) {
-                typename SaiObjectTraits::ConditionAttributes args;
-                SaiApiTable::getInstance()
-                    ->getApi<typename SaiObjectTraits::SaiApiT>()
-                    .getAttribute(key, args);
-                return !SaiObjectTraits::isConditionMet(args);
+                auto conditionAttributes =
+                    SaiApiTable::getInstance()
+                        ->getApi<typename SaiObjectTraits::SaiApiT>()
+                        .getAttribute(
+                            key,
+                            typename SaiObjectTraits::ConditionAttributes{});
+                return conditionAttributes !=
+                    SaiObjectTraits::kConditionAttributes;
               }),
           keys.end());
     }

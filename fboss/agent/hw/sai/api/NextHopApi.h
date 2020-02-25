@@ -134,9 +134,7 @@ struct SaiNextHopTraitsT {
   using CreateAttributes = typename detail::
       NextHopTraitsAttributes<Attributes, type>::CreateAttributes;
   using ConditionAttributes = std::tuple<typename Attributes::Type>;
-  static bool isConditionMet(const ConditionAttributes& args) {
-    return type == std::get<0>(args).value();
-  }
+  inline const static ConditionAttributes kConditionAttributes{type};
 };
 
 using SaiIpNextHopTraits = SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>;

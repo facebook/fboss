@@ -135,13 +135,11 @@ typename std::
      * matching condition, */
     auto conditionAttributes = apiTable->nextHopApi().getAttribute(
         nextHopSaiId, SaiNextHopTraits::ConditionAttributes{});
-    const auto nextHopType = static_cast<sai_next_hop_type_t>(
-        std::get<0>(conditionAttributes).value());
-    SaiNextHopTraits::AdapterHostKey nhk; // default is ip next hop
-    if (nextHopType == SAI_NEXT_HOP_TYPE_IP) {
+    if (conditionAttributes == SaiIpNextHopTraits::kConditionAttributes) {
       ret.insert(apiTable->nextHopApi().getAttribute(
           nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}));
-    } else if (nextHopType == SAI_NEXT_HOP_TYPE_MPLS) {
+    } else if (
+        conditionAttributes == SaiMplsNextHopTraits::kConditionAttributes) {
       ret.insert(apiTable->nextHopApi().getAttribute(
           nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}));
     }
