@@ -33,10 +33,8 @@ class MirrorTest : public ::testing::Test {
 
   void configurePortMirror(const std::string& mirror, PortID port) {
     int portIndex = int(port) - 1;
-    config_.ports[portIndex].__isset.ingressMirror = true;
-    config_.ports[portIndex].ingressMirror_ref().value_unchecked() = mirror;
-    config_.ports[portIndex].__isset.egressMirror = true;
-    config_.ports[portIndex].egressMirror_ref().value_unchecked() = mirror;
+    config_.ports[portIndex].ingressMirror_ref() = mirror;
+    config_.ports[portIndex].egressMirror_ref() = mirror;
   }
 
   void configureAclMirror(const std::string& name, const std::string& mirror) {
@@ -47,16 +45,11 @@ class MirrorTest : public ::testing::Test {
     cfg::MatchToAction mirrorAction;
     mirrorAction.matcher = name;
     mirrorAction.action = action;
-    config_.__isset.dataPlaneTrafficPolicy = true;
-    auto count = config_.dataPlaneTrafficPolicy_ref()
-                     .value_unchecked()
-                     .matchToAction.size() +
-        1;
-    config_.dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.resize(
-        count);
-    config_.dataPlaneTrafficPolicy_ref()
-        .value_unchecked()
-        .matchToAction[count - 1] = mirrorAction;
+    // Initialize data plane traffic policy only when uninitialized.
+    if (!config_.dataPlaneTrafficPolicy_ref()) {
+      config_.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+    }
+    config_.dataPlaneTrafficPolicy_ref()->matchToAction.push_back(mirrorAction);
   }
 
   void publishWithStateUpdate() {
@@ -479,15 +472,11 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
   publishWithStateUpdate();
 
   auto portIndex = int(PortID(4)) - 1;
-  config_.ports[portIndex].__isset.ingressMirror = false;
-  config_.ports[portIndex].ingressMirror_ref().value_unchecked() = "";
-  config_.ports[portIndex].__isset.egressMirror = false;
-  config_.ports[portIndex].egressMirror_ref().value_unchecked() = "";
+  config_.ports[portIndex].ingressMirror_ref().reset();
+  config_.ports[portIndex].egressMirror_ref().reset();
 
   config_.acls.pop_back();
-  config_.dataPlaneTrafficPolicy_ref()
-      .value_unchecked()
-      .matchToAction.pop_back();
+  config_.dataPlaneTrafficPolicy_ref()->matchToAction.pop_back();
 
   publishWithStateUpdate();
 

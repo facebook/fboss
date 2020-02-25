@@ -36,15 +36,15 @@ namespace facebook::fboss {
 TEST(AddressUtilTests, ToBinaryAddressV4) {
   auto thriftBinary = toBinaryAddress(kV4Ip);
   EXPECT_EQ(kV4Binary, thriftBinary.addr);
-  EXPECT_FALSE(thriftBinary.__isset.port);
-  EXPECT_FALSE(thriftBinary.__isset.ifName);
+  EXPECT_FALSE(thriftBinary.port_ref());
+  EXPECT_FALSE(thriftBinary.ifName_ref());
 }
 
 TEST(AddressUtilTests, ToBinaryAddressV6) {
   auto thriftBinary = toBinaryAddress(kV6Ip);
   EXPECT_EQ(kV6Binary, thriftBinary.addr);
-  EXPECT_FALSE(thriftBinary.__isset.port);
-  EXPECT_FALSE(thriftBinary.__isset.ifName);
+  EXPECT_FALSE(thriftBinary.port_ref());
+  EXPECT_FALSE(thriftBinary.ifName_ref());
 }
 
 TEST(AddressUtilTests, fromBinaryAddressV4) {
@@ -69,14 +69,14 @@ TEST(AddressUtilTests, ToThriftAddressV4) {
   auto thriftAddr = toAddress(kV4Ip);
   EXPECT_EQ(kV4Str, thriftAddr.addr);
   EXPECT_EQ(AddressType::V4, thriftAddr.type);
-  EXPECT_FALSE(thriftAddr.__isset.port);
+  EXPECT_FALSE(thriftAddr.port_ref());
 }
 
 TEST(AddressUtilTests, ToThriftAddressV6) {
   auto thriftAddr = toAddress(kV6Ip);
   EXPECT_EQ(kV6Str, thriftAddr.addr);
   EXPECT_EQ(AddressType::V6, thriftAddr.type);
-  EXPECT_FALSE(thriftAddr.__isset.port);
+  EXPECT_FALSE(thriftAddr.port_ref());
 }
 
 TEST(AddressUtilTests, fromThriftAddressV4) {

@@ -59,7 +59,7 @@ void checkQosPolicy(
     return checkQosPolicyQosRules(cfgQosPolicy, swQosPolicy);
   }
   // use either rules or qosMap
-  const auto& qosMap = cfgQosPolicy.qosMap_ref().value_unchecked();
+  const auto& qosMap = cfgQosPolicy.qosMap_ref().value_or({});
   ASSERT_EQ(swQosPolicy->getDscpMap(), DscpMap(qosMap.dscpMaps));
   ASSERT_EQ(swQosPolicy->getExpMap(), ExpMap(qosMap.expMaps));
 

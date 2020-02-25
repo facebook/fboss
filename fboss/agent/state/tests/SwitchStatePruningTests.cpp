@@ -119,8 +119,7 @@ void registerPortsAndPopulateConfig(
     int vlanInt = int(vlanTyped);
     vlanObj.id = vlanInt;
     vlanObj.name = folly::to<std::string>("vlan", vlanInt);
-    vlanObj.intfID_ref().value_unchecked() =
-        vlanInt; // interface and vlan ids are the same
+    vlanObj.intfID_ref() = vlanInt; // interface and vlan ids are the same
   }
 
   config.vlanPorts.resize(port2Vlan.size());
