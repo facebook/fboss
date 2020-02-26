@@ -195,15 +195,15 @@ TEST(PortQueue, stateDelta) {
   EXPECT_NE(nullptr, stateV1);
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
       queues1.size());
   // The first kStateTestNumPortQueues should have weight changed
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     EXPECT_EQ(i, queues1.at(i)->getWeight());
   }
   // The rest queue should be default
-  for (int i = kStateTestNumPortQueues;
-       i < platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
+  for (int i = kStateTestNumPortQueues; i <
+       platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
        i++) {
     auto defaultQ = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     defaultQ->setStreamType(cfg::StreamType::UNICAST);
@@ -216,7 +216,7 @@ TEST(PortQueue, stateDelta) {
   EXPECT_NE(nullptr, stateV2);
   auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
       queues2.size());
   EXPECT_EQ(5, queues2.at(0)->getWeight());
 
@@ -224,7 +224,7 @@ TEST(PortQueue, stateDelta) {
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto queues3 = stateV3->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
       queues3.size());
   EXPECT_EQ(1, queues3.at(3)->getWeight());
 
@@ -258,7 +258,7 @@ TEST(PortQueue, aqmState) {
   auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
   // change one queue, won't affect the other queues
   EXPECT_EQ(
-      platform->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
+      platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST),
       queues1.size());
   PortQueue::AQMMap aqms{
       {cfg::QueueCongestionBehavior::EARLY_DROP, getEarlyDropAqmConfig()}};

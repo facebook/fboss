@@ -230,8 +230,6 @@ class Platform {
    */
   virtual void initPorts() = 0;
 
-  virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
-
   virtual bool supportsAddRemovePort() const {
     return false;
   }

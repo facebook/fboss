@@ -44,11 +44,6 @@ class SimPlatform : public Platform {
 
   void initPorts() override;
 
-  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
-    // SimPlatform doesn't support port queue, return 0
-    return 0;
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   SimPlatform(SimPlatform const&) = delete;

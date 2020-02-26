@@ -52,7 +52,6 @@ class SaiPlatform : public Platform {
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
   virtual bool getObjectKeysSupported() const = 0;
-  int getDefaultNumPortQueues(cfg::StreamType streamType) const override;
 
   /*
    * Get ids of all controlling ports

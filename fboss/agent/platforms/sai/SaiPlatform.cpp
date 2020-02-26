@@ -151,8 +151,4 @@ sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }
 
-int SaiPlatform::getDefaultNumPortQueues(cfg::StreamType streamType) const {
-  return getAsic()->getDefaultNumPortQueues(streamType);
-}
-
 } // namespace facebook::fboss

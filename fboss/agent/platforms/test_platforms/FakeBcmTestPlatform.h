@@ -73,10 +73,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
 
   HwAsic* getAsic() const override;
 
-  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
-    return streamType == cfg::StreamType::UNICAST ? 8 : 10;
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;

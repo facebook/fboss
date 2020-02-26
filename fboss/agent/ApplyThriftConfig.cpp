@@ -905,7 +905,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   // For now, we only support update unicast port queues for ports
   QueueConfig portQueues;
   for (auto streamType : platform_->getAsic()->getQueueStreamTypes(false)) {
-    auto maxQueues = platform_->getDefaultNumPortQueues(streamType);
+    auto maxQueues = platform_->getAsic()->getDefaultNumPortQueues(streamType);
     auto tmpPortQueues = updatePortQueues(
         orig->getPortQueues(), cfgPortQueues, maxQueues, streamType, qosMap);
     portQueues.insert(

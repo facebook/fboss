@@ -52,10 +52,6 @@ class MockPlatform : public Platform {
   MOCK_METHOD1(onInitialConfigApplied, void(SwSwitch* sw));
   MOCK_METHOD0(initPorts, void());
 
-  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
-    return streamType == cfg::StreamType::UNICAST ? 8 : 10;
-  }
-
  private:
   void createTmpDir();
   void cleanupTmpDir();

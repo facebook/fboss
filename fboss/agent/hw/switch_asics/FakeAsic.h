@@ -24,8 +24,8 @@ class FakeAsic : public HwAsic {
       return {cfg::StreamType::UNICAST};
     }
   }
-  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
-    return 10;
+  int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
+    return streamType == cfg::StreamType::UNICAST ? 8 : 10;
   }
 };
 

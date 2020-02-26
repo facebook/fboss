@@ -26,9 +26,8 @@ class Trident2Asic : public HwAsic {
   int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
     switch (streamType) {
       case cfg::StreamType::UNICAST:
-        return 8;
       case cfg::StreamType::MULTICAST:
-        return 10;
+        return 0;
       case cfg::StreamType::ALL:
         throw FbossError("no queue exist for this stream type");
     }

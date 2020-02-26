@@ -57,11 +57,6 @@ class Wedge40Platform : public WedgePlatform {
     return asic_.get();
   }
 
-  int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
-    // Wedge40 doesn't support port queue, return 0
-    return 0;
-  }
-
  private:
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;
