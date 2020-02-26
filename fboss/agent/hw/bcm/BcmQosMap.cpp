@@ -97,7 +97,17 @@ BcmQosMap::BcmQosMap(const BcmSwitchIf* hw, int flags, int mapHandle)
       bcmEntries.data(),
       &numEntries);
   bcmCheckError(rv, "failed to get the entries of qos map=", handle_);
-  for (const auto& bcmEntry : bcmEntries) {
+  for (auto i = 0; i < numEntries; i++) {
+    auto& bcmEntry = bcmEntries[i];
+    if (bcmEntry.color != bcmColorGreen || bcmEntry.int_pri > BCM_PRIO_MAX) {
+      /* Egress QoS Map returns entries even for other colors. ignore those
+       * entries since we only care about "green" entries and did not program
+       * entries of other colors. */
+      continue;
+    }
+    XLOG(DBG4) << "found entry [color: " << bcmEntry.color
+               << ", int_pri: " << bcmEntry.int_pri
+               << ", exp]: " << bcmEntry.exp << "for qos map: " << handle_;
     entries_.insert(std::make_unique<BcmQosMapEntry>(
         *this, getQosMapEntryType(type_), bcmEntry));
   }

@@ -1117,8 +1117,7 @@ BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
     }
   }
 
-  if (type != BcmQosMap::Type::MPLS_EGRESS &&
-      qosMapId2QosMapItr->second->size() != mapEntries.size()) {
+  if (qosMapId2QosMapItr->second->size() != mapEntries.size()) {
     /* sw switch qos policy rules are only subset of  rules in qos map */
     return qosMapId2QosMap_.end();
   }

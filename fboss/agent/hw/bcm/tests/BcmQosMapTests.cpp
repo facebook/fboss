@@ -137,8 +137,18 @@ TEST_F(BcmQosMapTest, BcmAllQosMaps) {
       }
       if ((flag & (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) ==
           (BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_MPLS)) {
-        // TODO: test once CS9452870 is resolved
-        // EXPECT_EQ(array_count, 8);
+        EXPECT_EQ(array_count, 64);
+        std::vector<bcm_qos_map_t> entries;
+        entries.resize(array_count);
+        bcm_qos_map_multi_get(
+            getUnit(),
+            flag,
+            mapId,
+            entries.size(),
+            entries.data(),
+            &array_count);
+        // not returning any invalid or ghost entries now
+        EXPECT_EQ(array_count, 48);
       }
     }
   };
