@@ -17,6 +17,9 @@
 namespace {
 constexpr auto kQueues = "queues";
 constexpr auto kRxReasonToQueue = "rxReasonToQueue";
+constexpr auto rxReasonToQueueOrderedList = "rxReasonToQueueOrderedList";
+constexpr auto kRxReason = "rxReason";
+constexpr auto kQueueId = "queueId";
 constexpr auto kQosPolicy = "defaultQosPolicy";
 } // namespace
 
@@ -28,12 +31,18 @@ folly::dynamic ControlPlaneFields::toFollyDynamic() const {
   for (const auto& queue : queues) {
     controlPlane[kQueues].push_back(queue->toFollyDynamic());
   }
-  controlPlane[kRxReasonToQueue] = folly::dynamic::object;
 
-  for (const auto& reasonToQueue : rxReasonToQueue) {
-    auto reason = apache::thrift::util::enumName(reasonToQueue.first);
+  controlPlane[rxReasonToQueueOrderedList] = folly::dynamic::array;
+  // TODO(pgardideh): temporarily write the object version. remove when
+  // migration is complete
+  controlPlane[kRxReasonToQueue] = folly::dynamic::object;
+  for (const auto& entry : rxReasonToQueue) {
+    auto reason = apache::thrift::util::enumName(entry.rxReason);
     CHECK(reason != nullptr);
-    controlPlane[kRxReasonToQueue][reason] = reasonToQueue.second;
+    controlPlane[rxReasonToQueueOrderedList].push_back(
+        folly::dynamic::object(kRxReason, reason)(kQueueId, entry.queueId));
+
+    controlPlane[kRxReasonToQueue][reason] = entry.queueId;
   }
 
   if (qosPolicy) {
@@ -52,13 +61,35 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
       controlPlane.queues.push_back(queue);
     }
   }
-  if (json.find(kRxReasonToQueue) != json.items().end()) {
+  if (json.find(rxReasonToQueueOrderedList) != json.items().end()) {
+    for (const auto& reasonToQueueEntry : json[rxReasonToQueueOrderedList]) {
+      CHECK(
+          reasonToQueueEntry.find(kRxReason) !=
+          reasonToQueueEntry.items().end());
+      CHECK(
+          reasonToQueueEntry.find(kQueueId) !=
+          reasonToQueueEntry.items().end());
+      cfg::PacketRxReason reason;
+      const int found = apache::thrift::util::tryParseEnum(
+          reasonToQueueEntry.at(kRxReason).asString(), &reason);
+      CHECK(found);
+      cfg::PacketRxReasonToQueue reasonToQueue;
+      reasonToQueue.set_rxReason(reason);
+      reasonToQueue.set_queueId(reasonToQueueEntry.at(kQueueId).asInt());
+      controlPlane.rxReasonToQueue.push_back(reasonToQueue);
+    }
+  } else if (json.find(kRxReasonToQueue) != json.items().end()) {
+    // TODO(pgardideh): the map version of reason to queue is deprecated. Remove
+    // this read when it is safe to do so.
     for (const auto& reasonToQueueJson : json[kRxReasonToQueue].items()) {
-      auto reason = cfg::_PacketRxReason_NAMES_TO_VALUES.find(
-          reasonToQueueJson.first.asString().c_str());
-      CHECK(reason != cfg::_PacketRxReason_NAMES_TO_VALUES.end());
-      controlPlane.rxReasonToQueue.emplace(
-          reason->second, reasonToQueueJson.second.asInt());
+      cfg::PacketRxReason reason;
+      const int found = apache::thrift::util::tryParseEnum(
+          reasonToQueueJson.first.asString(), &reason);
+      CHECK(found);
+      cfg::PacketRxReasonToQueue reasonToQueue;
+      reasonToQueue.set_rxReason(reason);
+      reasonToQueue.set_queueId(reasonToQueueJson.second.asInt());
+      controlPlane.rxReasonToQueue.push_back(reasonToQueue);
     }
   }
   if (json.find(kQosPolicy) != json.items().end()) {

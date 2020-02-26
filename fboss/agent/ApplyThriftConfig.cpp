@@ -2065,9 +2065,25 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosPolicy = *defaultQosPolicy;
       }
     }
-    if (auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue_ref()) {
+    if (const auto rxReasonToQueue =
+            cpuTrafficPolicy->rxReasonToQueueOrderedList_ref()) {
       for (auto rxEntry : *rxReasonToQueue) {
-        newRxReasonToQueue.emplace(rxEntry);
+        newRxReasonToQueue.push_back(rxEntry);
+      }
+      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
+        rxReasonToQueueUnchanged = false;
+      }
+    } else if (
+        const auto rxReasonToQueue =
+            cpuTrafficPolicy->rxReasonToCPUQueue_ref()) {
+      // TODO(pgardideh): the map version of reason to queue is deprecated.
+      // Remove
+      // this read when it is safe to do so.
+      for (auto rxEntry : *rxReasonToQueue) {
+        cfg::PacketRxReasonToQueue newEntry;
+        newEntry.rxReason = rxEntry.first;
+        newEntry.queueId = rxEntry.second;
+        newRxReasonToQueue.push_back(newEntry);
       }
       if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
         rxReasonToQueueUnchanged = false;

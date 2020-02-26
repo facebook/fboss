@@ -132,6 +132,15 @@ boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
   return queueMap;
 }
 
+cfg::PacketRxReasonToQueue reasonToQueueEntry(
+    cfg::PacketRxReason reason,
+    int16_t queueId) {
+  cfg::PacketRxReasonToQueue reasonToQueue;
+  reasonToQueue.set_rxReason(reason);
+  reasonToQueue.set_queueId(queueId);
+  return reasonToQueue;
+}
+
 shared_ptr<ControlPlane> generateControlPlane() {
   shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
 
@@ -139,14 +148,14 @@ shared_ptr<ControlPlane> generateControlPlane() {
   controlPlane->resetQueues(cpuQueues);
 
   ControlPlane::RxReasonToQueue reasons = {
-      {cfg::PacketRxReason::ARP, 9},
-      {cfg::PacketRxReason::DHCP, 2},
-      {cfg::PacketRxReason::BPDU, 2},
-      {cfg::PacketRxReason::UNMATCHED, 1},
-      {cfg::PacketRxReason::L3_SLOW_PATH, 0},
-      {cfg::PacketRxReason::L3_DEST_MISS, 0},
-      {cfg::PacketRxReason::TTL_1, 0},
-      {cfg::PacketRxReason::CPU_IS_NHOP, 0}};
+      reasonToQueueEntry(cfg::PacketRxReason::ARP, 9),
+      reasonToQueueEntry(cfg::PacketRxReason::DHCP, 2),
+      reasonToQueueEntry(cfg::PacketRxReason::BPDU, 2),
+      reasonToQueueEntry(cfg::PacketRxReason::UNMATCHED, 1),
+      reasonToQueueEntry(cfg::PacketRxReason::L3_SLOW_PATH, 0),
+      reasonToQueueEntry(cfg::PacketRxReason::L3_DEST_MISS, 0),
+      reasonToQueueEntry(cfg::PacketRxReason::TTL_1, 0),
+      reasonToQueueEntry(cfg::PacketRxReason::CPU_IS_NHOP, 0)};
   controlPlane->resetRxReasonToQueue(reasons);
 
   std::optional<std::string> qosPolicy("qp1");
@@ -329,4 +338,23 @@ TEST(ControlPlane, checkSwConfPortQueueMatch) {
     EXPECT_NE(swQueueItr, swCpuQueuesMap.end());
     EXPECT_TRUE(checkSwConfPortQueueMatch(swQueueItr->second, &cfgQueue));
   }
+}
+
+TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  cfg::SwitchConfig config;
+  config.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+  // only set old version of mapping (map instead of ordereded list)
+  config.cpuTrafficPolicy_ref()->rxReasonToCPUQueue_ref() = {
+      {cfg::PacketRxReason::ARP, 9}};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(stateV1, nullptr);
+
+  const auto reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
+  EXPECT_EQ(reasonToQueue1.size(), 1);
+  const auto entry1 = reasonToQueue1.at(0);
+  EXPECT_EQ(entry1.rxReason, cfg::PacketRxReason::ARP);
+  EXPECT_EQ(entry1.queueId, 9);
 }

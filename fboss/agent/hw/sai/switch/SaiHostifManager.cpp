@@ -162,24 +162,24 @@ void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
          newItr != newRxReasonToQueue.end()) {
     if (oldItr == oldRxReasonToQueue.end()) {
       // no more old reasons, all new reasons need to be added
-      addHostifTrap(newItr->first, newItr->second);
+      addHostifTrap(newItr->rxReason, newItr->queueId);
       ++newItr;
     } else if (newItr == newRxReasonToQueue.end()) {
       // no more new reasons, all old reasons need to be removed
-      removeHostifTrap(oldItr->first);
+      removeHostifTrap(oldItr->rxReason);
       ++oldItr;
-    } else if (oldItr->first < newItr->first) {
+    } else if (oldItr->rxReason < newItr->rxReason) {
       // current old is not found in new, needs to be removed
-      removeHostifTrap(oldItr->first);
+      removeHostifTrap(oldItr->rxReason);
       ++oldItr;
-    } else if (newItr->first < oldItr->first) {
+    } else if (newItr->rxReason < oldItr->rxReason) {
       // current new is not found in old, needs to be added
-      addHostifTrap(newItr->first, newItr->second);
+      addHostifTrap(newItr->rxReason, newItr->queueId);
       ++newItr;
     } else {
       // rx reasons are equal -- check if the queue changed!
-      if (oldItr->second != newItr->second) {
-        changeHostifTrap(newItr->first, newItr->second);
+      if (oldItr->queueId != newItr->queueId) {
+        changeHostifTrap(newItr->rxReason, newItr->queueId);
       }
       ++oldItr;
       ++newItr;

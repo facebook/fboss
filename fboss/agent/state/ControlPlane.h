@@ -22,8 +22,7 @@ namespace facebook::fboss {
 class SwitchState;
 
 struct ControlPlaneFields {
-  using RxReasonToQueue =
-      boost::container::flat_map<cfg::PacketRxReason, uint8_t>;
+  using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
   ControlPlaneFields() {}
 
