@@ -216,6 +216,7 @@ void getPortInfoHelper(
         ActiveQueueManagement aqmThrift;
         switch (aqm.second.detection.getType()) {
           case facebook::fboss::cfg::QueueCongestionDetection::Type::linear:
+            aqmThrift.detection.linear_ref() = LinearQueueCongestionDetection();
             aqmThrift.detection.linear_ref()->minimumLength =
                 aqm.second.detection.get_linear().minimumLength;
             aqmThrift.detection.linear_ref()->maximumLength =
