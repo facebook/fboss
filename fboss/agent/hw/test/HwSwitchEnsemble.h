@@ -85,6 +85,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;
   virtual std::vector<PortID> getAllPortsinGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
+  virtual bool isRouteScaleEnabled() const = 0;
 
   virtual void dumpHwCounters() const = 0;
   /*

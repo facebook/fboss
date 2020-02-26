@@ -66,6 +66,9 @@ class HwTest : public ::testing::Test,
   HwSwitchEnsemble* getHwSwitchEnsemble() {
     return hwSwitchEnsemble_.get();
   }
+  const HwSwitchEnsemble* getHwSwitchEnsemble() const {
+    return hwSwitchEnsemble_.get();
+  }
 
   /*
    * Sync and get current stats for port(s)

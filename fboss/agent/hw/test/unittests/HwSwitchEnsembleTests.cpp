@@ -23,6 +23,9 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
       const std::vector<PortID>& /* ports */) override {
     return std::map<PortID, HwPortStats>();
   }
+  bool isRouteScaleEnabled() const override {
+    return true;
+  }
   void stopHwCallLogging() const override {}
 
  public:

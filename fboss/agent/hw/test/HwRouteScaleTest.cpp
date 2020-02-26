@@ -27,6 +27,9 @@ class HwRouteScaleTest : public HwTest {
         applicablePlatforms.end()) {
       return;
     }
+    if (!getHwSwitchEnsemble()->isRouteScaleEnabled()) {
+      return;
+    }
     auto setup = [this]() {
       applyNewConfig(
           utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds()));

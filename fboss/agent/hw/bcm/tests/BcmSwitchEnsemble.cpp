@@ -137,4 +137,7 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
   return mapPortStats;
 }
 
+bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
+  return getHwSwitch()->isAlpmEnabled();
+}
 } // namespace facebook::fboss
