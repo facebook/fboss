@@ -26,11 +26,6 @@ class Wedge40Platform : public WedgePlatform {
   folly::ByteRange defaultLed0Code() override;
   folly::ByteRange defaultLed1Code() override;
 
-  // TD2 requires building the cos queue hierarchy manually, so we don't
-  // support it
-  bool isCosSupported() const override {
-    return false;
-  }
   bool v6MirrorTunnelSupported() const override {
     return false;
   }

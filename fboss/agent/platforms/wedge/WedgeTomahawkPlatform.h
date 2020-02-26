@@ -32,9 +32,6 @@ class WedgeTomahawkPlatform : public WedgePlatform {
     // All WedgeTomahawk platforms have 208 byte cells
     return 208;
   }
-  bool isCosSupported() const override {
-    return true;
-  }
   bool v6MirrorTunnelSupported() const override {
     return false;
   }

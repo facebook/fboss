@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
 #include <bcm/cosq.h>
@@ -50,7 +51,7 @@ BcmPortQueueConfig BcmControlPlaneQueueManager::getCurrentQueueSettings()
 bcm_gport_t BcmControlPlaneQueueManager::getQueueGPort(
     cfg::StreamType streamType,
     bcm_cos_queue_t cosQ) const {
-  if (!hw_->getPlatform()->isCosSupported()) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     throw FbossError(
         "Failed to retrieve queue gport because platform doesn't support cosq");
   }
@@ -80,7 +81,7 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
 int BcmControlPlaneQueueManager::getNumQueues(
     cfg::StreamType streamType) const {
   // if platform doesn't support cosq, return maxCPUQueue_
-  if (!hw_->getPlatform()->isCosSupported()) {
+  if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     return maxCPUQueue_;
   }
   // cpu only has multicast
@@ -137,7 +138,7 @@ void BcmControlPlaneQueueManager::updateQueueStat(
   auto statType = type.statType;
   bcm_gport_t gport = portGport_;
   int specialCosQ = cosQ;
-  if (hw_->getPlatform()->isCosSupported()) {
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     std::tie(gport, specialCosQ) =
         std::make_pair(getQueueGPort(type.streamType, cosQ), 0);
   }

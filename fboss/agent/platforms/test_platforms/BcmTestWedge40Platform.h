@@ -22,10 +22,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   explicit BcmTestWedge40Platform(std::unique_ptr<PlatformProductInfo> product);
   ~BcmTestWedge40Platform() override;
 
-  bool isCosSupported() const override {
-    return false;
-  }
-
   bool v6MirrorTunnelSupported() const override {
     return false;
   }

@@ -22,10 +22,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   FakeBcmTestPlatform();
   ~FakeBcmTestPlatform() override;
 
-  bool isCosSupported() const override {
-    return true;
-  }
-
   bool v6MirrorTunnelSupported() const override {
     return true;
   }

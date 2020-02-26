@@ -39,10 +39,6 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   }
   ~BcmTestWedgeTomahawkPlatform() override {}
 
-  bool isCosSupported() const override {
-    return true;
-  }
-
   bool v6MirrorTunnelSupported() const override {
     return false;
   }

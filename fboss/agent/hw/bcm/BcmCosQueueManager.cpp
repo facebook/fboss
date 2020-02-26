@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
 
@@ -101,7 +102,7 @@ BcmCosQueueManager::BcmCosQueueManager(
     const std::string& portName,
     bcm_gport_t portGport)
     : hw_(hw), portName_(portName), portGport_(portGport) {
-  if (hw_->getPlatform()->isCosSupported()) {
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
     // Make sure we get all the queue gports from hardware for portGport
     getCosQueueGportsFromHw();
   }

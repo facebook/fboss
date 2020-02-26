@@ -639,7 +639,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
     swPort->setSpeed(bcmPort->getSpeed());
-    if (platform_->isCosSupported()) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
       auto queues = bcmPort->getCurrentQueueSettings();
       swPort->resetPortQueues(queues);
     }
@@ -1292,7 +1292,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         }
 
         if (newPort->getPortQueues().size() != 0 &&
-            !platform_->isCosSupported()) {
+            !platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
           throw FbossError(
               "Changing settings for cos queues not supported on ",
               "this platform");
