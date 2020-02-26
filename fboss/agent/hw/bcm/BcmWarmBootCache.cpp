@@ -1068,93 +1068,74 @@ void BcmWarmBootCache::programmed(TrunksItr itr) {
   trunks_.erase(itr);
 }
 
-BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findIngressDscpMap(
-    const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClassSet) {
-  return std::find_if(
-      qosMaps_.begin(),
-      qosMaps_.end(),
-      [dscpToTrafficClassSet](
-          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
-        if (bcmQosMap->getType() != BcmQosMap::Type::IP_INGRESS ||
-            bcmQosMap->size() != dscpToTrafficClassSet.size()) {
-          return false;
-        }
-        for (const auto& dscpToTrafficClass : dscpToTrafficClassSet) {
-          if (!bcmQosMap->ruleExists(
-                  dscpToTrafficClass.trafficClass(),
-                  dscpToTrafficClass.attr())) {
-            return false;
-          }
-        }
-        return true;
-      });
-}
-
-BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findIngressExpMap(
-    const ExpMap::QosAttributeToTrafficClassSet& expToTrafficClassSet) {
-  return std::find_if(
-      qosMaps_.begin(),
-      qosMaps_.end(),
-      [expToTrafficClassSet](
-          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
-        if (bcmQosMap->getType() != BcmQosMap::Type::MPLS_INGRESS ||
-            bcmQosMap->size() != expToTrafficClassSet.size()) {
-          return false;
-        }
-        for (const auto& expToTrafficClass : expToTrafficClassSet) {
-          if (!bcmQosMap->ruleExists(
-                  expToTrafficClass.trafficClass(), expToTrafficClass.attr())) {
-            return false;
-          }
-        }
-        return true;
-      });
-}
-
-BcmWarmBootCache::QosMapsItr BcmWarmBootCache::findEgressExpMap(
-    const ExpMap::QosAttributeToTrafficClassSet& trafficClassToExpSet) {
-  return std::find_if(
-      qosMaps_.begin(),
-      qosMaps_.end(),
-      [trafficClassToExpSet](
-          const std::unique_ptr<BcmQosMap>& bcmQosMap) -> bool {
-        if (bcmQosMap->getType() != BcmQosMap::Type::MPLS_EGRESS
-            /*TODO(pshaikh): uncomment below when T59958035 is resolved */
-            /*|| bcmQosMap->size() != trafficClassToExpSet.size() */
-        ) {
-          return false;
-        }
-        for (const auto& trafficClassToExp : trafficClassToExpSet) {
-          if (!bcmQosMap->ruleExists(
-                  trafficClassToExp.trafficClass(), trafficClassToExp.attr())) {
-            return false;
-          }
-        }
-        return true;
-      });
-}
-
 void BcmWarmBootCache::checkUnclaimedQosMaps() {
-  qosMaps_.clear();
-  CHECK_EQ(qosMapKey2QosMapId_.size(), 0) << "unclaimed qos map entries found";
+  CHECK_EQ(qosMapKey2QosMapId_.size() + qosMapId2QosMap_.size(), 0)
+      << "unclaimed qos map entries found";
 }
 
-void BcmWarmBootCache::programmed(QosMapsItr itr) {
-  XLOG(DBG1) << "Programmed QosMap, removing from warm boot cache.";
-  qosMaps_.erase(itr);
-}
-
-BcmWarmBootCache::QosMapKey2QosMapIdItr BcmWarmBootCache::findQosMap(
-    const std::string& policyName,
+BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy,
     BcmQosMap::Type type) {
-  return qosMapKey2QosMapId_.find(std::make_pair(policyName, type));
+  /* for a given policy find if qos map is in saved hw switch state */
+  auto itr =
+      qosMapKey2QosMapId_.find(std::make_pair(qosPolicy->getName(), type));
+  if (itr == qosMapKey2QosMapId_.end()) {
+    return qosMapId2QosMap_.end();
+  }
+  /* for a given policy, if qos map is in saved hw switch state then it must be
+   * in warm boot cache */
+  auto qosMapId2QosMapItr = qosMapId2QosMap_.find(itr->second);
+  CHECK(qosMapId2QosMapItr != qosMapId2QosMap_.end())
+      << "qos map id " << itr->second << " not found";
+
+  /* collect rules that must be in qos map */
+  std::set<std::pair<uint16_t, uint8_t>> mapEntries;
+  switch (type) {
+    case BcmQosMap::Type::MPLS_INGRESS:
+      for (const auto& entry : qosPolicy->getExpMap().from()) {
+        mapEntries.emplace(entry.trafficClass(), entry.attr());
+      }
+      break;
+    case BcmQosMap::Type::MPLS_EGRESS:
+      for (const auto& entry : qosPolicy->getExpMap().to()) {
+        mapEntries.emplace(entry.trafficClass(), entry.attr());
+      }
+      break;
+    case BcmQosMap::Type::IP_INGRESS:
+      for (const auto& entry : qosPolicy->getDscpMap().from()) {
+        mapEntries.emplace(entry.trafficClass(), entry.attr());
+      }
+      break;
+    case BcmQosMap::Type::IP_EGRESS:
+      XLOG(FATAL) << "L3 egress qos map is not supported";
+  }
+
+  for (const auto& entry : mapEntries) {
+    if (!qosMapId2QosMapItr->second->ruleExists(entry.first, entry.second)) {
+      /* if any rule doesn't exist, then avoid claiming it */
+      return qosMapId2QosMap_.end();
+    }
+  }
+
+  if (type != BcmQosMap::Type::MPLS_EGRESS &&
+      qosMapId2QosMapItr->second->size() != mapEntries.size()) {
+    /* sw switch qos policy rules are only subset of  rules in qos map */
+    return qosMapId2QosMap_.end();
+  }
+
+  XLOG(DBG1) << "Found QosMap of type " << qosMapId2QosMapItr->second->getType()
+             << " with id " << qosMapId2QosMapItr->second->getHandle()
+             << " for policy " << qosPolicy->getName()
+             << ", removing from warm boot cache.";
+  return qosMapId2QosMapItr;
 }
 
-void BcmWarmBootCache::programmed(BcmWarmBootCache::QosMapKey2QosMapIdItr itr) {
-  XLOG(DBG1) << "Programmed QosMap of type " << itr->first.second << " with id "
-             << itr->second << " for policy " << itr->first.first
-             << ", removing from warm boot cache.";
-  qosMapKey2QosMapId_.erase(itr);
+void BcmWarmBootCache::programmed(
+    const std::string& policyName,
+    BcmQosMap::Type type,
+    BcmWarmBootCache::QosMapId2QosMapItr itr) {
+  qosMapKey2QosMapId_.erase(std::make_pair(policyName, type));
+  qosMapId2QosMap_.erase(itr);
 }
 
 namespace {
@@ -1376,8 +1357,6 @@ void BcmWarmBootCache::populateMirroredAcl(BcmAclEntryHandle entry) {
 }
 
 void BcmWarmBootCache::populateQosMaps() {
-  /* TODO(pshaikh) : remove this function after one push, as qos map id are put
-   * in saved switch state */
   constexpr auto kQosMapIngressL3Flags = BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3;
   constexpr auto kQosMapIngressMplsFlags =
       BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_MPLS;
@@ -1388,11 +1367,14 @@ void BcmWarmBootCache::populateQosMaps() {
     int id = std::get<0>(mapIdAndFlag);
     int flags = std::get<1>(mapIdAndFlag);
     if ((flags & kQosMapIngressL3Flags) == kQosMapIngressL3Flags) {
-      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+      qosMapId2QosMap_.emplace(id, std::make_unique<BcmQosMap>(hw_, flags, id));
     } else if ((flags & kQosMapIngressMplsFlags) == kQosMapIngressMplsFlags) {
-      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+      qosMapId2QosMap_.emplace(id, std::make_unique<BcmQosMap>(hw_, flags, id));
     } else if ((flags & kQosMapEgressMplslags) == kQosMapEgressMplslags) {
-      qosMaps_.emplace_back(std::make_unique<BcmQosMap>(hw_, flags, id));
+      qosMapId2QosMap_.emplace(id, std::make_unique<BcmQosMap>(hw_, flags, id));
+    } else {
+      XLOG(WARNING) << "unknown qos map " << id << "discovered with flags "
+                    << flags;
     }
   }
 }

@@ -194,26 +194,12 @@ void BcmQosPolicy::programIngressDscpQosMap(
   }
   auto warmBootCache = hw_->getWarmBootCache();
   auto qosMapItr =
-      warmBootCache->findIngressDscpMap(qosPolicy->getDscpMap().from());
-  auto qosMapItr2 = warmBootCache->findQosMap(
-      qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS);
-  if (qosMapItr != warmBootCache->qosMaps_end()) {
-    // TODO(pshaikh): remove this after a push as earlier version may not have
-    // required bcm switch's warmboot state.
-    ingressDscpQosMap_ = std::move(*qosMapItr);
-    warmBootCache->programmed(qosMapItr);
-    if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-      warmBootCache->programmed(qosMapItr2);
-    }
-    return;
-  }
+      warmBootCache->findQosMap(qosPolicy, BcmQosMap::Type::IP_INGRESS);
 
-  if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-    ingressDscpQosMap_ = std::make_unique<BcmQosMap>(
-        hw_,
-        BcmQosMap::getQosMapFlags(BcmQosMap::Type::IP_INGRESS),
-        qosMapItr2->second);
-    warmBootCache->programmed(qosMapItr2);
+  if (qosMapItr != warmBootCache->QosMapId2QosMapEnd()) {
+    ingressDscpQosMap_ = std::move(qosMapItr->second);
+    warmBootCache->programmed(
+        qosPolicy->getName(), BcmQosMap::Type::IP_INGRESS, qosMapItr);
     return;
   }
 
@@ -234,26 +220,12 @@ void BcmQosPolicy::programIngressExpQosMap(
   }
   auto warmBootCache = hw_->getWarmBootCache();
   auto qosMapItr =
-      warmBootCache->findIngressExpMap(qosPolicy->getExpMap().from());
-  auto qosMapItr2 = warmBootCache->findQosMap(
-      qosPolicy->getName(), BcmQosMap::Type::MPLS_INGRESS);
-  if (qosMapItr != warmBootCache->qosMaps_end()) {
-    // TODO(pshaikh): remove this after a push as earlier version may not have
-    // required bcm switch's warmboot state.
-    ingressExpQosMap_ = std::move(*qosMapItr);
-    warmBootCache->programmed(qosMapItr);
-    if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-      warmBootCache->programmed(qosMapItr2);
-    }
-    return;
-  }
+      warmBootCache->findQosMap(qosPolicy, BcmQosMap::Type::MPLS_INGRESS);
 
-  if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-    ingressExpQosMap_ = std::make_unique<BcmQosMap>(
-        hw_,
-        BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_INGRESS),
-        qosMapItr2->second);
-    warmBootCache->programmed(qosMapItr2);
+  if (qosMapItr != warmBootCache->QosMapId2QosMapEnd()) {
+    ingressExpQosMap_ = std::move(qosMapItr->second);
+    warmBootCache->programmed(
+        qosPolicy->getName(), BcmQosMap::Type::MPLS_INGRESS, qosMapItr);
     return;
   }
   ingressExpQosMap_ =
@@ -272,25 +244,13 @@ void BcmQosPolicy::programEgressExpQosMap(
     return;
   }
   auto warmBootCache = hw_->getWarmBootCache();
-  auto qosMapItr = warmBootCache->findEgressExpMap(qosPolicy->getExpMap().to());
-  auto qosMapItr2 = warmBootCache->findQosMap(
-      qosPolicy->getName(), BcmQosMap::Type::MPLS_EGRESS);
-  if (qosMapItr != warmBootCache->qosMaps_end()) {
-    // TODO(pshaikh): remove this after a push as earlier version may not have
-    // required bcm switch's warmboot state.
-    egressExpQosMap_ = std::move(*qosMapItr);
-    warmBootCache->programmed(qosMapItr);
-    if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-      warmBootCache->programmed(qosMapItr2);
-    }
-    return;
-  }
-  if (qosMapItr2 != warmBootCache->QosMapKey2QosMapIdEnd()) {
-    egressExpQosMap_ = std::make_unique<BcmQosMap>(
-        hw_,
-        BcmQosMap::getQosMapFlags(BcmQosMap::Type::MPLS_EGRESS),
-        qosMapItr2->second);
-    warmBootCache->programmed(qosMapItr2);
+  auto qosMapItr =
+      warmBootCache->findQosMap(qosPolicy, BcmQosMap::Type::MPLS_EGRESS);
+
+  if (qosMapItr != warmBootCache->QosMapId2QosMapEnd()) {
+    egressExpQosMap_ = std::move(qosMapItr->second);
+    warmBootCache->programmed(
+        qosPolicy->getName(), BcmQosMap::Type::MPLS_EGRESS, qosMapItr);
     return;
   }
   egressExpQosMap_ =

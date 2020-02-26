@@ -150,8 +150,7 @@ class BcmWarmBootCache {
   using MirroredAcl2Handle = boost::container::
       flat_map<std::pair<BcmAclEntryHandle, MirrorDirection>, BcmMirrorHandle>;
   using Trunks = boost::container::flat_map<AggregatePortID, bcm_trunk_t>;
-  using QosMaps = std::vector<std::unique_ptr<BcmQosMap>>;
-  using QosMapsItr = QosMaps::iterator;
+  using QosMapIds = boost::container::flat_set<int>;
 
   // MPLS action
   using Label2LabelActionMap = boost::container::
@@ -167,6 +166,10 @@ class BcmWarmBootCache {
   using QosMapKey = std::pair<std::string, BcmQosMap::Type>;
   using QosMapKey2QosMapId =
       boost::container::flat_map<QosMapKey, BcmQosPolicyHandle>;
+  using QosMapId2QosMap =
+      std::map<BcmQosPolicyHandle, std::unique_ptr<BcmQosMap>>;
+  using QosMapId2QosMapItr = typename QosMapId2QosMap::iterator;
+
   /*
    * Callbacks for traversing entries in BCM h/w tables
    */
@@ -482,17 +485,6 @@ class BcmWarmBootCache {
   }
   void programmed(TrunksItr itr);
 
-  QosMapsItr findIngressDscpMap(
-      const DscpMap::QosAttributeToTrafficClassSet& dscpToTrafficClass);
-  QosMapsItr findIngressExpMap(
-      const ExpMap::QosAttributeToTrafficClassSet& expToTrafficClassSet);
-  QosMapsItr findEgressExpMap(
-      const ExpMap::QosAttributeToTrafficClassSet& trafficClassToExpSet);
-  QosMapsItr qosMaps_end() {
-    return qosMaps_.end();
-  }
-  void programmed(QosMapsItr itr);
-
   /*
    * owner is done programming its entries remove any entries
    * from hw that had owner as their only remaining owner
@@ -566,17 +558,19 @@ class BcmWarmBootCache {
     return bcmWarmBootState_.get();
   }
 
-  using QosMapKey2QosMapIdItr = typename QosMapKey2QosMapId::const_iterator;
-  QosMapKey2QosMapIdItr findQosMap(
-      const std::string& policyName,
+  QosMapId2QosMapItr findQosMap(
+      const std::shared_ptr<QosPolicy>& qosPolicy,
       BcmQosMap::Type type);
-  void programmed(QosMapKey2QosMapIdItr itr);
-  QosMapKey2QosMapIdItr QosMapKey2QosMapIdBegin() const {
-    return qosMapKey2QosMapId_.cbegin();
+  void programmed(
+      const std::string& policyName,
+      BcmQosMap::Type type,
+      QosMapId2QosMapItr itr);
+  QosMapId2QosMapItr QosMapId2QosMapBegin() {
+    return qosMapId2QosMap_.begin();
   }
 
-  QosMapKey2QosMapIdItr QosMapKey2QosMapIdEnd() const {
-    return qosMapKey2QosMapId_.cend();
+  QosMapId2QosMapItr QosMapId2QosMapEnd() {
+    return qosMapId2QosMap_.end();
   }
 
   cfg::L2LearningMode getL2LearningMode() const {
@@ -661,9 +655,6 @@ class BcmWarmBootCache {
   // acl stats
   AclEntry2AclStat aclEntry2AclStat_;
 
-  // QoS maps
-  QosMaps qosMaps_;
-
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;
   MirroredPort2Handle mirroredPort2Handle_;
@@ -671,6 +662,7 @@ class BcmWarmBootCache {
   Label2LabelActionMap label2LabelActions_;
   std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
   QosMapKey2QosMapId qosMapKey2QosMapId_;
+  QosMapId2QosMap qosMapId2QosMap_;
 
   cfg::L2LearningMode l2LearningMode_;
 };
