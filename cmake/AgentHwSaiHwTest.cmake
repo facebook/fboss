@@ -63,7 +63,7 @@ BUILD_SAI_TEST("fake" fake_sai)
 find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
-if(${SAI_IMPL})
+if(SAI_IMPL)
   BUILD_SAI_TEST("sai_impl" ${SAI_IMPL})
   install(
     TARGETS
