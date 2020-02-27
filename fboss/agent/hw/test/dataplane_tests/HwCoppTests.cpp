@@ -43,6 +43,31 @@ class HwCoppTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  void sendUdpPkts(
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      int l4SrcPort,
+      int l4DstPort) {
+    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    // arbit
+    const auto srcIp =
+        folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          intfMac,
+          srcIp,
+          dstIpAddress,
+          l4SrcPort,
+          l4DstPort);
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    }
+  }
+
   void sendTcpPkts(
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
@@ -97,6 +122,21 @@ class HwCoppTest : public HwLinkStateDependentTest {
     } while (retryTimes-- > 0);
 
     return outPkts;
+  }
+
+  void sendUdpPktAndVerify(
+      int queueId,
+      const folly::IPAddress& dstIpAddress,
+      const int l4SrcPort,
+      const int l4DstPort,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 0) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendUdpPkts(numPktsToSend, dstIpAddress, l4SrcPort, l4DstPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
   void sendPktAndVerifyCpuQueue(
@@ -275,6 +315,25 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           getQueueOutPacketsWithRetry(
               utility::kCoppHighPriQueueId, kGetQueueOutPktsRetryTimes, 0));
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
+  auto setup = [=]() {
+    // COPP is part of initial config already
+  };
+
+  auto verify = [=]() {
+    // Intent of this test is to verify that
+    // link local ipv6 address is not looped back when sent from CPU
+    sendUdpPktAndVerify(
+        utility::kCoppMidPriQueueId,
+        folly::IPAddressV6("ff02::1"),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        1 /* send pkt count */,
+        0 /* expected rx count */);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

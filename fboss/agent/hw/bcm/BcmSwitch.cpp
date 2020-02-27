@@ -2707,14 +2707,31 @@ void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
   auto maskBytes = IPAddressV6::fetchMask(network.second);
   memcpy(&mask, &maskBytes, maskBytes.size());
 
-  // Create entry
+  bcm_pbmp_t fpPorts, maskFpPorts;
+  bcm_port_config_t pcfg;
+  bcm_port_config_t_init(&pcfg);
+  auto rv = bcm_port_config_get(unit_, &pcfg);
+  bcmCheckError(rv, "failed to get port configuration");
+
+  BCM_PBMP_CLEAR(fpPorts);
+  BCM_PBMP_CLEAR(maskFpPorts);
+  BCM_PBMP_ASSIGN(fpPorts, pcfg.port);
+  BCM_PBMP_OR(maskFpPorts, pcfg.port);
+  BCM_PBMP_OR(maskFpPorts, pcfg.cpu);
+
   bcm_field_entry_t entry;
-  auto rv = bcm_field_entry_create(unit_, gid, &entry);
+  rv = bcm_field_entry_create(unit_, gid, &entry);
   bcmCheckError(rv, "failed to create fp entry");
 
   // Qualify the destination address
   rv = bcm_field_qualify_DstIp6(unit_, entry, ip, mask);
   bcmCheckError(rv, "failed to add Dst IP field: ", network.first);
+
+  // Qualify the Inports
+  // Ensure that only front panel ports follow this acl (and cpu generated
+  // ff02 pkts are not looped back)
+  rv = bcm_field_qualify_InPorts(unit_, entry, fpPorts, maskFpPorts);
+  bcmCheckError(rv, "failed to add InPorts");
 
   // Setup CopyToCpu action on FP rule
   rv = bcm_field_action_add(unit_, entry, bcmFieldActionCopyToCpu, 0, 0);

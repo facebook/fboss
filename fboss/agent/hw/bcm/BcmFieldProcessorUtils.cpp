@@ -298,6 +298,7 @@ bcm_field_qset_t getLLMcastQset() {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstIp6);
+  BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyInPorts);
   return qset;
 }
 
