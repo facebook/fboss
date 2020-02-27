@@ -93,6 +93,10 @@ target_link_libraries(bcm
   ${OPENNSA}
 )
 
+set_target_properties(bcm PROPERTIES COMPILE_FLAGS
+  "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
+)
+
 add_library(config
   fboss/agent/hw/bcm/BcmConfig.cpp
 )
@@ -112,6 +116,10 @@ target_link_libraries(bcm_types
   ${OPENNSA}
 )
 
+set_target_properties(bcm_types PROPERTIES COMPILE_FLAGS
+  "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
+)
+
 add_library(bcm_mpls_utils
   fboss/agent/hw/bcm/BcmLabelSwitchingUtils.cpp
 )
@@ -121,4 +129,8 @@ target_link_libraries(bcm_mpls_utils
   mpls_cpp2
   label_forwarding_utils
   ${OPENNSA}
+)
+
+set_target_properties(bcm_mpls_utils PROPERTIES COMPILE_FLAGS
+  "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
 )

@@ -622,6 +622,10 @@ target_link_libraries(
     wedge100_platform_mapping
 )
 
+set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS
+  "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
+)
+
 target_link_libraries(switch_asics_old fboss_agent)
 target_link_libraries(wedge_agent fboss_agent)
 target_link_libraries(qsfp_service fboss_agent)
