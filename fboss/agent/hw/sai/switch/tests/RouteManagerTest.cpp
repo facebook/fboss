@@ -114,7 +114,7 @@ TEST_F(RouteManagerTest, addSubnetRoute) {
   RouteNextHopEntry::NextHopSet swNextHops{nh};
   RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
   auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
-  r->update(ClientID{42}, entry);
+  r->update(ClientID::INTERFACE_ROUTE, entry);
   r->setResolved(entry);
   r->setConnected();
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
@@ -303,4 +303,29 @@ TEST_F(ToMeRouteTest, toMeRoutes) {
   PortSaiId cpuPortId{saiApiTable->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::CpuPort{})};
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, toMeRoute->attributes()), cpuPortId);
+}
+
+TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
+  // Make the interface a /32
+  TestInterface& testIntf = testInterfaces.at(0);
+  testIntf.subnet.second = 32;
+
+  // Add ToMe routes
+  auto swInterface = makeInterface(testIntf);
+  auto toMeRoutes =
+      saiManagerTable->routeManager().makeInterfaceToMeRoutes(swInterface);
+  EXPECT_EQ(toMeRoutes.size(), 1);
+
+  // Add the connected /32 route
+  RouteFields<folly::IPAddressV4>::Prefix destination;
+  destination.network = testIntf.subnet.first.asV4();
+  destination.mask = testIntf.subnet.second;
+  ResolvedNextHop nh{testIntf.routerIp, InterfaceID(testIntf.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh};
+  RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  r->update(ClientID::INTERFACE_ROUTE, entry);
+  r->setResolved(entry);
+  r->setConnected();
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
 }

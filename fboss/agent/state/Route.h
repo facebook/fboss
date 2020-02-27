@@ -114,6 +114,9 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   bool isConnected() const {
     return (RouteBase::getFields()->flags & CONNECTED);
   }
+  bool isHostRoute() const {
+    return prefix().mask == prefix().network.bitCount();
+  }
   bool isDrop() const {
     return isResolved() && RouteBase::getFields()->fwd.isDrop();
   }

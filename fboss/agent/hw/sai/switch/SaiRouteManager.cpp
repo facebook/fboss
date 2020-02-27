@@ -41,22 +41,6 @@ SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
       switchId, virtualRouterHandle->virtualRouter->adapterKey(), prefix};
 }
 
-template <typename AddrT>
-void SaiRouteManager::changeRoute(
-    RouterID routerId,
-    const std::shared_ptr<Route<AddrT>>& /* oldSwRoute */,
-    const std::shared_ptr<Route<AddrT>>& newSwRoute) {
-  SaiRouteTraits::RouteEntry entry =
-      routeEntryFromSwRoute(routerId, newSwRoute);
-  auto itr = handles_.find(entry);
-  if (itr == handles_.end()) {
-    throw FbossError(
-        "Failure to update route. Route does not exist ",
-        newSwRoute->prefix().str());
-  }
-  addOrUpdateRoute(itr->second.get(), routerId, newSwRoute);
-}
-
 std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     const std::shared_ptr<Interface>& swInterface) {
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
@@ -92,6 +76,35 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     toMeRoutes.emplace_back(route);
   }
   return toMeRoutes;
+}
+
+template <typename AddrT>
+bool SaiRouteManager::validRoute(const std::shared_ptr<Route<AddrT>>& swRoute) {
+  /*
+   * For each subnet on an L3 Interface configured on the switch, FBOSS will
+   * generate two routes: a subnet route to the prefix of the subnet,
+   * necessary for routing packets to hosts in the subnet and a ToMe route
+   * for the IP address of the switch itself in the subnet.
+   *
+   * If an interface is configured with a /32 or /128 subnet, then SwSwitch
+   * will still produce a subnet route (important for recursive resolution
+   * in the RIB) but there is no meaningful subnet route from the SAI
+   * perspective: the only IP in the subnet is the switch itself.
+   *
+   * Packets that would hit this route should be punted via the ToMe route
+   * programmed alongside the router interface (via a makeInterfaceToMeRoutes
+   * call in RouterInterfaceManager). If we attempt to program the
+   * subnet route, it will have the same destination and we will overwrite the
+   * correct route. For that reason, such routes are not valid in
+   * SaiRouteManager, and must be skipped.
+   */
+  // N.B., for now, this code looks a bit silly (could just do direct return)
+  // but we use this style to suggest the possibility of future extension
+  // with other conditions for invalid routes.
+  if (swRoute->isConnected() && swRoute->isHostRoute()) {
+    return false;
+  }
+  return true;
 }
 
 template <typename AddrT>
@@ -163,6 +176,25 @@ void SaiRouteManager::addOrUpdateRoute(
 }
 
 template <typename AddrT>
+void SaiRouteManager::changeRoute(
+    RouterID routerId,
+    const std::shared_ptr<Route<AddrT>>& /* oldSwRoute */,
+    const std::shared_ptr<Route<AddrT>>& newSwRoute) {
+  SaiRouteTraits::RouteEntry entry =
+      routeEntryFromSwRoute(routerId, newSwRoute);
+  auto itr = handles_.find(entry);
+  if (itr == handles_.end()) {
+    throw FbossError(
+        "Failure to update route. Route does not exist ",
+        newSwRoute->prefix().str());
+  }
+  if (!validRoute(newSwRoute)) {
+    return;
+  }
+  addOrUpdateRoute(itr->second.get(), routerId, newSwRoute);
+}
+
+template <typename AddrT>
 void SaiRouteManager::addRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) {
@@ -172,6 +204,9 @@ void SaiRouteManager::addRoute(
     throw FbossError(
         "Failure to add route. A route already exists to ",
         swRoute->prefix().str());
+  }
+  if (!validRoute(swRoute)) {
+    return;
   }
   auto routeHandle = std::make_unique<SaiRouteHandle>();
   addOrUpdateRoute(routeHandle.get(), routerId, swRoute);
@@ -238,7 +273,7 @@ SaiRouteHandle* SaiRouteManager::getRouteHandleImpl(
   if (!itr->second.get()) {
     XLOG(FATAL) << "invalid null route for destination: "
                 << entry.destination().first << "/"
-                << entry.destination().second;
+                << static_cast<int>(entry.destination().second);
   }
   return itr->second.get();
 }

@@ -79,6 +79,9 @@ class SaiRouteManager {
       RouterID routerId,
       const std::shared_ptr<Route<AddrT>>& swRoute);
 
+  template <typename AddrT>
+  bool validRoute(const std::shared_ptr<Route<AddrT>>& swRoute);
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::F14FastMap<SaiRouteTraits::RouteEntry, std::unique_ptr<SaiRouteHandle>>
