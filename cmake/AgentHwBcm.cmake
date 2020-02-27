@@ -85,6 +85,7 @@ add_library(bcm
 )
 
 target_link_libraries(bcm
+  hw_switch_warmboot_helper
   bcm_types
   handler
   core
