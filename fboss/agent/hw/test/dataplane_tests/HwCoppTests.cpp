@@ -100,6 +100,26 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendEthPkts(
+      int numPktsToSend,
+      facebook::fboss::ETHERTYPE etherType,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          vlanId,
+          intfMac,
+          dstMac ? *dstMac : intfMac,
+          etherType,
+          payload);
+      getHwSwitch()->sendPacketOutOfPortSync(
+          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    }
+  }
+
   uint64_t getQueueOutPacketsWithRetry(
       int queueId,
       int retryTimes,
@@ -164,6 +184,28 @@ class HwCoppTest : public HwLinkStateDependentTest {
                << ", dstMac="
                << (dstMac ? (*dstMac).toString()
                           : getPlatform()->getLocalMac().toString())
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyEthPacketsCpuQueue(
+      int queueId,
+      facebook::fboss::ETHERTYPE etherType,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    static auto payload = std::vector<uint8_t>(256, 0xff);
+    payload[0] = 0x1; // sub-version of lacp packet
+    sendEthPkts(numPktsToSend, etherType, dstMac, payload);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of dstMac="
+               << (dstMac ? (*dstMac).toString()
+                          : getPlatform()->getLocalMac().toString())
+               << ". Ethertype=" << std::hex << int(etherType)
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -385,11 +427,9 @@ TEST_F(HwCoppTest, SlowProtocolsMacToHighPriQ) {
   };
 
   auto verify = [=]() {
-    sendPktAndVerifyCpuQueue(
+    sendPktAndVerifyEthPacketsCpuQueue(
         utility::kCoppHighPriQueueId,
-        folly::IPAddressV6("2::2"),
-        utility::kNonSpecialPort1,
-        utility::kNonSpecialPort2,
+        facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
         LACPDU::kSlowProtocolsDstMac());
   };
 
