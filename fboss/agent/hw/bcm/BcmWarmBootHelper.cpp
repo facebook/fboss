@@ -71,9 +71,7 @@ bool removeFile(const string& filename) {
 
 namespace facebook::fboss {
 
-DiscBackedBcmWarmBootHelper::DiscBackedBcmWarmBootHelper(
-    int unit,
-    std::string warmBootDir)
+BcmWarmBootHelper::BcmWarmBootHelper(int unit, std::string warmBootDir)
     : unit_(unit), warmBootDir_(warmBootDir) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
@@ -95,7 +93,7 @@ DiscBackedBcmWarmBootHelper::DiscBackedBcmWarmBootHelper(
   }
 }
 
-DiscBackedBcmWarmBootHelper::~DiscBackedBcmWarmBootHelper() {
+BcmWarmBootHelper::~BcmWarmBootHelper() {
   if (warmBootFd_ > 0) {
     int rv = close(warmBootFd_);
     if (rv < 0) {
@@ -106,31 +104,31 @@ DiscBackedBcmWarmBootHelper::~DiscBackedBcmWarmBootHelper() {
   }
 }
 
-std::string DiscBackedBcmWarmBootHelper::warmBootSwitchStateFile() const {
+std::string BcmWarmBootHelper::warmBootSwitchStateFile() const {
   return folly::to<string>(warmBootDir_, "/", FLAGS_switch_state_file);
 }
 
-std::string DiscBackedBcmWarmBootHelper::warmBootFlag() const {
+std::string BcmWarmBootHelper::warmBootFlag() const {
   return folly::to<string>(warmBootDir_, "/", wbFlagPrefix, unit_);
 }
 
-std::string DiscBackedBcmWarmBootHelper::warmBootDataPath() const {
+std::string BcmWarmBootHelper::warmBootDataPath() const {
   return folly::to<string>(warmBootDir_, "/", wbDataPrefix, unit_);
 }
 
-std::string DiscBackedBcmWarmBootHelper::forceColdBootOnceFlag() const {
+std::string BcmWarmBootHelper::forceColdBootOnceFlag() const {
   return folly::to<string>(warmBootDir_, "/", forceColdBootPrefix, unit_);
 }
 
-std::string DiscBackedBcmWarmBootHelper::startupSdkDumpFile() const {
+std::string BcmWarmBootHelper::startupSdkDumpFile() const {
   return folly::to<string>(warmBootDir_, "/", startupDumpPrefix, unit_);
 }
 
-std::string DiscBackedBcmWarmBootHelper::shutdownSdkDumpFile() const {
+std::string BcmWarmBootHelper::shutdownSdkDumpFile() const {
   return folly::to<string>(warmBootDir_, "/", shutdownDumpPrefix, unit_);
 }
 
-void DiscBackedBcmWarmBootHelper::setCanWarmBoot() {
+void BcmWarmBootHelper::setCanWarmBoot() {
   auto wbFlag = warmBootFlag();
   auto updateFd = creat(wbFlag.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (updateFd < 0) {
@@ -141,7 +139,7 @@ void DiscBackedBcmWarmBootHelper::setCanWarmBoot() {
   XLOG(DBG1) << "Wrote can warm boot flag: " << wbFlag;
 }
 
-bool DiscBackedBcmWarmBootHelper::checkAndClearWarmBootFlags() {
+bool BcmWarmBootHelper::checkAndClearWarmBootFlags() {
   // Return true if coldBootOnceFile does not exist and
   // canWarmBoot file exists
   bool canWarmBoot = removeFile(warmBootFlag());
@@ -149,14 +147,13 @@ bool DiscBackedBcmWarmBootHelper::checkAndClearWarmBootFlags() {
   return !forceColdBoot && canWarmBoot;
 }
 
-bool DiscBackedBcmWarmBootHelper::storeWarmBootState(
-    const folly::dynamic& switchState) {
+bool BcmWarmBootHelper::storeWarmBootState(const folly::dynamic& switchState) {
   warmBootStateWritten_ =
       dumpStateToFile(warmBootSwitchStateFile(), switchState);
   return warmBootStateWritten_;
 }
 
-folly::dynamic DiscBackedBcmWarmBootHelper::getWarmBootState() const {
+folly::dynamic BcmWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
   auto ret = folly::readFile(warmBootSwitchStateFile().c_str(), warmBootJson);
   sysCheckError(
@@ -201,7 +198,7 @@ int BcmWarmBootHelper::warmBootWriteCallback(
   }
 }
 
-void DiscBackedBcmWarmBootHelper::setupWarmBootFile() {
+void BcmWarmBootHelper::setupWarmBootFile() {
   auto warmBootPath = warmBootDataPath();
   warmBootFd_ = open(warmBootPath.c_str(), O_RDWR | O_CREAT, 0600);
   if (warmBootFd_ < 0) {
@@ -236,10 +233,7 @@ void DiscBackedBcmWarmBootHelper::setupWarmBootFile() {
       rv, "unable to set size for warm boot storage for unit ", unit_);
 }
 
-void DiscBackedBcmWarmBootHelper::warmBootRead(
-    uint8_t* buf,
-    int offset,
-    int nbytes) {
+void BcmWarmBootHelper::warmBootRead(uint8_t* buf, int offset, int nbytes) {
   if (warmBootFd_ < 0) {
     // This shouldn't ever happen.  We only register the warm boot
     // callbacks after opening the fd.
@@ -263,7 +257,7 @@ void DiscBackedBcmWarmBootHelper::warmBootRead(
   }
 }
 
-void DiscBackedBcmWarmBootHelper::warmBootWrite(
+void BcmWarmBootHelper::warmBootWrite(
     const uint8_t* buf,
     int offset,
     int nbytes) {
