@@ -70,9 +70,11 @@ class SffModule : public QsfpModule {
   // referenced information, including vendor identifiers.  There are
   // three other optional pages;  the third provides a bunch of
   // alarm and warning thresholds which we are interested in.
-  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page0_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page3_[MAX_QSFP_PAGE_SIZE];
+  // This needs to be initialized to 0 because in software simulated
+  // environment this should not contain any arbitrary values
+  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE] = {0};
+  uint8_t page0_[MAX_QSFP_PAGE_SIZE] = {0};
+  uint8_t page3_[MAX_QSFP_PAGE_SIZE] = {0};
 
   /*
    * This function returns a pointer to the value in the static cached
