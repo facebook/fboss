@@ -177,6 +177,15 @@ std::string DiagShell::getPrompt() const {
   return repl_->getPrompt();
 }
 
+std::string DiagShell::start(
+    apache::thrift::StreamPublisher<std::string>&& publisher) {
+  setPublisher(std::move(publisher));
+  // We connect to an existing shell (either for the first time or especially
+  // on re-connect) so it is necessary to explicitly send the first prompt
+  // to the client
+  return getPrompt();
+}
+
 DiagShell::~DiagShell() noexcept {
   if (producerThread_) {
     producerThread_->detach();
@@ -184,6 +193,11 @@ DiagShell::~DiagShell() noexcept {
 }
 
 void DiagShell::consumeInput(std::unique_ptr<std::string> input) {
+  if (!hasPublisher()) {
+    std::string msg = "No diag shell connected!";
+    XLOG(WARNING) << msg;
+    throw FbossError(msg);
+  }
   std::size_t ret =
       folly::writeFull(ptym_->file.fd(), input->c_str(), input->size() + 1);
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");

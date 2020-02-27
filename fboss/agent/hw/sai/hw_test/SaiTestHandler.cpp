@@ -7,20 +7,22 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/sai/switch/SaiHandler.h"
+#include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/StreamPublisher.h>
 
+using folly::fbstring;
+
 namespace facebook::fboss {
 
-SaiHandler::SaiHandler(SwSwitch* sw, const SaiSwitch* hw)
-    : ThriftHandler(sw), hw_(hw), diagShell_(hw) {}
+SaiTestHandler::SaiTestHandler(const SaiSwitch* hw)
+    : FacebookBase2("FBOSS_SAI_TEST"), hw_(hw), diagShell_(hw) {}
 
-SaiHandler::~SaiHandler() {}
+SaiTestHandler::~SaiTestHandler() {}
 
 apache::thrift::ResponseAndServerStream<std::string, std::string>
-SaiHandler::startDiagShell() {
+SaiTestHandler::startDiagShell() {
   XLOG(INFO) << "New diag shell session connecting";
   if (diagShell_.hasPublisher()) {
     throw FbossError("Diag shell already connected");
@@ -29,12 +31,13 @@ SaiHandler::startDiagShell() {
     XLOG(INFO) << "Diag shell session disconnected";
     diagShell_.resetPublisher();
   });
+
   std::string firstPrompt =
       diagShell_.start(std::move(streamAndPublisher.second));
   return {firstPrompt, std::move(streamAndPublisher.first)};
 }
 
-void SaiHandler::produceDiagShellInput(
+void SaiTestHandler::produceDiagShellInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> /* client */) {
   diagShell_.consumeInput(std::move(input));

@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/hw_test/SaiLinkStateToggler.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
-#include "fboss/agent/hw/sai/switch/SaiHandler.h"
+#include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
@@ -57,7 +57,7 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
 std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     const SaiSwitch* hwSwitch) {
   return std::make_unique<std::thread>([hwSwitch] {
-    auto handler = std::make_shared<SaiHandler>(nullptr, hwSwitch);
+    auto handler = std::make_shared<SaiTestHandler>(hwSwitch);
     folly::EventBase eventBase;
     auto server = setupThriftServer(
         eventBase,

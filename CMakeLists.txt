@@ -231,6 +231,16 @@ add_fbthrift_cpp_library(
     ctrl_cpp2
 )
 
+add_fbthrift_cpp_library(
+  sai_test_ctrl_cpp2
+  fboss/agent/hw/sai/hw_test/sai_test_ctrl.thrift
+  SERVICES
+    SaiTestCtrl
+  DEPENDS
+    ctrl_cpp2
+    sai_ctrl_cpp2
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})

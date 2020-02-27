@@ -66,6 +66,8 @@ class DiagShell {
 
   std::string getPrompt() const;
 
+  std::string start(apache::thrift::StreamPublisher<std::string>&& publisher);
+
  private:
   void produceOutput();
   std::unique_ptr<Repl> makeRepl() const;

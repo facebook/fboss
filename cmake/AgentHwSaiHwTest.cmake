@@ -3,6 +3,15 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(thrift_test_handler
+  fboss/agent/hw/sai/hw_test/SaiTestHandler.cpp
+)
+
+target_link_libraries(thrift_test_handler
+  diag_shell
+  sai_test_ctrl_cpp2
+)
+
 add_library(sai_switch_ensemble
   fboss/agent/hw/sai/hw_test/HwSwitchEnsembleFactory.cpp
   fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.cpp
@@ -13,10 +22,10 @@ target_link_libraries(sai_switch_ensemble
   core
   setup_thrift
   sai_switch
-  thrift_handler
+  thrift_test_handler
   hw_switch_ensemble
   sai_platform
-  sai_ctrl_cpp2
+  sai_test_ctrl_cpp2
 )
 
 set_target_properties(sai_switch_ensemble PROPERTIES COMPILE_FLAGS
