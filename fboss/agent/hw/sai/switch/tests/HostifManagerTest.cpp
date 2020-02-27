@@ -25,7 +25,7 @@ TEST_F(HostifManagerTest, createHostifTrap) {
   uint32_t queueId = 4;
   auto trapType = cfg::PacketRxReason::ARP;
   HostifTrapSaiId trapId =
-      saiManagerTable->hostifManager().addHostifTrap(trapType, queueId);
+      saiManagerTable->hostifManager().addHostifTrap(trapType, queueId, 1);
   auto trapTypeExpected = saiApiTable->hostifApi().getAttribute(
       trapId, SaiHostifTrapTraits::Attributes::TrapType{});
   auto trapTypeCfg = SaiHostifManager::packetReasonToHostifTrap(trapType);
@@ -37,8 +37,8 @@ TEST_F(HostifManagerTest, sharedHostifTrapGroup) {
   auto trapType1 = cfg::PacketRxReason::ARP;
   auto trapType2 = cfg::PacketRxReason::DHCP;
   auto& hostifManager = saiManagerTable->hostifManager();
-  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId);
-  HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId);
+  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId, 1);
+  HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId, 2);
   auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
       trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
   auto trapGroup2 = saiApiTable->hostifApi().getAttribute(
@@ -56,8 +56,8 @@ TEST_F(HostifManagerTest, removeHostifTrap) {
   auto trapType1 = cfg::PacketRxReason::ARP;
   auto trapType2 = cfg::PacketRxReason::DHCP;
   // create two traps using the same queue
-  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId);
-  HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId);
+  HostifTrapSaiId trapId1 = hostifManager.addHostifTrap(trapType1, queueId, 1);
+  HostifTrapSaiId trapId2 = hostifManager.addHostifTrap(trapType2, queueId, 2);
   auto trapGroup1 = saiApiTable->hostifApi().getAttribute(
       trapId1, SaiHostifTrapTraits::Attributes::TrapGroup{});
   // remove one of them

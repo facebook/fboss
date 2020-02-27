@@ -16,8 +16,8 @@ uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
   return 0;
 }
 
-std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
-  return std::map<cfg::PacketRxReason, int16_t>{};
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues() {
+  return std::vector<cfg::PacketRxReasonToQueue>{};
 }
 
 } // namespace facebook::fboss::utility

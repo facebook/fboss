@@ -53,6 +53,6 @@ void setDefaultCpuTrafficPolicyConfig(
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
 uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
-std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues();
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues();
 
 } // namespace facebook::fboss::utility

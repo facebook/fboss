@@ -39,16 +39,23 @@ class SaiHostifManager {
  public:
   explicit SaiHostifManager(SaiManagerTable* managerTable);
 
-  HostifTrapSaiId addHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
+  HostifTrapSaiId addHostifTrap(
+      cfg::PacketRxReason trapId,
+      uint32_t queueId,
+      uint16_t priority);
   void removeHostifTrap(cfg::PacketRxReason trapId);
-  void changeHostifTrap(cfg::PacketRxReason trapId, uint32_t queueId);
+  void changeHostifTrap(
+      cfg::PacketRxReason trapId,
+      uint32_t queueId,
+      uint16_t priority);
   static sai_hostif_trap_type_t packetReasonToHostifTrap(
       cfg::PacketRxReason reason);
   static cfg::PacketRxReason hostifTrapToPacketReason(
       sai_hostif_trap_type_t trapType);
   static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(
       cfg::PacketRxReason trapId,
-      HostifTrapGroupSaiId trapGroupId);
+      HostifTrapGroupSaiId trapGroupId,
+      uint16_t priority);
   void processHostifDelta(const StateDelta& delta);
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(

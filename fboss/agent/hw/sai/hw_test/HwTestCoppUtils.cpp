@@ -30,14 +30,23 @@ uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
                                                            : 0;
 }
 
-std::map<cfg::PacketRxReason, int16_t> getCoppRxReasonToQueues() {
-  return std::map<cfg::PacketRxReason, int16_t>{
-      {cfg::PacketRxReason::BGP, kCoppHighPriQueueId},
-      {cfg::PacketRxReason::BGPV6, kCoppHighPriQueueId},
-      {cfg::PacketRxReason::ARP, kCoppHighPriQueueId},
-      {cfg::PacketRxReason::ARP_RESPONSE, kCoppHighPriQueueId},
-      {cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId}};
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues() {
+  std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
+  std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
+      rxReasonToQueueMappings = {
+          std::pair(cfg::PacketRxReason::ARP, kCoppHighPriQueueId),
+          std::pair(cfg::PacketRxReason::ARP_RESPONSE, kCoppHighPriQueueId),
+          std::pair(cfg::PacketRxReason::BGP, kCoppHighPriQueueId),
+          std::pair(cfg::PacketRxReason::BGPV6, kCoppHighPriQueueId),
+          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
+  for (auto rxEntry : rxReasonToQueueMappings) {
+    auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
+    rxReasonToQueue.set_rxReason(rxEntry.first);
+    rxReasonToQueue.set_queueId(rxEntry.second);
+    rxReasonToQueues.push_back(rxReasonToQueue);
+  }
+  return rxReasonToQueues;
 }
-} // namespace utility
 
+} // namespace utility
 } // namespace facebook::fboss

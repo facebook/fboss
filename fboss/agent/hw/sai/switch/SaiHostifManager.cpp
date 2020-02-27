@@ -73,15 +73,13 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
 SaiHostifTrapTraits::CreateAttributes
 SaiHostifManager::makeHostifTrapAttributes(
     cfg::PacketRxReason trapId,
-    HostifTrapGroupSaiId trapGroupId) {
+    HostifTrapGroupSaiId trapGroupId,
+    uint16_t priority) {
   SaiHostifTrapTraits::Attributes::PacketAction packetAction{
       SAI_PACKET_ACTION_TRAP};
   SaiHostifTrapTraits::Attributes::TrapType trapType{
       packetReasonToHostifTrap(trapId)};
-  /*
-   * TODO: Setting it to max priority to trap ARP packets.
-   */
-  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{255};
+  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{priority};
   SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
 
   return SaiHostifTrapTraits::CreateAttributes{
@@ -98,7 +96,8 @@ std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
 
 HostifTrapSaiId SaiHostifManager::addHostifTrap(
     cfg::PacketRxReason trapId,
-    uint32_t queueId) {
+    uint32_t queueId,
+    uint16_t priority) {
   if (handles_.find(trapId) != handles_.end()) {
     throw FbossError(
         "Attempted to re-add existing trap for rx reason: ",
@@ -106,7 +105,7 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
   }
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
   auto attributes =
-      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey());
+      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey(), priority);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
   auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
@@ -130,7 +129,8 @@ void SaiHostifManager::removeHostifTrap(cfg::PacketRxReason trapId) {
 
 void SaiHostifManager::changeHostifTrap(
     cfg::PacketRxReason trapId,
-    uint32_t queueId) {
+    uint32_t queueId,
+    uint16_t priority) {
   auto handleItr = handles_.find(trapId);
   if (handleItr == handles_.end()) {
     throw FbossError(
@@ -139,7 +139,7 @@ void SaiHostifManager::changeHostifTrap(
   }
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
   auto attributes =
-      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey());
+      makeHostifTrapAttributes(trapId, hostifTrapGroup->adapterKey(), priority);
   SaiHostifTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifTrap, TrapType, attributes);
   auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
@@ -153,36 +153,51 @@ void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
   auto controlPlaneDelta = delta.getControlPlaneDelta();
   auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
   auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
-
-  // RxReasonToQueue is a flat_map, so the iterator is sorted. We can rely on
-  // that fact to implement handling changes in one pass.
-  auto oldItr = oldRxReasonToQueue.begin();
-  auto newItr = newRxReasonToQueue.begin();
-  while (oldItr != oldRxReasonToQueue.end() ||
-         newItr != newRxReasonToQueue.end()) {
-    if (oldItr == oldRxReasonToQueue.end()) {
-      // no more old reasons, all new reasons need to be added
-      addHostifTrap(newItr->rxReason, newItr->queueId);
-      ++newItr;
-    } else if (newItr == newRxReasonToQueue.end()) {
-      // no more new reasons, all old reasons need to be removed
-      removeHostifTrap(oldItr->rxReason);
-      ++oldItr;
-    } else if (oldItr->rxReason < newItr->rxReason) {
-      // current old is not found in new, needs to be removed
-      removeHostifTrap(oldItr->rxReason);
-      ++oldItr;
-    } else if (newItr->rxReason < oldItr->rxReason) {
-      // current new is not found in old, needs to be added
-      addHostifTrap(newItr->rxReason, newItr->queueId);
-      ++newItr;
-    } else {
-      // rx reasons are equal -- check if the queue changed!
-      if (oldItr->queueId != newItr->queueId) {
-        changeHostifTrap(newItr->rxReason, newItr->queueId);
+  /*
+   * RxReasonToQueue is an ordered list and the enum values dicatates the
+   * priority of the traps. Lower the enum value, lower the priority.
+   */
+  for (auto index = 0; index < newRxReasonToQueue.size(); index++) {
+    auto& newRxReasonEntry = newRxReasonToQueue[index];
+    auto oldRxReasonEntry = std::find_if(
+        oldRxReasonToQueue.begin(),
+        oldRxReasonToQueue.end(),
+        [newRxReasonEntry](const auto& rxReasonEntry) {
+          return rxReasonEntry.rxReason == newRxReasonEntry.rxReason;
+        });
+    /*
+     * Lower index must have higher priority.
+     */
+    auto priority = newRxReasonToQueue.size() - index;
+    CHECK_GT(priority, 0);
+    if (oldRxReasonEntry != oldRxReasonToQueue.end()) {
+      /*
+       * If old reason exists and does not match the index, priority of the trap
+       * group needs to be updated.
+       */
+      auto oldIndex =
+          std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
+      if (oldIndex != index ||
+          oldRxReasonEntry->queueId != newRxReasonEntry.queueId) {
+        changeHostifTrap(
+            newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
       }
-      ++oldItr;
-      ++newItr;
+    } else {
+      addHostifTrap(
+          newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
+    }
+  }
+
+  for (auto index = 0; index < oldRxReasonToQueue.size(); index++) {
+    auto& oldRxReasonEntry = oldRxReasonToQueue[index];
+    auto newRxReasonEntry = std::find_if(
+        newRxReasonToQueue.begin(),
+        newRxReasonToQueue.end(),
+        [&](const auto& rxReasonEntry) {
+          return rxReasonEntry.rxReason == oldRxReasonEntry.rxReason;
+        });
+    if (newRxReasonEntry == newRxReasonToQueue.end()) {
+      removeHostifTrap(oldRxReasonEntry.rxReason);
     }
   }
 }
