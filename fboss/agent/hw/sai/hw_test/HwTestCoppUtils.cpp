@@ -38,7 +38,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues() {
           std::pair(cfg::PacketRxReason::ARP_RESPONSE, kCoppHighPriQueueId),
           std::pair(cfg::PacketRxReason::BGP, kCoppHighPriQueueId),
           std::pair(cfg::PacketRxReason::BGPV6, kCoppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
+          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId)};
   for (auto rxEntry : rxReasonToQueueMappings) {
     auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
     rxReasonToQueue.set_rxReason(rxEntry.first);
