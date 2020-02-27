@@ -41,6 +41,8 @@ sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
       return SAI_HOSTIF_TRAP_TYPE_BGP;
     case cfg::PacketRxReason::BGPV6:
       return SAI_HOSTIF_TRAP_TYPE_BGPV6;
+    case cfg::PacketRxReason::LACP:
+      return SAI_HOSTIF_TRAP_TYPE_LACP;
     default:
       throw FbossError("invalid packet reason: ", reason);
   }
@@ -65,6 +67,8 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
       return cfg::PacketRxReason::BGP;
     case SAI_HOSTIF_TRAP_TYPE_BGPV6:
       return cfg::PacketRxReason::BGPV6;
+    case SAI_HOSTIF_TRAP_TYPE_LACP:
+      return cfg::PacketRxReason::LACP;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }

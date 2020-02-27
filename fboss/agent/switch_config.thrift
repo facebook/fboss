@@ -601,6 +601,7 @@ enum PacketRxReason {
   ARP_RESPONSE = 10 // ARP RESPONSE
   BGP          = 11 // V4 BGP
   BGPV6        = 12 // V6 BGP
+  LACP         = 13 // LACP, Slow Protocol
 }
 
 enum PortLoopbackMode {
