@@ -10,7 +10,6 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <chrono>
 
 #include <folly/FileUtil.h>
 #include <folly/json.h>
@@ -29,11 +28,6 @@ extern "C" {
 using std::string;
 
 using facebook::fboss::BcmAPI;
-
-using std::chrono::duration;
-using std::chrono::duration_cast;
-using std::chrono::seconds;
-using std::chrono::steady_clock;
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 DEFINE_string(
