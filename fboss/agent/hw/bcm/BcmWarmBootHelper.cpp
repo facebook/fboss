@@ -90,6 +90,7 @@ BcmWarmBootHelper::BcmWarmBootHelper(int unit, std::string warmBootDir)
     XLOG(DBG1) << "Will attempt " << bootType << " boot";
 
     setupWarmBootFile();
+    setupSdkWarmBoot();
   }
 }
 
@@ -204,7 +205,9 @@ void BcmWarmBootHelper::setupWarmBootFile() {
   if (warmBootFd_ < 0) {
     throw SysError(errno, "failed to open warm boot data file ", warmBootPath);
   }
+}
 
+void BcmWarmBootHelper::setupSdkWarmBoot() {
   auto rv = soc_stable_set(unit_, BCM_SWITCH_STABLE_APPLICATION, 0);
   bcmCheckError(rv, "unable to configure for warm boot for unit ", unit_);
 

@@ -47,6 +47,7 @@ class BcmWarmBootHelper {
   std::string warmBootSwitchStateFile() const;
 
   void setupWarmBootFile();
+  void setupSdkWarmBoot();
 
   /*
    * Check to see if we can attempt a warm boot.
