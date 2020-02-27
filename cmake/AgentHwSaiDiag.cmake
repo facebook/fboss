@@ -50,3 +50,14 @@ set_target_properties(sai_repl PROPERTIES COMPILE_FLAGS
   -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
+
+add_executable(diag_shell_client
+  fboss/agent/hw/sai/diag/DiagShellClient.cpp
+)
+
+target_link_libraries(diag_shell_client
+  sai_ctrl_cpp2
+  Folly::folly
+)
+
+install(TARGETS diag_shell_client)

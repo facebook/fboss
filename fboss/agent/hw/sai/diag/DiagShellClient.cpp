@@ -8,7 +8,6 @@
  *
  */
 
-#include <servicerouter/client/cpp2/ServiceRouter.h>
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrlAsyncClient.h"
 
 #include <folly/Exception.h>
@@ -23,6 +22,7 @@
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
+#include <iostream>
 #include <thread>
 
 namespace {
