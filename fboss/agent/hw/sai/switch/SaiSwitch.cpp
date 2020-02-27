@@ -170,6 +170,21 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
+  /*
+   Callback threads need to be stopped without holding the lock.
+   Reason being that these threads themselves acquire the mutex while
+   doing their work. So an example deadlock scenario would be
+    (T0 = main event base,T1 = asyncTxEventBase)
+    T0: SaiSwitch::sendPacketSwitchedAsync()
+    T0: enqueue a lambda on asyncTxEventBase_;
+    T0: receive shutdown signal, take mutex, call gracefulExitLocked
+    T1: lambda runs, blocks trying to lock the mutex
+    T0: in stopThreadsLocked, call asyncTxEventBase_.terminateLoopSoon
+    T1: (still blocked on the mutex, can't make progress)
+    T0: call asyncTxThread_->join, block on T1
+    T1: (still blocked on the mutex)
+    which is a deadlock.
+  */
   stopNonCallbackThreads();
 }
 
