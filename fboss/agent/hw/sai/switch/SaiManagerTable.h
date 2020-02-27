@@ -18,6 +18,7 @@ class SaiBridgeManager;
 class SaiFdbManager;
 class SaiHashManager;
 class SaiHostifManager;
+class SaiInSegEntryManager;
 class SaiNeighborManager;
 class SaiNextHopManager;
 class SaiNextHopGroupManager;
@@ -84,6 +85,9 @@ class SaiManagerTable {
   SaiVlanManager& vlanManager();
   const SaiVlanManager& vlanManager() const;
 
+  SaiInSegEntryManager& inSegEntryManager();
+  const SaiInSegEntryManager& inSegEntryManager() const;
+
  private:
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiFdbManager> fdbManager_;
@@ -100,6 +104,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiSwitchManager> switchManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;
+  std::unique_ptr<SaiInSegEntryManager> inSegEntryManager_;
 };
 
 } // namespace facebook::fboss

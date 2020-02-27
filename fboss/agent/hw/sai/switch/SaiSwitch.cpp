@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -394,6 +395,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
   managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
   managerTableLocked(lock)->routeManager().processRouteDelta(delta);
   managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
+  managerTableLocked(lock)->inSegEntryManager().processInSegEntryDelta(
+      delta.getLabelForwardingInformationBaseDelta());
   managerTableLocked(lock)->switchManager().processLoadBalancerDelta(delta);
   return delta.newState();
 }

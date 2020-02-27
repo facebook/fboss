@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -56,6 +57,7 @@ void SaiManagerTable::createSaiTableManagers(
   nextHopGroupManager_ =
       std::make_unique<SaiNextHopGroupManager>(this, platform);
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
+  inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -85,6 +87,8 @@ SaiManagerTable::~SaiManagerTable() {
   switchManager_->resetHashes();
   hashManager_.reset();
   hostifManager_.reset();
+  inSegEntryManager_
+      .reset(); // TODO(pshaikh): put this in correct place in the order
   switchManager_.reset();
 }
 
@@ -193,6 +197,14 @@ SaiVlanManager& SaiManagerTable::vlanManager() {
 }
 const SaiVlanManager& SaiManagerTable::vlanManager() const {
   return *vlanManager_;
+}
+
+SaiInSegEntryManager& SaiManagerTable::inSegEntryManager() {
+  return *inSegEntryManager_;
+}
+
+const SaiInSegEntryManager& SaiManagerTable::inSegEntryManager() const {
+  return *inSegEntryManager_;
 }
 
 } // namespace facebook::fboss
