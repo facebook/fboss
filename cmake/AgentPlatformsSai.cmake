@@ -24,6 +24,7 @@ target_link_libraries(sai_platform
   sai_switch
   thrift_handler
   switch_asics
+  hw_switch_warmboot_helper
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS

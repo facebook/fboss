@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPort.h"
@@ -151,4 +153,11 @@ sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }
 
+HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
+  if (!wbHelper_) {
+    wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
+        0, getWarmBootDir(), "sai_adaptor_state_");
+  }
+  return wbHelper_.get();
+}
 } // namespace facebook::fboss

@@ -37,6 +37,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/logging/xlog.h>
@@ -186,6 +187,15 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
     which is a deadlock.
   */
   stopNonCallbackThreads();
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  gracefulExitLocked(switchState, lock);
+}
+
+void SaiSwitch::gracefulExitLocked(
+    folly::dynamic& switchState,
+    const std::lock_guard<std::mutex>& lock) {
+  platform_->getWarmBootHelper()->storeWarmBootState(switchState);
+  platform_->getWarmBootHelper()->setCanWarmBoot();
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {

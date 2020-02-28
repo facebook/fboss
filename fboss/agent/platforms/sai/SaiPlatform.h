@@ -28,6 +28,7 @@ extern "C" {
 namespace facebook::fboss {
 
 class SaiSwitch;
+class HwSwitchWarmBootHelper;
 
 class SaiPlatform : public Platform {
  public:
@@ -52,6 +53,7 @@ class SaiPlatform : public Platform {
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
   virtual bool getObjectKeysSupported() const = 0;
+  HwSwitchWarmBootHelper* getWarmBootHelper();
 
   /*
    * Get ids of all controlling ports
@@ -67,6 +69,7 @@ class SaiPlatform : public Platform {
   void initSaiProfileValues();
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
+  std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
 };
 
 } // namespace facebook::fboss

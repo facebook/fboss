@@ -35,6 +35,7 @@ target_link_libraries(sai_switch
   hw_fb303_stats
   hw_cpu_fb303_stats
   hw_port_fb303_stats
+  hw_switch_warmboot_helper
   sai_api
   sai_store
   ref_map

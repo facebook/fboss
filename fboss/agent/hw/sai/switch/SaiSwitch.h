@@ -217,6 +217,9 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
   SaiManagerTable* managerTableLocked(const std::lock_guard<std::mutex>& lock);
 
+  void gracefulExitLocked(
+      folly::dynamic& switchState,
+      const std::lock_guard<std::mutex>& lock);
   void initRx(const std::lock_guard<std::mutex>& lock);
   void initAsyncTx(const std::lock_guard<std::mutex>& lock);
 
