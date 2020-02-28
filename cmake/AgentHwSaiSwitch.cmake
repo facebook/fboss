@@ -40,6 +40,7 @@ target_link_libraries(sai_switch
   sai_store
   ref_map
   Folly::folly
+  -Wl,--unresolved-symbols=report-all
 )
 
 set_target_properties(sai_switch PROPERTIES COMPILE_FLAGS

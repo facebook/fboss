@@ -45,9 +45,9 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   )
 
   target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
-    ${SAI_IMPL_ARG}
     # --whole-archive is needed for gtest to find these tests
     -Wl,--whole-archive
+    ${SAI_IMPL_ARG}
     sai_switch_ensemble
     hw_switch_test
     hw_test_main
