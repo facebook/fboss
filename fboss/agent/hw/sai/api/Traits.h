@@ -8,6 +8,12 @@
  *
  */
 #pragma once
+
+#include <folly/IPAddress.h>
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+
 #include <type_traits>
 #include <variant>
 
