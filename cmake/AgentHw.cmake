@@ -29,6 +29,11 @@ add_library(hw_switch_warmboot_helper
   fboss/agent/hw/HwSwitchWarmBootHelper.cpp
 )
 
+target_link_libraries(hw_switch_warmboot_helper
+  utils
+  Folly::folly
+)
+
 target_link_libraries(hw_fb303_stats
   counter_utils
   fb303::fb303
@@ -46,10 +51,5 @@ target_link_libraries(hw_cpu_fb303_stats
   counter_utils
   FBThrift::thriftcpp2
   hardware_stats_cpp2
-  Folly::folly
-)
-
-target_link_libraries(hw_switch_warmboot_helper
-  fboss_types
   Folly::folly
 )
