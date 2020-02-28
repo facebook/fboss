@@ -8,17 +8,26 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
+
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/container/flat_map.hpp>
+
+extern "C" {
+#include <bcm/field.h>
+}
 
 namespace facebook::fboss {
 
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
+
+using facebook::fboss::bcmCheckError;
 
 BcmStatUpdater::BcmStatUpdater(BcmSwitch* hw, bool isAlpmEnabled)
     : hw_(hw),
@@ -139,6 +148,19 @@ void BcmStatUpdater::refreshAclStats() {
     }
     toBeAddedAclStats_.pop();
   }
+}
+
+void BcmStatUpdater::updateAclStat(
+    int unit,
+    BcmAclStatHandle handle,
+    cfg::CounterType counterType,
+    std::chrono::seconds now,
+    MonotonicCounter* counter) {
+  uint64_t value;
+  bcm_field_stat_t type = utility::cfgCounterTypeToBcmCounterType(counterType);
+  auto rv = bcm_field_stat_get(unit, handle, type, &value);
+  bcmCheckError(rv, "Failed to update stat=", handle);
+  counter->updateValue(now, value);
 }
 
 } // namespace facebook::fboss

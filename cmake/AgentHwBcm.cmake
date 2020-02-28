@@ -59,6 +59,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmSwitch.cpp
   fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
   fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
+  fboss/agent/hw/bcm/BcmTableStats.cpp
   fboss/agent/hw/bcm/BcmTrunk.cpp
   fboss/agent/hw/bcm/BcmTrunkStats.cpp
   fboss/agent/hw/bcm/BcmTrunkTable.cpp
@@ -79,8 +80,6 @@ add_library(bcm
   fboss/agent/hw/bcm/oss/BcmAPI.cpp
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
   fboss/agent/hw/bcm/oss/BcmPort.cpp
-  fboss/agent/hw/bcm/oss/BcmStatUpdater.cpp
-  fboss/agent/hw/bcm/oss/BcmTableStats.cpp
   fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
 )
 
