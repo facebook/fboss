@@ -140,7 +140,7 @@ struct IsSaiEntryStruct : public std::false_type {};
 
 template <typename SaiObjectTraits>
 struct AdapterKeyIsEntryStruct
-    : public IsSaiEntryStruct<typename SaiObjectTraits::AdapterHostKey> {};
+    : public IsSaiEntryStruct<typename SaiObjectTraits::AdapterKey> {};
 
 template <typename SaiObjectTraits>
 struct AdapterKeyIsObjectId
