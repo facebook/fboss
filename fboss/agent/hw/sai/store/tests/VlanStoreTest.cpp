@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
+#include <folly/json.h>
+
 using namespace facebook::fboss;
 
 class VlanStoreTest : public SaiStoreTest {
@@ -95,6 +97,23 @@ TEST_F(VlanStoreTest, serDeserAdapterKeys) {
   auto vlanKeys =
       detail::SaiObjectStore<SaiVlanTraits>::adapterKeysFromFollyDynamic(
           store.adapterKeysFollyDynamic());
+
+  EXPECT_EQ(
+      vlanKeys,
+      (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId, vlanSaiId2}));
+}
+
+TEST_F(VlanStoreTest, serDeserStore) {
+  auto vlanSaiId = createVlan(42);
+  auto vlanSaiId2 = createVlan(400);
+
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  auto& store = s.get<SaiVlanTraits>();
+  auto vlanKeys =
+      detail::SaiObjectStore<SaiVlanTraits>::adapterKeysFromFollyDynamic(
+          json[saiApiTypeToString(VlanApi::ApiType)]);
 
   EXPECT_EQ(
       vlanKeys,

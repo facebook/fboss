@@ -17,6 +17,8 @@
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/lib/RefMap.h"
 
+#include <folly/dynamic.h>
+
 #include <memory>
 #include <optional>
 
@@ -41,6 +43,7 @@ class SaiObjectStore {
       SaiObjectHasStats<SaiObjectTraits>::value,
       SaiObjectWithCounters<SaiObjectTraits>,
       SaiObject<SaiObjectTraits>>::type;
+  using ObjectTraits = SaiObjectTraits;
 
   explicit SaiObjectStore(sai_object_id_t switchId) : switchId_(switchId) {}
   SaiObjectStore() {}
@@ -142,7 +145,7 @@ class SaiObjectStore {
             hostKeyAndObj.second.lock()->adapterKey()));
       } else {
         // TODO - fill in serializers for non oid keys
-        XLOG(FATAL) << " Unsupported adapter key serialization";
+        static_assert(" Unsupported adapter key serialization");
       }
     }
     return adapterKeys;
@@ -154,8 +157,8 @@ class SaiObjectStore {
       if constexpr (AdapterKeyIsObjectId<SaiObjectTraits>::value) {
         adapterKeys.push_back(fromFollyDynamic<SaiObjectTraits>(obj));
       } else {
-        // TODO - fill in serializers for non oid keys
-        XLOG(FATAL) << " Unsupported adapter key serialization";
+        // TODO - fill in deserializers for non oid keys
+        static_assert(" Unsupported adapter key deserialization");
       }
     }
     return adapterKeys;
@@ -205,6 +208,8 @@ class SaiStore {
   detail::SaiObjectStore<SaiObjectTraits>& get() {
     return std::get<detail::SaiObjectStore<SaiObjectTraits>>(stores_);
   }
+
+  folly::dynamic adapterKeysFollyDynamic() const;
 
  private:
   sai_object_id_t switchId_{};

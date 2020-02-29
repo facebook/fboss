@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
+
 #include <folly/Singleton.h>
 
 namespace {
@@ -42,6 +44,21 @@ void SaiStore::reload() {
 
 void SaiStore::release() {
   tupleForEach([](auto& store) { store.release(); }, stores_);
+}
+
+folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
+  folly::dynamic adapterKeys = folly::dynamic::object;
+  tupleForEach(
+      [&adapterKeys](auto& store) {
+        using ObjectTraits =
+            typename std::remove_reference_t<decltype(store)>::ObjectTraits;
+        if constexpr (AdapterKeyIsObjectId<ObjectTraits>::value) {
+          auto apiName = saiObjectTypeToString(ObjectTraits::ObjectType);
+          adapterKeys[apiName] = store.adapterKeysFollyDynamic();
+        }
+      },
+      stores_);
+  return adapterKeys;
 }
 
 } // namespace facebook::fboss
