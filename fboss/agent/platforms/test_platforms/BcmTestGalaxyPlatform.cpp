@@ -8,29 +8,26 @@
  *
  */
 #include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.h"
+
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.h"
-
-namespace {
-static const std::array<int, 32> kMasterLogicalPortIds = {
-    118, 122, 126, 130, 1,  5,  9,  13, 17, 21, 25, 29, 34,  38,  42,  46,
-    50,  54,  58,  62,  68, 72, 76, 80, 84, 88, 92, 96, 102, 106, 110, 114};
-
-constexpr uint8_t kNumPortsPerTransceiver = 4;
-} // namespace
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatformMapping.h"
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.h"
 
 namespace facebook::fboss {
-
-BcmTestGalaxyPlatform::BcmTestGalaxyPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
-    : BcmTestWedgeTomahawkPlatform(
-          std::move(productInfo),
-          std::vector<PortID>(
-              kMasterLogicalPortIds.begin(),
-              kMasterLogicalPortIds.end()),
-          kNumPortsPerTransceiver) {}
-
 std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(PortID id) {
   return std::make_unique<BcmTestGalaxyPort>(id, this);
 }
 
+BcmTestGalaxyLCPlatform::BcmTestGalaxyLCPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : BcmTestGalaxyPlatform(
+          std::move(productInfo),
+          std::make_unique<GalaxyLCPlatformMapping>("lc101")) {}
+
+BcmTestGalaxyFCPlatform::BcmTestGalaxyFCPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : BcmTestGalaxyPlatform(
+          std::move(productInfo),
+          std::make_unique<GalaxyLCPlatformMapping>("fc001")) {}
 } // namespace facebook::fboss

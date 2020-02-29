@@ -15,9 +15,7 @@ namespace facebook::fboss {
 
 class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
  public:
-  explicit BcmTestGalaxyPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
-  ~BcmTestGalaxyPlatform() override {}
+  using BcmTestWedgeTomahawkPlatform::BcmTestWedgeTomahawkPlatform;
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX100G};
@@ -31,4 +29,27 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
 
+class BcmTestGalaxyLCPlatform : public BcmTestGalaxyPlatform {
+ public:
+  explicit BcmTestGalaxyLCPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
+  ~BcmTestGalaxyLCPlatform() override {}
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  BcmTestGalaxyLCPlatform(BcmTestGalaxyLCPlatform const&) = delete;
+  BcmTestGalaxyLCPlatform& operator=(BcmTestGalaxyLCPlatform const&) = delete;
+};
+
+class BcmTestGalaxyFCPlatform : public BcmTestGalaxyPlatform {
+ public:
+  explicit BcmTestGalaxyFCPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo);
+  ~BcmTestGalaxyFCPlatform() override {}
+
+ private:
+  // Forbidden copy constructor and assignment operator
+  BcmTestGalaxyFCPlatform(BcmTestGalaxyFCPlatform const&) = delete;
+  BcmTestGalaxyFCPlatform& operator=(BcmTestGalaxyFCPlatform const&) = delete;
+};
 } // namespace facebook::fboss

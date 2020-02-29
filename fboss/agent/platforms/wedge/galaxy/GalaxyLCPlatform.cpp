@@ -9,31 +9,23 @@
  */
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatform.h"
 
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyPort.h"
 
 namespace facebook::fboss {
 
+GalaxyLCPlatform::GalaxyLCPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : GalaxyPlatform(
+          std::move(productInfo),
+          std::make_unique<GalaxyLCPlatformMapping>(
+              GalaxyPlatform::getLinecardName(false))) {}
+
 std::unique_ptr<WedgePortMapping> GalaxyLCPlatform::createPortMapping() {
-  WedgePortMapping::PortTransceiverMap ports = {
-      {PortID(84), TransceiverID(0)},   {PortID(88), TransceiverID(1)},
-      {PortID(92), TransceiverID(2)},   {PortID(96), TransceiverID(3)},
-      {PortID(102), TransceiverID(4)},  {PortID(106), TransceiverID(5)},
-      {PortID(110), TransceiverID(6)},  {PortID(114), TransceiverID(7)},
-      {PortID(118), TransceiverID(8)},  {PortID(122), TransceiverID(9)},
-      {PortID(126), TransceiverID(10)}, {PortID(130), TransceiverID(11)},
-      {PortID(1), TransceiverID(12)},   {PortID(5), TransceiverID(13)},
-      {PortID(9), TransceiverID(14)},   {PortID(13), TransceiverID(15)},
-      {PortID(68), std::nullopt},       {PortID(72), std::nullopt},
-      {PortID(76), std::nullopt},       {PortID(80), std::nullopt},
-      {PortID(50), std::nullopt},       {PortID(54), std::nullopt},
-      {PortID(58), std::nullopt},       {PortID(62), std::nullopt},
-      {PortID(34), std::nullopt},       {PortID(38), std::nullopt},
-      {PortID(42), std::nullopt},       {PortID(46), std::nullopt},
-      {PortID(17), std::nullopt},       {PortID(21), std::nullopt},
-      {PortID(25), std::nullopt},       {PortID(29), std::nullopt}};
-  return WedgePortMapping::create<
-      WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this, ports);
+  return WedgePortMapping::createFromConfig<
+      WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this);
 }
 
 } // namespace facebook::fboss

@@ -33,6 +33,7 @@ target_link_libraries(bcm_test_platforms
   bcm
   config_factory
   product_info
+  galaxy_platform_mapping
   minipack_platform_mapping
   wedge100_platform_mapping
   wedge40_platform_mapping

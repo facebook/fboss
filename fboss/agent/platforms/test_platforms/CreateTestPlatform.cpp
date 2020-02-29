@@ -42,9 +42,10 @@ std::unique_ptr<Platform> createTestPlatform() {
     return std::make_unique<BcmTestWedge40Platform>(std::move(productInfo));
   } else if (mode == PlatformMode::WEDGE100) {
     return std::make_unique<BcmTestWedge100Platform>(std::move(productInfo));
-  } else if (
-      mode == PlatformMode::GALAXY_LC || mode == PlatformMode::GALAXY_FC) {
-    return std::make_unique<BcmTestGalaxyPlatform>(std::move(productInfo));
+  } else if (mode == PlatformMode::GALAXY_LC) {
+    return std::make_unique<BcmTestGalaxyLCPlatform>(std::move(productInfo));
+  } else if (mode == PlatformMode::GALAXY_FC) {
+    return std::make_unique<BcmTestGalaxyFCPlatform>(std::move(productInfo));
   } else if (mode == PlatformMode::MINIPACK) {
     return std::make_unique<BcmTestMinipackPlatform>(std::move(productInfo));
   } else if (mode == PlatformMode::YAMP) {
