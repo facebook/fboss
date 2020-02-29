@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/async/StreamPublisher.h>
 
 namespace facebook::fboss {
 
@@ -25,10 +24,12 @@ SaiHandler::startDiagShell() {
   if (diagShell_.hasPublisher()) {
     throw FbossError("Diag shell already connected");
   }
-  auto streamAndPublisher = createStreamPublisher<std::string>([this]() {
-    XLOG(INFO) << "Diag shell session disconnected";
-    diagShell_.resetPublisher();
-  });
+  auto streamAndPublisher =
+      apache::thrift::ServerStream<std::string>::createPublisher([this]() {
+        XLOG(INFO) << "Diag shell session disconnected";
+        diagShell_.resetPublisher();
+      });
+
   std::string firstPrompt =
       diagShell_.start(std::move(streamAndPublisher.second));
   return {firstPrompt, std::move(streamAndPublisher.first)};

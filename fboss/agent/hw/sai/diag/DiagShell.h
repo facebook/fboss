@@ -60,13 +60,15 @@ class DiagShell {
 
   void consumeInput(std::unique_ptr<std::string> input);
 
-  void setPublisher(apache::thrift::StreamPublisher<std::string>&& publisher);
+  void setPublisher(
+      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
   void resetPublisher();
   bool hasPublisher() const;
 
   std::string getPrompt() const;
 
-  std::string start(apache::thrift::StreamPublisher<std::string>&& publisher);
+  std::string start(
+      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
 
  private:
   void produceOutput();
@@ -77,7 +79,7 @@ class DiagShell {
   std::unique_ptr<detail::TerminalSession> ts_;
 
   folly::Synchronized<
-      std::unique_ptr<apache::thrift::StreamPublisher<std::string>>,
+      std::unique_ptr<apache::thrift::ServerStreamPublisher<std::string>>,
       std::mutex>
       publisher_;
 

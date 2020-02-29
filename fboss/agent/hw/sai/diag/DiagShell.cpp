@@ -123,7 +123,7 @@ DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
 }
 
 void DiagShell::setPublisher(
-    apache::thrift::StreamPublisher<std::string>&& publisher) {
+    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
   if (!repl_) {
     // Set up REPL on first thrift connect
     repl_ = makeRepl();
@@ -132,8 +132,9 @@ void DiagShell::setPublisher(
     repl_->run();
   }
 
-  publisher_ = std::make_unique<apache::thrift::StreamPublisher<std::string>>(
-      std::move(publisher));
+  publisher_ =
+      std::make_unique<apache::thrift::ServerStreamPublisher<std::string>>(
+          std::move(publisher));
 }
 
 std::unique_ptr<Repl> DiagShell::makeRepl() const {
@@ -178,7 +179,7 @@ std::string DiagShell::getPrompt() const {
 }
 
 std::string DiagShell::start(
-    apache::thrift::StreamPublisher<std::string>&& publisher) {
+    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
   setPublisher(std::move(publisher));
   // We connect to an existing shell (either for the first time or especially
   // on re-connect) so it is necessary to explicitly send the first prompt
