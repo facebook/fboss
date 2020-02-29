@@ -9,29 +9,23 @@
  */
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatform.h"
 
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyPort.h"
 
 namespace facebook::fboss {
 
-std::unique_ptr<WedgePortMapping> GalaxyFCPlatform::createPortMapping() {
-  using std::nullopt;
+GalaxyFCPlatform::GalaxyFCPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : GalaxyPlatform(
+          std::move(productInfo),
+          std::make_unique<GalaxyFCPlatformMapping>(
+              GalaxyPlatform::getLinecardName(true))) {}
 
-  WedgePortMapping::PortTransceiverMap ports = {
-      {PortID(72), nullopt},  {PortID(76), nullopt},  {PortID(68), nullopt},
-      {PortID(80), nullopt},  {PortID(62), nullopt},  {PortID(58), nullopt},
-      {PortID(54), nullopt},  {PortID(50), nullopt},  {PortID(110), nullopt},
-      {PortID(106), nullopt}, {PortID(102), nullopt}, {PortID(114), nullopt},
-      {PortID(96), nullopt},  {PortID(92), nullopt},  {PortID(84), nullopt},
-      {PortID(88), nullopt},  {PortID(5), nullopt},   {PortID(9), nullopt},
-      {PortID(1), nullopt},   {PortID(13), nullopt},  {PortID(130), nullopt},
-      {PortID(118), nullopt}, {PortID(122), nullopt}, {PortID(126), nullopt},
-      {PortID(42), nullopt},  {PortID(38), nullopt},  {PortID(29), nullopt},
-      {PortID(46), nullopt},  {PortID(34), nullopt},  {PortID(21), nullopt},
-      {PortID(25), nullopt},  {PortID(17), nullopt},
-  };
-  return WedgePortMapping::create<
-      WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this, ports);
+std::unique_ptr<WedgePortMapping> GalaxyFCPlatform::createPortMapping() {
+  return WedgePortMapping::createFromConfig<
+      WedgePortMappingT<GalaxyPlatform, GalaxyPort>>(this);
 }
 
 } // namespace facebook::fboss

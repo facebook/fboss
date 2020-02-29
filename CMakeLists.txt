@@ -620,6 +620,7 @@ target_link_libraries(
     ${OPENNSA}
     wedge40_platform_mapping
     wedge100_platform_mapping
+    galaxy_platform_mapping
 )
 
 set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS

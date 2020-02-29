@@ -9,6 +9,11 @@
  */
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyPlatform.h"
 
+namespace {
+constexpr auto kDefaultFCName = "fc001";
+constexpr auto kDefaultLCName = "lc001";
+} // namespace
+
 namespace facebook::fboss {
 
 folly::ByteRange GalaxyPlatform::defaultLed0Code() {
@@ -19,4 +24,7 @@ folly::ByteRange GalaxyPlatform::defaultLed1Code() {
   return defaultLed0Code();
 }
 
+std::string GalaxyPlatform::getLinecardName(bool isFabric) {
+  return isFabric ? kDefaultFCName : kDefaultLCName;
+}
 } // namespace facebook::fboss

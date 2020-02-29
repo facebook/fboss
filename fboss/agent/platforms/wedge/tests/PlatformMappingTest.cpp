@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
+#include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
@@ -103,6 +104,28 @@ TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
 
   auto mapping = std::make_unique<Wedge100PlatformMapping>();
   verify(mapping.get());
+}
+
+TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91};
+
+  // Galaxy FC has 32 * 4 = 128 logical ports
+  // 32 TH Falcon cores + 0 transceivers
+  setExpection(128, 32, 0, 0, expectedProfiles);
+
+  auto mapping = std::make_unique<GalaxyFCPlatformMapping>("fc003");
+  verify(mapping.get());
+
+  // also check all the port name should starts with fab3
+  for (const auto& port : mapping->getPlatformPorts()) {
+    EXPECT_EQ(port.second.mapping.name.rfind("fab3", 0), 0);
+  }
 }
 } // namespace test
 } // namespace fboss

@@ -24,6 +24,8 @@ class GalaxyPlatform : public WedgeTomahawkPlatform {
 
   ~GalaxyPlatform() override {}
 
+  static std::string getLinecardName(bool isFabric);
+
  private:
   GalaxyPlatform(GalaxyPlatform const&) = delete;
   GalaxyPlatform& operator=(GalaxyPlatform const&) = delete;
