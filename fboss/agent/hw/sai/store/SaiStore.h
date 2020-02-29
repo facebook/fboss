@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
@@ -131,6 +132,33 @@ class SaiObjectStore {
 
   void release() {
     objects_.clear();
+  }
+
+  folly::dynamic adapterKeysFollyDynamic() const {
+    folly::dynamic adapterKeys = folly::dynamic::array;
+    for (const auto& hostKeyAndObj : objects_) {
+      if constexpr (AdapterKeyIsObjectId<SaiObjectTraits>::value) {
+        adapterKeys.push_back(toFollyDynamic<SaiObjectTraits>(
+            hostKeyAndObj.second.lock()->adapterKey()));
+      } else {
+        // TODO - fill in serializers for non oid keys
+        XLOG(FATAL) << " Unsupported adapter key serialization";
+      }
+    }
+    return adapterKeys;
+  }
+  static std::vector<typename SaiObjectTraits::AdapterKey>
+  adapterKeysFromFollyDynamic(const folly::dynamic& json) {
+    std::vector<typename SaiObjectTraits::AdapterKey> adapterKeys;
+    for (const auto& obj : json) {
+      if constexpr (AdapterKeyIsObjectId<SaiObjectTraits>::value) {
+        adapterKeys.push_back(fromFollyDynamic<SaiObjectTraits>(obj));
+      } else {
+        // TODO - fill in serializers for non oid keys
+        XLOG(FATAL) << " Unsupported adapter key serialization";
+      }
+    }
+    return adapterKeys;
   }
 
  private:

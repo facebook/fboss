@@ -84,3 +84,19 @@ TEST_F(VlanStoreTest, vlanMemberCreateCtor) {
   EXPECT_EQ(GET_ATTR(VlanMember, VlanId, obj.attributes()), vlanId);
   EXPECT_EQ(GET_ATTR(VlanMember, BridgePortId, obj.attributes()), 10);
 }
+
+TEST_F(VlanStoreTest, serDeserAdapterKeys) {
+  auto vlanSaiId = createVlan(42);
+  auto vlanSaiId2 = createVlan(400);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiVlanTraits>();
+  auto vlanKeys =
+      detail::SaiObjectStore<SaiVlanTraits>::adapterKeysFromFollyDynamic(
+          store.adapterKeysFollyDynamic());
+
+  EXPECT_EQ(
+      vlanKeys,
+      (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId, vlanSaiId2}));
+}
