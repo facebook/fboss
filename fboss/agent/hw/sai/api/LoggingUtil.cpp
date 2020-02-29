@@ -128,6 +128,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "rif";
     case SAI_OBJECT_TYPE_HOSTIF:
       return "hostif";
+    case SAI_OBJECT_TYPE_HASH:
+      return "hash";
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       return "mirror-session";
     case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP:
