@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
@@ -57,6 +58,9 @@ class SaiApiTable {
 
   HostifApi& hostifApi();
   const HostifApi& hostifApi() const;
+
+  MplsApi& mplsApi();
+  const MplsApi& mplsApi() const;
 
   NextHopApi& nextHopApi();
   const NextHopApi& nextHopApi() const;
@@ -111,6 +115,7 @@ class SaiApiTable {
       std::unique_ptr<HostifApi>,
       std::unique_ptr<NextHopApi>,
       std::unique_ptr<NextHopGroupApi>,
+      std::unique_ptr<MplsApi>,
       std::unique_ptr<NeighborApi>,
       std::unique_ptr<PortApi>,
       std::unique_ptr<QueueApi>,

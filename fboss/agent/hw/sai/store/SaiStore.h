@@ -232,7 +232,8 @@ class SaiStore {
       detail::SaiObjectStore<SaiHostifTrapTraits>,
       detail::SaiObjectStore<SaiQueueTraits>,
       detail::SaiObjectStore<SaiSchedulerTraits>,
-      detail::SaiObjectStore<SaiHashTraits>>
+      detail::SaiObjectStore<SaiHashTraits>,
+      detail::SaiObjectStore<SaiInSegTraits>>
       stores_;
 };
 

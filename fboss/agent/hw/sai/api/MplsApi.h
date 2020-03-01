@@ -49,6 +49,17 @@ struct SaiInSegTraits {
     const sai_inseg_entry_t* entry() const {
       return &entry_;
     }
+    sai_object_id_t switchId() const {
+      return entry_.switch_id;
+    }
+    sai_object_id_t label() const {
+      return entry_.label;
+    }
+    std::string toString() const;
+
+    bool operator==(const InSegEntry& other) const {
+      return switchId() == other.switchId() && label() == other.label();
+    }
 
    private:
     sai_inseg_entry_t entry_{};
@@ -59,7 +70,7 @@ struct SaiInSegTraits {
   using CreateAttributes = std::tuple<
       Attributes::PacketAction,
       Attributes::NumOfPop,
-      Attributes::NextHopId>;
+      std::optional<Attributes::NextHopId>>;
 };
 template <>
 struct IsSaiEntryStruct<SaiInSegTraits::InSegEntry> : public std::true_type {};
@@ -100,3 +111,11 @@ class MplsApi : public SaiApi<MplsApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiInSegTraits::InSegEntry> {
+  size_t operator()(
+      const facebook::fboss::SaiInSegTraits::InSegEntry& entry) const;
+};
+} // namespace std

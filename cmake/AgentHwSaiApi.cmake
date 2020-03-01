@@ -30,6 +30,7 @@ set_target_properties(sai_version PROPERTIES LINKER_LANGUAGE CXX)
 add_library(sai_api
   fboss/agent/hw/sai/api/FdbApi.cpp
   fboss/agent/hw/sai/api/HashApi.cpp
+  fboss/agent/hw/sai/api/MplsApi.cpp
   fboss/agent/hw/sai/api/NeighborApi.cpp
   fboss/agent/hw/sai/api/NextHopGroupApi.cpp
   fboss/agent/hw/sai/api/RouteApi.cpp

@@ -87,6 +87,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_SCHEDULER:
       *count = fs->scm.map().size();
       break;
+    case SAI_OBJECT_TYPE_INSEG_ENTRY:
+      *count = fs->inSegEntryManager.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
