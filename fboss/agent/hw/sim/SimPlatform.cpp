@@ -7,16 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/sim/SimPlatform.h"
 
-#include <folly/Memory.h>
+#include "fboss/agent/hw/sim/SimPlatform.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/sim/SimHandler.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/sim/SimPlatformMapping.h"
 #include "fboss/agent/hw/sim/SimPlatformPort.h"
 #include "fboss/agent/hw/sim/SimSwitch.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+
+#include <folly/Memory.h>
 
 DEFINE_string(
     volatile_state_dir,
@@ -53,8 +54,7 @@ void SimPlatform::onInitialConfigApplied(SwSwitch* /*sw*/) {}
 void SimPlatform::stop() {}
 
 unique_ptr<ThriftHandler> SimPlatform::createHandler(SwSwitch* sw) {
-  SimSwitch* sim = static_cast<SimSwitch*>(sw->getHw());
-  return std::make_unique<SimHandler>(sw, sim);
+  return std::make_unique<ThriftHandler>(sw);
 }
 
 std::string SimPlatform::getVolatileStateDir() const {
