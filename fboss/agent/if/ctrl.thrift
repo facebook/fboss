@@ -227,7 +227,6 @@ struct ProductInfo {
   20: string mgmtMac,
   21: string fabricLocation,
   22: string fbPcbaPartNumber,
-
 }
 
 /*
