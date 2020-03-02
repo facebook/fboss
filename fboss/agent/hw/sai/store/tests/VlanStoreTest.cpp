@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
-#include <folly/json.h>
-
 using namespace facebook::fboss;
 
 class VlanStoreTest : public SaiStoreTest {
