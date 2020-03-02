@@ -74,3 +74,34 @@ TEST_F(SaiStoreTest, bridgePortCreateCtor) {
   SaiObject<SaiBridgePortTraits> obj({42}, c, 0);
   EXPECT_EQ(GET_ATTR(BridgePort, PortId, obj.attributes()), 42);
 }
+
+TEST_F(SaiStoreTest, serDeserBridge) {
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiBridgeTraits>();
+  auto got = store.get(std::monostate{});
+  auto json = s.adapterKeysFollyDynamic();
+  EXPECT_EQ(
+      std::vector<SaiBridgeTraits::AdapterKey>{got->adapterKey()},
+      detail::SaiObjectStore<SaiBridgeTraits>::adapterKeysFromFollyDynamic(
+          json[saiObjectTypeToString(SaiBridgeTraits::ObjectType)]));
+}
+
+TEST_F(SaiStoreTest, serDeserBridgePort) {
+  auto& bridgeApi = saiApiTable->bridgeApi();
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiBridgePortTraits>();
+  auto json = s.adapterKeysFollyDynamic();
+
+  EXPECT_EQ(
+      std::vector<SaiBridgePortTraits::AdapterKey>{bridgePortId},
+      detail::SaiObjectStore<SaiBridgePortTraits>::adapterKeysFromFollyDynamic(
+          json[saiObjectTypeToString(SaiBridgePortTraits::ObjectType)]));
+}

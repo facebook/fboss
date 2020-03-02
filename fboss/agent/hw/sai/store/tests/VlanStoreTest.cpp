@@ -89,7 +89,6 @@ TEST_F(VlanStoreTest, vlanMemberCreateCtor) {
 
 TEST_F(VlanStoreTest, serDeserAdapterKeys) {
   auto vlanSaiId = createVlan(42);
-  auto vlanSaiId2 = createVlan(400);
 
   SaiStore s(0);
   s.reload();
@@ -99,13 +98,11 @@ TEST_F(VlanStoreTest, serDeserAdapterKeys) {
           store.adapterKeysFollyDynamic());
 
   EXPECT_EQ(
-      vlanKeys,
-      (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId, vlanSaiId2}));
+      vlanKeys, (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId}));
 }
 
 TEST_F(VlanStoreTest, serDeserStore) {
   auto vlanSaiId = createVlan(42);
-  auto vlanSaiId2 = createVlan(400);
 
   SaiStore s(0);
   s.reload();
@@ -113,9 +110,8 @@ TEST_F(VlanStoreTest, serDeserStore) {
   auto& store = s.get<SaiVlanTraits>();
   auto vlanKeys =
       detail::SaiObjectStore<SaiVlanTraits>::adapterKeysFromFollyDynamic(
-          json[saiApiTypeToString(VlanApi::ApiType)]);
+          json[saiObjectTypeToString(SaiVlanTraits::ObjectType)]);
 
   EXPECT_EQ(
-      vlanKeys,
-      (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId, vlanSaiId2}));
+      vlanKeys, (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId}));
 }
