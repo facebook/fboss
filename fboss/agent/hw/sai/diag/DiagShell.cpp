@@ -17,7 +17,6 @@
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/async/StreamPublisher.h>
 
 #include <stdlib.h>
 #include <sys/ioctl.h>

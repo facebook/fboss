@@ -16,7 +16,7 @@
 
 #include <folly/File.h>
 #include <folly/Synchronized.h>
-#include <thrift/lib/cpp2/async/StreamPublisher.h>
+#include <thrift/lib/cpp2/async/ServerStream.h>
 
 namespace facebook::fboss {
 
