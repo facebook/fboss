@@ -237,4 +237,10 @@ class SaiStore {
       stores_;
 };
 
+template <typename SaiObjectTraits>
+std::vector<typename SaiObjectTraits::AdapterKey>
+keysForSaiObjStoreFromStoreJson(const folly::dynamic& json) {
+  return detail::SaiObjectStore<SaiObjectTraits>::adapterKeysFromFollyDynamic(
+      json[saiObjectTypeToString(SaiObjectTraits::ObjectType)]);
+}
 } // namespace facebook::fboss

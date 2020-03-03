@@ -87,3 +87,15 @@ TEST_F(RouterInterfaceStoreTest, routerInterfaceSetSrcMac) {
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, SrcMac, obj.attributes()), srcMac2);
   EXPECT_EQ(GET_OPT_ATTR(RouterInterface, Mtu, obj.attributes()), 1514);
 }
+
+TEST_F(RouterInterfaceStoreTest, serDeserTest) {
+  auto routerInterfaceSaiId =
+      createRouterInterface(41, folly::MacAddress{"41:41:41:41:41:41"}, 1514);
+
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  EXPECT_EQ(
+      std::vector<SaiRouterInterfaceTraits::AdapterKey>{routerInterfaceSaiId},
+      keysForSaiObjStoreFromStoreJson<SaiRouterInterfaceTraits>(json));
+}

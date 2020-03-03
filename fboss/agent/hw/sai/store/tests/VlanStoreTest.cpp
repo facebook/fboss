@@ -92,12 +92,10 @@ TEST_F(VlanStoreTest, serDeserVlanStore) {
   s.reload();
   auto json = s.adapterKeysFollyDynamic();
   auto& store = s.get<SaiVlanTraits>();
-  auto vlanKeys =
-      detail::SaiObjectStore<SaiVlanTraits>::adapterKeysFromFollyDynamic(
-          json[saiObjectTypeToString(SaiVlanTraits::ObjectType)]);
 
   EXPECT_EQ(
-      vlanKeys, (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId}));
+      (std::vector<typename SaiVlanTraits::AdapterKey>{vlanSaiId}),
+      keysForSaiObjStoreFromStoreJson<SaiVlanTraits>(json));
 }
 
 TEST_F(VlanStoreTest, serDeserVlanMemberStore) {
@@ -109,6 +107,5 @@ TEST_F(VlanStoreTest, serDeserVlanMemberStore) {
   auto json = s.adapterKeysFollyDynamic();
   EXPECT_EQ(
       std::vector<SaiVlanMemberTraits::AdapterKey>{vlanMemberId},
-      detail::SaiObjectStore<SaiVlanMemberTraits>::adapterKeysFromFollyDynamic(
-          json[saiObjectTypeToString(SaiVlanMemberTraits::ObjectType)]));
+      keysForSaiObjStoreFromStoreJson<SaiVlanMemberTraits>(json));
 }

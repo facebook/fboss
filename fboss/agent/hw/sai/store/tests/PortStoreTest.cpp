@@ -177,9 +177,7 @@ TEST_F(PortStoreTest, serDeserStore) {
   auto json = s.adapterKeysFollyDynamic();
   auto& store = s.get<SaiPortTraits>();
 
-  auto portKeysDeser =
-      detail::SaiObjectStore<SaiPortTraits>::adapterKeysFromFollyDynamic(
-          json[saiObjectTypeToString(SaiPortTraits::ObjectType)]);
+  auto portKeysDeser = keysForSaiObjStoreFromStoreJson<SaiPortTraits>(json);
   // find, because fake sai creates a CPU port to mimic the ASIC and
   // that shows up in port store
   EXPECT_TRUE(

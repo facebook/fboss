@@ -102,6 +102,5 @@ TEST_F(SaiStoreTest, serDeserBridgePort) {
 
   EXPECT_EQ(
       std::vector<SaiBridgePortTraits::AdapterKey>{bridgePortId},
-      detail::SaiObjectStore<SaiBridgePortTraits>::adapterKeysFromFollyDynamic(
-          json[saiObjectTypeToString(SaiBridgePortTraits::ObjectType)]));
+      keysForSaiObjStoreFromStoreJson<SaiBridgePortTraits>(json));
 }
