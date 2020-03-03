@@ -164,6 +164,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "bridge";
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       return "bridge-port";
+    case SAI_OBJECT_TYPE_INSEG_ENTRY:
+      return "inseg-entry";
     default:
       throw FbossError("object type invalid: ", objectType);
   }
