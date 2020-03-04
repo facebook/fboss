@@ -10,8 +10,6 @@
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
-#include "fboss/agent/hw/sai/api/LoggingUtil.h"
-
 #include <folly/Singleton.h>
 
 namespace {
@@ -51,10 +49,17 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
   tupleForEach(
       [&adapterKeys](auto& store) {
         using ObjectTraits =
-            typename std::remove_reference_t<decltype(store)>::ObjectTraits;
+            typename std::decay_t<decltype(store)>::ObjectTraits;
         if constexpr (AdapterKeyIsObjectId<ObjectTraits>::value) {
-          auto apiName = saiObjectTypeToString(ObjectTraits::ObjectType);
-          adapterKeys[apiName] = store.adapterKeysFollyDynamic();
+          auto objName = saiObjectTypeToString(ObjectTraits::ObjectType);
+          auto aitr = adapterKeys.find(objName);
+          if (aitr == adapterKeys.items().end()) {
+            adapterKeys[objName] = folly::dynamic::array;
+            aitr = adapterKeys.find(objName);
+          }
+          for (auto key : store.adapterKeysFollyDynamic()) {
+            aitr->second.push_back(key);
+          }
         }
       },
       stores_);
