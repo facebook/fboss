@@ -122,3 +122,13 @@ TEST_F(HostifTrapStoreTest, trapSetAction) {
       saiApiTable->hostifApi().getAttribute(obj.adapterKey(), packetAction),
       SAI_PACKET_ACTION_DROP);
 }
+
+TEST_F(HostifTrapStoreTest, hostifTrapSerDeser) {
+  auto hostifTrapSaiId = createTrap(SAI_HOSTIF_TRAP_TYPE_IP2ME);
+  verifyAdapterKeySerDeser<SaiHostifTrapTraits>({hostifTrapSaiId});
+}
+
+TEST_F(HostifTrapStoreTest, hostifTrapGroupSerDeser) {
+  auto hostifTrapGroupSaiId = createTrapGroup(2);
+  verifyAdapterKeySerDeser<SaiHostifTrapGroupTraits>({hostifTrapGroupSaiId});
+}
