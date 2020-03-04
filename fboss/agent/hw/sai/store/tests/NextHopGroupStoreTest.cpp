@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
+#include <folly/json.h>
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
@@ -144,4 +145,17 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupMemberCreateCtor) {
   SaiObject<SaiNextHopGroupMemberTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(NextHopGroupMember, NextHopId, obj.attributes()), 42);
   EXPECT_EQ(GET_OPT_ATTR(NextHopGroupMember, Weight, obj.attributes()), 2);
+}
+
+TEST_F(NextHopGroupStoreTest, nhopGroupSerDeser) {
+  auto nextHopGroupId = createNextHopGroup();
+  verifyAdapterKeySerDeser<SaiNextHopGroupTraits>({nextHopGroupId});
+}
+
+TEST_F(NextHopGroupStoreTest, nhopGroupMemberSerDeser) {
+  auto nextHopGroupId = createNextHopGroup();
+  auto nextHopId = createNextHop(folly::IPAddress{"10.10.10.1"});
+  auto nextHopGroupMemberId =
+      createNextHopGroupMember(nextHopGroupId, nextHopId, std::nullopt);
+  verifyAdapterKeySerDeser<SaiNextHopGroupMemberTraits>({nextHopGroupMemberId});
 }

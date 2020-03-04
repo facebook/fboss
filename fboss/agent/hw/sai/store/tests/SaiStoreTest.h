@@ -28,3 +28,12 @@ class SaiStoreTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::shared_ptr<SaiApiTable> saiApiTable;
 };
+
+template <typename SaiObjectTraits>
+void verifyAdapterKeySerDeser(
+    const std::vector<typename SaiObjectTraits::AdapterKey>& keys) {
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  EXPECT_EQ(keys, keysForSaiObjStoreFromStoreJson<SaiObjectTraits>(json));
+}

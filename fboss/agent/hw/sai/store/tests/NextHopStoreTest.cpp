@@ -83,22 +83,11 @@ TEST_F(NextHopStoreTest, nextHopCreateCtor) {
 TEST_F(NextHopStoreTest, ipNextHopSerDeser) {
   auto ip = folly::IPAddress("::");
   auto nextHopSaiId = createNextHop(ip);
-  SaiStore s(0);
-  s.reload();
-  auto json = s.adapterKeysFollyDynamic();
-  EXPECT_EQ(
-      std::vector<SaiIpNextHopTraits::AdapterKey>{nextHopSaiId},
-      keysForSaiObjStoreFromStoreJson<SaiIpNextHopTraits>(json));
+  verifyAdapterKeySerDeser<SaiIpNextHopTraits>({nextHopSaiId});
 }
 
 TEST_F(NextHopStoreTest, mplsNextHopSerDeser) {
   auto nextHopSaiId = createMplsNextHop(
       folly::IPAddress{"4200::41"}, std::vector<sai_uint32_t>{1001, 1002});
-
-  SaiStore s(0);
-  s.reload();
-  auto json = s.adapterKeysFollyDynamic();
-  EXPECT_EQ(
-      std::vector<SaiMplsNextHopTraits::AdapterKey>{nextHopSaiId},
-      keysForSaiObjStoreFromStoreJson<SaiMplsNextHopTraits>(json));
+  verifyAdapterKeySerDeser<SaiMplsNextHopTraits>({nextHopSaiId});
 }

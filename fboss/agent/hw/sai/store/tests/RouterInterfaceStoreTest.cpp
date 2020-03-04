@@ -92,10 +92,5 @@ TEST_F(RouterInterfaceStoreTest, serDeserTest) {
   auto routerInterfaceSaiId =
       createRouterInterface(41, folly::MacAddress{"41:41:41:41:41:41"}, 1514);
 
-  SaiStore s(0);
-  s.reload();
-  auto json = s.adapterKeysFollyDynamic();
-  EXPECT_EQ(
-      std::vector<SaiRouterInterfaceTraits::AdapterKey>{routerInterfaceSaiId},
-      keysForSaiObjStoreFromStoreJson<SaiRouterInterfaceTraits>(json));
+  verifyAdapterKeySerDeser<SaiRouterInterfaceTraits>({routerInterfaceSaiId});
 }

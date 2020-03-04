@@ -80,11 +80,7 @@ TEST_F(SaiStoreTest, serDeserBridge) {
   s.reload();
   auto& store = s.get<SaiBridgeTraits>();
   auto got = store.get(std::monostate{});
-  auto json = s.adapterKeysFollyDynamic();
-  EXPECT_EQ(
-      std::vector<SaiBridgeTraits::AdapterKey>{got->adapterKey()},
-      detail::SaiObjectStore<SaiBridgeTraits>::adapterKeysFromFollyDynamic(
-          json[saiObjectTypeToString(SaiBridgeTraits::ObjectType)]));
+  verifyAdapterKeySerDeser<SaiBridgeTraits>({got->adapterKey()});
 }
 
 TEST_F(SaiStoreTest, serDeserBridgePort) {
@@ -94,13 +90,5 @@ TEST_F(SaiStoreTest, serDeserBridgePort) {
                                           true,
                                           SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
-
-  SaiStore s(0);
-  s.reload();
-  auto& store = s.get<SaiBridgePortTraits>();
-  auto json = s.adapterKeysFollyDynamic();
-
-  EXPECT_EQ(
-      std::vector<SaiBridgePortTraits::AdapterKey>{bridgePortId},
-      keysForSaiObjStoreFromStoreJson<SaiBridgePortTraits>(json));
+  verifyAdapterKeySerDeser<SaiBridgePortTraits>({bridgePortId});
 }
