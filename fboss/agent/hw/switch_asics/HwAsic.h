@@ -24,6 +24,7 @@ class HwAsic {
     QUEUE,
     ECN,
     L3_QOS,
+    WARM_BOOT,
   };
 
   enum class AsicType {

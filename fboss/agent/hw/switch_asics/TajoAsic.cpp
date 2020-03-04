@@ -28,6 +28,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_PREEMPHASIS:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
+    case HwAsic::Feature::WARM_BOOT:
       return false;
   }
   return false;

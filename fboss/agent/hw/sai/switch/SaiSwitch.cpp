@@ -177,6 +177,10 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::WARM_BOOT)) {
+    XLOG(ERR) << " Asic does not support warm boot, skipping graceful exit";
+    return;
+  }
   /*
    Callback threads need to be stopped without holding the lock.
    Reason being that these threads themselves acquire the mutex while
