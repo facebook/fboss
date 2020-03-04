@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -47,6 +49,10 @@ extern "C" {
 }
 
 DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
+
+namespace {
+auto constexpr kAdapterKeys = "adapterKeys";
+}
 
 namespace facebook::fboss {
 
@@ -194,6 +200,9 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
 void SaiSwitch::gracefulExitLocked(
     folly::dynamic& switchState,
     const std::lock_guard<std::mutex>& lock) {
+  switchState[kHwSwitch] = folly::dynamic::object;
+  switchState[kHwSwitch][kAdapterKeys] =
+      SaiStore::getInstance()->adapterKeysFollyDynamic();
   platform_->getWarmBootHelper()->storeWarmBootState(switchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
 }
