@@ -57,6 +57,9 @@ class FakeSwitch {
   void setHwInfo(std::vector<int8_t> hwInfo) {
     hwInfo_ = std::move(hwInfo);
   }
+  void setRestartWarm(bool warm) {
+    restartWarm_ = warm;
+  }
   bool isShellEnabled() const {
     return shellEnabled_;
   }
@@ -84,6 +87,9 @@ class FakeSwitch {
   int8_t* hwInfoData() {
     return hwInfo_.data();
   }
+  bool restartWarm() const {
+    return restartWarm_;
+  }
   sai_object_id_t id;
 
  private:
@@ -97,6 +103,7 @@ class FakeSwitch {
   sai_object_id_t ecmpHashV4_{0};
   sai_object_id_t ecmpHashV6_{0};
   std::vector<int8_t> hwInfo_;
+  bool restartWarm_{false};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

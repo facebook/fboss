@@ -107,6 +107,8 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM,
         int32_t>;
+    using SwitchRestartWarm =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_RESTART_WARM, bool>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -120,7 +122,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::EcmpDefaultHashSeed>,
       std::optional<Attributes::LagDefaultHashSeed>,
       std::optional<Attributes::EcmpDefaultHashAlgorithm>,
-      std::optional<Attributes::LagDefaultHashAlgorithm>>;
+      std::optional<Attributes::LagDefaultHashAlgorithm>,
+      std::optional<Attributes::SwitchRestartWarm>>;
 };
 
 class SwitchApi : public SaiApi<SwitchApi> {

@@ -50,7 +50,8 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
       std::nullopt, // ecmp hash seed
       std::nullopt, // lag hash seed
       std::nullopt, // ecmp hash algo
-      std::nullopt // lag hash algo
+      std::nullopt, // lag hash algo
+      std::nullopt, // restart warm
   };
 }
 

@@ -70,6 +70,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
       sw.setLagAlgorithm(attr->value.s32);
       break;
+    case SAI_SWITCH_ATTR_RESTART_WARM:
+      sw.setRestartWarm(attr->value.booldata);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -174,6 +177,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
         attr[i].value.s32 = sw.lagAlgorithm();
+        break;
+      case SAI_SWITCH_ATTR_RESTART_WARM:
+        attr[i].value.booldata = sw.restartWarm();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

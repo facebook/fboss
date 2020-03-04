@@ -174,3 +174,10 @@ TEST_F(SwitchApiTest, setGetEcmpV6Hash) {
           switchId, SaiSwitchTraits::Attributes::EcmpHashV6{}),
       42);
 }
+
+TEST_F(SwitchApiTest, setGetWarmRestart) {
+  SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
+  switchApi->setAttribute(switchId, restartWarm);
+  SaiSwitchTraits::Attributes::SwitchRestartWarm blank{false};
+  EXPECT_TRUE(switchApi->getAttribute(switchId, blank));
+}
