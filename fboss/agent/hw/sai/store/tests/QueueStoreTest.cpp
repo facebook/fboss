@@ -56,3 +56,12 @@ TEST_F(QueueStoreTest, queueCreateCtor) {
   EXPECT_EQ(GET_ATTR(Queue, Port, obj.attributes()), 2);
   EXPECT_EQ(GET_ATTR(Queue, Index, obj.attributes()), 6);
 }
+
+TEST_F(QueueStoreTest, serDeser) {
+  // create a queue
+  auto id = createQueue(SAI_QUEUE_TYPE_UNICAST, 1, 4);
+  // Queues 0-7 are created by FakeSai to mimic ASIC coming up with queues
+  // already created
+  // Look for this queue key in queue adaptor JSON
+  verifyAdapterKeySerDeser<SaiQueueTraits>({id}, true);
+}

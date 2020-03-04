@@ -31,9 +31,15 @@ class SaiStoreTest : public ::testing::Test {
 
 template <typename SaiObjectTraits>
 void verifyAdapterKeySerDeser(
-    const std::vector<typename SaiObjectTraits::AdapterKey>& keys) {
+    const std::vector<typename SaiObjectTraits::AdapterKey>& keys,
+    bool subsetOk = false) {
   SaiStore s(0);
   s.reload();
   auto json = s.adapterKeysFollyDynamic();
-  EXPECT_EQ(keys, keysForSaiObjStoreFromStoreJson<SaiObjectTraits>(json));
+  auto gotAdaterKeys = keysForSaiObjStoreFromStoreJson<SaiObjectTraits>(json);
+  EXPECT_TRUE(keys.size() == gotAdaterKeys.size() || subsetOk);
+  for (auto key : keys) {
+    auto itr = std::find(gotAdaterKeys.begin(), gotAdaterKeys.end(), key);
+    EXPECT_TRUE(itr != gotAdaterKeys.end());
+  }
 }

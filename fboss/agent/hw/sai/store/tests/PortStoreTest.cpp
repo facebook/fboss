@@ -171,16 +171,6 @@ TEST_F(PortStoreTest, testMove) {
 TEST_F(PortStoreTest, serDeserStore) {
   // create a port
   auto id = createPort(0);
-
-  SaiStore s(0);
-  s.reload();
-  auto json = s.adapterKeysFollyDynamic();
-  auto& store = s.get<SaiPortTraits>();
-
-  auto portKeysDeser = keysForSaiObjStoreFromStoreJson<SaiPortTraits>(json);
-  // find, because fake sai creates a CPU port to mimic the ASIC and
-  // that shows up in port store
-  EXPECT_TRUE(
-      std::find(portKeysDeser.begin(), portKeysDeser.end(), id) !=
-      portKeysDeser.end());
+  // Look for this key in port adaptor JSON
+  verifyAdapterKeySerDeser<SaiPortTraits>({id}, true);
 }
