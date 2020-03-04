@@ -122,3 +122,8 @@ TEST_F(HashStoreTest, hashSetUDF) {
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, UDFGroupList, hashObj.attributes()), udf.value());
 }
+
+TEST_F(HashStoreTest, serDeser) {
+  auto id = createHash(kFullHash, {{}});
+  verifyAdapterKeySerDeser<SaiHashTraits>({id});
+}

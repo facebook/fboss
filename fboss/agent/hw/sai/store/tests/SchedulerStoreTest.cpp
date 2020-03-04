@@ -77,3 +77,10 @@ TEST_F(SchedulerStoreTest, schedulerCreateCtor) {
   EXPECT_EQ(GET_OPT_ATTR(Scheduler, MinBandwidthRate, obj.attributes()), 21000);
   EXPECT_EQ(GET_OPT_ATTR(Scheduler, MaxBandwidthRate, obj.attributes()), 81892);
 }
+
+TEST_F(SchedulerStoreTest, serDeser) {
+  // create a Scheduler
+  auto id = createScheduler(
+      SAI_SCHEDULING_TYPE_STRICT, 0, SAI_METER_TYPE_BYTES, 1200, 40000);
+  verifyAdapterKeySerDeser<SaiSchedulerTraits>({id});
+}
