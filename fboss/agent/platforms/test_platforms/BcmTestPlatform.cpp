@@ -48,16 +48,8 @@ BcmTestPlatform::BcmTestPlatform(
   CHECK(portsByMasterPort.size() > 1);
   for (auto itPort : portsByMasterPort) {
     masterLogicalPortIds_.push_back(itPort.first);
-    // TODO(ccpowers) We haven't enabled supportsAddRemovePort() for TH3
-    // platforms yet. Once we support FlexPort testing on TH3 platform, we
-    // can put all the subsidary ports into logicalPortIds
-    if (!supportsAddRemovePort()) {
-      for (auto itSubPort : itPort.second) {
-        logicalPortIds_.push_back(itSubPort);
-      }
-    } else {
-      logicalPortIds_.push_back(itPort.first);
-    }
+    logicalPortIds_.insert(
+        logicalPortIds_.end(), itPort.second.begin(), itPort.second.end());
   }
 }
 
