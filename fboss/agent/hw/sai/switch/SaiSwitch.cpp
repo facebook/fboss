@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
@@ -206,9 +207,7 @@ void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& lock) {
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
-  switchState[kHwSwitch] = folly::dynamic::object;
-  switchState[kHwSwitch][kAdapterKeys] =
-      SaiStore::getInstance()->adapterKeysFollyDynamic();
+  switchState[kHwSwitch] = toFollyDynamicLocked(lock);
   platform_->getWarmBootHelper()->storeWarmBootState(switchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
   managerTable_->switchManager().gracefulExit();
@@ -625,7 +624,16 @@ void SaiSwitch::stopNonCallbackThreads() {
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
-  return folly::dynamic::object();
+  auto adapterKeys = SaiStore::getInstance()->adapterKeysFollyDynamic();
+  // Need to provide full namespace scope for toFollyDynamic to disambiguate
+  // from member SaiSwitch::toFollyDynamic
+  auto switchKeys = folly::dynamic::array(
+      facebook::fboss::toFollyDynamic<SaiSwitchTraits>(switchId_));
+  adapterKeys[saiObjectTypeToString(SaiSwitchTraits::ObjectType)] = switchKeys;
+
+  folly::dynamic hwSwitch = folly::dynamic::object;
+  hwSwitch[kAdapterKeys] = adapterKeys;
+  return hwSwitch;
 }
 
 void SaiSwitch::switchRunStateChangedLocked(

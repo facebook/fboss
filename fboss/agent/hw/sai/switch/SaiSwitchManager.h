@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/types.h"
 
-#include "folly/MacAddress.h"
+#include <folly/MacAddress.h>
 
 #include <memory>
 #include <unordered_map>
