@@ -65,15 +65,13 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(1);
   config.vlans[0].id = 1234;
   config.vlans[0].name = kVlan1234;
-  config.vlans[0]
-      .dhcpRelayOverridesV4_ref()
-      .value_unchecked()["02:00:00:00:00:02"] = "1.2.3.4";
-  config.vlans[0]
-      .dhcpRelayOverridesV6_ref()
-      .value_unchecked()["02:00:00:00:00:02"] =
+  config.vlans[0].dhcpRelayOverridesV4_ref() = {};
+  (*config.vlans[0].dhcpRelayOverridesV4_ref())["02:00:00:00:00:02"] =
+      "1.2.3.4";
+  config.vlans[0].dhcpRelayOverridesV6_ref() = {};
+  (*config.vlans[0].dhcpRelayOverridesV6_ref())["02:00:00:00:00:02"] =
       "2a03:2880:10:1f07:face:b00c:0:0";
-  config.vlans[0].intfID_ref().value_unchecked() = 1;
-  config.vlans[0].__isset.intfID = true;
+  config.vlans[0].intfID_ref() = 1;
   config.vlanPorts.resize(2);
   config.vlanPorts[0].logicalPort = 1;
   config.vlanPorts[0].vlanID = 1234;
@@ -155,7 +153,7 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(2);
   config.vlans[1].id = 1299;
   config.vlans[1].name = kVlan1299;
-  config.vlans[1].intfID_ref().value_unchecked() = 2;
+  config.vlans[1].intfID_ref() = 2;
   config.interfaces.resize(2);
   config.interfaces[1].intfID = 2;
   config.interfaces[1].routerID = 0;
@@ -164,8 +162,7 @@ TEST(Vlan, applyConfig) {
   config.interfaces[1].ipAddresses[0] = "10.1.10.1/24";
   config.interfaces[1].ipAddresses[1] = "192.168.0.1/31";
   MacAddress intf2Mac("02:01:02:ab:cd:78");
-  config.interfaces[1].mac_ref().value_unchecked() = intf2Mac.toString();
-  config.interfaces[1].__isset.mac = true;
+  config.interfaces[1].mac_ref() = intf2Mac.toString();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto vlanV3 = stateV3->getVlans()->getVlan(VlanID(1299));
   EXPECT_EQ(0, vlanV3->getGeneration());
@@ -193,7 +190,7 @@ TEST(Vlan, applyConfig) {
   config.vlans.resize(3);
   config.vlans[2].id = 99;
   config.vlans[2].name = kVlan99;
-  config.vlans[2].intfID_ref().value_unchecked() = 3;
+  config.vlans[2].intfID_ref() = 3;
   config.interfaces.resize(3);
   config.interfaces[2].intfID = 3;
   config.interfaces[2].routerID = 1;
@@ -222,7 +219,7 @@ TEST(Vlan, applyConfig) {
   // Check vlan congfig with no intfID set
   config.vlans.resize(4);
   config.vlans[3].id = 100;
-  config.vlans[3].__isset.intfID = false;
+  config.vlans[3].intfID_ref().reset();
   config.interfaces.resize(4);
   config.interfaces[3].intfID = 4;
   config.interfaces[3].routerID = 0;
