@@ -169,15 +169,6 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
-  sim_ctrl_cpp2
-  fboss/agent/hw/sim/sim_ctrl.thrift
-  SERVICES
-    SimCtrl
-  DEPENDS
-    fboss_cpp2
-    ctrl_cpp2
-)
-add_fbthrift_cpp_library(
   bcm_config_cpp2
   fboss/agent/hw/bcm/bcm_config.thrift
   OPTIONS
@@ -391,7 +382,6 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/mock/MockRxPacket.cpp
     fboss/agent/hw/mock/MockTxPacket.cpp
     fboss/agent/hw/mock/MockTestHandle.cpp
-    fboss/agent/hw/sim/SimHandler.cpp
     fboss/agent/hw/sim/SimSwitch.cpp
     fboss/agent/lldp/LinkNeighbor.cpp
     fboss/agent/lldp/LinkNeighborDB.cpp
@@ -592,7 +582,6 @@ target_link_libraries(
     switch_state_cpp2
     sflow_cpp2
     ctrl_cpp2
-    sim_ctrl_cpp2
     packettrace_cpp2
     bcmswitch_cpp2
     hardware_stats_cpp2
