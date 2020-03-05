@@ -8,13 +8,10 @@
  *
  */
 #include "fboss/agent/capture/PcapPkt.h"
-
-#include <folly/io/IOBuf.h>
-
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TxPacket.h"
 
-#include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
+#include <folly/io/IOBuf.h>
 
 namespace facebook::fboss {
 

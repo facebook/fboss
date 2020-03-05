@@ -123,9 +123,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
-  void beginPacketDump(int32_t port) override;
-  void killDistributionProcess() override;
-
   void sendPkt(
       int32_t port,
       int32_t vlan,

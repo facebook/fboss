@@ -2,7 +2,6 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from neteng.fboss.ctrl import FbossCtrl
-from neteng.fboss.pcap_pubsub import PcapPushSubscriber
 from neteng.fboss.qsfp import QsfpService
 from thrift.protocol.THeaderProtocol import THeaderProtocol
 from thrift.transport.THeaderTransport import THeaderTransport
@@ -35,29 +34,6 @@ class PlainTextFbossAgentClientDontUseInFb(FbossCtrl.Client):
 
         self._transport.open()
         FbossCtrl.Client.__init__(self, self._protocol)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self._transport.close()
-
-
-class PcapPushSubClient(PcapPushSubscriber.Client):
-    DEFAULT_PORT = 5911
-
-    def __init__(self, host, port=None, timeout=5.0):
-        self.host = host
-        if port is None:
-            port = self.DEFAULT_PORT
-
-        self._socket = TSocket(host, port)
-        # TSocket.setTimeout() takes a value in milliseconds
-        self._socket.setTimeout(timeout * 1000)
-        self._transport = THeaderTransport(self._socket)
-        self._protocol = THeaderProtocol(self._transport)
-        self._transport.open()
-        PcapPushSubscriber.Client.__init__(self, self._protocol)
 
     def __enter__(self):
         return self

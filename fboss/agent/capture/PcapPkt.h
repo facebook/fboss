@@ -9,18 +9,45 @@
  */
 #pragma once
 
+#include "fboss/agent/types.h"
+
 #include <folly/io/IOBuf.h>
+
 #include <chrono>
 #include <vector>
-#include "fboss/agent/types.h"
-#include "fboss/pcap_distribution_service/if/gen-cpp2/pcap_pubsub_types.h"
 
 namespace facebook::fboss {
 
 class RxPacket;
 class TxPacket;
-class RxPacketData;
-class TxPacketData;
+
+// A struct to hold a Broadcom reason for
+// why a packet was sent to the CPU
+struct RxReason {
+  // a integer encoding of the reason
+  int32_t bytes;
+
+  // a human readable description of the reason
+  std::string description;
+};
+
+// A struct holding data of a packet received by the CPU
+struct RxPacketData {
+  int32_t srcPort;
+  int32_t srcVlan;
+
+  // The data in the packet
+  folly::fbstring packetData;
+
+  // A list of the reasons that the packet was sent to the CPU
+  std::vector<RxReason> reasons;
+};
+
+// A struct holding data of a packet that was sent out
+// of the CPU
+struct TxPacketData {
+  folly::fbstring packetData;
+};
 
 /*
  * PcapPkt represents a packet captured on the wire.

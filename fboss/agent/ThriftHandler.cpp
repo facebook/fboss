@@ -1316,17 +1316,6 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
   }
 }
 
-void ThriftHandler::beginPacketDump(int32_t port) {
-  auto log = LOG_THRIFT_CALL(DBG1);
-  // Client construction is serialized via SwSwitch event base
-  sw_->constructPushClient(port);
-}
-
-void ThriftHandler::killDistributionProcess() {
-  auto log = LOG_THRIFT_CALL(DBG1);
-  sw_->killDistributionProcess();
-}
-
 void ThriftHandler::sendPkt(
     int32_t port,
     int32_t vlan,

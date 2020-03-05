@@ -34,12 +34,10 @@
 namespace facebook::fboss {
 
 class ArpHandler;
-class ChannelCloser;
 class IPv4Handler;
 class IPv6Handler;
 class LinkAggregationManager;
 class LldpManager;
-class PcapPushSubscriberAsyncClient;
 class PktCaptureManager;
 class Platform;
 class Port;
@@ -858,10 +856,6 @@ class SwSwitch : public HwSwitch::Callback {
    * locking when we access the container during a state update.
    */
   std::map<StateObserver*, std::string> stateObservers_;
-
-  std::unique_ptr<ChannelCloser> closer_; // must be before pcapPusher_
-  std::unique_ptr<PcapPushSubscriberAsyncClient> pcapPusher_;
-  std::atomic<bool> distributionServiceReady_{false};
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;

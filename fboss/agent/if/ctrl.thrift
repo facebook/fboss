@@ -527,16 +527,6 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 
   /*
-   * Begins a packet stream from the switch to a distribution service
-   */
-  void beginPacketDump(1: i32 port)
-
-  /*
-   * Kill the pcap distribution process
-   */
-  void killDistributionProcess()
-
-  /*
    * Send packets in binary or hex format to controller.
    *
    * This injects the packet into the controller, as if it had been received

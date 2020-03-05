@@ -202,13 +202,6 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/hardware_stats.thrift
 )
 add_fbthrift_cpp_library(
-  pcap_pubsub_cpp2
-  fboss/pcap_distribution_service/if/pcap_pubsub.thrift
-  SERVICES
-    PcapPushSubscriber
-    PcapSubscriber
-)
-add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
@@ -604,7 +597,6 @@ target_link_libraries(
     bcmswitch_cpp2
     hardware_stats_cpp2
     mpls_cpp2
-    pcap_pubsub_cpp2
     qsfp_cpp2
     Folly::folly
     wangle::wangle
