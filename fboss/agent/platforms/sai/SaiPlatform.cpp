@@ -101,6 +101,12 @@ void SaiPlatform::generateHwConfigFile() {
 void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
   kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
 }
 
