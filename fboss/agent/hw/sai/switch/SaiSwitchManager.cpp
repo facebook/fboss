@@ -204,4 +204,14 @@ void SaiSwitchManager::processLoadBalancerDelta(const StateDelta& delta) {
         removeLoadBalancer(remove);
       });
 }
+
+void SaiSwitchManager::gracefulExit() {
+  // On graceful exit we trigger the warm boot path on
+  // ASIC by destroying the switch (and thus calling the
+  // remove switch function
+  // https://github.com/opencomputeproject/SAI/blob/master/inc/saiswitch.h#L2514
+  // Other objects are left intact to preserve data plane
+  // forwarding during warm boot
+  switch_.reset();
+}
 } // namespace facebook::fboss

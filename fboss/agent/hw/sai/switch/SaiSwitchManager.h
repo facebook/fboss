@@ -61,6 +61,7 @@ class SaiSwitchManager {
   void processLoadBalancerDelta(const StateDelta& delta);
 
   void resetHashes();
+  void gracefulExit();
 
  private:
   void programLoadBalancerParams(

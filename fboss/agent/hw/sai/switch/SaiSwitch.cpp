@@ -211,6 +211,7 @@ void SaiSwitch::gracefulExitLocked(
       SaiStore::getInstance()->adapterKeysFollyDynamic();
   platform_->getWarmBootHelper()->storeWarmBootState(switchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
+  managerTable_->switchManager().gracefulExit();
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {
