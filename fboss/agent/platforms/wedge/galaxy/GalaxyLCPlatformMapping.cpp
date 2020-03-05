@@ -11833,7 +11833,7 @@ std::string updatePlatformMappingStr(const std::string& lcName) {
   int cardID = 0;
   re2::RE2 cardIDRe(kLineCardNameRegex);
   if (!re2::RE2::FullMatch(lcName, cardIDRe, &cardID)) {
-    throw facebook::fboss::FbossError("Invalid fabric card name:", lcName);
+    throw facebook::fboss::FbossError("Invalid line card name:", lcName);
   }
   std::string tmpStr = kJsonPlatformMappingStr;
   boost::replace_all(tmpStr, "fab101", folly::to<std::string>("fab", cardID));

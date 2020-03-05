@@ -29,5 +29,5 @@ BcmTestGalaxyFCPlatform::BcmTestGalaxyFCPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestGalaxyPlatform(
           std::move(productInfo),
-          std::make_unique<GalaxyLCPlatformMapping>("fc001")) {}
+          std::make_unique<GalaxyFCPlatformMapping>("fc001")) {}
 } // namespace facebook::fboss
