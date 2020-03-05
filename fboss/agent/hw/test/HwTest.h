@@ -79,7 +79,7 @@ class HwTest : public ::testing::Test,
 
   std::vector<PortID> logicalPortIds() const;
   std::vector<PortID> masterLogicalPortIds() const;
-  std::vector<PortID> getAllPortsinGroup(PortID portID) const;
+  std::vector<PortID> getAllPortsInGroup(PortID portID) const;
 
  protected:
   /*

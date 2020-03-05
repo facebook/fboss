@@ -111,8 +111,8 @@ std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 
-std::vector<PortID> BcmSwitchEnsemble::getAllPortsinGroup(PortID portID) const {
-  return getPlatform()->getAllPortsinGroup(portID);
+std::vector<PortID> BcmSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
+  return getPlatform()->getAllPortsInGroup(portID);
 }
 
 std::vector<FlexPortMode> BcmSwitchEnsemble::getSupportedFlexPortModes() const {

@@ -70,8 +70,8 @@ std::vector<PortID> HwTest::masterLogicalPortIds() const {
   return hwSwitchEnsemble_->masterLogicalPortIds();
 }
 
-std::vector<PortID> HwTest::getAllPortsinGroup(PortID portID) const {
-  return hwSwitchEnsemble_->getAllPortsinGroup(portID);
+std::vector<PortID> HwTest::getAllPortsInGroup(PortID portID) const {
+  return hwSwitchEnsemble_->getAllPortsInGroup(portID);
 }
 
 void HwTest::SetUp() {

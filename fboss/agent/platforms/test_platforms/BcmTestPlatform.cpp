@@ -104,7 +104,7 @@ BcmTestPlatform::BcmPlatformPortMap BcmTestPlatform::getPlatformPortMap() {
   return ports;
 }
 
-std::vector<PortID> BcmTestPlatform::getAllPortsinGroup(PortID portID) const {
+std::vector<PortID> BcmTestPlatform::getAllPortsInGroup(PortID portID) const {
   std::vector<PortID> allPortsinGroup;
   if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
     const auto& portList =

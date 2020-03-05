@@ -80,7 +80,7 @@ std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 
-std::vector<PortID> SaiSwitchEnsemble::getAllPortsinGroup(PortID portID) const {
+std::vector<PortID> SaiSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
   return {};
 }
 

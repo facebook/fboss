@@ -38,7 +38,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   }
   std::vector<PortID> logicalPortIds() const override;
   std::vector<PortID> masterLogicalPortIds() const override;
-  std::vector<PortID> getAllPortsinGroup(PortID portID) const override;
+  std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
   /*
    * Sai tests are always run with "route scale" mode on. For Bcm chips

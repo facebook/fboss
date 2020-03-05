@@ -176,7 +176,7 @@ class BcmFlexPortTest : public BcmTest {
       XLOG(INFO) << "Skipping flexport mode: " << configName;
       return;
     }
-    auto allPortsinGroup = getAllPortsinGroup(masterLogicalPortIds()[0]);
+    auto allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[0]);
 
     auto setup = [this, &allPortsinGroup, flexMode]() {
       auto cfg =
