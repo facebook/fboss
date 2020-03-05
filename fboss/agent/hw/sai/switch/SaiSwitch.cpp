@@ -204,6 +204,8 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
 void SaiSwitch::gracefulExitLocked(
     folly::dynamic& switchState,
     const std::lock_guard<std::mutex>& lock) {
+  SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
+  SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
   switchState[kHwSwitch] = folly::dynamic::object;
   switchState[kHwSwitch][kAdapterKeys] =
       SaiStore::getInstance()->adapterKeysFollyDynamic();
