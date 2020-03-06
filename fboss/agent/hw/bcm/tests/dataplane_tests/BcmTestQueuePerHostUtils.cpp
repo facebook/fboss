@@ -55,7 +55,7 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
     cfg::PortQueue queue;
 
     queue.id = queueId;
-    queue.name_ref().value_unchecked() = "queue_per_host";
+    queue.name_ref() = "queue_per_host";
     queue.streamType = cfg::StreamType::UNICAST;
     queue.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
     queue.weight_ref() = kQueuePerHostWeight;

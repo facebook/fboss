@@ -109,12 +109,12 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
 
     cfg::PortQueue queue1;
     queue1.id = kQueueId();
-    queue1.name_ref().value_unchecked() = "ecn1";
+    queue1.name_ref() = "ecn1";
     queue1.streamType = cfg::StreamType::UNICAST;
     queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue1.aqms_ref().value_unchecked().push_back(kGetEcnConfig());
-    queue1.aqms_ref().value_unchecked().push_back(kGetWredConfig());
-    queue1.__isset.aqms = true;
+    queue1.aqms_ref() = {};
+    queue1.aqms_ref()->push_back(kGetEcnConfig());
+    queue1.aqms_ref()->push_back(kGetWredConfig());
     portQueues.push_back(queue1);
 
     config->portQueueConfigs["queue_config"] = portQueues;

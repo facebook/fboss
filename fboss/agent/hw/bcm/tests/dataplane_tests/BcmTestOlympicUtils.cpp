@@ -30,7 +30,7 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue0;
   queue0.id = kOlympicSilverQueueId;
-  queue0.name_ref().value_unchecked() = "queue0.silver";
+  queue0.name_ref() = "queue0.silver";
   queue0.streamType = cfg::StreamType::UNICAST;
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kOlympicSilverWeight;
@@ -40,7 +40,7 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue1;
   queue1.id = kOlympicGoldQueueId;
-  queue1.name_ref().value_unchecked() = "queue1.gold";
+  queue1.name_ref() = "queue1.gold";
   queue1.streamType = cfg::StreamType::UNICAST;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kOlympicGoldWeight;
@@ -50,18 +50,18 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue2;
   queue2.id = kOlympicEcn1QueueId;
-  queue2.name_ref().value_unchecked() = "queue2.ecn1";
+  queue2.name_ref() = "queue2.ecn1";
   queue2.streamType = cfg::StreamType::UNICAST;
   queue2.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue2.weight_ref() = kOlympicEcn1Weight;
   queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
-  queue2.aqms_ref().value_unchecked().push_back(kGetOlympicEcnConfig());
-  queue2.__isset.aqms = true;
+  queue2.aqms_ref() = {};
+  queue2.aqms_ref()->push_back(kGetOlympicEcnConfig());
   portQueues.push_back(queue2);
 
   cfg::PortQueue queue4;
   queue4.id = kOlympicBronzeQueueId;
-  queue4.name_ref().value_unchecked() = "queue4.bronze";
+  queue4.name_ref() = "queue4.bronze";
   queue4.streamType = cfg::StreamType::UNICAST;
   queue4.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue4.weight_ref() = kOlympicBronzeWeight;
@@ -69,7 +69,7 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue6;
   queue6.id = kOlympicPlatinumQueueId;
-  queue6.name_ref().value_unchecked() = "queue6.platinum";
+  queue6.name_ref() = "queue6.platinum";
   queue6.streamType = cfg::StreamType::UNICAST;
   queue6.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   queue6.reservedBytes_ref() = 9984;
@@ -78,7 +78,7 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue7;
   queue7.id = kOlympicNCQueueId;
-  queue7.name_ref().value_unchecked() = "queue7.network_control";
+  queue7.name_ref() = "queue7.network_control";
   queue7.streamType = cfg::StreamType::UNICAST;
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);

@@ -22,7 +22,7 @@ void add2QueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue0;
   queue0.id = k2QueueLowPriQueueId;
-  queue0.name_ref().value_unchecked() = "queue0.low_pri";
+  queue0.name_ref() = "queue0.low_pri";
   queue0.streamType = cfg::StreamType::UNICAST;
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = k2QueueLowPriWeight;
@@ -32,7 +32,7 @@ void add2QueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue1;
   queue1.id = k2QueueHighPriQueueId;
-  queue1.name_ref().value_unchecked() = "queue1.high_pri";
+  queue1.name_ref() = "queue1.high_pri";
   queue1.streamType = cfg::StreamType::UNICAST;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = k2QueueHighPriWeight;
@@ -42,7 +42,7 @@ void add2QueueConfig(cfg::SwitchConfig* config) {
 
   cfg::PortQueue queue7;
   queue7.id = k2QueueNCQueueId;
-  queue7.name_ref().value_unchecked() = "queue7.network_control";
+  queue7.name_ref() = "queue7.network_control";
   queue7.streamType = cfg::StreamType::UNICAST;
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
