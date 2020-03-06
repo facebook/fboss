@@ -43,6 +43,9 @@ struct SaiBridgeTraits {
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
 
+SAI_ATTRIBUTE_NAME(Bridge, PortList)
+SAI_ATTRIBUTE_NAME(Bridge, Type)
+
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiBridgeTraits> : public std::true_type {};
 
@@ -72,6 +75,12 @@ struct SaiBridgePortTraits {
       Attributes::AdminState,
       std::optional<Attributes::FdbLearningMode>>;
 };
+
+SAI_ATTRIBUTE_NAME(BridgePort, BridgeId)
+SAI_ATTRIBUTE_NAME(BridgePort, PortId)
+SAI_ATTRIBUTE_NAME(BridgePort, Type)
+SAI_ATTRIBUTE_NAME(BridgePort, FdbLearningMode)
+SAI_ATTRIBUTE_NAME(BridgePort, AdminState)
 
 class BridgeApi : public SaiApi<BridgeApi> {
  public:

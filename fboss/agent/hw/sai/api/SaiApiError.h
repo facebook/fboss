@@ -50,7 +50,7 @@ class SaiApiError : public FbossError {
 template <typename... Args>
 void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
-    XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "]"
+    XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "] "
               << folly::to<std::string>(std::forward<Args>(args)...) << ": "
               << saiStatusToString(status);
   }

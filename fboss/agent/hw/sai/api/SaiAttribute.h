@@ -10,7 +10,6 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
-#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/IPAddress.h>
@@ -18,6 +17,7 @@
 #include <folly/logging/xlog.h>
 
 #include <boost/functional/hash.hpp>
+#include <fmt/ranges.h>
 
 #include <type_traits>
 #include <utility>
@@ -454,6 +454,25 @@ class SaiAttribute<
 template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, void>>
     : public std::true_type {};
+
+template <typename AttrT>
+struct AttributeName {
+  // N.B., we can't just use static_assert(false, msg) because the
+  // compiler will trip the assert at declaration if it doesn't depend on the
+  // type parameter
+  static_assert(
+      sizeof(AttrT) == -1,
+      "In order to format a SaiAttribute, you must specialize "
+      "AttributeName<AttrT>. Consider using the SAI_ATTRIBUTE_NAME "
+      "macro below if you are adding an attribute to a SaiApi.");
+  using value = void;
+};
+
+#define SAI_ATTRIBUTE_NAME(Obj, Attribute)                        \
+  template <>                                                     \
+  struct AttributeName<Sai##Obj##Traits::Attributes::Attribute> { \
+    static const inline std::string value = #Attribute;           \
+  };
 
 } // namespace facebook::fboss
 

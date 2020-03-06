@@ -215,4 +215,5 @@ struct ConditionObjectTraits {
       typename ConditionAdapterKeyTraits<AdapterKeyType, ObjectTraits...>::
           AdapterKey;
 };
+
 } // namespace facebook::fboss

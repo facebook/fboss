@@ -85,6 +85,9 @@ struct SaiRouteTraits {
 template <>
 struct IsSaiEntryStruct<SaiRouteTraits::RouteEntry> : public std::true_type {};
 
+SAI_ATTRIBUTE_NAME(Route, PacketAction)
+SAI_ATTRIBUTE_NAME(Route, NextHopId)
+
 class RouteApi : public SaiApi<RouteApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_ROUTE;

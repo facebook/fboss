@@ -129,3 +129,15 @@ TEST_F(RouteApiTest, routeKeys) {
   EXPECT_EQ(routeKeys.size(), 1);
   EXPECT_EQ(routeKeys[0], r);
 }
+
+TEST_F(RouteApiTest, formatRoutePacketAction) {
+  SaiRouteTraits::Attributes::PacketAction rpa{SAI_PACKET_ACTION_FORWARD};
+  std::string expected("PacketAction: 1");
+  EXPECT_EQ(expected, fmt::format("{}", rpa));
+}
+
+TEST_F(RouteApiTest, formatRouteNextHopId) {
+  SaiRouteTraits::Attributes::NextHopId nhid{42};
+  std::string expected("NextHopId: 42");
+  EXPECT_EQ(expected, fmt::format("{}", nhid));
+}

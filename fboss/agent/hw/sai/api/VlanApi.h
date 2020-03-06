@@ -43,6 +43,9 @@ struct SaiVlanTraits {
   using CreateAttributes = std::tuple<Attributes::VlanId>;
 };
 
+SAI_ATTRIBUTE_NAME(Vlan, VlanId);
+SAI_ATTRIBUTE_NAME(Vlan, MemberList);
+
 struct SaiVlanMemberTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_VLAN_MEMBER;
   using SaiApiT = VlanApi;
@@ -61,6 +64,8 @@ struct SaiVlanMemberTraits {
   using CreateAttributes =
       std::tuple<Attributes::VlanId, Attributes::BridgePortId>;
 };
+SAI_ATTRIBUTE_NAME(VlanMember, BridgePortId);
+SAI_ATTRIBUTE_NAME(VlanMember, VlanId);
 
 class VlanApi : public SaiApi<VlanApi> {
  public:

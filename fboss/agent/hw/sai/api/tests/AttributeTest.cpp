@@ -7,10 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 
 #include <folly/logging/xlog.h>
 
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <gtest/gtest.h>
 
 #include <vector>
@@ -220,6 +223,52 @@ TEST(Attribute, hashKey) {
   }
 }
 
+// Test formatting attributes
+template <>
+struct facebook::fboss::AttributeName<ObjAttr> {
+  static const inline std::string value = "ObjAttr";
+};
+TEST(Attribute, formatOid) {
+  ObjAttr o{42};
+  std::string expected("ObjAttr: 42");
+  EXPECT_EQ(expected, fmt::format("{}", o));
+}
+
+template <>
+struct facebook::fboss::AttributeName<MacAttr> {
+  static const inline std::string value = "MacAttr";
+};
+TEST(Attribute, formatMac) {
+  std::string macStr("de:ad:be:ef:42:42");
+  MacAttr a{folly::MacAddress{macStr}};
+  std::string expected("MacAttr: de:ad:be:ef:42:42");
+  EXPECT_EQ(expected, fmt::format("{}", a));
+}
+
+TEST(Attribute, formatAttrTuple) {
+  ObjAttr o{42};
+  std::string macStr("de:ad:be:ef:42:42");
+  MacAttr a{folly::MacAddress{macStr}};
+  std::tuple<ObjAttr, MacAttr> tup{o, a};
+  std::string expected("(ObjAttr: 42, MacAttr: de:ad:be:ef:42:42)");
+  EXPECT_EQ(expected, fmt::format("{}", tup));
+}
+
+using PacketAction = SaiAttribute<
+    sai_route_entry_attr_t,
+    SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION,
+    sai_int32_t>;
+template <>
+struct facebook::fboss::AttributeName<PacketAction> {
+  static const inline std::string value = "packet action";
+};
+
+TEST(Attribute, formatRoutePacketAction) {
+  PacketAction rpa{SAI_PACKET_ACTION_FORWARD};
+  std::string expected("packet action: 1");
+  EXPECT_EQ(expected, fmt::format("{}", rpa));
+}
+
 /*
  * Static assertion "tests" about SaiAttributes to ensure the types behave
  * how we expect them to.
@@ -265,3 +314,14 @@ static_assert(
 static_assert(
     !IsSaiTypeWrapper<int32_t>::value,
     "int32_t is not a value wrapper");
+
+// IsSaiAttribute
+// basic data type
+static_assert(
+    IsSaiAttribute<ObjAttr>::value,
+    "ObjAttr should be a SAI Attribute");
+
+// complex data type
+static_assert(
+    IsSaiAttribute<VecAttr>::value,
+    "VecAttr should be a SAI Attribute");

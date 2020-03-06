@@ -13,6 +13,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
+#include <folly/Format.h>
+
 namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
@@ -255,4 +257,5 @@ folly::StringPiece saiStatusToString(sai_status_t status) {
       }
   }
 }
+
 } // namespace facebook::fboss

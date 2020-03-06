@@ -133,6 +133,18 @@ TEST_F(VlanApiTest, setVlanMemberAttribute) {
   EXPECT_EQ(bridgePortId, bridgePortIdGot);
 }
 
+TEST_F(VlanApiTest, formatVlanVlanIdAttribute) {
+  SaiVlanTraits::Attributes::VlanId vi{42};
+  std::string expected("VlanId: 42");
+  EXPECT_EQ(expected, fmt::format("{}", vi));
+}
+
+TEST_F(VlanApiTest, formatVlanMemberVlanIdAttribute) {
+  SaiVlanMemberTraits::Attributes::VlanId vi{42};
+  std::string expected("VlanId: 42");
+  EXPECT_EQ(expected, fmt::format("{}", vi));
+}
+
 /*
  * This test doesn't compile -- it represents using a Traits that doesn't
  * belong to the API. (trying to create a next hop group with the vlan api)

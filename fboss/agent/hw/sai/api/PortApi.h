@@ -104,6 +104,17 @@ struct SaiPortTraits {
   };
 };
 
+SAI_ATTRIBUTE_NAME(Port, HwLaneList);
+SAI_ATTRIBUTE_NAME(Port, Speed);
+SAI_ATTRIBUTE_NAME(Port, AdminState);
+SAI_ATTRIBUTE_NAME(Port, FecMode);
+SAI_ATTRIBUTE_NAME(Port, InternalLoopbackMode);
+SAI_ATTRIBUTE_NAME(Port, MediaType);
+SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode);
+SAI_ATTRIBUTE_NAME(Port, PortVlanId);
+SAI_ATTRIBUTE_NAME(Port, Preemphasis);
+SAI_ATTRIBUTE_NAME(Port, Mtu);
+
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
 
