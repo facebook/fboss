@@ -34,6 +34,7 @@ add_library(sai_api
   fboss/agent/hw/sai/api/NeighborApi.cpp
   fboss/agent/hw/sai/api/NextHopGroupApi.cpp
   fboss/agent/hw/sai/api/RouteApi.cpp
+  fboss/agent/hw/sai/api/SaiApiLock.cpp
   fboss/agent/hw/sai/api/SaiApiTable.cpp
   fboss/agent/hw/sai/api/SwitchApi.cpp
   fboss/agent/hw/sai/api/BridgeApi.h

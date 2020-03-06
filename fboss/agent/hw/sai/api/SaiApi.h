@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApiError.h"
+#include "fboss/agent/hw/sai/api/SaiApiLock.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
@@ -22,6 +23,7 @@
 #include <boost/variant.hpp>
 
 #include <exception>
+#include <mutex>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -39,19 +41,6 @@ class SaiApi {
   SaiApi() = default;
   SaiApi(const SaiApi& other) = delete;
   SaiApi& operator=(const SaiApi& other) = delete;
-
-  /*
-   * NOTE:
-   * The following APIs constitute a re-write of the above APIs and are renamed
-   * with a '2' at the end to indicate that. Once the callsites are all ported
-   * to the new APIs, the old APIs and the '2' can be deleted.
-   *
-   * TODO(borisb): clean this up:
-   * delete ApiT class from CRTP base class
-   * delete old APIs
-   * delete SaiAttributeDataTypes
-   * rename these to no longer have the '2'
-   */
 
   // Currently, create is not clever enough to have totally deducible
   // template parameters. It can be done, but I think it would reduce
@@ -77,6 +66,7 @@ class SaiApi {
         "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status = impl()._create(
         &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
@@ -93,6 +83,7 @@ class SaiApi {
         std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
         "invalid traits for the api");
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status =
         impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
@@ -102,6 +93,7 @@ class SaiApi {
 
   template <typename AdapterKeyT>
   void remove(const AdapterKeyT& key) {
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status = impl()._remove(key);
     saiApiCheckError(status, ApiT::ApiType, "Failed to remove sai object");
     XLOG(DBG5) << "removed sai object [" << saiApiTypeToString(ApiT::ApiType)
@@ -130,6 +122,7 @@ class SaiApi {
         "getAttribute must be called on a SaiAttribute or supported "
         "collection of SaiAttributes");
 
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
     status = impl()._getAttribute(key, attr.saiAttr());
     /*
@@ -180,6 +173,7 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     auto status = impl()._setAttribute(key, saiAttr(attr));
     saiApiCheckError(status, ApiT::ApiType, "Failed to set attribute");
   }
@@ -191,6 +185,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     return getStatsImpl<SaiObjectTraits>(
         key, counterIds.data(), counterIds.size());
   }
@@ -200,6 +195,7 @@ class SaiApi {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     return getStatsImpl<SaiObjectTraits>(
         key,
         SaiObjectTraits::CounterIds.data(),
