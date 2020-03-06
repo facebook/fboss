@@ -57,9 +57,10 @@ void addAclStat(
   action.matcher = matcher;
   action.action = matchAction;
 
-  cfg->dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction.push_back(
-      action);
-  cfg->__isset.dataPlaneTrafficPolicy = true;
+  if (!cfg->dataPlaneTrafficPolicy_ref()) {
+    cfg->dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
+  }
+  cfg->dataPlaneTrafficPolicy_ref()->matchToAction.push_back(action);
 }
 
 void delAclStat(
@@ -67,23 +68,23 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName) {
   int refCnt = 0;
-  auto& matchActions =
-      cfg->dataPlaneTrafficPolicy_ref().value_unchecked().matchToAction;
-  matchActions.erase(
-      std::remove_if(
-          matchActions.begin(),
-          matchActions.end(),
-          [&](cfg::MatchToAction const& matchAction) {
-            if (matchAction.matcher == matcher &&
-                matchAction.action.counter_ref().value_unchecked() ==
-                    counterName) {
-              ++refCnt;
-              return true;
-            }
-            return false;
-          }),
-      matchActions.end());
-
+  if (auto dataPlaneTrafficPolicy = cfg->dataPlaneTrafficPolicy_ref()) {
+    auto& matchActions = dataPlaneTrafficPolicy->matchToAction;
+    matchActions.erase(
+        std::remove_if(
+            matchActions.begin(),
+            matchActions.end(),
+            [&](cfg::MatchToAction const& matchAction) {
+              if (matchAction.matcher == matcher &&
+                  matchAction.action.counter_ref().value_or({}) ==
+                      counterName) {
+                ++refCnt;
+                return true;
+              }
+              return false;
+            }),
+        matchActions.end());
+  }
   if (refCnt == 0) {
     auto& counters = cfg->trafficCounters;
     counters.erase(

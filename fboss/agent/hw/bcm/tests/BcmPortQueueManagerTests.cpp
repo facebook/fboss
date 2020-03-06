@@ -143,7 +143,7 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
         }
       }
       if (auto defaultPolicy = policy->defaultQosPolicy_ref()) {
-        return getCfgTrafficClass(queueId, defaultPolicy.value_unchecked());
+        return getCfgTrafficClass(queueId, *defaultPolicy);
       }
     }
     return queueId;
@@ -233,13 +233,13 @@ TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
     }
 
     auto& queue0 = cfg.portQueueConfigs["queue_config"][0];
-    queue0.weight_ref().value_unchecked() = 5;
-    queue0.reservedBytes_ref().value_unchecked() =
-        10 * getPlatform()->getMMUCellBytes();
-    queue0.scalingFactor_ref().value_unchecked() = cfg::MMUScalingFactor::EIGHT;
-    queue0.aqms_ref().value_unchecked().push_back(
-        getEarlyDropAqmConfig(mmuCellBytes()));
-    queue0.__isset.aqms = true;
+    queue0.weight_ref() = 5;
+    queue0.reservedBytes_ref() = 10 * getPlatform()->getMMUCellBytes();
+    queue0.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
+    if (!queue0.aqms_ref()) {
+      queue0.aqms_ref() = {};
+    }
+    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
   };
 
@@ -288,16 +288,16 @@ TEST_F(BcmPortQueueManagerTest, ClearPortQueueSettings) {
     ;
     // set aqm for queue0 for testing
     auto& queue0 = portQueues[0];
-    queue0.aqms_ref().value_unchecked().push_back(
-        getEarlyDropAqmConfig(mmuCellBytes()));
-    queue0.__isset.aqms = true;
+    if (!queue0.aqms_ref()) {
+      queue0.aqms_ref() = {};
+    }
+    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     cfg.portQueueConfigs["queue_config"] = portQueues;
     cfg.ports[0].portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
 
     // remove all port queue settings
-    cfg.ports[0].__isset.portQueueConfigName = false;
-    cfg.ports[0].portQueueConfigName_ref().value_unchecked() = "";
+    cfg.ports[0].portQueueConfigName_ref().reset();
     cfg.portQueueConfigs.erase("queue_config");
     applyNewConfig(cfg);
   };
@@ -333,9 +333,10 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
     cfg.portQueueConfigs["queue_config"] = getConfigPortQueues(mmuCellBytes());
     cfg.ports[0].portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs["queue_config"][0];
-    queue0.aqms_ref().value_unchecked().push_back(
-        getECNAqmConfig(mmuCellBytes()));
-    queue0.__isset.aqms = true;
+    if (!queue0.aqms_ref()) {
+      queue0.aqms_ref() = {};
+    }
+    queue0.aqms_ref()->push_back(getECNAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
@@ -345,9 +346,10 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
     cfg.portQueueConfigs["queue_config"] = getConfigPortQueues(mmuCellBytes());
     cfg.ports[0].portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs["queue_config"][0];
-    queue0.aqms_ref().value_unchecked().push_back(
-        getEarlyDropAqmConfig(mmuCellBytes()));
-    queue0.__isset.aqms = true;
+    if (!queue0.aqms_ref()) {
+      queue0.aqms_ref() = {};
+    }
+    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
@@ -357,11 +359,11 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
     cfg.portQueueConfigs["queue_config"] = getConfigPortQueues(mmuCellBytes());
     cfg.ports[0].portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs["queue_config"][0];
-    queue0.aqms_ref().value_unchecked().push_back(
-        getECNAqmConfig(mmuCellBytes()));
-    queue0.aqms_ref().value_unchecked().push_back(
-        getEarlyDropAqmConfig(mmuCellBytes()));
-    queue0.__isset.aqms = true;
+    if (!queue0.aqms_ref()) {
+      queue0.aqms_ref() = {};
+    }
+    queue0.aqms_ref()->push_back(getECNAqmConfig(mmuCellBytes()));
+    queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }

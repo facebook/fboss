@@ -18,8 +18,7 @@ void addDscpAclToCfg(
   auto numCfgAcls = config->acls.size();
   config->acls.resize(numCfgAcls + 1);
   config->acls[numCfgAcls].name = aclName;
-  config->acls[numCfgAcls].__isset.dscp = true;
-  config->acls[numCfgAcls].dscp_ref().value_unchecked() = dscp;
+  config->acls[numCfgAcls].dscp_ref() = dscp;
 }
 
 void addClassIDAclToCfg(
@@ -29,8 +28,7 @@ void addClassIDAclToCfg(
   auto numCfgAcls = config->acls.size();
   config->acls.resize(numCfgAcls + 1);
   config->acls[numCfgAcls].name = aclName;
-  config->acls[numCfgAcls].__isset.lookupClass = true;
-  config->acls[numCfgAcls].lookupClass_ref().value_unchecked() = lookupClass;
+  config->acls[numCfgAcls].lookupClass_ref() = lookupClass;
 }
 
 void addQueueMatcher(

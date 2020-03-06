@@ -2921,7 +2921,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       l2addr->mac[5]);
   entry.vlanID = l2addr->vid;
   entry.port = 0;
-  entry.trunk_ref().value_unchecked() = BcmTrunk::INVALID;
+  entry.trunk_ref() = BcmTrunk::INVALID;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
     // Ideally we would return the corresponding BcmTrunk aggregatePortId here
     // rather than the SDK assigned trunk ids. However since this function does
@@ -2929,7 +2929,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
     // id here. So for now, make do with SDK trunk id
     entry.trunk_ref() = l2addr->tgid;
     XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
-               << " Trunk: " << entry.trunk_ref().value_unchecked();
+               << " Trunk: " << entry.trunk_ref().value_or({});
   } else {
     entry.port = l2addr->port;
     XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID

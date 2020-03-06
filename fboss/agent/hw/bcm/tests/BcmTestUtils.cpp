@@ -51,15 +51,13 @@ void addMatcher(
   action.matcher = matcherName;
   action.action = matchAction;
   cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (config->__isset.dataPlaneTrafficPolicy) {
-    egressTrafficPolicy =
-        config->dataPlaneTrafficPolicy_ref().value_unchecked();
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy_ref()) {
+    egressTrafficPolicy = *dataPlaneTrafficPolicy;
   }
   auto curNumMatchActions = egressTrafficPolicy.matchToAction.size();
   egressTrafficPolicy.matchToAction.resize(curNumMatchActions + 1);
   egressTrafficPolicy.matchToAction[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy_ref().value_unchecked() = egressTrafficPolicy;
-  config->__isset.dataPlaneTrafficPolicy = true;
+  config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
 }
 
 void assertSwitchControl(bcm_switch_control_t type, int expectedValue) {
