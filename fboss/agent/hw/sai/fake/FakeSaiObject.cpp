@@ -252,6 +252,11 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_INSEG_ENTRY: {
+      for (const auto& entry : fs->inSegEntryManager.map()) {
+        object_list[i++].key.inseg_entry = entry.first.sai_inseg_entry;
+      }
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }

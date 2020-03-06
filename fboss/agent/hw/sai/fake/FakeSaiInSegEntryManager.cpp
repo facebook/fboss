@@ -29,7 +29,7 @@ sai_status_t sai_set_inseg_entry_attribute(
       entry.popcount = attr->value.u8;
       break;
     case SAI_INSEG_ENTRY_ATTR_PACKET_ACTION:
-      // TODO(pshaikh) support this
+      entry.action = static_cast<sai_packet_action_t>(attr->value.s32);
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -52,7 +52,7 @@ sai_status_t sai_get_inseg_entry_attribute(
         attr_list[i].value.u8 = entry.popcount;
         break;
       case SAI_INSEG_ENTRY_ATTR_PACKET_ACTION:
-        // TODO(pshaikh) how to get this? where is SWAP/PHP/POP/PUSH defined?
+        attr_list[i].value.s32 = entry.action;
         break;
       default:
         // TODO(pshaikh): warn here
