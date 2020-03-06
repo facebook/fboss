@@ -15,6 +15,7 @@
 
 namespace facebook::fboss {
 constexpr auto kKey = "adapterkey";
+constexpr auto kAdapterKeys = "adapterKeys";
 
 template <typename SaiObjectTraits>
 std::enable_if_t<AdapterKeyIsObjectId<SaiObjectTraits>::value, folly::dynamic>

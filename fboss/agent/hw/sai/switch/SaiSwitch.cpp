@@ -51,10 +51,6 @@ extern "C" {
 
 DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
 
-namespace {
-auto constexpr kAdapterKeys = "adapterKeys";
-}
-
 namespace facebook::fboss {
 
 static SaiSwitch* hwSwitch;
