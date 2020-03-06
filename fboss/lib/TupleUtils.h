@@ -94,4 +94,29 @@ struct IsTuple : std::false_type {};
 
 template <typename... T>
 struct IsTuple<std::tuple<T...>> : std::true_type {};
+
+template <typename, typename>
+struct TupleIndex {};
+
+template <typename ElementType, typename... Types>
+struct TupleIndex<std::tuple<Types...>, ElementType> {
+ private:
+  static constexpr auto Size = sizeof...(Types);
+  using Tuple = std::tuple<Types...>;
+
+  template <std::size_t Index = 0>
+  static constexpr std::size_t index() {
+    static_assert(Index < Size, "ElementType not in Tuple");
+    if constexpr (std::is_same_v<
+                      ElementType,
+                      std::tuple_element_t<Index, Tuple>>) {
+      return Index;
+    } else {
+      return index<Index + 1>();
+    }
+  }
+
+ public:
+  static auto constexpr value = index();
+};
 } // namespace facebook::fboss

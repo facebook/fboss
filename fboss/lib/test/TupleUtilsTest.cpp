@@ -133,3 +133,12 @@ TEST(TupleProjection, ChangeOrder) {
   std::tuple<std::string, int> expected{"hello", 42};
   EXPECT_EQ(t2, expected);
 }
+
+TEST(TupleIndex, Test) {
+  EXPECT_EQ((TupleIndex<std::tuple<int, double, std::string>, int>::value), 0);
+  EXPECT_EQ(
+      (TupleIndex<std::tuple<int, double, std::string>, double>::value), 1);
+  EXPECT_EQ(
+      (TupleIndex<std::tuple<int, double, std::string>, std::string>::value),
+      2);
+}
