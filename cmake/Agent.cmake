@@ -127,7 +127,6 @@ target_link_libraries(core
   exponential_back_off
   fboss_config_utils
   phy_cpp2
-  pcap_pubsub_cpp2
   transceiver_cpp2
   Folly::folly
   ${IPROUTE2}

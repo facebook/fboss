@@ -14,6 +14,5 @@ add_library(capture
 
 target_link_libraries(capture
   packet
-  pcap_pubsub_cpp2
   Folly::folly
 )
