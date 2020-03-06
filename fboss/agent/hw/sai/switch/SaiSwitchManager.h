@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/types.h"
 
@@ -27,28 +28,24 @@ class SaiManagerTable;
 class SaiPlatform;
 class StateDelta;
 
+using SaiSwitchObj = SaiObject<SaiSwitchTraits>;
+
 class SaiSwitchInstance {
  public:
   explicit SaiSwitchInstance(
       const SaiSwitchTraits::CreateAttributes& attributes);
-  ~SaiSwitchInstance();
   SaiSwitchInstance(const SaiSwitchInstance& other) = delete;
   SaiSwitchInstance(SaiSwitchInstance&& other) = delete;
   SaiSwitchInstance& operator=(const SaiSwitchInstance& other) = delete;
   SaiSwitchInstance& operator=(SaiSwitchInstance&& other) = delete;
-  bool operator==(const SaiSwitchInstance& other) const;
-  bool operator!=(const SaiSwitchInstance& other) const;
 
-  const SaiSwitchTraits::CreateAttributes attributes() const {
-    return attributes_;
-  }
   SwitchSaiId id() const {
-    return id_;
+    return switch_.adapterKey();
   }
 
  private:
-  SaiSwitchTraits::CreateAttributes attributes_;
   SwitchSaiId id_;
+  SaiSwitchObj switch_;
 };
 
 class SaiSwitchManager {

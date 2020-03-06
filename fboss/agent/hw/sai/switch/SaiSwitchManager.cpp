@@ -76,23 +76,7 @@ namespace facebook::fboss {
 
 SaiSwitchInstance::SaiSwitchInstance(
     const SaiSwitchTraits::CreateAttributes& attributes)
-    : attributes_(attributes) {
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  id_ = switchApi.create<SaiSwitchTraits>(
-      attributes_, 0 /* fake switch id; ignored */);
-}
-
-SaiSwitchInstance::~SaiSwitchInstance() {
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.remove(id());
-}
-
-bool SaiSwitchInstance::operator==(const SaiSwitchInstance& other) const {
-  return attributes_ == other.attributes();
-}
-bool SaiSwitchInstance::operator!=(const SaiSwitchInstance& other) const {
-  return !(*this == other);
-}
+    : switch_(std::monostate(), attributes, 0 /* fake switch id; ignored */) {}
 
 SaiSwitchManager::SaiSwitchManager(
     SaiManagerTable* managerTable,
