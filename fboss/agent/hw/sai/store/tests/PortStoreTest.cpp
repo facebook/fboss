@@ -87,6 +87,20 @@ TEST_F(PortStoreTest, portSetSpeed) {
   EXPECT_EQ(apiSpeed, 25000);
 }
 
+TEST_F(PortStoreTest, portSetOnlySpeed) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 100000);
+  auto apiSpeed = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::Speed{});
+  EXPECT_EQ(apiSpeed, 100000);
+  portObj.setAttribute(SaiPortTraits::Attributes::Speed{25000});
+  EXPECT_EQ(GET_ATTR(Port, Speed, portObj.attributes()), 25000);
+  apiSpeed = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::Speed{});
+  EXPECT_EQ(apiSpeed, 25000);
+}
+
 TEST_F(PortStoreTest, portSetAdminState) {
   auto portId = createPort(0);
   SaiObject<SaiPortTraits> portObj(portId);
@@ -95,6 +109,19 @@ TEST_F(PortStoreTest, portSetAdminState) {
   portObj.setAttributes(newAttrs);
   EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), false);
   auto apiAdminState = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::AdminState{});
+  EXPECT_EQ(apiAdminState, false);
+}
+
+TEST_F(PortStoreTest, portSetOnlyAdminState) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  auto apiAdminState = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::AdminState{});
+  EXPECT_EQ(apiAdminState, true);
+  portObj.setOptionalAttribute(SaiPortTraits::Attributes::AdminState{false});
+  EXPECT_EQ(GET_OPT_ATTR(Port, AdminState, portObj.attributes()), false);
+  apiAdminState = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::AdminState{});
   EXPECT_EQ(apiAdminState, false);
 }

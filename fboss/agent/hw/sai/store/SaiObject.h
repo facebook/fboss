@@ -241,15 +241,20 @@ class SaiObject {
     if (UNLIKELY(!live_)) {
       XLOG(FATAL) << "Attempted to setAttributes on non-live SaiObject";
     }
-    auto checkAndSetAttribute = [this](const auto& newAttr) {
-      const auto& oldAttr =
-          std::get<std::decay_t<decltype(newAttr)>>(attributes_);
-      if (oldAttr != newAttr) {
-        setNewAttributeHelper(newAttr);
-      }
-    };
-    tupleForEach(checkAndSetAttribute, newAttributes);
+    tupleForEach(
+        [this](const auto& attr) { checkAndSetAttribute(attr); },
+        newAttributes);
     attributes_ = newAttributes;
+  }
+
+  template <typename AttrT>
+  void setAttribute(AttrT&& attr) {
+    checkAndSetAttribute(std::forward<AttrT>(attr));
+  }
+
+  template <typename AttrT>
+  void setOptionalAttribute(AttrT&& attr) {
+    checkAndSetAttribute(std::optional<AttrT>{std::forward<AttrT>(attr)});
   }
 
   void release() {
@@ -278,6 +283,14 @@ class SaiObject {
   }
 
  protected:
+  template <typename AttrT>
+  void checkAndSetAttribute(AttrT&& newAttr) {
+    auto& oldAttr = std::get<std::decay_t<AttrT>>(attributes_);
+    if (oldAttr != newAttr) {
+      setNewAttributeHelper(newAttr);
+      oldAttr = std::forward<AttrT>(newAttr);
+    }
+  }
   void remove() {
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
