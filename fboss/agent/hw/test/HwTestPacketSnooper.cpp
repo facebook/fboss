@@ -22,10 +22,18 @@ void HwTestPacketSnooper::packetReceived(RxPacket* pkt) noexcept {
   cv_.notify_all();
 }
 
-std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket() {
+std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket(
+    uint32_t timeout_s) {
   std::unique_lock<std::mutex> lock(mtx_);
   while (!data_) {
-    cv_.wait(lock);
+    if (timeout_s > 0) {
+      if (cv_.wait_for(lock, std::chrono::seconds(timeout_s)) ==
+          std::cv_status::timeout) {
+        return {};
+      }
+    } else {
+      cv_.wait(lock);
+    }
   }
   folly::io::Cursor cursor{data_.get()};
   return utility::EthFrame{cursor};

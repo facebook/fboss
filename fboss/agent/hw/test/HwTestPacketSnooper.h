@@ -19,7 +19,8 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
   explicit HwTestPacketSnooper(HwSwitchEnsemble* ensemble);
   virtual ~HwTestPacketSnooper() override;
   void packetReceived(RxPacket* pkt) noexcept override;
-  std::optional<utility::EthFrame> waitForPacket();
+  // Wait until timeout (seconds), If timeout = 0, wait forever.
+  std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
 
  private:
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
