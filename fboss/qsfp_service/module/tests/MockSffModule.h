@@ -69,12 +69,13 @@ class MockSffModule : public SffModule {
     SffModule::customizeTransceiver(speed);
   }
 
-  bool getTransceiverSettingsInfo(TransceiverSettings& settings) override {
+  TransceiverSettings getTransceiverSettingsInfo() override {
+    TransceiverSettings settings = TransceiverSettings();
     settings.cdrTx = cdrTx_;
     settings.cdrRx = cdrRx_;
     settings.rateSelect = state_;
     settings.rateSelectSetting = setting_;
-    return true;
+    return settings;
   }
 
   void setRateSelect(RateSelectState state, RateSelectSetting setting) {

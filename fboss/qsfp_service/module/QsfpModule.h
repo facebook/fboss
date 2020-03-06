@@ -220,11 +220,11 @@ class QsfpModule : public Transceiver {
   /*
    * Retreives all alarm and warning thresholds
    */
-  virtual bool getThresholdInfo(AlarmThreshold& threshold) = 0;
+  virtual std::optional<AlarmThreshold> getThresholdInfo() = 0;
   /*
    * Gather the sensor info for thrift queries
    */
-  virtual bool getSensorInfo(GlobalSensors& sensor) = 0;
+  virtual GlobalSensors getSensorInfo() = 0;
   /*
    * Gather per-channel information for thrift queries
    */
@@ -232,16 +232,16 @@ class QsfpModule : public Transceiver {
   /*
    * Gather the vendor info for thrift queries
    */
-  virtual bool getVendorInfo(Vendor& vendor) = 0;
+  virtual Vendor getVendorInfo() = 0;
   /*
    * Gather the cable info for thrift queries
    */
-  virtual void getCableInfo(Cable& cable) = 0;
+  virtual Cable getCableInfo() = 0;
 
   /*
    * Gather info on what features are enabled and supported
    */
-  virtual bool getTransceiverSettingsInfo(TransceiverSettings& settings) = 0;
+  virtual TransceiverSettings getTransceiverSettingsInfo() = 0;
   /*
    * Return which rate select capability is being used, if any
    */
@@ -258,7 +258,7 @@ class QsfpModule : public Transceiver {
   /*
    * Return TransceiverStats
    */
-  bool getTransceiverStats(TransceiverStats& stats);
+  std::optional<TransceiverStats> getTransceiverStats();
   /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any

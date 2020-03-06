@@ -131,34 +131,24 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     return info;
   }
 
-  if (getSensorInfo(info.sensor_ref().value_unchecked())) {
-    info.__isset.sensor = true;
+  info.sensor_ref() = getSensorInfo();
+  info.vendor_ref() = getVendorInfo();
+  info.cable_ref() = getCableInfo();
+  if (auto threshold = getThresholdInfo()) {
+    info.thresholds_ref() = *threshold;
   }
-  if (getVendorInfo(info.vendor_ref().value_unchecked())) {
-    info.__isset.vendor = true;
-  }
-  getCableInfo(info.cable_ref().value_unchecked());
-  info.__isset.cable = true;
-  if (getThresholdInfo(info.thresholds_ref().value_unchecked())) {
-    info.__isset.thresholds = true;
-  }
-  if (getTransceiverSettingsInfo(info.settings_ref().value_unchecked())) {
-    info.__isset.settings = true;
-  }
+  info.settings_ref() = getTransceiverSettingsInfo();
+
   for (int i = 0; i < CHANNEL_COUNT; i++) {
     Channel chan;
     chan.channel = i;
     info.channels.push_back(chan);
   }
-
-  if (getSensorsPerChanInfo(info.channels)) {
-    info.__isset.channels = true;
-  } else {
+  if (!getSensorsPerChanInfo(info.channels)) {
     info.channels.clear();
   }
-
-  if (getTransceiverStats(info.stats_ref().value_unchecked())) {
-    info.__isset.stats = true;
+  if (auto transceiverStats = getTransceiverStats()) {
+    info.stats_ref() = *transceiverStats;
   }
 
   return info;
@@ -242,7 +232,7 @@ void QsfpModule::transceiverPortsChanged(
   for (auto& it : ports) {
     CHECK(
         TransceiverID(
-            it.second.transceiverIdx_ref().value_unchecked().transceiverId) ==
+            it.second.transceiverIdx_ref().value_or({}).transceiverId) ==
         getID());
     ports_[it.first] = std::move(it.second);
   }
@@ -347,8 +337,7 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   if (customizationSupported()) {
-    TransceiverSettings settings;
-    getTransceiverSettingsInfo(settings);
+    TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);
@@ -366,13 +355,12 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
   needsCustomization_ = false;
 }
 
-bool QsfpModule::getTransceiverStats(TransceiverStats& stats) {
+std::optional<TransceiverStats> QsfpModule::getTransceiverStats() {
   auto transceiverStats = qsfpImpl_->getTransceiverStats();
   if (!transceiverStats.has_value()) {
-    return false;
+    return {};
   }
-  stats = transceiverStats.value();
-  return true;
+  return transceiverStats.value();
 }
 
 }} //namespace facebook::fboss

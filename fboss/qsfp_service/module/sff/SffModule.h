@@ -142,11 +142,11 @@ class SffModule : public QsfpModule {
   /*
    * Retreives all alarm and warning thresholds
    */
-  bool getThresholdInfo(AlarmThreshold& threshold) override;
+  std::optional<AlarmThreshold> getThresholdInfo() override;
   /*
    * Gather the sensor info for thrift queries
    */
-  bool getSensorInfo(GlobalSensors& sensor) override;
+  GlobalSensors getSensorInfo() override;
   /*
    * Gather per-channel information for thrift queries
    */
@@ -154,11 +154,11 @@ class SffModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  bool getVendorInfo(Vendor& vendor) override;
+  Vendor getVendorInfo() override;
   /*
    * Gather the cable info for thrift queries
    */
-  void getCableInfo(Cable& cable) override;
+  Cable getCableInfo() override;
   /*
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop
@@ -167,7 +167,7 @@ class SffModule : public QsfpModule {
   /*
    * Gather info on what features are enabled and supported
    */
-  bool getTransceiverSettingsInfo(TransceiverSettings& settings) override;
+  TransceiverSettings getTransceiverSettingsInfo() override;
   /*
    * Return which rate select capability is being used, if any
    */
@@ -183,7 +183,7 @@ class SffModule : public QsfpModule {
   /*
    * Return TransceiverStats
    */
-  bool getTransceiverStats(TransceiverStats& stats);
+  std::optional<TransceiverStats> getTransceiverStats();
   /*
    * Update the cached data with the information from the physical QSFP.
    *
