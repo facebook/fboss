@@ -43,6 +43,10 @@ class SaiSwitchInstance {
     return switch_.adapterKey();
   }
 
+  SaiSwitchObj& getSwitch() {
+    return switch_;
+  }
+
  private:
   SwitchSaiId id_;
   SaiSwitchObj switch_;

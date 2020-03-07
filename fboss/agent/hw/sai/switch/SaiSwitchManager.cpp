@@ -118,13 +118,11 @@ void SaiSwitchManager::programLoadBalancerParams(
     std::optional<sai_uint32_t> seed,
     std::optional<cfg::HashingAlgorithm> algo) {
   auto hashSeed = seed ? seed.value() : 0;
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.setAttribute(
-      getSwitchSaiId(),
-      SaiSwitchTraits::Attributes::EcmpDefaultHashSeed{hashSeed});
   auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
-  switchApi.setAttribute(
-      getSwitchSaiId(),
+  auto& switchObj = switch_->getSwitch();
+  switchObj.setOptionalAttribute(
+      SaiSwitchTraits::Attributes::EcmpDefaultHashSeed{hashSeed});
+  switchObj.setOptionalAttribute(
       SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
 }
 
@@ -135,6 +133,7 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
   }
   programLoadBalancerParams(
       newLb->getID(), newLb->getSeed(), newLb->getAlgorithm());
+
   if (newLb->getIPv4Fields().size()) {
     // v4 ECMP
     cfg::Fields v4EcmpHashFields;
@@ -143,10 +142,9 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
     v4EcmpHashFields.transportFields.insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
-    auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    switchApi.setAttribute(
-        getSwitchSaiId(),
-        SaiSwitchTraits::Attributes::EcmpHashV4(ecmpV4Hash_->adapterKey()));
+    // Set the new ecmp v4 hash attribute on switch obj
+    switch_->getSwitch().setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV4{ecmpV4Hash_->adapterKey()});
   }
   if (newLb->getIPv6Fields().size()) {
     // v6 ECMP
@@ -156,10 +154,9 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
     v6EcmpHashFields.transportFields.insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
-    auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    switchApi.setAttribute(
-        getSwitchSaiId(),
-        SaiSwitchTraits::Attributes::EcmpHashV6(ecmpV6Hash_->adapterKey()));
+    // Set the new ecmp v6 hash attribute on switch obj
+    switch_->getSwitch().setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpHashV6{ecmpV6Hash_->adapterKey()});
   }
 }
 
