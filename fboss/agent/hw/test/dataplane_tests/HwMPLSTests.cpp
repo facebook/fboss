@@ -1,20 +1,20 @@
-// Copyright 2004-present Facebook. All Rights Reserved.
-extern "C" {
-#include <bcm/l3.h>
-#include <bcm/mpls.h>
-}
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
 
 #include <folly/IPAddressV6.h>
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestPacketTrapAclEntry.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -26,10 +26,10 @@ const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
 
 namespace facebook::fboss {
 
-class BcmDataPlaneMPLSTest : public BcmLinkStateDependentTests {
+class HwMPLSTest : public HwLinkStateDependentTest {
  protected:
   void SetUp() override {
-    BcmLinkStateDependentTests::SetUp();
+    HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), RouterID(0));
 
@@ -78,7 +78,7 @@ class BcmDataPlaneMPLSTest : public BcmLinkStateDependentTests {
   }
 
   uint32_t featuresDesired() const override {
-    return (BcmSwitch::LINKSCAN_DESIRED | BcmSwitch::PACKET_RX_DESIRED);
+    return (HwSwitch::LINKSCAN_DESIRED | HwSwitch::PACKET_RX_DESIRED);
   }
 
   void addRoute(
@@ -140,20 +140,6 @@ class BcmDataPlaneMPLSTest : public BcmLinkStateDependentTests {
     getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
   }
 
-  int getLabelEntryFromFib() {
-    bcm_mpls_tunnel_switch_t info;
-    bcm_mpls_tunnel_switch_t_init(&info);
-    info.label = kTopLabel;
-    info.port = BCM_GPORT_INVALID;
-    auto rv = bcm_mpls_tunnel_switch_get(0, &info); // query label fib
-    EXPECT_EQ(rv, 0);
-    bcm_l3_egress_t egr;
-    bcm_l3_egress_t_init(&egr);
-    rv = bcm_l3_egress_get(0, info.egress_if, &egr); // query egress
-    EXPECT_EQ(rv, 0);
-    return egr.mpls_label;
-  }
-
   void sendMplsPacket(
       uint32_t topLabel,
       PortID from,
@@ -179,12 +165,12 @@ class BcmDataPlaneMPLSTest : public BcmLinkStateDependentTests {
     getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
   }
   bool skipTest() {
-    return !isSupported(HwAsic::Feature::MPLS);
+    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS);
   }
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
-TEST_F(BcmDataPlaneMPLSTest, Push) {
+TEST_F(HwMPLSTest, Push) {
   if (skipTest()) {
     return;
   }
@@ -199,15 +185,15 @@ TEST_F(BcmDataPlaneMPLSTest, Push) {
   };
   auto verify = [=]() {
     // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture = BcmTestPacketTrapAclEntry(
-        getHwSwitch()->getUnit(), masterLogicalPortIds()[0]);
+    auto packetCapture =
+        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     // generate the packet entering  port 1
     sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         masterLogicalPortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
-    auto pkt = snooper.waitForPacket();
+    auto pkt = snooper.waitForPacket(10);
     auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
     EXPECT_TRUE(mplsPayLoad.has_value());
     if (!mplsPayLoad) {
@@ -222,7 +208,7 @@ TEST_F(BcmDataPlaneMPLSTest, Push) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmDataPlaneMPLSTest, Swap) {
+TEST_F(HwMPLSTest, Swap) {
   if (skipTest()) {
     return;
   }
@@ -233,14 +219,13 @@ TEST_F(BcmDataPlaneMPLSTest, Swap) {
   };
   auto verify = [=]() {
     // capture packet exiting port 0 (entering due to loopback)
-    auto packetCapture = BcmTestPacketTrapAclEntry(
-        getHwSwitch()->getUnit(), masterLogicalPortIds()[0]);
+    auto packetCapture =
+        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-
     // generate the packet entering  port 1
     sendMplsPacket(
         1101, masterLogicalPortIds()[1], EXP(5)); // send packet with exp 5
-    auto pkt = snooper.waitForPacket();
+    auto pkt = snooper.waitForPacket(10);
 
     auto mplsPayLoad = pkt ? pkt->mplsPayLoad() : std::nullopt;
 
@@ -248,9 +233,10 @@ TEST_F(BcmDataPlaneMPLSTest, Swap) {
     if (!mplsPayLoad) {
       return;
     }
-    uint32_t mpls_label = getLabelEntryFromFib();
+    uint32_t expectedOutLabel =
+        utility::getLabelSwappedWithForTopLabel(kTopLabel);
     auto expectedMplsHdr = MPLSHdr({
-        MPLSHdr::Label{mpls_label, 2, true, 127}, // exp is remarked to 2
+        MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });
     EXPECT_EQ(mplsPayLoad->header(), expectedMplsHdr);
   };

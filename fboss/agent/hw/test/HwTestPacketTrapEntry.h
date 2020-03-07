@@ -3,20 +3,18 @@
 #pragma once
 #include "fboss/agent/types.h"
 
-extern "C" {
-#include <bcm/field.h>
-}
-
 namespace facebook::fboss {
 
-class BcmTestPacketTrapAclEntry {
+class HwSwitch;
+
+class HwTestPacketTrapEntry {
  public:
-  BcmTestPacketTrapAclEntry(int unit, PortID port);
-  ~BcmTestPacketTrapAclEntry();
+  HwTestPacketTrapEntry(const HwSwitch* hwSwitch, PortID port);
+  ~HwTestPacketTrapEntry();
 
  private:
   int unit_;
-  bcm_field_entry_t entry_;
+  int entry_;
 };
 
 } // namespace facebook::fboss

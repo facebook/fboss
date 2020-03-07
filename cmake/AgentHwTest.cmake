@@ -87,6 +87,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwInDiscardCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwL4PortBlackholingTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMacLearningTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4.cpp
