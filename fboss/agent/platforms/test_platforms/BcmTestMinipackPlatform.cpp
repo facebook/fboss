@@ -12,11 +12,6 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestMinipackPort.h"
 #include "fboss/agent/platforms/wedge/minipack/MinipackPlatformMapping.h"
 
-namespace {
-
-constexpr uint8_t kNumPortsPerTransceiver = 1;
-} // unnamed namespace
-
 namespace facebook::fboss {
 
 BcmTestMinipackPlatform::BcmTestMinipackPlatform(

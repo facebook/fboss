@@ -25,15 +25,6 @@ namespace facebook::fboss {
 
 BcmTestWedgePlatform::BcmTestWedgePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::vector<PortID> masterLogicalPortIds,
-    int numPortsPerTranceiver)
-    : BcmTestPlatform(
-          std::move(productInfo),
-          masterLogicalPortIds,
-          numPortsPerTranceiver) {}
-
-BcmTestWedgePlatform::BcmTestWedgePlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping)
     : BcmTestPlatform(std::move(productInfo), std::move(platformMapping)) {}
 

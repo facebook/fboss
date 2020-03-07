@@ -12,11 +12,6 @@
 #include "fboss/agent/platforms/test_platforms/BcmTestYampPort.h"
 #include "fboss/agent/platforms/wedge/yamp/YampPlatformMapping.h"
 
-namespace {
-
-constexpr uint8_t kNumPortsPerTransceiver = 1;
-} // unnamed namespace
-
 namespace facebook::fboss {
 
 BcmTestYampPlatform::BcmTestYampPlatform(

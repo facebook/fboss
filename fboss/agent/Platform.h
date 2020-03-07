@@ -50,7 +50,7 @@ class Platform {
  public:
   explicit Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping = nullptr);
+      std::unique_ptr<PlatformMapping> platformMapping);
   virtual ~Platform();
 
   /*

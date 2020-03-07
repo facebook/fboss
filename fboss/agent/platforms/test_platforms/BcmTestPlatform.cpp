@@ -27,20 +27,6 @@ namespace facebook::fboss {
 
 BcmTestPlatform::BcmTestPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    std::vector<PortID> masterLogicalPorts,
-    int numPortsPerTranceiver)
-    : BcmPlatform(std::move(productInfo)),
-      masterLogicalPortIds_(std::move(masterLogicalPorts)) {
-  numPortsPerTranceiver_ = numPortsPerTranceiver;
-  for (auto masterPort : masterLogicalPortIds_) {
-    for (int i = 0; i < numPortsPerTranceiver; ++i) {
-      logicalPortIds_.push_back(PortID(masterPort + i));
-    }
-  }
-}
-
-BcmTestPlatform::BcmTestPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping)
     : BcmPlatform(std::move(productInfo), std::move(platformMapping)) {
   const auto& portsByMasterPort =

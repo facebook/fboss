@@ -55,11 +55,6 @@ MacAddress localMacAddress() {
   return MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
-const std::map<int32_t, facebook::fboss::cfg::PlatformPortEntry>
-    kEmptyPlatformPorts = {};
-
-const std::map<std::string, facebook::fboss::phy::DataPlanePhyChip>
-    kEmptyChips = {};
 } // namespace
 namespace facebook::fboss {
 
@@ -96,18 +91,15 @@ void Platform::setConfig(std::unique_ptr<AgentConfig> config) {
 
 const std::map<int32_t, cfg::PlatformPortEntry>& Platform::getPlatformPorts()
     const {
-  return platformMapping_ ? platformMapping_->getPlatformPorts()
-                          : kEmptyPlatformPorts;
+  return platformMapping_->getPlatformPorts();
 }
 
 const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
     cfg::PortProfileID profileID) const {
-  if (platformMapping_) {
-    const auto& supportedProfiles = platformMapping_->getSupportedProfiles();
-    auto itProfileConfig = supportedProfiles.find(profileID);
-    if (itProfileConfig != supportedProfiles.end()) {
-      return itProfileConfig->second;
-    }
+  const auto& supportedProfiles = platformMapping_->getSupportedProfiles();
+  auto itProfileConfig = supportedProfiles.find(profileID);
+  if (itProfileConfig != supportedProfiles.end()) {
+    return itProfileConfig->second;
   }
   return std::nullopt;
 }
@@ -124,7 +116,7 @@ const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
 
 const std::map<std::string, phy::DataPlanePhyChip>&
 Platform::getDataPlanePhyChips() const {
-  return platformMapping_ ? platformMapping_->getChips() : kEmptyChips;
+  return platformMapping_->getChips();
 }
 
 cfg::PortSpeed Platform::getPortMaxSpeed(PortID portID) const {

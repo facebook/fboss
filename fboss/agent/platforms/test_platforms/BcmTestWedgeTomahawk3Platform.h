@@ -20,16 +20,6 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
  public:
   BcmTestWedgeTomahawk3Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      std::vector<PortID> masterLogicalPortIds,
-      int numPortsPerTranceiver)
-      : BcmTestWedgePlatform(
-            std::move(productInfo),
-            masterLogicalPortIds,
-            numPortsPerTranceiver) {
-    asic_ = std::make_unique<Tomahawk3Asic>();
-  }
-  BcmTestWedgeTomahawk3Platform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping)
       : BcmTestWedgePlatform(
             std::move(productInfo),
