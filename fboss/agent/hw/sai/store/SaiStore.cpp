@@ -51,7 +51,7 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
         using ObjectTraits =
             typename std::decay_t<decltype(store)>::ObjectTraits;
         if constexpr (AdapterKeyIsObjectId<ObjectTraits>::value) {
-          auto objName = saiObjectTypeToString(ObjectTraits::ObjectType);
+          auto objName = store.objectTypeName();
           auto aitr = adapterKeys.find(objName);
           if (aitr == adapterKeys.items().end()) {
             adapterKeys[objName] = folly::dynamic::array;

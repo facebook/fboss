@@ -58,6 +58,9 @@ class SaiObjectStore {
     switchId_ = switchId;
   }
 
+  static folly::StringPiece objectTypeName() {
+    return saiObjectTypeToString(SaiObjectTraits::ObjectType);
+  }
   /*
    * This routine will help load sai objects owned by the SAI Adapter.
    * For instance, sai queue objects are owned by the adapter and will not be
