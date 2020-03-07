@@ -74,38 +74,21 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
 
 namespace facebook::fboss {
 
-SaiSwitchInstance::SaiSwitchInstance(
-    const SaiSwitchTraits::CreateAttributes& attributes)
-    : switch_(std::monostate(), attributes, 0 /* fake switch id; ignored */) {}
-
 SaiSwitchManager::SaiSwitchManager(
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {
-  switch_ = std::make_unique<SaiSwitchInstance>(getSwitchAttributes(platform));
-}
-
-SaiSwitchInstance* SaiSwitchManager::getSwitchImpl() const {
-  if (!switch_) {
-    XLOG(FATAL) << "invalid null switch";
-  }
-  return switch_.get();
-}
-
-const SaiSwitchInstance* SaiSwitchManager::getSwitch() const {
-  return getSwitchImpl();
-}
-
-SaiSwitchInstance* SaiSwitchManager::getSwitch() {
-  return getSwitchImpl();
+  switch_ = std::make_unique<SaiSwitchObj>(
+      std::monostate(),
+      getSwitchAttributes(platform),
+      0 /* fake switch id; ignored */);
 }
 
 SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
-  auto switchInstance = getSwitch();
-  if (!switchInstance) {
+  if (!switch_) {
     throw FbossError("failed to get switch id: switch not initialized");
   }
-  return switchInstance->id();
+  return switch_->adapterKey();
 }
 
 void SaiSwitchManager::resetHashes() {
@@ -119,10 +102,9 @@ void SaiSwitchManager::programLoadBalancerParams(
     std::optional<cfg::HashingAlgorithm> algo) {
   auto hashSeed = seed ? seed.value() : 0;
   auto hashAlgo = algo ? toSaiHashAlgo(algo.value()) : SAI_HASH_ALGORITHM_CRC;
-  auto& switchObj = switch_->getSwitch();
-  switchObj.setOptionalAttribute(
+  switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::EcmpDefaultHashSeed{hashSeed});
-  switchObj.setOptionalAttribute(
+  switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
 }
 
@@ -143,7 +125,7 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
     // Set the new ecmp v4 hash attribute on switch obj
-    switch_->getSwitch().setOptionalAttribute(
+    switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::EcmpHashV4{ecmpV4Hash_->adapterKey()});
   }
   if (newLb->getIPv6Fields().size()) {
@@ -155,7 +137,7 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
     // Set the new ecmp v6 hash attribute on switch obj
-    switch_->getSwitch().setOptionalAttribute(
+    switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::EcmpHashV6{ecmpV6Hash_->adapterKey()});
   }
 }

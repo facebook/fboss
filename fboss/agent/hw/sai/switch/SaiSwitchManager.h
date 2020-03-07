@@ -30,33 +30,9 @@ class StateDelta;
 
 using SaiSwitchObj = SaiObject<SaiSwitchTraits>;
 
-class SaiSwitchInstance {
- public:
-  explicit SaiSwitchInstance(
-      const SaiSwitchTraits::CreateAttributes& attributes);
-  SaiSwitchInstance(const SaiSwitchInstance& other) = delete;
-  SaiSwitchInstance(SaiSwitchInstance&& other) = delete;
-  SaiSwitchInstance& operator=(const SaiSwitchInstance& other) = delete;
-  SaiSwitchInstance& operator=(SaiSwitchInstance&& other) = delete;
-
-  SwitchSaiId id() const {
-    return switch_.adapterKey();
-  }
-
-  SaiSwitchObj& getSwitch() {
-    return switch_;
-  }
-
- private:
-  SwitchSaiId id_;
-  SaiSwitchObj switch_;
-};
-
 class SaiSwitchManager {
  public:
   SaiSwitchManager(SaiManagerTable* managerTable, SaiPlatform* platform);
-  const SaiSwitchInstance* getSwitch() const;
-  SaiSwitchInstance* getSwitch();
   SwitchSaiId getSwitchSaiId() const;
 
   void processLoadBalancerDelta(const StateDelta& delta);
@@ -72,10 +48,9 @@ class SaiSwitchManager {
   void addOrUpdateLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
   void removeLoadBalancer(const std::shared_ptr<LoadBalancer>& oldLb);
 
-  SaiSwitchInstance* getSwitchImpl() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unique_ptr<SaiSwitchInstance> switch_;
+  std::unique_ptr<SaiSwitchObj> switch_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
 };
