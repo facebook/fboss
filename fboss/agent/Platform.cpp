@@ -104,6 +104,11 @@ const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
   return std::nullopt;
 }
 
+const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
+Platform::getSupportedProfiles() {
+  return platformMapping_->getSupportedProfiles();
+}
+
 const std::optional<phy::DataPlanePhyChip> Platform::getDataPlanePhyChip(
     std::string chipName) const {
   const auto& chips = getDataPlanePhyChips();
