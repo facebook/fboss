@@ -17,7 +17,8 @@ class Trident2Asic;
 class SaiBcmWedge40Platform : public SaiBcmPlatform {
  public:
   explicit SaiBcmWedge40Platform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiBcmWedge40Platform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;

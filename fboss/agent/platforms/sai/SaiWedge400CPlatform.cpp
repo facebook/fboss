@@ -17,8 +17,9 @@
 namespace facebook::fboss {
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
-    : SaiHwPlatform(std::move(productInfo)) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiHwPlatform(std::move(productInfo), std::move(platformMapping)) {
   asic_ = std::make_unique<TajoAsic>();
 }
 

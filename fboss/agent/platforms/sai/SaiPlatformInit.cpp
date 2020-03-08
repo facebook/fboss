@@ -23,17 +23,23 @@
 namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping) {
   if (productInfo->getMode() == PlatformMode::WEDGE100) {
-    return std::make_unique<SaiBcmWedge100Platform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge100Platform>(
+        std::move(productInfo), std::move(platformMapping));
   } else if (productInfo->getMode() == PlatformMode::WEDGE) {
-    return std::make_unique<SaiBcmWedge40Platform>(std::move(productInfo));
+    return std::make_unique<SaiBcmWedge40Platform>(
+        std::move(productInfo), std::move(platformMapping));
   } else if (productInfo->getMode() == PlatformMode::GALAXY_FC) {
-    return std::make_unique<SaiBcmGalaxyFCPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmGalaxyFCPlatform>(
+        std::move(productInfo), std::move(platformMapping));
   } else if (productInfo->getMode() == PlatformMode::GALAXY_LC) {
-    return std::make_unique<SaiBcmGalaxyLCPlatform>(std::move(productInfo));
+    return std::make_unique<SaiBcmGalaxyLCPlatform>(
+        std::move(productInfo), std::move(platformMapping));
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C) {
-    return std::make_unique<SaiWedge400CPlatform>(std::move(productInfo));
+    return std::make_unique<SaiWedge400CPlatform>(
+        std::move(productInfo), std::move(platformMapping));
   }
 
   return nullptr;
@@ -45,8 +51,8 @@ std::unique_ptr<Platform> initSaiPlatform(
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
-
-  auto platform = chooseSaiPlatform(std::move(productInfo));
+  auto platform = chooseSaiPlatform(
+      std::move(productInfo), std::make_unique<PlatformMapping>());
   platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }

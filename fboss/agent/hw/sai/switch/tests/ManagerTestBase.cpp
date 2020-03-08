@@ -34,7 +34,9 @@ void ManagerTestBase::SetUp() {
   sai_api_initialize(0, nullptr);
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-  saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
+  auto platformMapping = std::make_unique<PlatformMapping>();
+  saiPlatform = std::make_unique<SaiFakePlatform>(
+      std::move(productInfo), std::move(platformMapping));
   auto thriftAgentConfig = utility::getAgentConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");

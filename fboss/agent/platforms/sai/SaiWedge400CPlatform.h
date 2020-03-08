@@ -18,7 +18,8 @@ class TajoAsic;
 class SaiWedge400CPlatform : public SaiHwPlatform {
  public:
   explicit SaiWedge400CPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiWedge400CPlatform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   std::string getHwConfig() override;

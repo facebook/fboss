@@ -16,7 +16,9 @@ namespace facebook::fboss {
 class FakeAsic;
 class SaiFakePlatform : public SaiPlatform {
  public:
-  explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
+  explicit SaiFakePlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiFakePlatform() override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;

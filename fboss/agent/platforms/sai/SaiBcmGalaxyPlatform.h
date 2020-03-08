@@ -15,8 +15,9 @@ namespace facebook::fboss {
 class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
  public:
   explicit SaiBcmGalaxyPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo)
-      : SaiBcmPlatform(std::move(productInfo)) {}
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping)
+      : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {}
 };
 
 } // namespace facebook::fboss

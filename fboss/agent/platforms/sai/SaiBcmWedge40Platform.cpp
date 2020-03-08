@@ -16,8 +16,9 @@
 namespace facebook::fboss {
 
 SaiBcmWedge40Platform::SaiBcmWedge40Platform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
-    : SaiBcmPlatform(std::move(productInfo)) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {
   asic_ = std::make_unique<Trident2Asic>();
 }
 

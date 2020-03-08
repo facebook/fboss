@@ -17,7 +17,8 @@ class TomahawkAsic;
 class SaiBcmGalaxyFCPlatform : public SaiBcmGalaxyPlatform {
  public:
   explicit SaiBcmGalaxyFCPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo);
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiBcmGalaxyFCPlatform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;

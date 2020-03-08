@@ -14,8 +14,9 @@
 namespace facebook::fboss {
 
 SaiBcmGalaxyFCPlatform::SaiBcmGalaxyFCPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo)
-    : SaiBcmGalaxyPlatform(std::move(productInfo)) {
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SaiBcmGalaxyPlatform(std::move(productInfo), std::move(platformMapping)) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 
