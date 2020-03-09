@@ -119,13 +119,10 @@ class MdioController {
   // This can be useful by clients to do multiple MDIO reads/writes
   // w/out releasing the controller. Sample:
   // {
-  //   auto io = controller.lock();
+  //   auto io = controller.fully_lock();
   //   io->write(...);
   //   io->read(...);
   // }
-  LockedPtr lock() {
-    return io_.lock();
-  }
 
   // Functions for synchronizing multiple processes' access to
   // MDIO. The calling thread must hold a LockedPtr lock for
@@ -174,7 +171,7 @@ class MdioController {
   };
 
   FullyLockedMdio fully_lock() {
-    auto threadLock = lock();
+    auto threadLock = io_.lock();
     return FullyLockedMdio(std::move(threadLock), lockFile_);
   }
 
@@ -182,7 +179,7 @@ class MdioController {
   // Same as fully_lock, but using 'new' so that we can delegate ownership of locks
   // to C code that needs them (i.e the Accton xphy commands)
   FullyLockedMdio* fully_lock_new() {
-    auto threadLock = lock();
+    auto threadLock = io_.lock();
     return new FullyLockedMdio(std::move(threadLock), lockFile_);
   }
 
