@@ -91,7 +91,7 @@ SaiNextHop SaiNextHopManager::refOrEmplace(
   for (auto label : stack) {
     labels.push_back(label);
   }
-  SaiMplsNextHopTraits::AdapterHostKey k{interface, ip, std::move(labels)};
+  SaiMplsNextHopTraits::AdapterHostKey k{interface, ip, labels};
   auto& store = SaiStore::getInstance()->get<SaiMplsNextHopTraits>();
   return store.setObject(
       k,
