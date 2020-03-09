@@ -14,6 +14,7 @@ from math import log10
 
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
+from neteng.fboss.ctrl.ttypes import PortLedExternalState
 from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
 from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
@@ -246,6 +247,21 @@ class PortSetStatusCmd(cmds.FbossCmd):
                 status_str = "Enabling" if status else "Disabling"
                 print("{} port {}".format(status_str, port))
                 client.setPortState(port, status)
+
+
+class PortSetLedCmd(cmds.FbossCmd):
+    def run(self, ports, value):
+        try:
+            self.set_led(ports, value)
+        except FbossBaseError as e:
+            raise SystemExit("Fboss Error: " + e)
+
+    def set_led(self, ports, value):
+        with self._create_agent_client() as client:
+            for port in ports:
+                values = PortLedExternalState._VALUES_TO_NAMES
+                print("Setting port {} to value: {}".format(port, values.get(value)))
+                client.setExternalLedState(port, value)
 
 
 class PortStatsCmd(cmds.FbossCmd):

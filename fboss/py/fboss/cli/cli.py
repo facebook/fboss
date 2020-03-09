@@ -32,6 +32,7 @@ from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
+from neteng.fboss.ctrl.ttypes import PortLedExternalState
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
@@ -326,6 +327,7 @@ class PortState(object):
         self.state.add_command(self._enable, name="enable")
         self.state.add_command(self._disable, name="disable")
         self.state.add_command(self._flap, name="flap")
+        self.state.add_command(self._set_led, name="set_led")
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     def state():
@@ -363,6 +365,22 @@ class PortState(object):
     def _flap(cli_opts, ports, all):  # noqa: B902
         """ Flap port state for given [port(s)] """
         port.PortFlapCmd(cli_opts).run(ports, all)
+
+    @click.command()
+    @click.argument("ports", nargs=-1, type=PortType())
+    @click.option("--internal", is_flag=True, help="LED will show port state")
+    @click.option("--on", is_flag=True, help="LED will be permanently ON")
+    @click.option("--off", is_flag=True, help="LED will be permanently OFF")
+    @click.pass_obj
+    def _set_led(cli_opts, ports, internal, on, off):  # noqa: B902
+        """ Set LED light state for given [port(s)] """
+        value = PortLedExternalState.NONE
+        if on:
+            value = PortLedExternalState.EXTERNAL_FORCE_ON
+        if off:
+            value = PortLedExternalState.EXTERNAL_FORCE_OFF
+
+        port.PortSetLedCmd(cli_opts).run(ports, value)
 
 
 class PortTransceiver(object):
