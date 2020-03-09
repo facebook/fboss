@@ -110,6 +110,10 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_hostif_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_MPLS:
+      facebook::fboss::populate_mpls_api((sai_mpls_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_NEIGHBOR:
       facebook::fboss::populate_neighbor_api(
           (sai_neighbor_api_t**)api_method_table);
@@ -159,10 +163,6 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       break;
     case SAI_API_VLAN:
       facebook::fboss::populate_vlan_api((sai_vlan_api_t**)api_method_table);
-      res = SAI_STATUS_SUCCESS;
-      break;
-    case SAI_API_MPLS:
-      facebook::fboss::populate_mpls_api((sai_mpls_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     default:
