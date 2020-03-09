@@ -8,12 +8,8 @@
  *
  */
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -26,7 +22,7 @@ constexpr uint8_t kTestingQueue = 7;
 
 namespace facebook::fboss {
 
-class BcmSendPacketToQueueTest : public BcmLinkStateDependentTests {
+class HwSendPacketToQueueTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -37,7 +33,7 @@ class BcmSendPacketToQueueTest : public BcmLinkStateDependentTests {
   void checkSendPacket(std::optional<uint8_t> ucQueue, bool isOutOfPort);
 };
 
-void BcmSendPacketToQueueTest::checkSendPacket(
+void HwSendPacketToQueueTest::checkSendPacket(
     std::optional<uint8_t> ucQueue,
     bool isOutOfPort) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
@@ -94,15 +90,15 @@ void BcmSendPacketToQueueTest::checkSendPacket(
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmSendPacketToQueueTest, SendPacketOutOfPortToUCQueue) {
+TEST_F(HwSendPacketToQueueTest, SendPacketOutOfPortToUCQueue) {
   checkSendPacket(kTestingQueue, true);
 }
 
-TEST_F(BcmSendPacketToQueueTest, SendPacketOutOfPortToDefaultUCQueue) {
+TEST_F(HwSendPacketToQueueTest, SendPacketOutOfPortToDefaultUCQueue) {
   checkSendPacket(std::nullopt, true);
 }
 
-TEST_F(BcmSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
+TEST_F(HwSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
   checkSendPacket(std::nullopt, false);
 }
 
