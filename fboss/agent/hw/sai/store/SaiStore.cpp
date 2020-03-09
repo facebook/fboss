@@ -66,4 +66,8 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
   return adapterKeys;
 }
 
+void SaiStore::exitForWarmBoot() {
+  tupleForEach([](auto& store) { store.exitForWarmBoot(); }, stores_);
+}
+
 } // namespace facebook::fboss

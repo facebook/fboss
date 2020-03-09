@@ -168,6 +168,15 @@ class SaiObjectStore {
     return adapterKeys;
   }
 
+  void exitForWarmBoot() {
+    for (auto itr : objects_) {
+      if (auto object = itr.second.lock()) {
+        object->release();
+      }
+    }
+    objects_.clear();
+  }
+
  private:
   std::optional<sai_object_id_t> switchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
@@ -214,6 +223,8 @@ class SaiStore {
   }
 
   folly::dynamic adapterKeysFollyDynamic() const;
+
+  void exitForWarmBoot();
 
  private:
   sai_object_id_t switchId_{};
