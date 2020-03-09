@@ -110,4 +110,15 @@ void SaiInSegEntryManager::processRemovedInSegEntry(
   saiInSegEntryTable_.erase(inSegEntry);
 }
 
+const SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(
+    LabelForwardingEntry::Label label) const {
+  auto inSegEntry = SaiInSegTraits::InSegEntry(
+      managerTable_->switchManager().getSwitchSaiId(), label);
+  const auto& itr = saiInSegEntryTable_.find(inSegEntry);
+  if (itr == saiInSegEntryTable_.end()) {
+    return nullptr;
+  }
+  return &(itr->second);
+}
+
 } // namespace facebook::fboss

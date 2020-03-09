@@ -123,6 +123,10 @@ class ManagerTestBase : public ::testing::Test {
 
   ResolvedNextHop makeNextHop(const TestInterface& testInterface) const;
 
+  ResolvedNextHop makeMplsNextHop(
+      const TestInterface& testInterface,
+      const LabelForwardingAction& action) const;
+
   std::shared_ptr<Port> makePort(const TestPort& testPort) const;
 
   std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(

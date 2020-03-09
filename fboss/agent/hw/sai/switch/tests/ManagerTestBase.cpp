@@ -166,6 +166,14 @@ ResolvedNextHop ManagerTestBase::makeNextHop(
   return ResolvedNextHop{remote.ip, InterfaceID(testInterface.id), ECMP_WEIGHT};
 }
 
+ResolvedNextHop ManagerTestBase::makeMplsNextHop(
+    const TestInterface& testInterface,
+    const LabelForwardingAction& action) const {
+  const auto& remote = testInterface.remoteHosts.at(0);
+  return ResolvedNextHop{
+      remote.ip, InterfaceID(testInterface.id), ECMP_WEIGHT, action};
+}
+
 std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
     const TestRoute& route) const {
   RouteFields<folly::IPAddressV4>::Prefix destination;

@@ -61,9 +61,11 @@ void SaiManagerTable::createSaiTableManagers(
 }
 
 SaiManagerTable::~SaiManagerTable() {
-  // Need to destroy routes before destroying other managers, as the
-  // route destructor will trigger calls in those managers
+  // Need to destroy routes and label fib entries before destroying other
+  // managers, as the route and label fib entry destructors will trigger calls
+  // in those managers
   routeManager().clear();
+  inSegEntryManager_.reset();
   // Reset neighbor mgr before reseting rif mgr, since the
   // neighbor entries refer to rifs. While at it, also reset fdb
   // and next hop mgrs. Fdb is reset after neighbor mgr since
@@ -87,8 +89,7 @@ SaiManagerTable::~SaiManagerTable() {
   switchManager_->resetHashes();
   hashManager_.reset();
   hostifManager_.reset();
-  inSegEntryManager_
-      .reset(); // TODO(pshaikh): put this in correct place in the order
+
   switchManager_.reset();
 }
 

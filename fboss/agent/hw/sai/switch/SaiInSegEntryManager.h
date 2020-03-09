@@ -36,6 +36,10 @@ class SaiInSegEntryManager {
   void processInSegEntryDelta(
       const NodeMapDelta<LabelForwardingInformationBase>& delta);
 
+  // for tests only
+  const SaiInSegEntryHandle* getInSegEntryHandle(
+      LabelForwardingEntry::Label label) const;
+
  private:
   void processAddedInSegEntry(
       const std::shared_ptr<LabelForwardingEntry>& addedEntry);
