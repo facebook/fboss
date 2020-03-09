@@ -22,70 +22,70 @@ sai_status_t sai_get_object_count(
   auto fs = facebook::fboss::FakeSai::getInstance();
   switch (object_type) {
     case SAI_OBJECT_TYPE_PORT:
-      *count = fs->pm.map().size();
+      *count = fs->portManager.map().size();
       break;
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
-      *count = fs->vrm.map().size();
+      *count = fs->virtualRouteManager.map().size();
       break;
     case SAI_OBJECT_TYPE_NEXT_HOP:
-      *count = fs->nhm.map().size();
+      *count = fs->nextHopManager.map().size();
       break;
     case SAI_OBJECT_TYPE_NEXT_HOP_GROUP:
-      *count = fs->nhgm.map().size();
+      *count = fs->nextHopGroupManager.map().size();
       break;
     case SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER: {
-      for (const auto& nhg : fs->nhgm.map()) {
+      for (const auto& nhg : fs->nextHopGroupManager.map()) {
         *count += nhg.second.fm().map().size();
       }
       break;
     }
     case SAI_OBJECT_TYPE_ROUTER_INTERFACE:
-      *count = fs->rim.map().size();
+      *count = fs->routeInterfaceManager.map().size();
       break;
     case SAI_OBJECT_TYPE_HASH:
-      *count = fs->hashm.map().size();
+      *count = fs->hashManager.map().size();
       break;
     case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP:
-      *count = fs->htgm.map().size();
+      *count = fs->hostifTrapGroupManager.map().size();
       break;
     case SAI_OBJECT_TYPE_FDB_ENTRY:
-      *count = fs->fdbm.map().size();
+      *count = fs->fdbManager.map().size();
       break;
     case SAI_OBJECT_TYPE_SWITCH:
-      *count = fs->swm.map().size();
+      *count = fs->switchManager.map().size();
       break;
     case SAI_OBJECT_TYPE_HOSTIF_TRAP:
-      *count = fs->htm.map().size();
+      *count = fs->hostIfTrapManager.map().size();
       break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
-      *count = fs->nm.map().size();
+      *count = fs->neighborManager.map().size();
       break;
     case SAI_OBJECT_TYPE_ROUTE_ENTRY:
-      *count = fs->rm.map().size();
+      *count = fs->routeManager.map().size();
       break;
     case SAI_OBJECT_TYPE_VLAN:
-      *count = fs->vm.map().size();
+      *count = fs->vlanManager.map().size();
       break;
     case SAI_OBJECT_TYPE_VLAN_MEMBER: {
-      for (const auto& v : fs->vm.map()) {
+      for (const auto& v : fs->vlanManager.map()) {
         *count += v.second.fm().map().size();
       }
       break;
     }
     case SAI_OBJECT_TYPE_BRIDGE:
-      *count = fs->brm.map().size();
+      *count = fs->bridgeManager.map().size();
       break;
     case SAI_OBJECT_TYPE_BRIDGE_PORT: {
-      for (const auto& br : fs->brm.map()) {
+      for (const auto& br : fs->bridgeManager.map()) {
         *count += br.second.fm().map().size();
       }
       break;
     }
     case SAI_OBJECT_TYPE_QUEUE:
-      *count = fs->qm.map().size();
+      *count = fs->queueManager.map().size();
       break;
     case SAI_OBJECT_TYPE_SCHEDULER:
-      *count = fs->scm.map().size();
+      *count = fs->scheduleManager.map().size();
       break;
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       *count = fs->inSegEntryManager.map().size();
@@ -120,58 +120,58 @@ sai_status_t sai_get_object_key(
   int i = 0;
   switch (object_type) {
     case SAI_OBJECT_TYPE_PORT: {
-      for (const auto& p : fs->pm.map()) {
+      for (const auto& p : fs->portManager.map()) {
         object_list[i++].key.object_id = p.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER: {
-      for (const auto& vr : fs->vrm.map()) {
+      for (const auto& vr : fs->virtualRouteManager.map()) {
         object_list[i++].key.object_id = vr.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_NEXT_HOP: {
-      for (const auto& nh : fs->nhm.map()) {
+      for (const auto& nh : fs->nextHopManager.map()) {
         object_list[i++].key.object_id = nh.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_NEXT_HOP_GROUP: {
-      for (const auto& nhg : fs->nhgm.map()) {
+      for (const auto& nhg : fs->nextHopGroupManager.map()) {
         object_list[i++].key.object_id = nhg.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER: {
-      for (const auto& nhg : fs->nhgm.map()) {
-        for (const auto& nhgm : nhg.second.fm().map()) {
-          object_list[i++].key.object_id = nhgm.second.id;
+      for (const auto& nhg : fs->nextHopGroupManager.map()) {
+        for (const auto& nextHopGroupManager : nhg.second.fm().map()) {
+          object_list[i++].key.object_id = nextHopGroupManager.second.id;
         }
       }
       break;
     }
     case SAI_OBJECT_TYPE_ROUTER_INTERFACE: {
-      for (const auto& rif : fs->rim.map()) {
+      for (const auto& rif : fs->routeInterfaceManager.map()) {
         object_list[i++].key.object_id = rif.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP: {
-      for (const auto& htg : fs->htgm.map()) {
+      for (const auto& htg : fs->hostifTrapGroupManager.map()) {
         object_list[i++].key.object_id = htg.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_HASH: {
-      *count = fs->hashm.map().size();
-      for (const auto& hash : fs->hashm.map()) {
+      *count = fs->hashManager.map().size();
+      for (const auto& hash : fs->hashManager.map()) {
         object_list[i++].key.object_id = hash.first;
       }
       break;
     }
     case SAI_OBJECT_TYPE_FDB_ENTRY: {
-      for (const auto& fdbe : fs->fdbm.map()) {
+      for (const auto& fdbe : fs->fdbManager.map()) {
         object_list[i].key.fdb_entry.switch_id = std::get<0>(fdbe.first);
         object_list[i].key.fdb_entry.bv_id = std::get<1>(fdbe.first);
         facebook::fboss::toSaiMacAddress(
@@ -181,19 +181,19 @@ sai_status_t sai_get_object_key(
       break;
     }
     case SAI_OBJECT_TYPE_SWITCH: {
-      for (const auto& sw : fs->swm.map()) {
+      for (const auto& sw : fs->switchManager.map()) {
         object_list[i++].key.object_id = sw.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_HOSTIF_TRAP: {
-      for (const auto& ht : fs->htm.map()) {
+      for (const auto& ht : fs->hostIfTrapManager.map()) {
         object_list[i++].key.object_id = ht.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY: {
-      for (const auto& nbr : fs->nm.map()) {
+      for (const auto& nbr : fs->neighborManager.map()) {
         object_list[i].key.neighbor_entry.switch_id = std::get<0>(nbr.first);
         object_list[i].key.neighbor_entry.rif_id = std::get<1>(nbr.first);
         object_list[i].key.neighbor_entry.ip_address =
@@ -203,7 +203,7 @@ sai_status_t sai_get_object_key(
       break;
     }
     case SAI_OBJECT_TYPE_ROUTE_ENTRY: {
-      for (const auto& route : fs->rm.map()) {
+      for (const auto& route : fs->routeManager.map()) {
         object_list[i].key.route_entry.switch_id = std::get<0>(route.first);
         object_list[i].key.route_entry.vr_id = std::get<1>(route.first);
         object_list[i].key.route_entry.destination =
@@ -213,27 +213,27 @@ sai_status_t sai_get_object_key(
       break;
     }
     case SAI_OBJECT_TYPE_VLAN: {
-      for (const auto& v : fs->vm.map()) {
+      for (const auto& v : fs->vlanManager.map()) {
         object_list[i++].key.object_id = v.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_VLAN_MEMBER: {
-      for (const auto& v : fs->vm.map()) {
-        for (const auto& vm : v.second.fm().map()) {
-          object_list[i++].key.object_id = vm.second.id;
+      for (const auto& v : fs->vlanManager.map()) {
+        for (const auto& vlanManager : v.second.fm().map()) {
+          object_list[i++].key.object_id = vlanManager.second.id;
         }
       }
       break;
     }
     case SAI_OBJECT_TYPE_BRIDGE: {
-      for (const auto& b : fs->brm.map()) {
+      for (const auto& b : fs->bridgeManager.map()) {
         object_list[i++].key.object_id = b.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_BRIDGE_PORT: {
-      for (const auto& br : fs->brm.map()) {
+      for (const auto& br : fs->bridgeManager.map()) {
         for (const auto& brp : br.second.fm().map()) {
           object_list[i++].key.object_id = brp.second.id;
         }
@@ -241,13 +241,13 @@ sai_status_t sai_get_object_key(
       break;
     }
     case SAI_OBJECT_TYPE_QUEUE: {
-      for (const auto& q : fs->qm.map()) {
+      for (const auto& q : fs->queueManager.map()) {
         object_list[i++].key.object_id = q.second.id;
       }
       break;
     }
     case SAI_OBJECT_TYPE_SCHEDULER: {
-      for (const auto& sc : fs->scm.map()) {
+      for (const auto& sc : fs->scheduleManager.map()) {
         object_list[i++].key.object_id = sc.second.id;
       }
       break;

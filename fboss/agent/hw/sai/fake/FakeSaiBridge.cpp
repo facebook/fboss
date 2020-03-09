@@ -38,9 +38,9 @@ sai_status_t create_bridge_fn(
   }
   // Create bridge based on the input.
   if (!bridgeType) {
-    *bridge_id = fs->brm.create();
+    *bridge_id = fs->bridgeManager.create();
   } else {
-    *bridge_id = fs->brm.create(bridgeType.value());
+    *bridge_id = fs->bridgeManager.create(bridgeType.value());
   }
   for (int i = 0; i < attr_count; ++i) {
     if (attr_list[i].id == SAI_BRIDGE_ATTR_TYPE) {
@@ -48,7 +48,7 @@ sai_status_t create_bridge_fn(
     }
     sai_status_t res = set_bridge_attribute_fn(*bridge_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
-      fs->brm.remove(*bridge_id);
+      fs->bridgeManager.remove(*bridge_id);
       return res;
     }
   }
@@ -57,7 +57,7 @@ sai_status_t create_bridge_fn(
 
 sai_status_t remove_bridge_fn(sai_object_id_t bridge_id) {
   auto fs = FakeSai::getInstance();
-  fs->brm.remove(bridge_id);
+  fs->bridgeManager.remove(bridge_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -66,7 +66,7 @@ sai_status_t get_bridge_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& bridge = fs->brm.get(bridge_id);
+  const auto& bridge = fs->bridgeManager.get(bridge_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_BRIDGE_ATTR_TYPE:
@@ -110,7 +110,7 @@ sai_status_t create_bridge_port_fn(
   if (!portId || !type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *bridge_port_id = fs->brm.createMember(
+  *bridge_port_id = fs->bridgeManager.createMember(
       0,
       type.value(),
       portId.value(),
@@ -121,7 +121,7 @@ sai_status_t create_bridge_port_fn(
 
 sai_status_t remove_bridge_port_fn(sai_object_id_t bridge_port_id) {
   auto fs = FakeSai::getInstance();
-  fs->brm.removeMember(bridge_port_id);
+  fs->bridgeManager.removeMember(bridge_port_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -130,7 +130,7 @@ sai_status_t get_bridge_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& bridgePort = fs->brm.getMember(bridge_port_id);
+  auto& bridgePort = fs->bridgeManager.getMember(bridge_port_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_BRIDGE_PORT_ATTR_BRIDGE_ID:
@@ -159,7 +159,7 @@ sai_status_t set_bridge_port_attribute_fn(
     sai_object_id_t bridge_port_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& bridgePort = fs->brm.getMember(bridge_port_id);
+  auto& bridgePort = fs->bridgeManager.getMember(bridge_port_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;

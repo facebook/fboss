@@ -25,7 +25,7 @@ sai_status_t set_route_entry_attribute_fn(
       route_entry->switch_id,
       route_entry->vr_id,
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
-  auto& fr = fs->rm.get(re);
+  auto& fr = fs->routeManager.get(re);
   switch (attr->id) {
     case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:
       fr.packetAction = attr->value.s32;
@@ -48,7 +48,7 @@ sai_status_t create_route_entry_fn(
       route_entry->switch_id,
       route_entry->vr_id,
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
-  fs->rm.create(re);
+  fs->routeManager.create(re);
   for (int i = 0; i < attr_count; ++i) {
     set_route_entry_attribute_fn(route_entry, &attr_list[i]);
   }
@@ -61,12 +61,11 @@ sai_status_t remove_route_entry_fn(const sai_route_entry_t* route_entry) {
       route_entry->switch_id,
       route_entry->vr_id,
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
-  if (fs->rm.remove(re) == 0) {
+  if (fs->routeManager.remove(re) == 0) {
     return SAI_STATUS_FAILURE;
   }
   return SAI_STATUS_SUCCESS;
 }
-
 
 sai_status_t get_route_entry_attribute_fn(
     const sai_route_entry_t* route_entry,
@@ -77,7 +76,7 @@ sai_status_t get_route_entry_attribute_fn(
       route_entry->switch_id,
       route_entry->vr_id,
       facebook::fboss::fromSaiIpPrefix(route_entry->destination));
-  const auto& fr = fs->rm.get(re);
+  const auto& fr = fs->routeManager.get(re);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION:

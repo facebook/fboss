@@ -52,17 +52,17 @@ sai_status_t create_router_interface_fn(
     }
   }
   if (vrId && type && vlanId) {
-    *router_interface_id = fs->rim.create(
+    *router_interface_id = fs->routeInterfaceManager.create(
         FakeRouterInterface(vrId.value(), type.value(), vlanId.value()));
   } else {
     return SAI_STATUS_INVALID_PARAMETER;
   }
   if (mac) {
-    auto& ri = fs->rim.get(*router_interface_id);
+    auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
     ri.setSrcMac(mac.value());
   }
   if (mtu) {
-    auto& ri = fs->rim.get(*router_interface_id);
+    auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
     ri.mtu = mtu.value();
   }
   return SAI_STATUS_SUCCESS;
@@ -70,7 +70,7 @@ sai_status_t create_router_interface_fn(
 
 sai_status_t remove_router_interface_fn(sai_object_id_t router_interface_id) {
   auto fs = FakeSai::getInstance();
-  fs->rim.remove(router_interface_id);
+  fs->routeInterfaceManager.remove(router_interface_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -78,7 +78,7 @@ sai_status_t set_router_interface_attribute_fn(
     sai_object_id_t router_interface_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& ri = fs->rim.get(router_interface_id);
+  auto& ri = fs->routeInterfaceManager.get(router_interface_id);
   switch (attr->id) {
     case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
       ri.setSrcMac(attr->value.mac);
@@ -97,7 +97,7 @@ sai_status_t get_router_interface_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& ri = fs->rim.get(router_interface_id);
+  const auto& ri = fs->routeInterfaceManager.get(router_interface_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:

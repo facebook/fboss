@@ -22,7 +22,7 @@ class SwitchApiTest : public ::testing::Test {
     fs = FakeSai::getInstance();
     sai_api_initialize(0, nullptr);
     switchApi = std::make_unique<SwitchApi>();
-    switchId = SwitchSaiId{fs->swm.create(FakeSwitch())};
+    switchId = SwitchSaiId{fs->switchManager.create(FakeSwitch())};
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<SwitchApi> switchApi;
@@ -40,10 +40,10 @@ TEST_F(SwitchApiTest, getNumPorts) {
   SaiSwitchTraits::Attributes::PortNumber pn;
   // expect the one global cpu port
   EXPECT_EQ(switchApi->getAttribute(switchId, pn), 1);
-  fs->pm.create(FakePort{{0}, 100000});
-  fs->pm.create(FakePort{{1}, 25000});
-  fs->pm.create(FakePort{{2}, 25000});
-  fs->pm.create(FakePort{{3}, 25000});
+  fs->portManager.create(FakePort{{0}, 100000});
+  fs->portManager.create(FakePort{{1}, 25000});
+  fs->portManager.create(FakePort{{2}, 25000});
+  fs->portManager.create(FakePort{{3}, 25000});
   // expect 4 created ports plus global cpu port
   EXPECT_EQ(switchApi->getAttribute(switchId, pn), 5);
 }
@@ -54,10 +54,10 @@ TEST_F(SwitchApiTest, setNumPorts) {
 }
 
 TEST_F(SwitchApiTest, testGetPortIds) {
-  fs->pm.create(FakePort{{0}, 100000});
-  fs->pm.create(FakePort{{1}, 25000});
-  fs->pm.create(FakePort{{2}, 25000});
-  fs->pm.create(FakePort{{3}, 25000});
+  fs->portManager.create(FakePort{{0}, 100000});
+  fs->portManager.create(FakePort{{1}, 25000});
+  fs->portManager.create(FakePort{{2}, 25000});
+  fs->portManager.create(FakePort{{3}, 25000});
   SaiSwitchTraits::Attributes::PortNumber pn;
   auto numPorts = switchApi->getAttribute(
       switchId, SaiSwitchTraits::Attributes::PortNumber());

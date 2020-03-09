@@ -59,10 +59,13 @@ class SchedulerApiTest : public ::testing::Test {
     SaiSchedulerTraits::Attributes::MaxBandwidthRate maxBwRateAttribute;
     auto gotMaxBwRate =
         schedulerApi->getAttribute(schedulerId, maxBwRateAttribute);
-    EXPECT_EQ(fs->scm.get(schedulerId).schedulingType, gotSchedType);
-    EXPECT_EQ(fs->scm.get(schedulerId).weight, gotSchedWeight);
-    EXPECT_EQ(fs->scm.get(schedulerId).maxBandwidthRate, gotMaxBwRate);
-    EXPECT_EQ(fs->scm.get(schedulerId).minBandwidthRate, gotMinBwRate);
+    EXPECT_EQ(
+        fs->scheduleManager.get(schedulerId).schedulingType, gotSchedType);
+    EXPECT_EQ(fs->scheduleManager.get(schedulerId).weight, gotSchedWeight);
+    EXPECT_EQ(
+        fs->scheduleManager.get(schedulerId).maxBandwidthRate, gotMaxBwRate);
+    EXPECT_EQ(
+        fs->scheduleManager.get(schedulerId).minBandwidthRate, gotMinBwRate);
   }
 };
 
@@ -83,7 +86,7 @@ TEST_F(SchedulerApiTest, removeScheduler) {
   auto saiSchedulerId =
       createScheduler(false, false, weight, minBwRate, maxBwRate);
   checkScheduler(saiSchedulerId);
-  EXPECT_EQ(fs->scm.map().size(), 1);
+  EXPECT_EQ(fs->scheduleManager.map().size(), 1);
   schedulerApi->remove(saiSchedulerId);
-  EXPECT_EQ(fs->scm.map().size(), 0);
+  EXPECT_EQ(fs->scheduleManager.map().size(), 0);
 }

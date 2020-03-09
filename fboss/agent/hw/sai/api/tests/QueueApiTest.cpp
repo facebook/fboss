@@ -48,10 +48,10 @@ class QueueApiTest : public ::testing::Test {
     auto gotIndex = queueApi->getAttribute(queueId, indexAttribute);
     SaiQueueTraits::Attributes::ParentSchedulerNode schedulerAttribute;
     auto gotScheduler = queueApi->getAttribute(queueId, schedulerAttribute);
-    EXPECT_EQ(fs->qm.get(queueId).type, gotType);
-    EXPECT_EQ(fs->qm.get(queueId).port, gotPort);
-    EXPECT_EQ(fs->qm.get(queueId).index, gotIndex);
-    EXPECT_EQ(fs->qm.get(queueId).parentScheduler, gotScheduler);
+    EXPECT_EQ(fs->queueManager.get(queueId).type, gotType);
+    EXPECT_EQ(fs->queueManager.get(queueId).port, gotPort);
+    EXPECT_EQ(fs->queueManager.get(queueId).index, gotIndex);
+    EXPECT_EQ(fs->queueManager.get(queueId).parentScheduler, gotScheduler);
   }
 };
 
@@ -69,7 +69,7 @@ TEST_F(QueueApiTest, removeQueue) {
   uint8_t numCpuQueues = 8;
   auto saiQueueId = createQueue(saiPortId, true, queueIndex);
   checkQueue(saiQueueId);
-  EXPECT_EQ(fs->qm.map().size(), 1 + numCpuQueues);
+  EXPECT_EQ(fs->queueManager.map().size(), 1 + numCpuQueues);
   queueApi->remove(saiQueueId);
-  EXPECT_EQ(fs->qm.map().size(), numCpuQueues);
+  EXPECT_EQ(fs->queueManager.map().size(), numCpuQueues);
 }

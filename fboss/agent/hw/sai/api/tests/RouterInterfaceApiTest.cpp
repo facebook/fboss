@@ -38,9 +38,9 @@ class RouterInterfaceApiTest : public ::testing::Test {
          std::nullopt,
          std::nullopt},
         0);
-    EXPECT_EQ(rifId, fs->rim.get(rifId).id);
-    EXPECT_EQ(vr, fs->rim.get(rifId).virtualRouterId);
-    EXPECT_EQ(vlan, fs->rim.get(rifId).vlanId);
+    EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
+    EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
+    EXPECT_EQ(vlan, fs->routeInterfaceManager.get(rifId).vlanId);
     return rifId;
   }
   std::shared_ptr<FakeSai> fs;

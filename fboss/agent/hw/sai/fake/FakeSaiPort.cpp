@@ -77,8 +77,8 @@ sai_status_t create_port_fn(
   if (lanes.empty() || !speed) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *port_id = fs->pm.create(lanes, speed.value());
-  auto& port = fs->pm.get(*port_id);
+  *port_id = fs->portManager.create(lanes, speed.value());
+  auto& port = fs->portManager.get(*port_id);
   if (adminState) {
     port.adminState = adminState.value();
   }
@@ -103,13 +103,13 @@ sai_status_t create_port_fn(
   port.mtu = mtu;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 7; queueId++) {
-    auto saiQueueId =
-        fs->qm.create(SAI_QUEUE_TYPE_UNICAST, *port_id, queueId, *port_id);
+    auto saiQueueId = fs->queueManager.create(
+        SAI_QUEUE_TYPE_UNICAST, *port_id, queueId, *port_id);
     port.queueIdList.push_back(saiQueueId);
     if (queueId == 6) {
       // Create queue 6 for multicast also.
-      saiQueueId =
-          fs->qm.create(SAI_QUEUE_TYPE_MULTICAST, *port_id, queueId, *port_id);
+      saiQueueId = fs->queueManager.create(
+          SAI_QUEUE_TYPE_MULTICAST, *port_id, queueId, *port_id);
       port.queueIdList.push_back(saiQueueId);
     }
   }
@@ -119,11 +119,11 @@ sai_status_t create_port_fn(
 
 sai_status_t remove_port_fn(sai_object_id_t port_id) {
   auto fs = FakeSai::getInstance();
-  auto& port = fs->pm.get(port_id);
+  auto& port = fs->portManager.get(port_id);
   for (auto saiQueueId : port.queueIdList) {
-    fs->qm.remove(saiQueueId);
+    fs->queueManager.remove(saiQueueId);
   }
-  fs->pm.remove(port_id);
+  fs->portManager.remove(port_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -131,7 +131,7 @@ sai_status_t set_port_attribute_fn(
     sai_object_id_t port_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& port = fs->pm.get(port_id);
+  auto& port = fs->portManager.get(port_id);
   sai_status_t res = SAI_STATUS_SUCCESS;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -189,7 +189,7 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& port = fs->pm.get(port_id);
+  const auto& port = fs->portManager.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:

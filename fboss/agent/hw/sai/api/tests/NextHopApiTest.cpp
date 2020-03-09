@@ -34,7 +34,7 @@ class NextHopApiTest : public ::testing::Test {
     SaiIpNextHopTraits::Attributes::Ip ipAttribute(ip4);
     auto nextHopId = nextHopApi->create<SaiIpNextHopTraits>(
         {typeAttribute, routerInterfaceIdAttribute, ipAttribute}, 0);
-    auto fnh = fs->nhm.get(nextHopId);
+    auto fnh = fs->nextHopManager.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_IP, fnh.type);
     EXPECT_EQ(ip, fnh.ip);
     EXPECT_EQ(0, fnh.routerInterfaceId);
@@ -51,9 +51,9 @@ TEST_F(NextHopApiTest, createNextHop) {
 
 TEST_F(NextHopApiTest, removeNextHop) {
   auto nextHopId = createNextHop(ip4);
-  EXPECT_EQ(fs->nhm.map().size(), 1);
+  EXPECT_EQ(fs->nextHopManager.map().size(), 1);
   nextHopApi->remove(nextHopId);
-  EXPECT_EQ(fs->nhm.map().size(), 0);
+  EXPECT_EQ(fs->nextHopManager.map().size(), 0);
 }
 
 TEST_F(NextHopApiTest, getIp) {

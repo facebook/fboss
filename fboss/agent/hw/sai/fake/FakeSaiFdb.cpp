@@ -36,7 +36,7 @@ sai_status_t create_fdb_entry_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  fs->fdbm.create(
+  fs->fdbManager.create(
       std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac),
       bridgePortId);
   return SAI_STATUS_SUCCESS;
@@ -45,7 +45,8 @@ sai_status_t create_fdb_entry_fn(
 sai_status_t remove_fdb_entry_fn(const sai_fdb_entry_t* fdb_entry) {
   auto fs = FakeSai::getInstance();
   auto mac = facebook::fboss::fromSaiMacAddress(fdb_entry->mac_address);
-  fs->fdbm.remove(std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac));
+  fs->fdbManager.remove(
+      std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac));
   return SAI_STATUS_SUCCESS;
 }
 
@@ -55,7 +56,7 @@ sai_status_t set_fdb_entry_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto mac = facebook::fboss::fromSaiMacAddress(fdb_entry->mac_address);
   auto fdbKey = std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac);
-  auto& fdbEntry = fs->fdbm.get(fdbKey);
+  auto& fdbEntry = fs->fdbManager.get(fdbKey);
   switch (attr->id) {
     case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
       fdbEntry.bridgePortId = attr->value.oid;
@@ -73,7 +74,7 @@ sai_status_t get_fdb_entry_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto mac = facebook::fboss::fromSaiMacAddress(fdb_entry->mac_address);
   auto fdbKey = std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac);
-  auto& fdbEntry = fs->fdbm.get(fdbKey);
+  auto& fdbEntry = fs->fdbManager.get(fdbKey);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:

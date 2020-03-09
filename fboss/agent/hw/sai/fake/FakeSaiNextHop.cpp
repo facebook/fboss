@@ -54,7 +54,7 @@ sai_status_t create_next_hop_fn(
   if (!type || !ip || !routerInterfaceId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_id = fs->nhm.create(
+  *next_hop_id = fs->nextHopManager.create(
       type.value(), ip.value(), routerInterfaceId.value(), labelStack);
 
   return SAI_STATUS_SUCCESS;
@@ -62,7 +62,7 @@ sai_status_t create_next_hop_fn(
 
 sai_status_t remove_next_hop_fn(sai_object_id_t next_hop_id) {
   auto fs = FakeSai::getInstance();
-  fs->nhm.remove(next_hop_id);
+  fs->nextHopManager.remove(next_hop_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -81,7 +81,7 @@ sai_status_t get_next_hop_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& nextHop = fs->nhm.get(next_hop_id);
+  const auto& nextHop = fs->nextHopManager.get(next_hop_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_NEXT_HOP_ATTR_TYPE:

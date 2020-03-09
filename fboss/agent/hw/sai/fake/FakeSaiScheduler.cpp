@@ -57,8 +57,8 @@ sai_status_t create_scheduler_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  *scheduler_id = fs->scm.create();
-  auto& scheduler = fs->scm.get(*scheduler_id);
+  *scheduler_id = fs->scheduleManager.create();
+  auto& scheduler = fs->scheduleManager.get(*scheduler_id);
   if (schedulingType) {
     scheduler.schedulingType = schedulingType.value();
   }
@@ -85,7 +85,7 @@ sai_status_t create_scheduler_fn(
 
 sai_status_t remove_scheduler_fn(sai_object_id_t scheduler_id) {
   auto fs = FakeSai::getInstance();
-  fs->scm.remove(scheduler_id);
+  fs->scheduleManager.remove(scheduler_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -93,7 +93,7 @@ sai_status_t set_scheduler_attribute_fn(
     sai_object_id_t scheduler_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& scheduler = fs->scm.get(scheduler_id);
+  auto& scheduler = fs->scheduleManager.get(scheduler_id);
   sai_status_t res = SAI_STATUS_SUCCESS;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -133,7 +133,7 @@ sai_status_t get_scheduler_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto scheduler = fs->scm.get(scheduler_id);
+  auto scheduler = fs->scheduleManager.get(scheduler_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_SCHEDULER_ATTR_SCHEDULING_TYPE:

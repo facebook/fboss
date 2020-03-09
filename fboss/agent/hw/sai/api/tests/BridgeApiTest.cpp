@@ -28,11 +28,11 @@ class BridgeApiTest : public ::testing::Test {
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<BridgeApi> bridgeApi;
   void checkBridge(BridgeSaiId bridgeId) {
-    auto fb = fs->brm.get(bridgeId);
+    auto fb = fs->bridgeManager.get(bridgeId);
     EXPECT_EQ(fb.id, bridgeId);
   }
   void checkBridgePort(BridgePortSaiId bridgePortId) {
-    auto fbp = fs->brm.getMember(bridgePortId);
+    auto fbp = fs->bridgeManager.getMember(bridgePortId);
     EXPECT_EQ(fbp.id, bridgePortId);
   }
 };
@@ -59,9 +59,9 @@ TEST_F(BridgeApiTest, removeBridgePort) {
                                           SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi->create<SaiBridgePortTraits>(c, 0);
   checkBridgePort(bridgePortId);
-  EXPECT_EQ(fs->brm.get(0).fm().map().size(), 1);
+  EXPECT_EQ(fs->bridgeManager.get(0).fm().map().size(), 1);
   bridgeApi->remove(bridgePortId);
-  EXPECT_EQ(fs->brm.get(0).fm().map().size(), 0);
+  EXPECT_EQ(fs->bridgeManager.get(0).fm().map().size(), 0);
 }
 
 TEST_F(BridgeApiTest, bridgeCount) {

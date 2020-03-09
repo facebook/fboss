@@ -69,9 +69,10 @@ TEST_F(HostifApiTest, createTrap) {
   uint32_t queueId = 10;
   sai_object_id_t trapGroup = createHostifTrapGroup(queueId);
   sai_object_id_t trap = createHostifTrap(trapType, trapGroup);
-  EXPECT_EQ(fs->htm.get(trap).trapType, trapType);
-  EXPECT_EQ(fs->htm.get(trap).packetAction, SAI_PACKET_ACTION_TRAP);
-  EXPECT_EQ(fs->htgm.get(trapGroup).queueId, queueId);
+  EXPECT_EQ(fs->hostIfTrapManager.get(trap).trapType, trapType);
+  EXPECT_EQ(
+      fs->hostIfTrapManager.get(trap).packetAction, SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(fs->hostifTrapGroupManager.get(trapGroup).queueId, queueId);
 }
 
 TEST_F(HostifApiTest, removeTrap) {
@@ -79,10 +80,10 @@ TEST_F(HostifApiTest, removeTrap) {
   uint32_t queueId = 10;
   auto trapGroup = createHostifTrapGroup(queueId);
   auto trap = createHostifTrap(trapType, trapGroup);
-  EXPECT_EQ(fs->htm.map().size(), 1);
-  EXPECT_EQ(fs->htgm.map().size(), 1);
+  EXPECT_EQ(fs->hostIfTrapManager.map().size(), 1);
+  EXPECT_EQ(fs->hostifTrapGroupManager.map().size(), 1);
   hostifApi->remove(trapGroup);
   hostifApi->remove(trap);
-  EXPECT_EQ(fs->htm.map().size(), 0);
-  EXPECT_EQ(fs->htgm.map().size(), 0);
+  EXPECT_EQ(fs->hostIfTrapManager.map().size(), 0);
+  EXPECT_EQ(fs->hostifTrapGroupManager.map().size(), 0);
 }

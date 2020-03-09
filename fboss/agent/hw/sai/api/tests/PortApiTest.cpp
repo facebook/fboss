@@ -65,10 +65,10 @@ class PortApiTest : public ::testing::Test {
     auto gotAdminState = portApi->getAttribute(portId, adminStateAttribute);
     auto gotSpeed = portApi->getAttribute(portId, speedAttribute);
     auto lanes = portApi->getAttribute(portId, hwLaneListAttribute);
-    EXPECT_EQ(fs->pm.get(portId).adminState, gotAdminState);
-    EXPECT_EQ(fs->pm.get(portId).speed, gotSpeed);
-    EXPECT_EQ(fs->pm.get(portId).id, portId);
-    EXPECT_EQ(fs->pm.get(portId).lanes, lanes);
+    EXPECT_EQ(fs->portManager.get(portId).adminState, gotAdminState);
+    EXPECT_EQ(fs->portManager.get(portId).speed, gotSpeed);
+    EXPECT_EQ(fs->portManager.get(portId).id, portId);
+    EXPECT_EQ(fs->portManager.get(portId).lanes, lanes);
   }
 
   std::shared_ptr<FakeSai> fs;

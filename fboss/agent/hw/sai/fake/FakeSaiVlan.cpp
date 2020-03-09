@@ -38,13 +38,13 @@ sai_status_t create_vlan_fn(
   if (!vlanId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *vlan_id = fs->vm.create(vlanId.value());
+  *vlan_id = fs->vlanManager.create(vlanId.value());
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_vlan_fn(sai_object_id_t vlan_id) {
   auto fs = FakeSai::getInstance();
-  fs->vm.remove(vlan_id);
+  fs->vlanManager.remove(vlan_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -53,11 +53,11 @@ sai_status_t get_vlan_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& vlan = fs->vm.get(vlan_id);
+  const auto& vlan = fs->vlanManager.get(vlan_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_VLAN_ATTR_MEMBER_LIST: {
-        const auto& vlanMemberMap = fs->vm.get(vlan_id).fm().map();
+        const auto& vlanMemberMap = fs->vlanManager.get(vlan_id).fm().map();
         if (vlanMemberMap.size() > attr[i].value.objlist.count) {
           attr[i].value.objlist.count = vlanMemberMap.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
@@ -92,7 +92,7 @@ sai_status_t set_vlan_member_attribute_fn(
     sai_object_id_t vlan_member_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vm.getMember(vlan_member_id);
+  auto& vlanMember = fs->vlanManager.getMember(vlan_member_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -129,12 +129,13 @@ sai_status_t create_vlan_member_fn(
   if (!vlanId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *vlan_member_id = fs->vm.createMember(vlanId.value(), vlanId.value());
+  *vlan_member_id =
+      fs->vlanManager.createMember(vlanId.value(), vlanId.value());
   for (int i = 0; i < attr_count; ++i) {
     sai_status_t res =
         set_vlan_member_attribute_fn(*vlan_member_id, &attr_list[i]);
     if (res != SAI_STATUS_SUCCESS) {
-      fs->vm.removeMember(*vlan_member_id);
+      fs->vlanManager.removeMember(*vlan_member_id);
       return res;
     }
   }
@@ -143,7 +144,7 @@ sai_status_t create_vlan_member_fn(
 
 sai_status_t remove_vlan_member_fn(sai_object_id_t vlan_member_id) {
   auto fs = FakeSai::getInstance();
-  fs->vm.removeMember(vlan_member_id);
+  fs->vlanManager.removeMember(vlan_member_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -152,7 +153,7 @@ sai_status_t get_vlan_member_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vm.getMember(vlan_member_id);
+  auto& vlanMember = fs->vlanManager.getMember(vlan_member_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_VLAN_MEMBER_ATTR_VLAN_ID:

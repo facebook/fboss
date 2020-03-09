@@ -25,18 +25,20 @@ class NextHopGroupApiTest : public ::testing::Test {
     nextHopGroupApi = std::make_unique<NextHopGroupApi>();
   }
   void checkNextHopGroup(const sai_object_id_t& nextHopGroupId) const {
-    EXPECT_EQ(nextHopGroupId, fs->nhgm.get(nextHopGroupId).id);
+    EXPECT_EQ(nextHopGroupId, fs->nextHopGroupManager.get(nextHopGroupId).id);
   }
   void checkNextHopGroupMember(
       const sai_object_id_t& nextHopGroupId,
       const sai_object_id_t& nextHopGroupMemberId,
       const std::optional<sai_uint32_t>& weight) const {
     EXPECT_EQ(
-        nextHopGroupMemberId, fs->nhgm.getMember(nextHopGroupMemberId).id);
-    EXPECT_EQ(weight, fs->nhgm.getMember(nextHopGroupMemberId).weight);
+        nextHopGroupMemberId,
+        fs->nextHopGroupManager.getMember(nextHopGroupMemberId).id);
+    EXPECT_EQ(
+        weight, fs->nextHopGroupManager.getMember(nextHopGroupMemberId).weight);
     EXPECT_EQ(
         nextHopGroupId,
-        fs->nhgm.getMember(nextHopGroupMemberId).nextHopGroupId);
+        fs->nextHopGroupManager.getMember(nextHopGroupMemberId).nextHopGroupId);
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<NextHopGroupApi> nextHopGroupApi;

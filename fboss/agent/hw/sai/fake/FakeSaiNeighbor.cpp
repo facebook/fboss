@@ -37,7 +37,7 @@ sai_status_t create_neighbor_entry_fn(
   if (!dstMac) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  fs->nm.create(
+  fs->neighborManager.create(
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip),
       dstMac.value());
   return SAI_STATUS_SUCCESS;
@@ -47,7 +47,7 @@ sai_status_t remove_neighbor_entry_fn(
     const sai_neighbor_entry_t* neighbor_entry) {
   auto fs = FakeSai::getInstance();
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
-  fs->nm.remove(
+  fs->neighborManager.remove(
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip));
   return SAI_STATUS_SUCCESS;
 }
@@ -59,7 +59,7 @@ sai_status_t set_neighbor_entry_attribute_fn(
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
   auto n =
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip);
-  auto& fn = fs->nm.get(n);
+  auto& fn = fs->neighborManager.get(n);
   switch (attr->id) {
     case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
       fn.dstMac = facebook::fboss::fromSaiMacAddress(attr->value.mac);
@@ -78,7 +78,7 @@ sai_status_t get_neighbor_entry_attribute_fn(
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
   auto n =
       std::make_tuple(neighbor_entry->switch_id, neighbor_entry->rif_id, ip);
-  auto& fn = fs->nm.get(n);
+  auto& fn = fs->neighborManager.get(n);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:

@@ -21,8 +21,8 @@ sai_status_t set_hash_attribute_fn(
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  auto& hashm = FakeSai::getInstance()->hashm;
-  auto& hash = hashm.get(id);
+  auto& hashManager = FakeSai::getInstance()->hashManager;
+  auto& hash = hashManager.get(id);
   switch (attr->id) {
     case SAI_HASH_ATTR_NATIVE_HASH_FIELD_LIST: {
       FakeHash::NativeFields nativeHashFields(attr->value.s32list.count);
@@ -52,7 +52,7 @@ sai_status_t create_hash_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *id = fs->hashm.create();
+  *id = fs->hashManager.create();
   for (int i = 0; i < attr_count; ++i) {
     set_hash_attribute_fn(*id, &attr_list[i]);
   }
@@ -61,7 +61,7 @@ sai_status_t create_hash_fn(
 
 sai_status_t remove_hash_fn(sai_object_id_t hash_id) {
   auto fs = FakeSai::getInstance();
-  fs->hashm.remove(hash_id);
+  fs->hashManager.remove(hash_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -70,7 +70,7 @@ sai_status_t get_hash_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& hash = fs->hashm.get(hash_id);
+  const auto& hash = fs->hashManager.get(hash_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_HASH_ATTR_NATIVE_HASH_FIELD_LIST: {

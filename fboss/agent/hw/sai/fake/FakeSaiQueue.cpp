@@ -47,14 +47,14 @@ sai_status_t create_queue_fn(
   if (!type || !port || !index || !parentScheduler) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *queue_id = fs->qm.create(
+  *queue_id = fs->queueManager.create(
       type.value(), port.value(), index.value(), parentScheduler.value());
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_queue_fn(sai_object_id_t queue_id) {
   auto fs = FakeSai::getInstance();
-  fs->qm.remove(queue_id);
+  fs->queueManager.remove(queue_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -62,7 +62,7 @@ sai_status_t set_queue_attribute_fn(
     sai_object_id_t queue_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& queue = fs->qm.get(queue_id);
+  auto& queue = fs->queueManager.get(queue_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -96,7 +96,7 @@ sai_status_t get_queue_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto queue = fs->qm.get(queue_id);
+  auto queue = fs->queueManager.get(queue_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_QUEUE_ATTR_TYPE:

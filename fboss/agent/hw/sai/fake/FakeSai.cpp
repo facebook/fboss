@@ -25,23 +25,24 @@ std::shared_ptr<FakeSai> FakeSai::getInstance() {
 
 void FakeSai::clear() {
   auto fs = FakeSai::getInstance();
-  fs->brm.clearWithMembers();
-  fs->fdbm.clear();
-  fs->hashm.clear();
-  fs->htm.clear();
-  fs->htgm.clear();
+
+  fs->bridgeManager.clearWithMembers();
+  fs->fdbManager.clear();
+  fs->hashManager.clear();
+  fs->hostIfTrapManager.clear();
+  fs->hostifTrapGroupManager.clear();
   fs->inSegEntryManager.clear();
-  fs->nm.clear();
-  fs->nhm.clear();
-  fs->nhgm.clearWithMembers();
-  fs->pm.clear();
-  fs->qm.clear();
-  fs->rm.clear();
-  fs->rim.clear();
-  fs->scm.clear();
-  fs->swm.clear();
-  fs->vrm.clear();
-  fs->vm.clearWithMembers();
+  fs->neighborManager.clear();
+  fs->nextHopManager.clear();
+  fs->nextHopGroupManager.clearWithMembers();
+  fs->portManager.clear();
+  fs->queueManager.clear();
+  fs->routeManager.clear();
+  fs->routeInterfaceManager.clear();
+  fs->scheduleManager.clear();
+  fs->switchManager.clear();
+  fs->virtualRouteManager.clear();
+  fs->vlanManager.clearWithMembers();
 }
 
 sai_object_id_t FakeSai::getCpuPort() {
@@ -53,11 +54,11 @@ void sai_create_cpu_port() {
   auto fs = FakeSai::getInstance();
   std::vector<uint32_t> cpuPortLanes{};
   uint32_t cpuPortSpeed = 0;
-  sai_object_id_t portId = fs->pm.create(cpuPortLanes, cpuPortSpeed);
-  auto& port = fs->pm.get(portId);
+  sai_object_id_t portId = fs->portManager.create(cpuPortLanes, cpuPortSpeed);
+  auto& port = fs->portManager.get(portId);
   for (uint8_t queueId = 0; queueId < 8; queueId++) {
     auto saiQueueId =
-        fs->qm.create(SAI_QUEUE_TYPE_ALL, portId, queueId, portId);
+        fs->queueManager.create(SAI_QUEUE_TYPE_ALL, portId, queueId, portId);
     port.queueIdList.push_back(saiQueueId);
   }
   fs->cpuPortId = portId;
@@ -71,11 +72,11 @@ sai_status_t sai_api_initialize(
     return SAI_STATUS_FAILURE;
   }
   // Create the default switch per the SAI spec
-  fs->swm.create();
+  fs->switchManager.create();
   // Create the default 1Q bridge per the SAI spec
-  fs->brm.create();
+  fs->bridgeManager.create();
   // Create the default virtual router per the SAI spec
-  fs->vrm.create();
+  fs->virtualRouteManager.create();
 
   // Create the CPU port
   sai_create_cpu_port();

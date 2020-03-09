@@ -41,7 +41,7 @@ TEST_F(NeighborApiTest, createV4Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
   neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, createV6Neighbor) {
@@ -49,25 +49,25 @@ TEST_F(NeighborApiTest, createV6Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
 }
 
 TEST_F(NeighborApiTest, removeV4Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.map().size(), 1);
+  EXPECT_EQ(fs->neighborManager.map().size(), 1);
   neighborApi->remove(n);
-  EXPECT_EQ(fs->nm.map().size(), 0);
+  EXPECT_EQ(fs->neighborManager.map().size(), 0);
 }
 
 TEST_F(NeighborApiTest, removeV6Neighbor) {
   SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, {dstMacAttribute});
-  EXPECT_EQ(fs->nm.map().size(), 1);
+  EXPECT_EQ(fs->neighborManager.map().size(), 1);
   neighborApi->remove(n);
-  EXPECT_EQ(fs->nm.map().size(), 0);
+  EXPECT_EQ(fs->neighborManager.map().size(), 0);
 }
 
 TEST_F(NeighborApiTest, getV4DstMac) {

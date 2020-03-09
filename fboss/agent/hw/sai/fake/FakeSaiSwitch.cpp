@@ -31,7 +31,7 @@ sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& sw = fs->swm.get(switch_id);
+  auto& sw = fs->switchManager.get(switch_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -85,7 +85,7 @@ sai_status_t create_switch_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  *switch_id = fs->swm.create();
+  *switch_id = fs->switchManager.create();
   for (int i = 0; i < attr_count; ++i) {
     set_switch_attribute_fn(*switch_id, &attr_list[i]);
   }
@@ -94,7 +94,7 @@ sai_status_t create_switch_fn(
 
 sai_status_t remove_switch_fn(sai_object_id_t switch_id) {
   auto fs = FakeSai::getInstance();
-  fs->swm.remove(switch_id);
+  fs->switchManager.remove(switch_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -103,7 +103,7 @@ sai_status_t get_switch_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& sw = fs->swm.get(switch_id);
+  auto& sw = fs->switchManager.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
@@ -116,16 +116,16 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.oid = fs->getCpuPort();
         break;
       case SAI_SWITCH_ATTR_PORT_NUMBER:
-        attr[i].value.u32 = fs->pm.map().size();
+        attr[i].value.u32 = fs->portManager.map().size();
         break;
       case SAI_SWITCH_ATTR_PORT_LIST: {
-        if (fs->pm.map().size() > attr[i].value.objlist.count) {
-          attr[i].value.objlist.count = fs->pm.map().size();
+        if (fs->portManager.map().size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = fs->portManager.map().size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        attr[i].value.objlist.count = fs->pm.map().size();
+        attr[i].value.objlist.count = fs->portManager.map().size();
         int j = 0;
-        for (const auto& p : fs->pm.map()) {
+        for (const auto& p : fs->portManager.map()) {
           attr[i].value.objlist.list[j++] = p.first;
         }
       } break;

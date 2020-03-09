@@ -41,13 +41,13 @@ sai_status_t create_next_hop_group_fn(
   if (type.value() != SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_group_id = fs->nhgm.create(type.value());
+  *next_hop_group_id = fs->nextHopGroupManager.create(type.value());
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_next_hop_group_fn(sai_object_id_t next_hop_group_id) {
   auto fs = FakeSai::getInstance();
-  fs->nhgm.remove(next_hop_group_id);
+  fs->nextHopGroupManager.remove(next_hop_group_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -56,7 +56,7 @@ sai_status_t get_next_hop_group_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& nextHopGroup = fs->nhgm.get(next_hop_group_id);
+  const auto& nextHopGroup = fs->nextHopGroupManager.get(next_hop_group_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
@@ -64,7 +64,7 @@ sai_status_t get_next_hop_group_attribute_fn(
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =
-            fs->nhgm.get(next_hop_group_id).fm().map();
+            fs->nextHopGroupManager.get(next_hop_group_id).fm().map();
         if (nextHopGroupMemberMap.size() > attr[i].value.objlist.count) {
           attr[i].value.objlist.count = nextHopGroupMemberMap.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
@@ -119,7 +119,7 @@ sai_status_t create_next_hop_group_member_fn(
   if (!nextHopGroupId || !nextHopId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_group_member_id = fs->nhgm.createMember(
+  *next_hop_group_member_id = fs->nextHopGroupManager.createMember(
       nextHopGroupId.value(),
       nextHopGroupId.value(),
       nextHopId.value(),
@@ -130,7 +130,7 @@ sai_status_t create_next_hop_group_member_fn(
 sai_status_t remove_next_hop_group_member_fn(
     sai_object_id_t next_hop_group_member_id) {
   auto fs = FakeSai::getInstance();
-  fs->nhgm.removeMember(next_hop_group_member_id);
+  fs->nextHopGroupManager.removeMember(next_hop_group_member_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -139,7 +139,8 @@ sai_status_t get_next_hop_group_member_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& nextHopGroupMember = fs->nhgm.getMember(next_hop_group_member_id);
+  auto& nextHopGroupMember =
+      fs->nextHopGroupManager.getMember(next_hop_group_member_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:

@@ -76,14 +76,14 @@ sai_status_t create_hostif_trap_fn(
     XLOG(ERR) << "create hostif trap missing packet action";
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *hostif_trap_id = fs->htm.create(
+  *hostif_trap_id = fs->hostIfTrapManager.create(
       trapType.value(), packetAction.value(), priority, trapGroup);
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_hostif_trap_fn(sai_object_id_t hostif_trap_id) {
   auto fs = FakeSai::getInstance();
-  fs->htm.remove(hostif_trap_id);
+  fs->hostIfTrapManager.remove(hostif_trap_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -91,7 +91,7 @@ sai_status_t set_hostif_trap_attribute_fn(
     sai_object_id_t hostif_trap_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& trap = fs->htm.get(hostif_trap_id);
+  auto& trap = fs->hostIfTrapManager.get(hostif_trap_id);
   switch (attr->id) {
     case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
       trap.packetAction = attr->value.s32;
@@ -113,7 +113,7 @@ sai_status_t get_hostif_trap_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& hostifTrap = fs->htm.get(hostif_trap_id);
+  const auto& hostifTrap = fs->hostIfTrapManager.get(hostif_trap_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE:
@@ -154,13 +154,13 @@ sai_status_t create_hostif_trap_group_fn(
         break;
     }
   }
-  *hostif_trap_group_id = fs->htgm.create(queueId, policer);
+  *hostif_trap_group_id = fs->hostifTrapGroupManager.create(queueId, policer);
   return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_hostif_trap_group_fn(sai_object_id_t hostif_trap_group_id) {
   auto fs = FakeSai::getInstance();
-  fs->htgm.remove(hostif_trap_group_id);
+  fs->hostifTrapGroupManager.remove(hostif_trap_group_id);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -179,7 +179,8 @@ sai_status_t get_hostif_trap_group_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& hostifTrapGroup = fs->htgm.get(hostif_trap_group_id);
+  const auto& hostifTrapGroup =
+      fs->hostifTrapGroupManager.get(hostif_trap_group_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
