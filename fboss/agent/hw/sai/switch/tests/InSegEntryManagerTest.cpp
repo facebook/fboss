@@ -174,4 +174,79 @@ TEST_F(InSegEntryManagerTest, createInSegEntry) {
   EXPECT_EQ(preWarmBootAttributes, postWarmBootAttributes);
 }
 
+TEST_F(InSegEntryManagerTest, changeInSegEntry) {
+  LabelForwardingInformationBase empty{};
+  LabelForwardingInformationBase fib0{};
+
+  // add
+  addEntryToLabelForwardingInformationBase(
+      &fib0,
+      100 /* label */,
+      0 /* begin next hop id */,
+      4 /* end next hop id */,
+      LabelForwardingAction::LabelForwardingType::SWAP);
+  NodeMapDelta<LabelForwardingInformationBase> delta0(&empty, &fib0);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0);
+  LabelForwardingInformationBase fib1{};
+  // change
+  addEntryToLabelForwardingInformationBase(
+      &fib1,
+      100 /* label */,
+      1 /* begin next hop id */,
+      5 /* end next hop id */,
+      LabelForwardingAction::LabelForwardingType::PUSH);
+  NodeMapDelta<LabelForwardingInformationBase> delta1(&fib0, &fib1);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1);
+
+  // verify
+  verifyLabelForwardingEntry(
+      100 /* label */, 1 /* begin next hop id */, 5 /* end next hop id */);
+
+  const auto* preWarmBootHandle =
+      saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
+  auto preWarmBootAdapterKey = preWarmBootHandle->inSegEntry->adapterKey();
+  auto preWarmBootAttributes = preWarmBootHandle->inSegEntry->attributes();
+
+  // warmboot
+  SaiStore::getInstance()->exitForWarmBoot();
+  SaiStore::getInstance()->reload();
+
+  // verify pre and post matches
+  auto postWarmBootHandle =
+      SaiStore::getInstance()->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
+  ASSERT_NE(postWarmBootHandle, nullptr);
+  auto postWarmBootAttributes = postWarmBootHandle->attributes();
+  EXPECT_EQ(preWarmBootAttributes, postWarmBootAttributes);
+}
+
+TEST_F(InSegEntryManagerTest, removeInSegEntry) {
+  LabelForwardingInformationBase empty{};
+  LabelForwardingInformationBase fib{};
+
+  // add
+  addEntryToLabelForwardingInformationBase(
+      &fib,
+      100 /* label */,
+      0 /* begin next hop id */,
+      4 /* end next hop id */,
+      LabelForwardingAction::LabelForwardingType::SWAP);
+  NodeMapDelta<LabelForwardingInformationBase> delta0(&empty, &fib);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0);
+  // remove
+  NodeMapDelta<LabelForwardingInformationBase> delta1(&fib, &empty);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1);
+
+  const auto* preWarmBootHandle =
+      saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
+  ASSERT_EQ(preWarmBootHandle, nullptr);
+
+  // warmboot
+  SaiStore::getInstance()->exitForWarmBoot();
+  SaiStore::getInstance()->reload();
+
+  const auto* postWarmBootHandle =
+      saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
+  ASSERT_EQ(postWarmBootHandle, nullptr);
+}
+
 } // namespace facebook::fboss
