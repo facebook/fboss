@@ -113,17 +113,20 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
   return filteredPorts;
 }
 
-int BcmPortResourceBuilder::getBaseLane(PortID portID) {
-  auto platformPortEntry =
-      hw_->getPlatform()->getPlatformPort(portID)->getPlatformPortEntry();
+int BcmPortResourceBuilder::getBaseLane(std::shared_ptr<Port> port) {
+  auto platformPortEntry = hw_->getPlatform()
+                               ->getPlatformPort(port->getID())
+                               ->getPlatformPortEntry();
   if (!platformPortEntry) {
     throw FbossError(
         "Port: ",
-        portID,
+        port->getID(),
         " doesn't have PlatformPortEntry. Not allowed to use flex port api");
   }
   const auto& iphyLanes = utility::getOrderedIphyLanes(
-      *platformPortEntry, hw_->getPlatform()->getDataPlanePhyChips());
+      *platformPortEntry,
+      hw_->getPlatform()->getDataPlanePhyChips(),
+      port->getProfileID());
   return iphyLanes[0].lane;
 }
 
@@ -144,7 +147,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
 
   int basePhysicalLane_{-1};
   for (const auto& port : ports) {
-    auto baseLane = getBaseLane(port->getID());
+    auto baseLane = getBaseLane(port);
     if (basePhysicalLane_ == -1 || basePhysicalLane_ > baseLane) {
       basePhysicalLane_ = baseLane;
     }
@@ -160,24 +163,13 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
           " demands unsupported profile: ",
           apache::thrift::util::enumNameSafe(port->getProfileID()));
     }
-    auto platformPortEntry = hw_->getPlatform()
-                                 ->getPlatformPort(port->getID())
-                                 ->getPlatformPortEntry();
-    if (!platformPortEntry) {
-      throw FbossError(
-          "Port: ",
-          port->getName(),
-          " doesn't have PlatformPortEntry. Not allowed to use flex port api");
-    }
-
     bcm_port_resource_t newPortRes;
     bcm_port_resource_t_init(&newPortRes);
     newPortRes.port = port->getID();
 
-    const auto& iphyLanes = utility::getOrderedIphyLanes(
-        *platformPortEntry, chips, port->getProfileID());
+    const auto& baseIphyLane = getBaseLane(port);
     newPortRes.physical_port =
-        basePhysicalPort_ + (iphyLanes[0].lane - basePhysicalLane_);
+        basePhysicalPort_ + (baseIphyLane - basePhysicalLane_);
 
     newPortRes.lanes = desiredLaneMode_;
     newPortRes.speed = static_cast<int>((*profileConf).speed);

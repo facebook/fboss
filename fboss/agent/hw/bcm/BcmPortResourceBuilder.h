@@ -42,7 +42,7 @@ class BcmPortResourceBuilder {
   std::vector<std::shared_ptr<Port>> filterSubSumedPorts(
       const std::vector<std::shared_ptr<Port>>& ports);
 
-  int getBaseLane(PortID portID);
+  int getBaseLane(std::shared_ptr<Port> port);
 
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
