@@ -32,6 +32,8 @@ class TomahawkAsic : public HwAsic {
       case cfg::StreamType::ALL:
         throw FbossError("no queue exist for this stream type");
     }
+
+    throw FbossError("Unknown streamType", streamType);
   }
 };
 

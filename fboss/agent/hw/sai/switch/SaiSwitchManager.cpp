@@ -67,6 +67,7 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
     case cfg::HashingAlgorithm::CRC32_ETHERNET_HI:
     case cfg::HashingAlgorithm::CRC32_KOOPMAN_LO:
     case cfg::HashingAlgorithm::CRC32_KOOPMAN_HI:
+    default:
       throw FbossError("Unsupported hash algorithm :", algo);
   }
 }

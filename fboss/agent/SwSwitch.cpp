@@ -378,11 +378,6 @@ void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype) {
   folly::IOBuf buf_copy;
   pkt->buf()->cloneInto(buf_copy);
   pubPkt.packetData = buf_copy.moveToFbString();
-  auto onError = [&](const folly::exception_wrapper& /* unused */) {
-    stats()->pcapDistFailure();
-    FB_LOG_EVERY_MS(ERROR, 1000)
-        << "Unable to push packet to distribution service\n";
-  };
 }
 
 void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
@@ -390,11 +385,6 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
   folly::IOBuf copy_buf;
   pkt->buf()->cloneInto(copy_buf);
   pubPkt.packetData = copy_buf.moveToFbString();
-  auto onError = [&](const folly::exception_wrapper& /* unused */) {
-    stats()->pcapDistFailure();
-    FB_LOG_EVERY_MS(ERROR, 1000)
-        << "Unable to push packet to distribution service\n";
-  };
 }
 
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {

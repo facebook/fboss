@@ -26,6 +26,8 @@ class TajoAsic : public HwAsic {
       case cfg::StreamType::ALL:
         return 8;
     }
+
+    throw FbossError("Unknown streamType", streamType);
   }
 };
 

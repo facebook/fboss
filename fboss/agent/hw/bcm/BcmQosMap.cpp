@@ -54,6 +54,8 @@ BcmQosMapEntry::Type getQosMapEntryType(BcmQosMap::Type type) {
     case BcmQosMap::MPLS_EGRESS:
       return BcmQosMapEntry::Type::EXP;
   }
+
+  throw FbossError("Unknown QoS type", type);
 }
 
 } // namespace

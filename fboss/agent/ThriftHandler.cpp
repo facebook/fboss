@@ -476,6 +476,8 @@ fb_status ThriftHandler::getStatus() {
       return (sw_->isFullyInitialized()) ? fb_status::ALIVE
                                          : fb_status::STARTING;
   }
+
+  throw FbossError("Unknown bootType", bootType);
 }
 
 void ThriftHandler::async_tm_getStatus(ThriftCallback<fb_status> callback) {

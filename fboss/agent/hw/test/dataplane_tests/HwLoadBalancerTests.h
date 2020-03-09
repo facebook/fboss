@@ -35,13 +35,13 @@
     TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
   TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
     if (!isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION) &&          \
-        BOOST_PP_STRINGIZE(HASH_TYPE) == "Half") {                           \
+        BOOST_PP_STRINGIZE(HASH_TYPE) == std::string{"Half"}) {              \
       XLOG(INFO) << " Skipping half hash test since chip does not support "  \
                     " hash field customization";                             \
       return;                                                                \
     }                                                                        \
     static bool kLoopThroughFrontPanelPort =                                 \
-        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != "Cpu");                         \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
     runLoadBalanceTest(                                                      \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \

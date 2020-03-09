@@ -11,6 +11,8 @@
 
 #include "fboss/agent/hw/bcm/types.h"
 
+#include "fboss/agent/FbossError.h"
+
 extern "C" {
 #include <bcm/qos.h>
 #include <bcm/types.h>
@@ -41,6 +43,8 @@ class BcmQosMapEntry {
       case EXP:
         return entry_.exp;
     }
+
+    throw FbossError("Unknown qos map entry type", type_);
   }
 
  private:

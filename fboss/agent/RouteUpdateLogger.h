@@ -50,6 +50,8 @@ struct UpdateLogHandler {
       case DELETE:
         return "Deleted";
     }
+
+    throw FbossError("Unknown route update type", type);
   }
 
   virtual void log(

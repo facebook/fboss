@@ -78,7 +78,6 @@ void SaiSchedulerManager::fillSchedulerSettings(
   if (!scheduler) {
     return;
   }
-  auto adapterHostKey = scheduler->adapterHostKey();
   auto weight =
       GET_OPT_ATTR(Scheduler, SchedulingWeight, scheduler->attributes());
   auto schedulingType =
