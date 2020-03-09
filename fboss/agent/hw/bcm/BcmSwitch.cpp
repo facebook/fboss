@@ -2268,22 +2268,15 @@ bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
 
 bool BcmSwitch::sendPacketOutOfPortSync(
     unique_ptr<TxPacket> pkt,
-    PortID portID) noexcept {
+    PortID portID,
+    std::optional<uint8_t> cos) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
+  if (cos.has_value()) {
+    bcmPkt->setCos(cos.value());
+  }
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
   return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
-}
-
-bool BcmSwitch::sendPacketOutOfPortSync(
-    unique_ptr<TxPacket> pkt,
-    PortID portID,
-    uint8_t cos) noexcept {
-  unique_ptr<BcmTxPacket> bcmPkt(
-      boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-  bcmPkt->setCos(cos);
-
-  return sendPacketOutOfPortSync(std::move(bcmPkt), portID);
 }
 
 void BcmSwitch::updateStats(SwitchStats* switchStats) {

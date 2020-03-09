@@ -56,7 +56,8 @@ class SaiSwitch : public HwSwitch {
 
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
-      PortID portID) noexcept override;
+      PortID portID,
+      std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
   void updateStats(SwitchStats* switchStats) override;
 

@@ -52,12 +52,13 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(sendPacketSwitchedSync_, bool(TxPacket*));
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
-  MOCK_METHOD2(
+  MOCK_METHOD3(
       sendPacketOutOfPortSync_,
-      bool(TxPacket*, facebook::fboss::PortID));
+      bool(TxPacket*, facebook::fboss::PortID, std::optional<uint8_t> queue));
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
-      facebook::fboss::PortID portID) noexcept override;
+      facebook::fboss::PortID portID,
+      std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
   MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));

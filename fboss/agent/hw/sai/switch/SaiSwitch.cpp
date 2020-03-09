@@ -158,7 +158,9 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
 
 bool SaiSwitch::sendPacketOutOfPortSync(
     std::unique_ptr<TxPacket> pkt,
-    PortID portID) noexcept {
+    PortID portID,
+    std::optional<uint8_t> /* queueId */) noexcept {
+  // TODO: Implement once hostif supports pakcet tx with queue ID.
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID);
 }

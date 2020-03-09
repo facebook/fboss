@@ -232,11 +232,8 @@ class BcmSwitch : public BcmSwitchIf {
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
-      PortID portID) noexcept override;
-  bool sendPacketOutOfPortSync(
-      std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      uint8_t queue) noexcept;
+      std::optional<uint8_t> queue = std::nullopt) noexcept override;
   std::unique_ptr<PacketTraceInfo> getPacketTrace(
       std::unique_ptr<MockRxPacket> pkt) const override;
 

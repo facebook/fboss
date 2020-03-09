@@ -190,14 +190,15 @@ class HwSwitch {
       std::unique_ptr<TxPacket> pkt) noexcept = 0;
 
   /*
-   * Send a packet, send it out the specified port, use
+   * Send a packet, send it out the specified port and queue, use
    * VLAN and destination MAC from packet
    *
    * @return If the packet is successfully sent to HW.
    */
   virtual bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
-      PortID portID) noexcept = 0;
+      PortID portID,
+      std::optional<uint8_t> queue = std::nullopt) noexcept = 0;
 
   /*
    * Allows hardware-specific code to record switch statistics.

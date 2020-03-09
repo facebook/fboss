@@ -45,7 +45,8 @@ class MockBcmSwitch : public BcmSwitchIf {
   // ditto for the other method
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
-      PortID portID) noexcept override {
+      PortID portID,
+      std::optional<uint8_t> queue = std::nullopt) noexcept override {
     return sendPacketOutOfPortAsyncImpl(pkt.get(), portID, std::nullopt);
   }
   GMOCK_METHOD3_(
