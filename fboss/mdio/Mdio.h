@@ -73,17 +73,38 @@ class MdioController {
 
   template <typename... Args>
   explicit MdioController(int id, Args&&... args)
-      : io_(IO(id, std::forward<Args>(args)...)),
+      : rawIO_(IO(id, std::forward<Args>(args)...)),
+        io_(rawIO_),
         lockFile_(std::make_shared<folly::File>(
             folly::to<std::string>(kMdioLockFilePath, id),
             O_RDWR | O_CREAT,
             0666)) {}
 
-  phy::Cl45Data readCl45(
+  // Delete the copy constructor. If we try to copy this object while io_ is locked
+  // then the process will immediately deadlock.
+  explicit MdioController(MdioController &) = delete;
+
+  phy::Cl45Data readCl45Unlocked(
       phy::PhyAddress physAddr,
       phy::Cl45DeviceAddress devAddr,
       phy::Cl45RegisterAddress regAddr) {
-    return io_.lock()->readCl45(physAddr, devAddr, regAddr);
+    return rawIO_.readCl45(physAddr, devAddr, regAddr);
+  }
+
+  void writeCl45Unlocked(
+      phy::PhyAddress physAddr,
+      phy::Cl45DeviceAddress devAddr,
+      phy::Cl45RegisterAddress regAddr,
+      phy::Cl45Data data) {
+    rawIO_.writeCl45(physAddr, devAddr, regAddr, data);
+  }
+
+    phy::Cl45Data readCl45(
+      phy::PhyAddress physAddr,
+      phy::Cl45DeviceAddress devAddr,
+      phy::Cl45RegisterAddress regAddr) {
+    auto locked = fully_lock();
+    return locked->readCl45(physAddr, devAddr, regAddr);
   }
 
   void writeCl45(
@@ -91,7 +112,8 @@ class MdioController {
       phy::Cl45DeviceAddress devAddr,
       phy::Cl45RegisterAddress regAddr,
       phy::Cl45Data data) {
-    io_.lock()->writeCl45(physAddr, devAddr, regAddr, data);
+    auto locked = fully_lock();
+    locked->writeCl45(physAddr, devAddr, regAddr, data);
   }
 
   // This can be useful by clients to do multiple MDIO reads/writes
@@ -113,16 +135,20 @@ class MdioController {
   struct ProcLock {
     ProcLock(std::shared_ptr<folly::File> lockFile) : lockFile_(lockFile) {
       lockFile_->lock();
-    };
+    }
 
-    // Delete move and copy constructors.
-    // Copying or moving the object will usually result in the destructor being
-    // called multiple times
-    explicit ProcLock(ProcLock&&) = delete;
+    // Clear the lockFile when moving so that we don't unlock twice
+    explicit ProcLock(ProcLock&& old): lockFile_(std::move(old.lockFile_)) {
+      old.lockFile_ = nullptr;
+    }
+    // Delete copy ctor since it doesn't really make sense to have two locks on
+    // the same mutex.
     explicit ProcLock(ProcLock&) = delete;
 
     ~ProcLock() {
-      lockFile_->unlock();
+      if (lockFile_.get() != nullptr) {
+        lockFile_->unlock();
+      }
     }
 
    private:
@@ -133,6 +159,10 @@ class MdioController {
    public:
     FullyLockedMdio(LockedPtr&& threadLock, std::shared_ptr<folly::File> lockFile_)
         : locked_(std::move(threadLock)), procLock_(lockFile_) {}
+
+    FullyLockedMdio(FullyLockedMdio&& old): locked_(std::move(old.locked_)), procLock_(std::move(old.procLock_)) {}
+    // Delete copy ctor since we'd just deadlock if we copy the LockedPtr.
+    FullyLockedMdio(FullyLockedMdio& old) = delete;
 
     LockedPtr& operator->() {
       return locked_;
@@ -148,7 +178,16 @@ class MdioController {
     return FullyLockedMdio(std::move(threadLock), lockFile_);
   }
 
+  // TODO (ccpowers): remove this as soon as we've stopped using the accton xphy code
+  // Same as fully_lock, but using 'new' so that we can delegate ownership of locks
+  // to C code that needs them (i.e the Accton xphy commands)
+  FullyLockedMdio* fully_lock_new() {
+    auto threadLock = lock();
+    return new FullyLockedMdio(std::move(threadLock), lockFile_);
+  }
+
  private:
+  IO rawIO_;
   folly::Synchronized<IO, std::mutex> io_;
   std::shared_ptr<folly::File> lockFile_;
 };
