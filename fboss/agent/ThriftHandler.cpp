@@ -1541,6 +1541,21 @@ SSLType ThriftHandler::getSSLPolicy() {
   return sslType;
 }
 
+void ThriftHandler::setExternalLedState(
+    int32_t portNum,
+    PortLedExternalState ledState) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured();
+  PortID portId = PortID(portNum);
+
+  const auto plport = sw_->getPlatform()->getPlatformPort(portId);
+
+  if (!plport) {
+    throw FbossError("No such port ", portNum);
+  }
+  plport->externalState(ledState);
+}
+
 void ThriftHandler::addMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {

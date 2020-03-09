@@ -41,7 +41,7 @@ class SaiPlatformPort : public PlatformPort {
       bool errors) override;
   void prepareForGracefulExit() override;
   bool shouldDisableFEC() const override;
-  void externalState(ExternalState) override {}
+  void externalState(PortLedExternalState) override {}
   virtual std::vector<uint32_t> getHwPortLanes(cfg::PortSpeed speed) const;
   virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
   virtual phy::FecMode getFecMode(cfg::PortSpeed speed) const;

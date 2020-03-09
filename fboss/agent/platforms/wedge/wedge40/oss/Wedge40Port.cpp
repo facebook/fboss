@@ -19,7 +19,7 @@ void Wedge40Port::linkStatusChanged(bool up, bool adminUp) {
   WedgePort::linkStatusChanged(up, adminUp);
 }
 
-void Wedge40Port::externalState(ExternalState lfs) {
+void Wedge40Port::externalState(PortLedExternalState lfs) {
   XLOG(DBG1) << lfs;
 }
 

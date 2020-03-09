@@ -14,6 +14,7 @@
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -156,20 +157,21 @@ class PlatformPort {
    */
   virtual bool shouldDisableFEC() const = 0;
 
-  enum class ExternalState : uint32_t {
-    NONE = 0,
-    CABLING_ERROR, // Port has been detected as mis-cabled
-  };
-
   /**
    * External conditions, outside of the port itself, may have significance
    * for the port.  Calling this function allows the port to take any debug
    * or diagnostic action needed, as appropriate.
    *
+   * - For NONE, the port LEDs again show the internal port state (normal op)
+   *
    * - For CABLING_ERROR, the platform-port sub-class may set the LEDs
    *   in some way to signal the issue to physically present operators.
+   *
+   * - For EXTERNAL_FORCE_ON/OFF, the LED control on a port is provided through
+   *   a Thrift call to provide a mechanism for the automation to indicate the
+   *   problematic port, cable or provide any other information to the operator.
    */
-  virtual void externalState(ExternalState) = 0;
+  virtual void externalState(PortLedExternalState) = 0;
 
  private:
   PortID id_{0};
@@ -180,6 +182,6 @@ class PlatformPort {
   PlatformPort& operator=(PlatformPort const&) = delete;
 };
 
-std::ostream& operator<<(std::ostream&, PlatformPort::ExternalState);
+std::ostream& operator<<(std::ostream&, PortLedExternalState);
 
 } // namespace facebook::fboss

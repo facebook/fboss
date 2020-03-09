@@ -17,7 +17,7 @@ void GalaxyPort::linkStatusChanged(bool up, bool adminUp) {
   WedgePort::linkStatusChanged(up, adminUp);
 }
 
-void GalaxyPort::externalState(ExternalState lfs) {
+void GalaxyPort::externalState(PortLedExternalState lfs) {
   XLOG(DBG1) << lfs;
 }
 

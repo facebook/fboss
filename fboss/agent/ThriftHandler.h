@@ -296,6 +296,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   SSLType getSSLPolicy() override;
 
+  void setExternalLedState(int32_t portNum, PortLedExternalState ledState)
+      override;
+
  protected:
   void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,

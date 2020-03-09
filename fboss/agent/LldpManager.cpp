@@ -131,7 +131,7 @@ void LldpManager::handlePacket(
     sw_->stats()->LldpValidateMisMatch();
     // TODO(pjakma): Figure out how to mock plport
     if (plport) {
-      plport->externalState(PlatformPort::ExternalState::CABLING_ERROR);
+      plport->externalState(PortLedExternalState::CABLING_ERROR);
     }
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
   }

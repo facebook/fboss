@@ -139,7 +139,7 @@ void WedgePort::statusIndication(
 
 void WedgePort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 
-void WedgePort::externalState(BcmPlatformPort::ExternalState) {}
+void WedgePort::externalState(PortLedExternalState) {}
 
 void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   // Cache the current set speed

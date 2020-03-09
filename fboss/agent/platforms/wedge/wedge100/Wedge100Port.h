@@ -45,7 +45,7 @@ class Wedge100Port : public WedgePort {
 
   void prepareForGracefulExit() override;
   void linkStatusChanged(bool up, bool adminUp) override;
-  void externalState(PlatformPort::ExternalState) override;
+  void externalState(PortLedExternalState) override;
   bool shouldDisableFEC() const override {
     return false;
   }

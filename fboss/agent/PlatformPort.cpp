@@ -19,13 +19,19 @@ namespace facebook::fboss {
 PlatformPort::PlatformPort(PortID id, Platform* platform)
     : id_(id), platform_(platform) {}
 
-std::ostream& operator<<(std::ostream& os, PlatformPort::ExternalState lfs) {
+std::ostream& operator<<(std::ostream& os, PortLedExternalState lfs) {
   switch (lfs) {
-    case PlatformPort::ExternalState::NONE:
+    case PortLedExternalState::NONE:
       os << "None";
       break;
-    case PlatformPort::ExternalState::CABLING_ERROR:
+    case PortLedExternalState::CABLING_ERROR:
       os << "Cabling Error";
+      break;
+    case PortLedExternalState::EXTERNAL_FORCE_ON:
+      os << "Turned ON externally by a Thrift call";
+      break;
+    case PortLedExternalState::EXTERNAL_FORCE_OFF:
+      os << "Turned OFF externally by a Thrift call";
       break;
   }
   return os;

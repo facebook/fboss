@@ -255,7 +255,7 @@ void BcmPort::init(bool warmBoot) {
   // Notify platform port of initial state/speed
   getPlatformPort()->linkSpeedChanged(getSpeed());
   getPlatformPort()->linkStatusChanged(isUp(), isEnabled());
-  getPlatformPort()->externalState(PlatformPort::ExternalState::NONE);
+  getPlatformPort()->externalState(PortLedExternalState::NONE);
 
   enableLinkscan();
 }

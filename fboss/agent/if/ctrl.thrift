@@ -44,6 +44,13 @@ enum SSLType {
   REQUIRED = 2,
 }
 
+enum PortLedExternalState {
+  NONE = 0,
+  CABLING_ERROR = 1,
+  EXTERNAL_FORCE_ON = 2,
+  EXTERNAL_FORCE_OFF = 3,
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip,
   2: required i16 prefixLength,
@@ -786,6 +793,12 @@ service FbossCtrl extends fb303.FacebookService {
   SwitchRunState getSwitchRunState()
 
   SSLType getSSLPolicy()
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+  * Enable external control for port LED lights
+  */
+  void setExternalLedState(1: i32 portNum, 2: PortLedExternalState ledState)
     throws (1: fboss.FbossBaseError error)
 }
 

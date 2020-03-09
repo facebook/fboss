@@ -41,6 +41,6 @@ class SimPlatformPort : public PlatformPort {
       bool errors) override;
   void prepareForGracefulExit() override;
   bool shouldDisableFEC() const override;
-  void externalState(ExternalState) override {}
+  void externalState(PortLedExternalState) override {}
 };
 } // namespace facebook::fboss

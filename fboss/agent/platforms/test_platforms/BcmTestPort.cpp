@@ -36,7 +36,7 @@ void BcmTestPort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 
 void BcmTestPort::linkSpeedChanged(const cfg::PortSpeed& /* unused */) {}
 
-void BcmTestPort::externalState(BcmPlatformPort::ExternalState /* unused */) {}
+void BcmTestPort::externalState(PortLedExternalState /* unused */) {}
 
 folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
     folly::EventBase* /*evb*/) const {
