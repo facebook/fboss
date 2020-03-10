@@ -84,3 +84,19 @@ TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
   nextHopGroupApi->remove(nextHopGroupMemberId);
 }
+
+TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
+  SaiNextHopGroupTraits::Attributes::Type t{SAI_NEXT_HOP_GROUP_TYPE_ECMP};
+  EXPECT_EQ("Type: 0", fmt::format("{}", t));
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList nhml{{42, 100, 3}};
+  EXPECT_EQ("NextHopMemberList: {42, 100, 3}", fmt::format("{}", nhml));
+}
+
+TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {
+  SaiNextHopGroupMemberTraits::Attributes::NextHopGroupId nhgid{42};
+  EXPECT_EQ("NextHopGroupId: 42", fmt::format("{}", nhgid));
+  SaiNextHopGroupMemberTraits::Attributes::NextHopId nhid{100};
+  EXPECT_EQ("NextHopId: 100", fmt::format("{}", nhid));
+  SaiNextHopGroupMemberTraits::Attributes::Weight w{90};
+  EXPECT_EQ("Weight: 90", fmt::format("{}", w));
+}

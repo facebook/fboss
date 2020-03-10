@@ -48,6 +48,9 @@ struct SaiNextHopGroupTraits {
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
 
+SAI_ATTRIBUTE_NAME(NextHopGroup, NextHopMemberList)
+SAI_ATTRIBUTE_NAME(NextHopGroup, Type)
+
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =
       SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER;
@@ -76,6 +79,10 @@ struct SaiNextHopGroupMemberTraits {
       Attributes::NextHopId,
       std::optional<Attributes::Weight>>;
 };
+
+SAI_ATTRIBUTE_NAME(NextHopGroupMember, NextHopGroupId)
+SAI_ATTRIBUTE_NAME(NextHopGroupMember, NextHopId)
+SAI_ATTRIBUTE_NAME(NextHopGroupMember, Weight)
 
 class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
  public:

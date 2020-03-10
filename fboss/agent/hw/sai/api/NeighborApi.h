@@ -88,6 +88,9 @@ struct SaiNeighborTraits {
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
 };
+
+SAI_ATTRIBUTE_NAME(Neighbor, DstMac)
+
 template <>
 struct IsSaiEntryStruct<SaiNeighborTraits::NeighborEntry>
     : public std::true_type {};

@@ -126,6 +126,17 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchRestartWarm>>;
 };
 
+SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
+SAI_ATTRIBUTE_NAME(Switch, HwInfo)
+SAI_ATTRIBUTE_NAME(Switch, SrcMac)
+SAI_ATTRIBUTE_NAME(Switch, SwitchShellEnable)
+SAI_ATTRIBUTE_NAME(Switch, EcmpHashV4)
+SAI_ATTRIBUTE_NAME(Switch, EcmpHashV6)
+SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashSeed)
+SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashSeed)
+SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashAlgorithm)
+SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashAlgorithm)
+
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_SWITCH;

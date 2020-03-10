@@ -1,8 +1,7 @@
 /*
  *  Copyright (c) 2004-present, Facebook, Inc.
  *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
+ * *  This source code is licensed under the BSD-style license found in the
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
@@ -46,6 +45,19 @@ struct formatter<folly::MacAddress> {
   template <typename FormatContext>
   auto format(const folly::MacAddress& mac, FormatContext& ctx) {
     return format_to(ctx.out(), "{}", mac.toString());
+  }
+};
+
+template <>
+struct formatter<folly::IPAddress> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const folly::IPAddress& ip, FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", ip.str());
   }
 };
 

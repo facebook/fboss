@@ -147,3 +147,20 @@ TEST_F(HashApiTest, emptyFieldHashTest) {
 
   EXPECT_EQ(std::hash<SaiHashTraits::AdapterHostKey>{}(emptyHash), 0);
 }
+
+TEST_F(HashApiTest, formatHashNativeHashFieldList) {
+  SaiHashTraits::Attributes::NativeHashFieldList nhfl{{
+      SAI_NATIVE_HASH_FIELD_SRC_IP,
+      SAI_NATIVE_HASH_FIELD_DST_IP,
+      SAI_NATIVE_HASH_FIELD_L4_SRC_PORT,
+      SAI_NATIVE_HASH_FIELD_L4_DST_PORT,
+  }};
+  std::string expected("NativeHashFieldList: {0, 1, 7, 8}");
+  EXPECT_EQ(expected, fmt::format("{}", nhfl));
+}
+
+TEST_F(HashApiTest, formatUDFGroupList) {
+  SaiHashTraits::Attributes::UDFGroupList udfgl{{42}};
+  std::string expected("UDFGroupList: {42}");
+  EXPECT_EQ(expected, fmt::format("{}", udfgl));
+}

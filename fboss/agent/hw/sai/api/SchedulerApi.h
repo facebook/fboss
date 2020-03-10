@@ -69,6 +69,14 @@ struct SaiSchedulerTraits {
       std::optional<Attributes::MaxBandwidthRate>>;
 };
 
+SAI_ATTRIBUTE_NAME(Scheduler, SchedulingType)
+SAI_ATTRIBUTE_NAME(Scheduler, SchedulingWeight)
+SAI_ATTRIBUTE_NAME(Scheduler, MeterType)
+SAI_ATTRIBUTE_NAME(Scheduler, MinBandwidthRate)
+SAI_ATTRIBUTE_NAME(Scheduler, MinBandwidthBurstRate)
+SAI_ATTRIBUTE_NAME(Scheduler, MaxBandwidthRate)
+SAI_ATTRIBUTE_NAME(Scheduler, MaxBandwidthBurstRate)
+
 class SchedulerApi : public SaiApi<SchedulerApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_SCHEDULER;

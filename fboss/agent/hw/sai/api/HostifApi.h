@@ -55,6 +55,9 @@ struct SaiHostifTrapGroupTraits {
       std::tuple<Attributes::Queue, std::optional<Attributes::Policer>>;
 };
 
+SAI_ATTRIBUTE_NAME(HostifTrapGroup, Queue)
+SAI_ATTRIBUTE_NAME(HostifTrapGroup, Policer)
+
 struct SaiHostifTrapTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_HOSTIF_TRAP;
   using SaiApiT = HostifApi;
@@ -80,6 +83,11 @@ struct SaiHostifTrapTraits {
       std::optional<Attributes::TrapGroup>>;
 };
 
+SAI_ATTRIBUTE_NAME(HostifTrap, TrapType)
+SAI_ATTRIBUTE_NAME(HostifTrap, PacketAction)
+SAI_ATTRIBUTE_NAME(HostifTrap, TrapPriority)
+SAI_ATTRIBUTE_NAME(HostifTrap, TrapGroup)
+
 // TX and RX packets aren't proper SaiObjectTraits, but we'll follow the pattern
 // for defining their attributes
 struct SaiTxPacketTraits {
@@ -97,6 +105,8 @@ struct SaiTxPacketTraits {
   using TxAttributes = std::
       tuple<Attributes::TxType, std::optional<Attributes::EgressPortOrLag>>;
 };
+SAI_ATTRIBUTE_NAME(TxPacket, TxType)
+SAI_ATTRIBUTE_NAME(TxPacket, EgressPortOrLag)
 
 struct SaiRxPacketTraits {
   struct Attributes {
@@ -119,6 +129,10 @@ struct SaiRxPacketTraits {
       Attributes::IngressPort,
       Attributes::IngressLag>;
 };
+
+SAI_ATTRIBUTE_NAME(RxPacket, TrapId)
+SAI_ATTRIBUTE_NAME(RxPacket, IngressPort)
+SAI_ATTRIBUTE_NAME(RxPacket, IngressLag)
 
 struct SaiHostifApiPacket {
   void* buffer;

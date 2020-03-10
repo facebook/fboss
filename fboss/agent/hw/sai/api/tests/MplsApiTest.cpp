@@ -60,3 +60,12 @@ TEST_F(MplsApiTest, inSegEntrySerDeser) {
   EXPECT_EQ(
       is, SaiInSegTraits::InSegEntry::fromFollyDynamic(is.toFollyDynamic()));
 }
+
+TEST_F(MplsApiTest, formatInSegAttributes) {
+  SaiInSegTraits::Attributes::NextHopId nhid{42};
+  EXPECT_EQ("NextHopId: 42", fmt::format("{}", nhid));
+  SaiInSegTraits::Attributes::PacketAction pa{SAI_PACKET_ACTION_FORWARD};
+  EXPECT_EQ("PacketAction: 1", fmt::format("{}", pa));
+  SaiInSegTraits::Attributes::NumOfPop nop{4};
+  EXPECT_EQ("NumOfPop: 4", fmt::format("{}", nop));
+}

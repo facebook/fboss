@@ -90,3 +90,20 @@ TEST_F(SchedulerApiTest, removeScheduler) {
   schedulerApi->remove(saiSchedulerId);
   EXPECT_EQ(fs->scheduleManager.map().size(), 0);
 }
+
+TEST_F(SchedulerApiTest, formatSchedulerAttributes) {
+  SaiSchedulerTraits::Attributes::SchedulingType st(SAI_SCHEDULING_TYPE_WRR);
+  EXPECT_EQ("SchedulingType: 1", fmt::format("{}", st));
+  SaiSchedulerTraits::Attributes::SchedulingWeight sw(100);
+  EXPECT_EQ("SchedulingWeight: 100", fmt::format("{}", sw));
+  SaiSchedulerTraits::Attributes::MeterType mt(SAI_METER_TYPE_BYTES);
+  EXPECT_EQ("MeterType: 1", fmt::format("{}", mt));
+  SaiSchedulerTraits::Attributes::MinBandwidthRate minbr(100000000);
+  EXPECT_EQ("MinBandwidthRate: 100000000", fmt::format("{}", minbr));
+  SaiSchedulerTraits::Attributes::MinBandwidthBurstRate minbbr(10000000000);
+  EXPECT_EQ("MinBandwidthBurstRate: 10000000000", fmt::format("{}", minbbr));
+  SaiSchedulerTraits::Attributes::MaxBandwidthRate maxbr(400000000);
+  EXPECT_EQ("MaxBandwidthRate: 400000000", fmt::format("{}", maxbr));
+  SaiSchedulerTraits::Attributes::MaxBandwidthBurstRate maxbbr(40000000000);
+  EXPECT_EQ("MaxBandwidthBurstRate: 40000000000", fmt::format("{}", maxbbr));
+}

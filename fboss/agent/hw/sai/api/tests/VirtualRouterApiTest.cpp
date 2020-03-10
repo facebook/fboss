@@ -31,3 +31,9 @@ TEST_F(VirtualRouterApiTest, createVirtualRouter) {
   SaiVirtualRouterTraits::CreateAttributes c{};
   virtualRouterApi->create<SaiVirtualRouterTraits>(c, 0);
 }
+
+TEST_F(VirtualRouterApiTest, formatVirtualRouterAttributes) {
+  std::string macStr("42:42:42:42:42:42");
+  SaiVirtualRouterTraits::Attributes::SrcMac sm{folly::MacAddress{macStr}};
+  EXPECT_EQ(fmt::format("SrcMac: {}", macStr), fmt::format("{}", sm));
+}

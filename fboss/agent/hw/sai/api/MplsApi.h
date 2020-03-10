@@ -76,6 +76,11 @@ struct SaiInSegTraits {
       Attributes::NumOfPop,
       std::optional<Attributes::NextHopId>>;
 };
+
+SAI_ATTRIBUTE_NAME(InSeg, NextHopId)
+SAI_ATTRIBUTE_NAME(InSeg, PacketAction)
+SAI_ATTRIBUTE_NAME(InSeg, NumOfPop)
+
 template <>
 struct IsSaiEntryStruct<SaiInSegTraits::InSegEntry> : public std::true_type {};
 

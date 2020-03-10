@@ -87,3 +87,22 @@ TEST_F(HostifApiTest, removeTrap) {
   EXPECT_EQ(fs->hostIfTrapManager.map().size(), 0);
   EXPECT_EQ(fs->hostifTrapGroupManager.map().size(), 0);
 }
+
+TEST_F(HostifApiTest, formatTrapGroupAttributes) {
+  SaiHostifTrapGroupTraits::Attributes::Queue q{7};
+  EXPECT_EQ("Queue: 7", fmt::format("{}", q));
+  SaiHostifTrapGroupTraits::Attributes::Policer p{42};
+  EXPECT_EQ("Policer: 42", fmt::format("{}", p));
+}
+
+TEST_F(HostifApiTest, formatTrapAttributes) {
+  SaiHostifTrapTraits::Attributes::TrapType tt(
+      SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST);
+  EXPECT_EQ("TrapType: 8192", fmt::format("{}", tt));
+  SaiHostifTrapTraits::Attributes::PacketAction pa(SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ("PacketAction: 4", fmt::format("{}", pa));
+  SaiHostifTrapTraits::Attributes::TrapGroup tg(42);
+  EXPECT_EQ("TrapGroup: 42", fmt::format("{}", tg));
+  SaiHostifTrapTraits::Attributes::TrapPriority tp(3);
+  EXPECT_EQ("TrapPriority: 3", fmt::format("{}", tp));
+}

@@ -44,6 +44,8 @@ struct SaiVirtualRouterTraits {
   using CreateAttributes = std::tuple<>;
 };
 
+SAI_ATTRIBUTE_NAME(VirtualRouter, SrcMac)
+
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiVirtualRouterTraits>
     : public std::true_type {};

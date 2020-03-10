@@ -66,6 +66,11 @@ struct SaiQueueTraits {
   };
 };
 
+SAI_ATTRIBUTE_NAME(Queue, Type)
+SAI_ATTRIBUTE_NAME(Queue, Port)
+SAI_ATTRIBUTE_NAME(Queue, Index)
+SAI_ATTRIBUTE_NAME(Queue, ParentSchedulerNode)
+
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiQueueTraits> : public std::true_type {};
 
@@ -105,11 +110,7 @@ class QueueApi : public SaiApi<QueueApi> {
       const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) {
-    return api_->get_queue_stats(
-        key,
-        num_of_counters,
-        counter_ids,
-        counters);
+    return api_->get_queue_stats(key, num_of_counters, counter_ids, counters);
   }
 
   sai_queue_api_t* api_;

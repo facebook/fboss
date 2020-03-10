@@ -152,6 +152,11 @@ using SaiNextHopAdapterHostKey = typename SaiNextHopTraits::AdapterHostKey;
 using SaiNextHopAdaptertKey =
     typename SaiNextHopTraits::AdapterKey<NextHopSaiId>;
 
+SAI_ATTRIBUTE_NAME(IpNextHop, Type)
+SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
+SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
+SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
+
 class NextHopApi : public SaiApi<NextHopApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_NEXT_HOP;

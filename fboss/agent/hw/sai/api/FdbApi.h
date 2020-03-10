@@ -40,6 +40,7 @@ struct SaiFdbTraits {
     using BridgePortId =
         SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID, SaiObjectIdT>;
   };
+
   class FdbEntry {
    public:
     FdbEntry() {}
@@ -85,6 +86,10 @@ struct SaiFdbTraits {
   using AdapterKey = FdbEntry;
   using AdapterHostKey = FdbEntry;
 };
+
+SAI_ATTRIBUTE_NAME(Fdb, Type)
+SAI_ATTRIBUTE_NAME(Fdb, BridgePortId)
+
 template <>
 struct IsSaiEntryStruct<SaiFdbTraits::FdbEntry> : public std::true_type {};
 

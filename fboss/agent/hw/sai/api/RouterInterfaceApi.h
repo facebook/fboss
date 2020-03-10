@@ -59,6 +59,12 @@ struct SaiRouterInterfaceTraits {
       std::tuple<Attributes::VirtualRouterId, Attributes::VlanId>;
 };
 
+SAI_ATTRIBUTE_NAME(RouterInterface, SrcMac)
+SAI_ATTRIBUTE_NAME(RouterInterface, Type)
+SAI_ATTRIBUTE_NAME(RouterInterface, VirtualRouterId)
+SAI_ATTRIBUTE_NAME(RouterInterface, VlanId)
+SAI_ATTRIBUTE_NAME(RouterInterface, Mtu)
+
 class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_ROUTER_INTERFACE;

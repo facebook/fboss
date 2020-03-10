@@ -73,3 +73,14 @@ TEST_F(QueueApiTest, removeQueue) {
   queueApi->remove(saiQueueId);
   EXPECT_EQ(fs->queueManager.map().size(), numCpuQueues);
 }
+
+TEST_F(QueueApiTest, formatQueueAttributes) {
+  SaiQueueTraits::Attributes::Type t{SAI_QUEUE_TYPE_UNICAST};
+  EXPECT_EQ("Type: 1", fmt::format("{}", t));
+  SaiQueueTraits::Attributes::Port p{42};
+  EXPECT_EQ("Port: 42", fmt::format("{}", p));
+  SaiQueueTraits::Attributes::Index i{3};
+  EXPECT_EQ("Index: 3", fmt::format("{}", i));
+  SaiQueueTraits::Attributes::ParentSchedulerNode psn{42};
+  EXPECT_EQ("ParentSchedulerNode: 42", fmt::format("{}", psn));
+}

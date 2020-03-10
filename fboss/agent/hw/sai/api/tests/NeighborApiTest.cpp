@@ -118,3 +118,8 @@ TEST_F(NeighborApiTest, v6NeighborSerDeser) {
       n,
       SaiNeighborTraits::NeighborEntry::fromFollyDynamic(n.toFollyDynamic()));
 }
+
+TEST_F(NeighborApiTest, formatNeighborAttributes) {
+  SaiNeighborTraits::Attributes::DstMac dm(dstMac);
+  EXPECT_EQ(fmt::format("DstMac: {}", strMac), fmt::format("{}", dm));
+}

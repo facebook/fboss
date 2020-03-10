@@ -50,6 +50,9 @@ struct SaiHashTraits {
       std::optional<Attributes::UDFGroupList>>;
 };
 
+SAI_ATTRIBUTE_NAME(Hash, NativeHashFieldList)
+SAI_ATTRIBUTE_NAME(Hash, UDFGroupList)
+
 class HashApi : public SaiApi<HashApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_HASH;
