@@ -14,6 +14,14 @@
 
 #include <functional>
 
+namespace {
+
+constexpr folly::StringPiece kSwitchId = "switch_id";
+constexpr folly::StringPiece kVrf = "vrf";
+constexpr folly::StringPiece kPrefixAddr = "prefixAddr";
+constexpr folly::StringPiece kPrefixMask = "prefixMask";
+
+} // namespace
 namespace std {
 
 size_t hash<facebook::fboss::SaiRouteTraits::RouteEntry>::operator()(
@@ -42,4 +50,23 @@ std::string SaiRouteTraits::RouteEntry::toString() const {
       ")");
 }
 
+folly::dynamic SaiRouteTraits::RouteEntry::toFollyDynamic() const {
+  folly::dynamic json = folly::dynamic::object;
+  json[kSwitchId] = switchId();
+  json[kVrf] = virtualRouterId();
+  auto cidr = destination();
+  json[kPrefixAddr] = folly::to<std::string>(cidr.first);
+  json[kPrefixMask] = folly::to<std::string>(cidr.second);
+  return json;
+}
+
+SaiRouteTraits::RouteEntry SaiRouteTraits::RouteEntry::fromFollyDynamic(
+    const folly::dynamic& json) {
+  auto switchId = json[kSwitchId].asInt();
+  auto vrf = json[kVrf].asInt();
+  folly::CIDRNetwork prefix;
+  prefix.first = folly::IPAddress(json[kPrefixAddr].asString());
+  prefix.second = json[kPrefixMask].asInt();
+  return RouteEntry(switchId, vrf, prefix);
+}
 } // namespace facebook::fboss

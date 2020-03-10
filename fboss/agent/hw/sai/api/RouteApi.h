@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
 #include <folly/IPAddress.h>
+#include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <iterator>
@@ -70,6 +71,8 @@ struct SaiRouteTraits {
           virtualRouterId() == other.virtualRouterId() &&
           destination() == other.destination());
     }
+    folly::dynamic toFollyDynamic() const;
+    static RouteEntry fromFollyDynamic(const folly::dynamic& json);
 
     std::string toString() const;
 

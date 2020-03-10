@@ -141,3 +141,17 @@ TEST_F(RouteApiTest, formatRouteNextHopId) {
   std::string expected("NextHopId: 42");
   EXPECT_EQ(expected, fmt::format("{}", nhid));
 }
+
+TEST(RouteEntryTest, serDeserv6) {
+  folly::CIDRNetwork prefix("42::", 64);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  EXPECT_EQ(
+      r, SaiRouteTraits::RouteEntry::fromFollyDynamic(r.toFollyDynamic()));
+}
+
+TEST(RouteEntryTest, serDeserv4) {
+  folly::CIDRNetwork prefix("42.42.42.0", 24);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  EXPECT_EQ(
+      r, SaiRouteTraits::RouteEntry::fromFollyDynamic(r.toFollyDynamic()));
+}
