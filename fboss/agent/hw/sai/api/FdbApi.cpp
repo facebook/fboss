@@ -14,6 +14,13 @@
 
 #include <functional>
 
+namespace {
+
+constexpr folly::StringPiece kSwitchId = "switch_id";
+constexpr folly::StringPiece kMac = "mac";
+constexpr folly::StringPiece kBridgeVlan = "bridgeVlan";
+
+} // namespace
 namespace std {
 size_t hash<facebook::fboss::SaiFdbTraits::FdbEntry>::operator()(
     const facebook::fboss::SaiFdbTraits::FdbEntry& fdbEntry) const {
@@ -38,4 +45,19 @@ std::string SaiFdbTraits::FdbEntry::toString() const {
       ")");
 }
 
+folly::dynamic SaiFdbTraits::FdbEntry::toFollyDynamic() const {
+  folly::dynamic json = folly::dynamic::object;
+  json[kSwitchId] = switchId();
+  json[kMac] = folly::to<std::string>(mac());
+  json[kBridgeVlan] = bridgeVlanId();
+  return json;
+}
+
+SaiFdbTraits::FdbEntry SaiFdbTraits::FdbEntry::fromFollyDynamic(
+    const folly::dynamic& json) {
+  sai_object_id_t switchId = json[kSwitchId].asInt();
+  auto mac = folly::MacAddress(json[kMac].asString());
+  sai_object_id_t bridgeVlan = json[kBridgeVlan].asInt();
+  return FdbEntry(switchId, bridgeVlan, mac);
+}
 } // namespace facebook::fboss

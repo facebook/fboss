@@ -17,6 +17,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <iterator>
@@ -71,6 +72,8 @@ struct SaiFdbTraits {
           bridgeVlanId() == other.bridgeVlanId() && mac() == other.mac());
     }
 
+    folly::dynamic toFollyDynamic() const;
+    static FdbEntry fromFollyDynamic(const folly::dynamic& json);
     std::string toString() const;
 
    private:
