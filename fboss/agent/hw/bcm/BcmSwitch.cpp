@@ -403,7 +403,9 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
 BcmSwitch::~BcmSwitch() {
   XLOG(ERR) << "Destroying BcmSwitch";
   resetTables();
-  unitObject_->detachAndCleanupSDKUnit();
+  if (unitObject_) {
+    unitObject_->detachAndCleanupSDKUnit();
+  }
 }
 
 void BcmSwitch::resetTables() {

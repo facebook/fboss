@@ -240,6 +240,10 @@ BcmUnit::~BcmUnit() {
 }
 
 void BcmUnit::detachAndCleanupSDKUnit() {
+  if (!isAttached()) {
+    XLOG(INFO) << "BCM unit is not attached. Skip detach.";
+    return;
+  }
   auto rv = bcm_detach(unit_);
   CHECK(BCM_SUCCESS(rv)) << "failed to detach BCM unit " << unit_ << ": "
                          << bcm_errmsg(rv);
