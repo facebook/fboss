@@ -102,3 +102,19 @@ TEST_F(NeighborApiTest, setV6DstMac) {
       neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::DstMac());
   EXPECT_EQ(gotMac, dstMac2);
 }
+
+TEST_F(NeighborApiTest, v4NeighborSerDeser) {
+  SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  EXPECT_EQ(
+      n,
+      SaiNeighborTraits::NeighborEntry::fromFollyDynamic(n.toFollyDynamic()));
+}
+
+TEST_F(NeighborApiTest, v6NeighborSerDeser) {
+  SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  EXPECT_EQ(
+      n,
+      SaiNeighborTraits::NeighborEntry::fromFollyDynamic(n.toFollyDynamic()));
+}

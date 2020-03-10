@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 
+#include "fboss/agent/Constants.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <functional>
@@ -38,4 +40,19 @@ std::string SaiNeighborTraits::NeighborEntry::toString() const {
       ")");
 }
 
+folly::dynamic SaiNeighborTraits::NeighborEntry::toFollyDynamic() const {
+  folly::dynamic json = folly::dynamic::object;
+  json[kSwitchId] = switchId();
+  json[kIntf] = routerInterfaceId();
+  json[kIp] = ip().str();
+  return json;
+}
+
+SaiNeighborTraits::NeighborEntry
+SaiNeighborTraits::NeighborEntry::fromFollyDynamic(const folly::dynamic& json) {
+  sai_object_id_t switchId = json[kSwitchId].asInt();
+  sai_object_id_t intf = json[kIntf].asInt();
+  folly::IPAddress ip(json[kIp].asString());
+  return NeighborEntry(switchId, intf, ip);
+}
 } // namespace facebook::fboss

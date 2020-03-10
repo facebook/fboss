@@ -17,6 +17,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <iterator>
@@ -76,6 +77,8 @@ struct SaiNeighborTraits {
           ip() == other.ip());
     }
 
+    folly::dynamic toFollyDynamic() const;
+    static NeighborEntry fromFollyDynamic(const folly::dynamic& json);
     std::string toString() const;
 
    private:
