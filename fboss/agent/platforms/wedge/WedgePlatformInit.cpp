@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
+std::unique_ptr<WedgePlatform> createWedgePlatform() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
@@ -49,7 +49,7 @@ std::unique_ptr<WedgePlatform> chooseWedgePlatform() {
 std::unique_ptr<Platform> initWedgePlatform(
     std::unique_ptr<AgentConfig> config,
     uint32_t hwFeaturesDesired) {
-  auto platform = chooseWedgePlatform();
+  auto platform = createWedgePlatform();
   platform->init(std::move(config), hwFeaturesDesired);
   return std::move(platform);
 }
