@@ -3,11 +3,11 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
 
 namespace facebook::fboss {
 
-class Trident2Asic : public HwAsic {
+class Trident2Asic : public BroadcomAsic {
  public:
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {

@@ -3,11 +3,11 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
 
 namespace facebook::fboss {
 
-class Tomahawk3Asic : public HwAsic {
+class Tomahawk3Asic : public BroadcomAsic {
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK3;

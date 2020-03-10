@@ -44,6 +44,7 @@ class HwAsic {
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;
   virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
+  virtual bool needsObjectKeyCache() const = 0;
 };
 
 } // namespace facebook::fboss

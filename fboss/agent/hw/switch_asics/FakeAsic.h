@@ -27,6 +27,9 @@ class FakeAsic : public HwAsic {
   int getDefaultNumPortQueues(cfg::StreamType streamType) const override {
     return streamType == cfg::StreamType::UNICAST ? 8 : 10;
   }
+  bool needsObjectKeyCache() const override {
+    return false;
+  }
 };
 
 } // namespace facebook::fboss

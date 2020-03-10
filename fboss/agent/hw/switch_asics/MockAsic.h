@@ -27,6 +27,9 @@ class MockAsic : public HwAsic {
   int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
     return 10;
   }
+  bool needsObjectKeyCache() const override {
+    return false;
+  }
 };
 
 } // namespace facebook::fboss

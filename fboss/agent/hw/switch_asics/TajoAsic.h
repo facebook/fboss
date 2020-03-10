@@ -29,6 +29,9 @@ class TajoAsic : public HwAsic {
 
     throw FbossError("Unknown streamType", streamType);
   }
+  bool needsObjectKeyCache() const override {
+    return false;
+  }
 };
 
 } // namespace facebook::fboss
