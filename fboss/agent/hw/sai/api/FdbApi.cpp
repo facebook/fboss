@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/api/FdbApi.h"
+#include "fboss/agent/Constants.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -16,8 +17,6 @@
 
 namespace {
 
-constexpr folly::StringPiece kSwitchId = "switch_id";
-constexpr folly::StringPiece kMac = "mac";
 constexpr folly::StringPiece kBridgeVlan = "bridgeVlan";
 
 } // namespace

@@ -19,6 +19,8 @@ extern "C" {
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
+#include <folly/dynamic.h>
+
 namespace facebook::fboss {
 
 class MplsApi;
@@ -60,6 +62,8 @@ struct SaiInSegTraits {
     bool operator==(const InSegEntry& other) const {
       return switchId() == other.switchId() && label() == other.label();
     }
+    folly::dynamic toFollyDynamic() const;
+    static InSegEntry fromFollyDynamic(const folly::dynamic& json);
 
    private:
     sai_inseg_entry_t entry_{};

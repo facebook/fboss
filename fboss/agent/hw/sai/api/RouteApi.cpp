@@ -10,14 +10,14 @@
 
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 
+#include "fboss/agent/Constants.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <functional>
 
 namespace {
 
-constexpr folly::StringPiece kSwitchId = "switch_id";
-constexpr folly::StringPiece kVrf = "vrf";
 constexpr folly::StringPiece kPrefixAddr = "prefixAddr";
 constexpr folly::StringPiece kPrefixMask = "prefixMask";
 

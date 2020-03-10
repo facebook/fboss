@@ -54,3 +54,9 @@ TEST_F(MplsApiTest, setAttributes) {
   EXPECT_EQ(
       mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 2);
 }
+
+TEST_F(MplsApiTest, inSegEntrySerDeser) {
+  SaiInSegTraits::InSegEntry is{0, 42};
+  EXPECT_EQ(
+      is, SaiInSegTraits::InSegEntry::fromFollyDynamic(is.toFollyDynamic()));
+}
