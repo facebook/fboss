@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>

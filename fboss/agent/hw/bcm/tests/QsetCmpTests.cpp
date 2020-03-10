@@ -10,7 +10,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 extern "C" {
 #if (!defined(BCM_VER_MAJOR))

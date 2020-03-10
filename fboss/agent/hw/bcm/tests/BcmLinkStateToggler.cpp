@@ -12,7 +12,7 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Port.h"
 
 #include <memory>

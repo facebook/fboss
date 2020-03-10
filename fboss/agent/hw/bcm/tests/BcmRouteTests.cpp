@@ -22,7 +22,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTestRouteUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"

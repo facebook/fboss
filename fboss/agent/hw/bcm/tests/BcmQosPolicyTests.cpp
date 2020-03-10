@@ -19,7 +19,7 @@
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 

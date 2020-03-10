@@ -10,7 +10,7 @@
 
 #include "fboss/agent/hw/test/HwTest.h"
 
-#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
 #include "fboss/agent/HwSwitch.h"

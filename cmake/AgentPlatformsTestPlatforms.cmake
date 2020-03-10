@@ -4,29 +4,29 @@
 # cmake/FooBar.cmake
 
 add_library(bcm_test_platforms
-  fboss/agent/platforms/test_platforms/BcmTestPort.cpp
-  fboss/agent/platforms/test_platforms/BcmTestPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedgePlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge40Port.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge100Platform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge100Port.cpp
-  fboss/agent/platforms/test_platforms/BcmTestGalaxyPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestGalaxyPort.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge400Platform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge400Port.cpp
-  fboss/agent/platforms/test_platforms/BcmTestMinipackPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestMinipackPort.cpp
-  fboss/agent/platforms/test_platforms/BcmTestYampPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestYampPort.cpp
-  fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
-  fboss/agent/platforms/test_platforms/FakeBcmTestPlatformMapping.cpp
-  fboss/agent/platforms/test_platforms/FakeBcmTestPort.cpp
-  fboss/agent/platforms/test_platforms/CreateTestPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawkPlatform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedgeTomahawk3Platform.cpp
-  fboss/agent/platforms/test_platforms/BcmTestWedge40Platform.cpp
-  fboss/agent/platforms/test_platforms/FakeBcmTestPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestPort.cpp
+  fboss/agent/platforms/tests/utils/BcmTestPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedgePlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge40Platform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge40Port.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge100Platform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge100Port.cpp
+  fboss/agent/platforms/tests/utils/BcmTestGalaxyPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge400Platform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge400Port.cpp
+  fboss/agent/platforms/tests/utils/BcmTestMinipackPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestMinipackPort.cpp
+  fboss/agent/platforms/tests/utils/BcmTestYampPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestYampPort.cpp
+  fboss/agent/platforms/tests/utils/FakeBcmTestPlatform.cpp
+  fboss/agent/platforms/tests/utils/FakeBcmTestPlatformMapping.cpp
+  fboss/agent/platforms/tests/utils/FakeBcmTestPort.cpp
+  fboss/agent/platforms/tests/utils/CreateTestPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawkPlatform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawk3Platform.cpp
+  fboss/agent/platforms/tests/utils/BcmTestWedge40Platform.cpp
+  fboss/agent/platforms/tests/utils/FakeBcmTestPlatform.cpp
 )
 
 target_link_libraries(bcm_test_platforms

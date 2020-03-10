@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 DECLARE_bool(flexports);
 DECLARE_string(bcm_config);

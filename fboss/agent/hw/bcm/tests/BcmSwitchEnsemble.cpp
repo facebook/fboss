@@ -20,7 +20,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
-#include "fboss/agent/platforms/test_platforms/CreateTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
 
 #include <folly/logging/xlog.h>
 

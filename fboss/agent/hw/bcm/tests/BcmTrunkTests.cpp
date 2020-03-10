@@ -25,7 +25,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
-#include "fboss/agent/platforms/test_platforms/BcmTestPlatform.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
