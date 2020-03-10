@@ -38,6 +38,33 @@ SaiNextHopManager::SaiNextHopManager(
     : managerTable_(managerTable), platform_(platform) {}
 
 SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
+  auto nexthopKey = getAdapterHostKey(swNextHop);
+
+  if (auto ipNextHopKey =
+          std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
+              &nexthopKey)) {
+    return SaiStore::getInstance()->get<SaiIpNextHopTraits>().setObject(
+        *ipNextHopKey,
+        SaiIpNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_IP,
+                                             std::get<0>(*ipNextHopKey),
+                                             std::get<1>(*ipNextHopKey)});
+  } else if (
+      auto mplsNextHopKey =
+          std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
+              &nexthopKey)) {
+    return SaiStore::getInstance()->get<SaiMplsNextHopTraits>().setObject(
+        *mplsNextHopKey,
+        SaiMplsNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_MPLS,
+                                               std::get<0>(*mplsNextHopKey),
+                                               std::get<1>(*mplsNextHopKey),
+                                               std::get<2>(*mplsNextHopKey)});
+  }
+
+  throw FbossError("next hop key not found for a given next hop");
+}
+
+SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
+    const ResolvedNextHop& swNextHop) {
   auto interfaceId = swNextHop.intfID().value();
   auto routerInterfaceHandle =
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
@@ -47,56 +74,30 @@ SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
   }
   auto rifId = routerInterfaceHandle->routerInterface->adapterKey();
   folly::IPAddress ip = swNextHop.addr();
-  if (!swNextHop.labelForwardingAction() ||
+
+  auto labelForwardingAction = swNextHop.labelForwardingAction();
+  if (!labelForwardingAction ||
       LabelForwardingAction::LabelForwardingType::PHP ==
-          swNextHop.labelForwardingAction()->type()) {
-    return refOrEmplace(rifId, ip);
+          labelForwardingAction->type()) {
+    return SaiIpNextHopTraits::AdapterHostKey{rifId, ip};
   }
+
   CHECK(
-      swNextHop.labelForwardingAction()->type() !=
+      labelForwardingAction->type() !=
       LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP)
       << "action pop is not supported";
-  if (LabelForwardingAction::LabelForwardingType::SWAP ==
-      swNextHop.labelForwardingAction()->type()) {
-    return refOrEmplace(
-        rifId, ip, swNextHop.labelForwardingAction()->swapWith().value());
-  }
-  return refOrEmplace(
-      rifId, ip, swNextHop.labelForwardingAction()->pushStack().value());
-}
 
-SaiNextHop SaiNextHopManager::refOrEmplace(
-    SaiRouterInterfaceTraits::AdapterKey interface,
-    const folly::IPAddress& ip) {
-  SaiIpNextHopTraits::AdapterHostKey k{interface, ip};
-  auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
-  return store.setObject(
-      k,
-      SaiIpNextHopTraits::CreateAttributes{
-          SAI_NEXT_HOP_TYPE_IP, interface, ip});
-}
-
-SaiNextHop SaiNextHopManager::refOrEmplace(
-    SaiRouterInterfaceTraits::AdapterKey interface,
-    const folly::IPAddress& ip,
-    LabelForwardingAction::Label label) {
-  return refOrEmplace(interface, ip, LabelForwardingAction::LabelStack{label});
-}
-
-SaiNextHop SaiNextHopManager::refOrEmplace(
-    SaiRouterInterfaceTraits::AdapterKey interface,
-    const folly::IPAddress& ip,
-    const LabelForwardingAction::LabelStack& stack) {
   std::vector<sai_uint32_t> labels;
-  for (auto label : stack) {
+  if (LabelForwardingAction::LabelForwardingType::SWAP ==
+      labelForwardingAction->type()) {
+    labels.push_back(swNextHop.labelForwardingAction()->swapWith().value());
+    return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
+  }
+  for (auto label : labelForwardingAction->pushStack().value()) {
     labels.push_back(label);
   }
-  SaiMplsNextHopTraits::AdapterHostKey k{interface, ip, labels};
-  auto& store = SaiStore::getInstance()->get<SaiMplsNextHopTraits>();
-  return store.setObject(
-      k,
-      SaiMplsNextHopTraits::CreateAttributes{
-          SAI_NEXT_HOP_TYPE_MPLS, interface, ip, labels});
+
+  return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
 }
 
 } // namespace facebook::fboss

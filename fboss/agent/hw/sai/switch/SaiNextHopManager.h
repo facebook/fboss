@@ -43,22 +43,10 @@ class SaiNextHopManager {
    * of resolved next hop */
   SaiNextHop refOrEmplace(const ResolvedNextHop& swNextHop);
 
- private:
-  /* emplace ip next hop */
-  SaiNextHop refOrEmplace(
-      SaiRouterInterfaceTraits::AdapterKey interface,
-      const folly::IPAddress& ip);
-  /* emplace mpls next hop with single label */
-  SaiNextHop refOrEmplace(
-      SaiRouterInterfaceTraits::AdapterKey interface,
-      const folly::IPAddress& ip,
-      LabelForwardingAction::Label label);
-  /* emplace mpls next hop with label stack */
-  SaiNextHop refOrEmplace(
-      SaiRouterInterfaceTraits::AdapterKey interface,
-      const folly::IPAddress& ip,
-      const LabelForwardingAction::LabelStack& stack);
+  SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
+      const ResolvedNextHop& swNextHop);
 
+ private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };
