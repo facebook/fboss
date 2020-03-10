@@ -36,8 +36,14 @@ void SaiStore::setSwitchId(sai_object_id_t switchId) {
       [switchId](auto& store) { store.setSwitchId(switchId); }, stores_);
 }
 
-void SaiStore::reload() {
-  tupleForEach([](auto& store) { store.reload(); }, stores_);
+void SaiStore::reload(const folly::dynamic* adapterKeysJson) {
+  tupleForEach(
+      [adapterKeysJson](auto& store) {
+        store.reload(
+            adapterKeysJson ? &((*adapterKeysJson)[store.objectTypeName()])
+                            : nullptr);
+      },
+      stores_);
 }
 
 void SaiStore::release() {
@@ -50,8 +56,8 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
       [&adapterKeys](auto& store) {
         using ObjectTraits =
             typename std::decay_t<decltype(store)>::ObjectTraits;
+        auto objName = store.objectTypeName();
         if constexpr (AdapterKeyIsObjectId<ObjectTraits>::value) {
-          auto objName = store.objectTypeName();
           auto aitr = adapterKeys.find(objName);
           if (aitr == adapterKeys.items().end()) {
             adapterKeys[objName] = folly::dynamic::array;
@@ -60,6 +66,9 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
           for (auto key : store.adapterKeysFollyDynamic()) {
             aitr->second.push_back(key);
           }
+        } else {
+          // TODO - start serializing non OID adapter keys
+          adapterKeys[objName] = folly::dynamic::array;
         }
       },
       stores_);

@@ -32,6 +32,19 @@ TEST_F(SaiStoreTest, loadBridge) {
       SAI_BRIDGE_TYPE_1Q);
 }
 
+TEST_F(SaiStoreTest, loadBridgeFromJson) {
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  SaiStore s2(0);
+  s2.reload(&json);
+  auto& store = s2.get<SaiBridgeTraits>();
+  auto got = store.get(std::monostate{});
+  EXPECT_EQ(
+      std::get<SaiBridgeTraits::Attributes::Type>(got->attributes()).value(),
+      SAI_BRIDGE_TYPE_1Q);
+}
+
 TEST_F(SaiStoreTest, loadBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
   SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
@@ -43,6 +56,25 @@ TEST_F(SaiStoreTest, loadBridgePort) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiBridgePortTraits>();
+
+  auto got = store.get(SaiBridgePortTraits::Attributes::PortId{42});
+  EXPECT_EQ(got->adapterKey(), bridgePortId);
+}
+
+TEST_F(SaiStoreTest, loadBridgePortFromJson) {
+  auto& bridgeApi = saiApiTable->bridgeApi();
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
+
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  SaiStore s2(0);
+  s2.reload(&json);
+  auto& store = s2.get<SaiBridgePortTraits>();
 
   auto got = store.get(SaiBridgePortTraits::Attributes::PortId{42});
   EXPECT_EQ(got->adapterKey(), bridgePortId);

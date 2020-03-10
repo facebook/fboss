@@ -79,12 +79,12 @@ class SaiObjectStore {
     return ins.first;
   }
 
-  void reload() {
+  void reload(const folly::dynamic* adapterKeysJson) {
     if (!switchId_) {
       XLOG(FATAL)
           << "Attempted to reload() on a SaiObjectStore without a switchId";
     }
-    auto keys = getObjectKeys<SaiObjectTraits>(switchId_.value());
+    auto keys = getAdapterKeys(adapterKeysJson);
     if constexpr (SaiObjectHasConditionalAttributes<SaiObjectTraits>::value) {
       keys.erase(
           std::remove_if(
@@ -178,6 +178,11 @@ class SaiObjectStore {
   }
 
  private:
+  std::vector<typename SaiObjectTraits::AdapterKey> getAdapterKeys(
+      const folly::dynamic* adapterKeysJson) const {
+    return adapterKeysJson ? adapterKeysFromFollyDynamic(*adapterKeysJson)
+                           : getObjectKeys<SaiObjectTraits>(switchId_.value());
+  }
   std::optional<sai_object_id_t> switchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
@@ -210,7 +215,7 @@ class SaiStore {
   /*
    * Reload the SaiStore from the current SAI state via SAI api calls.
    */
-  void reload();
+  void reload(const folly::dynamic* adapterKeys = nullptr);
 
   /*
    *

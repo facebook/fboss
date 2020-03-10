@@ -57,6 +57,23 @@ TEST_F(PortStoreTest, loadPort) {
   EXPECT_EQ(got->adapterKey(), id);
 }
 
+TEST_F(PortStoreTest, loadPortFromJson) {
+  // create a port
+  auto id = createPort(0);
+
+  SaiStore s(0);
+  s.reload();
+  auto json = s.adapterKeysFollyDynamic();
+  SaiStore s2(0);
+  s2.reload(&json);
+  auto& store = s2.get<SaiPortTraits>();
+
+  std::vector<uint32_t> lanes{0};
+  SaiPortTraits::AdapterHostKey k{lanes};
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), id);
+}
+
 TEST_F(PortStoreTest, portLoadCtor) {
   auto portId = createPort(0);
   SaiObject<SaiPortTraits> portObj(portId);
