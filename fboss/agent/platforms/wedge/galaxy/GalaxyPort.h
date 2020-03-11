@@ -47,7 +47,7 @@ class GalaxyPort : public WedgePort {
   void externalState(PortLedExternalState) override;
 
   bool isBackplanePort() const {
-    return !frontPanel_.has_value();
+    return !(getTransceiverID().has_value());
   }
   bool shouldDisableFEC() const override {
     // Only disable FEC if this is a backplane port

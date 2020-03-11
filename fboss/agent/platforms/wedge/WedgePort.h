@@ -70,7 +70,9 @@ class WedgePort : public BcmPlatformPort {
 
   PortStatus toThrift(const std::shared_ptr<Port>& port);
 
-  std::optional<TransceiverID> getTransceiverID() const override;
+  std::optional<TransceiverID> getTransceiverID() const override {
+    return transceiverID_;
+  }
 
   bool supportsTransceiver() const override;
 
@@ -109,7 +111,7 @@ class WedgePort : public BcmPlatformPort {
 
   // TODO(aeckert): deprecate cached speed
   cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};
-
+  // TODO(joseph5wu): deprecate front panel resource
   std::optional<FrontPanelResources> frontPanel_;
 
   BcmPort* bcmPort_{nullptr};
@@ -132,6 +134,9 @@ class WedgePort : public BcmPlatformPort {
   // Return non-empty vector to maintain the lanes of the transceivers
   std::optional<std::vector<phy::PinID>> getTransceiverLanes(
       std::optional<cfg::PortProfileID> profileID = std::nullopt) const;
+
+  // transceiver id should be fixed once the PlatformPort is created
+  std::optional<TransceiverID> transceiverID_;
 };
 
 } // namespace facebook::fboss

@@ -26,13 +26,30 @@
 namespace facebook::fboss {
 
 WedgePort::WedgePort(PortID id, WedgePlatform* platform)
-    : BcmPlatformPort(id, platform) {}
+    : WedgePort(id, platform, std::nullopt) {}
 
 WedgePort::WedgePort(
     PortID id,
     WedgePlatform* platform,
     std::optional<FrontPanelResources> frontPanel)
-    : BcmPlatformPort(id, platform), frontPanel_(frontPanel) {}
+    : BcmPlatformPort(id, platform), frontPanel_(frontPanel) {
+  if (auto tcvrListOpt = getTransceiverLanes()) {
+    const auto& tcvrList = *tcvrListOpt;
+    // If the platform port comes with transceiver lanes
+    if (!tcvrList.empty()) {
+      // All the transceiver lanes should use the same transceiver id
+      auto chipCfg = getPlatform()->getDataPlanePhyChip(tcvrList[0].chip);
+      if (!chipCfg) {
+        throw FbossError(
+            "Port ",
+            getPortID(),
+            " is using platform unsupported chip ",
+            tcvrList[0].chip);
+      }
+      transceiverID_.emplace(TransceiverID(chipCfg->physicalID));
+    }
+  }
+}
 
 void WedgePort::setBcmPort(BcmPort* port) {
   bcmPort_ = port;
@@ -169,33 +186,6 @@ bool WedgePort::isControllingPort() const {
     return false;
   }
   return bcmPort_->getPortGroup()->controllingPort() == bcmPort_;
-}
-
-std::optional<TransceiverID> WedgePort::getTransceiverID() const {
-  auto tcvrListOpt = getTransceiverLanes();
-  if (tcvrListOpt) {
-    const auto& tcvrList = *tcvrListOpt;
-    if (tcvrList.empty()) {
-      return std::nullopt;
-    }
-    // All the transceiver lanes should use the same transceiver id
-    auto chipCfg = getPlatform()->getDataPlanePhyChip(tcvrList[0].chip);
-    if (!chipCfg) {
-      throw FbossError(
-          "Port ",
-          getPortID(),
-          " is using platform unsupported chip ",
-          tcvrList[0].chip);
-    }
-    return TransceiverID((*chipCfg).physicalID);
-  }
-
-  // #TODO(joseph5wu) Will deprecate the frontPanel_ field once we switch to
-  // get all platform port info from config
-  if (!frontPanel_) {
-    return std::nullopt;
-  }
-  return frontPanel_->transceiver;
 }
 
 bool WedgePort::supportsTransceiver() const {
