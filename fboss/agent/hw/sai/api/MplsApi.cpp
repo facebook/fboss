@@ -19,7 +19,7 @@ namespace facebook::fboss {
 
 std::string SaiInSegTraits::InSegEntry::toString() const {
   return folly::to<std::string>(
-      "InSegEntry:(switch:", switchId(), ", label: ", label());
+      "InSegEntry(switch:", switchId(), ", label: ", label());
 }
 folly::dynamic SaiInSegTraits::InSegEntry::toFollyDynamic() const {
   folly::dynamic json = folly::dynamic::object;

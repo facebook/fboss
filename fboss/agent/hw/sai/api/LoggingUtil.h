@@ -35,6 +35,7 @@ folly::StringPiece saiStatusToString(sai_status_t status);
  */
 namespace fmt {
 
+// Formatting for folly::MacAddress
 template <>
 struct formatter<folly::MacAddress> {
   template <typename ParseContext>
@@ -48,6 +49,7 @@ struct formatter<folly::MacAddress> {
   }
 };
 
+// Formatting for folly::IpAddress
 template <>
 struct formatter<folly::IPAddress> {
   template <typename ParseContext>
@@ -61,6 +63,25 @@ struct formatter<folly::IPAddress> {
   }
 };
 
+// Formatting for AdapterKeys which are SAI entry structs
+template <typename AdapterKeyType>
+struct formatter<
+    AdapterKeyType,
+    char,
+    typename std::enable_if_t<
+        facebook::fboss::IsSaiEntryStruct<AdapterKeyType>::value>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const AdapterKeyType& key, FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", key.toString());
+  }
+};
+
+// Formatting for SaiAttributes
 template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 struct formatter<
     facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>> {

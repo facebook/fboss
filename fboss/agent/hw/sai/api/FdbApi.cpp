@@ -35,7 +35,7 @@ namespace facebook::fboss {
 
 std::string SaiFdbTraits::FdbEntry::toString() const {
   return folly::to<std::string>(
-      "FdbEntry: (switch:",
+      "FdbEntry(switch:",
       switchId(),
       ", mac:",
       mac(),

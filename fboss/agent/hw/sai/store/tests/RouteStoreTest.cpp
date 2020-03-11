@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
@@ -92,4 +93,15 @@ TEST_F(SaiStoreTest, routeSetToPunt) {
    * TODO(borisb): check for default value, once it is supported
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
   */
+}
+
+TEST_F(SaiStoreTest, formatTest) {
+  folly::IPAddress ip4{"10.10.10.1"};
+  folly::CIDRNetwork dest(ip4, 24);
+  SaiRouteTraits::RouteEntry r(0, 0, dest);
+  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5};
+  SaiObject<SaiRouteTraits> obj(r, c, 0);
+  auto expected =
+      "RouteEntry(switch:0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5)";
+  EXPECT_EQ(expected, fmt::format("{}", obj));
 }

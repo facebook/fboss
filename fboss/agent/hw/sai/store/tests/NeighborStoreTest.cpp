@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
@@ -75,4 +76,16 @@ TEST_F(SaiStoreTest, setDstMac) {
   auto apiDstMac = neighborApi.getAttribute(
       obj.adapterKey(), SaiNeighborTraits::Attributes::DstMac{});
   EXPECT_EQ(apiDstMac, dstMac2);
+}
+
+TEST_F(SaiStoreTest, formatTest) {
+  folly::IPAddress ip4{"10.10.10.1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiObject<SaiNeighborTraits> obj(n, {dstMac}, 0);
+
+  auto expected =
+      "NeighborEntry(switch:0, rif: 0, ip: 10.10.10.1): "
+      "(DstMac: 42:42:42:42:42:42)";
+  EXPECT_EQ(expected, fmt::format("{}", obj));
 }

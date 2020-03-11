@@ -31,9 +31,9 @@ namespace facebook::fboss {
 
 std::string SaiNeighborTraits::NeighborEntry::toString() const {
   return folly::to<std::string>(
-      "NeighborEntry:(switch:",
+      "NeighborEntry(switch:",
       switchId(),
-      ", interface: ",
+      ", rif: ",
       routerInterfaceId(),
       ", ip: ",
       ip().str(),

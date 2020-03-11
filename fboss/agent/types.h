@@ -10,36 +10,59 @@
 #pragma once
 
 #include <folly/Conv.h>
+#include <folly/Demangle.h>
 #include <iosfwd>
 
 #include <boost/serialization/strong_typedef.hpp>
+#include <fmt/format.h>
 #include <cstdint>
 #include <type_traits>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-#define FBOSS_STRONG_TYPE(primitive, new_type)                    \
-  namespace facebook::fboss {                                     \
-                                                                  \
-  BOOST_STRONG_TYPEDEF(primitive, new_type);                      \
-                                                                  \
-  /* Define toAppend() so folly::to<string> will work */          \
-  inline void toAppend(new_type value, std::string* result) {     \
-    folly::toAppend(static_cast<primitive>(value), result);       \
-  }                                                               \
-  inline void toAppend(new_type value, folly::fbstring* result) { \
-    folly::toAppend(static_cast<primitive>(value), result);       \
-  }                                                               \
-  } /* facebook::fboss */                                         \
-  namespace std {                                                 \
-                                                                  \
-  template <>                                                     \
-  struct hash<facebook::fboss::new_type> {                        \
-    size_t operator()(const facebook::fboss::new_type& x) const { \
-      return hash<primitive>()(static_cast<primitive>(x));        \
-    }                                                             \
-  };                                                              \
-  }
+#define FBOSS_STRONG_TYPE(primitive, new_type)                                \
+  namespace facebook::fboss {                                                 \
+                                                                              \
+  BOOST_STRONG_TYPEDEF(primitive, new_type);                                  \
+                                                                              \
+  /* Define toAppend() so folly::to<string> will work */                      \
+  inline void toAppend(new_type value, std::string* result) {                 \
+    folly::toAppend(static_cast<primitive>(value), result);                   \
+  }                                                                           \
+  inline void toAppend(new_type value, folly::fbstring* result) {             \
+    folly::toAppend(static_cast<primitive>(value), result);                   \
+  }                                                                           \
+                                                                              \
+  } /* facebook::fboss */                                                     \
+  namespace std {                                                             \
+                                                                              \
+  template <>                                                                 \
+  struct hash<facebook::fboss::new_type> {                                    \
+    size_t operator()(const facebook::fboss::new_type& x) const {             \
+      return hash<primitive>()(static_cast<primitive>(x));                    \
+    }                                                                         \
+  };                                                                          \
+  } /* std */                                                                 \
+                                                                              \
+  /* Support formatting with fmt::format as well */                           \
+  namespace fmt {                                                             \
+  template <>                                                                 \
+  struct formatter<facebook::fboss::new_type> {                               \
+    template <typename ParseContext>                                          \
+    constexpr auto parse(ParseContext& ctx) {                                 \
+      return ctx.begin();                                                     \
+    }                                                                         \
+                                                                              \
+    template <typename FormatContext>                                         \
+    auto format(const facebook::fboss::new_type& value, FormatContext& ctx) { \
+      return format_to(                                                       \
+          ctx.out(),                                                          \
+          "{}({})",                                                           \
+          folly::demangle(typeid(value)),                                     \
+          static_cast<primitive>(value));                                     \
+    }                                                                         \
+  };                                                                          \
+  } /* fmt */
 
 FBOSS_STRONG_TYPE(uint8_t, ChannelID)
 FBOSS_STRONG_TYPE(uint16_t, TransceiverID)
