@@ -46,7 +46,7 @@ getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
   std::vector<L2EntryThrift> l2Entries;
   hw->fetchL2Table(&l2Entries);
   for (auto& l2Entry : l2Entries) {
-    if ((isTrunk && l2Entry.trunk_ref().value_unchecked() == port) ||
+    if ((isTrunk && l2Entry.trunk_ref().value_or({}) == port) ||
         l2Entry.port == port) {
       macs.insert(folly::MacAddress(l2Entry.mac));
     }

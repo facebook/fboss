@@ -49,9 +49,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
   queue0.streamType = cfg::StreamType::MULTICAST;
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kCoppLowPriWeight;
-  queue0.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+  queue0.portQueueRate_ref() = cfg::PortQueueRate();
+  queue0.portQueueRate_ref()->set_pktsPerSec(
       getRange(0, kCoppLowPriPktsPerSec));
-  queue0.__isset.portQueueRate = true;
   queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
   queue0.sharedBytes_ref() = kCoppLowPriSharedBytes;
   cpuQueues.push_back(queue0);
@@ -62,9 +62,9 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
   queue1.streamType = cfg::StreamType::MULTICAST;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kCoppDefaultPriWeight;
-  queue1.portQueueRate_ref().value_unchecked().set_pktsPerSec(
+  queue1.portQueueRate_ref() = cfg::PortQueueRate();
+  queue1.portQueueRate_ref()->set_pktsPerSec(
       getRange(0, kCoppDefaultPriPktsPerSec));
-  queue1.__isset.portQueueRate = true;
   queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
   queue1.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
   cpuQueues.push_back(queue1);

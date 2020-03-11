@@ -156,10 +156,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   config.interfaces[0].intfID = kBaseVlanId;
   config.interfaces[0].vlanID = kBaseVlanId;
   config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = getLocalCpuMacStr();
+  config.interfaces[0].mac_ref() = getLocalCpuMacStr();
   config.interfaces[0].mtu_ref() = 9000;
-  config.interfaces[0].__isset.mtu = true;
   if (interfaceHasSubnet) {
     config.interfaces[0].ipAddresses.resize(2);
     config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
@@ -189,10 +187,8 @@ cfg::SwitchConfig onePortPerVlanConfig(
     config.interfaces[i].intfID = kBaseVlanId + i;
     config.interfaces[i].vlanID = kBaseVlanId + i;
     config.interfaces[i].routerID = 0;
-    config.interfaces[i].__isset.mac = true;
-    config.interfaces[i].mac_ref().value_unchecked() = getLocalCpuMacStr();
+    config.interfaces[i].mac_ref() = getLocalCpuMacStr();
     config.interfaces[i].mtu_ref() = 9000;
-    config.interfaces[i].__isset.mtu = true;
     if (interfaceHasSubnet) {
       config.interfaces[i].ipAddresses.resize(2);
       auto ipDecimal = folly::sformat("{}", i + 1);
@@ -233,10 +229,8 @@ cfg::SwitchConfig twoL3IntfConfig(
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
   for (auto& interface : config.interfaces) {
-    interface.mac_ref().value_unchecked() = getLocalCpuMacStr();
-    interface.__isset.mac = true;
+    interface.mac_ref() = getLocalCpuMacStr();
     interface.mtu_ref() = 9000;
-    interface.__isset.mtu = true;
   }
   return config;
 }
