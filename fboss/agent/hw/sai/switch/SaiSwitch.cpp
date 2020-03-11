@@ -358,10 +358,15 @@ HwInitResult SaiSwitch::initLocked(
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;
   __gSaiSwitch = this;
-  ret.switchState = getColdBootSwitchState();
   if (FLAGS_enable_sai_debug_log) {
     SaiApiTable::getInstance()->enableDebugLogging();
   }
+  if (bootType_ != BootType::WARM_BOOT) {
+    ret.switchState = getColdBootSwitchState();
+  } else {
+    // TODO play warm boot switch state
+  }
+
   return ret;
 }
 
