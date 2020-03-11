@@ -328,10 +328,22 @@ HwInitResult SaiSwitch::initLocked(
     Callback* callback) noexcept {
   HwInitResult ret;
 
-  ret.bootType = BootType::COLD_BOOT;
-  bootType_ = BootType::COLD_BOOT;
+  auto wbHelper = platform_->getWarmBootHelper();
+  bootType_ =
+      wbHelper->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
+  ret.bootType = bootType_;
+  std::unique_ptr<folly::dynamic> adapterKeysJson;
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
+  if (bootType_ == BootType::WARM_BOOT) {
+    auto switchStateJson = wbHelper->getWarmBootState();
+    ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
+    ret.switchState->publish();
+    if (platform_->getAsic()->needsObjectKeyCache()) {
+      adapterKeysJson = std::make_unique<folly::dynamic>(
+          switchStateJson[kHwSwitch][kAdapterKeys]);
+    }
+  }
   SaiApiTable::getInstance()->queryApis();
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
   managerTable_ = std::make_unique<SaiManagerTable>(platform_);
@@ -341,7 +353,7 @@ HwInitResult SaiSwitch::initLocked(
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchId_);
   if (platform_->getObjectKeysSupported()) {
-    saiStore->reload();
+    saiStore->reload(adapterKeysJson.get());
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;
