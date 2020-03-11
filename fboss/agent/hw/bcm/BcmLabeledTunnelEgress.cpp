@@ -14,6 +14,9 @@ extern "C" {
 namespace {
 facebook::fboss::LabelForwardingAction::LabelStack pushStack(
     const facebook::fboss::LabelForwardingAction::LabelStack& stack) {
+  // skip the first label on stack, this is the bottom most label
+  // this label is associated with labeled egress, and so the tunnel does not
+  // have to include it in the label stack
   return facebook::fboss::LabelForwardingAction::LabelStack(
       stack.begin() + 1, stack.end());
 }

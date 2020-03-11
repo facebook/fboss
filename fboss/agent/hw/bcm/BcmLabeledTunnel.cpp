@@ -31,11 +31,7 @@ void setupLabelStack(
     bcm_mpls_egress_label_t* labels,
     const LabelForwardingAction::LabelStack& stack,
     std::optional<BcmQosPolicyHandle> qosMapId) {
-  // TODO(pshaikh) - handle qos parameters as required for MPLS domain
   for (auto i = 0; i < stack.size(); i++) {
-    /* the loop skips over first item of stack, this is the bottom most label
-    this label is associated with labeled egress, and so tunnel does not include
-    in label stack */
     bcm_mpls_egress_label_t_init(&labels[i]);
     labels[i].label = stack[i];
     // copy ttl from l3 packet after decrementing it by while encapsulating
