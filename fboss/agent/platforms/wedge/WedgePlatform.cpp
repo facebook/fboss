@@ -194,8 +194,9 @@ TransceiverIdxThrift WedgePlatform::getPortMapping(PortID portId) const {
 WedgePort* WedgePlatform::getPort(PortID id) const {
   return portMapping_->getPort(id);
 }
-WedgePort* WedgePlatform::getPort(TransceiverID id) const {
-  return portMapping_->getPort(id);
+std::vector<WedgePort*> WedgePlatform::getPortsByTransceiverID(
+    TransceiverID id) const {
+  return portMapping_->getPortsByTransceiverID(id);
 }
 PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
   return getPort(port);

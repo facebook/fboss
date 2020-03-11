@@ -63,7 +63,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
     return FLAGS_enable_routes_in_host_table;
   }
   WedgePort* getPort(PortID id) const;
-  WedgePort* getPort(TransceiverID id) const;
+  std::vector<WedgePort*> getPortsByTransceiverID(TransceiverID id) const;
   TransceiverIdxThrift getPortMapping(PortID port) const override;
   PlatformPort* getPlatformPort(PortID id) const override;
   BcmWarmBootHelper* getWarmBootHelper() override {

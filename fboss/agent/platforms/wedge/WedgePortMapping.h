@@ -45,31 +45,6 @@ class WedgePortMapping {
   virtual ~WedgePortMapping() = default;
 
   template <typename MappingT>
-  static std::unique_ptr<WedgePortMapping> create(
-      WedgePlatform* platform,
-      const PortTransceiverMap& portMapping,
-      int numPortsPerTransceiver = CHANNELS_IN_QSFP28) {
-    auto mapping = std::make_unique<MappingT>(platform);
-    for (auto& kv : portMapping) {
-      mapping->addSequentialPorts(kv.first, numPortsPerTransceiver, kv.second);
-    }
-    return std::move(mapping);
-  }
-
-  template <typename MappingT>
-  static std::unique_ptr<WedgePortMapping> createFull(
-      WedgePlatform* platform,
-      const PortFrontPanelResourceMap& portMapping) {
-    auto mapping = std::make_unique<MappingT>(platform);
-    for (const auto& kv : portMapping) {
-      auto port = kv.first;
-      auto frontPanel = kv.second;
-      mapping->addPort(port, frontPanel);
-    }
-    return std::move(mapping);
-  }
-
-  template <typename MappingT>
   static std::unique_ptr<WedgePortMapping> createFromConfig(
       WedgePlatform* platform) {
     // TODO(joseph5wu) Right now, the platformPorts is still optional.
@@ -83,7 +58,7 @@ class WedgePortMapping {
     auto mapping = std::make_unique<MappingT>(platform);
     for (const auto& port : platformPorts) {
       // Will migrate the code to get front panel resource from the config
-      mapping->addPort(PortID(port.first), std::nullopt);
+      mapping->addPort(PortID(port.first));
     }
     return std::move(mapping);
   }
@@ -95,7 +70,8 @@ class WedgePortMapping {
     }
     return iter->second.get();
   }
-  WedgePort* getPort(const TransceiverID fpPort) const {
+  std::vector<WedgePort*> getPortsByTransceiverID(
+      const TransceiverID fpPort) const {
     auto iter = transceiverMap_.find(fpPort);
     if (iter == transceiverMap_.end()) {
       throw FbossError("Cannot find the port ID for front panel port ", fpPort);
@@ -120,46 +96,22 @@ class WedgePortMapping {
   WedgePlatform* platform_{nullptr};
 
  private:
-  virtual std::unique_ptr<WedgePort> constructPort(
-      const PortID port,
-      const std::optional<FrontPanelResources> frontPanel) = 0;
+  virtual std::unique_ptr<WedgePort> constructPort(const PortID port) = 0;
 
-  /* Helper to add associated ports to the port mapping.
-   * Optionally specify a front panel port mapping if this
-   * controlling port is associated w/ a front panel port.
-   */
-  void addSequentialPorts(
-      const PortID start,
-      int count,
-      const std::optional<TransceiverID> transceiver = std::nullopt) {
-    for (int num = 0; num < count; ++num) {
-      PortID id(start + num);
-      std::optional<FrontPanelResources> frontPanel = std::nullopt;
-      if (transceiver) {
-        frontPanel = FrontPanelResources(*transceiver, {ChannelID(num)});
+  void addPort(PortID port) {
+    ports_[port] = constructPort(port);
+
+    if (auto tcvrID = ports_[port]->getTransceiverID(); tcvrID) {
+      if (transceiverMap_.find(*tcvrID) == transceiverMap_.end()) {
+        transceiverMap_[*tcvrID] = {};
       }
-      ports_[id] = constructPort(id, frontPanel);
-    }
-    if (transceiver) {
-      // register the controlling port in the transceiver map
-      transceiverMap_[*transceiver] = ports_[start].get();
-    }
-  }
-
-  void addPort(
-      PortID port,
-      const std::optional<FrontPanelResources> frontPanel) {
-    ports_[port] = constructPort(port, frontPanel);
-
-    if (frontPanel) {
-      // TODO: this is a lie. There can be multiple ports per
-      // transceiver and we should reflect that.
-      transceiverMap_[frontPanel->transceiver] = ports_[port].get();
+      transceiverMap_[*tcvrID].push_back(ports_[port].get());
     }
   }
 
   boost::container::flat_map<PortID, std::unique_ptr<WedgePort>> ports_;
-  boost::container::flat_map<TransceiverID, WedgePort*> transceiverMap_;
+  boost::container::flat_map<TransceiverID, std::vector<WedgePort*>>
+      transceiverMap_;
 };
 
 template <typename WedgePlatformT, typename WedgePortT>
@@ -169,11 +121,10 @@ class WedgePortMappingT : public WedgePortMapping {
       : WedgePortMapping(platform) {}
 
  private:
-  std::unique_ptr<WedgePort> constructPort(
-      PortID port,
-      std::optional<FrontPanelResources> frontPanel) override {
+  std::unique_ptr<WedgePort> constructPort(PortID port) override {
+    // TODO(joseph5wu) Will remove frontPanel later
     return std::make_unique<WedgePortT>(
-        port, dynamic_cast<WedgePlatformT*>(platform_), frontPanel);
+        port, dynamic_cast<WedgePlatformT*>(platform_), std::nullopt);
   }
 };
 

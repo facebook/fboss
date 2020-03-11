@@ -136,4 +136,11 @@ Wedge100Port::TxOverrides Wedge100Port::getTxOverrides() const {
   return TxOverrides();
 }
 
+bool Wedge100Port::isTop() {
+  if (auto tcvrID = getTransceiverID(); tcvrID) {
+    return !((*tcvrID) & 0x1);
+  }
+  return false;
+}
+
 } // namespace facebook::fboss

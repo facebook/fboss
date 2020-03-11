@@ -61,9 +61,7 @@ class Wedge100Port : public WedgePort {
   }
 
  private:
-  bool isTop() {
-    return frontPanel_ ? !(frontPanel_->transceiver & 0x1) : false;
-  }
+  bool isTop();
 
   TxOverrides getTxOverrides() const override;
 
