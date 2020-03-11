@@ -20,12 +20,14 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-int getLabelSwappedWithForTopLabel(uint32_t label) {
+int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
+  auto unit =
+      static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
   bcm_mpls_tunnel_switch_t info;
   bcm_mpls_tunnel_switch_t_init(&info);
   info.label = label;
   info.port = BCM_GPORT_INVALID;
-  auto rv = bcm_mpls_tunnel_switch_get(0, &info); // query label fib
+  auto rv = bcm_mpls_tunnel_switch_get(unit, &info); // query label fib
   bcmCheckError(rv, "getLabelSwappedWithForTopLabel failed to query label fib");
   bcm_l3_egress_t egr;
   bcm_l3_egress_t_init(&egr);

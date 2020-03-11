@@ -17,5 +17,5 @@ class HwSwitch;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
-int getLabelSwappedWithForTopLabel(uint32_t label);
+int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label);
 } // namespace facebook::fboss::utility

@@ -234,7 +234,7 @@ TEST_F(HwMPLSTest, Swap) {
       return;
     }
     uint32_t expectedOutLabel =
-        utility::getLabelSwappedWithForTopLabel(kTopLabel);
+        utility::getLabelSwappedWithForTopLabel(getHwSwitch(), kTopLabel);
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });
