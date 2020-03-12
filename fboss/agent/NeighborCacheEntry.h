@@ -146,14 +146,6 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     }
   }
 
-  // Schedule entry destruction/cancelling of timeouts on the
-  // event base thread.
-  static folly::Future<folly::Unit> destroy(
-      std::shared_ptr<Entry> entry,
-      folly::EventBase* evb) {
-    return folly::via(evb, [entry]() { entry->cancelTimeout(); });
-  }
-
   folly::MacAddress getMac() const {
     return fields_.mac;
   }

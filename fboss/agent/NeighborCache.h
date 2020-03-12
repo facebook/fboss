@@ -92,10 +92,6 @@ class NeighborCache {
     staleEntryInterval_ = staleEntryInterval;
   }
 
-  void clearEntries() {
-    impl_->clearEntries();
-  }
-
   void updateEntryClassID(
       AddressType ip,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {

@@ -124,8 +124,6 @@ class NeighborCacheImpl {
   template <typename NeighborEntryThrift>
   std::optional<NeighborEntryThrift> getCacheData(AddressType ip) const;
 
-  void clearEntries();
-
  private:
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);

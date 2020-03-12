@@ -145,22 +145,7 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
 }
 
 template <typename NTable>
-NeighborCacheImpl<NTable>::~NeighborCacheImpl() {
-  clearEntries();
-}
-
-template <typename NTable>
-void NeighborCacheImpl<NTable>::clearEntries() {
-  for (const auto& item : entries_) {
-    auto addr = item.first;
-    auto entry = item.second;
-    Entry::destroy(std::move(entry), evb_)
-        .thenError([=](const folly::exception_wrapper& /*e*/) {
-          XLOG(FATAL) << "failed to stop NeighborCacheEntry w/ addr " << addr;
-        });
-  }
-  entries_.clear();
-}
+NeighborCacheImpl<NTable>::~NeighborCacheImpl() {}
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
@@ -319,13 +304,6 @@ bool NeighborCacheImpl<NTable>::removeEntry(AddressType ip) {
   if (it == entries_.end()) {
     return false;
   }
-
-  // This asynchronously destroys the entries. This is needed because
-  // entries need to be destroyed on the background thread, but we
-  // likely have the cache level lock here and the background thread could be
-  // waiting for the lock. To avoid this deadlock scenario, we keep the entry
-  // around in a shared_ptr for a bit longer and then destroy it later.
-  Entry::destroy(std::move(it->second), evb_);
 
   entries_.erase(it);
 

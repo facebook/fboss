@@ -54,10 +54,6 @@ class NeighborUpdaterImpl {
           ndpCache(
               std::make_shared<NdpCache>(sw, state, vlanID, vlanName, intfID)) {
     }
-    void clearEntries() {
-      arpCache->clearEntries();
-      ndpCache->clearEntries();
-    }
   };
 
  public:
