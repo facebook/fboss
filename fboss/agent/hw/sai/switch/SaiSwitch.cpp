@@ -378,7 +378,8 @@ HwInitResult SaiSwitch::initLocked(
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
   } else {
-    // TODO play warm boot switch state
+    stateChangedLocked(
+        lock, StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   }
 
   return ret;
