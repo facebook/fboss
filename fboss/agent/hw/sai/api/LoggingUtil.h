@@ -102,4 +102,37 @@ struct formatter<
   }
 };
 
+template <>
+struct formatter<std::tuple<>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::tuple<>& tup, FormatContext& ctx) {
+    return format_to(ctx.out(), "()");
+  }
+};
+
+template <typename T>
+struct formatter<std::optional<T>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::optional<T>& opt, FormatContext& ctx) {
+    static_assert(
+        facebook::fboss::IsSaiAttribute<T>::value,
+        "format(std::optional) only valid for SaiAttributes");
+    if (opt) {
+      return format_to(ctx.out(), "{}", opt.value());
+    } else {
+      return format_to(ctx.out(), "omitted");
+    }
+  }
+};
+
 } // namespace fmt

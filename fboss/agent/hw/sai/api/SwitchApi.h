@@ -136,6 +136,17 @@ SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashSeed)
 SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashSeed)
 SAI_ATTRIBUTE_NAME(Switch, EcmpDefaultHashAlgorithm)
 SAI_ATTRIBUTE_NAME(Switch, LagDefaultHashAlgorithm)
+SAI_ATTRIBUTE_NAME(Switch, SwitchRestartWarm)
+
+SAI_ATTRIBUTE_NAME(Switch, CpuPort)
+SAI_ATTRIBUTE_NAME(Switch, DefaultVlanId)
+SAI_ATTRIBUTE_NAME(Switch, PortNumber)
+SAI_ATTRIBUTE_NAME(Switch, PortList)
+SAI_ATTRIBUTE_NAME(Switch, Default1QBridgeId)
+SAI_ATTRIBUTE_NAME(Switch, DefaultVirtualRouterId)
+SAI_ATTRIBUTE_NAME(Switch, NumberOfMulticastQueues)
+SAI_ATTRIBUTE_NAME(Switch, LagHash)
+SAI_ATTRIBUTE_NAME(Switch, EcmpHash)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

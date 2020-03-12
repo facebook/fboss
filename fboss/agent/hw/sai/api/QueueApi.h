@@ -70,6 +70,7 @@ SAI_ATTRIBUTE_NAME(Queue, Type)
 SAI_ATTRIBUTE_NAME(Queue, Port)
 SAI_ATTRIBUTE_NAME(Queue, Index)
 SAI_ATTRIBUTE_NAME(Queue, ParentSchedulerNode)
+SAI_ATTRIBUTE_NAME(Queue, SchedulerProfileId)
 
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiQueueTraits> : public std::true_type {};

@@ -70,6 +70,7 @@ class SaiApi {
     sai_status_t status = impl()._create(
         &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
+    XLOGF(DBG5, "created SAI object: {}: {}", key, createAttributes);
     return key;
   }
 
@@ -87,8 +88,7 @@ class SaiApi {
     sai_status_t status =
         impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
-    XLOG(DBG5) << "created sai object [" << saiApiTypeToString(ApiT::ApiType)
-               << "]:" << folly::logging::objectToString(entry);
+    XLOGF(DBG5, "created SAI object: {}: {}", entry, createAttributes);
   }
 
   template <typename AdapterKeyT>
@@ -96,8 +96,7 @@ class SaiApi {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status = impl()._remove(key);
     saiApiCheckError(status, ApiT::ApiType, "Failed to remove sai object");
-    XLOG(DBG5) << "removed sai object [" << saiApiTypeToString(ApiT::ApiType)
-               << "]:" << folly::logging::objectToString(key);
+    XLOGF(DBG5, "removed SAI object: {}", key);
   }
 
   /*
@@ -137,6 +136,7 @@ class SaiApi {
       status = impl()._getAttribute(key, attr.saiAttr());
     }
     saiApiCheckError(status, ApiT::ApiType, "Failed to get sai attribute");
+    XLOGF(DBG5, "got SAI attribute: {}: {}", key, attr);
     return attr.value();
   }
 
@@ -176,6 +176,7 @@ class SaiApi {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     auto status = impl()._setAttribute(key, saiAttr(attr));
     saiApiCheckError(status, ApiT::ApiType, "Failed to set attribute");
+    XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
 
   template <typename SaiObjectTraits>
@@ -196,6 +197,7 @@ class SaiApi {
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    XLOGF(DBG5, "got SAI stats for {}", key);
     return getStatsImpl<SaiObjectTraits>(
         key,
         SaiObjectTraits::CounterIds.data(),
