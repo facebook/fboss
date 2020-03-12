@@ -66,10 +66,14 @@ bool& BcmTxPacket::syncPacketSent() {
 BcmTxPacket::BcmTxPacket(int unit, uint32_t size)
     : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
   int rv = bcm_pkt_alloc(unit, size, BCM_TX_CRC_APPEND | BCM_TX_ETHER, &pkt_);
-  bcmCheckError(rv, "Failed to allocate packet.");
-  buf_ = IOBuf::takeOwnership(
-      pkt_->pkt_data->data, size, freeTxBuf, reinterpret_cast<void*>(pkt_));
-  BcmStats::get()->txPktAlloc();
+  if (BCM_FAILURE(rv)) {
+    BcmStats::get()->txPktAllocErrors();
+    bcmCheckError(rv, "Failed to allocate packet.");
+  } else {
+    buf_ = IOBuf::takeOwnership(
+        pkt_->pkt_data->data, size, freeTxBuf, reinterpret_cast<void*>(pkt_));
+    BcmStats::get()->txPktAlloc();
+  }
 }
 
 inline int BcmTxPacket::sendImpl(unique_ptr<BcmTxPacket> pkt) noexcept {
