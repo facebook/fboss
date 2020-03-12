@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/lib/fpga/facebook/FbFpgaI2c.h"
+#include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/PCA9548MuxedBus.h"
 
 namespace facebook::fboss {
@@ -43,10 +44,19 @@ class Minipack16QI2CBus : public TransceiverI2CApi {
   void ensureOutOfReset(unsigned int module) override;
   void verifyBus(bool /* autoReset */) override {}
 
+  /* Consolidate the i2c transaction stats from all the pims using their
+   * corresponding i2c controller. In case of Minipack16q there are 8 pims
+   * and there are four FbFpgaI2cController corresponding to each pim. This
+   * function consolidates the counters from all constollers and return the
+   * vector of the i2c stats
+   */
+  std::vector<std::reference_wrapper<const I2cControllerStats>>
+  getI2cControllerStats() const override;
+
   folly::EventBase* getEventBase(unsigned int module) override;
 
  private:
-  FbFpgaI2cController* getI2cController(uint8_t pim, uint8_t idx);
+  FbFpgaI2cController* getI2cController(uint8_t pim, uint8_t idx) const;
 
   static constexpr uint8_t MODULES_PER_PIM = 16;
 

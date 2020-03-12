@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/io/async/EventBase.h>
+#include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 
 #include <cstdint>
 #include <map>
@@ -86,6 +87,16 @@ class TransceiverI2CApi {
   virtual folly::EventBase* getEventBase(unsigned int module) {
     return nullptr;
   };
+
+  /* Virtual function to count the i2c transactions in a platform. This
+   * will be overridden by derived classes which are platform specific
+   * and has the platform specific implementation for this counter
+   */
+  virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
+  getI2cControllerStats() const {
+    std::vector<std::reference_wrapper<const I2cControllerStats>> dummyStat;
+    return dummyStat;
+  }
 
   // Addresses to be queried by external callers:
   enum : uint8_t {

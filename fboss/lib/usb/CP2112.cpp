@@ -285,13 +285,18 @@ void CP2112::setSMBusConfig(SMBusConfig config) {
 }
 
 void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
+  // Increment the counter for I2c read transaction issued
+  incrReadTotal();
+
   if (buf.size() > 512) {
+    LOG(ERROR) << "I2c read parameter error";
     throw UsbError("cannot read more than 512 bytes at once");
   }
   if (buf.size() < 1) {
     // As far as I can tell, CP2112 doesn't support 0-length "quick" reads.
     // The docs indicate that 0-lengths reads will be ignored.  The transfer
     // status after issuing a 0-length read appears to confirm this.
+    LOG(ERROR) << "I2c read parameter error";
     throw UsbError("0-length reads are not allowed");
   }
   ensureGoodState();
@@ -304,17 +309,32 @@ void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
   intrOut("read", usbBuf, sizeof(usbBuf), timeout);
 
   // Wait for the response data
-  processReadResponse(buf, timeout);
+  try {
+    processReadResponse(buf, timeout);
+  } catch (UsbError& e) {
+    LOG(ERROR) << "CP2112 i2c read error";
+    // Increment the counter for I2c read failure and throw error
+    incrReadFailed();
+    throw;
+  }
+
+  // Update i2c bytes read stats
+  incrReadBytes(buf.size());
 }
 
 void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
+  // Increment the counter for I2c write transaction issued
+  incrWriteTotal();
+
   if (buf.size() > 61) {
+    LOG(ERROR) << "I2c write parameter error";
     throw UsbError("cannot write more than 61 bytes at once");
   }
   if (buf.size() < 1) {
     // As far as I can tell, CP2112 doesn't support 0-length "quick" writes.
     // The docs indicate that 0-lengths writes will be ignored.  The transfer
     // status after issuing a 0-length write appears to confirm this.
+    LOG(ERROR) << "I2c write parameter error";
     throw UsbError("attempted 0-length write");
   }
   ensureGoodState();
@@ -331,7 +351,19 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
   // Wait for the write to complete
   auto end = steady_clock::now() + timeout;
   intrOut("write request", usbBuf, sizeof(usbBuf), timeout);
-  waitForTransfer("write", end);
+
+  try {
+    waitForTransfer("write", end);
+  } catch (UsbError& e) {
+    LOG(ERROR) << "cp2112 i2c write error";
+    // Increment the counter for I2c write failure and throw error
+    incrWriteFailed();
+
+    throw;
+  }
+
+  // Update i2c write stats
+  incrWriteBytes(buf.size());
 }
 
 void CP2112::writeReadUnsafe(
@@ -339,18 +371,26 @@ void CP2112::writeReadUnsafe(
     ByteRange writeBuf,
     MutableByteRange readBuf,
     milliseconds timeout) {
+  // Increment the counter for I2c write and read transaction
+  incrReadTotal();
+  incrWriteTotal();
+
   if (writeBuf.size() > 16) {
+    LOG(ERROR) << "I2c write parameter error";
     throw UsbError(
         "cannot write more than 16 bytes at once for "
         "read-after-write");
   }
   if (writeBuf.size() < 1) {
+    LOG(ERROR) << "I2c write parameter error";
     throw UsbError("must write at least 1 byte for read-after-write");
   }
   if (readBuf.size() > 512) {
+    LOG(ERROR) << "I2c read parameter error";
     throw UsbError("cannot read more than 512 bytes at once");
   }
   if (readBuf.size() < 1) {
+    LOG(ERROR) << "I2c read parameter error";
     throw UsbError("0-length reads are not allowed");
   }
   ensureGoodState();
@@ -365,7 +405,20 @@ void CP2112::writeReadUnsafe(
   intrOut("addressed read", usbBuf, sizeof(usbBuf), timeout);
 
   // Wait for the response data
-  processReadResponse(readBuf, timeout);
+  try {
+    processReadResponse(readBuf, timeout);
+  } catch (UsbError& e) {
+    LOG(ERROR) << "cp2112 i2c write read error";
+    // Increment the counter for I2c write and read failure, then throw error
+    incrReadFailed();
+    incrWriteFailed();
+
+    throw;
+  }
+
+  // Update the i2c read and write byte stats
+  incrReadBytes(readBuf.size());
+  incrWriteBytes(writeBuf.size());
 }
 
 void CP2112::openDevice() {

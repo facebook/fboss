@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/lib/i2c/I2cController.h"
 #include "fboss/lib/usb/UsbDevice.h"
 #include "fboss/lib/usb/UsbHandle.h"
 
@@ -20,10 +21,12 @@
 struct libusb_transfer;
 
 namespace facebook::fboss {
-class CP2112Intf {
+class CP2112Intf : public I2cController {
   // Bare-bones virtual interface to the CP2112 class. Used for gmock
   // testing.
  public:
+  CP2112Intf()
+      : I2cController(folly::to<std::string>("i2cController.cp2112.")) {}
   virtual ~CP2112Intf() {}
 
   virtual void open(bool setSmbusConfig = true) = 0;

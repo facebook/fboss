@@ -5,6 +5,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 
 namespace facebook { namespace fboss {
 class TransceiverManager {
@@ -30,6 +31,14 @@ class TransceiverManager {
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual int numPortsPerTransceiver() = 0;
+
+  /* Virtual function to return the i2c transactions stats in a platform.
+   * This will be overridden by derived classes which are platform specific
+   * and has the platform specific implementation for this counter
+   */
+  virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
+    getI2cControllerStats() const = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;

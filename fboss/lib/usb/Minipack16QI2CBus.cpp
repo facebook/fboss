@@ -144,8 +144,28 @@ folly::EventBase* Minipack16QI2CBus::getEventBase(unsigned int module) {
 
 FbFpgaI2cController* Minipack16QI2CBus::getI2cController(
     uint8_t pim,
-    uint8_t idx) {
+    uint8_t idx) const {
   return i2cControllers_[pim - 1][idx].get();
+}
+
+/* Consolidate the i2c transaction stats from all the pims using their
+ * corresponding i2c controller. In case of Minipack16q there are 8 pims
+ * and there are four FbFpgaI2cController corresponding to each pim. This
+ * function consolidates the counters from all constollers and return the
+ * array of the i2c stats
+ */
+std::vector<std::reference_wrapper<const I2cControllerStats>>
+Minipack16QI2CBus::getI2cControllerStats() const {
+  std::vector<std::reference_wrapper<const I2cControllerStats>>
+      i2cControllerCurrentStats;
+
+  for (uint32_t pim = 1; pim <= MinipackFpga::kNumberPim; ++pim) {
+    for (uint32_t idx = 0; idx < 4; idx++) {
+      i2cControllerCurrentStats.push_back(
+          getI2cController(pim, idx)->getI2cControllerPlatformStats());
+    }
+  }
+  return i2cControllerCurrentStats;
 }
 
 } // namespace facebook::fboss

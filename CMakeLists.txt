@@ -193,6 +193,10 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/hardware_stats.thrift
 )
 add_fbthrift_cpp_library(
+  i2c_controller_stats_cpp2
+  fboss/lib/i2c/i2c_controller_stats.thrift
+)
+add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
@@ -585,6 +589,7 @@ target_link_libraries(
     packettrace_cpp2
     bcmswitch_cpp2
     hardware_stats_cpp2
+    i2c_controller_stats_cpp2
     mpls_cpp2
     qsfp_cpp2
     Folly::folly
