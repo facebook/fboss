@@ -72,3 +72,11 @@ TEST_F(SaiStoreTest, fdbSetBridgePort) {
   store.setObject(f, {SAI_FDB_ENTRY_TYPE_STATIC, 43});
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj->attributes()), 43);
 }
+
+TEST_F(SaiStoreTest, fdbSerDeser) {
+  auto& fdbApi = saiApiTable->fdbApi();
+  folly::MacAddress mac{"42:42:42:42:42:42"};
+  SaiFdbTraits::FdbEntry f(0, 10, mac);
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42});
+  verifyAdapterKeySerDeser<SaiFdbTraits>({f});
+}

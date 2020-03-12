@@ -54,3 +54,13 @@ TEST_F(SaiStoreTest, modifyInSegEntry) {
   EXPECT_EQ(GET_ATTR(InSeg, NumOfPop, got->attributes()), 1);
   EXPECT_EQ(GET_OPT_ATTR(InSeg, NextHopId, got->attributes()), 1011);
 }
+
+TEST_F(SaiStoreTest, InsegEntrySerDeser) {
+  auto& mplsApi = saiApiTable->mplsApi();
+  typename SaiInSegTraits::InSegEntry entry{0, 100};
+  typename SaiInSegTraits::Attributes::NextHopId nextHopIdAttribute(1010);
+  typename SaiInSegTraits::CreateAttributes attributes{
+      SAI_PACKET_ACTION_FORWARD, 1, nextHopIdAttribute};
+  mplsApi.create<SaiInSegTraits>(entry, attributes);
+  verifyAdapterKeySerDeser<SaiInSegTraits>({entry});
+}

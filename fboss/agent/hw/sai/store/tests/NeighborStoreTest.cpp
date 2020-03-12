@@ -89,3 +89,23 @@ TEST_F(SaiStoreTest, formatTest) {
       "(DstMac: 42:42:42:42:42:42)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
+
+TEST_F(SaiStoreTest, neighbor4SerDeser) {
+  auto& neighborApi = saiApiTable->neighborApi();
+  folly::IPAddress ip{"10.10.10.1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
+  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
+}
+
+TEST_F(SaiStoreTest, neighbor6SerDeser) {
+  auto& neighborApi = saiApiTable->neighborApi();
+  folly::IPAddress ip{"42::1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
+  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
+}
