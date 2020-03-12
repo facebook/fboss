@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/lib/RefMap.h"
@@ -112,28 +113,26 @@ class SaiObjectStore {
                     << " Unexpected duplicate adapterHostKey";
       }
       warmBootHandles_.push_back(ins.first);
+      XLOGF(DBG5, "SaiStore reloaded {}", obj);
     }
   }
 
   std::shared_ptr<ObjectType> setObject(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
       const typename SaiObjectTraits::CreateAttributes& attributes) {
+    XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
     auto ins = objects_.refOrEmplace(
         adapterHostKey, adapterHostKey, attributes, switchId_.value());
     if (!ins.second) {
       ins.first->setAttributes(attributes);
     }
-    XLOG(DBG5) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
-               << "["
-               << "set object";
+    XLOGF(DBG5, "SaiStore set object {}", *ins.first);
     return ins.first;
   }
 
   std::shared_ptr<ObjectType> get(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
-    XLOG(DBG5) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
-               << "["
-               << "get object";
+    XLOGF(DBG5, "SaiStore get object {}", adapterHostKey);
     return objects_.ref(adapterHostKey);
   }
 

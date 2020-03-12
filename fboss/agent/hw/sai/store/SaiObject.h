@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
@@ -286,6 +287,12 @@ class SaiObject {
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
     auto& oldAttr = std::get<std::decay_t<AttrT>>(attributes_);
+    XLOGF(
+        DBG5,
+        "checkAndSetAttribute ({}): oldAttr: {}; newAttr: {}",
+        adapterKey_,
+        oldAttr,
+        newAttr);
     if (oldAttr != newAttr) {
       setNewAttributeHelper(newAttr);
       oldAttr = std::forward<AttrT>(newAttr);

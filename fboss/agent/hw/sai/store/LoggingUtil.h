@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
@@ -26,6 +27,22 @@ struct formatter<facebook::fboss::SaiObject<SaiObjectTraits>> {
   template <typename FormatContext>
   auto format(
       const facebook::fboss::SaiObject<SaiObjectTraits>& saiObject,
+      FormatContext& ctx) {
+    return format_to(
+        ctx.out(), "{}: {}", saiObject.adapterKey(), saiObject.attributes());
+  }
+};
+
+template <typename SaiObjectTraits>
+struct formatter<facebook::fboss::SaiObjectWithCounters<SaiObjectTraits>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiObjectWithCounters<SaiObjectTraits>& saiObject,
       FormatContext& ctx) {
     return format_to(
         ctx.out(), "{}: {}", saiObject.adapterKey(), saiObject.attributes());

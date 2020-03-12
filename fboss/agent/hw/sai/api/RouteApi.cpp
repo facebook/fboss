@@ -39,7 +39,7 @@ namespace facebook::fboss {
 std::string SaiRouteTraits::RouteEntry::toString() const {
   const auto cidr = destination();
   return folly::to<std::string>(
-      "RouteEntry(switch:",
+      "RouteEntry(switch: ",
       switchId(),
       ", vrf: ",
       virtualRouterId(),

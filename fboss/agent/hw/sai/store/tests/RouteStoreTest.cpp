@@ -102,6 +102,6 @@ TEST_F(SaiStoreTest, formatTest) {
   SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5};
   SaiObject<SaiRouteTraits> obj(r, c, 0);
   auto expected =
-      "RouteEntry(switch:0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5)";
+      "RouteEntry(switch: 0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }

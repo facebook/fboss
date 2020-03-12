@@ -81,6 +81,23 @@ struct formatter<
   }
 };
 
+// Formatting for std::variant
+template <typename... Ts>
+struct formatter<std::variant<Ts...>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::variant<Ts...>& var, FormatContext& ctx) {
+    auto formatVariant = [&ctx](auto&& val) {
+      return format_to(ctx.out(), "{}", val);
+    };
+    return std::visit(formatVariant, var);
+  }
+};
+
 // Formatting for SaiAttributes
 template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
 struct formatter<
@@ -102,6 +119,21 @@ struct formatter<
   }
 };
 
+// Formatting for std::monostate
+template <>
+struct formatter<std::monostate> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::monostate& unit, FormatContext& ctx) {
+    return format_to(ctx.out(), "(monostate)");
+  }
+};
+
+// Formatting for empty std::tuple
 template <>
 struct formatter<std::tuple<>> {
   template <typename ParseContext>
@@ -115,6 +147,7 @@ struct formatter<std::tuple<>> {
   }
 };
 
+// Formatting for std::optional<SaiAttribute>
 template <typename T>
 struct formatter<std::optional<T>> {
   template <typename ParseContext>
@@ -130,7 +163,7 @@ struct formatter<std::optional<T>> {
     if (opt) {
       return format_to(ctx.out(), "{}", opt.value());
     } else {
-      return format_to(ctx.out(), "omitted");
+      return format_to(ctx.out(), "nullopt");
     }
   }
 };
