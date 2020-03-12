@@ -29,10 +29,14 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
+#include <optional>
+
 namespace facebook::fboss {
 
-SaiManagerTable::SaiManagerTable(SaiPlatform* platform) {
-  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform);
+SaiManagerTable::SaiManagerTable(
+    SaiPlatform* platform,
+    const std::optional<SwitchSaiId>& switchId) {
+  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform, switchId);
 }
 
 void SaiManagerTable::createSaiTableManagers(

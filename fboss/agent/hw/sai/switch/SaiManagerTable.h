@@ -9,7 +9,14 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/Types.h"
+
 #include <memory>
+#include <optional>
+
+namespace folly {
+struct dynamic;
+}
 
 namespace facebook::fboss {
 
@@ -34,7 +41,9 @@ class SaiVlanManager;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(SaiPlatform* platform);
+  SaiManagerTable(
+      SaiPlatform* platform,
+      const std::optional<SwitchSaiId>& switchId);
   void createSaiTableManagers(
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);

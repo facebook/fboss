@@ -45,6 +45,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include <optional>
+
 extern "C" {
 #include <sai.h>
 }
@@ -333,6 +335,7 @@ HwInitResult SaiSwitch::initLocked(
       wbHelper->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
+  std::optional<SwitchSaiId> existingSwitchId;
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
   if (bootType_ == BootType::WARM_BOOT) {
@@ -342,11 +345,22 @@ HwInitResult SaiSwitch::initLocked(
     if (platform_->getAsic()->needsObjectKeyCache()) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
+      const auto& switchKeysJson = (*adapterKeysJson)[saiObjectTypeToString(
+          SaiSwitchTraits::ObjectType)];
+      CHECK_EQ(1, switchKeysJson.size());
+      existingSwitchId =
+          fromFollyDynamic<SaiSwitchTraits>(*switchKeysJson.begin());
+    } else {
+      // TODO - check if we can call get_object_keys to retrieve
+      // switch object key before having called create_switch first.
+      //(get_object_keys takes a switch id parameter)
+      existingSwitchId = 0;
     }
   }
   SaiApiTable::getInstance()->queryApis();
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
-  managerTable_ = std::make_unique<SaiManagerTable>(platform_);
+  managerTable_ =
+      std::make_unique<SaiManagerTable>(platform_, existingSwitchId);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
   // TODO(borisb): find a cleaner solution to this problem.
   // perhaps reload fixes it?

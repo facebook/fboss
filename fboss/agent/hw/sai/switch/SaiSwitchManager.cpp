@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -26,8 +28,7 @@ extern "C" {
 namespace {
 using namespace facebook::fboss;
 
-// (TODO: srikrishnagopu) Move this to SaiPlatform ?
-SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
+SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
   auto connStr = platform->getPlatformAttribute(
       cfg::PlatformAttributes::CONNECTION_HANDLE);
@@ -37,9 +38,24 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(SaiPlatform* platform) {
         connStr->c_str() + connStr->size() + 1,
         std::back_inserter(connectionHandle));
   }
+  return connectionHandle;
+}
+
+SaiSwitchTraits::Attributes::SrcMac getSrcMac(const SaiPlatform* platform) {
+  return platform->getLocalMac();
+}
+
+// (TODO: srikrishnagopu) Move this to SaiPlatform ?
+SaiSwitchTraits::CreateAttributes getSwitchAttributes(
+    SaiPlatform* platform,
+    bool mandatoryOnly) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
-  SaiSwitchTraits::Attributes::HwInfo hwInfo(connectionHandle);
-  SaiSwitchTraits::Attributes::SrcMac srcMac(platform->getLocalMac());
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo;
+  std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
+  if (!mandatoryOnly) {
+    hwInfo = getHwInfo(platform);
+    srcMac = getSrcMac(platform);
+  }
   return {
       initSwitch,
       hwInfo,
@@ -77,12 +93,27 @@ namespace facebook::fboss {
 
 SaiSwitchManager::SaiSwitchManager(
     SaiManagerTable* managerTable,
-    SaiPlatform* platform)
+    SaiPlatform* platform,
+    const std::optional<SwitchSaiId>& switchId)
     : managerTable_(managerTable), platform_(platform) {
-  switch_ = std::make_unique<SaiSwitchObj>(
-      std::monostate(),
-      getSwitchAttributes(platform),
-      0 /* fake switch id; ignored */);
+  if (switchId) {
+    // Extract switch adapter key and create switch only with the mandatory
+    // init attribute (warm boot path)
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    auto newSwitchId = switchApi.create<SaiSwitchTraits>(
+        getSwitchAttributes(platform, true),
+        *switchId /* switch id; ignored */);
+    CHECK_EQ(*switchId, newSwitchId);
+    // Load all switch attributes
+    switch_ = std::make_unique<SaiSwitchObj>(*switchId);
+    switch_->setOptionalAttribute(getHwInfo(platform));
+    switch_->setOptionalAttribute(getSrcMac(platform));
+  } else {
+    switch_ = std::make_unique<SaiSwitchObj>(
+        std::monostate(),
+        getSwitchAttributes(platform, false),
+        0 /* fake switch id; ignored */);
+  }
 }
 
 SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {

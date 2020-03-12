@@ -19,8 +19,12 @@
 #include <folly/MacAddress.h>
 
 #include <memory>
+#include <optional>
 #include <unordered_map>
 
+namespace folly {
+struct dynamic;
+}
 namespace facebook::fboss {
 
 class LoadBalancer;
@@ -32,7 +36,10 @@ using SaiSwitchObj = SaiObject<SaiSwitchTraits>;
 
 class SaiSwitchManager {
  public:
-  SaiSwitchManager(SaiManagerTable* managerTable, SaiPlatform* platform);
+  SaiSwitchManager(
+      SaiManagerTable* managerTable,
+      SaiPlatform* platform,
+      const std::optional<SwitchSaiId>& switchId);
   SwitchSaiId getSwitchSaiId() const;
 
   void processLoadBalancerDelta(const StateDelta& delta);

@@ -48,7 +48,8 @@ void ManagerTestBase::SetUp() {
   saiApiTable = SaiApiTable::getInstance();
   saiApiTable->queryApis();
   concurrentIndices = std::make_unique<ConcurrentIndices>();
-  saiManagerTable = std::make_unique<SaiManagerTable>(saiPlatform.get());
+  saiManagerTable =
+      std::make_unique<SaiManagerTable>(saiPlatform.get(), std::nullopt);
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   s->setSwitchId(switchId);
