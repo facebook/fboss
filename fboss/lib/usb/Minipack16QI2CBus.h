@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/lib/fpga/facebook/FbFpgaI2c.h"
+#include "fboss/lib/fpga/FbFpgaI2c.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/PCA9548MuxedBus.h"
 

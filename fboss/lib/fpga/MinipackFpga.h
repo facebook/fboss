@@ -10,7 +10,7 @@
 #pragma once
 
 #include "fboss/lib/PhysicalMemory.h"
-#include "fboss/lib/fpga/facebook/FbDomFpga.h"
+#include "fboss/lib/fpga/FbDomFpga.h"
 
 namespace facebook::fboss {
 /**
