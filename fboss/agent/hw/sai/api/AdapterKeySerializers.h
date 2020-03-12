@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/dynamic.h>
@@ -32,4 +33,20 @@ std::enable_if_t<
 fromFollyDynamic(const folly::dynamic& obj) {
   return typename SaiObjectTraits::AdapterKey(obj[kKey].asInt());
 }
+
+template <typename SaiObjectTraits>
+std::
+    enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, folly::dynamic>
+    toFollyDynamic(const typename SaiObjectTraits::AdapterKey& adapterKey) {
+  return adapterKey.toFollyDynamic();
+}
+
+template <typename SaiObjectTraits>
+std::enable_if_t<
+    AdapterKeyIsEntryStruct<SaiObjectTraits>::value,
+    typename SaiObjectTraits::AdapterKey>
+fromFollyDynamic(const folly::dynamic& obj) {
+  return SaiObjectTraits::AdapterKey::fromFollyDynamic(obj);
+}
+
 } // namespace facebook::fboss

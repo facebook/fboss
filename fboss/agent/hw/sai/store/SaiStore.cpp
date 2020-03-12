@@ -57,18 +57,13 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
         using ObjectTraits =
             typename std::decay_t<decltype(store)>::ObjectTraits;
         auto objName = store.objectTypeName();
-        if constexpr (AdapterKeyIsObjectId<ObjectTraits>::value) {
-          auto aitr = adapterKeys.find(objName);
-          if (aitr == adapterKeys.items().end()) {
-            adapterKeys[objName] = folly::dynamic::array;
-            aitr = adapterKeys.find(objName);
-          }
-          for (auto key : store.adapterKeysFollyDynamic()) {
-            aitr->second.push_back(key);
-          }
-        } else {
-          // TODO - start serializing non OID adapter keys
+        auto aitr = adapterKeys.find(objName);
+        if (aitr == adapterKeys.items().end()) {
           adapterKeys[objName] = folly::dynamic::array;
+          aitr = adapterKeys.find(objName);
+        }
+        for (auto key : store.adapterKeysFollyDynamic()) {
+          aitr->second.push_back(key);
         }
       },
       stores_);

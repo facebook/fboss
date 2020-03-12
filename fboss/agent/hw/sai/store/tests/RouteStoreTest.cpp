@@ -105,3 +105,31 @@ TEST_F(SaiStoreTest, formatTest) {
       "RouteEntry(switch: 0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
+
+TEST_F(SaiStoreTest, serDeserV4Route) {
+  auto& routeApi = saiApiTable->routeApi();
+  folly::IPAddress ip{"10.10.10.1"};
+  folly::CIDRNetwork dest(ip, 24);
+  SaiRouteTraits::RouteEntry r(0, 0, dest);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi.create<SaiRouteTraits>(
+      r, {packetActionAttribute, nextHopIdAttribute});
+
+  verifyAdapterKeySerDeser<SaiRouteTraits>({r});
+}
+
+TEST_F(SaiStoreTest, serDeserV6Route) {
+  auto& routeApi = saiApiTable->routeApi();
+  folly::IPAddress ip{"42::"};
+  folly::CIDRNetwork dest(ip, 64);
+  SaiRouteTraits::RouteEntry r(0, 0, dest);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_FORWARD};
+  SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  routeApi.create<SaiRouteTraits>(
+      r, {packetActionAttribute, nextHopIdAttribute});
+
+  verifyAdapterKeySerDeser<SaiRouteTraits>({r});
+}
