@@ -106,6 +106,7 @@ class BcmPortGroup {
       const std::vector<std::shared_ptr<Port>>& oldPorts,
       const std::vector<std::shared_ptr<Port>>& newPorts,
       LaneMode newLaneMode);
+  void setPortSpecificControls(const BcmPort& bcmPort, bool enable);
 
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
