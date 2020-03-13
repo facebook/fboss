@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/fake/FakeSaiAcl.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBridge.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiFdb.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHash.h"
@@ -37,6 +38,8 @@ namespace facebook::fboss {
 struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   static void clear();
+
+  FakeAclManager aclManager;
   FakeBridgeManager bridgeManager;
   FakeFdbManager fdbManager;
   FakeHashManager hashManager;

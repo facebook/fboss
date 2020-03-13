@@ -26,6 +26,7 @@ std::shared_ptr<FakeSai> FakeSai::getInstance() {
 void FakeSai::clear() {
   auto fs = FakeSai::getInstance();
 
+  fs->aclManager.clear();
   fs->bridgeManager.clearWithMembers();
   fs->fdbManager.clear();
   fs->hashManager.clear();
@@ -92,6 +93,10 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
   }
   sai_status_t res;
   switch (sai_api_id) {
+    case SAI_API_ACL:
+      facebook::fboss::populate_acl_api((sai_acl_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_BRIDGE:
       facebook::fboss::populate_bridge_api(
           (sai_bridge_api_t**)api_method_table);
