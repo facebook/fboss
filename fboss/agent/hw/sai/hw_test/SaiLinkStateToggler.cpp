@@ -24,8 +24,12 @@ void SaiLinkStateToggler::setPortPreemphasis(
         "Cannot set preemphasis on non existent port: ", port->getID());
   }
   auto attribs = portManager.attributesFromSwPort(port);
+  auto gotAttributes = portHandle->port->attributes();
+  auto numLanes = std::get<SaiPortTraits::Attributes::HwLaneList>(gotAttributes)
+                      .value()
+                      .size();
   std::get<std::optional<SaiPortTraits::Attributes::Preemphasis>>(attribs) =
-      std::vector<uint32_t>{static_cast<uint32_t>(preemphasis)};
+      std::vector<uint32_t>(numLanes, static_cast<uint32_t>(preemphasis));
   portHandle->port->setAttributes(attribs);
 }
 } // namespace facebook::fboss
