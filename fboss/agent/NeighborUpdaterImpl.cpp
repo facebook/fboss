@@ -227,4 +227,20 @@ void NeighborUpdaterImpl::timeoutsChanged(
   }
 }
 
+void NeighborUpdaterImpl::updateArpEntryClassID(
+    VlanID vlan,
+    folly::IPAddressV4 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getArpCacheFor(vlan);
+  cache->updateEntryClassID(ip, classID);
+}
+
+void NeighborUpdaterImpl::updateNdpEntryClassID(
+    VlanID vlan,
+    folly::IPAddressV6 ip,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  auto cache = getNdpCacheFor(vlan);
+  cache->updateEntryClassID(ip, classID);
+}
+
 } // namespace facebook::fboss

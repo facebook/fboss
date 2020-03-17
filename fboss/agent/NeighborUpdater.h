@@ -87,7 +87,11 @@ class NeighborUpdater : public AutoRegisterStateObserver {
       VlanID vlan,
       AddrT ip,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    impl_->updateEntryClassID(vlan, ip, classID);
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      updateArpEntryClassID(vlan, ip, classID);
+    } else {
+      updateNdpEntryClassID(vlan, ip, classID);
+    }
   }
 
  private:

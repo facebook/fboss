@@ -75,20 +75,6 @@ class NeighborUpdaterImpl {
   template <typename NeighborCacheT>
   std::shared_ptr<NeighborCacheT> getNeighborCacheFor(VlanID vlan);
 
-  template <typename AddrT>
-  void updateEntryClassID(
-      VlanID vlan,
-      AddrT ip,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    using NeighborCacheT = std::conditional_t<
-        std::is_same<AddrT, folly::IPAddressV4>::value,
-        ArpCache,
-        NdpCache>;
-
-    auto cache = getNeighborCacheFor<NeighborCacheT>(vlan);
-    cache->updateEntryClassID(ip, classID);
-  }
-
   void portChanged(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
