@@ -317,8 +317,9 @@ int fbossMain(
   auto stopServices = [&]() {
     // stop accepting new connections
     server->stopListening();
-
+    XLOG(INFO) << "Stopped thrift server listening";
     init.stopFunctionScheduler();
+    XLOG(INFO) << "Stopped stats FunctionScheduler";
     fbossFinalize();
   };
   SignalHandler signalHandler(&eventBase, &sw, stopServices);
