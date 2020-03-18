@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/IPAddress.h>
@@ -122,4 +123,9 @@ TEST_F(NeighborApiTest, v6NeighborSerDeser) {
 TEST_F(NeighborApiTest, formatNeighborAttributes) {
   SaiNeighborTraits::Attributes::DstMac dm(dstMac);
   EXPECT_EQ(fmt::format("DstMac: {}", strMac), fmt::format("{}", dm));
+}
+
+TEST_F(NeighborApiTest, isPublisher) {
+  EXPECT_TRUE(IsObjectPublisher<SaiNeighborTraits>::value);
+  EXPECT_FALSE(IsObjectPublisher<SaiInSegTraits>::value);
 }
