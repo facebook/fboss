@@ -688,7 +688,7 @@ target_link_libraries(agent_test
     ${CMAKE_THREAD_LIBS_INIT}
     ${LIBGMOCK_LIBRARIES}
 )
-add_test(test agent_test)
+gtest_discover_tests(agent_test)
 
 #TODO: Add tests from other folders aside from agent/test
 
