@@ -39,6 +39,14 @@ class TransceiverManager {
   virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
     getI2cControllerStats() const = 0;
 
+  /* Virtual function to update the I2c transaction stats to the ServiceData
+   * object from where it will get picked up by FbAgent.
+   * Implementation - The TransceieverManager base class is inherited
+   * by platform speficic Transaceiver Manager class like WedgeManager.
+   * That class has the function to get the I2c transaction status
+   */
+  virtual void publishI2cTransactionStats() = 0;
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;

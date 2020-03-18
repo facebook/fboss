@@ -55,6 +55,20 @@ int main(int argc, char **argv) {
     std::chrono::seconds(FLAGS_loop_interval),
     "refreshTransceivers"
   );
+
+  // Schedule the function to periodically send the I2c transaction
+  // stats to the ServiceData object which gets pulled by FBagent.
+  // The function is called from abstract base class TransceiverManager
+  // which gets implemented by platfdorm aware class inheriting
+  // this class
+  scheduler.addFunction(
+    [mgr = handler->getTransceiverManager()]() {
+      mgr->publishI2cTransactionStats();
+    },
+    std::chrono::seconds(FLAGS_loop_interval),
+    "publishI2cTransactionStats"
+  );
+
   // Note: This doesn't block, this merely starts it's own thread
   scheduler.start();
 

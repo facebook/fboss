@@ -3,6 +3,7 @@
 #include <folly/gen/Base.h>
 
 #include <folly/logging/xlog.h>
+#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
@@ -174,6 +175,50 @@ int WedgeManager::scanTransceiverPresence(
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
+}
+
+/* Get the i2c transaction counters from TranscieverManager base class
+ * and update to fbagent. The TransceieverManager base class is inherited
+ * by platform speficic Transaceiver Manager class like WedgeManager.
+ * That class has the function to get the I2c transaction status.
+ */
+void WedgeManager::publishI2cTransactionStats() {
+  // Get the i2c transaction stats from TransactionManager class (its
+  // sub-class having platform specific implementation)
+  auto counters = getI2cControllerStats();
+
+  if (counters.size() == 0)
+    return;
+
+  // Populate the i2c stats per pim and per controller
+
+  for (const I2cControllerStats& counter : counters) {
+    // Publish all the counters to FbAgent
+
+    auto statName =
+      folly::to<std::string>(counter.controllerName_, ".readTotal");
+    tcData().setCounter(statName, counter.readTotal_);
+
+    statName =
+      folly::to<std::string>(counter.controllerName_, ".readFailed");
+    tcData().setCounter(statName, counter.readFailed_);
+
+    statName =
+      folly::to<std::string>(counter.controllerName_, ".readBytes");
+    tcData().setCounter(statName, counter.readBytes_);
+
+    statName =
+      folly::to<std::string>(counter.controllerName_, ".writeTotal");
+    tcData().setCounter(statName, counter.writeTotal_);
+
+    statName =
+      folly::to<std::string>(counter.controllerName_, ".writeFailed");
+    tcData().setCounter(statName, counter.writeFailed_);
+
+    statName =
+      folly::to<std::string>(counter.controllerName_, ".writeBytes");
+    tcData().setCounter(statName, counter.writeBytes_);
+  }
 }
 
 }} // facebook::fboss

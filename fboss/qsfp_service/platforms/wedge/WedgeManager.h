@@ -52,6 +52,13 @@ class WedgeManager : public TransceiverManager {
     return wedgeI2cBus_->getI2cControllerStats();
   }
 
+  /* Get the i2c transaction counters from TranscieverManager base class
+   * and update to fbagent. The TransceieverManager base class is inherited
+   * by platform speficic Transaceiver Manager class like WedgeQManager.
+   * That class has the function to get the I2c transaction status
+   */
+  void publishI2cTransactionStats() override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   std::unique_ptr<TransceiverI2CApi>
