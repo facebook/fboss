@@ -22,6 +22,22 @@ TEST(ResourceLibUtilTest, IPv4Generator) {
   }
 }
 
+TEST(ResourceLibUtilTest, MacGenerator) {
+  auto generator = utility::MacAddressGenerator();
+  std::array<folly::MacAddress, 5> macs{
+      folly::MacAddress("00:00:00:00:00:01"),
+      folly::MacAddress("00:00:00:00:00:02"),
+      folly::MacAddress("00:00:00:00:00:03"),
+      folly::MacAddress("00:00:00:00:00:04"),
+      folly::MacAddress("00:00:00:00:00:05"),
+  };
+
+  for (int i = 0; i < 5; i++) {
+    auto generatedMacs = generator.getNext();
+    ASSERT_EQ(generatedMacs, macs[i]);
+  }
+}
+
 TEST(ResourceLibUtilTest, HostPrefixV4Generator) {
   using IpT = folly::IPAddressV4;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV4>;

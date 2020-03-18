@@ -4,6 +4,7 @@
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <folly/Singleton.h>
 #include <cstdint>
 #include <type_traits>
@@ -42,10 +43,13 @@ class ResourceCursor {
 using IdV6 = typename std::pair<uint64_t, uint64_t>;
 template <typename AddrT>
 struct IdT {
-  using type = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
+  using type = typename std::conditional_t<
+      std::is_same_v<AddrT, folly::IPAddressV4>,
       uint32_t,
-      IdV6>;
+      typename std::conditional_t<
+          std::is_same_v<AddrT, folly::MacAddress>,
+          uint64_t,
+          IdV6>>;
 };
 
 template <typename ResourceT, typename IdT>
@@ -87,6 +91,17 @@ class ResourceGenerator : private ResourceCursor<IdT> {
   /* return current cursor position */
   IdT getCursorPosition() {
     return BaseT::getCursorPosition();
+  }
+};
+
+class MacAddressGenerator : public ResourceGenerator<
+                                folly::MacAddress,
+                                typename IdT<folly::MacAddress>::type> {
+ public:
+  using ResourceT = folly::MacAddress;
+  using IdT = typename IdT<folly::MacAddress>::type;
+  ResourceT get(IdT id) const override {
+    return folly::MacAddress::fromHBO(id);
   }
 };
 

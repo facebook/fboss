@@ -9,12 +9,26 @@ template <>
 ResourceCursor<uint32_t>::ResourceCursor() : current_(0) {}
 
 template <>
+ResourceCursor<uint64_t>::ResourceCursor() : current_(0) {}
+
+template <>
+uint64_t ResourceCursor<uint64_t>::getNextId() {
+  return ++current_;
+}
+
+template <>
 uint32_t ResourceCursor<uint32_t>::getNextId() {
   return ++current_;
 }
 
 template <>
 uint32_t ResourceCursor<uint32_t>::getId(uint32_t startId, uint32_t offset)
+    const {
+  return startId + offset;
+}
+
+template <>
+uint64_t ResourceCursor<uint64_t>::getId(uint64_t startId, uint32_t offset)
     const {
   return startId + offset;
 }

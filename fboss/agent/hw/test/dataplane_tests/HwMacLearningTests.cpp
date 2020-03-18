@@ -15,6 +15,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "fboss/agent/Platform.h"
@@ -39,6 +40,12 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
+// Even when running the same test repeatedly could result in different
+// learning counts based on hash insertion  order.
+// Maximum theortical is 8k for TH ..but practically we hit numbers below it
+// Putting the value ot 7K should give enough buffer
+int constexpr L2_LEARN_MAX_MAC_COUNT = 7000;
+
 namespace {
 std::set<folly::MacAddress>
 getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
@@ -53,6 +60,24 @@ getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
   }
   return macs;
 }
+
+void sendL2Pkts(facebook::fboss::HwSwitch* hwSwitch, int vlanId, int port) {
+  auto generator = facebook::fboss::utility::MacAddressGenerator();
+  // start with fixed address and increment detrministically
+  // evaluate total learnt l2 entries
+  generator.startOver(0x200000005);
+  for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {
+    auto txPacket = facebook::fboss::utility::makeEthTxPacket(
+        hwSwitch,
+        facebook::fboss::VlanID(vlanId),
+        generator.getNext(),
+        folly::MacAddress::BROADCAST,
+        facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
+    hwSwitch->sendPacketOutOfPortSync(
+        std::move(txPacket), facebook::fboss::PortID(port));
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -366,6 +391,40 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
   }
 };
+
+// Intent of this test is to attempt to learn large number of macs
+// (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
+TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
+  if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    // this test is not valid for TH3 as chip supports SW based learning only
+    // which is much slower to learn for a scaled test. Also SW introduces
+    // variability in results .
+    XLOG(INFO) << "Skip the test for TH3 platform";
+    return;
+  }
+
+  auto portDescr = physPortDescr();
+  auto setup = [this, portDescr]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    sendL2Pkts(
+        getHwSwitch(),
+        initialConfig().vlanPorts[0].vlanID,
+        masterLogicalPortIds()[0]);
+  };
+
+  auto verify = [this, portDescr]() {
+    auto isTrunk = portDescr.isAggregatePort();
+    int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
+    auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
+    XLOG(INFO) << "Number of l2 entries learnt: " << macs.size();
+    EXPECT_EQ(macs.size(), L2_LEARN_MAX_MAC_COUNT);
+  };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 TEST_F(HwMacLearningTest, VerifyHwLearningForPort) {
   testHwLearningHelper(physPortDescr());
