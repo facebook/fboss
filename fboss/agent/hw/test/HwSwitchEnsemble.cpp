@@ -56,6 +56,14 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
     auto noRoutesState{getProgrammedState()->clone()};
     auto routeTables = noRoutesState->getRouteTables()->modify(&noRoutesState);
     routeTables->removeRouteTable(routeTables->getRouteTable(RouterID(0)));
+
+    auto vlans = noRoutesState->getVlans()->modify(&noRoutesState);
+    for (auto& vlan : *vlans) {
+      vlan->modify(&noRoutesState);
+      vlan->setArpTable(std::make_shared<ArpTable>());
+      vlan->setNdpTable(std::make_shared<NdpTable>());
+    }
+
     auto newIntfMap = noRoutesState->getInterfaces()->clone();
     for (auto& interface : *newIntfMap) {
       auto newIntf = interface->clone();
