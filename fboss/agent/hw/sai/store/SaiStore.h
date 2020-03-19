@@ -106,6 +106,7 @@ class SaiObjectStore {
     for (const auto k : keys) {
       ObjectType obj(k);
       auto adapterHostKey = obj.adapterHostKey();
+      XLOGF(DBG5, "SaiStore reloaded {}", obj);
       auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
       if (!ins.second) {
         XLOG(FATAL) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
@@ -113,7 +114,6 @@ class SaiObjectStore {
                     << " Unexpected duplicate adapterHostKey";
       }
       warmBootHandles_.push_back(ins.first);
-      XLOGF(DBG5, "SaiStore reloaded {}", obj);
     }
   }
 
