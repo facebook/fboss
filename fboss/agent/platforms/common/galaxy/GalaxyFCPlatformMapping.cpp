@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.h"
+#include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 
 #include "fboss/agent/FbossError.h"
 
@@ -22,19 +22,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1": {
         "mapping": {
           "id": 1,
-          "name": "eth101/13/1",
+          "name": "fab1/19/1",
           "controllingPort": 1,
           "pins": [
             {
               "a": {
                 "chip": "FC0",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/13",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -49,14 +43,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -66,14 +52,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC0",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
                       "lane": 0
                     }
                   }
@@ -109,32 +87,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC0",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
                       "lane": 3
                     }
                   }
@@ -159,20 +111,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -208,32 +146,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -242,19 +154,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "2": {
         "mapping": {
           "id": 2,
-          "name": "eth101/13/2",
+          "name": "fab1/19/2",
           "controllingPort": 1,
           "pins": [
             {
               "a": {
                 "chip": "FC0",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/13",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -269,14 +175,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -286,14 +184,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC0",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
                       "lane": 1
                     }
                   }
@@ -305,19 +195,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "3": {
         "mapping": {
           "id": 3,
-          "name": "eth101/13/3",
+          "name": "fab1/19/3",
           "controllingPort": 1,
           "pins": [
             {
               "a": {
                 "chip": "FC0",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/13",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -332,14 +216,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -349,14 +225,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC0",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
                       "lane": 2
                     }
                   }
@@ -381,20 +249,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -403,19 +257,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "4": {
         "mapping": {
           "id": 4,
-          "name": "eth101/13/4",
+          "name": "fab1/19/4",
           "controllingPort": 1,
           "pins": [
             {
               "a": {
                 "chip": "FC0",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/13",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -430,14 +278,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -447,14 +287,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC0",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/13",
                       "lane": 3
                     }
                   }
@@ -466,19 +298,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "5": {
         "mapping": {
           "id": 5,
-          "name": "eth101/14/1",
+          "name": "fab1/17/1",
           "controllingPort": 5,
           "pins": [
             {
               "a": {
                 "chip": "FC1",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/14",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -493,14 +319,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -510,14 +328,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
                       "lane": 0
                     }
                   }
@@ -553,32 +363,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC1",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
                       "lane": 3
                     }
                   }
@@ -603,20 +387,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -652,32 +422,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -686,19 +430,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "6": {
         "mapping": {
           "id": 6,
-          "name": "eth101/14/2",
+          "name": "fab1/17/2",
           "controllingPort": 5,
           "pins": [
             {
               "a": {
                 "chip": "FC1",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/14",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -713,14 +451,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -730,14 +460,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC1",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
                       "lane": 1
                     }
                   }
@@ -749,19 +471,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "7": {
         "mapping": {
           "id": 7,
-          "name": "eth101/14/3",
+          "name": "fab1/17/3",
           "controllingPort": 5,
           "pins": [
             {
               "a": {
                 "chip": "FC1",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/14",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -776,14 +492,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -793,14 +501,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC1",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
                       "lane": 2
                     }
                   }
@@ -825,20 +525,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -847,19 +533,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "8": {
         "mapping": {
           "id": 8,
-          "name": "eth101/14/4",
+          "name": "fab1/17/4",
           "controllingPort": 5,
           "pins": [
             {
               "a": {
                 "chip": "FC1",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/14",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -874,14 +554,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -891,14 +563,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC1",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/14",
                       "lane": 3
                     }
                   }
@@ -910,19 +574,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "9": {
         "mapping": {
           "id": 9,
-          "name": "eth101/15/1",
+          "name": "fab1/18/1",
           "controllingPort": 9,
           "pins": [
             {
               "a": {
                 "chip": "FC2",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/15",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -937,14 +595,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -954,14 +604,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC2",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
                       "lane": 0
                     }
                   }
@@ -997,32 +639,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC2",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
                       "lane": 3
                     }
                   }
@@ -1047,20 +663,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -1096,32 +698,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -1130,19 +706,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "10": {
         "mapping": {
           "id": 10,
-          "name": "eth101/15/2",
+          "name": "fab1/18/2",
           "controllingPort": 9,
           "pins": [
             {
               "a": {
                 "chip": "FC2",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/15",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -1157,14 +727,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -1174,14 +736,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC2",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
                       "lane": 1
                     }
                   }
@@ -1193,19 +747,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "11": {
         "mapping": {
           "id": 11,
-          "name": "eth101/15/3",
+          "name": "fab1/18/3",
           "controllingPort": 9,
           "pins": [
             {
               "a": {
                 "chip": "FC2",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/15",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -1220,14 +768,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -1237,14 +777,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC2",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
                       "lane": 2
                     }
                   }
@@ -1269,20 +801,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -1291,19 +809,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "12": {
         "mapping": {
           "id": 12,
-          "name": "eth101/15/4",
+          "name": "fab1/18/4",
           "controllingPort": 9,
           "pins": [
             {
               "a": {
                 "chip": "FC2",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/15",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -1318,14 +830,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -1335,14 +839,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC2",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/15",
                       "lane": 3
                     }
                   }
@@ -1354,19 +850,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "13": {
         "mapping": {
           "id": 13,
-          "name": "eth101/16/1",
+          "name": "fab1/20/1",
           "controllingPort": 13,
           "pins": [
             {
               "a": {
                 "chip": "FC3",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/16",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -1381,14 +871,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -1398,14 +880,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
                       "lane": 0
                     }
                   }
@@ -1444,32 +918,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -1488,20 +936,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC3",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
                       "lane": 1
                     }
                   }
@@ -1540,32 +974,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -1574,19 +982,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "14": {
         "mapping": {
           "id": 14,
-          "name": "eth101/16/2",
+          "name": "fab1/20/2",
           "controllingPort": 13,
           "pins": [
             {
               "a": {
                 "chip": "FC3",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/16",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -1601,14 +1003,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -1618,14 +1012,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC3",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
                       "lane": 1
                     }
                   }
@@ -1637,19 +1023,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "15": {
         "mapping": {
           "id": 15,
-          "name": "eth101/16/3",
+          "name": "fab1/20/3",
           "controllingPort": 13,
           "pins": [
             {
               "a": {
                 "chip": "FC3",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/16",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -1664,14 +1044,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -1681,14 +1053,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC3",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
                       "lane": 2
                     }
                   }
@@ -1713,20 +1077,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -1735,19 +1085,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "16": {
         "mapping": {
           "id": 16,
-          "name": "eth101/16/4",
+          "name": "fab1/20/4",
           "controllingPort": 13,
           "pins": [
             {
               "a": {
                 "chip": "FC3",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/16",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -1759,14 +1103,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC3",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
                       "lane": 3
                     }
                   }
@@ -1782,14 +1118,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/16",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -1798,7 +1126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "17": {
         "mapping": {
           "id": 17,
-          "name": "fab101/29/1",
+          "name": "fab1/32/1",
           "controllingPort": 17,
           "pins": [
             {
@@ -1930,7 +1258,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "18": {
         "mapping": {
           "id": 18,
-          "name": "fab101/29/2",
+          "name": "fab1/32/2",
           "controllingPort": 17,
           "pins": [
             {
@@ -1971,7 +1299,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "19": {
         "mapping": {
           "id": 19,
-          "name": "fab101/29/3",
+          "name": "fab1/32/3",
           "controllingPort": 17,
           "pins": [
             {
@@ -2033,7 +1361,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "20": {
         "mapping": {
           "id": 20,
-          "name": "fab101/29/4",
+          "name": "fab1/32/4",
           "controllingPort": 17,
           "pins": [
             {
@@ -2074,7 +1402,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "21": {
         "mapping": {
           "id": 21,
-          "name": "fab101/30/1",
+          "name": "fab1/30/1",
           "controllingPort": 21,
           "pins": [
             {
@@ -2206,7 +1534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "22": {
         "mapping": {
           "id": 22,
-          "name": "fab101/30/2",
+          "name": "fab1/30/2",
           "controllingPort": 21,
           "pins": [
             {
@@ -2247,7 +1575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "23": {
         "mapping": {
           "id": 23,
-          "name": "fab101/30/3",
+          "name": "fab1/30/3",
           "controllingPort": 21,
           "pins": [
             {
@@ -2309,7 +1637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "24": {
         "mapping": {
           "id": 24,
-          "name": "fab101/30/4",
+          "name": "fab1/30/4",
           "controllingPort": 21,
           "pins": [
             {
@@ -2350,7 +1678,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "25": {
         "mapping": {
           "id": 25,
-          "name": "fab101/31/1",
+          "name": "fab1/31/1",
           "controllingPort": 25,
           "pins": [
             {
@@ -2482,7 +1810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "26": {
         "mapping": {
           "id": 26,
-          "name": "fab101/31/2",
+          "name": "fab1/31/2",
           "controllingPort": 25,
           "pins": [
             {
@@ -2523,7 +1851,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "27": {
         "mapping": {
           "id": 27,
-          "name": "fab101/31/3",
+          "name": "fab1/31/3",
           "controllingPort": 25,
           "pins": [
             {
@@ -2585,7 +1913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "28": {
         "mapping": {
           "id": 28,
-          "name": "fab101/31/4",
+          "name": "fab1/31/4",
           "controllingPort": 25,
           "pins": [
             {
@@ -2626,7 +1954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "29": {
         "mapping": {
           "id": 29,
-          "name": "fab101/32/1",
+          "name": "fab1/27/1",
           "controllingPort": 29,
           "pins": [
             {
@@ -2758,7 +2086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "30": {
         "mapping": {
           "id": 30,
-          "name": "fab101/32/2",
+          "name": "fab1/27/2",
           "controllingPort": 29,
           "pins": [
             {
@@ -2799,7 +2127,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "31": {
         "mapping": {
           "id": 31,
-          "name": "fab101/32/3",
+          "name": "fab1/27/3",
           "controllingPort": 29,
           "pins": [
             {
@@ -2861,7 +2189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "32": {
         "mapping": {
           "id": 32,
-          "name": "fab101/32/4",
+          "name": "fab1/27/4",
           "controllingPort": 29,
           "pins": [
             {
@@ -2902,7 +2230,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "34": {
         "mapping": {
           "id": 34,
-          "name": "fab101/25/1",
+          "name": "fab1/29/1",
           "controllingPort": 34,
           "pins": [
             {
@@ -3034,7 +2362,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "35": {
         "mapping": {
           "id": 35,
-          "name": "fab101/25/2",
+          "name": "fab1/29/2",
           "controllingPort": 34,
           "pins": [
             {
@@ -3075,7 +2403,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "36": {
         "mapping": {
           "id": 36,
-          "name": "fab101/25/3",
+          "name": "fab1/29/3",
           "controllingPort": 34,
           "pins": [
             {
@@ -3137,7 +2465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "37": {
         "mapping": {
           "id": 37,
-          "name": "fab101/25/4",
+          "name": "fab1/29/4",
           "controllingPort": 34,
           "pins": [
             {
@@ -3178,7 +2506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "38": {
         "mapping": {
           "id": 38,
-          "name": "fab101/26/1",
+          "name": "fab1/26/1",
           "controllingPort": 38,
           "pins": [
             {
@@ -3310,7 +2638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "39": {
         "mapping": {
           "id": 39,
-          "name": "fab101/26/2",
+          "name": "fab1/26/2",
           "controllingPort": 38,
           "pins": [
             {
@@ -3351,7 +2679,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "40": {
         "mapping": {
           "id": 40,
-          "name": "fab101/26/3",
+          "name": "fab1/26/3",
           "controllingPort": 38,
           "pins": [
             {
@@ -3413,7 +2741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "41": {
         "mapping": {
           "id": 41,
-          "name": "fab101/26/4",
+          "name": "fab1/26/4",
           "controllingPort": 38,
           "pins": [
             {
@@ -3454,7 +2782,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "42": {
         "mapping": {
           "id": 42,
-          "name": "fab101/27/1",
+          "name": "fab1/25/1",
           "controllingPort": 42,
           "pins": [
             {
@@ -3586,7 +2914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "43": {
         "mapping": {
           "id": 43,
-          "name": "fab101/27/2",
+          "name": "fab1/25/2",
           "controllingPort": 42,
           "pins": [
             {
@@ -3627,7 +2955,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "44": {
         "mapping": {
           "id": 44,
-          "name": "fab101/27/3",
+          "name": "fab1/25/3",
           "controllingPort": 42,
           "pins": [
             {
@@ -3689,7 +3017,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "45": {
         "mapping": {
           "id": 45,
-          "name": "fab101/27/4",
+          "name": "fab1/25/4",
           "controllingPort": 42,
           "pins": [
             {
@@ -3730,7 +3058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "46": {
         "mapping": {
           "id": 46,
-          "name": "fab101/28/1",
+          "name": "fab1/28/1",
           "controllingPort": 46,
           "pins": [
             {
@@ -3862,7 +3190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "47": {
         "mapping": {
           "id": 47,
-          "name": "fab101/28/2",
+          "name": "fab1/28/2",
           "controllingPort": 46,
           "pins": [
             {
@@ -3903,7 +3231,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "48": {
         "mapping": {
           "id": 48,
-          "name": "fab101/28/3",
+          "name": "fab1/28/3",
           "controllingPort": 46,
           "pins": [
             {
@@ -3965,7 +3293,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "49": {
         "mapping": {
           "id": 49,
-          "name": "fab101/28/4",
+          "name": "fab1/28/4",
           "controllingPort": 46,
           "pins": [
             {
@@ -4006,7 +3334,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "50": {
         "mapping": {
           "id": 50,
-          "name": "fab101/21/1",
+          "name": "fab1/8/1",
           "controllingPort": 50,
           "pins": [
             {
@@ -4138,7 +3466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "51": {
         "mapping": {
           "id": 51,
-          "name": "fab101/21/2",
+          "name": "fab1/8/2",
           "controllingPort": 50,
           "pins": [
             {
@@ -4179,7 +3507,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "52": {
         "mapping": {
           "id": 52,
-          "name": "fab101/21/3",
+          "name": "fab1/8/3",
           "controllingPort": 50,
           "pins": [
             {
@@ -4241,7 +3569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "53": {
         "mapping": {
           "id": 53,
-          "name": "fab101/21/4",
+          "name": "fab1/8/4",
           "controllingPort": 50,
           "pins": [
             {
@@ -4282,7 +3610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "54": {
         "mapping": {
           "id": 54,
-          "name": "fab101/22/1",
+          "name": "fab1/7/1",
           "controllingPort": 54,
           "pins": [
             {
@@ -4414,7 +3742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "55": {
         "mapping": {
           "id": 55,
-          "name": "fab101/22/2",
+          "name": "fab1/7/2",
           "controllingPort": 54,
           "pins": [
             {
@@ -4455,7 +3783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "56": {
         "mapping": {
           "id": 56,
-          "name": "fab101/22/3",
+          "name": "fab1/7/3",
           "controllingPort": 54,
           "pins": [
             {
@@ -4517,7 +3845,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "57": {
         "mapping": {
           "id": 57,
-          "name": "fab101/22/4",
+          "name": "fab1/7/4",
           "controllingPort": 54,
           "pins": [
             {
@@ -4558,7 +3886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "58": {
         "mapping": {
           "id": 58,
-          "name": "fab101/23/1",
+          "name": "fab1/6/1",
           "controllingPort": 58,
           "pins": [
             {
@@ -4690,7 +4018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "59": {
         "mapping": {
           "id": 59,
-          "name": "fab101/23/2",
+          "name": "fab1/6/2",
           "controllingPort": 58,
           "pins": [
             {
@@ -4731,7 +4059,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "60": {
         "mapping": {
           "id": 60,
-          "name": "fab101/23/3",
+          "name": "fab1/6/3",
           "controllingPort": 58,
           "pins": [
             {
@@ -4793,7 +4121,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "61": {
         "mapping": {
           "id": 61,
-          "name": "fab101/23/4",
+          "name": "fab1/6/4",
           "controllingPort": 58,
           "pins": [
             {
@@ -4834,7 +4162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "62": {
         "mapping": {
           "id": 62,
-          "name": "fab101/24/1",
+          "name": "fab1/5/1",
           "controllingPort": 62,
           "pins": [
             {
@@ -4966,7 +4294,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "63": {
         "mapping": {
           "id": 63,
-          "name": "fab101/24/2",
+          "name": "fab1/5/2",
           "controllingPort": 62,
           "pins": [
             {
@@ -5007,7 +4335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "64": {
         "mapping": {
           "id": 64,
-          "name": "fab101/24/3",
+          "name": "fab1/5/3",
           "controllingPort": 62,
           "pins": [
             {
@@ -5069,7 +4397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "65": {
         "mapping": {
           "id": 65,
-          "name": "fab101/24/4",
+          "name": "fab1/5/4",
           "controllingPort": 62,
           "pins": [
             {
@@ -5110,7 +4438,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "68": {
         "mapping": {
           "id": 68,
-          "name": "fab101/17/1",
+          "name": "fab1/3/1",
           "controllingPort": 68,
           "pins": [
             {
@@ -5242,7 +4570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "69": {
         "mapping": {
           "id": 69,
-          "name": "fab101/17/2",
+          "name": "fab1/3/2",
           "controllingPort": 68,
           "pins": [
             {
@@ -5283,7 +4611,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "70": {
         "mapping": {
           "id": 70,
-          "name": "fab101/17/3",
+          "name": "fab1/3/3",
           "controllingPort": 68,
           "pins": [
             {
@@ -5345,7 +4673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "71": {
         "mapping": {
           "id": 71,
-          "name": "fab101/17/4",
+          "name": "fab1/3/4",
           "controllingPort": 68,
           "pins": [
             {
@@ -5386,7 +4714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "72": {
         "mapping": {
           "id": 72,
-          "name": "fab101/18/1",
+          "name": "fab1/1/1",
           "controllingPort": 72,
           "pins": [
             {
@@ -5518,7 +4846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "73": {
         "mapping": {
           "id": 73,
-          "name": "fab101/18/2",
+          "name": "fab1/1/2",
           "controllingPort": 72,
           "pins": [
             {
@@ -5559,7 +4887,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "74": {
         "mapping": {
           "id": 74,
-          "name": "fab101/18/3",
+          "name": "fab1/1/3",
           "controllingPort": 72,
           "pins": [
             {
@@ -5621,7 +4949,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "75": {
         "mapping": {
           "id": 75,
-          "name": "fab101/18/4",
+          "name": "fab1/1/4",
           "controllingPort": 72,
           "pins": [
             {
@@ -5662,7 +4990,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "76": {
         "mapping": {
           "id": 76,
-          "name": "fab101/19/1",
+          "name": "fab1/2/1",
           "controllingPort": 76,
           "pins": [
             {
@@ -5794,7 +5122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "77": {
         "mapping": {
           "id": 77,
-          "name": "fab101/19/2",
+          "name": "fab1/2/2",
           "controllingPort": 76,
           "pins": [
             {
@@ -5835,7 +5163,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "78": {
         "mapping": {
           "id": 78,
-          "name": "fab101/19/3",
+          "name": "fab1/2/3",
           "controllingPort": 76,
           "pins": [
             {
@@ -5897,7 +5225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "79": {
         "mapping": {
           "id": 79,
-          "name": "fab101/19/4",
+          "name": "fab1/2/4",
           "controllingPort": 76,
           "pins": [
             {
@@ -5938,7 +5266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "80": {
         "mapping": {
           "id": 80,
-          "name": "fab101/20/1",
+          "name": "fab1/4/1",
           "controllingPort": 80,
           "pins": [
             {
@@ -6070,7 +5398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "81": {
         "mapping": {
           "id": 81,
-          "name": "fab101/20/2",
+          "name": "fab1/4/2",
           "controllingPort": 80,
           "pins": [
             {
@@ -6111,7 +5439,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "82": {
         "mapping": {
           "id": 82,
-          "name": "fab101/20/3",
+          "name": "fab1/4/3",
           "controllingPort": 80,
           "pins": [
             {
@@ -6173,7 +5501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "83": {
         "mapping": {
           "id": 83,
-          "name": "fab101/20/4",
+          "name": "fab1/4/4",
           "controllingPort": 80,
           "pins": [
             {
@@ -6214,19 +5542,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "84": {
         "mapping": {
           "id": 84,
-          "name": "eth101/1/1",
+          "name": "fab1/15/1",
           "controllingPort": 84,
           "pins": [
             {
               "a": {
                 "chip": "FC20",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/1",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -6241,14 +5563,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -6258,14 +5572,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC20",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
                       "lane": 0
                     }
                   }
@@ -6301,32 +5607,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC20",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
                       "lane": 3
                     }
                   }
@@ -6351,20 +5631,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -6400,32 +5666,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -6434,19 +5674,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "85": {
         "mapping": {
           "id": 85,
-          "name": "eth101/1/2",
+          "name": "fab1/15/2",
           "controllingPort": 84,
           "pins": [
             {
               "a": {
                 "chip": "FC20",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/1",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -6461,14 +5695,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -6478,14 +5704,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC20",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
                       "lane": 1
                     }
                   }
@@ -6497,19 +5715,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "86": {
         "mapping": {
           "id": 86,
-          "name": "eth101/1/3",
+          "name": "fab1/15/3",
           "controllingPort": 84,
           "pins": [
             {
               "a": {
                 "chip": "FC20",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/1",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -6524,14 +5736,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -6541,14 +5745,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC20",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
                       "lane": 2
                     }
                   }
@@ -6573,20 +5769,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -6595,19 +5777,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "87": {
         "mapping": {
           "id": 87,
-          "name": "eth101/1/4",
+          "name": "fab1/15/4",
           "controllingPort": 84,
           "pins": [
             {
               "a": {
                 "chip": "FC20",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/1",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -6622,14 +5798,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -6639,14 +5807,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC20",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/1",
                       "lane": 3
                     }
                   }
@@ -6658,19 +5818,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "88": {
         "mapping": {
           "id": 88,
-          "name": "eth101/2/1",
+          "name": "fab1/16/1",
           "controllingPort": 88,
           "pins": [
             {
               "a": {
                 "chip": "FC21",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/2",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -6685,14 +5839,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -6702,14 +5848,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC21",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
                       "lane": 0
                     }
                   }
@@ -6745,32 +5883,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC21",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
                       "lane": 3
                     }
                   }
@@ -6795,20 +5907,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -6844,32 +5942,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -6878,19 +5950,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "89": {
         "mapping": {
           "id": 89,
-          "name": "eth101/2/2",
+          "name": "fab1/16/2",
           "controllingPort": 88,
           "pins": [
             {
               "a": {
                 "chip": "FC21",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/2",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -6905,14 +5971,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -6922,14 +5980,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC21",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
                       "lane": 1
                     }
                   }
@@ -6941,19 +5991,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "90": {
         "mapping": {
           "id": 90,
-          "name": "eth101/2/3",
+          "name": "fab1/16/3",
           "controllingPort": 88,
           "pins": [
             {
               "a": {
                 "chip": "FC21",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/2",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -6968,14 +6012,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -6985,14 +6021,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC21",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
                       "lane": 2
                     }
                   }
@@ -7017,20 +6045,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -7039,19 +6053,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "91": {
         "mapping": {
           "id": 91,
-          "name": "eth101/2/4",
+          "name": "fab1/16/4",
           "controllingPort": 88,
           "pins": [
             {
               "a": {
                 "chip": "FC21",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/2",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -7066,14 +6074,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -7083,14 +6083,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC21",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/2",
                       "lane": 3
                     }
                   }
@@ -7102,19 +6094,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "92": {
         "mapping": {
           "id": 92,
-          "name": "eth101/3/1",
+          "name": "fab1/14/1",
           "controllingPort": 92,
           "pins": [
             {
               "a": {
                 "chip": "FC22",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/3",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -7129,14 +6115,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -7146,14 +6124,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC22",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
                       "lane": 0
                     }
                   }
@@ -7189,32 +6159,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC22",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
                       "lane": 3
                     }
                   }
@@ -7239,20 +6183,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -7288,32 +6218,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -7322,19 +6226,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "93": {
         "mapping": {
           "id": 93,
-          "name": "eth101/3/2",
+          "name": "fab1/14/2",
           "controllingPort": 92,
           "pins": [
             {
               "a": {
                 "chip": "FC22",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/3",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -7349,14 +6247,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -7366,14 +6256,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC22",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
                       "lane": 1
                     }
                   }
@@ -7385,19 +6267,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "94": {
         "mapping": {
           "id": 94,
-          "name": "eth101/3/3",
+          "name": "fab1/14/3",
           "controllingPort": 92,
           "pins": [
             {
               "a": {
                 "chip": "FC22",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/3",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -7412,14 +6288,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -7429,14 +6297,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC22",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
                       "lane": 2
                     }
                   }
@@ -7461,20 +6321,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -7483,19 +6329,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "95": {
         "mapping": {
           "id": 95,
-          "name": "eth101/3/4",
+          "name": "fab1/14/4",
           "controllingPort": 92,
           "pins": [
             {
               "a": {
                 "chip": "FC22",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/3",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -7510,14 +6350,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -7527,14 +6359,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC22",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/3",
                       "lane": 3
                     }
                   }
@@ -7546,19 +6370,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "96": {
         "mapping": {
           "id": 96,
-          "name": "eth101/4/1",
+          "name": "fab1/13/1",
           "controllingPort": 96,
           "pins": [
             {
               "a": {
                 "chip": "FC23",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/4",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -7573,14 +6391,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -7590,14 +6400,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC23",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
                       "lane": 0
                     }
                   }
@@ -7633,32 +6435,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC23",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
                       "lane": 3
                     }
                   }
@@ -7683,20 +6459,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -7732,32 +6494,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -7766,19 +6502,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "97": {
         "mapping": {
           "id": 97,
-          "name": "eth101/4/2",
+          "name": "fab1/13/2",
           "controllingPort": 96,
           "pins": [
             {
               "a": {
                 "chip": "FC23",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/4",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -7793,14 +6523,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -7810,14 +6532,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC23",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
                       "lane": 1
                     }
                   }
@@ -7829,19 +6543,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "98": {
         "mapping": {
           "id": 98,
-          "name": "eth101/4/3",
+          "name": "fab1/13/3",
           "controllingPort": 96,
           "pins": [
             {
               "a": {
                 "chip": "FC23",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/4",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -7856,14 +6564,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -7873,14 +6573,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC23",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
                       "lane": 2
                     }
                   }
@@ -7905,20 +6597,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -7927,19 +6605,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "99": {
         "mapping": {
           "id": 99,
-          "name": "eth101/4/4",
+          "name": "fab1/13/4",
           "controllingPort": 96,
           "pins": [
             {
               "a": {
                 "chip": "FC23",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/4",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -7954,14 +6626,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -7971,14 +6635,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC23",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/4",
                       "lane": 3
                     }
                   }
@@ -7990,19 +6646,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "102": {
         "mapping": {
           "id": 102,
-          "name": "eth101/5/1",
+          "name": "fab1/11/1",
           "controllingPort": 102,
           "pins": [
             {
               "a": {
                 "chip": "FC24",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/5",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -8017,14 +6667,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -8034,14 +6676,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC24",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
                       "lane": 0
                     }
                   }
@@ -8077,32 +6711,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC24",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
                       "lane": 3
                     }
                   }
@@ -8127,20 +6735,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -8176,32 +6770,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -8210,19 +6778,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "103": {
         "mapping": {
           "id": 103,
-          "name": "eth101/5/2",
+          "name": "fab1/11/2",
           "controllingPort": 102,
           "pins": [
             {
               "a": {
                 "chip": "FC24",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/5",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -8237,14 +6799,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -8254,14 +6808,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC24",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
                       "lane": 1
                     }
                   }
@@ -8273,19 +6819,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "104": {
         "mapping": {
           "id": 104,
-          "name": "eth101/5/3",
+          "name": "fab1/11/3",
           "controllingPort": 102,
           "pins": [
             {
               "a": {
                 "chip": "FC24",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/5",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -8300,14 +6840,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -8317,14 +6849,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC24",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
                       "lane": 2
                     }
                   }
@@ -8349,20 +6873,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -8371,19 +6881,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "105": {
         "mapping": {
           "id": 105,
-          "name": "eth101/5/4",
+          "name": "fab1/11/4",
           "controllingPort": 102,
           "pins": [
             {
               "a": {
                 "chip": "FC24",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/5",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -8398,14 +6902,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -8415,14 +6911,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC24",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/5",
                       "lane": 3
                     }
                   }
@@ -8434,19 +6922,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "106": {
         "mapping": {
           "id": 106,
-          "name": "eth101/6/1",
+          "name": "fab1/10/1",
           "controllingPort": 106,
           "pins": [
             {
               "a": {
                 "chip": "FC25",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/6",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -8461,14 +6943,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -8478,14 +6952,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC25",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
                       "lane": 0
                     }
                   }
@@ -8521,32 +6987,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC25",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
                       "lane": 3
                     }
                   }
@@ -8571,20 +7011,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -8620,32 +7046,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -8654,19 +7054,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "107": {
         "mapping": {
           "id": 107,
-          "name": "eth101/6/2",
+          "name": "fab1/10/2",
           "controllingPort": 106,
           "pins": [
             {
               "a": {
                 "chip": "FC25",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/6",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -8681,14 +7075,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -8698,14 +7084,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC25",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
                       "lane": 1
                     }
                   }
@@ -8717,19 +7095,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "108": {
         "mapping": {
           "id": 108,
-          "name": "eth101/6/3",
+          "name": "fab1/10/3",
           "controllingPort": 106,
           "pins": [
             {
               "a": {
                 "chip": "FC25",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/6",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -8744,14 +7116,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -8761,14 +7125,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC25",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
                       "lane": 2
                     }
                   }
@@ -8793,20 +7149,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -8815,19 +7157,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "109": {
         "mapping": {
           "id": 109,
-          "name": "eth101/6/4",
+          "name": "fab1/10/4",
           "controllingPort": 106,
           "pins": [
             {
               "a": {
                 "chip": "FC25",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/6",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -8842,14 +7178,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -8859,14 +7187,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC25",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/6",
                       "lane": 3
                     }
                   }
@@ -8878,19 +7198,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "110": {
         "mapping": {
           "id": 110,
-          "name": "eth101/7/1",
+          "name": "fab1/9/1",
           "controllingPort": 110,
           "pins": [
             {
               "a": {
                 "chip": "FC26",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/7",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -8905,14 +7219,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -8922,14 +7228,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC26",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
                       "lane": 0
                     }
                   }
@@ -8965,32 +7263,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC26",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
                       "lane": 3
                     }
                   }
@@ -9015,20 +7287,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -9064,32 +7322,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -9098,19 +7330,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "111": {
         "mapping": {
           "id": 111,
-          "name": "eth101/7/2",
+          "name": "fab1/9/2",
           "controllingPort": 110,
           "pins": [
             {
               "a": {
                 "chip": "FC26",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/7",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -9125,14 +7351,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -9142,14 +7360,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC26",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
                       "lane": 1
                     }
                   }
@@ -9161,19 +7371,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "112": {
         "mapping": {
           "id": 112,
-          "name": "eth101/7/3",
+          "name": "fab1/9/3",
           "controllingPort": 110,
           "pins": [
             {
               "a": {
                 "chip": "FC26",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/7",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -9188,14 +7392,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -9205,14 +7401,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC26",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
                       "lane": 2
                     }
                   }
@@ -9237,20 +7425,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -9259,19 +7433,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "113": {
         "mapping": {
           "id": 113,
-          "name": "eth101/7/4",
+          "name": "fab1/9/4",
           "controllingPort": 110,
           "pins": [
             {
               "a": {
                 "chip": "FC26",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/7",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -9286,14 +7454,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -9303,14 +7463,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC26",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/7",
                       "lane": 3
                     }
                   }
@@ -9322,19 +7474,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "114": {
         "mapping": {
           "id": 114,
-          "name": "eth101/8/1",
+          "name": "fab1/12/1",
           "controllingPort": 114,
           "pins": [
             {
               "a": {
                 "chip": "FC27",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/8",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -9349,14 +7495,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -9366,14 +7504,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC27",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
                       "lane": 0
                     }
                   }
@@ -9409,32 +7539,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC27",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
                       "lane": 3
                     }
                   }
@@ -9459,20 +7563,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -9508,32 +7598,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -9542,19 +7606,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "115": {
         "mapping": {
           "id": 115,
-          "name": "eth101/8/2",
+          "name": "fab1/12/2",
           "controllingPort": 114,
           "pins": [
             {
               "a": {
                 "chip": "FC27",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/8",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -9569,14 +7627,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -9586,14 +7636,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC27",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
                       "lane": 1
                     }
                   }
@@ -9605,19 +7647,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "116": {
         "mapping": {
           "id": 116,
-          "name": "eth101/8/3",
+          "name": "fab1/12/3",
           "controllingPort": 114,
           "pins": [
             {
               "a": {
                 "chip": "FC27",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/8",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -9632,14 +7668,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -9649,14 +7677,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC27",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
                       "lane": 2
                     }
                   }
@@ -9681,20 +7701,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -9703,19 +7709,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "117": {
         "mapping": {
           "id": 117,
-          "name": "eth101/8/4",
+          "name": "fab1/12/4",
           "controllingPort": 114,
           "pins": [
             {
               "a": {
                 "chip": "FC27",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/8",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -9730,14 +7730,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -9747,14 +7739,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC27",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/8",
                       "lane": 3
                     }
                   }
@@ -9766,19 +7750,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "118": {
         "mapping": {
           "id": 118,
-          "name": "eth101/9/1",
+          "name": "fab1/22/1",
           "controllingPort": 118,
           "pins": [
             {
               "a": {
                 "chip": "FC28",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/9",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -9793,14 +7771,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -9810,14 +7780,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC28",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
                       "lane": 0
                     }
                   }
@@ -9853,32 +7815,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC28",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
                       "lane": 3
                     }
                   }
@@ -9903,20 +7839,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -9952,32 +7874,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -9986,19 +7882,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "119": {
         "mapping": {
           "id": 119,
-          "name": "eth101/9/2",
+          "name": "fab1/22/2",
           "controllingPort": 118,
           "pins": [
             {
               "a": {
                 "chip": "FC28",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/9",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -10013,14 +7903,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -10030,14 +7912,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC28",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
                       "lane": 1
                     }
                   }
@@ -10049,19 +7923,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "120": {
         "mapping": {
           "id": 120,
-          "name": "eth101/9/3",
+          "name": "fab1/22/3",
           "controllingPort": 118,
           "pins": [
             {
               "a": {
                 "chip": "FC28",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/9",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -10076,14 +7944,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -10093,14 +7953,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC28",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
                       "lane": 2
                     }
                   }
@@ -10125,20 +7977,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -10147,19 +7985,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "121": {
         "mapping": {
           "id": 121,
-          "name": "eth101/9/4",
+          "name": "fab1/22/4",
           "controllingPort": 118,
           "pins": [
             {
               "a": {
                 "chip": "FC28",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/9",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -10174,14 +8006,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -10191,14 +8015,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC28",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/9",
                       "lane": 3
                     }
                   }
@@ -10210,19 +8026,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "122": {
         "mapping": {
           "id": 122,
-          "name": "eth101/10/1",
+          "name": "fab1/23/1",
           "controllingPort": 122,
           "pins": [
             {
               "a": {
                 "chip": "FC29",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/10",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -10237,14 +8047,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -10254,14 +8056,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC29",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
                       "lane": 0
                     }
                   }
@@ -10297,32 +8091,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC29",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
                       "lane": 3
                     }
                   }
@@ -10347,20 +8115,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -10396,32 +8150,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -10430,19 +8158,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "123": {
         "mapping": {
           "id": 123,
-          "name": "eth101/10/2",
+          "name": "fab1/23/2",
           "controllingPort": 122,
           "pins": [
             {
               "a": {
                 "chip": "FC29",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/10",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -10457,14 +8179,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -10474,14 +8188,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC29",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
                       "lane": 1
                     }
                   }
@@ -10493,19 +8199,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "124": {
         "mapping": {
           "id": 124,
-          "name": "eth101/10/3",
+          "name": "fab1/23/3",
           "controllingPort": 122,
           "pins": [
             {
               "a": {
                 "chip": "FC29",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/10",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -10520,14 +8220,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -10537,14 +8229,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC29",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
                       "lane": 2
                     }
                   }
@@ -10569,20 +8253,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -10591,19 +8261,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "125": {
         "mapping": {
           "id": 125,
-          "name": "eth101/10/4",
+          "name": "fab1/23/4",
           "controllingPort": 122,
           "pins": [
             {
               "a": {
                 "chip": "FC29",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/10",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -10618,14 +8282,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -10635,14 +8291,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC29",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/10",
                       "lane": 3
                     }
                   }
@@ -10654,19 +8302,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "126": {
         "mapping": {
           "id": 126,
-          "name": "eth101/11/1",
+          "name": "fab1/24/1",
           "controllingPort": 126,
           "pins": [
             {
               "a": {
                 "chip": "FC30",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/11",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -10681,14 +8323,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -10698,14 +8332,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC30",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
                       "lane": 0
                     }
                   }
@@ -10741,32 +8367,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC30",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
                       "lane": 3
                     }
                   }
@@ -10791,20 +8391,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -10840,32 +8426,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -10874,19 +8434,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "127": {
         "mapping": {
           "id": 127,
-          "name": "eth101/11/2",
+          "name": "fab1/24/2",
           "controllingPort": 126,
           "pins": [
             {
               "a": {
                 "chip": "FC30",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/11",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -10901,14 +8455,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -10918,14 +8464,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC30",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
                       "lane": 1
                     }
                   }
@@ -10937,19 +8475,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "128": {
         "mapping": {
           "id": 128,
-          "name": "eth101/11/3",
+          "name": "fab1/24/3",
           "controllingPort": 126,
           "pins": [
             {
               "a": {
                 "chip": "FC30",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/11",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -10964,14 +8496,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -10981,14 +8505,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC30",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
                       "lane": 2
                     }
                   }
@@ -11013,20 +8529,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -11035,19 +8537,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "129": {
         "mapping": {
           "id": 129,
-          "name": "eth101/11/4",
+          "name": "fab1/24/4",
           "controllingPort": 126,
           "pins": [
             {
               "a": {
                 "chip": "FC30",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/11",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -11062,14 +8558,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -11079,14 +8567,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC30",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/11",
                       "lane": 3
                     }
                   }
@@ -11098,19 +8578,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "130": {
         "mapping": {
           "id": 130,
-          "name": "eth101/12/1",
+          "name": "fab1/21/1",
           "controllingPort": 130,
           "pins": [
             {
               "a": {
                 "chip": "FC31",
                 "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/12",
-                  "lane": 0
-                }
               }
             }
           ]
@@ -11125,14 +8599,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 0
-                    }
-                  }
                 ]
               }
           },
@@ -11142,14 +8608,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC31",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
                       "lane": 0
                     }
                   }
@@ -11188,32 +8646,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -11232,20 +8664,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC31",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
                       "lane": 1
                     }
                   }
@@ -11284,32 +8702,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -11318,19 +8710,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "131": {
         "mapping": {
           "id": 131,
-          "name": "eth101/12/2",
+          "name": "fab1/21/2",
           "controllingPort": 130,
           "pins": [
             {
               "a": {
                 "chip": "FC31",
                 "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/12",
-                  "lane": 1
-                }
               }
             }
           ]
@@ -11345,14 +8731,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 1
-                    }
-                  }
                 ]
               }
           },
@@ -11362,14 +8740,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC31",
-                      "lane": 1
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
                       "lane": 1
                     }
                   }
@@ -11381,19 +8751,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "132": {
         "mapping": {
           "id": 132,
-          "name": "eth101/12/3",
+          "name": "fab1/21/3",
           "controllingPort": 130,
           "pins": [
             {
               "a": {
                 "chip": "FC31",
                 "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/12",
-                  "lane": 2
-                }
               }
             }
           ]
@@ -11408,14 +8772,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 2
-                    }
-                  }
                 ]
               }
           },
@@ -11425,14 +8781,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC31",
-                      "lane": 2
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
                       "lane": 2
                     }
                   }
@@ -11457,20 +8805,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           }
@@ -11479,19 +8813,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "133": {
         "mapping": {
           "id": 133,
-          "name": "eth101/12/4",
+          "name": "fab1/21/4",
           "controllingPort": 130,
           "pins": [
             {
               "a": {
                 "chip": "FC31",
                 "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth101/12",
-                  "lane": 3
-                }
               }
             }
           ]
@@ -11506,14 +8834,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     }
                   }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
-                      "lane": 3
-                    }
-                  }
                 ]
               }
           },
@@ -11523,14 +8843,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "FC31",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth101/12",
                       "lane": 3
                     }
                   }
@@ -11584,6 +8896,76 @@ constexpr auto kJsonPlatformMappingStr = R"(
   },
   "chips": [
     {
+      "name": "FC17",
+      "type": 1,
+      "physicalID": 17
+    },
+    {
+      "name": "FC18",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "FC16",
+      "type": 1,
+      "physicalID": 16
+    },
+    {
+      "name": "FC19",
+      "type": 1,
+      "physicalID": 19
+    },
+    {
+      "name": "FC15",
+      "type": 1,
+      "physicalID": 15
+    },
+    {
+      "name": "FC14",
+      "type": 1,
+      "physicalID": 14
+    },
+    {
+      "name": "FC13",
+      "type": 1,
+      "physicalID": 13
+    },
+    {
+      "name": "FC12",
+      "type": 1,
+      "physicalID": 12
+    },
+    {
+      "name": "FC26",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "FC25",
+      "type": 1,
+      "physicalID": 25
+    },
+    {
+      "name": "FC24",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "FC27",
+      "type": 1,
+      "physicalID": 27
+    },
+    {
+      "name": "FC23",
+      "type": 1,
+      "physicalID": 23
+    },
+    {
+      "name": "FC22",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
       "name": "FC20",
       "type": 1,
       "physicalID": 20
@@ -11594,34 +8976,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 21
     },
     {
-      "name": "FC22",
+      "name": "FC1",
       "type": 1,
-      "physicalID": 22
+      "physicalID": 1
     },
     {
-      "name": "FC23",
+      "name": "FC2",
       "type": 1,
-      "physicalID": 23
+      "physicalID": 2
     },
     {
-      "name": "FC24",
+      "name": "FC0",
       "type": 1,
-      "physicalID": 24
+      "physicalID": 0
     },
     {
-      "name": "FC25",
+      "name": "FC3",
       "type": 1,
-      "physicalID": 25
+      "physicalID": 3
     },
     {
-      "name": "FC26",
+      "name": "FC31",
       "type": 1,
-      "physicalID": 26
-    },
-    {
-      "name": "FC27",
-      "type": 1,
-      "physicalID": 27
+      "physicalID": 31
     },
     {
       "name": "FC28",
@@ -11639,74 +9016,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 30
     },
     {
-      "name": "FC31",
+      "name": "FC10",
       "type": 1,
-      "physicalID": 31
-    },
-    {
-      "name": "FC0",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
-      "name": "FC1",
-      "type": 1,
-      "physicalID": 1
-    },
-    {
-      "name": "FC2",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "FC3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
-      "name": "FC16",
-      "type": 1,
-      "physicalID": 16
-    },
-    {
-      "name": "FC17",
-      "type": 1,
-      "physicalID": 17
-    },
-    {
-      "name": "FC18",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
-      "name": "FC19",
-      "type": 1,
-      "physicalID": 19
-    },
-    {
-      "name": "FC12",
-      "type": 1,
-      "physicalID": 12
-    },
-    {
-      "name": "FC13",
-      "type": 1,
-      "physicalID": 13
-    },
-    {
-      "name": "FC14",
-      "type": 1,
-      "physicalID": 14
-    },
-    {
-      "name": "FC15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
-      "name": "FC8",
-      "type": 1,
-      "physicalID": 8
+      "physicalID": 10
     },
     {
       "name": "FC9",
@@ -11714,9 +9026,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 9
     },
     {
-      "name": "FC10",
+      "name": "FC7",
       "type": 1,
-      "physicalID": 10
+      "physicalID": 7
     },
     {
       "name": "FC11",
@@ -11724,9 +9036,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 11
     },
     {
-      "name": "FC4",
+      "name": "FC8",
       "type": 1,
-      "physicalID": 4
+      "physicalID": 8
     },
     {
       "name": "FC5",
@@ -11739,112 +9051,31 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 6
     },
     {
-      "name": "FC7",
+      "name": "FC4",
       "type": 1,
-      "physicalID": 7
-    },
-    {
-      "name": "eth101/1",
-      "type": 3,
-      "physicalID": 0
-    },
-    {
-      "name": "eth101/2",
-      "type": 3,
-      "physicalID": 1
-    },
-    {
-      "name": "eth101/3",
-      "type": 3,
-      "physicalID": 2
-    },
-    {
-      "name": "eth101/4",
-      "type": 3,
-      "physicalID": 3
-    },
-    {
-      "name": "eth101/5",
-      "type": 3,
       "physicalID": 4
-    },
-    {
-      "name": "eth101/6",
-      "type": 3,
-      "physicalID": 5
-    },
-    {
-      "name": "eth101/7",
-      "type": 3,
-      "physicalID": 6
-    },
-    {
-      "name": "eth101/8",
-      "type": 3,
-      "physicalID": 7
-    },
-    {
-      "name": "eth101/9",
-      "type": 3,
-      "physicalID": 8
-    },
-    {
-      "name": "eth101/10",
-      "type": 3,
-      "physicalID": 9
-    },
-    {
-      "name": "eth101/11",
-      "type": 3,
-      "physicalID": 10
-    },
-    {
-      "name": "eth101/12",
-      "type": 3,
-      "physicalID": 11
-    },
-    {
-      "name": "eth101/13",
-      "type": 3,
-      "physicalID": 12
-    },
-    {
-      "name": "eth101/14",
-      "type": 3,
-      "physicalID": 13
-    },
-    {
-      "name": "eth101/15",
-      "type": 3,
-      "physicalID": 14
-    },
-    {
-      "name": "eth101/16",
-      "type": 3,
-      "physicalID": 15
     }
   ]
 }
 )";
 
-constexpr auto kLineCardNameRegex = "lc(\\d+)";
+constexpr auto kFabricCardNameRegex = "fc(\\d+)";
 
 std::string updatePlatformMappingStr(const std::string& lcName) {
   int cardID = 0;
-  re2::RE2 cardIDRe(kLineCardNameRegex);
+  re2::RE2 cardIDRe(kFabricCardNameRegex);
   if (!re2::RE2::FullMatch(lcName, cardIDRe, &cardID)) {
-    throw facebook::fboss::FbossError("Invalid line card name:", lcName);
+    throw facebook::fboss::FbossError("Invalid fabric card name:", lcName);
   }
   std::string tmpStr = kJsonPlatformMappingStr;
-  boost::replace_all(tmpStr, "fab101", folly::to<std::string>("fab", cardID));
-  boost::replace_all(tmpStr, "eth101", folly::to<std::string>("eth", cardID));
+  boost::replace_all(tmpStr, "fab1", folly::to<std::string>("fab", cardID));
   return tmpStr;
 }
 } // namespace
 
 namespace facebook {
 namespace fboss {
-GalaxyLCPlatformMapping::GalaxyLCPlatformMapping(
+GalaxyFCPlatformMapping::GalaxyFCPlatformMapping(
     const std::string& linecardName)
     : PlatformMapping(updatePlatformMappingStr(linecardName)) {}
 } // namespace fboss

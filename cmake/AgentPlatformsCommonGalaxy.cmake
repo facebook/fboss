@@ -4,8 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(galaxy_platform_mapping
-  fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatformMapping.cpp
-  fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.cpp
+  fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.cpp
+  fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.cpp
 )
 
 target_link_libraries(galaxy_platform_mapping

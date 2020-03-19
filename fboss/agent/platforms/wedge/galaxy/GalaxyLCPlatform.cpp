@@ -10,8 +10,8 @@
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatform.h"
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
-#include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyPort.h"
 
 namespace facebook::fboss {

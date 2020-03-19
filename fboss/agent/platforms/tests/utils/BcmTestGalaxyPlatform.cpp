@@ -10,9 +10,9 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPlatform.h"
 
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
+#include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.h"
-#include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatformMapping.h"
-#include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatformMapping.h"
 
 namespace facebook::fboss {
 std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(PortID id) {
