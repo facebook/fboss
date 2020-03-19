@@ -228,7 +228,8 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
         ? folly::to<std::string>(static_cast<int>(classID.value()))
         : "None";
     sw_->updateState(
-        folly::to<std::string>("configure lookup classID: ", classIDStr),
+        folly::to<std::string>(
+            "NeighborCache configure lookup classID: ", classIDStr),
         std::move(updateClassIDFn));
   }
 }

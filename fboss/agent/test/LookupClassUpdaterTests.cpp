@@ -44,6 +44,14 @@ class LookupClassUpdaterTest : public ::testing::Test {
     runInUpdateEventBaseAndWait(std::move(func));
   }
 
+  void verifyStateUpdateAfterNeighborCachePropagation(Func func) {
+    // internally, calls through neighbor updater are proxied to the
+    // NeighborCache thread, which can eventually end up scheduling a
+    // new state update back on to the update evb. This helper waits
+    // until the change has made it through all these proxy layers.
+    runInUpdateEvbAndWaitAfterNeighborCachePropagation(std::move(func));
+  }
+
   void TearDown() override {
     schedulePendingTestStateUpdates();
   }
@@ -120,6 +128,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
+    sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForStateUpdates(sw_);
   }
 
@@ -269,6 +279,12 @@ class LookupClassUpdaterTest : public ::testing::Test {
     evb->runInEventBaseThreadAndWait(std::move(func));
   }
 
+  void runInUpdateEvbAndWaitAfterNeighborCachePropagation(Func func) {
+    schedulePendingTestStateUpdates();
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    runInUpdateEventBaseAndWait(std::move(func));
+  }
+
   void schedulePendingTestStateUpdates() {
     runInUpdateEventBaseAndWait([]() {});
   }
@@ -286,7 +302,7 @@ TYPED_TEST_CASE(LookupClassUpdaterTest, TestTypes);
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
         this->kMacAddress(),
