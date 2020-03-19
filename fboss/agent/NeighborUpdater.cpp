@@ -162,10 +162,8 @@ void NeighborUpdater::portChanged(
     CHECK_EQ(oldPort->getID(), newPort->getID());
     auto portId = newPort->getID();
 
-    sw_->getBackgroundEvb()->runInEventBaseThread([this, portId]() {
-      XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
-      portDown(PortDescriptor(portId));
-    });
+    XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
+    portDown(PortDescriptor(portId));
   }
 }
 
@@ -184,11 +182,9 @@ void NeighborUpdater::aggregatePortChanged(
 
   if (transitionedToDown || membershipChanged) {
     auto aggregatePortID = newAggPort->getID();
-    sw_->getBackgroundEvb()->runInEventBaseThread([this, aggregatePortID]() {
-      XLOG(INFO) << "Purging neighbor entry for aggregate port "
-                 << aggregatePortID;
-      portDown(PortDescriptor(aggregatePortID));
-    });
+    XLOG(INFO) << "Purging neighbor entry for aggregate port "
+               << aggregatePortID;
+    portDown(PortDescriptor(aggregatePortID));
   }
 }
 
