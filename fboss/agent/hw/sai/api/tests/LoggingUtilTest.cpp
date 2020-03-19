@@ -34,8 +34,7 @@ TEST(LoggingUtilTest, variantRecursive) {
   SaiRouteTraits::AdapterKey routeKey{0, 0, prefix};
   std::variant<SaiRouterInterfaceTraits::AdapterKey, SaiRouteTraits::AdapterKey>
       vRif{rifKey};
-  EXPECT_EQ(
-      "facebook::fboss::RouterInterfaceSaiId(42)", fmt::format("{}", vRif));
+  EXPECT_EQ("RouterInterfaceSaiId(42)", fmt::format("{}", vRif));
   std::variant<SaiRouterInterfaceTraits::AdapterKey, SaiRouteTraits::AdapterKey>
       vRoute{routeKey};
   EXPECT_EQ(

@@ -103,7 +103,7 @@ TEST_F(RouterInterfaceStoreTest, formatTest) {
       0, SAI_ROUTER_INTERFACE_TYPE_VLAN, 41, srcMac, 9000};
   SaiObject<SaiRouterInterfaceTraits> obj(k, c, 0);
   auto expected =
-      "facebook::fboss::RouterInterfaceSaiId(0): "
+      "RouterInterfaceSaiId(0): "
       "(VirtualRouterId: 0, Type: 1, VlanId: 41, "
       "SrcMac: 41:41:41:41:41:41, Mtu: 9000)";
   EXPECT_EQ(expected, fmt::format("{}", obj));

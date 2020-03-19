@@ -10,7 +10,6 @@
 #pragma once
 
 #include <folly/Conv.h>
-#include <folly/Demangle.h>
 #include <iosfwd>
 
 #include <boost/serialization/strong_typedef.hpp>
@@ -56,10 +55,7 @@
     template <typename FormatContext>                                         \
     auto format(const facebook::fboss::new_type& value, FormatContext& ctx) { \
       return format_to(                                                       \
-          ctx.out(),                                                          \
-          "{}({})",                                                           \
-          folly::demangle(typeid(value)),                                     \
-          static_cast<primitive>(value));                                     \
+          ctx.out(), "{}({})", #new_type, static_cast<primitive>(value));     \
     }                                                                         \
   };                                                                          \
   } /* fmt */
