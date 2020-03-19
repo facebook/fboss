@@ -12,8 +12,8 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge40Port.h"
-#include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
 
 namespace facebook::fboss {
 

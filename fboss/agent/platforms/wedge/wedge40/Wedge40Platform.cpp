@@ -11,8 +11,8 @@
 
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
+#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
-#include "fboss/agent/platforms/wedge/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40Port.h"
 
 #include <folly/Range.h>

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/wedge/wedge100/Wedge100PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(

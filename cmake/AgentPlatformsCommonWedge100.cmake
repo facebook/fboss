@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(wedge100_platform_mapping
-  fboss/agent/platforms/wedge/wedge100/Wedge100PlatformMapping.cpp
+  fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.cpp
 )
 
 target_link_libraries(wedge100_platform_mapping

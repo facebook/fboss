@@ -10,8 +10,8 @@
 
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge100Platform.h"
 
+#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge100Port.h"
-#include "fboss/agent/platforms/wedge/wedge100/Wedge100PlatformMapping.h"
 
 namespace facebook::fboss {
 
