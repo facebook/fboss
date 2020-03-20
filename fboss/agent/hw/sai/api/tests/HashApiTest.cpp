@@ -31,7 +31,10 @@ class HashApiTest : public ::testing::Test {
 
 TEST_F(HashApiTest, emptyHash) {
   auto hashid = hashApi->create<SaiHashTraits>(
-      SaiHashTraits::CreateAttributes{{}, std::nullopt}, 0);
+      SaiHashTraits::CreateAttributes{
+          std::optional<SaiHashTraits::Attributes::NativeHashFieldList>{},
+          std::nullopt},
+      0);
   auto dummy1 = SaiHashTraits::Attributes::NativeHashFieldList{};
   auto hashFields = hashApi->getAttribute(
       hashid, SaiHashTraits::Attributes::NativeHashFieldList{});
