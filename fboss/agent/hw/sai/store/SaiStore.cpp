@@ -54,8 +54,6 @@ folly::dynamic SaiStore::adapterKeysFollyDynamic() const {
   folly::dynamic adapterKeys = folly::dynamic::object;
   tupleForEach(
       [&adapterKeys](auto& store) {
-        using ObjectTraits =
-            typename std::decay_t<decltype(store)>::ObjectTraits;
         auto objName = store.objectTypeName();
         auto aitr = adapterKeys.find(objName);
         if (aitr == adapterKeys.items().end()) {
