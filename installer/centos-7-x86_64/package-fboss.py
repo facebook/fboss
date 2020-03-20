@@ -65,6 +65,18 @@ class PackageFboss:
             .split("\n")[-1]
         )
 
+    def _copy_kos(self, tmp_dir_name):
+        # If kernel modules are built (e.g. by build-ko.sh), copy those
+        opennsa_base_dir = self._get_install_dir_for("OpenNSA")
+        opennsa_ko_dir = os.path.join(
+            opennsa_base_dir, "src/gpl-modules/build/linux-x86-smp_generic_64-2_6"
+        )
+        if os.path.exists(opennsa_ko_dir):
+            linux_user_bde_path = os.path.join(opennsa_ko_dir, "linux-user-bde.ko")
+            linux_kernel_bde_path = os.path.join(opennsa_ko_dir, "linux-kernel-bde.ko")
+            shutil.copy(linux_user_bde_path, tmp_dir_name)
+            shutil.copy(linux_kernel_bde_path, tmp_dir_name)
+
     def _copy_binaries(self, tmp_dir_name):
         print(f"Copying binaries...")
 
@@ -75,6 +87,8 @@ class PackageFboss:
                 abs_path = os.path.join(executable_path, executable_type, e)
                 print(f"Copying {abs_path} to {tmp_dir_name}")
                 shutil.copy(abs_path, tmp_dir_name)
+
+        self._copy_kos(tmp_dir_name)
 
     def _setup_for_rpmbuild(self):
         print(f"Setup for rpmbuild...")

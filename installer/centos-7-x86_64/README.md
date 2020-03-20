@@ -259,6 +259,22 @@ used to validate whether the new OpenNSA would build with FBOSS.
 This will build and link FBOSS build with OpenNSA-next-release. If the build is
 successful, it validates that the next OpenNSA release can build with FBOSS.
 
+## 1.11 Building Kernel Modules
+
+OpenNSA ships with pre-built SDK libraries and kernel module sources.
+The above build steps build FBOSS that links with pre-built OpenNSA.
+
+In order to run FBOSS binaries on a test switch, we must build OpenNSA kernel
+module from sources and load.
+
+- cd fboss.git
+- ./installer/centos-7-x86_64/build-ko.sh
+
+## 1.12 Packaging OpenNSA Kernel Modules
+
+Refer section 1.7. If the kernel modules are built using steps in 1.11, those
+are packaged as well.
+
 
 # 2. Installing FBOSS
 
