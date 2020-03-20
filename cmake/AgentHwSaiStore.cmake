@@ -8,6 +8,7 @@ add_library(sai_store
 )
 
 target_link_libraries(sai_store
+  fake_sai
   sai_api
   ref_map
   tuple_utils

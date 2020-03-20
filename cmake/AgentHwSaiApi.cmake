@@ -63,6 +63,7 @@ add_library(sai_api
 )
 
 target_link_libraries(sai_api
+  fake_sai
   address_util
   logging_util
   fboss_error

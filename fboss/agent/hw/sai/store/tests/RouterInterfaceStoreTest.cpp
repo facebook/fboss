@@ -96,7 +96,7 @@ TEST_F(RouterInterfaceStoreTest, serDeserTest) {
   verifyAdapterKeySerDeser<SaiRouterInterfaceTraits>({routerInterfaceSaiId});
 }
 
-TEST_F(RouterInterfaceStoreTest, formatTest) {
+TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
   folly::MacAddress srcMac{"41:41:41:41:41:41"};
   SaiRouterInterfaceTraits::AdapterHostKey k{0, 41};
   SaiRouterInterfaceTraits::CreateAttributes c{

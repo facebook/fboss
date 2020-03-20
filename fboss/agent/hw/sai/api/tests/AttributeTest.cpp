@@ -254,21 +254,6 @@ TEST(Attribute, formatAttrTuple) {
   EXPECT_EQ(expected, fmt::format("{}", tup));
 }
 
-using PacketAction = SaiAttribute<
-    sai_route_entry_attr_t,
-    SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION,
-    sai_int32_t>;
-template <>
-struct facebook::fboss::AttributeName<PacketAction> {
-  static const inline std::string value = "packet action";
-};
-
-TEST(Attribute, formatRoutePacketAction) {
-  PacketAction rpa{SAI_PACKET_ACTION_FORWARD};
-  std::string expected("packet action: 1");
-  EXPECT_EQ(expected, fmt::format("{}", rpa));
-}
-
 /*
  * Static assertion "tests" about SaiAttributes to ensure the types behave
  * how we expect them to.

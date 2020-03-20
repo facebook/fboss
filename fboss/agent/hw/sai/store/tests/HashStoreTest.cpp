@@ -47,7 +47,10 @@ TEST_F(HashStoreTest, loadFullHash) {
   s.reload();
   auto& store = s.get<SaiHashTraits>();
 
-  SaiHashTraits::AdapterHostKey k{kFullHash, {{}}};
+  SaiHashTraits::AdapterHostKey k{
+      kFullHash,
+      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
+          SaiHashTraits::Attributes::UDFGroupList{}}};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
@@ -60,7 +63,10 @@ TEST_F(HashStoreTest, loadHalfHash) {
   s.reload();
   auto& store = s.get<SaiHashTraits>();
 
-  SaiHashTraits::AdapterHostKey k{kHalfHash, {{}}};
+  SaiHashTraits::AdapterHostKey k{
+      kHalfHash,
+      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
+          SaiHashTraits::Attributes::UDFGroupList{}}};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
@@ -91,7 +97,10 @@ TEST_F(HashStoreTest, hashLoadCtor) {
 }
 
 TEST_F(HashStoreTest, hashCreateCtor) {
-  SaiHashTraits::CreateAttributes attrs{kFullHash, {{}}};
+  SaiHashTraits::CreateAttributes attrs{
+      kFullHash,
+      std::optional<SaiHashTraits::Attributes::UDFGroupList>{
+          SaiHashTraits::Attributes::UDFGroupList{}}};
   SaiHashTraits::AdapterHostKey adapterHostKey = attrs;
   SaiObject<SaiHashTraits> obj(adapterHostKey, attrs, 0);
   auto nativeHashFields = saiApiTable->hashApi().getAttribute(
@@ -105,7 +114,9 @@ TEST_F(HashStoreTest, hashSetNatveFields) {
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kFullHash.value());
-  hashObj.setAttributes({kHalfHash, {{}}});
+  hashObj.setAttributes({kHalfHash,
+                         std::optional<SaiHashTraits::Attributes::UDFGroupList>{
+                             SaiHashTraits::Attributes::UDFGroupList{}}});
   EXPECT_EQ(
       GET_OPT_ATTR(Hash, NativeHashFieldList, hashObj.attributes()),
       kHalfHash.value());

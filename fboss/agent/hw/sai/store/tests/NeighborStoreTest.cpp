@@ -78,7 +78,7 @@ TEST_F(SaiStoreTest, setDstMac) {
   EXPECT_EQ(apiDstMac, dstMac2);
 }
 
-TEST_F(SaiStoreTest, formatTest) {
+TEST_F(SaiStoreTest, neighborFormatTest) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
