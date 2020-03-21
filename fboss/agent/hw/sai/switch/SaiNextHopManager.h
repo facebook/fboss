@@ -17,6 +17,9 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+
 #include "folly/IPAddress.h"
 
 #include <memory>
@@ -31,6 +34,66 @@ using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
 using SaiNextHop = typename ConditionSaiObjectType<SaiNextHopTraits>::type;
 
+template <typename NextHopTraits>
+class SaiNeighborSubscriberForNextHop
+    : public SaiObjectEventAggregateSubscriber<
+          SaiNeighborSubscriberForNextHop<NextHopTraits>,
+          NextHopTraits,
+          SaiNeighborTraits> {
+ public:
+  using AdapterHostKey = typename NextHopTraits::AdapterHostKey;
+  using NeighborWeakPtr = std::weak_ptr<const SaiObject<SaiNeighborTraits>>;
+  using PublishedObjects = std::tuple<NeighborWeakPtr>;
+  using Base = SaiObjectEventAggregateSubscriber<
+      SaiNeighborSubscriberForNextHop<NextHopTraits>,
+      NextHopTraits,
+      SaiNeighborTraits>;
+  SaiNeighborSubscriberForNextHop(
+      SaiNeighborTraits::NeighborEntry entry,
+      const typename NextHopTraits::AdapterHostKey& key)
+      : Base(entry), key_(key) {}
+
+  void createObject(PublishedObjects /*added*/) {
+    CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
+
+    /* when neighbor is created setup next hop */
+    if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
+      this->setObject(
+          key_,
+          {SAI_NEXT_HOP_TYPE_IP,
+           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
+               key_),
+           std::get<typename NextHopTraits::Attributes::Ip>(key_)});
+
+    } else {
+      this->setObject(
+          key_,
+          {SAI_NEXT_HOP_TYPE_MPLS,
+           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
+               key_),
+           std::get<typename NextHopTraits::Attributes::Ip>(key_),
+           std::get<typename NextHopTraits::Attributes::LabelStack>(key_)});
+    }
+  }
+
+  void removeObject(size_t index, PublishedObjects removed) {
+    /* when neighbor is removed remove next hop */
+    this->resetObject();
+  }
+
+ private:
+  typename NextHopTraits::AdapterHostKey key_;
+};
+
+using SubscriberForIpNextHop =
+    SaiNeighborSubscriberForNextHop<SaiIpNextHopTraits>;
+using SubscriberForMplsNextHop =
+    SaiNeighborSubscriberForNextHop<SaiMplsNextHopTraits>;
+
+using SaiNeighborSubscriber = std::variant<
+    std::shared_ptr<SubscriberForIpNextHop>,
+    std::shared_ptr<SubscriberForMplsNextHop>>;
+
 class SaiNextHopManager {
  public:
   SaiNextHopManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
@@ -41,14 +104,27 @@ class SaiNextHopManager {
   /* return next hop handle here, based on resolved next hop. resulting next hop
    * handle will be either ip next hop or mpls next hop depending on properties
    * of resolved next hop */
+  // TODO: remove below function
   SaiNextHop refOrEmplace(const ResolvedNextHop& swNextHop);
 
   SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
       const ResolvedNextHop& swNextHop);
 
+  SaiNeighborSubscriber refOrEmplaceSubscriber(
+      const ResolvedNextHop& swNextHop);
+
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+
+  UnorderedRefMap<
+      typename SubscriberForIpNextHop::AdapterHostKey,
+      SubscriberForIpNextHop>
+      ipSubscribers_;
+  UnorderedRefMap<
+      typename SubscriberForMplsNextHop::AdapterHostKey,
+      SubscriberForMplsNextHop>
+      mplsSubscribers_;
 };
 
 } // namespace facebook::fboss

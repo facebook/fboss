@@ -100,4 +100,34 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
 }
 
+SaiNeighborSubscriber SaiNextHopManager::refOrEmplaceSubscriber(
+    const ResolvedNextHop& swNextHop) {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
+  auto nexthopKey = getAdapterHostKey(swNextHop);
+  folly::IPAddress ip = swNextHop.addr();
+
+  if (auto ipNextHopKey =
+          std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
+              &nexthopKey)) {
+    auto result = ipSubscribers_.refOrEmplace(
+        *ipNextHopKey,
+        SaiNeighborTraits::NeighborEntry{
+            switchId, std::get<0>(*ipNextHopKey).value(), ip},
+        *ipNextHopKey);
+    return result.first;
+  } else if (
+      auto mplsNextHopKey =
+          std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
+              &nexthopKey)) {
+    auto result = mplsSubscribers_.refOrEmplace(
+        *mplsNextHopKey,
+        SaiNeighborTraits::NeighborEntry{
+            switchId, std::get<0>(*mplsNextHopKey).value(), ip},
+        *mplsNextHopKey);
+    return result.first;
+  }
+
+  throw FbossError("next hop key not found for a given next hop subscriber");
+}
+
 } // namespace facebook::fboss
