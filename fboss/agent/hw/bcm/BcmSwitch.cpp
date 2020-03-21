@@ -666,7 +666,17 @@ std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
   for (auto port : *warmBootState->getPorts()) {
     auto bcmPort = portTable_->getBcmPort(port->getID());
     auto newPort = port->modify(&warmBootState);
-    newPort->setOperState(bcmPort->isUp());
+    auto isUp = bcmPort->isUp();
+    auto wasUp = port->isUp();
+    XLOG(INFO) << "Verifying oper state on port "
+               << static_cast<int>(port->getID()) << "(" << port->getName()
+               << "): wasUp=" << wasUp << ", isUp=" << isUp;
+    if (wasUp != isUp) {
+      // Use same log format as SwSwitch::linkStateChanged for grep purposes
+      XLOG(INFO) << "Link state changed: " << static_cast<int>(port->getID())
+                 << "->" << (isUp ? "UP" : "DOWN") << " (during warm boot)";
+    }
+    newPort->setOperState(isUp);
   }
 
   getPlatform()->preWarmbootStateApplied();

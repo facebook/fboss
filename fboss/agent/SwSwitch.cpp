@@ -1047,7 +1047,9 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
 void SwSwitch::linkStateChanged(PortID portId, bool up) {
   XLOG(INFO) << "Link state changed: " << portId << "->"
              << (up ? "UP" : "DOWN");
-  if (not isFullyInitialized()) {
+  if (!isFullyInitialized()) {
+    XLOG(ERR)
+        << "Ignore link state change event before we are fully initialized...";
     return;
   }
 
