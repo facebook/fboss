@@ -268,7 +268,7 @@ In order to run FBOSS binaries on a test switch, we must build OpenNSA kernel
 module from sources and load.
 
 - cd fboss.git
-- ./installer/centos-7-x86_64/build-ko.sh
+- ./installer/centos-7-x86_64/build-bcm-ko.sh
 
 ## 1.12 Packaging OpenNSA Kernel Modules
 
