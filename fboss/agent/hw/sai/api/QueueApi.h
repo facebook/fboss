@@ -58,11 +58,12 @@ struct SaiQueueTraits {
       Attributes::Index,
       Attributes::ParentSchedulerNode>;
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_stat_id_t, 4> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 5> CounterIds = {
       SAI_QUEUE_STAT_PACKETS,
       SAI_QUEUE_STAT_BYTES,
       SAI_QUEUE_STAT_DROPPED_PACKETS,
       SAI_QUEUE_STAT_DROPPED_BYTES,
+      SAI_QUEUE_STAT_WATERMARK_BYTES,
   };
 };
 
