@@ -8,6 +8,8 @@ import subprocess
 import tarfile
 import tempfile
 
+import git
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -65,6 +67,17 @@ class PackageFboss:
             .split("\n")[-1]
         )
 
+    def _get_git_root(self, path):
+        git_repo = git.Repo(path, search_parent_directories=True)
+        return git_repo.git.rev_parse("--show-toplevel")
+
+    def _copy_configs(self, tmp_dir_name):
+        bcm_configs_path = os.path.join(
+            self._get_git_root(__file__), "fboss/bcm_configs"
+        )
+        print(f"Copying {bcm_configs_path} to {tmp_dir_name}")
+        shutil.copytree("fboss/bcm_configs", os.path.join(tmp_dir_name, "bcm_configs"))
+
     def _copy_kos(self, tmp_dir_name):
         # If kernel modules are built (e.g. by build-bcm-ko.sh), copy those
         opennsa_base_dir = self._get_install_dir_for("OpenNSA")
@@ -74,7 +87,9 @@ class PackageFboss:
         if os.path.exists(opennsa_ko_dir):
             linux_user_bde_path = os.path.join(opennsa_ko_dir, "linux-user-bde.ko")
             linux_kernel_bde_path = os.path.join(opennsa_ko_dir, "linux-kernel-bde.ko")
+            print(f"Copying {linux_user_bde_path} to {tmp_dir_name}")
             shutil.copy(linux_user_bde_path, tmp_dir_name)
+            print(f"Copying {linux_kernel_bde_path} to {tmp_dir_name}")
             shutil.copy(linux_kernel_bde_path, tmp_dir_name)
 
     def _copy_binaries(self, tmp_dir_name):
@@ -88,6 +103,7 @@ class PackageFboss:
                 print(f"Copying {abs_path} to {tmp_dir_name}")
                 shutil.copy(abs_path, tmp_dir_name)
 
+        self._copy_configs(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 
     def _setup_for_rpmbuild(self):
