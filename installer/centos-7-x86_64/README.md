@@ -321,14 +321,21 @@ From the CentOS VM configured in section 1. Building, download the kernel RPM.
 Follow instructions in "1.3 Upgrade kernel" to reboot, verify and change the
 grub boot order.
 
-## 2.3 Install FBOSS RPM binary
+## 2.3 Installing FBOSS binaries
 
-- Copy the built FBOSS RPM built in Section "1.7 Building RPM packages" to the switch.
+### 2.3.1 Installing files
+
+- package-fboss.py (section 1.7) creates a temporary directory with prefix
+  /tmp/fboss_bins. Copy it over to the switch.
+
+
+### 2.3.2 Installing RPM
+
+- Alternatively, if package-fbos.py was run with -rpm (section 1.7), it produces an RPM package.
+- Copy teh RPM to the switch.
 - Install the RPM
    rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
 - The RPM will install binaries and dependent libraries in /opt/fboss/
-- export LD_LIBRARY_PATH=/opt/fboss
-- Run /opt/fboss/{wedge_agent, bcm_test} etc. with desired arguments.
 
 ## 2.4 Install tips
 
@@ -346,13 +353,25 @@ ldd /opt/fboss/bcm_test # or wedge_agent
 - sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm # reinstall the RPM
 
 
-# 3. Misc
+# 3. Running FBOSS
+
+- cd $fboss-bins # (copied/installedi in section 2.3)
+- ./run_scripts/setup.sh # Populates fruid.json, installs/loads BCM kos etc.
+- export LD_LIBRARY_PATH=$PWD
+- Run /opt/fboss/{wedge_agent, bcm_test} etc. with desired arguments.
+
+e.g.
+
+./bcm_test --bcm_config ~/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+
+
+# Appendix A
 
 This section details workflows using particular versions of software. The
 build/install process has been successfully verified using these workflows and
 should thus serve as handy reference.
 
-## 3.1 Installing VM on VMware Fusion
+## A.1 Installing VM on VMware Fusion
 
 These steps worked on a Macbook laptop running macOS Mojave version 10.14.4.
 
@@ -367,12 +386,12 @@ These steps worked on a Macbook laptop running macOS Mojave version 10.14.4.
   hard disk size to at least 64G, CPUs: 2 (max the machine can reasonably
   support), Memory 2G (again, max possible).
 
-## 3.2 Installing CentOS 7 from bootable USB
+## A.2 Installing CentOS 7 from bootable USB
 
 These steps worked on a Macbook laptop running macOS Mojave version 10.14.4.
 These steps require a USB 2.0 or USB 3.0 of size >= 16GB.
 
-### 3.2.1 Create a bootable USB
+### A.2.1 Create a bootable USB
 
 - Download ISO: CentOS 7 x86_64 from: https://www.centos.org/download/
 - Convert downloaded .iso to .img (specifically, a UDIF read/write image) by
@@ -389,7 +408,7 @@ These steps require a USB 2.0 or USB 3.0 of size >= 16GB.
 
 Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-drive-with-a-mac-os-x
 
-### 3.2.2 Use the bootable USB to install
+### A.2.2 Use the bootable USB to install
 
 - Power on the switch and connect to its serial console (BMC).
 - Insert the bootable USB.
@@ -415,7 +434,7 @@ Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-dr
 - If the boot order was changed, enter BIOS again to change it back to boot
   from hard disk first.
 
-### 3.2.3 Configure Network
+### A.2.3 Configure Network
 
 This assumes DHCP server is present in the network.
 

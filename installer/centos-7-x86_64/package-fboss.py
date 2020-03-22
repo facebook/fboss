@@ -71,6 +71,11 @@ class PackageFboss:
         git_repo = git.Repo(path, search_parent_directories=True)
         return git_repo.git.rev_parse("--show-toplevel")
 
+    def _copy_run_scripts(self, tmp_dir_name):
+        run_scripts_path = os.path.join(PackageFboss.SCRIPTS_DIR_ABS, "run_scripts")
+        print(f"Copying {run_scripts_path} to {tmp_dir_name}")
+        shutil.copytree(run_scripts_path, os.path.join(tmp_dir_name, "run_scripts"))
+
     def _copy_configs(self, tmp_dir_name):
         bcm_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/bcm_configs"
@@ -103,6 +108,7 @@ class PackageFboss:
                 print(f"Copying {abs_path} to {tmp_dir_name}")
                 shutil.copy(abs_path, tmp_dir_name)
 
+        self._copy_scripts(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 
