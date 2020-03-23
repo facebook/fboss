@@ -41,9 +41,6 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_DROPPED_PACKETS:
         hwPortStats.queueOutDiscardPackets_[queueId] = counters[index];
         break;
-      case SAI_QUEUE_STAT_WATERMARK_BYTES:
-        hwPortStats.queueWatermarkBytes_[queueId] = counters[index];
-        break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
