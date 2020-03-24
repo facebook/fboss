@@ -22,8 +22,11 @@ constexpr uint32_t kFacebookFpgaRTCIOBlockSize = 0x0200;
 
 namespace facebook::fboss {
 FbFpgaI2c::FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pimId)
-    : I2cController(
-          folly::to<std::string>("i2cController.pim.", pimId, ".rtc.", rtcId)),
+    : I2cController(folly::to<std::string>(
+          "qsfp.i2cController.pim.",
+          pimId,
+          ".rtc.",
+          rtcId)),
       fpga_(fpga),
       rtcId_(rtcId) {
   XLOG(DBG4, "Initialized I2C controller for rtcId={:d}", rtcId);
