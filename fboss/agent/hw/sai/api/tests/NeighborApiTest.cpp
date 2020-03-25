@@ -124,8 +124,3 @@ TEST_F(NeighborApiTest, formatNeighborAttributes) {
   SaiNeighborTraits::Attributes::DstMac dm(dstMac);
   EXPECT_EQ(fmt::format("DstMac: {}", strMac), fmt::format("{}", dm));
 }
-
-TEST_F(NeighborApiTest, isPublisher) {
-  EXPECT_TRUE(IsObjectPublisher<SaiNeighborTraits>::value);
-  EXPECT_FALSE(IsObjectPublisher<SaiInSegTraits>::value);
-}

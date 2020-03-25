@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
@@ -108,4 +109,9 @@ TEST_F(SaiStoreTest, neighbor6SerDeser) {
   SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
   neighborApi.create<SaiNeighborTraits>(n, {daAttr});
   verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
+}
+
+TEST_F(SaiStoreTest, neighborPublisher) {
+  EXPECT_TRUE(IsObjectPublisher<SaiNeighborTraits>::value);
+  EXPECT_FALSE(IsObjectPublisher<SaiInSegTraits>::value);
 }

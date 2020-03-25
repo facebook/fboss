@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/lib/TupleUtils.h"
 
 #include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"

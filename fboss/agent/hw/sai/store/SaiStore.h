@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
+#include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/lib/RefMap.h"
 
 #include <folly/dynamic.h>

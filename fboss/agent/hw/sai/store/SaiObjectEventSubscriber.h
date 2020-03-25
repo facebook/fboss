@@ -6,7 +6,7 @@
 #include <any>
 #include <memory>
 
-#include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/lib/TupleUtils.h"
 
 namespace facebook::fboss {
