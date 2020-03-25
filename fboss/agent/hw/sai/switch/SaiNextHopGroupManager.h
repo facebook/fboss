@@ -37,44 +37,6 @@ using SaiNextHopGroup = SaiObject<SaiNextHopGroupTraits>;
 using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 
-/*
- * An object that represents an association between next hop group and next hop
- * group member This association always exist as long as next hop is member of
- * next hop set defining next hop group. However this association is
- * non-transferable and unique to next hop group and next hop.
- *
- * This membership exports two main functions
- *  - join next hop group : a member is added to next hop group
- *  - leave next hop group : a member is removed from next hop group
- *
- * This happens in response to triggers such as neighbor state change.
- *
- * A membership is created or destroyed solely based on next hop and next hop
- * group association which exists for as long as next hop is part of next hop
- * set.
- */
-class SaiNextHopGroupMembership {
- public:
-  SaiNextHopGroupMembership(
-      SaiNextHopGroupTraits::AdapterKey groupId,
-      const ResolvedNextHop& nexthop);
-
-  void joinNextHopGroup(SaiManagerTable* managerTable);
-  void leaveNextHopGroup();
-
-  SaiNextHopGroupMembership(const SaiNextHopGroupMembership&) = delete;
-  SaiNextHopGroupMembership(SaiNextHopGroupMembership&&) = delete;
-  SaiNextHopGroupMembership& operator=(const SaiNextHopGroupMembership&) =
-      delete;
-  SaiNextHopGroupMembership& operator=(SaiNextHopGroupMembership&&) = delete;
-
- private:
-  SaiNextHopGroupTraits::AdapterKey groupId_;
-  ResolvedNextHop nexthop_;
-  std::optional<SaiNextHop> saiNextHop_;
-  std::shared_ptr<SaiNextHopGroupMember> member_;
-};
-
 template <typename T>
 class SaiNeighborSubscriberForNextHop;
 

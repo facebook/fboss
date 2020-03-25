@@ -24,34 +24,6 @@
 
 namespace facebook::fboss {
 
-SaiNextHopGroupMembership::SaiNextHopGroupMembership(
-    SaiNextHopGroupTraits::AdapterKey groupId,
-    const ResolvedNextHop& nexthop)
-    : groupId_(groupId), nexthop_(nexthop) {}
-
-void SaiNextHopGroupMembership::joinNextHopGroup(
-    SaiManagerTable* managerTable) {
-  saiNextHop_ = managerTable->nextHopManager().refOrEmplace(nexthop_);
-  CHECK(saiNextHop_.has_value()) << "failed to get next hop";
-  auto nexthopId = std::visit(
-      [](const auto& arg) { return arg->adapterKey(); }, saiNextHop_.value());
-
-  SaiNextHopGroupMemberTraits::AdapterHostKey memberAdapterHostKey{groupId_,
-                                                                   nexthopId};
-  SaiNextHopGroupMemberTraits::CreateAttributes memberAttributes{
-      groupId_,
-      nexthopId,
-      (nexthop_.weight() == ECMP_WEIGHT ? 1 : nexthop_.weight())};
-  auto& memberStore =
-      SaiStore::getInstance()->get<SaiNextHopGroupMemberTraits>();
-  member_ = memberStore.setObject(memberAdapterHostKey, memberAttributes);
-}
-
-void SaiNextHopGroupMembership::leaveNextHopGroup() {
-  member_.reset();
-  saiNextHop_.reset();
-}
-
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
