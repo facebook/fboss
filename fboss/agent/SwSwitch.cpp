@@ -91,7 +91,6 @@ using namespace std::chrono;
 using namespace apache::thrift;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::protocol;
-using namespace apache::thrift::async;
 
 DEFINE_int32(thread_heartbeat_ms, 1000, "Thread heartbeat interval (ms)");
 DEFINE_int32(
