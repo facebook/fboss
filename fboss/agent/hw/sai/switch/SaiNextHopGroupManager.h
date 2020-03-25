@@ -25,6 +25,9 @@
 
 #include <boost/container/flat_set.hpp>
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+
 namespace facebook::fboss {
 
 class SaiManagerTable;
@@ -72,12 +75,87 @@ class SaiNextHopGroupMembership {
   std::shared_ptr<SaiNextHopGroupMember> member_;
 };
 
+template <typename T>
+class SaiNeighborSubscriberForNextHop;
+
+template <typename NextHopTraits>
+class SaiNextHopSubscriberForNextHopGroupMember
+    : public SaiObjectEventAggregateSubscriber<
+          SaiNextHopSubscriberForNextHopGroupMember<NextHopTraits>,
+          SaiNextHopGroupMemberTraits,
+          NextHopTraits> {
+ public:
+  using Base = SaiObjectEventAggregateSubscriber<
+      SaiNextHopSubscriberForNextHopGroupMember<NextHopTraits>,
+      SaiNextHopGroupMemberTraits,
+      NextHopTraits>;
+
+  using NextHopWeakPtr = std::weak_ptr<const SaiObject<NextHopTraits>>;
+  using PublisherObjects = std::tuple<NextHopWeakPtr>;
+  using NextHopWeight =
+      typename SaiNextHopGroupMemberTraits::Attributes::Weight;
+  SaiNextHopSubscriberForNextHopGroupMember(
+      SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      std::optional<NextHopWeight> weight,
+      typename NextHopTraits::PublisherAttributes attrs)
+      : Base(attrs), nexthopGroupId_(nexthopGroupId), weight_(weight) {}
+
+  void createObject(PublisherObjects added) {
+    CHECK(this->allPublishedObjectsAlive()) << "next hops are not ready";
+
+    auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
+
+    SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{nexthopGroupId_,
+                                                               nexthopId};
+    SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
+        nexthopGroupId_, nexthopId, weight_};
+
+    this->setObject(adapterHostKey, createAttributes);
+  }
+
+  void removeObject(size_t /*index*/, PublisherObjects /*removed*/) {
+    /* remove nexthop group member if next hop is removed */
+    this->resetObject();
+  }
+
+ private:
+  SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
+  std::optional<NextHopWeight> weight_;
+};
+
+class SubscriberForNextHopGroupMember {
+ public:
+  using SubscriberForSaiIpNextHopGroupMember =
+      SaiNextHopSubscriberForNextHopGroupMember<SaiIpNextHopTraits>;
+  using SubscriberForSaiMplsNextHopGroupMember =
+      SaiNextHopSubscriberForNextHopGroupMember<SaiMplsNextHopTraits>;
+
+  SubscriberForNextHopGroupMember(
+      SaiManagerTable* managerTable,
+      SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      const ResolvedNextHop& nexthop);
+
+ private:
+  std::variant<
+      std::shared_ptr<SaiNeighborSubscriberForNextHop<SaiIpNextHopTraits>>,
+      std::shared_ptr<SaiNeighborSubscriberForNextHop<SaiMplsNextHopTraits>>>
+      neighborSubscriber_;
+
+  std::variant<
+      std::shared_ptr<SubscriberForSaiIpNextHopGroupMember>,
+      std::shared_ptr<SubscriberForSaiMplsNextHopGroupMember>>
+      nexthopSubscriber_;
+};
+
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
       std::vector<std::shared_ptr<SaiNextHopGroupMembership>>>
       neighbor2Memberships;
+
+  std::vector<std::shared_ptr<SubscriberForNextHopGroupMember>>
+      subscriberForMembers_;
 };
 
 class SaiNextHopGroupManager {
@@ -101,6 +179,10 @@ class SaiNextHopGroupManager {
   // support the next hop group use case correctly, rather than this
   // abomination of multiple levels of RefMaps :(
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
+  FlatRefMap<
+      std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
+      SubscriberForNextHopGroupMember>
+      memberSubscribers_;
 };
 
 } // namespace facebook::fboss

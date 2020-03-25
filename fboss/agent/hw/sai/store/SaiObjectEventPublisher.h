@@ -5,6 +5,7 @@
 #include <boost/signals2.hpp>
 
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 
 #include "fboss/lib/RefMap.h"
@@ -136,7 +137,11 @@ class SaiObjectEventPublisher {
   }
 
  private:
-  std::tuple<detail::SaiObjectEventPublisher<SaiNeighborTraits>> publishers_;
+  std::tuple<
+      detail::SaiObjectEventPublisher<SaiNeighborTraits>,
+      detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
+      detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>>
+      publishers_;
 };
 
 } // namespace facebook::fboss

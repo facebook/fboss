@@ -112,6 +112,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
         std::make_shared<SaiNextHopGroupMembership>(nextHopGroupId, nexthop);
     nextHopGroupHandle->neighbor2Memberships[neighborEntry].push_back(
         membership);
+
+    auto key = std::make_pair(nextHopGroupId, nexthop);
+    auto result = memberSubscribers_.refOrEmplace(
+        key, managerTable_, nextHopGroupId, nexthop);
+    nextHopGroupHandle->subscriberForMembers_.push_back(result.first);
   }
 
   for (auto neighbor2MembershipsEntry :
@@ -158,4 +163,25 @@ void SaiNextHopGroupManager::handleUnresolvedNeighbor(
   }
 }
 
+SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
+    SaiManagerTable* managerTable,
+    SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+    const ResolvedNextHop& nexthop) {
+  neighborSubscriber_ =
+      managerTable->nextHopManager().refOrEmplaceSubscriber(nexthop);
+  auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
+  if (auto* ipKey =
+          std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&nextHopKey)) {
+    // make an IP subscriber
+    nexthopSubscriber_ = std::make_shared<SubscriberForSaiIpNextHopGroupMember>(
+        nexthopGroupId, nexthop.weight(), *ipKey);
+  } else if (
+      auto* mplsKey =
+          std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&nextHopKey)) {
+    // make an MPLS subscriber
+    nexthopSubscriber_ =
+        std::make_shared<SubscriberForSaiMplsNextHopGroupMember>(
+            nexthopGroupId, nexthop.weight(), *mplsKey);
+  }
+}
 } // namespace facebook::fboss

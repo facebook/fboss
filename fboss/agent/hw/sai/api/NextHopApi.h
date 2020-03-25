@@ -134,6 +134,7 @@ struct SaiNextHopTraitsT {
   using CreateAttributes = typename detail::
       NextHopTraitsAttributes<Attributes, type>::CreateAttributes;
   using ConditionAttributes = std::tuple<typename Attributes::Type>;
+  using PublisherAttributes = AdapterHostKey;
   inline const static ConditionAttributes kConditionAttributes{type};
 };
 
