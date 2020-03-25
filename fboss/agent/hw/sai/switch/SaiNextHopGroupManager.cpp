@@ -66,9 +66,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     return nextHopGroupHandle;
   }
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
-  std::vector<std::pair<SaiNeighborTraits::NeighborEntry, ResolvedNextHop>>
-      neighbor2NextHops;
-  neighbor2NextHops.reserve(swNextHops.size());
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
   // N.B.: creating a next hop group member relies on the next hop group
@@ -84,17 +81,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     if (!routerInterfaceHandle) {
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
-    auto rifId = routerInterfaceHandle->routerInterface->adapterKey();
-    folly::IPAddress ip = swNextHop.addr();
-    SaiIpNextHopTraits::AdapterHostKey nhk{rifId, ip};
+    auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
+        folly::poly_cast<ResolvedNextHop>(swNextHop));
     nextHopGroupAdapterHostKey.insert(nhk);
-
-    // Compute the neighbor that has the sai NextHop for this next hop
-    auto switchId = managerTable_->switchManager().getSwitchSaiId();
-    SaiNeighborTraits::NeighborEntry neighborEntry{
-        switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip};
-    neighbor2NextHops.emplace_back(
-        neighborEntry, folly::poly_cast<ResolvedNextHop>(swNextHop));
   }
 
   // Create the NextHopGroup and NextHopGroupMembers
@@ -105,62 +94,15 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
-  for (const auto& neighbor2NextHop : neighbor2NextHops) {
-    const auto& neighborEntry = neighbor2NextHop.first;
-    const auto& nexthop = neighbor2NextHop.second;
-    auto membership =
-        std::make_shared<SaiNextHopGroupMembership>(nextHopGroupId, nexthop);
-    nextHopGroupHandle->neighbor2Memberships[neighborEntry].push_back(
-        membership);
 
-    auto key = std::make_pair(nextHopGroupId, nexthop);
+  for (const auto& swNextHop : swNextHops) {
+    auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
+    auto key = std::make_pair(nextHopGroupId, resolvedNextHop);
     auto result = memberSubscribers_.refOrEmplace(
-        key, managerTable_, nextHopGroupId, nexthop);
+        key, managerTable_, nextHopGroupId, resolvedNextHop);
     nextHopGroupHandle->subscriberForMembers_.push_back(result.first);
   }
-
-  for (auto neighbor2MembershipsEntry :
-       nextHopGroupHandle->neighbor2Memberships) {
-    auto neighborHandle = managerTable_->neighborManager().getNeighborHandle(
-        neighbor2MembershipsEntry.first);
-    if (!neighborHandle) {
-      XLOG(INFO) << "L2 Unresolved neighbor for "
-                 << neighbor2MembershipsEntry.first.ip();
-      continue;
-    }
-    for (auto membership : neighbor2MembershipsEntry.second) {
-      membership->joinNextHopGroup(managerTable_);
-    }
-  }
   return nextHopGroupHandle;
-}
-
-void SaiNextHopGroupManager::handleResolvedNeighbor(
-    const SaiNeighborTraits::NeighborEntry& neighborEntry) {
-  for (auto itr : handles_) {
-    auto groupHandle = itr.second.lock();
-    auto neighborIter = groupHandle->neighbor2Memberships.find(neighborEntry);
-    if (neighborIter == groupHandle->neighbor2Memberships.end()) {
-      continue;
-    }
-    for (auto membership : groupHandle->neighbor2Memberships[neighborEntry]) {
-      membership->joinNextHopGroup(managerTable_);
-    }
-  }
-}
-
-void SaiNextHopGroupManager::handleUnresolvedNeighbor(
-    const SaiNeighborTraits::NeighborEntry& neighborEntry) {
-  for (auto itr : handles_) {
-    auto groupHandle = itr.second.lock();
-    auto neighborIter = groupHandle->neighbor2Memberships.find(neighborEntry);
-    if (neighborIter == groupHandle->neighbor2Memberships.end()) {
-      continue;
-    }
-    for (auto membership : groupHandle->neighbor2Memberships[neighborEntry]) {
-      membership->leaveNextHopGroup();
-    }
-  }
 }
 
 SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
@@ -169,19 +111,33 @@ SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
     const ResolvedNextHop& nexthop) {
   neighborSubscriber_ =
       managerTable->nextHopManager().refOrEmplaceSubscriber(nexthop);
+  std::visit(
+      [](auto arg) {
+        SaiObjectEventPublisher::getInstance()
+            ->get<SaiNeighborTraits>()
+            .subscribe(arg);
+      },
+      neighborSubscriber_);
+
   auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
   if (auto* ipKey =
           std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an IP subscriber
-    nexthopSubscriber_ = std::make_shared<SubscriberForSaiIpNextHopGroupMember>(
+    auto subscriber = std::make_shared<SubscriberForSaiIpNextHopGroupMember>(
         nexthopGroupId, nexthop.weight(), *ipKey);
+    SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
+        subscriber);
+    nexthopSubscriber_ = subscriber;
   } else if (
       auto* mplsKey =
           std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an MPLS subscriber
-    nexthopSubscriber_ =
-        std::make_shared<SubscriberForSaiMplsNextHopGroupMember>(
-            nexthopGroupId, nexthop.weight(), *mplsKey);
+    auto subscriber = std::make_shared<SubscriberForSaiMplsNextHopGroupMember>(
+        nexthopGroupId, nexthop.weight(), *mplsKey);
+    SaiObjectEventPublisher::getInstance()
+        ->get<SaiMplsNextHopTraits>()
+        .subscribe(subscriber);
+    nexthopSubscriber_ = subscriber;
   }
 }
 } // namespace facebook::fboss

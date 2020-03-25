@@ -135,6 +135,11 @@ class SubscriberForNextHopGroupMember {
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       const ResolvedNextHop& nexthop);
 
+  bool isAlive() const {
+    return std::visit(
+        [](auto arg) { return arg && arg->isAlive(); }, nexthopSubscriber_);
+  }
+
  private:
   std::variant<
       std::shared_ptr<SaiNeighborSubscriberForNextHop<SaiIpNextHopTraits>>,
@@ -149,11 +154,6 @@ class SubscriberForNextHopGroupMember {
 
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  folly::F14FastMap<
-      SaiNeighborTraits::NeighborEntry,
-      std::vector<std::shared_ptr<SaiNextHopGroupMembership>>>
-      neighbor2Memberships;
-
   std::vector<std::shared_ptr<SubscriberForNextHopGroupMember>>
       subscriberForMembers_;
 };
@@ -166,11 +166,6 @@ class SaiNextHopGroupManager {
 
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops);
-
-  void handleResolvedNeighbor(
-      const SaiNeighborTraits::NeighborEntry& neighborEntry);
-  void handleUnresolvedNeighbor(
-      const SaiNeighborTraits::NeighborEntry& neighborEntry);
 
  private:
   SaiManagerTable* managerTable_;

@@ -99,7 +99,6 @@ void SaiNeighborManager::addNeighbor(
     neighborHandle->neighbor = neighbor;
     neighborHandle->fdbEntry = fdbEntry;
     handles_.emplace(saiEntry, std::move(neighborHandle));
-    managerTable_->nextHopGroupManager().handleResolvedNeighbor(saiEntry);
   }
 }
 
@@ -116,7 +115,6 @@ void SaiNeighborManager::removeNeighbor(
   auto saiEntry = saiEntryFromSwEntry(swEntry);
   auto neighborHandle = getNeighborHandle(saiEntry);
   if (neighborHandle) {
-    managerTable_->nextHopGroupManager().handleUnresolvedNeighbor(saiEntry);
     handles_.erase(saiEntry);
   } else {
     auto count = unresolvedNeighbors_.erase(saiEntry);
