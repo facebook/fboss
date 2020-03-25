@@ -134,6 +134,7 @@ class SaiObjectStore {
         auto& publisher =
             facebook::fboss::SaiObjectEventPublisher::getInstance()
                 ->get<SaiObjectTraits>();
+        publisher.notifyCreate(publishedAttr, ins.first);
       }
     }
     XLOGF(DBG5, "SaiStore set object {}", *ins.first);

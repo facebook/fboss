@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/lib/TupleUtils.h"
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
+
 #include <variant>
 
 namespace facebook::fboss {
@@ -299,6 +301,14 @@ class SaiObject {
     }
   }
   void remove() {
+    if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+      auto publishedAttr = ObjectPublisherAttributes<SaiObjectTraits>::get(
+          adapterHostKey_, attributes_);
+      auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
+                            ->get<SaiObjectTraits>();
+      publisher.notifyDelete(publishedAttr);
+    }
+
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();

@@ -79,6 +79,11 @@ class SaiObjectEventPublisher {
     subscription->removeSignal_.connect(
         removeSignalSlot.track_foreign(subscriberWeakPtr));
     subscriber->saveSubscription(subscription);
+    // check if publisher is already live
+    auto publisher = livePublishers_.find(subscriber->getPublisherAttributes());
+    if (publisher != livePublishers_.end()) {
+      notifyCreate(publisher.first, publisher.first.lock());
+    }
   }
 
   void notifyCreate(Key key, const std::shared_ptr<PublisherObject> object) {
