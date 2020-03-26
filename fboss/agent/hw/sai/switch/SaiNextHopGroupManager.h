@@ -58,7 +58,7 @@ class SaiNextHopSubscriberForNextHopGroupMember
       typename SaiNextHopGroupMemberTraits::Attributes::Weight;
   SaiNextHopSubscriberForNextHopGroupMember(
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
-      std::optional<NextHopWeight> weight,
+      NextHopWeight weight,
       typename NextHopTraits::PublisherAttributes attrs)
       : Base(attrs), nexthopGroupId_(nexthopGroupId), weight_(weight) {}
 
@@ -82,7 +82,7 @@ class SaiNextHopSubscriberForNextHopGroupMember
 
  private:
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
-  std::optional<NextHopWeight> weight_;
+  NextHopWeight weight_;
 };
 
 class SubscriberForNextHopGroupMember {
