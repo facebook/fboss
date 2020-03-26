@@ -112,6 +112,10 @@ void SaiQueueManager::changeQueue(
   CHECK(queueHandle);
   queueHandle->scheduler =
       managerTable_->schedulerManager().createScheduler(newPortQueue);
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
+      queueHandle->scheduler->adapterKey()};
+  SaiApiTable::getInstance()->queueApi().setAttribute(
+      queueHandle->queue->adapterKey(), schedulerId);
 }
 
 void SaiQueueManager::ensurePortQueueConfig(
