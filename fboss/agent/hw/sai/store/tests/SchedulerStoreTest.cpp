@@ -47,7 +47,8 @@ TEST_F(SchedulerStoreTest, loadScheduler) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiSchedulerTraits>();
-  SaiSchedulerTraits::AdapterHostKey k{SAI_SCHEDULING_TYPE_STRICT, 0};
+  SaiSchedulerTraits::AdapterHostKey k{
+      SAI_SCHEDULING_TYPE_STRICT, 0, SAI_METER_TYPE_BYTES, 1200, 40000};
   auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), id);
 }
@@ -66,7 +67,8 @@ TEST_F(SchedulerStoreTest, schedulerLoadCtor) {
 }
 
 TEST_F(SchedulerStoreTest, schedulerCreateCtor) {
-  SaiSchedulerTraits::AdapterHostKey k{SAI_SCHEDULING_TYPE_DWRR, 24};
+  SaiSchedulerTraits::AdapterHostKey k{
+      SAI_SCHEDULING_TYPE_DWRR, 24, SAI_METER_TYPE_BYTES, 21000, 81892};
   SaiSchedulerTraits::CreateAttributes c = SaiSchedulerTraits::CreateAttributes{
       SAI_SCHEDULING_TYPE_DWRR, 24, SAI_METER_TYPE_BYTES, 21000, 81892};
   SaiObject<SaiSchedulerTraits> obj(k, c, 0);
