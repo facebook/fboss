@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -32,6 +33,8 @@ using SaiQueue = SaiObjectWithCounters<SaiQueueTraits>;
 using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
 
 struct SaiQueueHandle {
+  explicit SaiQueueHandle(QueueSaiId queueSaiId);
+  void resetQueue();
   std::shared_ptr<SaiQueue> queue;
   std::shared_ptr<SaiScheduler> scheduler;
 };
@@ -46,7 +49,6 @@ class SaiQueueManager {
       PortSaiId portSaiId,
       const std::vector<QueueSaiId>& queueSaiIds);
   void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
-  void resetQueue(SaiQueueHandle* queueHandle);
   void ensurePortQueueConfig(
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,

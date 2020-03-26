@@ -38,7 +38,6 @@ struct SaiHostifTrapHandle {
 class SaiHostifManager {
  public:
   explicit SaiHostifManager(SaiManagerTable* managerTable);
-
   HostifTrapSaiId addHostifTrap(
       cfg::PacketRxReason trapId,
       uint32_t queueId,

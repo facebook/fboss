@@ -252,7 +252,6 @@ void SaiPortManager::changeQueue(
       SaiQueueConfig saiQueueConfig =
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
       auto queueHandle = getQueueHandle(swId, saiQueueConfig);
-      managerTable_->queueManager().resetQueue(queueHandle);
       portHandle->queues.erase(saiQueueConfig);
       if (pitr != portStats_.end()) {
         // Port stats map is sparse, since we don't maintain/publish stats

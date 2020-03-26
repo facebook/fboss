@@ -82,6 +82,25 @@ SaiQueueConfig makeSaiQueueConfig(
 }
 } // namespace detail
 
+void SaiQueueHandle::resetQueue() {
+  /*
+   * Queues cannot be deleted as it is owned by the adapter but all
+   * the queue attributes has to be reset to default. As a
+   * temporary solution, resetting the queue attributes to their
+   * defaults. For long term, this will be removed and resetting the
+   * objects will be part of SaiObject.
+   */
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
+      SAI_NULL_OBJECT_ID};
+  SaiApiTable::getInstance()->queueApi().setAttribute(
+      queue->adapterKey(), schedulerId);
+}
+
+SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
+  auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
+  queue = store.loadObjectOwnedByAdapter(queueSaiId);
+}
+
 SaiQueueManager::SaiQueueManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
@@ -93,20 +112,6 @@ void SaiQueueManager::changeQueue(
   CHECK(queueHandle);
   queueHandle->scheduler =
       managerTable_->schedulerManager().createScheduler(newPortQueue);
-}
-
-void SaiQueueManager::resetQueue(SaiQueueHandle* queueHandle) {
-  /*
-   * Queues cannot be deleted as it is owned by the adapter but all
-   * the queue attributes has to be reset to default. As a
-   * temporary solution, resetting the queue attributes to their
-   * defaults. For long term, this will be removed and resetting the
-   * objects will be part of SaiObject.
-   */
-  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
-      SAI_NULL_OBJECT_ID};
-  SaiApiTable::getInstance()->queueApi().setAttribute(
-      queueHandle->queue->adapterKey(), schedulerId);
 }
 
 void SaiQueueManager::ensurePortQueueConfig(
@@ -143,9 +148,8 @@ SaiQueueHandles SaiQueueManager::loadQueues(
   auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
   std::vector<std::shared_ptr<SaiQueue>> loadedQueues;
   for (auto queueSaiId : queueSaiIds) {
-    auto queueHandle = std::make_unique<SaiQueueHandle>();
-    queueHandle->queue =
-        store.loadObjectOwnedByAdapter(SaiQueueTraits::AdapterKey{queueSaiId});
+    auto queueHandle = std::make_unique<SaiQueueHandle>(queueSaiId);
+    store.loadObjectOwnedByAdapter(SaiQueueTraits::AdapterKey{queueSaiId});
     auto saiQueueConfig =
         detail::makeSaiQueueConfig(queueHandle->queue->adapterHostKey());
     queueHandles[saiQueueConfig] = std::move(queueHandle);
