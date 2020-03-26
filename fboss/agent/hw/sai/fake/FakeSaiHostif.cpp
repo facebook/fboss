@@ -124,6 +124,7 @@ sai_status_t get_hostif_trap_attribute_fn(
         break;
       case SAI_HOSTIF_TRAP_ATTR_TRAP_PRIORITY:
         attr[i].value.u32 = hostifTrap.priority;
+        break;
       case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
         attr[i].value.oid = hostifTrap.trapGroup;
         break;

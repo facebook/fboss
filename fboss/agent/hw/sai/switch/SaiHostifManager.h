@@ -65,6 +65,9 @@ class SaiHostifManager {
   const HwCpuFb303Stats& getCpuFb303Stats() const {
     return cpuStats_;
   }
+  const SaiHostifTrapHandle* getHostifTrapHandle(
+      cfg::PacketRxReason rxReason) const;
+  SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
@@ -77,6 +80,8 @@ class SaiHostifManager {
       const QueueConfig& newQueueConfig);
   SaiQueueHandle* getQueueHandleImpl(
       const SaiQueueConfig& saiQueueConfig) const;
+  SaiHostifTrapHandle* getHostifTrapHandleImpl(
+      cfg::PacketRxReason rxReason) const;
   SaiManagerTable* managerTable_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;

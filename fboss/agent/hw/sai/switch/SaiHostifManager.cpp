@@ -114,7 +114,6 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
       GET_ATTR(HostifTrap, TrapType, attributes);
   auto& store = SaiStore::getInstance()->get<SaiHostifTrapTraits>();
   auto hostifTrap = store.setObject(k, attributes);
-
   auto handle = std::make_unique<SaiHostifTrapHandle>();
   handle->trap = hostifTrap;
   handle->trapGroup = hostifTrapGroup;
@@ -326,5 +325,27 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
 
 QueueConfig SaiHostifManager::getQueueSettings() const {
   return managerTable_->queueManager().getQueueSettings(cpuPortHandle_->queues);
+}
+
+SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandleImpl(
+    cfg::PacketRxReason rxReason) const {
+  auto itr = handles_.find(rxReason);
+  if (itr == handles_.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiHostifTrapHandle";
+  }
+  return itr->second.get();
+}
+
+const SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
+    cfg::PacketRxReason rxReason) const {
+  return getHostifTrapHandleImpl(rxReason);
+}
+
+SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
+    cfg::PacketRxReason rxReason) {
+  return getHostifTrapHandleImpl(rxReason);
 }
 } // namespace facebook::fboss
