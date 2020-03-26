@@ -175,3 +175,57 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
         0);
   }
 }
+
+TEST_F(HostifManagerTest, checkHostifPriority) {
+  auto prevControlPlane = std::make_shared<ControlPlane>();
+  auto newControlPlane = prevControlPlane->clone();
+  std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
+      rxReasonToQueueMappings = {
+          std::pair(cfg::PacketRxReason::ARP, 1),
+          std::pair(cfg::PacketRxReason::ARP_RESPONSE, 2),
+          std::pair(cfg::PacketRxReason::BGP, 3),
+      };
+  std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
+  for (auto rxEntry : rxReasonToQueueMappings) {
+    auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
+    rxReasonToQueue.set_rxReason(rxEntry.first);
+    rxReasonToQueue.set_queueId(rxEntry.second);
+    rxReasonToQueues.push_back(rxReasonToQueue);
+  }
+  newControlPlane->resetRxReasonToQueue(rxReasonToQueues);
+  auto prevState = std::make_shared<SwitchState>();
+  prevState->resetControlPlane(prevControlPlane);
+  auto newState = std::make_shared<SwitchState>();
+  newState->resetControlPlane(newControlPlane);
+  saiManagerTable->hostifManager().processHostifDelta(
+      StateDelta(prevState, newState));
+  int index = 0;
+  for (auto rxEntry : rxReasonToQueueMappings) {
+    auto hostifTrapHandle =
+        saiManagerTable->hostifManager().getHostifTrapHandle(rxEntry.first);
+    EXPECT_TRUE(hostifTrapHandle);
+    auto priority = saiApiTable->hostifApi().getAttribute(
+        hostifTrapHandle->trap->adapterKey(),
+        SaiHostifTrapTraits::Attributes::TrapPriority{});
+    EXPECT_EQ(priority, rxReasonToQueueMappings.size() - index++);
+  }
+  // Remove two traps and ensure the priority is reassigned.
+  rxReasonToQueues.clear();
+  auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
+  rxReasonToQueue.set_rxReason(cfg::PacketRxReason::ARP_RESPONSE);
+  rxReasonToQueue.set_queueId(1);
+  rxReasonToQueues.push_back(rxReasonToQueue);
+  auto newControlPlaneNew = prevControlPlane->clone();
+  newControlPlaneNew->resetRxReasonToQueue(rxReasonToQueues);
+  auto newNewState = std::make_shared<SwitchState>();
+  newNewState->resetControlPlane(newControlPlaneNew);
+  saiManagerTable->hostifManager().processHostifDelta(
+      StateDelta(newState, newNewState));
+  auto hostifTrapHandle = saiManagerTable->hostifManager().getHostifTrapHandle(
+      cfg::PacketRxReason::ARP_RESPONSE);
+  EXPECT_TRUE(hostifTrapHandle);
+  auto priority = saiApiTable->hostifApi().getAttribute(
+      hostifTrapHandle->trap->adapterKey(),
+      SaiHostifTrapTraits::Attributes::TrapPriority{});
+  EXPECT_EQ(priority, 1);
+}
