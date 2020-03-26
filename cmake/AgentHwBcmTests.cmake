@@ -101,8 +101,11 @@ target_link_libraries(bcm_test
   bcm_mpls_utils
   config
   counter_utils
+  # --whole-archive is needed for gtest to find these tests
+  -Wl,--whole-archive
   hw_switch_test
   hw_test_main
+  -Wl,--no-whole-archive
   product_info
   bcm_test_platforms
   ecmp_helper

@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+
 namespace facebook::fboss::utility {
 
 uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
