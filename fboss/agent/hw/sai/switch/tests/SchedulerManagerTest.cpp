@@ -168,3 +168,32 @@ TEST_F(SchedulerManagerTest, shareSchedulerWithMultipleQueues) {
     }
   }
 }
+
+TEST_F(SchedulerManagerTest, checkSchedulerProfileIdOnQueue) {
+  auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
+  PortSaiId portSaiId = portHandle->port->adapterKey();
+  std::vector<uint8_t> queueIds = {1, 2};
+  uint64_t minPps = 12000;
+  uint64_t maxPps = 88000;
+  auto queueRateType = cfg::PortQueueRate::Type::pktsPerSec;
+  auto queueConfig = makeQueueConfig(
+      {queueIds},
+      cfg::StreamType::UNICAST,
+      cfg::QueueScheduling::STRICT_PRIORITY,
+      0,
+      minPps,
+      maxPps);
+  auto queueSaiIds = getPortQueueSaiIds(portHandle);
+  auto queueHandles =
+      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  for (const auto& queueHandle : queueHandles) {
+    auto scheduler = queueHandle.second->scheduler;
+    if (!scheduler) {
+      continue;
+    }
+    auto schedulerProfileId = saiApiTable->queueApi().getAttribute(
+        queueHandle.second->queue->adapterKey(),
+        SaiQueueTraits::Attributes::SchedulerProfileId{});
+    EXPECT_EQ(scheduler->adapterKey(), schedulerProfileId);
+  }
+}

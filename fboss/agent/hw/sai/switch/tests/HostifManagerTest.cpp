@@ -229,3 +229,37 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
       SaiHostifTrapTraits::Attributes::TrapPriority{});
   EXPECT_EQ(priority, 1);
 }
+
+TEST_F(HostifManagerTest, resetSchedulerOid) {
+  // Create queue 1 and a scheduler config with Stream Type ALL
+  auto prevControlPlane = std::make_shared<ControlPlane>();
+  auto newControlPlane = prevControlPlane->clone();
+  auto queueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
+  newControlPlane->resetQueues(queueConfig);
+  auto prevState = std::make_shared<SwitchState>();
+  prevState->resetControlPlane(prevControlPlane);
+  auto newState = std::make_shared<SwitchState>();
+  newState->resetControlPlane(newControlPlane);
+
+  // Apply the config changes using processHostifDelta
+  saiManagerTable->hostifManager().processHostifDelta(
+      StateDelta(prevState, newState));
+  const auto queueHandle = saiManagerTable->hostifManager().getQueueHandle(
+      std::pair(1, cfg::StreamType::ALL));
+
+  // Ensure scheduler is created with a valid OID.
+  EXPECT_TRUE(queueHandle->scheduler);
+
+  // Ensure queue scheduler profile id is set with a valid OID.
+  auto schedulerProfileId = saiApiTable->queueApi().getAttribute(
+      queueHandle->queue->adapterKey(),
+      SaiQueueTraits::Attributes::SchedulerProfileId{});
+  EXPECT_EQ(queueHandle->scheduler->adapterKey(), schedulerProfileId);
+
+  // Free the scheduler and ensure queue scheduler profile OID is reset.
+  queueHandle->resetQueue();
+  schedulerProfileId = saiApiTable->queueApi().getAttribute(
+      queueHandle->queue->adapterKey(),
+      SaiQueueTraits::Attributes::SchedulerProfileId{});
+  EXPECT_EQ(schedulerProfileId, SAI_NULL_OBJECT_ID);
+}
