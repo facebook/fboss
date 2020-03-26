@@ -92,11 +92,12 @@ SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
       neighborSubscriber_);
 
   auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
+  auto nextHopWeight = (nexthop.weight() == ECMP_WEIGHT ? 1 : nexthop.weight());
   if (auto* ipKey =
           std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an IP subscriber
     auto subscriber = std::make_shared<SubscriberForSaiIpNextHopGroupMember>(
-        nexthopGroupId, nexthop.weight(), *ipKey);
+        nexthopGroupId, nextHopWeight, *ipKey);
     SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
         subscriber);
     nexthopSubscriber_ = subscriber;
@@ -105,7 +106,7 @@ SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
           std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an MPLS subscriber
     auto subscriber = std::make_shared<SubscriberForSaiMplsNextHopGroupMember>(
-        nexthopGroupId, nexthop.weight(), *mplsKey);
+        nexthopGroupId, nextHopWeight, *mplsKey);
     SaiObjectEventPublisher::getInstance()
         ->get<SaiMplsNextHopTraits>()
         .subscribe(subscriber);
