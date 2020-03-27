@@ -83,6 +83,8 @@ struct Cable {
   7: TransmitterTechnology transmitterTech,
   8: optional double length,
   9: optional i32 gauge,
+  10: optional i32 om4,
+  11: optional i32 om5,
 }
 
 struct Channel {
@@ -178,4 +180,39 @@ struct RawDOMData {
   1: IOBuf lower,
   2: IOBuf page0,
   3: optional IOBuf page3,
+}
+
+// Create a union data structure where we can store SffData and
+// CMISData as well. After this been fully deployed we can remove the
+// old RawDOMData structure.
+
+union DOMDataUnion {
+   1: Sff8636Data sff8636,
+   2: CmisData cmis,
+ }
+
+struct Sff8636Data {
+  // The SFF DOM exposes at most 256 bytes at a time and is divided in
+  // to two 128 byte "pages". The lower page is always the same, but
+  // you can swap in different pages for the upper 128 bytes. The only
+  // ones we use now are upper pages 0 and 3. Page 0 is required of
+  // every transceiver, but the rest are optional. If we need other
+  // fields in the future we can add support for other pages.
+  1: IOBuf lower,
+  2: IOBuf page0,
+  3: optional IOBuf page3,
+}
+
+struct CmisData {
+  // Similar to SFF Data format, 256 bytes are exposed at a time and is
+  // also divided into two 128 byte pages. Lower page stay the same but
+  // we have more upper pages this time.
+  1: IOBuf lower,
+  2: IOBuf page0,
+  4: optional IOBuf page01,
+  5: optional IOBuf page02,
+  6: optional IOBuf page10,
+  7: optional IOBuf page11,
+  8: optional IOBuf page13,
+  9: optional IOBuf page14,
 }

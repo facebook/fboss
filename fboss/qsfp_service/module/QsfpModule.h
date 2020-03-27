@@ -162,7 +162,7 @@ class QsfpModule : public Transceiver {
    * settings from being applied
    */
   virtual void customizeTransceiverLocked(
-      cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT);
+      cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT) = 0;
 
   /*
    * This function returns a pointer to the value in the static cached
@@ -179,11 +179,10 @@ class QsfpModule : public Transceiver {
   void getQsfpValue(int dataAddress,
                     int offset, int length, uint8_t* data) const;
   /*
-   * Sets the IDProm cache data for the port
-   * The data should be 256 bytes.
-   * The thread needs to have the lock before calling the function.
+   * Based on identifier, sets whether the upper memory of the module is flat or
+   * paged.
    */
-  virtual void setQsfpIdprom() = 0;
+  virtual void setQsfpFlatMem() = 0;
   /*
    * Set power mode
    * Wedge forces Low Power mode via a pin;  we have to reset this
@@ -195,16 +194,16 @@ class QsfpModule : public Transceiver {
    * Which action to take is determined by the port speed
    */
   virtual void setCdrIfSupported(
-      cfg::PortSpeed speed,
-      FeatureState currentStateTx,
-      FeatureState currentStateRx) = 0;
+      cfg::PortSpeed /*speed*/,
+      FeatureState /*currentStateTx*/,
+      FeatureState /*currentStateRx*/) {}
   /*
    * Set appropriate rate select value for PortSpeed, if supported
    */
   virtual void setRateSelectIfSupported(
-      cfg::PortSpeed speed,
-      RateSelectState currentState,
-      RateSelectSetting currentSetting) = 0;
+      cfg::PortSpeed /*speed*/,
+      RateSelectState /*currentState*/,
+      RateSelectSetting /*currentSetting*/) {}
 
   /*
    * returns the freeside transceiver technology type
@@ -243,15 +242,6 @@ class QsfpModule : public Transceiver {
    */
   virtual TransceiverSettings getTransceiverSettingsInfo() = 0;
   /*
-   * Return which rate select capability is being used, if any
-   */
-  virtual RateSelectState getRateSelectValue() = 0;
-  /*
-   * Return the rate select optimised bit rates for each channel
-   */
-  virtual RateSelectSetting getRateSelectSettingValue(
-      RateSelectState state) = 0;
-  /*
    * Return what power control capability is currently enabled
    */
   virtual PowerControlState getPowerControlValue() = 0;
@@ -281,14 +271,6 @@ class QsfpModule : public Transceiver {
    * byte range of the SFF spec.
    */
   virtual double getQsfpDACLength() const = 0;
-  virtual int getQsfpDACGauge() const = 0;
-  /*
-   * Provides the option to override the length/gauge values read from
-   * the DOM for certain transceivers. This is useful when vendors
-   * input incorrect data and the accuracy of these fields is
-   * important for proper tuning.
-   */
-  virtual const std::optional<LengthAndGauge> getDACCableOverride() const = 0;
 
   bool shouldRemediate(time_t cooldown) const;
 

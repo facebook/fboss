@@ -122,7 +122,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   std::array<uint8_t, 1> buf;
   threadSafeI2CBus_->moduleRead(
       module_ + 1, TransceiverI2CApi::ADDR_QSFP, 0, 1, buf.data());
-  XLOG(DBG3) << "Transceiver identifier: " << buf[0];
+  XLOG(DBG3) << "Transceiver " << module_ << " identifier: " << buf[0];
   return buf[0] == kCMISIdentifier ? TransceiverManagementInterface::CMIS
                                    : TransceiverManagementInterface::SFF;
 }

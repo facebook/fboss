@@ -58,6 +58,11 @@ class Transceiver {
   virtual RawDOMData getRawDOMData() = 0;
 
   /*
+   * Return a union of two spec formated data from the qsfp DOM
+   */
+  virtual DOMDataUnion getDOMDataUnion() = 0;
+
+  /*
    * Set speed specific settings for the transceiver
    */
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;

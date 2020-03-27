@@ -532,14 +532,14 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
   }
 }
 
-void SffModule::setQsfpIdprom() {
+void SffModule::setQsfpFlatMem() {
   std::array<uint8_t, 2> status = {{0, 0}};
   int offset;
   int length;
   int dataAddress;
 
   if (!present_) {
-    throw FbossError("Failed setting QSFP IDProm: QSFP is not present");
+    throw FbossError("Failed setting QSFP Flat Mem: QSFP is not present");
   }
 
   // Check if the data is ready
@@ -547,7 +547,7 @@ void SffModule::setQsfpIdprom() {
   getQsfpValue(dataAddress, offset, length, status.data());
   if (status[1] & (1 << 0)) {
     StatsPublisher::bumpModuleErrors();
-    throw QsfpModuleError("Failed setting QSFP IDProm: QSFP is not ready");
+    throw QsfpModuleError("Failed setting QSFP Flat Mem: QSFP is not ready");
   }
   flatMem_ = status[1] & (1 << 2);
   XLOG(DBG3) << "Detected QSFP " << qsfpImpl_->getName()
@@ -595,6 +595,21 @@ RawDOMData SffModule::getRawDOMData() {
   return data;
 }
 
+DOMDataUnion SffModule::getDOMDataUnion() {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  Sff8636Data sffData;
+  if (present_) {
+    sffData.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    sffData.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    if (!flatMem_) {
+      sffData.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
+    }
+  }
+  DOMDataUnion data;
+  data.set_sff8636(sffData);
+  return data;
+}
+
 void SffModule::getFieldValue(SffField fieldName, uint8_t* fieldValue) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   int offset;
@@ -617,7 +632,7 @@ void SffModule::updateQsfpData(bool allPages) {
         TransceiverI2CApi::ADDR_QSFP, 0, sizeof(lowerPage_), lowerPage_);
     lastRefreshTime_ = std::time(nullptr);
     dirty_ = false;
-    setQsfpIdprom();
+    setQsfpFlatMem();
 
     if (!allPages) {
       // Only the first page has fields that change often so provide
@@ -904,6 +919,29 @@ void SffModule::ensureTxEnabled() {
   std::array<uint8_t, 1> buf = {{0}};
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+}
+
+void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
+  /*
+   * This must be called with a lock held on qsfpModuleMutex_
+   */
+  if (customizationSupported()) {
+    TransceiverSettings settings = getTransceiverSettingsInfo();
+
+    // We want this on regardless of speed
+    setPowerOverrideIfSupported(settings.powerControl);
+
+    if (speed != cfg::PortSpeed::DEFAULT) {
+      setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+      setRateSelectIfSupported(
+        speed, settings.rateSelect, settings.rateSelectSetting);
+    }
+  } else {
+    XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();
+  }
+
+  lastCustomizeTime_ = std::time(nullptr);
+  needsCustomization_ = false;
 }
 
 } // namespace fboss
