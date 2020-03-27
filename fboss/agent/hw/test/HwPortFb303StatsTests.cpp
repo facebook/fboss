@@ -53,6 +53,7 @@ HwPortStats getInitedStats() {
       20, // outEcnCounter
       {{1, 3}, {2, 3}}, // queueOutPackets
       {{0, 0}, {0, 0}}, // queueOutDiscardPackets
+      {{0, 0}, {0, 0}}, // queueWatermarkBytes
   };
 }
 
