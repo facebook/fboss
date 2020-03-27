@@ -37,6 +37,13 @@ class WedgeI2CBusLock : public TransceiverI2CApi {
   void scanPresence(std::map<int32_t, ModulePresence>& presence) override;
   void ensureOutOfReset(unsigned int module) override;
 
+  /* Platform function to count the i2c transactions in a platform. This
+   * function gets the i2c controller stats and returns it in form of a vector
+   * to the caller
+   */
+  std::vector<std::reference_wrapper<const I2cControllerStats>>
+  getI2cControllerStats() override;
+
   folly::EventBase* getEventBase(unsigned int module) override;
 
  private:

@@ -46,6 +46,22 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   bool isPresent(unsigned int module) override;
   void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
 
+  /* Platform function to count the i2c transactions in a platform. This
+   * function gets the i2c controller stats and returns it in form of a vector
+   * to the caller
+   */
+  std::vector<std::reference_wrapper<const I2cControllerStats>>
+  getI2cControllerStats() override {
+    std::vector<std::reference_wrapper<const I2cControllerStats>>
+        i2cControllerCurrentStats;
+
+    // Get the i2c controller platform stats from the controller class like
+    // CP2112 class and return
+    i2cControllerCurrentStats.push_back(dev_->getI2cControllerPlatformStats());
+
+    return i2cControllerCurrentStats;
+  }
+
  protected:
   enum : unsigned int {
     NO_PORT = 0,

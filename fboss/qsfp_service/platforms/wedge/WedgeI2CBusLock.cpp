@@ -86,6 +86,16 @@ void WedgeI2CBusLock::ensureOutOfReset(unsigned int module) {
   wedgeI2CBus_->ensureOutOfReset(module);
 }
 
+/* Platform function to count the i2c transactions in a platform. This
+ * function gets the i2c controller stats and returns it in form of a vector
+ * to the caller
+ */
+std::vector<std::reference_wrapper<const I2cControllerStats>>
+WedgeI2CBusLock::getI2cControllerStats() {
+  BusGuard g(this);
+  return wedgeI2CBus_->getI2cControllerStats();
+}
+
 folly::EventBase* WedgeI2CBusLock::getEventBase(unsigned int module) {
   return wedgeI2CBus_->getEventBase(module);
 }

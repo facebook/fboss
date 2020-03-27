@@ -51,7 +51,7 @@ class Minipack16QI2CBus : public TransceiverI2CApi {
    * vector of the i2c stats
    */
   std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() const override;
+  getI2cControllerStats() override;
 
   folly::EventBase* getEventBase(unsigned int module) override;
 

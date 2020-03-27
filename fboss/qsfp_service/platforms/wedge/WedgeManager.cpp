@@ -196,27 +196,27 @@ void WedgeManager::publishI2cTransactionStats() {
     // Publish all the counters to FbAgent
 
     auto statName =
-      folly::to<std::string>(counter.controllerName_, ".readTotal");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".readTotal");
     tcData().setCounter(statName, counter.readTotal_);
 
     statName =
-      folly::to<std::string>(counter.controllerName_, ".readFailed");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".readFailed");
     tcData().setCounter(statName, counter.readFailed_);
 
     statName =
-      folly::to<std::string>(counter.controllerName_, ".readBytes");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".readBytes");
     tcData().setCounter(statName, counter.readBytes_);
 
     statName =
-      folly::to<std::string>(counter.controllerName_, ".writeTotal");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeTotal");
     tcData().setCounter(statName, counter.writeTotal_);
 
     statName =
-      folly::to<std::string>(counter.controllerName_, ".writeFailed");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeFailed");
     tcData().setCounter(statName, counter.writeFailed_);
 
     statName =
-      folly::to<std::string>(counter.controllerName_, ".writeBytes");
+      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeBytes");
     tcData().setCounter(statName, counter.writeBytes_);
   }
 }

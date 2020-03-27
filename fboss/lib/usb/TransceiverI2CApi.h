@@ -93,7 +93,7 @@ class TransceiverI2CApi {
    * and has the platform specific implementation for this counter
    */
   virtual std::vector<std::reference_wrapper<const I2cControllerStats>>
-  getI2cControllerStats() const {
+  getI2cControllerStats() {
     std::vector<std::reference_wrapper<const I2cControllerStats>> dummyStat;
     return dummyStat;
   }

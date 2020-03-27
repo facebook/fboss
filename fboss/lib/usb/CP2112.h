@@ -26,7 +26,7 @@ class CP2112Intf : public I2cController {
   // testing.
  public:
   CP2112Intf()
-      : I2cController(folly::to<std::string>("i2cController.cp2112.")) {}
+      : I2cController(folly::to<std::string>("i2cController.cp2112")) {}
   virtual ~CP2112Intf() {}
 
   virtual void open(bool setSmbusConfig = true) = 0;

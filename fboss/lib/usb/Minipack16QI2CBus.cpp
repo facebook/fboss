@@ -155,7 +155,7 @@ FbFpgaI2cController* Minipack16QI2CBus::getI2cController(
  * array of the i2c stats
  */
 std::vector<std::reference_wrapper<const I2cControllerStats>>
-Minipack16QI2CBus::getI2cControllerStats() const {
+Minipack16QI2CBus::getI2cControllerStats() {
   std::vector<std::reference_wrapper<const I2cControllerStats>>
       i2cControllerCurrentStats;
 
