@@ -9,18 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+
 namespace facebook::fboss {
 
-class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
+class SaiFakePlatformPort : public SaiPlatformPort {
  public:
-  explicit SaiBcmGalaxyPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping)
-      : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {}
-  uint32_t numLanesPerCore() const override {
-    return 4;
-  }
+  explicit SaiFakePlatformPort(PortID id, SaiPlatform* platform)
+      : SaiPlatformPort(id, platform) {}
+  virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
+      const override;
 };
 
 } // namespace facebook::fboss

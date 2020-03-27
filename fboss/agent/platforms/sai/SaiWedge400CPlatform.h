@@ -18,14 +18,16 @@ class TajoAsic;
 class SaiWedge400CPlatform : public SaiHwPlatform {
  public:
   explicit SaiWedge400CPlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiWedge400CPlatform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   bool getObjectKeysSupported() const override {
     return false;
+  }
+  uint32_t numLanesPerCore() const override {
+    return 4;
   }
 
  private:

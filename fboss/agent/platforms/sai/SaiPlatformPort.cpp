@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
@@ -61,18 +62,23 @@ SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortSpeed speed) const {
-  auto platformPortSettings = getPlatformPortSettings(speed);
-  if (!platformPortSettings) {
+  auto profileID = getProfileIDBySpeed(speed);
+  auto platformPortEntry = getPlatformPortEntry();
+  if (!platformPortEntry.has_value()) {
     throw FbossError(
-        "platform port settings is empty for port ",
-        getPortID(),
-        "speed ",
-        speed);
+        "Platform Port entry does not exist for port: ", getPortID());
   }
-  auto& laneMap = platformPortSettings->iphy_ref()->lanes;
+  auto& dataPlanePhyChips = getPlatform()->getDataPlanePhyChips();
+  auto iphys = utility::getOrderedIphyLanes(
+      *platformPortEntry, dataPlanePhyChips, profileID);
   std::vector<uint32_t> hwLaneList;
-  for (auto lane : laneMap) {
-    hwLaneList.push_back(lane.first);
+  for (auto iphy : iphys) {
+    auto chipIter = dataPlanePhyChips.find(iphy.chip);
+    if (chipIter == dataPlanePhyChips.end()) {
+      throw FbossError("dataplane chip does not exist for chip: ", iphy.chip);
+    }
+    hwLaneList.push_back(
+        getPhysicalLaneId(chipIter->second.physicalID, iphy.lane));
   }
   return hwLaneList;
 }

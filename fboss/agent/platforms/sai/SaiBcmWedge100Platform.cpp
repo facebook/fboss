@@ -10,15 +10,17 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
 SaiBcmWedge100Platform::SaiBcmWedge100Platform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiBcmPlatform(
+          std::move(productInfo),
+          std::make_unique<Wedge100PlatformMapping>()) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

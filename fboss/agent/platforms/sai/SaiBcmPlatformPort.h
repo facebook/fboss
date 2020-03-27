@@ -13,10 +13,12 @@
 
 namespace facebook::fboss {
 
-class SaiWedge400CPort : public SaiPlatformPort {
+class SaiBcmPlatformPort : public SaiPlatformPort {
  public:
-  explicit SaiWedge400CPort(PortID id, SaiPlatform* platform)
+  explicit SaiBcmPlatformPort(PortID id, SaiPlatform* platform)
       : SaiPlatformPort(id, platform) {}
+  virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
+      const override;
 };
 
 } // namespace facebook::fboss

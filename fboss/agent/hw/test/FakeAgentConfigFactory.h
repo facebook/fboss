@@ -19,8 +19,10 @@
  */
 
 namespace facebook::fboss::utility {
-const uint16_t kMaxPorts = 128;
+constexpr uint16_t kMaxLanes = 4;
+constexpr uint16_t kMaxPorts = 128;
+constexpr folly::StringPiece chipName = "chip0";
 
-cfg::AgentConfig getAgentConfig();
+cfg::AgentConfig getFakeAgentConfig();
 
 } // namespace facebook::fboss::utility

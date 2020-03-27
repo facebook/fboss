@@ -10,13 +10,15 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 
 namespace facebook::fboss {
 
 SaiBcmGalaxyFCPlatform::SaiBcmGalaxyFCPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : SaiBcmGalaxyPlatform(std::move(productInfo), std::move(platformMapping)) {
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiBcmGalaxyPlatform(
+          std::move(productInfo),
+          std::make_unique<GalaxyFCPlatformMapping>("FC")) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

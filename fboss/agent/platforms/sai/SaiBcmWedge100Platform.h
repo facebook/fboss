@@ -17,11 +17,13 @@ class TomahawkAsic;
 class SaiBcmWedge100Platform : public SaiBcmPlatform {
  public:
   explicit SaiBcmWedge100Platform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiBcmWedge100Platform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
+  uint32_t numLanesPerCore() const override {
+    return 4;
+  }
 
  private:
   std::unique_ptr<TomahawkAsic> asic_;

@@ -6,16 +6,20 @@
 add_library(sai_platform
   fboss/agent/platforms/sai/SaiPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmGalaxyPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge40Platform.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
+  fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
+  fboss/agent/platforms/sai/SaiFakePlatformMapping.cpp
   fboss/agent/platforms/sai/SaiHwPlatform.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
-  fboss/agent/platforms/sai/SaiWedge400CPort.cpp
+  fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
@@ -25,6 +29,11 @@ target_link_libraries(sai_platform
   thrift_handler
   switch_asics
   hw_switch_warmboot_helper
+  galaxy_platform_mapping
+  wedge100_platform_mapping
+  wedge40_platform_mapping
+  wedge400_platform_mapping
+  wedge400c_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS

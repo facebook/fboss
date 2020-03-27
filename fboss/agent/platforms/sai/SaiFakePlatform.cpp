@@ -10,15 +10,17 @@
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
+#include "fboss/agent/platforms/sai/SaiFakePlatformMapping.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
 SaiFakePlatform::SaiFakePlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    std::unique_ptr<PlatformMapping> platformMapping)
-    : SaiPlatform(std::move(productInfo), std::move(platformMapping)) {
+    std::unique_ptr<PlatformProductInfo> productInfo)
+    : SaiPlatform(
+          std::move(productInfo),
+          std::make_unique<SaiFakePlatformMapping>()) {
   asic_ = std::make_unique<FakeAsic>();
 }
 

@@ -17,7 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
-#include "fboss/agent/hw/test/AgentConfigFactory.h"
+#include "fboss/agent/hw/test/FakeAgentConfigFactory.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -32,12 +32,9 @@ void ManagerTestBase::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   fs = FakeSai::getInstance();
   sai_api_initialize(0, nullptr);
-  auto productInfo =
-      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-  auto platformMapping = std::make_unique<PlatformMapping>();
-  saiPlatform = std::make_unique<SaiFakePlatform>(
-      std::move(productInfo), std::move(platformMapping));
-  auto thriftAgentConfig = utility::getAgentConfig();
+  auto productInfo = fakeProductInfo();
+  saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
+  auto thriftAgentConfig = utility::getFakeAgentConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");
   saiPlatform->init(

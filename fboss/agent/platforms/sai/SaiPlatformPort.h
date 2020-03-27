@@ -46,6 +46,8 @@ class SaiPlatformPort : public PlatformPort {
   virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
   virtual phy::FecMode getFecMode(cfg::PortSpeed speed) const;
   virtual TransmitterTechnology getTransmitterTech();
+  virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
+      const = 0;
 
  private:
   std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(

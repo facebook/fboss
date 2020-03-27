@@ -54,6 +54,7 @@ class SaiPlatform : public Platform {
   void stop() override;
   virtual bool getObjectKeysSupported() const = 0;
   HwSwitchWarmBootHelper* getWarmBootHelper();
+  virtual uint32_t numLanesPerCore() const = 0;
 
   /*
    * Get ids of all controlling ports

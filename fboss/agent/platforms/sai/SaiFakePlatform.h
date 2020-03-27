@@ -16,9 +16,7 @@ namespace facebook::fboss {
 class FakeAsic;
 class SaiFakePlatform : public SaiPlatform {
  public:
-  explicit SaiFakePlatform(
-      std::unique_ptr<PlatformProductInfo> productInfo,
-      std::unique_ptr<PlatformMapping> platformMapping);
+  explicit SaiFakePlatform(std::unique_ptr<PlatformProductInfo> productInfo);
   ~SaiFakePlatform() override;
   std::string getVolatileStateDir() const override;
   std::string getPersistentStateDir() const override;
@@ -26,6 +24,9 @@ class SaiFakePlatform : public SaiPlatform {
   HwAsic* getAsic() const override;
   bool getObjectKeysSupported() const override {
     return true;
+  }
+  uint32_t numLanesPerCore() const override {
+    return 4;
   }
 
  private:
