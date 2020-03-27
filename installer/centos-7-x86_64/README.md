@@ -321,15 +321,32 @@ From the CentOS VM configured in section 1. Building, download the kernel RPM.
 Follow instructions in "1.3 Upgrade kernel" to reboot, verify and change the
 grub boot order.
 
-## 2.3 Installing FBOSS binaries
+## 2.3 Installing Python3
 
-### 2.3.1 Installing files
+If the switch has direct Internet connectivity, run:
+
+yum install rh-python36
+
+If the switch has no direct Internet connectivity, from build VM, run:
+
+- mkdir /tmp/python36-and-deps; cd /tmp/python36-and-deps
+- sudo yum install --downloadonly --downloaddir=/tmp/python36-and-deps --installroot=/tmp/python36-and-deps --releasever=/ rh-python36
+- scp -r /tmp/python36-and-deps $switchName:/tmp/
+
+From switch:
+- cd /tmp/python36-and-deps
+- sudo rpm -Uvvh \*.rpm
+- /opt/rh/rh-python36/root/usr/bin/python3  # to verify
+
+## 2.4 Installing FBOSS binaries
+
+### 2.4.1 Installing files
 
 - package-fboss.py (section 1.7) creates a temporary directory with prefix
   /tmp/fboss_bins. Copy it over to the switch.
 
 
-### 2.3.2 Installing RPM
+### 2.4.2 Installing RPM
 
 - Alternatively, if package-fbos.py was run with -rpm (section 1.7), it produces an RPM package.
 - Copy teh RPM to the switch.
@@ -337,16 +354,16 @@ grub boot order.
    rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
 - The RPM will install binaries and dependent libraries in /opt/fboss/
 
-## 2.4 Install tips
+## 2.5 Install tips
 
-### 2.4.1 Checking dependencies
+### 2.5.1 Checking dependencies
 
 Check dependencies using ldd.  All shared object dependencies should be
 satisified, and dependencies should be picked from /opt/fboss.
 
 ldd /opt/fboss/bcm_test # or wedge_agent
 
-### 2.4.2 Checking install RPM, removing it
+### 2.5.2 Checking install RPM, removing it
 
 - rpm -qa | grep fboss    # check all installed RPMS.
 - sudo rpm -e fboss_bins-1-1.el7.centos.x86_64  # remove installed RPM
