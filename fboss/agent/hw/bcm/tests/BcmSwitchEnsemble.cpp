@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/BcmLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
@@ -140,4 +141,16 @@ std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
 bool BcmSwitchEnsemble::isRouteScaleEnabled() const {
   return getHwSwitch()->isAlpmEnabled();
 }
+
+std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
+    HwSwitch* hwSwitch,
+    cfg::PortLoopbackMode desiredLoopbackMode) {
+  return std::make_unique<BcmLinkStateToggler>(
+      static_cast<BcmSwitch*>(hwSwitch),
+      [this](const std::shared_ptr<SwitchState>& toApply) {
+        applyNewState(toApply);
+      },
+      desiredLoopbackMode);
+}
+
 } // namespace facebook::fboss

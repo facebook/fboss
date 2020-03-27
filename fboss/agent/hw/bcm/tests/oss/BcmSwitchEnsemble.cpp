@@ -14,12 +14,6 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
-    HwSwitch* /* hwSwitch */,
-    cfg::PortLoopbackMode /* desiredLoopbackMode */) {
-  return nullptr;
-}
-
 void BcmSwitchEnsemble::stopHwCallLogging() const {
   // noop - hw call logging is not supported in OSS
 }
