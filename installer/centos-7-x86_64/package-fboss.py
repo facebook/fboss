@@ -72,7 +72,7 @@ class PackageFboss:
         return git_repo.git.rev_parse("--show-toplevel")
 
     def _copy_run_scripts(self, tmp_dir_name):
-        run_scripts_path = os.path.join(PackageFboss.SCRIPTS_DIR_ABS, "run_scripts")
+        run_scripts_path = os.path.join(PackageFboss.SCRIPT_DIR_ABS, "run_scripts")
         print(f"Copying {run_scripts_path} to {tmp_dir_name}")
         shutil.copytree(run_scripts_path, os.path.join(tmp_dir_name, "run_scripts"))
 
@@ -108,7 +108,7 @@ class PackageFboss:
                 print(f"Copying {abs_path} to {tmp_dir_name}")
                 shutil.copy(abs_path, tmp_dir_name)
 
-        self._copy_scripts(tmp_dir_name)
+        self._copy_run_scripts(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 
