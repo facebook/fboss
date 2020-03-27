@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 import re
@@ -23,7 +22,7 @@ class TestRunner:
     def _parse_list_test_output(self, output):
         ret = []
         class_name = None
-        for line in output.split("\n"):
+        for line in output.decode("utf-8").split("\n"):
             if not line:
                 continue
             # for tests that are templdated, gtest will print a comment of the
@@ -45,7 +44,7 @@ class TestRunner:
         return ret
 
     def _parse_gtest_run_output_and_print(self, test_output):
-        for line in test_output.split("\n"):
+        for line in test_output.decode("utf-8").split("\n"):
             match = self._GTEST_RESULT_PATTERN.match(line.strip())
             if not match:
                 continue

@@ -100,7 +100,7 @@ class PackageFboss:
     def _copy_binaries(self, tmp_dir_name):
         print(f"Copying binaries...")
 
-        for name, exec_type_and_execs in PackageFboss.NAME_TO_EXECUTABLES.items():
+        for name, exec_type_and_execs in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
             executable_path = self._get_install_dir_for(name)
             executable_type, executables = exec_type_and_execs
             for e in executables:
