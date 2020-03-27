@@ -251,13 +251,11 @@ double CmisModule::getQsfpOMLength(CmisField field) const {
 bool CmisModule::getSensorInfo(GlobalSensors& info) {
   info.temp.value =
       getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
-  info.temp.flags_ref().value_unchecked() =
+  info.temp.flags_ref() =
       getQsfpSensorFlags(CmisField::MODULE_ALARMS, 0);
-  info.temp.__isset.flags = true;
   info.vcc.value = getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
-  info.vcc.flags_ref().value_unchecked() =
+  info.vcc.flags_ref() =
       getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
-  info.vcc.__isset.flags = true;
   return true;
 }
 
@@ -273,20 +271,25 @@ bool CmisModule::getVendorInfo(Vendor& vendor) {
 
 void CmisModule::getCableInfo(Cable& cable) {
   cable.transmitterTech = getQsfpTransmitterTechnology();
-  cable.__isset.transmitterTech = true;
 
-  cable.singleMode_ref().value_unchecked() = getQsfpSMFLength();
-  cable.__isset.singleMode = (cable.singleMode_ref().value_unchecked() != 0);
-  cable.om5_ref().value_unchecked() = getQsfpOMLength(CmisField::LENGTH_OM5);
-  cable.__isset.om5 = (cable.om5_ref().value_unchecked() != 0);
-  cable.om4_ref().value_unchecked() = getQsfpOMLength(CmisField::LENGTH_OM4);
-  cable.__isset.om4 = (cable.om4_ref().value_unchecked() != 0);
-  cable.om3_ref().value_unchecked() = getQsfpOMLength(CmisField::LENGTH_OM3);
-  cable.__isset.om3 = (cable.om3_ref().value_unchecked() != 0);
-  cable.om2_ref().value_unchecked() = getQsfpOMLength(CmisField::LENGTH_OM2);
-  cable.__isset.om2 = (cable.om2_ref().value_unchecked() != 0);
-  cable.length_ref().value_unchecked() = getQsfpDACLength();
-  cable.__isset.length = (cable.length_ref().value_unchecked() != 0);
+  if (auto length = getQsfpSMFLength(); length != 0) {
+    cable.singleMode_ref() = length;
+  }
+  if (auto length = getQsfpOMLength(CmisField::LENGTH_OM5); length != 0) {
+    cable.om5_ref() = length;
+  }
+  if (auto length = getQsfpOMLength(CmisField::LENGTH_OM4); length != 0) {
+    cable.om4_ref() = length;
+  }
+  if (auto length = getQsfpOMLength(CmisField::LENGTH_OM3); length != 0) {
+    cable.om3_ref() = length;
+  }
+  if (auto length = getQsfpOMLength(CmisField::LENGTH_OM2); length != 0) {
+    cable.om2_ref() = length;
+  }
+  if (auto length = getQsfpDACLength(); length != 0) {
+    cable.length_ref() = length;
+  }
 }
 
 /*
@@ -430,21 +433,18 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   int dataAddress;
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.rxPwr.flags_ref().value_unchecked() =
+    channels[channel].sensors.rxPwr.flags_ref() =
         getChannelFlags(CmisField::RX_PWR_FLAG, channel);
-    channels[channel].sensors.rxPwr.__isset.flags = true;
   }
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txBias.flags_ref().value_unchecked() =
+    channels[channel].sensors.txBias.flags_ref() =
         getChannelFlags(CmisField::TX_BIAS_FLAG, channel);
-    channels[channel].sensors.txBias.__isset.flags = true;
   }
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txPwr.flags_ref().value_unchecked() =
+    channels[channel].sensors.txPwr.flags_ref() =
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
-    channels[channel].sensors.txPwr.__isset.flags = true;
   }
 
   getQsfpFieldAddress(CmisField::CHANNEL_RX_PWR, dataAddress, offset, length);
