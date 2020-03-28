@@ -222,13 +222,6 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     utility::verifyLabeledEgress(egressId, label);
   }
 
-  void verifyTunnel(
-      bcm_if_t tunnel,
-      const LabelForwardingAction::LabelStack& stack) {
-    // verify that tunnel interface has given stack attached
-    utility::verifyTunnel(tunnel, stack);
-  }
-
   void verifyTunneledEgress(
       bcm_if_t egressId,
       bcm_mpls_label_t tunnelLabel,
@@ -237,16 +230,6 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     // its egress label must be tunnelLabel (top of stack)
     // rest of srack is from tunnel interface attached to egress
     utility::verifyTunneledEgress(egressId, tunnelLabel, tunnelStack);
-  }
-
-  void verifyTunneledEgressToCPU(
-      bcm_if_t egressId,
-      bcm_mpls_label_t tunnelLabel,
-      const LabelForwardingAction::LabelStack& tunnelStack) {
-    // verify that given egress is tunneled egress
-    // its egress label must be tunnelLabel (top of stack)
-    // rest of srack is from tunnel interface attached to egress
-    utility::verifyTunneledEgressToCPU(egressId, tunnelLabel, tunnelStack);
   }
 
   void verifyTunneledEgressToDrop(
