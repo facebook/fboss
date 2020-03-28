@@ -154,34 +154,36 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     return tunnelLabel;
   }
 
+  std::map<PortDescriptor, LabelForwardingAction::LabelStack> port2LabelStacks(
+      LabelForwardingAction::Label label) {
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> result;
+    for (auto port : labeledPorts_) {
+      auto itr = result.emplace(port, LabelForwardingAction::LabelStack{});
+      itr.first->second.push_back(label++);
+    }
+    return result;
+  }
+
+  flat_set<PortDescriptor> allPorts() {
+    flat_set<PortDescriptor> result{unLabeledPorts_};
+    result.merge(labeledPorts_);
+    return result;
+  }
+
   void setupEcmpForwarding(
       AddrT network,
       uint8_t mask,
-      bcm_mpls_label_t tunnelLabel) {
-    // setup ecmp forwarding to nexthop of route prefixe
-    // if labeled paths are used then setup with ip2mpls forwarding
-    // else  setup with ip forwarding
-    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
-
-    flat_set<PortDescriptor> ports;
-    for (auto port : unLabeledPorts_) {
-      ports.insert(port);
-    }
-    for (auto port : labeledPorts_) {
-      ports.insert(port);
-      LabelForwardingAction::LabelStack stack;
-      stack.push_back(tunnelLabel);
-      stacks.emplace(port, std::move(stack));
-      tunnelLabel += 1;
-    }
+      LabelForwardingAction::Label tunnelLabel) {
+    std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks =
+        port2LabelStacks(tunnelLabel);
     typename Route<AddrT>::Prefix prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
-    if (labeledPorts_.size()) {
+    if (!stacks.empty()) {
       applyNewState(ecmpHelper->setupIp2MplsECMPForwarding(
-          getProgrammedState(), ports, std::move(stacks), {prefix}));
+          getProgrammedState(), allPorts(), std::move(stacks), {prefix}));
     } else {
       applyNewState(ecmpHelper->setupECMPForwarding(
-          getProgrammedState(), ports, {prefix}));
+          getProgrammedState(), allPorts(), {prefix}));
     }
   }
 
