@@ -106,7 +106,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     applyNewState(newState);
   }
 
-  void resolveLabeledPaths(AddrT network, uint8_t mask) {
+  void resolveLabeledNextHops(AddrT network, uint8_t mask) {
     // resolve neighbors of labeled egresses
     PrefixT prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
@@ -114,7 +114,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     applyNewState(ecmpHelper->resolveNextHops(state, labeledPorts_));
   }
 
-  void resolveUnLabeledPaths(AddrT network, uint8_t mask) {
+  void resolveUnLabeledNextHops(AddrT network, uint8_t mask) {
     // resolve neighbors of unlabeled egresses
     PrefixT prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
@@ -122,7 +122,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
         ecmpHelper->resolveNextHops(getProgrammedState(), unLabeledPorts_));
   }
 
-  void unresolveLabeledPaths(AddrT network, uint8_t mask) {
+  void unresolveLabeledNextHops(AddrT network, uint8_t mask) {
     // unresolve neighbors of labeled egresses
     PrefixT prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
@@ -130,7 +130,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     applyNewState(ecmpHelper->unresolveNextHops(state, labeledPorts_));
   }
 
-  void unresolveUnLabeledPaths(AddrT network, uint8_t mask) {
+  void unresolveUnLabeledNextHops(AddrT network, uint8_t mask) {
     // unresolve neighbors of unlabeled egresses
     PrefixT prefix{network, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
@@ -219,12 +219,12 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     return unLabeledPorts_;
   }
 
-  void verifyLabeledEgress(bcm_if_t egressId, bcm_mpls_label_t label) {
+  void verifyLabeledNextHop(bcm_if_t egressId, bcm_mpls_label_t label) {
     // verify that egress id has given label attached
     utility::verifyLabeledEgress(egressId, label);
   }
 
-  void verifyTunneledEgress(
+  void verifyLabeledNextHopWithStack(
       bcm_if_t egressId,
       bcm_mpls_label_t tunnelLabel,
       const LabelForwardingAction::LabelStack& tunnelStack) {
@@ -234,7 +234,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     utility::verifyTunneledEgress(egressId, tunnelLabel, tunnelStack);
   }
 
-  void verifyTunneledEgressToDrop(
+  void verifyLabeledNextHopWithStackToDrop(
       bcm_if_t egressId,
       bcm_mpls_label_t tunnelLabel,
       const LabelForwardingAction::LabelStack& tunnelStack) {
@@ -244,7 +244,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     utility::verifyTunneledEgressToDrop(egressId, tunnelLabel, tunnelStack);
   }
 
-  void verifyMultiPathEgress(
+  void verifyMultiPathNextHop(
       bcm_if_t egressId,
       const std::map<
           bcm_port_t,
@@ -346,7 +346,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
         params.prefix.network,
         params.prefix.mask,
         params.nexthop); // unlabaled route from client
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
@@ -354,7 +354,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
     auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
         0, params.prefix.network, params.prefix.mask);
     auto egressId = bcmRoute->getEgressId();
-    this->verifyLabeledEgress(egressId, params.label);
+    this->verifyLabeledNextHop(egressId, params.label);
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
           params.nexthop,
@@ -386,7 +386,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->setupEcmpForwarding(
         params.nexthop,
         params.prefix.mask,
@@ -404,7 +404,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     LabelForwardingAction::LabelStack stack{
         params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
     stack.push_back(params.label);
-    this->verifyTunneledEgress(egressId, params.stack->front(), stack);
+    this->verifyLabeledNextHopWithStack(egressId, params.stack->front(), stack);
 
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
@@ -428,7 +428,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, ExceedMaxLabels) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize));
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
   };
   EXPECT_THROW(setup(), FbossError);
@@ -450,8 +450,8 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
         params.prefix.network,
         params.prefix.mask,
         params.nexthop);
-    this->resolveUnLabeledPaths(params.nexthop, params.prefix.mask);
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
@@ -485,7 +485,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
           1);
     }
 
-    this->verifyMultiPathEgress(egressId, stacks);
+    this->verifyMultiPathNextHop(egressId, stacks);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -506,7 +506,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
         params.nexthop,
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
     this->getProgrammedState();
   };
@@ -530,7 +530,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
           params.nexthop, params.prefix.mask, labeledPort, stack, 1);
       stacks.emplace(port, std::make_pair(params.stack->front(), stack));
     }
-    this->verifyMultiPathEgress(egressId, stacks);
+    this->verifyMultiPathNextHop(egressId, stacks);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -561,7 +561,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
           LabelForwardingAction::LabelStack(
               params[i].stack->begin(),
               params[i].stack->begin() + maxSize - 1));
-      this->resolveLabeledPaths(params[i].nexthop, params[i].prefix.mask);
+      this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
       this->setupEcmpForwarding(
           params[i].nexthop, params[i].prefix.mask, tunnelLabel);
@@ -589,7 +589,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
         stacks.emplace(port, std::make_pair(fec, std::move(stack)));
         localTunnelLabel += 1;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -620,7 +620,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
           LabelForwardingAction::LabelStack(
               params[0].stack->begin(),
               params[0].stack->begin() + maxSize - 1));
-      this->resolveLabeledPaths(params[i].nexthop, params[i].prefix.mask);
+      this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
 
       this->setupEcmpForwarding(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
@@ -650,7 +650,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
         stacks.emplace(port, std::make_pair(fec, std::move(stack)));
         j += 1;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -682,7 +682,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
               params[i].stack->begin() + maxSize - 1));
     }
     /* same next hop to 2 prefixes with different stacks */
-    this->resolveLabeledPaths(params[0].nexthop, params[0].prefix.mask);
+    this->resolveLabeledNextHops(params[0].nexthop, params[0].prefix.mask);
     this->setupEcmpForwarding(
         params[0].nexthop, params[0].prefix.mask, params[0].label);
     this->getProgrammedState();
@@ -708,7 +708,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
         stacks.emplace(port, std::make_pair(fec, std::move(stack)));
         j += 1;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -745,7 +745,8 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
       stack.push_back(params.label + i++);
-      this->verifyTunneledEgressToDrop(path, params.stack->front(), stack);
+      this->verifyLabeledNextHopWithStackToDrop(
+          path, params.stack->front(), stack);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -766,8 +767,8 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
-    this->unresolveLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
+    this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -784,7 +785,8 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
       stack.push_back(params.label + i++);
-      this->verifyTunneledEgressToDrop(path, params.stack->front(), stack);
+      this->verifyLabeledNextHopWithStackToDrop(
+          path, params.stack->front(), stack);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -804,10 +806,10 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
-    this->resolveLabeledPaths(params.nexthop, params.prefix.mask);
-    this->resolveUnLabeledPaths(params.nexthop, params.prefix.mask);
-    this->unresolveLabeledPaths(params.nexthop, params.prefix.mask);
-    this->unresolveUnLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveLabeledNextHops(params.nexthop, params.prefix.mask);
+    this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
+    this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask);
+    this->unresolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -823,13 +825,13 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
-        this->verifyTunneledEgressToDrop(
+        this->verifyLabeledNextHopWithStackToDrop(
             *(paths.begin() + i), params.stack->front(), stack);
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
-        this->verifyTunneledEgressToDrop(
+        this->verifyLabeledNextHopWithStackToDrop(
             *(paths.begin() + i), params.stack->front(), stack);
       }
     }
@@ -851,7 +853,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
         LabelForwardingAction::LabelStack(
             params.stack->begin(), params.stack->begin() + maxSize - 1));
     this->setupEcmpForwarding(params.nexthop, params.prefix.mask, params.label);
-    this->resolveUnLabeledPaths(params.nexthop, params.prefix.mask);
+    this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask);
     this->getProgrammedState();
   };
   auto verify = [=]() {
@@ -868,14 +870,14 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
         // resolved
-        this->verifyTunneledEgress(
+        this->verifyLabeledNextHopWithStack(
             *(paths.begin() + i), params.stack->front(), stack);
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
         // unresolved
-        this->verifyTunneledEgressToDrop(
+        this->verifyLabeledNextHopWithStackToDrop(
             *(paths.begin() + i), params.stack->front(), stack);
       }
     }
@@ -903,7 +905,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
           LabelForwardingAction::LabelStack(
               params[i].stack->begin(),
               params[i].stack->begin() + maxSize - 1));
-      this->resolveLabeledPaths(params[i].nexthop, params[i].prefix.mask);
+      this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
       this->setupEcmpForwarding(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
     }
@@ -940,7 +942,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
         stacks.emplace(port, std::make_pair(params[0].stack->front(), stack));
         j++;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -966,7 +968,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
           LabelForwardingAction::LabelStack(
               params[i].stack->begin(),
               params[i].stack->begin() + maxSize - 1));
-      this->resolveLabeledPaths(params[i].nexthop, params[i].prefix.mask);
+      this->resolveLabeledNextHops(params[i].nexthop, params[i].prefix.mask);
       this->setupEcmpForwarding(
           params[i].nexthop, params[i].prefix.mask, params[i].label);
     }
@@ -1002,7 +1004,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
         stacks.emplace(port, std::make_pair(params[i].stack->front(), stack));
         j++;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1065,7 +1067,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
       stacks.emplace(port, std::make_pair(params[0].stack->front(), stack));
       j++;
     }
-    this->verifyMultiPathEgress(egressId, stacks);
+    this->verifyMultiPathNextHop(egressId, stacks);
   };
 }
 
@@ -1097,7 +1099,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
           params[i].nexthop,
           stack);
 
-      this->resolveLabeledPaths(
+      this->resolveLabeledNextHops(
           params[i].nexthop, params[i].nexthop.bitCount());
       this->setupEcmpForwarding(
           params[i].nexthop, params[i].nexthop.bitCount(), params[0].label);
@@ -1133,7 +1135,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
         stacks.emplace(port, std::make_pair(params[i].stack->front(), stack));
         j++;
       }
-      this->verifyMultiPathEgress(egressId, stacks);
+      this->verifyMultiPathNextHop(egressId, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
