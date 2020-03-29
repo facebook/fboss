@@ -12,7 +12,7 @@
 #include <folly/Random.h>
 
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
+#include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 DECLARE_string(qsfp_service_host);
@@ -26,12 +26,11 @@ namespace {
 // TODO(aeckert): library with various fboss cpp thrift clients would
 // be really useful
 using namespace apache::thrift;
-using namespace apache::thrift::async;
 
 std::unique_ptr<FbossCtrlAsyncClient> fbossAgentClient() {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   folly::SocketAddress agent(FLAGS_qsfp_service_host, 5909);
-  auto socket = TAsyncSocket::newSocket(eb, agent);
+  auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto chan = HeaderClientChannel::newChannel(std::move(socket));
   return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
 }

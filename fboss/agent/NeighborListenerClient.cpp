@@ -2,10 +2,10 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 #include <folly/SocketAddress.h>
+#include <folly/io/async/AsyncSocket.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <chrono>
@@ -14,7 +14,6 @@
 
 using namespace apache::thrift;
 using namespace apache::thrift::util;
-using namespace apache::thrift::async;
 using namespace apache::thrift::transport;
 using namespace facebook::fboss;
 using namespace folly;
@@ -45,7 +44,7 @@ int main(int argc, char** argv) {
   google::InstallFailureSignalHandler();
 
   SocketAddress addr(FLAGS_host, FLAGS_port, true);
-  auto socket = TAsyncSocket::newSocket(&base, addr);
+  auto socket = AsyncSocket::newSocket(&base, addr);
   auto chan =
       std::make_shared<DuplexChannel>(DuplexChannel::Who::CLIENT, socket);
   ThriftServer clients_server(chan->getServerChannel());

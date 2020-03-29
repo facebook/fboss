@@ -18,7 +18,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
 
-#include <thrift/lib/cpp/async/TAsyncSocket.h>
+#include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
@@ -33,8 +33,7 @@ std::unique_ptr<facebook::fboss::SaiCtrlAsyncClient> getStreamingClient(
   folly::SocketAddress addr{ip, 5909};
   return std::make_unique<facebook::fboss::SaiCtrlAsyncClient>(
       apache::thrift::RocketClientChannel::newChannel(
-          apache::thrift::async::TAsyncSocket::UniquePtr(
-              new apache::thrift::async::TAsyncSocket(evb, addr))));
+          folly::AsyncSocket::UniquePtr(new folly::AsyncSocket(evb, addr))));
 }
 
 void subscribeToDiagShell(folly::EventBase* evb, const folly::IPAddress& ip) {
