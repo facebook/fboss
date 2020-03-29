@@ -12,17 +12,15 @@
 
 #include <vector>
 
-extern "C" {
-#include <bcm/types.h>
-}
+#include "fboss/agent/types.h"
 
-class BcmSwitch;
+namespace facebook::fboss {
 
-namespace facebook::fboss::utility {
+class HwSwitch;
+namespace utility {
 
-void verifyBstStatsReported(
-    BcmSwitch* hw,
-    bcm_port_t port,
-    const std::vector<int>& trafficQueueIds);
+std::vector<uint64_t>
+getQueueWaterMarks(const HwSwitch* hw, PortID port, int highestQueueId);
 
-} // namespace facebook::fboss::utility
+} // namespace utility
+} // namespace facebook::fboss

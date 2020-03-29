@@ -88,43 +88,4 @@ std::map<int, uint64_t> clearAndGetQueueStats(
   return queueStats;
 }
 
-void clearPortBstStats(int unit, bcm_port_t port, int highestQueueId) {
-  auto portGport = utility::getPortGport(unit, port);
-
-  for (auto cosq = 0; cosq <= highestQueueId; cosq++) {
-    auto rv = bcm_cosq_bst_stat_clear(
-        unit, portGport, cosq, (bcm_bst_stat_id_t)bcmBstStatIdUcast);
-    bcmCheckError(rv, "Failed to clear BST stat");
-  }
-}
-
-void syncBstStats(int unit) {
-  auto rv = bcm_cosq_bst_stat_sync(unit, (bcm_bst_stat_id_t)bcmBstStatIdUcast);
-  bcmCheckError(rv, "failed to sync BST stats");
-}
-
-std::map<int, uint64_t>
-clearAndGetAllBstStats(int unit, bcm_port_t port, int highestQueueId) {
-  clearPortBstStats(unit, port, highestQueueId);
-  syncBstStats(unit);
-  auto portGport = utility::getPortGport(unit, port);
-
-  std::map<int, uint64_t> queueBstStats;
-  for (auto cosq = 0; cosq <= highestQueueId; cosq++) {
-    uint64_t value;
-    uint32_t options = BCM_COSQ_STAT_CLEAR;
-    auto rv = bcm_cosq_bst_stat_get(
-        unit,
-        portGport,
-        cosq,
-        (bcm_bst_stat_id_t)bcmBstStatIdUcast,
-        options,
-        &value);
-    bcmCheckError(rv, "Failed to get BST stat");
-    queueBstStats.insert({cosq, value});
-  }
-
-  return queueBstStats;
-}
-
 } // namespace facebook::fboss::utility

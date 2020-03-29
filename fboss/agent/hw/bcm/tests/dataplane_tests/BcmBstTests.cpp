@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -25,7 +24,7 @@
 namespace facebook::fboss {
 
 class BcmBstTest : public BcmLinkStateDependentTests {
- protected:
+ private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
@@ -47,23 +46,6 @@ class BcmBstTest : public BcmLinkStateDependentTests {
     return getProgrammedState();
   }
 
-  template <typename ECMP_HELPER>
-  void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
-    for (const auto& nextHopIp : ecmpHelper.getNextHops()) {
-      utility::disableTTLDecrements(
-          getHwSwitch(),
-          ecmpHelper.getRouterId(),
-          folly::IPAddress(nextHopIp.ip));
-    }
-  }
-
-  void _createAcl(uint8_t dscpVal, int queueId, const std::string& aclName) {
-    auto newCfg{initialConfig()};
-    utility::addDscpAclToCfg(&newCfg, aclName, dscpVal);
-    utility::addQueueMatcher(&newCfg, aclName, queueId);
-    applyNewConfig(newCfg);
-  }
-
   void sendUdpPkt(uint8_t dscpVal) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -77,10 +59,14 @@ class BcmBstTest : public BcmLinkStateDependentTests {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
         8001,
-        static_cast<uint8_t>(dscpVal << 2)); // Trailing 2 bits are for ECN
+        // Trailing 2 bits are for ECN
+        static_cast<uint8_t>(dscpVal << 2),
+        255,
+        std::vector<uint8_t>(6000, 0xff));
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
   }
 
+ protected:
   /*
    * In practice, sending single packet usually (but not always) returned BST
    * value > 0 (usually 2, but  other times it was 0). Thus, send a large
@@ -91,36 +77,44 @@ class BcmBstTest : public BcmLinkStateDependentTests {
       sendUdpPkt(dscpVal);
     }
   }
+  void _createAcl(uint8_t dscpVal, int queueId, const std::string& aclName) {
+    auto newCfg{initialConfig()};
+    utility::addDscpAclToCfg(&newCfg, aclName, dscpVal);
+    utility::addQueueMatcher(&newCfg, aclName, queueId);
+    applyNewConfig(newCfg);
+  }
 
   void _setup(uint8_t kDscp) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                             getPlatform()->getLocalMac()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     setupECMPForwarding(ecmpHelper6);
-    disableTTLDecrements(ecmpHelper6);
-    sendUdpPkts(kDscp);
+  }
+  void assertWatermarks(PortID port, const std::vector<int>& queueIds) const {
+    auto queueWaterMarks = utility::getQueueWaterMarks(
+        getHwSwitch(),
+        port,
+        *(std::max_element(queueIds.begin(), queueIds.end())));
+    for (auto queueId : queueIds) {
+      XLOG(DBG0) << "queueId: " << queueId
+                 << " Watermark: " << queueWaterMarks[queueId];
+      EXPECT_GT(queueWaterMarks[queueId], 0);
+    }
   }
 };
 
 TEST_F(BcmBstTest, VerifyDefaultQueue) {
-  // NOTE: failures in this test often suggest unexpected port flaps
-  // on warm boot.
   uint8_t kDscp = 10;
   int kDefQueueId = 0;
 
   auto setup = [=]() { _setup(kDscp); };
   auto verify = [=]() {
-    utility::verifyBstStatsReported(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        std::vector<int>{kDefQueueId});
+    sendUdpPkts(kDscp);
+    assertWatermarks(masterLogicalPortIds()[0], {kDefQueueId});
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmBstTest, VerifyNonDefaultQueue) {
-  // NOTE: failures in this test often suggest unexpected port flaps
-  // on warm boot.
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -134,10 +128,8 @@ TEST_F(BcmBstTest, VerifyNonDefaultQueue) {
     _setup(kDscp);
   };
   auto verify = [=]() {
-    utility::verifyBstStatsReported(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        std::vector<int>{kNonDefQueueId});
+    sendUdpPkts(kDscp);
+    assertWatermarks(masterLogicalPortIds()[0], {kNonDefQueueId});
   };
 
   verifyAcrossWarmBoots(setup, verify);

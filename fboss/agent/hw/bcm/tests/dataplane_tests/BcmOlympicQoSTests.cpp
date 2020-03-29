@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -163,10 +162,6 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
           utility::clearAndGetQueueStats(
               getUnit(), masterLogicalPortIds()[0], queueIds),
           trafficQueueId);
-      utility::verifyBstStatsReported(
-          getHwSwitch(),
-          masterLogicalPortIds()[0],
-          std::vector<int>{trafficQueueId});
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -231,11 +226,6 @@ void BcmOlympicQoSTest::verifyWRR() {
             utility::kOlympicWRRQueueIds()),
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
         utility::kOlympicWRRQueueToWeight());
-
-    utility::verifyBstStatsReported(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        utility::kOlympicWRRQueueIds());
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -261,10 +251,6 @@ void BcmOlympicQoSTest::verifySP() {
         utility::kOlympicHighestSPQueueId); // SP queue with highest queueId
                                             // should starve other SP queues
                                             // altogether
-    utility::verifyBstStatsReported(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        std::vector<int>{utility::kOlympicHighestQueueId});
   };
 
   // TODO Post warmboot queue6 (SP queue with lower queueid) sees traffic

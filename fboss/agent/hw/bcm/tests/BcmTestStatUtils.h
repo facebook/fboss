@@ -36,10 +36,4 @@ std::map<int, uint64_t> clearAndGetQueueStats(
     int unit,
     bcm_port_t port,
     const std::vector<int>& queueIds);
-
-void clearPortBstStats(int unit, bcm_port_t port, int highestQueueId);
-void syncBstStats(int unit);
-std::map<int, uint64_t>
-clearAndGetAllBstStats(int unit, bcm_port_t port, int highestQueueId);
-
 } // namespace facebook::fboss::utility
