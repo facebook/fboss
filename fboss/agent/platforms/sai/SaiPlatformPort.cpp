@@ -85,16 +85,22 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 
 std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     cfg::PortSpeed speed) const {
-  auto platformPortSettings = getPlatformPortSettings(speed);
-  if (!platformPortSettings) {
+  auto profileID = getProfileIDBySpeed(speed);
+  auto platformPortEntry = getPlatformPortEntry();
+  if (!platformPortEntry.has_value()) {
     throw FbossError(
-        "platform port settings is empty for port ",
-        getPortID(),
-        "speed ",
-        speed);
+        "Platform Port entry does not exist for port: ", getPortID());
+  }
+  auto supportedProfilesIter =
+      platformPortEntry->supportedProfiles.find(profileID);
+  if (supportedProfilesIter == platformPortEntry->supportedProfiles.end()) {
+    throw FbossError(
+        "Port: ",
+        platformPortEntry->mapping.name,
+        " doesn't support the speed profile:");
   }
   std::vector<PortID> subsumedPortList;
-  for (auto portId : platformPortSettings->subsumedPorts) {
+  for (auto portId : *supportedProfilesIter->second.subsumedPorts_ref()) {
     subsumedPortList.push_back(PortID(portId));
   }
   return subsumedPortList;

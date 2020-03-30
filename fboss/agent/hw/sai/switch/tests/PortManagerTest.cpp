@@ -16,6 +16,8 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/types.h"
 
@@ -97,6 +99,20 @@ class PortManagerTest : public ManagerTestBase {
                                       std::nullopt,
                                       std::nullopt};
     return portApi.create<SaiPortTraits>(a, 0);
+  }
+
+  void checkSubsumedPorts(
+      TestPort port,
+      cfg::PortSpeed speed,
+      std::vector<PortID> expectedPorts) {
+    std::shared_ptr<Port> swPort = makePort(port);
+    swPort->setSpeed(speed);
+    saiManagerTable->portManager().addPort(swPort);
+    SaiPlatformPort* platformPort = saiPlatform->getPort(swPort->getID());
+    EXPECT_TRUE(platformPort);
+    auto subsumedPorts = platformPort->getSubsumedPorts(speed);
+    EXPECT_EQ(subsumedPorts, expectedPorts);
+    saiManagerTable->portManager().removePort(swPort->getID());
   }
 
   TestPort p0;
@@ -300,4 +316,20 @@ TEST_F(PortManagerTest, collectStatsAfterPortDisable) {
   saiManagerTable->portManager().updateStats();
   EXPECT_EQ(saiManagerTable->portManager().getPortStats().size(), 0);
   checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
+}
+
+TEST_F(PortManagerTest, subsumedPorts) {
+  // Port P0 has a port ID 0 and only be configured with all speeds.
+  checkSubsumedPorts(p0, cfg::PortSpeed::XG, {});
+  checkSubsumedPorts(p0, cfg::PortSpeed::TWENTYFIVEG, {});
+  checkSubsumedPorts(p0, cfg::PortSpeed::FIFTYG, {PortID(p0.id + 1)});
+  std::vector<PortID> expectedPortList = {
+      PortID(p0.id + 1), PortID(p0.id + 2), PortID(p0.id + 3)};
+  checkSubsumedPorts(p0, cfg::PortSpeed::FORTYG, expectedPortList);
+  checkSubsumedPorts(p0, cfg::PortSpeed::HUNDREDG, expectedPortList);
+
+  // Port P1 has a port ID 10 and only be configured with 10, 25 and 50G modes.
+  checkSubsumedPorts(p1, cfg::PortSpeed::XG, {});
+  checkSubsumedPorts(p1, cfg::PortSpeed::TWENTYFIVEG, {});
+  checkSubsumedPorts(p1, cfg::PortSpeed::FIFTYG, {PortID(p1.id + 1)});
 }
