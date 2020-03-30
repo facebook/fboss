@@ -40,6 +40,12 @@ void verifyLabeledMultiPathEgress(
         std::pair<bcm_mpls_label_t, LabelForwardingAction::LabelStack>>&
         stacks);
 
+void verifyLabeledMultiPathEgress(
+    uint32_t unLabeled,
+    uint32_t labeled,
+    bcm_if_t egressId,
+    const std::map<bcm_port_t, LabelForwardingAction::LabelStack>& stacks);
+
 void verifyEgress(
     bcm_if_t egressId,
     bcm_port_t port,

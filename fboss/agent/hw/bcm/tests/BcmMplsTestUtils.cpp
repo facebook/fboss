@@ -130,6 +130,47 @@ void verifyLabeledMultiPathEgress(
   EXPECT_EQ(labeled, 0);
 }
 
+void verifyLabeledMultiPathEgress(
+    uint32_t unLabeled,
+    uint32_t labeled,
+    bcm_if_t egressId,
+    const std::map<bcm_port_t, LabelForwardingAction::LabelStack>& stacks) {
+  bcm_l3_egress_ecmp_t ecmp;
+  bcm_l3_egress_ecmp_t_init(&ecmp);
+  ecmp.ecmp_intf = egressId;
+  ecmp.flags = BCM_L3_WITH_ID;
+
+  std::vector<bcm_if_t> ecmp_members;
+  ecmp_members.resize(unLabeled + labeled);
+  int ecmp_member_count = 0;
+
+  bcm_l3_egress_ecmp_get(
+      0, &ecmp, ecmp_members.size(), ecmp_members.data(), &ecmp_member_count);
+  EXPECT_EQ(ecmp_member_count, ecmp_members.size());
+
+  for (const auto& ecmp_member : ecmp_members) {
+    bcm_l3_egress_t egr;
+    bcm_l3_egress_get(0, ecmp_member, &egr);
+    auto itr = stacks.find(egr.port);
+    ASSERT_NE(itr, stacks.end());
+    auto [label, stack] =
+        getEgressLabelAndTunnelStackFromPushStack(itr->second);
+    EXPECT_EQ(egr.mpls_label, label);
+    if (label == BCM_MPLS_LABEL_INVALID) {
+      unLabeled--;
+      continue;
+    }
+    labeled--;
+    if (!stack.size()) {
+      verifyLabeledEgress(ecmp_member, egr.mpls_label);
+    } else {
+      verifyTunneledEgress(ecmp_member, egr.mpls_label, stack);
+    }
+  }
+  EXPECT_EQ(unLabeled, 0);
+  EXPECT_EQ(labeled, 0);
+}
+
 void verifyEgress(
     bcm_if_t egressId,
     bcm_port_t port,
