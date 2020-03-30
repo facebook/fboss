@@ -18,6 +18,7 @@ class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping)
       : SaiBcmPlatform(std::move(productInfo), std::move(platformMapping)) {}
+  static std::string getLinecardName(bool isFabric);
   uint32_t numLanesPerCore() const override {
     return 4;
   }
