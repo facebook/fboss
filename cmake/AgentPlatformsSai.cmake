@@ -7,6 +7,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiBcmGalaxyPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
