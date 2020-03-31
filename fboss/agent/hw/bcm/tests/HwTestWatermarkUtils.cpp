@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestBstUtils.h"
+#include "fboss/agent/hw/test/HwTestWatermarkUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
