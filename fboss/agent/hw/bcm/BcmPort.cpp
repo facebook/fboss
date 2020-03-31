@@ -118,6 +118,22 @@ bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
   throw std::runtime_error("Unsupported fec type in port resource");
 }
 
+void fec_stat_accumulate(
+    int unit,
+    bcm_port_t port,
+    bcm_port_phy_control_t type,
+    int64_t* accumulator) {
+  int rv;
+  uint32 count;
+
+  rv = bcm_port_phy_control_get(unit, port, type, &count);
+  if (BCM_FAILURE(rv)) {
+    count = 0;
+  }
+
+  COMPILER_64_ADD_32(*accumulator, count);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -193,6 +209,8 @@ void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
   reinitPortStat(kOutErrors(), portName);
   reinitPortStat(kOutPause(), portName);
   reinitPortStat(kOutEcnCounter(), portName);
+  reinitPortStat(kFecCorrectable(), portName);
+  reinitPortStat(kFecUncorrectable(), portName);
 
   if (swPort) {
     queueManager_->setPortName(portName);
@@ -791,6 +809,8 @@ void BcmPort::updateStats() {
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
       &curPortStats.inDstNullDiscards_);
+  updateFecStats(now, curPortStats);
+
   setAdditionalStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -837,6 +857,39 @@ void BcmPort::updateStats() {
   // Update any platform specific port counters
   getPlatformPort()->updateStats();
 };
+
+void BcmPort::updateFecStats(
+    std::chrono::seconds now,
+    HwPortStats& curPortStats) {
+  // Only collect FEC stats on TH3 (will fail if we try to read the fec type
+  // via port resource on TH)
+  if (!platformPort_->shouldUsePortResourceAPIs()) {
+    return;
+  }
+  bcm_port_phy_control_t corrected_ctrl, uncorrected_ctrl;
+  bcm_port_phy_fec_t fec = getCurrentPortResource(unit_, gport_).fec_type;
+
+  // RS-FEC errors are in the CODEWORD_COUNT registers, while BaseR fec
+  // errors are in the BLOCK_COUNT registers.
+  if ((fec == bcmPortPhyFecRs544) || (fec == bcmPortPhyFecRs272) ||
+      (fec == bcmPortPhyFecRs544_2xN) || (fec == bcmPortPhyFecRs272_2xN)) {
+    corrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_CORRECTED_CODEWORD_COUNT;
+    uncorrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_UNCORRECTED_CODEWORD_COUNT;
+  } else { /* Assume other FEC is BaseR */
+    corrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_CORRECTED_BLOCK_COUNT;
+    uncorrected_ctrl = BCM_PORT_PHY_CONTROL_FEC_UNCORRECTED_BLOCK_COUNT;
+  }
+
+  fec_stat_accumulate(
+      unit_, port_, corrected_ctrl, &curPortStats.fecCorrectableErrors);
+  fec_stat_accumulate(
+      unit_, port_, uncorrected_ctrl, &curPortStats.fecUncorrectableErrors);
+
+  getPortCounterIf(kFecCorrectable())
+      ->updateValue(now, curPortStats.fecCorrectableErrors);
+  getPortCounterIf(kFecUncorrectable())
+      ->updateValue(now, curPortStats.fecUncorrectableErrors);
+}
 
 void BcmPort::updateStat(
     std::chrono::seconds now,

@@ -54,6 +54,8 @@ HwPortStats getInitedStats() {
       {{1, 3}, {2, 3}}, // queueOutPackets
       {{0, 0}, {0, 0}}, // queueOutDiscardPackets
       {{0, 0}, {0, 0}}, // queueWatermarkBytes
+      21, // fecCorrectableErrors
+      22, // fecUncorrectableErrors
   };
 }
 

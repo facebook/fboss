@@ -32,6 +32,10 @@ struct HwPortStats {
   23: map<i16, i64> queueOutPackets_ = {}
   24: map<i16, i64> queueOutDiscardPackets_ = {}
   25: map<i16, i64> queueWatermarkBytes_ = {}
+  26: i64 fecCorrectableErrors =
+            STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
+  27: i64 fecUncorrectableErrors =
+            STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
 }
 
 struct HwTrunkStats {

@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-std::array<folly::StringPiece, 20> HwPortFb303Stats::kPortStatKeys() {
+std::array<folly::StringPiece, 22> HwPortFb303Stats::kPortStatKeys() {
   return {
       kInBytes(),
       kInUnicastPkts(),
@@ -39,6 +39,8 @@ std::array<folly::StringPiece, 20> HwPortFb303Stats::kPortStatKeys() {
       kOutPause(),
       kOutCongestionDiscards(),
       kOutEcnCounter(),
+      kFecCorrectable(),
+      kFecUncorrectable(),
   };
 }
 
@@ -115,9 +117,7 @@ void HwPortFb303Stats::reinitStat(
                    : std::nullopt);
 }
 
-void HwPortFb303Stats::queueChanged(
-    int queueId,
-    const std::string& queueName) {
+void HwPortFb303Stats::queueChanged(int queueId, const std::string& queueName) {
   auto qitr = queueId2Name_.find(queueId);
   std::optional<std::string> oldQueueName = qitr == queueId2Name_.end()
       ? std::nullopt
@@ -167,8 +167,12 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kOutCongestionDiscards(),
       curPortStats.outCongestionDiscardPkts_);
-
   updateStat(timeRetrieved_, kOutEcnCounter(), curPortStats.outEcnCounter_);
+  updateStat(
+      timeRetrieved_, kFecCorrectable(), curPortStats.fecCorrectableErrors);
+  updateStat(
+      timeRetrieved_, kFecUncorrectable(), curPortStats.fecUncorrectableErrors);
+
   // Update queue stats
   auto updateQueueStat = [this](
                              folly::StringPiece statKey,

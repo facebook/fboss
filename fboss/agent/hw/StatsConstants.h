@@ -113,4 +113,12 @@ inline folly::StringPiece constexpr kOutPkts() {
   return "out_pkts";
 }
 
+inline folly::StringPiece constexpr kFecCorrectable() {
+  return "fec_correctable_errors";
+}
+
+inline folly::StringPiece constexpr kFecUncorrectable() {
+  return "fec_uncorrectable_errors";
+}
+
 } // namespace facebook::fboss
