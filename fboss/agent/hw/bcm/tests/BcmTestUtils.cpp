@@ -22,15 +22,6 @@ DECLARE_int32(acl_gid);
 
 namespace facebook::fboss::utility {
 
-void getSflowRates(
-    int unit,
-    bcm_port_t port,
-    int* ingressRate,
-    int* egressRate) {
-  auto rv = bcm_port_sample_rate_get(unit, port, ingressRate, egressRate);
-  bcmCheckError(rv, "failed to get port sflow rates");
-}
-
 void checkSwHwAclMatch(
     BcmSwitch* hw,
     std::shared_ptr<SwitchState> state,

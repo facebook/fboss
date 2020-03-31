@@ -28,13 +28,7 @@ class SwitchState;
 /*
  * This utility is to provide utils for bcm test.
  */
-
 namespace facebook::fboss::utility {
-void getSflowRates(
-    int unit,
-    bcm_port_t port,
-    int* ingressRate,
-    int* egressRate);
 void checkSwHwAclMatch(
     BcmSwitch* hw,
     std::shared_ptr<SwitchState> state,

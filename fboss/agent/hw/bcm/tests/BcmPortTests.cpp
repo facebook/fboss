@@ -35,6 +35,16 @@ bool isFlexModeSupported(
   }
   return false;
 }
+
+void getSflowRates(
+    int unit,
+    bcm_port_t port,
+    int* ingressRate,
+    int* egressRate) {
+  auto rv = bcm_port_sample_rate_get(unit, port, ingressRate, egressRate);
+  facebook::fboss::bcmCheckError(rv, "failed to get port sflow rates");
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -80,7 +90,7 @@ TEST_F(BcmPortTest, PortSflowConfig) {
   auto verify = [this, kIngressRate, kEgressRate]() {
     for (auto index : {0, 1}) {
       int ingressSamplingRate, egressSamplingRate;
-      utility::getSflowRates(
+      getSflowRates(
           getUnit(),
           masterLogicalPortIds()[index],
           &ingressSamplingRate,
