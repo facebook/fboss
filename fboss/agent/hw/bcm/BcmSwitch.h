@@ -693,16 +693,6 @@ class BcmSwitch : public BcmSwitchIf {
   bcm_rx_t packetReceived(bcm_pkt_t* pkt) noexcept;
 
   /*
-   * Update thread-local switch statistics.
-   */
-  void updateThreadLocalSwitchStats(SwitchStats* switchStats);
-
-  /*
-   * Update thread-local per-port statistics.
-   */
-  void updateThreadLocalPortStats(PortID portID, PortStats* portStats);
-
-  /*
    * Update global statistics.
    */
   void updateGlobalStats();

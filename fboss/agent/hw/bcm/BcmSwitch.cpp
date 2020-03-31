@@ -2292,15 +2292,6 @@ bool BcmSwitch::sendPacketOutOfPortSync(
 }
 
 void BcmSwitch::updateStats(SwitchStats* switchStats) {
-  // Update thread-local switch statistics.
-  updateThreadLocalSwitchStats(switchStats);
-  // Update thread-local per-port statistics.
-  PortStatsMap* portStatsMap = switchStats->getPortStats();
-  for (auto& it : *portStatsMap) {
-    PortID portID = it.first;
-    PortStats* portStats = it.second.get();
-    updateThreadLocalPortStats(portID, portStats);
-  }
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
@@ -2315,16 +2306,6 @@ shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
 }
 void BcmSwitch::unregisterSwitchEventCallback(bcm_switch_event_t eventID) {
   return BcmSwitchEventUtils::unregisterSwitchEventCallback(unit_, eventID);
-}
-
-void BcmSwitch::updateThreadLocalSwitchStats(SwitchStats* /*switchStats*/) {
-  // TODO
-}
-
-void BcmSwitch::updateThreadLocalPortStats(
-    PortID /*portID*/,
-    PortStats* /*portStats*/) {
-  // TODO
 }
 
 void BcmSwitch::updateGlobalStats() {
