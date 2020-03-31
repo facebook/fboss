@@ -38,8 +38,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, getPlatform()->getLocalMac());
-    utility::addCpuQueueConfig(cfg);
+        cfg, getAsic(), getPlatform()->getLocalMac());
+    utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
   }
 
@@ -298,7 +298,7 @@ TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
       for (const auto& ipAddress : configIntf.ipAddresses) {
         for (int dir = 0; dir <= DST; dir++) {
           sendPktAndVerifyCpuQueue(
-              utility::kCoppHighPriQueueId,
+              utility::getCoppHighPriQueueId(getAsic()),
               folly::IPAddress::createNetwork(ipAddress, -1, false).first,
               dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
               dir == DST ? utility::kBgpPort : utility::kNonSpecialPort1);
@@ -328,7 +328,9 @@ TEST_F(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
         EXPECT_EQ(
             0,
             getQueueOutPacketsWithRetry(
-                utility::kCoppHighPriQueueId, kGetQueueOutPktsRetryTimes, 0));
+                utility::getCoppHighPriQueueId(getAsic()),
+                kGetQueueOutPktsRetryTimes,
+                0));
       }
     }
   };
@@ -355,7 +357,9 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
       EXPECT_EQ(
           0,
           getQueueOutPacketsWithRetry(
-              utility::kCoppHighPriQueueId, kGetQueueOutPktsRetryTimes, 0));
+              utility::getCoppHighPriQueueId(getAsic()),
+              kGetQueueOutPktsRetryTimes,
+              0));
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -401,7 +405,9 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
       EXPECT_EQ(
           0,
           getQueueOutPacketsWithRetry(
-              utility::kCoppHighPriQueueId, kGetQueueOutPktsRetryTimes, 0));
+              utility::getCoppHighPriQueueId(getAsic()),
+              kGetQueueOutPktsRetryTimes,
+              0));
     }
     // Non device link local unicast address should also use mid-pri queue
     {
@@ -415,7 +421,9 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
       EXPECT_EQ(
           0,
           getQueueOutPacketsWithRetry(
-              utility::kCoppHighPriQueueId, kGetQueueOutPktsRetryTimes, 0));
+              utility::getCoppHighPriQueueId(getAsic()),
+              kGetQueueOutPktsRetryTimes,
+              0));
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -428,7 +436,7 @@ TEST_F(HwCoppTest, SlowProtocolsMacToHighPriQ) {
 
   auto verify = [=]() {
     sendPktAndVerifyEthPacketsCpuQueue(
-        utility::kCoppHighPriQueueId,
+        utility::getCoppHighPriQueueId(getAsic()),
         facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
         LACPDU::kSlowProtocolsDstMac());
   };
@@ -445,7 +453,7 @@ TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
     for (const auto& configIntf : initialConfig().interfaces) {
       for (const auto& ipAddress : configIntf.ipAddresses) {
         sendPktAndVerifyCpuQueue(
-            utility::kCoppHighPriQueueId,
+            utility::getCoppHighPriQueueId(getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             utility::kNonSpecialPort1,
             utility::kNonSpecialPort2,
@@ -455,7 +463,7 @@ TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
       // Non local dst ip with kNetworkControlDscp should not hit high pri queue
       // (since it won't even trap to cpu)
       sendPktAndVerifyCpuQueue(
-          utility::kCoppHighPriQueueId,
+          utility::getCoppHighPriQueueId(getAsic()),
           folly::IPAddress("2::2"),
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -482,7 +490,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
           folly::IPAddressV6::LINK_LOCAL, getPlatform()->getLocalMac());
 
       sendPktAndVerifyCpuQueue(
-          utility::kCoppHighPriQueueId,
+          utility::getCoppHighPriQueueId(getAsic()),
           linkLocalAddr,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -493,7 +501,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // also use high-pri queue
     {
       sendPktAndVerifyCpuQueue(
-          utility::kCoppHighPriQueueId,
+          utility::getCoppHighPriQueueId(getAsic()),
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -515,7 +523,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
       sendPktAndVerifyCpuQueue(
-          utility::kCoppHighPriQueueId,
+          utility::getCoppHighPriQueueId(getAsic()),
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,

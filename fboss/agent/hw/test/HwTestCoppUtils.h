@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/IPAddress.h>
 #include <string>
@@ -26,7 +27,6 @@ constexpr int kCPUPort = 0;
 constexpr int kCoppLowPriQueueId = 0;
 constexpr int kCoppDefaultPriQueueId = 1;
 constexpr int kCoppMidPriQueueId = 2;
-constexpr int kCoppHighPriQueueId = 9;
 
 constexpr uint32_t kCoppLowPriWeight = 1;
 constexpr uint32_t kCoppDefaultPriWeight = 1;
@@ -42,17 +42,22 @@ constexpr uint16_t kBgpPort = 179;
 constexpr uint16_t kNonSpecialPort1 = 60000;
 constexpr uint16_t kNonSpecialPort2 = 60001;
 
-void addCpuQueueConfig(cfg::SwitchConfig& config);
+void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const folly::MacAddress& localMac);
+    const folly::MacAddress& localMac,
+    const HwAsic* hwAsic);
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
     const folly::MacAddress& localMac);
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
+uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
+
 uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
-std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues();
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
+    const HwAsic* hwAsic);
 
 } // namespace facebook::fboss::utility

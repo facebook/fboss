@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/LacpTypes.h"
 
@@ -40,7 +41,20 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   return range;
 }
 
-void addCpuQueueConfig(cfg::SwitchConfig& config) {
+uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
+  switch (hwAsic->getAsicType()) {
+    case HwAsic::AsicType::ASIC_TYPE_FAKE:
+    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+      return 9;
+    case HwAsic::AsicType::ASIC_TYPE_TAJO:
+      return 7;
+  }
+}
+
+void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> cpuQueues;
 
   cfg::PortQueue queue0;
@@ -78,7 +92,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
   cpuQueues.push_back(queue2);
 
   cfg::PortQueue queue9;
-  queue9.id = kCoppHighPriQueueId;
+  queue9.id = getCoppHighPriQueueId(hwAsic);
   queue9.name_ref() = "cpuQueue-high";
   queue9.streamType = cfg::StreamType::MULTICAST;
   queue9.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -89,7 +103,8 @@ void addCpuQueueConfig(cfg::SwitchConfig& config) {
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const folly::MacAddress& localMac) {
+    const folly::MacAddress& localMac,
+    const HwAsic* hwAsic) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   auto createMatchAction = [](int queueId) {
@@ -106,7 +121,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     acl.name = "cpuPolicing-high-slow-protocols-mac";
     acl.dstMac_ref() = LACPDU::kSlowProtocolsDstMac().toString();
     acls.push_back(
-        std::make_pair(acl, createMatchAction(utility::kCoppHighPriQueueId)));
+        std::make_pair(acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
   }
 
   // dstClassL3 w/ BGP port to high pri queue
@@ -128,7 +143,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     }
 
     acls.push_back(
-        std::make_pair(acl, createMatchAction(utility::kCoppHighPriQueueId)));
+        std::make_pair(acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
   };
   createHighPriDstClassL3Acl(true, true);
   createHighPriDstClassL3Acl(true, false);
@@ -146,7 +161,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                                  : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
     acls.push_back(
-        std::make_pair(acl, createMatchAction(utility::kCoppHighPriQueueId)));
+        std::make_pair(acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
   };
   createHigPriLocalIpNetworkControlAcl(true);
   createHigPriLocalIpNetworkControlAcl(false);
@@ -161,7 +176,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         acl.dstIp_ref() = dstNetworkStr;
         acl.dscp_ref() = 48;
         acls.push_back(std::make_pair(
-            acl, createMatchAction(utility::kCoppHighPriQueueId)));
+            acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
       };
   createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalMcastNetwork);
   createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalUcastNetwork);
@@ -205,8 +220,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
 
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
     const folly::MacAddress& localMac) {
-  auto cpuAcls = utility::defaultCpuAcls(localMac);
+  auto cpuAcls = utility::defaultCpuAcls(localMac, hwAsic);
   // insert cpu acls into global acl field
   int curNumAcls = config.acls.size();
   config.acls.resize(curNumAcls + cpuAcls.size());
@@ -223,7 +239,7 @@ void setDefaultCpuTrafficPolicyConfig(
     trafficConfig.matchToAction[i].action = cpuAcls[i].second;
   }
   cpuConfig.trafficPolicy_ref() = trafficConfig;
-  auto rxReasonToQueues = getCoppRxReasonToQueues();
+  auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);
   if (rxReasonToQueues.size()) {
     cpuConfig.set_rxReasonToQueueOrderedList(rxReasonToQueues);
   }

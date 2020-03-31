@@ -18,7 +18,8 @@ uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
   return 0;
 }
 
-std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues() {
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
+    const HwAsic* /* hwAsic */) {
   return std::vector<cfg::PacketRxReasonToQueue>{};
 }
 
