@@ -300,7 +300,7 @@ EcmpSetupTargetedPorts<IPAddrT>::setupIp2MplsECMPForwarding(
     auto i = 0;
     for (const auto& portDescriptor : portDescriptors) {
       auto itr = stacks.find(portDescriptor);
-      if (itr != stacks.end()) {
+      if (itr != stacks.end() && !itr->second.empty()) {
         nhops.emplace(UnresolvedNextHop(
             BaseEcmpSetupHelperT::ip(portDescriptor),
             hopWeights[i++],
