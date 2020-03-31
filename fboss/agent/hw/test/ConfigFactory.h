@@ -67,4 +67,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
 
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
 } // namespace facebook::fboss::utility

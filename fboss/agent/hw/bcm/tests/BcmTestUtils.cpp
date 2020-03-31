@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>
@@ -32,23 +31,6 @@ void checkSwHwAclMatch(
   ASSERT_NE(nullptr, hwAcl);
   ASSERT_TRUE(
       BcmAclEntry::isStateSame(hw, FLAGS_acl_gid, hwAcl->getHandle(), swAcl));
-}
-
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction) {
-  cfg::MatchToAction action = cfg::MatchToAction();
-  action.matcher = matcherName;
-  action.action = matchAction;
-  cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy_ref()) {
-    egressTrafficPolicy = *dataPlaneTrafficPolicy;
-  }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction.size();
-  egressTrafficPolicy.matchToAction.resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
 }
 
 void assertSwitchControl(bcm_switch_control_t type, int expectedValue) {

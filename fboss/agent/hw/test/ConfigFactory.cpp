@@ -235,4 +235,21 @@ cfg::SwitchConfig twoL3IntfConfig(
   return config;
 }
 
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction) {
+  cfg::MatchToAction action = cfg::MatchToAction();
+  action.matcher = matcherName;
+  action.action = matchAction;
+  cfg::TrafficPolicyConfig egressTrafficPolicy;
+  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy_ref()) {
+    egressTrafficPolicy = *dataPlaneTrafficPolicy;
+  }
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction.size();
+  egressTrafficPolicy.matchToAction.resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction[curNumMatchActions] = action;
+  config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
+}
+
 } // namespace facebook::fboss::utility

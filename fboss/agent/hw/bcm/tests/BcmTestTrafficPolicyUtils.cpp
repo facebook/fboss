@@ -8,7 +8,8 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 namespace facebook::fboss::utility {
 void addDscpAclToCfg(

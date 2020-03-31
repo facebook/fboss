@@ -9,14 +9,11 @@
  */
 
 #pragma once
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-#include <folly/IPAddress.h>
-
+#include <memory>
 #include <string>
 
 extern "C" {
-#include <bcm/port.h>
 #include <bcm/switch.h>
 }
 
@@ -24,19 +21,13 @@ namespace facebook::fboss {
 class BcmSwitch;
 class SwitchState;
 
-} // namespace facebook::fboss
-/*
- * This utility is to provide utils for bcm test.
- */
-namespace facebook::fboss::utility {
+namespace utility {
+
 void checkSwHwAclMatch(
     BcmSwitch* hw,
     std::shared_ptr<SwitchState> state,
     const std::string& aclName);
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction);
-void assertSwitchControl(bcm_switch_control_t type, int expectedValue);
 
-} // namespace facebook::fboss::utility
+void assertSwitchControl(bcm_switch_control_t type, int expectedValue);
+} // namespace utility
+} // namespace facebook::fboss
