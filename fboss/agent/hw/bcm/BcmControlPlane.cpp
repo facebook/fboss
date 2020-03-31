@@ -15,8 +15,9 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/state/PortQueue.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 extern "C" {
-#include <bcm/cosq.h>
 #include <bcm/qos.h>
 #include <bcm/types.h>
 }
@@ -26,11 +27,64 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
 
-namespace {
 constexpr auto kCPUName = "cpu";
-}
 
 namespace facebook::fboss {
+
+bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
+  switch (reason) {
+    case cfg::PacketRxReason::UNMATCHED:
+      return RxUtils::genReasons();
+    case cfg::PacketRxReason::ARP:
+      return RxUtils::genReasons(bcmRxReasonArp);
+    case cfg::PacketRxReason::DHCP:
+      return RxUtils::genReasons(bcmRxReasonDhcp);
+    case cfg::PacketRxReason::BPDU:
+      return RxUtils::genReasons(bcmRxReasonBpdu);
+    case cfg::PacketRxReason::L3_SLOW_PATH:
+      return RxUtils::genReasons(bcmRxReasonL3Slowpath);
+    case cfg::PacketRxReason::L3_DEST_MISS:
+      return RxUtils::genReasons(bcmRxReasonL3DestMiss);
+    case cfg::PacketRxReason::TTL_1:
+      return RxUtils::genReasons(bcmRxReasonTtl1);
+    case cfg::PacketRxReason::CPU_IS_NHOP:
+      return RxUtils::genReasons(bcmRxReasonNhop);
+    case cfg::PacketRxReason::NDP:
+    case cfg::PacketRxReason::LLDP:
+    case cfg::PacketRxReason::ARP_RESPONSE:
+    case cfg::PacketRxReason::BGP:
+    case cfg::PacketRxReason::BGPV6:
+    case cfg::PacketRxReason::LACP:
+      throw FbossError(
+          "Unsupported config reason ", apache::thrift::util::enumName(reason));
+  }
+}
+
+cfg::PacketRxReason bcmReasonsToConfigReason(bcm_rx_reasons_t reasons) {
+  int count = 0;
+  BCM_RX_REASON_COUNT(reasons, count);
+  CHECK_LE(count, 1); // we only set reasons one at a time right now
+  if (count == 0) {
+    return cfg::PacketRxReason::UNMATCHED;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonArp)) {
+    return cfg::PacketRxReason::ARP;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonDhcp)) {
+    return cfg::PacketRxReason::DHCP;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonBpdu)) {
+    return cfg::PacketRxReason::BPDU;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonL3Slowpath)) {
+    return cfg::PacketRxReason::L3_SLOW_PATH;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonL3DestMiss)) {
+    return cfg::PacketRxReason::L3_DEST_MISS;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonTtl1)) {
+    return cfg::PacketRxReason::TTL_1;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonNhop)) {
+    return cfg::PacketRxReason::CPU_IS_NHOP;
+  } else {
+    throw FbossError(
+        "Unsupported bcm reasons ", RxUtils::describeReasons(reasons));
+  }
+}
 
 BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
     : hw_(hw),

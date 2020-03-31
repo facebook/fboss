@@ -111,6 +111,15 @@ ControlPlane* ControlPlane::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
+    cfg::PacketRxReason reason,
+    uint16_t queueId) {
+  cfg::PacketRxReasonToQueue reasonToQueue;
+  reasonToQueue.rxReason = reason;
+  reasonToQueue.queueId = queueId;
+  return reasonToQueue;
+}
+
 bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
   // TODO(joseph5wu) Will add QueueConfig struct in the future diff.
   auto compareQueues = [&](const QueueConfig& queues1,

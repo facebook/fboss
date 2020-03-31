@@ -85,6 +85,10 @@ class ControlPlane : public NodeBaseT<ControlPlane, ControlPlaneFields> {
     return !(*this == controlPlane);
   }
 
+  static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(
+      cfg::PacketRxReason reason,
+      uint16_t queueId);
+
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;

@@ -132,15 +132,6 @@ boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
   return queueMap;
 }
 
-cfg::PacketRxReasonToQueue reasonToQueueEntry(
-    cfg::PacketRxReason reason,
-    int16_t queueId) {
-  cfg::PacketRxReasonToQueue reasonToQueue;
-  reasonToQueue.set_rxReason(reason);
-  reasonToQueue.set_queueId(queueId);
-  return reasonToQueue;
-}
-
 shared_ptr<ControlPlane> generateControlPlane() {
   shared_ptr<ControlPlane> controlPlane = make_shared<ControlPlane>();
 
@@ -148,14 +139,17 @@ shared_ptr<ControlPlane> generateControlPlane() {
   controlPlane->resetQueues(cpuQueues);
 
   ControlPlane::RxReasonToQueue reasons = {
-      reasonToQueueEntry(cfg::PacketRxReason::ARP, 9),
-      reasonToQueueEntry(cfg::PacketRxReason::DHCP, 2),
-      reasonToQueueEntry(cfg::PacketRxReason::BPDU, 2),
-      reasonToQueueEntry(cfg::PacketRxReason::UNMATCHED, 1),
-      reasonToQueueEntry(cfg::PacketRxReason::L3_SLOW_PATH, 0),
-      reasonToQueueEntry(cfg::PacketRxReason::L3_DEST_MISS, 0),
-      reasonToQueueEntry(cfg::PacketRxReason::TTL_1, 0),
-      reasonToQueueEntry(cfg::PacketRxReason::CPU_IS_NHOP, 0)};
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::ARP, 9),
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::DHCP, 2),
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::BPDU, 2),
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::UNMATCHED, 1),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::L3_SLOW_PATH, 0),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::L3_DEST_MISS, 0),
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::TTL_1, 0),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::CPU_IS_NHOP, 0)};
   controlPlane->resetRxReasonToQueue(reasons);
 
   std::optional<std::string> qosPolicy("qp1");

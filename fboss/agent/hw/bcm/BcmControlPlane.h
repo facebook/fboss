@@ -11,13 +11,18 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
+#include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/state/ControlPlane.h"
 
 extern "C" {
+#include <bcm/cosq.h>
 #include <bcm/types.h>
 }
 
 namespace facebook::fboss {
+
+bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason);
+cfg::PacketRxReason bcmReasonsToConfigReason(bcm_rx_reasons_t reasons);
 
 class BcmSwitch;
 class PortQueue;

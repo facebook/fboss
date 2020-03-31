@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h"
 
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
+#include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
@@ -209,4 +210,31 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
 
   setup();
   verify();
+}
+
+TEST_F(BcmControlPlaneTest, TestBcmAndCfgReasonConversions) {
+  std::map<bcm_rx_reason_e, cfg::PacketRxReason> mapping = {
+      {bcmRxReasonArp, cfg::PacketRxReason::ARP},
+      {bcmRxReasonDhcp, cfg::PacketRxReason::DHCP},
+      {bcmRxReasonBpdu, cfg::PacketRxReason::BPDU},
+      {bcmRxReasonL3Slowpath, cfg::PacketRxReason::L3_SLOW_PATH},
+      {bcmRxReasonL3DestMiss, cfg::PacketRxReason::L3_DEST_MISS},
+      {bcmRxReasonTtl1, cfg::PacketRxReason::TTL_1},
+      {bcmRxReasonNhop, cfg::PacketRxReason::CPU_IS_NHOP}};
+
+  // Test empty reason
+  bcm_rx_reasons_t emptyReasons = RxUtils::genReasons();
+  EXPECT_EQ(
+      bcmReasonsToConfigReason(emptyReasons), cfg::PacketRxReason::UNMATCHED);
+  EXPECT_TRUE(BCM_RX_REASON_EQ(
+      configRxReasonToBcmReasons(cfg::PacketRxReason::UNMATCHED),
+      emptyReasons));
+
+  // Test supported reasons
+  for (auto reason : mapping) {
+    bcm_rx_reasons_t bcmReasons = RxUtils::genReasons(reason.first);
+    EXPECT_EQ(bcmReasonsToConfigReason(bcmReasons), reason.second);
+    EXPECT_TRUE(BCM_RX_REASON_EQ(
+        configRxReasonToBcmReasons(reason.second), bcmReasons));
+  }
 }
