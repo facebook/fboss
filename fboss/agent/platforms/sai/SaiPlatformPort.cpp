@@ -67,24 +67,6 @@ bool SaiPlatformPort::shouldDisableFEC() const {
   return true;
 }
 
-std::optional<cfg::PlatformPortSettings>
-SaiPlatformPort::getPlatformPortSettings(cfg::PortSpeed speed) const {
-  auto& platformSettings = getPlatform()->config()->thrift.platform;
-
-  auto portsIter = platformSettings.ports.find(getPortID());
-  if (portsIter == platformSettings.ports.end()) {
-    throw FbossError("platform port id ", getPortID(), " not found");
-  }
-
-  auto& portConfig = portsIter->second;
-  auto speedIter = portConfig.supportedSpeeds.find(speed);
-  if (speedIter == portConfig.supportedSpeeds.end()) {
-    throw FbossError("Port ", getPortID(), " does not support speed ", speed);
-  }
-
-  return speedIter->second;
-}
-
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortSpeed speed) const {
   auto profileID = getProfileIDBySpeed(speed);
@@ -129,18 +111,6 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
     subsumedPortList.push_back(PortID(portId));
   }
   return subsumedPortList;
-}
-
-phy::FecMode SaiPlatformPort::getFecMode(cfg::PortSpeed speed) const {
-  auto platformSettings = getPlatformPortSettings(speed);
-  if (!platformSettings) {
-    throw FbossError(
-        "platform port settings is empty for port ",
-        getPortID(),
-        "speed ",
-        speed);
-  }
-  return platformSettings->iphy_ref()->fec;
 }
 
 TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
