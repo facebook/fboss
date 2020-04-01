@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/store/LoggingUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
-#include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/lib/RefMap.h"
@@ -129,11 +128,7 @@ class SaiObjectStore {
       ins.first->setAttributes(attributes);
     } else {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        auto publishedAttr = ins.first->getPublisherAttributes();
-        auto& publisher =
-            facebook::fboss::SaiObjectEventPublisher::getInstance()
-                ->get<SaiObjectTraits>();
-        publisher.notifyCreate(publishedAttr, ins.first);
+        ins.first->notifyAfterCreate(ins.first);
       }
     }
     XLOGF(DBG5, "SaiStore set object {}", *ins.first);

@@ -301,6 +301,28 @@ class SaiObject {
     }
   }
 
+  void notifyBeforeDestroy() const {
+    static_assert(
+        IsObjectPublisher<SaiObjectTraits>::value,
+        "object must be pubisher to notify destroy");
+    auto publishedAttr = getPublisherAttributes();
+    auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
+                          ->get<SaiObjectTraits>();
+    publisher.notifyDelete(publishedAttr);
+  }
+
+  void notifyAfterCreate(
+      const std::shared_ptr<const SaiObject<SaiObjectTraits>>& object) const {
+    static_assert(
+        IsObjectPublisher<SaiObjectTraits>::value,
+        "object must be pubisher to notify destroy");
+    CHECK(this == object.get());
+    auto publishedAttr = getPublisherAttributes();
+    auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
+                          ->get<SaiObjectTraits>();
+    publisher.notifyCreate(publishedAttr, object);
+  }
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
@@ -318,10 +340,7 @@ class SaiObject {
   }
   void remove() {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-      auto publishedAttr = getPublisherAttributes();
-      auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
-                            ->get<SaiObjectTraits>();
-      publisher.notifyDelete(publishedAttr);
+      notifyBeforeDestroy();
     }
 
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
