@@ -11,13 +11,13 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>

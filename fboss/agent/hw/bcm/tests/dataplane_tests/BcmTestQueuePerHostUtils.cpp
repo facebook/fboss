@@ -8,7 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include <string>
 

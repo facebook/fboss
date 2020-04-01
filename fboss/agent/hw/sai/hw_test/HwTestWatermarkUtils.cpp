@@ -17,10 +17,10 @@ namespace facebook::fboss::utility {
 std::vector<uint64_t>
 getQueueWaterMarks(HwSwitchEnsemble* hw, PortID port, int highestQueueId) {
   std::vector<uint64_t> waterMarks;
-  waterMarks.reserve(highestQueueId);
+  waterMarks.reserve(highestQueueId + 1);
   auto portQueueWaterMarks =
       hw->getLatestPortStats({port})[port].queueWatermarkBytes_;
-  for (auto i = 0; i < highestQueueId; ++i) {
+  for (auto i = 0; i <= highestQueueId; ++i) {
     waterMarks.push_back(portQueueWaterMarks[i]);
   }
   return waterMarks;

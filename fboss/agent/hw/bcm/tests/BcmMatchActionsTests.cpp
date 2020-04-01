@@ -13,8 +13,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 

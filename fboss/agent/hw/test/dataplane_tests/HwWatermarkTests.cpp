@@ -8,18 +8,18 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestWatermarkUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
-class BcmBstTest : public BcmLinkStateDependentTests {
+class HwWatermarkTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -97,7 +97,7 @@ class BcmBstTest : public BcmLinkStateDependentTests {
   }
 };
 
-TEST_F(BcmBstTest, VerifyDefaultQueue) {
+TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
   uint8_t kDscp = 10;
   int kDefQueueId = 0;
 
@@ -110,7 +110,7 @@ TEST_F(BcmBstTest, VerifyDefaultQueue) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmBstTest, VerifyNonDefaultQueue) {
+TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }

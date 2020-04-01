@@ -14,6 +14,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
+  fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
   fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
@@ -57,7 +58,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmSwitchStateReplayTest.cpp
   fboss/agent/hw/bcm/tests/BcmTestRouteUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
-  fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
@@ -66,7 +66,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
   fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
 
-  fboss/agent/hw/bcm/tests/dataplane_tests/BcmBstTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmQueuePerHostTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestQueuePerHostUtils.cpp

@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.h"
 
-#include "fboss/agent/hw/bcm/tests/BcmTestTrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 

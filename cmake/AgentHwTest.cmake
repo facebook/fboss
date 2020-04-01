@@ -70,6 +70,17 @@ target_link_libraries(load_balancer_utils
   Folly::folly
 )
 
+add_library(traffic_policy_utils
+  fboss/agent/hw/test/TrafficPolicyUtils.cpp
+)
+
+target_link_libraries(traffic_policy_utils
+  switch_config_cpp2
+  config_factory
+  state
+  Folly::folly
+)
+
 add_library(hw_switch_test
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
   fboss/agent/hw/test/HwTest.cpp
@@ -100,6 +111,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6InMplsSwap.cpp
   fboss/agent/hw/test/dataplane_tests/HwSendPacketToQueueTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwWatermarkTests.cpp
 )
 
 target_link_libraries(hw_switch_test
@@ -107,6 +119,7 @@ target_link_libraries(hw_switch_test
   hw_packet_utils
   hw_switch_ensemble
   load_balancer_utils
+  traffic_policy_utils
   core
   hardware_stats_cpp2
   route_distribution_gen
