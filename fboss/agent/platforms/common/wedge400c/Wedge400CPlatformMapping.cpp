@@ -21439,7 +21439,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "name": "IFG0",
       "type": 1,
-      "physicalID": 1
+      "physicalID": 0
     },
     {
       "name": "IFG1",
