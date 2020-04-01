@@ -13,6 +13,27 @@
 
 namespace facebook::fboss {
 
+template <>
+struct IsPublisherAttributesAdapterHostKey<SaiIpNextHopTraits>
+    : std::true_type {};
+
+template <>
+struct IsPublisherAttributesAdapterHostKey<SaiMplsNextHopTraits>
+    : std::true_type {};
+
+template <>
+struct IsPublisherAttributesAdapterHostKey<SaiNeighborTraits> : std::true_type {
+};
+
+template <>
+struct IsObjectPublisher<SaiIpNextHopTraits> : std::true_type {};
+
+template <>
+struct IsObjectPublisher<SaiMplsNextHopTraits> : std::true_type {};
+
+template <>
+struct IsObjectPublisher<SaiNeighborTraits> : std::true_type {};
+
 template <typename>
 class SaiObject;
 
