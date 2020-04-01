@@ -48,8 +48,8 @@ class BcmBstStatsMgr {
   void updateStats();
 
  private:
-  void syncStats();
-  void exportDeviceBufferUsage();
+  void syncStats() const;
+  void exportDeviceBufferUsage() const;
 
   BufferStatsLogger* getBufferStatsLogger() const {
     return bufferStatsLogger_.get();
