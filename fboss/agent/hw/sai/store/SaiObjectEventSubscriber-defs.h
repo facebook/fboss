@@ -10,7 +10,7 @@ namespace facebook::fboss {
 namespace detail {
 template <typename PublishedObjectTrait>
 SaiObjectEventSubscriber<PublishedObjectTrait>::SaiObjectEventSubscriber(
-    typename PublishedObjectTrait::PublisherAttributes attr)
+    typename PublisherAttributes<PublishedObjectTrait>::type attr)
     : publisherAttrs_(attr) {}
 
 template <typename PublishedObjectTrait>

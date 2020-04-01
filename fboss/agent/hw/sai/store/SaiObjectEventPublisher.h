@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+#include "fboss/agent/hw/sai/store/Traits.h"
 
 #include "fboss/lib/RefMap.h"
 
@@ -28,7 +29,7 @@ namespace detail {
 template <typename PublishedObjectTrait>
 class SaiObjectEventPublisher {
  public:
-  using Key = typename PublishedObjectTrait::PublisherAttributes;
+  using Key = typename PublisherAttributes<PublishedObjectTrait>::type;
   using AdapterHostKey = typename PublishedObjectTrait::AdapterHostKey;
   using Subscriber = SaiObjectEventSubscriber<PublishedObjectTrait>;
   using PublisherObject = const SaiObject<PublishedObjectTrait>;
@@ -125,13 +126,14 @@ class SaiObjectEventPublisher {
 
   template <typename PublishedObjectTrait>
   void notifyCreate(
-      typename PublishedObjectTrait::PublisherAttributes key,
+      typename PublisherAttributes<PublishedObjectTrait>::type key,
       const std::shared_ptr<SaiObject<PublishedObjectTrait>> object) {
     std::get<PublishedObjectTrait>(publishers_).notifyCreate(key, object);
   }
 
   template <typename PublishedObjectTrait>
-  void notifyDelete(typename PublishedObjectTrait::PublisherAttributes key) {
+  void notifyDelete(
+      typename PublisherAttributes<PublishedObjectTrait>::type key) {
     std::get<PublishedObjectTrait>(publishers_).notifyDelete(key);
   }
 

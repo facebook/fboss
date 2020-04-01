@@ -59,7 +59,7 @@ class SaiNextHopSubscriberForNextHopGroupMember
   SaiNextHopSubscriberForNextHopGroupMember(
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       NextHopWeight weight,
-      typename NextHopTraits::PublisherAttributes attrs)
+      typename PublisherAttributes<NextHopTraits>::type attrs)
       : Base(attrs), nexthopGroupId_(nexthopGroupId), weight_(weight) {}
 
   void createObject(PublisherObjects added) {

@@ -28,12 +28,11 @@ struct SaiObjectEventSubscriber {
   using PublisherObjectWeakPtr =
       std::weak_ptr<const SaiObject<PublisherObjectTraits>>;
 
-  using PublisherAttributes =
-      typename PublisherObjectTraits::PublisherAttributes;
-
-  SaiObjectEventSubscriber(PublisherAttributes attr);
+  SaiObjectEventSubscriber(
+      typename PublisherAttributes<PublisherObjectTraits>::type attr);
   virtual ~SaiObjectEventSubscriber();
-  PublisherAttributes getPublisherAttributes() const {
+  typename PublisherAttributes<PublisherObjectTraits>::type
+  getPublisherAttributes() const {
     return publisherAttrs_;
   }
 
@@ -51,7 +50,7 @@ struct SaiObjectEventSubscriber {
   void setPublisherObject(PublisherObjectSharedPtr object = nullptr);
 
  private:
-  PublisherAttributes publisherAttrs_;
+  typename PublisherAttributes<PublisherObjectTraits>::type publisherAttrs_;
   PublisherObjectWeakPtr publisherObject_;
   // TODO(pshaikh): this is currently maintained as any to break circular
   // dependencies in object, publisher, and subscriber types investigate and
@@ -70,12 +69,11 @@ class SaiObjectEventSingleSubscriber
  public:
   using PublisherObjectSharedPtr =
       std::shared_ptr<const SaiObject<PublishedObjectTrait>>;
-  using PublisherAttributes =
-      typename PublishedObjectTrait::PublisherAttributes;
   using Base = SaiObjectEventSubscriber<PublishedObjectTrait>;
   /* Publisher object with PublishedObjectTrait and can be identified by
    * PublisherAttributes */
-  SaiObjectEventSingleSubscriber(PublisherAttributes monitoredAttrs)
+  SaiObjectEventSingleSubscriber(
+      typename PublisherAttributes<PublishedObjectTrait>::type monitoredAttrs)
       : Base{monitoredAttrs} {}
 
   /* Publisher object created, dispatch call to aggregate subscriber */
@@ -145,7 +143,7 @@ class SaiObjectEventAggregateSubscriber
   using SubscriberSharedPtr = std::shared_ptr<SaiObject<SubscriberTraits>>;
 
   SaiObjectEventAggregateSubscriber(
-      typename PublishedObjectTraits::PublisherAttributes... attrs)
+      typename PublisherAttributes<PublishedObjectTraits>::type... attrs)
       : detail::SaiObjectEventSingleSubscriber<Class, PublishedObjectTraits>(
             attrs)... {}
 
