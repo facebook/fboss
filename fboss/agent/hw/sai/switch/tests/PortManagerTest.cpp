@@ -333,3 +333,15 @@ TEST_F(PortManagerTest, subsumedPorts) {
   checkSubsumedPorts(p1, cfg::PortSpeed::TWENTYFIVEG, {});
   checkSubsumedPorts(p1, cfg::PortSpeed::FIFTYG, {PortID(p1.id + 1)});
 }
+
+TEST_F(PortManagerTest, getTransceiverID) {
+  std::vector<uint16_t> controllingPorts = {0, 4, 24};
+  for (auto i = 0; i < controllingPorts.size(); i++) {
+    for (auto lane = 0; lane < 4; lane++) {
+      uint16_t port = controllingPorts[i] + lane;
+      SaiPlatformPort* platformPort = saiPlatform->getPort(PortID(port));
+      EXPECT_TRUE(platformPort);
+      EXPECT_EQ(controllingPorts[i], platformPort->getTransceiverID().value());
+    }
+  }
+}

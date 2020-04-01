@@ -31,7 +31,9 @@ class SaiPlatformPort : public PlatformPort {
   void linkStatusChanged(bool up, bool adminUp) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   bool supportsTransceiver() const override;
-  std::optional<TransceiverID> getTransceiverID() const override;
+  std::optional<TransceiverID> getTransceiverID() const override {
+    return transceiverID_;
+  }
   void statusIndication(
       bool enabled,
       bool link,
@@ -52,6 +54,8 @@ class SaiPlatformPort : public PlatformPort {
  private:
   std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed) const;
+  std::vector<phy::PinID> getTransceiverLanes() const;
+  std::optional<TransceiverID> transceiverID_;
 };
 
 } // namespace facebook::fboss

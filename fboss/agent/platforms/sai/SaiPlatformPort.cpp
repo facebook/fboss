@@ -15,7 +15,32 @@
 
 namespace facebook::fboss {
 SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
-    : PlatformPort(id, platform) {}
+    : PlatformPort(id, platform) {
+  auto transceiverLanes = getTransceiverLanes();
+  if (!transceiverLanes.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    auto chipConfig =
+        getPlatform()->getDataPlanePhyChip(transceiverLanes[0].chip);
+    if (!chipConfig.has_value()) {
+      throw FbossError(
+          "Port ",
+          getPortID(),
+          " is using platform unsupported chip ",
+          transceiverLanes[0].chip);
+    }
+    transceiverID_.emplace(TransceiverID(chipConfig->physicalID));
+  }
+}
+
+std::vector<phy::PinID> SaiPlatformPort::getTransceiverLanes() const {
+  auto platformPortEntry = getPlatformPortEntry();
+  if (!platformPortEntry.has_value()) {
+    throw FbossError(
+        "Platform Port entry does not exist for port: ", getPortID());
+  }
+  return utility::getTransceiverLanes(
+      *platformPortEntry, getPlatform()->getDataPlanePhyChips(), std::nullopt);
+}
 
 void SaiPlatformPort::preDisable(bool /* temporary */) {}
 void SaiPlatformPort::postDisable(bool /* temporary */) {}
@@ -116,23 +141,6 @@ phy::FecMode SaiPlatformPort::getFecMode(cfg::PortSpeed speed) const {
         speed);
   }
   return platformSettings->iphy_ref()->fec;
-}
-
-std::optional<TransceiverID> SaiPlatformPort::getTransceiverID() const {
-  // TODO (srikrishnagopu): TransceiverID is now part of AgentConfig in
-  // front panel resources which is defined per speed. Declaring default
-  // speed for now to get the transceiverid.
-  auto speed = cfg::PortSpeed::HUNDREDG;
-  auto platformSettings = getPlatformPortSettings(speed);
-  if (!platformSettings) {
-    throw FbossError(
-        "platform port settings is empty for port ",
-        getPortID(),
-        "speed ",
-        speed);
-  }
-  return static_cast<TransceiverID>(
-      platformSettings->frontPanelResources_ref()->transceiverId);
 }
 
 TransmitterTechnology SaiPlatformPort::getTransmitterTech() {

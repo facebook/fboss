@@ -81,11 +81,16 @@ cfg::PlatformPortConfig getPlatformPortConfig(
   for (int i = 1; i < speedProfileIter->second.iphy.numLanes; i++) {
     platformPortConfig.subsumedPorts_ref()->push_back(portId + i);
   }
+  platformPortConfig.pins.transceiver_ref() = {};
   for (auto i = 0; i < speedProfileIter->second.iphy.numLanes; i++) {
     phy::PinConfig pinConfig;
     pinConfig.id.chip = chipName;
     pinConfig.id.lane = portId + i;
+    phy::PinConfig transceiverPinConfig;
+    transceiverPinConfig.id.chip = "port" + std::to_string(portId);
+    transceiverPinConfig.id.lane = portId + i;
     platformPortConfig.pins.iphy_ref()->push_back(pinConfig);
+    platformPortConfig.pins.transceiver_ref()->push_back(transceiverPinConfig);
   }
   return platformPortConfig;
 }
@@ -96,9 +101,20 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortEntries(
   for (auto portProfiles : getPortProfileIds()) {
     PortID portId = PortID(controllingPort + portProfiles.first);
     cfg::PlatformPortEntry platformPortEntry;
+    auto portName = "port" + std::to_string(controllingPort);
     platformPortEntry.mapping.id = portId;
-    platformPortEntry.mapping.name = "port" + std::to_string(portId);
+    platformPortEntry.mapping.name = portName;
     platformPortEntry.mapping.controllingPort = controllingPort;
+    phy::PinConnection pinConnection;
+    pinConnection.a.chip = chipName;
+    pinConnection.a.lane = portId;
+    phy::PinID pinEnd;
+    pinEnd.chip = portName;
+    pinEnd.lane = portId;
+    pinConnection.__isset.z = true;
+    pinConnection.z_ref()->set_end(pinEnd);
+    platformPortEntry.mapping.pins = {};
+    platformPortEntry.mapping.pins.push_back(pinConnection);
     for (auto profileId : portProfiles.second) {
       auto supportedProfile = getPlatformPortConfig(portId, profileId);
       platformPortEntry.supportedProfiles.emplace(profileId, supportedProfile);
@@ -111,12 +127,18 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortEntries(
 cfg::AgentConfig getFakeAgentConfig() {
   cfg::AgentConfig config;
   config.platform.platformPorts_ref() = {};
+  config.platform.chips_ref() = {};
   for (uint16_t portId = 0; portId < kMaxPorts; portId += kMaxLanes) {
     auto platformPortEntries = getPlatformPortEntries(portId);
     for (int lane = 0; lane < kMaxLanes; lane++) {
-      config.platform.platformPorts_ref()->emplace(
-          portId + lane, platformPortEntries[lane]);
+      config.platform.platformPorts_ref()->insert(
+          std::make_pair(portId + lane, platformPortEntries[lane]));
     }
+    phy::DataPlanePhyChip transceiver;
+    transceiver.name = "port" + std::to_string(portId);
+    transceiver.type = phy::DataPlanePhyChipType::TRANSCEIVER;
+    transceiver.physicalID = portId;
+    config.platform.chips_ref()->push_back(transceiver);
   }
   config.platform.supportedProfiles_ref() = {};
   for (auto supportedProfile : getSupportedProfiles()) {
@@ -126,7 +148,6 @@ cfg::AgentConfig getFakeAgentConfig() {
   chip.name = chipName;
   chip.type = phy::DataPlanePhyChipType::IPHY;
   chip.physicalID = 0;
-  config.platform.chips_ref() = {};
   config.platform.chips_ref()->push_back(chip);
 
   config.platform.platformSettings.insert(std::make_pair(
