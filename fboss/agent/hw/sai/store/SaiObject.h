@@ -286,6 +286,21 @@ class SaiObject {
     return attributes_;
   }
 
+  auto getPublisherAttributes() const {
+    if constexpr (IsPublisherAttributesAdapterHostKey<SaiObjectTraits>::value) {
+      return adapterHostKey_;
+    } else if constexpr (IsPublisherAttributesCreateAttributes<
+                             SaiObjectTraits>::value) {
+      return attributes_;
+    } else {
+      // TODO(pshaikh): lets do something here
+      static_assert(
+          IsPublisherAttributesAdapterHostKey<SaiObjectTraits>::value ||
+              IsPublisherAttributesCreateAttributes<SaiObjectTraits>::value,
+          "Custom PublisherAttributes are not supported");
+    }
+  }
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
@@ -303,8 +318,7 @@ class SaiObject {
   }
   void remove() {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-      auto publishedAttr = PublisherAttributes<SaiObjectTraits>::get(
-          adapterHostKey_, attributes_);
+      auto publishedAttr = getPublisherAttributes();
       auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
                             ->get<SaiObjectTraits>();
       publisher.notifyDelete(publishedAttr);

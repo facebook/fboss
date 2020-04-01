@@ -19,23 +19,6 @@ namespace detail {
 template <typename ObjectTraits, typename Attr>
 struct PublisherAttributesInternal {
   using type = Attr;
-
-  static auto get(
-      typename ObjectTraits::AdapterHostKey adapterHostKey,
-      typename ObjectTraits::CreateAttributes createAttributes) {
-    if constexpr (IsPublisherAttributesAdapterHostKey<ObjectTraits>::value) {
-      return adapterHostKey;
-    } else if constexpr (IsPublisherAttributesCreateAttributes<
-                             ObjectTraits>::value) {
-      return createAttributes;
-    } else {
-      // TODO(pshaikh): lets do something here
-      static_assert(
-          IsPublisherAttributesAdapterHostKey<ObjectTraits>::value ||
-              IsPublisherAttributesCreateAttributes<ObjectTraits>::value,
-          "Custom PublisherAttributes are not supported");
-    }
-  }
 };
 } // namespace detail
 

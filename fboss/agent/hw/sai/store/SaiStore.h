@@ -129,9 +129,7 @@ class SaiObjectStore {
       ins.first->setAttributes(attributes);
     } else {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        auto publishedAttr = PublisherAttributes<SaiObjectTraits>::get(
-            adapterHostKey, attributes);
-
+        auto publishedAttr = ins.first->getPublisherAttributes();
         auto& publisher =
             facebook::fboss::SaiObjectEventPublisher::getInstance()
                 ->get<SaiObjectTraits>();
