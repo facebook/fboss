@@ -17,6 +17,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
@@ -68,7 +69,8 @@ namespace facebook::fboss {
 SaiPlatform::SaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<PlatformMapping> platformMapping)
-    : Platform(std::move(productInfo), std::move(platformMapping)) {}
+    : Platform(std::move(productInfo), std::move(platformMapping)),
+      qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 SaiPlatform::~SaiPlatform() {}
 
@@ -178,6 +180,10 @@ HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
         0, getWarmBootDir(), "sai_adaptor_state_");
   }
   return wbHelper_.get();
+}
+
+QsfpCache* SaiPlatform::getQsfpCache() const {
+  return qsfpCache_.get();
 }
 
 } // namespace facebook::fboss

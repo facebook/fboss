@@ -30,6 +30,8 @@ namespace facebook::fboss {
 
 class SaiSwitch;
 class HwSwitchWarmBootHelper;
+class AutoInitQsfpCache;
+class QsfpCache;
 
 class SaiPlatform : public Platform, public StateObserver {
  public:
@@ -57,6 +59,7 @@ class SaiPlatform : public Platform, public StateObserver {
   HwSwitchWarmBootHelper* getWarmBootHelper();
   virtual uint32_t numLanesPerCore() const = 0;
   void stateUpdated(const StateDelta& delta) override;
+  QsfpCache* getQsfpCache() const;
 
   /*
    * Get ids of all controlling ports
@@ -73,6 +76,7 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
+  std::unique_ptr<AutoInitQsfpCache> qsfpCache_;
 };
 
 } // namespace facebook::fboss
