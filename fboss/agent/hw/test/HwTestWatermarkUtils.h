@@ -16,11 +16,11 @@
 
 namespace facebook::fboss {
 
-class HwSwitch;
+class HwSwitchEnsemble;
 namespace utility {
 
 std::vector<uint64_t>
-getQueueWaterMarks(const HwSwitch* hw, PortID port, int highestQueueId);
+getQueueWaterMarks(HwSwitchEnsemble* hw, PortID port, int highestQueueId);
 
 } // namespace utility
 } // namespace facebook::fboss

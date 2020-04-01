@@ -84,9 +84,9 @@ class BcmBstTest : public BcmLinkStateDependentTests {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     setupECMPForwarding(ecmpHelper6);
   }
-  void assertWatermarks(PortID port, const std::vector<int>& queueIds) const {
+  void assertWatermarks(PortID port, const std::vector<int>& queueIds) {
     auto queueWaterMarks = utility::getQueueWaterMarks(
-        getHwSwitch(),
+        getHwSwitchEnsemble(),
         port,
         *(std::max_element(queueIds.begin(), queueIds.end())));
     for (auto queueId : queueIds) {

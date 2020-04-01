@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include <folly/logging/xlog.h>
 
@@ -23,8 +24,8 @@ extern "C" {
 namespace facebook::fboss::utility {
 
 std::vector<uint64_t>
-getQueueWaterMarks(const HwSwitch* hw, PortID port, int highestQueueId) {
-  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+getQueueWaterMarks(HwSwitchEnsemble* hw, PortID port, int highestQueueId) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw->getHwSwitch());
   auto rv = bcm_cosq_bst_stat_sync(
       bcmSwitch->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
   bcmCheckError(rv, "failed to sync BST stats");
