@@ -87,7 +87,6 @@ struct SaiNeighborTraits {
   using CreateAttributes = std::tuple<Attributes::DstMac>;
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
-  using PublisherAttributes = NeighborEntry;
 };
 
 SAI_ATTRIBUTE_NAME(Neighbor, DstMac)
