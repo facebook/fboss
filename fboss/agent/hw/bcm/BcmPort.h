@@ -219,9 +219,6 @@ class BcmPort {
       fb303::ExportedHistogramMapImpl::LockableHistogram* hist,
       const std::vector<bcm_stat_val_t>& stats);
   void initCustomStats() const;
-  // Set stats that are either FB specific, not available in
-  // open source bcm release.
-  void setAdditionalStats(std::chrono::seconds now, HwPortStats* curPortStats);
   std::string statName(folly::StringPiece statName, folly::StringPiece portName)
       const;
 

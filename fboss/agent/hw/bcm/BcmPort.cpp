@@ -810,8 +810,7 @@ void BcmPort::updateStats() {
       snmpBcmCustomReceive3,
       &curPortStats.inDstNullDiscards_);
   updateFecStats(now, curPortStats);
-
-  setAdditionalStats(now, &curPortStats);
+  queueManager_->updateQueueStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {lastPortStats.inDstNullDiscards_, curPortStats.inDstNullDiscards_}};
@@ -1471,12 +1470,6 @@ void BcmPort::initCustomStats() const {
         0, port_, snmpBcmCustomReceive3, bcmDbgCntDSTDISCARDDROP);
   }
   bcmCheckError(rv, "Unable to set up custom stat for DST discard drops");
-}
-
-void BcmPort::setAdditionalStats(
-    std::chrono::seconds now,
-    HwPortStats* curPortStats) {
-  queueManager_->updateQueueStats(now, curPortStats);
 }
 
 bcm_gport_t BcmPort::asGPort(bcm_port_t port) {
