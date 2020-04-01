@@ -129,7 +129,7 @@ class SaiObjectStore {
       ins.first->setAttributes(attributes);
     } else {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        auto publishedAttr = ObjectPublisherAttributes<SaiObjectTraits>::get(
+        auto publishedAttr = PublisherAttributes<SaiObjectTraits>::get(
             adapterHostKey, attributes);
 
         auto& publisher =

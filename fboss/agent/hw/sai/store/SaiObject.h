@@ -303,7 +303,7 @@ class SaiObject {
   }
   void remove() {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-      auto publishedAttr = ObjectPublisherAttributes<SaiObjectTraits>::get(
+      auto publishedAttr = PublisherAttributes<SaiObjectTraits>::get(
           adapterHostKey_, attributes_);
       auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
                             ->get<SaiObjectTraits>();

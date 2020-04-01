@@ -19,37 +19,69 @@ struct IsObjectPublisher<
 };
 
 template <typename ObjectTraits>
-struct ObjectPublisherAttributes {
-  static_assert(
-      IsObjectPublisher<ObjectTraits>::value,
-      "Object is not publisher");
+inline constexpr bool IsPublisherAttributesAdapterHostKey = std::is_same_v<
+    typename ObjectTraits::PublisherAttributes,
+    typename ObjectTraits::AdapterHostKey>;
 
-  using PublisherAttributes = typename ObjectTraits::PublisherAttributes;
-  using AdapterHostKey = typename ObjectTraits::AdapterHostKey;
-  using CreateAttributes = typename ObjectTraits::CreateAttributes;
+template <typename ObjectTraits>
+inline constexpr bool IsPublisherAttributesCreateAttributes = std::is_same_v<
+    typename ObjectTraits::PublisherAttributes,
+    typename ObjectTraits::CreateAttributes>;
 
-  static constexpr auto isPublisherAttributesAdapterHostKey = std::is_same_v<
-      typename ObjectTraits::PublisherAttributes,
-      typename ObjectTraits::AdapterHostKey>;
+namespace detail {
+template <typename ObjectTraits, typename Attr>
+struct PublisherAttributesInternal {
+  using type = Attr;
 
-  static constexpr auto isPublisherAttributesCreateAttributes = std::is_same_v<
-      typename ObjectTraits::PublisherAttributes,
-      typename ObjectTraits::CreateAttributes>;
-
-  static PublisherAttributes get(
-      const AdapterHostKey& adapterHostKey,
-      const CreateAttributes& createAttributes) {
-    if constexpr (isPublisherAttributesAdapterHostKey) {
+  static auto get(
+      typename ObjectTraits::AdapterHostKey adapterHostKey,
+      typename ObjectTraits::CreateAttributes createAttributes) {
+    if constexpr (IsPublisherAttributesAdapterHostKey<ObjectTraits>) {
       return adapterHostKey;
-    } else if constexpr (isPublisherAttributesCreateAttributes) {
+    } else if constexpr (IsPublisherAttributesCreateAttributes<ObjectTraits>) {
       return createAttributes;
     } else {
+      // TODO(pshaikh): lets do something here
       static_assert(
-          !isPublisherAttributesCreateAttributes &&
-              !isPublisherAttributesAdapterHostKey,
-          "published attribute is neither adapter host key nor create attributes");
+          IsPublisherAttributesAdapterHostKey<ObjectTraits> ||
+              IsPublisherAttributesCreateAttributes<ObjectTraits>,
+          "Custom PublisherAttributes are not supported");
     }
   }
 };
+} // namespace detail
+
+template <typename, typename = void>
+struct PublisherAttributes;
+
+template <typename ObjectTraits>
+struct PublisherAttributes<
+    ObjectTraits,
+    std::enable_if_t<
+        IsPublisherAttributesAdapterHostKey<ObjectTraits> &&
+        !IsPublisherAttributesCreateAttributes<ObjectTraits>>>
+    : detail::PublisherAttributesInternal<
+          ObjectTraits,
+          typename ObjectTraits::AdapterHostKey> {};
+
+template <typename ObjectTraits>
+struct PublisherAttributes<
+    ObjectTraits,
+    std::enable_if_t<
+        !IsPublisherAttributesAdapterHostKey<ObjectTraits> &&
+        IsPublisherAttributesCreateAttributes<ObjectTraits>>>
+    : detail::PublisherAttributesInternal<
+          ObjectTraits,
+          typename ObjectTraits::CreateAttributes> {};
+
+template <typename ObjectTraits>
+struct PublisherAttributes<
+    ObjectTraits,
+    std::enable_if_t<
+        IsPublisherAttributesAdapterHostKey<ObjectTraits> &&
+        IsPublisherAttributesCreateAttributes<ObjectTraits>>>
+    : detail::PublisherAttributesInternal<
+          ObjectTraits,
+          typename ObjectTraits::CreateAttributes> {};
 } // namespace fboss
 } // namespace facebook
