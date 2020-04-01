@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/StateObserver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
@@ -30,7 +31,7 @@ namespace facebook::fboss {
 class SaiSwitch;
 class HwSwitchWarmBootHelper;
 
-class SaiPlatform : public Platform {
+class SaiPlatform : public Platform, public StateObserver {
  public:
   explicit SaiPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
@@ -55,6 +56,7 @@ class SaiPlatform : public Platform {
   virtual bool getObjectKeysSupported() const = 0;
   HwSwitchWarmBootHelper* getWarmBootHelper();
   virtual uint32_t numLanesPerCore() const = 0;
+  void stateUpdated(const StateDelta& delta) override;
 
   /*
    * Get ids of all controlling ports

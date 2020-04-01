@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -75,7 +76,11 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
   return saiSwitch_.get();
 }
 
-void SaiPlatform::onHwInitialized(SwSwitch* /* sw */) {}
+void SaiPlatform::onHwInitialized(SwSwitch* sw) {
+  sw->registerStateObserver(this, "SaiPlatform");
+}
+
+void SaiPlatform::stateUpdated(const StateDelta& delta) {}
 
 void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
 
