@@ -177,6 +177,7 @@ class BcmPort {
 
   void setIngressPortMirror(const std::string& mirrorName);
   void setEgressPortMirror(const std::string& mirrorName);
+  void setQueueWaterMarks(std::map<int16_t, int64_t> queueId2WatermarkBytes);
 
  private:
   class BcmPortStats {
@@ -190,6 +191,7 @@ class BcmPort {
     explicit BcmPortStats(int numUnicastQueues);
     BcmPortStats(HwPortStats portStats, std::chrono::seconds seconds);
     HwPortStats portStats() const;
+    void setQueueWaterMarks(std::map<int16_t, int64_t> queueId2WatermarkBytes);
     std::chrono::seconds timeRetrieved() const;
 
    private:

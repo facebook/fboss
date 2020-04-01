@@ -890,6 +890,17 @@ void BcmPort::updateFecStats(
       ->updateValue(now, curPortStats.fecUncorrectableErrors);
 }
 
+void BcmPort::BcmPortStats::setQueueWaterMarks(
+    std::map<int16_t, int64_t> queueId2WatermarkBytes) {
+  portStats_.queueWatermarkBytes_ = std::move(queueId2WatermarkBytes);
+}
+
+void BcmPort::setQueueWaterMarks(
+    std::map<int16_t, int64_t> queueId2WatermarkBytes) {
+  lastPortStats_.wlock()->value().setQueueWaterMarks(
+      std::move(queueId2WatermarkBytes));
+}
+
 void BcmPort::updateStat(
     std::chrono::seconds now,
     folly::StringPiece statKey,
