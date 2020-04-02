@@ -25,6 +25,10 @@
 
 #include <folly/Singleton.h>
 
+#if !defined(IS_OSS) && __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+
 namespace facebook::fboss {
 
 void ManagerTestBase::SetUp() {
@@ -96,6 +100,26 @@ void ManagerTestBase::TearDown() {
   saiManagerTable.reset();
   SaiStore::getInstance()->release();
   FakeSai::clear();
+}
+
+void ManagerTestBase::setupForWarmBoot() {
+#if !defined(IS_OSS) && __has_feature(address_sanitizer)
+  auto* leakedManagerTable = saiManagerTable.release();
+  __lsan_ignore_object(leakedManagerTable);
+#else
+  saiManagerTable.release();
+#endif
+  SaiStore::getInstance()->exitForWarmBoot();
+  SaiStore::getInstance()->reload();
+}
+
+void ManagerTestBase::warmBoot() {
+  saiManagerTable =
+      std::make_unique<SaiManagerTable>(saiPlatform.get(), std::nullopt);
+  SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
+  SaiStore::getInstance()->setSwitchId(switchId);
+  saiManagerTable->createSaiTableManagers(
+      saiPlatform.get(), concurrentIndices.get());
 }
 
 std::shared_ptr<Port> ManagerTestBase::makePort(

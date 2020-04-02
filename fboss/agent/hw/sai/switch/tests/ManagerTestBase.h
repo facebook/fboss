@@ -109,6 +109,8 @@ class ManagerTestBase : public ::testing::Test {
 
   void SetUp() override;
   void TearDown() override;
+  void setupForWarmBoot();
+  void warmBoot();
 
   std::shared_ptr<ArpEntry> makePendingArpEntry(
       int id,

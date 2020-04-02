@@ -214,9 +214,8 @@ TEST_F(InSegEntryManagerTest, createInSegEntry) {
   auto preWarmBootAdapterKey = preWarmBootHandle->inSegEntry->adapterKey();
   auto preWarmBootAttributes = preWarmBootHandle->inSegEntry->attributes();
 
-  // warmboot
-  SaiStore::getInstance()->exitForWarmBoot();
-  SaiStore::getInstance()->reload();
+  ManagerTestBase::setupForWarmBoot();
+  ManagerTestBase::warmBoot();
 
   // verify pre and post matches
   auto postWarmBootHandle =
@@ -262,9 +261,8 @@ TEST_F(InSegEntryManagerTest, changeInSegEntry) {
   auto preWarmBootAdapterKey = preWarmBootHandle->inSegEntry->adapterKey();
   auto preWarmBootAttributes = preWarmBootHandle->inSegEntry->attributes();
 
-  // warmboot
-  SaiStore::getInstance()->exitForWarmBoot();
-  SaiStore::getInstance()->reload();
+  ManagerTestBase::setupForWarmBoot();
+  ManagerTestBase::warmBoot();
 
   // verify pre and post matches
   auto postWarmBootHandle =
@@ -295,9 +293,8 @@ TEST_F(InSegEntryManagerTest, removeInSegEntry) {
       saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
   ASSERT_EQ(preWarmBootHandle, nullptr);
 
-  // warmboot
-  SaiStore::getInstance()->exitForWarmBoot();
-  SaiStore::getInstance()->reload();
+  ManagerTestBase::setupForWarmBoot();
+  ManagerTestBase::warmBoot();
 
   const auto* postWarmBootHandle =
       saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
