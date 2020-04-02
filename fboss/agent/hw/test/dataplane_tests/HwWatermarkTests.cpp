@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/HwTestWatermarkUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -85,10 +84,9 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     setupECMPForwarding(ecmpHelper6);
   }
   void assertWatermarks(PortID port, const std::vector<int>& queueIds) {
-    auto queueWaterMarks = utility::getQueueWaterMarks(
-        getHwSwitchEnsemble(),
-        port,
-        *(std::max_element(queueIds.begin(), queueIds.end())));
+    auto queueWaterMarks = getHwSwitchEnsemble()
+                               ->getLatestPortStats({port})[port]
+                               .queueWatermarkBytes_;
     for (auto queueId : queueIds) {
       XLOG(DBG0) << "queueId: " << queueId
                  << " Watermark: " << queueWaterMarks[queueId];

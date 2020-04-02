@@ -12,11 +12,8 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
   fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
-  fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
-  fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
-  fboss/agent/hw/bcm/tests/HwTestWatermarkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclQualifierTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
