@@ -34,6 +34,7 @@ using SaiQueueConfig = std::pair<uint8_t, cfg::StreamType>;
 
 struct SaiQueueHandle {
   explicit SaiQueueHandle(QueueSaiId queueSaiId);
+  ~SaiQueueHandle();
   void resetQueue();
   std::shared_ptr<SaiScheduler> scheduler;
   std::shared_ptr<SaiQueue> queue;

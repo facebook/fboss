@@ -104,6 +104,10 @@ SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
   queue = store.loadObjectOwnedByAdapter(queueSaiId);
 }
 
+SaiQueueHandle::~SaiQueueHandle() {
+  resetQueue();
+}
+
 SaiQueueManager::SaiQueueManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
