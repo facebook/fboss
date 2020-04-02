@@ -101,6 +101,8 @@ class HwPortFb303Stats {
       int queueId,
       int64_t val);
 
+  void updateQueueWatermarkStats(
+      const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
   std::chrono::seconds timeRetrieved_{0};
   std::string portName_;
   HwFb303Stats portCounters_;

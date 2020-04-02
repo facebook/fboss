@@ -194,6 +194,7 @@ void HwPortFb303Stats::updateStats(
     updateQueueStat(
         kOutPkts(), queueIdAndName.first, curPortStats.queueOutPackets_);
   }
+  updateQueueWatermarkStats(curPortStats.queueWatermarkBytes_);
 }
 
 void HwPortFb303Stats::updateStat(
