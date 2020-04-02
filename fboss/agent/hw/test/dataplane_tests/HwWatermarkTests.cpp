@@ -83,15 +83,13 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     setupECMPForwarding(ecmpHelper6);
   }
-  void assertWatermarks(PortID port, const std::vector<int>& queueIds) {
+  void assertWatermarks(PortID port, int queueId) {
     auto queueWaterMarks = getHwSwitchEnsemble()
                                ->getLatestPortStats({port})[port]
                                .queueWatermarkBytes_;
-    for (auto queueId : queueIds) {
-      XLOG(DBG0) << "queueId: " << queueId
-                 << " Watermark: " << queueWaterMarks[queueId];
-      EXPECT_GT(queueWaterMarks[queueId], 0);
-    }
+    XLOG(DBG0) << "queueId: " << queueId
+               << " Watermark: " << queueWaterMarks[queueId];
+    EXPECT_GT(queueWaterMarks[queueId], 0);
   }
 };
 
@@ -102,7 +100,7 @@ TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
   auto setup = [=]() { _setup(kDscp); };
   auto verify = [=]() {
     sendUdpPkts(kDscp);
-    assertWatermarks(masterLogicalPortIds()[0], {kDefQueueId});
+    assertWatermarks(masterLogicalPortIds()[0], kDefQueueId);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -123,7 +121,7 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
   };
   auto verify = [=]() {
     sendUdpPkts(kDscp);
-    assertWatermarks(masterLogicalPortIds()[0], {kNonDefQueueId});
+    assertWatermarks(masterLogicalPortIds()[0], kNonDefQueueId);
   };
 
   verifyAcrossWarmBoots(setup, verify);
