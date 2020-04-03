@@ -267,14 +267,26 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     auto helper = ecmpHelpers_[prefix].get();
     auto vlanID = helper->getVlan(port);
     EXPECT_TRUE(vlanID.has_value());
-    EXPECT_EQ(
-        refCount,
-        getTunnelRefCount(
-            getProgrammedState()
-                ->getVlans()
-                ->getVlan(vlanID.value())
-                ->getInterfaceID(),
-            stack));
+    if (stack.empty()) {
+      EXPECT_EQ(
+          refCount,
+          getTunnelRefCount(
+              getProgrammedState()
+                  ->getVlans()
+                  ->getVlan(vlanID.value())
+                  ->getInterfaceID(),
+              stack));
+    } else {
+      EXPECT_EQ(
+          refCount,
+          getTunnelRefCount(
+              getProgrammedState()
+                  ->getVlans()
+                  ->getVlan(vlanID.value())
+                  ->getInterfaceID(),
+              LabelForwardingAction::LabelStack{stack.begin() + 1,
+                                                stack.end()}));
+    }
   }
 
  protected:
@@ -389,9 +401,12 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     // other labels will at the bottom of stack
     // the bottom most label in route's label stack will be attached to egress
     LabelForwardingAction::LabelStack stack{
-        params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+        params.stack->begin(), params.stack->begin() + maxSize - 1};
     stack.push_back(params.label);
-    this->verifyLabeledNextHopWithStack(egressId, params.stack->front(), stack);
+    this->verifyLabeledNextHopWithStack(
+        egressId,
+        params.stack->front(),
+        LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()});
 
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
@@ -502,11 +517,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
       stacks.emplace(labeledPort, stack);
 
       this->verifyTunnelRefCounts(
-          params.nexthop,
-          params.prefix.mask,
-          labeledPort,
-          LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()},
-          1);
+          params.nexthop, params.prefix.mask, labeledPort, stack, 1);
     }
     this->verifyMultiPathNextHop(egressId, stacks);
   };
@@ -621,8 +632,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
             params[i].nexthop,
             params[i].prefix.mask,
             labeledPort,
-            LabelForwardingAction::LabelStack{pushStack.begin() + 1,
-                                              pushStack.end()},
+            pushStack,
             1);
         stacks.emplace(labeledPort, pushStack);
         j += 1;
@@ -904,11 +914,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
         stack.push_back(params[i].label + j);
         this->verifyTunnelRefCounts(
-            params[i].nexthop,
-            params[i].prefix.mask,
-            labeledPort,
-            LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()},
-            1);
+            params[i].nexthop, params[i].prefix.mask, labeledPort, stack, 1);
         stacks.emplace(labeledPort, stack);
         j++;
       }
@@ -1019,7 +1025,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
           params[1].nexthop,
           params[1].nexthop.bitCount(),
           labeledPort,
-          LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()},
+          stack,
           1);
       stacks.emplace(labeledPort, stack);
       j++;
@@ -1080,7 +1086,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
             params[i].nexthop,
             params[i].nexthop.bitCount(),
             labeledPort,
-            LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()},
+            stack,
             2);
         stacks.emplace(labeledPort, stack);
         j++;
