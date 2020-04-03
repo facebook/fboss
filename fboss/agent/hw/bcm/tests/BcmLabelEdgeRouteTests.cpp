@@ -138,22 +138,6 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
         ecmpHelper->unresolveNextHops(getProgrammedState(), unLabeledPorts_));
   }
 
-  bcm_mpls_label_t getFecAndLabelStack(
-      bcm_mpls_label_t tunnelLabel,
-      const LabelForwardingAction::LabelStack* routeLabels,
-      int routeLabelCount,
-      LabelForwardingAction::LabelStack& outStack) {
-    if (!routeLabels->empty()) {
-      std::copy(
-          routeLabels->cbegin() + 1,
-          routeLabels->cbegin() + routeLabelCount,
-          std::back_inserter(outStack));
-      outStack.push_back(tunnelLabel); // outgoing label stack
-      return (*routeLabels)[0]; // fec
-    }
-    return tunnelLabel;
-  }
-
   std::map<PortDescriptor, LabelForwardingAction::LabelStack> port2LabelStacks(
       LabelForwardingAction::Label label) {
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> result;
@@ -587,9 +571,13 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
         LabelForwardingAction::LabelStack stack;
         auto port = this->getHwSwitch()->getPortTable()->getBcmPortId(
             labeledPort.phyPortID());
-        auto fec = this->getFecAndLabelStack(
-            localTunnelLabel, params[i].stack, maxSize - 1, stack);
-        stacks.emplace(port, std::make_pair(fec, std::move(stack)));
+
+        auto pushStack = LabelForwardingAction::LabelStack(
+            params[i].stack->begin(), params[i].stack->begin() + maxSize - 1);
+        pushStack.push_back(localTunnelLabel);
+        stacks.emplace(
+            port,
+            utility::getEgressLabelAndTunnelStackFromPushStack(pushStack));
         localTunnelLabel += 1;
       }
       this->verifyMultiPathNextHop(egressId, stacks);
@@ -642,15 +630,17 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
           stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
-        LabelForwardingAction::LabelStack stack;
         auto port = this->getHwSwitch()->getPortTable()->getBcmPortId(
             labeledPort.phyPortID());
-        auto fec = this->getFecAndLabelStack(
-            params[i].label + j, params[0].stack, maxSize - 1, stack);
+        auto pushStack = LabelForwardingAction::LabelStack(
+            params[0].stack->begin(), params[0].stack->begin() + maxSize - 1);
+        pushStack.push_back(params[i].label + j);
+        auto [label, stack] =
+            utility::getEgressLabelAndTunnelStackFromPushStack(pushStack);
         this->verifyTunnelRefCounts(
             params[i].nexthop, params[i].prefix.mask, labeledPort, stack, 1);
 
-        stacks.emplace(port, std::make_pair(fec, std::move(stack)));
+        stacks.emplace(port, std::make_pair(label, std::move(stack)));
         j += 1;
       }
       this->verifyMultiPathNextHop(egressId, stacks);
@@ -703,12 +693,14 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
 
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
-        LabelForwardingAction::LabelStack stack;
         auto port = this->getHwSwitch()->getPortTable()->getBcmPortId(
             labeledPort.phyPortID());
-        auto fec = this->getFecAndLabelStack(
-            params[0].label + j, params[i].stack, maxSize - 1, stack);
-        stacks.emplace(port, std::make_pair(fec, std::move(stack)));
+        LabelForwardingAction::LabelStack pushStack{
+            params[i].stack->begin(), params[i].stack->begin() + maxSize - 1};
+        pushStack.push_back(params[0].label + j);
+        stacks.emplace(
+            port,
+            utility::getEgressLabelAndTunnelStackFromPushStack(pushStack));
         j += 1;
       }
       this->verifyMultiPathNextHop(egressId, stacks);
