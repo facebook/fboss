@@ -212,21 +212,44 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
   }
 
   void verifyLabeledNextHopWithStack(
-      bcm_if_t egressId,
+      PrefixT prefix,
       const LabelForwardingAction::LabelStack& tunnelStack) {
+    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
+        0, prefix.network, prefix.mask);
+    auto egressId = bcmRoute->getEgressId();
     // verify that given egress is tunneled egress
     // its egress label must be tunnelLabel (top of stack)
     // rest of srack is from tunnel interface attached to egress
     utility::verifyTunneledEgress(egressId, tunnelStack);
   }
 
-  void verifyLabeledNextHopWithStackToDrop(
-      bcm_if_t egressId,
-      const LabelForwardingAction::LabelStack& tunnelStack) {
-    // verify that given egress is tunneled egress
-    // its egress label must be tunnelLabel (top of stack)
-    // rest of srack is from tunnel interface attached to egress
-    utility::verifyTunneledEgressToDrop(egressId, tunnelStack);
+  void verifyLabeledMultiPathNextHopMemberWithStack(
+      PrefixT prefix,
+      int memberIndex,
+      const LabelForwardingAction::LabelStack& tunnelStack,
+      bool resolved) {
+    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
+        0, prefix.network, prefix.mask);
+    ASSERT_NE(bcmRoute, nullptr);
+    const auto* egr =
+        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
+    ASSERT_NE(egr, nullptr);
+    const auto& nextHops = egr->paths();
+    EXPECT_GT(nextHops.size(), memberIndex);
+    auto i = 0;
+    for (const auto nextHopId : nextHops) {
+      if (i == memberIndex) {
+        // verify that given egress is tunneled egress
+        // its egress label must be tunnelLabel (top of stack)
+        // rest of srack is from tunnel interface attached to egress
+        if (resolved) {
+          utility::verifyTunneledEgress(nextHopId, tunnelStack);
+        } else {
+          utility::verifyTunneledEgressToDrop(nextHopId, tunnelStack);
+        }
+      }
+      i++;
+    }
   }
 
   void verifyMultiPathNextHop(
@@ -395,9 +418,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    auto egressId = bcmRoute->getEgressId();
     // prepare expected stack
     // adjacency/tunnel label will be on top,
     // other labels will at the bottom of stack
@@ -405,7 +425,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     LabelForwardingAction::LabelStack stack{
         params.stack->begin(), params.stack->begin() + maxSize - 1};
     stack.push_back(params.label);
-    this->verifyLabeledNextHopWithStack(egressId, stack);
+    this->verifyLabeledNextHopWithStack(params.prefix, stack);
 
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
@@ -695,20 +715,12 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    ASSERT_NE(bcmRoute, nullptr);
-    const auto* egr =
-        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
-    ASSERT_NE(egr, nullptr);
-    const auto& paths = egr->paths();
-    EXPECT_EQ(paths.size(), 2); // 2 labeled ports
-    auto i = 0;
-    for (const auto path : paths) {
+    for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
-      stack.push_back(params.label + i++);
-      this->verifyLabeledNextHopWithStackToDrop(path, stack);
+      stack.push_back(params.label + i);
+      this->verifyLabeledMultiPathNextHopMemberWithStack(
+          params.prefix, i, stack, false);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -734,20 +746,12 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    ASSERT_NE(bcmRoute, nullptr);
-    const auto* egr =
-        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
-    ASSERT_NE(egr, nullptr);
-    const auto& paths = egr->paths();
-    EXPECT_EQ(paths.size(), 2); // 2 labeled ports
-    auto i = 0;
-    for (const auto path : paths) {
+    for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
-      stack.push_back(params.label + i++);
-      this->verifyLabeledNextHopWithStackToDrop(path, stack);
+      stack.push_back(params.label + i);
+      this->verifyLabeledMultiPathNextHopMemberWithStack(
+          params.prefix, i, stack, false);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -774,24 +778,18 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    ASSERT_NE(bcmRoute, nullptr);
-    const auto* egr =
-        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
-    ASSERT_NE(egr, nullptr);
-    const auto& paths = egr->paths();
-    EXPECT_EQ(paths.size(), 2); // 2 labeled ports
-    for (auto i = 0; i < paths.size(); i++) {
+    for (auto i = 0; i < 2; i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
-        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
+        this->verifyLabeledMultiPathNextHopMemberWithStack(
+            params.prefix, i, stack, false);
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
-        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
+        this->verifyLabeledMultiPathNextHopMemberWithStack(
+            params.prefix, i, stack, false);
       }
     }
   };
@@ -816,26 +814,20 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    ASSERT_NE(bcmRoute, nullptr);
-    const auto* egr =
-        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
-    ASSERT_NE(egr, nullptr);
-    const auto& paths = egr->paths();
-    EXPECT_EQ(paths.size(), 2); // 2 labeled ports
-    for (auto i = 0; i < paths.size(); i++) {
+    for (auto i = 0; i < 2; i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
         // resolved
-        this->verifyLabeledNextHopWithStack(*(paths.begin() + i), stack);
+        this->verifyLabeledMultiPathNextHopMemberWithStack(
+            params.prefix, i, stack, true);
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin(), params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
         // unresolved
-        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
+        this->verifyLabeledMultiPathNextHopMemberWithStack(
+            params.prefix, i, stack, false);
       }
     }
   };
