@@ -21,6 +21,11 @@ void verifyTunneledEgress(
     bcm_if_t egressId,
     bcm_mpls_label_t tunnelLabel,
     const LabelForwardingAction::LabelStack& tunnelStack);
+
+void verifyTunneledEgress(
+    bcm_if_t egressId,
+    const LabelForwardingAction::LabelStack& tunnelStack);
+
 void verifyTunneledEgressToCPU(
     bcm_if_t egressId,
     bcm_mpls_label_t tunnelLabel,

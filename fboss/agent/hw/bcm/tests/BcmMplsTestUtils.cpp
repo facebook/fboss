@@ -49,6 +49,20 @@ void verifyTunneledEgress(
   verifyTunnel(egr.intf, tunnelStack);
 }
 
+void verifyTunneledEgress(
+    bcm_if_t egressId,
+    const LabelForwardingAction::LabelStack& tunnelStack) {
+  ASSERT_NE(egressId, -1);
+  bcm_l3_egress_t egr;
+  bcm_l3_egress_t_init(&egr);
+  bcm_l3_egress_get(0, egressId, &egr);
+  EXPECT_EQ(egr.mpls_label, tunnelStack[0]);
+  verifyTunnel(
+      egr.intf,
+      LabelForwardingAction::LabelStack{tunnelStack.begin() + 1,
+                                        tunnelStack.end()});
+}
+
 void verifyTunneledEgressToCPU(
     bcm_if_t egressId,
     bcm_mpls_label_t tunnelLabel,

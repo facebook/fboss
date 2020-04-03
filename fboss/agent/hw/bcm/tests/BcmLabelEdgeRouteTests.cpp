@@ -213,12 +213,11 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
 
   void verifyLabeledNextHopWithStack(
       bcm_if_t egressId,
-      bcm_mpls_label_t tunnelLabel,
       const LabelForwardingAction::LabelStack& tunnelStack) {
     // verify that given egress is tunneled egress
     // its egress label must be tunnelLabel (top of stack)
     // rest of srack is from tunnel interface attached to egress
-    utility::verifyTunneledEgress(egressId, tunnelLabel, tunnelStack);
+    utility::verifyTunneledEgress(egressId, tunnelStack);
   }
 
   void verifyLabeledNextHopWithStackToDrop(
@@ -403,10 +402,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     LabelForwardingAction::LabelStack stack{
         params.stack->begin(), params.stack->begin() + maxSize - 1};
     stack.push_back(params.label);
-    this->verifyLabeledNextHopWithStack(
-        egressId,
-        params.stack->front(),
-        LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()});
+    this->verifyLabeledNextHopWithStack(egressId, stack);
 
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
@@ -851,10 +847,9 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
     for (auto i = 0; i < paths.size(); i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
-            params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+            params.stack->begin(), params.stack->begin() + maxSize - 1};
         // resolved
-        this->verifyLabeledNextHopWithStack(
-            *(paths.begin() + i), params.stack->front(), stack);
+        this->verifyLabeledNextHopWithStack(*(paths.begin() + i), stack);
       } else {
         LabelForwardingAction::LabelStack stack{
             params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
