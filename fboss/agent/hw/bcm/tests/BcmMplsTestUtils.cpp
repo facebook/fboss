@@ -95,6 +95,21 @@ void verifyTunneledEgressToDrop(
   verifyTunnel(egr.intf, tunnelStack);
 }
 
+void verifyTunneledEgressToDrop(
+    bcm_if_t egressId,
+    const LabelForwardingAction::LabelStack& tunnelStack) {
+  ASSERT_NE(egressId, -1);
+  bcm_l3_egress_t egr;
+  bcm_l3_egress_t_init(&egr);
+  bcm_l3_egress_get(0, egressId, &egr);
+  EXPECT_NE(egr.flags & BCM_L3_DST_DISCARD, 0);
+  EXPECT_EQ(egr.mpls_label, tunnelStack[0]);
+  verifyTunnel(
+      egr.intf,
+      LabelForwardingAction::LabelStack{tunnelStack.begin() + 1,
+                                        tunnelStack.end()});
+}
+
 void verifyLabeledMultiPathEgress(
     uint32_t unLabeled,
     uint32_t labeled,

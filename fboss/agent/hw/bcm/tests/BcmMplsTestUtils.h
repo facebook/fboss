@@ -36,6 +36,10 @@ void verifyTunneledEgressToDrop(
     bcm_mpls_label_t tunnelLabel,
     const LabelForwardingAction::LabelStack& tunnelStack);
 
+void verifyTunneledEgressToDrop(
+    bcm_if_t egressId,
+    const LabelForwardingAction::LabelStack& tunnelStack);
+
 void verifyLabeledMultiPathEgress(
     uint32_t unLabeled,
     uint32_t labeled,

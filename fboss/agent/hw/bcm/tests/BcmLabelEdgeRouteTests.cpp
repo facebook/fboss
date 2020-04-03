@@ -222,12 +222,11 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
 
   void verifyLabeledNextHopWithStackToDrop(
       bcm_if_t egressId,
-      bcm_mpls_label_t tunnelLabel,
       const LabelForwardingAction::LabelStack& tunnelStack) {
     // verify that given egress is tunneled egress
     // its egress label must be tunnelLabel (top of stack)
     // rest of srack is from tunnel interface attached to egress
-    utility::verifyTunneledEgressToDrop(egressId, tunnelLabel, tunnelStack);
+    utility::verifyTunneledEgressToDrop(egressId, tunnelStack);
   }
 
   void verifyMultiPathNextHop(
@@ -722,10 +721,9 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
     auto i = 0;
     for (const auto path : paths) {
       LabelForwardingAction::LabelStack stack{
-          params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+          params.stack->begin(), params.stack->begin() + maxSize - 1};
       stack.push_back(params.label + i++);
-      this->verifyLabeledNextHopWithStackToDrop(
-          path, params.stack->front(), stack);
+      this->verifyLabeledNextHopWithStackToDrop(path, stack);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -762,10 +760,9 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
     auto i = 0;
     for (const auto path : paths) {
       LabelForwardingAction::LabelStack stack{
-          params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+          params.stack->begin(), params.stack->begin() + maxSize - 1};
       stack.push_back(params.label + i++);
-      this->verifyLabeledNextHopWithStackToDrop(
-          path, params.stack->front(), stack);
+      this->verifyLabeledNextHopWithStackToDrop(path, stack);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -803,15 +800,13 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
     for (auto i = 0; i < paths.size(); i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
-            params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
-        this->verifyLabeledNextHopWithStackToDrop(
-            *(paths.begin() + i), params.stack->front(), stack);
+            params.stack->begin(), params.stack->begin() + maxSize - 1};
+        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
       } else {
         LabelForwardingAction::LabelStack stack{
-            params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+            params.stack->begin(), params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
-        this->verifyLabeledNextHopWithStackToDrop(
-            *(paths.begin() + i), params.stack->front(), stack);
+        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
       }
     }
   };
@@ -852,11 +847,10 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
         this->verifyLabeledNextHopWithStack(*(paths.begin() + i), stack);
       } else {
         LabelForwardingAction::LabelStack stack{
-            params.stack->begin() + 1, params.stack->begin() + maxSize - 1};
+            params.stack->begin(), params.stack->begin() + maxSize - 1};
         stack.push_back(params.label);
         // unresolved
-        this->verifyLabeledNextHopWithStackToDrop(
-            *(paths.begin() + i), params.stack->front(), stack);
+        this->verifyLabeledNextHopWithStackToDrop(*(paths.begin() + i), stack);
       }
     }
   };
