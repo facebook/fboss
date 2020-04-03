@@ -230,9 +230,13 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
   }
 
   void verifyMultiPathNextHop(
-      bcm_if_t egressId,
+      PrefixT prefix,
       const std::map<PortDescriptor, LabelForwardingAction::LabelStack>&
           stacks) {
+    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
+        0, prefix.network, prefix.mask);
+    auto egressId = bcmRoute->getEgressId(); // ecmp egress id
+
     std::map<bcm_port_t, LabelForwardingAction::LabelStack> bcmPort2Stacks;
     for (auto& entry : stacks) {
       auto portDesc = entry.first;
@@ -453,9 +457,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    auto egressId = bcmRoute->getEgressId(); // ecmp egress id
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
     for (const auto unLabeledPort : this->unLabeledEgressPorts()) {
@@ -474,7 +475,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
           1);
     }
 
-    this->verifyMultiPathNextHop(egressId, stacks);
+    this->verifyMultiPathNextHop(params.prefix, stacks);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -500,9 +501,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    auto egressId = bcmRoute->getEgressId(); // ecmp egress id
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
     auto i = 0;
     for (auto labeledPort : this->labeledEgressPorts()) {
@@ -514,7 +512,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
       this->verifyTunnelRefCounts(
           params.nexthop, params.prefix.mask, labeledPort, stack, 1);
     }
-    this->verifyMultiPathNextHop(egressId, stacks);
+    this->verifyMultiPathNextHop(params.prefix, stacks);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -555,13 +553,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
       const auto& param = params[i];
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, param.prefix.network, param.prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
-      /*std::map<
-          bcm_port_t,
-          std::pair<bcm_mpls_label_t, LabelForwardingAction::LabelStack>>
-          stacks;*/
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto localTunnelLabel = tunnelLabel;
 
@@ -573,7 +564,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
         stacks.emplace(labeledPort, pushStack);
         localTunnelLabel += 1;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(param.prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -614,9 +605,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
       const auto& param = params[i];
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, param.prefix.network, param.prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
@@ -632,7 +620,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
         stacks.emplace(labeledPort, pushStack);
         j += 1;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(param.prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -672,9 +660,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
       const auto& param = params[i];
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, param.prefix.network, param.prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
       auto j = 0;
@@ -686,7 +671,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
         stacks.emplace(labeledPort, pushStack);
         j += 1;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(param.prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -893,9 +878,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < 2; i++) {
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, params[i].prefix.network, params[i].prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
@@ -907,7 +889,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
         stacks.emplace(labeledPort, stack);
         j++;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -950,9 +932,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < 2; i++) {
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, params[i].prefix.network, params[i].prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
@@ -962,7 +941,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
         stacks.emplace(labeledPort, stack);
         j++;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1001,9 +980,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params[0].prefix.network, params[0].prefix.mask);
-    auto egressId = bcmRoute->getEgressId(); // ecmp egress id
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
     auto j = 0;
     for (auto labeledPort : this->labeledEgressPorts()) {
@@ -1019,7 +995,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
       stacks.emplace(labeledPort, stack);
       j++;
     }
-    this->verifyMultiPathNextHop(egressId, stacks);
+    this->verifyMultiPathNextHop(params[0].prefix, stacks);
   };
 }
 
@@ -1060,10 +1036,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < 1; i++) {
-      auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-          0, params[i].prefix.network, params[i].prefix.mask);
-      auto egressId = bcmRoute->getEgressId(); // ecmp egress id
-
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
@@ -1080,7 +1052,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
         stacks.emplace(labeledPort, stack);
         j++;
       }
-      this->verifyMultiPathNextHop(egressId, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
