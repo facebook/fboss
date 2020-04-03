@@ -265,6 +265,22 @@ sai_status_t get_port_stats_fn(
   }
   return SAI_STATUS_SUCCESS;
 }
+
+/*
+ * In fake sai there isn't a dataplane, so all stats
+ * stay at 0. Leverage the corresponding non _ext
+ * stats fn to get the stats. If stats are always 0,
+ * modes (READ, READ_AND_CLEAR) don't matter
+ */
+sai_status_t get_port_stats_ext_fn(
+    sai_object_id_t port,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_port_stats_fn(port, num_of_counters, counter_ids, counters);
+}
+
 namespace facebook::fboss {
 
 static sai_port_api_t _port_api;
@@ -275,6 +291,7 @@ void populate_port_api(sai_port_api_t** port_api) {
   _port_api.set_port_attribute = &set_port_attribute_fn;
   _port_api.get_port_attribute = &get_port_attribute_fn;
   _port_api.get_port_stats = &get_port_stats_fn;
+  _port_api.get_port_stats_ext = &get_port_stats_ext_fn;
   *port_api = &_port_api;
 }
 

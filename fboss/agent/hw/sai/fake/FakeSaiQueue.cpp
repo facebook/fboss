@@ -138,6 +138,21 @@ sai_status_t get_queue_stats_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+/*
+ * In fake sai there isn't a dataplane, so all stats
+ * stay at 0. Leverage the corresponding non _ext
+ * stats fn to get the stats. If stats are always 0,
+ * modes (READ, READ_AND_CLEAR) don't matter
+ */
+sai_status_t get_queue_stats_ext_fn(
+    sai_object_id_t queue,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_queue_stats_fn(queue, num_of_counters, counter_ids, counters);
+}
+
 namespace facebook::fboss {
 
 static sai_queue_api_t _queue_api;
@@ -148,6 +163,7 @@ void populate_queue_api(sai_queue_api_t** queue_api) {
   _queue_api.set_queue_attribute = &set_queue_attribute_fn;
   _queue_api.get_queue_attribute = &get_queue_attribute_fn;
   _queue_api.get_queue_stats = &get_queue_stats_fn;
+  _queue_api.get_queue_stats_ext = &get_queue_stats_ext_fn;
   *queue_api = &_queue_api;
 }
 
