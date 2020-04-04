@@ -49,7 +49,12 @@ class BcmBstStatsMgr {
 
  private:
   void syncStats() const;
-  void exportDeviceBufferUsage() const;
+  void getAndPublishDeviceWatermark() const;
+  void publishDeviceWatermark(uint64_t peakBytes) const;
+  void publishQueueuWatermark(
+      const std::string& portName,
+      int queue,
+      uint64_t peakBytes) const;
 
   BufferStatsLogger* getBufferStatsLogger() const {
     return bufferStatsLogger_.get();

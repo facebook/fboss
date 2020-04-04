@@ -8,20 +8,18 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
+
 #include "fboss/agent/hw/BufferStatsLogger.h"
-#include "fboss/agent/hw/bcm/BcmPort.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 namespace facebook::fboss {
 
-// stubbed out
-BcmBstStatsMgr::BcmBstStatsMgr(BcmSwitch* /*hw*/) {}
-bool BcmBstStatsMgr::startBufferStatCollection() {
-  return false;
-}
-bool BcmBstStatsMgr::stopBufferStatCollection() {
-  return true;
-}
-void BcmBstStatsMgr::updateStats() {}
+BcmBstStatsMgr::BcmBstStatsMgr(BcmSwitch* hw)
+    : hw_(hw), bufferStatsLogger_(std::make_unique<GlogBufferStatsLogger>()) {}
 
+void BcmBstStatsMgr::publishQueueuWatermark(
+    const std::string& /*portName*/,
+    int /*queue*/,
+    uint64_t /*peakBytes*/) const {}
+
+void BcmBstStatsMgr::publishDeviceWatermark(uint64_t /*peakBytes*/) const {}
 } // namespace facebook::fboss

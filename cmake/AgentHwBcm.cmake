@@ -9,6 +9,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmAclTable.cpp
   fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
   fboss/agent/hw/bcm/BcmAPI.cpp
+  fboss/agent/hw/bcm/BcmBstStatsMgr.cpp
   fboss/agent/hw/bcm/BcmFacebookAPI.cpp
   fboss/agent/hw/bcm/BcmControlPlane.cpp
   fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
@@ -86,6 +87,7 @@ add_library(bcm
 target_link_libraries(bcm
   hw_switch_warmboot_helper
   bcm_types
+  buffer_stats
   handler
   core
   counter_utils

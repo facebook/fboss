@@ -309,6 +309,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmAclStat.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
     fboss/agent/hw/bcm/BcmAPI.cpp
+    fboss/agent/hw/bcm/BcmBstStatsMgr.cpp
     fboss/agent/hw/bcm/BcmFacebookAPI.cpp
     fboss/agent/hw/bcm/BcmConfig.cpp
     fboss/agent/hw/bcm/BcmControlPlane.cpp
