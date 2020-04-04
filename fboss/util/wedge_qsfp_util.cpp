@@ -64,6 +64,10 @@ DEFINE_bool(optical_loopback, false,
             "Set the module to be optical loopback, only for Miniphoton");
 DEFINE_bool(clear_loopback, false,
             "Clear the module loopback bits, only for Miniphoton");
+DEFINE_bool(read_reg, false, "Read a register, use with --offset");
+DEFINE_bool(write_reg, false, "Write a register, use with --offset and --data");
+DEFINE_int32(offset, -1, "The offset of register to read/write (0..255)");
+DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
 
 enum LoopbackMode {
   noLoopback,
@@ -173,6 +177,28 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     return false;
   }
   return true;
+}
+
+void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset) {
+  uint8_t buf[1];
+  try {
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, 1, buf);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to read module\n", port);
+    return;
+  }
+  printf("QSFP %d: Value at offset %d: 0x%02x\n", port, offset, buf[0]);
+}
+
+void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value) {
+  uint8_t buf[1] = {value};
+  try {
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, offset, 1, buf);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
+    return;
+  }
+  printf("QSFP %d: successfully write 0x%02x to %d.\n", port, value, offset);
 }
 
 std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
@@ -605,7 +631,7 @@ int main(int argc, char* argv[]) {
                      FLAGS_cdr_enable || FLAGS_cdr_disable ||
                      FLAGS_set_low_power || FLAGS_qsfp_hard_reset ||
                      FLAGS_electrical_loopback || FLAGS_optical_loopback ||
-                     FLAGS_clear_loopback);
+                     FLAGS_clear_loopback || FLAGS_read_reg || FLAGS_write_reg);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -696,6 +722,30 @@ int main(int argc, char* argv[]) {
     if (FLAGS_clear_loopback &&
         doMiniphotonLoopback(bus.get(), portNum, noLoopback)) {
       printf("QSFP %d: done clear module to loopback.\n", portNum);
+    }
+
+    if (FLAGS_read_reg) {
+      if (FLAGS_offset == -1) {
+        fprintf(stderr,
+               "QSFP %d: Fail to read register. Specify offset using --offset",
+               portNum);
+        retcode = EX_SOFTWARE;
+      }
+      else {
+        doReadReg(bus.get(), portNum, FLAGS_offset);
+      }
+    }
+
+    if (FLAGS_write_reg) {
+      if (FLAGS_offset == -1) {
+        fprintf(stderr,
+               "QSFP %d: Fail to write register. Specify offset using --offset",
+               portNum);
+        retcode = EX_SOFTWARE;
+      }
+      else {
+        doWriteReg(bus.get(), portNum, FLAGS_offset, FLAGS_data);
+      }
     }
 
     if (FLAGS_direct_i2c && printInfo) {
