@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
       }
     }
     if (futs.size() > 0) {
-      folly::collectAllSemiFuture(futs).toUnsafeFuture().thenValue([](auto&&) {
+      folly::collectAll(futs).toUnsafeFuture().thenValue([](auto&&) {
         XLOG(INFO) << "Retrieved all desired transceivers from cache";
       });
     }
