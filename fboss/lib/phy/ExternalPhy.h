@@ -34,6 +34,7 @@ struct ExternalPhyLaneStats {
 
 struct ExternalPhyPortSideStats {
   uint64_t fecUncorrectableErrors{0};
+  uint64_t fecCorrectableErrors{0};
   // This is per lane
   std::unordered_map<uint16_t, ExternalPhyLaneStats> lanes;
 };
