@@ -13,6 +13,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 
@@ -275,6 +276,9 @@ void BcmUnit::attach(bool warmBoot) {
     }
     bcmCheckError(rv, "failed to reset unit ", unit_);
   }
+
+  BcmFwLoader::loadFirmware(
+      static_cast<BcmSwitch*>(platform_->getHwSwitch()), platform_->getMode());
 
   rv = soc_misc_init(unit_);
   bcmCheckError(rv, "failed to init misc for unit ", unit_);

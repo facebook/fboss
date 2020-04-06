@@ -322,6 +322,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmEgress.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
     fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
+    fboss/agent/hw/bcm/BcmFwLoader.cpp
     fboss/agent/hw/bcm/BcmHost.cpp
     fboss/agent/hw/bcm/BcmHostKey.cpp
     fboss/agent/hw/bcm/BcmIntf.cpp
