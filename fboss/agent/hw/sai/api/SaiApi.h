@@ -203,6 +203,28 @@ class SaiApi {
         SaiObjectTraits::CounterIds.data(),
         SaiObjectTraits::CounterIds.size());
   }
+  template <typename SaiObjectTraits>
+  void clearStats(
+      const typename SaiObjectTraits::AdapterKey& key,
+      const std::vector<sai_stat_id_t>& counterIds) const {
+    static_assert(
+        SaiObjectHasStats<SaiObjectTraits>::value,
+        "clearStats only supported for Sai objects with stats");
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    return clearStatsImpl<SaiObjectTraits>(
+        key, counterIds.data(), counterIds.size());
+  }
+  template <typename SaiObjectTraits>
+  void clearStats(const typename SaiObjectTraits::AdapterKey& key) const {
+    static_assert(
+        SaiObjectHasStats<SaiObjectTraits>::value,
+        "clearStats only supported for Sai objects with stats");
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    return clearStatsImpl<SaiObjectTraits>(
+        key,
+        SaiObjectTraits::CounterIds.data(),
+        SaiObjectTraits::CounterIds.size());
+  }
 
  private:
   template <typename SaiObjectTraits>
@@ -221,8 +243,19 @@ class SaiApi {
     saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
     return counters;
   }
+  template <typename SaiObjectTraits>
+  void clearStatsImpl(
+      const typename SaiObjectTraits::AdapterKey& key,
+      const sai_stat_id_t* counterIds,
+      size_t numCounters) const {
+    sai_status_t status = impl()._clearStats(key, numCounters, counterIds);
+    saiApiCheckError(status, ApiT::ApiType, "Failed to clear stats");
+  }
   ApiT& impl() {
     return static_cast<ApiT&>(*this);
+  }
+  const ApiT& impl() const {
+    return static_cast<const ApiT&>(*this);
   }
 };
 

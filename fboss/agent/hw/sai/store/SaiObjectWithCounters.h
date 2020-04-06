@@ -53,6 +53,20 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
     return counters_;
   }
 
+  template <typename T = SaiObjectTraits>
+  void clearStats(const std::vector<sai_stat_id_t>& counterIds) const {
+    static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
+    const auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
+    api.template clearStats<T>(this->adapterKey(), counterIds);
+  }
+
+  template <typename T = SaiObjectTraits>
+  void clearStats() const {
+    static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
+    const auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
+    api.template clearStats<T>(this->adapterKey());
+  }
+
  private:
   std::vector<uint64_t> counters_;
 };

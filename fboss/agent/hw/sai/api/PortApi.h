@@ -158,6 +158,13 @@ class PortApi : public SaiApi<PortApi> {
     return api_->get_port_stats(key, num_of_counters, counter_ids, counters);
   }
 
+  sai_status_t _clearStats(
+      PortSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_port_stats(key, num_of_counters, counter_ids);
+  }
+
   sai_port_api_t* api_;
   friend class SaiApi<PortApi>;
 };
