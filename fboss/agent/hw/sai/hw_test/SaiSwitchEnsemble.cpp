@@ -29,13 +29,29 @@
 
 DECLARE_int32(thrift_port);
 DECLARE_bool(setup_thrift);
+DECLARE_string(config);
+
+namespace {
+void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
+  for (auto item : defaults) {
+    gflags::SetCommandLineOptionWithMode(
+        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
+  }
+}
+} // namespace
 
 namespace facebook::fboss {
 
 SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
-  // TODO pass in agent config
-  auto platform = initSaiPlatform(nullptr, featuresDesired);
+  std::unique_ptr<AgentConfig> agentConfig;
+  if (!FLAGS_config.empty()) {
+    agentConfig = AgentConfig::fromFile(FLAGS_config);
+  } else {
+    agentConfig = AgentConfig::fromDefaultFile();
+  }
+  initFlagDefaults(agentConfig->thrift.defaultCommandLineArgs);
+  auto platform = initSaiPlatform(std::move(agentConfig), featuresDesired);
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(

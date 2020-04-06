@@ -12,6 +12,10 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+DEFINE_bool(
+    skip_transceiver_programming,
+    false,
+    "Skip programming transceivers");
 
 namespace facebook::fboss {
 SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
