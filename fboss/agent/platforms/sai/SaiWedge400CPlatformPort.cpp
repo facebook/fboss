@@ -17,4 +17,8 @@ uint32_t SaiWedge400CPlatformPort::getPhysicalLaneId(
   return (chipId << 8) + logicalLaneId;
 }
 
+bool SaiWedge400CPlatformPort::supportsTransceiver() const {
+  return true;
+}
+
 } // namespace facebook::fboss

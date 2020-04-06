@@ -19,6 +19,7 @@ class SaiBcmPlatformPort : public SaiPlatformPort {
       : SaiPlatformPort(id, platform) {}
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
+  virtual bool supportsTransceiver() const override;
 };
 
 } // namespace facebook::fboss

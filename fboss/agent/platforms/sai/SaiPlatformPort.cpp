@@ -12,6 +12,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/qsfp_service/lib/QsfpCache.h"
+
 DEFINE_bool(
     skip_transceiver_programming,
     false,
@@ -55,9 +57,6 @@ bool SaiPlatformPort::isMediaPresent() {
 }
 void SaiPlatformPort::linkStatusChanged(bool /* up */, bool /* adminUp */) {}
 void SaiPlatformPort::linkSpeedChanged(const cfg::PortSpeed& /* speed */) {}
-bool SaiPlatformPort::supportsTransceiver() const {
-  return false;
-}
 
 void SaiPlatformPort::statusIndication(
     bool /* enabled */,
@@ -69,6 +68,10 @@ void SaiPlatformPort::statusIndication(
 void SaiPlatformPort::prepareForGracefulExit() {}
 bool SaiPlatformPort::shouldDisableFEC() const {
   return true;
+}
+
+bool SaiPlatformPort::checkSupportsTransceiver() {
+  return supportsTransceiver() && !FLAGS_skip_transceiver_programming;
 }
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
@@ -117,9 +120,34 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
   return subsumedPortList;
 }
 
+folly::Future<TransmitterTechnology>
+SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
+  if (!checkSupportsTransceiver()) {
+    return folly::makeFuture<TransmitterTechnology>(
+        TransmitterTechnology::COPPER);
+  }
+  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
+  auto getTech = [](TransceiverInfo info) {
+    if (auto cable = info.cable_ref()) {
+      return cable->transmitterTech;
+    }
+    return TransmitterTechnology::UNKNOWN;
+  };
+  auto handleError = [transID](const folly::exception_wrapper& e) {
+    XLOG(ERR) << "Error retrieving info for transceiver " << transID
+              << " Exception: " << folly::exceptionStr(e);
+    return TransmitterTechnology::UNKNOWN;
+  };
+  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
+  folly::Future<TransceiverInfo> transceiverInfo =
+      qsfpCache->futureGet(getTransceiverID().value());
+  return transceiverInfo.via(evb).thenValueInline(getTech).thenError(
+      std::move(handleError));
+}
+
 TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
-  // TODO(srikrishnagopu): Copy it from wedge port ?
-  return TransmitterTechnology::OPTICAL;
+  folly::EventBase evb;
+  return getTransmitterTechInternal(&evb).getVia(&evb);
 }
 
 } // namespace facebook::fboss

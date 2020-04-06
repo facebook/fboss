@@ -30,7 +30,6 @@ class SaiPlatformPort : public PlatformPort {
   bool isMediaPresent() override;
   void linkStatusChanged(bool up, bool adminUp) override;
   void linkSpeedChanged(const cfg::PortSpeed& speed) override;
-  bool supportsTransceiver() const override;
   std::optional<TransceiverID> getTransceiverID() const override {
     return transceiverID_;
   }
@@ -49,11 +48,14 @@ class SaiPlatformPort : public PlatformPort {
   virtual TransmitterTechnology getTransmitterTech();
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const = 0;
+  bool checkSupportsTransceiver();
 
  private:
   std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
       cfg::PortSpeed speed) const;
   std::vector<phy::PinID> getTransceiverLanes() const;
+  folly::Future<TransmitterTechnology> getTransmitterTechInternal(
+      folly::EventBase* evb);
   std::optional<TransceiverID> transceiverID_;
 };
 

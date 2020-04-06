@@ -19,4 +19,8 @@ uint32_t SaiBcmPlatformPort::getPhysicalLaneId(
   return chipId * platform->numLanesPerCore() + logicalLane + 1;
 }
 
+bool SaiBcmPlatformPort::supportsTransceiver() const {
+  return true;
+}
+
 } // namespace facebook::fboss

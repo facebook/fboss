@@ -18,4 +18,8 @@ uint32_t SaiFakePlatformPort::getPhysicalLaneId(
   return logicalLane;
 }
 
+bool SaiFakePlatformPort::supportsTransceiver() const {
+  return false;
+}
+
 } // namespace facebook::fboss
