@@ -111,6 +111,7 @@ void exportDurationCounter(
     folly::StringPiece counterName) {
   auto stageDuration = duration_cast<milliseconds>(to - from);
   fb303::fbData->setCounter(counterName, stageDuration.count());
+  XLOG(DBG2) << counterName << " -> " << stageDuration.count() << "ms";
 }
 
 class RestartTimeTracker {
