@@ -26,6 +26,7 @@
 #include <folly/logging/xlog.h>
 
 DECLARE_bool(setup_thrift);
+DECLARE_int32(update_bststats_interval_s);
 
 namespace {
 void addPort(
@@ -102,6 +103,9 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
   }
   setupEnsemble(
       std::move(platform), std::move(linkToggler), std::move(thriftThread));
+  // Set bst stats update interval to 0 so we always refresh BST stats
+  // in each updateStats call
+  FLAGS_update_bststats_interval_s = 0;
 }
 
 std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {

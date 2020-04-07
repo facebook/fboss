@@ -83,13 +83,31 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     setupECMPForwarding(ecmpHelper6);
   }
-  void assertWatermarks(PortID port, int queueId) {
-    auto queueWaterMarks = getHwSwitchEnsemble()
-                               ->getLatestPortStats({port})[port]
-                               .queueWatermarkBytes_;
-    XLOG(DBG0) << "queueId: " << queueId
-               << " Watermark: " << queueWaterMarks[queueId];
-    EXPECT_GT(queueWaterMarks[queueId], 0);
+
+  void
+  assertWatermark(PortID port, int queueId, bool expectZero, int retries = 1) {
+    EXPECT_TRUE(gotExpectedWatermark(port, queueId, expectZero, retries));
+  }
+
+ private:
+  bool
+  gotExpectedWatermark(PortID port, int queueId, bool expectZero, int retries) {
+    do {
+      auto queueWaterMarks = getHwSwitchEnsemble()
+                                 ->getLatestPortStats({port})[port]
+                                 .queueWatermarkBytes_;
+      XLOG(DBG0) << "queueId: " << queueId
+                 << " Watermark: " << queueWaterMarks[queueId];
+      auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
+          (!expectZero && queueWaterMarks[queueId]);
+      if (!retries || watermarkAsExpected) {
+        return true;
+      }
+      XLOG(DBG0) << " Retry ...";
+      sleep(1);
+    } while (--retries > 0);
+    XLOG(INFO) << " Did not get expected watermark value";
+    return false;
   }
 };
 
@@ -100,7 +118,10 @@ TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
   auto setup = [=]() { _setup(kDscp); };
   auto verify = [=]() {
     sendUdpPkts(kDscp);
-    assertWatermarks(masterLogicalPortIds()[0], kDefQueueId);
+    // Assert non zero watermark
+    assertWatermark(masterLogicalPortIds()[0], kDefQueueId, false);
+    // Assert zero watermark
+    assertWatermark(masterLogicalPortIds()[0], kDefQueueId, true, 5);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -121,7 +142,10 @@ TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
   };
   auto verify = [=]() {
     sendUdpPkts(kDscp);
-    assertWatermarks(masterLogicalPortIds()[0], kNonDefQueueId);
+    // Assert non zero watermark
+    assertWatermark(masterLogicalPortIds()[0], kNonDefQueueId, false);
+    // Assert zero watermark
+    assertWatermark(masterLogicalPortIds()[0], kNonDefQueueId, true, 5);
   };
 
   verifyAcrossWarmBoots(setup, verify);
