@@ -216,11 +216,11 @@ void init(const std::string& warmBootDir, bool warmBoot) {
 
 void mark(RestartEvent event) {
   auto tracker = impl_.lock();
-  if (!*tracker) {
-    throw std::runtime_error(
-        "Cannot call restart_time::mark() before restart_time::init");
+  if (*tracker) {
+    (*tracker)->newEvent(event);
+  } else {
+    XLOG(ERR) << "Cannot call restart_time::mark() before restart_time::init";
   }
-  (*tracker)->newEvent(event);
 }
 
 void stop() {
