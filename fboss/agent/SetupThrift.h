@@ -24,6 +24,8 @@ namespace facebook::fboss {
 
 void serverSSLSetup(apache::thrift::ThriftServer& server);
 
+void setupThriftModules();
+
 template <typename THRIFT_HANDLER>
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
@@ -52,6 +54,8 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   }
 
   handler->setEventBaseManager(server->getEventBaseManager());
+
+  setupThriftModules();
 
   // When a thrift connection closes, we need to clean up the associated
   // callbacks.
