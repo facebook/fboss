@@ -280,6 +280,17 @@ sai_status_t get_port_stats_ext_fn(
     uint64_t* counters) {
   return get_port_stats_fn(port, num_of_counters, counter_ids, counters);
 }
+/*
+ *  noop clear stats API. Since fake doesnt have a
+ *  dataplane stats are always set to 0, so
+ *  no need to clear them
+ */
+sai_status_t clear_port_stats_fn(
+    sai_object_id_t port_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids) {
+  return SAI_STATUS_SUCCESS;
+}
 
 namespace facebook::fboss {
 
@@ -292,6 +303,7 @@ void populate_port_api(sai_port_api_t** port_api) {
   _port_api.get_port_attribute = &get_port_attribute_fn;
   _port_api.get_port_stats = &get_port_stats_fn;
   _port_api.get_port_stats_ext = &get_port_stats_ext_fn;
+  _port_api.clear_port_stats = &clear_port_stats_fn;
   *port_api = &_port_api;
 }
 

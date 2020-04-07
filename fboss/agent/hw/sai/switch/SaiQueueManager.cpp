@@ -175,6 +175,12 @@ void SaiQueueManager::updateStats(
     queueHandle.second->queue->updateStats();
   }
   getStats(queueHandles, hwPortStats);
+  // Now that we have published the stats, clear watermark
+  // so the next read gives us the watermark from this point
+  // onwards.
+  for (auto& queueHandle : queueHandles) {
+    queueHandle.second->queue->clearStats({SAI_QUEUE_STAT_WATERMARK_BYTES});
+  }
 }
 
 void SaiQueueManager::getStats(

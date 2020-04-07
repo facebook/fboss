@@ -152,6 +152,17 @@ sai_status_t get_queue_stats_ext_fn(
     uint64_t* counters) {
   return get_queue_stats_fn(queue, num_of_counters, counter_ids, counters);
 }
+/*
+ *  noop clear stats API. Since fake doesnt have a
+ *  dataplane stats are always set to 0, so
+ *  no need to clear them
+ */
+sai_status_t clear_queue_stats_fn(
+    sai_object_id_t queue_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids) {
+  return SAI_STATUS_SUCCESS;
+}
 
 namespace facebook::fboss {
 
@@ -164,6 +175,7 @@ void populate_queue_api(sai_queue_api_t** queue_api) {
   _queue_api.get_queue_attribute = &get_queue_attribute_fn;
   _queue_api.get_queue_stats = &get_queue_stats_fn;
   _queue_api.get_queue_stats_ext = &get_queue_stats_ext_fn;
+  _queue_api.clear_queue_stats = &clear_queue_stats_fn;
   *queue_api = &_queue_api;
 }
 
