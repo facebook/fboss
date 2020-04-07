@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/hw/facebook/ScubaBufferStatsLogger.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
