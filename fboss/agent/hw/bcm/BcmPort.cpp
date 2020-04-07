@@ -1049,11 +1049,22 @@ void BcmPort::destroyAllPortStats() {
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
   XLOG(DBG2) << "Enabling stats for " << port->getName();
 
-  // Enable packet and byte counter statistic collection.
-  auto rv = bcm_port_stat_enable_set(unit_, gport_, true);
-  if (rv != BCM_E_EXISTS) {
-    // Don't throw an error if counter collection is already enabled
-    bcmCheckError(rv, "Unexpected error enabling counter DMA on port ", port_);
+  if (isEnabled()) {
+    XLOG(DBG2) << "Skipping bcm_port_stat_enable_set on already enabled port";
+  } else {
+    // TODO: we discovered a resource leak on this call when it
+    // returns BCM_E_EXISTS so we only call on disabled ports. We
+    // should remove this isEnabled() check once we confirm the api is
+    // safe to use, or we get a bcm_port_stat_enable_get() api from
+    // broadcom.
+    //
+    // Enable packet and byte counter statistic collection.
+    auto rv = bcm_port_stat_enable_set(unit_, gport_, 1);
+    if (rv != BCM_E_EXISTS) {
+      // Don't throw an error if counter collection is already enabled
+      bcmCheckError(
+          rv, "Unexpected error enabling counter DMA on port ", port_);
+    }
   }
 
   reinitPortStats(port);
