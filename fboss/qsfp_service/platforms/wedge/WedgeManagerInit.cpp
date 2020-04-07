@@ -31,7 +31,9 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
   } else if (mode == PlatformMode::YAMP) {
     return createYampTransceiverManager();
   } else if (
-      mode == PlatformMode::MINIPACK || mode == PlatformMode::WEDGE400) {
+      mode == PlatformMode::MINIPACK ||
+      mode == PlatformMode::WEDGE400 ||
+      mode == PlatformMode::WEDGE400C) {
     return createFBTransceiverManager(std::move(productInfo));
   }
   return std::make_unique<Wedge40Manager>();
