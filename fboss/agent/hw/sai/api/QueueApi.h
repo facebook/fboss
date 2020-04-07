@@ -111,7 +111,7 @@ class QueueApi : public SaiApi<QueueApi> {
       uint32_t num_of_counters,
       const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
-      uint64_t* counters) {
+      uint64_t* counters) const {
     return api_->get_queue_stats(key, num_of_counters, counter_ids, counters);
   }
 

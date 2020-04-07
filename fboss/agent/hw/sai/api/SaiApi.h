@@ -182,7 +182,7 @@ class SaiApi {
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
-      const std::vector<sai_stat_id_t>& counterIds) {
+      const std::vector<sai_stat_id_t>& counterIds) const {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
@@ -192,7 +192,7 @@ class SaiApi {
   }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
-      const typename SaiObjectTraits::AdapterKey& key) {
+      const typename SaiObjectTraits::AdapterKey& key) const {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
@@ -231,7 +231,7 @@ class SaiApi {
   std::vector<uint64_t> getStatsImpl(
       const typename SaiObjectTraits::AdapterKey& key,
       const sai_stat_id_t* counterIds,
-      size_t numCounters) {
+      size_t numCounters) const {
     std::vector<uint64_t> counters;
     counters.resize(numCounters);
     sai_status_t status = impl()._getStats(
