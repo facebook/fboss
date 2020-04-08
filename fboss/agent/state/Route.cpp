@@ -55,6 +55,11 @@ folly::dynamic Route<AddrT>::toFollyDynamic() const {
       RouteBase::getFields()->nexthopsmulti.toFollyDynamic();
   routeFields[kFwdInfo] = RouteBase::getFields()->fwd.toFollyDynamic();
   routeFields[kFlags] = RouteBase::getFields()->flags;
+  if (RouteBase::getFields()->classID.has_value()) {
+    routeFields[kClassID] =
+        static_cast<int>(RouteBase::getFields()->classID.value());
+  }
+
   return routeFields;
 }
 
@@ -66,6 +71,10 @@ std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
       RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
   rt.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
   rt.flags = routeJson[kFlags].asInt();
+  if (routeJson.find(kClassID) != routeJson.items().end()) {
+    rt.classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
+  }
+
   auto route = std::make_shared<Route<AddrT>>(rt);
   CHECK(!route->hasNoEntry());
   return route;
@@ -123,6 +132,11 @@ template <typename AddrT>
 void Route<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
   RouteBase::writableFields()->fwd.reset();
   RouteBase::writableFields()->nexthopsmulti.update(clientId, std::move(entry));
+}
+
+template <typename AddrT>
+void Route<AddrT>::updateClassID(std::optional<cfg::AclLookupClass> classID) {
+  RouteBase::writableFields()->classID = classID;
 }
 
 template <typename AddrT>

@@ -61,6 +61,7 @@ struct RouteFields {
   RouteNextHopEntry fwd{RouteNextHopEntry::Action::DROP,
                         AdminDistance::MAX_ADMIN_DISTANCE};
   uint32_t flags{0};
+  std::optional<cfg::AclLookupClass> classID{std::nullopt};
 };
 
 /// Route<> Class
@@ -169,7 +170,13 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
 
   void update(ClientID clientId, RouteNextHopEntry entry);
 
+  void updateClassID(std::optional<cfg::AclLookupClass> classID);
+
   void delEntryForClient(ClientID clientId);
+
+  std::optional<cfg::AclLookupClass> getClassID() const {
+    return RouteBase::getFields()->classID;
+  }
 
  private:
   // no copy or assign operator
