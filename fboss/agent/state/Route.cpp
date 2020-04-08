@@ -125,6 +125,13 @@ std::string Route<AddrT>::str() const {
   }
   ret.append(", => ");
   ret.append(RouteBase::getFields()->fwd.str());
+
+  auto classIDStr = getClassID().has_value()
+      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+      : "None";
+  ret.append(", classID: ");
+  ret.append(classIDStr);
+
   return ret;
 }
 
