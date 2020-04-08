@@ -29,6 +29,8 @@ class SaiFakePlatform : public SaiPlatform {
     return 4;
   }
 
+  folly::MacAddress getLocalMac() const override;
+
  private:
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;

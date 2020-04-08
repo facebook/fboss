@@ -12,6 +12,8 @@
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformMapping.h"
 
+#include "fboss/agent/hw/test/ConfigFactory.h"
+
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
@@ -41,5 +43,9 @@ HwAsic* SaiFakePlatform::getAsic() const {
 }
 
 SaiFakePlatform::~SaiFakePlatform() {}
+
+folly::MacAddress SaiFakePlatform::getLocalMac() const {
+  return utility::kLocalCpuMac();
+}
 
 } // namespace facebook::fboss
