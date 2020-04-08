@@ -91,6 +91,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
+    updateIpAndVlan2ClassID(removedEntry->getIP(), vlan, std::nullopt);
     updater->updateEntryClassID(vlan, removedEntry->getIP());
     updateRouteClassID(removedEntry->getIP());
   }
@@ -170,6 +171,33 @@ void LookupClassUpdater::initPort(
   }
 }
 
+std::optional<cfg::AclLookupClass> LookupClassUpdater::getClassIDForIpAndVlan(
+    const folly::IPAddress& ip,
+    VlanID vlanID) {
+  auto iter = ipAndVlan2ClassID_.find(std::make_pair(ip, vlanID));
+  if (iter != ipAndVlan2ClassID_.end()) {
+    return iter->second;
+  }
+
+  return std::nullopt;
+}
+
+void LookupClassUpdater::updateIpAndVlan2ClassID(
+    const folly::IPAddress& ip,
+    VlanID vlanID,
+    std::optional<cfg::AclLookupClass> classID) {
+  auto iter = ipAndVlan2ClassID_.find(std::make_pair(ip, vlanID));
+
+  if (classID.has_value()) {
+    CHECK(iter == ipAndVlan2ClassID_.end());
+    ipAndVlan2ClassID_.insert(
+        std::make_pair(std::make_pair(ip, vlanID), classID.value()));
+  } else {
+    CHECK(iter != ipAndVlan2ClassID_.end());
+    ipAndVlan2ClassID_.erase(iter);
+  }
+}
+
 template <typename NewEntryT>
 void LookupClassUpdater::updateNeighborClassID(
     const std::shared_ptr<SwitchState>& switchState,
@@ -222,6 +250,7 @@ void LookupClassUpdater::updateNeighborClassID(
         std::move(updateMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
+    updateIpAndVlan2ClassID(newEntry->getIP(), vlanID, classID);
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
     updateRouteClassID(newEntry->getIP(), classID);
   }
@@ -383,6 +412,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
           sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
         } else {
           auto updater = sw_->getNeighborUpdater();
+          updateIpAndVlan2ClassID(entry.get()->getIP(), vlanID, std::nullopt);
           updater->updateEntryClassID(vlanID, entry.get()->getIP());
           updateRouteClassID(entry.get()->getIP());
         }

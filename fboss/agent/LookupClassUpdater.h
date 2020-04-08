@@ -141,6 +141,14 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<Port> port);
   bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
 
+  std::optional<cfg::AclLookupClass> getClassIDForIpAndVlan(
+      const folly::IPAddress& ip,
+      VlanID vlanID);
+  void updateIpAndVlan2ClassID(
+      const folly::IPAddress& ip,
+      VlanID vlanID,
+      std::optional<cfg::AclLookupClass> classID);
+
   SwSwitch* sw_;
 
   /*
@@ -173,6 +181,16 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       std::pair<cfg::AclLookupClass, int>>;
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
+
+  /*
+   * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
+   * to classID mapping.
+   * A route inherits classID of its nexthop. Maintaining IP to classID mapping
+   * allows efficient lookup of nexthop's classID when a route is added.
+   */
+  boost::container::
+      flat_map<std::pair<folly::IPAddress, VlanID>, cfg::AclLookupClass>
+          ipAndVlan2ClassID_;
 
   bool inited_{false};
 
