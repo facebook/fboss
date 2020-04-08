@@ -46,6 +46,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmNeighborTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortQueueManagerTests.cpp
   fboss/agent/hw/bcm/tests/BcmPortTests.cpp
+  fboss/agent/hw/bcm/tests/BcmPortStressTests.cpp
   fboss/agent/hw/bcm/tests/BcmQosPolicyTests.cpp
   fboss/agent/hw/bcm/tests/BcmQosMapTests.cpp
   fboss/agent/hw/bcm/tests/BcmQueueStatCollectionTests.cpp
