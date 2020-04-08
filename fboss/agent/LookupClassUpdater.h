@@ -45,7 +45,9 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       const std::shared_ptr<ChangedEntryT>& newEntry);
 
   bool isInited(PortID portID);
-  void initPort(const std::shared_ptr<Port>& port);
+  void initPort(
+      const std::shared_ptr<SwitchState>& switchState,
+      const std::shared_ptr<Port>& port);
 
   template <typename NewEntryT>
   void updateNeighborClassID(
@@ -116,6 +118,11 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   auto getTableDelta(const VlanDelta& vlanDelta);
 
+  void updateSubnetsToCache(
+      const std::shared_ptr<SwitchState>& switchState,
+      std::shared_ptr<Port> port);
+  bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
+
   SwSwitch* sw_;
 
   /*
@@ -150,6 +157,23 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       port2MacAndVlanEntries_;
 
   bool inited_{false};
+
+  /*
+   * We need to maintain nexthop to route mapping so that when a nexthop is
+   * resolved (gets classID), the same classID could be associated with
+   * corresponding routes. However, we are only interested in nexthops that are
+   * part of 'certain' subnets. vlan2SubnetsCache_ maintains this list of
+   * subnets.
+   *   - ports needing queue-per-host have non-empty lookupClasses list.
+   *   - each port belongs to an interface.
+   *   - each interface is part of certain subnet.
+   *   - nexthop IP that would use such a port for egress, would belong to the
+   *     interface subnet.
+   * Thus, we discover and maintain a list of subnets for ports that have
+   * non-emptry lookupClasses list.
+   */
+  boost::container::flat_map<VlanID, std::set<folly::CIDRNetwork>>
+      vlan2SubnetsCache_;
 };
 
 } // namespace facebook::fboss

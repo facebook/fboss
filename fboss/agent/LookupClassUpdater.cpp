@@ -101,7 +101,54 @@ bool LookupClassUpdater::isInited(PortID portID) {
       port2ClassIDAndCount_.find(portID) != port2ClassIDAndCount_.end();
 }
 
-void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
+bool LookupClassUpdater::belongsToSubnetInCache(
+    const folly::IPAddress& ipToSearch) {
+  /*
+   * When a neighbor is resolved, given the egress port, we could tell which
+   * vlan(s) it is part of. However, the neighbor may not be resolved
+   * yet, thus search if the input ip exists in any of the subnets.
+   *
+   * In practice, today, there is only one vlan for downlink ports.
+   * Even if that changes in future, we should be OK:
+   * This function would be used to decide whether or not to store nexthop to
+   * route mapping for a given nexthop. At worst, the caller would end up
+   * storing nexthop to route mapping for more routes than necessary, but the
+   * functionality would still be correct.
+   */
+  for (const auto& [vlan, subnetsCache] : vlan2SubnetsCache_) {
+    for (const auto& [ipAddress, mask] : subnetsCache) {
+      if (ipToSearch.inSubnet(ipAddress, mask)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+void LookupClassUpdater::updateSubnetsToCache(
+    const std::shared_ptr<SwitchState>& switchState,
+    std::shared_ptr<Port> port) {
+  for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
+    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+    auto interface =
+        switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+    if (interface) {
+      for (auto address : interface->getAddresses()) {
+        subnetsCache.insert(address);
+      }
+    }
+  }
+}
+
+void LookupClassUpdater::initPort(
+    const std::shared_ptr<SwitchState>& switchState,
+    const std::shared_ptr<Port>& port) {
   auto& macAndVlan2ClassIDAndRefCnt = port2MacAndVlanEntries_[port->getID()];
   auto& classID2Count = port2ClassIDAndCount_[port->getID()];
 
@@ -110,6 +157,15 @@ void LookupClassUpdater::initPort(const std::shared_ptr<Port>& port) {
 
   for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
     classID2Count[classID] = 0;
+  }
+
+  /*
+   * A route inherits classID, if any, of its nexthop. A nexthop would only get
+   * classID if it belongs to a subnet of an interface on the port that has
+   * non-empty list of lookupClasses.
+   */
+  if (port->getLookupClassesToDistributeTrafficOn().size() > 0) {
+    updateSubnetsToCache(switchState, port);
   }
 }
 
@@ -368,7 +424,7 @@ void LookupClassUpdater::validateRemovedPortEntries(
 }
 
 void LookupClassUpdater::processPortAdded(
-    const std::shared_ptr<SwitchState>& /* unused */,
+    const std::shared_ptr<SwitchState>& switchState,
     const std::shared_ptr<Port>& addedPort) {
   CHECK(addedPort);
   if (addedPort->getLookupClassesToDistributeTrafficOn().size() == 0) {
@@ -380,7 +436,7 @@ void LookupClassUpdater::processPortAdded(
   }
 
   if (!isInited(addedPort->getID())) {
-    initPort(addedPort);
+    initPort(switchState, addedPort);
   }
 }
 
@@ -454,7 +510,7 @@ void LookupClassUpdater::processPortChanged(
   clearClassIdsForResolvedNeighbors<folly::IPAddressV4>(
       stateDelta.oldState(), newPort->getID());
 
-  initPort(newPort);
+  initPort(stateDelta.newState(), newPort);
 
   repopulateClassIdsForResolvedNeighbors<folly::MacAddress>(
       stateDelta.newState(), newPort->getID());
@@ -557,7 +613,7 @@ void LookupClassUpdater::updateStateObserverLocalCache(
   CHECK(!inited_);
 
   for (auto port : *switchState->getPorts()) {
-    initPort(port);
+    initPort(switchState, port);
     for (auto vlanMember : port->getVlans()) {
       auto vlanID = vlanMember.first;
       auto vlan = switchState->getVlans()->getVlanIf(vlanID);
@@ -573,6 +629,7 @@ void LookupClassUpdater::updateStateObserverLocalCache(
 
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
+    vlan2SubnetsCache_.clear();
     updateStateObserverLocalCache(stateDelta.newState());
     inited_ = true;
   }
