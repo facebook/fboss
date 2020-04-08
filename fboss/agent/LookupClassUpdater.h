@@ -118,6 +118,24 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   auto getTableDelta(const VlanDelta& vlanDelta);
 
+  template <typename AddrT>
+  void processRouteUpdates(const StateDelta& stateDelta);
+
+  template <typename RouteT>
+  void processRouteAdded(
+      const std::shared_ptr<SwitchState>& switchState,
+      RouterID rid,
+      const std::shared_ptr<RouteT>& addedRoute);
+  template <typename RouteT>
+  void processRouteRemoved(const std::shared_ptr<RouteT>& removedRoute);
+  template <typename RouteT>
+  void processRouteChanged(
+      const std::shared_ptr<RouteT>& oldRoute,
+      const std::shared_ptr<RouteT>& newRoute);
+  void updateRouteClassID(
+      const folly::IPAddress& ip,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+
   void updateSubnetsToCache(
       const std::shared_ptr<SwitchState>& switchState,
       std::shared_ptr<Port> port);

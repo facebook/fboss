@@ -92,6 +92,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlan, removedEntry->getIP());
+    updateRouteClassID(removedEntry->getIP());
   }
 }
 
@@ -222,7 +223,14 @@ void LookupClassUpdater::updateNeighborClassID(
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
+    updateRouteClassID(newEntry->getIP(), classID);
   }
+}
+
+void LookupClassUpdater::updateRouteClassID(
+    const folly::IPAddress& /*unused*/,
+    std::optional<cfg::AclLookupClass> /*unused*/) {
+  // TODO (skhare) add support
 }
 
 template <typename AddedEntryT>
@@ -376,6 +384,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
         } else {
           auto updater = sw_->getNeighborUpdater();
           updater->updateEntryClassID(vlanID, entry.get()->getIP());
+          updateRouteClassID(entry.get()->getIP());
         }
       }
     }
@@ -627,6 +636,53 @@ void LookupClassUpdater::updateStateObserverLocalCache(
   }
 }
 
+template <typename RouteT>
+void LookupClassUpdater::processRouteAdded(
+    const std::shared_ptr<SwitchState>& /*unused*/,
+    RouterID /*unused*/,
+    const std::shared_ptr<RouteT>& /*unused*/) {
+  // TODO (skhare) add support
+}
+
+template <typename RouteT>
+void LookupClassUpdater::processRouteRemoved(
+    const std::shared_ptr<RouteT>& /*unused*/) {
+  // TODO (skhare) add support
+}
+
+template <typename RouteT>
+void LookupClassUpdater::processRouteChanged(
+    const std::shared_ptr<RouteT>& /*unused*/,
+    const std::shared_ptr<RouteT>& /*unused*/) {
+  // TODO (skhare) add support
+}
+
+template <typename AddrT>
+void LookupClassUpdater::processRouteUpdates(const StateDelta& stateDelta) {
+  auto switchState = stateDelta.newState();
+
+  for (auto const& rtDelta : stateDelta.getRouteTablesDelta()) {
+    auto const& newRouteTable = rtDelta.getNew();
+    if (!newRouteTable) {
+      return;
+    }
+
+    auto rid = newRouteTable->getID();
+    for (auto const& routeDelta : rtDelta.getRoutesDelta<AddrT>()) {
+      auto const& oldRoute = routeDelta.getOld();
+      auto const& newRoute = routeDelta.getNew();
+
+      if (!oldRoute) {
+        processRouteAdded(stateDelta.newState(), rid, newRoute);
+      } else if (!newRoute) {
+        processRouteRemoved(newRoute);
+      } else {
+        processRouteChanged(oldRoute, newRoute);
+      }
+    }
+  }
+}
+
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     vlan2SubnetsCache_.clear();
@@ -639,6 +695,9 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
 
   processPortUpdates(stateDelta);
+
+  processRouteUpdates<folly::IPAddressV6>(stateDelta);
+  processRouteUpdates<folly::IPAddressV4>(stateDelta);
 }
 
 } // namespace facebook::fboss
