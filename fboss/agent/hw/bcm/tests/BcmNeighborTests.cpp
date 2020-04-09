@@ -39,10 +39,6 @@ struct NeighborT {
   }
 };
 
-int getLookupClassFromL3Host(const bcm_l3_host_t& host) {
-  return reinterpret_cast<const bcm_l3_host_t*>(&host)->l3a_lookup_class;
-}
-
 using PortNeighborV4 = NeighborT<folly::IPAddressV4, false>;
 using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true>;
 using PortNeighborV6 = NeighborT<folly::IPAddressV6, false>;
@@ -203,7 +199,7 @@ class BcmNeighborTests : public BcmLinkStateDependentTests {
      * Pending entry should not have a classID (0) associated with it.
      * Resolved entry should have a classID associated with it.
      */
-    EXPECT_TRUE(programToTrunk || getLookupClassFromL3Host(host) == classID);
+    EXPECT_TRUE(programToTrunk || host.l3a_lookup_class == classID);
   }
 
   const VlanID kVlanID{utility::kBaseVlanId};
