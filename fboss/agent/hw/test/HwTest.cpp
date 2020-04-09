@@ -81,6 +81,15 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired());
   hwSwitchEnsemble_->addHwEventObserver(this);
+  if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+    // For warm boots, in wedge_agent at this point we would
+    // apply the config. Which if nothing changed would be a noop
+    // In HwTests we don't save and apply the config on warmboot
+    // and since the warm boot expectation is that switch came
+    // back in a identical state. Mark the switch state is as
+    // CONFIGURED
+    getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+  }
 }
 
 void HwTest::TearDown() {
