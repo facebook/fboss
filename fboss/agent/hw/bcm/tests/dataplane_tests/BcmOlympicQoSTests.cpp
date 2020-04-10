@@ -274,37 +274,6 @@ void BcmOlympicQoSTest::verifyWRRAndNC() {
       utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
 }
 
-class BcmOlympicQoSAclTest : public BcmOlympicQoSTest {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = BcmOlympicQoSTest::initialConfig();
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicAcls(&cfg);
-    }
-    return cfg;
-  }
-};
-
-TEST_F(BcmOlympicQoSAclTest, VerifyDscpQueueMapping) {
-  verifyDscpQueueMapping();
-}
-
-TEST_F(BcmOlympicQoSAclTest, VerifyWRR) {
-  verifyWRR();
-}
-
-TEST_F(BcmOlympicQoSAclTest, VerifySP) {
-  verifySP();
-}
-
-TEST_F(BcmOlympicQoSAclTest, VerifyWRRAndPlatinum) {
-  verifyWRRAndPlatinum();
-}
-
-TEST_F(BcmOlympicQoSAclTest, VerifyWRRAndNC) {
-  verifyWRRAndNC();
-}
-
 class BcmOlympicQoSMapTest : public BcmOlympicQoSTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
