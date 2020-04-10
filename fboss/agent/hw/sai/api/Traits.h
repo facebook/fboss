@@ -96,6 +96,11 @@ struct WrappedSaiType<std::vector<sai_uint32_t>> {
   using value = sai_u32_list_t;
 };
 
+template <>
+struct WrappedSaiType<std::vector<sai_qos_map_t>> {
+  using value = sai_qos_map_list_t;
+};
+
 template <typename T>
 struct IsSaiTypeWrapper
     : std::negation<std::is_same<typename WrappedSaiType<T>::value, T>> {};

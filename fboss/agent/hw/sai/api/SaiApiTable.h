@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
@@ -74,6 +75,9 @@ class SaiApiTable {
   PortApi& portApi();
   const PortApi& portApi() const;
 
+  QosMapApi& qosMapApi();
+  const QosMapApi& qosMapApi() const;
+
   QueueApi& queueApi();
   const QueueApi& queueApi() const;
 
@@ -118,6 +122,7 @@ class SaiApiTable {
       std::unique_ptr<MplsApi>,
       std::unique_ptr<NeighborApi>,
       std::unique_ptr<PortApi>,
+      std::unique_ptr<QosMapApi>,
       std::unique_ptr<QueueApi>,
       std::unique_ptr<RouteApi>,
       std::unique_ptr<RouterInterfaceApi>,

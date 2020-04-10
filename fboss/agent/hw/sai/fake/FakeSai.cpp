@@ -37,6 +37,7 @@ void FakeSai::clear() {
   fs->nextHopManager.clear();
   fs->nextHopGroupManager.clearWithMembers();
   fs->portManager.clear();
+  fs->qosMapManager.clear();
   fs->queueManager.clear();
   fs->routeManager.clear();
   fs->routeInterfaceManager.clear();
@@ -136,6 +137,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       break;
     case SAI_API_PORT:
       facebook::fboss::populate_port_api((sai_port_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_QOS_MAP:
+      facebook::fboss::populate_qos_map_api(
+          (sai_qos_map_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_QUEUE:

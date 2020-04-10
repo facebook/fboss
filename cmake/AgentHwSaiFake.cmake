@@ -17,6 +17,7 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiNextHopGroup.cpp
     fboss/agent/hw/sai/fake/FakeSaiObject.cpp
     fboss/agent/hw/sai/fake/FakeSaiPort.cpp
+    fboss/agent/hw/sai/fake/FakeSaiQosMap.cpp
     fboss/agent/hw/sai/fake/FakeSaiQueue.cpp
     fboss/agent/hw/sai/fake/FakeSaiRoute.cpp
     fboss/agent/hw/sai/fake/FakeSaiRouterInterface.cpp

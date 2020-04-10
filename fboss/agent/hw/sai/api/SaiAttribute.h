@@ -150,11 +150,11 @@ DEFINE_extract(std::vector<sai_uint32_t>, u32list);
 DEFINE_extract(std::vector<sai_int8_t>, s8list);
 DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
+DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
 DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(sai_vlan_list_t, vlanlist);
-DEFINE_extract(sai_qos_map_list_t, qosmap);
 DEFINE_extract(sai_map_list_t, maplist);
 DEFINE_extract(sai_acl_field_data_t, aclfield);
 DEFINE_extract(sai_acl_action_data_t, aclaction);

@@ -47,6 +47,7 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<NeighborApi>>(apis_) =
       std::make_unique<NeighborApi>();
   std::get<std::unique_ptr<PortApi>>(apis_) = std::make_unique<PortApi>();
+  std::get<std::unique_ptr<QosMapApi>>(apis_) = std::make_unique<QosMapApi>();
   std::get<std::unique_ptr<QueueApi>>(apis_) = std::make_unique<QueueApi>();
   std::get<std::unique_ptr<RouteApi>>(apis_) = std::make_unique<RouteApi>();
   std::get<std::unique_ptr<RouterInterfaceApi>>(apis_) =
@@ -118,6 +119,13 @@ PortApi& SaiApiTable::portApi() {
 }
 const PortApi& SaiApiTable::portApi() const {
   return getApi<PortApi>();
+}
+
+QosMapApi& SaiApiTable::qosMapApi() {
+  return getApi<QosMapApi>();
+}
+const QosMapApi& SaiApiTable::qosMapApi() const {
+  return getApi<QosMapApi>();
 }
 
 QueueApi& SaiApiTable::queueApi() {

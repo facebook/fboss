@@ -168,4 +168,25 @@ struct formatter<std::optional<T>> {
   }
 };
 
+// Formatting for sai_qos_map_t
+template <>
+struct formatter<sai_qos_map_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_qos_map_t& qosMap, FormatContext& ctx) {
+    return format_to(
+        ctx.out(),
+        "(qos_mapping: key.dscp: {}, key.tc: {}, "
+        "value.tc: {}, value.queue_index: {})",
+        qosMap.key.dscp,
+        qosMap.key.tc,
+        qosMap.value.tc,
+        qosMap.value.queue_index);
+  }
+};
+
 } // namespace fmt
