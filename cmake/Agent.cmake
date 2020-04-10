@@ -80,6 +80,7 @@ add_library(core
   fboss/agent/LinkAggregationManager.cpp
   fboss/agent/LldpManager.cpp
   fboss/agent/LoadBalancerConfigApplier.cpp
+  fboss/agent/LookupClassRouteUpdater.cpp
   fboss/agent/LookupClassUpdater.cpp
   fboss/agent/MacTableManager.cpp
   fboss/agent/MacTableUtils.cpp

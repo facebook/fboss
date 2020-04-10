@@ -10,6 +10,7 @@
 
 #include "fboss/agent/LookupClassUpdater.h"
 
+#include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -101,9 +102,9 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
     sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
-    updateIpAndVlan2ClassID(removedEntry->getIP(), vlan, std::nullopt);
     updater->updateEntryClassID(vlan, removedEntry->getIP());
-    updateRouteClassID(removedEntry->getIP());
+    routeUpdater_->neighborClassIDUpdated(
+        removedEntry->getIP(), vlan, std::nullopt);
   }
 }
 
@@ -111,51 +112,6 @@ bool LookupClassUpdater::isInited(PortID portID) {
   return port2MacAndVlanEntries_.find(portID) !=
       port2MacAndVlanEntries_.end() &&
       port2ClassIDAndCount_.find(portID) != port2ClassIDAndCount_.end();
-}
-
-bool LookupClassUpdater::belongsToSubnetInCache(
-    const folly::IPAddress& ipToSearch) {
-  /*
-   * When a neighbor is resolved, given the egress port, we could tell which
-   * vlan(s) it is part of. However, the neighbor may not be resolved
-   * yet, thus search if the input ip exists in any of the subnets.
-   *
-   * In practice, today, there is only one vlan for downlink ports.
-   * Even if that changes in future, we should be OK:
-   * This function would be used to decide whether or not to store nexthop to
-   * route mapping for a given nexthop. At worst, the caller would end up
-   * storing nexthop to route mapping for more routes than necessary, but the
-   * functionality would still be correct.
-   */
-  for (const auto& [vlan, subnetsCache] : vlan2SubnetsCache_) {
-    for (const auto& [ipAddress, mask] : subnetsCache) {
-      if (ipToSearch.inSubnet(ipAddress, mask)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-void LookupClassUpdater::updateSubnetsToCache(
-    const std::shared_ptr<SwitchState>& switchState,
-    std::shared_ptr<Port> port) {
-  for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
-    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
-    if (!vlan) {
-      continue;
-    }
-
-    auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-    auto interface =
-        switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
-    if (interface) {
-      for (auto address : interface->getAddresses()) {
-        subnetsCache.insert(address);
-      }
-    }
-  }
 }
 
 void LookupClassUpdater::initPort(
@@ -177,34 +133,7 @@ void LookupClassUpdater::initPort(
    * non-empty list of lookupClasses.
    */
   if (port->getLookupClassesToDistributeTrafficOn().size() > 0) {
-    updateSubnetsToCache(switchState, port);
-  }
-}
-
-std::optional<cfg::AclLookupClass> LookupClassUpdater::getClassIDForIpAndVlan(
-    const folly::IPAddress& ip,
-    VlanID vlanID) {
-  auto iter = ipAndVlan2ClassID_.find(std::make_pair(ip, vlanID));
-  if (iter != ipAndVlan2ClassID_.end()) {
-    return iter->second;
-  }
-
-  return std::nullopt;
-}
-
-void LookupClassUpdater::updateIpAndVlan2ClassID(
-    const folly::IPAddress& ip,
-    VlanID vlanID,
-    std::optional<cfg::AclLookupClass> classID) {
-  auto iter = ipAndVlan2ClassID_.find(std::make_pair(ip, vlanID));
-
-  if (classID.has_value()) {
-    CHECK(iter == ipAndVlan2ClassID_.end());
-    ipAndVlan2ClassID_.insert(
-        std::make_pair(std::make_pair(ip, vlanID), classID.value()));
-  } else {
-    CHECK(iter != ipAndVlan2ClassID_.end());
-    ipAndVlan2ClassID_.erase(iter);
+    routeUpdater_->initPort(switchState, port);
   }
 }
 
@@ -260,16 +189,9 @@ void LookupClassUpdater::updateNeighborClassID(
         std::move(updateMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
-    updateIpAndVlan2ClassID(newEntry->getIP(), vlanID, classID);
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
-    updateRouteClassID(newEntry->getIP(), classID);
+    routeUpdater_->neighborClassIDUpdated(newEntry->getIP(), vlanID, classID);
   }
-}
-
-void LookupClassUpdater::updateRouteClassID(
-    const folly::IPAddress& /*unused*/,
-    std::optional<cfg::AclLookupClass> /*unused*/) {
-  // TODO (skhare) add support
 }
 
 template <typename AddedEntryT>
@@ -422,9 +344,9 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
           sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
         } else {
           auto updater = sw_->getNeighborUpdater();
-          updateIpAndVlan2ClassID(entry.get()->getIP(), vlanID, std::nullopt);
           updater->updateEntryClassID(vlanID, entry.get()->getIP());
-          updateRouteClassID(entry.get()->getIP());
+          routeUpdater_->neighborClassIDUpdated(
+              entry.get()->getIP(), vlanID, std::nullopt);
         }
       }
     }
@@ -676,56 +598,8 @@ void LookupClassUpdater::updateStateObserverLocalCache(
   }
 }
 
-template <typename RouteT>
-void LookupClassUpdater::processRouteAdded(
-    const std::shared_ptr<SwitchState>& /*unused*/,
-    RouterID /*unused*/,
-    const std::shared_ptr<RouteT>& /*unused*/) {
-  // TODO (skhare) add support
-}
-
-template <typename RouteT>
-void LookupClassUpdater::processRouteRemoved(
-    const std::shared_ptr<RouteT>& /*unused*/) {
-  // TODO (skhare) add support
-}
-
-template <typename RouteT>
-void LookupClassUpdater::processRouteChanged(
-    const std::shared_ptr<RouteT>& /*unused*/,
-    const std::shared_ptr<RouteT>& /*unused*/) {
-  // TODO (skhare) add support
-}
-
-template <typename AddrT>
-void LookupClassUpdater::processRouteUpdates(const StateDelta& stateDelta) {
-  auto switchState = stateDelta.newState();
-
-  for (auto const& rtDelta : stateDelta.getRouteTablesDelta()) {
-    auto const& newRouteTable = rtDelta.getNew();
-    if (!newRouteTable) {
-      return;
-    }
-
-    auto rid = newRouteTable->getID();
-    for (auto const& routeDelta : rtDelta.getRoutesDelta<AddrT>()) {
-      auto const& oldRoute = routeDelta.getOld();
-      auto const& newRoute = routeDelta.getNew();
-
-      if (!oldRoute) {
-        processRouteAdded(stateDelta.newState(), rid, newRoute);
-      } else if (!newRoute) {
-        processRouteRemoved(newRoute);
-      } else {
-        processRouteChanged(oldRoute, newRoute);
-      }
-    }
-  }
-}
-
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
-    vlan2SubnetsCache_.clear();
     updateStateObserverLocalCache(stateDelta.newState());
     inited_ = true;
   }
@@ -736,8 +610,7 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
 
   processPortUpdates(stateDelta);
 
-  processRouteUpdates<folly::IPAddressV6>(stateDelta);
-  processRouteUpdates<folly::IPAddressV4>(stateDelta);
+  routeUpdater_->processUpdates(stateDelta);
 }
 
 } // namespace facebook::fboss

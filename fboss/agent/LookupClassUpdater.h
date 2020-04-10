@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -17,7 +18,9 @@ namespace facebook::fboss {
 class LookupClassUpdater : public AutoRegisterStateObserver {
  public:
   explicit LookupClassUpdater(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "LookupClassUpdater"), sw_(sw) {}
+      : AutoRegisterStateObserver(sw, "LookupClassUpdater"),
+        sw_(sw),
+        routeUpdater_(new LookupClassRouteUpdater()) {}
   ~LookupClassUpdater() override {}
 
   void stateUpdated(const StateDelta& stateDelta) override;
@@ -125,37 +128,6 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   auto getTableDelta(const VlanDelta& vlanDelta);
 
-  template <typename AddrT>
-  void processRouteUpdates(const StateDelta& stateDelta);
-
-  template <typename RouteT>
-  void processRouteAdded(
-      const std::shared_ptr<SwitchState>& switchState,
-      RouterID rid,
-      const std::shared_ptr<RouteT>& addedRoute);
-  template <typename RouteT>
-  void processRouteRemoved(const std::shared_ptr<RouteT>& removedRoute);
-  template <typename RouteT>
-  void processRouteChanged(
-      const std::shared_ptr<RouteT>& oldRoute,
-      const std::shared_ptr<RouteT>& newRoute);
-  void updateRouteClassID(
-      const folly::IPAddress& ip,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt);
-
-  void updateSubnetsToCache(
-      const std::shared_ptr<SwitchState>& switchState,
-      std::shared_ptr<Port> port);
-  bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
-
-  std::optional<cfg::AclLookupClass> getClassIDForIpAndVlan(
-      const folly::IPAddress& ip,
-      VlanID vlanID);
-  void updateIpAndVlan2ClassID(
-      const folly::IPAddress& ip,
-      VlanID vlanID,
-      std::optional<cfg::AclLookupClass> classID);
-
   SwSwitch* sw_;
 
   /*
@@ -189,34 +161,9 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
 
-  /*
-   * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
-   * to classID mapping.
-   * A route inherits classID of its nexthop. Maintaining IP to classID mapping
-   * allows efficient lookup of nexthop's classID when a route is added.
-   */
-  boost::container::
-      flat_map<std::pair<folly::IPAddress, VlanID>, cfg::AclLookupClass>
-          ipAndVlan2ClassID_;
-
   bool inited_{false};
 
-  /*
-   * We need to maintain nexthop to route mapping so that when a nexthop is
-   * resolved (gets classID), the same classID could be associated with
-   * corresponding routes. However, we are only interested in nexthops that are
-   * part of 'certain' subnets. vlan2SubnetsCache_ maintains this list of
-   * subnets.
-   *   - ports needing queue-per-host have non-empty lookupClasses list.
-   *   - each port belongs to an interface.
-   *   - each interface is part of certain subnet.
-   *   - nexthop IP that would use such a port for egress, would belong to the
-   *     interface subnet.
-   * Thus, we discover and maintain a list of subnets for ports that have
-   * non-emptry lookupClasses list.
-   */
-  boost::container::flat_map<VlanID, std::set<folly::CIDRNetwork>>
-      vlan2SubnetsCache_;
+  std::unique_ptr<LookupClassRouteUpdater> routeUpdater_;
 };
 
 } // namespace facebook::fboss
