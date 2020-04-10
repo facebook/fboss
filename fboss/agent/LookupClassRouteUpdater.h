@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
@@ -39,6 +40,8 @@ class LookupClassRouteUpdater {
   void processRouteRemoved(const std::shared_ptr<RouteT>& removedRoute);
   template <typename RouteT>
   void processRouteChanged(
+      const std::shared_ptr<SwitchState>& switchState,
+      RouterID rid,
       const std::shared_ptr<RouteT>& oldRoute,
       const std::shared_ptr<RouteT>& newRoute);
 
@@ -55,6 +58,23 @@ class LookupClassRouteUpdater {
       std::optional<cfg::AclLookupClass> classID);
 
   bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
+
+  template <typename AddrT>
+  void updateClassIDForPrefix(
+      const std::shared_ptr<SwitchState>& switchState,
+      RouterID rid,
+      const RoutePrefix<AddrT>& routePrefix,
+      std::optional<cfg::AclLookupClass> classID);
+
+  template <typename RouteT>
+  void cacheNextHopToRoutesMapping(
+      RouterID rid,
+      const folly::IPAddress& nextHopIp,
+      const std::shared_ptr<RouteT>& route);
+
+  template <typename RouteT>
+  std::optional<NextHop> getFirstNextHopOfRoute(
+      const std::shared_ptr<RouteT>& route);
 
   /*
    * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
@@ -82,6 +102,16 @@ class LookupClassRouteUpdater {
    */
   boost::container::flat_map<VlanID, std::set<folly::CIDRNetwork>>
       vlan2SubnetsCache_;
+
+  /*
+   * Routes inherit classID of its nexthop. When a classID is
+   * associated/disassociated with a neighbor entry, this map provides an
+   * efficient way to update all routes for that nexthop (neighbor IP) with the
+   * same classID.
+   */
+  using RidAndRoutePrefix = std::pair<RouterID, RoutePrefix<folly::IPAddress>>;
+  boost::container::flat_map<folly::IPAddress, std::vector<RidAndRoutePrefix>>
+      nextHop2RidAndRoutePrefix_;
 };
 
 } // namespace facebook::fboss
