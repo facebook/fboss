@@ -29,8 +29,8 @@ class SaiPlatform;
 using SaiNeighbor = SaiObject<SaiNeighborTraits>;
 
 struct SaiNeighborHandle {
-  std::shared_ptr<SaiNeighbor> neighbor;
   std::shared_ptr<SaiFdbEntry> fdbEntry;
+  std::shared_ptr<SaiNeighbor> neighbor;
 };
 
 class SaiNeighborManager {
