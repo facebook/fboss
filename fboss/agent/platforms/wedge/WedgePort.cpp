@@ -260,7 +260,7 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   status.up = port->isUp();
   status.speedMbps = static_cast<int64_t>(port->getSpeed());
   if (supportsTransceiver()) {
-    status.set_transceiverIdx(getTransceiverMapping());
+    status.transceiverIdx_ref().emplace(getTransceiverMapping());
   }
   return status;
 }

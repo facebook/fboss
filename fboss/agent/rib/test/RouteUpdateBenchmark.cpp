@@ -32,7 +32,7 @@ namespace {
 facebook::network::thrift::BinaryAddress createNextHop(
     const folly::IPAddress& addr) {
   auto addrAsBinaryAddress = facebook::network::toBinaryAddress(addr);
-  addrAsBinaryAddress.set_ifName("fboss1");
+  addrAsBinaryAddress.ifName_ref() = "fboss1";
   return addrAsBinaryAddress;
 }
 

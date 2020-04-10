@@ -63,7 +63,7 @@ facebook::network::thrift::BinaryAddress createV6LinkLocalNextHop(
   auto linkLocalAddrAsBinaryAddress =
       facebook::network::toBinaryAddress(linkLocalAddr);
 
-  linkLocalAddrAsBinaryAddress.set_ifName("fboss1");
+  linkLocalAddrAsBinaryAddress.ifName_ref() = "fboss1";
 
   return linkLocalAddrAsBinaryAddress;
 }
@@ -136,7 +136,7 @@ TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   UnicastRoute route;
   route.set_dest(kDestPrefix);
   route.set_nextHops(nextHopsThrift());
-  route.set_adminDistance(AdminDistance::IBGP);
+  route.adminDistance_ref() = AdminDistance::IBGP;
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
 

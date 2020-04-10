@@ -55,12 +55,12 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
       tcvr.chip = kDefaultTcvrChipName;
       tcvr.lane = i * 2 + j;
       tcvrPin.set_end(tcvr);
-      linePin.set_z(tcvrPin);
+      linePin.z_ref() = tcvrPin;
 
       xphy.line.push_back(linePin);
     }
     xphyPin.set_junction(xphy);
-    pin.set_z(xphyPin);
+    pin.z_ref() = xphyPin;
 
     entry.mapping.pins.push_back(pin);
   }
@@ -93,9 +93,9 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
       transceiver.push_back(tcvrCfg);
     }
   }
-  portCfg.pins.set_transceiver(transceiver);
-  portCfg.pins.set_xphySys(xphySys);
-  portCfg.pins.set_xphyLine(xphyLine);
+  portCfg.pins.transceiver_ref() = transceiver;
+  portCfg.pins.xphySys_ref() = xphySys;
+  portCfg.pins.xphyLine_ref() = xphyLine;
   entry.supportedProfiles[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
       portCfg;
 
@@ -121,7 +121,7 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
     tcvr.chip = kDefaultTcvrChipName;
     tcvr.lane = i;
     tcvrPin.set_end(tcvr);
-    pin.set_z(tcvrPin);
+    pin.z_ref() = tcvrPin;
 
     entry.mapping.pins.push_back(pin);
   }
@@ -140,7 +140,7 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
     tcvrCfg.id.lane = i;
     transceiver.push_back(tcvrCfg);
   }
-  portCfg.pins.set_transceiver(transceiver);
+  portCfg.pins.transceiver_ref() = transceiver;
   entry.supportedProfiles[cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528] =
       portCfg;
 

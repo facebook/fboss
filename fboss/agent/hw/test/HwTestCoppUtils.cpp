@@ -241,7 +241,7 @@ void setDefaultCpuTrafficPolicyConfig(
   cpuConfig.trafficPolicy_ref() = trafficConfig;
   auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);
   if (rxReasonToQueues.size()) {
-    cpuConfig.set_rxReasonToQueueOrderedList(rxReasonToQueues);
+    cpuConfig.rxReasonToQueueOrderedList_ref() = rxReasonToQueues;
   }
   config.cpuTrafficPolicy_ref() = cpuConfig;
 }
