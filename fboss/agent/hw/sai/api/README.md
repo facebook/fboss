@@ -370,15 +370,25 @@ e.g., SaiPortTraits, SaiVlanTraits, SaiVlanMemberTraits
 
 Each Traits objects models an informal SaiObjectTraits Concept. It must
 provide:
-* `ObjectType`: a `sai_object_type_t` enum value defined for the object.
-* `SaiApiT`: the type of the SaiApi that manages this object
-* `Attributes`: a nested class containing SaiAttribute aliases
-* `AdapterKey`: the key type inside the sai adapter (typically, a
-                strong typedef around `sai_object_id_t` or an entry struct)
-* `AdapterHostKey`: the key type used by the sai adapter host when
-                    programming the object
-* `CreateAttribute`: the tuple of attributes which can be set during
-                     object creation
+* `ObjectType`: The `sai_object_type_t` enum value defined for the object.
+* `SaiApiT`: The type of the SaiApi that manages this object.
+* `Attributes`: A nested struct containing SaiAttribute aliases
+* `AdapterKey`: The key type inside the sai adapter (typically, a
+                strong typedef around `sai_object_id_t` or an entry struct).
+                This is a representation of the type used to identify the
+                object when interacting with the real C SAI API.
+* `AdapterHostKey`: The key type used by the sai adapter host when
+                    programming the object. The requirements on this type are
+                    driven by the implementation of SaiStore (for full details,
+                    see fboss/agent/hw/sai/store/README.md). At a high level,
+                    AdapterHostKey must be immutable, uniquely identify the SAI
+                    object, and be computable from a combination of the
+                    AdapterKey and CreateAttributes of the SaiObject. Most
+                    often, this will be a critical, identifying subset of the
+                    attributes of the object.
+* `CreateAttribute`: The tuple of attributes which can be set during
+                     object creation. We use std::optional members to represent
+                     optional (not MANDATORY_ON_CREATE) attributes.
 
 e.g.,
 ```c++
@@ -430,12 +440,16 @@ struct RouteApiParameters {
   using CreateAttributes = std::
       tuple<Attributes::PacketAction, std::optional<Attributes::NextHopId>>;
 };
-``` The create() method of the SaiApis takes the corresponding
-    CreateAttributes and passes an array of `sai_attribute_t` down to raw SAI.
+```
 
-    To return to studying the next hop group api from the example,
-    we can create a next hop group like so :
-```c++ NextHopGroupApi nextHopGroupApi;
+The create() method of the SaiApis takes the corresponding CreateAttributes
+and passes an array of `sai_attribute_t` down to raw SAI.
+
+To return to studying the next hop group api from the example,
+we can create a next hop group like so :
+
+```c++
+NextHopGroupApi nextHopGroupApi;
 SaiNextHopGroupTraits::Attributes::Type t(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
 SaiNextHopGroupTraits::Attributes::CreateAttributes c(t);
 NextHopSaiId nextHopId =
@@ -444,6 +458,7 @@ NextHopSaiId nextHopId =
 
 SaiAttribute and SaiAttributeDataTypes have helpful implicit constructors,
 which allows us to shorten the above code for convenience:
+
 ```c++
 auto nextHopId =
   nextHopGroupApi.create<SaiNextHopGroupTraits>(
