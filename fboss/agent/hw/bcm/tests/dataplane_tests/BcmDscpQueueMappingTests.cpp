@@ -8,14 +8,9 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmQosPolicy.h"
-#include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmAclUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -23,12 +18,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/IPAddress.h>
-
-extern "C" {
-#include <bcm/cosq.h>
-#include <bcm/stat.h>
-#include <bcm/types.h>
-}
 
 namespace facebook::fboss {
 
