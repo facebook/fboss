@@ -81,6 +81,9 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_QOS_MAP:
+      *count = fs->qosMapManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_QUEUE:
       *count = fs->queueManager.map().size();
       break;
@@ -237,6 +240,12 @@ sai_status_t sai_get_object_key(
         for (const auto& brp : br.second.fm().map()) {
           object_list[i++].key.object_id = brp.second.id;
         }
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_QOS_MAP: {
+      for (const auto& qm : fs->qosMapManager.map()) {
+        object_list[i++].key.object_id = qm.second.id;
       }
       break;
     }

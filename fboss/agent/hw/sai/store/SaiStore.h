@@ -247,7 +247,8 @@ class SaiStore {
       detail::SaiObjectStore<SaiQueueTraits>,
       detail::SaiObjectStore<SaiSchedulerTraits>,
       detail::SaiObjectStore<SaiHashTraits>,
-      detail::SaiObjectStore<SaiInSegTraits>>
+      detail::SaiObjectStore<SaiInSegTraits>,
+      detail::SaiObjectStore<SaiQosMapTraits>>
       stores_;
 };
 
