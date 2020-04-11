@@ -149,7 +149,7 @@ class SaiObjectStore {
       ins.first->setAttributes(attributes);
     } else {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        ins.first->notifyAfterCreate(ins.first, publisherKey);
+        ins.first->notifyAfterCreate(ins.first);
       }
     }
     XLOGF(DBG5, "SaiStore set object {}", *ins.first);

@@ -191,8 +191,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, attributes);
   handle->port = saiPort;
-  handle->bridgePort =
-      managerTable_->bridgeManager().addBridgePort(saiPort->adapterKey());
+  handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
+      swPort->getID(), saiPort->adapterKey());
   loadPortQueues(handle.get());
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());

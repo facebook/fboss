@@ -4,6 +4,7 @@
 
 #include <boost/signals2.hpp>
 
+#include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
@@ -30,6 +31,16 @@ struct IsObjectPublisher<SaiMplsNextHopTraits> : std::true_type {};
 
 template <>
 struct IsObjectPublisher<SaiNeighborTraits> : std::true_type {};
+
+template <>
+struct IsObjectPublisher<SaiBridgePortTraits> : std::true_type {};
+
+template <>
+struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
+
+template <>
+struct PublisherKey<SaiBridgePortTraits>
+    : detail::PublisherKeyInternal<SaiBridgePortTraits, PortID> {};
 
 template <typename>
 class SaiObject;
@@ -161,6 +172,7 @@ class SaiObjectEventPublisher {
 
  private:
   std::tuple<
+      detail::SaiObjectEventPublisher<SaiBridgePortTraits>,
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
       detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>>

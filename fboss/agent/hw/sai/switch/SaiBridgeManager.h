@@ -32,7 +32,9 @@ struct SaiBridgeHandle {
 class SaiBridgeManager {
  public:
   SaiBridgeManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-  std::shared_ptr<SaiBridgePort> addBridgePort(PortSaiId portId);
+  std::shared_ptr<SaiBridgePort> addBridgePort(
+      PortID swPortId,
+      PortSaiId portId);
 
  private:
   SaiManagerTable* managerTable_;

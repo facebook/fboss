@@ -22,6 +22,7 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
+    PortID swPortId,
     PortSaiId portId) {
   // Lazily re-load or create the default bridge if it is missing
   if (UNLIKELY(!bridgeHandle_)) {
@@ -51,7 +52,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
       portId,
       true,
       SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
-  return store.setObject(k, attributes);
+  return store.setObject(k, attributes, swPortId);
 }
 
 SaiBridgeManager::SaiBridgeManager(
