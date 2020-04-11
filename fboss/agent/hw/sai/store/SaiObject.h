@@ -286,18 +286,18 @@ class SaiObject {
     return attributes_;
   }
 
-  auto getPublisherAttributes() const {
-    if constexpr (IsPublisherAttributesAdapterHostKey<SaiObjectTraits>::value) {
+  auto getPublisherKey() const {
+    if constexpr (IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value) {
       return adapterHostKey_;
-    } else if constexpr (IsPublisherAttributesCreateAttributes<
+    } else if constexpr (IsPublisherKeyCreateAttributes<
                              SaiObjectTraits>::value) {
       return attributes_;
     } else {
       // TODO(pshaikh): lets do something here
       static_assert(
-          IsPublisherAttributesAdapterHostKey<SaiObjectTraits>::value ||
-              IsPublisherAttributesCreateAttributes<SaiObjectTraits>::value,
-          "Custom PublisherAttributes are not supported");
+          IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value ||
+              IsPublisherKeyCreateAttributes<SaiObjectTraits>::value,
+          "Custom PublisherKey are not supported");
     }
   }
 
@@ -305,10 +305,10 @@ class SaiObject {
     static_assert(
         IsObjectPublisher<SaiObjectTraits>::value,
         "object must be pubisher to notify destroy");
-    auto publishedAttr = getPublisherAttributes();
+    auto publisherKey = getPublisherKey();
     auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
                           ->get<SaiObjectTraits>();
-    publisher.notifyDelete(publishedAttr);
+    publisher.notifyDelete(publisherKey);
   }
 
   void notifyAfterCreate(
@@ -317,10 +317,10 @@ class SaiObject {
         IsObjectPublisher<SaiObjectTraits>::value,
         "object must be pubisher to notify destroy");
     CHECK(this == object.get());
-    auto publishedAttr = getPublisherAttributes();
+    auto publisherKey = getPublisherKey();
     auto& publisher = facebook::fboss::SaiObjectEventPublisher::getInstance()
                           ->get<SaiObjectTraits>();
-    publisher.notifyCreate(publishedAttr, object);
+    publisher.notifyCreate(publisherKey, object);
   }
 
  protected:

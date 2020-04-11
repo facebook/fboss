@@ -14,16 +14,13 @@
 namespace facebook::fboss {
 
 template <>
-struct IsPublisherAttributesAdapterHostKey<SaiIpNextHopTraits>
-    : std::true_type {};
+struct IsPublisherKeyAdapterHostKey<SaiIpNextHopTraits> : std::true_type {};
 
 template <>
-struct IsPublisherAttributesAdapterHostKey<SaiMplsNextHopTraits>
-    : std::true_type {};
+struct IsPublisherKeyAdapterHostKey<SaiMplsNextHopTraits> : std::true_type {};
 
 template <>
-struct IsPublisherAttributesAdapterHostKey<SaiNeighborTraits> : std::true_type {
-};
+struct IsPublisherKeyAdapterHostKey<SaiNeighborTraits> : std::true_type {};
 
 template <>
 struct IsObjectPublisher<SaiIpNextHopTraits> : std::true_type {};
@@ -50,7 +47,7 @@ namespace detail {
 template <typename PublishedObjectTrait>
 class SaiObjectEventPublisher {
  public:
-  using Key = typename PublisherAttributes<PublishedObjectTrait>::type;
+  using Key = typename PublisherKey<PublishedObjectTrait>::type;
   using AdapterHostKey = typename PublishedObjectTrait::AdapterHostKey;
   using Subscriber = SaiObjectEventSubscriber<PublishedObjectTrait>;
   using PublisherObject = const SaiObject<PublishedObjectTrait>;
@@ -77,8 +74,7 @@ class SaiObjectEventPublisher {
   void subscribe(std::weak_ptr<Subscriber> subscriberWeakPtr) {
     auto subscriber = subscriberWeakPtr.lock(); // non-owning reference
     CHECK(subscriber);
-    auto result =
-        subscriptions_.refOrEmplace(subscriber->getPublisherAttributes());
+    auto result = subscriptions_.refOrEmplace(subscriber->getPublisherKey());
 
     auto subscription = result.first;
 
@@ -102,7 +98,7 @@ class SaiObjectEventPublisher {
         removeSignalSlot.track_foreign(subscriberWeakPtr));
     subscriber->saveSubscription(subscription);
     // check if publisher is already live
-    auto publisher = livePublishers_.find(subscriber->getPublisherAttributes());
+    auto publisher = livePublishers_.find(subscriber->getPublisherKey());
     if (publisher != livePublishers_.end()) {
       notifyCreate(publisher->first, publisher->second.lock());
     }
@@ -147,14 +143,13 @@ class SaiObjectEventPublisher {
 
   template <typename PublishedObjectTrait>
   void notifyCreate(
-      typename PublisherAttributes<PublishedObjectTrait>::type key,
+      typename PublisherKey<PublishedObjectTrait>::type key,
       const std::shared_ptr<SaiObject<PublishedObjectTrait>> object) {
     std::get<PublishedObjectTrait>(publishers_).notifyCreate(key, object);
   }
 
   template <typename PublishedObjectTrait>
-  void notifyDelete(
-      typename PublisherAttributes<PublishedObjectTrait>::type key) {
+  void notifyDelete(typename PublisherKey<PublishedObjectTrait>::type key) {
     std::get<PublishedObjectTrait>(publishers_).notifyDelete(key);
   }
 

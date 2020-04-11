@@ -10,48 +10,48 @@ template <typename>
 struct IsObjectPublisher : std::false_type {};
 
 template <typename ObjectTraits>
-struct IsPublisherAttributesAdapterHostKey : std::false_type {};
+struct IsPublisherKeyAdapterHostKey : std::false_type {};
 
 template <typename ObjectTraits>
-struct IsPublisherAttributesCreateAttributes : std::false_type {};
+struct IsPublisherKeyCreateAttributes : std::false_type {};
 
 namespace detail {
 template <typename ObjectTraits, typename Attr>
-struct PublisherAttributesInternal {
+struct PublisherKeyInternal {
   using type = Attr;
 };
 } // namespace detail
 
 template <typename, typename = void>
-struct PublisherAttributes;
+struct PublisherKey;
 
 template <typename ObjectTraits>
-struct PublisherAttributes<
+struct PublisherKey<
     ObjectTraits,
     std::enable_if_t<
-        IsPublisherAttributesAdapterHostKey<ObjectTraits>::value &&
-        !IsPublisherAttributesCreateAttributes<ObjectTraits>::value>>
-    : detail::PublisherAttributesInternal<
+        IsPublisherKeyAdapterHostKey<ObjectTraits>::value &&
+        !IsPublisherKeyCreateAttributes<ObjectTraits>::value>>
+    : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::AdapterHostKey> {};
 
 template <typename ObjectTraits>
-struct PublisherAttributes<
+struct PublisherKey<
     ObjectTraits,
     std::enable_if_t<
-        !IsPublisherAttributesAdapterHostKey<ObjectTraits>::value &&
-        IsPublisherAttributesCreateAttributes<ObjectTraits>::value>>
-    : detail::PublisherAttributesInternal<
+        !IsPublisherKeyAdapterHostKey<ObjectTraits>::value &&
+        IsPublisherKeyCreateAttributes<ObjectTraits>::value>>
+    : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::CreateAttributes> {};
 
 template <typename ObjectTraits>
-struct PublisherAttributes<
+struct PublisherKey<
     ObjectTraits,
     std::enable_if_t<
-        IsPublisherAttributesAdapterHostKey<ObjectTraits>::value &&
-        IsPublisherAttributesCreateAttributes<ObjectTraits>::value>>
-    : detail::PublisherAttributesInternal<
+        IsPublisherKeyAdapterHostKey<ObjectTraits>::value &&
+        IsPublisherKeyCreateAttributes<ObjectTraits>::value>>
+    : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::CreateAttributes> {};
 } // namespace fboss

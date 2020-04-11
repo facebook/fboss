@@ -29,10 +29,9 @@ struct SaiObjectEventSubscriber {
       std::weak_ptr<const SaiObject<PublisherObjectTraits>>;
 
   SaiObjectEventSubscriber(
-      typename PublisherAttributes<PublisherObjectTraits>::type attr);
+      typename PublisherKey<PublisherObjectTraits>::type attr);
   virtual ~SaiObjectEventSubscriber();
-  typename PublisherAttributes<PublisherObjectTraits>::type
-  getPublisherAttributes() const {
+  typename PublisherKey<PublisherObjectTraits>::type getPublisherKey() const {
     return publisherAttrs_;
   }
 
@@ -50,7 +49,7 @@ struct SaiObjectEventSubscriber {
   void setPublisherObject(PublisherObjectSharedPtr object = nullptr);
 
  private:
-  typename PublisherAttributes<PublisherObjectTraits>::type publisherAttrs_;
+  typename PublisherKey<PublisherObjectTraits>::type publisherAttrs_;
   PublisherObjectWeakPtr publisherObject_;
   // TODO(pshaikh): this is currently maintained as any to break circular
   // dependencies in object, publisher, and subscriber types investigate and
@@ -71,9 +70,9 @@ class SaiObjectEventSingleSubscriber
       std::shared_ptr<const SaiObject<PublishedObjectTrait>>;
   using Base = SaiObjectEventSubscriber<PublishedObjectTrait>;
   /* Publisher object with PublishedObjectTrait and can be identified by
-   * PublisherAttributes */
+   * PublisherKey */
   SaiObjectEventSingleSubscriber(
-      typename PublisherAttributes<PublishedObjectTrait>::type monitoredAttrs)
+      typename PublisherKey<PublishedObjectTrait>::type monitoredAttrs)
       : Base{monitoredAttrs} {}
 
   /* Publisher object created, dispatch call to aggregate subscriber */
@@ -143,7 +142,7 @@ class SaiObjectEventAggregateSubscriber
   using SubscriberSharedPtr = std::shared_ptr<SaiObject<SubscriberTraits>>;
 
   SaiObjectEventAggregateSubscriber(
-      typename PublisherAttributes<PublishedObjectTraits>::type... attrs)
+      typename PublisherKey<PublishedObjectTraits>::type... attrs)
       : detail::SaiObjectEventSingleSubscriber<Class, PublishedObjectTraits>(
             attrs)... {}
 
