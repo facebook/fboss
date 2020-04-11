@@ -287,17 +287,18 @@ class SaiObject {
   }
 
   auto getPublisherKey() const {
-    if constexpr (IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value) {
+    static_assert(
+        IsObjectPublisher<SaiObjectTraits>::value,
+        "object must be pubisher to notify destroy");
+    if constexpr (IsPublisherKeyCustomType<SaiObjectTraits>::value) {
+      return publisherKey_;
+    } else if constexpr (IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value) {
       return adapterHostKey_;
-    } else if constexpr (IsPublisherKeyCreateAttributes<
-                             SaiObjectTraits>::value) {
-      return attributes_;
     } else {
-      // TODO(pshaikh): lets do something here
       static_assert(
-          IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value ||
-              IsPublisherKeyCreateAttributes<SaiObjectTraits>::value,
-          "Custom PublisherKey are not supported");
+          IsPublisherKeyCreateAttributes<SaiObjectTraits>::value,
+          "publisher attributes are not create attributes");
+      return attributes_;
     }
   }
 
@@ -398,6 +399,7 @@ class SaiObject {
   typename SaiObjectTraits::AdapterKey adapterKey_;
   typename SaiObjectTraits::AdapterHostKey adapterHostKey_;
   typename SaiObjectTraits::CreateAttributes attributes_;
+  typename PublisherKey<SaiObjectTraits>::custom_type publisherKey_{};
 };
 
 /*

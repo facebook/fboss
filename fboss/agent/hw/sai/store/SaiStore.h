@@ -135,6 +135,27 @@ class SaiObjectStore {
     return ins.first;
   }
 
+  std::shared_ptr<ObjectType> setObject(
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
+      const typename SaiObjectTraits::CreateAttributes& attributes,
+      const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey) {
+    static_assert(
+        IsPublisherKeyCustomType<SaiObjectTraits>::value,
+        "method available only for objects with publisher attributes of custom types");
+    XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
+    auto ins = objects_.refOrEmplace(
+        adapterHostKey, adapterHostKey, attributes, switchId_.value());
+    if (!ins.second) {
+      ins.first->setAttributes(attributes);
+    } else {
+      if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+        ins.first->notifyAfterCreate(ins.first, publisherKey);
+      }
+    }
+    XLOGF(DBG5, "SaiStore set object {}", *ins.first);
+    return ins.first;
+  }
+
   std::shared_ptr<ObjectType> get(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey) {
     XLOGF(DBG5, "SaiStore get object {}", adapterHostKey);
