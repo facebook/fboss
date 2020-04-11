@@ -558,6 +558,10 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
     CHECK(classID_ == classID);
     refCnt++;
   }
+
+  if constexpr (!std::is_same_v<NewEntryT, MacEntry>) {
+    routeUpdater_->neighborClassIDUpdated(newEntry->getIP(), vlanID, classID);
+  }
 }
 
 template <typename AddrT>

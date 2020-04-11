@@ -42,6 +42,24 @@ void LookupClassRouteUpdater::processUpdatesHelper(
       auto const& oldRoute = routeDelta.getOld();
       auto const& newRoute = routeDelta.getNew();
 
+      /*
+       * If newRoute already has classID populated, don't process.
+       * This can happen in two cases:
+       *  o Warmboot: prior to warmboot, route entries may have a classID
+       *    associated with them. Routes inherit the classID of their nexthop.
+       *    The nexthop (neighbor entry) classID is consumed by
+       *    updateStateObserverLocalCache() to populate its local cache.
+       *  o Once LookupClassUpdater chooses classID for a route, it
+       *    schedules a state update. After the state update is run, all state
+       *    observers are notified. At that time, LookupClassUpdater will
+       *    receive a stateDelta that contains classID assigned to new route
+       *    entry. Since this will be side-effect of state update that
+       *    LookupClassUpdater triggered, there is nothing to do here.
+       */
+      if (newRoute && newRoute->getClassID().has_value()) {
+        continue;
+      }
+
       if (!oldRoute) {
         processRouteAdded(stateDelta.newState(), rid, newRoute);
       } else if (!newRoute) {
