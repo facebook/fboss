@@ -405,6 +405,61 @@ shared_ptr<SwitchState> testStateA() {
       ClientID(1001),
       RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
 
+  RouteNextHopSet nexthops1;
+  // resolved by intf 1
+  nexthops1.emplace(
+      UnresolvedNextHop(IPAddress("10.0.0.33"), UCMP_DEFAULT_WEIGHT));
+  updater.addRoute(
+      RouterID(0),
+      IPAddress("10.1.2.0"),
+      24,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops1, AdminDistance::MAX_ADMIN_DISTANCE));
+
+  RouteNextHopSet nexthops2;
+  // resolved by intf 1
+  nexthops2.emplace(
+      UnresolvedNextHop(IPAddress("10.0.0.44"), UCMP_DEFAULT_WEIGHT));
+  updater.addRoute(
+      RouterID(0),
+      IPAddress("10.1.3.0"),
+      24,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops2, AdminDistance::MAX_ADMIN_DISTANCE));
+
+  RouteNextHopSet nexthops3;
+  // resolved by intf 1
+  nexthops3.emplace(UnresolvedNextHop(
+      IPAddress("2401:db00:2110:3001::2"), UCMP_DEFAULT_WEIGHT));
+  updater.addRoute(
+      RouterID(0),
+      IPAddress("2803:6080:d038:3063::"),
+      64,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops3, AdminDistance::MAX_ADMIN_DISTANCE));
+
+  RouteNextHopSet nexthops4;
+  // resolved by intf 1
+  nexthops4.emplace(UnresolvedNextHop(
+      IPAddress("2401:db00:2110:3001::3"), UCMP_DEFAULT_WEIGHT));
+  updater.addRoute(
+      RouterID(0),
+      IPAddress("2803:6080:d038:3064::"),
+      64,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops4, AdminDistance::MAX_ADMIN_DISTANCE));
+
+  RouteNextHopSet nexthops5;
+  // resolved by intf 1
+  nexthops5.emplace(UnresolvedNextHop(
+      IPAddress("2401:db00:2110:3001::4"), UCMP_DEFAULT_WEIGHT));
+  updater.addRoute(
+      RouterID(0),
+      IPAddress("2803:6080:d038:3065::"),
+      64,
+      ClientID(1001),
+      RouteNextHopEntry(nexthops5, AdminDistance::MAX_ADMIN_DISTANCE));
+
   auto newRt = updater.updateDone();
   state->resetRouteTables(newRt);
 

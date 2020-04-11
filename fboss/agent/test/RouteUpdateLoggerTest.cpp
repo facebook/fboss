@@ -240,8 +240,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 TEST_F(RouteUpdateLoggerTest, LogAdded) {
   logAllRouteUpdates();
   routeUpdateLogger->stateUpdated(*deltaAdd);
-  EXPECT_EQ(5, mockRouteLoggerV4->added.size());
-  EXPECT_EQ(3, mockRouteLoggerV6->added.size());
+  EXPECT_EQ(7, mockRouteLoggerV4->added.size());
+  EXPECT_EQ(6, mockRouteLoggerV6->added.size());
   // Default route changes
   EXPECT_EQ(1, mockRouteLoggerV4->changed.size());
   EXPECT_EQ(1, mockRouteLoggerV6->changed.size());
@@ -252,8 +252,8 @@ TEST_F(RouteUpdateLoggerTest, LogAdded) {
 TEST_F(RouteUpdateLoggerTest, LogRemoved) {
   logAllRouteUpdates();
   routeUpdateLogger->stateUpdated(*deltaRemove);
-  EXPECT_EQ(5, mockRouteLoggerV4->removed.size());
-  EXPECT_EQ(3, mockRouteLoggerV6->removed.size());
+  EXPECT_EQ(7, mockRouteLoggerV4->removed.size());
+  EXPECT_EQ(6, mockRouteLoggerV6->removed.size());
   // Default route changes
   EXPECT_EQ(1, mockRouteLoggerV4->changed.size());
   EXPECT_EQ(1, mockRouteLoggerV6->changed.size());

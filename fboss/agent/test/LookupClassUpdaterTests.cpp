@@ -14,6 +14,7 @@
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -73,7 +74,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   IPAddressV4 kIp4Addr() const {
-    return IPAddressV4("10.0.0.2");
+    return IPAddressV4("10.0.0.22");
   }
 
   IPAddressV6 kIp6Addr() const {
@@ -81,11 +82,11 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   IPAddressV4 kIp4Addr2() const {
-    return IPAddressV4("10.0.0.3");
+    return IPAddressV4("10.0.0.33");
   }
 
   IPAddressV4 kIp4Addr3() const {
-    return IPAddressV4("10.0.0.4");
+    return IPAddressV4("10.0.0.44");
   }
 
   IPAddressV6 kIp6Addr2() const {
@@ -102,6 +103,37 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   MacAddress kMacAddress2() const {
     return MacAddress("01:02:03:04:05:07");
+  }
+
+  RouterID kRid() const {
+    return RouterID{0};
+  }
+
+  RoutePrefix<IPAddress> kRouteV4Prefix() const {
+    return RoutePrefix<folly::IPAddress>{folly::IPAddressV4{"10.1.1.0"}, 24};
+  }
+
+  RoutePrefix<IPAddress> kRouteV4Prefix2() const {
+    return RoutePrefix<folly::IPAddress>{folly::IPAddressV4{"10.1.2.0"}, 24};
+  }
+
+  RoutePrefix<IPAddress> kRouteV4Prefix3() const {
+    return RoutePrefix<folly::IPAddress>{folly::IPAddressV4{"10.1.3.0"}, 24};
+  }
+
+  RoutePrefix<IPAddress> kRouteV6Prefix() const {
+    return RoutePrefix<folly::IPAddress>{
+        folly::IPAddressV6{"2803:6080:d038:3063::"}, 64};
+  }
+
+  RoutePrefix<IPAddress> kRouteV6Prefix2() const {
+    return RoutePrefix<folly::IPAddress>{
+        folly::IPAddressV6{"2803:6080:d038:3064::"}, 64};
+  }
+
+  RoutePrefix<IPAddress> kRouteV6Prefix3() const {
+    return RoutePrefix<folly::IPAddress>{
+        folly::IPAddressV6{"2803:6080:d038:3065::"}, 64};
   }
 
   void resolveNeighbor(IPAddress ipAddress, MacAddress macAddress) {
@@ -143,24 +175,39 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void verifyNeighborClassIDHelper(
       folly::IPAddress ipAddress,
+      RoutePrefix<IPAddress> routePrefix,
       std::optional<cfg ::AclLookupClass> classID = std::nullopt) {
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpTable,
         NdpTable>;
-
     auto state = sw_->getState();
     auto vlan = state->getVlans()->getVlan(kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+    auto routeTableRib = state->getRouteTables()
+                             ->getRouteTable(kRid())
+                             ->template getRib<AddrT>();
 
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       auto entry = neighborTable->getEntry(ipAddress.asV4());
       XLOG(DBG) << entry->str();
       EXPECT_EQ(entry->getClassID(), classID);
+
+      RoutePrefix<folly::IPAddressV4> routePrefixV4{routePrefix.network.asV4(),
+                                                    routePrefix.mask};
+      auto route = routeTableRib->routes()->getRouteIf(routePrefixV4);
+      XLOG(DBG) << route->str();
+      EXPECT_EQ(route->getClassID(), classID);
     } else {
       auto entry = neighborTable->getEntry(ipAddress.asV6());
       XLOG(DBG) << entry->str();
       EXPECT_EQ(entry->getClassID(), classID);
+
+      RoutePrefix<folly::IPAddressV6> routePrefixV6{routePrefix.network.asV6(),
+                                                    routePrefix.mask};
+      auto route = routeTableRib->routes()->getRouteIf(routePrefixV6);
+      XLOG(DBG) << route->str();
+      EXPECT_EQ(route->getClassID(), classID);
     }
   }
 
@@ -189,12 +236,13 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void verifyClassIDHelper(
       const folly::IPAddress& ipAddress,
+      const RoutePrefix<IPAddress>& routePrefix,
       const folly::MacAddress& macAddress,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
       verifyMacClassIDHelper(macAddress, classID);
     } else {
-      this->verifyNeighborClassIDHelper(ipAddress, classID);
+      this->verifyNeighborClassIDHelper(ipAddress, routePrefix, classID);
     }
   }
 
@@ -241,6 +289,30 @@ class LookupClassUpdaterTest : public ::testing::Test {
     }
 
     return ipAddress;
+  }
+
+  RoutePrefix<IPAddress> getRoutePrefix() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return this->kRouteV4Prefix();
+    } else {
+      return this->kRouteV6Prefix();
+    }
+  }
+
+  RoutePrefix<IPAddress> getRoutePrefix2() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return this->kRouteV4Prefix2();
+    } else {
+      return this->kRouteV6Prefix2();
+    }
+  }
+
+  RoutePrefix<IPAddress> getRoutePrefix3() const {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return this->kRouteV4Prefix3();
+    } else {
+      return this->kRouteV6Prefix3();
+    }
   }
 
   void bringPortDown(PortID portID) {
@@ -305,6 +377,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
     this->verifyClassIDHelper(
         this->getIpAddress(),
+        this->getRoutePrefix(),
         this->kMacAddress(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   });
@@ -325,7 +398,8 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
     } else {
-      this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+      this->verifyClassIDHelper(
+          this->getIpAddress(), this->getRoutePrefix(), this->kMacAddress());
     }
   });
 }
@@ -333,7 +407,8 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesToNoLookupClasses) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->updateLookupClasses({});
-  this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+  this->verifyClassIDHelper(
+      this->getIpAddress(), this->getRoutePrefix(), this->kMacAddress());
 }
 
 TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
@@ -342,6 +417,7 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
       {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
   this->verifyClassIDHelper(
       this->getIpAddress(),
+      this->getRoutePrefix(),
       this->kMacAddress(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
@@ -401,9 +477,11 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
+        this->getRoutePrefix(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
     this->verifyNeighborClassIDHelper(
         this->getIpAddress2(),
+        this->getRoutePrefix2(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
     // Verify that refCnt is 2 = 1 for ipAddress + 1 for ipAddress2
@@ -498,6 +576,22 @@ class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
         InterfaceID(1),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
+    auto routeTableRib = newState->getRouteTables()
+                             ->getRouteTable(this->kRid())
+                             ->template getRib<AddrT>();
+
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      RoutePrefix<folly::IPAddressV4> routePrefixV4{
+          this->getRoutePrefix().network.asV4(), this->getRoutePrefix().mask};
+      auto route = routeTableRib->routes()->getRouteIf(routePrefixV4);
+      route->updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    } else {
+      RoutePrefix<folly::IPAddressV6> routePrefixV6{
+          this->getRoutePrefix().network.asV6(), this->getRoutePrefix().mask};
+      auto route = routeTableRib->routes()->getRouteIf(routePrefixV6);
+      route->updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    }
+
     this->handle_ = createTestHandle(newState);
     this->sw_ = this->handle_->getSw();
   }
@@ -515,14 +609,17 @@ TYPED_TEST_CASE(LookupClassUpdaterWarmbootTest, TestTypesNeighbor);
 
 /*
  * Initialize the SetUp() SwitchState to carry a neighbor with a classID.
- * LookupClassUpdater::initObserver should consume this to initialize its local
- * cache (this mimics warmboot).
+ * LookupClassUpdater::updateStateObserverLocalCache should consume this
+ * to initialize its local cache (this mimics warmboot).
  *
  * Verify if the neighbor indeed has the classID.
  * Resolve another neighbor with different MAC: it should get next classID.
  * Resolve another neighbor with same MAC as that of neighbor in SetUp().
  * Verify if it gets same classID as chosen SetUp(): classIDs are unique per
  * MAC.
+ *
+ * Routes inherit classID of their nexthop (if any). Thus, also verify if it
+ * holds true.
  */
 TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
   this->resolveNeighbor(this->getIpAddress2(), this->kMacAddress2());
@@ -531,14 +628,17 @@ TYPED_TEST(LookupClassUpdaterWarmbootTest, VerifyClassID) {
   this->verifyStateUpdate([=]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddress(),
+        this->getRoutePrefix(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress2(),
+        this->getRoutePrefix2(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
 
     this->verifyNeighborClassIDHelper(
         this->getIpAddress3(),
+        this->getRoutePrefix3(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   });
 }
