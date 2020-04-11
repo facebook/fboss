@@ -12,6 +12,7 @@
 
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -74,7 +75,7 @@ void LookupClassRouteUpdater::processRouteAdded(
     cacheNextHopToRoutesMapping(rid, firstNextHopIp, addedRoute);
     auto classID = getClassIDForIpAndVlan(firstNextHopIp, vlanID);
     if (classID.has_value()) {
-      updateClassIDForPrefix(switchState, rid, addedRoute->prefix(), classID);
+      updateClassIDForPrefix(rid, addedRoute->prefix(), classID);
     }
   }
 }
@@ -119,18 +120,89 @@ void LookupClassRouteUpdater::processRouteChanged(
   }
 }
 
+template <typename AddrT>
+void LookupClassRouteUpdater::updateClassIDHelper(
+    RouterID rid,
+    std::shared_ptr<SwitchState>& newState,
+    const std::shared_ptr<RouteTable> routeTable,
+    const RoutePrefix<AddrT>& routePrefix,
+    std::optional<cfg::AclLookupClass> classID) {
+  auto routeTableRib =
+      routeTable->template getRib<AddrT>()->modify(rid, &newState);
+
+  auto route = routeTableRib->routes()->getRouteIf(routePrefix);
+  if (route) {
+    route = route->clone();
+    route->updateClassID(classID);
+    routeTableRib->updateRoute(route);
+  }
+}
+
 void LookupClassRouteUpdater::updateClassID(
-    const folly::IPAddress& /*unused*/,
-    std::optional<cfg::AclLookupClass> /*unused*/) {
-  // TODO (skhare) add support
+    const folly::IPAddress& nextHop,
+    std::optional<cfg::AclLookupClass> classID) {
+  auto updateRouteClassIDFn =
+      [this, nextHop, classID](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    auto newState{state};
+    /*
+     * Route inherits classID of its nexthop. Thus, for every route whose
+     * nexthop is this ip, update the route's classID.
+     */
+    auto iter = nextHop2RidAndRoutePrefix_.find(nextHop);
+    if (iter != nextHop2RidAndRoutePrefix_.end()) {
+      auto routeTables = newState->getRouteTables();
+      auto ridAndRoutePrefixes = iter->second;
+
+      for (const auto& [rid, routePrefix] : ridAndRoutePrefixes) {
+        auto routeTable = routeTables->getRouteTable(rid);
+        if (routePrefix.network.isV6()) {
+          RoutePrefix<folly::IPAddressV6> routePrefixV6{
+              routePrefix.network.asV6(), routePrefix.mask};
+
+          updateClassIDHelper(
+              rid, newState, routeTable, routePrefixV6, classID);
+        } else {
+          RoutePrefix<folly::IPAddressV4> routePrefixV4{
+              routePrefix.network.asV4(), routePrefix.mask};
+
+          updateClassIDHelper(
+              rid, newState, routeTable, routePrefixV4, classID);
+        }
+      }
+    }
+    return newState;
+  };
+
+  auto classIDStr = classID.has_value()
+      ? folly::to<std::string>(static_cast<int>(classID.value()))
+      : "None";
+  sw_->updateState(
+      folly::to<std::string>("Update classID for routes: ", classIDStr),
+      std::move(updateRouteClassIDFn));
 }
 
 template <typename AddrT>
 void LookupClassRouteUpdater::updateClassIDForPrefix(
-    const std::shared_ptr<SwitchState>& /*unused*/,
-    RouterID /*unused*/,
-    const RoutePrefix<AddrT>& /*unused*/,
-    std::optional<cfg::AclLookupClass> /*unused*/) {}
+    RouterID rid,
+    const RoutePrefix<AddrT>& routePrefix,
+    std::optional<cfg::AclLookupClass> classID) {
+  auto updateRouteClassIDFn = [this, rid, routePrefix, classID](
+                                  const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    auto newState{state};
+    auto routeTable = newState->getRouteTables()->getRouteTable(rid);
+    updateClassIDHelper(rid, newState, routeTable, routePrefix, classID);
+    return newState;
+  };
+
+  auto classIDStr = classID.has_value()
+      ? folly::to<std::string>(static_cast<int>(classID.value()))
+      : "None";
+  sw_->updateState(
+      folly::to<std::string>("Update classID for route prefix: ", classIDStr),
+      std::move(updateRouteClassIDFn));
+}
 
 std::optional<cfg::AclLookupClass>
 LookupClassRouteUpdater::getClassIDForIpAndVlan(

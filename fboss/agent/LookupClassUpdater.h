@@ -20,7 +20,7 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   explicit LookupClassUpdater(SwSwitch* sw)
       : AutoRegisterStateObserver(sw, "LookupClassUpdater"),
         sw_(sw),
-        routeUpdater_(new LookupClassRouteUpdater()) {}
+        routeUpdater_(new LookupClassRouteUpdater(sw)) {}
   ~LookupClassUpdater() override {}
 
   void stateUpdated(const StateDelta& stateDelta) override;

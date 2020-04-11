@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -16,6 +17,8 @@ namespace facebook::fboss {
 
 class LookupClassRouteUpdater {
  public:
+  explicit LookupClassRouteUpdater(SwSwitch* sw) : sw_(sw) {}
+
   void processUpdates(const StateDelta& stateDelta);
 
   void initPort(
@@ -60,8 +63,15 @@ class LookupClassRouteUpdater {
   bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
 
   template <typename AddrT>
+  void updateClassIDHelper(
+      RouterID rid,
+      std::shared_ptr<SwitchState>& newState,
+      const std::shared_ptr<RouteTable> routeTable,
+      const RoutePrefix<AddrT>& routePrefix,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+
+  template <typename AddrT>
   void updateClassIDForPrefix(
-      const std::shared_ptr<SwitchState>& switchState,
       RouterID rid,
       const RoutePrefix<AddrT>& routePrefix,
       std::optional<cfg::AclLookupClass> classID);
@@ -112,6 +122,8 @@ class LookupClassRouteUpdater {
   using RidAndRoutePrefix = std::pair<RouterID, RoutePrefix<folly::IPAddress>>;
   boost::container::flat_map<folly::IPAddress, std::vector<RidAndRoutePrefix>>
       nextHop2RidAndRoutePrefix_;
+
+  SwSwitch* sw_;
 };
 
 } // namespace facebook::fboss
