@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /* if an object is not publisher, i.e. no other object depends on this object */
 template <typename>
@@ -54,5 +53,4 @@ struct PublisherKey<
     : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::CreateAttributes> {};
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
