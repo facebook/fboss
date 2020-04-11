@@ -560,7 +560,8 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
   }
 
   if constexpr (!std::is_same_v<NewEntryT, MacEntry>) {
-    routeUpdater_->neighborClassIDUpdated(newEntry->getIP(), vlanID, classID);
+    routeUpdater_->neighborClassIDUpdatedLocalCache(
+        newEntry->getIP(), vlanID, classID);
   }
 }
 
@@ -600,6 +601,8 @@ void LookupClassUpdater::updateStateObserverLocalCache(
       updateStateObserverLocalCacheHelper<folly::IPAddressV4>(vlan, port);
     }
   }
+
+  routeUpdater_->updateStateObserverLocalCache(switchState);
 }
 
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {

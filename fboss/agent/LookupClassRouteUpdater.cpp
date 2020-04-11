@@ -343,4 +343,36 @@ std::optional<NextHop> LookupClassRouteUpdater::getFirstNextHopOfRoute(
   return std::nullopt;
 }
 
+template <typename AddrT>
+void LookupClassRouteUpdater::updateStateObserverLocalCacheHelper(
+    const std::shared_ptr<RouteTable> routeTable) {
+  auto rid = routeTable->getID();
+  for (const auto& route : *(routeTable->template getRib<AddrT>()->routes())) {
+    if (!route->isResolved()) {
+      continue;
+    }
+
+    auto firstNextHop = getFirstNextHopOfRoute(route);
+    if (firstNextHop.has_value() &&
+        belongsToSubnetInCache(firstNextHop.value().addr())) {
+      cacheNextHopToRoutesMapping(rid, firstNextHop.value().addr(), route);
+    }
+  }
+}
+
+void LookupClassRouteUpdater::updateStateObserverLocalCache(
+    const std::shared_ptr<SwitchState>& switchState) {
+  for (const auto& routeTable : *switchState->getRouteTables()) {
+    updateStateObserverLocalCacheHelper<folly::IPAddressV6>(routeTable);
+    updateStateObserverLocalCacheHelper<folly::IPAddressV4>(routeTable);
+  }
+}
+
+void LookupClassRouteUpdater::neighborClassIDUpdatedLocalCache(
+    const folly::IPAddress& ip,
+    VlanID vlanID,
+    std::optional<cfg::AclLookupClass> classID) {
+  updateClassIDForIpAndVlan(ip, vlanID, classID);
+}
+
 } // namespace facebook::fboss

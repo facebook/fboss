@@ -30,6 +30,14 @@ class LookupClassRouteUpdater {
       VlanID vlanID,
       std::optional<cfg::AclLookupClass> classID);
 
+  void neighborClassIDUpdatedLocalCache(
+      const folly::IPAddress& ip,
+      VlanID vlanID,
+      std::optional<cfg::AclLookupClass> classID);
+
+  void updateStateObserverLocalCache(
+      const std::shared_ptr<SwitchState>& switchState);
+
  private:
   template <typename AddrT>
   void processUpdatesHelper(const StateDelta& stateDelta);
@@ -85,6 +93,10 @@ class LookupClassRouteUpdater {
   template <typename RouteT>
   std::optional<NextHop> getFirstNextHopOfRoute(
       const std::shared_ptr<RouteT>& route);
+
+  template <typename AddrT>
+  void updateStateObserverLocalCacheHelper(
+      const std::shared_ptr<RouteTable> routeTable);
 
   /*
    * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
