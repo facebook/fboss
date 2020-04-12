@@ -55,42 +55,42 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   queue.id = id;
   queue.weight = weight;
   if (reservedBytes) {
-    queue.reserved = reservedBytes.value();
+    queue.reserved_ref() = reservedBytes.value();
   }
   if (scalingFactor) {
-    queue.scalingFactor =
+    queue.scalingFactor_ref() =
         cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(*scalingFactor);
   }
   queue.scheduling = cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
   queue.streamType = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
   if (name) {
-    queue.name = name.value();
+    queue.name_ref() = name.value();
   }
   if (sharedBytes) {
-    queue.sharedBytes = sharedBytes.value();
+    queue.sharedBytes_ref() = sharedBytes.value();
   }
   if (!aqms.empty()) {
     std::vector<cfg::ActiveQueueManagement> aqmList;
     for (const auto& aqm : aqms) {
       aqmList.push_back(aqm.second);
     }
-    queue.aqms = aqmList;
+    queue.aqms_ref() = aqmList;
   }
 
   if (portQueueRate) {
-    queue.portQueueRate = portQueueRate.value();
+    queue.portQueueRate_ref() = portQueueRate.value();
   }
 
   if (bandwidthBurstMinKbits) {
-    queue.bandwidthBurstMinKbits = bandwidthBurstMinKbits.value();
+    queue.bandwidthBurstMinKbits_ref() = bandwidthBurstMinKbits.value();
   }
 
   if (bandwidthBurstMaxKbits) {
-    queue.bandwidthBurstMaxKbits = bandwidthBurstMaxKbits.value();
+    queue.bandwidthBurstMaxKbits_ref() = bandwidthBurstMaxKbits.value();
   }
 
   if (trafficClass) {
-    queue.trafficClass = static_cast<int16_t>(trafficClass.value());
+    queue.trafficClass_ref() = static_cast<int16_t>(trafficClass.value());
   }
 
   return queue;
@@ -113,42 +113,44 @@ PortQueueFields PortQueueFields::fromThrift(
   queue.scheduling = itrSched->second;
 
   queue.weight = queueThrift.weight;
-  if (queueThrift.reserved) {
-    queue.reservedBytes = queueThrift.reserved.value();
+  if (queueThrift.reserved_ref()) {
+    queue.reservedBytes = queueThrift.reserved_ref().value();
   }
-  if (queueThrift.scalingFactor) {
+  if (queueThrift.scalingFactor_ref()) {
     auto itrScalingFactor = cfg::_MMUScalingFactor_NAMES_TO_VALUES.find(
-        queueThrift.scalingFactor->c_str());
+        queueThrift.scalingFactor_ref()->c_str());
     CHECK(itrScalingFactor != cfg::_MMUScalingFactor_NAMES_TO_VALUES.end());
     queue.scalingFactor = itrScalingFactor->second;
   }
-  if (queueThrift.name) {
-    queue.name = queueThrift.name.value();
+  if (queueThrift.name_ref()) {
+    queue.name = queueThrift.name_ref().value();
   }
-  if (queueThrift.sharedBytes) {
-    queue.sharedBytes = queueThrift.sharedBytes.value();
+  if (queueThrift.sharedBytes_ref()) {
+    queue.sharedBytes = queueThrift.sharedBytes_ref().value();
   }
-  if (queueThrift.aqms) {
-    for (const auto& aqm : queueThrift.aqms.value()) {
+  if (queueThrift.aqms_ref()) {
+    for (const auto& aqm : queueThrift.aqms_ref().value()) {
       queue.aqms.emplace(aqm.behavior, aqm);
     }
   }
 
-  if (queueThrift.portQueueRate) {
-    queue.portQueueRate = queueThrift.portQueueRate.value();
+  if (queueThrift.portQueueRate_ref()) {
+    queue.portQueueRate = queueThrift.portQueueRate_ref().value();
   }
 
-  if (queueThrift.bandwidthBurstMinKbits) {
-    queue.bandwidthBurstMinKbits = queueThrift.bandwidthBurstMinKbits.value();
+  if (queueThrift.bandwidthBurstMinKbits_ref()) {
+    queue.bandwidthBurstMinKbits =
+        queueThrift.bandwidthBurstMinKbits_ref().value();
   }
 
-  if (queueThrift.bandwidthBurstMaxKbits) {
-    queue.bandwidthBurstMaxKbits = queueThrift.bandwidthBurstMaxKbits.value();
+  if (queueThrift.bandwidthBurstMaxKbits_ref()) {
+    queue.bandwidthBurstMaxKbits =
+        queueThrift.bandwidthBurstMaxKbits_ref().value();
   }
 
-  if (queueThrift.trafficClass) {
+  if (queueThrift.trafficClass_ref()) {
     queue.trafficClass.emplace(
-        static_cast<TrafficClass>(queueThrift.trafficClass.value()));
+        static_cast<TrafficClass>(queueThrift.trafficClass_ref().value()));
   }
 
   return queue;

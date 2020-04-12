@@ -96,12 +96,12 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     port.loopbackMode = cfg::PortLoopbackMode(itrPortLoopbackMode->second);
   }
 
-  if (portThrift.sampleDest) {
+  if (portThrift.sampleDest_ref()) {
     auto itrSampleDestination = cfg::_SampleDestination_NAMES_TO_VALUES.find(
-        portThrift.sampleDest.value().c_str());
+        portThrift.sampleDest_ref().value().c_str());
     CHECK(itrSampleDestination != cfg::_SampleDestination_NAMES_TO_VALUES.end())
         << "Unexpected sample destination value: "
-        << portThrift.sampleDest.value();
+        << portThrift.sampleDest_ref().value();
     port.sampleDest = cfg::SampleDestination(itrSampleDestination->second);
   }
 
@@ -122,14 +122,14 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
         std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
   }
 
-  if (portThrift.ingressMirror) {
-    port.ingressMirror = portThrift.ingressMirror.value();
+  if (portThrift.ingressMirror_ref()) {
+    port.ingressMirror = portThrift.ingressMirror_ref().value();
   }
-  if (portThrift.egressMirror) {
-    port.egressMirror = portThrift.egressMirror.value();
+  if (portThrift.egressMirror_ref()) {
+    port.egressMirror = portThrift.egressMirror_ref().value();
   }
-  if (portThrift.qosPolicy) {
-    port.qosPolicy = portThrift.qosPolicy.value();
+  if (portThrift.qosPolicy_ref()) {
+    port.qosPolicy = portThrift.qosPolicy_ref().value();
   }
   port.maxFrameSize = portThrift.maxFrameSize;
 
@@ -193,17 +193,17 @@ state::PortFields PortFields::toThrift() const {
   }
 
   if (ingressMirror) {
-    port.ingressMirror = ingressMirror.value();
+    port.ingressMirror_ref() = ingressMirror.value();
   }
   if (egressMirror) {
-    port.egressMirror = egressMirror.value();
+    port.egressMirror_ref() = egressMirror.value();
   }
   if (qosPolicy) {
-    port.qosPolicy = qosPolicy.value();
+    port.qosPolicy_ref() = qosPolicy.value();
   }
 
   if (sampleDest) {
-    port.sampleDest = apache::thrift::util::enumName(sampleDest.value());
+    port.sampleDest_ref() = apache::thrift::util::enumName(sampleDest.value());
   }
 
   port.lookupClassesToDistrubuteTrafficOn = lookupClassesToDistrubuteTrafficOn;
