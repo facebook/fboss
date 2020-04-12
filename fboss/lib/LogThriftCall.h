@@ -11,6 +11,7 @@
 #pragma once
 
 #include <folly/Range.h>
+#include <folly/futures/Future.h>
 #include <folly/logging/LogLevel.h>
 #include <folly/logging/Logger.h>
 #include <folly/logging/xlog.h>
@@ -29,6 +30,31 @@ class LogThriftCall {
       apache::thrift::Cpp2RequestContext* ctx);
   ~LogThriftCall();
 
+  // inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.
+  //
+  // TODO: add versions for SemiFuture and Coro
+  template <typename RT>
+  folly::Future<RT> wrapFuture(folly::Future<RT>&& f) {
+    executedFuture_ = true;
+    return std::move(f).thenTry([logger = logger_,
+                                 level = level_,
+                                 func = func_,
+                                 file = file_,
+                                 line = line_,
+                                 start = start_](folly::Try<RT>&& ret) {
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - start);
+
+      auto result = (ret.hasException()) ? "failed" : "succeeded";
+
+      FB_LOG_RAW(logger, level, file, line, "")
+          << func << " thrift request " << result << " in " << ms.count()
+          << "ms";
+
+      return std::forward<folly::Try<RT>>(ret);
+    });
+  }
+
  private:
   folly::Logger logger_;
   folly::LogLevel level_;
@@ -36,6 +62,7 @@ class LogThriftCall {
   folly::StringPiece file_;
   uint32_t line_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
+  bool executedFuture_{false};
 };
 
 } // namespace facebook::fboss
