@@ -47,8 +47,9 @@ BcmRoute::BcmRoute(
     BcmSwitch* hw,
     bcm_vrf_t vrf,
     const folly::IPAddress& addr,
-    uint8_t len)
-    : hw_(hw), vrf_(vrf), prefix_(addr), len_(len) {}
+    uint8_t len,
+    std::optional<cfg::AclLookupClass> classID)
+    : hw_(hw), vrf_(vrf), prefix_(addr), len_(len), classID_(classID) {}
 
 void BcmRoute::initL3RouteFromArgs(
     bcm_l3_route_t* rt,
@@ -88,12 +89,15 @@ bool BcmRoute::canUseHostTable() const {
   return isHostRoute() && hw_->getPlatform()->canUseHostTableForHostRoutes();
 }
 
-void BcmRoute::program(const RouteNextHopEntry& fwd) {
-  // if the route has been programmed to the HW, check if the forward info is
-  // changed or not. If not, nothing to do.
-  if (added_ && fwd == fwd_) {
+void BcmRoute::program(
+    const RouteNextHopEntry& fwd,
+    std::optional<cfg::AclLookupClass> classID) {
+  // if the route has been programmed to the HW, check if the forward info or
+  // classID has changed or not. If not, nothing to do.
+  if (added_ && fwd == fwd_ && classID == classID_) {
     return;
   }
+
   std::shared_ptr<BcmMultiPathNextHop> nexthopReference;
 
   auto action = fwd.getAction();
@@ -138,11 +142,12 @@ void BcmRoute::program(const RouteNextHopEntry& fwd) {
       warmBootCache->programmed(vrfAndIP2RouteCitr);
     }
   } else {
-    programLpmRoute(egressId, fwd);
+    programLpmRoute(egressId, fwd, classID);
   }
   nextHopHostReference_ = std::move(nexthopReference);
   egressId_ = egressId;
   fwd_ = fwd;
+  classID_ = classID;
 
   // new nexthop has been stored in fwd_. From now on, it is up to
   // ~BcmRoute() to clean up such nexthop.
@@ -172,9 +177,13 @@ std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
 
 void BcmRoute::programLpmRoute(
     bcm_if_t egressId,
-    const RouteNextHopEntry& fwd) {
+    const RouteNextHopEntry& fwd,
+    std::optional<cfg::AclLookupClass> classID) {
   bcm_l3_route_t rt;
   initL3RouteT(&rt);
+  if (classID.has_value()) {
+    rt.l3a_lookup_class = static_cast<int>(classID.value());
+  }
   rt.l3a_intf = egressId;
   if (fwd.getNextHopSet().size() > 1) { // multipath
     rt.l3a_flags |= BCM_L3_MULTIPATH;
@@ -229,7 +238,9 @@ void BcmRoute::programLpmRoute(
         egressId);
     XLOG(DBG3) << "created a route entry for " << prefix_.str() << "/"
                << static_cast<int>(len_) << " @egress " << egressId << " with "
-               << fwd;
+               << fwd
+               << (classID_.has_value() ? static_cast<int>(classID_.value())
+                                        : 0);
   }
   if (vrfAndPfx2RouteCitr != warmBootCache->vrfAndPrefix2Route_end()) {
     warmBootCache->programmed(vrfAndPfx2RouteCitr);
@@ -326,15 +337,19 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
     SCOPE_FAIL {
       fib_.erase(ret.first);
     };
-    ret.first->second.reset(
-        new BcmRoute(hw_, vrf, folly::IPAddress(prefix.network), prefix.mask));
+    ret.first->second.reset(new BcmRoute(
+        hw_,
+        vrf,
+        folly::IPAddress(prefix.network),
+        prefix.mask,
+        route->getClassID()));
   }
   CHECK(route->isResolved());
   RouteNextHopEntry fwd(route->getForwardInfo());
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     fwd = RouteNextHopEntry(fwd.normalizedNextHops(), fwd.getAdminDistance());
   }
-  ret.first->second->program(fwd);
+  ret.first->second->program(fwd, route->getClassID());
 }
 
 template <typename RouteT>

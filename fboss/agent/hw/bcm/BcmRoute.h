@@ -37,9 +37,12 @@ class BcmRoute {
       BcmSwitch* hw,
       bcm_vrf_t vrf,
       const folly::IPAddress& addr,
-      uint8_t len);
+      uint8_t len,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
   ~BcmRoute();
-  void program(const RouteNextHopEntry& fwd);
+  void program(
+      const RouteNextHopEntry& fwd,
+      std::optional<cfg::AclLookupClass> classID);
   static bool deleteLpmRoute(
       int unit,
       bcm_vrf_t vrf,
@@ -65,7 +68,11 @@ class BcmRoute {
       bcm_if_t egressId,
       const RouteNextHopEntry& fwd,
       bool replace);
-  void programLpmRoute(bcm_if_t egressId, const RouteNextHopEntry& fwd);
+  void programLpmRoute(
+      bcm_if_t egressId,
+      const RouteNextHopEntry& fwd,
+      std::optional<cfg::AclLookupClass> classID);
+
   /*
    * Check whether we can use the host route table. BCM platforms
    * support this from TD2 onwards
@@ -87,6 +94,7 @@ class BcmRoute {
   std::shared_ptr<BcmMultiPathNextHop>
       nextHopHostReference_; // reference to nexthops
   std::shared_ptr<BcmHost> hostRouteEntry_; // for host routes
+  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 class BcmRouteTable {
