@@ -53,6 +53,13 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
     const LabelForwardingAction::LabelStack& tunnelStack,
     bool resolved);
 
+// Verifies that the stack is programmed correctly on the interface
+void verifyProgrammedStackOnInterface(
+    const HwSwitch* hwSwitch,
+    const InterfaceID& intfID,
+    const LabelForwardingAction::LabelStack& stack,
+    long refCount);
+
 long getTunnelRefCount(
     const HwSwitch* hwSwitch,
     InterfaceID intfID,

@@ -182,6 +182,23 @@ template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV4>(
     const LabelForwardingAction::LabelStack& tunnelStack,
     bool resolved);
 
+void verifyProgrammedStackOnInterface(
+    const HwSwitch* hwSwitch,
+    const InterfaceID& intfID,
+    const LabelForwardingAction::LabelStack& stack,
+    long refCount) {
+  if (stack.empty()) {
+    EXPECT_EQ(refCount, getTunnelRefCount(hwSwitch, intfID, stack));
+  } else {
+    EXPECT_EQ(
+        refCount,
+        getTunnelRefCount(
+            hwSwitch,
+            intfID,
+            LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()}));
+  }
+}
+
 long getTunnelRefCount(
     const HwSwitch* hwSwitch,
     InterfaceID intfID,

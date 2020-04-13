@@ -231,38 +231,22 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
         getHwSwitch(), prefix, memberIndex, stack, resolved);
   }
 
-  void verifyTunnelRefCounts(
+  void verifyProgrammedStackOnPort(
       const AddrT& network,
       uint8_t mask,
       const PortDescriptor& port,
       const LabelForwardingAction::LabelStack& stack,
       long refCount) {
     PrefixT prefix{network, mask};
-    auto helper = ecmpHelpers_[prefix].get();
-    auto vlanID = helper->getVlan(port);
+    auto* ecmpHelper = ecmpHelpers_[prefix].get();
+    auto vlanID = ecmpHelper->getVlan(port);
     EXPECT_TRUE(vlanID.has_value());
-    if (stack.empty()) {
-      EXPECT_EQ(
-          refCount,
-          utility::getTunnelRefCount(
-              getHwSwitch(),
-              getProgrammedState()
-                  ->getVlans()
-                  ->getVlan(vlanID.value())
-                  ->getInterfaceID(),
-              stack));
-    } else {
-      EXPECT_EQ(
-          refCount,
-          utility::getTunnelRefCount(
-              getHwSwitch(),
-              getProgrammedState()
-                  ->getVlans()
-                  ->getVlan(vlanID.value())
-                  ->getInterfaceID(),
-              LabelForwardingAction::LabelStack{stack.begin() + 1,
-                                                stack.end()}));
-    }
+    auto intfID = getProgrammedState()
+                      ->getVlans()
+                      ->getVlan(vlanID.value())
+                      ->getInterfaceID();
+    utility::verifyProgrammedStackOnInterface(
+        getHwSwitch(), intfID, stack, refCount);
   }
 
  protected:
@@ -328,7 +312,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
   auto verify = [=]() {
     this->verifyLabeledNextHop(params.prefix, params.label);
     for (const auto& port : this->labeledEgressPorts()) {
-      this->verifyTunnelRefCounts(
+      this->verifyProgrammedStackOnPort(
           params.nexthop,
           params.prefix.mask,
           port,
@@ -376,7 +360,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
     this->verifyLabeledNextHopWithStack(params.prefix, stack);
 
     for (const auto& port : this->labeledEgressPorts()) {
-      this->verifyTunnelRefCounts(
+      this->verifyProgrammedStackOnPort(
           params.nexthop, params.prefix.mask, port, stack, 1);
     }
   };
@@ -434,7 +418,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
       auto itr =
           stacks.emplace(labeledPort, LabelForwardingAction::LabelStack{});
       itr.first->second.push_back(params.label);
-      this->verifyTunnelRefCounts(
+      this->verifyProgrammedStackOnPort(
           params.nexthop,
           params.prefix.mask,
           labeledPort,
@@ -475,7 +459,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
       stack.push_back(params.label + i++);
       stacks.emplace(labeledPort, stack);
 
-      this->verifyTunnelRefCounts(
+      this->verifyProgrammedStackOnPort(
           params.nexthop, params.prefix.mask, labeledPort, stack, 1);
     }
     this->verifyMultiPathNextHop(params.prefix, stacks);
@@ -575,7 +559,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
         auto pushStack = LabelForwardingAction::LabelStack(
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1);
         pushStack.push_back(params[i].label + j);
-        this->verifyTunnelRefCounts(
+        this->verifyProgrammedStackOnPort(
             params[i].nexthop,
             params[i].prefix.mask,
             labeledPort,
@@ -819,7 +803,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
         LabelForwardingAction::LabelStack stack{
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
         stack.push_back(params[i].label + j);
-        this->verifyTunnelRefCounts(
+        this->verifyProgrammedStackOnPort(
             params[i].nexthop, params[i].prefix.mask, labeledPort, stack, 1);
         stacks.emplace(labeledPort, stack);
         j++;
@@ -921,7 +905,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
       LabelForwardingAction::LabelStack stack{
           params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
       stack.push_back(params[1].label + j);
-      this->verifyTunnelRefCounts(
+      this->verifyProgrammedStackOnPort(
           params[1].nexthop,
           params[1].nexthop.bitCount(),
           labeledPort,
@@ -979,7 +963,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
         stack.push_back(params[0].label + j);
 
-        this->verifyTunnelRefCounts(
+        this->verifyProgrammedStackOnPort(
             params[i].nexthop,
             params[i].nexthop.bitCount(),
             labeledPort,
