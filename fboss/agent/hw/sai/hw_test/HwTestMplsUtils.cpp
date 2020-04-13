@@ -41,4 +41,93 @@ int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
   return labelStack.back();
 }
 
+uint32_t getMaxLabelStackDepth(const HwSwitch* /* unused */) {
+  // TODO
+  return 2;
+}
+
+template <typename AddrT>
+void verifyLabeledNextHop(
+    const HwSwitch* /* unused */,
+    typename Route<AddrT>::Prefix /* unused */,
+    LabelForwardingEntry::Label /* unused */) {
+  // TODO
+}
+template void verifyLabeledNextHop<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV6>::Prefix prefix,
+    LabelForwardingEntry::Label label);
+template void verifyLabeledNextHop<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV4>::Prefix prefix,
+    LabelForwardingEntry::Label label);
+
+template <typename AddrT>
+void verifyLabeledNextHopWithStack(
+    const HwSwitch* /* unused */,
+    typename Route<AddrT>::Prefix /* unused */,
+    const LabelForwardingAction::LabelStack& /* unused */) {
+  // TODO
+}
+template void verifyLabeledNextHopWithStack<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV6>::Prefix prefix,
+    const LabelForwardingAction::LabelStack& stack);
+template void verifyLabeledNextHopWithStack<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV4>::Prefix prefix,
+    const LabelForwardingAction::LabelStack& stack);
+
+template <typename AddrT>
+void verifyMultiPathNextHop(
+    const HwSwitch* /* unused */,
+    typename Route<AddrT>::Prefix /* unused */,
+    const std::
+        map<PortDescriptor, LabelForwardingAction::LabelStack>& /* unused */,
+    int /* unused */,
+    int /* unused */) {
+  // TODO
+}
+template void verifyMultiPathNextHop<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV6>::Prefix prefix,
+    const std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
+    int numUnLabeledPorts,
+    int numLabeledPorts);
+template void verifyMultiPathNextHop<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV4>::Prefix prefix,
+    const std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
+    int numUnLabeledPorts,
+    int numLabeledPorts);
+
+template <typename AddrT>
+void verifyLabeledMultiPathNextHopMemberWithStack(
+    const HwSwitch* /* unused */,
+    typename Route<AddrT>::Prefix /* unused */,
+    int /* unused */,
+    const LabelForwardingAction::LabelStack& /* unused */,
+    bool /* unused */) {
+  // TODO
+}
+template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV6>::Prefix prefix,
+    int memberIndex,
+    const LabelForwardingAction::LabelStack& tunnelStack,
+    bool resolved);
+template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV4>::Prefix prefix,
+    int memberIndex,
+    const LabelForwardingAction::LabelStack& tunnelStack,
+    bool resolved);
+
+long getTunnelRefCount(
+    const HwSwitch* /* unused */,
+    InterfaceID /* unused */,
+    const LabelForwardingAction::LabelStack& /* unused */) {
+  // Tunnel is not yet implemented in SAI.
+  return 0;
+}
 } // namespace facebook::fboss::utility
