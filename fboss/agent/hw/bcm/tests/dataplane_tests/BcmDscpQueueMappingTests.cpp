@@ -111,33 +111,6 @@ TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMapping) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMappingQosMaps) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-  auto setup = [=]() {
-    setupECMPForwarding(kEcmpWidthForTest());
-    auto newCfg{initialConfig()};
-    utility::addDscpQosPolicy(&newCfg, "qp1", {{kQueueId(), {kDscp()}}});
-    utility::setCPUQosPolicy(&newCfg, "qp1");
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=]() {
-    auto beforeQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                  .get_queueOutPackets_()
-                                  .at(kQueueId());
-    sendUdpPkt();
-    auto afterQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                 .get_queueOutPackets_()
-                                 .at(kQueueId());
-
-    EXPECT_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
