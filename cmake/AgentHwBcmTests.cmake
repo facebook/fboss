@@ -61,6 +61,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
   fboss/agent/hw/bcm/tests/FlexPortTests.cpp
   fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
+  fboss/agent/hw/bcm/tests/HwTestRouteUtils.cpp
   fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
   fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
 

@@ -44,6 +44,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestMplsUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
+    fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
     fboss/agent/hw/sai/hw_test/SaiNextHopGroupTest.cpp
   )
 
