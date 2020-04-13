@@ -21,10 +21,12 @@ const auto kLowCpuQueueWeight = 1;
 const auto kLowCpuQueueReservedMmuCellNum = 5;
 const auto kLowCpuQueueSharedMmuCellNum = 50;
 
-std::vector<cfg::PortQueue> getConfigCPUQueues(uint8_t mmuCellBytes) {
+std::vector<cfg::PortQueue> getConfigCPUQueues(
+    uint8_t mmuCellBytes,
+    const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> cpuQueues;
   cfg::PortQueue high;
-  high.id = 9;
+  high.id = utility::getCoppHighPriQueueId(hwAsic);
   high.name_ref() = "cpuQueue-high";
   high.streamType = cfg::StreamType::MULTICAST;
   high.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -32,7 +34,7 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(uint8_t mmuCellBytes) {
   cpuQueues.push_back(high);
 
   cfg::PortQueue mid;
-  mid.id = 2;
+  mid.id = utility::kCoppMidPriQueueId;
   mid.name_ref() = "cpuQueue-mid";
   mid.streamType = cfg::StreamType::MULTICAST;
   mid.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -40,7 +42,7 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(uint8_t mmuCellBytes) {
   cpuQueues.push_back(mid);
 
   cfg::PortQueue defaultQ;
-  defaultQ.id = 1;
+  defaultQ.id = utility::kCoppDefaultPriQueueId;
   defaultQ.name_ref() = "cpuQueue-default";
   defaultQ.streamType = cfg::StreamType::MULTICAST;
   defaultQ.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -52,7 +54,7 @@ std::vector<cfg::PortQueue> getConfigCPUQueues(uint8_t mmuCellBytes) {
   cpuQueues.push_back(defaultQ);
 
   cfg::PortQueue low;
-  low.id = 0;
+  low.id = utility::kCoppLowPriQueueId;
   low.name_ref() = "cpuQueue-low";
   low.streamType = cfg::StreamType::MULTICAST;
   low.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -114,7 +116,8 @@ TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
 TEST_F(BcmControlPlaneTest, ConfigCPUQueuesSetup) {
   auto setup = [=]() {
     auto cfg = initialConfig();
-    cfg.cpuQueues = getConfigCPUQueues(getPlatform()->getMMUCellBytes());
+    cfg.cpuQueues =
+        getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
   };
 
@@ -128,7 +131,8 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    cfg.cpuQueues = getConfigCPUQueues(getPlatform()->getMMUCellBytes());
+    cfg.cpuQueues =
+        getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
     for (const auto& queue : getSwQueues()) {
@@ -151,7 +155,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
 
     // now explicitly check low-prio
     auto lowQ = swQueuesAfter[0];
-    EXPECT_EQ(lowQ->getID(), 0);
+    EXPECT_EQ(lowQ->getID(), utility::kCoppLowPriQueueId);
     EXPECT_EQ(lowQ->getWeight(), kLowCpuQueueWeight);
     EXPECT_EQ(
         lowQ->getReservedBytes().value(),
@@ -181,7 +185,8 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    cfg.cpuQueues = getConfigCPUQueues(getPlatform()->getMMUCellBytes());
+    cfg.cpuQueues =
+        getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
     for (const auto& queue : getSwQueues()) {
@@ -237,4 +242,31 @@ TEST_F(BcmControlPlaneTest, TestBcmAndCfgReasonConversions) {
     EXPECT_TRUE(BCM_RX_REASON_EQ(
         configRxReasonToBcmReasons(reason.second), bcmReasons));
   }
+}
+
+TEST_F(BcmControlPlaneTest, VerifyReasonToQueueMapping) {
+  auto setup = [&]() { applyNewConfig(initialConfig()); };
+  auto verify = [&]() {
+    const ControlPlane::RxReasonToQueue expected = {
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP, utility::kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::BPDU, utility::kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::L3_SLOW_PATH, utility::kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::L3_DEST_MISS, utility::kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::TTL_1, utility::kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::UNMATCHED, utility::kCoppDefaultPriQueueId)};
+
+    EXPECT_EQ(getHwSwitch()->getControlPlane()->getRxReasonToQueue(), expected);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }

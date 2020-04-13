@@ -30,28 +30,7 @@ class BcmCosManager {
  public:
   explicit BcmCosManager(BcmSwitch* hw);
 
-  unsigned int getMaxCPUQueues() const {
-    return maxCPUQueue_;
-  }
-  unsigned int getMaxCPUMappings() const {
-    return maxCPUMappings_;
-  }
   bcm_port_t getPhysicalCpuPort() const;
-
-  template <class... ReasonEnums>
-  void addCPUMapping(int queue, bcm_rx_reason_e reason, ReasonEnums... r) {
-    auto reasons = RxUtils::genReasons(reason, r...);
-    addCPUMapping(queue, reasons);
-  }
-
-  void addCPUMapping(int queue, bcm_rx_reasons_t reasons) {
-    addCPUMapping(queue, reasons, reasons);
-  }
-
-  void addCPUMapping(
-      int queue,
-      bcm_rx_reasons_t reasons,
-      bcm_rx_reasons_t reasonsMask);
 
   void enableBst();
 
@@ -70,12 +49,7 @@ class BcmCosManager {
   uint64_t deviceStatGet(int32_t bid, bool clearAfter = true);
 
  private:
-  void checkCPUQueueNumber(int) const;
-
   const BcmSwitch* hw_;
-  bcm_cos_queue_t maxCPUQueue_{0};
-  int maxCPUMappings_{0};
-  int numCPUMappings_{0};
 };
 
 } // namespace facebook::fboss

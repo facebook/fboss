@@ -2730,54 +2730,54 @@ void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
 
 void BcmSwitch::configureRxRateLimiting() {
   // Configure several cos queues
-  // TODO: It would probably be good to support configuring these via the
-  // config file.
-  auto mgr = cosManager_.get();
-  CHECK_GE(mgr->getMaxCPUQueues(), 10);
-
-  // Define mappings to these queues.
-
-  // Protocol packets.
-  // Note that these packets generally seem to have bcmRxReasonProtocol set,
-  // but the T2 doesn't support mapping based on this reason.
-  // (bcm_rx_cosq_mapping_reasons_get() shows which reasons are supported
-  // for use in mapping.)
-  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonArp);
-
-  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonDhcp);
-
-  // We don't support BPDU, and should never really be
-  // getting these in our (non spanning tree enabled) n/w
-  // However BRCM traps LLDP packets with reason Bpdu, since
-  // we do care about LLDP, punt these to mid-pri queue
-  mgr->addCPUMapping(FLAGS_cosq_midpri, bcmRxReasonBpdu);
-
-  // TTL expired packets seem to show up with bcmRxReasonL3Slowpath.
-  // (We perhaps don't register for TTL expired packets to come to the CPU
-  // explicitly.)
-  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonL3Slowpath);
-  // Trap dest miss packets to low-pri queue on CPU. This would catch
-  // packets for which we did not have a matching route in h/w route
-  // tables
-  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonL3DestMiss);
-  // Add bcmRxReasonTtl1 too.
-  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonTtl1);
-
-  // Packets to one of our IP addresses as well as any IP Address
-  // in our subnet show up with bcmRxReasonNhop.
-  // (The CPU port is the next-hop in the routing table.)
-  // We want the packets
-  // to our IP Addresses to go to hi-pri queue, but not the ones to
-  // our subnet. Packets to our IP directed to hi-pri queue via
-  // a FP rule (see configureCosQMappingForLocalInterfaces), so
-  // for other packets with a reason next hop, send it to low-pri queue
-  // so we don't get DOS when a bunch of traffic shows up for a destination
-  // in our subnet
-  mgr->addCPUMapping(FLAGS_cosq_lopri, bcmRxReasonNhop);
-  // Add a catch-all match to put anything else in the default queue.
-  // Note that the mappings are checked in the order in which we define them.
-  auto emptyReasons = RxUtils::genReasons();
-  mgr->addCPUMapping(FLAGS_cosq_default, emptyReasons, emptyReasons);
+  CHECK_GE(controlPlane_->getMaxCPUQueues(), 10);
+  controlPlane_->setupRxReasonToQueue(
+      {// Protocol packets.
+       // Note that these packets generally seem to have bcmRxReasonProtocol
+       // set,
+       // but the T2 doesn't support mapping based on this reason.
+       // (bcm_rx_cosq_mapping_reasons_get() shows which reasons are supported
+       // for use in mapping.)
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::ARP, FLAGS_cosq_midpri),
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::DHCP, FLAGS_cosq_midpri),
+       // We don't support BPDU, and should never really be
+       // getting these in our (non spanning tree enabled) n/w
+       // However BRCM traps LLDP packets with reason Bpdu, since
+       // we do care about LLDP, punt these to mid-pri queue
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::BPDU, FLAGS_cosq_midpri),
+       // TTL expired packets seem to show up with bcmRxReasonL3Slowpath.
+       // (We perhaps don't register for TTL expired packets to come to the CPU
+       // explicitly.)
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::L3_SLOW_PATH, FLAGS_cosq_lopri),
+       // Trap dest miss packets to low-pri queue on CPU. This would catch
+       // packets for which we did not have a matching route in h/w route
+       // tables
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::L3_DEST_MISS, FLAGS_cosq_lopri),
+       // Add bcmRxReasonTtl1 too.
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::TTL_1, FLAGS_cosq_lopri),
+       // Packets to one of our IP addresses as well as any IP Address
+       // in our subnet show up with bcmRxReasonNhop.
+       // (The CPU port is the next-hop in the routing table.)
+       // We want the packets
+       // to our IP Addresses to go to hi-pri queue, but not the ones to
+       // our subnet. Packets to our IP directed to hi-pri queue via
+       // a FP rule (see configureCosQMappingForLocalInterfaces), so
+       // for other packets with a reason next hop, send it to low-pri queue
+       // so we don't get DOS when a bunch of traffic shows up for a destination
+       // in our subnet
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::CPU_IS_NHOP, FLAGS_cosq_lopri),
+       // Add a catch-all match to put anything else in the default queue.
+       // Note that the mappings are checked in the order in which we define
+       // them. auto emptyReasons = RxUtils::genReasons();
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::UNMATCHED, FLAGS_cosq_default)});
 }
 
 bcm_gport_t BcmSwitch::getCpuGPort() const {

@@ -53,6 +53,12 @@ class BcmControlPlane {
    */
   void setupRxReasonToQueue(const ControlPlane::RxReasonToQueue& reasonToQueue);
 
+  ControlPlane::RxReasonToQueue getRxReasonToQueue() const;
+
+  int getMaxCPUQueues() const {
+    return maxCPUMappings_;
+  }
+
   void setupIngressQosPolicy(const std::optional<std::string>& qosPolicyName);
 
   void updateQueueCounters();
@@ -66,10 +72,17 @@ class BcmControlPlane {
   BcmControlPlane(BcmControlPlane const&) = delete;
   BcmControlPlane& operator=(BcmControlPlane const&) = delete;
 
+  void writeReasonToQueueEntry(int index, cfg::PacketRxReasonToQueue entry);
+  std::optional<cfg::PacketRxReasonToQueue> readReasonToQueueEntry(
+      int index) const;
+  void deleteReasonToQueueEntry(int index);
+
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
   const bcm_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
+  bcm_cos_queue_t maxCPUQueue_;
+  int maxCPUMappings_{0};
 };
 
 } // namespace facebook::fboss

@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/state/ControlPlane.h"
 
 namespace facebook::fboss {
 
@@ -33,22 +34,20 @@ uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic) {
-  std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
   auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
-  std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
-      rxReasonToQueueMappings = {
-          std::pair(cfg::PacketRxReason::ARP, coppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::BGP, coppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::BGPV6, coppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId),
-          std::pair(cfg::PacketRxReason::LACP, coppHighPriQueueId)};
-  for (auto rxEntry : rxReasonToQueueMappings) {
-    auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-    rxReasonToQueue.set_rxReason(rxEntry.first);
-    rxReasonToQueue.set_queueId(rxEntry.second);
-    rxReasonToQueues.push_back(rxReasonToQueue);
-  }
+  ControlPlane::RxReasonToQueue rxReasonToQueues = {
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BGP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BGPV6, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::LACP, coppHighPriQueueId)};
   return rxReasonToQueues;
 }
 

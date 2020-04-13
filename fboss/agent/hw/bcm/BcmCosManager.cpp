@@ -30,12 +30,6 @@ namespace facebook::fboss {
 BcmCosManager::BcmCosManager(BcmSwitch* hw) : hw_(hw) {
   int rv;
 
-  rv = bcm_rx_queue_max_get(hw_->getUnit(), &maxCPUQueue_);
-  bcmCheckError(rv, "failed to get max CPU cos queue number");
-
-  rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxCPUMappings_);
-  bcmCheckError(rv, "failed to get max CPU cos queue mappings");
-
   /*
    * By default, ingress field processor is disabled on CPU port. Enable it, as
    * we want the CPU generated packets to go through the ingress pipeline.
@@ -60,35 +54,6 @@ BcmCosManager::BcmCosManager(BcmSwitch* hw) : hw_(hw) {
  */
 bcm_port_t BcmCosManager::getPhysicalCpuPort() const {
   return BCM_GPORT_LOCAL_GET(hw_->getCpuGPort());
-}
-
-void BcmCosManager::addCPUMapping(
-    int queue,
-    bcm_rx_reasons_t reasons,
-    bcm_rx_reasons_t reasonsMask) {
-  checkCPUQueueNumber(queue);
-  if (numCPUMappings_ >= maxCPUMappings_) {
-    throw FbossError(
-        "too many CPU cosq mappings defined: max is ", maxCPUMappings_);
-  }
-
-  int index = numCPUMappings_;
-  numCPUMappings_++;
-
-  int rv = bcm_rx_cosq_mapping_set(
-      hw_->getUnit(),
-      index,
-      reasons,
-      reasonsMask,
-      0,
-      0, // internal priority match & mask
-      0,
-      0, // packet type match & mask
-      queue);
-  bcmCheckError(
-      rv,
-      "failed to set set CPU cosq mapping for reasons ",
-      RxUtils::describeReasons(reasons));
 }
 
 void BcmCosManager::profileSet(
@@ -175,11 +140,4 @@ void BcmCosManager::disableBst() {
   rv = bcm_switch_control_set(hw_->getUnit(), bcmSwitchBstEnable, 0);
   bcmCheckError(rv, "failed to disable BST");
 }
-
-void BcmCosManager::checkCPUQueueNumber(int queue) const {
-  if (queue < 0 || queue > maxCPUQueue_) {
-    throw FbossError("invalid cosq number ", queue, "; max is ", maxCPUQueue_);
-  }
-}
-
 } // namespace facebook::fboss
