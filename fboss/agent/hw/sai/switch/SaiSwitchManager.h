@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
+#include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -43,8 +44,10 @@ class SaiSwitchManager {
   SwitchSaiId getSwitchSaiId() const;
 
   void processLoadBalancerDelta(const StateDelta& delta);
+  void processQosMapDelta(const StateDelta& delta);
 
   void resetHashes();
+  void resetQosMaps();
   void gracefulExit();
 
  private:
@@ -60,6 +63,8 @@ class SaiSwitchManager {
   std::unique_ptr<SaiSwitchObj> switch_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
+  std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
+  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 };
 
 } // namespace facebook::fboss

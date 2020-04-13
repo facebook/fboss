@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -49,6 +50,7 @@ void SaiManagerTable::createSaiTableManagers(
   portManager_ =
       std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
   queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
+  qosMapManager_ = std::make_unique<SaiQosMapManager>(this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(this, platform);
   vlanManager_ =
@@ -92,6 +94,9 @@ SaiManagerTable::~SaiManagerTable() {
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
   hashManager_.reset();
+  // Qos map manager is going away, reset global qos maps
+  switchManager_->resetQosMaps();
+  qosMapManager_.reset();
   hostifManager_.reset();
 
   switchManager_.reset();
@@ -159,6 +164,13 @@ SaiQueueManager& SaiManagerTable::queueManager() {
 }
 const SaiQueueManager& SaiManagerTable::queueManager() const {
   return *queueManager_;
+}
+
+SaiQosMapManager& SaiManagerTable::qosMapManager() {
+  return *qosMapManager_;
+}
+const SaiQosMapManager& SaiManagerTable::qosMapManager() const {
+  return *qosMapManager_;
 }
 
 SaiRouteManager& SaiManagerTable::routeManager() {

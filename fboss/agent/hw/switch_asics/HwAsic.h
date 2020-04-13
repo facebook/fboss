@@ -25,6 +25,7 @@ class HwAsic {
     ECN,
     L3_QOS,
     WARM_BOOT,
+    QOS_MAP_GLOBAL,
   };
 
   enum class AsicType {

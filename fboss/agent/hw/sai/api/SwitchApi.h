@@ -109,6 +109,14 @@ struct SaiSwitchTraits {
         int32_t>;
     using SwitchRestartWarm =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_RESTART_WARM, bool>;
+    using QosDscpToTcMap = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP,
+        SaiObjectIdT>;
+    using QosTcToQueueMap = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP,
+        SaiObjectIdT>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -123,7 +131,9 @@ struct SaiSwitchTraits {
       std::optional<Attributes::LagDefaultHashSeed>,
       std::optional<Attributes::EcmpDefaultHashAlgorithm>,
       std::optional<Attributes::LagDefaultHashAlgorithm>,
-      std::optional<Attributes::SwitchRestartWarm>>;
+      std::optional<Attributes::SwitchRestartWarm>,
+      std::optional<Attributes::QosDscpToTcMap>,
+      std::optional<Attributes::QosTcToQueueMap>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -147,6 +157,8 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultVirtualRouterId)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfMulticastQueues)
 SAI_ATTRIBUTE_NAME(Switch, LagHash)
 SAI_ATTRIBUTE_NAME(Switch, EcmpHash)
+SAI_ATTRIBUTE_NAME(Switch, QosDscpToTcMap)
+SAI_ATTRIBUTE_NAME(Switch, QosTcToQueueMap)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

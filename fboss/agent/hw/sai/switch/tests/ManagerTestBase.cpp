@@ -21,6 +21,7 @@
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/Vlan.h"
 
 #include <folly/Singleton.h>
@@ -261,6 +262,20 @@ QueueConfig ManagerTestBase::makeQueueConfig(
     queueConfig.push_back(portQueue);
   }
   return queueConfig;
+}
+
+std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
+    std::string name,
+    const TestQosPolicy& qosPolicy) {
+  DscpMap dscpMap;
+  ExpMap expMap;
+  QosPolicyFields::TrafficClassToQueueId tc2q;
+  for (const auto& qosMapping : qosPolicy) {
+    auto [dscp, tc, q] = qosMapping;
+    dscpMap.addFromEntry(TrafficClass{tc}, DSCP{dscp});
+    tc2q[TrafficClass(tc)] = q;
+  }
+  return std::make_shared<QosPolicy>(name, dscpMap, expMap, tc2q);
 }
 
 } // namespace facebook::fboss

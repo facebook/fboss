@@ -109,6 +109,7 @@ class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
 
 class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
  public:
+  ExpMap() {}
   explicit ExpMap(const TrafficClassToQosAttributeMap<EXP>& map)
       : TrafficClassToQosAttributeMap<EXP>(map) {}
   explicit ExpMap(std::vector<cfg::ExpQosMap> cfg);

@@ -107,6 +107,10 @@ class ManagerTestBase : public ::testing::Test {
     std::vector<TestInterface> nextHopInterfaces;
   };
 
+  // dscp, tc, queue id
+  using TestQosMapping = std::tuple<uint8_t, uint16_t, uint16_t>;
+  using TestQosPolicy = std::vector<TestQosMapping>;
+
   void SetUp() override;
   void TearDown() override;
   void setupForWarmBoot();
@@ -155,6 +159,10 @@ class ManagerTestBase : public ::testing::Test {
       uint8_t weight = 24,
       uint64_t minPps = 12000,
       uint64_t maxPps = 60000);
+
+  std::shared_ptr<QosPolicy> makeQosPolicy(
+      std::string name,
+      const TestQosPolicy& qosPolicy);
 
   std::shared_ptr<FakeSai> fs;
   // TODO - Add FakeSaiPlatform

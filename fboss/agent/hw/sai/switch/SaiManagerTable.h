@@ -32,6 +32,7 @@ class SaiNextHopGroupManager;
 class SaiPlatform;
 class SaiPortManager;
 class SaiQueueManager;
+class SaiQosMapManager;
 class SaiRouteManager;
 class SaiRouterInterfaceManager;
 class SaiSwitchManager;
@@ -76,6 +77,9 @@ class SaiManagerTable {
   SaiQueueManager& queueManager();
   const SaiQueueManager& queueManager() const;
 
+  SaiQosMapManager& qosMapManager();
+  const SaiQosMapManager& qosMapManager() const;
+
   SaiRouteManager& routeManager();
   const SaiRouteManager& routeManager() const;
 
@@ -107,6 +111,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiNextHopGroupManager> nextHopGroupManager_;
   std::unique_ptr<SaiPortManager> portManager_;
   std::unique_ptr<SaiQueueManager> queueManager_;
+  std::unique_ptr<SaiQosMapManager> qosMapManager_;
   std::unique_ptr<SaiRouteManager> routeManager_;
   std::unique_ptr<SaiRouterInterfaceManager> routerInterfaceManager_;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;

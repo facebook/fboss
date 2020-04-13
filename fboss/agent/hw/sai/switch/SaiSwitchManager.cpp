@@ -15,10 +15,13 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/LoadBalancer.h"
+#include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
 
@@ -68,6 +71,8 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // ecmp hash algo
       std::nullopt, // lag hash algo
       std::nullopt, // restart warm
+      std::nullopt, // qos dscp to tc map
+      std::nullopt, // qos tc to queue map
   };
 }
 
@@ -126,6 +131,22 @@ SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
 void SaiSwitchManager::resetHashes() {
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
+}
+
+void SaiSwitchManager::resetQosMaps() {
+  // Since Platform owns Asic, as well as SaiSwitch, which results
+  // in blowing up asic before switch (due to destructor order details)
+  // as a result, we can only rely on the validity of the global map pointer
+  // to gate reset. This should only be true if resetting is supported and
+  // would do something meaningful.
+  if (globalDscpToTcQosMap_) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosDscpToTcMap{SAI_NULL_OBJECT_ID});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToQueueMap{SAI_NULL_OBJECT_ID});
+    globalDscpToTcQosMap_.reset();
+    globalTcToQueueQosMap_.reset();
+  }
 }
 
 void SaiSwitchManager::programLoadBalancerParams(
@@ -198,6 +219,46 @@ void SaiSwitchManager::processLoadBalancerDelta(const StateDelta& delta) {
       [this](const std::shared_ptr<LoadBalancer>& remove) {
         removeLoadBalancer(remove);
       });
+}
+
+// Only handle the global default QoS policy.
+void SaiSwitchManager::processQosMapDelta(const StateDelta& stateDelta) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+    XLOG(WARNING)
+        << "Skip programming default qos map; ASIC doesn't support it";
+    return;
+  }
+  auto oldDefaultQosPolicy = stateDelta.oldState()
+      ? stateDelta.oldState()->getDefaultDataPlaneQosPolicy()
+      : nullptr;
+  auto newDefaultQosPolicy = stateDelta.newState()
+      ? stateDelta.newState()->getDefaultDataPlaneQosPolicy()
+      : nullptr;
+
+  auto& qosMapManager = managerTable_->qosMapManager();
+
+  if (newDefaultQosPolicy && !oldDefaultQosPolicy) {
+    XLOG(INFO) << "Set default qos map";
+    globalDscpToTcQosMap_ =
+        qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
+    globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
+        newDefaultQosPolicy->getTrafficClassToQueueId());
+    // set switch attrs to oids
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
+        globalDscpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
+        globalTcToQueueQosMap_->adapterKey()});
+  } else if (oldDefaultQosPolicy && !newDefaultQosPolicy) {
+    XLOG(INFO) << "Reset default qos map";
+    resetQosMaps();
+    // reset switch attrs to null oid
+  } else {
+    // Since we don't have the benefit of deltas, we want to avoid
+    // running the whole "set qos map" operation on _each_ delta.
+    // Eventually we can check equality here and properly support
+    // modifying the qos map
+    XLOG(WARNING) << "Changing qos map not currently supported";
+  }
 }
 
 void SaiSwitchManager::gracefulExit() {
