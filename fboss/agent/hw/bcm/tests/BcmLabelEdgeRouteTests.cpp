@@ -1,23 +1,17 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/bcm/BcmIntf.h"
-#include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
-#include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestRouteUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestMplsUtils.h"
+#include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/RouteUpdater.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-extern "C" {
-#include <bcm/l3.h>
-}
 namespace facebook::fboss {
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+const auto kRouter0 = RouterID(0);
 const LabelForwardingAction::LabelStack kStack0{
     101,
     102,
@@ -42,14 +36,14 @@ const LabelForwardingAction::LabelStack kStack1{
     209,
     210,
 };
-
 template <typename AddrT>
 struct TestParameters {
   using PrefixT = typename Route<AddrT>::Prefix;
   PrefixT prefix; // prefix for route to remote dest
   AddrT nexthop; // next hop for that route
   const LabelForwardingAction::LabelStack* stack; // label stack to prefix
-  bcm_mpls_label_t label; // labels advertised by "LDP" peer (OpenR adjacency)
+  LabelForwardingEntry::Label
+      label; // labels advertised by "LDP" peer (OpenR adjacency)
 };
 } // namespace
 
@@ -92,7 +86,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     auto state = getProgrammedState();
     RouteUpdater updater(state->getRouteTables());
     updater.addRoute(
-        utility::kRouter0,
+        kRouter0,
         network,
         mask,
         client,
@@ -206,80 +200,35 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     return unLabeledPorts_;
   }
 
-  void verifyLabeledNextHop(bcm_if_t egressId, bcm_mpls_label_t label) {
-    // verify that egress id has given label attached
-    utility::verifyLabeledEgress(egressId, label);
+  void verifyLabeledNextHop(PrefixT prefix, LabelForwardingEntry::Label label) {
+    utility::verifyLabeledNextHop<AddrT>(getHwSwitch(), prefix, label);
   }
 
   void verifyLabeledNextHopWithStack(
       PrefixT prefix,
-      const LabelForwardingAction::LabelStack& tunnelStack) {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, prefix.network, prefix.mask);
-    auto egressId = bcmRoute->getEgressId();
-    // verify that given egress is tunneled egress
-    // its egress label must be tunnelLabel (top of stack)
-    // rest of srack is from tunnel interface attached to egress
-    utility::verifyTunneledEgress(egressId, tunnelStack);
-  }
-
-  void verifyLabeledMultiPathNextHopMemberWithStack(
-      PrefixT prefix,
-      int memberIndex,
-      const LabelForwardingAction::LabelStack& tunnelStack,
-      bool resolved) {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, prefix.network, prefix.mask);
-    ASSERT_NE(bcmRoute, nullptr);
-    const auto* egr =
-        dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
-    ASSERT_NE(egr, nullptr);
-    const auto& nextHops = egr->paths();
-    EXPECT_GT(nextHops.size(), memberIndex);
-    auto i = 0;
-    for (const auto nextHopId : nextHops) {
-      if (i == memberIndex) {
-        // verify that given egress is tunneled egress
-        // its egress label must be tunnelLabel (top of stack)
-        // rest of srack is from tunnel interface attached to egress
-        if (resolved) {
-          utility::verifyTunneledEgress(nextHopId, tunnelStack);
-        } else {
-          utility::verifyTunneledEgressToDrop(nextHopId, tunnelStack);
-        }
-      }
-      i++;
-    }
+      const LabelForwardingAction::LabelStack& stack) {
+    utility::verifyLabeledNextHopWithStack<AddrT>(getHwSwitch(), prefix, stack);
   }
 
   void verifyMultiPathNextHop(
       PrefixT prefix,
       const std::map<PortDescriptor, LabelForwardingAction::LabelStack>&
           stacks) {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, prefix.network, prefix.mask);
-    auto egressId = bcmRoute->getEgressId(); // ecmp egress id
-
-    std::map<bcm_port_t, LabelForwardingAction::LabelStack> bcmPort2Stacks;
-    for (auto& entry : stacks) {
-      auto portDesc = entry.first;
-      auto& stack = entry.second;
-      auto bcmPort = this->getHwSwitch()->getPortTable()->getBcmPortId(
-          portDesc.phyPortID());
-      bcmPort2Stacks.emplace(bcmPort, stack);
-    }
-
-    utility::verifyLabeledMultiPathEgress(
-        unLabeledPorts_.size(), labeledPorts_.size(), egressId, bcmPort2Stacks);
+    utility::verifyMultiPathNextHop<AddrT>(
+        getHwSwitch(),
+        prefix,
+        stacks,
+        unLabeledPorts_.size(),
+        labeledPorts_.size());
   }
 
-  long getTunnelRefCount(
-      InterfaceID intfID,
-      const LabelForwardingAction::LabelStack& stack) {
-    return getHwSwitch()
-        ->getIntfTable()
-        ->getBcmIntfIf(intfID)
-        ->getLabeledTunnelRefCount(stack);
+  void verifyLabeledMultiPathNextHopMemberWithStack(
+      PrefixT prefix,
+      int memberIndex,
+      const LabelForwardingAction::LabelStack& stack,
+      bool resolved) {
+    utility::verifyLabeledMultiPathNextHopMemberWithStack<AddrT>(
+        getHwSwitch(), prefix, memberIndex, stack, resolved);
   }
 
   void verifyTunnelRefCounts(
@@ -295,7 +244,8 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     if (stack.empty()) {
       EXPECT_EQ(
           refCount,
-          getTunnelRefCount(
+          utility::getTunnelRefCount(
+              getHwSwitch(),
               getProgrammedState()
                   ->getVlans()
                   ->getVlan(vlanID.value())
@@ -304,7 +254,8 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
     } else {
       EXPECT_EQ(
           refCount,
-          getTunnelRefCount(
+          utility::getTunnelRefCount(
+              getHwSwitch(),
               getProgrammedState()
                   ->getVlans()
                   ->getVlan(vlanID.value())
@@ -360,7 +311,7 @@ TYPED_TEST_CASE(BcmLabelEdgeRouteTest, TestTypes);
 TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
   // setup nexthop with only one label
   // test that labeled egress is used
-  // test that tunnel initiator is  not setup
+  // test that tunnel initiator is setup
   // test that route is setup to labeled egress
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
@@ -375,10 +326,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
     this->getProgrammedState();
   };
   auto verify = [=]() {
-    auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
-        0, params.prefix.network, params.prefix.mask);
-    auto egressId = bcmRoute->getEgressId();
-    this->verifyLabeledNextHop(egressId, params.label);
+    this->verifyLabeledNextHop(params.prefix, params.label);
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyTunnelRefCounts(
           params.nexthop,
@@ -397,7 +345,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
   // test that tunnel initiator is setup
   // test that route is setup to labeled egress
   // test that labeled egress is associated with tunnel
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -437,8 +385,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
 
 TYPED_TEST(BcmLabelEdgeRouteTest, ExceedMaxLabels) {
   // setup nexthop with stack exceeding labels
-  // n
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -494,7 +441,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
           LabelForwardingAction::LabelStack{},
           1);
     }
-
     this->verifyMultiPathNextHop(params.prefix, stacks);
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -505,7 +451,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 2, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -542,7 +488,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -552,7 +498,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  bcm_mpls_label_t tunnelLabel = 511;
+  LabelForwardingEntry::Label tunnelLabel = 511;
   auto setup = [=]() {
     for (auto i = 0; i < params.size(); i++) {
       this->setupL3Route(
@@ -572,7 +518,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
-      const auto& param = params[i];
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto localTunnelLabel = tunnelLabel;
 
@@ -584,7 +529,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
         stacks.emplace(labeledPort, pushStack);
         localTunnelLabel += 1;
       }
-      this->verifyMultiPathNextHop(param.prefix, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -595,7 +540,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -624,7 +569,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
-      const auto& param = params[i];
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
       for (auto labeledPort : this->labeledEgressPorts()) {
@@ -640,7 +584,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
         stacks.emplace(labeledPort, pushStack);
         j += 1;
       }
-      this->verifyMultiPathNextHop(param.prefix, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -651,7 +595,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -679,7 +623,6 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   };
   auto verify = [=]() {
     for (auto i = 0; i < params.size(); i++) {
-      const auto& param = params[i];
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
       auto j = 0;
@@ -691,14 +634,14 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
         stacks.emplace(labeledPort, pushStack);
         j += 1;
       }
-      this->verifyMultiPathNextHop(param.prefix, stacks);
+      this->verifyMultiPathNextHop(params[i].prefix, stacks);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
@@ -727,7 +670,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
@@ -758,7 +701,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
 
@@ -797,7 +740,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
 
@@ -843,7 +786,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
@@ -896,7 +839,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
@@ -947,7 +890,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
       this->testParams(1),
   };
 
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   auto halfSize = (maxSize >>= 1); // half label stack
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
@@ -991,6 +934,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
   };
 }
 
+// BCM Specific Test
 TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
   using ParamsT = TestParameters<TypeParam>;
 
@@ -999,7 +943,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
       this->testParams(1),
   };
 
-  auto maxSize = this->getHwSwitch()->getPlatform()->maxLabelStackDepth();
+  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].nexthop.bitCount());
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
