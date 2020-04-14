@@ -22,8 +22,6 @@
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
 
-#include "common/time/Time.h"
-
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
@@ -2313,7 +2311,8 @@ void BcmSwitch::updateGlobalStats() {
   trunkTable_->updateStats();
   bcmStatUpdater_->updateStats();
 
-  auto now = WallClockUtil::NowInSecFast();
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   if ((now - bstStatsUpdateTime_ >= FLAGS_update_bststats_interval_s) ||
       bstStatsMgr_->isFineGrainedBufferStatLoggingEnabled()) {
     bstStatsUpdateTime_ = now;

@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "common/time/Time.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -28,6 +27,10 @@ const auto kIPv6LinkLocalMcastAddress = folly::IPAddressV6("ff02::5");
 // Link-local unicast network
 const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
+
+static time_t getCurrentTime() {
+  return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -227,7 +230,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
     auto kMinDurationInSecs = 12;
     const double kVariance = 0.12; // i.e. + or -12%
 
-    auto beforeSecs = WallClockUtil::NowInSecFast();
+    auto beforeSecs = getCurrentTime();
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
@@ -249,7 +252,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
           dstIP,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2);
-      afterSecs = WallClockUtil::NowInSecFast();
+      afterSecs = getCurrentTime();
     } while (afterSecs - beforeSecs < kMinDurationInSecs);
 
     auto afterOutPkts = getQueueOutPacketsWithRetry(
