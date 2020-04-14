@@ -101,7 +101,6 @@ class BcmPlatform : public Platform {
   virtual bool mirrorPktTruncationSupported() const = 0;
 
   virtual bool useQueueGportForCos() const = 0;
-  virtual uint32_t maxLabelStackDepth() const = 0;
 
  protected:
   /*

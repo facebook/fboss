@@ -52,10 +52,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return false;
   }
 
-  uint32_t maxLabelStackDepth() const override {
-    return 2;
-  }
-
   cfg::PortLoopbackMode desiredLoopbackMode() const override {
     // Changing loopback mode to MAC on a 40G port on trident2 changes
     // the speed to 10G unexpectedly.

@@ -48,5 +48,4 @@ void BcmPlatform::dumpHwConfig() const {
     throw facebook::fboss::SysError(errno, "error writing bcm config ");
   }
 }
-
 } // namespace facebook::fboss

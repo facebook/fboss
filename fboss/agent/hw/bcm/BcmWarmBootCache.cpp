@@ -1417,7 +1417,7 @@ void BcmWarmBootCache::populateLabelStack2TunnelId(bcm_l3_egress_t* egress) {
   }
   int label_count = 0;
   std::vector<bcm_mpls_egress_label_t> egress_labels{
-      hw_->getPlatform()->maxLabelStackDepth()};
+      hw_->getPlatform()->getAsic()->getMaxLabelStackDepth()};
 
   // TODO(pshaikh): case to open as bcm_mpls_tunnel_initiator_get doesn't work
   // if 3rd arg is 0 and 4th arg is nullptr. ideally, we would want that to
@@ -1425,7 +1425,7 @@ void BcmWarmBootCache::populateLabelStack2TunnelId(bcm_l3_egress_t* egress) {
   auto rv = bcm_mpls_tunnel_initiator_get(
       hw_->getUnit(),
       bcm_egress->intf,
-      hw_->getPlatform()->maxLabelStackDepth(),
+      hw_->getPlatform()->getAsic()->getMaxLabelStackDepth(),
       egress_labels.data(),
       &label_count);
   if (rv == BCM_E_NOT_FOUND) {

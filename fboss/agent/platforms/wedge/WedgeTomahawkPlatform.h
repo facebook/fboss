@@ -41,9 +41,6 @@ class WedgeTomahawkPlatform : public WedgePlatform {
   bool mirrorPktTruncationSupported() const override {
     return false;
   }
-  uint32_t maxLabelStackDepth() const override {
-    return 3;
-  }
   const PortQueue& getDefaultPortQueueSettings(
       cfg::StreamType streamType) const override;
   const PortQueue& getDefaultControlPlaneQueueSettings(

@@ -41,11 +41,6 @@ int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
   return labelStack.back();
 }
 
-uint32_t getMaxLabelStackDepth(const HwSwitch* /* unused */) {
-  // TODO
-  return 2;
-}
-
 template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* /* unused */,

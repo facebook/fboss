@@ -51,12 +51,6 @@ int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label) {
   return egr.mpls_label;
 }
 
-uint32_t getMaxLabelStackDepth(const HwSwitch* hwSwitch) {
-  return static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
-      ->getPlatform()
-      ->maxLabelStackDepth();
-}
-
 template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,

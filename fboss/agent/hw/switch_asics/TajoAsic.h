@@ -32,6 +32,9 @@ class TajoAsic : public HwAsic {
   bool needsObjectKeyCache() const override {
     return false;
   }
+  uint32_t getMaxLabelStackDepth() const override {
+    return 3;
+  }
 };
 
 } // namespace facebook::fboss

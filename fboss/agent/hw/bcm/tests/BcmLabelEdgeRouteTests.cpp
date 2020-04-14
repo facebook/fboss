@@ -329,7 +329,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
   // test that tunnel initiator is setup
   // test that route is setup to labeled egress
   // test that labeled egress is associated with tunnel
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -369,7 +369,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
 
 TYPED_TEST(BcmLabelEdgeRouteTest, ExceedMaxLabels) {
   // setup nexthop with stack exceeding labels
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 1, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -435,7 +435,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(0, 2, params.nexthop, params.prefix.mask);
   auto setup = [=]() {
@@ -472,7 +472,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -524,7 +524,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -579,7 +579,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
   // test that labeled egresses are associated with tunnel
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
 
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
@@ -625,7 +625,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
@@ -654,7 +654,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(
       0, 2, params.nexthop, params.prefix.mask); // two labeled ports
@@ -685,7 +685,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
 
@@ -724,7 +724,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
 }
 
 TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
 
@@ -770,7 +770,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
@@ -823,7 +823,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].prefix.mask);
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].prefix.mask);
 
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto setup = [=]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
@@ -874,7 +874,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
       this->testParams(1),
   };
 
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto halfSize = (maxSize >>= 1); // half label stack
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
@@ -927,7 +927,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
       this->testParams(1),
   };
 
-  auto maxSize = utility::getMaxLabelStackDepth(this->getHwSwitch());
+  auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   this->setupECMPHelper(0, 2, params[0].nexthop, params[0].nexthop.bitCount());
   this->setupECMPHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 

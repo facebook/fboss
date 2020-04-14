@@ -66,11 +66,6 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
     return true;
   }
 
-  uint32_t maxLabelStackDepth() const override {
-    // for no reason :)
-    return 9;
-  }
-
   HwAsic* getAsic() const override;
 
  private:

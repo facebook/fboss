@@ -31,8 +31,10 @@ class Tomahawk3Asic : public BroadcomAsic {
       case cfg::StreamType::ALL:
         throw FbossError("no queue exist for this stream type");
     }
-
     throw FbossError("Unknown streamType", streamType);
+  }
+  uint32_t getMaxLabelStackDepth() const override {
+    return 9;
   }
 };
 

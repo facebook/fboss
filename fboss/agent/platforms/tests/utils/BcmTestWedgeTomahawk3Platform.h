@@ -65,10 +65,6 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
     return true;
   }
 
-  uint32_t maxLabelStackDepth() const override {
-    return 9;
-  }
-
   HwAsic* getAsic() const override {
     return asic_.get();
   }

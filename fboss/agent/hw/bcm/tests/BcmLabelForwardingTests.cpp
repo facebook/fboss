@@ -107,7 +107,7 @@ TEST_F(BcmLabelForwardingTests, InvalidLabelFIBDelta) {
 
 TEST_F(BcmLabelForwardingTests, ValidPushStack) {
   LabelForwardingAction::LabelStack stack;
-  for (auto i = 0; i < getPlatform()->maxLabelStackDepth(); i++) {
+  for (auto i = 0; i < getPlatform()->getAsic()->getMaxLabelStackDepth(); i++) {
     stack.push_back(1001 + i);
   }
 
@@ -136,7 +136,8 @@ TEST_F(BcmLabelForwardingTests, ValidPushStack) {
 
 TEST_F(BcmLabelForwardingTests, InvalidPushStack) {
   LabelForwardingAction::LabelStack stack;
-  for (auto i = 0; i < getPlatform()->maxLabelStackDepth() + 1; i++) {
+  for (auto i = 0; i < getPlatform()->getAsic()->getMaxLabelStackDepth() + 1;
+       i++) {
     stack.push_back(1001 + i);
   }
 

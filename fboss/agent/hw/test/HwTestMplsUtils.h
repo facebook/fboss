@@ -23,7 +23,6 @@ class HwSwitch;
 namespace facebook::fboss::utility {
 
 int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label);
-uint32_t getMaxLabelStackDepth(const HwSwitch* hwSwitch);
 
 template <typename AddrT>
 void verifyLabeledNextHop(

@@ -335,10 +335,10 @@ bool isValidLabeledNextHopSet(
     if (labelForwardingAction->type() ==
             facebook::fboss::LabelForwardingAction::LabelForwardingType::PUSH &&
         labelForwardingAction->pushStack()->size() >
-            platform->maxLabelStackDepth()) {
+            platform->getAsic()->getMaxLabelStackDepth()) {
       // label stack to push exceeds what platform can support
       XLOG(ERR) << "next hoop " << nexthop.str() << " label stack exceeds "
-                << platform->maxLabelStackDepth();
+                << platform->getAsic()->getMaxLabelStackDepth();
       return false;
     }
     if (!forwardingType.has_value()) {
@@ -1457,7 +1457,7 @@ template <typename AddrT>
 bool BcmSwitch::isRouteUpdateValid(const StateDelta& delta) const {
   using RouteT = Route<AddrT>;
 
-  auto maxLabelStackDepth = getPlatform()->maxLabelStackDepth();
+  auto maxLabelStackDepth = getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto validateLabeledRoute = [maxLabelStackDepth](const auto& route) {
     for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
       if (!nhop.labelForwardingAction()) {

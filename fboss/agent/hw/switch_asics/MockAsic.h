@@ -27,6 +27,10 @@ class MockAsic : public HwAsic {
   int getDefaultNumPortQueues(cfg::StreamType /* streamType */) const override {
     return 10;
   }
+  uint32_t getMaxLabelStackDepth() const override {
+    // Copying TH3's max label stack depth
+    return 9;
+  }
   bool needsObjectKeyCache() const override {
     return false;
   }
