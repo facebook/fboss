@@ -20,8 +20,6 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
-#include <boost/variant.hpp>
-
 #include <algorithm>
 #include <exception>
 #include <mutex>
