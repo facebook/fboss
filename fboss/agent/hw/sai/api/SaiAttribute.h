@@ -9,7 +9,9 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
 #include <folly/IPAddress.h>
@@ -241,20 +243,28 @@ template <
     typename AttrEnumT,
     AttrEnumT AttrEnum,
     typename DataT,
+    typename DefaultGetterT = void,
     typename Enable = void>
 class SaiAttribute;
 
-template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
+template <
+    typename AttrEnumT,
+    AttrEnumT AttrEnum,
+    typename DataT,
+    typename DefaultGetterT>
 class SaiAttribute<
     AttrEnumT,
     AttrEnum,
     DataT,
+    DefaultGetterT,
     typename std::enable_if<!IsSaiTypeWrapper<DataT>::value>::type> {
  public:
   using DataType = typename DuplicateTypeFixer<DataT>::value;
   using ValueType = DataType;
   using ExtractSelectionType = DataT;
   static constexpr AttrEnumT Id = AttrEnum;
+  static constexpr bool HasDefaultGetter =
+      !std::is_same_v<DefaultGetterT, void>;
 
   SaiAttribute() {
     saiAttr_.id = Id;
@@ -270,6 +280,11 @@ class SaiAttribute<
 
   const ValueType& value() {
     return data();
+  }
+
+  static ValueType defaultValue() {
+    static_assert(HasDefaultGetter, "No default getter provided for attribute");
+    return DefaultGetterT{}();
   }
 
   ValueType value() const {
@@ -316,17 +331,24 @@ class SaiAttribute<
   sai_attribute_t saiAttr_{};
 };
 
-template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
+template <
+    typename AttrEnumT,
+    AttrEnumT AttrEnum,
+    typename DataT,
+    typename DefaultGetterT>
 class SaiAttribute<
     AttrEnumT,
     AttrEnum,
     DataT,
+    DefaultGetterT,
     typename std::enable_if<IsSaiTypeWrapper<DataT>::value>::type> {
  public:
   using DataType = typename WrappedSaiType<DataT>::value;
   using ValueType = DataT;
   using ExtractSelectionType = DataT;
   static constexpr AttrEnumT Id = AttrEnum;
+  static constexpr bool HasDefaultGetter =
+      !std::is_same_v<DefaultGetterT, void>;
 
   SaiAttribute() {
     saiAttr_.id = Id;
@@ -392,6 +414,12 @@ class SaiAttribute<
     return v;
   }
 
+  static ValueType defaultValue() {
+    static_assert(HasDefaultGetter, "No default getter provided for attribute");
+    static ValueType v;
+    _fill(DefaultGetterT{}(), v);
+    return v;
+  }
   /*
    * Value based Attributes will often require caller allocation. For
    * example, we need to allocate an array for "list" attributes.
@@ -451,8 +479,13 @@ class SaiAttribute<
 };
 
 // implement trait that detects SaiAttribute
-template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
-struct IsSaiAttribute<SaiAttribute<AttrEnumT, AttrEnum, DataT, void>>
+template <
+    typename AttrEnumT,
+    AttrEnumT AttrEnum,
+    typename DataT,
+    typename DefaultGetterT>
+struct IsSaiAttribute<
+    SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>>
     : public std::true_type {};
 
 template <typename AttrT>

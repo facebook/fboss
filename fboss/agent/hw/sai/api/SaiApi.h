@@ -22,6 +22,7 @@
 
 #include <boost/variant.hpp>
 
+#include <algorithm>
 #include <exception>
 #include <mutex>
 #include <stdexcept>
@@ -120,7 +121,6 @@ class SaiApi {
         IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
         "getAttribute must be called on a SaiAttribute or supported "
         "collection of SaiAttributes");
-
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
     status = impl()._getAttribute(key, attr.saiAttr());
@@ -166,9 +166,29 @@ class SaiApi {
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
     AttrT attr = attrOptional.value_or(AttrT{});
-    auto res =
-        std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
-    return res;
+    sai_status_t status;
+    try {
+      return std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
+    } catch (const SaiApiError& e) {
+      if constexpr (std::remove_reference_t<AttrT>::HasDefaultGetter) {
+        /*
+         * If default value is provided, allow fallback in case of certain
+         * error conditions (primarily to support the case where adapter should,
+         * but does not return a default value for unimplemented attributes).
+         * The error codes here are not very precise and may need to be revised
+         * based on experience.
+         */
+        static constexpr std::array<sai_status_t, 2> kFallbackToDefaultErrCode{
+            SAI_STATUS_NOT_IMPLEMENTED, SAI_STATUS_NOT_SUPPORTED};
+        if (std::find(
+                kFallbackToDefaultErrCode.begin(),
+                kFallbackToDefaultErrCode.end(),
+                e.getSaiStatus()) != kFallbackToDefaultErrCode.end()) {
+          return std::optional<typename AttrT::ValueType>{attr.defaultValue()};
+        }
+      }
+      throw;
+    }
   }
 
   template <typename AdapterKeyT, typename AttrT>

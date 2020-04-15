@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/types.h"
 
@@ -112,11 +113,13 @@ struct SaiSwitchTraits {
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using QosTcToQueueMap = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

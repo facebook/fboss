@@ -99,10 +99,16 @@ struct formatter<std::variant<Ts...>> {
 };
 
 // Formatting for SaiAttributes
-template <typename AttrEnumT, AttrEnumT AttrEnum, typename DataT>
+template <
+    typename AttrEnumT,
+    AttrEnumT AttrEnum,
+    typename DataT,
+    typename DefaultGetterT>
 struct formatter<
-    facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>> {
-  using AttrT = facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>;
+    facebook::fboss::
+        SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>> {
+  using AttrT = facebook::fboss::
+      SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>;
 
   template <typename ParseContext>
   constexpr auto parse(ParseContext& ctx) {
