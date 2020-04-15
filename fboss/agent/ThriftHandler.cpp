@@ -280,7 +280,13 @@ void getPortInfoHelper(
       port->getAdminState() == facebook::fboss::cfg::PortState::ENABLED);
   portInfo.operState =
       PortOperState(port->getOperState() == Port::OperState::UP);
-  portInfo.fecEnabled = sw.getHw()->getPortFECEnabled(port->getID());
+
+  // NOTE: this is not 100% accurate on some platforms (mainly
+  // Backpack). We will replace with better logic as we add support
+  // for new fec types and move over to platform config. We *COULD*
+  // hit hardware to ask for this information, but that can lead to
+  // interesting failure modes (see T65569157)
+  portInfo.fecEnabled = port->getFEC() == cfg::PortFEC::ON;
 
   auto pause = port->getPause();
   portInfo.txPause = pause.tx;
