@@ -106,15 +106,11 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
   stateUpdateFn_(newState);
-  auto preemhasisSettingSupported =
-      platform->getAsic()->isSupported(HwAsic::Feature::PORT_PREEMPHASIS);
   for (auto& port : cfg.ports) {
-    if (preemhasisSettingSupported) {
-      // Set all port preemphasis values to 0 so that we can bring ports up and
-      // down by setting their loopback mode to PHY and NONE respectively.
-      setPortPreemphasis(
-          newState->getPorts()->getPort(PortID(port.logicalID)), 0);
-    }
+    // Set all port preemphasis values to 0 so that we can bring ports up and
+    // down by setting their loopback mode to PHY and NONE respectively.
+    setPortPreemphasis(
+        newState->getPorts()->getPort(PortID(port.logicalID)), 0);
     port.state = portId2DesiredState[port.logicalID];
   }
   newState = applyThriftConfig(newState, &cfg, platform);

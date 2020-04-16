@@ -12,7 +12,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::HOT_SWAP:
-    case HwAsic::Feature::PORT_PREEMPHASIS:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::ECN:

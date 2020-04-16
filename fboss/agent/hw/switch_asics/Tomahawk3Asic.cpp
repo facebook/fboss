@@ -15,7 +15,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HOT_SWAP:
-    case HwAsic::Feature::PORT_PREEMPHASIS:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::ECN:
