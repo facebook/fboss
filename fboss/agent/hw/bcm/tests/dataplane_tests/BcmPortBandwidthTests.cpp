@@ -13,11 +13,11 @@
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>
@@ -32,7 +32,7 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicQueueConfig(&cfg);
-      utility::addOlympicQoSMaps(&cfg);
+      utility::addOlympicQosMaps(cfg);
       _configureBandwidth(&cfg);
     }
 

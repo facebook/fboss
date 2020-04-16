@@ -14,7 +14,7 @@
 #include <string>
 
 /*
- * This utility is to provide utils for bcm olympic tests.
+ * This utility is to provide utils for hw olympic tests.
  */
 
 namespace facebook::fboss::utility {
@@ -23,7 +23,7 @@ constexpr int kOlympicSilverQueueId = 0;
 constexpr int kOlympicGoldQueueId = 1;
 constexpr int kOlympicEcn1QueueId = 2;
 constexpr int kOlympicBronzeQueueId = 4;
-constexpr int kOlympicPlatinumQueueId = 6;
+constexpr int kOlympicICPQueueId = 6;
 constexpr int kOlympicNCQueueId = 7;
 
 constexpr uint32_t kOlympicSilverWeight = 15;
@@ -36,8 +36,7 @@ constexpr int kOlympicHighestSPQueueId = kOlympicNCQueueId;
 constexpr int kOlympicHighestQueueId = kOlympicNCQueueId;
 
 void addOlympicQueueConfig(cfg::SwitchConfig* config);
-void addOlympicAcls(cfg::SwitchConfig* config);
-void addOlympicQoSMaps(cfg::SwitchConfig* config);
+void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
@@ -46,7 +45,7 @@ const std::map<int, uint8_t>& kOlympicWRRQueueToWeight();
 
 const std::vector<int>& kOlympicWRRQueueIds();
 const std::vector<int>& kOlympicSPQueueIds();
-const std::vector<int>& kOlympicWRRAndPlatinumQueueIds();
+const std::vector<int>& kOlympicWRRAndICPQueueIds();
 const std::vector<int>& kOlympicWRRAndNCQueueIds();
 
 bool isOlympicWRRQueueId(int queueId);

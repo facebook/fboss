@@ -7,10 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
-
-#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -68,7 +65,7 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
   portQueues.push_back(queue4);
 
   cfg::PortQueue queue6;
-  queue6.id = kOlympicPlatinumQueueId;
+  queue6.id = kOlympicICPQueueId;
   queue6.name_ref() = "queue6.platinum";
   queue6.streamType = cfg::StreamType::UNICAST;
   queue6.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
@@ -97,16 +94,15 @@ std::string getOlympicCounterNameForDscp(uint8_t dscp) {
 
 const std::map<int, std::vector<uint8_t>>& kOlympicQueueToDscp() {
   static const std::map<int, std::vector<uint8_t>> queueToDscp = {
-      {kOlympicSilverQueueId, {6, 7, 8, 9, 12, 13, 14, 15}},
-      {kOlympicGoldQueueId,
-       {0,  1,  2,  3,  4,  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28,
-        29, 30, 31, 33, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
-        47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63}},
+      {kOlympicSilverQueueId, {0,  1,  2,  3,  4,  6,  7,  8,  9,  12, 13,
+                               14, 15, 40, 41, 42, 43, 44, 45, 46, 47, 49}},
+
+      {kOlympicGoldQueueId, {18, 24, 31, 33, 34, 36, 37, 38, 39}},
       {kOlympicEcn1QueueId, {5}},
-      {kOlympicBronzeQueueId, {10, 11}},
-      {kOlympicPlatinumQueueId, {26, 27, 32, 35}},
-      {kOlympicNCQueueId, {48}},
-  };
+      {kOlympicBronzeQueueId, {10, 11, 16, 17, 19, 20, 21, 22, 23, 25, 50, 51,
+                               52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63}},
+      {kOlympicICPQueueId, {26, 27, 28, 29, 30, 32, 35}},
+      {kOlympicNCQueueId, {48}}};
   return queueToDscp;
 }
 
@@ -131,20 +127,19 @@ const std::vector<int>& kOlympicWRRQueueIds() {
 }
 
 const std::vector<int>& kOlympicSPQueueIds() {
-  static const std::vector<int> spQueueIds = {kOlympicPlatinumQueueId,
+  static const std::vector<int> spQueueIds = {kOlympicICPQueueId,
                                               kOlympicNCQueueId};
 
   return spQueueIds;
 }
 
-const std::vector<int>& kOlympicWRRAndPlatinumQueueIds() {
-  static const std::vector<int> wrrAndPlatinumQueueIds = {
-      kOlympicSilverQueueId,
-      kOlympicGoldQueueId,
-      kOlympicEcn1QueueId,
-      kOlympicBronzeQueueId,
-      kOlympicPlatinumQueueId};
-  return wrrAndPlatinumQueueIds;
+const std::vector<int>& kOlympicWRRAndICPQueueIds() {
+  static const std::vector<int> wrrAndICPQueueIds = {kOlympicSilverQueueId,
+                                                     kOlympicGoldQueueId,
+                                                     kOlympicEcn1QueueId,
+                                                     kOlympicBronzeQueueId,
+                                                     kOlympicICPQueueId};
+  return wrrAndICPQueueIds;
 }
 
 const std::vector<int>& kOlympicWRRAndNCQueueIds() {
@@ -161,46 +156,27 @@ bool isOlympicWRRQueueId(int queueId) {
       kOlympicWRRQueueToWeight().end();
 }
 
-void addOlympicAcls(cfg::SwitchConfig* config) {
-  for (const auto& entry : kOlympicQueueToDscp()) {
-    auto queueId = entry.first;
-    auto dscpVals = entry.second;
-
-    /*
-     * By default (if no ACL match), the traffic gets processed by the default
-     * queue. Thus, we don't generate ACLs for dscp to default queue mapping.
-     * We mimic it here.
-     */
-    if (queueId == kOlympicDefaultQueueId) {
-      continue;
+void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
+  cfg::QosMap qosMap;
+  auto queueToDscpMap = kOlympicQueueToDscp();
+  qosMap.dscpMaps.resize(queueToDscpMap.size());
+  ssize_t qosMapIdx = 0;
+  for (const auto& q2dscps : queueToDscpMap) {
+    auto [q, dscps] = q2dscps;
+    qosMap.dscpMaps[qosMapIdx].internalTrafficClass = q;
+    for (auto dscp : dscps) {
+      qosMap.dscpMaps[qosMapIdx].fromDscpToTrafficClass.push_back(dscp);
     }
-
-    for (const auto& dscpVal : dscpVals) {
-      auto aclName = getOlympicAclNameForDscp(dscpVal);
-      auto counterName = getOlympicCounterNameForDscp(dscpVal);
-
-      utility::addDscpAclToCfg(config, aclName, dscpVal);
-      utility::addTrafficCounter(config, counterName);
-      utility::addQueueMatcher(config, aclName, queueId, counterName);
-    }
+    qosMap.trafficClassToQueueId.emplace(q, q);
+    ++qosMapIdx;
   }
-}
+  cfg.qosPolicies.resize(1);
+  cfg.qosPolicies[0].name = "qp";
+  cfg.qosPolicies[0].qosMap_ref() = qosMap;
 
-void addOlympicQoSMaps(cfg::SwitchConfig* config) {
-  std::vector<std::pair<uint16_t, std::vector<int16_t>>> qosMap;
-
-  for (const auto& entry : kOlympicQueueToDscp()) {
-    auto queueId = entry.first;
-    auto dscpVals = entry.second;
-
-    qosMap.push_back(std::make_pair(
-        static_cast<uint16_t>(queueId),
-        std::vector<int16_t>{dscpVals.begin(), dscpVals.end()}));
-  }
-
-  auto qosPolicyName = "olympic_qos_map";
-  utility::setDefaultQosPolicy(config, qosPolicyName);
-  utility::addDscpQosPolicy(config, qosPolicyName, qosMap);
+  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
@@ -213,4 +189,4 @@ int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
   return maxItr->first;
 }
 
-} // namespace facebook::fboss::utility
+}; // namespace facebook::fboss::utility

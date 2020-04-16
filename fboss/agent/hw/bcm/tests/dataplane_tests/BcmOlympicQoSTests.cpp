@@ -14,9 +14,9 @@
 #include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -170,7 +170,7 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
   void verifyDscpQueueMapping();
   void verifyWRR();
   void verifySP();
-  void verifyWRRAndPlatinum();
+  void verifyWRRAndICP();
   void verifyWRRAndNC();
 };
 
@@ -261,11 +261,11 @@ void BcmOlympicQoSTest::verifySP() {
   verify();
 }
 
-void BcmOlympicQoSTest::verifyWRRAndPlatinum() {
+void BcmOlympicQoSTest::verifyWRRAndICP() {
   verifyWRRAndSP(
-      utility::kOlympicWRRAndPlatinumQueueIds(),
-      utility::kOlympicPlatinumQueueId); // SP should starve WRR queues
-                                         // altogether
+      utility::kOlympicWRRAndICPQueueIds(),
+      utility::kOlympicICPQueueId); // SP should starve WRR queues
+                                    // altogether
 }
 
 void BcmOlympicQoSTest::verifyWRRAndNC() {
@@ -279,15 +279,11 @@ class BcmOlympicQoSMapTest : public BcmOlympicQoSTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = BcmOlympicQoSTest::initialConfig();
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQoSMaps(&cfg);
+      utility::addOlympicQosMaps(cfg);
     }
     return cfg;
   }
 };
-
-TEST_F(BcmOlympicQoSMapTest, VerifyDscpQueueMapping) {
-  verifyDscpQueueMapping();
-}
 
 TEST_F(BcmOlympicQoSMapTest, VerifyWRR) {
   verifyWRR();
@@ -297,8 +293,8 @@ TEST_F(BcmOlympicQoSMapTest, VerifySP) {
   verifySP();
 }
 
-TEST_F(BcmOlympicQoSMapTest, VerifyWRRAndPlatinum) {
-  verifyWRRAndPlatinum();
+TEST_F(BcmOlympicQoSMapTest, VerifyWRRAndICP) {
+  verifyWRRAndICP();
 }
 
 TEST_F(BcmOlympicQoSMapTest, VerifyWRRAndNC) {

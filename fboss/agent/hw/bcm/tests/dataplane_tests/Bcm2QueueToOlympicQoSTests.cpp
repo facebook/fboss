@@ -13,9 +13,9 @@
 #include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTestOlympicUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -104,7 +104,7 @@ TEST_F(Bcm2QueueToOlympicQoSTest, VerifyDscpQueueMapping) {
   auto setupPostWarmboot = [=]() {
     auto newCfg{initialConfig()};
     utility::addOlympicQueueConfig(&newCfg);
-    utility::addOlympicAcls(&newCfg);
+    utility::addOlympicQosMaps(newCfg);
     applyNewConfig(newCfg);
   };
 
