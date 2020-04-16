@@ -1652,6 +1652,7 @@ void ThriftHandler::getMplsRouteTableByClient(
     std::vector<MplsRoute>& mplsRoutes,
     int16_t clientId) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     auto* labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
@@ -1670,6 +1671,7 @@ void ThriftHandler::getMplsRouteTableByClient(
 void ThriftHandler::getAllMplsRouteDetails(
     std::vector<MplsRouteDetails>& mplsRouteDetails) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     MplsRouteDetails details;
@@ -1682,6 +1684,7 @@ void ThriftHandler::getMplsRouteDetails(
     MplsRouteDetails& mplsRouteDetail,
     MplsLabel topLabel) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   const auto entry = sw_->getState()
                          ->getLabelForwardingInformationBase()
                          ->getLabelForwardingEntry(topLabel);
