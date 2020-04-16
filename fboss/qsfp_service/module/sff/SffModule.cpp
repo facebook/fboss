@@ -892,9 +892,6 @@ void SffModule::remediateFlakyTransceiver() {
   XLOG(INFO) << "Performing potentially disruptive remediations on "
              << qsfpImpl_->getName();
 
-  if (FLAGS_aoi_override) {
-    overwritePreEmphasis();
-  }
   ensureTxEnabled();
   resetLowPowerMode();
   lastRemediateTime_ = std::time(nullptr);
@@ -1006,6 +1003,12 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
    */
   if (customizationSupported()) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
+
+    // Before turning up power, check whether we want to override
+    // pre-emphasis or no.
+    if (FLAGS_aoi_override) {
+      overwritePreEmphasis();
+    }
 
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);
