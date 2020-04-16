@@ -58,8 +58,9 @@ struct PublisherKey<
     ObjectTraits,
     std::enable_if_t<
         IsPublisherKeyAdapterHostKey<ObjectTraits>::value &&
-        IsPublisherKeyCreateAttributes<ObjectTraits>::value &&
-        !IsPublisherKeyCustomType<ObjectTraits>::value>>
+        std::is_same_v<
+            ObjectTraits::CreateAttributes,
+            ObjectTraits::AdapterHostKey>>>
     : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::CreateAttributes> {};
