@@ -227,6 +227,11 @@ class SffModule : public QsfpModule {
   // effect of restarting the transceiver state machine
   void resetLowPowerMode() override;
 
+  // Some of the transceiver has set their RX emphasis different
+  // from the others which causes low signal quality when working
+  // with some xphy. overwrite the value to default as a remediation.
+  void overwritePreEmphasis();
+
   /*
    * Determine if it is safe to customize the ports based on the
    * status of our member ports.

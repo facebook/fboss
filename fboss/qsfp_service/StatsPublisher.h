@@ -25,6 +25,7 @@ class StatsPublisher {
   static void bumpWriteFailure();
   static void bumpModuleErrors();
   static void missingPorts(TransceiverID module);
+  static void bumpAOIOverride();
 
  private:
   TransceiverManager* transceiverManager_{nullptr};

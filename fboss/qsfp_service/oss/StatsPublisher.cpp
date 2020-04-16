@@ -28,4 +28,6 @@ void StatsPublisher::missingPorts(TransceiverID /* unused */) {
 }
 // static
 void StatsPublisher::bumpModuleErrors() {}
+// static
+void StatsPublisher::bumpAOIOverride() {}
 }}

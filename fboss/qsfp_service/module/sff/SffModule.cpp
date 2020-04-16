@@ -25,9 +25,17 @@ using std::mutex;
 
 using namespace apache::thrift;
 
+DEFINE_bool(aoi_override, false, "To override pre-emphasis value on AOI modules");
+
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
+
+static std::set<std::string> kPreEmphasisAOIPN = {
+  {"AQPLBCQ4EDOA0967"},
+  {"AQPLBCQ4EDMA1105"},
+  {"AQPLBCQ4EDOA1106"}
+};
 
 }
 
@@ -94,6 +102,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::VCC_THRESH, {SffPages::PAGE3, 144, 8}},
     {SffField::RX_PWR_THRESH, {SffPages::PAGE3, 176, 8}},
     {SffField::TX_BIAS_THRESH, {SffPages::PAGE3, 184, 8}},
+    {SffField::RX_EMPHASIS, {SffPages::PAGE3, 236, 2}},
 };
 
 static SffFieldMultiplier qsfpMultiplier = {
@@ -865,9 +874,12 @@ void SffModule::setPowerOverrideIfSupported(PowerControlState currentState) {
  * disruptive, but have worked in the past to recover a transceiver.
  */
 void SffModule::remediateFlakyTransceiver() {
-  XLOG(DBG0) << "Performing potentially disruptive remediations on "
+  XLOG(INFO) << "Performing potentially disruptive remediations on "
              << qsfpImpl_->getName();
 
+  if (FLAGS_aoi_override) {
+    overwritePreEmphasis();
+  }
   ensureTxEnabled();
   resetLowPowerMode();
   lastRemediateTime_ = std::time(nullptr);
@@ -919,6 +931,58 @@ void SffModule::ensureTxEnabled() {
   std::array<uint8_t, 1> buf = {{0}};
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
+}
+
+void SffModule::overwritePreEmphasis() {
+  // Most transceiver we use have their RX emphasis control set to 0.
+  // However modules from AOI set those as 2dB which causes lower
+  // signal quality when working with credo xphy on yamp. Thus as part
+  // of the redmediation, we set that value to 0.
+  auto cachedInfo = info_.rlock();
+
+  if (!cachedInfo->has_value()) {
+    return;
+  }
+
+  // Get the vendor name and part number and convert them to upper case.
+  auto vendorName = (*cachedInfo)->vendor_ref()->name;
+  std::for_each(vendorName.begin(), vendorName.end(), [](char & c){
+    c = ::toupper(c);
+  });
+
+  auto partNumber = (*cachedInfo)->vendor_ref()->partNumber;
+  std::for_each(partNumber.begin(), partNumber.end(), [](char & c){
+    c = ::toupper(c);
+  });
+
+  if (vendorName != "AOI") {
+    // Vendor name is not AOI. Do not execute.
+    return;
+  }
+
+  if (kPreEmphasisAOIPN.find(partNumber) != kPreEmphasisAOIPN.end()) {
+    // Made sure the PN and Vendor is the one that needs the
+      // overwrite, now execute.
+      XLOG(INFO) << "overwrite the PreEmphasis value on "
+                  << qsfpImpl_->getName();
+      uint8_t page = 3;
+      qsfpImpl_->writeTransceiver(
+        TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      int offset;
+      int length;
+      int dataAddress;
+      getQsfpFieldAddress(SffField::RX_EMPHASIS,
+                          dataAddress,
+                          offset,
+                          length);
+      std::array<uint8_t, 2> buf = {{0}};
+      CHECK_EQ(length, 2);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+
+      // Bump up the ODS counter.
+      StatsPublisher::bumpAOIOverride();
+  }
 }
 
 void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
