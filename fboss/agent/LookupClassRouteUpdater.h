@@ -98,6 +98,9 @@ class LookupClassRouteUpdater {
   void updateStateObserverLocalCacheHelper(
       const std::shared_ptr<RouteTable> routeTable);
 
+  template <typename AddrT>
+  void clearClassIDsForRoutes() const;
+
   /*
    * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
    * to classID mapping.

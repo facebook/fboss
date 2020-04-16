@@ -16,9 +16,31 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
+/*
+ * TODO(skhare)
+ *
+ * Current prod queue-per-host implementation includes L2 and L3 host entry
+ * portion of the fix. As we roll out, queue-per-host for L3 route entry, the
+ * below flag provides us with a mechanism to disable L3 route entry portion of
+ * the fix without having to disable L2 and L3 host entry queue-per-host fix.
+ *
+ * Set this flag to false to disable route entry portion of queue-per-host fix.
+ *
+ * Once the queue-per-host for L3 route entry is rolled out across the fleet
+ * and is stable, remove this flag.
+ */
+DEFINE_bool(
+    queue_per_host_route_fix,
+    true,
+    "Enable route entry (ip-per-task/VIP) portion of Queue-per-host fix");
+
 namespace facebook::fboss {
 
 void LookupClassRouteUpdater::processUpdates(const StateDelta& stateDelta) {
+  if (!FLAGS_queue_per_host_route_fix) {
+    return;
+  }
+
   processUpdatesHelper<folly::IPAddressV6>(stateDelta);
   processUpdatesHelper<folly::IPAddressV4>(stateDelta);
 }
@@ -254,6 +276,10 @@ void LookupClassRouteUpdater::neighborClassIDUpdated(
     const folly::IPAddress& ip,
     VlanID vlanID,
     std::optional<cfg::AclLookupClass> classID) {
+  if (!FLAGS_queue_per_host_route_fix) {
+    return;
+  }
+
   updateClassIDForIpAndVlan(ip, vlanID, classID);
   updateClassID(ip, classID);
 }
@@ -286,6 +312,10 @@ bool LookupClassRouteUpdater::belongsToSubnetInCache(
 void LookupClassRouteUpdater::initPort(
     const std::shared_ptr<SwitchState>& switchState,
     std::shared_ptr<Port> port) {
+  if (!FLAGS_queue_per_host_route_fix) {
+    return;
+  }
+
   for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
     auto vlan = switchState->getVlans()->getVlanIf(vlanID);
     if (!vlan) {
@@ -362,6 +392,12 @@ void LookupClassRouteUpdater::updateStateObserverLocalCacheHelper(
 
 void LookupClassRouteUpdater::updateStateObserverLocalCache(
     const std::shared_ptr<SwitchState>& switchState) {
+  if (!FLAGS_queue_per_host_route_fix) {
+    clearClassIDsForRoutes<folly::IPAddressV6>();
+    clearClassIDsForRoutes<folly::IPAddressV4>();
+    return;
+  }
+
   for (const auto& routeTable : *switchState->getRouteTables()) {
     updateStateObserverLocalCacheHelper<folly::IPAddressV6>(routeTable);
     updateStateObserverLocalCacheHelper<folly::IPAddressV4>(routeTable);
@@ -372,7 +408,41 @@ void LookupClassRouteUpdater::neighborClassIDUpdatedLocalCache(
     const folly::IPAddress& ip,
     VlanID vlanID,
     std::optional<cfg::AclLookupClass> classID) {
+  if (!FLAGS_queue_per_host_route_fix) {
+    return;
+  }
+
   updateClassIDForIpAndVlan(ip, vlanID, classID);
+}
+
+template <typename AddrT>
+void LookupClassRouteUpdater::clearClassIDsForRoutes() const {
+  CHECK(!FLAGS_queue_per_host_route_fix);
+
+  auto updateRouteClassIDFn = [](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    auto newState{state};
+
+    for (const auto& routeTable : *newState->getRouteTables()) {
+      auto rid = routeTable->getID();
+      auto newRouteTable =
+          routeTable->template getRib<AddrT>()->modify(rid, &newState);
+
+      for (const auto& route : *newRouteTable->routes()) {
+        if (route->getClassID().has_value()) {
+          auto newRoute = route->clone();
+          newRoute->updateClassID(std::nullopt);
+          newRouteTable->updateRoute(newRoute);
+        }
+      }
+    }
+
+    return newState;
+  };
+
+  sw_->updateState(
+      "Disable queue-per-host route fix, clear classID for every route ",
+      std::move(updateRouteClassIDFn));
 }
 
 } // namespace facebook::fboss
