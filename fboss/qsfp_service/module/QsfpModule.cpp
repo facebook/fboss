@@ -150,6 +150,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
   if (auto transceiverStats = getTransceiverStats()) {
     info.stats_ref() = *transceiverStats;
   }
+  info.signalFlag_ref() = getSignalFlagInfo();
 
   return info;
 }

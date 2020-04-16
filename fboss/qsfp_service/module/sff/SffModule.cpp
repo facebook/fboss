@@ -55,6 +55,8 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     // Base page values, including alarms and sensors
     {SffField::IDENTIFIER, {SffPages::LOWER, 0, 1}},
     {SffField::STATUS, {SffPages::LOWER, 1, 2}},
+    {SffField::LOS, {SffPages::LOWER, 3, 1}},
+    {SffField::LOL, {SffPages::LOWER, 5, 1}},
     {SffField::TEMPERATURE_ALARMS, {SffPages::LOWER, 6, 1}},
     {SffField::VCC_ALARMS, {SffPages::LOWER, 7, 1}},
     {SffField::CHANNEL_RX_PWR_ALARMS, {SffPages::LOWER, 9, 2}},
@@ -304,10 +306,10 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
   settings.cdrTx = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
-      getSettingsValue(SffField::CDR_CONTROL, CDR_CONTROL_TX_MASK));
+      getSettingsValue(SffField::CDR_CONTROL, TX_MASK));
   settings.cdrRx = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
-      getSettingsValue(SffField::CDR_CONTROL, CDR_CONTROL_RX_MASK));
+      getSettingsValue(SffField::CDR_CONTROL, RX_MASK));
   settings.powerMeasurement = SffFieldInfo::getFeatureState(getSettingsValue(
       SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
   settings.powerControl = getPowerControlValue();
@@ -539,6 +541,19 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
   } else {
     return TransmitterTechnology::COPPER;
   }
+}
+
+SignalFlags SffModule::getSignalFlagInfo() {
+  SignalFlags signalFlags = SignalFlags();
+
+  signalFlags.txLos = getSettingsValue(SffField::LOS, TX_MASK);
+  signalFlags.txLos >>= 4;
+  signalFlags.rxLos = getSettingsValue(SffField::LOS, RX_MASK);
+  signalFlags.txLol = getSettingsValue(SffField::LOL, TX_MASK);
+  signalFlags.txLol >>= 4;
+  signalFlags.rxLol = getSettingsValue(SffField::LOL, RX_MASK);
+
+  return signalFlags;
 }
 
 void SffModule::setQsfpFlatMem() {

@@ -22,6 +22,8 @@ enum class SffField {
   // Shared QSFP and SFP fields:
   IDENTIFIER, // Type of Transceiver
   STATUS, // Support flags for upper pages
+  LOS, // Loss of Signal
+  LOL, // Loss of Lock
   TEMPERATURE_ALARMS,
   VCC_ALARMS,  // Voltage
   CHANNEL_RX_PWR_ALARMS,
@@ -153,9 +155,9 @@ enum Options : uint8_t {
   OPT_RATE_SELECT_MASK = 1 << 5,
 };
 
-enum CdrControl : uint8_t {
-  CDR_CONTROL_RX_MASK = 0x0f,
-  CDR_CONTROL_TX_MASK = 0xf0,
+enum DirectionalMasks : uint8_t {
+  RX_MASK = 0x0f,
+  TX_MASK = 0xf0,
 };
 
 class SffFieldInfo {

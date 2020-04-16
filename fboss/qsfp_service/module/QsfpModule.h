@@ -250,6 +250,10 @@ class QsfpModule : public Transceiver {
    */
   std::optional<TransceiverStats> getTransceiverStats();
   /*
+   * Return SignalFlag which contains Tx/Rx LOS/LOL
+   */
+  virtual SignalFlags getSignalFlagInfo() = 0;
+  /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called

@@ -188,6 +188,10 @@ class SffModule : public QsfpModule {
    */
   std::optional<TransceiverStats> getTransceiverStats();
   /*
+   * Return SignalFlag which contains Tx/Rx LOS/LOL
+   */
+  virtual SignalFlags getSignalFlagInfo() override;
+  /*
    * Update the cached data with the information from the physical QSFP.
    *
    * The 'allPages' parameter determines which pages we refresh. Data

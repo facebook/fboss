@@ -59,6 +59,13 @@ struct ChannelSensors {
   3: Sensor txPwr,
 }
 
+struct SignalFlags {
+  1: i32 txLos,
+  2: i32 rxLos,
+  3: i32 txLol,
+  4: i32 rxLol,
+}
+
 enum TransmitterTechnology {
   UNKNOWN = 0,
   COPPER = 1,
@@ -166,6 +173,7 @@ struct TransceiverInfo {
   12: list<Channel> channels,
   13: optional TransceiverSettings settings,
   14: optional TransceiverStats stats,
+  15: optional SignalFlags signalFlag,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf
