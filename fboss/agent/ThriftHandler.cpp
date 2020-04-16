@@ -539,8 +539,8 @@ void ThriftHandler::addUnicastRoutesInVrf(
     std::unique_ptr<std::vector<UnicastRoute>> routes,
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("addUnicastRoutesInVrf");
-  ensureFibSynced("addUnicastRoutesInVrf");
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
 
@@ -548,13 +548,14 @@ void ThriftHandler::addUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("addUnicastRoutes");
-  ensureFibSynced("addUnicastRoutes");
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
   addUnicastRoutesInVrf(client, std::move(routes), 0);
 }
 
 void ThriftHandler::getProductInfo(ProductInfo& productInfo) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   sw_->getProductInfo(productInfo);
 }
 
@@ -563,8 +564,8 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
     std::unique_ptr<std::vector<IpPrefix>> prefixes,
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("deleteUnicastRoutesInVrf");
-  ensureFibSynced("deleteUnicastRoutesInVrf");
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
 
   if (sw_->isStandaloneRibEnabled()) {
     auto routerID = RouterID(vrf);
@@ -627,8 +628,8 @@ void ThriftHandler::deleteUnicastRoutes(
     int16_t client,
     std::unique_ptr<std::vector<IpPrefix>> prefixes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("deleteUnicastRoutes");
-  ensureFibSynced("deleteUnicastRoutes");
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
   deleteUnicastRoutesInVrf(client, std::move(prefixes), 0);
 }
 
@@ -637,7 +638,7 @@ void ThriftHandler::syncFibInVrf(
     std::unique_ptr<std::vector<UnicastRoute>> routes,
     int32_t vrf) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("syncFibInVrf");
+  ensureConfigured(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "syncFibInVrf", true);
   if (!sw_->isFibSynced()) {
     sw_->fibSynced();
@@ -648,7 +649,7 @@ void ThriftHandler::syncFib(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("syncFib");
+  ensureConfigured(__func__);
   syncFibInVrf(client, std::move(routes), 0);
 }
 
@@ -770,7 +771,7 @@ static void populateInterfaceDetail(
 void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   for (const auto& intf : (*sw_->getState()->getInterfaces())) {
     auto& interfaceDetail = interfaces[intf->getID()];
     populateInterfaceDetail(interfaceDetail, intf);
@@ -779,7 +780,7 @@ void ThriftHandler::getAllInterfaces(
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   for (const auto& intf : (*sw_->getState()->getInterfaces())) {
     interfaceList.push_back(intf->getName());
   }
@@ -789,7 +790,7 @@ void ThriftHandler::getInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     int32_t interfaceId) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   const auto& intf = sw_->getState()->getInterfaces()->getInterfaceIf(
       InterfaceID(interfaceId));
 
@@ -801,7 +802,7 @@ void ThriftHandler::getInterfaceDetail(
 
 void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
   ndpTable.reserve(entries.size());
   ndpTable.insert(
@@ -812,7 +813,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto entries = sw_->getNeighborUpdater()->getArpCacheData().get();
   arpTable.reserve(entries.size());
   arpTable.insert(
@@ -823,14 +824,14 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   sw_->getHw()->fetchL2Table(&l2Table);
   XLOG(DBG6) << "L2 Table size:" << l2Table.size();
 }
 
 void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   aclTable.reserve(sw_->getState()->getAcls()->numEntries());
   for (const auto& aclEntry : *(sw_->getState()->getAcls())) {
     aclTable.push_back(populateAclEntryThrift(*aclEntry));
@@ -841,7 +842,7 @@ void ThriftHandler::getAggregatePort(
     AggregatePortThrift& aggregatePortThrift,
     int32_t aggregatePortIDThrift) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   if (aggregatePortIDThrift < 0 ||
       aggregatePortIDThrift > std::numeric_limits<uint16_t>::max()) {
@@ -864,7 +865,7 @@ void ThriftHandler::getAggregatePort(
 void ThriftHandler::getAggregatePortTable(
     std::vector<AggregatePortThrift>& aggregatePortsThrift) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   // Since aggregatePortsThrift is being push_back'ed to, but is an out
   // parameter, make sure it's clear() first
@@ -881,7 +882,7 @@ void ThriftHandler::getAggregatePortTable(
 
 void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   const auto port = sw_->getState()->getPorts()->getPortIf(PortID(portId));
   if (!port) {
@@ -893,7 +894,7 @@ void ThriftHandler::getPortInfo(PortInfoThrift& portInfo, int32_t portId) {
 
 void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   // NOTE: important to take pointer to switch state before iterating over
   // list of ports
@@ -907,23 +908,25 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   sw_->clearPortStats(ports);
 }
 
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   getPortInfo(portInfo, portId);
 }
 
 void ThriftHandler::getAllPortStats(map<int32_t, PortInfoThrift>& portInfoMap) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   getAllPortInfo(portInfoMap);
 }
 
 void ThriftHandler::getRunningConfig(std::string& configStr) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   configStr = sw_->getConfigStr();
 }
 
@@ -934,7 +937,7 @@ void ThriftHandler::getCurrentStateJSON(
   if (!jsonPointerStr) {
     return;
   }
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
   if (!jsonPtr) {
     throw FbossError("Malformed JSON Pointer");
@@ -951,7 +954,7 @@ void ThriftHandler::patchCurrentStateJSON(
   if (!FLAGS_enable_running_config_mutations) {
     throw FbossError("Running config mutations are not allowed");
   }
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
   if (!jsonPtr) {
     throw FbossError("Malformed JSON Pointer");
@@ -973,7 +976,7 @@ void ThriftHandler::patchCurrentStateJSON(
 void ThriftHandler::getPortStatusImpl(
     std::map<int32_t, PortStatus>& statusMap,
     const std::unique_ptr<std::vector<int32_t>>& ports) const {
-  ensureConfigured();
+  ensureConfigured(__func__);
   if (ports->empty()) {
     statusMap = sw_->getPortStatus();
   } else {
@@ -992,7 +995,7 @@ void ThriftHandler::getPortStatus(
 
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getPortIf(portId);
   if (!port) {
@@ -1019,7 +1022,7 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
 
 void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto appliedState = sw_->getAppliedState();
   for (const auto& routeTable : (*appliedState->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
@@ -1055,7 +1058,7 @@ void ThriftHandler::getRouteTableByClient(
     std::vector<UnicastRoute>& routes,
     int16_t client) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto state = sw_->getState();
   for (const auto& routeTable : (*state->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
@@ -1094,7 +1097,7 @@ void ThriftHandler::getRouteTableByClient(
 
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto state = sw_->getState();
   for (const auto& routeTable : *(state->getRouteTables())) {
     for (const auto& ipv4 : *(routeTable->getRibV4()->routes())) {
@@ -1113,7 +1116,7 @@ void ThriftHandler::getIpRoute(
     std::unique_ptr<Address> addr,
     int32_t vrfId) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
 
   auto state = sw_->getState();
@@ -1147,7 +1150,7 @@ void ThriftHandler::getIpRouteDetails(
     std::unique_ptr<Address> addr,
     int32_t vrfId) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
 
@@ -1166,7 +1169,7 @@ void ThriftHandler::getIpRouteDetails(
 
 void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto lldpMgr = sw_->getLldpMgr();
   if (lldpMgr == nullptr) {
     throw std::runtime_error("lldpMgr is not configured");
@@ -1226,7 +1229,7 @@ void ThriftHandler::async_eb_registerForNeighborChanged(
 
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   auto capture = make_unique<PktCapture>(
       info->name, info->maxPackets, info->direction, info->filter);
@@ -1235,14 +1238,14 @@ void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
 
 void ThriftHandler::stopPktCapture(unique_ptr<std::string> name) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetCapture(*name);
 }
 
 void ThriftHandler::stopAllPktCaptures() {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto* mgr = sw_->getCaptureMgr();
   mgr->forgetAllCaptures();
 }
@@ -1250,6 +1253,7 @@ void ThriftHandler::stopAllPktCaptures() {
 void ThriftHandler::startLoggingRouteUpdates(
     std::unique_ptr<RouteUpdateLoggingInfo> info) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(info->prefix.ip);
   uint8_t mask = static_cast<uint8_t>(info->prefix.prefixLength);
@@ -1261,6 +1265,7 @@ void ThriftHandler::startLoggingRouteUpdates(
 void ThriftHandler::startLoggingMplsRouteUpdates(
     std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->startLoggingForLabel(info->label, info->identifier);
 }
@@ -1269,6 +1274,7 @@ void ThriftHandler::stopLoggingRouteUpdates(
     std::unique_ptr<IpPrefix> prefix,
     std::unique_ptr<std::string> identifier) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   folly::IPAddress addr = toIPAddress(prefix->ip);
   uint8_t mask = static_cast<uint8_t>(prefix->prefixLength);
@@ -1278,6 +1284,7 @@ void ThriftHandler::stopLoggingRouteUpdates(
 void ThriftHandler::stopLoggingAnyRouteUpdates(
     std::unique_ptr<std::string> identifier) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLoggingForIdentifier(*identifier);
 }
@@ -1285,6 +1292,7 @@ void ThriftHandler::stopLoggingAnyRouteUpdates(
 void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
     std::unique_ptr<std::string> identifier) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLabelLoggingForIdentifier(*identifier);
 }
@@ -1292,6 +1300,7 @@ void ThriftHandler::stopLoggingAnyMplsRouteUpdates(
 void ThriftHandler::stopLoggingMplsRouteUpdates(
     std::unique_ptr<MplsRouteUpdateLoggingInfo> info) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   routeUpdateLogger->stopLoggingForLabel(info->label, info->identifier);
 }
@@ -1299,6 +1308,7 @@ void ThriftHandler::stopLoggingMplsRouteUpdates(
 void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
     std::vector<RouteUpdateLoggingInfo>& infos) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
     RouteUpdateLoggingInfo info;
@@ -1315,6 +1325,7 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
 void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
     std::vector<MplsRouteUpdateLoggingInfo>& infos) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto* routeUpdateLogger = sw_->getRouteUpdateLogger();
   for (const auto& tracked : routeUpdateLogger->gettTrackedLabels()) {
     MplsRouteUpdateLoggingInfo info;
@@ -1329,7 +1340,7 @@ void ThriftHandler::sendPkt(
     int32_t vlan,
     unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("sendPkt");
+  ensureConfigured(__func__);
   auto buf = IOBuf::copyBuffer(
       reinterpret_cast<const uint8_t*>(data->data()), data->size());
   auto pkt = make_unique<MockRxPacket>(std::move(buf));
@@ -1343,7 +1354,7 @@ void ThriftHandler::sendPktHex(
     int32_t vlan,
     unique_ptr<fbstring> hex) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("sendPktHex");
+  ensureConfigured(__func__);
   auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
   pkt->setSrcPort(PortID(port));
   pkt->setSrcVlan(VlanID(vlan));
@@ -1352,7 +1363,7 @@ void ThriftHandler::sendPktHex(
 
 void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("txPkt");
+  ensureConfigured(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
   RWPrivateCursor cursor(pkt->buf());
@@ -1363,7 +1374,7 @@ void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
 
 void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("txPktL2");
+  ensureConfigured(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
   RWPrivateCursor cursor(pkt->buf());
@@ -1374,7 +1385,7 @@ void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
 
 void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("txPktL3");
+  ensureConfigured(__func__);
 
   unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(payload->size());
   RWPrivateCursor cursor(pkt->buf());
@@ -1384,12 +1395,12 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {
-  ensureConfigured();
+  ensureConfigured(__func__);
   return sw_->getState()->getVlans()->getVlan(VlanID(vlanId)).get();
 }
 
 Vlan* ThriftHandler::getVlan(const std::string& vlanName) {
-  ensureConfigured();
+  ensureConfigured(__func__);
   return sw_->getState()->getVlans()->getVlanSlow(vlanName).get();
 }
 
@@ -1397,7 +1408,7 @@ int32_t ThriftHandler::flushNeighborEntry(
     unique_ptr<BinaryAddress> ip,
     int32_t vlan) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured("flushNeighborEntry");
+  ensureConfigured(__func__);
 
   auto parsedIP = toIPAddress(*ip);
   VlanID vlanID(vlan);
@@ -1435,7 +1446,7 @@ void ThriftHandler::getVlanAddresses(
     const Vlan* vlan,
     std::vector<ADDR_TYPE>& addrs,
     ADDR_CONVERTER& converter) {
-  ensureConfigured();
+  ensureConfigured(__func__);
   CHECK(vlan);
   for (auto intf : (*sw_->getState()->getInterfaces())) {
     if (intf->getVlanID() == vlan->getID()) {
@@ -1448,6 +1459,7 @@ void ThriftHandler::getVlanAddresses(
 
 BootType ThriftHandler::getBootType() {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   return sw_->getBootType();
 }
 
@@ -1496,7 +1508,7 @@ int32_t ThriftHandler::getIdleTimeout() {
 
 void ThriftHandler::reloadConfig() {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   return sw_->applyConfig("reload config initiated by thrift call", true);
 }
 
@@ -1504,7 +1516,7 @@ void ThriftHandler::getLacpPartnerPair(
     LacpPartnerPair& lacpPartnerPair,
     int32_t portID) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   auto lagManager = sw_->getLagManager();
   if (!lagManager) {
@@ -1517,7 +1529,7 @@ void ThriftHandler::getLacpPartnerPair(
 void ThriftHandler::getAllLacpPartnerPairs(
     std::vector<LacpPartnerPair>& lacpPartnerPairs) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
 
   auto lagManager = sw_->getLagManager();
   if (!lagManager) {
@@ -1529,6 +1541,7 @@ void ThriftHandler::getAllLacpPartnerPairs(
 
 SwitchRunState ThriftHandler::getSwitchRunState() {
   auto log = LOG_THRIFT_CALL(DBG3);
+  ensureConfigured(__func__);
   return sw_->getSwitchRunState();
 }
 
@@ -1553,7 +1566,7 @@ void ThriftHandler::setExternalLedState(
     int32_t portNum,
     PortLedExternalState ledState) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   PortID portId = PortID(portNum);
 
   const auto plport = sw_->getPlatform()->getPlatformPort(portId);
@@ -1568,7 +1581,8 @@ void ThriftHandler::addMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -1611,7 +1625,8 @@ void ThriftHandler::deleteMplsRoutes(
     int16_t clientId,
     std::unique_ptr<std::vector<int32_t>> topLabels) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
+  ensureFibSynced(__func__);
   auto updateFn = [=, topLabels = std::move(*topLabels)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -1632,7 +1647,7 @@ void ThriftHandler::syncMplsFib(
     int16_t clientId,
     std::unique_ptr<std::vector<MplsRoute>> mplsRoutes) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  ensureConfigured();
+  ensureConfigured(__func__);
   auto updateFn = [=, routes = std::move(*mplsRoutes)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();

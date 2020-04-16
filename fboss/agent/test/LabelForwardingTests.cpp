@@ -44,6 +44,8 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
       util::getTestRoutes(4, 4),
   };
 
+  sw->fibSynced();
+
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
         static_cast<int>(clients[i]),
@@ -77,6 +79,8 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
       util::getTestRoutes(0, 4),
       util::getTestRoutes(4, 4),
   };
+
+  sw->fibSynced();
 
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
@@ -131,6 +135,8 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
       util::getTestRoutes(0, 4),
       util::getTestRoutes(4, 4),
   };
+
+  sw->fibSynced();
 
   for (auto i = 0; i < 2; i++) {
     thriftHandler->addMplsRoutes(
@@ -205,6 +211,8 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
       util::getTestRoutes(0, 4),
       util::getTestRoutes(4, 4),
   };
+
+  sw->fibSynced();
 
   auto sortByLabel = [](const MplsRoute& route1, const MplsRoute& route2) {
     return route1.topLabel < route2.topLabel;
