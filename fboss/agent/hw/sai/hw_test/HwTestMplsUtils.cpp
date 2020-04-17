@@ -118,11 +118,12 @@ template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV4>(
     const LabelForwardingAction::LabelStack& tunnelStack,
     bool resolved);
 
-long getTunnelRefCount(
+// Verifies that the stack is programmed correctly on the interface
+void verifyProgrammedStackOnInterface(
     const HwSwitch* /* unused */,
-    InterfaceID /* unused */,
-    const LabelForwardingAction::LabelStack& /* unused */) {
-  // Tunnel is not yet implemented in SAI.
-  return 0;
+    const InterfaceID& /* unused */,
+    const LabelForwardingAction::LabelStack& /* unused */,
+    long /* unused */) {
+  // TODO
 }
 } // namespace facebook::fboss::utility

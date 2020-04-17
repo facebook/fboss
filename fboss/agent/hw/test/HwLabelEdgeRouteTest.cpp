@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/RouteUpdater.h"
@@ -48,7 +48,7 @@ struct TestParameters {
 } // namespace
 
 template <typename AddrT>
-class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
+class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
  public:
   using EcmpSetupTargetedPorts = utility::EcmpSetupTargetedPorts<AddrT>;
   using EcmpNextHop = utility::EcmpNextHop<AddrT>;
@@ -257,7 +257,7 @@ class BcmLabelEdgeRouteTest : public BcmLinkStateDependentTests {
 };
 
 template <>
-const std::array<TestParameters<folly::IPAddressV4>, 2> BcmLabelEdgeRouteTest<
+const std::array<TestParameters<folly::IPAddressV4>, 2> HwLabelEdgeRouteTest<
     folly::IPAddressV4>::kParams{
     TestParameters<folly::IPAddressV4>{
         Route<folly::IPAddressV4>::Prefix{folly::IPAddressV4("101.102.103.0"),
@@ -274,7 +274,7 @@ const std::array<TestParameters<folly::IPAddressV4>, 2> BcmLabelEdgeRouteTest<
 
 template <>
 const std::array<TestParameters<folly::IPAddressV6>, 2>
-    BcmLabelEdgeRouteTest<folly::IPAddressV6>::kParams{
+    HwLabelEdgeRouteTest<folly::IPAddressV6>::kParams{
         TestParameters<folly::IPAddressV6>{
             Route<folly::IPAddressV6>::Prefix{
                 folly::IPAddressV6("101:102::103:0:0"),
@@ -290,9 +290,9 @@ const std::array<TestParameters<folly::IPAddressV6>, 2>
             &kStack1,
             2001}};
 
-TYPED_TEST_CASE(BcmLabelEdgeRouteTest, TestTypes);
+TYPED_TEST_CASE(HwLabelEdgeRouteTest, TestTypes);
 
-TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
+TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
   // setup nexthop with only one label
   // test that labeled egress is used
   // test that tunnel initiator is setup
@@ -323,7 +323,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, OneLabel) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
+TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
   // setup nexthop with max labels
   // test that labeled egress is used
   // test that tunnel initiator is setup
@@ -367,7 +367,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, MaxLabels) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, ExceedMaxLabels) {
+TYPED_TEST(HwLabelEdgeRouteTest, ExceedMaxLabels) {
   // setup nexthop with stack exceeding labels
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
@@ -386,7 +386,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, ExceedMaxLabels) {
   EXPECT_THROW(setup(), FbossError);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
+TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
   // setup half next hops with labels and half without
   // test that labeled egress is used for labeled nexthops
   // test that unlabeled egress is used for unlabeled nexthops
@@ -430,7 +430,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, HalfPathsWithLabels) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
+TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   // setup nexthops with common tunnel stack but different egress labels
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
@@ -467,7 +467,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
+TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   // setup nexthops with different tunnel stack but with same tunnel labels
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
@@ -519,7 +519,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
+TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   // setup nexthops with common tunnel stack but different egress labels
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
@@ -574,7 +574,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
+TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   // setup nexthops with common tunnel stack but different egress labels
   // test that labeled egress is used for labeled nexthops
   // test that only required tunnel initiators are set up
@@ -624,7 +624,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
+TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(
@@ -653,7 +653,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedNextHops) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
+TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(
@@ -684,7 +684,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolveResolvedNextHops) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
+TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
@@ -723,7 +723,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedHybridNextHops) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
+TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->setupECMPHelper(1, 1, params.nexthop, params.prefix.mask);
@@ -761,7 +761,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
+TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
       this->testParams(0),
@@ -814,7 +814,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdateRouteLabels) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
+TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
   using ParamsT = TestParameters<TypeParam>;
   std::vector<ParamsT> params{
       this->testParams(0),
@@ -866,7 +866,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, UpdatePortLabel) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
+TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
   using ParamsT = TestParameters<TypeParam>;
 
   std::vector<ParamsT> params{
@@ -919,7 +919,7 @@ TYPED_TEST(BcmLabelEdgeRouteTest, RecursiveStackResolution) {
 }
 
 // BCM Specific Test
-TYPED_TEST(BcmLabelEdgeRouteTest, TunnelRefTest) {
+TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
   using ParamsT = TestParameters<TypeParam>;
 
   std::vector<ParamsT> params{

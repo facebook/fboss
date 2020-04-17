@@ -33,7 +33,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmHostKeyTests.cpp
   fboss/agent/hw/bcm/tests/BcmHostTests.cpp
   fboss/agent/hw/bcm/tests/BcmInterfaceTests.cpp
-  fboss/agent/hw/bcm/tests/BcmLabelEdgeRouteTests.cpp
   fboss/agent/hw/bcm/tests/BcmLabelSwitchRouteTests.cpp
   fboss/agent/hw/bcm/tests/BcmLabeledEgressTest.cpp
   fboss/agent/hw/bcm/tests/BcmLabelSwitchActionTests.cpp

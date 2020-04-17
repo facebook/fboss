@@ -58,9 +58,4 @@ void verifyProgrammedStackOnInterface(
     const InterfaceID& intfID,
     const LabelForwardingAction::LabelStack& stack,
     long refCount);
-
-long getTunnelRefCount(
-    const HwSwitch* hwSwitch,
-    InterfaceID intfID,
-    const LabelForwardingAction::LabelStack& stack);
 } // namespace facebook::fboss::utility
