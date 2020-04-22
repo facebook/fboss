@@ -22,59 +22,6 @@
 #include <sstream>
 #include <string>
 
-namespace facebook::fboss {
-class LogThriftCall {
- public:
-  explicit LogThriftCall(
-      const folly::Logger& logger,
-      folly::LogLevel level,
-      folly::StringPiece func,
-      folly::StringPiece file,
-      uint32_t line,
-      apache::thrift::Cpp2RequestContext* ctx,
-      std::string paramsStr);
-  ~LogThriftCall();
-
-  // inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.
-  //
-  // TODO: add versions for SemiFuture and Coro
-  template <typename RT>
-  folly::Future<RT> wrapFuture(folly::Future<RT>&& f) {
-    executedFuture_ = true;
-    return std::move(f).thenTry([logger = logger_,
-                                 level = level_,
-                                 func = func_,
-                                 file = file_,
-                                 line = line_,
-                                 start = start_](folly::Try<RT>&& ret) {
-      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - start);
-
-      auto result = (ret.hasException()) ? "failed" : "succeeded";
-
-      FB_LOG_RAW(logger, level, file, line, "")
-          << func << " thrift request " << result << " in " << ms.count()
-          << "ms";
-
-      return std::forward<folly::Try<RT>>(ret);
-    });
-  }
-
- private:
-  LogThriftCall(LogThriftCall const&) = delete;
-  LogThriftCall& operator=(LogThriftCall const&) = delete;
-
-  folly::Logger logger_;
-  folly::LogLevel level_;
-  folly::StringPiece func_;
-  folly::StringPiece file_;
-  uint32_t line_;
-  std::chrono::time_point<std::chrono::steady_clock> start_;
-  bool executedFuture_{false};
-};
-
-} // namespace facebook::fboss
-
 #define _LOGTHRIFTCALL_APPEND_PARAM(a) \
   ss << #a "=" << folly::toJson(folly::toDynamic(a)) << ",";
 
@@ -115,3 +62,59 @@ class LogThriftCall {
     return std::make_unique<::facebook::fboss::LogThriftCall>(            \
         logger, folly::LogLevel::level, func, file, line, ctx, ss.str()); \
   }(__func__, __FILE__, __LINE__, getConnectionContext()))
+
+#define FB_LOG_RAW_WITH_CONTEXT(...) \
+  FB_LOG_RAW(__VA_ARGS__) << "[" << folly::RequestContext::get() << "] "
+
+namespace facebook::fboss {
+class LogThriftCall {
+ public:
+  explicit LogThriftCall(
+      const folly::Logger& logger,
+      folly::LogLevel level,
+      folly::StringPiece func,
+      folly::StringPiece file,
+      uint32_t line,
+      apache::thrift::Cpp2RequestContext* ctx,
+      std::string paramsStr);
+  ~LogThriftCall();
+
+  // inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.
+  //
+  // TODO: add versions for SemiFuture and Coro
+  template <typename RT>
+  folly::Future<RT> wrapFuture(folly::Future<RT>&& f) {
+    executedFuture_ = true;
+    return std::move(f).thenTry([logger = logger_,
+                                 level = level_,
+                                 func = func_,
+                                 file = file_,
+                                 line = line_,
+                                 start = start_](folly::Try<RT>&& ret) {
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - start);
+
+      auto result = (ret.hasException()) ? "failed" : "succeeded";
+
+      FB_LOG_RAW_WITH_CONTEXT(logger, level, file, line, "")
+          << func << " thrift request " << result << " in " << ms.count()
+          << "ms";
+
+      return std::forward<folly::Try<RT>>(ret);
+    });
+  }
+
+ private:
+  LogThriftCall(LogThriftCall const&) = delete;
+  LogThriftCall& operator=(LogThriftCall const&) = delete;
+
+  folly::Logger logger_;
+  folly::LogLevel level_;
+  folly::StringPiece func_;
+  folly::StringPiece file_;
+  uint32_t line_;
+  std::chrono::time_point<std::chrono::steady_clock> start_;
+  bool executedFuture_{false};
+};
+
+} // namespace facebook::fboss

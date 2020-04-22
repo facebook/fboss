@@ -43,11 +43,11 @@ LogThriftCall::LogThriftCall(
 
   // this specific format is consumed by systemd-journald/rsyslogd
   if (paramsStr.empty()) {
-    FB_LOG_RAW(logger_, level_, file_, line_, "")
+    FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request received from " << client << " ("
         << identity << ")";
   } else {
-    FB_LOG_RAW(logger_, level_, file_, line_, "")
+    FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request received from " << client << " ("
         << identity << "). params: " << paramsStr;
   }
@@ -59,7 +59,7 @@ LogThriftCall::~LogThriftCall() {
   if (!executedFuture_) {
     auto result = (std::uncaught_exceptions()) ? "failed" : "succeeded";
 
-    FB_LOG_RAW(logger_, level_, file_, line_, "")
+    FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request " << result << " in " << ms.count()
         << "ms";
   }
