@@ -907,7 +907,7 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 }
 
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL(DBG1, *ports);
   ensureConfigured(__func__);
   sw_->clearPortStats(ports);
 }
@@ -933,7 +933,7 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
 void ThriftHandler::getCurrentStateJSON(
     std::string& ret,
     std::unique_ptr<std::string> jsonPointerStr) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr);
   if (!jsonPointerStr) {
     return;
   }
@@ -950,7 +950,7 @@ void ThriftHandler::getCurrentStateJSON(
 void ThriftHandler::patchCurrentStateJSON(
     std::unique_ptr<std::string> jsonPointerStr,
     std::unique_ptr<std::string> jsonPatchStr) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr, *jsonPatchStr);
   if (!FLAGS_enable_running_config_mutations) {
     throw FbossError("Running config mutations are not allowed");
   }
@@ -994,7 +994,7 @@ void ThriftHandler::getPortStatus(
 }
 
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
   ensureConfigured(__func__);
   PortID portId = PortID(portNum);
   const auto port = sw_->getState()->getPorts()->getPortIf(portId);
