@@ -22,7 +22,8 @@ LogThriftCall::LogThriftCall(
     folly::StringPiece func,
     folly::StringPiece file,
     uint32_t line,
-    Cpp2RequestContext* ctx)
+    Cpp2RequestContext* ctx,
+    std::string paramsStr)
     : logger_(logger),
       level_(level),
       func_(func),
@@ -41,9 +42,15 @@ LogThriftCall::LogThriftCall(
   }
 
   // this specific format is consumed by systemd-journald/rsyslogd
-  FB_LOG_RAW(logger_, level_, file_, line_, "")
-      << func_ << " thrift request received from " << client << " (" << identity
-      << ")";
+  if (paramsStr.empty()) {
+    FB_LOG_RAW(logger_, level_, file_, line_, "")
+        << func_ << " thrift request received from " << client << " ("
+        << identity << ")";
+  } else {
+    FB_LOG_RAW(logger_, level_, file_, line_, "")
+        << func_ << " thrift request received from " << client << " ("
+        << identity << "). params: " << paramsStr;
+  }
 }
 
 LogThriftCall::~LogThriftCall() {
