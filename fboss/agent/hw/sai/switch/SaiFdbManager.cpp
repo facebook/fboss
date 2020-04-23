@@ -55,4 +55,51 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
   return store.setObject(entry, attributes, std::make_tuple(intfId, mac));
 }
 
+void SubscriberForFdbEntry::createObject(PublisherObjects objects) {
+  /* both interface and  bridge port exist, create fdb entry */
+  auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
+  auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
+      interface->adapterKey(), SaiRouterInterfaceTraits::Attributes::VlanId{});
+  SaiFdbTraits::FdbEntry entry{switchId_, vlan, mac_};
+
+  auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
+  auto bridgePortId = bridgePort->adapterKey();
+  SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
+                                            bridgePortId};
+
+  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
+  auto fdbEntry =
+      store.setObject(entry, attributes, std::make_tuple(interfaceId_, mac_));
+  setObject(fdbEntry);
+}
+void SubscriberForFdbEntry::removeObject(size_t, PublisherObjects) {
+  /* either interface is removed or bridge port is removed, delete fdb entry */
+  this->resetObject();
+}
+
+void SaiFdbManager::addFdbEntry(
+    PortID port,
+    InterfaceID interfaceId,
+    folly::MacAddress mac) {
+  auto switchId = managerTable_->switchManager().getSwitchSaiId();
+  auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
+  auto subscriber =
+      std::make_shared<SubscriberForFdbEntry>(switchId, port, interfaceId, mac);
+
+  SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
+      subscriber);
+  SaiObjectEventPublisher::getInstance()
+      ->get<SaiRouterInterfaceTraits>()
+      .subscribe(subscriber);
+
+  subscribersForFdbEntry_.emplace(key, subscriber);
+}
+
+void SaiFdbManager::removeFdbEntry(
+    InterfaceID interfaceId,
+    folly::MacAddress mac) {
+  auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
+  subscribersForFdbEntry_.erase(key);
+}
+
 } // namespace facebook::fboss

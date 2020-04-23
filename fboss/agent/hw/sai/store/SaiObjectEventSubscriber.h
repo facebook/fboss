@@ -180,13 +180,27 @@ class SaiObjectEventAggregateSubscriber
 
   bool isAlive() const;
 
+  const SaiObject<SubscriberTraits>* getSaiObject() const {
+    if (!object_) {
+      return nullptr;
+    }
+    return object_.get();
+  }
+
  protected:
+  // TODO(pshaikh): extend this to support subscribers who themselves are
+  // publishers with custom attributes
   void setObject(AdapterHostKey key, CreateAttributes attr);
+
+  // TODO(pshaikh): remove this after above API is extended
+  void setObject(SubscriberSharedPtr object) {
+    object_ = object;
+  }
 
   void resetObject();
 
  private:
-  std::vector<bool> livePublisherObjects_{Size};
+  std::array<bool, Size> livePublisherObjects_{false};
   SubscriberSharedPtr object_;
 };
 
