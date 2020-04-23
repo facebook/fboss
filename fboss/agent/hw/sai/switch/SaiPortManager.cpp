@@ -202,6 +202,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
   }
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
+  concurrentIndices_->vlanIds.emplace(
+      saiPort->adapterKey(), swPort->getIngressVlan());
   return saiPort->adapterKey();
 }
 
@@ -211,6 +213,7 @@ void SaiPortManager::removePort(PortID swId) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
   }
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
+  concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
   handles_.erase(itr);
   portStats_.erase(swId);
 }

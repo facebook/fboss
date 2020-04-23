@@ -28,9 +28,7 @@ SaiVlanManager::SaiVlanManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices)
-    : managerTable_(managerTable),
-      platform_(platform),
-      concurrentIndices_(concurrentIndices) {}
+    : managerTable_(managerTable), platform_(platform) {}
 
 VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
@@ -94,7 +92,6 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
   auto saiVlanMember =
       vlanMemberStore.setObject(memberAdapterHostKey, memberAttributes);
   vlanHandle->vlanMembers.emplace(swPortId, saiVlanMember);
-  concurrentIndices_->vlanIds.emplace(portHandle->port->adapterKey(), swVlanId);
 }
 
 void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
@@ -139,7 +136,6 @@ void SaiVlanManager::changeVlan(
           "no port handle matching vlan member port: ",
           swPortId.first);
     }
-    concurrentIndices_->vlanIds.erase(portHandle->port->adapterKey());
   }
   VlanFields::MemberPorts added;
   std::set_difference(

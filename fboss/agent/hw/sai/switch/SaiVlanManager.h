@@ -67,7 +67,6 @@ class SaiVlanManager {
   const SaiPlatform* platform_;
 
   SaiVlanHandles handles_;
-  ConcurrentIndices* concurrentIndices_;
 };
 
 } // namespace facebook::fboss
