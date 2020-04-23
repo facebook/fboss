@@ -149,6 +149,7 @@ class SaiObjectStore {
       ins.first->setAttributes(attributes);
     } else {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+        ins.first->setCustomPublisherKey(publisherKey);
         ins.first->notifyAfterCreate(ins.first);
       }
     }

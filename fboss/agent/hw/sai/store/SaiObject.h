@@ -297,9 +297,14 @@ class SaiObject {
     } else {
       static_assert(
           IsPublisherKeyCreateAttributes<SaiObjectTraits>::value,
-          "publisher attributes are not create attributes");
+          "publisher key is not create attributes");
       return attributes_;
     }
+  }
+
+  void setCustomPublisherKey(
+      const typename PublisherKey<SaiObjectTraits>::custom_type& key) {
+    publisherKey_ = key;
   }
 
   void notifyBeforeDestroy() const {
