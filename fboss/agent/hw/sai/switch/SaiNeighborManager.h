@@ -33,6 +33,35 @@ struct SaiNeighborHandle {
   std::shared_ptr<SaiNeighbor> neighbor;
 };
 
+class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
+                                  SubscriberForNeighbor,
+                                  SaiNeighborTraits,
+                                  SaiRouterInterfaceTraits,
+                                  SaiFdbTraits> {
+ public:
+  using Base = SaiObjectEventAggregateSubscriber<
+      SubscriberForNeighbor,
+      SaiNeighborTraits,
+      SaiRouterInterfaceTraits,
+      SaiFdbTraits>;
+  using RouterInterfaceWeakPtr =
+      std::weak_ptr<const SaiObject<SaiRouterInterfaceTraits>>;
+  using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
+  using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
+
+  SubscriberForNeighbor(
+      InterfaceID interfaceId,
+      folly::IPAddress ip,
+      folly::MacAddress mac)
+      : Base(interfaceId, std::make_tuple(interfaceId, mac)), ip_(ip) {}
+
+  void createObject(PublisherObjects objects);
+  void removeObject(size_t index, PublisherObjects objects);
+
+ private:
+  folly::IPAddress ip_;
+};
+
 class SaiNeighborManager {
  public:
   SaiNeighborManager(

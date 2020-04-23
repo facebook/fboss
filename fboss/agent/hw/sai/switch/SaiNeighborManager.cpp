@@ -170,6 +170,21 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
   return itr->second.get();
 }
 
+void SubscriberForNeighbor::createObject(PublisherObjects objects) {
+  auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
+  auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
+  auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
+      fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
+
+  auto createAttributes =
+      SaiNeighborTraits::CreateAttributes{fdbEntry->adapterHostKey().mac()};
+  this->setObject(adapterHostKey, createAttributes);
+}
+
+void SubscriberForNeighbor::removeObject(size_t, PublisherObjects) {
+  this->resetObject();
+}
+
 template SaiNeighborTraits::NeighborEntry
 SaiNeighborManager::saiEntryFromSwEntry<NdpEntry>(
     const std::shared_ptr<NdpEntry>& swEntry);
