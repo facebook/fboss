@@ -1,6 +1,7 @@
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 #include <folly/experimental/FunctionScheduler.h>
+#include <folly/logging/Init.h>
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -23,6 +24,8 @@ DEFINE_int32(
 int doServerLoop(std::shared_ptr<apache::thrift::ThriftServer>
         thriftServer, std::shared_ptr<QsfpServiceHandler>);
 int qsfpServiceInit(int * argc, char*** argv);
+
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char **argv) {
   qsfpServiceInit(&argc, &argv);
