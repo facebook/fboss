@@ -69,7 +69,8 @@ TEST_F(SaiStoreTest, fdbSetBridgePort) {
 
   auto obj = store.get(f);
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj->attributes()), 42);
-  store.setObject(f, {SAI_FDB_ENTRY_TYPE_STATIC, 43});
+  store.setObject(
+      f, {SAI_FDB_ENTRY_TYPE_STATIC, 43}, PublisherKey<SaiFdbTraits>::type{});
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj->attributes()), 43);
 }
 

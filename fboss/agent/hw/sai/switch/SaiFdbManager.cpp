@@ -52,7 +52,7 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
   SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
                                             bridgePortId};
   auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
-  return store.setObject(entry, attributes);
+  return store.setObject(entry, attributes, std::make_tuple(intfId, mac));
 }
 
 } // namespace facebook::fboss

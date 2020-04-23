@@ -56,9 +56,8 @@ template <>
 struct PublisherKey<SaiRouterInterfaceTraits>
     : detail::PublisherKeyInternal<SaiRouterInterfaceTraits, InterfaceID> {};
 
-// TODO(pshaikh): make FDB entry publish its custom attrributes
 template <>
-struct IsObjectPublisher<SaiFdbTraits> : std::false_type {};
+struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
 
 template <>
 struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
