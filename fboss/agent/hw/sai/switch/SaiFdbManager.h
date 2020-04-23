@@ -70,10 +70,6 @@ class SubscriberForFdbEntry : public SaiObjectEventAggregateSubscriber<
 class SaiFdbManager {
  public:
   SaiFdbManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-  std::shared_ptr<SaiFdbEntry> addFdbEntry(
-      const InterfaceID& intfId,
-      const folly::MacAddress& mac,
-      const PortDescriptor& portDesc);
 
   void addFdbEntry(PortID, InterfaceID, folly::MacAddress);
   void removeFdbEntry(InterfaceID, folly::MacAddress);

@@ -27,34 +27,6 @@ SaiFdbManager::SaiFdbManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-std::shared_ptr<SaiFdbEntry> SaiFdbManager::addFdbEntry(
-    const InterfaceID& intfId,
-    const folly::MacAddress& mac,
-    const PortDescriptor& portDesc) {
-  XLOG(INFO) << "addFdb " << mac;
-  SaiRouterInterfaceHandle* routerInterfaceHandle =
-      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(intfId);
-  if (!routerInterfaceHandle) {
-    throw FbossError(
-        "Attempted to add non-existent interface to Fdb: ", intfId);
-  }
-  auto rif = routerInterfaceHandle->routerInterface;
-  auto vlanId = GET_ATTR(RouterInterface, VlanId, rif->attributes());
-  // TODO(srikrishnagopu): Can it be an AGG Port ?
-  auto portId = portDesc.phyPortID();
-  auto portHandle = managerTable_->portManager().getPortHandle(portId);
-  if (!portHandle) {
-    throw FbossError("Attempted to add non-existent port to Fdb: ", portId);
-  }
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto bridgePortId = portHandle->bridgePort->adapterKey();
-  SaiFdbTraits::FdbEntry entry{switchId, vlanId, mac};
-  SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
-                                            bridgePortId};
-  auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
-  return store.setObject(entry, attributes, std::make_tuple(intfId, mac));
-}
-
 void SubscriberForFdbEntry::createObject(PublisherObjects objects) {
   /* both interface and  bridge port exist, create fdb entry */
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
