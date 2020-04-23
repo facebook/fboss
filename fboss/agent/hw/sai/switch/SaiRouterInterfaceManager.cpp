@@ -75,7 +75,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
   };
   auto& store = SaiStore::getInstance()->get<SaiRouterInterfaceTraits>();
   std::shared_ptr<SaiRouterInterface> routerInterface =
-      store.setObject(k, attributes);
+      store.setObject(k, attributes, swInterface->getID());
   auto routerInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
   routerInterfaceHandle->routerInterface = routerInterface;
 

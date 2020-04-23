@@ -47,7 +47,7 @@ struct PublisherKey<SaiBridgePortTraits>
 
 // TODO(pshaikh): make Router interface publish its custom attrributes
 template <>
-struct IsObjectPublisher<SaiRouterInterfaceTraits> : std::false_type {};
+struct IsObjectPublisher<SaiRouterInterfaceTraits> : std::true_type {};
 
 template <>
 struct IsPublisherKeyCustomType<SaiRouterInterfaceTraits> : std::true_type {};
