@@ -21,6 +21,7 @@
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
+#include <tuple>
 
 namespace facebook::fboss {
 
@@ -76,22 +77,14 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
         "Failed to add vlan member: no port handle matching vlan member port: ",
         swPortId);
   }
-  BridgePortSaiId bridgePortSaiId = portHandle->bridgePort->adapterKey();
 
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
-  SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
-      bridgePortSaiId};
-  SaiVlanMemberTraits::CreateAttributes memberAttributes{vlanIdAttribute,
-                                                         bridgePortIdAttribute};
-  SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{
-      bridgePortIdAttribute};
-
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& vlanMemberStore = s->get<SaiVlanMemberTraits>();
-  auto saiVlanMember =
-      vlanMemberStore.setObject(memberAdapterHostKey, memberAttributes);
-  vlanHandle->vlanMembers.emplace(swPortId, saiVlanMember);
+  auto vlanMember = std::make_shared<SubscriberForVlanMember>(
+      swPortId, swVlanId, vlanIdAttribute);
+  SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
+      vlanMember);
+  vlanHandle->vlanMembers.emplace(swPortId, std::move(vlanMember));
 }
 
 void SaiVlanManager::removeVlan(const VlanID& swVlanId) {
@@ -181,4 +174,23 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
   return itr->second.get();
 }
 
+void SubscriberForVlanMember::createObject(PublisherObjects objects) {
+  auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
+  CHECK(bridgePort);
+  BridgePortSaiId bridgePortSaiId = bridgePort->adapterKey();
+
+  SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{saiVlanId_};
+  SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
+      bridgePortSaiId};
+  SaiVlanMemberTraits::CreateAttributes memberAttributes{vlanIdAttribute,
+                                                         bridgePortIdAttribute};
+  SaiVlanMemberTraits::AdapterHostKey memberAdapterHostKey{
+      bridgePortIdAttribute};
+
+  this->setObject(memberAdapterHostKey, memberAttributes);
+}
+
+void SubscriberForVlanMember::removeObject(size_t, PublisherObjects) {
+  this->resetObject();
+}
 } // namespace facebook::fboss

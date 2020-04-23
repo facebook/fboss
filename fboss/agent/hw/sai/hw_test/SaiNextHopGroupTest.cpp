@@ -5,6 +5,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 
@@ -84,6 +85,17 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
     EXPECT_EQ(nextHopGroupMemberCount(), count);
   }
 
+  void removePort(PortID port) {
+    auto* managerTable = getSaiSwitch()->managerTable();
+    managerTable->portManager().removePort(port);
+  }
+
+  void addPort(PortID port) {
+    auto swPort = getProgrammedState()->getPort(port);
+    auto* managerTable = getSaiSwitch()->managerTable();
+    managerTable->portManager().addPort(swPort);
+  }
+
  protected:
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
@@ -133,6 +145,29 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
     unresolveNeighbors(2);
   };
   auto verify = [=]() { verifyMemberCount(2); };
+  setup();
+  verify();
+}
+
+TEST_F(SaiNextHopGroupTest, addNextHopGroupRemovePort) {
+  auto setup = [=]() {
+    resolveNeighbors(4);
+    addRoute(4);
+    removePort(masterLogicalPortIds()[0]);
+  };
+  auto verify = [=]() { verifyMemberCount(3); };
+  setup();
+  verify();
+}
+
+TEST_F(SaiNextHopGroupTest, addNextHopGroupRemovePortAddPort) {
+  auto setup = [=]() {
+    resolveNeighbors(4);
+    addRoute(4);
+    removePort(masterLogicalPortIds()[0]);
+    addPort(masterLogicalPortIds()[0]);
+  };
+  auto verify = [=]() { verifyMemberCount(4); };
   setup();
   verify();
 }

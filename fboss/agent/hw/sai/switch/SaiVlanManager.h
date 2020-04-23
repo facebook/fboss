@@ -17,6 +17,9 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+
 #include "folly/container/F14Map.h"
 
 #include <memory>
@@ -31,9 +34,37 @@ class SaiPlatform;
 using SaiVlan = SaiObject<SaiVlanTraits>;
 using SaiVlanMember = SaiObject<SaiVlanMemberTraits>;
 
+class SubscriberForVlanMember : public SaiObjectEventAggregateSubscriber<
+                                    SubscriberForVlanMember,
+                                    SaiVlanMemberTraits,
+                                    SaiBridgePortTraits> {
+ public:
+  using Base = SaiObjectEventAggregateSubscriber<
+      SubscriberForVlanMember,
+      SaiVlanMemberTraits,
+      SaiBridgePortTraits>;
+  using BridgePortWeakPtr = std::weak_ptr<const SaiObject<SaiBridgePortTraits>>;
+  using PublisherObjects = std::tuple<BridgePortWeakPtr>;
+
+  SubscriberForVlanMember(
+      PortID portId,
+      VlanID vlanId,
+      SaiVlanMemberTraits::Attributes::VlanId saiVlanId)
+      : Base(portId), vlanId_(vlanId), saiVlanId_(saiVlanId) {}
+
+  void createObject(PublisherObjects added);
+
+  void removeObject(size_t index, PublisherObjects removed);
+
+ private:
+  VlanID vlanId_;
+  SaiVlanMemberTraits::Attributes::VlanId saiVlanId_;
+};
+
 struct SaiVlanHandle {
   std::shared_ptr<SaiVlan> vlan;
-  folly::F14FastMap<PortID, std::shared_ptr<SaiVlanMember>> vlanMembers;
+  folly::F14FastMap<PortID, std::shared_ptr<SubscriberForVlanMember>>
+      vlanMembers;
 };
 
 class SaiVlanManager {
