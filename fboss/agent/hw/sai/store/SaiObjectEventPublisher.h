@@ -5,8 +5,11 @@
 #include <boost/signals2.hpp>
 
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
+#include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
+#include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 #include "fboss/agent/hw/sai/store/Traits.h"
 
@@ -41,6 +44,30 @@ struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
 template <>
 struct PublisherKey<SaiBridgePortTraits>
     : detail::PublisherKeyInternal<SaiBridgePortTraits, PortID> {};
+
+// TODO(pshaikh): make Router interface publish its custom attrributes
+template <>
+struct IsObjectPublisher<SaiRouterInterfaceTraits> : std::false_type {};
+
+template <>
+struct IsPublisherKeyCustomType<SaiRouterInterfaceTraits> : std::true_type {};
+
+template <>
+struct PublisherKey<SaiRouterInterfaceTraits>
+    : detail::PublisherKeyInternal<SaiRouterInterfaceTraits, InterfaceID> {};
+
+// TODO(pshaikh): make FDB entry publish its custom attrributes
+template <>
+struct IsObjectPublisher<SaiFdbTraits> : std::false_type {};
+
+template <>
+struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
+
+template <>
+struct PublisherKey<SaiFdbTraits>
+    : detail::PublisherKeyInternal<
+          SaiFdbTraits,
+          std::tuple<InterfaceID, folly::MacAddress>> {};
 
 template <typename>
 class SaiObject;
@@ -173,9 +200,11 @@ class SaiObjectEventPublisher {
  private:
   std::tuple<
       detail::SaiObjectEventPublisher<SaiBridgePortTraits>,
+      detail::SaiObjectEventPublisher<SaiFdbTraits>,
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
-      detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>>
+      detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
+      detail::SaiObjectEventPublisher<SaiRouterInterfaceTraits>>
       publishers_;
 };
 
