@@ -29,8 +29,8 @@ class SaiPlatform;
 using SaiNeighbor = SaiObject<SaiNeighborTraits>;
 
 struct SaiNeighborHandle {
-  std::shared_ptr<SaiFdbEntry> fdbEntry;
-  std::shared_ptr<SaiNeighbor> neighbor;
+  const SaiNeighbor* neighbor;
+  const SaiFdbEntry* fdbEntry;
 };
 
 class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
@@ -53,13 +53,20 @@ class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
       InterfaceID interfaceId,
       folly::IPAddress ip,
       folly::MacAddress mac)
-      : Base(interfaceId, std::make_tuple(interfaceId, mac)), ip_(ip) {}
+      : Base(interfaceId, std::make_tuple(interfaceId, mac)),
+        ip_(ip),
+        handle_(std::make_unique<SaiNeighborHandle>()) {}
 
   void createObject(PublisherObjects objects);
   void removeObject(size_t index, PublisherObjects objects);
 
+  SaiNeighborHandle* getHandle() const {
+    return isAlive() ? handle_.get() : nullptr;
+  }
+
  private:
   folly::IPAddress ip_;
+  std::unique_ptr<SaiNeighborHandle> handle_;
 };
 
 class SaiNeighborManager {
@@ -98,11 +105,10 @@ class SaiNeighborManager {
       const SaiNeighborTraits::NeighborEntry& entry) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unordered_set<SaiNeighborTraits::NeighborEntry> unresolvedNeighbors_;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
-      std::unique_ptr<SaiNeighborHandle>>
-      handles_;
+      std::shared_ptr<SubscriberForNeighbor>>
+      subscribersForNeighbor_;
 };
 
 } // namespace facebook::fboss

@@ -69,37 +69,35 @@ void SaiNeighborManager::changeNeighbor(
 template <typename NeighborEntryT>
 void SaiNeighborManager::addNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
-  // Handle pending()
+  if (swEntry->isPending()) {
+    XLOG(INFO) << "skip adding unresolved neighbor " << swEntry->getIP();
+    return;
+  }
+  if (swEntry->getIP().version() == 6 && swEntry->getIP().isLinkLocal()) {
+    /* TODO: investigate and fix adding link local neighbors */
+    XLOG(INFO) << "skip adding link local neighbor " << swEntry->getIP();
+    return;
+  }
   XLOG(INFO) << "addNeighbor " << swEntry->getIP();
-  auto saiEntry = saiEntryFromSwEntry(swEntry);
-  auto existingSaiNeighbor = getNeighborHandle(saiEntry);
-  if (existingSaiNeighbor) {
+  auto subscriberKey = saiEntryFromSwEntry(swEntry);
+  if (subscribersForNeighbor_.find(subscriberKey) !=
+      subscribersForNeighbor_.end()) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
-  if (swEntry->isPending()) {
-    XLOG(INFO) << "add unresolved neighbor";
-    unresolvedNeighbors_.insert(saiEntry);
-  } else {
-    XLOG(INFO) << "add resolved neighbor";
-    if (swEntry->getIP().version() == 6 && swEntry->getIP().isLinkLocal()) {
-      /* TODO: investigate and fix adding link local neighbors */
-      XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
-      return;
-    }
-    SaiNeighborTraits::CreateAttributes attributes{swEntry->getMac()};
-    auto& store = SaiStore::getInstance()->get<SaiNeighborTraits>();
-    /*
-     * program fdb entry before creating neighbor, neighbor requires fdb entry
-     */
-    auto fdbEntry = managerTable_->fdbManager().addFdbEntry(
-        swEntry->getIntfID(), swEntry->getMac(), swEntry->getPort());
-    auto neighbor = store.setObject(saiEntry, attributes);
-    auto neighborHandle = std::make_unique<SaiNeighborHandle>();
-    neighborHandle->neighbor = neighbor;
-    neighborHandle->fdbEntry = fdbEntry;
-    handles_.emplace(saiEntry, std::move(neighborHandle));
-  }
+
+  managerTable_->fdbManager().addFdbEntry(
+      swEntry->getPort().phyPortID(), swEntry->getIntfID(), swEntry->getMac());
+
+  auto subscriber = std::make_shared<SubscriberForNeighbor>(
+      swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());
+
+  SaiObjectEventPublisher::getInstance()
+      ->get<SaiRouterInterfaceTraits>()
+      .subscribe(subscriber);
+  SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
+      subscriber);
+  subscribersForNeighbor_.emplace(subscriberKey, std::move(subscriber));
 }
 
 template <typename NeighborEntryT>
@@ -110,20 +108,20 @@ void SaiNeighborManager::removeNeighbor(
     XLOG(INFO) << "skip link local neighbor " << swEntry->getIP();
     return;
   }
-
-  XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
-  auto saiEntry = saiEntryFromSwEntry(swEntry);
-  auto neighborHandle = getNeighborHandle(saiEntry);
-  if (neighborHandle) {
-    handles_.erase(saiEntry);
-  } else {
-    auto count = unresolvedNeighbors_.erase(saiEntry);
-    if (count == 0) {
-      throw FbossError(
-          "Attempted to remove non-existent neighbor: ",
-          swEntry->getIP().str());
-    }
+  if (swEntry->isPending()) {
+    XLOG(INFO) << "skip removing unresolved neighbor " << swEntry->getIP();
+    return;
   }
+  XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
+  auto subscriberKey = saiEntryFromSwEntry(swEntry);
+  if (subscribersForNeighbor_.find(subscriberKey) ==
+      subscribersForNeighbor_.end()) {
+    throw FbossError(
+        "Attempted to remove non-existent neighbor: ", swEntry->getIP());
+  }
+  managerTable_->fdbManager().removeFdbEntry(
+      swEntry->getIntfID(), swEntry->getMac());
+  subscribersForNeighbor_.erase(subscriberKey);
 }
 
 void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
@@ -146,8 +144,7 @@ void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
 }
 
 void SaiNeighborManager::clear() {
-  handles_.clear();
-  unresolvedNeighbors_.clear();
+  subscribersForNeighbor_.clear();
 }
 
 const SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
@@ -160,14 +157,15 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
 }
 SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
     const SaiNeighborTraits::NeighborEntry& saiEntry) const {
-  auto itr = handles_.find(saiEntry);
-  if (itr == handles_.end()) {
+  auto itr = subscribersForNeighbor_.find(saiEntry);
+  if (itr == subscribersForNeighbor_.end()) {
     return nullptr;
   }
-  if (!itr->second.get()) {
+  auto subscriber = itr->second.get();
+  if (!subscriber) {
     XLOG(FATAL) << "Invalid null neighbor for ip: " << saiEntry.ip().str();
   }
-  return itr->second.get();
+  return subscriber->getHandle();
 }
 
 void SubscriberForNeighbor::createObject(PublisherObjects objects) {
@@ -179,10 +177,14 @@ void SubscriberForNeighbor::createObject(PublisherObjects objects) {
   auto createAttributes =
       SaiNeighborTraits::CreateAttributes{fdbEntry->adapterHostKey().mac()};
   this->setObject(adapterHostKey, createAttributes);
+  handle_->neighbor = getSaiObject();
+  handle_->fdbEntry = fdbEntry.get();
 }
 
 void SubscriberForNeighbor::removeObject(size_t, PublisherObjects) {
   this->resetObject();
+  handle_->neighbor = nullptr;
+  handle_->fdbEntry = nullptr;
 }
 
 template SaiNeighborTraits::NeighborEntry
