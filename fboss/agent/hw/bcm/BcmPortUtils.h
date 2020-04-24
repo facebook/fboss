@@ -39,4 +39,6 @@ uint32_t getDesiredPhyLaneConfig(
     phy::IpModulation modulation,
     TransmitterTechnology tech);
 
+bcm_gport_t getPortGport(int unit, int port);
+
 } // namespace facebook::fboss::utility

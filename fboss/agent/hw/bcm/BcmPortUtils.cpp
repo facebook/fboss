@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -150,4 +151,10 @@ uint32_t getDesiredPhyLaneConfig(
   return laneConfig;
 }
 
+bcm_gport_t getPortGport(int unit, int port) {
+  bcm_gport_t portGport;
+  auto rv = bcm_port_gport_get(unit, port, &portGport);
+  facebook::fboss::bcmCheckError(rv, "failed to get gport for port");
+  return portGport;
+}
 } // namespace facebook::fboss::utility

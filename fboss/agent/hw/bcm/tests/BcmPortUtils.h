@@ -33,10 +33,4 @@ void assertPortsLoopbackMode(
 void assertPortsSampleDestination(
     int unit,
     const std::map<PortID, int>& port2SampleDestination);
-
-void assertPortsFECStatus(
-    int unit,
-    const std::map<PortID, bool>& port2FECEnabled);
-bcm_gport_t getPortGport(int unit, int port);
-
 } // namespace facebook::fboss::utility

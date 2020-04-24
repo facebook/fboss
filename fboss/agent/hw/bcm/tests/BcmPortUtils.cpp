@@ -74,13 +74,6 @@ void assertPortsSampleDestination(
   }
 }
 
-bcm_gport_t getPortGport(int unit, int port) {
-  bcm_gport_t portGport;
-  auto rv = bcm_port_gport_get(unit, port, &portGport);
-  facebook::fboss::bcmCheckError(rv, "failed to get gport for port");
-  return portGport;
-}
-
 void assertPortLoopbackMode(int unit, PortID port, int expectedLoopbackMode) {
   int loopbackMode;
   auto rv = bcm_port_loopback_get(unit, port, &loopbackMode);
