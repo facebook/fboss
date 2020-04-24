@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 

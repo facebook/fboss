@@ -10,9 +10,9 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 

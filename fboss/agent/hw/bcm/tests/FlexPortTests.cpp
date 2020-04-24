@@ -9,8 +9,8 @@
  */
 #include <folly/logging/xlog.h>
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/hw/bcm/tests/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
