@@ -21,6 +21,9 @@ class SaiBcmGalaxyFCPlatform : public SaiBcmGalaxyPlatform {
   ~SaiBcmGalaxyFCPlatform() override;
   std::vector<PortID> masterLogicalPortIds() const override;
   HwAsic* getAsic() const override;
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {FlexPortMode::ONEX100G};
+  }
 
  private:
   std::unique_ptr<TomahawkAsic> asic_;

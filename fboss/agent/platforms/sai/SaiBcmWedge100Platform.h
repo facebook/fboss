@@ -24,6 +24,13 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
   uint32_t numLanesPerCore() const override {
     return 4;
   }
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {FlexPortMode::ONEX100G,
+            FlexPortMode::TWOX50G,
+            FlexPortMode::ONEX40G,
+            FlexPortMode::FOURX25G,
+            FlexPortMode::FOURX10G};
+  }
 
  private:
   std::unique_ptr<TomahawkAsic> asic_;

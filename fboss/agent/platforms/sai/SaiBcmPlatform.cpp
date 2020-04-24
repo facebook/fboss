@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -23,6 +24,18 @@ std::string SaiBcmPlatform::getHwConfig() {
   }
   auto hwConfig = folly::join('\n', nameValStrs);
   return hwConfig;
+}
+
+std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
+  std::vector<PortID> allPortsinGroup;
+  if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.push_back(PortID(port.mapping.id));
+    }
+  }
+  return allPortsinGroup;
 }
 
 } // namespace facebook::fboss
