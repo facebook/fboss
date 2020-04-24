@@ -24,8 +24,11 @@ namespace facebook::fboss {
 class HwOlympicQosTests : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    auto cfg = utility::twoL3IntfConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
     /*
      * N.B., On one platform, we have to program qos maps before we program l3
      * interfaces. Even if we enforce that ordering in SaiSwitch, we must still
@@ -39,23 +42,30 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void verifyDscpQueueMapping() {
+  void verifyDscpQueueMapping(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
     auto setup = [=]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
           getProgrammedState(), RouterID(0));
-      applyNewState(ecmpHelper.setupECMPForwarding(
-          ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1));
+      applyNewState(helper_->setupECMPForwarding(
+          helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
     };
 
     auto verify = [=]() {
+      // In the warm boot run, we don't have a setup hook before we run verify,
+      // so we need to create the ecmp helper (which is used in packet sending)
+      // before we execute verify.
+      if (!helper_) {
+        helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
+            getProgrammedState(), RouterID(0));
+      }
       for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
         auto [q, dscps] = q2dscps;
         for (auto dscp : dscps) {
-          sendPacketAndVerifyQueue(dscp, q);
+          sendPacketAndVerifyQueue(dscp, q, frontPanel);
         }
       }
     };
@@ -64,7 +74,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   }
 
  private:
-  void sendPacket(uint8_t dscp) {
+  void sendPacket(uint8_t dscp, bool frontPanel) {
     auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
@@ -79,14 +89,23 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
         dscp << 2, // shifted by 2 bits for ECN
         255 // ttl
     );
-    getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    // port is in LB mode, so it will egress and immediately loop back.
+    // Since it is not re-written, it should hit the pipeline as if it
+    // ingressed on the port, and be properly queued.
+    if (frontPanel) {
+      auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), outPort);
+    } else {
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    }
   }
 
-  void sendPacketAndVerifyQueue(uint8_t dscp, int queueId) {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+  void sendPacketAndVerifyQueue(uint8_t dscp, int queueId, bool frontPanel) {
+    auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto portStatsBefore = getLatestPortStats(portId);
     auto queuePacketsBefore = portStatsBefore.queueOutPackets_[queueId];
-    sendPacket(dscp);
-    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+    sendPacket(dscp, frontPanel);
+    auto portStatsAfter = getLatestPortStats(portId);
     auto queuePacketsAfter = portStatsAfter.queueOutPackets_[queueId];
     // Note, on some platforms, due to how loopbacked packets are pruned from
     // being broadcast, they will appear more than once on a queue counter,
@@ -94,10 +113,21 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     // exactly one.
     EXPECT_GT(queuePacketsAfter, queuePacketsBefore);
   }
+
+  static inline constexpr auto kEcmpWidth = 1;
+  std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TEST_F(HwOlympicQosTests, VerifyDscpQueueMapping) {
-  verifyDscpQueueMapping();
+// Verify that traffic arriving on a front panel port is qos mapped to the
+// correct queue for each olympic dscp value.
+TEST_F(HwOlympicQosTests, VerifyDscpQueueMappingFrontPanel) {
+  verifyDscpQueueMapping(true);
+}
+
+// Verify that traffic originating on the CPU is qos mapped to the correct
+// queue for each olympic dscp value.
+TEST_F(HwOlympicQosTests, VerifyDscpQueueMappingCpu) {
+  verifyDscpQueueMapping(false);
 }
 
 } // namespace facebook::fboss
