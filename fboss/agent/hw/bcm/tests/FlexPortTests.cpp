@@ -9,8 +9,8 @@
  */
 #include <folly/logging/xlog.h>
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
+#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -164,7 +164,7 @@ void assertFlexConfig(
 
 } // unnamed namespace
 
-class BcmFlexPortTest : public BcmTest {
+class HwFlexPortTest : public HwTest {
  public:
   void flexPortApplyConfigTest(FlexPortMode flexMode, std::string configName) {
     if (!FLAGS_flexports) {
@@ -198,22 +198,22 @@ class BcmFlexPortTest : public BcmTest {
   }
 };
 
-TEST_F(BcmFlexPortTest, FlexPortTWOX50G) {
+TEST_F(HwFlexPortTest, FlexPortTWOX50G) {
   flexPortApplyConfigTest(FlexPortMode::TWOX50G, "TWOX50G");
 }
 
-TEST_F(BcmFlexPortTest, FlexPortFOURX10G) {
+TEST_F(HwFlexPortTest, FlexPortFOURX10G) {
   flexPortApplyConfigTest(FlexPortMode::FOURX10G, "FOURX10G");
 }
 
-TEST_F(BcmFlexPortTest, FlexPortFOURX25G) {
+TEST_F(HwFlexPortTest, FlexPortFOURX25G) {
   flexPortApplyConfigTest(FlexPortMode::FOURX25G, "FOURX25G");
 }
 
-TEST_F(BcmFlexPortTest, FlexPortONEX40G) {
+TEST_F(HwFlexPortTest, FlexPortONEX40G) {
   flexPortApplyConfigTest(FlexPortMode::ONEX40G, "ONEX40G");
 }
 
-TEST_F(BcmFlexPortTest, FlexPortONEX100G) {
+TEST_F(HwFlexPortTest, FlexPortONEX100G) {
   flexPortApplyConfigTest(FlexPortMode::ONEX100G, "ONEX100G");
 }
