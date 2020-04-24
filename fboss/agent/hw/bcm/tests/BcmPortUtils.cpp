@@ -15,23 +15,29 @@ extern "C" {
 #include <bcm/port.h>
 }
 
+namespace {
+bcm_port_t getBcmPort(facebook::fboss::PortID port) {
+  return static_cast<bcm_port_t>(port);
+}
+} // namespace
+
 namespace facebook::fboss::utility {
-bool portEnabled(int unit, bcm_port_t port) {
+bool portEnabled(int unit, PortID port) {
   int enable = -1;
-  auto rv = bcm_port_enable_get(unit, port, &enable);
+  auto rv = bcm_port_enable_get(unit, getBcmPort(port), &enable);
   bcmCheckError(rv, "failed to get port enable status");
   CHECK(enable == 0 || enable == 1);
   return (enable == 1);
 }
 
-cfg::PortSpeed curPortSpeed(int unit, bcm_port_t port) {
+cfg::PortSpeed curPortSpeed(int unit, PortID port) {
   int curSpeed;
-  auto ret = bcm_port_speed_get(unit, port, &curSpeed);
+  auto ret = bcm_port_speed_get(unit, getBcmPort(port), &curSpeed);
   bcmCheckError(ret, "Failed to get current speed for port");
   return cfg::PortSpeed(curSpeed);
 }
 
-void assertPort(int unit, int port, bool enabled, cfg::PortSpeed speed) {
+void assertPort(int unit, PortID port, bool enabled, cfg::PortSpeed speed) {
   CHECK_EQ(enabled, portEnabled(unit, port));
   if (enabled) {
     // Only verify speed on enabled ports
@@ -41,7 +47,7 @@ void assertPort(int unit, int port, bool enabled, cfg::PortSpeed speed) {
   }
 }
 
-void assertPortStatus(int unit, int port) {
+void assertPortStatus(int unit, PortID port) {
   CHECK(portEnabled(unit, port));
 }
 
@@ -60,7 +66,10 @@ void assertPortSampleDestination(
     int expectedSampleDestination) {
   int sampleDestination;
   auto rv = bcm_port_control_get(
-      unit, port, bcmPortControlSampleIngressDest, &sampleDestination);
+      unit,
+      getBcmPort(port),
+      bcmPortControlSampleIngressDest,
+      &sampleDestination);
   bcmCheckError(rv, "Failed to get sample destination for port:", port);
   CHECK_EQ(expectedSampleDestination, sampleDestination);
 }
@@ -76,7 +85,7 @@ void assertPortsSampleDestination(
 
 void assertPortLoopbackMode(int unit, PortID port, int expectedLoopbackMode) {
   int loopbackMode;
-  auto rv = bcm_port_loopback_get(unit, port, &loopbackMode);
+  auto rv = bcm_port_loopback_get(unit, getBcmPort(port), &loopbackMode);
   bcmCheckError(rv, "Failed to get loopback mode for port:", port);
   CHECK_EQ(expectedLoopbackMode, loopbackMode);
 }
