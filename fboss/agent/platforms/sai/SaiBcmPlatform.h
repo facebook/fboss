@@ -19,6 +19,14 @@ class SaiBcmPlatform : public SaiHwPlatform {
   bool getObjectKeysSupported() const override {
     return true;
   }
+  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
+    // TODO: implement this
+    return {};
+  }
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    // TODO: implement this
+    return {};
+  }
 };
 
 } // namespace facebook::fboss

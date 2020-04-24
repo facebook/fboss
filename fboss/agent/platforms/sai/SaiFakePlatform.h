@@ -28,6 +28,12 @@ class SaiFakePlatform : public SaiPlatform {
   uint32_t numLanesPerCore() const override {
     return 4;
   }
+  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
+    return {};
+  }
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {};
+  }
 
   folly::MacAddress getLocalMac() const override;
 

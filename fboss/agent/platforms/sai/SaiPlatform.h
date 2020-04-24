@@ -16,6 +16,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 
 #include <memory>
 #include <vector>
@@ -61,6 +62,8 @@ class SaiPlatform : public Platform, public StateObserver {
   void stateUpdated(const StateDelta& delta) override;
   QsfpCache* getQsfpCache() const;
 
+  virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
+  virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
   /*
    * Get ids of all controlling ports
    */

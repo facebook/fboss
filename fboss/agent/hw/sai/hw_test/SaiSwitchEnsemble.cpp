@@ -97,12 +97,11 @@ std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
 }
 
 std::vector<PortID> SaiSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
-  return {};
+  return getPlatform()->getAllPortsInGroup(portID);
 }
 
 std::vector<FlexPortMode> SaiSwitchEnsemble::getSupportedFlexPortModes() const {
-  // TODO
-  return {};
+  return getPlatform()->getSupportedFlexPortModes();
 }
 
 void SaiSwitchEnsemble::dumpHwCounters() const {

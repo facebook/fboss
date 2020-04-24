@@ -29,6 +29,12 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   uint32_t numLanesPerCore() const override {
     return 4;
   }
+  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
+    return {};
+  }
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {};
+  }
 
  private:
   std::unique_ptr<TajoAsic> asic_;
