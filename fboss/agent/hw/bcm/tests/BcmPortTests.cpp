@@ -66,7 +66,7 @@ TEST_F(BcmPortTest, PortApplyConfig) {
       ASSERT_TRUE(
           getHwSwitch()->getPortTable()->getBcmPortIf(PortID(portId)) !=
           nullptr);
-      utility::assertPortStatus(getUnit(), portId);
+      utility::assertPortStatus(getHwSwitch(), portId);
       int loopbackMode;
       auto rv = bcm_port_loopback_get(getUnit(), portId, &loopbackMode);
       bcmCheckError(rv, "Failed to get loopback mode for port:", portId);
@@ -117,7 +117,7 @@ TEST_F(BcmPortTest, PortLoopbackMode) {
         {PortID(masterLogicalPortIds()[0]), BCM_PORT_LOOPBACK_MAC},
         {PortID(masterLogicalPortIds()[1]), BCM_PORT_LOOPBACK_PHY},
     };
-    utility::assertPortsLoopbackMode(getUnit(), port2LoopbackMode);
+    utility::assertPortsLoopbackMode(getHwSwitch(), port2LoopbackMode);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -151,9 +151,8 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
   auto verify = [this]() {
     for (auto index : {0, 1}) {
       auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(
-          getUnit(), PortID(id), BCM_PORT_LOOPBACK_MAC);
-      utility::assertPort(getUnit(), id, true, cfg::PortSpeed::FORTYG);
+      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_MAC);
+      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::FORTYG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -179,9 +178,8 @@ TEST_F(BcmPortTest, PortLoopbackModePHY40G) {
   auto verify = [this]() {
     for (auto index : {0, 1}) {
       auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(
-          getUnit(), PortID(id), BCM_PORT_LOOPBACK_PHY);
-      utility::assertPort(getUnit(), id, true, cfg::PortSpeed::FORTYG);
+      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_PHY);
+      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::FORTYG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -207,9 +205,8 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC100G) {
   auto verify = [this]() {
     for (auto index : {0, 1}) {
       auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(
-          getUnit(), PortID(id), BCM_PORT_LOOPBACK_MAC);
-      utility::assertPort(getUnit(), id, true, cfg::PortSpeed::HUNDREDG);
+      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_MAC);
+      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::HUNDREDG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -235,9 +232,8 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
   auto verify = [this]() {
     for (auto index : {0, 1}) {
       auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(
-          getUnit(), PortID(id), BCM_PORT_LOOPBACK_PHY);
-      utility::assertPort(getUnit(), id, true, cfg::PortSpeed::HUNDREDG);
+      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_PHY);
+      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::HUNDREDG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -275,7 +271,8 @@ TEST_F(BcmPortTest, SampleDestination) {
         {PortID(masterLogicalPortIds()[1]),
          BCM_PORT_CONTROL_SAMPLE_DEST_MIRROR},
     };
-    utility::assertPortsSampleDestination(getUnit(), port2SampleDestination);
+    utility::assertPortsSampleDestination(
+        getHwSwitch(), port2SampleDestination);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -289,7 +286,8 @@ TEST_F(BcmPortTest, NoSampleDestinationSet) {
   auto verify = [=]() {
     std::map<PortID, int> port2SampleDestination = {
         {PortID(masterLogicalPortIds()[0]), BCM_PORT_CONTROL_SAMPLE_DEST_CPU}};
-    utility::assertPortsSampleDestination(getUnit(), port2SampleDestination);
+    utility::assertPortsSampleDestination(
+        getHwSwitch(), port2SampleDestination);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

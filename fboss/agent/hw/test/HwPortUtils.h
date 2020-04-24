@@ -13,20 +13,30 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss::utility {
-bool portEnabled(int unit, PortID port);
-cfg::PortSpeed currentPortSpeed(int unit, PortID port);
-void assertPort(int unit, PortID port, bool enabled, cfg::PortSpeed speed);
-void assertPortStatus(int unit, PortID port);
-void assertPortLoopbackMode(int unit, PortID port, int expectedLoopbackMode);
+namespace facebook::fboss {
+class HwSwitch;
+namespace utility {
+bool portEnabled(const HwSwitch* hw, PortID port);
+cfg::PortSpeed currentPortSpeed(const HwSwitch* hw, PortID port);
+void assertPort(
+    const HwSwitch* hw,
+    PortID port,
+    bool enabled,
+    cfg::PortSpeed speed);
+void assertPortStatus(const HwSwitch* hw, PortID port);
+void assertPortLoopbackMode(
+    const HwSwitch* hw,
+    PortID port,
+    int expectedLoopbackMode);
 void assertPortSampleDestination(
-    int unit,
+    const HwSwitch* hw,
     PortID port,
     int expectedSampleDestination);
 void assertPortsLoopbackMode(
-    int unit,
+    const HwSwitch* hw,
     const std::map<PortID, int>& port2LoopbackMode);
 void assertPortsSampleDestination(
-    int unit,
+    const HwSwitch* hw,
     const std::map<PortID, int>& port2SampleDestination);
-} // namespace facebook::fboss::utility
+} // namespace utility
+} // namespace facebook::fboss

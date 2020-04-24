@@ -97,17 +97,17 @@ void updateFlexConfig(
 }
 
 void assertQUADMode(
-    int unit,
+    HwSwitch* hw,
     cfg::PortSpeed enabledLaneSpeed,
     std::vector<PortID> allPortsinGroup) {
   auto portItr = allPortsinGroup.begin();
   for (; portItr != allPortsinGroup.end(); portItr++) {
-    utility::assertPort(unit, *portItr, true, enabledLaneSpeed);
+    utility::assertPort(hw, *portItr, true, enabledLaneSpeed);
   }
 }
 
 void assertDUALMode(
-    int unit,
+    HwSwitch* hw,
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup) {
@@ -117,12 +117,12 @@ void assertDUALMode(
     odd_lane = (*portItr - allPortsinGroup.front()) % 2 == 0 ? true : false;
     bool enabled = odd_lane ? true : false;
     auto speed = odd_lane ? enabledLaneSpeed : disabledLaneSpeed;
-    utility::assertPort(unit, *portItr, enabled, speed);
+    utility::assertPort(hw, *portItr, enabled, speed);
   }
 }
 
 void assertSINGLEMode(
-    int unit,
+    HwSwitch* hw,
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup) {
@@ -130,30 +130,30 @@ void assertSINGLEMode(
   for (; portItr != allPortsinGroup.end(); portItr++) {
     bool enabled = *portItr == allPortsinGroup.front() ? true : false;
     auto speed = enabled ? enabledLaneSpeed : disabledLaneSpeed;
-    utility::assertPort(unit, *portItr, enabled, speed);
+    utility::assertPort(hw, *portItr, enabled, speed);
   }
 }
 
 void assertFlexConfig(
-    int unit,
+    HwSwitch* hw,
     FlexPortMode flexMode,
     std::vector<PortID> allPortsinGroup) {
   if (flexMode == FlexPortMode::FOURX10G) {
-    assertQUADMode(unit, cfg::PortSpeed::XG, allPortsinGroup);
+    assertQUADMode(hw, cfg::PortSpeed::XG, allPortsinGroup);
   } else if (flexMode == FlexPortMode::FOURX25G) {
-    assertQUADMode(unit, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup);
+    assertQUADMode(hw, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup);
   } else if (flexMode == FlexPortMode::ONEX40G) {
     assertSINGLEMode(
-        unit, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG, allPortsinGroup);
+        hw, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG, allPortsinGroup);
   } else if (flexMode == FlexPortMode::TWOX50G) {
     assertDUALMode(
-        unit,
+        hw,
         cfg::PortSpeed::FIFTYG,
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup);
   } else if (flexMode == FlexPortMode::ONEX100G) {
     assertSINGLEMode(
-        unit,
+        hw,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup);
@@ -189,8 +189,9 @@ class BcmFlexPortTest : public BcmTest {
     };
 
     auto verify = [this, &allPortsinGroup, flexMode]() {
-      utility::assertPortStatus(getUnit(), masterLogicalPortIds()[0]);
-      assertFlexConfig(getUnit(), flexMode, allPortsinGroup);
+      utility::assertPortStatus(
+          getHwSwitch(), PortID(masterLogicalPortIds()[0]));
+      assertFlexConfig(getHwSwitch(), flexMode, allPortsinGroup);
     };
 
     verifyAcrossWarmBoots(setup, verify);
