@@ -10,6 +10,9 @@
 
 #include "fboss/agent/LookupClassNextHopsAndRoutesManager.h"
 
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/Vlan.h"
+
 namespace facebook::fboss {
 
 // Tell compiler which instantiations to make while it is compiling this
@@ -94,10 +97,40 @@ LookupClassNextHopsAndRoutesManager::neighborClassIDUpdated(
   return ridAndCidrToClassID;
 }
 
+bool LookupClassNextHopsAndRoutesManager::belongsToSubnetInCache(
+    VlanID vlanID,
+    const folly::IPAddress& ipToSearch) {
+  auto it = vlan2SubnetsCache_.find(vlanID);
+  if (it != vlan2SubnetsCache_.end()) {
+    auto subnetsCache = it->second;
+    for (const auto& [ipAddress, mask] : subnetsCache) {
+      if (ipToSearch.inSubnet(ipAddress, mask)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 void LookupClassNextHopsAndRoutesManager::initPort(
-    const std::shared_ptr<SwitchState>& /* unused */,
-    std::shared_ptr<Port> /* unused */) {
-  // TODO(skhare) initialize vlan 2 subnet cache
+    const std::shared_ptr<SwitchState>& switchState,
+    std::shared_ptr<Port> port) {
+  for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
+    auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+    if (!vlan) {
+      continue;
+    }
+
+    auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+    auto interface =
+        switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+    if (interface) {
+      for (auto address : interface->getAddresses()) {
+        subnetsCache.insert(address);
+      }
+    }
+  }
 }
 
 void LookupClassNextHopsAndRoutesManager::updateStateObserverLocalCache(
