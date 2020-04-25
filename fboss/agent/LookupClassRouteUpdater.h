@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/LookupClassNextHopsAndRoutesManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -17,7 +18,9 @@ namespace facebook::fboss {
 
 class LookupClassRouteUpdater {
  public:
-  explicit LookupClassRouteUpdater(SwSwitch* sw) : sw_(sw) {}
+  explicit LookupClassRouteUpdater(SwSwitch* sw)
+      : sw_(sw),
+        nextHopsAndRoutesManager_(new LookupClassNextHopsAndRoutesManager()) {}
 
   void processUpdates(const StateDelta& stateDelta);
 
@@ -43,7 +46,10 @@ class LookupClassRouteUpdater {
       RouterID rid,
       const std::shared_ptr<RouteT>& addedRoute);
   template <typename RouteT>
-  void processRouteRemoved(const std::shared_ptr<RouteT>& removedRoute);
+  void processRouteRemoved(
+      const std::shared_ptr<SwitchState>& switchState,
+      RouterID rid,
+      const std::shared_ptr<RouteT>& removedRoute);
   template <typename RouteT>
   void processRouteChanged(
       const std::shared_ptr<SwitchState>& switchState,
@@ -73,6 +79,8 @@ class LookupClassRouteUpdater {
   void clearClassIDsForRoutes() const;
 
   SwSwitch* sw_;
+  std::unique_ptr<LookupClassNextHopsAndRoutesManager>
+      nextHopsAndRoutesManager_;
 };
 
 } // namespace facebook::fboss

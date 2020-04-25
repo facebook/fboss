@@ -54,7 +54,8 @@ void LookupClassRouteUpdater::processUpdatesHelper(
       auto const& oldRouteTable = routeTableDelta.getOld();
       for (const auto& oldRoute :
            *(oldRouteTable->template getRib<AddrT>()->routes())) {
-        processRouteRemoved(oldRoute);
+        processRouteRemoved(
+            stateDelta.newState(), oldRouteTable->getID(), oldRoute);
       }
       continue;
     }
@@ -85,7 +86,7 @@ void LookupClassRouteUpdater::processUpdatesHelper(
       if (!oldRoute) {
         processRouteAdded(stateDelta.newState(), rid, newRoute);
       } else if (!newRoute) {
-        processRouteRemoved(oldRoute);
+        processRouteRemoved(stateDelta.newState(), rid, oldRoute);
       } else {
         processRouteChanged(stateDelta.newState(), rid, oldRoute, newRoute);
       }
@@ -105,15 +106,17 @@ void LookupClassRouteUpdater::processRouteAdded(
     return;
   }
 
-  // TODO(skhare)
-  // auto classID = get ClassID for this route, if any
-  // if (classID.has_value()) {
-  //   updateClassIDForPrefix(rid, addedRoute->prefix(), classID);
-  // }
+  auto classID = nextHopsAndRoutesManager_->processRouteAdded(
+      switchState, rid, addedRoute);
+  if (classID.has_value()) {
+    updateClassIDForPrefix(rid, addedRoute->prefix(), classID);
+  }
 }
 
 template <typename RouteT>
 void LookupClassRouteUpdater::processRouteRemoved(
+    const std::shared_ptr<SwitchState>& switchState,
+    RouterID rid,
     const std::shared_ptr<RouteT>& removedRoute) {
   CHECK(removedRoute);
 
@@ -122,8 +125,8 @@ void LookupClassRouteUpdater::processRouteRemoved(
   // classID here. Furthermore, the route is already removed, so we don't need
   // to schedule a state update either. Just remove the route from local data
   // structures.
-  // TODO(skhare)
-  // remove route from local data structures
+  nextHopsAndRoutesManager_->processRouteRemoved(
+      switchState, rid, removedRoute);
 }
 
 template <typename RouteT>
@@ -140,13 +143,13 @@ void LookupClassRouteUpdater::processRouteChanged(
   } else if (!oldRoute->isResolved() && newRoute->isResolved()) {
     processRouteAdded(switchState, rid, newRoute);
   } else if (oldRoute->isResolved() && !newRoute->isResolved()) {
-    processRouteRemoved(oldRoute);
+    processRouteRemoved(switchState, rid, oldRoute);
   } else if (oldRoute->isResolved() && newRoute->isResolved()) {
-    // TODO (skhare)
-    // auto classID = if nextHops change, route classID may change.
-    // if (classID.has_value()) {
-    //  updateClassIDForPrefix(rid, addedRoute->prefix, classID);
-    // }
+    auto classID = nextHopsAndRoutesManager_->processRouteChanged(
+        switchState, rid, oldRoute, newRoute);
+    if (classID.has_value()) {
+      updateClassIDForPrefix(rid, newRoute->prefix(), classID);
+    }
   }
 }
 
@@ -228,10 +231,9 @@ void LookupClassRouteUpdater::neighborClassIDUpdated(
     return;
   }
 
-  // TODO(skhare)
-  // auto ridAndCidrToClassID = get list of routes whose classID was modified
-  // updateClassID(ridAndCidrToClassID);
-  // schedule a state update to apply the route to classID change.
+  auto ridAndCidrToClassID =
+      nextHopsAndRoutesManager_->neighborClassIDUpdated(ip, vlanID, classID);
+  updateClassID(ridAndCidrToClassID);
 }
 
 void LookupClassRouteUpdater::initPort(
@@ -241,8 +243,7 @@ void LookupClassRouteUpdater::initPort(
     return;
   }
 
-  // TODO(skhare) initialize local data structures for nexthops and routes
-  // association
+  nextHopsAndRoutesManager_->initPort(switchState, port);
 }
 
 void LookupClassRouteUpdater::updateStateObserverLocalCache(
