@@ -30,11 +30,6 @@ class LookupClassRouteUpdater {
       VlanID vlanID,
       std::optional<cfg::AclLookupClass> classID);
 
-  void neighborClassIDUpdatedLocalCache(
-      const folly::IPAddress& ip,
-      VlanID vlanID,
-      std::optional<cfg::AclLookupClass> classID);
-
   void updateStateObserverLocalCache(
       const std::shared_ptr<SwitchState>& switchState);
 
@@ -56,19 +51,9 @@ class LookupClassRouteUpdater {
       const std::shared_ptr<RouteT>& oldRoute,
       const std::shared_ptr<RouteT>& newRoute);
 
-  void updateClassID(
-      const folly::IPAddress& nextHop,
-      std::optional<cfg::AclLookupClass> classID);
-
-  std::optional<cfg::AclLookupClass> getClassIDForIpAndVlan(
-      const folly::IPAddress& ip,
-      VlanID vlanID);
-  void updateClassIDForIpAndVlan(
-      const folly::IPAddress& ip,
-      VlanID vlanID,
-      std::optional<cfg::AclLookupClass> classID);
-
-  bool belongsToSubnetInCache(const folly::IPAddress& ipToSearch);
+  void updateClassID(const std::map<
+                     std::pair<RouterID, folly::CIDRNetwork>,
+                     std::optional<cfg::AclLookupClass>>& ridAndCidrToClassID);
 
   template <typename AddrT>
   void updateClassIDHelper(
@@ -84,59 +69,8 @@ class LookupClassRouteUpdater {
       const RoutePrefix<AddrT>& routePrefix,
       std::optional<cfg::AclLookupClass> classID);
 
-  template <typename RouteT>
-  void cacheNextHopToRoutesMapping(
-      RouterID rid,
-      const folly::IPAddress& nextHopIp,
-      const std::shared_ptr<RouteT>& route);
-
-  template <typename RouteT>
-  std::optional<NextHop> getFirstNextHopOfRoute(
-      const std::shared_ptr<RouteT>& route);
-
-  template <typename AddrT>
-  void updateStateObserverLocalCacheHelper(
-      const std::shared_ptr<RouteTable> routeTable);
-
   template <typename AddrT>
   void clearClassIDsForRoutes() const;
-
-  /*
-   * In theory, same IP may exist in different Vlans, thus maintain IP & Vlan
-   * to classID mapping.
-   * A route inherits classID of its nexthop. Maintaining IP to classID mapping
-   * allows efficient lookup of nexthop's classID when a route is added.
-   */
-  boost::container::
-      flat_map<std::pair<folly::IPAddress, VlanID>, cfg::AclLookupClass>
-          ipAndVlan2ClassID_;
-
-  /*
-   * We need to maintain nexthop to route mapping so that when a nexthop is
-   * resolved (gets classID), the same classID could be associated with
-   * corresponding routes. However, we are only interested in nexthops that are
-   * part of 'certain' subnets. vlan2SubnetsCache_ maintains this list of
-   * subnets.
-   *   - ports needing queue-per-host have non-empty lookupClasses list.
-   *   - each port belongs to an interface.
-   *   - each interface is part of certain subnet.
-   *   - nexthop IP that would use such a port for egress, would belong to the
-   *     interface subnet.
-   * Thus, we discover and maintain a list of subnets for ports that have
-   * non-emptry lookupClasses list.
-   */
-  boost::container::flat_map<VlanID, std::set<folly::CIDRNetwork>>
-      vlan2SubnetsCache_;
-
-  /*
-   * Routes inherit classID of its nexthop. When a classID is
-   * associated/disassociated with a neighbor entry, this map provides an
-   * efficient way to update all routes for that nexthop (neighbor IP) with the
-   * same classID.
-   */
-  using RidAndRoutePrefix = std::pair<RouterID, RoutePrefix<folly::IPAddress>>;
-  boost::container::flat_map<folly::IPAddress, std::vector<RidAndRoutePrefix>>
-      nextHop2RidAndRoutePrefix_;
 
   SwSwitch* sw_;
 };
