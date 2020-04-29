@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
 #include <folly/container/Array.h>
@@ -56,12 +57,12 @@ class HwCoppTest : public HwLinkStateDependentTest {
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
-
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeUDPTxPacket(
           getHwSwitch(),
           vlanId,
-          intfMac,
+          srcMac,
           intfMac,
           srcIp,
           dstIpAddress,
@@ -80,12 +81,13 @@ class HwCoppTest : public HwLinkStateDependentTest {
       uint8_t trafficClass = 0) {
     auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeTCPTxPacket(
           getHwSwitch(),
           vlanId,
-          intfMac,
+          srcMac,
           dstMac ? *dstMac : intfMac,
           folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::1"),
           dstIpAddress,
