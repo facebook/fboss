@@ -21,6 +21,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/gen/Base.h>
 
@@ -118,6 +119,7 @@ void pumpTraffic(
     folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
+  auto srcMac = MacAddressGenerator().get(intfMac.u64NBO() + 1);
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
@@ -125,7 +127,7 @@ void pumpTraffic(
       auto dstIp = folly::IPAddress(
           folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
       auto pkt = makeUDPTxPacket(
-          hw, vlan, intfMac, intfMac, srcIp, dstIp, 10000 + i, 20000 + j);
+          hw, vlan, srcMac, intfMac, srcIp, dstIp, 10000 + i, 20000 + j);
       if (frontPanelPortToLoopTraffic) {
         hw->sendPacketOutOfPortSync(
             std::move(pkt), frontPanelPortToLoopTraffic.value());
