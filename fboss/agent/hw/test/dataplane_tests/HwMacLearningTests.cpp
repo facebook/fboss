@@ -126,7 +126,18 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto l2LearningMode =
         getProgrammedState()->getSwitchSettings()->getL2LearningMode();
 
-    int retries = 5;
+    /*
+     * For HwMacLearningTest.VerifyHwAgingForPort:
+     *  - On SDK 6.5.16, the test PASS'ed across several (100+) iterations.
+     *  - On SDK 6.5.17, the test fails intermittently as at times, the L2
+     *    entry is aged out, albeit, with delay.
+     *
+     *  CSP CS10327477 reports this regression to Broadcom. In the meantime,
+     *  we bump up the retries to 10 (for all tests using this util function,
+     *  and all devices).
+     */
+
+    int retries = 10;
     while (retries--) {
       if (((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
             wasMacLearntInSwitchState(shouldExist)) ||
