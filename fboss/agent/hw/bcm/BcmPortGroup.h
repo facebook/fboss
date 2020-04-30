@@ -78,12 +78,9 @@ class BcmPortGroup {
 
   static BcmPortGroup::LaneMode calculateDesiredLaneMode(
       const std::vector<std::shared_ptr<Port>>& ports,
-      LaneSpeeds supportedLaneSpeeds);
-
-  static BcmPortGroup::LaneMode calculateDesiredLaneModeFromConfig(
-      const std::vector<std::shared_ptr<Port>>& ports,
       const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-          supportedProfiles);
+          supportedProfiles,
+      const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
 
   LaneMode laneMode() {
     return laneMode_;

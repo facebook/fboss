@@ -22,11 +22,27 @@ using namespace facebook::fboss;
 
 namespace {
 
+void updatePortProfileIDAndName(
+    cfg::SwitchConfig* config,
+    int portIndex,
+    PortID portID,
+    const Platform* platform) {
+  auto platformPort = platform->getPlatformPort(portID);
+  if (auto entry = platformPort->getPlatformPortEntry()) {
+    config->ports[portIndex].name_ref() = entry->mapping.name;
+    config->ports[portIndex].profileID =
+        platformPort->getProfileIDBySpeed(config->ports[portIndex].speed);
+  } else {
+    throw FbossError("Port:", portID, " doesn't have PlatformPortEntry");
+  }
+}
+
 void enableOneLane(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup) {
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
   auto portItr = allPortsinGroup.begin();
   bool firstLane = true;
   int portIndex = 0;
@@ -35,6 +51,7 @@ void enableOneLane(
         firstLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
     config->ports[portIndex].speed =
         firstLane ? enabledLaneSpeed : disabledLaneSpeed;
+    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
     firstLane = false;
   }
 }
@@ -42,12 +59,14 @@ void enableOneLane(
 void enableAllLanes(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup) {
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
   auto portItr = allPortsinGroup.begin();
   int portIndex = 0;
   for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
     config->ports[portIndex].speed = enabledLaneSpeed;
     config->ports[portIndex].state = cfg::PortState::ENABLED;
+    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
   }
 }
 
@@ -55,7 +74,8 @@ void enableTwoLanes(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,
     cfg::PortSpeed disabledLaneSpeed,
-    std::vector<PortID> allPortsinGroup) {
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
   auto portItr = allPortsinGroup.begin();
   bool oddLane;
   int portIndex = 0;
@@ -65,32 +85,41 @@ void enableTwoLanes(
         oddLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
     config->ports[portIndex].speed =
         oddLane ? enabledLaneSpeed : disabledLaneSpeed;
+    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
   }
 }
 
 void updateFlexConfig(
     cfg::SwitchConfig* config,
     FlexPortMode flexMode,
-    std::vector<PortID> allPortsinGroup) {
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
   if (flexMode == FlexPortMode::FOURX10G) {
-    enableAllLanes(config, cfg::PortSpeed::XG, allPortsinGroup);
+    enableAllLanes(config, cfg::PortSpeed::XG, allPortsinGroup, platform);
   } else if (flexMode == FlexPortMode::FOURX25G) {
-    enableAllLanes(config, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup);
+    enableAllLanes(
+        config, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup, platform);
   } else if (flexMode == FlexPortMode::ONEX40G) {
     enableOneLane(
-        config, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG, allPortsinGroup);
+        config,
+        cfg::PortSpeed::FORTYG,
+        cfg::PortSpeed::XG,
+        allPortsinGroup,
+        platform);
   } else if (flexMode == FlexPortMode::TWOX50G) {
     enableTwoLanes(
         config,
         cfg::PortSpeed::FIFTYG,
         cfg::PortSpeed::TWENTYFIVEG,
-        allPortsinGroup);
+        allPortsinGroup,
+        platform);
   } else if (flexMode == FlexPortMode::ONEX100G) {
     enableOneLane(
         config,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::TWENTYFIVEG,
-        allPortsinGroup);
+        allPortsinGroup,
+        platform);
   } else {
     throw std::runtime_error("invalid FlexConfig Mode");
   }
@@ -184,7 +213,8 @@ class HwFlexPortTest : public HwTest {
       applyNewConfig(cfg);
 
       cfg = utility::oneL3IntfNPortConfig(getHwSwitch(), allPortsinGroup);
-      updateFlexConfig(&cfg, flexMode, allPortsinGroup);
+      updateFlexConfig(
+          &cfg, flexMode, allPortsinGroup, getHwSwitch()->getPlatform());
       applyNewConfig(cfg);
     };
 

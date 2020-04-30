@@ -38,45 +38,6 @@ using facebook::fboss::cfg::PortSpeed;
 const int kBcmL2DeleteStatic = 0x1;
 const int kBcmL2DeletePending = 0x2;
 
-BcmPortGroup::LaneMode neededLaneModeForSpeed(
-    PortSpeed speed,
-    LaneSpeeds laneSpeeds) {
-  if (speed == PortSpeed::DEFAULT) {
-    throw FbossError("Speed cannot be DEFAULT if flexports are enabled");
-  }
-
-  for (auto& laneSpeed : laneSpeeds) {
-    auto dv = std::div(static_cast<int>(speed), static_cast<int>(laneSpeed));
-    if (dv.rem) {
-      // skip if this requires an unsupported lane speed
-      continue;
-    }
-
-    auto neededLanes = dv.quot;
-    if (neededLanes == 1) {
-      return BcmPortGroup::LaneMode::SINGLE;
-    } else if (neededLanes == 2) {
-      return BcmPortGroup::LaneMode::DUAL;
-    } else if (neededLanes > 2 && neededLanes <= 4) {
-      return BcmPortGroup::LaneMode::QUAD;
-    }
-  }
-
-  throw FbossError("Cannot support speed ", speed);
-}
-
-void checkLaneModeisValid(int lane, BcmPortGroup::LaneMode desiredMode) {
-  if (desiredMode == BcmPortGroup::LaneMode::QUAD) {
-    if (lane != 0) {
-      throw FbossError("Only lane 0 can be enabled in QUAD mode");
-    }
-  } else if (desiredMode == BcmPortGroup::LaneMode::DUAL) {
-    if (lane != 0 && lane != 2) {
-      throw FbossError("Only lanes 0 or 2 can be enabled in DUAL mode");
-    }
-  }
-}
-
 void setLanesControl(int unit, bcm_port_t port, unsigned lanes) {
   int rv = bcm_port_control_set(unit, port, bcmPortControlLanes, lanes);
   facebook::fboss::bcmCheckError(
@@ -148,28 +109,9 @@ BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
 
 BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
     const std::vector<std::shared_ptr<Port>>& ports,
-    LaneSpeeds laneSpeeds) {
-  auto desiredMode = LaneMode::SINGLE;
-  for (int lane = 0; lane < ports.size(); ++lane) {
-    auto port = ports[lane];
-    if (port->isEnabled()) {
-      auto neededMode = neededLaneModeForSpeed(port->getSpeed(), laneSpeeds);
-      if (neededMode > desiredMode) {
-        desiredMode = neededMode;
-      }
-
-      checkLaneModeisValid(lane, desiredMode);
-      XLOG(DBG3) << "Port " << port->getID() << " enabled with speed "
-                 << static_cast<int>(port->getSpeed());
-    }
-  }
-  return desiredMode;
-}
-
-BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
-    const std::vector<std::shared_ptr<Port>>& ports,
     const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
-        supportedProfiles) {
+        supportedProfiles,
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
   // As we support more and more platforms, the existing lane mode calculation
   // won't be valid any more. For example, for 100G port, we can use 2x50PAM4 or
   // 4x25NRZ mode. Therefore, we introduced the new PlatformPort design, which
@@ -177,20 +119,62 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneModeFromConfig(
   // profile, we can understand how many lanes for such speed on this port from
   // the config.
   auto desiredMode = LaneMode::SINGLE;
+  // make sure subsumed ports are disabled
+  std::set<int32_t> needSubsumedPorts;
   for (auto port : ports) {
-    if (port->isEnabled()) {
-      auto profileCfg = supportedProfiles.find(port->getProfileID());
-      if (profileCfg == supportedProfiles.end()) {
-        throw FbossError(
-            "Port: ",
-            port->getName(),
-            ", has unsupported speed profile: ",
-            apache::thrift::util::enumNameSafe(port->getProfileID()));
+    // TODO(joseph5wu) Still waiting for landing the change to support bcm_test
+    // generate the full config with the proper profileID.
+    if (port->getAdminState() == cfg::PortState::DISABLED &&
+        port->getProfileID() == cfg::PortProfileID::PROFILE_DEFAULT) {
+      continue;
+    }
+
+    // First check whether the Platform supports such profileID
+    auto profileCfg = supportedProfiles.find(port->getProfileID());
+    if (profileCfg == supportedProfiles.end()) {
+      throw FbossError(
+          "Port: ",
+          port->getName(),
+          ", uses platform-unsupported speed profile: ",
+          apache::thrift::util::enumNameSafe(port->getProfileID()));
+    }
+    // Then check whether the PlatformPort supports such profileID
+    auto itPlatformPort = platformPorts.find(port->getID());
+    if (itPlatformPort == platformPorts.end()) {
+      throw FbossError(
+          "Port: ",
+          port->getName(),
+          ", doesn't have corresponding PlatformPortEntry");
+    }
+    auto itPortProfileCfg =
+        itPlatformPort->second.supportedProfiles.find(port->getProfileID());
+    if (itPortProfileCfg == itPlatformPort->second.supportedProfiles.end()) {
+      throw FbossError(
+          "Port: ",
+          port->getName(),
+          ", uses port-unsupported speed profile: ",
+          apache::thrift::util::enumNameSafe(port->getProfileID()));
+    }
+    if (auto subsumedPorts = itPortProfileCfg->second.subsumedPorts_ref()) {
+      for (auto subsumedPort : *subsumedPorts) {
+        needSubsumedPorts.insert(subsumedPort);
       }
-      auto neededMode = numLanesToLaneMode(profileCfg->second.iphy.numLanes);
-      if (neededMode > desiredMode) {
-        desiredMode = neededMode;
-      }
+    }
+
+    auto neededMode = numLanesToLaneMode(profileCfg->second.iphy.numLanes);
+    if (neededMode > desiredMode) {
+      desiredMode = neededMode;
+    }
+  }
+
+  // Check whether all the needSubsumedPorts are disabled
+  for (auto port : ports) {
+    if (needSubsumedPorts.find(port->getID()) != needSubsumedPorts.end() &&
+        port->getAdminState() != cfg::PortState::DISABLED) {
+      throw FbossError(
+          "Port: ",
+          port->getName(),
+          " needs to be subsumed but the admin state is not disabled");
     }
   }
   return desiredMode;
@@ -238,16 +222,10 @@ bool BcmPortGroup::validConfiguration(
     const std::shared_ptr<SwitchState>& state) const {
   try {
     const auto& ports = getSwPorts(state);
-    // TODO(joseph5wu) Once we roll out new config everywhere, we can get rid of
-    // the old way to calculate lane mode
-    if (auto supportedProfiles =
-            hw_->getPlatform()
-                ->config()
-                ->thrift.platform.supportedProfiles_ref()) {
-      calculateDesiredLaneModeFromConfig(ports, *supportedProfiles);
-    } else {
-      calculateDesiredLaneMode(ports, controllingPort_->supportedLaneSpeeds());
-    }
+    calculateDesiredLaneMode(
+        ports,
+        hw_->getPlatform()->getSupportedProfiles(),
+        hw_->getPlatform()->getPlatformPorts());
   } catch (const std::exception& ex) {
     XLOG(DBG1) << "Received exception determining lane mode: " << ex.what();
     return false;
@@ -265,19 +243,10 @@ void BcmPortGroup::reconfigureIfNeeded(
   auto oldPorts = getSwPorts(oldState);
   auto newPorts = getSwPorts(newState);
 
-  LaneMode desiredLaneMode;
-  // TODO(joseph5wu) Once we roll out new config everywhere, we can get rid of
-  // the old way to calculate lane mode
-  if (auto supportedProfiles = hw_->getPlatform()
-                                   ->config()
-                                   ->thrift.platform.supportedProfiles_ref()) {
-    desiredLaneMode =
-        calculateDesiredLaneModeFromConfig(newPorts, *supportedProfiles);
-  } else {
-    desiredLaneMode = calculateDesiredLaneMode(
-        newPorts, controllingPort_->supportedLaneSpeeds());
-  }
-
+  LaneMode desiredLaneMode = calculateDesiredLaneMode(
+      newPorts,
+      hw_->getPlatform()->getSupportedProfiles(),
+      hw_->getPlatform()->getPlatformPorts());
   if (desiredLaneMode != laneMode_) {
     reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
   }
