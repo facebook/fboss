@@ -39,19 +39,60 @@ void BaseWedgeI2CBus::read(uint8_t address, int offset, int len, uint8_t* buf) {
   // pass them around in Linux standard format.
   address <<= 1;
 
-  // Note that we don't use the writeRead() command, since this
+  // Note that we don't use the writeRead() command by default, since this
   // locks up the CP2112 chip if it times out.  We perform a separate write,
   // followed by a read.  This releases the I2C bus between operations, but
   // that's okay since there aren't any other master devices on the bus.
 
   // Also note that we can't read more than 128 bytes at a time.
-  dev_->writeByte(address, offset);
-  if (len > 128) {
-    dev_->read(address, MutableByteRange(buf, 128));
-    dev_->writeByte(address, offset + 128);
-    dev_->read(address, MutableByteRange(buf + 128, len - 128));
+  if (writeReadMode_ == WriteReadMode::WriteReadModeStopStart) {
+    // Default addressed read happens in the STOP_START mode. In this mode
+    // the "offset" is written to the first address and then we read
+    // from the given address.
+    dev_->writeByte(address, offset);
+    if (len > 128) {
+      dev_->read(address, MutableByteRange(buf, 128));
+      dev_->writeByte(address, offset + 128);
+      dev_->read(address, MutableByteRange(buf + 128, len - 128));
+    } else {
+      dev_->read(address, MutableByteRange(buf, len));
+    }
   } else {
-    dev_->read(address, MutableByteRange(buf, len));
+    // This is no default mode of reading and it is REPEATED_START mode. The
+    // addressed read is invoked from the CP2112 device. This is the
+    // sequence from device (CPAS for cp2112 to slave direction and small
+    // for slave to cp2112 direction):
+    // [START, SLAVE_ADDRESS, WRITE, ack, DATA_ADDRESS, ack, REPEATED_START,
+    //  SLAVE_ADDRESS, READ, ack, data, STOP]
+    // We have seen in the past that when timeout happens during this
+    // operation then the chip cp2112 locks up so this is not the default
+    // mode of reading
+    uint8_t targetOffset = offset;
+
+    // It appears that we can't read more than 128 bytes at a time so in
+    // case the read length is more than 128 then we need to split the read
+    // into two.
+    if (len > 128) {
+      // Call device writeReadUnsafe for 0..127
+      dev_->writeReadUnsafe(
+          address,
+          folly::ByteRange(&targetOffset, 1),
+          MutableByteRange(buf, 128));
+
+      targetOffset += 128;
+      // Call device writeReadUnsafe for 128..len-1
+      dev_->writeReadUnsafe(
+          address,
+          folly::ByteRange(&targetOffset, 1),
+          MutableByteRange(buf + 128, len - 128));
+
+    } else {
+      // Call cp2112 writeReadUnsafe for 0..len-1
+      dev_->writeReadUnsafe(
+          address,
+          folly::ByteRange(&targetOffset, 1),
+          MutableByteRange(buf, len));
+    }
   }
 }
 

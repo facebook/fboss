@@ -35,6 +35,15 @@ class MockCP2112 : public CP2112Intf {
       void(uint8_t, folly::ByteRange, std::chrono::milliseconds));
   using CP2112Intf::write;
 
+  MOCK_METHOD4(
+      writeReadUnsafe,
+      void(
+          uint8_t,
+          folly::ByteRange,
+          folly::MutableByteRange,
+          std::chrono::milliseconds));
+  using CP2112Intf::writeReadUnsafe;
+
   std::chrono::milliseconds getDefaultTimeout() const override {
     return std::chrono::milliseconds(500);
   }

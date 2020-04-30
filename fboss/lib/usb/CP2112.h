@@ -41,6 +41,11 @@ class CP2112Intf : public I2cController {
       uint8_t address,
       folly::ByteRange buf,
       std::chrono::milliseconds timeout) = 0;
+  virtual void writeReadUnsafe(
+      uint8_t address,
+      folly::ByteRange writeBuf,
+      folly::MutableByteRange readBuf,
+      std::chrono::milliseconds timeout) = 0;
 
   virtual std::chrono::milliseconds getDefaultTimeout() const = 0;
 
@@ -52,6 +57,13 @@ class CP2112Intf : public I2cController {
 
   void write(uint8_t address, folly::ByteRange buf) {
     write(address, buf, getDefaultTimeout());
+  }
+
+  void writeReadUnsafe(
+      uint8_t address,
+      folly::ByteRange writeBuf,
+      folly::MutableByteRange readBuf) {
+    writeReadUnsafe(address, writeBuf, readBuf, getDefaultTimeout());
   }
 
   void
@@ -317,9 +329,12 @@ class CP2112 : public CP2112Intf {
 
   /*
    * An atomic write followed by read, without releasing the I2C bus.
-   *
    * This uses a repeated start, without a stop condition between the
-   * write and read operations.
+   * write and read operations. This is the sequence from device
+   * (CPAS for cp2112 to slave direction and small for slave to cp2112
+   * direction):
+   * [START, SLAVE_ADDRESS, WRITE, ack, DATA_ADDRESS, ack, REPEATED_START,
+   *  SLAVE_ADDRESS, READ, ack, data, STOP]
    *
    * The writeLength must be between 1 and 16 bytes.
    * The readLength must be between 1 and 512 bytes.
@@ -332,13 +347,8 @@ class CP2112 : public CP2112Intf {
       uint8_t address,
       folly::ByteRange writeBuf,
       folly::MutableByteRange readBuf,
-      std::chrono::milliseconds timeout);
-  void writeReadUnsafe(
-      uint8_t address,
-      folly::ByteRange writeBuf,
-      folly::MutableByteRange readBuf) {
-    writeReadUnsafe(address, writeBuf, readBuf, defaultTimeout_);
-  }
+      std::chrono::milliseconds timeout) override;
+  using CP2112Intf::writeReadUnsafe;
 
   /*
    * Cancel any pending transfers.

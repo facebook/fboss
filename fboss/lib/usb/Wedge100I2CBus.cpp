@@ -93,7 +93,23 @@ void Wedge100I2CBus::triggerQsfpHardReset(unsigned int module) {
   //  offset 0x%x, bit %d\n", module, ADDR_SYSTEM_CPLD, cpldReg, cpldRegBit);
 
   // Read system CPLD for QSFP reset current values
+
+  // Get the addtessed read mode from device, whether it is STOP_START mode or
+  // the REPEATED_START mode
+  auto origReadMode = getWriteReadMode();
+  // We want to do the CPLD addressed read in REPEATED_START mode so ff it is
+  // currently in STOP_START mode (origReadMode==false) then set the read mode
+  // as REPEATED_START mode
+  if (origReadMode == WriteReadMode::WriteReadModeStopStart) {
+    setWriteReadMode(WriteReadMode::WriteReadModeRepeatedStart);
+  }
+  // Perform the addressed read from device
   read(ADDR_SYSTEM_CPLD, cpldReg, 1, &buf);
+  // If the device read mode was set as REPEATED_START mode earlier then set
+  // it back to STOP_START mode
+  if (origReadMode == WriteReadMode::WriteReadModeStopStart) {
+    setWriteReadMode(WriteReadMode::WriteReadModeStopStart);
+  }
 
   XLOG(DBG0) << "Resetting the QSFP for port " << module
              << ", read value from Sys CPLD Reg " << cpldReg << ": " << buf;

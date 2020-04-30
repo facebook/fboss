@@ -62,6 +62,38 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
     return i2cControllerCurrentStats;
   }
 
+  // For I2C read transaction there are two mode: the REPEATED_START mode
+  // and the STOP_START mode.
+  //
+  // For REPEATED_START mode this is the
+  // sequence from device (CPAS for cp2112 to slave direction and small
+  // for slave to cp2112 direction):
+  // [START, SLAVE_ADDRESS, WRITE, ack, DATA_ADDRESS, ack, REPEATED_START,
+  //  SLAVE_ADDRESS, READ, ack, data, STOP]
+  // We have seen in the past that when timeout happens during this
+  // operation then the chip cp2112 locks up so this is called unsafe mode
+  // and this is not default mode.
+  //
+  // For STOP_START mode we do separate write followed by read transaction.
+  // Write sequence: [START, SLAVE_ADDRESS, WRITE, ack, DATA, ack, STOP]
+  // Read sequence: [START, SLAVE_ADDRESS, READ, ack, data, STOP]
+  enum class WriteReadMode {
+    WriteReadModeStopStart,
+    WriteReadModeRepeatedStart,
+  };
+
+  // Set the addressed read mode for device: REPEATED_START mode or the
+  // STOP_START mode
+  void setWriteReadMode(WriteReadMode writeReadMode) {
+    writeReadMode_ = writeReadMode;
+  }
+
+  // Return the addressed read mode for the device: REPEATED_START mode or
+  // the STOP_START mode. Default mode from startup is STOP_START mode
+  WriteReadMode getWriteReadMode() {
+    return writeReadMode_;
+  }
+
  protected:
   enum : unsigned int {
     NO_PORT = 0,
@@ -71,9 +103,14 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   virtual void selectQsfpImpl(unsigned int module) = 0;
 
   std::unique_ptr<CP2112Intf> dev_;
+
   unsigned int selectedPort_{NO_PORT};
 
  private:
+  // This variable tells whether the addressed read to the device will be
+  // done in REPEATED_START mode  or the STOP_START mode.
+  WriteReadMode writeReadMode_{WriteReadMode::WriteReadModeStopStart};
+
   /*
    * Set the PCA9548 switches so that we can read from the selected QSFP
    * module.
