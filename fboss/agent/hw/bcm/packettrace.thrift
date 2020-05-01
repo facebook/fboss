@@ -1,5 +1,6 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.packettrace
+namespace py3 neteng.fboss
 
 /*
  * This is modelled after Broadcom BroadView Packet Trace (PT)
