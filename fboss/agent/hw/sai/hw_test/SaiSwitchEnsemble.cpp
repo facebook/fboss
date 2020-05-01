@@ -110,7 +110,7 @@ void SaiSwitchEnsemble::dumpHwCounters() const {
 
 std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
-  SwitchStats dummy;
+  SwitchStats dummy{};
   getHwSwitch()->updateStats(&dummy);
   auto allPortStats =
       getHwSwitch()->managerTable()->portManager().getPortStats();

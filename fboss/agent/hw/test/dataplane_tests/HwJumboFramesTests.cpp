@@ -53,7 +53,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));
-    getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
   }
 
  protected:

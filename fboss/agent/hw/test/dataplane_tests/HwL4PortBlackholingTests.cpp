@@ -75,12 +75,25 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid));
     };
     auto verify = [=]() {
-      auto pktsBefore =
-          getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+      auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
+      int numL4Ports = kNumL4Ports();
+      PortID portId = masterLogicalPortIds()[0];
+      auto expectPackets = [&originalPortStats, numL4Ports, portId](
+                               const auto& newPortStats) -> bool {
+        auto original = getPortOutPkts(originalPortStats.at(portId));
+        auto current = getPortOutPkts(newPortStats.at(portId));
+        XLOGF(
+            INFO,
+            "Checking current port outBytes ({}) - "
+            "original port outBytes: ({}) ==  "
+            "2 * number of l4 ports ({})",
+            current,
+            original,
+            2 * numL4Ports);
+        return current - original == 2 * numL4Ports;
+      };
       pumpTraffic(isV6);
-      auto pktsAfter =
-          getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
-      EXPECT_EQ(2 * kNumL4Ports(), pktsAfter - pktsBefore);
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(expectPackets));
     };
     verifyAcrossWarmBoots(setup, verify);
   }

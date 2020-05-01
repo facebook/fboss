@@ -81,6 +81,28 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
 
+  /*
+   * Depending on the implementation of the underlying forwarding plane, it is
+   * possible that HwSwitch::sendPacketSwitchedSync and
+   * HwSwitch::sendPacketOutOfPortSync are not able to block until we are sure
+   * the packet has been sent.
+   *
+   * These methods wrap a packet send with a check of the port counters to
+   * ensure that the packet has really been sent before returning. Since
+   * checking counters per packet can have an adverse effect on performance,
+   * these methods should only be used in tests which send a small number of
+   * packets but want to benefit from the simpler synchronous semantices. Tests
+   * which send packets in bulk should use a different strategy, such as
+   * implementing retries on the expected post-send conditions.
+   */
+  bool ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt);
+  bool ensureSendPacketOutOfPort(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID,
+      std::optional<uint8_t> queue = std::nullopt);
+  bool waitPortStatsCondition(
+      std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn);
+
   virtual std::vector<PortID> logicalPortIds() const = 0;
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
@@ -112,6 +134,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::unique_ptr<std::thread> thriftThread);
 
  private:
+  bool waitForAnyPortOutBytesIncrement(
+      const std::map<PortID, HwPortStats>& originalPortStats);
+
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::shared_ptr<SwitchState> initCfgState_;
   std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;

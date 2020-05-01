@@ -432,7 +432,7 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
     }
     const auto& counters = handle->port->getStats();
     auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
-    HwPortStats hwPortStats;
+    HwPortStats hwPortStats{};
     fillHwPortStats(supportedStats(), counters, hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);

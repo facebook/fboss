@@ -15,6 +15,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -30,6 +31,8 @@ DEFINE_int32(
     thrift_port,
     5909,
     "Port for thrift server to use (use with --setup_thrift");
+
+using namespace std::chrono_literals;
 
 namespace facebook::fboss {
 
@@ -151,6 +154,55 @@ void HwSwitchEnsemble::removeHwEventObserver(
   if (!hwEventObservers_->erase(observer)) {
     throw FbossError("Observer erase failed");
   }
+}
+
+bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
+  auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
+  bool result = getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+  return result && waitForAnyPortOutBytesIncrement(originalPortStats);
+}
+
+bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
+    std::unique_ptr<TxPacket> pkt,
+    PortID portID,
+    std::optional<uint8_t> queue) {
+  auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
+  bool result =
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), portID, queue);
+  return result && waitForAnyPortOutBytesIncrement(originalPortStats);
+}
+
+bool HwSwitchEnsemble::waitPortStatsCondition(
+    std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn) {
+  ssize_t tries = 10;
+  auto newPortStats = getLatestPortStats(masterLogicalPortIds());
+  while (tries--) {
+    // TODO(borisb): exponential backoff!
+    if (conditionFn(newPortStats)) {
+      return true;
+    }
+    std::this_thread::sleep_for(20ms);
+    newPortStats = getLatestPortStats(masterLogicalPortIds());
+  }
+  XLOG(DBG3) << "Awaited port stats condition was never satisfied";
+  return false;
+}
+
+bool HwSwitchEnsemble::waitForAnyPortOutBytesIncrement(
+    const std::map<PortID, HwPortStats>& originalPortStats) {
+  auto conditionFn = [&originalPortStats](const auto& newPortStats) {
+    for (const auto& portStat : originalPortStats) {
+      auto newPortStatItr = newPortStats.find(portStat.first);
+      if (newPortStatItr != newPortStats.end()) {
+        if (newPortStatItr->second.outBytes_ > portStat.second.outBytes_) {
+          return true;
+        }
+      }
+    }
+    XLOG(DBG3) << "No port stats increased yet";
+    return false;
+  };
+  return waitPortStatsCondition(conditionFn);
 }
 
 void HwSwitchEnsemble::setupEnsemble(

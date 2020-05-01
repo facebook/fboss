@@ -50,16 +50,34 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
   void runTest(bool isV6) {
     auto setup = [=]() {};
     auto verify = [=]() {
-      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+      PortID portId = masterLogicalPortIds()[0];
+      auto portStatsBefore = getLatestPortStats(portId);
+      auto expectDiscards = [&portStatsBefore,
+                             portId](const auto& newPortStats) {
+        auto originalRaw = portStatsBefore.inDiscardsRaw_;
+        auto originalDstNull = portStatsBefore.inDstNullDiscards_;
+        auto originalUnlabeled = portStatsBefore.inDiscards_;
+        auto currentRaw = newPortStats.at(portId).inDiscardsRaw_;
+        auto currentDstNull = newPortStats.at(portId).inDstNullDiscards_;
+        auto currentUnlabeled = newPortStats.at(portId).inDiscards_;
+        XLOGF(
+            INFO,
+            "Checking current discards (raw: {}, dst null: {}, unlabeled: {}) "
+            "against original discards (raw: {}, dst null: {}, unlabeled: {})",
+            currentRaw,
+            currentDstNull,
+            currentUnlabeled,
+            originalRaw,
+            originalDstNull,
+            originalUnlabeled);
+        return (
+            (currentRaw - originalRaw == 1) &&
+            (currentDstNull - originalDstNull == 1) &&
+            (currentUnlabeled == originalUnlabeled));
+      };
       pumpTraffic(isV6);
-      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
-      EXPECT_EQ(
-          1, portStatsAfter.inDiscardsRaw_ - portStatsBefore.inDiscardsRaw_);
-      EXPECT_EQ(
-          1,
-          portStatsAfter.inDstNullDiscards_ -
-              portStatsBefore.inDstNullDiscards_);
-      EXPECT_EQ(0, portStatsAfter.inDiscards_ - portStatsBefore.inDiscards_);
+      EXPECT_TRUE(
+          getHwSwitchEnsemble()->waitPortStatsCondition(expectDiscards));
     };
     verifyAcrossWarmBoots(setup, verify);
   }
