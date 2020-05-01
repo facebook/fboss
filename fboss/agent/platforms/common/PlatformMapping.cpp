@@ -10,7 +10,9 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
 #include "fboss/agent/FbossError.h"
 
 namespace facebook {
@@ -71,6 +73,27 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
     return itProfileCfg->second.speed;
   }
   return cfg::PortSpeed::DEFAULT;
+}
+
+const std::vector<phy::PinConfig>& PlatformMapping::getPortIphyPinConfigs(
+    PortID id,
+    cfg::PortProfileID profileID) const {
+  auto itPlatformPort = platformPorts_.find(id);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("No PlatformPortEntry found for port ", id);
+  }
+
+  auto supportedProfiles = itPlatformPort->second.supportedProfiles;
+  auto platformPortConfig = supportedProfiles.find(profileID);
+  if (platformPortConfig != supportedProfiles.end()) {
+    throw FbossError(
+        "No port profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformConfig for port ",
+        id);
+  }
+
+  return platformPortConfig->second.pins.iphy;
 }
 } // namespace fboss
 } // namespace facebook

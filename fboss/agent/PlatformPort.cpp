@@ -47,6 +47,11 @@ const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
   return std::nullopt;
 }
 
+const std::vector<phy::PinConfig>& PlatformPort::getIphyPinConfigs(
+    cfg::PortProfileID profileID) const {
+  return platform_->getPortIphyPinConfigs(id_, profileID);
+}
+
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
     cfg::PortSpeed speed) const {
   // If we don't have a platform config, just return a default profile

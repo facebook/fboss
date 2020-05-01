@@ -104,6 +104,12 @@ const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
   return std::nullopt;
 }
 
+const std::vector<phy::PinConfig>& Platform::getPortIphyPinConfigs(
+    PortID id,
+    cfg::PortProfileID profileID) const {
+  return platformMapping_->getPortIphyPinConfigs(id, profileID);
+}
+
 const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
 Platform::getSupportedProfiles() {
   return platformMapping_->getSupportedProfiles();

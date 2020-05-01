@@ -1322,21 +1322,6 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  auto platformPortEntry = getPlatformPort()->getPlatformPortEntry();
-  if (!platformPortEntry.has_value()) {
-    throw FbossError("No PlatformPortEntry found for ", swPort->getName());
-  }
-
-  auto platformPortConfig =
-      platformPortEntry.value().supportedProfiles.find(profileID);
-  if (platformPortConfig == platformPortEntry.value().supportedProfiles.end()) {
-    throw FbossError(
-        "No speed profile with id ",
-        apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformPortEntry for ",
-        swPort->getName());
-  }
-
   auto portProfileConfig = hw_->getPlatform()->getPortProfileConfig(profileID);
   if (!portProfileConfig.has_value()) {
     throw FbossError(
@@ -1346,8 +1331,8 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
         swPort->getName());
   }
 
-  const auto& iphyLaneConfigs =
-      utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy);
+  const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(
+      getPlatformPort()->getIphyPinConfigs(profileID));
   if (iphyLaneConfigs.empty()) {
     XLOG(INFO) << "No iphy lane configs needed to program for "
                << swPort->getName();
