@@ -137,7 +137,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         utility::EthFrame(eth, utility::IPPacket<folly::IPAddressV6>(ip6))
             .getTxPacket(getHwSwitch());
     // send pkt on src port, let it loop back in switch and be l3 switched
-    getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
   }
 
   void sendMplsPacket(
@@ -162,7 +162,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto pkt = frame.getTxPacket(getHwSwitch());
 
     // send pkt on src port, let it loop back in switch and be l3 switched
-    getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
   }
   bool skipTest() {
     return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::MPLS);

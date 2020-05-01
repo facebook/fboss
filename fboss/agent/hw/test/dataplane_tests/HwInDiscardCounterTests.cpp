@@ -42,7 +42,7 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(
         getHwSwitch(), VlanID(1), intfMac, intfMac, srcIp, dstIp, 10000, 10001);
-    getHwSwitch()->sendPacketOutOfPortSync(
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(pkt), PortID(masterLogicalPortIds()[0]));
   }
 
@@ -52,32 +52,15 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     auto verify = [=]() {
       PortID portId = masterLogicalPortIds()[0];
       auto portStatsBefore = getLatestPortStats(portId);
-      auto expectDiscards = [&portStatsBefore,
-                             portId](const auto& newPortStats) {
-        auto originalRaw = portStatsBefore.inDiscardsRaw_;
-        auto originalDstNull = portStatsBefore.inDstNullDiscards_;
-        auto originalUnlabeled = portStatsBefore.inDiscards_;
-        auto currentRaw = newPortStats.at(portId).inDiscardsRaw_;
-        auto currentDstNull = newPortStats.at(portId).inDstNullDiscards_;
-        auto currentUnlabeled = newPortStats.at(portId).inDiscards_;
-        XLOGF(
-            INFO,
-            "Checking current discards (raw: {}, dst null: {}, unlabeled: {}) "
-            "against original discards (raw: {}, dst null: {}, unlabeled: {})",
-            currentRaw,
-            currentDstNull,
-            currentUnlabeled,
-            originalRaw,
-            originalDstNull,
-            originalUnlabeled);
-        return (
-            (currentRaw - originalRaw == 1) &&
-            (currentDstNull - originalDstNull == 1) &&
-            (currentUnlabeled == originalUnlabeled));
-      };
       pumpTraffic(isV6);
-      EXPECT_TRUE(
-          getHwSwitchEnsemble()->waitPortStatsCondition(expectDiscards));
+      auto portStatsAfter = getLatestPortStats(portId);
+      EXPECT_EQ(
+          1, portStatsAfter.inDiscardsRaw_ - portStatsBefore.inDiscardsRaw_);
+      EXPECT_EQ(
+          1,
+          portStatsAfter.inDstNullDiscards_ -
+              portStatsBefore.inDstNullDiscards_);
+      EXPECT_EQ(0, portStatsAfter.inDiscards_ - portStatsBefore.inDiscards_);
     };
     verifyAcrossWarmBoots(setup, verify);
   }

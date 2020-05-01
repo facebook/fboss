@@ -94,9 +94,10 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
       auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
-      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), outPort);
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), outPort);
     } else {
-      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     }
   }
 

@@ -61,23 +61,6 @@ getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
   return macs;
 }
 
-void sendL2Pkts(facebook::fboss::HwSwitch* hwSwitch, int vlanId, int port) {
-  auto generator = facebook::fboss::utility::MacAddressGenerator();
-  // start with fixed address and increment detrministically
-  // evaluate total learnt l2 entries
-  generator.startOver(0x200000005);
-  for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {
-    auto txPacket = facebook::fboss::utility::makeEthTxPacket(
-        hwSwitch,
-        facebook::fboss::VlanID(vlanId),
-        generator.getNext(),
-        folly::MacAddress::BROADCAST,
-        facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
-    hwSwitch->sendPacketOutOfPortSync(
-        std::move(txPacket), facebook::fboss::PortID(port));
-  }
-}
-
 } // namespace
 
 namespace facebook::fboss {
@@ -105,6 +88,38 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return MacAddress("02:00:00:00:00:05");
   }
 
+  void sendL2Pkts(int vlanId, int port) {
+    auto originalStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+    auto allSent = [port, &originalStats](const auto& newStats) {
+      auto originalOut = getPortOutPkts(originalStats.at(PortID(port)));
+      auto newOut = getPortOutPkts(newStats.at(PortID(port)));
+      auto expectedOut = originalOut + L2_LEARN_MAX_MAC_COUNT;
+      XLOGF(
+          INFO,
+          "Checking packets sent. Old: {}, New: {}, Expected: {}",
+          originalOut,
+          newOut,
+          expectedOut);
+      return newOut == expectedOut;
+    };
+    auto generator = utility::MacAddressGenerator();
+    // start with fixed address and increment detrministically
+    // evaluate total learnt l2 entries
+    generator.startOver(0x200000005);
+    for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {
+      auto txPacket = utility::makeEthTxPacket(
+          getHwSwitch(),
+          facebook::fboss::VlanID(vlanId),
+          generator.getNext(),
+          folly::MacAddress::BROADCAST,
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
+      getHwSwitch()->sendPacketOutOfPortSync(
+          std::move(txPacket), facebook::fboss::PortID(port));
+    }
+    getHwSwitchEnsemble()->waitPortStatsCondition(allSent);
+  }
+
   void sendPkt() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
@@ -113,7 +128,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
 
-    getHwSwitch()->sendPacketOutOfPortSync(
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), PortID(masterLogicalPortIds()[0]));
   }
 
@@ -419,10 +434,7 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
     setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
-    sendL2Pkts(
-        getHwSwitch(),
-        initialConfig().vlanPorts[0].vlanID,
-        masterLogicalPortIds()[0]);
+    sendL2Pkts(initialConfig().vlanPorts[0].vlanID, masterLogicalPortIds()[0]);
   };
 
   auto verify = [this, portDescr]() {

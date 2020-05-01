@@ -43,7 +43,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         folly::MacAddress("01:80:C2:00:00:01"),
         ETHERTYPE::ETHERTYPE_EPON,
         payload);
-    getHwSwitch()->sendPacketOutOfPortSync(
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(pkt), PortID(masterLogicalPortIds()[0]));
   }
 

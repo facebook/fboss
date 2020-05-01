@@ -73,12 +73,13 @@ void HwSendPacketToQueueTest::checkSendPacket(
 
     if (isOutOfPort) {
       if (ucQueue) {
-        getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), port, *ucQueue);
+        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+            std::move(pkt), port, *ucQueue);
       } else {
-        getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), port);
+        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
       }
     } else {
-      getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
     }
 
     auto afterOutPkts =
