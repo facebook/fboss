@@ -109,31 +109,43 @@ bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(phy::FecMode fec) {
       "Unsupported fec type: ", apache::thrift::util::enumNameSafe(fec));
 }
 
-uint32_t getDesiredPhyLaneConfig(
-    phy::IpModulation modulation,
-    TransmitterTechnology tech) {
+uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg) {
   uint32_t laneConfig = 0;
 
+  // PortResource setting needs interface mode from profile config
   uint32_t medium = 0;
-  switch (tech) {
-    case TransmitterTechnology::COPPER:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE;
-      break;
-    case TransmitterTechnology::BACKPLANE:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
-      break;
-    case TransmitterTechnology::OPTICAL:
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
-      break;
-    case TransmitterTechnology::UNKNOWN:
-      XLOG(WARNING)
-          << "Unknown transmitter technology, fall back to use backplane";
-      medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
-      break;
-  };
+  if (auto interfaceMode = profileCfg.get_iphy().interfaceMode_ref()) {
+    switch (*interfaceMode) {
+      case phy::InterfaceMode::KR:
+      case phy::InterfaceMode::KR2:
+      case phy::InterfaceMode::KR4:
+      case phy::InterfaceMode::KR8:
+      case phy::InterfaceMode::CAUI4_C2C:
+      case phy::InterfaceMode::CAUI4_C2M:
+        medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_BACKPLANE;
+        break;
+      case phy::InterfaceMode::CR:
+      case phy::InterfaceMode::CR2:
+      case phy::InterfaceMode::CR4:
+        medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_COPPER_CABLE;
+        break;
+      case phy::InterfaceMode::SR:
+      case phy::InterfaceMode::SR4:
+        medium = BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_OPTICS;
+        break;
+      default:
+        throw facebook::fboss::FbossError(
+            "Unsupported interface mode: ",
+            apache::thrift::util::enumNameSafe(*interfaceMode));
+    }
+  } else {
+    throw facebook::fboss::FbossError(
+        "No iphy interface mode in profileCfg for speed: ",
+        apache::thrift::util::enumNameSafe(profileCfg.get_speed()));
+  }
   BCM_PORT_RESOURCE_PHY_LANE_CONFIG_MEDIUM_SET(laneConfig, medium);
 
-  switch (modulation) {
+  switch (profileCfg.get_iphy().get_modulation()) {
     case phy::IpModulation::PAM4:
       // PAM4 + NS
       BCM_PORT_RESOURCE_PHY_LANE_CONFIG_FORCE_PAM4_SET(laneConfig);

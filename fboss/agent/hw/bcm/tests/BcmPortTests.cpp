@@ -493,19 +493,15 @@ TEST_F(BcmPortTest, AssertMode) {
             "Failed to get current port resource settings for: ",
             port->getName());
 
-        int expectedPhyLaneConfig = 0;
-        if (const auto profileConf =
-                getPlatform()->getPortProfileConfig(port->getProfileID())) {
-          expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(
-              profileConf->get_iphy().get_modulation(),
-              platformPort->getTransmitterTech().value());
-        } else {
-          // TODO(@ccpowers) We'll support Minipack/Yamp platform using
-          // PlatformMapping once we can support generate complete test config.
-          expectedPhyLaneConfig = getDesiredPhyLaneConfig(
-              platformPort->getTransmitterTech().value(),
-              cfg::PortSpeed(speed));
+        const auto profileConf =
+            getPlatform()->getPortProfileConfig(port->getProfileID());
+        if (!profileConf) {
+          throw FbossError(
+              "Platform doesn't support speed profile: ",
+              apache::thrift::util::enumNameSafe(port->getProfileID()));
         }
+        auto expectedPhyLaneConfig =
+            utility::getDesiredPhyLaneConfig(*profileConf);
         EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
       }
     }

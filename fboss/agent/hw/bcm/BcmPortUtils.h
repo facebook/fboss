@@ -35,9 +35,7 @@ namespace facebook::fboss::utility {
 
 bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(facebook::fboss::phy::FecMode fec);
 
-uint32_t getDesiredPhyLaneConfig(
-    phy::IpModulation modulation,
-    TransmitterTechnology tech);
+uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg);
 
 bcm_gport_t getPortGport(int unit, int port);
 

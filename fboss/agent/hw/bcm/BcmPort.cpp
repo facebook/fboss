@@ -1588,36 +1588,21 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   auto curPortResource = getCurrentPortResource(unit_, gport_);
   auto desiredPortResource = curPortResource;
 
-  TransmitterTechnology tech = getTransmitterTechnology(swPort->getName());
-  XLOG(DBG1) << swPort->getName() << " has medium type: "
-             << apache::thrift::util::enumNameSafe(tech);
-  if (swPort->getProfileID() != cfg::PortProfileID::PROFILE_DEFAULT) {
-    auto profileID = swPort->getProfileID();
-    const auto profileConf =
-        hw_->getPlatform()->getPortProfileConfig(profileID);
-    if (!profileConf) {
-      throw FbossError(
-          "Platform doesn't support speed profile: ",
-          apache::thrift::util::enumNameSafe(profileID));
-    }
-
-    XLOG(DBG1) << "Program port resource based on speed profile: "
-               << apache::thrift::util::enumNameSafe(profileID);
-    desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
-    desiredPortResource.fec_type =
-        utility::phyFecModeToBcmPortPhyFec((*profileConf).get_iphy().get_fec());
-    desiredPortResource.phy_lane_config = utility::getDesiredPhyLaneConfig(
-        (*profileConf).get_iphy().get_modulation(), tech);
-  } else {
-    // in case we don't have the new config yet
-    cfg::PortSpeed desiredPortSpeed = getDesiredPortSpeed(swPort);
-    desiredPortResource.speed = static_cast<int>(getDesiredPortSpeed(swPort));
-    bool enableFec = getDesiredFECEnabledStatus(swPort);
-    cfg::PortFEC desiredFEC = enableFec ? swPort->getFEC() : cfg::PortFEC::OFF;
-    desiredPortResource.fec_type = getDesiredFECType(desiredFEC);
-    desiredPortResource.phy_lane_config =
-        getDesiredPhyLaneConfig(tech, desiredPortSpeed);
+  auto profileID = swPort->getProfileID();
+  const auto profileConf = hw_->getPlatform()->getPortProfileConfig(profileID);
+  if (!profileConf) {
+    throw FbossError(
+        "Platform doesn't support speed profile: ",
+        apache::thrift::util::enumNameSafe(profileID));
   }
+
+  XLOG(DBG1) << "Program port resource based on speed profile: "
+             << apache::thrift::util::enumNameSafe(profileID);
+  desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
+  desiredPortResource.fec_type =
+      utility::phyFecModeToBcmPortPhyFec((*profileConf).get_iphy().get_fec());
+  desiredPortResource.phy_lane_config =
+      utility::getDesiredPhyLaneConfig(*profileConf);
 
   auto isPortResourceSame = [](const bcm_port_resource_t& current,
                                const bcm_port_resource_t& desired) {
