@@ -85,11 +85,11 @@ const std::vector<phy::PinConfig>& PlatformMapping::getPortIphyPinConfigs(
 
   auto supportedProfiles = itPlatformPort->second.supportedProfiles;
   auto platformPortConfig = supportedProfiles.find(profileID);
-  if (platformPortConfig != supportedProfiles.end()) {
+  if (platformPortConfig == supportedProfiles.end()) {
     throw FbossError(
-        "No port profile with id ",
+        "No speed profile with id ",
         apache::thrift::util::enumNameSafe(profileID),
-        " found in PlatformConfig for port ",
+        " found in PlatformPortEntry for port ",
         id);
   }
 
