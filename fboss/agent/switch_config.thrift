@@ -602,6 +602,7 @@ enum PacketRxReason {
   BGP          = 11 // V4 BGP
   BGPV6        = 12 // V6 BGP
   LACP         = 13 // LACP, Slow Protocol
+  L3_MTU_ERROR = 14 // Packet size exceeds L3 MTU
 }
 
 enum PortLoopbackMode {
