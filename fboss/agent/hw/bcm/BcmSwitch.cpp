@@ -2906,7 +2906,6 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       l2addr->mac[5]);
   entry.vlanID = l2addr->vid;
   entry.port = 0;
-  entry.trunk_ref() = BcmTrunk::INVALID;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
     // Ideally we would return the corresponding BcmTrunk aggregatePortId here
     // rather than the SDK assigned trunk ids. However since this function does
