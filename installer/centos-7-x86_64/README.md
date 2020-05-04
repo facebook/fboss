@@ -2,157 +2,390 @@ This directory contains steps and scripts for how to setup environment for
 building FBOSS, build FBOSS binaries and install on a switch using CentOS 7
 x86-64.
 
+<a name="building">
+
 # 1. Building FBOSS
+
+</a>
 
 This section covers how to build FBOSS binaries and all its library
 dependencies. It involves creating a Virtual Machine environment, building
 FBOSS and then creating RPM package that contains FBOSS binaries and library
 dependencies.
 
-Requirement: ability to create Virtual Machine that has Internet access.
+**Requirements**: Ability to a create Virtual Machine that has Internet access.
 
-## 1.1 Preparation
+## 1.1 Setup build VM with Internet connectivity
 
-- Download ISO: CentOS 7 x86_64 from: https://www.centos.org/download/
+- Download ISO: CentOS 7 x86_64 from: https://www.centos.org/download
 - Create a Virtual Machine(VM) using this CentOS ISO Image.
 - The VM can be created using any virtualization software e.g. VMware Fusion or
-  KVM etc. Refer 'Installing VM on VMware Fusion' section for additional
-  details.
-- Sample VM configuration:: Disk space: 128Gb, RAM: 16G, CPUs: 8
+  KVM etc. Refer [Installing VM on VMware Fusion](#fusion-install) section for
+  additional details.
+- Recommended VM configuration: Disk space: 128Gb, RAM: 16G, CPUs: 8.
   More RAM/CPUS the merrier (faster builds).
-- VM needs connectivity to Internet.
-  - From command prompt, run 'ip addr list' to list interfaces.
-  - Request DHCP address on interface: e.g. dhclient ens33 # dhclient -6 for IPv6
-  - verify Inetnet connectivity by ping'ing known Internet IP.
-    For example, ping internet.org # ping6 internet.org for IPv6
+- Setup Internet connectivity for the VM
+  - From command prompt, run ```ip addr list``` to list interfaces.
+  - Request DHCP address on interface. e.g. ```dhclient ens33``` or
+    ```dhclient -6 ens33``` (for IPv6)
+  - Verify Internet connectivity by ping'ing a known address.
+    e.g ```ping internet.org``` or ``` ping6 internet.org``` (for IPv6)
+  - **Optionally** configure proxy settings if VM's internet access is through a
+    proxy server
+      - Add these lines to ```~/.bashrc```
+        ```
+        export HTTP_PROXY=http://<proxy-server>:<port>
+        export HTTPS_PROXY=http://<proxy-server>:<port>
+        export http_proxy=http://<proxy-server>:<port>
+        export https_proxy=http://<proxy-server>:<port>
+        ```
+      - Add this line to ```/etc/yum.conf```:
+        ```proxy=https://<proxy-server>:<port>```
+      - Add this line to ```/etc/sudoers``` (using ```sudo visudo```)
+
+        ```Defaults    env_keep += "ftp_proxy http_proxy https_proxy no_proxy"```
 
 This VM will be the build environment.
 
 ## 1.2 Get FBOSS
 
-- sudo yum install git
-- git clone https://github.com/facebook/fboss.git fboss.git
+```
+sudo yum install git
+git clone https://github.com/facebook/fboss.git fboss.git
+```
+<a name="upgrade-kernel">
 
 ## 1.3 Upgrade kernel
 
-CentOS 7.0 comes with kernel 3.10. This upgrades the kernel to latest long term
-support kernel (currently 4.4).
+</a>
 
-- cd fboss.git
-- ./installer/centos-7-x86_64/upgrade-kernel.sh
-- reboot # issue this command from VM console.
+CentOS 7.0 comes with kernel 3.10. Use the following steps to upgrade the kernel to
+a more recent version to match with the kernel used on systems running FBOSS
+(currently 4.4.x).
 
-During reboot, choose the newly installed kernel (default would still be 3.10).
-On boot, run uname -a to verify the version of the kernel.
+```
+cd fboss.git
+./installer/centos-7-x86_64/upgrade-kernel.sh
+```
 
-If it boots successfully into new kernel, change the default to newly installed
-kernel as below:
+Connect to the VM's serial console
+```
+reboot
+```
 
-Check /etc/default/grub.
+During reboot choose the newly installed kernel version (default would still be 3.10).
 
-If it has GRUB_DEFAULT=<number>,
-  - edit it to GRUB_DEFAULT=0.
-  - grub2-mkconfig -o /boot/grub2/grub.cfg
-  - reboot # verify if default changed.
+Once the VM has booted up successfully, verify the version of the kernel
+```
+uname -a
+```
 
-else if it has GRUB_DEFAULT=saved,
-  - grub2-editenv list
-  - grub2-set-default 0
-  - reboot # verify if default changed.
+Change the default kernel to be booted to the newly installed version
+by following these steps
 
-Reference: https://www.tecmint.com/install-upgrade-kernel-version-in-centos-7/
+In ```/etc/default/grub``` if ```GRUB_DEFAULT=<number>```, edit it to
+```GRUB_DEFAULT=0``` and then execute these commands
+```
+grub2-mkconfig -o /boot/grub2/grub.cfg
+reboot
+```
+
+Otherwise in ```/etc/default/grub``` if ```GRUB_DEFAULT=saved```,
+then execute these commands
+```
+grub2-editenv list
+grub2-set-default 0
+```
+
+Reboot the VM and verify the default kernel being booted has indeed been changed
+```
+reboot
+```
+
+Reference: https://www.tecmint.com/install-upgrade-kernel-version-in-centos-7
 
 ## 1.4 Install tools
 
 Install tools needed for bulding FBOSS software.
 
-- cd fboss.git
-- ./installer/centos-7-x86_64/install-tools.sh
+```
+cd fboss.git
+./installer/centos-7-x86_64/install-tools.sh
+```
 
-## 1.5 Build FBOSS binaries
+<a name="build-fboss">
 
-- export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
-- export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
-- cd fboss.git
-- ./build/fbcode_builder/getdeps.py build fboss
+## 1.5 Build FBOSS binaries and dependencies
 
-The built FBOSS binaries will be available here:
-/tmp/fbcode_builder_getdeps-ZhomeZ${USER}Zfboss.gitZbuildZfbcode_builder/installed/fboss/bin/{wedge_agent, bcm_test}
+</a>
 
-## 1.6 Build tips
+```
+export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
+export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
 
-- The FBOSS build step downloads and builds all FBOSS dependencies as listed in
-  build/fbcode_builder/manifests/fboss (and recursively does the same for every
+cd fboss.git
+./build/fbcode_builder/getdeps.py build fboss
+```
+
+The built FBOSS binaries (e.g. ```wedge_agent```, ```bcm_test```) will be installed at
+```
+/tmp/fbcode_builder_getdeps-ZhomeZ${USER}Zfboss.gitZbuildZfbcode_builder/installed/fboss/bin/
+```
+
+### Building SDK Kernel Modules
+
+In order to run FBOSS binaries on a test switch, we would also need to build
+SDK kernel modules from sources
+
+#### OpenNSA SDK
+
+Build the OpenNSA kernel modules using the following steps
+```
+cd fboss.git
+./installer/centos-7-x86_64/build-bcm-ko.sh
+```
+
+### Build FYI
+
+- The FBOSS build process downloads and builds all FBOSS dependencies listed in
+  ```build/fbcode_builder/manifests/fboss``` (and recursively does the same for every
   listed dependency).
-- The amount of time it takes to build depends on the number of vCPUS, memory
-  etc. A 32 vcpu VM with 16G RAM and 512M swap space builds FBOSS in
+- The build time depends on the number of vCPUS and memory configured for the VM.
+  e.g. A 32 vCPU VM with 16G RAM and 512M swap space builds FBOSS in
   approximately 20 minutes.
-- by default, fbcode_builder will use number of concurrent jobs for building to
-  equal the number of cpu cores. That can be tweaked by setting --num-jobs
-  e.g.:
-      - cd fboss.git
-      - ./build/fbcode_builder/getdeps.py build fboss --num-jobs 8
-- If the build fails with below error
+- By default, fbcode_builder will set the number of concurrent build jobs to be
+  equal to the number of cpu cores of the VM. This can be overriden by using
+  the ```--num-jobs``` cmdline option e.g.
+  ```
+  cd fboss.git
+  ./build/fbcode_builder/getdeps.py build fboss --num-jobs 8
+  ```
+- If the build fails with the following error, consider the following options
+    ```
     c++: fatal error: Killed signal terminated program cc1plus
+    ```
 
-  check the swap utilization (run free -mhb), consider increasing the number of
-  vcpus/memory/swap size etc. Or, if that is not possible, consider reducing
-  the number of concurrent jobs using --num-jobs.
+  - Check the swap utilization (run ```free -mhb```) and
+  consider increasing the number of vcpus/memory/swap size
+  - Consider reducing the number of concurrent jobs using ```--num-jobs```
 
-## 1.7 Packaging FBOSS binaries and dependencies
+<a name="package">
 
-- cd fboss.git
-- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py
+## 1.6 Packaging FBOSS binaries, dependencies and other build artifacts
 
-This creates a temporary directory with prefix /tmp/fboss_bins and copies all
-the FBOSS binaries and dependencies from different directories to it.
+</a>
 
-This directory could then be scp -r'ed on to the test switch for running.
+<a name="package-folder">
 
-Optionally, the script could also be used to build an RPM package with all the
-FBOSS binaries and all the dependent libraries. It would be orders of magnitude
-slower to build RPM though:
+### 1.6.1 Packaging FBOSS to a folder
 
-- cd fboss.git
-- export QA_RPATHS=$[ 0x0001|0x0002|0x0004|0x0008|0x0010|0x0020 ]
-- /opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py -rpm
+</a>
 
-The built RPM would be available here:
+```
+cd fboss.git
+/opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py
+```
+
+This creates a package directory with prefix **```/tmp/fboss_bins```** and copies all
+the essential artifacts of the FBOSS build process (binaries, dependencies,
+config files, helper scripts, etc.)  from various locations to it.
+
+This package directory could then be copied over to the test switch for exercising
+FBOSS and associated tests.
+
+<a name="package-rpm">
+
+### 1.6.2 Packaging FBOSS to an RPM
+
+</a>
+
+Alternatively, an RPM package can also be built with all the FBOSS build artifacts.
+However, it would be orders of magnitude slower than packaging to a folder.
+
+```
+cd fboss.git
+export QA_RPATHS=$[ 0x0001|0x0002|0x0004|0x0008|0x0010|0x0020 ]
+/opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py --rpm
+```
+
+The built RPM would be copied here
+```
 $HOME/rpmbuild/RPMS/x86_64/fboss_bins-1-1.el7.centos.x86_64.rpm
+```
 
-## 1.8 Building SAI tests for your SAI implementation
+# 2. Installing FBOSS
 
-The above build steps would build SAI tests that link with SAI implementation
-provided by fake_sai library e.g.: sai_test-fake-1.5.0
+This section covers how to install FBOSS RPM package built using instructions
+described in the previous section, on to a switch.
 
-To build SAI tests that link with your SAI implementation, we need to add that
-SAI implementation as a dependency for FBOSS and specify how to retrieve the
-SAI implementation. This could be achieved using steps below:
+**Requirements**
+- Access to hardware (switch) that can support running FBOSS.
+- Serial console access to the switch.
+- Facility to copy FBOSS build package from the build VM to the switch.
 
-- Build a static library for your SAI implementation and name it libsai_impl.a
-- mkdir lib
-- copy libsai_impl.a in lib
-- tar czvf libsai_impl.tar.gz lib/libsai_impl.a
-- sha256sum libsai_impl.tar.gz
-- Create a manifest for SAI implementation
+This section assumes that the switch does not have Internet connectivity.
+However, if the switch does have Internet connectivity, some of the
+steps could be simplied - e.g. upgrading the kernel on the switch can follow similar
+steps as described in [1.3 Upgrade kernel](#upgrade-kernel) for the build VM.
 
+## 2.1 Install CentOS 7.0
+
+This should follow standard instructions for installing a Linux distribution on
+a x86_64 machine. In particular, install CentOS 7 x86_64 ISO from:
+  https://www.centos.org/download
+
+As an example, see [Installing CentOS 7 from bootable USB](#usb-centos-install).
+
+## 2.2 Upgrade kernel
+
+This section assumes that the switch does not have Internet connectivity.
+However, if the switch does have Internet connectivity, some of the
+steps could be simplied - e.g. upgrading the kernel on the switch can follow similar
+steps as described in [1.3 Upgrade kernel](#upgrade-kernel) for the build VM.
+
+### 2.2.1 Download new kernel rpms
+
+On the CentOS build VM setup in [1. Building](#building), download the kernel RPM
+that matches the version running on the VM
+
+Install ```yumdownloader```
+```
+yum install yum-utils
+```
+Download kernel rpms to the current directory
+```
+yumdownloader --enablerepo=elrepo-kernel kernel-lt-`uname -r`
+```
+
+### 2.2.2 Install new kernel
+
+- Copy over the downloaded new kernel rpm from the build VM to the switch.
+- Install the kernel RPM
+  ```
+  rpm -ivh kernel-lt-4.4.181-1.el7.elrepo
+  ```
+
+Follow instructions in [1.3 Upgrade kernel](#upgrade-kernel) to reboot, verify
+and change the grub boot order.
+
+
+<a name="install-fboss-bins">
+
+## 2.3 Installing FBOSS binaries
+
+</a>
+
+### 2.3.1 Installing from folder package
+
+- From the build VM, copy over the FBOSS package folder (see [Section 1.6.1](#package-folder)) to the switch
+    ```
+    scp -r /tmp/fboss_bins-<pkg-id> $switchName:/opt/
+    ```
+- On the switch, point  /opt/fboss to the new package before using
+    ```
+    ln -s  /opt/fboss_bins-<pkg-id> /opt/fboss
+    ```
+
+### 2.3.2 Installing RPM
+
+Alternatively, if FBOSS was packaged into an RPM (see [Section 1.6.2](#package-rpm))
+- Copy the RPM to the switch.
+- Install the RPM
+   ```
+   rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
+   ```
+- The binaries, dependent libraries and other package artifacts would be installed to
+  ```/opt/fboss/```
+
+## 2.4 Install tips
+
+### 2.4.1 Checking dependencies
+
+Verify that all runtime dependencies are satisified including by the libraries
+installed in ```/opt/fboss```
+```
+ldd /opt/fboss/wedge_agent
+ldd /opt/fboss/bcm_test
+```
+
+### 2.4.2 Checking, removing, reinstalling RPM
+
+Check for installed FBOSS RPM
+```
+rpm -qa | grep fboss
+```
+Remove FBOSS RPM
+```
+sudo rpm -e fboss_bins-1-1.el7.centos.x86_64
+```
+Reinstall FBOSS RPM
+```
+sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
+```
+
+
+# 3. Running FBOSS
+
+Switch to the FBOSS install folder on the switch
+(see [Section 2.3](#install-fboss-bins))
+```
+cd /opt/fboss
+```
+Run setup script to populate fruid.json, install/load kernel modules, etc.
+```
+./run_scripts/setup.sh
+```
+Set ```LD_LIBRARY_PATH``` to pick up dependent libraries from the FBOSS install location
+```
+export LD_LIBRARY_PATH=$PWD
+```
+Run ```/opt/fboss/{wedge_agent, bcm_test}``` etc. with desired arguments. e.g.
+
+```
+./bcm_test --bcm_config ./bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+```
+
+---
+# Incorporating support for a new SAI implementation
+
+The build steps described in [Section 1. Building](#building) build binaries
+(Wedge agent, SAI tests) that link with SAI implementation provided by a ```fake_sai``` library e.g. ```sai_test-fake-1.5.0```
+
+To build binaries that link with a new SAI implementation, we need to add the new
+SAI implementation as a dependency for FBOSS and specify the way to retrieve it.
+This is achieved using steps described below
+
+### Build a static library for the new SAI implementation and name it ```libsai_impl.a``` and copy ```libsai_impl.a``` to a folder named ```lib```
+```
+mkdir lib
+cp libsai_impl.a lib
+tar czvf libsai_impl.tar.gz lib/libsai_impl.a
+sha256sum libsai_impl.tar.gz
+```
+
+### Create a manifest for SAI implementation
+
+```
 cat fboss.git/build/fbcode_builder/manifests/sai_impl
+```
+```
 [manifest]
 name = sai_impl
 
 [download]
 url = http://localhost:8000/libsai_impl.tar.gz
-sha256 = insert sha256sum libsai_impl.tar.gz output here
+sha256 = <insert the output of 'sha256sum libsai_impl.tar.gz' here>
 
 [build]
 builder = nop
 
 [install.files]
 lib = lib
+```
 
-- Edit FBOSS manifest so it depends on the sai_impl
-For example:
+### Edit FBOSS manifest to add a dependency on the ```sai_impl```
 
+```
 diff --git a/build/fbcode_builder/manifests/fboss
 b/build/fbcode_builder/manifests/fboss
 index e07e1e7..2a1016e 100644
@@ -163,23 +396,28 @@ index e07e1e7..2a1016e 100644
  OpenNSA
  re2
 +sai_impl
+```
 
-- cd to the directory that has libsai_impl.tar.gz, and start a webserver locally.
+### From the directory that ```libsai_impl.tar.gz``` is located, start a webserver locally
+```
 python3 -m http.server
+```
 
-- Build FBOSS binaries (refer Section 1.5 for how)
+### Build FBOSS using steps described in [Section 1.5](build-fboss)
 
-In addition to SAI tests that link with fake_sai, this would build and install
-SAI tests that link with sai_impl e.g. sai_test-sai_impl-1.5.0.
+In addition to SAI tests that link with ```fake_sai```,
+SAI tests that link with ```sai_impl``` e.g. ```sai_test-sai_impl-1.5.0``` would be
+additionally built and installed
 
-## 1.9 Packaging SAI tests and dependencies for your SAI implementation
+## Packaging SAI tests and dependencies for the new SAI implementation
 
-In order for the packaging/RPM package to include these SAI tests, the
-packaging script and RPM spec has to be modified. If you are not building RPM
+In order for the FBOSS packaging (folder or RPM) to include the newly added SAI tests,
+the packaging script and RPM spec have to be modified. If you are not building RPM
 package, modifying only the packaging script is enough.
 
-Make changes on the lines below and build as usual (refer Section 1.7 for how)
+Make the changes as shown below and build the package (see [Section 1.6](#package))
 
+```
 diff --git a/installer/centos-7-x86_64/package-fboss.py b/installer/centos-7-x86_64/package-fboss.py
 index e12b43f..ba5ff87 100755
 --- a/installer/centos-7-x86_64/package-fboss.py
@@ -215,16 +453,20 @@ index 2a451d5..bc647f7 100644
 
  /opt/fboss/libgflags.so.2.2
  /opt/fboss/libglog.so.0
+```
 
-## 1.10 Validating new OpenNSA releases
+---
+# Validating FBOSS build with a new OpenNSA SDK
 
-Before releasing next version of OpenNSA on github, following steps could be
-used to validate whether the new OpenNSA would build with FBOSS.
+Before releasing the next version of OpenNSA on github, the following steps could be
+used to validate the FBOSS build with the new OpenNSA
 
-- Copy over OpenNSA-next-release.tar.gz on the build VM where you want to build FBOSS.
-- From the same directory, start local web server: python3 -m http.server &
-- Edit: fboss.git/build/fbcode_builder/manifests/OpenNSA to update url, sha256 sum, subdir etc.:
+- Copy over ```OpenNSA-next-release.tar.gz``` on to a FBOSS build VM
+- From the same directory, start local web server: ```python3 -m http.server &```
+- Edit ```fboss.git/build/fbcode_builder/manifests/OpenNSA``` to update url,
+  sha256 sum, subdir etc.
 
+    ```
     diff --git a/build/fbcode_builder/manifests/OpenNSA b/buildfbcode_builder/manifests/OpenNSA
     --- a/build/fbcode_builder/manifests/OpenNSA
     +++ b/build/fbcode_builder/manifests/OpenNSA
@@ -235,219 +477,118 @@ used to validate whether the new OpenNSA would build with FBOSS.
     -url = https://bitbucket.org/fboss/opennsa-fork/get/release/v1.0.tar.gz
     -sha256 = 40e56460b85a8be4cfdc4591569453eb19aea3344f3c297b1d8b5a9ebf29bdf0
     +url = http://localhost:8000/OpenNSA-next-release.tar.gz
-    +sha256 = From command line, run sha256sum OpenNSA-next-release.tar.gz, and insert o/p here
+    +sha256 = <insert the output of 'sha256sum OpenNSA-next-release.tar.gz' here>
 
      [build]
      builder = nop
     -subdir = fboss-opennsa-fork-1e7cd6e7f059
-    +subdir = fboss-opennsa-fork-26d1e23b9867 # Replace with appropriate subdir name
+    +subdir = fboss-opennsa-fork-26d1e23b9867 # Replace with appropriate subdir name>
+    ```
 
 - Build OpenNSA. Since OpenNSA has precompiled libraries, this does not do a
-  real build, but simply copies over the files in the right directories for
+  real build, but simply copies over the files to the right directories for
   fbcode_builder to consume while building FBOSS.
 
+    ```
     export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
     export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
     cd fboss.git
     ./build/fbcode_builder/getdeps.py build OpenNSA
     ./build/fbcode_builder/getdeps.py show-inst-dir OpenNSA
     ls <output of show-inst-dir> to verify if the OpenNSA-next-release libs are available.
+    ```
 
-- ./build/fbcode_builder/getdeps.py clean
-- Build FBOSS (refer 1.5).
+- [Rebuild FBOSS](#build-fboss) with OpenNSA-next-release after cleaning dependencies
+```
+./build/fbcode_builder/getdeps.py clean
+```
+If the build succeeds, it validates that the next OpenNSA release can build with FBOSS.
 
-This will build and link FBOSS build with OpenNSA-next-release. If the build is
-successful, it validates that the next OpenNSA release can build with FBOSS.
-
-## 1.11 Building Kernel Modules
-
-OpenNSA ships with pre-built SDK libraries and kernel module sources.
-The above build steps build FBOSS that links with pre-built OpenNSA.
-
-In order to run FBOSS binaries on a test switch, we must build OpenNSA kernel
-module from sources and load.
-
-- cd fboss.git
-- ./installer/centos-7-x86_64/build-bcm-ko.sh
-
-## 1.12 Packaging OpenNSA Kernel Modules
-
-Refer section 1.7. If the kernel modules are built using steps in 1.11, those
-are packaged as well.
-
-
-# 2. Installing FBOSS
-
-This section covers how to install FBOSS RPM package built using instructions
-in previous section.
-
-Requirements:
-- access to hardware (switch) that can run FBOSS.
-- The switch should have serial console access.
-- CentOS VM configured in Building FBOSS section above.
-- ability to copy files from the CentOS VM to the switch.
-
-This section is written assuming that the switch does not have Internet
-connectivity. However, if the switch has Internet connectivity, some of the
-steps will be simpler - e.g. upgradeing kernel can do a direct 'yum install'
-similar to what is described in "1.3 Upgrade kernel" for the VM.
-
-## 2.1 Install CentOS 7.0
-
-This should follow usual instructions for installing a Linux distribution on
-x86_64 machine. In particular, install CentOS 7 x86_64 ISO from:
-  https://www.centos.org/download/
-
-As an example, refer "Installing CentOS 7 from bootable USB" section.
-
-## 2.2 Upgrade kernel
-
-This section assumes that the switch has no direct Internet connectivity. If
-the switch has direct Internet connectivity, follow instructions similar to
-"1.3 Upgrade kernel" to yum install directly.
-
-### 2.2.1 Download new kernel rpms
-
-From the CentOS VM configured in section 1. Building, download the kernel RPM.
-
-- yum install yum-utils   # installs yumdownloader
-- yumdownloader --enablerepo=elrepo-kernel kernel-lt    # this downloads an rpm to current directory
-
-### 2.2.2 Install new kernel
-
-- Copy the downloaded new kernel rpm from CentOS VM to the switch.
-- rpm -ivh kernel-lt-4.4.181-1.el7.elrepo   # install the RPM.
-
-Follow instructions in "1.3 Upgrade kernel" to reboot, verify and change the
-grub boot order.
-
-## 2.3 Installing Python3
-
-If the switch has direct Internet connectivity, run:
-
-yum install rh-python36
-
-If the switch has no direct Internet connectivity, from build VM, run:
-
-- mkdir /tmp/python36-and-deps; cd /tmp/python36-and-deps
-- sudo yum install --downloadonly --downloaddir=/tmp/python36-and-deps --installroot=/tmp/python36-and-deps --releasever=/ rh-python36
-- scp -r /tmp/python36-and-deps $switchName:/tmp/
-
-From switch:
-- cd /tmp/python36-and-deps
-- sudo rpm -Uvvh \*.rpm
-- /opt/rh/rh-python36/root/usr/bin/python3  # to verify
-
-## 2.4 Installing FBOSS binaries
-
-### 2.4.1 Installing files
-
-- package-fboss.py (section 1.7) creates a temporary directory with prefix
-  /tmp/fboss_bins. Copy it over to the switch.
-
-
-### 2.4.2 Installing RPM
-
-- Alternatively, if package-fbos.py was run with -rpm (section 1.7), it produces an RPM package.
-- Copy teh RPM to the switch.
-- Install the RPM
-   rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
-- The RPM will install binaries and dependent libraries in /opt/fboss/
-
-## 2.5 Install tips
-
-### 2.5.1 Checking dependencies
-
-Check dependencies using ldd.  All shared object dependencies should be
-satisified, and dependencies should be picked from /opt/fboss.
-
-ldd /opt/fboss/bcm_test # or wedge_agent
-
-### 2.5.2 Checking install RPM, removing it
-
-- rpm -qa | grep fboss    # check all installed RPMS.
-- sudo rpm -e fboss_bins-1-1.el7.centos.x86_64  # remove installed RPM
-- sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm # reinstall the RPM
-
-
-# 3. Running FBOSS
-
-- cd $fboss-bins # (copied/installedi in section 2.3)
-- ./run_scripts/setup.sh # Populates fruid.json, installs/loads BCM kos etc.
-- export LD_LIBRARY_PATH=$PWD
-- Run /opt/fboss/{wedge_agent, bcm_test} etc. with desired arguments.
-
-e.g.
-
-./bcm_test --bcm_config ~/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
-
-
+---
 # Appendix A
 
 This section details workflows using particular versions of software. The
 build/install process has been successfully verified using these workflows and
 should thus serve as handy reference.
 
+<a name="fusion-install">
+
 ## A.1 Installing VM on VMware Fusion
+
+</a>
 
 These steps worked on a Macbook laptop running macOS Mojave version 10.14.4.
 
 - Install VMware Fusion Professional Version 11.1.0 (13668589)
-- Download CentOS-7-x86_64-DVD-1810.iso https://www.centos.org/download/
+- Download CentOS-7-x86_64-DVD-1810.iso https://www.centos.org/download
 - Start VMware Fusion : File => New => drag and drop CentOS ISO on
-   “Install from disc or image”.
-- On macOS Mojave Version 10.14.4, this prompts “Could not open
-  /dev/vmmon: Broken Pipe”. Fix by setting right security & privacy
+   ```Install from disc or image```.
+- On macOS Mojave Version 10.14.4, this prompts ```Could not open
+  /dev/vmmon: Broken Pipe```. Fix by setting right security & privacy
   settings. Reference: http://communities.vmware.com/thread/600496
 - Before beginning installation, click on VM settings and change
   hard disk size to at least 64G, CPUs: 2 (max the machine can reasonably
   support), Memory 2G (again, max possible).
 
+<a name="usb-centos-install">
+
 ## A.2 Installing CentOS 7 from bootable USB
+
+</a>
 
 These steps worked on a Macbook laptop running macOS Mojave version 10.14.4.
 These steps require a USB 2.0 or USB 3.0 of size >= 16GB.
 
 ### A.2.1 Create a bootable USB
 
-- Download ISO: CentOS 7 x86_64 from: https://www.centos.org/download/
+- Download ISO: CentOS 7 x86_64 from: https://www.centos.org/download
 - Convert downloaded .iso to .img (specifically, a UDIF read/write image) by
-  running following from Macbook terminal:
+  running following from Macbook terminal
 
+    ```
     hdiutil convert -format UDRW -o CentOS-7-x86_64-DVD-1810.img CentOS-7-x86_64-DVD-1810.iso
+    ```
 
 - Insert USB 2.0 or USB 3.0 drive into the macbook.
-- diskutil list  # find out the name of the USB disk just inserted e.g.  /dev/disk3
-- diskutil unmountDisk <disk-name> # unmount the disk e.g. diskutil unmountDisk /dev/disk3
-- time sudo dd if=CentOS-7-x86_64-DVD-1810.img.dmg of=/dev/disk3 bs=1m # this took over 25 minutes
-  Note: the last step can take several minutes without reporting any progress.
-  Took over 25 minutes on Macbook laptop with Interl i7 processor and 16G RAM.
+- Find out the name of the USB disk just inserted e.g.  /dev/disk3
+  ```
+  diskutil list
+  ```
+- Unmount the disk e.g. ```diskutil unmountDisk /dev/disk3```
+  ```
+  diskutil unmountDisk <disk-name>
+  ```
+- This next step will take a **long** time without reporting any progress. _Took over 25 minutes on Macbook laptop with Interl i7 processor and 16G RAM._
+  ```
+  time sudo dd if=CentOS-7-x86_64-DVD-1810.img.dmg of=/dev/disk3 bs=1m
+  ```
 
 Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-drive-with-a-mac-os-x
 
-### A.2.2 Use the bootable USB to install
+### A.2.2 Use the bootable USB to install CentOS on the Wedge switch
 
 - Power on the switch and connect to its serial console (BMC).
 - Insert the bootable USB.
 - Login as root using the default password.
-- From the command prompt, run "/usr/local/bin/wedge_power.sh reset"
-- Then, run "/usr/local/bin/sol.sh" to get serial console to the wedge to
+- From the command prompt, run ```/usr/local/bin/wedge_power.sh reset```
+- Then, run ```/usr/local/bin/sol.sh``` to get serial console to the wedge to
   observe the wedge restart.
-- During restart, hit 'escape' or 'delete' or 'shift delete' to get to the BIOS.
-  Depending on the environment used to connect to console, one of the above key
-  combinations should work.
+- During restart, hit ```escape``` or ```delete``` or ```shift delete``` to get to
+  the BIOS. Depending on the environment used to connect to console, one of the above
+  key combinations should work.
 - From BIOS, select to boot from USB.
   (note: if the configuration order is changed to boot from USB, don't forget
   to change it back to boot from hard disk after the install is complete.
   Alternatively, simply choose to boot from USB for the current boot).
 - This will boot from USB and get to the Linux grub prompt.
 - By default, Linux will attempt GUI install, to prevent it, at grub prompt:
-    - edit line that has 'quite' in the end to add: inst.text inst.headless console=ttyS0,57600
-    - hit 'control + x' to boot using above setting, this will do text install from the console.
+    - edit line that has ```quite``` in the end to add ```inst.text inst.headless console=ttyS0,57600```
+    - hit ```CTRL + x``` to boot using above setting, this will do text install
+    from the console.
       - Set the timezone, root password
-      - Choose defaults for destination disk: "Use all of space", "LVM".
-    - Note: post install step takes several minutes.
-    - reboot
+      - Choose defaults for destination disk: ```Use all of space```, ```LVM```.
+    - **NOTE**: post install step takes several minutes.
+    - ```reboot```
 - If the boot order was changed, enter BIOS again to change it back to boot
   from hard disk first.
 
@@ -455,10 +596,10 @@ Reference: http://www.myiphoneadventure.com/os-x/create-a-bootable-centos-usb-dr
 
 This assumes DHCP server is present in the network.
 
-- ip addr list
-- dhclient <interface-name> or dhclient -6 <interface-name> # for IPv4 and IPv6 respectively
-- the above has to be run after every reboot, to make it persistent:
-  - ip addr list    # find out the interface name
-  - Edit /etc/sysconfig/network-scripts/ifcfg-<interface-name>
-  - e.g. for /etc/sysconfig/network-scripts/ifcfg-enp2s0 if the interface name is enp2s0
-  - Set ONBOOT=yes
+- From the linux prompt, run ```ip addr list``` to list interfaces.
+- Request DHCP address on interface. e.g. ```dhclient <interface-name>``` or
+  ```dhclient -6 <interface-name>``` (for IPv6)
+- ```dhclient``` step has to be run after every reboot, to make it persistent:
+  - Edit ```/etc/sysconfig/network-scripts/ifcfg-<interface-name>``` e.g. for ```/etc/sysconfig/network-scripts/ifcfg-enp2s0``` if the interface name
+    is ```enp2s0```
+  - Set ```ONBOOT=yes```
