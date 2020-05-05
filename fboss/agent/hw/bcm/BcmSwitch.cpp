@@ -2747,6 +2747,9 @@ void BcmSwitch::configureRxRateLimiting() {
        // we do care about LLDP, punt these to mid-pri queue
        ControlPlane::makeRxReasonToQueueEntry(
            cfg::PacketRxReason::BPDU, FLAGS_cosq_midpri),
+       // Adding trap for packets that exceed the L3 MTU for the interface.
+       ControlPlane::makeRxReasonToQueueEntry(
+           cfg::PacketRxReason::L3_MTU_ERROR, FLAGS_cosq_lopri),
        // TTL expired packets seem to show up with bcmRxReasonL3Slowpath.
        // (We perhaps don't register for TTL expired packets to come to the CPU
        // explicitly.)

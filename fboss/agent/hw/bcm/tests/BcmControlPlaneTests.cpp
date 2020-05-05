@@ -255,6 +255,8 @@ TEST_F(BcmControlPlaneTest, VerifyReasonToQueueMapping) {
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::BPDU, utility::kCoppMidPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::L3_MTU_ERROR, utility::kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::L3_SLOW_PATH, utility::kCoppLowPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::L3_DEST_MISS, utility::kCoppLowPriQueueId),

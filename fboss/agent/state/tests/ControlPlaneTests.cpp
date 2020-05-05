@@ -144,6 +144,8 @@ shared_ptr<ControlPlane> generateControlPlane() {
       ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::BPDU, 2),
       ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::UNMATCHED, 1),
       ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::L3_MTU_ERROR, 0),
+      ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::L3_SLOW_PATH, 0),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::L3_DEST_MISS, 0),

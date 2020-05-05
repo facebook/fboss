@@ -49,6 +49,8 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
       return RxUtils::genReasons(bcmRxReasonTtl1);
     case cfg::PacketRxReason::CPU_IS_NHOP:
       return RxUtils::genReasons(bcmRxReasonNhop);
+    case cfg::PacketRxReason::L3_MTU_ERROR:
+      return RxUtils::genReasons(bcmRxReasonL3MtuFail);
     case cfg::PacketRxReason::NDP:
     case cfg::PacketRxReason::LLDP:
     case cfg::PacketRxReason::ARP_RESPONSE:
@@ -80,6 +82,8 @@ cfg::PacketRxReason bcmReasonsToConfigReason(bcm_rx_reasons_t reasons) {
     return cfg::PacketRxReason::TTL_1;
   } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonNhop)) {
     return cfg::PacketRxReason::CPU_IS_NHOP;
+  } else if (BCM_RX_REASON_GET(reasons, bcmRxReasonL3MtuFail)) {
+    return cfg::PacketRxReason::L3_MTU_ERROR;
   } else {
     throw FbossError(
         "Unsupported bcm reasons ", RxUtils::describeReasons(reasons));
