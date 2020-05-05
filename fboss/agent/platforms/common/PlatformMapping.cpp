@@ -83,7 +83,7 @@ const std::vector<phy::PinConfig>& PlatformMapping::getPortIphyPinConfigs(
     throw FbossError("No PlatformPortEntry found for port ", id);
   }
 
-  auto supportedProfiles = itPlatformPort->second.supportedProfiles;
+  auto& supportedProfiles = itPlatformPort->second.supportedProfiles;
   auto platformPortConfig = supportedProfiles.find(profileID);
   if (platformPortConfig == supportedProfiles.end()) {
     throw FbossError(
