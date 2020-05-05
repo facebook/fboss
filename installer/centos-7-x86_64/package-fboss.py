@@ -29,6 +29,8 @@ class PackageFboss:
     BIN = "bin"
     LIB = "lib"
     LIB64 = "lib64"
+    DATA = "share"
+    MODULES = "lib/modules"
 
     GETDEPS = "build/fbcode_builder/getdeps.py"
 
@@ -49,6 +51,11 @@ class PackageFboss:
 
     def __init__(self):
         self.tmp_dir_name = tempfile.mkdtemp(prefix=PackageFboss.FBOSS_BINS)
+        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
+        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
+        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
+        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.MODULES))
+        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
         self.rpm_dir_abs = os.path.join(PackageFboss.HOME_DIR_ABS, "rpmbuild")
         self.rpm_src_dir_abs = os.path.join(self.rpm_dir_abs, "SOURCES")
@@ -73,15 +80,31 @@ class PackageFboss:
 
     def _copy_run_scripts(self, tmp_dir_name):
         run_scripts_path = os.path.join(PackageFboss.SCRIPT_DIR_ABS, "run_scripts")
-        print(f"Copying {run_scripts_path} to {tmp_dir_name}")
-        shutil.copytree(run_scripts_path, os.path.join(tmp_dir_name, "run_scripts"))
+        src_files = os.listdir(run_scripts_path)
+        for file_name in src_files:
+            full_file_name = os.path.join(run_scripts_path, file_name)
+            script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
+            print(f"Copying {full_file_name} to {script_pkg_path}")
+            shutil.copy(full_file_name, script_pkg_path)
+
+    def _copy_run_configs(self, tmp_dir_name):
+        run_configs_path = os.path.join(PackageFboss.SCRIPT_DIR_ABS, "run_configs")
+        src_files = os.listdir(run_configs_path)
+        for file_name in src_files:
+            full_file_name = os.path.join(run_configs_path, file_name)
+            config_pkg_path = os.path.join(tmp_dir_name, PackageFboss.DATA)
+            print(f"Copying {full_file_name} to {config_pkg_path}")
+            shutil.copy(full_file_name, config_pkg_path)
 
     def _copy_configs(self, tmp_dir_name):
         bcm_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/bcm_configs"
         )
         print(f"Copying {bcm_configs_path} to {tmp_dir_name}")
-        shutil.copytree("fboss/bcm_configs", os.path.join(tmp_dir_name, "bcm_configs"))
+        shutil.copytree(
+            "fboss/bcm_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_configs"),
+        )
 
     def _copy_kos(self, tmp_dir_name):
         # If kernel modules are built (e.g. by build-bcm-ko.sh), copy those
@@ -92,10 +115,11 @@ class PackageFboss:
         if os.path.exists(opennsa_ko_dir):
             linux_user_bde_path = os.path.join(opennsa_ko_dir, "linux-user-bde.ko")
             linux_kernel_bde_path = os.path.join(opennsa_ko_dir, "linux-kernel-bde.ko")
-            print(f"Copying {linux_user_bde_path} to {tmp_dir_name}")
-            shutil.copy(linux_user_bde_path, tmp_dir_name)
-            print(f"Copying {linux_kernel_bde_path} to {tmp_dir_name}")
-            shutil.copy(linux_kernel_bde_path, tmp_dir_name)
+            ko_pkg_path = os.path.join(tmp_dir_name, PackageFboss.MODULES)
+            print(f"Copying {linux_user_bde_path} to {ko_pkg_path}")
+            shutil.copy(linux_user_bde_path, ko_pkg_path)
+            print(f"Copying {linux_kernel_bde_path} to {ko_pkg_path}")
+            shutil.copy(linux_kernel_bde_path, ko_pkg_path)
 
     def _copy_binaries(self, tmp_dir_name):
         print(f"Copying binaries...")
@@ -105,10 +129,12 @@ class PackageFboss:
             executable_type, executables = exec_type_and_execs
             for e in executables:
                 abs_path = os.path.join(executable_path, executable_type, e)
-                print(f"Copying {abs_path} to {tmp_dir_name}")
-                shutil.copy(abs_path, tmp_dir_name)
+                bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
+                print(f"Copying {abs_path} to {bin_pkg_path}")
+                shutil.copy(abs_path, bin_pkg_path)
 
         self._copy_run_scripts(tmp_dir_name)
+        self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 

@@ -5,12 +5,12 @@
 import os
 import re
 import subprocess
+import sys
 
 
 class TestRunner:
-    SCRIPT_DIR_ABS = os.path.dirname(os.path.realpath(__file__))
-    ENV_VAR = dict(os.environ, LD_LIBRARY_PATH=SCRIPT_DIR_ABS)
-    BCM_CONFIG_DIR = os.path.join(SCRIPT_DIR_ABS, "bcm_configs")
+    ENV_VAR = dict(os.environ)
+    BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
     WEDGE100S_RSW_BCM_CONF_PATH = os.path.join(BCM_CONFIG_DIR, "WEDGE100S+RSW-bcm.conf")
 
     _GTEST_RESULT_PATTERN = re.compile(
@@ -53,7 +53,7 @@ class TestRunner:
     def _get_tests_to_run(self):
         # TODO(skhare) generalize to run SAI tests as well
         output = subprocess.check_output(
-            ["./bcm_test", "--gtest_list_tests"], env=self.ENV_VAR
+            ["bcm_test", "--gtest_list_tests"], env=self.ENV_VAR
         )
         return self._parse_list_test_output(output)
 
@@ -61,7 +61,7 @@ class TestRunner:
         try:
             run_test_output = subprocess.check_output(
                 [
-                    "./bcm_test",
+                    "bcm_test",
                     "--bcm_config",
                     self.WEDGE100S_RSW_BCM_CONF_PATH,
                     "--flexports",
@@ -94,4 +94,7 @@ class TestRunner:
 
 
 if __name__ == "__main__":
+    if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
+        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
+        sys.exit(0)
     TestRunner().run()

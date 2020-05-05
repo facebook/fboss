@@ -297,18 +297,61 @@ Alternatively, if FBOSS was packaged into an RPM (see [Section 1.6.2](#package-r
 - The binaries, dependent libraries and other package artifacts would be installed to
   ```/opt/fboss/```
 
-## 2.4 Install tips
+## 2.4 Installing Python3
 
-### 2.4.1 Checking dependencies
+If the switch has Internet connectivity then install python3 using yum installer
+
+```
+yum install rh-python36
+```
+
+Otherwise (if the switch does not have Internet connectivity)
+
+- On the CentOS build VM setup in [1. Building](#building), download the
+python36 and it's dependent packages and copy them over to the switch
+
+  ```
+  mkdir /tmp/python36-and-deps; cd /tmp/python36-and-deps
+  sudo yum install --downloadonly --downloaddir=/tmp/python36-and-deps --installroot=/tmp/python36-and-deps --releasever=/ rh-python36
+  scp -r /tmp/python36-and-deps $switchName:/tmp/
+  ```
+
+- On the switch, install rh-python36 from the RPM files
+
+  ```
+  cd /tmp/python36-and-deps
+  sudo rpm -Uvvh --force --nodeps *.rpm
+  ```
+
+  - Verify rh-python36 installation
+    ```
+    /opt/rh/rh-python36/root/usr/bin/python3 -V
+    ```
+  - Set up the environment to pick up rh-python36
+    ```
+    source /opt/rh/rh-python36/enable
+    ```
+  - Set up the environment to pick up rh-python36 on every boot by creating this file
+    ```
+    [root@wedge ~]# cat /etc/profile.d/enablepython36.sh
+    #!/bin/bash
+    source /opt/rh/rh-python36/enable
+    ```
+
+## 2.5 Install tips
+
+### 2.5.1 Checking dependencies
 
 Verify that all runtime dependencies are satisified including by the libraries
 installed in ```/opt/fboss```
 ```
-ldd /opt/fboss/wedge_agent
-ldd /opt/fboss/bcm_test
+cd /opt/fboss
+source ./bin/setup_fboss_env
+ldd /opt/fboss/bin/wedge_agent
+ldd /opt/fboss/bin/bcm_test
 ```
 
-### 2.4.2 Checking, removing, reinstalling RPM
+### 2.5.2 Checking, removing, reinstalling RPM
 
 Check for installed FBOSS RPM
 ```
@@ -326,23 +369,40 @@ sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
 
 # 3. Running FBOSS
 
-Switch to the FBOSS install folder on the switch
-(see [Section 2.3](#install-fboss-bins))
+Switch to the FBOSS install folder on the switch and set up FBOSS environment
 ```
 cd /opt/fboss
+source ./bin/setup_fboss_env
 ```
-Run setup script to populate fruid.json, install/load kernel modules, etc.
+Run setup script to populate fruid.json, other config files and install/load
+kernel modules
 ```
-./run_scripts/setup.sh
+./bin/setup.sh
 ```
-Set ```LD_LIBRARY_PATH``` to pick up dependent libraries from the FBOSS install location
-```
-export LD_LIBRARY_PATH=$PWD
-```
-Run ```/opt/fboss/{wedge_agent, bcm_test}``` etc. with desired arguments. e.g.
+Run ```/opt/fboss/bin/{wedge_agent, bcm_test}``` etc. with desired arguments. e.g.
 
 ```
-./bcm_test --bcm_config ./bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+./bin/bcm_test --bcm_config ./share/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+```
+
+## 3.1 Running FBOSS Tests
+The FBOSS package includes tests that can be exercised on Wedge switches.
+
+### 3.1.1 Running selective FBOSS tests
+The test programs installed in ```/opt/fboss/bin (e.g. bcm_test, sai_test-*)``` can be
+launched to run tests with a variety of options and filters.
+```
+cd /opt/fboss
+source ./bin/setup_fboss_env
+./bin/bcm_test --bcm_config ./share/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+```
+
+### 3.1.2 Running all FBOSS tests
+FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs all tests relevant to the Wedge platform.
+```
+cd /opt/fboss
+source ./bin/setup_fboss_env
+./bin/test_runner.py
 ```
 
 ---
