@@ -33,6 +33,7 @@
 
 #include <folly/ScopeGuard.h>
 #include <folly/lang/Bits.h>
+#include <folly/logging/xlog.h>
 #include <libusb-1.0/libusb.h>
 
 using folly::ByteRange;
@@ -312,7 +313,7 @@ void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
   try {
     processReadResponse(buf, timeout);
   } catch (UsbError& e) {
-    LOG(ERROR) << "CP2112 i2c read error";
+    XLOG(DBG5) << "CP2112 i2c read error";
     // Increment the counter for I2c read failure and throw error
     incrReadFailed();
     throw;
@@ -355,7 +356,7 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
   try {
     waitForTransfer("write", end);
   } catch (UsbError& e) {
-    LOG(ERROR) << "cp2112 i2c write error";
+    XLOG(DBG5) << "cp2112 i2c write error";
     // Increment the counter for I2c write failure and throw error
     incrWriteFailed();
 
