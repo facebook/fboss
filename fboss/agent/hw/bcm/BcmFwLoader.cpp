@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmFwLoader.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <fstream>
@@ -18,21 +19,16 @@
 
 DEFINE_string(qcm_fw_path, "", "Location of qcm firmware");
 DEFINE_bool(load_qcm_fw, false, "Enable load of qcm fimrware");
+DEFINE_bool(
+    ignore_qcm_fw_file_not_found,
+    true,
+    "Ignore if qcm fw file is not found");
 
 namespace {
 static void loadQcmFw(
     const facebook::fboss::BcmSwitch* sw,
-    const int ucontrollerId) {
-  if (FLAGS_qcm_fw_path.empty()) {
-    return;
-  }
-
-  std::ifstream fwFile(FLAGS_qcm_fw_path);
-  if (!fwFile.good()) {
-    throw facebook::fboss::FbossError(
-        "Micro controller firmware file not found: ", FLAGS_qcm_fw_path);
-  }
-
+    const int ucontrollerId,
+    const std::string& fwFileName) {
   // Based on bcm csp CS9941424, inorder for qcm fw to warm boot
   // we need to gracefully shutdown communication with ucontroller(uc) prior
   // to loading the new fw and after load, explicitly initializing
@@ -43,7 +39,7 @@ static void loadQcmFw(
 
   // load fw
   cmd = folly::to<std::string>(
-      "mcsload ", ucontrollerId, " ", FLAGS_qcm_fw_path, " InitMCS=true");
+      "mcsload ", ucontrollerId, " ", fwFileName, " InitMCS=true");
   sw->printDiagCmd(cmd.c_str());
 
   // check status
@@ -58,12 +54,36 @@ static void loadQcmFw(
   sw->printDiagCmd(cmd.c_str());
 }
 
+static std::string loadQcmFileFile() {
+  return FLAGS_qcm_fw_path;
+}
+
+// this func is invoked if we fail to load the relevant QCM file
+// as its not found
+static void fwQcmFileErrorHandler(const std::string& fwFileName) {
+  facebook::fb303::fbData->incrementCounter("qcm_fw_not_found_failure", 1);
+  const std::string errorStr = folly::to<std::string>(
+      "QCM Micro controller firmware file not found: " + fwFileName);
+  // since qcm fw file has sdk suffix in it, its possible that for some
+  // combinations we don't have the correct fw file on the switch. We want to
+  // not fail the bcm init simply because of it (as it has no bearing on non-qcm
+  // functionality) Raise an alarm. WIll like to fail hard though when in test
+  // mode
+  if (FLAGS_ignore_qcm_fw_file_not_found) {
+    XLOG(ERR) << errorStr << " . Ignore the error!";
+    return;
+  }
+  throw facebook::fboss::FbossError(errorStr);
+}
+
 static const std::vector<facebook::fboss::BcmFirmware> fwImages = {
     {
         .fwType = facebook::fboss::FwType::QCM,
-        .sdkSpecific = false,
+        .sdkSpecific = true,
         .core_id = 0,
         .addr = 0,
+        .fwFileErrorHandler_ = fwQcmFileErrorHandler,
+        .getFwFile_ = loadQcmFileFile,
         .bcmFwLoadFunc_ = loadQcmFw,
     },
 };
@@ -71,6 +91,32 @@ static const std::vector<facebook::fboss::BcmFirmware> fwImages = {
 
 namespace facebook {
 namespace fboss {
+
+std::string BcmFwLoader::getFwFile(const BcmFirmware& fw) {
+  std::string fwFileName = fw.getFwFile_();
+  if (fwFileName.empty()) {
+    return {};
+  }
+
+  if (fw.sdkSpecific) {
+#if (!defined(BCM_VER_MAJOR))
+    XLOG(WARNING) << "Firmware OpenNSA version missing";
+#else
+    std::string sdkPostfix = folly::to<std::string>(
+        "-", BCM_VER_MAJOR, ".", BCM_VER_MINOR, ".", BCM_VER_RELEASE);
+    fwFileName.append(sdkPostfix);
+#endif
+  }
+
+  // vaidate fw file exists
+  std::ifstream fwFile(fwFileName);
+  if (!fwFile.good()) {
+    // fw file load error
+    fw.fwFileErrorHandler_(fwFileName);
+    return {};
+  }
+  return fwFileName;
+}
 
 void BcmFwLoader::loadFirmwareImpl(BcmSwitch* sw, FwType fwType) {
   // Find fw
@@ -84,7 +130,10 @@ void BcmFwLoader::loadFirmwareImpl(BcmSwitch* sw, FwType fwType) {
   }
 
   const BcmFirmware& fw = *fwIt;
-  fw.bcmFwLoadFunc_(sw, fw.core_id);
+  auto const fwFileName = getFwFile(fw);
+  if (!fwFileName.empty()) {
+    fw.bcmFwLoadFunc_(sw, fw.core_id, fwFileName);
+  }
 }
 
 void BcmFwLoader::loadFirmware(BcmSwitch* sw, PlatformMode platformMode) {

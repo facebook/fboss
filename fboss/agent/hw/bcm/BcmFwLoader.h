@@ -22,7 +22,10 @@ enum class FwType {
   QCM,
 };
 
-using BcmFwLoadFunc = std::function<void(const BcmSwitch*, const int core_id)>;
+using BcmFwLoadFunc = std::function<
+    void(const BcmSwitch*, const int core_id, const std::string& fwFile)>;
+using FwFileFunc = std::function<std::string()>;
+using FwFileErrorHandler = std::function<void(const std::string& filePath)>;
 
 /*
  *  The list of firmware images fw_images[] is defined in BcmFwLoader.cpp.
@@ -34,6 +37,8 @@ struct BcmFirmware {
   bool sdkSpecific;
   int core_id;
   int addr;
+  FwFileErrorHandler fwFileErrorHandler_;
+  FwFileFunc getFwFile_;
   BcmFwLoadFunc bcmFwLoadFunc_;
 };
 
@@ -43,6 +48,7 @@ class BcmFwLoader {
 
  private:
   static void loadFirmwareImpl(BcmSwitch* sw, FwType fwType);
+  static std::string getFwFile(const BcmFirmware& fw);
 };
 
 } // namespace fboss
