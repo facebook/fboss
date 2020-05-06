@@ -221,13 +221,13 @@ cfg::SwitchConfig twoL3IntfConfig(
   config.interfaces[0].routerID = 0;
   config.interfaces[0].ipAddresses.resize(2);
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
+  config.interfaces[0].ipAddresses[1] = "1::1/64";
   config.interfaces[1].intfID = kBaseVlanId + 1;
   config.interfaces[1].vlanID = kBaseVlanId + 1;
   config.interfaces[1].routerID = 0;
   config.interfaces[1].ipAddresses.resize(2);
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
-  config.interfaces[1].ipAddresses[1] = "2::1/48";
+  config.interfaces[1].ipAddresses[1] = "2::1/64";
   for (auto& interface : config.interfaces) {
     interface.mac_ref() = getLocalCpuMacStr();
     interface.mtu_ref() = 9000;
