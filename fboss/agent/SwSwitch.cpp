@@ -22,6 +22,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
+#include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
@@ -157,6 +158,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       rib_(new rib::RoutingInformationBase()),
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
+      lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       macTableManager_(new MacTableManager(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
@@ -222,6 +224,7 @@ void SwSwitch::stop() {
   rib_.reset();
 
   lookupClassUpdater_.reset();
+  lookupClassRouteUpdater_.reset();
   macTableManager_.reset();
 
   // stops the background and update threads.

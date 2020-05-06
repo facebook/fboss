@@ -54,6 +54,7 @@ class StateObserver;
 class TunManager;
 class MirrorManager;
 class LookupClassUpdater;
+class LookupClassRouteUpdater;
 class MacTableManager;
 class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
@@ -561,6 +562,10 @@ class SwSwitch : public HwSwitch::Callback {
     return lookupClassUpdater_.get();
   }
 
+  LookupClassRouteUpdater* getLookupClassRouteUpdater() {
+    return lookupClassRouteUpdater_.get();
+  }
+
   rib::RoutingInformationBase* getRib() {
     DCHECK(isStandaloneRibEnabled());
     return rib_.get();
@@ -875,6 +880,7 @@ class SwSwitch : public HwSwitch::Callback {
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 
   std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
+  std::unique_ptr<LookupClassRouteUpdater> lookupClassRouteUpdater_;
   std::unique_ptr<MacTableManager> macTableManager_;
 };
 
