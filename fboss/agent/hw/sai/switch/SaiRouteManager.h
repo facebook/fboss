@@ -29,8 +29,8 @@ class SaiNextHopGroupHandle;
 using SaiRoute = SaiObject<SaiRouteTraits>;
 
 struct SaiRouteHandle {
-  std::shared_ptr<SaiRoute> route;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  std::shared_ptr<SaiRoute> route;
 };
 
 class SaiRouteManager {
