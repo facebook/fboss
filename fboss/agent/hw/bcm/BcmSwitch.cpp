@@ -892,6 +892,17 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     ret.switchState = warmBootState;
     // Done with warm boot, clear warm boot cache
     warmBootCache_->clear();
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      for (auto ip : {folly::IPAddress("0.0.0.0"), folly::IPAddress("::")}) {
+        bcm_l3_route_t rt;
+        bcm_l3_route_t_init(&rt);
+        rt.l3a_flags |= ip.isV6() ? BCM_L3_IP6 : 0;
+        bcm_l3_route_get(getUnit(), &rt);
+        rt.l3a_flags |= BCM_L3_REPLACE;
+        bcm_l3_route_add(getUnit(), &rt);
+      }
+    }
   } else {
     ret.switchState = getColdBootSwitchState();
   }
