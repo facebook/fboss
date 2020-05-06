@@ -10,7 +10,6 @@
 
 #include "fboss/agent/LookupClassUpdater.h"
 
-#include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -103,8 +102,6 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlan, removedEntry->getIP());
-    routeUpdater_->neighborClassIDUpdated(
-        removedEntry->getIP(), vlan, std::nullopt);
   }
 }
 
@@ -125,15 +122,6 @@ void LookupClassUpdater::initPort(
 
   for (auto classID : port->getLookupClassesToDistributeTrafficOn()) {
     classID2Count[classID] = 0;
-  }
-
-  /*
-   * A route inherits classID, if any, of its nexthop. A nexthop would only get
-   * classID if it belongs to a subnet of an interface on the port that has
-   * non-empty list of lookupClasses.
-   */
-  if (port->getLookupClassesToDistributeTrafficOn().size() > 0) {
-    routeUpdater_->initPort(switchState, port);
   }
 }
 
@@ -190,7 +178,6 @@ void LookupClassUpdater::updateNeighborClassID(
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlanID, newEntry->getIP(), classID);
-    routeUpdater_->neighborClassIDUpdated(newEntry->getIP(), vlanID, classID);
   }
 }
 
@@ -345,8 +332,6 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
         } else {
           auto updater = sw_->getNeighborUpdater();
           updater->updateEntryClassID(vlanID, entry.get()->getIP());
-          routeUpdater_->neighborClassIDUpdated(
-              entry.get()->getIP(), vlanID, std::nullopt);
         }
       }
     }
@@ -596,8 +581,6 @@ void LookupClassUpdater::updateStateObserverLocalCache(
       updateStateObserverLocalCacheHelper<folly::IPAddressV4>(vlan, port);
     }
   }
-
-  routeUpdater_->updateStateObserverLocalCache(switchState);
 }
 
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
@@ -611,8 +594,6 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
 
   processPortUpdates(stateDelta);
-
-  routeUpdater_->processUpdates(stateDelta);
 }
 
 } // namespace facebook::fboss

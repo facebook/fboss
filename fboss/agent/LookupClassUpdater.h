@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -18,9 +17,7 @@ namespace facebook::fboss {
 class LookupClassUpdater : public AutoRegisterStateObserver {
  public:
   explicit LookupClassUpdater(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "LookupClassUpdater"),
-        sw_(sw),
-        routeUpdater_(new LookupClassRouteUpdater(sw)) {}
+      : AutoRegisterStateObserver(sw, "LookupClassUpdater"), sw_(sw) {}
   ~LookupClassUpdater() override {}
 
   void stateUpdated(const StateDelta& stateDelta) override;
@@ -162,8 +159,6 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
       port2MacAndVlanEntries_;
 
   bool inited_{false};
-
-  std::unique_ptr<LookupClassRouteUpdater> routeUpdater_;
 };
 
 } // namespace facebook::fboss
