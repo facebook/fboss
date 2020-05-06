@@ -22,8 +22,8 @@ struct SaiNextHopGroupHandle;
 using SaiInSegEntry = SaiObject<SaiInSegTraits>;
 
 struct SaiInSegEntryHandle {
-  std::shared_ptr<SaiInSegEntry> inSegEntry;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  std::shared_ptr<SaiInSegEntry> inSegEntry;
 };
 
 class SaiInSegEntryManager {
