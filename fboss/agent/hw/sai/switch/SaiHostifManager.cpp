@@ -43,6 +43,8 @@ sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
       return SAI_HOSTIF_TRAP_TYPE_BGPV6;
     case cfg::PacketRxReason::LACP:
       return SAI_HOSTIF_TRAP_TYPE_LACP;
+    case cfg::PacketRxReason::L3_MTU_ERROR:
+      return SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR;
     default:
       throw FbossError("invalid packet reason: ", reason);
   }
@@ -69,6 +71,8 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
       return cfg::PacketRxReason::BGPV6;
     case SAI_HOSTIF_TRAP_TYPE_LACP:
       return cfg::PacketRxReason::LACP;
+    case SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR:
+      return cfg::PacketRxReason::L3_MTU_ERROR;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }
@@ -85,7 +89,6 @@ SaiHostifManager::makeHostifTrapAttributes(
       packetReasonToHostifTrap(trapId)};
   SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{priority};
   SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
-
   return SaiHostifTrapTraits::CreateAttributes{
       trapType, packetAction, trapPriority, trapGroup};
 }

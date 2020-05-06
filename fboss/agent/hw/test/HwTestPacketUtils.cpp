@@ -73,7 +73,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
     std::optional<std::vector<uint8_t>> payload) {
-  static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
   if (!payload) {
     payload = kDefaultPayload;
   }

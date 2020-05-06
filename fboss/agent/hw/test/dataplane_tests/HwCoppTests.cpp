@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
@@ -78,7 +79,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4SrcPort,
       int l4DstPort,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
-      uint8_t trafficClass = 0) {
+      uint8_t trafficClass = 0,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -95,11 +97,11 @@ class HwCoppTest : public HwLinkStateDependentTest {
           l4DstPort,
           dstIpAddress.isV4()
               ? trafficClass
-              : trafficClass << 2 // v6 header takes entire TC byte with
-                                  // trailing 2 bits for ECN. V4 header OTOH
-                                  // expects only dscp value.
-      );
-
+              : trafficClass << 2, // v6 header takes entire TC byte with
+                                   // trailing 2 bits for ECN. V4 header OTOH
+                                   // expects only dscp value.
+          255,
+          payload);
       getHwSwitch()->sendPacketOutOfPortSync(
           std::move(txPacket), PortID(masterLogicalPortIds()[0]));
     }
@@ -161,6 +163,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
     sendUdpPkts(numPktsToSend, dstIpAddress, l4SrcPort, l4DstPort);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
@@ -172,7 +176,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       const int numPktsToSend = 1,
-      const int expectedPktDelta = 1) {
+      const int expectedPktDelta = 1,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
     sendTcpPkts(
@@ -181,7 +186,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
         l4SrcPort,
         l4DstPort,
         dstMac,
-        trafficClass);
+        trafficClass,
+        payload);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str()
@@ -535,6 +541,34 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           std::nullopt,
           kNetworkControlDscp);
     }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
+  auto setup = [=]() {
+    // COPP is part of initial config already
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getPlatform()->getLocalMac());
+    applyNewState(ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(getProgrammedState(), 1), 1));
+  };
+  auto verify = [=]() {
+    // Make sure all packets packet with large payload (> MTU)
+    // are sent to cpu low priority queue.
+    // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
+    // Thus sending a packet sized between 9000 and 9412 to cause the trap.
+    auto randomIP = folly::IPAddressV6("2::2");
+    sendPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0,
+        1, /* num pkts to send */
+        1, /* num pkts to excepted to be captured */
+        std::vector<uint8_t>(9200, 0xff));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
