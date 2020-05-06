@@ -178,10 +178,15 @@ class SaiApi {
          */
         static constexpr std::array<sai_status_t, 2> kFallbackToDefaultErrCode{
             SAI_STATUS_NOT_IMPLEMENTED, SAI_STATUS_NOT_SUPPORTED};
-        if (std::find(
+        auto status = e.getSaiStatus();
+        auto fallbackToDefault =
+            std::find(
                 kFallbackToDefaultErrCode.begin(),
                 kFallbackToDefaultErrCode.end(),
-                e.getSaiStatus()) != kFallbackToDefaultErrCode.end()) {
+                status) != kFallbackToDefaultErrCode.end() ||
+            SAI_STATUS_IS_ATTR_NOT_IMPLEMENTED(status) ||
+            SAI_STATUS_IS_ATTR_NOT_SUPPORTED(status);
+        if (fallbackToDefault) {
           return std::optional<typename AttrT::ValueType>{attr.defaultValue()};
         }
       }
