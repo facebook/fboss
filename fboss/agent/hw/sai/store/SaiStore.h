@@ -51,8 +51,8 @@ class SaiObjectStore {
   explicit SaiObjectStore(sai_object_id_t switchId) : switchId_(switchId) {}
   SaiObjectStore() {}
   ~SaiObjectStore() {
-    for (auto& obj : warmBootHandles_) {
-      obj->release();
+    for (auto iter : warmBootHandles_) {
+      iter.second->release();
     }
   }
 
@@ -114,7 +114,7 @@ class SaiObjectStore {
                     << "]"
                     << " Unexpected duplicate adapterHostKey";
       }
-      warmBootHandles_.push_back(ins.first);
+      warmBootHandles_.emplace(adapterHostKey, ins.first);
     }
   }
 
@@ -127,8 +127,7 @@ class SaiObjectStore {
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto ins = objects_.refOrEmplace(
-        adapterHostKey, adapterHostKey, attributes, switchId_.value());
+    auto ins = program(adapterHostKey, attributes);
     if (!ins.second) {
       ins.first->setAttributes(attributes);
     } else {
@@ -148,8 +147,7 @@ class SaiObjectStore {
         IsPublisherKeyCustomType<SaiObjectTraits>::value,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto ins = objects_.refOrEmplace(
-        adapterHostKey, adapterHostKey, attributes, switchId_.value());
+    auto ins = program(adapterHostKey, attributes);
     if (!ins.second) {
       ins.first->setAttributes(attributes);
     } else {
@@ -199,6 +197,19 @@ class SaiObjectStore {
   }
 
  private:
+  std::pair<std::shared_ptr<ObjectType>, bool> program(
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
+      const typename SaiObjectTraits::CreateAttributes& attributes) {
+    auto ins = objects_.refOrEmplace(
+        adapterHostKey, adapterHostKey, attributes, switchId_.value());
+
+    auto iter = warmBootHandles_.find(adapterHostKey);
+    if (iter != warmBootHandles_.end()) {
+      warmBootHandles_.erase(iter);
+    }
+    return ins;
+  }
+
   std::vector<typename SaiObjectTraits::AdapterKey> getAdapterKeys(
       const folly::dynamic* adapterKeysJson) const {
     return adapterKeysJson ? adapterKeysFromFollyDynamic(*adapterKeysJson)
@@ -207,7 +218,10 @@ class SaiObjectStore {
   std::optional<sai_object_id_t> switchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
-  std::vector<std::shared_ptr<ObjectType>> warmBootHandles_;
+  std::unordered_map<
+      typename SaiObjectTraits::AdapterHostKey,
+      std::shared_ptr<ObjectType>>
+      warmBootHandles_;
 };
 
 } // namespace detail

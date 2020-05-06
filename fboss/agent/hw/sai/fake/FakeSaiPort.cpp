@@ -118,6 +118,10 @@ sai_status_t create_port_fn(
 }
 
 sai_status_t remove_port_fn(sai_object_id_t port_id) {
+  if (FakeSai::getInstance()->getCpuPort() == port_id) {
+    // ignore removing CPU port
+    return SAI_STATUS_SUCCESS;
+  }
   auto fs = FakeSai::getInstance();
   auto& port = fs->portManager.get(port_id);
   for (auto saiQueueId : port.queueIdList) {
