@@ -99,25 +99,6 @@ bcm_port_resource_t getCurrentPortResource(int unit, bcm_gport_t gport) {
   return portResource;
 }
 
-bcm_port_phy_fec_t getDesiredFECType(cfg::PortFEC fec) {
-  switch (fec) {
-    case cfg::PortFEC::ON:
-    case cfg::PortFEC::RS_544:
-      return bcmPortPhyFecRs544;
-      break;
-    case cfg::PortFEC::RS_528:
-      return bcmPortPhyFecRsFec;
-      break;
-    case cfg::PortFEC::RS_544_2_N:
-      return bcmPortPhyFecRs544_2xN;
-      break;
-    case cfg::PortFEC::OFF:
-      return bcmPortPhyFecNone;
-      break;
-  }
-  throw std::runtime_error("Unsupported fec type in port resource");
-}
-
 void fec_stat_accumulate(
     int unit,
     bcm_port_t port,
