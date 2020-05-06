@@ -122,8 +122,4 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
       folly::gen::as<std::map<PortID, HwPortStats>>();
 }
 
-void SaiSwitchEnsemble::stopHwCallLogging() const {
-  // TODO - if we support cint style h/w call logging
-}
-
 } // namespace facebook::fboss

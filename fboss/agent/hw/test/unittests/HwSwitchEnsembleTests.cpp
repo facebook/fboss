@@ -26,7 +26,6 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
   bool isRouteScaleEnabled() const override {
     return true;
   }
-  void stopHwCallLogging() const override {}
 
  public:
   explicit TestHwSwitchEnsemble(uint32_t features)

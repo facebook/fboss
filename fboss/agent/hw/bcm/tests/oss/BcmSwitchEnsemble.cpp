@@ -14,10 +14,6 @@
 
 namespace facebook::fboss {
 
-void BcmSwitchEnsemble::stopHwCallLogging() const {
-  // noop - hw call logging is not supported in OSS
-}
-
 std::unique_ptr<std::thread> BcmSwitchEnsemble::createThriftThread(
     const BcmSwitch* /*hwSwitch*/) {
   throw FbossError("Starting thrift server not supported");

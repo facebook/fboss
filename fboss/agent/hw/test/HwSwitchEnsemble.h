@@ -116,10 +116,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
   /*
-   * For platforms that support hw call logging, API to stop this logging
-   */
-  virtual void stopHwCallLogging() const = 0;
-  /*
    * Initiate graceful exit
    */
   void gracefulExit();

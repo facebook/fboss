@@ -106,13 +106,6 @@ class HwTest : public ::testing::Test,
       setup();
     }
 
-    /* HACK!!!
-     * We don't need to log h/w calls in verify for our current use
-     * case of verifying auto generated hw call log logic. So for
-     * efficiency sake stop this logging post setup
-     */
-    hwSwitchEnsemble_->stopHwCallLogging();
-
     logStage("verify()");
     verify();
 
