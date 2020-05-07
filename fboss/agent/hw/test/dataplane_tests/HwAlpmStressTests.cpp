@@ -19,32 +19,72 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
 #include <folly/Format.h>
-#include <string>
 
 using folly::CIDRNetwork;
 using folly::IPAddress;
+using folly::IPAddressV4;
 using folly::IPAddressV6;
-using std::make_shared;
-using std::shared_ptr;
-using std::string;
 
 namespace facebook::fboss {
 
 namespace {
 
-std::vector<CIDRNetwork> getV6Prefixes(uint16_t startIndex, int numPrefixes) {
+template <typename AddrT>
+std::vector<CIDRNetwork> getPrefixes(uint16_t startIndex, int numPrefixes) {
   std::vector<CIDRNetwork> prefixes;
   for (auto i = 0; i < numPrefixes; ++i) {
-    prefixes.emplace_back(CIDRNetwork{
-        IPAddress(folly::sformat("2401:db00:0021:{:x}::", startIndex + i)),
-        64});
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      prefixes.emplace_back(CIDRNetwork{
+          IPAddress(folly::sformat("10.10.{}.0", startIndex + i)), 24});
+    } else {
+      prefixes.emplace_back(CIDRNetwork{
+          IPAddress(folly::sformat("2401:db00:0021:{:x}::", startIndex + i)),
+          64});
+    }
   }
   return prefixes;
+}
+
+template <typename AddrT>
+int getBucketCapacity() {
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+    return 24;
+  } else {
+    return 16;
+  }
+}
+
+template <typename AddrT>
+std::pair<AddrT, AddrT> getSrcDstIp() {
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+    return {AddrT{"10.10.0.1"}, AddrT{"10.10.0.2"}};
+  } else {
+    return {AddrT("2401:db00:0021::1"), AddrT("2401:db00:0021::2")};
+  }
 }
 
 } // namespace
 
 class HwAlpmStressTest : public HwLinkStateDependentTest {
+  static auto constexpr kEcmpWidth = 2;
+
+  template <typename AddrT>
+  void addRoutes(uint64_t startIndex, int numPrefixes) {
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
+    std::vector<RoutePrefix<AddrT>> routes;
+    for (auto prefix : getPrefixes<AddrT>(startIndex, numPrefixes)) {
+      if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+        routes.emplace_back(
+            RoutePrefix<AddrT>{prefix.first.asV4(), prefix.second});
+      } else {
+        routes.emplace_back(
+            RoutePrefix<AddrT>{prefix.first.asV6(), prefix.second});
+      }
+    }
+    applyNewState(ecmpHelper.setupECMPForwarding(
+        getProgrammedState(), kEcmpWidth, routes));
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const override {
     return utility::twoL3IntfConfig(
@@ -53,25 +93,11 @@ class HwAlpmStressTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
         cfg::PortLoopbackMode::MAC);
   }
-  void addV6Routes(uint64_t startIndex, int numPrefixes) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    std::vector<RoutePrefixV6> routes;
-    for (auto prefix : getV6Prefixes(startIndex, numPrefixes)) {
-      routes.emplace_back(RoutePrefixV6{prefix.first.asV6(), prefix.second});
-    }
-    applyNewState(ecmpHelper.setupECMPForwarding(
-        getProgrammedState(), kEcmpWidth, routes));
-  }
-  static auto constexpr kEcmpWidth = 2;
-  static auto constexpr kBucketCapacity = 16;
-};
-
-TEST_F(HwAlpmStressTest, splitPivotNhopsMatchDefaultRoute) {
   /*
    * ALPM algorithm on TD2 in a nutshell
    * Pivots - Less specific prefixes stored in TCAM. For a packet destination
    * pivots are searched. Pivot in turn points to a bucket, containing upto
-   * 16 more specific prefixes and their nhops.
+   * 16(v6)/24(v4) more specific prefixes and their nhops.
    * Buckets - container for more specific prefixes and their nhops. If a match
    * cannot be found in bucket prefixes, pivot nhop information is used.
    * Once a pivot's pointed to bucket is full, the following happens
@@ -89,49 +115,57 @@ TEST_F(HwAlpmStressTest, splitPivotNhopsMatchDefaultRoute) {
    *  - The new pivot inherited its nhop information from the default pivot i.e.
    * the best match for the new pivot's prefix was the default v6 route.
    *
-   *  Bucket capacity on TD2 is 16 prefixes. The following test tries to
-   * recreate the scenario by
-   *  - Adding 15 routes before warmboot. So these all fit into a single
-   * bucket/pivot
+   *  Bucket capacity on TD2 is 16(v6)/24(v4) prefixes. The following test tries
+   * to recreate the scenario by
+   *  - Adding bucket size - 1 routes before warmboot. So these all fit into a
+   * single bucket/pivot
    *  - Adding 5 more routes post warmboot, leading to a bucket split.
    *  - Sending a packet to destination that would fall under the new pivot
    * prefix. As long as the bug exists, these packets would be dropped.
    */
-  if (getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-    return;
-  }
-  auto setup = [this]() {
-    applyNewConfig(initialConfig());
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    applyNewState(ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth),
-        kEcmpWidth));
-    // 4 routes exist besides the ones we added
-    // - Two interface routes
-    // - Default route
-    // - Link local routes
-    // Subtract that from #of routes to addd
-    addV6Routes(1, kBucketCapacity - 4);
-  };
+  template <typename AddrT>
+  void run() {
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      return;
+    }
+    auto setup = [this]() {
+      applyNewConfig(initialConfig());
+      utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
+      applyNewState(ecmpHelper.setupECMPForwarding(
+          ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidth),
+          kEcmpWidth));
+      // 4 routes exist besides the ones we added
+      // - Two interface routes
+      // - Default route
+      // - Link local routes (for v6)
+      // Subtract that from #of routes to add
+      addRoutes<AddrT>(1, getBucketCapacity<AddrT>() - 4);
+    };
 
-  auto setupPostWarmboot = [this]() { addV6Routes(kBucketCapacity - 4, 5); };
-  auto verifyPostWarmboot = [this]() {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
-    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto txPacket = utility::makeUDPTxPacket(
-        getHwSwitch(),
-        vlanId,
-        mac,
-        mac,
-        folly::IPAddressV6("2401:db00:0021::1"),
-        folly::IPAddressV6("2401:db00:0021::2"),
-        8000,
-        8001);
-    EXPECT_TRUE(
-        getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket)));
-  };
-  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+    auto setupPostWarmboot = [this]() {
+      addRoutes<AddrT>(getBucketCapacity<AddrT>() - 4, 5);
+    };
+    auto verifyPostWarmboot = [this]() {
+      auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+      auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+      auto [sip, dip] = getSrcDstIp<AddrT>();
+      auto txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(), vlanId, mac, mac, sip, dip, 8000, 8001);
+
+      EXPECT_TRUE(
+          getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket)));
+    };
+    verifyAcrossWarmBoots(
+        setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+  }
+};
+
+TEST_F(HwAlpmStressTest, splitPivotNhopsMatchDefaultRoute6) {
+  run<IPAddressV6>();
 }
 
+TEST_F(HwAlpmStressTest, splitPivotNhopsMatchDefaultRoute4) {
+  run<IPAddressV4>();
+}
 } // namespace facebook::fboss
