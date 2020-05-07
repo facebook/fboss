@@ -703,12 +703,10 @@ bool SaiSwitch::isPortUpLocked(
 }
 
 cfg::PortSpeed SaiSwitch::getPortMaxSpeedLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    PortID /* port */) const {
-  // TODO (srikrishnagopu): Use the read-only attribute
-  // SAI_PORT_ATTR_SUPPORTED_SPEED to query the list of supported speeds
-  // and return the maximum supported speed.
-  return platform_->getAsic()->getMaxPortSpeed();
+    const std::lock_guard<std::mutex>& lock,
+    PortID port) const {
+  auto* managerTable = managerTableLocked(lock);
+  return managerTable->portManager().getMaxSpeed(port);
 }
 
 bool SaiSwitch::getAndClearNeighborHitLocked(

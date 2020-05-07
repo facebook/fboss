@@ -14,6 +14,7 @@
 #include <folly/Subprocess.h>
 #include <string>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossError.h"
 
 DEFINE_string(
     crash_switch_state_file,
@@ -161,6 +162,14 @@ void Platform::getProductInfo(ProductInfo& info) {
 PlatformMode Platform::getMode() const {
   CHECK(productInfo_);
   return productInfo_->getMode();
+}
+
+phy::FecMode Platform::getPhyFecMode(cfg::PortProfileID profileID) const {
+  auto profile = getPortProfileConfig(profileID);
+  if (!profile) {
+    throw FbossError("platform does not support profile : ", profileID);
+  }
+  return profile->iphy.fec;
 }
 
 } // namespace facebook::fboss

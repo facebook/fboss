@@ -245,6 +245,8 @@ class Platform {
     return false;
   }
 
+  phy::FecMode getPhyFecMode(cfg::PortProfileID profileID) const;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is

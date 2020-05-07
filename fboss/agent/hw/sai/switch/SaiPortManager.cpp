@@ -73,7 +73,9 @@ sai_port_media_type_t getSaiPortMediaType(
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
     return SAI_PORT_FEC_MODE_FC;
-  } else if (fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544) {
+  } else if (
+      fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544 ||
+      fec == phy::FecMode::RS544_2N) {
     return SAI_PORT_FEC_MODE_RS;
   } else {
     return SAI_PORT_FEC_MODE_NONE;
@@ -272,10 +274,22 @@ void SaiPortManager::changePort(
   if (!existingPort) {
     throw FbossError("Attempted to change non-existent port ");
   }
-  SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(newPort);
-  SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
+  SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
+  SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
+  if (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
+      std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) {
+    // create only attribute has changed, this means delete old one and recreate
+    // new one.
+    XLOG(INFO) << "lanes changed for " << oldPort->getID();
+    removePort(oldPort->getID());
+    addPort(newPort);
+    return;
+  }
+
+  SaiPortTraits::AdapterHostKey portKey{
+      GET_ATTR(Port, HwLaneList, newAttributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
-  portStore.setObject(portKey, attributes);
+  portStore.setObject(portKey, newAttributes);
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
@@ -306,8 +320,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto internalLoopbackMode =
       getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
   auto mediaType = getSaiPortMediaType(platformPort->getTransmitterTech());
-  // TODO: Use getSaiPortFecMode once the platform config has fec mode
-  auto fecMode = SAI_PORT_FEC_MODE_NONE;
+  auto profileID = platformPort->getProfileIDBySpeed(swPort->getSpeed());
+  auto phyFecMode = platform_->getPhyFecMode(profileID);
+  auto fecMode = getSaiPortFecMode(phyFecMode);
   if (swPort->getFEC() == cfg::PortFEC::ON) {
     fecMode = SAI_PORT_FEC_MODE_RS;
   }
@@ -377,15 +392,16 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
 
 void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
   auto delta = stateDelta.getPortsDelta();
-  auto processChanged = [this](const auto& oldPort, const auto& newPort) {
-    changePort(oldPort, newPort);
-  };
-  auto processAdded = [this](const auto& newPort) { addPort(newPort); };
-  auto processRemoved = [this](const auto& oldPort) {
-    removePort(oldPort->getID());
-  };
+  DeltaFunctions::forEachRemoved(
+      delta, [this](const auto& oldPort) { removePort(oldPort->getID()); });
+
   DeltaFunctions::forEachChanged(
-      delta, processChanged, processAdded, processRemoved);
+      delta, [this](const auto& oldPort, const auto& newPort) {
+        changePort(oldPort, newPort);
+      });
+
+  DeltaFunctions::forEachAdded(
+      delta, [this](const auto& newPort) { addPort(newPort); });
 }
 
 const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
@@ -443,5 +459,12 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
 const HwPortFb303Stats* SaiPortManager::getLastPortStat(PortID port) const {
   auto pitr = portStats_.find(port);
   return pitr != portStats_.end() ? pitr->second.get() : nullptr;
+}
+
+cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
+  // TODO (srikrishnagopu): Use the read-only attribute
+  // SAI_PORT_ATTR_SUPPORTED_SPEED to query the list of supported speeds
+  // and return the maximum supported speed.
+  return platform_->getPortMaxSpeed(port);
 }
 } // namespace facebook::fboss
