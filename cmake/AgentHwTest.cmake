@@ -94,6 +94,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwL2ClassIDTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
+  fboss/agent/hw/test/FlexPortTests.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwCoppTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
