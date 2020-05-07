@@ -99,14 +99,12 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "bfd";
     case SAI_API_ISOLATION_GROUP:
       return "isolation_group";
-#if SAI_API_VERSION >= SAI_VERSION(1, 5, 0)
     case SAI_API_NAT:
       return "nat";
     case SAI_API_COUNTER:
       return "counter";
     case SAI_API_DEBUG_COUNTER:
       return "debug_counter";
-#endif
     default:
       throw FbossError("api type invalid: ", apiType);
   }
