@@ -27,6 +27,19 @@ SaiPortTraits::AdapterKey getPortAdapterKey(const HwSwitch* hw, PortID port) {
   return handle->port->adapterKey();
 }
 
+std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
+    const Platform* platform,
+    PortID port,
+    cfg::PortSpeed speed) {
+  auto platformPort = platform->getPlatformPort(port);
+  if (auto entry = platformPort->getPlatformPortEntry()) {
+    return {entry->mapping.name, platformPort->getProfileIDBySpeed(speed)};
+
+  } else {
+    throw FbossError("Port:", port, " doesn't have PlatformPortEntry");
+  }
+}
+
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -90,6 +103,130 @@ void assertPortLoopbackMode(
   SaiPortTraits::Attributes::InternalLoopbackMode loopbackMode;
   SaiApiTable::getInstance()->portApi().getAttribute(key, loopbackMode);
   CHECK_EQ(expectedLoopbackMode, loopbackMode.value());
+}
+
+void enableOneLane(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed /*disabledLaneSpeed*/,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
+  // remove all except first
+  for (auto itr = allPortsinGroup.begin() + 1; itr != allPortsinGroup.end();
+       itr++) {
+    auto groupMemberPort = std::find_if(
+        config->ports.begin(), config->ports.end(), [itr](auto port) {
+          return static_cast<PortID>(port.logicalID) == *itr;
+        });
+    config->ports.erase(groupMemberPort);
+    auto vlanMemberPort = std::find_if(
+        config->vlanPorts.begin(),
+        config->vlanPorts.end(),
+        [itr](auto vlanPort) {
+          return static_cast<PortID>(vlanPort.logicalPort) == *itr;
+        });
+    config->vlanPorts.erase(vlanMemberPort);
+  }
+
+  auto firstLanePort = std::find_if(
+      config->ports.begin(),
+      config->ports.end(),
+      [&allPortsinGroup](auto port) {
+        return static_cast<PortID>(port.logicalID) == allPortsinGroup[0];
+      });
+  firstLanePort->speed = enabledLaneSpeed;
+  firstLanePort->state = cfg::PortState::ENABLED;
+
+  auto [name, profileID] = getMappingNameAndProfileID(
+      platform,
+      static_cast<PortID>(firstLanePort->logicalID),
+      enabledLaneSpeed);
+  firstLanePort->name_ref() = name;
+  firstLanePort->profileID = profileID;
+}
+
+void enableAllLanes(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
+  // keep all except
+  auto portItr = allPortsinGroup.begin();
+  int portIndex = 0;
+  for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
+    config->ports[portIndex].speed = enabledLaneSpeed;
+    config->ports[portIndex].state = cfg::PortState::ENABLED;
+
+    auto [name, profileID] = getMappingNameAndProfileID(
+        platform,
+        static_cast<PortID>(config->ports[portIndex].logicalID),
+        enabledLaneSpeed);
+    config->ports[portIndex].name_ref() = name;
+    config->ports[portIndex].profileID = profileID;
+  }
+}
+
+void enableTwoLanes(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed /*disabledLaneSpeed*/,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform) {
+  // keep only first and third
+  auto front = allPortsinGroup.front();
+  auto portItr = config->ports.begin();
+  while (portItr != config->ports.end()) {
+    if ((static_cast<PortID>(portItr->logicalID) % 2) != 0) {
+      portItr = config->ports.erase(portItr);
+    } else {
+      portItr->speed = enabledLaneSpeed;
+      portItr->state = cfg::PortState::ENABLED;
+
+      auto [name, profileID] = getMappingNameAndProfileID(
+          platform, static_cast<PortID>(portItr->logicalID), enabledLaneSpeed);
+      portItr->name_ref() = name;
+      portItr->profileID = profileID;
+      portItr++;
+    }
+  }
+
+  auto vlanPortItr = config->vlanPorts.begin();
+  while (vlanPortItr != config->vlanPorts.end()) {
+    if ((static_cast<PortID>(vlanPortItr->logicalPort) - front) % 2 != 0) {
+      vlanPortItr = config->vlanPorts.erase(vlanPortItr);
+    } else {
+      vlanPortItr++;
+    }
+  }
+}
+
+void assertQUADMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup) {
+  utility::assertPort(hw, allPortsinGroup[0], true, enabledLaneSpeed);
+}
+
+void assertDUALMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed /*disabledLaneSpeed*/,
+    std::vector<PortID> allPortsinGroup) {
+  bool odd_lane;
+  auto portItr = allPortsinGroup.begin();
+  for (; portItr != allPortsinGroup.end(); portItr++) {
+    odd_lane = (*portItr - allPortsinGroup.front()) % 2 == 0 ? true : false;
+    if (odd_lane) {
+      utility::assertPort(hw, *portItr, true, enabledLaneSpeed);
+    }
+  }
+}
+void assertSINGLEMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed /*disabledLaneSpeed*/,
+    std::vector<PortID> allPortsinGroup) {
+  utility::assertPort(hw, allPortsinGroup[0], true, enabledLaneSpeed);
 }
 
 } // namespace facebook::fboss::utility

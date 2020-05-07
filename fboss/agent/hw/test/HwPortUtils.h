@@ -11,10 +11,12 @@
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class HwSwitch;
+class Platform;
 namespace utility {
 bool portEnabled(const HwSwitch* hw, PortID port);
 cfg::PortSpeed currentPortSpeed(const HwSwitch* hw, PortID port);
@@ -38,5 +40,54 @@ void assertPortsLoopbackMode(
 void assertPortsSampleDestination(
     const HwSwitch* hw,
     const std::map<PortID, int>& port2SampleDestination);
+
+void enableOneLane(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed disabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform);
+
+void enableAllLanes(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform);
+
+void enableTwoLanes(
+    cfg::SwitchConfig* config,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed disabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform);
+
+void updateFlexConfig(
+    cfg::SwitchConfig* config,
+    FlexPortMode flexMode,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform);
+
+void assertQUADMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup);
+
+void assertDUALMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed disabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup);
+
+void assertSINGLEMode(
+    HwSwitch* hw,
+    cfg::PortSpeed enabledLaneSpeed,
+    cfg::PortSpeed disabledLaneSpeed,
+    std::vector<PortID> allPortsinGroup);
+
+void assertFlexConfig(
+    HwSwitch* hw,
+    FlexPortMode flexMode,
+    std::vector<PortID> allPortsinGroup);
+
 } // namespace utility
 } // namespace facebook::fboss
