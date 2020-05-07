@@ -25,6 +25,7 @@ struct FakeRoute {
   FakeRoute() {}
   sai_object_id_t nextHopId{0};
   int32_t packetAction{0};
+  uint32_t metadata{0};
 };
 
 using FakeRouteEntry =

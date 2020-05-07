@@ -25,8 +25,9 @@ TEST_F(SaiStoreTest, loadRoute) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  SaiRouteTraits::Attributes::Metadata metadata(42);
   routeApi.create<SaiRouteTraits>(
-      r, {packetActionAttribute, nextHopIdAttribute});
+      r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   s->setSwitchId(0);
@@ -36,8 +37,10 @@ TEST_F(SaiStoreTest, loadRoute) {
   auto got = store.get(r);
   EXPECT_EQ(got->adapterKey(), r);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, got->attributes()), 5);
-  store.setObject(r, {packetActionAttribute, 4});
+  EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, got->attributes()), 42);
+  store.setObject(r, {packetActionAttribute, 4, 41});
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, got->attributes()), 4);
+  EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, got->attributes()), 41);
 }
 
 TEST_F(SaiStoreTest, routeLoadCtor) {
@@ -48,8 +51,9 @@ TEST_F(SaiStoreTest, routeLoadCtor) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  SaiRouteTraits::Attributes::Metadata metadata(42);
   routeApi.create<SaiRouteTraits>(
-      r, {packetActionAttribute, nextHopIdAttribute});
+      r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
   SaiObject<SaiRouteTraits> obj(r);
   EXPECT_EQ(obj.adapterKey(), r);
@@ -57,35 +61,38 @@ TEST_F(SaiStoreTest, routeLoadCtor) {
       GET_ATTR(Route, PacketAction, obj.attributes()),
       SAI_PACKET_ACTION_FORWARD);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
+  EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, obj.attributes()), 42);
 }
 
 TEST_F(SaiStoreTest, routeCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5};
+  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
   SaiObject<SaiRouteTraits> obj(r, c, 0);
   EXPECT_EQ(obj.adapterKey(), r);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()),
       SAI_PACKET_ACTION_FORWARD);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
+  EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, obj.attributes()), 42);
 }
 
 TEST_F(SaiStoreTest, routeSetToPunt) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5};
+  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
   SaiObject<SaiRouteTraits> obj(r, c, 0);
   EXPECT_EQ(obj.adapterKey(), r);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()),
       SAI_PACKET_ACTION_FORWARD);
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
+  EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, obj.attributes()), 42);
 
-  SaiRouteTraits::CreateAttributes newAttrs{SAI_PACKET_ACTION_TRAP,
-                                            std::nullopt};
+  SaiRouteTraits::CreateAttributes newAttrs{
+      SAI_PACKET_ACTION_TRAP, std::nullopt, 42};
   obj.setAttributes(newAttrs);
   EXPECT_EQ(
       GET_ATTR(Route, PacketAction, obj.attributes()), SAI_PACKET_ACTION_TRAP);
@@ -99,10 +106,10 @@ TEST_F(SaiStoreTest, formatTest) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5};
+  SaiRouteTraits::CreateAttributes c{SAI_PACKET_ACTION_FORWARD, 5, 42};
   SaiObject<SaiRouteTraits> obj(r, c, 0);
   auto expected =
-      "RouteEntry(switch: 0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5)";
+      "RouteEntry(switch: 0, vrf: 0, prefix: 10.10.10.1/24): (PacketAction: 1, NextHopId: 5, Metadata: 42)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
 
@@ -114,8 +121,9 @@ TEST_F(SaiStoreTest, serDeserV4Route) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  SaiRouteTraits::Attributes::Metadata metadata(42);
   routeApi.create<SaiRouteTraits>(
-      r, {packetActionAttribute, nextHopIdAttribute});
+      r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
   verifyAdapterKeySerDeser<SaiRouteTraits>({r});
 }
@@ -128,8 +136,9 @@ TEST_F(SaiStoreTest, serDeserV6Route) {
   SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
       SAI_PACKET_ACTION_FORWARD};
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute(5);
+  SaiRouteTraits::Attributes::Metadata metadata(42);
   routeApi.create<SaiRouteTraits>(
-      r, {packetActionAttribute, nextHopIdAttribute});
+      r, {packetActionAttribute, nextHopIdAttribute, metadata});
 
   verifyAdapterKeySerDeser<SaiRouteTraits>({r});
 }

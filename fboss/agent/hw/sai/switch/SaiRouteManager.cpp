@@ -70,7 +70,8 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     // destination
     folly::CIDRNetwork destination{address.first, address.first.bitCount()};
     SaiRouteTraits::RouteEntry entry{switchId, virtualRouterId, destination};
-    SaiRouteTraits::CreateAttributes attributes{packetAction, cpuPortId};
+    SaiRouteTraits::CreateAttributes attributes{
+        packetAction, cpuPortId, std::nullopt};
     auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
     auto route = store.setObject(entry, attributes);
     toMeRoutes.emplace_back(route);
@@ -117,6 +118,10 @@ void SaiRouteManager::addOrUpdateRoute(
   sai_int32_t packetAction;
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  std::optional<SaiRouteTraits::Attributes::Metadata> metadata;
+  if (swRoute->getClassID()) {
+    metadata = static_cast<sai_uint32_t>(swRoute->getClassID().value());
+  }
 
   if (fwd.getAction() == NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -143,7 +148,7 @@ void SaiRouteManager::addOrUpdateRoute(
       RouterInterfaceSaiId routerInterfaceId{
           routerInterfaceHandle->routerInterface->adapterKey()};
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(routerInterfaceId)};
+          packetAction, std::move(routerInterfaceId), metadata};
     } else {
       /*
        * A Route which has NextHop(s) will create or reference an existing
@@ -155,19 +160,20 @@ void SaiRouteManager::addOrUpdateRoute(
               fwd.getNextHopSet());
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
-      attributes = SaiRouteTraits::CreateAttributes{packetAction,
-                                                    std::move(nextHopGroupId)};
+      attributes = SaiRouteTraits::CreateAttributes{
+          packetAction, std::move(nextHopGroupId), metadata};
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
     PortSaiId cpuPortId{SaiApiTable::getInstance()->switchApi().getAttribute(
         switchId, SaiSwitchTraits::Attributes::CpuPort{})};
-    attributes =
-        SaiRouteTraits::CreateAttributes{packetAction, std::move(cpuPortId)};
+    attributes = SaiRouteTraits::CreateAttributes{
+        packetAction, std::move(cpuPortId), metadata};
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
-    attributes = SaiRouteTraits::CreateAttributes{packetAction, std::nullopt};
+    attributes =
+        SaiRouteTraits::CreateAttributes{packetAction, std::nullopt, metadata};
   }
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
   auto route = store.setObject(entry, attributes.value());

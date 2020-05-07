@@ -23,4 +23,11 @@ struct SaiObjectIdDefault {
     return SAI_NULL_OBJECT_ID;
   }
 };
+
+template <typename SaiIntT>
+struct SaiIntDefault {
+  SaiIntT operator()() const {
+    return 0;
+  }
+};
 } // namespace facebook::fboss

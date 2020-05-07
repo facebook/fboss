@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
@@ -38,6 +39,11 @@ struct SaiRouteTraits {
         SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
     using PacketAction =
         SaiAttribute<EnumType, SAI_ROUTE_ENTRY_ATTR_PACKET_ACTION, sai_int32_t>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_ROUTE_ENTRY_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
   };
   class RouteEntry {
    public:
@@ -82,14 +88,17 @@ struct SaiRouteTraits {
 
   using AdapterKey = RouteEntry;
   using AdapterHostKey = RouteEntry;
-  using CreateAttributes = std::
-      tuple<Attributes::PacketAction, std::optional<Attributes::NextHopId>>;
+  using CreateAttributes = std::tuple<
+      Attributes::PacketAction,
+      std::optional<Attributes::NextHopId>,
+      std::optional<Attributes::Metadata>>;
 };
 template <>
 struct IsSaiEntryStruct<SaiRouteTraits::RouteEntry> : public std::true_type {};
 
 SAI_ATTRIBUTE_NAME(Route, PacketAction)
 SAI_ATTRIBUTE_NAME(Route, NextHopId)
+SAI_ATTRIBUTE_NAME(Route, Metadata)
 
 class RouteApi : public SaiApi<RouteApi> {
  public:
