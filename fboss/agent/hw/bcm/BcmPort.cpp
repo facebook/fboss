@@ -167,6 +167,7 @@ void BcmPort::reinitPortStat(
 }
 
 void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
+  auto lockedPortStatsPtr = lastPortStats_.wlock();
   auto& portName = swPort->getName();
   XLOG(DBG2) << "Reinitializing stats for " << portName;
 
@@ -211,11 +212,8 @@ void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
       statName("out_pkt_lengths", portName), &pktLenHist);
 
-  {
-    auto lockedPortStatsPtr = lastPortStats_.wlock();
-    *lockedPortStatsPtr =
-        BcmPortStats(queueManager_->getNumQueues(cfg::StreamType::UNICAST));
-  }
+  *lockedPortStatsPtr =
+      BcmPortStats(queueManager_->getNumQueues(cfg::StreamType::UNICAST));
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
@@ -711,13 +709,14 @@ void BcmPort::updateStats() {
     return;
   }
 
+  auto lockedLastPortStatsPtr = lastPortStats_.wlock();
+
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
 
   HwPortStats curPortStats, lastPortStats;
   {
-    auto lockedPortStats = lastPortStats_.rlock();
-    if (lockedPortStats->has_value()) {
-      lastPortStats = curPortStats = (*lockedPortStats)->portStats();
+    if (lockedLastPortStatsPtr->has_value()) {
+      lastPortStats = curPortStats = (*lockedLastPortStatsPtr)->portStats();
     }
   }
 
@@ -811,10 +810,7 @@ void BcmPort::updateStats() {
   auto inDiscards = getPortCounterIf(kInDiscards());
   inDiscards->updateValue(now, curPortStats.inDiscards_);
 
-  {
-    auto lockedLastPortStatsPtr = lastPortStats_.wlock();
-    *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
-  }
+  *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
 
   // Update the queue length stat
   uint32_t qlength;
@@ -1013,6 +1009,8 @@ bool BcmPort::shouldReportStats() const {
 }
 
 void BcmPort::destroyAllPortStats() {
+  auto lockedPortStatsPtr = lastPortStats_.wlock();
+
   std::map<std::string, stats::MonotonicCounter> swapTo;
   portCounters_.swap(swapTo);
 
@@ -1021,10 +1019,7 @@ void BcmPort::destroyAllPortStats() {
   }
   queueManager_->destroyQueueCounters();
 
-  {
-    auto lockedPortStatsPtr = lastPortStats_.wlock();
-    *lockedPortStatsPtr = std::nullopt;
-  }
+  *lockedPortStatsPtr = std::nullopt;
 }
 
 void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
