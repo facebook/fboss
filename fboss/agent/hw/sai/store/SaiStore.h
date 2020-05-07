@@ -127,16 +127,14 @@ class SaiObjectStore {
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto ins = program(adapterHostKey, attributes);
-    if (!ins.second) {
-      ins.first->setAttributes(attributes);
-    } else {
+    auto [object, notify] = program(adapterHostKey, attributes);
+    if (notify) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        ins.first->notifyAfterCreate(ins.first);
+        object->notifyAfterCreate(object);
       }
     }
-    XLOGF(DBG5, "SaiStore set object {}", *ins.first);
-    return ins.first;
+    XLOGF(DBG5, "SaiStore set object {}", *object);
+    return object;
   }
 
   std::shared_ptr<ObjectType> setObject(
@@ -147,17 +145,15 @@ class SaiObjectStore {
         IsPublisherKeyCustomType<SaiObjectTraits>::value,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto ins = program(adapterHostKey, attributes);
-    if (!ins.second) {
-      ins.first->setAttributes(attributes);
-    } else {
+    auto [object, notify] = program(adapterHostKey, attributes);
+    if (notify) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
-        ins.first->setCustomPublisherKey(publisherKey);
-        ins.first->notifyAfterCreate(ins.first);
+        object->setCustomPublisherKey(publisherKey);
+        object->notifyAfterCreate(object);
       }
     }
-    XLOGF(DBG5, "SaiStore set object {}", *ins.first);
-    return ins.first;
+    XLOGF(DBG5, "SaiStore set object {}", *object);
+    return object;
   }
 
   std::shared_ptr<ObjectType> get(
@@ -202,12 +198,16 @@ class SaiObjectStore {
       const typename SaiObjectTraits::CreateAttributes& attributes) {
     auto ins = objects_.refOrEmplace(
         adapterHostKey, adapterHostKey, attributes, switchId_.value());
-
+    if (!ins.second) {
+      ins.first->setAttributes(attributes);
+    }
+    auto notify = ins.second;
     auto iter = warmBootHandles_.find(adapterHostKey);
     if (iter != warmBootHandles_.end()) {
       warmBootHandles_.erase(iter);
+      notify = true;
     }
-    return ins;
+    return std::make_pair(ins.first, notify);
   }
 
   std::vector<typename SaiObjectTraits::AdapterKey> getAdapterKeys(
