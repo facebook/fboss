@@ -48,12 +48,35 @@ class SaiApiError : public FbossError {
 };
 
 template <typename... Args>
-void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
+void _saiDoLog(
+    bool isFatal,
+    sai_status_t status,
+    sai_api_t apiType,
+    Args&&... args) {
   if (status != SAI_STATUS_SUCCESS) {
-    XLOG(ERR) << "[" << saiApiTypeToString(apiType) << "] "
-              << folly::to<std::string>(std::forward<Args>(args)...) << ": "
-              << saiStatusToString(status);
+    auto msg = folly::to<std::string>(
+        "[",
+        saiApiTypeToString(apiType),
+        "] ",
+        folly::to<std::string>(std::forward<Args>(args)...),
+        ": ",
+        saiStatusToString(status));
+    if (isFatal) {
+      XLOG(FATAL) << msg;
+    } else {
+      XLOG(ERR) << msg;
+    }
   }
+}
+
+template <typename... Args>
+void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
+  _saiDoLog(false, status, apiType, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+void saiLogFatal(sai_status_t status, sai_api_t apiType, Args&&... args) {
+  _saiDoLog(true, status, apiType, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
