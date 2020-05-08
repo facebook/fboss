@@ -103,8 +103,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
 TEST_F(SaiNextHopGroupTest, addNextHopGroupWithUnresolvedNeighbors) {
   auto setup = [=]() { addRoute(4); };
   auto verify = [=]() { verifyMemberCount(0); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupWithResolvedNeighbors) {
@@ -113,8 +112,7 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupWithResolvedNeighbors) {
     addRoute(4);
   };
   auto verify = [=]() { verifyMemberCount(4); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenResolveAll) {
@@ -123,8 +121,7 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenResolveAll) {
     resolveNeighbors(4);
   };
   auto verify = [=]() { verifyMemberCount(4); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveAll) {
@@ -134,8 +131,7 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveAll) {
     unresolveNeighbors(4);
   };
   auto verify = [=]() { verifyMemberCount(0); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
