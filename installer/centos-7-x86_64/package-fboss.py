@@ -92,9 +92,10 @@ class PackageFboss:
         src_files = os.listdir(run_configs_path)
         for file_name in src_files:
             full_file_name = os.path.join(run_configs_path, file_name)
-            config_pkg_path = os.path.join(tmp_dir_name, PackageFboss.DATA)
-            print(f"Copying {full_file_name} to {config_pkg_path}")
-            shutil.copy(full_file_name, config_pkg_path)
+            config_path = os.path.join(tmp_dir_name, PackageFboss.DATA)
+            full_config_name = os.path.join(config_path, file_name)
+            print(f"Copying {full_file_name} to {full_config_name}")
+            shutil.copytree(full_file_name, full_config_name)
 
     def _copy_configs(self, tmp_dir_name):
         bcm_configs_path = os.path.join(
