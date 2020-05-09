@@ -509,4 +509,39 @@ TEST_F(BcmPortTest, AssertMode) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(BcmPortTest, AssertL3Enabled) {
+  // Enable all master ports
+  auto setup = [this]() {
+    applyNewConfig(utility::oneL3IntfNPortConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
+  };
+  auto verify = [this]() {
+    std::array<std::tuple<std::string, bcm_port_control_t>, 2> l3Options = {
+        std::make_tuple("bcmPortControlIP4", bcmPortControlIP4),
+        std::make_tuple("bcmPortControlIP6", bcmPortControlIP6)};
+    for (const auto& port : *getProgrammedState()->getPorts()) {
+      if (!port->isEnabled()) {
+        continue;
+      }
+      for (auto l3Option : l3Options) {
+        int currVal{0};
+        auto rv = bcm_port_control_get(
+            getUnit(),
+            static_cast<int>(port->getID()),
+            std::get<1>(l3Option),
+            &currVal);
+        bcmCheckError(
+            rv,
+            folly::sformat(
+                "Failed to get {} for port {} : {}",
+                std::get<0>(l3Option),
+                static_cast<int>(port->getID()),
+                bcm_errmsg(rv)));
+        // Any enabled port should enable IP4 and IP6
+        EXPECT_EQ(currVal, 1);
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

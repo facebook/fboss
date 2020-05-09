@@ -179,6 +179,11 @@ class BcmPort {
   void setEgressPortMirror(const std::string& mirrorName);
   void setQueueWaterMarks(std::map<int16_t, int64_t> queueId2WatermarkBytes);
 
+  /**
+   * Enable V4 and V6 L3
+   */
+  void enableL3(bool enableV4, bool enableV6);
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a

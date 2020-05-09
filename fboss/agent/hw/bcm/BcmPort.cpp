@@ -366,6 +366,12 @@ void BcmPort::enable(const std::shared_ptr<Port>& swPort) {
   // Set the speed, ingress vlan, and sFlow rates before enabling
   program(swPort);
 
+  // T66562358 We found out bcm_mirror_init() always disable IP on logical port
+  // 136 and eventually discard any L3 packets to this port.
+  // To avoid depending on Broadcom SDK to enable IP for us, we can always
+  // enable both V4 and V6 L3 if we need to enable a port.
+  enableL3(true, true);
+
   rv = bcm_port_enable_set(unit_, port_, true);
   bcmCheckError(rv, "failed to enable port ", swPort->getID());
 }
@@ -643,6 +649,53 @@ void BcmPort::configureSampleDestination(cfg::SampleDestination sampleDest) {
           port_,
           bcm_errmsg(rv)));
   return;
+}
+
+/**
+ * Enable V4 and V6 L3
+ */
+void BcmPort::enableL3(bool enableV4, bool enableV6) {
+  std::array<std::tuple<std::string, bcm_port_control_t, bool>, 2> l3Options = {
+      std::make_tuple("bcmPortControlIP4", bcmPortControlIP4, enableV4),
+      std::make_tuple("bcmPortControlIP6", bcmPortControlIP6, enableV6)};
+
+  for (auto l3Option : l3Options) {
+    int currVal{0};
+    auto rv =
+        bcm_port_control_get(unit_, port_, std::get<1>(l3Option), &currVal);
+    bcmCheckError(
+        rv,
+        folly::sformat(
+            "Failed to get {} for port {} : {}",
+            std::get<0>(l3Option),
+            port_,
+            bcm_errmsg(rv)));
+    if (currVal != ((std::get<2>(l3Option)) ? 1 : 0)) {
+      XLOG(DBG2) << "Current " << std::get<0>(l3Option) << " for port " << port_
+                 << " is " << (currVal ? "ENABLED" : "DISABLED")
+                 << ", about to program to "
+                 << (std::get<2>(l3Option) ? "ENABLED" : "DISABLED");
+      rv = bcm_port_control_set(
+          unit_,
+          port_,
+          std::get<1>(l3Option),
+          static_cast<int>(std::get<2>(l3Option)));
+      bcmCheckError(
+          rv,
+          folly::sformat(
+              "Failed to set {} for port {} to {} : {}",
+              std::get<0>(l3Option),
+              port_,
+              (std::get<2>(l3Option) ? "ENABLED" : "DISABLED"),
+              bcm_errmsg(rv)));
+    } else {
+      XLOG(DBG5) << "No need to program port control L3. "
+                 << "Current " << std::get<0>(l3Option) << " for port " << port_
+                 << " is " << (currVal ? "ENABLED" : "DISABLED")
+                 << ", which is the same to expected: "
+                 << (std::get<2>(l3Option) ? "ENABLED" : "DISABLED");
+    }
+  }
 }
 
 void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
