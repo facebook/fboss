@@ -18,7 +18,8 @@
 namespace facebook::fboss::utility {
 
 std::optional<cfg::AclLookupClass> getHwRouteClassID(
-    HwSwitch* hwSwitch,
-    folly::CIDRNetwork cidrNetwork);
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
 
 } // namespace facebook::fboss::utility

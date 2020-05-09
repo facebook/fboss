@@ -20,8 +20,9 @@ extern "C" {
 namespace facebook::fboss::utility {
 
 std::optional<cfg::AclLookupClass> getHwRouteClassID(
-    HwSwitch* hwSwitch,
-    folly::CIDRNetwork cidrNetwork) {
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
   const auto& [networkIP, netmask] = cidrNetwork;
 

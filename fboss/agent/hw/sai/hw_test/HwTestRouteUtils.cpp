@@ -11,13 +11,15 @@
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss::utility {
 
 // TODO(skhare) implement this method for SAI
 std::optional<cfg::AclLookupClass> getHwRouteClassID(
-    HwSwitch* /*unused*/,
-    folly::CIDRNetwork /*unused*/) {
+    const HwSwitch* /*unused*/,
+    RouterID /*unused*/,
+    const folly::CIDRNetwork& /*unused*/) {
   throw FbossError("Not implemented");
   return std::nullopt;
 }

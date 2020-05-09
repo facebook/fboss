@@ -104,6 +104,7 @@ class HwRouteTest : public HwTest {
     EXPECT_EQ(
         utility::getHwRouteClassID(
             this->getHwSwitch(),
+            kRouterID(),
             folly::CIDRNetwork(routePrefix.network, routePrefix.mask)),
         classID);
   }
