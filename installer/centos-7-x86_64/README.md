@@ -175,9 +175,9 @@ cd fboss.git
 
 </a>
 
-<a name="package-folder">
+<a name="package-directory">
 
-### 1.6.1 Packaging FBOSS to a folder
+### 1.6.1 Packaging FBOSS to a directory
 
 </a>
 
@@ -200,7 +200,7 @@ FBOSS and associated tests.
 </a>
 
 Alternatively, an RPM package can also be built with all the FBOSS build artifacts.
-However, it would be orders of magnitude slower than packaging to a folder.
+However, it would be orders of magnitude slower than packaging to a directory.
 
 ```
 cd fboss.git
@@ -275,11 +275,11 @@ and change the grub boot order.
 
 </a>
 
-### 2.3.1 Installing from folder package
+### 2.3.1 Installing from directory package
 
-- From the build VM, copy over the FBOSS package folder (see [Section 1.6.1](#package-folder)) to the switch
+- From the build VM, copy over the FBOSS package directory (see [Section 1.6.1](#package-directory)) to the switch
     ```
-    scp -r /tmp/fboss_bins-<pkg-id> $switchName:/opt/
+    scp -r /tmp/fboss_bins-<pkg-id> root@$switchName:/opt/
     ```
 - On the switch, point  /opt/fboss to the new package before using
     ```
@@ -313,7 +313,7 @@ python36 and it's dependent packages and copy them over to the switch
   ```
   mkdir /tmp/python36-and-deps; cd /tmp/python36-and-deps
   sudo yum install --downloadonly --downloaddir=/tmp/python36-and-deps --installroot=/tmp/python36-and-deps --releasever=/ rh-python36
-  scp -r /tmp/python36-and-deps $switchName:/tmp/
+  scp -r /tmp/python36-and-deps root@$switchName:/tmp/
   ```
 
 - On the switch, install rh-python36 from the RPM files
@@ -369,7 +369,7 @@ sudo rpm -ivh fboss_bins-1-1.el7.centos.x86_64.rpm
 
 # 3. Running FBOSS
 
-Switch to the FBOSS install folder on the switch and set up FBOSS environment
+Switch to the FBOSS install directory on the switch and set up FBOSS environment
 ```
 cd /opt/fboss
 source ./bin/setup_fboss_env
@@ -377,12 +377,13 @@ source ./bin/setup_fboss_env
 Run setup script to populate fruid.json, other config files and install/load
 kernel modules
 ```
-./bin/setup.sh
+./bin/setup.py
 ```
 Run ```/opt/fboss/bin/{wedge_agent, bcm_test}``` etc. with desired arguments. e.g.
 
 ```
-./bin/bcm_test --bcm_config ./share/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
+./bin/bcm_test --bcm_config ./share/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate # on Tomahawk
+./bin/bcm_test --bcm_config ./share/bcm_configs/MINIPACK+FSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate # on Tomahawk3
 ```
 
 ## 3.1 Running FBOSS Tests
@@ -415,7 +416,7 @@ To build binaries that link with a new SAI implementation, we need to add the ne
 SAI implementation as a dependency for FBOSS and specify the way to retrieve it.
 This is achieved using steps described below
 
-### Build a static library for the new SAI implementation and name it ```libsai_impl.a``` and copy ```libsai_impl.a``` to a folder named ```lib```
+### Build a static library for the new SAI implementation and name it ```libsai_impl.a``` and copy ```libsai_impl.a``` to a directory named ```lib```
 ```
 mkdir lib
 cp libsai_impl.a lib
@@ -471,7 +472,7 @@ additionally built and installed
 
 ## Packaging SAI tests and dependencies for the new SAI implementation
 
-In order for the FBOSS packaging (folder or RPM) to include the newly added SAI tests,
+In order for the FBOSS packaging (directory or RPM) to include the newly added SAI tests,
 the packaging script and RPM spec have to be modified. If you are not building RPM
 package, modifying only the packaging script is enough.
 
