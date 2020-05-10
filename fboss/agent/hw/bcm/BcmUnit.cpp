@@ -217,6 +217,12 @@ int BcmUnit::createHwUnit() {
   return soc_cm_device_create(dev->device, dev->rev, this);
 }
 
+int BcmUnit::destroyHwUnit() {
+  int rv = soc_cm_device_destroy(unit_);
+  bcmCheckError(rv, "failed to destroy device unit ", unit_);
+  return rv;
+}
+
 BcmUnit::~BcmUnit() {
   if (attached_.load(std::memory_order_acquire)) {
     steady_clock::time_point begin = steady_clock::now();
@@ -233,23 +239,14 @@ BcmUnit::~BcmUnit() {
     if (warmBootHelper()->warmBootStateWritten()) {
       warmBootHelper()->setCanWarmBoot();
     }
+
+    destroyHwUnit();
+
     attached_.store(false, std::memory_order_release);
   }
 
   // Unregister ourselves from BcmAPI.
   BcmAPI::unitDestroyed(this);
-}
-
-void BcmUnit::detachAndCleanupSDKUnit() {
-  if (!isAttached()) {
-    XLOG(INFO) << "BCM unit is not attached. Skip detach.";
-    return;
-  }
-  auto rv = bcm_detach(unit_);
-  CHECK(BCM_SUCCESS(rv)) << "failed to detach BCM unit " << unit_ << ": "
-                         << bcm_errmsg(rv);
-  soc_cm_device_destroy(unit_);
-  attached_.store(false, std::memory_order_release);
 }
 
 void BcmUnit::attach(bool warmBoot) {
