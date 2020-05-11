@@ -114,10 +114,13 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
     }
   }
 
-  void setupDataPlaneWithMirror(const std::string& mirrorName) {
+  void setupDataPlaneWithMirror(
+      const std::string& mirrorName,
+      bool truncate = false) {
     auto mirrors = getProgrammedState()->getMirrors()->clone();
-    mirrors->addMirror(
-        mirrorName == kSpan ? getSpanMirror() : getErSpanMirror());
+    auto mirror = mirrorName == kSpan ? getSpanMirror() : getErSpanMirror();
+    mirror->setTruncate(truncate);
+    mirrors->addMirror(mirror);
 
     auto state = ecmpHelper_->setupECMPForwarding(
         ecmpHelper_->resolveNextHops(getProgrammedState(), 1), 1);

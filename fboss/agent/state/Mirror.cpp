@@ -120,6 +120,10 @@ bool Mirror::getTruncate() const {
   return getFields()->truncate;
 }
 
+void Mirror::setTruncate(bool truncate) {
+  writableFields()->truncate = truncate;
+}
+
 void Mirror::setEgressPort(PortID egressPort) {
   writableFields()->egressPort = egressPort;
 }

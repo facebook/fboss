@@ -140,6 +140,7 @@ class Mirror : public NodeBaseT<Mirror, MirrorFields> {
   std::optional<MirrorTunnel> getMirrorTunnel() const;
   uint8_t getDscp() const;
   bool getTruncate() const;
+  void setTruncate(bool truncate);
   void setEgressPort(PortID egressPort);
   void setMirrorTunnel(const MirrorTunnel& tunnel);
   bool configHasEgressPort() const;
