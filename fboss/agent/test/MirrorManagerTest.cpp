@@ -1011,4 +1011,70 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
   });
 }
 
+TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
+  const auto params = MirrorManagerTestParams<TypeParam>::getParams();
+
+  this->updateState(
+      "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = state->clone();
+        updatedState = this->addSflowMirror(
+            updatedState, kMirrorName, params.mirrorDestination, 10101, 20202);
+        return updatedState;
+      });
+
+  this->updateState(
+      "resolve sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = this->addNeighbor(
+            state,
+            params.interfaces[0],
+            params.neighborIPs[0],
+            params.neighborMACs[0],
+            params.neighborPorts[0]);
+        RouteNextHopSet nextHops = {params.nextHop(0)};
+        updatedState =
+            this->addRoute(updatedState, params.longerPrefix, nextHops);
+        return updatedState;
+      });
+
+  this->updateState(
+      "update sflow mirror config",
+      [=](const std::shared_ptr<SwitchState>& state) {
+        auto updatedState = state->clone();
+        auto oldMirror = state->getMirrors()->getNode(kMirrorName);
+
+        // unresolve and update with non-resolving affecting update,
+        // mirror so mirror manager resolves it again.
+        auto mirror = std::make_shared<Mirror>(
+            oldMirror->getID(),
+            std::optional<PortID>(),
+            oldMirror->getDestinationIp(),
+            std::optional<IPAddress>(),
+            oldMirror->getTunnelUdpPorts());
+        mirror->setTruncate(true);
+
+        auto mirrors = updatedState->getMirrors()->clone();
+        mirrors->updateNode(mirror);
+        updatedState->resetMirrors(mirrors);
+        return updatedState;
+      });
+
+  this->verifyStateUpdate([=]() {
+    auto state = this->sw_->getState();
+    auto mirror = state->getMirrors()->getMirrorIf(kMirrorName);
+    EXPECT_NE(mirror, nullptr);
+    EXPECT_TRUE(mirror->isResolved());
+    ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
+    auto tunnel = mirror->getMirrorTunnel().value();
+    EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
+    EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
+    const auto& interface =
+        state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
+    EXPECT_EQ(tunnel.srcMac, interface->getMac());
+    EXPECT_TRUE(tunnel.udpPorts.has_value());
+    EXPECT_EQ(tunnel.udpPorts->udpSrcPort, 10101);
+    EXPECT_EQ(tunnel.udpPorts->udpDstPort, 20202);
+    EXPECT_TRUE(mirror->getTruncate());
+  });
+}
+
 } // namespace facebook::fboss

@@ -59,7 +59,8 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
 
 bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
   return (sw_->getState()->getMirrors()->size() > 0) &&
-      (!isEmpty(delta.getRouteTablesDelta()) ||
+      (!isEmpty(delta.getMirrorsDelta()) ||
+       !isEmpty(delta.getRouteTablesDelta()) ||
        std::any_of(
            std::begin(delta.getVlansDelta()),
            std::end(delta.getVlansDelta()),
