@@ -96,10 +96,11 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
     return mirror;
   }
 
-  void sendPackets(int count) {
+  void sendPackets(int count, size_t payloadSize = 1) {
     auto params = getTestParams<AddrT>();
     auto vlanId = VlanID(utility::kBaseVlanId);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    std::vector<uint8_t> payload(payloadSize, 0xff);
     while (count--) {
       auto pkt = utility::makeUDPTxPacket(
           getHwSwitch(),
@@ -109,7 +110,10 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
           params.senderIp,
           params.receiverIp,
           srcL4Port_,
-          dstL4Port_);
+          dstL4Port_,
+          0,
+          255,
+          payload);
       getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
     }
   }
@@ -158,7 +162,7 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
     this->applyNewState(state);
   }
 
-  void verify(const std::string& mirrorName) {
+  void verify(const std::string& mirrorName, int payloadSize = 500) {
     auto mirror =
         this->getProgrammedState()->getMirrors()->getMirrorIf(mirrorName);
     ASSERT_NE(mirror, nullptr);
@@ -169,7 +173,7 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
     auto mirroredPortPktsBefore =
         getPortOutPkts(getLatestPortStats(mirrorToPort_));
 
-    this->sendPackets(1);
+    this->sendPackets(1, payloadSize);
 
     auto trafficPortPktsAfter =
         getPortOutPkts(getLatestPortStats(trafficPort_));
@@ -202,6 +206,24 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
       this->mirrorAcl(mirrorName);
     };
     auto verify = [=]() { this->verify(mirrorName); };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testPortMirrorWithLargePacket(const std::string& mirrorName) {
+    auto setup = [=]() {
+      this->setupDataPlaneWithMirror(mirrorName, true /* truncate */);
+      this->mirrorPort(mirrorName);
+    };
+    auto verify = [=]() {
+      auto statsBefore = getLatestPortStats(mirrorToPort_);
+      this->verify(mirrorName, 8000);
+      auto statsAfter = getLatestPortStats(mirrorToPort_);
+      // mirror is on both ingress and egress, packet loops back and gets
+      // mirrored twice
+      auto outBytes = (statsAfter.outBytes_ - statsBefore.outBytes_) / 2 -
+          18; // ethernet header size
+      EXPECT_EQ(outBytes, getPlatform()->getMMUCellBytes());
+    };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
@@ -241,6 +263,14 @@ TYPED_TEST(BcmDataPlaneMirrorTest, ErspanAclMirror) {
     return;
   }
   this->testAclMirror(kErspan);
+}
+
+TYPED_TEST(BcmDataPlaneMirrorTest, TrucatePortErspanMirror) {
+  if (this->skipTest() ||
+      !this->getPlatform()->mirrorPktTruncationSupported()) {
+    return;
+  }
+  this->testPortMirrorWithLargePacket(kErspan);
 }
 
 } // namespace facebook::fboss
