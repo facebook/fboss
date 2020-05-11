@@ -1923,6 +1923,9 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors.push_back(this->getSflowMirror());
+    // update to truncate if supported
+    cfg.mirrors[0].truncate =
+        this->getPlatform()->mirrorPktTruncationSupported();
     // update destination port now
     cfg.mirrors[0]
         .destination.tunnel_ref()
