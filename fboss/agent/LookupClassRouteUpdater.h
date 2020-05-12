@@ -49,6 +49,11 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       std::shared_ptr<Port> port,
       bool reAddAllRoutesEnabled);
 
+  std::optional<cfg::AclLookupClass> getClassIDForNeighbor(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlanID,
+      const folly::IPAddress& ipAddress);
+
   // Methods for handling port updates
   void processPortAdded(
       const StateDelta& stateDelta,
@@ -87,6 +92,12 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
 
   // Methods for handling route updates
   template <typename RouteT>
+  std::optional<cfg::AclLookupClass> addRouteAndFindClassID(
+      const StateDelta& stateDelta,
+      RouterID rid,
+      const std::shared_ptr<RouteT>& addedRoute);
+
+  template <typename RouteT>
   void processRouteAdded(
       const StateDelta& stateDelta,
       RouterID rid,
@@ -110,6 +121,13 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   using NextHopAndVlan = std::pair<folly::IPAddress, VlanID>;
   using WithAndWithoutClassIDPrefixes =
       std::pair<folly::F14FastSet<RidAndCidr>, folly::F14FastSet<RidAndCidr>>;
+
+  using RouteAndClassID =
+      std::pair<RidAndCidr, std::optional<cfg::AclLookupClass>>;
+
+  // Methods for scheduling state updates
+  void updateClassIDsForRoutes(
+      const std::vector<RouteAndClassID>& routesAndClassIDs);
 
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is

@@ -81,6 +81,27 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
   }
 }
 
+std::optional<cfg::AclLookupClass>
+LookupClassRouteUpdater::getClassIDForNeighbor(
+    const std::shared_ptr<SwitchState>& switchState,
+    VlanID vlanID,
+    const folly::IPAddress& ipAddress) {
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return std::nullopt;
+  }
+
+  if (ipAddress.isV6()) {
+    auto ndpEntry = vlan->getNdpTable()->getEntryIf(ipAddress.asV6());
+    return ndpEntry ? ndpEntry->getClassID() : std::nullopt;
+  } else if (ipAddress.isV4()) {
+    auto arpEntry = vlan->getArpTable()->getEntryIf(ipAddress.asV4());
+    return arpEntry ? arpEntry->getClassID() : std::nullopt;
+  }
+
+  return std::nullopt;
+}
+
 // Methods for dealing with vlan2SubnetsCache_
 
 bool LookupClassRouteUpdater::belongsToSubnetInCache(
@@ -309,23 +330,189 @@ void LookupClassRouteUpdater::processNeighborUpdates(
 // Methods for handling route updates
 
 template <typename RouteT>
+std::optional<cfg::AclLookupClass>
+LookupClassRouteUpdater::addRouteAndFindClassID(
+    const StateDelta& stateDelta,
+    RouterID rid,
+    const std::shared_ptr<RouteT>& addedRoute) {
+  auto ridAndCidr = std::make_pair(
+      rid,
+      folly::CIDRNetwork{addedRoute->prefix().network,
+                         addedRoute->prefix().mask});
+
+  auto& newState = stateDelta.newState();
+  std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
+  for (const auto& nextHop : addedRoute->getForwardInfo().getNextHopSet()) {
+    auto vlanID =
+        newState->getInterfaces()->getInterfaceIf(nextHop.intf())->getVlanID();
+    if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
+      continue;
+    }
+
+    auto neighborClassID =
+        getClassIDForNeighbor(newState, vlanID, nextHop.addr());
+
+    /*
+     * The nextHopAndVlan may already be cached if:
+     *   - it is also nextHop for some other route that was previously added.
+     *   - during processNeighborAdded
+     * retrieve previously cached entry, and if absent, create new entry.
+     */
+    auto& [withClassIDPrefixes, withoutClassIDPrefixes] =
+        nextHopAndVlanToPrefixes_[std::make_pair(nextHop.addr(), vlanID)];
+
+    /*
+     * In the current implementation, route inherits classID of the 'first'
+     * nexthop that has classID. This could be revised in future if necessary.
+     */
+    if (!routeClassID.has_value() && neighborClassID.has_value()) {
+      routeClassID = neighborClassID;
+      withClassIDPrefixes.insert(ridAndCidr);
+    } else {
+      withoutClassIDPrefixes.insert(ridAndCidr);
+    }
+  }
+
+  if (routeClassID.has_value()) {
+    auto [it, inserted] = allPrefixesWithClassID_.insert(ridAndCidr);
+    CHECK(inserted);
+  }
+
+  return routeClassID;
+}
+
+template <typename RouteT>
 void LookupClassRouteUpdater::processRouteAdded(
-    const StateDelta& /*stateDelta*/,
-    RouterID /*rid*/,
-    const std::shared_ptr<RouteT>& /*addedRoute*/) {}
+    const StateDelta& stateDelta,
+    RouterID rid,
+    const std::shared_ptr<RouteT>& addedRoute) {
+  CHECK(addedRoute);
+
+  /*
+   * Non-resolved routes are not programmed in HW
+   * routes to CPU have no nextHops, and can't get classID.
+   */
+  if (!addedRoute->isResolved() || addedRoute->isToCPU()) {
+    return;
+  }
+
+  auto ridAndCidr = std::make_pair(
+      rid,
+      folly::CIDRNetwork{addedRoute->prefix().network,
+                         addedRoute->prefix().mask});
+  auto routeClassID = addRouteAndFindClassID(stateDelta, rid, addedRoute);
+
+  if (routeClassID.has_value()) {
+    updateClassIDsForRoutes({std::make_pair(ridAndCidr, routeClassID)});
+  }
+}
 
 template <typename RouteT>
 void LookupClassRouteUpdater::processRouteRemoved(
-    const StateDelta& /*stateDelta*/,
-    RouterID /*rid*/,
-    const std::shared_ptr<RouteT>& /*removedRoute*/) {}
+    const StateDelta& stateDelta,
+    RouterID rid,
+    const std::shared_ptr<RouteT>& removedRoute) {
+  CHECK(removedRoute);
+
+  /*
+   * Non-resolved routes are not programmed in HW
+   * routes to CPU (have no nextHops), and can't get classID.
+   */
+  if (!removedRoute->isResolved() || removedRoute->isToCPU()) {
+    return;
+  }
+
+  // ClassID is associated with (and refCnt'ed for) MAC and ARP/NDP neighbor.
+  // Route simply inherits classID of its nexthop, so we need not release
+  // classID here. Furthermore, the route is already removed, so we don't need
+  // to schedule a state update either. Just remove the route from local data
+  // structures.
+
+  auto ridAndCidr = std::make_pair(
+      rid,
+      folly::CIDRNetwork{removedRoute->prefix().network,
+                         removedRoute->prefix().mask});
+
+  auto routeClassID = removedRoute->getClassID();
+  auto& newState = stateDelta.newState();
+  for (const auto& nextHop : removedRoute->getForwardInfo().getNextHopSet()) {
+    auto vlanID =
+        newState->getInterfaces()->getInterfaceIf(nextHop.intf())->getVlanID();
+    if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
+      continue;
+    }
+
+    auto it =
+        nextHopAndVlanToPrefixes_.find(std::make_pair(nextHop.addr(), vlanID));
+    CHECK(it != nextHopAndVlanToPrefixes_.end());
+    auto& [withClassIDPrefixes, withoutClassIDPrefixes] = it->second;
+
+    // The prefix has to be in either of the sets.
+    auto numErased = withClassIDPrefixes.erase(ridAndCidr) +
+        withoutClassIDPrefixes.erase(ridAndCidr);
+    CHECK_EQ(numErased, 1);
+
+    if (withClassIDPrefixes.empty() && withoutClassIDPrefixes.empty()) {
+      // if this was the only route this entry was NextHop for, and there is no
+      // neighbor corresponding to this NextHop, erase it.
+      auto vlan = newState->getVlans()->getVlanIf(vlanID);
+      if (vlan) {
+        if (nextHop.addr().isV6()) {
+          auto ndpEntry =
+              vlan->getNdpTable()->getEntryIf(nextHop.addr().asV6());
+          if (!ndpEntry) {
+            nextHopAndVlanToPrefixes_.erase(it);
+          }
+        } else if (nextHop.addr().isV4()) {
+          auto arpEntry =
+              vlan->getArpTable()->getEntryIf(nextHop.addr().asV4());
+          if (!arpEntry) {
+            nextHopAndVlanToPrefixes_.erase(it);
+          }
+        }
+      }
+    }
+  }
+
+  if (routeClassID.has_value()) {
+    auto numErasedFromAllPrefixes = allPrefixesWithClassID_.erase(ridAndCidr);
+    CHECK_EQ(numErasedFromAllPrefixes, 1);
+  }
+}
 
 template <typename RouteT>
 void LookupClassRouteUpdater::processRouteChanged(
-    const StateDelta& /*stateDelta*/,
-    RouterID /*rid*/,
-    const std::shared_ptr<RouteT>& /*oldRoute*/,
-    const std::shared_ptr<RouteT>& /*newRoute*/) {}
+    const StateDelta& stateDelta,
+    RouterID rid,
+    const std::shared_ptr<RouteT>& oldRoute,
+    const std::shared_ptr<RouteT>& newRoute) {
+  CHECK(oldRoute);
+  CHECK(newRoute);
+
+  if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+    return;
+  } else if (!oldRoute->isResolved() && newRoute->isResolved()) {
+    processRouteAdded(stateDelta, rid, newRoute);
+  } else if (oldRoute->isResolved() && !newRoute->isResolved()) {
+    processRouteRemoved(stateDelta, rid, oldRoute);
+  } else if (oldRoute->isResolved() && newRoute->isResolved()) {
+    /*
+     * If the list of nexthops changes, a route may lose the nexthop it
+     * inherited classID from. In that case, we need to find another reachable
+     * nexthop for the route.
+     *
+     * This could be implemented by std::set_difference of getNextHopSet().
+     * However, it is easier to remove the route and add it again.
+     * processRouteRemoved does not schedule state update, so the only
+     * additional overhead of this approach is some local computation.
+     */
+    if (oldRoute->getForwardInfo().getNextHopSet() !=
+        newRoute->getForwardInfo().getNextHopSet()) {
+      processRouteRemoved(stateDelta, rid, oldRoute);
+      processRouteAdded(stateDelta, rid, newRoute);
+    }
+  }
+}
 
 template <typename AddrT>
 void LookupClassRouteUpdater::processRouteUpdates(
@@ -357,6 +544,11 @@ void LookupClassRouteUpdater::processRouteUpdates(
   }
 }
 
+// Methods for scheduling state updates
+
+void LookupClassRouteUpdater::updateClassIDsForRoutes(
+    const std::vector<RouteAndClassID>& /* routesAndClassIDs*/) {}
+
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*
    * If vlan2SubnetsCache_ is updated after routes are added, every update to
@@ -368,6 +560,15 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
    * processRouteUpdates).
    */
   processPortUpdates(stateDelta);
+
+  /*
+   * Only RSWs connected to MH-NIC (e.g. Yosemite) need queue-per-host fix, and
+   * thus have non-empty vlan2SubnetsCache_ (populated by processPortUpdates).
+   * Skip the processing on other setups.
+   */
+  if (vlan2SubnetsCache_.empty()) {
+    return;
+  }
 
   processNeighborUpdates<folly::IPAddressV6>(stateDelta);
   processNeighborUpdates<folly::IPAddressV4>(stateDelta);
