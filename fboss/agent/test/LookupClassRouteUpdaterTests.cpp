@@ -69,6 +69,10 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     return MacAddress("01:02:03:04:05:06");
   }
 
+  MacAddress kMacAddress2() const {
+    return MacAddress("01:02:03:04:05:07");
+  }
+
   ClientID kClientID() const {
     return ClientID(1001);
   }
@@ -82,6 +86,14 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       return IPAddressV4("10.0.0.2");
     } else {
       return IPAddressV6("2401:db00:2110:3001::0002");
+    }
+  }
+
+  AddrT kGetIpAddress2() {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return IPAddressV4("10.0.0.3");
+    } else {
+      return IPAddressV6("2401:db00:2110:3001::0003");
     }
   }
 
@@ -215,4 +227,27 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ResolveNextHopThenAddRoute) {
   });
 }
 
+TYPED_TEST(LookupClassRouteUpdaterTest, AddRouteThenResolveSecondNextHopOnly) {
+  this->addRoute(
+      this->kGetRoutePrefix(), {this->kGetIpAddress(), this->kGetIpAddress2()});
+  this->resolveNeighbor(this->kGetIpAddress2(), this->kMacAddress2());
+
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->kGetRoutePrefix(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, ResolveSecondNextHopOnlyThenAddRoute) {
+  this->resolveNeighbor(this->kGetIpAddress2(), this->kMacAddress2());
+  this->addRoute(
+      this->kGetRoutePrefix(), {this->kGetIpAddress(), this->kGetIpAddress2()});
+
+  this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyClassIDHelper(
+        this->kGetRoutePrefix(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  });
+}
 } // namespace facebook::fboss
