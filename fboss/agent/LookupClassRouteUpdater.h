@@ -73,17 +73,17 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   template <typename AddedNeighborT>
   void processNeighborAdded(
       const StateDelta& stateDelta,
-      VlanID vlan,
+      VlanID vlanID,
       const std::shared_ptr<AddedNeighborT>& addedNeighbor);
   template <typename removedNeighborT>
   void processNeighborRemoved(
       const StateDelta& stateDelta,
-      VlanID vlan,
+      VlanID vlanID,
       const std::shared_ptr<removedNeighborT>& removedNeighbor);
   template <typename ChangedNeighborT>
   void processNeighborChanged(
       const StateDelta& stateDelta,
-      VlanID vlan,
+      VlanID vlanID,
       const std::shared_ptr<ChangedNeighborT>& oldNeighbor,
       const std::shared_ptr<ChangedNeighborT>& newNeighbor);
 

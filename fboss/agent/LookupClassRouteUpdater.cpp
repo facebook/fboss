@@ -264,21 +264,146 @@ void LookupClassRouteUpdater::processPortUpdates(const StateDelta& stateDelta) {
 template <typename AddedNeighborT>
 void LookupClassRouteUpdater::processNeighborAdded(
     const StateDelta& /*stateDelta*/,
-    VlanID /*vlan*/,
-    const std::shared_ptr<AddedNeighborT>& /*addedNeighbor*/) {}
+    VlanID vlanID,
+    const std::shared_ptr<AddedNeighborT>& addedNeighbor) {
+  CHECK(addedNeighbor);
+
+  if (!belongsToSubnetInCache(vlanID, addedNeighbor->getIP())) {
+    return;
+  }
+
+  // If the neighbor is nextHop for a route that is already processed, the
+  // neighbor would be present in the cache.
+  auto& [withClassIDPrefixes, withoutClassIDPrefixes] =
+      nextHopAndVlanToPrefixes_[std::make_pair(addedNeighbor->getIP(), vlanID)];
+
+  if (!addedNeighbor->getClassID().has_value()) {
+    return;
+  }
+
+  /*
+   * For every route with *this* nexthop, if the route does not have a
+   * classID associated with it, then assign *this* nexthop's classID.
+   */
+  std::vector<RidAndCidr> toBeUpdatedPrefixes;
+  std::set_difference(
+      withoutClassIDPrefixes.begin(),
+      withoutClassIDPrefixes.end(),
+      allPrefixesWithClassID_.begin(),
+      allPrefixesWithClassID_.end(),
+      std::inserter(toBeUpdatedPrefixes, toBeUpdatedPrefixes.end()));
+
+  std::vector<RouteAndClassID> routesAndClassIDs;
+  auto routeClassID = addedNeighbor->getClassID().value();
+
+  for (const auto& ridAndCidr : toBeUpdatedPrefixes) {
+    withoutClassIDPrefixes.erase(ridAndCidr);
+    withClassIDPrefixes.insert(ridAndCidr);
+    allPrefixesWithClassID_.insert(ridAndCidr);
+    routesAndClassIDs.emplace_back(std::make_pair(ridAndCidr, routeClassID));
+  }
+
+  updateClassIDsForRoutes(routesAndClassIDs);
+}
 
 template <typename RemovedNeighborT>
 void LookupClassRouteUpdater::processNeighborRemoved(
-    const StateDelta& /*stateDelta*/,
-    VlanID /*vlan*/,
-    const std::shared_ptr<RemovedNeighborT>& /*removedNeighbor*/) {}
+    const StateDelta& stateDelta,
+    VlanID vlanID,
+    const std::shared_ptr<RemovedNeighborT>& removedNeighbor) {
+  CHECK(removedNeighbor);
+
+  if (!belongsToSubnetInCache(vlanID, removedNeighbor->getIP())) {
+    return;
+  }
+
+  auto it = nextHopAndVlanToPrefixes_.find(
+      std::make_pair(removedNeighbor->getIP(), vlanID));
+  CHECK(it != nextHopAndVlanToPrefixes_.end());
+
+  auto& [withClassIDPrefixes, withoutClassIDPrefixes] = it->second;
+
+  if (withClassIDPrefixes.empty() && withoutClassIDPrefixes.empty()) {
+    // neighbor being removed is not a nexthop for any route
+    nextHopAndVlanToPrefixes_.erase(it);
+    return;
+  }
+
+  std::vector<RouteAndClassID> routesAndClassIDs;
+
+  auto& newState = stateDelta.newState();
+
+  auto iter = withClassIDPrefixes.begin();
+  while (iter != withClassIDPrefixes.end()) {
+    auto ridAndCidr = *iter;
+    // erase the current iterator, and advance
+    iter = withClassIDPrefixes.erase(iter);
+    withoutClassIDPrefixes.insert(ridAndCidr);
+    allPrefixesWithClassID_.erase(ridAndCidr);
+
+    auto& [rid, cidr] = ridAndCidr;
+    std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
+
+    // stateDelta.newState() would not contain the neighbor being removed.
+    // Thus, classID of the neighbor being removed won't be chosen by
+    // addRouteAndFindClassID.
+    if (cidr.first.isV6()) {
+      auto route = newState->getRouteTables()
+                       ->getRouteTable(rid)
+                       ->getRibV6()
+                       ->routes()
+                       ->getRouteIf(RoutePrefix<folly::IPAddressV6>{
+                           cidr.first.asV6(), cidr.second});
+      if (route) {
+        routeClassID = addRouteAndFindClassID(stateDelta, rid, route);
+      }
+    } else {
+      auto route = newState->getRouteTables()
+                       ->getRouteTable(rid)
+                       ->getRibV4()
+                       ->routes()
+                       ->getRouteIf(RoutePrefix<folly::IPAddressV4>{
+                           cidr.first.asV4(), cidr.second});
+      if (route) {
+        routeClassID = addRouteAndFindClassID(stateDelta, rid, route);
+      }
+    }
+
+    routesAndClassIDs.push_back(std::make_pair(ridAndCidr, routeClassID));
+  }
+
+  updateClassIDsForRoutes(routesAndClassIDs);
+}
 
 template <typename ChangedNeighborT>
 void LookupClassRouteUpdater::processNeighborChanged(
-    const StateDelta& /*stateDelta*/,
-    VlanID /*vlan*/,
-    const std::shared_ptr<ChangedNeighborT>& /*oldNeighbor*/,
-    const std::shared_ptr<ChangedNeighborT>& /*newNeighbor*/) {}
+    const StateDelta& stateDelta,
+    VlanID vlanID,
+    const std::shared_ptr<ChangedNeighborT>& oldNeighbor,
+    const std::shared_ptr<ChangedNeighborT>& newNeighbor) {
+  CHECK(oldNeighbor && newNeighbor);
+
+  if (!oldNeighbor->getClassID().has_value() &&
+      !newNeighbor->getClassID().has_value()) {
+    return;
+  } else if (
+      !oldNeighbor->getClassID().has_value() &&
+      newNeighbor->getClassID().has_value()) {
+    processNeighborAdded(stateDelta, vlanID, newNeighbor);
+  } else if (
+      oldNeighbor->getClassID().has_value() &&
+      !newNeighbor->getClassID().has_value()) {
+    processNeighborRemoved(stateDelta, vlanID, oldNeighbor);
+  } else if (
+      oldNeighbor->getClassID().has_value() &&
+      newNeighbor->getClassID().has_value()) {
+    if (oldNeighbor->getClassID().value() !=
+        newNeighbor->getClassID().value()) {
+      processNeighborRemoved(stateDelta, vlanID, oldNeighbor);
+      processNeighborAdded(stateDelta, vlanID, newNeighbor);
+    }
+  }
+}
 
 template <typename AddrT>
 void LookupClassRouteUpdater::processNeighborUpdates(
