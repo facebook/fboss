@@ -11,6 +11,7 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -546,8 +547,53 @@ void LookupClassRouteUpdater::processRouteUpdates(
 
 // Methods for scheduling state updates
 
+template <typename AddrT>
+void LookupClassRouteUpdater::updateClassIDForRouteHelper(
+    RouterID rid,
+    std::shared_ptr<SwitchState>& newState,
+    const std::shared_ptr<RouteTable>& routeTable,
+    const RoutePrefix<AddrT>& routePrefix,
+    std::optional<cfg::AclLookupClass> classID) {
+  auto routeTableRib =
+      routeTable->template getRib<AddrT>()->modify(rid, &newState);
+
+  auto route = routeTableRib->routes()->getRouteIf(routePrefix);
+  if (route) {
+    route = route->clone();
+    route->updateClassID(classID);
+    routeTableRib->updateRoute(route);
+  }
+}
+
 void LookupClassRouteUpdater::updateClassIDsForRoutes(
-    const std::vector<RouteAndClassID>& /* routesAndClassIDs*/) {}
+    const std::vector<RouteAndClassID>& routesAndClassIDs) {
+  auto updateClassIDsForRoutesFn =
+      [this, routesAndClassIDs](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    auto newState{state};
+    auto routeTables = newState->getRouteTables();
+
+    for (const auto& [ridAndCidr, classID] : routesAndClassIDs) {
+      auto& [rid, cidr] = ridAndCidr;
+      auto& [ipAddress, mask] = cidr;
+      auto routeTable = routeTables->getRouteTable(rid);
+
+      if (ipAddress.isV6()) {
+        RoutePrefix<folly::IPAddressV6> routePrefixV6{ipAddress.asV6(), mask};
+        updateClassIDForRouteHelper(
+            rid, newState, routeTable, routePrefixV6, classID);
+      } else {
+        RoutePrefix<folly::IPAddressV4> routePrefixV4{ipAddress.asV4(), mask};
+        updateClassIDForRouteHelper(
+            rid, newState, routeTable, routePrefixV4, classID);
+      }
+    }
+    return newState;
+  };
+
+  sw_->updateState(
+      "Update classIDs for routes", std::move(updateClassIDsForRoutesFn));
+}
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*

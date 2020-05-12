@@ -20,7 +20,7 @@ namespace facebook::fboss {
 class LookupClassRouteUpdater : public AutoRegisterStateObserver {
  public:
   explicit LookupClassRouteUpdater(SwSwitch* sw)
-      : AutoRegisterStateObserver(sw, "LookupClassRouteUpdater") {}
+      : AutoRegisterStateObserver(sw, "LookupClassRouteUpdater"), sw_(sw) {}
   ~LookupClassRouteUpdater() override {}
 
   void stateUpdated(const StateDelta& stateDelta) override;
@@ -126,6 +126,13 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       std::pair<RidAndCidr, std::optional<cfg::AclLookupClass>>;
 
   // Methods for scheduling state updates
+  template <typename AddrT>
+  void updateClassIDForRouteHelper(
+      RouterID rid,
+      std::shared_ptr<SwitchState>& newState,
+      const std::shared_ptr<RouteTable>& routeTable,
+      const RoutePrefix<AddrT>& routePrefix,
+      std::optional<cfg::AclLookupClass> classID);
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs);
 
@@ -212,6 +219,8 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    * Set of prefixes with classID (from any [nexthop + vlan]).
    */
   folly::F14FastSet<RidAndCidr> allPrefixesWithClassID_;
+
+  SwSwitch* sw_;
 };
 
 } // namespace facebook::fboss
