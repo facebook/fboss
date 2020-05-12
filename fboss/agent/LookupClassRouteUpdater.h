@@ -136,6 +136,9 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void updateClassIDsForRoutes(
       const std::vector<RouteAndClassID>& routesAndClassIDs);
 
+  template <typename AddrT>
+  void clearClassIDsForRoutes() const;
+
   /*
    * We need to maintain nexthop to route mapping so that when a nexthop is
    * resolved (gets classID), the same classID could be associated with
@@ -221,6 +224,8 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   folly::F14FastSet<RidAndCidr> allPrefixesWithClassID_;
 
   SwSwitch* sw_;
+
+  bool inited_{false};
 };
 
 } // namespace facebook::fboss

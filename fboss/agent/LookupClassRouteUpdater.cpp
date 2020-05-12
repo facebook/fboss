@@ -15,6 +15,24 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
+/*
+ * TODO(skhare)
+ *
+ * Current prod queue-per-host implementation includes L2 and L3 host entry
+ * portion of the fix. As we roll out, queue-per-host for L3 route entry,
+ * the below flag provides us with a mechanism to disable L3 route entry
+ * portion of the fix without having to disable L2 and L3 host entry
+ * queue-per-host fix.
+ *
+ * Set this flag to false to disable route entry portion of queue-per-host fix.
+ * Once the queue-per-host for L3 route entry is rolled out across the fleet
+ * and is stable, remove this flag.
+ */
+DEFINE_bool(
+    queue_per_host_route_fix,
+    true,
+    "Enable route entry (ip-per-task/VIP) portion of Queue-per-host fix");
+
 namespace facebook::fboss {
 
 // Helper methods
@@ -720,7 +738,46 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
       "Update classIDs for routes", std::move(updateClassIDsForRoutesFn));
 }
 
+template <typename AddrT>
+void LookupClassRouteUpdater::clearClassIDsForRoutes() const {
+  CHECK(!FLAGS_queue_per_host_route_fix);
+
+  auto updateRouteClassIDFn = [](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> {
+    auto newState{state};
+
+    for (const auto& routeTable : *newState->getRouteTables()) {
+      auto rid = routeTable->getID();
+      auto routeTableRib = routeTable->template getRib<AddrT>();
+      auto newRouteTableRib = routeTableRib->modify(rid, &newState);
+
+      for (const auto& route : *routeTableRib->routes()) {
+        if (route->getClassID().has_value()) {
+          auto newRoute = route->clone();
+          newRoute->updateClassID(std::nullopt);
+          newRouteTableRib->updateRoute(newRoute);
+        }
+      }
+    }
+
+    return newState;
+  };
+
+  sw_->updateState(
+      "Disable queue-per-host route fix, clear classID for every route ",
+      std::move(updateRouteClassIDFn));
+}
+
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
+  if (!inited_) {
+    inited_ = true;
+    if (!FLAGS_queue_per_host_route_fix) {
+      clearClassIDsForRoutes<folly::IPAddressV6>();
+      clearClassIDsForRoutes<folly::IPAddressV4>();
+      return;
+    }
+  }
+
   /*
    * If vlan2SubnetsCache_ is updated after routes are added, every update to
    * vlan2SubnetsCache_ must check if the nextHops of previously processed
