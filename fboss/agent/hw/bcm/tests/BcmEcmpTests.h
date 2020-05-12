@@ -61,9 +61,6 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
   void programRouteWithUnresolvedNhops(size_t numRouteNextHops = 0);
   const BcmEcmpEgress* getEcmpEgress() const;
   const BcmMultiPathNextHop* getBcmMultiPathNextHop() const;
-  int getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw);
-  std::multiset<bcm_if_t>
-  getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw);
 };
 
 } // namespace facebook::fboss

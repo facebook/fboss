@@ -40,6 +40,8 @@ extern "C" {
 }
 
 using boost::container::flat_set;
+using facebook::fboss::utility::getEcmpGroupInHw;
+using facebook::fboss::utility::getEcmpSizeInHw;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -87,15 +89,6 @@ void BcmEcmpTest::programRouteWithUnresolvedNhops(size_t numRouteNextHops) {
       std::vector<NextHopWeight>(
           swSwitchWeights_.begin(),
           swSwitchWeights_.begin() + numRouteNextHops)));
-}
-
-int BcmEcmpTest::getEcmpSizeInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
-  return utility::getEcmpSizeInHw(unit, ecmp, sizeInSw);
-}
-
-std::multiset<bcm_if_t>
-BcmEcmpTest::getEcmpGroupInHw(int unit, bcm_if_t ecmp, int sizeInSw) {
-  return utility::getEcmpGroupInHw(unit, ecmp, sizeInSw);
 }
 
 void BcmEcmpTest::runSimpleTest(
