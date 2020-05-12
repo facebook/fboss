@@ -651,6 +651,8 @@ add_executable(agent_test
        fboss/agent/test/IPv4Test.cpp
        fboss/agent/test/LldpManagerTest.cpp
        fboss/agent/test/LabelForwardingUtils.cpp
+       fboss/agent/test/LookupClassRouteUpdaterTests.cpp
+       fboss/agent/test/LookupClassUpdaterTests.cpp
        fboss/agent/test/MacTableManagerTests.cpp
        fboss/agent/test/MacTableUtilsTests.cpp
        fboss/agent/test/MockTunManager.cpp
