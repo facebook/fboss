@@ -26,10 +26,34 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   void stateUpdated(const StateDelta& stateDelta) override;
 
  private:
+  // Helper methods
+  void reAddAllRoutes(const StateDelta& stateDelta);
+
+  bool vlanHasOtherPortsWithClassIDs(
+      const std::shared_ptr<SwitchState>& switchState,
+      const std::shared_ptr<Vlan>& vlan,
+      const std::shared_ptr<Port>& removedPort);
+
+  void removeNextHopsForSubnet(
+      const StateDelta& stateDelta,
+      const folly::CIDRNetwork& subnet,
+      const std::shared_ptr<Vlan>& vlan);
+
+  // Methods for dealing with vlan2SubnetsCache_
+  bool belongsToSubnetInCache(
+      VlanID vlanID,
+      const folly::IPAddress& ipToSearch);
+
+  void updateSubnetsCache(
+      const StateDelta& stateDelta,
+      std::shared_ptr<Port> port,
+      bool reAddAllRoutesEnabled);
+
   // Methods for handling port updates
   void processPortAdded(
       const StateDelta& stateDelta,
-      const std::shared_ptr<Port>& addedPort);
+      const std::shared_ptr<Port>& addedPort,
+      bool reAddAllRoutesEnabled);
   void processPortRemoved(
       const StateDelta& stateDelta,
       const std::shared_ptr<Port>& port);
