@@ -126,23 +126,25 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 }
 
 void SaiPlatform::initPorts() {
-  auto& platformSettings = config()->thrift.platform;
+  auto& platform = config()->thrift.platform;
   auto platformMode = getMode();
-  for (auto& port : *platformSettings.platformPorts_ref()) {
-    std::unique_ptr<SaiPlatformPort> saiPort;
-    PortID portId(port.first);
-    if (platformMode == PlatformMode::WEDGE400C) {
-      saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformMode::WEDGE ||
-        platformMode == PlatformMode::WEDGE100 ||
-        platformMode == PlatformMode::GALAXY_LC ||
-        platformMode == PlatformMode::GALAXY_FC) {
-      saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
-    } else {
-      saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
+  if (auto platformPorts = platform.platformPorts_ref()) {
+    for (auto& port : *platformPorts) {
+      std::unique_ptr<SaiPlatformPort> saiPort;
+      PortID portId(port.first);
+      if (platformMode == PlatformMode::WEDGE400C) {
+        saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
+      } else if (
+          platformMode == PlatformMode::WEDGE ||
+          platformMode == PlatformMode::WEDGE100 ||
+          platformMode == PlatformMode::GALAXY_LC ||
+          platformMode == PlatformMode::GALAXY_FC) {
+        saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
+      } else {
+        saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
+      }
+      portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
     }
-    portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
   }
 }
 
@@ -162,12 +164,15 @@ std::optional<std::string> SaiPlatform::getPlatformAttribute(
     cfg::PlatformAttributes platformAttribute) {
   auto& platform = config()->thrift.platform;
 
-  auto platformIter = platform.platformSettings.find(platformAttribute);
-  if (platformIter == platform.platformSettings.end()) {
+  if (auto platformSettings = platform.platformSettings_ref()) {
+    auto platformIter = platformSettings->find(platformAttribute);
+    if (platformIter == platformSettings->end()) {
+      return std::nullopt;
+    }
+    return platformIter->second;
+  } else {
     return std::nullopt;
   }
-
-  return platformIter->second;
 }
 
 sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {

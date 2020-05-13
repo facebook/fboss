@@ -150,7 +150,8 @@ cfg::AgentConfig getFakeAgentConfig() {
   chip.physicalID = 0;
   config.platform.chips_ref()->push_back(chip);
 
-  config.platform.platformSettings.insert(std::make_pair(
+  config.platform.platformSettings_ref() = {};
+  config.platform.platformSettings_ref()->insert(std::make_pair(
       cfg::PlatformAttributes::CONNECTION_HANDLE, "test connection handle"));
   return config;
 }
