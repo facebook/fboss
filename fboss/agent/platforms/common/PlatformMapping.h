@@ -29,7 +29,7 @@ class PlatformMapping {
     return supportedProfiles_;
   }
 
-  const std::vector<phy::PinConfig>& getPortIphyPinConfigs(
+  std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PortID id,
       cfg::PortProfileID profileID) const;
 
@@ -60,6 +60,7 @@ class PlatformMapping {
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;
   std::map<std::string, phy::DataPlanePhyChip> chips_;
+  std::vector<cfg::PlatformPortConfigOverride> portConfigOverrides_;
 
  private:
   // Forbidden copy constructor and assignment operator

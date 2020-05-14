@@ -15,6 +15,30 @@
 
 #include "fboss/agent/FbossError.h"
 
+namespace {
+bool matchPlatformPortConfigOverrideFactor(
+    const facebook::fboss::cfg::PlatformPortConfigOverrideFactor& factor,
+    facebook::fboss::PortID portID,
+    facebook::fboss::cfg::PortProfileID profileID) {
+  if (auto overridePorts = factor.ports_ref()) {
+    if (std::find(
+            overridePorts->begin(),
+            overridePorts->end(),
+            static_cast<int>(portID)) == overridePorts->end()) {
+      return false;
+    }
+  }
+  if (auto overrideProfiles = factor.profiles_ref()) {
+    if (std::find(
+            overrideProfiles->begin(), overrideProfiles->end(), profileID) ==
+        overrideProfiles->end()) {
+      return false;
+    }
+  }
+  return true;
+}
+} // namespace
+
 namespace facebook {
 namespace fboss {
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
@@ -25,6 +49,9 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
   supportedProfiles_ = std::move(mapping.supportedProfiles);
   for (auto chip : mapping.chips) {
     chips_[chip.name] = chip;
+  }
+  if (auto portConfigOverrides = mapping.portConfigOverrides_ref()) {
+    portConfigOverrides_ = std::move(*portConfigOverrides);
   }
 }
 
@@ -75,7 +102,7 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   return cfg::PortSpeed::DEFAULT;
 }
 
-const std::vector<phy::PinConfig>& PlatformMapping::getPortIphyPinConfigs(
+std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PortID id,
     cfg::PortProfileID profileID) const {
   auto itPlatformPort = platformPorts_.find(id);
@@ -93,7 +120,43 @@ const std::vector<phy::PinConfig>& PlatformMapping::getPortIphyPinConfigs(
         id);
   }
 
-  return platformPortConfig->second.pins.iphy;
+  const auto& iphyCfg = platformPortConfig->second.pins.iphy;
+  // Check whether there's an override
+  for (const auto portConfigOverride : portConfigOverrides_) {
+    if (matchPlatformPortConfigOverrideFactor(
+            portConfigOverride.factor, id, profileID)) {
+      auto overrideIphy = portConfigOverride.pins.iphy;
+      if (!overrideIphy.empty()) {
+        // make sure the override iphy config size == iphyCfg
+        if (overrideIphy.size() != iphyCfg.size()) {
+          throw FbossError(
+              "Port ",
+              id,
+              ", profile ",
+              apache::thrift::util::enumNameSafe(profileID),
+              " has mismatched override iphy lane size:",
+              overrideIphy.size(),
+              ", expected size: ",
+              iphyCfg.size());
+        }
+
+        // We need to update the override with the correct PinID for such port
+        // Both default iphyCfg and override iphyCfg are in order by lanes.
+        std::vector<phy::PinConfig> newOverrideIphy;
+        for (int i = 0; i < iphyCfg.size(); i++) {
+          phy::PinConfig pinCfg;
+          pinCfg.id = iphyCfg.at(i).id;
+          if (auto tx = overrideIphy.at(i).tx_ref()) {
+            pinCfg.tx_ref() = *tx;
+          }
+          newOverrideIphy.push_back(pinCfg);
+        }
+        return newOverrideIphy;
+      }
+    }
+  }
+  // otherwise, we just need to return iphy config directly
+  return iphyCfg;
 }
 } // namespace fboss
 } // namespace facebook

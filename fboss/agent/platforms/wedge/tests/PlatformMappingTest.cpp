@@ -45,6 +45,59 @@ TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
   verify(mapping.get());
 }
 
+TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
+  // All the downlink ports should be using the same tx_settings: nrz:-8:89:0
+  auto mapping = std::make_unique<Wedge400PlatformMapping>();
+  for (auto port : mapping->getPlatformPorts()) {
+    const auto& profiles = port.second.supportedProfiles;
+    // Only downlink ports has 10G profile
+    if (profiles.find(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER) ==
+        profiles.end()) {
+      continue;
+    }
+    for (auto profile : profiles) {
+      auto pinCfgs =
+          mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
+      EXPECT_TRUE(pinCfgs.size() > 0);
+
+      auto itProfileCfg = mapping->getSupportedProfiles().find(profile.first);
+      EXPECT_TRUE(itProfileCfg != mapping->getSupportedProfiles().end());
+
+      for (auto pinCfg : pinCfgs) {
+        auto tx = pinCfg.tx_ref();
+        // Only NRZ mode has override tx
+        if (itProfileCfg->second.iphy.modulation == phy::IpModulation::NRZ) {
+          EXPECT_TRUE(tx.has_value());
+          EXPECT_EQ(tx->pre2, 0);
+          EXPECT_EQ(tx->pre, -8);
+          EXPECT_EQ(tx->main, 89);
+          EXPECT_EQ(tx->post, 0);
+          EXPECT_EQ(tx->post2, 0);
+          EXPECT_EQ(tx->post3, 0);
+        } else {
+          EXPECT_FALSE(tx.has_value());
+        }
+      }
+    }
+  }
+
+  // Not override case will read directly from PlatformPortConfig
+  // ce0(port id 36) 100G optic serdes_tx_taps_ce0=nrz:-6:92:-24
+  auto pinCfgs = mapping->getPortIphyPinConfigs(
+      PortID(36), cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
+  EXPECT_EQ(pinCfgs.size(), 4);
+  for (auto pinCfg : pinCfgs) {
+    if (auto tx = pinCfg.tx_ref()) {
+      EXPECT_EQ(tx->pre2, 0);
+      EXPECT_EQ(tx->pre, -6);
+      EXPECT_EQ(tx->main, 92);
+      EXPECT_EQ(tx->post, -24);
+      EXPECT_EQ(tx->post2, 0);
+      EXPECT_EQ(tx->post3, 0);
+    }
+  }
+}
+
 TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {

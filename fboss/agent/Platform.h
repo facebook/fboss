@@ -90,7 +90,7 @@ class Platform {
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       cfg::PortProfileID PortProfileID) const;
 
-  const std::vector<phy::PinConfig>& getPortIphyPinConfigs(
+  std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PortID id,
       cfg::PortProfileID profileID) const;
 
