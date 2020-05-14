@@ -275,7 +275,7 @@ void BcmUnit::attach(bool warmBoot) {
   }
 
   BcmFwLoader::loadFirmware(
-      static_cast<BcmSwitch*>(platform_->getHwSwitch()), platform_->getMode());
+      static_cast<BcmSwitch*>(platform_->getHwSwitch()), platform_->getAsic());
 
   rv = soc_misc_init(unit_);
   bcmCheckError(rv, "failed to init misc for unit ", unit_);

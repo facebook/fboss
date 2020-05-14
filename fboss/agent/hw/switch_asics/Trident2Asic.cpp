@@ -25,6 +25,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
+    case HwAsic::Feature::QCM:
       return false;
   }
   return false;

@@ -29,6 +29,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::WARM_BOOT:
+    case HwAsic::Feature::QCM:
       return false;
   }
   return false;

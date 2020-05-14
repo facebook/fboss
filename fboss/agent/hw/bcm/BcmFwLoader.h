@@ -44,7 +44,7 @@ struct BcmFirmware {
 
 class BcmFwLoader {
  public:
-  static void loadFirmware(BcmSwitch* sw, PlatformMode platformMode);
+  static void loadFirmware(BcmSwitch* sw, HwAsic* hwAsic);
 
  private:
   static void loadFirmwareImpl(BcmSwitch* sw, FwType fwType);

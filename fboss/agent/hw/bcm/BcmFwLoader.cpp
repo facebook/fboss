@@ -16,8 +16,12 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-DEFINE_string(qcm_fw_path, "", "Location of qcm firmware");
+DEFINE_string(
+    qcm_fw_path,
+    "/var/facebook/fboss/BCM56960_0_qcm.srec",
+    "Location of qcm firmware");
 DEFINE_bool(load_qcm_fw, false, "Enable load of qcm fimrware");
 DEFINE_bool(
     ignore_qcm_fw_file_not_found,
@@ -136,18 +140,13 @@ void BcmFwLoader::loadFirmwareImpl(BcmSwitch* sw, FwType fwType) {
   }
 }
 
-void BcmFwLoader::loadFirmware(BcmSwitch* sw, PlatformMode platformMode) {
-  switch (platformMode) {
-    case PlatformMode::WEDGE100:
-      // QCM fw is supported on wedge100 only
-      if (FLAGS_load_qcm_fw) {
-        XLOG(INFO) << "Load the QCM firmware ..";
-        loadFirmwareImpl(sw, FwType::QCM);
-      }
-      break;
-    default:
-      // no firmware needed for other chips
-      break;
+void BcmFwLoader::loadFirmware(BcmSwitch* sw, HwAsic* hwAsic) {
+  if (hwAsic && hwAsic->isSupported(HwAsic::Feature::QCM)) {
+    // QCM fw is supported on Tomahawk only
+    if (FLAGS_load_qcm_fw) {
+      XLOG(INFO) << "Load the QCM firmware ..";
+      loadFirmwareImpl(sw, FwType::QCM);
+    }
   }
   return;
 }
