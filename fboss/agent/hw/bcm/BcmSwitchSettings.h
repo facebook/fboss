@@ -26,6 +26,8 @@ class BcmSwitchSettings {
   void enableL2LearningCallback();
   void disableL2LearningCallback();
 
+  void setQcmEnable(bool qcmEnable);
+
  private:
   void enableL2LearningHardware();
   void enableL2LearningSoftware();

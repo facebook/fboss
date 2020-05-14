@@ -2031,15 +2031,20 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
 shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   auto origSwitchSettings = orig_->getSwitchSettings();
+  bool switchSettingsChange = false;
+  auto newSwitchSettings = origSwitchSettings->clone();
 
-  if (origSwitchSettings->getL2LearningMode() ==
+  if (origSwitchSettings->getL2LearningMode() !=
       cfg_->switchSettings.l2LearningMode) {
-    return nullptr;
+    newSwitchSettings->setL2LearningMode(cfg_->switchSettings.l2LearningMode);
+    switchSettingsChange = true;
   }
 
-  auto newSwitchSettings = origSwitchSettings->clone();
-  newSwitchSettings->setL2LearningMode(cfg_->switchSettings.l2LearningMode);
-  return newSwitchSettings;
+  if (origSwitchSettings->isQcmEnable() != cfg_->switchSettings.qcmEnable) {
+    newSwitchSettings->setQcmEnable(cfg_->switchSettings.qcmEnable);
+    switchSettingsChange = true;
+  }
+  return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {

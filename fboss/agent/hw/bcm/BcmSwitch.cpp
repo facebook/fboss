@@ -989,6 +989,12 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
                << static_cast<int>(newSwitchSettings->getL2LearningMode());
     switchSettings_->setL2LearningMode(newSwitchSettings->getL2LearningMode());
   }
+
+  if (oldSwitchSettings->isQcmEnable() != newSwitchSettings->isQcmEnable()) {
+    XLOG(DBG3) << "Set QCM enable: " << std::boolalpha
+               << newSwitchSettings->isQcmEnable();
+    switchSettings_->setQcmEnable(newSwitchSettings->isQcmEnable());
+  }
 }
 
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {

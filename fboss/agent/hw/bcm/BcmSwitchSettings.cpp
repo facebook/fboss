@@ -231,4 +231,9 @@ void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {
   }
 }
 
+void BcmSwitchSettings::setQcmEnable(bool qcmEnable) {
+  XLOG(INFO) << "Set to:" << qcmEnable;
+  // TODO (rohitpuri)
+}
+
 } // namespace facebook::fboss

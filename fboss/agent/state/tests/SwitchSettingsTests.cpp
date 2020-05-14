@@ -14,7 +14,7 @@
 using namespace facebook::fboss;
 using std::make_shared;
 
-TEST(SwitchSettingsTest, applyConfig) {
+TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -28,6 +28,7 @@ TEST(SwitchSettingsTest, applyConfig) {
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(
       cfg::L2LearningMode::SOFTWARE, switchSettingsV1->getL2LearningMode());
+  EXPECT_FALSE(switchSettingsV1->isQcmEnable());
 
   config.switchSettings.l2LearningMode = cfg::L2LearningMode::HARDWARE;
 
@@ -39,18 +40,47 @@ TEST(SwitchSettingsTest, applyConfig) {
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_EQ(
       cfg::L2LearningMode::HARDWARE, switchSettingsV2->getL2LearningMode());
+  EXPECT_FALSE(switchSettingsV2->isQcmEnable());
+}
+
+TEST(SwitchSettingsTest, applyQcmConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.switchSettings.qcmEnable = true;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_TRUE(switchSettingsV1->isQcmEnable());
+  EXPECT_EQ(
+      cfg::L2LearningMode::HARDWARE, switchSettingsV1->getL2LearningMode());
+
+  config.switchSettings.qcmEnable = false;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_FALSE(switchSettingsV2->isPublished());
+  EXPECT_FALSE(switchSettingsV2->isQcmEnable());
+  EXPECT_EQ(
+      cfg::L2LearningMode::HARDWARE, switchSettingsV2->getL2LearningMode());
 }
 
 TEST(SwitchSettingsTest, ToFromJSON) {
   std::string jsonStr = R"(
         {
-          "l2LearningMode": 1
+          "l2LearningMode": 1,
+          "qcmEnable": true
         }
   )";
 
   auto switchSettings =
       SwitchSettings::fromFollyDynamic(folly::parseJson(jsonStr));
   EXPECT_EQ(cfg::L2LearningMode::SOFTWARE, switchSettings->getL2LearningMode());
+  EXPECT_TRUE(switchSettings->isQcmEnable());
 
   auto dyn1 = switchSettings->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);

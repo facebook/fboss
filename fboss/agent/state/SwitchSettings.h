@@ -24,6 +24,7 @@ struct SwitchSettingsFields {
   static SwitchSettingsFields fromFollyDynamic(const folly::dynamic& json);
 
   cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
+  bool qcmEnable = false;
 };
 
 /*
@@ -48,6 +49,14 @@ class SwitchSettings : public NodeBaseT<SwitchSettings, SwitchSettingsFields> {
 
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
     writableFields()->l2LearningMode = l2LearningMode;
+  }
+
+  bool isQcmEnable() const {
+    return getFields()->qcmEnable;
+  }
+
+  void setQcmEnable(const bool enable) {
+    writableFields()->qcmEnable = enable;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
