@@ -195,11 +195,25 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    *           that already has classID, route inherits that classID. If such a
    *           next hop does not exist, route loses classID.
    *
+   * Warmboot does not require special handling.
+   *  - On warmboot, LookupClassRouteUPdater would observe:
+   *    StateDelta(emptyState, warmbootState).
+   *  - The resulting neighbor/route/port processing would reinitialize
+   *    LookupClassRouteUpdater's local data structures and trigger state
+   *    update.
+   *  - However, computed route classIDs would be same as programmed, and thus
+   *    HwSwitch delta processing would treat this as no-op (no ASIC
+   *    programming). Thus, warmboot requires no special handling.
+   *  - In future, across warmboot, if we decide to change the scheme (pick
+   *    something other than first reachable nexthop), the computed route
+   *    classID would not be same as what is programmed on the ASIC. HwSwitch
+   *    delta processing would then program the ASIC to associate this new
+   *    classID which is the desired behavior anyway.
+   *
+   *  Thus, we don't require any special handling for warmboot.
+   *
    * This is implemented by maintaining following data structures.
    * TODO(skhare) add note on how these data structures handle all cases.
-   *
-   * Note that this class computes classIDs for the routes, state update is
-   * scheduled by the caller (LookupClassRouteUpdater).
    */
 
   /*
