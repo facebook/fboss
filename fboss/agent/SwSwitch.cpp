@@ -99,6 +99,11 @@ DEFINE_int32(
     1000,
     "Timeout for sending to distribution_service (ms)");
 
+DEFINE_bool(
+    log_all_fib_updates,
+    false,
+    "Flag to turn on logging of all updates to the FIB");
+
 namespace {
 
 /**
@@ -514,6 +519,11 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
       });
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
+  if (FLAGS_log_all_fib_updates) {
+    constexpr auto kAllFibUpdates = "all_fib_updates";
+    logRouteUpdates("::", 0, kAllFibUpdates);
+    logRouteUpdates("0.0.0.0", 0, kAllFibUpdates);
+  }
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
