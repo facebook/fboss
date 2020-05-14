@@ -272,17 +272,22 @@ void BcmAclEntry::createAclActions() {
       auto sendToQueue = action.value().getSendToQueue().value();
       bcm_field_action_t actionToTake = bcmFieldActionCosQNew;
       auto errorMsg =
-          folly::to<std::string>("cos q ", sendToQueue.first.queueId);
+          folly::to<std::string>("cos q ", *sendToQueue.first.queueId_ref());
       if (sendToQueue.second) {
         actionToTake = bcmFieldActionCosQCpuNew;
         errorMsg = "CPU Q";
       }
       rv = bcm_field_action_add(
-          hw_->getUnit(), handle_, actionToTake, sendToQueue.first.queueId, 0);
+          hw_->getUnit(),
+          handle_,
+          actionToTake,
+          *sendToQueue.first.queueId_ref(),
+          0);
       bcmCheckError(rv, "failed to add set ", errorMsg, " field action");
     }
     if (action.value().getSetDscp()) {
-      const int dscpValue = action.value().getSetDscp().value().dscpValue;
+      const int dscpValue =
+          *action.value().getSetDscp().value().dscpValue_ref();
       rv = bcm_field_action_add(
           hw_->getUnit(), handle_, bcmFieldActionDscpNew, dscpValue, 0);
       bcmCheckError(rv, "failed to add set dscp field action");
@@ -301,8 +306,8 @@ void BcmAclEntry::createAclStat() {
   }
   auto aclTable = hw_->writableAclTable();
   const auto warmBootCache = hw_->getWarmBootCache();
-  auto counterName = action->getTrafficCounter()->name;
-  auto counterTypes = action->getTrafficCounter()->types;
+  auto counterName = *action->getTrafficCounter()->name_ref();
+  auto counterTypes = *action->getTrafficCounter()->types_ref();
   auto warmBootItr = warmBootCache->findAclStat(handle_);
   if (warmBootItr != warmBootCache->AclEntry2AclStat_end()) {
     // If we are re-using an existing stat, call programmed() to indicate
@@ -389,7 +394,7 @@ BcmAclEntry::~BcmAclEntry() {
   }
   // Detach and remove the stat. This must be done before destroying the ACL.
   if (action && action.value().getTrafficCounter()) {
-    auto counterName = action->getTrafficCounter()->name;
+    auto counterName = *action->getTrafficCounter()->name_ref();
     auto aclStat = aclTable->getAclStat(counterName);
     rv = bcm_field_entry_stat_detach(
         hw_->getUnit(), handle_, aclStat->getHandle());

@@ -27,9 +27,10 @@ uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
   saiSwitch->updateStats(&dummy);
   auto hwPortStats =
       saiSwitch->managerTable()->hostifManager().getCpuPortStats();
-  auto queueIter = hwPortStats.queueOutPackets_.find(queueId);
-  return (queueIter != hwPortStats.queueOutPackets_.end()) ? queueIter->second
-                                                           : 0;
+  auto queueIter = hwPortStats.queueOutPackets__ref()->find(queueId);
+  return (queueIter != hwPortStats.queueOutPackets__ref()->end())
+      ? queueIter->second
+      : 0;
 }
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(

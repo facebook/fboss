@@ -787,15 +787,15 @@ TEST(ArpTest, FlushEntry) {
       arpTable.begin(),
       arpTable.end(),
       [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
-        return a.port < b.port;
+        return *a.port_ref() < *b.port_ref();
       });
   auto checkEntry = [&](int idx, StringPiece ip, StringPiece mac, int port) {
     SCOPED_TRACE(folly::to<string>("index ", idx));
-    EXPECT_EQ(arpTable[idx].vlanID, 1);
-    EXPECT_EQ(arpTable[idx].vlanName, "Vlan1");
-    EXPECT_EQ(toIPAddress(arpTable[idx].ip).str(), ip);
-    EXPECT_EQ(arpTable[idx].mac, mac);
-    EXPECT_EQ(arpTable[idx].port, port);
+    EXPECT_EQ(*arpTable[idx].vlanID_ref(), 1);
+    EXPECT_EQ(*arpTable[idx].vlanName_ref(), "Vlan1");
+    EXPECT_EQ(toIPAddress(*arpTable[idx].ip_ref()).str(), ip);
+    EXPECT_EQ(*arpTable[idx].mac_ref(), mac);
+    EXPECT_EQ(*arpTable[idx].port_ref(), port);
   };
   checkEntry(0, "10.0.0.7", "02:10:20:30:40:07", 1);
   checkEntry(1, "10.0.0.11", "02:10:20:30:40:11", 2);
@@ -818,7 +818,7 @@ TEST(ArpTest, FlushEntry) {
       arpTable.begin(),
       arpTable.end(),
       [](const ArpEntryThrift& a, const ArpEntryThrift& b) {
-        return a.port < b.port;
+        return *a.port_ref() < *b.port_ref();
       });
   checkEntry(0, "10.0.0.7", "02:10:20:30:40:07", 1);
   checkEntry(1, "10.0.0.15", "02:10:20:30:40:15", 3);

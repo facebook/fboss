@@ -58,20 +58,20 @@ void ParticipantInfo::populate(LacpEndpoint& endpoint) const {
 
   // All conversions to int32_t (the type underlying Thrift's "i32") are from
   // uint16_t
-  endpoint.systemPriority = static_cast<int32_t>(systemPriority);
-  endpoint.systemID = systemAsMacAddr.toString();
-  endpoint.key = static_cast<int32_t>(key);
-  endpoint.portPriority = static_cast<int32_t>(portPriority);
-  endpoint.port = static_cast<int32_t>(port);
+  *endpoint.systemPriority_ref() = static_cast<int32_t>(systemPriority);
+  *endpoint.systemID_ref() = systemAsMacAddr.toString();
+  *endpoint.key_ref() = static_cast<int32_t>(key);
+  *endpoint.portPriority_ref() = static_cast<int32_t>(portPriority);
+  *endpoint.port_ref() = static_cast<int32_t>(port);
 
-  endpoint.state.active = state & LacpState::ACTIVE;
-  endpoint.state.shortTimeout = state & LacpState::SHORT_TIMEOUT;
-  endpoint.state.aggregatable = state & LacpState::AGGREGATABLE;
-  endpoint.state.inSync = state & LacpState::IN_SYNC;
-  endpoint.state.collecting = state & LacpState::COLLECTING;
-  endpoint.state.distributing = state & LacpState::DISTRIBUTING;
-  endpoint.state.defaulted = state & LacpState::DEFAULTED;
-  endpoint.state.expired = state & LacpState::EXPIRED;
+  *endpoint.state_ref()->active_ref() = state & LacpState::ACTIVE;
+  *endpoint.state_ref()->shortTimeout_ref() = state & LacpState::SHORT_TIMEOUT;
+  *endpoint.state_ref()->aggregatable_ref() = state & LacpState::AGGREGATABLE;
+  *endpoint.state_ref()->inSync_ref() = state & LacpState::IN_SYNC;
+  *endpoint.state_ref()->collecting_ref() = state & LacpState::COLLECTING;
+  *endpoint.state_ref()->distributing_ref() = state & LacpState::DISTRIBUTING;
+  *endpoint.state_ref()->defaulted_ref() = state & LacpState::DEFAULTED;
+  *endpoint.state_ref()->expired_ref() = state & LacpState::EXPIRED;
 }
 
 bool LACPDU::isValid() const {

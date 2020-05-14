@@ -44,7 +44,7 @@ void transformPacketTraceInfo(
   const int32_t* bitmapPtr = reinterpret_cast<const int32_t*>(
       bcmPacketTraceInfo.pkt_trace_lookup_status.pkt_trace_status_bitmap);
   std::vector<int32_t> bitmap(bitmapPtr, bitmapPtr + length);
-  packetTraceInfo.lookupResult = std::move(bitmap);
+  *packetTraceInfo.lookupResult_ref() = std::move(bitmap);
 
   auto hashInfo = bcmPacketTraceInfo.pkt_trace_hash_info;
 
@@ -65,7 +65,7 @@ void transformPacketTraceInfo(
       bcm_l3_egress_t egressObject;
       rv = bcm_l3_egress_get(unit, intfArray[i], &egressObject);
       bcmCheckError(rv, "Could not get array for egress object ", intfArray[i]);
-      packetTraceInfo.hashInfo.potentialEgressPorts.push_back(
+      packetTraceInfo.hashInfo_ref()->potentialEgressPorts_ref()->push_back(
           hwSwitch->getPortTable()->getBcmPort(egressObject.port)->getPortID());
     }
 
@@ -75,7 +75,7 @@ void transformPacketTraceInfo(
         : hashInfo.ecmp_1_egress + BVIEW_L3_EGRESS_IDX_START;
     rv = bcm_l3_egress_get(unit, egress_idx, &egressObject);
     bcmCheckError(rv, "Could not get array for egress object ", egress_idx);
-    packetTraceInfo.hashInfo.actualEgressPort =
+    *packetTraceInfo.hashInfo_ref()->actualEgressPort_ref() =
         hwSwitch->getPortTable()->getBcmPort(egressObject.port)->getPortID();
   }
 
@@ -90,9 +90,9 @@ void transformPacketTraceInfo(
     XLOG(INFO) << "Packet trace: Fabric trunk triggered.";
   }
 
-  packetTraceInfo.resolution = bcmPacketTraceInfo.pkt_trace_resolution;
-  packetTraceInfo.stpState = bcmPacketTraceInfo.pkt_trace_stp_state;
-  packetTraceInfo.destPipeNum = bcmPacketTraceInfo.dest_pipe_num;
+  *packetTraceInfo.resolution_ref() = bcmPacketTraceInfo.pkt_trace_resolution;
+  *packetTraceInfo.stpState_ref() = bcmPacketTraceInfo.pkt_trace_stp_state;
+  *packetTraceInfo.destPipeNum_ref() = bcmPacketTraceInfo.dest_pipe_num;
 }
 
 } // namespace facebook::fboss

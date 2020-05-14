@@ -172,9 +172,9 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
   if (newLb->getIPv4Fields().size()) {
     // v4 ECMP
     cfg::Fields v4EcmpHashFields;
-    v4EcmpHashFields.ipv4Fields.insert(
+    v4EcmpHashFields.ipv4Fields_ref()->insert(
         newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
-    v4EcmpHashFields.transportFields.insert(
+    v4EcmpHashFields.transportFields_ref()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
     // Set the new ecmp v4 hash attribute on switch obj
@@ -184,9 +184,9 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
   if (newLb->getIPv6Fields().size()) {
     // v6 ECMP
     cfg::Fields v6EcmpHashFields;
-    v6EcmpHashFields.ipv6Fields.insert(
+    v6EcmpHashFields.ipv6Fields_ref()->insert(
         newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
-    v6EcmpHashFields.transportFields.insert(
+    v6EcmpHashFields.transportFields_ref()->insert(
         newLb->getTransportFields().begin(), newLb->getTransportFields().end());
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
     // Set the new ecmp v6 hash attribute on switch obj

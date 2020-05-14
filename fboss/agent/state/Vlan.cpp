@@ -158,8 +158,8 @@ Vlan::Vlan(VlanID id, string name) : NodeBaseT(id, std::move(name)) {}
 
 Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
     : NodeBaseT(
-          VlanID(config->id),
-          config->name,
+          VlanID(*config->id_ref()),
+          *config->name_ref(),
           (config->intfID_ref() ? InterfaceID(*config->intfID_ref())
                                 : InterfaceID(0)),
           (config->dhcpRelayAddressV4_ref()

@@ -158,8 +158,8 @@ createTestHandle(cfg::SwitchConfig* config, MacAddress mac, SwitchFlags flags) {
   // Create the initial state, which only has ports
   initialState = make_shared<SwitchState>();
   uint32_t maxPort{0};
-  for (const auto& port : config->ports) {
-    maxPort = std::max(static_cast<int32_t>(maxPort), port.logicalID);
+  for (const auto& port : *config->ports_ref()) {
+    maxPort = std::max(static_cast<int32_t>(maxPort), *port.logicalID_ref());
   }
   for (uint32_t idx = 1; idx <= maxPort; ++idx) {
     initialState->registerPort(PortID(idx), folly::to<string>("port", idx));
@@ -227,48 +227,48 @@ cfg::SwitchConfig testConfigA() {
   cfg::SwitchConfig cfg;
   static constexpr auto kPortCount = 20;
 
-  cfg.ports.resize(kPortCount);
+  cfg.ports_ref()->resize(kPortCount);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.ports[p].logicalID = p + 1;
-    cfg.ports[p].name_ref() = folly::to<string>("port", p + 1);
+    *cfg.ports[p].logicalID_ref() = p + 1;
+    cfg.ports_ref()[p].name_ref() = folly::to<string>("port", p + 1);
   }
 
-  cfg.vlans.resize(2);
-  cfg.vlans[0].id = 1;
-  cfg.vlans[0].name = "Vlan1";
-  cfg.vlans[0].intfID_ref() = 1;
-  cfg.vlans[1].id = 55;
-  cfg.vlans[1].name = "Vlan55";
-  cfg.vlans[1].intfID_ref() = 55;
+  cfg.vlans_ref()->resize(2);
+  *cfg.vlans[0].id_ref() = 1;
+  *cfg.vlans[0].name_ref() = "Vlan1";
+  cfg.vlans_ref()[0].intfID_ref() = 1;
+  *cfg.vlans[1].id_ref() = 55;
+  *cfg.vlans[1].name_ref() = "Vlan55";
+  cfg.vlans_ref()[1].intfID_ref() = 55;
 
-  cfg.vlanPorts.resize(20);
+  cfg.vlanPorts_ref()->resize(20);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.vlanPorts[p].logicalPort = p + 1;
-    cfg.vlanPorts[p].vlanID = p < 11 ? 1 : 55;
+    *cfg.vlanPorts[p].logicalPort_ref() = p + 1;
+    *cfg.vlanPorts[p].vlanID_ref() = p < 11 ? 1 : 55;
   }
 
-  cfg.interfaces.resize(2);
-  cfg.interfaces[0].intfID = 1;
-  cfg.interfaces[0].routerID = 0;
-  cfg.interfaces[0].vlanID = 1;
-  cfg.interfaces[0].name_ref() = "interface1";
-  cfg.interfaces[0].mac_ref() = "00:02:00:00:00:01";
-  cfg.interfaces[0].mtu_ref() = 9000;
-  cfg.interfaces[0].ipAddresses.resize(3);
-  cfg.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
-  cfg.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
-  cfg.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
+  cfg.interfaces_ref()->resize(2);
+  *cfg.interfaces[0].intfID_ref() = 1;
+  *cfg.interfaces[0].routerID_ref() = 0;
+  *cfg.interfaces[0].vlanID_ref() = 1;
+  cfg.interfaces_ref()[0].name_ref() = "interface1";
+  cfg.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
+  cfg.interfaces_ref()[0].mtu_ref() = 9000;
+  cfg.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+  cfg.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  cfg.interfaces[0].ipAddresses_ref()[1] = "192.168.0.1/24";
+  cfg.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
 
-  cfg.interfaces[1].intfID = 55;
-  cfg.interfaces[1].routerID = 0;
-  cfg.interfaces[1].vlanID = 55;
-  cfg.interfaces[1].name_ref() = "interface55";
-  cfg.interfaces[1].mac_ref() = "00:02:00:00:00:55";
-  cfg.interfaces[1].mtu_ref() = 9000;
-  cfg.interfaces[1].ipAddresses.resize(3);
-  cfg.interfaces[1].ipAddresses[0] = "10.0.55.1/24";
-  cfg.interfaces[1].ipAddresses[1] = "192.168.55.1/24";
-  cfg.interfaces[1].ipAddresses[2] = "2401:db00:2110:3055::0001/64";
+  *cfg.interfaces[1].intfID_ref() = 55;
+  *cfg.interfaces[1].routerID_ref() = 0;
+  *cfg.interfaces[1].vlanID_ref() = 55;
+  cfg.interfaces_ref()[1].name_ref() = "interface55";
+  cfg.interfaces_ref()[1].mac_ref() = "00:02:00:00:00:55";
+  cfg.interfaces_ref()[1].mtu_ref() = 9000;
+  cfg.interfaces_ref()[1].ipAddresses_ref()->resize(3);
+  cfg.interfaces[1].ipAddresses_ref()[0] = "10.0.55.1/24";
+  cfg.interfaces[1].ipAddresses_ref()[1] = "192.168.55.1/24";
+  cfg.interfaces[1].ipAddresses_ref()[2] = "2401:db00:2110:3055::0001/64";
 
   return cfg;
 }
@@ -276,26 +276,27 @@ cfg::SwitchConfig testConfigA() {
 shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
   auto state = make_shared<SwitchState>();
 
-  for (auto cfgVlan : cfg.vlans) {
-    auto vlan = make_shared<Vlan>(VlanID(cfgVlan.id), cfgVlan.name);
+  for (auto cfgVlan : *cfg.vlans_ref()) {
+    auto vlan =
+        make_shared<Vlan>(VlanID(*cfgVlan.id_ref()), *cfgVlan.name_ref());
     state->addVlan(vlan);
   }
 
-  for (auto cfgVlanPort : cfg.vlanPorts) {
+  for (auto cfgVlanPort : *cfg.vlanPorts_ref()) {
     state->registerPort(
-        PortID(cfgVlanPort.logicalPort),
-        folly::to<string>("port", cfgVlanPort.logicalPort));
-    auto vlan = state->getVlans()->getVlanIf(VlanID(cfgVlanPort.vlanID));
+        PortID(*cfgVlanPort.logicalPort_ref()),
+        folly::to<string>("port", *cfgVlanPort.logicalPort_ref()));
+    auto vlan = state->getVlans()->getVlanIf(VlanID(*cfgVlanPort.vlanID_ref()));
     if (vlan) {
-      vlan->addPort(PortID(cfgVlanPort.logicalPort), false);
+      vlan->addPort(PortID(*cfgVlanPort.logicalPort_ref()), false);
     }
   }
 
-  for (auto cfgInterface : cfg.interfaces) {
+  for (auto cfgInterface : *cfg.interfaces_ref()) {
     auto interface = make_shared<Interface>(
-        InterfaceID(cfgInterface.intfID),
+        InterfaceID(*cfgInterface.intfID_ref()),
         RouterID(0), /* TODO - vrf is 0 */
-        VlanID(cfgInterface.vlanID),
+        VlanID(*cfgInterface.vlanID_ref()),
         cfgInterface.name_ref().value_or({}),
         folly::MacAddress(cfgInterface.mac_ref().value_or({})),
         cfgInterface.mtu_ref().value_or({}),
@@ -304,7 +305,7 @@ shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
     );
 
     Interface::Addresses addrs;
-    for (auto cfgIpAddress : cfgInterface.ipAddresses) {
+    for (auto cfgIpAddress : *cfgInterface.ipAddresses_ref()) {
       /** TODO - fill IPs **/
       std::vector<std::string> splitVec;
       folly::split("/", cfgIpAddress, splitVec);
@@ -314,7 +315,8 @@ shared_ptr<SwitchState> testState(cfg::SwitchConfig cfg) {
 
     state->addIntf(interface);
 
-    auto vlan = state->getVlans()->getVlanIf(VlanID(cfgInterface.vlanID));
+    auto vlan =
+        state->getVlans()->getVlanIf(VlanID(*cfgInterface.vlanID_ref()));
     if (vlan) {
       vlan->setInterfaceID(interface->getID());
     }

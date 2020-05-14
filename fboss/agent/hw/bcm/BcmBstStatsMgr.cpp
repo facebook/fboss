@@ -104,7 +104,7 @@ void BcmBstStatsMgr::updateStats() {
             BufferStatsLogger::Direction::Egress,
             queue,
             peakBytes,
-            curPortStatsOptional->queueOutDiscardBytes_.at(queue),
+            curPortStatsOptional->queueOutDiscardBytes__ref()->at(queue),
             bcmPort->getPlatformPort()->getEgressXPEs());
       }
     }

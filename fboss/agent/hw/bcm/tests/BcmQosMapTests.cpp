@@ -49,13 +49,13 @@ TEST_F(BcmQosMapTest, BcmDscpMapWithRules) {
   auto setup = [this]() {
     auto config = initialConfig();
 
-    config.qosPolicies.resize(1);
-    config.qosPolicies[0].name = "qp";
-    config.qosPolicies[0].rules.resize(8);
+    config.qosPolicies_ref()->resize(1);
+    *config.qosPolicies[0].name_ref() = "qp";
+    config.qosPolicies_ref()[0].rules_ref()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      config.qosPolicies[0].rules[i].dscp.resize(8);
+      config.qosPolicies[0].rules_ref()[i].dscp_ref()->resize(8);
       for (auto j = 0; j < 8; j++) {
-        config.qosPolicies[0].rules[i].dscp[j] = 8 * i + j;
+        config.qosPolicies[0].rules[i].dscp_ref()[j] = 8 * i + j;
       }
     }
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
@@ -89,27 +89,28 @@ TEST_F(BcmQosMapTest, BcmAllQosMaps) {
     auto config = initialConfig();
 
     cfg::QosMap qosMap;
-    qosMap.dscpMaps.resize(8);
+    qosMap.dscpMaps_ref()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      qosMap.dscpMaps[i].internalTrafficClass = i;
+      *qosMap.dscpMaps[i].internalTrafficClass_ref() = i;
       for (auto j = 0; j < 8; j++) {
-        qosMap.dscpMaps[i].fromDscpToTrafficClass.push_back(8 * i + j);
+        qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
+            8 * i + j);
       }
     }
-    qosMap.expMaps.resize(8);
+    qosMap.expMaps_ref()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      qosMap.expMaps[i].internalTrafficClass = i;
-      qosMap.expMaps[i].fromExpToTrafficClass.push_back(i);
-      qosMap.expMaps[i].fromTrafficClassToExp_ref() = i;
+      *qosMap.expMaps[i].internalTrafficClass_ref() = i;
+      qosMap.expMaps_ref()[i].fromExpToTrafficClass_ref()->push_back(i);
+      qosMap.expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
     }
 
     for (auto i = 0; i < 8; i++) {
-      qosMap.trafficClassToQueueId.emplace(i, i);
+      qosMap.trafficClassToQueueId_ref()->emplace(i, i);
     }
 
-    config.qosPolicies.resize(1);
-    config.qosPolicies[0].name = "qp";
-    config.qosPolicies[0].qosMap_ref() = qosMap;
+    config.qosPolicies_ref()->resize(1);
+    *config.qosPolicies[0].name_ref() = "qp";
+    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
     dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";

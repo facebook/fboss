@@ -75,9 +75,9 @@ QosPolicyFields QosPolicyFields::fromFollyDynamic(const folly::dynamic& json) {
 DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)
     : TrafficClassToQosAttributeMap<DSCP>() {
   for (auto map : cfg) {
-    auto trafficClass = map.internalTrafficClass;
+    auto trafficClass = *map.internalTrafficClass_ref();
 
-    for (auto dscp : map.fromDscpToTrafficClass) {
+    for (auto dscp : *map.fromDscpToTrafficClass_ref()) {
       addFromEntry(
           static_cast<TrafficClass>(trafficClass), static_cast<DSCP>(dscp));
     }
@@ -92,9 +92,9 @@ DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg)
 ExpMap::ExpMap(std::vector<cfg::ExpQosMap> cfg)
     : TrafficClassToQosAttributeMap<EXP>() {
   for (auto map : cfg) {
-    auto trafficClass = map.internalTrafficClass;
+    auto trafficClass = *map.internalTrafficClass_ref();
 
-    for (auto dscp : map.fromExpToTrafficClass) {
+    for (auto dscp : *map.fromExpToTrafficClass_ref()) {
       addFromEntry(
           static_cast<TrafficClass>(trafficClass), static_cast<EXP>(dscp));
     }

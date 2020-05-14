@@ -54,7 +54,7 @@ bool BcmAclStat::isStateSame(
     BcmAclStatHandle statHandle,
     cfg::TrafficCounter& counter) {
   std::vector<bcm_field_stat_t> expectedCounterTypes;
-  for (auto type : counter.types) {
+  for (auto type : *counter.types_ref()) {
     expectedCounterTypes.push_back(
         utility::cfgCounterTypeToBcmCounterType(type));
   }

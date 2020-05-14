@@ -16,20 +16,20 @@ void addDscpAclToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp) {
-  auto numCfgAcls = config->acls.size();
-  config->acls.resize(numCfgAcls + 1);
-  config->acls[numCfgAcls].name = aclName;
-  config->acls[numCfgAcls].dscp_ref() = dscp;
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  *config->acls[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
 }
 
 void addClassIDAclToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     cfg::AclLookupClass lookupClass) {
-  auto numCfgAcls = config->acls.size();
-  config->acls.resize(numCfgAcls + 1);
-  config->acls[numCfgAcls].name = aclName;
-  config->acls[numCfgAcls].lookupClass_ref() = lookupClass;
+  auto numCfgAcls = config->acls_ref()->size();
+  config->acls_ref()->resize(numCfgAcls + 1);
+  *config->acls[numCfgAcls].name_ref() = aclName;
+  config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
 }
 
 void addQueueMatcher(
@@ -38,7 +38,7 @@ void addQueueMatcher(
     int queueId,
     const std::optional<std::string>& counterName) {
   cfg::QueueMatchAction queueAction;
-  queueAction.queueId = queueId;
+  *queueAction.queueId_ref() = queueId;
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.sendToQueue_ref() = queueAction;
 
@@ -53,9 +53,9 @@ void addTrafficCounter(
     cfg::SwitchConfig* config,
     const std::string& counterName) {
   auto counter = cfg::TrafficCounter();
-  counter.name = counterName;
-  counter.types = {cfg::CounterType::PACKETS};
-  config->trafficCounters.push_back(counter);
+  *counter.name_ref() = counterName;
+  *counter.types_ref() = {cfg::CounterType::PACKETS};
+  config->trafficCounters_ref()->push_back(counter);
 }
 
 /*
@@ -112,24 +112,24 @@ cfg::QosPolicy* addDscpQosPolicy(
   std::vector<cfg::QosRule> rules;
   for (auto& pair : map) {
     auto qosRule = cfg::QosRule();
-    qosRule.queueId = pair.first;
-    qosRule.dscp = pair.second;
+    *qosRule.queueId_ref() = pair.first;
+    *qosRule.dscp_ref() = pair.second;
     rules.push_back(qosRule);
   }
   auto qosPolicy = cfg::QosPolicy();
-  qosPolicy.name = name;
-  qosPolicy.rules = rules;
-  cfg->qosPolicies.push_back(qosPolicy);
-  return &cfg->qosPolicies.back();
+  *qosPolicy.name_ref() = name;
+  *qosPolicy.rules_ref() = rules;
+  cfg->qosPolicies_ref()->push_back(qosPolicy);
+  return &cfg->qosPolicies_ref()->back();
 }
 
 void delQosPolicy(cfg::SwitchConfig* cfg, const std::string& name) {
-  cfg->qosPolicies.erase(
+  cfg->qosPolicies_ref()->erase(
       std::remove_if(
-          cfg->qosPolicies.begin(),
-          cfg->qosPolicies.end(),
-          [&](auto qosPolicy) { return qosPolicy.name == name; }),
-      cfg->qosPolicies.end());
+          cfg->qosPolicies_ref()->begin(),
+          cfg->qosPolicies_ref()->end(),
+          [&](auto qosPolicy) { return *qosPolicy.name_ref() == name; }),
+      cfg->qosPolicies_ref()->end());
 }
 
 void setDefaultQosPolicy(cfg::SwitchConfig* cfg, const std::string& name) {

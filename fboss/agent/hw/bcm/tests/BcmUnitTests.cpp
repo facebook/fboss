@@ -51,7 +51,7 @@ struct PortData {
       if (info.profileID == PortProfileID::PROFILE_DEFAULT) {
         port->setSpeed(PortSpeed::DEFAULT);
       } else {
-        port->setSpeed(itProfile->second.speed);
+        port->setSpeed(*itProfile->second.speed_ref());
       }
       ports.push_back(port);
     } else {

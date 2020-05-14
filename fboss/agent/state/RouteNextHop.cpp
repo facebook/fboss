@@ -22,15 +22,15 @@ NextHop fromThrift(const NextHopThrift& nht) {
     action = LabelForwardingAction::fromThrift(
         nht.mplsAction_ref().value_unchecked());
   }
-  auto address = network::toIPAddress(nht.address);
-  NextHopWeight weight = static_cast<NextHopWeight>(nht.weight);
+  auto address = network::toIPAddress(*nht.address_ref());
+  NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight_ref());
   bool v6LinkLocal = address.isV6() and address.isLinkLocal();
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (nht.address.get_ifName() and v6LinkLocal) {
+  if (nht.address_ref()->get_ifName() and v6LinkLocal) {
     InterfaceID intfID =
-        util::getIDFromTunIntfName(*(nht.address.get_ifName()));
+        util::getIDFromTunIntfName(*(nht.address_ref()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
     return UnresolvedNextHop(std::move(address), weight, action);

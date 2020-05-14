@@ -104,7 +104,7 @@ void IPv6Handler::stateUpdated(const StateDelta& delta) {
 }
 
 bool IPv6Handler::raEnabled(const Interface* intf) const {
-  return intf->getNdpConfig().routerAdvertisementSeconds > 0;
+  return *intf->getNdpConfig().routerAdvertisementSeconds_ref() > 0;
 }
 
 void IPv6Handler::intfAdded(const SwitchState* state, const Interface* intf) {

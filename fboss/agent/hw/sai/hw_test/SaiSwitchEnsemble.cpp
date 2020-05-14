@@ -50,7 +50,7 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
   } else {
     agentConfig = AgentConfig::fromDefaultFile();
   }
-  initFlagDefaults(agentConfig->thrift.defaultCommandLineArgs);
+  initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
   auto platform = initSaiPlatform(std::move(agentConfig), featuresDesired);
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {

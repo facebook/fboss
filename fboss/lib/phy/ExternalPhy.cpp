@@ -37,9 +37,9 @@ bool LaneConfig::operator==(const LaneConfig& rhs) const {
 LaneSettings LaneConfig::toLaneSettings() const {
   LaneSettings settings;
   if (!polaritySwap.has_value()) {
-    settings.polaritySwap = {};
+    *settings.polaritySwap_ref() = {};
   } else {
-    settings.polaritySwap = polaritySwap.value();
+    *settings.polaritySwap_ref() = polaritySwap.value();
   }
   if (tx.has_value()) {
     settings.tx_ref() = tx.value();
@@ -52,7 +52,7 @@ LaneConfig LaneConfig::fromLaneSettings(const LaneSettings& settings) {
   if (auto tx = settings.tx_ref()) {
     config.tx = *tx;
   }
-  config.polaritySwap = settings.polaritySwap;
+  config.polaritySwap = *settings.polaritySwap_ref();
   return config;
 }
 
@@ -65,7 +65,7 @@ PhySideConfig PhySideConfig::fromPhyPortSideSettings(
     const PhyPortSideSettings& settings) {
   PhySideConfig phySideConfig;
 
-  for (auto in : settings.lanes) {
+  for (auto in : *settings.lanes_ref()) {
     phySideConfig.lanes.insert(std::pair<int32_t, LaneConfig>(
         in.first, LaneConfig::fromLaneSettings(in.second)));
   }
@@ -103,11 +103,11 @@ ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
           if (pinCfg.tx_ref()) {
             laneCfg.tx = *pinCfg.tx_ref();
           }
-          if (auto it = polaritySwapMap.find(pinCfg.id.lane);
+          if (auto it = polaritySwapMap.find(*pinCfg.id_ref()->lane_ref());
               it != polaritySwapMap.end()) {
             laneCfg.polaritySwap = it->second;
           }
-          laneConfigs.emplace(pinCfg.id.lane, laneCfg);
+          laneConfigs.emplace(pinCfg.id_ref()->lane, laneCfg);
         }
       };
 
@@ -133,8 +133,8 @@ ExternalPhyProfileConfig ExternalPhyProfileConfig::fromPortProfileConfig(
         "Attempted to create xphy config without xphy line settings");
   }
   ExternalPhyProfileConfig xphyCfg;
-  xphyCfg.speed = portCfg.speed;
-  xphyCfg.system = portCfg.iphy;
+  xphyCfg.speed = *portCfg.speed_ref();
+  xphyCfg.system = *portCfg.iphy_ref();
   xphyCfg.line = *portCfg.xphyLine_ref();
   return xphyCfg;
 }
@@ -143,20 +143,20 @@ PhyPortSettings PhyPortConfig::toPhyPortSettings(int16_t phyID) const {
   PhyPortSettings settings;
 
   for (auto in : config.system.lanes) {
-    settings.system.lanes.insert(
+    settings.system_ref()->lanes_ref()->insert(
         std::pair<int16_t, LaneSettings>(in.first, in.second.toLaneSettings()));
   }
   for (auto in : config.line.lanes) {
-    settings.line.lanes.insert(
+    settings.line_ref()->lanes_ref()->insert(
         std::pair<int16_t, LaneSettings>(in.first, in.second.toLaneSettings()));
   }
 
-  settings.phyID = phyID;
-  settings.speed = profile.speed;
-  settings.line.modulation = profile.line.modulation;
-  settings.system.modulation = profile.system.modulation;
-  settings.line.fec = profile.line.fec;
-  settings.system.fec = profile.system.fec;
+  *settings.phyID_ref() = phyID;
+  *settings.speed_ref() = profile.speed;
+  *settings.line_ref()->modulation_ref() = *profile.line.modulation_ref();
+  *settings.system_ref()->modulation_ref() = *profile.system.modulation_ref();
+  *settings.line_ref()->fec_ref() = *profile.line.fec_ref();
+  *settings.system_ref()->fec_ref() = *profile.system.fec_ref();
 
   return settings;
 }
@@ -165,29 +165,34 @@ PhyPortConfig PhyPortConfig::fromPhyPortSettings(
     const PhyPortSettings& settings) {
   PhyPortConfig result;
 
-  for (auto in : settings.system.lanes) {
+  for (auto in : *settings.system_ref()->lanes_ref()) {
     result.config.system.lanes.insert(std::pair<int32_t, LaneConfig>(
         in.first, LaneConfig::fromLaneSettings(in.second)));
   }
 
-  for (auto in : settings.line.lanes) {
+  for (auto in : *settings.line_ref()->lanes_ref()) {
     result.config.line.lanes.insert(std::pair<int32_t, LaneConfig>(
         in.first, LaneConfig::fromLaneSettings(in.second)));
   }
 
   result.config.system =
-      PhySideConfig::fromPhyPortSideSettings(settings.system);
-  result.config.line = PhySideConfig::fromPhyPortSideSettings(settings.line);
+      PhySideConfig::fromPhyPortSideSettings(*settings.system_ref());
+  result.config.line =
+      PhySideConfig::fromPhyPortSideSettings(*settings.line_ref());
 
-  result.profile.line.numLanes = settings.line.lanes.size();
-  result.profile.line.modulation = settings.line.modulation;
-  result.profile.line.fec = settings.line.fec;
+  *result.profile.line.numLanes_ref() =
+      settings.line_ref()->lanes_ref()->size();
+  *result.profile.line.modulation_ref() =
+      *settings.line_ref()->modulation_ref();
+  *result.profile.line.fec_ref() = *settings.line_ref()->fec_ref();
 
-  result.profile.system.numLanes = settings.system.lanes.size();
-  result.profile.system.modulation = settings.system.modulation;
-  result.profile.system.fec = settings.system.fec;
+  *result.profile.system.numLanes_ref() =
+      settings.system_ref()->lanes_ref()->size();
+  *result.profile.system.modulation_ref() =
+      *settings.system_ref()->modulation_ref();
+  *result.profile.system.fec_ref() = *settings.system_ref()->fec_ref();
 
-  result.profile.speed = settings.speed;
+  result.profile.speed = *settings.speed_ref();
 
   return result;
 }

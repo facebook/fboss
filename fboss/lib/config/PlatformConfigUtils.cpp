@@ -20,7 +20,7 @@ void recurseGetPinsByChipType(
     const PinConnection& pinConn,
     const std::map<std::string, DataPlanePhyChip>& chipsMap,
     std::vector<Pin>& pins) {
-  if (chipsMap.find(pinConn.a.chip) != chipsMap.end()) {
+  if (chipsMap.find(pinConn.a_ref()->chip) != chipsMap.end()) {
     Pin temp;
     temp.set_end(pinConn.a);
     pins.push_back(temp);
@@ -41,13 +41,13 @@ void recurseGetPinsByChipType(
     }
   } else if (zPin.getType() == Pin::Type::junction) {
     auto zJunction = zPin.get_junction();
-    if (chipsMap.find(zJunction.system.chip) != chipsMap.end()) {
+    if (chipsMap.find(*zJunction.system_ref()->chip_ref()) != chipsMap.end()) {
       Pin temp;
       temp.set_junction(zJunction);
       pins.push_back(temp);
       return;
     }
-    for (const auto& connection : zPin.get_junction().line) {
+    for (const auto& connection : *zPin.get_junction().line_ref()) {
       recurseGetPinsByChipType(connection, chipsMap, pins);
     }
   }
@@ -60,7 +60,7 @@ std::vector<Pin> getPinsByChipType(
   // First get all the expected chip type into a map to make search easier
   std::map<std::string, DataPlanePhyChip> filteredChips;
   for (const auto itChip : chipsMap) {
-    if (itChip.second.type == type) {
+    if (*itChip.second.type_ref() == type) {
       filteredChips[itChip.first] = itChip.second;
     }
   }
@@ -100,9 +100,9 @@ void checkPinType(const Pin& pin, const DataPlanePhyChipType& expectedType) {
 
 std::string getChipName(const Pin& pin) {
   if (pin.getType() == Pin::Type::junction) {
-    return pin.get_junction().system.chip;
+    return *pin.get_junction().system_ref()->chip_ref();
   }
-  return pin.get_end().chip;
+  return *pin.get_end().chip_ref();
 }
 } // unnamed namespace
 
@@ -114,15 +114,15 @@ std::vector<phy::PinID> getTransceiverLanes(
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
   if (profileID) {
-    auto itPortCfg = port.supportedProfiles.find(*profileID);
-    if (itPortCfg == port.supportedProfiles.end()) {
+    auto itPortCfg = port.supportedProfiles_ref()->find(*profileID);
+    if (itPortCfg == port.supportedProfiles_ref()->end()) {
       throw FbossError(
           "Port: ",
-          port.mapping.name,
+          *port.mapping_ref()->name_ref(),
           " doesn't support profile:",
           apache::thrift::util::enumNameSafe(*profileID));
     }
-    if (auto tcvr = itPortCfg->second.pins.transceiver_ref()) {
+    if (auto tcvr = itPortCfg->second.pins_ref()->transceiver_ref()) {
       for (const auto& pinCfg : *tcvr) {
         lanes.push_back(pinCfg.id);
       }
@@ -131,7 +131,9 @@ std::vector<phy::PinID> getTransceiverLanes(
     // If it's not looking for the lanes list based on profile, return the
     // static lane mapping
     auto pins = getPinsByChipType(
-        chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::TRANSCEIVER);
+        chipsMap,
+        *port.mapping_ref()->pins_ref(),
+        phy::DataPlanePhyChipType::TRANSCEIVER);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
       checkPinType(pin, phy::DataPlanePhyChipType::TRANSCEIVER);
@@ -148,7 +150,7 @@ std::map<int32_t, phy::PolaritySwap> getIphyPolaritySwapMap(
   for (const auto& pinConnection : pinConnections) {
     if (pinConnection.polaritySwap_ref()) {
       polaritySwapMap.emplace(
-          pinConnection.a.lane, *pinConnection.polaritySwap_ref());
+          pinConnection.a_ref()->lane, *pinConnection.polaritySwap_ref());
     }
   }
 
@@ -164,7 +166,7 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
     }
     phy::LaneConfig laneConfig;
     laneConfig.tx = *pinConfig.tx_ref();
-    laneConfigs.emplace(pinConfig.id.lane, laneConfig);
+    laneConfigs.emplace(pinConfig.id_ref()->lane, laneConfig);
   }
 
   return laneConfigs;
@@ -178,9 +180,9 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
       chipsMap, pinConnections, phy::DataPlanePhyChipType::XPHY);
   for (const auto& pin : xphyPinList) {
     checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
-    for (const auto& connection : pin.get_junction().line) {
+    for (const auto& connection : *pin.get_junction().line_ref()) {
       if (auto pn = connection.polaritySwap_ref()) {
-        xphyPolaritySwapMap.emplace(connection.a.lane, *pn);
+        xphyPolaritySwapMap.emplace(connection.a_ref()->lane, *pn);
       }
     }
   }
@@ -193,22 +195,24 @@ std::vector<phy::PinID> getOrderedIphyLanes(
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
   if (profileID) {
-    auto itrPortCfg = port.supportedProfiles.find(*profileID);
-    if (itrPortCfg == port.supportedProfiles.end()) {
+    auto itrPortCfg = port.supportedProfiles_ref()->find(*profileID);
+    if (itrPortCfg == port.supportedProfiles_ref()->end()) {
       throw FbossError(
           "Port: ",
-          port.mapping.name,
+          *port.mapping_ref()->name_ref(),
           " doesn't support profile:",
           apache::thrift::util::enumNameSafe(*profileID));
     }
-    for (const auto& pinCfg : itrPortCfg->second.pins.iphy) {
+    for (const auto& pinCfg : *itrPortCfg->second.pins_ref()->iphy_ref()) {
       lanes.push_back(pinCfg.id);
     }
   } else {
     // If it's not looking for the lanes list based on profile, return the
     // static lane mapping
     auto pins = getPinsByChipType(
-        chipsMap, port.mapping.pins, phy::DataPlanePhyChipType::IPHY);
+        chipsMap,
+        *port.mapping_ref()->pins_ref(),
+        phy::DataPlanePhyChipType::IPHY);
     // the return pins should always be PinID for transceiver
     for (auto pin : pins) {
       checkPinType(pin, phy::DataPlanePhyChipType::IPHY);
@@ -216,11 +220,12 @@ std::vector<phy::PinID> getOrderedIphyLanes(
     }
   }
   if (lanes.empty()) {
-    throw FbossError("Port: ", port.mapping.name, " doesn't have iphy lanes");
+    throw FbossError(
+        "Port: ", *port.mapping_ref()->name_ref(), " doesn't have iphy lanes");
   }
   // Sort by lane
   std::sort(lanes.begin(), lanes.end(), [](const auto& lPin, const auto& rPin) {
-    return lPin.lane < rPin.lane;
+    return *lPin.lane_ref() < *rPin.lane_ref();
   });
   return lanes;
 }
@@ -230,8 +235,8 @@ std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
   std::map<PortID, std::vector<PortID>> results;
   for (auto itPort : platformPorts) {
-    auto controlPortID =
-        facebook::fboss::PortID(itPort.second.mapping.controllingPort);
+    auto controlPortID = facebook::fboss::PortID(
+        *itPort.second.mapping_ref()->controllingPort_ref());
     if (results.find(controlPortID) == results.end()) {
       results[controlPortID] = std::vector<PortID>();
     }
@@ -257,7 +262,8 @@ std::vector<cfg::PlatformPortEntry> getPlatformPortsByControllingPort(
   std::vector<cfg::PlatformPortEntry> ports;
   int32_t controllingPortID = static_cast<int32_t>(controllingPort);
   for (const auto& port : platformPorts) {
-    if (port.second.mapping.controllingPort == controllingPortID) {
+    if (*port.second.mapping_ref()->controllingPort_ref() ==
+        controllingPortID) {
       ports.push_back(port.second);
     }
   }
@@ -281,7 +287,8 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
   }
 
   for (auto type : types) {
-    auto pins = getPinsByChipType(chipsMap, port.mapping.pins, type);
+    auto pins =
+        getPinsByChipType(chipsMap, *port.mapping_ref()->pins_ref(), type);
     if (pins.empty()) {
       continue;
     }

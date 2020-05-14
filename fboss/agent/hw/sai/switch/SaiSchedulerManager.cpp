@@ -37,13 +37,13 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
     switch (portQueueRate.getType()) {
       case PortQueueRate::Type::pktsPerSec:
         meterType = SAI_METER_TYPE_PACKETS;
-        minBwRate = portQueueRate.get_pktsPerSec().minimum;
-        maxBwRate = portQueueRate.get_pktsPerSec().maximum;
+        minBwRate = *portQueueRate.get_pktsPerSec().minimum_ref();
+        maxBwRate = *portQueueRate.get_pktsPerSec().maximum_ref();
         break;
       case PortQueueRate::Type::kbitsPerSec:
         meterType = SAI_METER_TYPE_BYTES;
-        minBwRate = portQueueRate.get_kbitsPerSec().minimum;
-        maxBwRate = portQueueRate.get_kbitsPerSec().maximum;
+        minBwRate = *portQueueRate.get_kbitsPerSec().minimum_ref();
+        maxBwRate = *portQueueRate.get_kbitsPerSec().maximum_ref();
         break;
       default:
         break;

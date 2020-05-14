@@ -56,7 +56,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         auto port =
             portMap->getPort(PortID(masterLogicalPortIds()[0]))->clone();
         cfg::PortPause pauseCfg;
-        pauseCfg.rx = true;
+        *pauseCfg.rx_ref() = true;
         port->setPause(pauseCfg);
         portMap->updatePort(port);
         applyNewState(newState);
@@ -68,9 +68,15 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
       auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
 
       EXPECT_EQ(
-          1, portStatsAfter.inDiscardsRaw_ - portStatsBefore.inDiscardsRaw_);
-      EXPECT_EQ(1, portStatsAfter.inPause_ - portStatsBefore.inPause_);
-      EXPECT_EQ(0, portStatsAfter.inDiscards_ - portStatsBefore.inDiscards_);
+          1,
+          *portStatsAfter.inDiscardsRaw__ref() -
+              *portStatsBefore.inDiscardsRaw__ref());
+      EXPECT_EQ(
+          1, *portStatsAfter.inPause__ref() - *portStatsBefore.inPause__ref());
+      EXPECT_EQ(
+          0,
+          *portStatsAfter.inDiscards__ref() -
+              *portStatsBefore.inDiscards__ref());
     };
     verifyAcrossWarmBoots(setup, verify);
   }

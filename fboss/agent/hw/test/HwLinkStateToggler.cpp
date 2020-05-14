@@ -91,11 +91,11 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // bringUpPorts API
   auto cfg = initCfg;
   boost::container::flat_map<int, cfg::PortState> portId2DesiredState;
-  for (auto& port : cfg.ports) {
-    portId2DesiredState[port.logicalID] = port.state;
+  for (auto& port : *cfg.ports_ref()) {
+    portId2DesiredState[*port.logicalID_ref()] = *port.state_ref();
     // Keep ports down by disabling them and setting loopback mode to NONE
-    port.state = cfg::PortState::DISABLED;
-    port.loopbackMode = cfg::PortLoopbackMode::NONE;
+    *port.state_ref() = cfg::PortState::DISABLED;
+    *port.loopbackMode_ref() = cfg::PortLoopbackMode::NONE;
   }
   // i) Set preempahsis to 0, so ports state can be manipulated by just setting
   // loopback mode (lopbackMode::NONE == down), loopbackMode::{MAC, PHY} == up)
@@ -106,12 +106,12 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // application). iii) Start tests.
   auto newState = applyThriftConfig(curState, &cfg, platform);
   stateUpdateFn_(newState);
-  for (auto& port : cfg.ports) {
+  for (auto& port : *cfg.ports_ref()) {
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
     setPortPreemphasis(
-        newState->getPorts()->getPort(PortID(port.logicalID)), 0);
-    port.state = portId2DesiredState[port.logicalID];
+        newState->getPorts()->getPort(PortID(*port.logicalID_ref())), 0);
+    *port.state_ref() = portId2DesiredState[*port.logicalID_ref()];
   }
   newState = applyThriftConfig(newState, &cfg, platform);
   stateUpdateFn_(newState);
@@ -123,10 +123,12 @@ void HwLinkStateToggler::bringUpPorts(
     const std::shared_ptr<SwitchState>& newState,
     const cfg::SwitchConfig& initCfg) {
   std::vector<PortID> portsToBringUp;
-  folly::gen::from(initCfg.ports) | folly::gen::filter([](const auto& port) {
-    return port.state == cfg::PortState::ENABLED;
-  }) |
-      folly::gen::map([](const auto& port) { return PortID(port.logicalID); }) |
+  folly::gen::from(*initCfg.ports_ref()) |
+      folly::gen::filter([](const auto& port) {
+        return *port.state_ref() == cfg::PortState::ENABLED;
+      }) |
+      folly::gen::map(
+          [](const auto& port) { return PortID(*port.logicalID_ref()); }) |
       folly::gen::appendTo(portsToBringUp);
   bringUpPorts(newState, portsToBringUp);
 }

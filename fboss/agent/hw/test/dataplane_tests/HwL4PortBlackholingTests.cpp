@@ -45,7 +45,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "100.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "200.0.0.1");
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {

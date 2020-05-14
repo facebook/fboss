@@ -26,15 +26,15 @@ SaiPlatformPort::SaiPlatformPort(PortID id, SaiPlatform* platform)
   if (!transceiverLanes.empty()) {
     // All the transceiver lanes should use the same transceiver id
     auto chipConfig =
-        getPlatform()->getDataPlanePhyChip(transceiverLanes[0].chip);
+        getPlatform()->getDataPlanePhyChip(*transceiverLanes[0].chip_ref());
     if (!chipConfig.has_value()) {
       throw FbossError(
           "Port ",
           getPortID(),
           " is using platform unsupported chip ",
-          transceiverLanes[0].chip);
+          *transceiverLanes[0].chip_ref());
     }
-    transceiverID_.emplace(TransceiverID(chipConfig->physicalID));
+    transceiverID_.emplace(TransceiverID(*chipConfig->physicalID_ref()));
   }
 }
 
@@ -87,12 +87,13 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
       *platformPortEntry, dataPlanePhyChips, profileID);
   std::vector<uint32_t> hwLaneList;
   for (auto iphy : iphys) {
-    auto chipIter = dataPlanePhyChips.find(iphy.chip);
+    auto chipIter = dataPlanePhyChips.find(*iphy.chip_ref());
     if (chipIter == dataPlanePhyChips.end()) {
-      throw FbossError("dataplane chip does not exist for chip: ", iphy.chip);
+      throw FbossError(
+          "dataplane chip does not exist for chip: ", *iphy.chip_ref());
     }
-    hwLaneList.push_back(
-        getPhysicalLaneId(chipIter->second.physicalID, iphy.lane));
+    hwLaneList.push_back(getPhysicalLaneId(
+        *chipIter->second.physicalID_ref(), *iphy.lane_ref()));
   }
   return hwLaneList;
 }
@@ -106,11 +107,12 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
         "Platform Port entry does not exist for port: ", getPortID());
   }
   auto supportedProfilesIter =
-      platformPortEntry->supportedProfiles.find(profileID);
-  if (supportedProfilesIter == platformPortEntry->supportedProfiles.end()) {
+      platformPortEntry->supportedProfiles_ref()->find(profileID);
+  if (supportedProfilesIter ==
+      platformPortEntry->supportedProfiles_ref()->end()) {
     throw FbossError(
         "Port: ",
-        platformPortEntry->mapping.name,
+        *platformPortEntry->mapping_ref()->name_ref(),
         " doesn't support the speed profile:");
   }
   std::vector<PortID> subsumedPortList;
@@ -129,7 +131,7 @@ SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
   int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
     if (auto cable = info.cable_ref()) {
-      return cable->transmitterTech;
+      return *cable->transmitterTech_ref();
     }
     return TransmitterTechnology::UNKNOWN;
   };

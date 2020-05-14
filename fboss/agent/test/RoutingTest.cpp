@@ -259,15 +259,15 @@ class RoutingFixture : public ::testing::Test {
   * NOTE: v6 link-local address will be assigned automatically based on mac
   */
   static void initializeInterfaceConfig(cfg::Interface& intf, int32_t id) {
-    intf.intfID = id;
-    intf.vlanID = id;
+    *intf.intfID_ref() = id;
+    *intf.vlanID_ref() = id;
     intf.name_ref() = folly::sformat("Interface-{}", id);
     intf.mtu_ref() = 9000;
-    intf.ipAddresses.resize(4);
-    intf.ipAddresses[0] = folly::sformat("169.254.{}.{}/32", id, id);
-    intf.ipAddresses[1] = folly::sformat("10.0.0.{}1/31", id);
-    intf.ipAddresses[2] = folly::sformat("face:b00c::{}1/127", id);
-    intf.ipAddresses[3] = folly::sformat("fe80::{}/64", id);
+    intf.ipAddresses_ref()->resize(4);
+    intf.ipAddresses_ref()[0] = folly::sformat("169.254.{}.{}/32", id, id);
+    intf.ipAddresses_ref()[1] = folly::sformat("10.0.0.{}1/31", id);
+    intf.ipAddresses_ref()[2] = folly::sformat("face:b00c::{}1/127", id);
+    intf.ipAddresses_ref()[3] = folly::sformat("fe80::{}/64", id);
   }
 
   /**
@@ -279,38 +279,38 @@ class RoutingFixture : public ::testing::Test {
     cfg::SwitchConfig config;
 
     // Add two VLANs with ID 1 and 2
-    config.vlans.resize(2);
-    config.vlans[0].name = "Vlan-1";
-    config.vlans[0].id = 1;
-    config.vlans[0].routable = true;
-    config.vlans[0].intfID_ref() = 1;
-    config.vlans[1].name = "Vlan-2";
-    config.vlans[1].id = 2;
-    config.vlans[1].routable = true;
-    config.vlans[1].intfID_ref() = 2;
+    config.vlans_ref()->resize(2);
+    *config.vlans[0].name_ref() = "Vlan-1";
+    *config.vlans[0].id_ref() = 1;
+    *config.vlans[0].routable_ref() = true;
+    config.vlans_ref()[0].intfID_ref() = 1;
+    *config.vlans[1].name_ref() = "Vlan-2";
+    *config.vlans[1].id_ref() = 2;
+    *config.vlans[1].routable_ref() = true;
+    config.vlans_ref()[1].intfID_ref() = 2;
 
     // Add two ports with ID 1 and 2 associated with VLAN 1 and 2 respectively
-    config.ports.resize(2);
-    config.vlanPorts.resize(2);
+    config.ports_ref()->resize(2);
+    config.vlanPorts_ref()->resize(2);
     for (int i = 0; i < 2; ++i) {
-      auto& port = config.ports[i];
-      port.logicalID = i + 1;
-      port.state = cfg::PortState::ENABLED;
-      port.minFrameSize = 64;
-      port.maxFrameSize = 9000;
-      port.routable = true;
-      port.ingressVlan = i + 1;
+      auto& port = config.ports_ref()[i];
+      *port.logicalID_ref() = i + 1;
+      *port.state_ref() = cfg::PortState::ENABLED;
+      *port.minFrameSize_ref() = 64;
+      *port.maxFrameSize_ref() = 9000;
+      *port.routable_ref() = true;
+      *port.ingressVlan_ref() = i + 1;
 
-      auto& vlanPort = config.vlanPorts[i];
-      vlanPort.vlanID = i + 1;
-      vlanPort.logicalPort = i + 1;
-      vlanPort.spanningTreeState = cfg::SpanningTreeState::FORWARDING;
-      vlanPort.emitTags = 0;
+      auto& vlanPort = config.vlanPorts_ref()[i];
+      *vlanPort.vlanID_ref() = i + 1;
+      *vlanPort.logicalPort_ref() = i + 1;
+      *vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
+      *vlanPort.emitTags_ref() = 0;
     }
 
-    config.interfaces.resize(2);
-    initializeInterfaceConfig(config.interfaces[0], 1);
-    initializeInterfaceConfig(config.interfaces[1], 2);
+    config.interfaces_ref()->resize(2);
+    initializeInterfaceConfig(config.interfaces_ref()[0], 1);
+    initializeInterfaceConfig(config.interfaces_ref()[1], 2);
 
     return config;
   }

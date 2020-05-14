@@ -96,7 +96,7 @@ std::vector<PortID> BcmTestPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(port.mapping.id));
+      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
     }
   } else {
     auto portItr = std::find(

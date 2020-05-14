@@ -61,11 +61,11 @@ void ConfigApplier::updateRibAndFib() {
   updater.removeAllRoutesForClient(ClientID::STATIC_ROUTE);
 
   for (const auto& staticRoute : staticCpuRouteRange_) {
-    if (RouterID(staticRoute.routerID) != vrf_) {
+    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
       continue;
     }
 
-    auto prefix = folly::IPAddress::createNetwork(staticRoute.prefix);
+    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
     updater.addRoute(
         prefix.first,
         prefix.second,
@@ -73,11 +73,11 @@ void ConfigApplier::updateRibAndFib() {
         RouteNextHopEntry::createToCpu());
   }
   for (const auto& staticRoute : staticDropRouteRange_) {
-    if (RouterID(staticRoute.routerID) != vrf_) {
+    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
       continue;
     }
 
-    auto prefix = folly::IPAddress::createNetwork(staticRoute.prefix);
+    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
     updater.addRoute(
         prefix.first,
         prefix.second,
@@ -85,11 +85,11 @@ void ConfigApplier::updateRibAndFib() {
         RouteNextHopEntry::createDrop());
   }
   for (const auto& staticRoute : staticRouteRange_) {
-    if (RouterID(staticRoute.routerID) != vrf_) {
+    if (RouterID(*staticRoute.routerID_ref()) != vrf_) {
       continue;
     }
 
-    auto prefix = folly::IPAddress::createNetwork(staticRoute.prefix);
+    auto prefix = folly::IPAddress::createNetwork(*staticRoute.prefix_ref());
     updater.addRoute(
         prefix.first,
         prefix.second,

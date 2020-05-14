@@ -34,19 +34,20 @@ class HwQosMapTest : public HwLinkStateDependentTest {
      * this case is the initialConfig application
      */
     cfg::QosMap qosMap;
-    qosMap.dscpMaps.resize(8);
+    qosMap.dscpMaps_ref()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      qosMap.dscpMaps[i].internalTrafficClass = i;
+      *qosMap.dscpMaps[i].internalTrafficClass_ref() = i;
       for (auto j = 0; j < 8; j++) {
-        qosMap.dscpMaps[i].fromDscpToTrafficClass.push_back(8 * i + j);
+        qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
+            8 * i + j);
       }
     }
     for (auto i = 0; i < 8; i++) {
-      qosMap.trafficClassToQueueId.emplace(i, i);
+      qosMap.trafficClassToQueueId_ref()->emplace(i, i);
     }
-    cfg.qosPolicies.resize(1);
-    cfg.qosPolicies[0].name = "qp";
-    cfg.qosPolicies[0].qosMap_ref() = qosMap;
+    cfg.qosPolicies_ref()->resize(1);
+    *cfg.qosPolicies[0].name_ref() = "qp";
+    cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
     dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
@@ -84,7 +85,7 @@ class HwQosMapTest : public HwLinkStateDependentTest {
 
  private:
   void sendPktAndVerifyQueue(uint8_t dscp, int queueId) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -104,8 +105,8 @@ class HwQosMapTest : public HwLinkStateDependentTest {
     auto pktsBefore = getPortOutPkts(portStatsBefore);
 
     // XXX hack to check the queue 0 counters!
-    auto queuePacketsBefore = portStatsBefore.queueOutPackets_[queueId];
-    auto queueZeroPacketsBefore = portStatsBefore.queueOutPackets_[0];
+    auto queuePacketsBefore = portStatsBefore.queueOutPackets__ref()[queueId];
+    auto queueZeroPacketsBefore = portStatsBefore.queueOutPackets__ref()[0];
     XLOGF(
         INFO,
         "port pkts before: {}, queue {} pkts before: {}, queue 0 pkts before: {}",
@@ -116,8 +117,8 @@ class HwQosMapTest : public HwLinkStateDependentTest {
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
     auto pktsAfter = getPortOutPkts(portStatsAfter);
-    auto queuePacketsAfter = portStatsAfter.queueOutPackets_[queueId];
-    auto queueZeroPacketsAfter = portStatsAfter.queueOutPackets_[0];
+    auto queuePacketsAfter = portStatsAfter.queueOutPackets__ref()[queueId];
+    auto queueZeroPacketsAfter = portStatsAfter.queueOutPackets__ref()[0];
     XLOGF(
         INFO,
         "port pkts after: {}, queue {} pkts after: {}, queue 0 pkts after: {}",

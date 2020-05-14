@@ -117,8 +117,8 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     queue1.aqms_ref()->push_back(kGetWredConfig());
     portQueues.push_back(queue1);
 
-    config->portQueueConfigs["queue_config"] = portQueues;
-    config->ports[0].portQueueConfigName_ref() = "queue_config";
+    config->portQueueConfigs_ref()["queue_config"] = portQueues;
+    config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
   }
 
   void sendUdpPkt(uint8_t trafficClass) {
@@ -150,8 +150,8 @@ TEST_F(BcmMultiAqmProfileTest, verifyWred) {
     // Non-ECT-marked traffic: should use WRED profile
     sendPkts(static_cast<uint8_t>(kDscp() << 2));
     auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(DBG0) << " ECN counter: " << portStats.outEcnCounter_;
-    EXPECT_EQ(portStats.outEcnCounter_, 0);
+    XLOG(DBG0) << " ECN counter: " << *portStats.outEcnCounter__ref();
+    EXPECT_EQ(*portStats.outEcnCounter__ref(), 0);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -169,8 +169,8 @@ TEST_F(BcmMultiAqmProfileTest, verifyEcn) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
     sendPkts(static_cast<uint8_t>((kDscp() << 2) | kECT1));
     auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(DBG0) << " ECN counter: " << portStats.outEcnCounter_;
-    EXPECT_GT(portStats.outEcnCounter_, 0);
+    XLOG(DBG0) << " ECN counter: " << *portStats.outEcnCounter__ref();
+    EXPECT_GT(*portStats.outEcnCounter__ref(), 0);
   };
 
   verifyAcrossWarmBoots(setup, verify);

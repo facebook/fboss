@@ -41,20 +41,24 @@ bool BcmHwTableStatManager::refreshHwStatusStats(BcmHwTableStats* stats) {
                  " stats will be stale";
     return false;
   }
-  stats->l3_host_max = std::max(0, l3HwStatus.l3info_max_host);
-  stats->l3_host_used = std::max(0, l3HwStatus.l3info_used_host);
-  stats->l3_host_free = std::max(0, stats->l3_host_max - stats->l3_host_used);
-  stats->l3_nexthops_max = std::max(0, l3HwStatus.l3info_max_nexthop);
-  stats->l3_nexthops_used = std::max(0, l3HwStatus.l3info_used_nexthop);
-  stats->l3_nexthops_free =
-      std::max(0, stats->l3_nexthops_max - stats->l3_nexthops_used);
-  stats->l3_ipv4_host_used = std::max(0, l3HwStatus.l3info_used_host_ip4);
-  stats->l3_ipv6_host_used = std::max(0, l3HwStatus.l3info_used_host_ip6);
-  stats->l3_ecmp_groups_max = std::max(0, l3HwStatus.l3info_max_ecmp_groups);
-  stats->l3_ecmp_groups_used =
+  *stats->l3_host_max_ref() = std::max(0, l3HwStatus.l3info_max_host);
+  *stats->l3_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host);
+  *stats->l3_host_free_ref() =
+      std::max(0, *stats->l3_host_max_ref() - *stats->l3_host_used_ref());
+  *stats->l3_nexthops_max_ref() = std::max(0, l3HwStatus.l3info_max_nexthop);
+  *stats->l3_nexthops_used_ref() = std::max(0, l3HwStatus.l3info_used_nexthop);
+  *stats->l3_nexthops_free_ref() = std::max(
+      0, *stats->l3_nexthops_max_ref() - *stats->l3_nexthops_used_ref());
+  *stats->l3_ipv4_host_used_ref() =
+      std::max(0, l3HwStatus.l3info_used_host_ip4);
+  *stats->l3_ipv6_host_used_ref() =
+      std::max(0, l3HwStatus.l3info_used_host_ip6);
+  *stats->l3_ecmp_groups_max_ref() =
+      std::max(0, l3HwStatus.l3info_max_ecmp_groups);
+  *stats->l3_ecmp_groups_used_ref() =
       hw_->getMultiPathNextHopTable()->getEcmpEgressCount();
-  stats->l3_ecmp_groups_free =
-      std::max(0, stats->l3_ecmp_groups_max - stats->l3_ecmp_groups_used);
+  *stats->l3_ecmp_groups_free_ref() = std::max(
+      0, *stats->l3_ecmp_groups_max_ref() - *stats->l3_ecmp_groups_used_ref());
   return true;
 }
 
@@ -81,13 +85,13 @@ bool BcmHwTableStatManager::refreshLPMStats(BcmHwTableStats* stats) {
     return false;
   }
   // Max
-  stats->lpm_ipv4_max = routeSlots[0];
-  stats->lpm_ipv6_mask_0_64_max = routeSlots[1];
-  stats->lpm_ipv6_mask_65_127_max = routeSlots[2];
+  *stats->lpm_ipv4_max_ref() = routeSlots[0];
+  *stats->lpm_ipv6_mask_0_64_max_ref() = routeSlots[1];
+  *stats->lpm_ipv6_mask_65_127_max_ref() = routeSlots[2];
   // Used
-  stats->lpm_ipv4_used = routeSlots[3];
-  stats->lpm_ipv6_mask_0_64_used = routeSlots[4];
-  stats->lpm_ipv6_mask_65_127_used = routeSlots[5];
+  *stats->lpm_ipv4_used_ref() = routeSlots[3];
+  *stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[4];
+  *stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[5];
 
   // Ideally lpm slots max and used should come from SDK.
   // However SDK always has these set to 0 in bcm_l3_info_t.
@@ -96,8 +100,8 @@ bool BcmHwTableStatManager::refreshLPMStats(BcmHwTableStats* stats) {
   // below.
   // Note that v4 and v6 /0-/64 share same TCAM area so we
   // only need to count them once.
-  stats->lpm_slots_max = stats->lpm_ipv6_mask_0_64_max +
-      stats->lpm_ipv6_mask_65_127_max * kPerIpv6Mask65_127SlotUsage;
+  *stats->lpm_slots_max_ref() = *stats->lpm_ipv6_mask_0_64_max_ref() +
+      *stats->lpm_ipv6_mask_65_127_max_ref() * kPerIpv6Mask65_127SlotUsage;
 
   return true;
 }
@@ -122,14 +126,15 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(BcmHwTableStats* stats) {
     return false;
   }
   // Free
-  stats->lpm_ipv4_free = routeSlots[0];
-  stats->lpm_ipv6_mask_0_64_free = routeSlots[1];
-  stats->lpm_ipv6_mask_65_127_free = routeSlots[2];
+  *stats->lpm_ipv4_free_ref() = routeSlots[0];
+  *stats->lpm_ipv6_mask_0_64_free_ref() = routeSlots[1];
+  *stats->lpm_ipv6_mask_65_127_free_ref() = routeSlots[2];
 
-  stats->lpm_slots_free = stats->lpm_ipv6_mask_0_64_free +
-      stats->lpm_ipv6_mask_65_127_free * kPerIpv6Mask65_127SlotUsage;
+  *stats->lpm_slots_free_ref() = *stats->lpm_ipv6_mask_0_64_free_ref() +
+      *stats->lpm_ipv6_mask_65_127_free_ref() * kPerIpv6Mask65_127SlotUsage;
   // refreshLPMStats must be called first
-  stats->lpm_slots_used = stats->lpm_slots_max - stats->lpm_slots_free;
+  *stats->lpm_slots_used_ref() =
+      *stats->lpm_slots_max_ref() - *stats->lpm_slots_free_ref();
   return true;
 }
 
@@ -141,33 +146,35 @@ bool BcmHwTableStatManager::refreshFPStats(BcmHwTableStats* stats) {
     return false;
   }
   // Entries
-  stats->acl_entries_used = aclStatus.entry_count;
-  stats->acl_entries_max = aclStatus.entries_total;
-  stats->acl_entries_free = aclStatus.entries_free;
+  *stats->acl_entries_used_ref() = aclStatus.entry_count;
+  *stats->acl_entries_max_ref() = aclStatus.entries_total;
+  *stats->acl_entries_free_ref() = aclStatus.entries_free;
   // Counters
-  stats->acl_counters_used = aclStatus.counter_count;
-  stats->acl_counters_free = aclStatus.counters_free;
+  *stats->acl_counters_used_ref() = aclStatus.counter_count;
+  *stats->acl_counters_free_ref() = aclStatus.counters_free;
   // compute max via used + free rather than using counters total
   // The latter is higher than what is available to this group
-  stats->acl_counters_max = stats->acl_counters_used + stats->acl_counters_free;
+  *stats->acl_counters_max_ref() =
+      *stats->acl_counters_used_ref() + *stats->acl_counters_free_ref();
   // Meters
-  stats->acl_meters_used = aclStatus.meter_count;
-  stats->acl_meters_free = aclStatus.meters_free;
-  stats->acl_meters_max = aclStatus.meters_total;
+  *stats->acl_meters_used_ref() = aclStatus.meter_count;
+  *stats->acl_meters_free_ref() = aclStatus.meters_free;
+  *stats->acl_meters_max_ref() = aclStatus.meters_total;
   return true;
 }
 
 void BcmHwTableStatManager::updateBcmStateChangeStats(
     const StateDelta& delta,
     BcmHwTableStats* stats) {
-  if (stats->mirrors_erspan == bcmswitch_constants::STAT_UNINITIALIZED_) {
-    stats->mirrors_erspan = 0;
+  if (*stats->mirrors_erspan_ref() ==
+      bcmswitch_constants::STAT_UNINITIALIZED_) {
+    *stats->mirrors_erspan_ref() = 0;
   }
-  if (stats->mirrors_span == bcmswitch_constants::STAT_UNINITIALIZED_) {
-    stats->mirrors_span = 0;
+  if (*stats->mirrors_span_ref() == bcmswitch_constants::STAT_UNINITIALIZED_) {
+    *stats->mirrors_span_ref() = 0;
   }
-  if (stats->mirrors_sflow == bcmswitch_constants::STAT_UNINITIALIZED_) {
-    stats->mirrors_sflow = 0;
+  if (*stats->mirrors_sflow_ref() == bcmswitch_constants::STAT_UNINITIALIZED_) {
+    *stats->mirrors_sflow_ref() = 0;
   }
   DeltaFunctions::forEachChanged(
       delta.getMirrorsDelta(),
@@ -190,10 +197,11 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
           decrementBcmMirrorStat(removedMirror, stats);
         }
       });
-  stats->mirrors_max = bcmswitch_constants::MAX_MIRRORS_;
-  stats->mirrors_used =
-      stats->mirrors_erspan + stats->mirrors_span + stats->mirrors_sflow;
-  stats->mirrors_free = stats->mirrors_max - stats->mirrors_used;
+  *stats->mirrors_max_ref() = bcmswitch_constants::MAX_MIRRORS_;
+  *stats->mirrors_used_ref() = *stats->mirrors_erspan_ref() +
+      *stats->mirrors_span_ref() + *stats->mirrors_sflow_ref();
+  *stats->mirrors_free_ref() =
+      *stats->mirrors_max_ref() - *stats->mirrors_used_ref();
 }
 
 void BcmHwTableStatManager::decrementBcmMirrorStat(
@@ -202,11 +210,11 @@ void BcmHwTableStatManager::decrementBcmMirrorStat(
   CHECK(removedMirror->isResolved());
   auto tunnel = removedMirror->getMirrorTunnel();
   if (!tunnel) {
-    stats->mirrors_span--;
+    (*stats->mirrors_span_ref())--;
   } else if (tunnel && !tunnel->udpPorts) {
-    stats->mirrors_erspan--;
+    (*stats->mirrors_erspan_ref())--;
   } else if (tunnel && tunnel->udpPorts) {
-    stats->mirrors_sflow--;
+    (*stats->mirrors_sflow_ref())--;
   }
 }
 
@@ -216,78 +224,85 @@ void BcmHwTableStatManager::incrementBcmMirrorStat(
   CHECK(addedMirror->isResolved());
   auto tunnel = addedMirror->getMirrorTunnel();
   if (!tunnel) {
-    stats->mirrors_span++;
+    (*stats->mirrors_span_ref())++;
   } else if (tunnel && !tunnel->udpPorts) {
-    stats->mirrors_erspan++;
+    (*stats->mirrors_erspan_ref())++;
   } else if (tunnel && tunnel->udpPorts) {
-    stats->mirrors_sflow++;
+    (*stats->mirrors_sflow_ref())++;
   }
 }
 
 void BcmHwTableStatManager::publish(BcmHwTableStats stats) const {
   fb303::fbData->setCounter(
-      "hw_table_stats_stale", stats.hw_table_stats_stale ? 1 : 0);
-  fb303::fbData->setCounter("l3_host_max", stats.l3_host_max);
-  fb303::fbData->setCounter("l3_host_used", stats.l3_host_used);
-  fb303::fbData->setCounter("l3_host_free", stats.l3_host_free);
-  fb303::fbData->setCounter("l3_nexthops_max", stats.l3_nexthops_max);
-  fb303::fbData->setCounter("l3_nexthops_used", stats.l3_nexthops_used);
-  fb303::fbData->setCounter("l3_nexthops_free", stats.l3_nexthops_free);
-  fb303::fbData->setCounter("l3_ecmp_groups_used", stats.l3_ecmp_groups_used);
+      "hw_table_stats_stale", *stats.hw_table_stats_stale_ref() ? 1 : 0);
+  fb303::fbData->setCounter("l3_host_max", *stats.l3_host_max_ref());
+  fb303::fbData->setCounter("l3_host_used", *stats.l3_host_used_ref());
+  fb303::fbData->setCounter("l3_host_free", *stats.l3_host_free_ref());
+  fb303::fbData->setCounter("l3_nexthops_max", *stats.l3_nexthops_max_ref());
+  fb303::fbData->setCounter("l3_nexthops_used", *stats.l3_nexthops_used_ref());
+  fb303::fbData->setCounter("l3_nexthops_free", *stats.l3_nexthops_free_ref());
+  fb303::fbData->setCounter(
+      "l3_ecmp_groups_used", *stats.l3_ecmp_groups_used_ref());
 
-  fb303::fbData->setCounter("l3_ipv4_host_used", stats.l3_ipv4_host_used);
-  fb303::fbData->setCounter("l3_ipv6_host_used", stats.l3_ipv6_host_used);
-  fb303::fbData->setCounter("l3_ecmp_groups_max", stats.l3_ecmp_groups_max);
-  fb303::fbData->setCounter("l3_ecmp_groups_free", stats.l3_ecmp_groups_free);
+  fb303::fbData->setCounter(
+      "l3_ipv4_host_used", *stats.l3_ipv4_host_used_ref());
+  fb303::fbData->setCounter(
+      "l3_ipv6_host_used", *stats.l3_ipv6_host_used_ref());
+  fb303::fbData->setCounter(
+      "l3_ecmp_groups_max", *stats.l3_ecmp_groups_max_ref());
+  fb303::fbData->setCounter(
+      "l3_ecmp_groups_free", *stats.l3_ecmp_groups_free_ref());
 
   // LPM
-  fb303::fbData->setCounter("lpm_ipv4_max", stats.lpm_ipv4_max);
-  fb303::fbData->setCounter("lpm_ipv4_free", stats.lpm_ipv4_free);
-  fb303::fbData->setCounter("lpm_ipv4_used", stats.lpm_ipv4_used);
+  fb303::fbData->setCounter("lpm_ipv4_max", *stats.lpm_ipv4_max_ref());
+  fb303::fbData->setCounter("lpm_ipv4_free", *stats.lpm_ipv4_free_ref());
+  fb303::fbData->setCounter("lpm_ipv4_used", *stats.lpm_ipv4_used_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_max", stats.lpm_ipv6_mask_0_64_max);
+      "lpm_ipv6_mask_0_64_max", *stats.lpm_ipv6_mask_0_64_max_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_free", stats.lpm_ipv6_mask_0_64_free);
+      "lpm_ipv6_mask_0_64_free", *stats.lpm_ipv6_mask_0_64_free_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_used", stats.lpm_ipv6_mask_0_64_used);
+      "lpm_ipv6_mask_0_64_used", *stats.lpm_ipv6_mask_0_64_used_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_max", stats.lpm_ipv6_mask_65_127_max);
+      "lpm_ipv6_mask_65_127_max", *stats.lpm_ipv6_mask_65_127_max_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_free", stats.lpm_ipv6_mask_0_64_free);
+      "lpm_ipv6_mask_0_64_free", *stats.lpm_ipv6_mask_0_64_free_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_free", stats.lpm_ipv6_mask_65_127_free);
+      "lpm_ipv6_mask_65_127_free", *stats.lpm_ipv6_mask_65_127_free_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_used", stats.lpm_ipv6_mask_65_127_used);
-  fb303::fbData->setCounter("lpm_table_max", stats.lpm_slots_max);
-  fb303::fbData->setCounter("lpm_table_used", stats.lpm_slots_used);
-  fb303::fbData->setCounter("lpm_table_free", stats.lpm_slots_free);
+      "lpm_ipv6_mask_65_127_used", *stats.lpm_ipv6_mask_65_127_used_ref());
+  fb303::fbData->setCounter("lpm_table_max", *stats.lpm_slots_max_ref());
+  fb303::fbData->setCounter("lpm_table_used", *stats.lpm_slots_used_ref());
+  fb303::fbData->setCounter("lpm_table_free", *stats.lpm_slots_free_ref());
   // Acl
-  fb303::fbData->setCounter("acl_entries_used", stats.acl_entries_used);
-  fb303::fbData->setCounter("acl_entries_free", stats.acl_entries_free);
-  fb303::fbData->setCounter("acl_entries_max", stats.acl_entries_max);
-  fb303::fbData->setCounter("acl_counters_used", stats.acl_counters_used);
-  fb303::fbData->setCounter("acl_counters_free", stats.acl_counters_free);
-  fb303::fbData->setCounter("acl_counters_max", stats.acl_counters_max);
-  fb303::fbData->setCounter("acl_meters_used", stats.acl_meters_used);
-  fb303::fbData->setCounter("acl_meters_free", stats.acl_meters_free);
-  fb303::fbData->setCounter("acl_meters_max", stats.acl_meters_max);
+  fb303::fbData->setCounter("acl_entries_used", *stats.acl_entries_used_ref());
+  fb303::fbData->setCounter("acl_entries_free", *stats.acl_entries_free_ref());
+  fb303::fbData->setCounter("acl_entries_max", *stats.acl_entries_max_ref());
+  fb303::fbData->setCounter(
+      "acl_counters_used", *stats.acl_counters_used_ref());
+  fb303::fbData->setCounter(
+      "acl_counters_free", *stats.acl_counters_free_ref());
+  fb303::fbData->setCounter("acl_counters_max", *stats.acl_counters_max_ref());
+  fb303::fbData->setCounter("acl_meters_used", *stats.acl_meters_used_ref());
+  fb303::fbData->setCounter("acl_meters_free", *stats.acl_meters_free_ref());
+  fb303::fbData->setCounter("acl_meters_max", *stats.acl_meters_max_ref());
   // Mirrors
-  fb303::fbData->setCounter("mirrors_used", stats.mirrors_used);
-  fb303::fbData->setCounter("mirrors_free", stats.mirrors_free);
-  fb303::fbData->setCounter("mirrors_max", stats.mirrors_max);
-  fb303::fbData->setCounter("mirrors_span", stats.mirrors_span);
-  fb303::fbData->setCounter("mirrors_erspan", stats.mirrors_erspan);
-  fb303::fbData->setCounter("mirrors_sflow", stats.mirrors_sflow);
+  fb303::fbData->setCounter("mirrors_used", *stats.mirrors_used_ref());
+  fb303::fbData->setCounter("mirrors_free", *stats.mirrors_free_ref());
+  fb303::fbData->setCounter("mirrors_max", *stats.mirrors_max_ref());
+  fb303::fbData->setCounter("mirrors_span", *stats.mirrors_span_ref());
+  fb303::fbData->setCounter("mirrors_erspan", *stats.mirrors_erspan_ref());
+  fb303::fbData->setCounter("mirrors_sflow", *stats.mirrors_sflow_ref());
 }
 
 void BcmHwTableStatManager::refresh(
     const StateDelta& delta,
     BcmHwTableStats* stats) {
-  stats->hw_table_stats_stale =
+  *stats->hw_table_stats_stale_ref() =
       !(refreshHwStatusStats(stats) && refreshLPMStats(stats) &&
         refreshFPStats(stats));
   if (!isAlpmEnabled_) {
-    stats->hw_table_stats_stale |= !(refreshLPMOnlyStats(stats));
+    *stats->hw_table_stats_stale_ref() |= !(refreshLPMOnlyStats(stats));
   }
   updateBcmStateChangeStats(delta, stats);
 }

@@ -64,8 +64,8 @@ void updateStats(HwCpuFb303Stats& cpuStats) {
   HwPortStats empty{};
   // Need to populate queue stats, since by default these
   // maps are empty
-  empty.queueOutDiscardPackets_ = empty.queueOutPackets_ =
-      empty.queueOutPackets_ = {{1, 0}, {2, 0}};
+  *empty.queueOutDiscardPackets__ref() = *empty.queueOutPackets__ref() =
+      *empty.queueOutPackets__ref() = {{1, 0}, {2, 0}};
   cpuStats.updateStats(empty, now);
   cpuStats.updateStats(getInitedStats(), now);
 }

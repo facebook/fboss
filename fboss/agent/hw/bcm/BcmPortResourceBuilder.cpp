@@ -84,9 +84,10 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
           " doesn't have PlatformPortEntry. Not allowed to use flex port api");
     }
 
-    const auto& itProfile =
-        (*platformPortEntry).supportedProfiles.find(port->getProfileID());
-    if (itProfile != (*platformPortEntry).supportedProfiles.end()) {
+    const auto& itProfile = (*platformPortEntry)
+                                .supportedProfiles_ref()
+                                ->find(port->getProfileID());
+    if (itProfile != (*platformPortEntry).supportedProfiles_ref()->end()) {
       // Gather all subsumed ports in the same group and remove them later
       if (auto subsumedPorts = itProfile->second.subsumedPorts_ref()) {
         for (auto portID : *subsumedPorts) {
@@ -97,7 +98,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::filterSubSumedPorts(
       // Make sure enabled port profile is allowed in the supported profile
       throw FbossError(
           "Enabled Port: ",
-          (*platformPortEntry).mapping.name,
+          *(*platformPortEntry).mapping_ref()->name_ref(),
           " does not support speed profile: ",
           apache::thrift::util::enumNameSafe(port->getProfileID()));
     }
@@ -127,7 +128,7 @@ int BcmPortResourceBuilder::getBaseLane(std::shared_ptr<Port> port) {
       *platformPortEntry,
       hw_->getPlatform()->getDataPlanePhyChips(),
       port->getProfileID());
-  return iphyLanes[0].lane;
+  return *iphyLanes[0].lane_ref();
 }
 
 std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
@@ -172,9 +173,9 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
         basePhysicalPort_ + (baseIphyLane - basePhysicalLane_);
 
     newPortRes.lanes = desiredLaneMode_;
-    newPortRes.speed = static_cast<int>((*profileConf).speed);
-    newPortRes.fec_type =
-        utility::phyFecModeToBcmPortPhyFec((*profileConf).iphy.fec);
+    newPortRes.speed = static_cast<int>(*(*profileConf).speed_ref());
+    newPortRes.fec_type = utility::phyFecModeToBcmPortPhyFec(
+        *(*profileConf).iphy_ref()->fec_ref());
     newPortRes.link_training = 0; /* turn off link training as default */
     // set lane_config as default and then will let BcmPort::setPortResource
     // program the correct config later when it get the medium type and

@@ -213,7 +213,7 @@ std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
 
   std::vector<int32_t> presentPorts;
   for(auto& qsfpInfo : qsfpInfoMap) {
-    if(qsfpInfo.second.present) {
+    if (*qsfpInfo.second.present_ref()) {
       presentPorts.push_back(qsfpInfo.first);
     }
   }
@@ -229,27 +229,35 @@ std::map<int32_t, RawDOMData> fetchDataFromQsfpService(
 
 RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
   RawDOMData rawDOMData;
-  rawDOMData.lower = IOBuf(IOBuf::CREATE, 128);
-  rawDOMData.page0 = IOBuf(IOBuf::CREATE, 128);
+  *rawDOMData.lower_ref() = IOBuf(IOBuf::CREATE, 128);
+  *rawDOMData.page0_ref() = IOBuf(IOBuf::CREATE, 128);
 
   // Read the lower 128 bytes.
-  bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0,
-    128, rawDOMData.lower.writableData());
+  bus->moduleRead(
+      port,
+      TransceiverI2CApi::ADDR_QSFP,
+      0,
+      128,
+      rawDOMData.lower_ref()->writableData());
 
-  uint8_t flatMem = rawDOMData.lower.data()[2] & (1 << 2);
+  uint8_t flatMem = rawDOMData.lower_ref()->data()[2] & (1 << 2);
 
   // Read page 0 from the upper 128 bytes.
   // First see if we need to select page 0.
   if (!flatMem) {
     uint8_t page0 = 0;
-    if (rawDOMData.lower.data()[127] != page0) {
+    if (rawDOMData.lower_ref()->data()[127] != page0) {
       bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP,
                        127, 1, &page0);
       usleep(20000); // Delay required by Intel Transceiver.
     }
   }
-  bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 128,
-    128, rawDOMData.page0.writableData());
+  bus->moduleRead(
+      port,
+      TransceiverI2CApi::ADDR_QSFP,
+      128,
+      128,
+      rawDOMData.page0_ref()->writableData());
 
   // Make sure page3 exist
   if (!flatMem) {
@@ -341,9 +349,8 @@ void printChannelMonitor(unsigned int index,
 }
 
 void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
-
-  auto lowerBuf = rawDOMData.lower.data();
-  auto page0Buf = rawDOMData.page0.data();
+  auto lowerBuf = rawDOMData.lower_ref()->data();
+  auto page0Buf = rawDOMData.page0_ref()->data();
 
   printf("Port %d\n", port);
   printf("  ID: %#04x\n", lowerBuf[0]);

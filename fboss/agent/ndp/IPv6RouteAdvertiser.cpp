@@ -108,7 +108,7 @@ IPv6RAImpl::IPv6RAImpl(
     const Interface* intf)
     : AsyncTimeout(sw->getBackgroundEvb()), sw_(sw) {
   std::chrono::seconds raInterval(
-      intf->getNdpConfig().routerAdvertisementSeconds);
+      *intf->getNdpConfig().routerAdvertisementSeconds_ref());
   interval_ = raInterval;
   initPacket(intf);
 }
@@ -201,22 +201,23 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
   const auto* ndpConfig = &intf->getNdpConfig();
 
   // Settings
-  uint8_t hopLimit = ndpConfig->curHopLimit;
+  uint8_t hopLimit = *ndpConfig->curHopLimit_ref();
   // Set managed and other bits in router advertisements.
   // These bits control whether address and other information
   // (e.g. where to grab the image) is available via DHCP.
   uint8_t flags = 0;
-  if (ndpConfig->routerAdvertisementManagedBit) {
+  if (*ndpConfig->routerAdvertisementManagedBit_ref()) {
     flags |= ND_RA_FLAG_MANAGED;
   }
-  if (ndpConfig->routerAdvertisementOtherBit) {
+  if (*ndpConfig->routerAdvertisementOtherBit_ref()) {
     flags |= ND_RA_FLAG_OTHER;
   }
-  std::chrono::seconds lifetime(ndpConfig->routerLifetime);
+  std::chrono::seconds lifetime(*ndpConfig->routerLifetime_ref());
   std::chrono::seconds reachableTimer(0);
   std::chrono::seconds retransTimer(0);
-  uint32_t prefixValidLifetime = ndpConfig->prefixValidLifetimeSeconds;
-  uint32_t prefixPreferredLifetime = ndpConfig->prefixPreferredLifetimeSeconds;
+  uint32_t prefixValidLifetime = *ndpConfig->prefixValidLifetimeSeconds_ref();
+  uint32_t prefixPreferredLifetime =
+      *ndpConfig->prefixPreferredLifetimeSeconds_ref();
   uint32_t mtu = intf->getMtu();
   auto prefixes = getPrefixesToAdvertise(intf);
 

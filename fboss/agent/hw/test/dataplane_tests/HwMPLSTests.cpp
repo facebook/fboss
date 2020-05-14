@@ -52,23 +52,23 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     for (auto tc = 0; tc < 8; tc++) {
       // setup ingress qos map for dscp
       cfg::DscpQosMap dscpMap;
-      dscpMap.internalTrafficClass = tc;
+      *dscpMap.internalTrafficClass_ref() = tc;
       for (auto dscp = 0; dscp < 8; dscp++) {
-        dscpMap.fromDscpToTrafficClass.push_back(8 * tc + dscp);
+        dscpMap.fromDscpToTrafficClass_ref()->push_back(8 * tc + dscp);
       }
 
       // setup egress qos map for tc
       cfg::ExpQosMap expMap;
-      expMap.internalTrafficClass = tc;
-      expMap.fromExpToTrafficClass.push_back(tc);
+      *expMap.internalTrafficClass_ref() = tc;
+      expMap.fromExpToTrafficClass_ref()->push_back(tc);
       expMap.fromTrafficClassToExp_ref() = 7 - tc;
 
-      qosMap.dscpMaps.push_back(dscpMap);
-      qosMap.expMaps.push_back(expMap);
+      qosMap.dscpMaps_ref()->push_back(dscpMap);
+      qosMap.expMaps_ref()->push_back(expMap);
     }
-    config.qosPolicies.resize(1);
-    config.qosPolicies[0].name = "qp";
-    config.qosPolicies[0].qosMap_ref() = qosMap;
+    config.qosPolicies_ref()->resize(1);
+    *config.qosPolicies[0].name_ref() = "qp";
+    config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
     cfg::TrafficPolicyConfig policy;
     policy.defaultQosPolicy_ref() = "qp";

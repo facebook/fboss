@@ -964,7 +964,7 @@ TEST(Route, toThriftRouteNextHopsMulti) {
     EXPECT_GE(entry.nextHops.size(), 1);
     ASSERT_EQ(entry.nextHops.size(), entry.nextHopAddrs.size());
     for (auto i = 0; i < entry.nextHops.size(); ++i) {
-      EXPECT_EQ(entry.nextHopAddrs.at(i), entry.nextHops.at(i).address);
+      EXPECT_EQ(entry.nextHopAddrs.at(i), *entry.nextHops.at(i).address_ref());
     }
   }
 }
@@ -1402,12 +1402,12 @@ TEST(RouteTypes, toFromRouteNextHops) {
     }
     bool found = false;
     for (const auto& entry : nhts) {
-      if (entry.address == bAddr) {
+      if (*entry.address_ref() == bAddr) {
         if (intf.has_value()) {
-          EXPECT_TRUE(entry.address.__isset.ifName);
+          EXPECT_TRUE(entry.address_ref()->__isset.ifName);
           EXPECT_EQ(
               bAddr.ifName_ref().value_unchecked(),
-              entry.address.ifName_ref().value_unchecked());
+              entry.address_ref()->ifName_ref().value_unchecked());
         }
         found = true;
         break;
@@ -1435,7 +1435,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
   addr = facebook::network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
   addr.ifName_ref() = "fboss10";
   NextHopThrift nht;
-  nht.address = addr;
+  *nht.address_ref() = addr;
   {
     NextHop nh = rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("10.0.0.1"), nh.addr());
@@ -1444,7 +1444,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("face::1"));
   addr.ifName_ref() = "fboss10";
-  nht.address = addr;
+  *nht.address_ref() = addr;
   {
     NextHop nh = rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("face::1"), nh.addr());
@@ -1453,7 +1453,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
 
   addr = facebook::network::toBinaryAddress(folly::IPAddress("fe80::1"));
   addr.ifName_ref() = "fboss10";
-  nht.address = addr;
+  *nht.address_ref() = addr;
   {
     NextHop nh = rib::util::fromThrift(nht);
     EXPECT_EQ(folly::IPAddress("fe80::1"), nh.addr());

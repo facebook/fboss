@@ -40,8 +40,8 @@ class SchedulerManagerTest : public ManagerTestBase {
     PortQueue portQueue;
     cfg::PortQueueRate portQueueRate;
     cfg::Range range;
-    range.minimum = min;
-    range.maximum = max;
+    *range.minimum_ref() = min;
+    *range.maximum_ref() = max;
     if (queueRateType == cfg::PortQueueRate::Type::pktsPerSec) {
       portQueueRate.set_pktsPerSec(range);
     } else {

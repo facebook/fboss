@@ -29,7 +29,7 @@ class FbossError : public thrift::FbossBaseError {
  public:
   template <typename... Args>
   explicit FbossError(Args&&... args) {
-    message = folly::to<std::string>(std::forward<Args>(args)...);
+    *message_ref() = folly::to<std::string>(std::forward<Args>(args)...);
   }
 
   ~FbossError() throw() override {}

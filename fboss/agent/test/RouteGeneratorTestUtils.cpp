@@ -32,32 +32,33 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
       "2620::1/64",
   };
 
-  cfg.ports.resize(2);
-  cfg.vlans.resize(2);
-  cfg.vlanPorts.resize(2);
-  cfg.interfaces.resize(2);
+  cfg.ports_ref()->resize(2);
+  cfg.vlans_ref()->resize(2);
+  cfg.vlanPorts_ref()->resize(2);
+  cfg.interfaces_ref()->resize(2);
   for (int i = 0; i < 2; ++i) {
     auto id = i + 1;
     // port
-    cfg.ports[i].logicalID = id;
-    cfg.ports[i].name_ref() = folly::to<string>("port", id);
+    *cfg.ports[i].logicalID_ref() = id;
+    cfg.ports_ref()[i].name_ref() = folly::to<string>("port", id);
     // vlans
-    cfg.vlans[i].id = id;
-    cfg.vlans[i].name = folly::to<string>("Vlan", id);
-    cfg.vlans[i].intfID_ref() = id;
+    *cfg.vlans[i].id_ref() = id;
+    *cfg.vlans[i].name_ref() = folly::to<string>("Vlan", id);
+    cfg.vlans_ref()[i].intfID_ref() = id;
     // vlan ports
-    cfg.vlanPorts[i].logicalPort = id;
-    cfg.vlanPorts[i].vlanID = id;
+    *cfg.vlanPorts[i].logicalPort_ref() = id;
+    *cfg.vlanPorts[i].vlanID_ref() = id;
     // interfaces
-    cfg.interfaces[i].intfID = id;
-    cfg.interfaces[i].routerID = 0;
-    cfg.interfaces[i].vlanID = id;
-    cfg.interfaces[i].name_ref() = folly::to<string>("interface", id);
-    cfg.interfaces[i].mac_ref() = folly::to<string>("00:02:00:00:00:", id);
-    cfg.interfaces[i].mtu_ref() = 9000;
-    cfg.interfaces[i].ipAddresses.resize(2);
-    cfg.interfaces[i].ipAddresses[0] = v4IntefacePrefixes[i];
-    cfg.interfaces[i].ipAddresses[1] = v6IntefacePrefixes[i];
+    *cfg.interfaces[i].intfID_ref() = id;
+    *cfg.interfaces[i].routerID_ref() = 0;
+    *cfg.interfaces[i].vlanID_ref() = id;
+    cfg.interfaces_ref()[i].name_ref() = folly::to<string>("interface", id);
+    cfg.interfaces_ref()[i].mac_ref() =
+        folly::to<string>("00:02:00:00:00:", id);
+    cfg.interfaces_ref()[i].mtu_ref() = 9000;
+    cfg.interfaces_ref()[i].ipAddresses_ref()->resize(2);
+    cfg.interfaces[i].ipAddresses_ref()[0] = v4IntefacePrefixes[i];
+    cfg.interfaces[i].ipAddresses_ref()[1] = v6IntefacePrefixes[i];
   }
   return applyThriftConfig(std::make_shared<SwitchState>(), &cfg, platform);
 }

@@ -321,18 +321,18 @@ TEST(Rib, Update) {
   auto v6Default = folly::CIDRNetworkV6(folly::IPAddressV6("::"), 0);
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
-  config.interfaces[0].ipAddresses.resize(3);
-  config.interfaces[0].ipAddresses[0] = "0.0.0.0/0";
-  config.interfaces[0].ipAddresses[1] = "192.168.0.19/24";
-  config.interfaces[0].ipAddresses[2] = "::/0";
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+  config.interfaces[0].ipAddresses_ref()[0] = "0.0.0.0/0";
+  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.19/24";
+  config.interfaces[0].ipAddresses_ref()[2] = "::/0";
 
   auto testHandle =
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
@@ -532,17 +532,18 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   RoutePrefixV6 prefix{folly::IPAddressV6("2a03:2880:ff:1e::"), 64};
 
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = vrfZero;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "10.120.70.44/31";
-  config.interfaces[0].ipAddresses[1] = "2401:db00:e003:9100:1006::2c/127";
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = vrfZero;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "10.120.70.44/31";
+  config.interfaces[0].ipAddresses_ref()[1] =
+      "2401:db00:e003:9100:1006::2c/127";
 
   auto testHandle =
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);

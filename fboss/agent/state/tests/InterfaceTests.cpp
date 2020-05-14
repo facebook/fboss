@@ -31,31 +31,31 @@ using ::testing::Return;
 TEST(Interface, addrToReach) {
   auto platform = createMockPlatform();
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].id = 1;
-  config.vlans[1].id = 2;
-  config.interfaces.resize(2);
-  auto* intfConfig = &config.interfaces[0];
-  intfConfig->intfID = 1;
-  intfConfig->vlanID = 1;
-  intfConfig->routerID = 1;
+  config.vlans_ref()->resize(2);
+  *config.vlans[0].id_ref() = 1;
+  *config.vlans[1].id_ref() = 2;
+  config.interfaces_ref()->resize(2);
+  auto* intfConfig = &config.interfaces_ref()[0];
+  *intfConfig->intfID_ref() = 1;
+  *intfConfig->vlanID_ref() = 1;
+  *intfConfig->routerID_ref() = 1;
   intfConfig->mac_ref() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses.resize(4);
-  intfConfig->ipAddresses[0] = "10.1.1.1/24";
-  intfConfig->ipAddresses[1] = "20.1.1.2/24";
-  intfConfig->ipAddresses[2] = "::22:33:44/120";
-  intfConfig->ipAddresses[3] = "::11:11:11/120";
+  intfConfig->ipAddresses_ref()->resize(4);
+  intfConfig->ipAddresses_ref()[0] = "10.1.1.1/24";
+  intfConfig->ipAddresses_ref()[1] = "20.1.1.2/24";
+  intfConfig->ipAddresses_ref()[2] = "::22:33:44/120";
+  intfConfig->ipAddresses_ref()[3] = "::11:11:11/120";
 
-  intfConfig = &config.interfaces[1];
-  intfConfig->intfID = 2;
-  intfConfig->vlanID = 2;
-  intfConfig->routerID = 2;
+  intfConfig = &config.interfaces_ref()[1];
+  *intfConfig->intfID_ref() = 2;
+  *intfConfig->vlanID_ref() = 2;
+  *intfConfig->routerID_ref() = 2;
   intfConfig->mac_ref() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses.resize(4);
-  intfConfig->ipAddresses[0] = "10.1.1.1/24";
-  intfConfig->ipAddresses[1] = "20.1.1.2/24";
-  intfConfig->ipAddresses[2] = "::22:33:44/120";
-  intfConfig->ipAddresses[3] = "::11:11:11/120";
+  intfConfig->ipAddresses_ref()->resize(4);
+  intfConfig->ipAddresses_ref()[0] = "10.1.1.1/24";
+  intfConfig->ipAddresses_ref()[1] = "20.1.1.2/24";
+  intfConfig->ipAddresses_ref()[2] = "::22:33:44/120";
+  intfConfig->ipAddresses_ref()[3] = "::11:11:11/120";
 
   InterfaceID id(1);
   shared_ptr<SwitchState> oldState = make_shared<SwitchState>();
@@ -89,14 +89,14 @@ TEST(Interface, addrToReach) {
 TEST(Interface, applyConfig) {
   auto platform = createMockPlatform();
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
-  config.vlans[0].intfID_ref() = 1;
-  config.interfaces.resize(1);
-  auto* intfConfig = &config.interfaces[0];
-  intfConfig->intfID = 1;
-  intfConfig->vlanID = 1;
-  intfConfig->routerID = 0;
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
+  config.vlans_ref()[0].intfID_ref() = 1;
+  config.interfaces_ref()->resize(1);
+  auto* intfConfig = &config.interfaces_ref()[0];
+  *intfConfig->intfID_ref() = 1;
+  *intfConfig->vlanID_ref() = 1;
+  *intfConfig->routerID_ref() = 0;
   intfConfig->mac_ref() = "00:02:00:11:22:33";
 
   InterfaceID id(1);
@@ -124,24 +124,24 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ("Interface 1", interface->getName());
   EXPECT_EQ(MacAddress("00:02:00:11:22:33"), interface->getMac());
   EXPECT_EQ(1, interface->getAddresses().size()); // 1 ipv6 link local address
-  EXPECT_EQ(0, interface->getNdpConfig().routerAdvertisementSeconds);
+  EXPECT_EQ(0, *interface->getNdpConfig().routerAdvertisementSeconds_ref());
   auto vlan1 = state->getVlans()->getVlanIf(VlanID(1));
   EXPECT_EQ(InterfaceID(1), vlan1->getInterfaceID());
   // same configuration cause nothing changed
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // Change VlanID for intf + create new intf for existing vlan
-  config.vlans.resize(2);
-  config.vlans[1].id = 2;
-  config.vlans[1].intfID_ref() = 1;
-  intfConfig->vlanID = 2;
-  config.interfaces.resize(2);
-  config.interfaces[1].intfID = 5;
-  config.interfaces[1].vlanID = 1;
-  config.interfaces[1].routerID = 0;
+  config.vlans_ref()->resize(2);
+  *config.vlans[1].id_ref() = 2;
+  config.vlans_ref()[1].intfID_ref() = 1;
+  *intfConfig->vlanID_ref() = 2;
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[1].intfID_ref() = 5;
+  *config.interfaces[1].vlanID_ref() = 1;
+  *config.interfaces[1].routerID_ref() = 0;
   MacAddress intf2Mac("02:01:02:ab:cd:78");
-  config.interfaces[1].mac_ref() = intf2Mac.toString();
-  config.vlans[0].intfID_ref() = 5;
+  config.interfaces_ref()[1].mac_ref() = intf2Mac.toString();
+  config.vlans_ref()[0].intfID_ref() = 5;
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -156,7 +156,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(InterfaceID(5), newvlan1->getInterfaceID());
 
   // routerID change
-  config.interfaces[0].routerID = 1;
+  *config.interfaces[0].routerID_ref() = 1;
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -168,7 +168,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
 
   // MAC address change
-  config.interfaces[0].mac_ref() = "00:02:00:12:34:56";
+  config.interfaces_ref()[0].mac_ref() = "00:02:00:12:34:56";
   updateState();
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
   EXPECT_EQ(VlanID(2), interface->getVlanID());
@@ -176,7 +176,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getName(), interface->getName());
   EXPECT_EQ(MacAddress("00:02:00:12:34:56"), interface->getMac());
   // Use the platform supplied MAC
-  config.interfaces[0].mac_ref().reset();
+  config.interfaces_ref()[0].mac_ref().reset();
   MacAddress platformMac("00:02:00:ab:cd:ef");
   EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
   updateState();
@@ -190,11 +190,11 @@ TEST(Interface, applyConfig) {
   EXPECT_NE(oldInterface->getAddresses(), interface->getAddresses());
 
   // IP addresses change
-  config.interfaces[0].ipAddresses.resize(4);
-  config.interfaces[0].ipAddresses[0] = "10.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "20.1.1.2/24";
-  config.interfaces[0].ipAddresses[2] = "::22:33:44/120";
-  config.interfaces[0].ipAddresses[3] = "::11:11:11/120";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(4);
+  config.interfaces[0].ipAddresses_ref()[0] = "10.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "20.1.1.2/24";
+  config.interfaces[0].ipAddresses_ref()[2] = "::22:33:44/120";
+  config.interfaces[0].ipAddresses_ref()[3] = "::11:11:11/120";
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -206,24 +206,25 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(5, interface->getAddresses().size());
 
   // change the order of IP address shall not change the interface
-  config.interfaces[0].ipAddresses[0] = "10.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "::22:33:44/120";
-  config.interfaces[0].ipAddresses[2] = "20.1.1.2/24";
-  config.interfaces[0].ipAddresses[3] = "::11:11:11/120";
+  config.interfaces[0].ipAddresses_ref()[0] = "10.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "::22:33:44/120";
+  config.interfaces[0].ipAddresses_ref()[2] = "20.1.1.2/24";
+  config.interfaces[0].ipAddresses_ref()[3] = "::11:11:11/120";
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // duplicate IP addresses causes throw
-  config.interfaces[0].ipAddresses[1] = config.interfaces[0].ipAddresses[0];
+  config.interfaces[0].ipAddresses_ref()[1] =
+      config.interfaces[0].ipAddresses_ref()[0];
   EXPECT_THROW(
       publishAndApplyConfig(state, &config, platform.get()), FbossError);
   // Should still throw even if the mask is different
-  config.interfaces[0].ipAddresses[1] = "10.1.1.1/16";
+  config.interfaces[0].ipAddresses_ref()[1] = "10.1.1.1/16";
   EXPECT_THROW(
       publishAndApplyConfig(state, &config, platform.get()), FbossError);
-  config.interfaces[0].ipAddresses[1] = "::22:33:44/120";
+  config.interfaces[0].ipAddresses_ref()[1] = "::22:33:44/120";
 
   // Name change
-  config.interfaces[0].name_ref() = "myintf";
+  config.interfaces_ref()[0].name_ref() = "myintf";
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -233,7 +234,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getMac(), interface->getMac());
   EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
   // Reset the name back to it's default value
-  config.interfaces[0].name_ref().reset();
+  config.interfaces_ref()[0].name_ref().reset();
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -245,8 +246,8 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getNdpConfig(), interface->getNdpConfig());
 
   // Change the NDP configuration
-  config.interfaces[0].ndp_ref() = cfg::NdpConfig();
-  config.interfaces[0].ndp_ref()->routerAdvertisementSeconds = 4;
+  config.interfaces_ref()[0].ndp_ref() = cfg::NdpConfig();
+  *config.interfaces[0].ndp_ref()->routerAdvertisementSeconds_ref() = 4;
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
@@ -256,24 +257,24 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ(oldInterface->getMac(), interface->getMac());
   EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
   EXPECT_NE(oldInterface->getNdpConfig(), interface->getNdpConfig());
-  EXPECT_EQ(4, interface->getNdpConfig().routerAdvertisementSeconds);
+  EXPECT_EQ(4, *interface->getNdpConfig().routerAdvertisementSeconds_ref());
   // Update the RA interval to 30 seconds
-  config.interfaces[0].ndp_ref()->routerAdvertisementSeconds = 30;
+  *config.interfaces[0].ndp_ref()->routerAdvertisementSeconds_ref() = 30;
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
   EXPECT_NE(oldInterface->getNdpConfig(), interface->getNdpConfig());
-  EXPECT_EQ(30, interface->getNdpConfig().routerAdvertisementSeconds);
+  EXPECT_EQ(30, *interface->getNdpConfig().routerAdvertisementSeconds_ref());
   // Drop the NDP configuration
-  config.interfaces[0].ndp_ref().reset();
+  config.interfaces_ref()[0].ndp_ref().reset();
   updateState();
   EXPECT_EQ(nodeID, interface->getNodeID());
   EXPECT_EQ(oldInterface->getGeneration() + 1, interface->getGeneration());
   EXPECT_NE(oldInterface->getNdpConfig(), interface->getNdpConfig());
-  EXPECT_EQ(0, interface->getNdpConfig().routerAdvertisementSeconds);
+  EXPECT_EQ(0, *interface->getNdpConfig().routerAdvertisementSeconds_ref());
 
   // Changing the ID creates a new interface
-  config.interfaces[0].intfID = 2;
+  *config.interfaces[0].intfID_ref() = 2;
   id = InterfaceID(2);
   updateState();
   // The generation number for the new interface will be 0
@@ -335,18 +336,18 @@ TEST(InterfaceMap, applyConfig) {
   auto intfsV0 = stateV0->getInterfaces();
 
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].id = 1;
-  config.vlans[0].intfID_ref() = 1;
-  config.vlans[1].id = 2;
-  config.vlans[1].intfID_ref() = 2;
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].mac_ref() = "00:00:00:00:00:11";
-  config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 2;
-  config.interfaces[1].mac_ref() = "00:00:00:00:00:22";
+  config.vlans_ref()->resize(2);
+  *config.vlans[0].id_ref() = 1;
+  config.vlans_ref()[0].intfID_ref() = 1;
+  *config.vlans[1].id_ref() = 2;
+  config.vlans_ref()[1].intfID_ref() = 2;
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
+  *config.interfaces[1].intfID_ref() = 2;
+  *config.interfaces[1].vlanID_ref() = 2;
+  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -374,9 +375,9 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // adding some IP addresses
-  config.interfaces[1].ipAddresses.resize(2);
-  config.interfaces[1].ipAddresses[0] = "192.168.1.1/16";
-  config.interfaces[1].ipAddresses[1] = "::1/48";
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  config.interfaces[1].ipAddresses_ref()[0] = "192.168.1.1/16";
+  config.interfaces[1].ipAddresses_ref()[1] = "::1/48";
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   auto intfsV2 = stateV2->getInterfaces();
@@ -389,17 +390,17 @@ TEST(InterfaceMap, applyConfig) {
   checkChangedIntfs(intfsV1, intfsV2, {2}, {}, {});
 
   // add two new interfaces together with deleting an existing one
-  config.vlans.resize(3);
-  config.vlans[2].id = 3;
-  config.vlans[2].intfID_ref() = 3;
-  config.interfaces[0].intfID = 3;
-  config.interfaces[0].vlanID = 3;
-  config.interfaces[0].mac_ref() = "00:00:00:00:00:33";
-  config.interfaces.resize(3);
-  config.interfaces[2].intfID = 5;
-  config.interfaces[2].vlanID = 1;
-  config.interfaces[2].mac_ref() = "00:00:00:00:00:55";
-  config.vlans[0].intfID_ref() = 5;
+  config.vlans_ref()->resize(3);
+  *config.vlans[2].id_ref() = 3;
+  config.vlans_ref()[2].intfID_ref() = 3;
+  *config.interfaces[0].intfID_ref() = 3;
+  *config.interfaces[0].vlanID_ref() = 3;
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:33";
+  config.interfaces_ref()->resize(3);
+  *config.interfaces[2].intfID_ref() = 5;
+  *config.interfaces[2].vlanID_ref() = 1;
+  config.interfaces_ref()[2].mac_ref() = "00:00:00:00:00:55";
+  config.vlans_ref()[0].intfID_ref() = 5;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
@@ -410,7 +411,8 @@ TEST(InterfaceMap, applyConfig) {
   auto intf3 = intfsV3->getInterface(InterfaceID(3));
   EXPECT_EQ(1, intf3->getAddresses().size());
   EXPECT_EQ(
-      config.interfaces[0].mac_ref().value_or({}), intf3->getMac().toString());
+      config.interfaces_ref()[0].mac_ref().value_or({}),
+      intf3->getMac().toString());
   // intf 1 should not be there anymroe
   EXPECT_EQ(nullptr, intfsV3->getInterfaceIf(InterfaceID(1)));
   auto vlan3 = stateV3->getVlans()->getVlanIf(intf3->getVlanID());
@@ -421,7 +423,7 @@ TEST(InterfaceMap, applyConfig) {
   checkChangedIntfs(intfsV2, intfsV3, {}, {3, 5}, {1});
 
   // change the MTU
-  config.interfaces[0].mtu_ref() = 1337;
+  config.interfaces_ref()[0].mtu_ref() = 1337;
   EXPECT_EQ(1500, intfsV3->getInterface(InterfaceID(3))->getMtu());
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);

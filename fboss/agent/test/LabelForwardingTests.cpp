@@ -64,7 +64,7 @@ TEST_F(LabelForwardingTest, addMplsRoutes) {
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(route.nextHops),
+          util::toRouteNextHopSet(*route.nextHops_ref()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -120,7 +120,7 @@ TEST_F(LabelForwardingTest, deleteMplsRoutes) {
           labelFibEntry->getEntryForClient(clients[i]);
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(route.nextHops),
+          util::toRouteNextHopSet(*route.nextHops_ref()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -169,7 +169,7 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(route.nextHops),
+          util::toRouteNextHopSet(*route.nextHops_ref()),
           labelFibEntryForClient->getNextHopSet());
     }
   }
@@ -192,7 +192,7 @@ TEST_F(LabelForwardingTest, syncMplsFib) {
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
-          util::toRouteNextHopSet(routes[0][i].nextHops),
+          util::toRouteNextHopSet(*routes[0][i].nextHops_ref()),
           labelFibEntryForClient->getNextHopSet());
     } else {
       auto labelFibEntry =
@@ -240,8 +240,8 @@ TEST_F(LabelForwardingTest, getMplsRouteTableByClient) {
     for (; in != inRoutes[i].end() && out != outRoutes[i].end(); in++, out++) {
       EXPECT_EQ(in->topLabel, out->topLabel);
       EXPECT_EQ(
-          util::toRouteNextHopSet(in->nextHops),
-          util::toRouteNextHopSet(out->nextHops));
+          util::toRouteNextHopSet(*in->nextHops_ref()),
+          util::toRouteNextHopSet(*out->nextHops_ref()));
       EXPECT_EQ(
           in->adminDistance_ref().value_or({}),
           out->adminDistance_ref().value_or({}));

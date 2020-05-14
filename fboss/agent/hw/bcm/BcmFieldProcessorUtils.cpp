@@ -67,9 +67,10 @@ bool isSendToQueueStateSame(
   }
   auto sendToQueue = swAction.value().getSendToQueue().value();
   // check whether queue id matches
-  if (bcmQueueId != sendToQueue.first.queueId) {
+  if (bcmQueueId != *sendToQueue.first.queueId_ref()) {
     XLOG(ERR) << aclMsg << " has sendToQueue action, in s/w queue="
-              << sendToQueue.first.queueId << " in h/w queue=" << bcmQueueId;
+              << *sendToQueue.first.queueId_ref()
+              << " in h/w queue=" << bcmQueueId;
     return false;
   }
   // check whether queue type matches
@@ -93,9 +94,9 @@ bool isSetDscpActionStateSame(
     return false;
   }
   auto setDscp = swAction.value().getSetDscp().value();
-  if (dscpValue != setDscp.dscpValue) {
+  if (dscpValue != *setDscp.dscpValue_ref()) {
     XLOG(ERR) << aclMsg << " has DscpNewValue action, in s/w dscpValue="
-              << setDscp.dscpValue << " in h/w dscpVaue=" << dscpValue;
+              << *setDscp.dscpValue_ref() << " in h/w dscpVaue=" << dscpValue;
     return false;
   }
 

@@ -93,10 +93,10 @@ struct INextHop {
 
     NextHopThrift toThrift() const {
       NextHopThrift nht;
-      nht.address = network::toBinaryAddress(addr());
-      nht.weight = weight();
+      *nht.address_ref() = network::toBinaryAddress(addr());
+      *nht.weight_ref() = weight();
       if (isResolved()) {
-        nht.address.set_ifName(util::createTunIntfName(intf()));
+        nht.address_ref()->set_ifName(util::createTunIntfName(intf()));
       }
       if (labelForwardingAction()) {
         nht.mplsAction_ref() = labelForwardingAction()->toThrift();

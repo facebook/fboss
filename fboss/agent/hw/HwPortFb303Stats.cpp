@@ -141,37 +141,55 @@ void HwPortFb303Stats::updateStats(
     const HwPortStats& curPortStats,
     const std::chrono::seconds& retrievedAt) {
   timeRetrieved_ = retrievedAt;
-  updateStat(timeRetrieved_, kInBytes(), curPortStats.inBytes_);
-  updateStat(timeRetrieved_, kInUnicastPkts(), curPortStats.inUnicastPkts_);
-  updateStat(timeRetrieved_, kInMulticastPkts(), curPortStats.inMulticastPkts_);
-  updateStat(timeRetrieved_, kInBroadcastPkts(), curPortStats.inBroadcastPkts_);
-  updateStat(timeRetrieved_, kInDiscardsRaw(), curPortStats.inDiscardsRaw_);
-  updateStat(timeRetrieved_, kInDiscards(), curPortStats.inDiscards_);
-  updateStat(timeRetrieved_, kInErrors(), curPortStats.inErrors_);
-  updateStat(timeRetrieved_, kInPause(), curPortStats.inPause_);
-  updateStat(timeRetrieved_, kInIpv4HdrErrors(), curPortStats.inIpv4HdrErrors_);
-  updateStat(timeRetrieved_, kInIpv6HdrErrors(), curPortStats.inIpv6HdrErrors_);
+  updateStat(timeRetrieved_, kInBytes(), *curPortStats.inBytes__ref());
   updateStat(
-      timeRetrieved_, kInDstNullDiscards(), curPortStats.inDstNullDiscards_);
+      timeRetrieved_, kInUnicastPkts(), *curPortStats.inUnicastPkts__ref());
+  updateStat(
+      timeRetrieved_, kInMulticastPkts(), *curPortStats.inMulticastPkts__ref());
+  updateStat(
+      timeRetrieved_, kInBroadcastPkts(), *curPortStats.inBroadcastPkts__ref());
+  updateStat(
+      timeRetrieved_, kInDiscardsRaw(), *curPortStats.inDiscardsRaw__ref());
+  updateStat(timeRetrieved_, kInDiscards(), *curPortStats.inDiscards__ref());
+  updateStat(timeRetrieved_, kInErrors(), *curPortStats.inErrors__ref());
+  updateStat(timeRetrieved_, kInPause(), *curPortStats.inPause__ref());
+  updateStat(
+      timeRetrieved_, kInIpv4HdrErrors(), *curPortStats.inIpv4HdrErrors__ref());
+  updateStat(
+      timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors__ref());
+  updateStat(
+      timeRetrieved_,
+      kInDstNullDiscards(),
+      *curPortStats.inDstNullDiscards__ref());
   // Egress Stats
-  updateStat(timeRetrieved_, kOutBytes(), curPortStats.outBytes_);
-  updateStat(timeRetrieved_, kOutUnicastPkts(), curPortStats.outUnicastPkts_);
+  updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes__ref());
   updateStat(
-      timeRetrieved_, kOutMulticastPkts(), curPortStats.outMulticastPkts_);
+      timeRetrieved_, kOutUnicastPkts(), *curPortStats.outUnicastPkts__ref());
   updateStat(
-      timeRetrieved_, kOutBroadcastPkts(), curPortStats.outBroadcastPkts_);
-  updateStat(timeRetrieved_, kOutDiscards(), curPortStats.outDiscards_);
-  updateStat(timeRetrieved_, kOutErrors(), curPortStats.outErrors_);
-  updateStat(timeRetrieved_, kOutPause(), curPortStats.outPause_);
+      timeRetrieved_,
+      kOutMulticastPkts(),
+      *curPortStats.outMulticastPkts__ref());
+  updateStat(
+      timeRetrieved_,
+      kOutBroadcastPkts(),
+      *curPortStats.outBroadcastPkts__ref());
+  updateStat(timeRetrieved_, kOutDiscards(), *curPortStats.outDiscards__ref());
+  updateStat(timeRetrieved_, kOutErrors(), *curPortStats.outErrors__ref());
+  updateStat(timeRetrieved_, kOutPause(), *curPortStats.outPause__ref());
   updateStat(
       timeRetrieved_,
       kOutCongestionDiscards(),
-      curPortStats.outCongestionDiscardPkts_);
-  updateStat(timeRetrieved_, kOutEcnCounter(), curPortStats.outEcnCounter_);
+      *curPortStats.outCongestionDiscardPkts__ref());
   updateStat(
-      timeRetrieved_, kFecCorrectable(), curPortStats.fecCorrectableErrors);
+      timeRetrieved_, kOutEcnCounter(), *curPortStats.outEcnCounter__ref());
   updateStat(
-      timeRetrieved_, kFecUncorrectable(), curPortStats.fecUncorrectableErrors);
+      timeRetrieved_,
+      kFecCorrectable(),
+      *curPortStats.fecCorrectableErrors_ref());
+  updateStat(
+      timeRetrieved_,
+      kFecUncorrectable(),
+      *curPortStats.fecUncorrectableErrors_ref());
 
   // Update queue stats
   auto updateQueueStat = [this](
@@ -188,11 +206,11 @@ void HwPortFb303Stats::updateStats(
     updateQueueStat(
         kOutCongestionDiscards(),
         queueIdAndName.first,
-        curPortStats.queueOutDiscardBytes_);
+        *curPortStats.queueOutDiscardBytes__ref());
     updateQueueStat(
-        kOutBytes(), queueIdAndName.first, curPortStats.queueOutBytes_);
+        kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes__ref());
     updateQueueStat(
-        kOutPkts(), queueIdAndName.first, curPortStats.queueOutPackets_);
+        kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets__ref());
   }
   updateQueueWatermarkStats(curPortStats.queueWatermarkBytes_);
 }

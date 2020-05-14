@@ -212,14 +212,14 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   template <typename NeighborEntryThrift>
   void populateThriftEntry(NeighborEntryThrift& entry) const {
-    entry.ip = facebook::network::toBinaryAddress(getIP());
-    entry.mac = getMac().toString();
-    entry.port = getPort().asThriftPort();
-    entry.vlanName = cache_->getVlanName();
-    entry.vlanID = cache_->getVlanID();
-    entry.state = getStateName();
-    entry.ttl = getTtl();
-    entry.classID =
+    *entry.ip_ref() = facebook::network::toBinaryAddress(getIP());
+    *entry.mac_ref() = getMac().toString();
+    *entry.port_ref() = getPort().asThriftPort();
+    *entry.vlanName_ref() = cache_->getVlanName();
+    *entry.vlanID_ref() = cache_->getVlanID();
+    *entry.state_ref() = getStateName();
+    *entry.ttl_ref() = getTtl();
+    *entry.classID_ref() =
         getClassID().has_value() ? static_cast<int>(getClassID().value()) : 0;
   }
 

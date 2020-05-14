@@ -71,10 +71,10 @@ class MockSffModule : public SffModule {
 
   TransceiverSettings getTransceiverSettingsInfo() override {
     TransceiverSettings settings = TransceiverSettings();
-    settings.cdrTx = cdrTx_;
-    settings.cdrRx = cdrRx_;
-    settings.rateSelect = state_;
-    settings.rateSelectSetting = setting_;
+    *settings.cdrTx_ref() = cdrTx_;
+    *settings.cdrRx_ref() = cdrRx_;
+    *settings.rateSelect_ref() = state_;
+    *settings.rateSelectSetting_ref() = setting_;
     return settings;
   }
 

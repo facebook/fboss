@@ -44,36 +44,37 @@ unique_ptr<HwTestHandle> setupTestHandle() {
 
   // Add VLAN 1, and ports 1-39 which belong to it.
   cfg::Vlan thriftVlan;
-  thriftVlan.name = "Vlan1";
-  thriftVlan.id = 1;
+  *thriftVlan.name_ref() = "Vlan1";
+  *thriftVlan.id_ref() = 1;
   thriftVlan.intfID_ref() = 1;
-  thriftVlan.routable = true;
-  thriftVlan.ipAddresses = {"10.0.0.1"};
+  *thriftVlan.routable_ref() = true;
+  *thriftVlan.ipAddresses_ref() = {"10.0.0.1"};
   thriftVlan.dhcpRelayAddressV4_ref() = "10.1.2.3";
-  thriftCfg.vlans.push_back(thriftVlan);
+  thriftCfg.vlans_ref()->push_back(thriftVlan);
 
   cfg::Interface thriftIface;
-  thriftIface.intfID = 1;
-  thriftIface.vlanID = 1;
-  thriftIface.ipAddresses.push_back("10.0.0.1/24");
+  *thriftIface.intfID_ref() = 1;
+  *thriftIface.vlanID_ref() = 1;
+  thriftIface.ipAddresses_ref()->push_back("10.0.0.1/24");
   thriftIface.mac_ref() = "02:01:02:03:04:05";
-  thriftCfg.interfaces.push_back(thriftIface);
+  thriftCfg.interfaces_ref()->push_back(thriftIface);
 
   for (int idx = 1; idx < 40; ++idx) {
     cfg::Port thriftPort;
-    thriftPort.logicalID = idx;
-    thriftPort.state = cfg::PortState::ENABLED;
-    thriftPort.parserType = cfg::ParserType::L3;
-    thriftPort.routable = true;
-    thriftPort.ingressVlan = 1;
-    thriftCfg.ports.push_back(thriftPort);
+    *thriftPort.logicalID_ref() = idx;
+    *thriftPort.state_ref() = cfg::PortState::ENABLED;
+    *thriftPort.parserType_ref() = cfg::ParserType::L3;
+    *thriftPort.routable_ref() = true;
+    *thriftPort.ingressVlan_ref() = 1;
+    thriftCfg.ports_ref()->push_back(thriftPort);
 
     cfg::VlanPort thriftVlanPort;
-    thriftVlanPort.vlanID = 1;
-    thriftVlanPort.logicalPort = idx;
-    thriftVlanPort.spanningTreeState = cfg::SpanningTreeState::FORWARDING;
-    thriftVlanPort.emitTags = false;
-    thriftCfg.vlanPorts.push_back(thriftVlanPort);
+    *thriftVlanPort.vlanID_ref() = 1;
+    *thriftVlanPort.logicalPort_ref() = idx;
+    *thriftVlanPort.spanningTreeState_ref() =
+        cfg::SpanningTreeState::FORWARDING;
+    *thriftVlanPort.emitTags_ref() = false;
+    thriftCfg.vlanPorts_ref()->push_back(thriftVlanPort);
   }
 
   auto handle = createTestHandle(&thriftCfg, kPlatformMac);

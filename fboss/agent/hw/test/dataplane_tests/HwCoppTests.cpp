@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
 #include <folly/container/Array.h>
@@ -53,7 +54,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
       int l4DstPort) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     // arbit
     const auto srcIp =
@@ -81,7 +82,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -112,7 +113,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
@@ -244,8 +245,8 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
 
-    auto configIntf = initialConfig().interfaces[0];
-    auto ipAddress = configIntf.ipAddresses[0];
+    auto configIntf = initialConfig().interfaces_ref()[0];
+    auto ipAddress = configIntf.ipAddresses_ref()[0];
     auto dstIP = folly::IPAddress::createNetwork(ipAddress, -1, true).first;
     uint64_t afterSecs;
     /*
@@ -305,8 +306,9 @@ TEST_F(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
     // Make sure all dstip(=interfaces local ips) + BGP port packets send to
     // cpu high priority queue
     enum SRC_DST { SRC, DST };
-    for (const auto& configIntf : initialConfig().interfaces) {
-      for (const auto& ipAddress : configIntf.ipAddresses) {
+    for (const auto& configIntf :
+         folly::copy(*initialConfig().interfaces_ref())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
         for (int dir = 0; dir <= DST; dir++) {
           sendPktAndVerifyCpuQueue(
               utility::getCoppHighPriQueueId(getAsic()),
@@ -327,8 +329,9 @@ TEST_F(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   };
 
   auto verify = [=]() {
-    for (const auto& configIntf : initialConfig().interfaces) {
-      for (const auto& ipAddress : configIntf.ipAddresses) {
+    for (const auto& configIntf :
+         folly::copy(*initialConfig().interfaces_ref())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
         sendPktAndVerifyCpuQueue(
             utility::kCoppMidPriQueueId,
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
@@ -461,8 +464,9 @@ TEST_F(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   };
 
   auto verify = [=]() {
-    for (const auto& configIntf : initialConfig().interfaces) {
-      for (const auto& ipAddress : configIntf.ipAddresses) {
+    for (const auto& configIntf :
+         folly::copy(*initialConfig().interfaces_ref())) {
+      for (const auto& ipAddress : *configIntf.ipAddresses_ref()) {
         sendPktAndVerifyCpuQueue(
             utility::getCoppHighPriQueueId(getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,

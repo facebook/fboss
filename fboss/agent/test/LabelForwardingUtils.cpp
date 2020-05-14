@@ -94,12 +94,12 @@ NextHopThrift getSwapNextHopThrift(int offset) {
   auto nexthopIp = folly::IPAddressV6::tryFromString(
       folly::to<std::string>("fe80::", offset));
   NextHopThrift nexthop;
-  nexthop.address.addr.append(
+  nexthop.address_ref()->addr.append(
       reinterpret_cast<const char*>(nexthopIp->bytes()),
       folly::IPAddressV6::byteCount());
-  nexthop.address.ifName_ref() = "fboss1";
+  nexthop.address_ref()->ifName_ref() = "fboss1";
   MplsAction action;
-  action.action = MplsActionCode::SWAP;
+  *action.action_ref() = MplsActionCode::SWAP;
   action.swapLabel_ref() = 601;
   nexthop.mplsAction_ref() = action;
   return nexthop;
@@ -110,7 +110,7 @@ MplsRoute getMplsRoute(MplsLabel label, AdminDistance distance) {
   route.topLabel = label;
   route.adminDistance_ref() = distance;
   for (auto i = 1; i < 5; i++) {
-    route.nextHops.emplace_back(getSwapNextHopThrift(i));
+    route.nextHops_ref()->emplace_back(getSwapNextHopThrift(i));
   }
   return route;
 }

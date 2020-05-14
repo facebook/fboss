@@ -171,9 +171,9 @@ void WedgePlatform::preWarmbootStateApplied() {
 
     if (entry.second->supportsTransceiver()) {
       PortStatus s;
-      s.enabled = bcmPortIf->isEnabled();
-      s.up = bcmPortIf->isUp();
-      s.speedMbps = static_cast<int>(bcmPortIf->getSpeed());
+      *s.enabled_ref() = bcmPortIf->isEnabled();
+      *s.up_ref() = bcmPortIf->isUp();
+      *s.speedMbps_ref() = static_cast<int>(bcmPortIf->getSpeed());
       s.transceiverIdx_ref() = entry.second->getTransceiverMapping();
       changedPorts[entry.first] = s;
     }
@@ -205,7 +205,7 @@ PlatformPort* WedgePlatform::getPlatformPort(const PortID port) const {
 std::map<std::string, std::string> WedgePlatform::loadConfig() {
   auto cfg = config();
   if (cfg) {
-    return cfg->thrift.platform.chip.get_bcm().config;
+    return *cfg->thrift.platform_ref()->chip_ref()->get_bcm().config_ref();
   }
   return BcmConfig::loadDefaultConfig();
 }

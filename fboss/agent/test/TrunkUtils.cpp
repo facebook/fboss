@@ -19,8 +19,8 @@ namespace facebook::fboss::utility {
 cfg::AggregatePortMember makePortMember(int32_t port) {
   static auto constexpr kAggPriority = 32768;
   cfg::AggregatePortMember aggMember;
-  aggMember.memberPortID = port;
-  aggMember.priority = kAggPriority;
+  *aggMember.memberPortID_ref() = port;
+  *aggMember.priority_ref() = kAggPriority;
   return aggMember;
 }
 
@@ -31,28 +31,28 @@ void addAggPort(
   // Create agg port with requisite members
   static constexpr auto kAggPortName = "AGG";
   cfg::AggregatePort aggPort;
-  aggPort.key = key;
-  aggPort.name = kAggPortName;
-  aggPort.description = kAggPortName;
+  *aggPort.key_ref() = key;
+  *aggPort.name_ref() = kAggPortName;
+  *aggPort.description_ref() = kAggPortName;
   for (auto port : ports) {
-    aggPort.memberPorts.push_back(makePortMember(port));
+    aggPort.memberPorts_ref()->push_back(makePortMember(port));
   }
-  config->aggregatePorts.push_back(aggPort);
+  config->aggregatePorts_ref()->push_back(aggPort);
   // Set VLAN for all members to be the same
   std::set<uint32_t> memberPorts(ports.begin(), ports.end());
   std::optional<int32_t> aggVlan;
-  for (auto& vlanPort : config->vlanPorts) {
-    if (memberPorts.find(vlanPort.logicalPort) != memberPorts.end()) {
+  for (auto& vlanPort : *config->vlanPorts_ref()) {
+    if (memberPorts.find(*vlanPort.logicalPort_ref()) != memberPorts.end()) {
       if (!aggVlan) {
-        aggVlan = vlanPort.vlanID;
+        aggVlan = *vlanPort.vlanID_ref();
       }
-      vlanPort.vlanID = aggVlan.value();
+      *vlanPort.vlanID_ref() = aggVlan.value();
     }
   }
   // Set ingress VLAN for all members to be the same
-  for (auto& port : config->ports) {
-    if (memberPorts.find(port.logicalID) != memberPorts.end()) {
-      port.ingressVlan = aggVlan.value();
+  for (auto& port : *config->ports_ref()) {
+    if (memberPorts.find(*port.logicalID_ref()) != memberPorts.end()) {
+      *port.ingressVlan_ref() = aggVlan.value();
     }
   }
 }

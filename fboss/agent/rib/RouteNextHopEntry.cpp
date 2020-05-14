@@ -30,8 +30,8 @@ std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
   nhs.reserve(addrs.size());
   for (const auto& addr : addrs) {
     facebook::fboss::NextHopThrift nh;
-    nh.address = addr;
-    nh.weight = 0;
+    *nh.address_ref() = addr;
+    *nh.weight_ref() = 0;
     nhs.emplace_back(std::move(nh));
   }
   return nhs;
@@ -175,10 +175,10 @@ RouteNextHopEntry RouteNextHopEntry::from(
     const facebook::fboss::UnicastRoute& route,
     AdminDistance defaultAdminDistance) {
   std::vector<NextHopThrift> nhts;
-  if (route.nextHops.empty() && !route.nextHopAddrs.empty()) {
-    nhts = thriftNextHopsFromAddresses(route.nextHopAddrs);
+  if (route.nextHops_ref()->empty() && !route.nextHopAddrs_ref()->empty()) {
+    nhts = thriftNextHopsFromAddresses(*route.nextHopAddrs_ref());
   } else {
-    nhts = route.nextHops;
+    nhts = *route.nextHops_ref();
   }
 
   RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts);
@@ -228,7 +228,7 @@ facebook::fboss::rib::RouteNextHopEntry RouteNextHopEntry::fromStaticRoute(
   // routes, that may lead to unexpected behavior where some interface
   // gets more traffic.  If necessary, in the future, we can make it
   // possible to configure strictly ECMP static routes
-  for (auto& nhopStr : route.nexthops) {
+  for (auto& nhopStr : *route.nexthops_ref()) {
     nhops.emplace(
         UnresolvedNextHop(folly::IPAddress(nhopStr), UCMP_DEFAULT_WEIGHT));
   }

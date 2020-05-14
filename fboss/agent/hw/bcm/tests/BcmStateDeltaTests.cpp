@@ -21,53 +21,60 @@ using namespace facebook::fboss;
 
 void addQosPolicyWithRules(cfg::SwitchConfig& cfg, const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  qosPolicy.name = name;
-  qosPolicy.rules.resize(8);
+  *qosPolicy.name_ref() = name;
+  qosPolicy.rules_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    qosPolicy.rules[i].queueId = i;
+    *qosPolicy.rules[i].queueId_ref() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.rules[i].dscp.push_back(8 * i + j);
+      qosPolicy.rules_ref()[i].dscp_ref()->push_back(8 * i + j);
     }
   }
-  cfg.qosPolicies.push_back(qosPolicy);
+  cfg.qosPolicies_ref()->push_back(qosPolicy);
 }
 
 void addQosPolicyWithDscpMap(cfg::SwitchConfig& cfg, const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  qosPolicy.name = name;
+  *qosPolicy.name_ref() = name;
   qosPolicy.qosMap_ref() = cfg::QosMap();
-  qosPolicy.qosMap_ref()->dscpMaps.resize(8);
+  qosPolicy.qosMap_ref()->dscpMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    qosPolicy.qosMap_ref()->dscpMaps[i].internalTrafficClass = i;
+    *qosPolicy.qosMap_ref()->dscpMaps[i].internalTrafficClass_ref() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.qosMap_ref()->dscpMaps[i].fromDscpToTrafficClass.push_back(
-          8 * i + j);
+      qosPolicy.qosMap_ref()
+          ->dscpMaps_ref()[i]
+          .fromDscpToTrafficClass_ref()
+          ->push_back(8 * i + j);
     }
   }
-  cfg.qosPolicies.push_back(qosPolicy);
+  cfg.qosPolicies_ref()->push_back(qosPolicy);
 }
 
 void addQosPolicyWithDscpAndExpMap(
     cfg::SwitchConfig& cfg,
     const std::string& name) {
   cfg::QosPolicy qosPolicy;
-  qosPolicy.name = name;
+  *qosPolicy.name_ref() = name;
   qosPolicy.qosMap_ref() = cfg::QosMap();
-  qosPolicy.qosMap_ref()->dscpMaps.resize(8);
-  qosPolicy.qosMap_ref()->expMaps.resize(8);
+  qosPolicy.qosMap_ref()->dscpMaps_ref()->resize(8);
+  qosPolicy.qosMap_ref()->expMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
     // dscp map
-    qosPolicy.qosMap_ref()->dscpMaps[i].internalTrafficClass = i;
+    *qosPolicy.qosMap_ref()->dscpMaps[i].internalTrafficClass_ref() = i;
     for (auto j = 0; j < 8; j++) {
-      qosPolicy.qosMap_ref()->dscpMaps[i].fromDscpToTrafficClass.push_back(
-          8 * i + j);
+      qosPolicy.qosMap_ref()
+          ->dscpMaps_ref()[i]
+          .fromDscpToTrafficClass_ref()
+          ->push_back(8 * i + j);
     }
     // exp map
-    qosPolicy.qosMap_ref()->expMaps[i].internalTrafficClass = i;
-    qosPolicy.qosMap_ref()->expMaps[i].fromExpToTrafficClass.push_back(i);
-    qosPolicy.qosMap_ref()->expMaps[i].fromTrafficClassToExp_ref() = i;
+    *qosPolicy.qosMap_ref()->expMaps[i].internalTrafficClass_ref() = i;
+    qosPolicy.qosMap_ref()
+        ->expMaps_ref()[i]
+        .fromExpToTrafficClass_ref()
+        ->push_back(i);
+    qosPolicy.qosMap_ref()->expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
   }
-  cfg.qosPolicies.push_back(qosPolicy);
+  cfg.qosPolicies_ref()->push_back(qosPolicy);
 }
 
 void setDataPlaneTrafficPolicy(
@@ -136,7 +143,7 @@ TEST_F(BcmTest, validQosPolicyConfigWithRulesAndDifferentPolicyForPort) {
   addQosPolicyWithRules(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithRules(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(cfg, "qp1", cfg.ports[0].logicalID);
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports[0].logicalID_ref());
   auto newState = applyNewConfig(cfg);
   EXPECT_TRUE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
@@ -158,7 +165,7 @@ TEST_F(BcmTest, dscpQosMapForPort) {
   addQosPolicyWithDscpAndExpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithDscpMap(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(cfg, "qp1", cfg.ports[0].logicalID);
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports[0].logicalID_ref());
   auto newState = applyNewConfig(cfg);
   EXPECT_TRUE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }
@@ -170,7 +177,7 @@ TEST_F(BcmTest, expQosMapForPort) {
   addQosPolicyWithDscpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
   addQosPolicyWithDscpAndExpMap(cfg, "qp1");
-  setDataPlaneTrafficPolicyForPort(cfg, "qp1", cfg.ports[0].logicalID);
+  setDataPlaneTrafficPolicyForPort(cfg, "qp1", *cfg.ports[0].logicalID_ref());
   auto newState = applyNewConfig(cfg);
   EXPECT_FALSE(getHwSwitch()->isValidStateUpdate(StateDelta(state0, newState)));
 }

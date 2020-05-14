@@ -47,8 +47,8 @@ void add2QueueConfig(cfg::SwitchConfig* config) {
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
-  config->portQueueConfigs["queue_config"] = portQueues;
-  config->ports[0].portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
 }
 
 std::string get2QueueAclNameForDscp(uint8_t dscp) {

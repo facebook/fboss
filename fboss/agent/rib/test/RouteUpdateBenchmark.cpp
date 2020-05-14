@@ -41,8 +41,8 @@ std::vector<NextHopThrift> nextHopsThrift(
   std::vector<NextHopThrift> nexthops;
   for (const auto& addr : addrs) {
     NextHopThrift nexthop;
-    nexthop.address = createNextHop(addr);
-    nexthop.weight = static_cast<int32_t>(ECMP_WEIGHT);
+    *nexthop.address_ref() = createNextHop(addr);
+    *nexthop.weight_ref() = static_cast<int32_t>(ECMP_WEIGHT);
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;

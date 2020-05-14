@@ -28,12 +28,12 @@ class WedgeQsfpStats {
 
   void updateReadDownTime() {
     std::lock_guard<std::mutex> g(statsMutex_);
-    stats_.readDownTime = downTimeLocked(lastSuccessfulRead_);
+    *stats_.readDownTime_ref() = downTimeLocked(lastSuccessfulRead_);
   }
 
   void updateWriteDownTime() {
     std::lock_guard<std::mutex> g(statsMutex_);
-    stats_.writeDownTime = downTimeLocked(lastSuccessfulWrite_);
+    *stats_.writeDownTime_ref() = downTimeLocked(lastSuccessfulWrite_);
   }
 
   void recordReadSuccess() {

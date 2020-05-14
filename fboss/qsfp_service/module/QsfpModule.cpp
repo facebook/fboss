@@ -58,10 +58,10 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t *data,
 
   CHECK_GE(offset, 0);
   CHECK_LE(offset, 4);
-  flags.warn.low = (*data & (1 << offset));
-  flags.warn.high = (*data & (1 << ++offset));
-  flags.alarm.low = (*data & (1 << ++offset));
-  flags.alarm.high = (*data & (1 << ++offset));
+  *flags.warn_ref()->low_ref() = (*data & (1 << offset));
+  *flags.warn_ref()->high_ref() = (*data & (1 << ++offset));
+  *flags.alarm_ref()->low_ref() = (*data & (1 << ++offset));
+  *flags.alarm_ref()->high_ref() = (*data & (1 << ++offset));
 
   return flags;
 }
@@ -124,9 +124,9 @@ bool QsfpModule::detectPresenceLocked() {
 
 TransceiverInfo QsfpModule::parseDataLocked() {
   TransceiverInfo info;
-  info.present = present_;
-  info.transceiver = type();
-  info.port = qsfpImpl_->getNum();
+  *info.present_ref() = present_;
+  *info.transceiver_ref() = type();
+  *info.port_ref() = qsfpImpl_->getNum();
   if (!present_) {
     return info;
   }
@@ -141,11 +141,11 @@ TransceiverInfo QsfpModule::parseDataLocked() {
 
   for (int i = 0; i < CHANNEL_COUNT; i++) {
     Channel chan;
-    chan.channel = i;
-    info.channels.push_back(chan);
+    *chan.channel_ref() = i;
+    info.channels_ref()->push_back(chan);
   }
   if (!getSensorsPerChanInfo(info.channels)) {
-    info.channels.clear();
+    info.channels_ref()->clear();
   }
   if (auto transceiverStats = getTransceiverStats()) {
     info.stats_ref() = *transceiverStats;
@@ -171,10 +171,10 @@ bool QsfpModule::safeToCustomize() const {
   bool anyEnabled{false};
   for (const auto& port : ports_) {
     const auto& status = port.second;
-    if (status.up) {
+    if (*status.up_ref()) {
       return false;
     }
-    anyEnabled = anyEnabled || status.enabled;
+    anyEnabled = anyEnabled || *status.enabled_ref();
   }
 
   // Only return safe if at least one port is enabled
@@ -211,8 +211,8 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   for (const auto& port : ports_) {
     const auto& status = port.second;
-    auto newSpeed = cfg::PortSpeed(status.speedMbps);
-    if (!status.enabled || speed == newSpeed) {
+    auto newSpeed = cfg::PortSpeed(*status.speedMbps_ref());
+    if (!(*status.enabled_ref()) || speed == newSpeed) {
       continue;
     }
 
@@ -233,7 +233,7 @@ void QsfpModule::transceiverPortsChanged(
   for (auto& it : ports) {
     CHECK(
         TransceiverID(
-            it.second.transceiverIdx_ref().value_or({}).transceiverId) ==
+            *it.second.transceiverIdx_ref().value_or({}).transceiverId_ref()) ==
         getID());
     ports_[it.first] = std::move(it.second);
   }
@@ -341,12 +341,12 @@ void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(settings.powerControl);
+    setPowerOverrideIfSupported(*settings.powerControl_ref());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+      setCdrIfSupported(speed, *settings.cdrTx_ref(), *settings.cdrRx_ref());
       setRateSelectIfSupported(
-        speed, settings.rateSelect, settings.rateSelectSetting);
+          speed, *settings.rateSelect_ref(), *settings.rateSelectSetting_ref());
     }
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();

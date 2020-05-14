@@ -27,39 +27,40 @@ using namespace facebook::fboss;
 namespace {
 cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   cfg::SwitchConfig config;
-  config.ports.resize(2);
-  config.ports[0].logicalID = 1;
-  config.ports[0].state = cfg::PortState::ENABLED;
-  config.ports[1].logicalID = 2;
-  config.ports[1].state = cfg::PortState::ENABLED;
+  config.ports_ref()->resize(2);
+  *config.ports[0].logicalID_ref() = 1;
+  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports[1].logicalID_ref() = 2;
+  *config.ports[1].state_ref() = cfg::PortState::ENABLED;
 
-  config.vlans.resize(1);
-  config.vlans[0].id = 3;
-  config.vlans[0].name = "vlan3";
-  config.vlans[0].routable = true;
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 3;
+  *config.vlans[0].name_ref() = "vlan3";
+  *config.vlans[0].routable_ref() = true;
 
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 3;
-  config.interfaces[0].vlanID = 3;
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.2.3.4/24";
-  config.interfaces[0].ipAddresses[1] = "2a03:2880:10:1f07:face:b00c:0:0/96";
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 3;
+  *config.interfaces[0].vlanID_ref() = 3;
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  config.interfaces[0].ipAddresses_ref()[1] =
+      "2a03:2880:10:1f07:face:b00c:0:0/96";
 
-  config.vlanPorts.resize(2);
-  config.vlanPorts[0].logicalPort = 1;
-  config.vlanPorts[0].vlanID = 3;
-  config.vlanPorts[0].emitTags = false;
-  config.vlanPorts[1].logicalPort = 2;
-  config.vlanPorts[1].vlanID = 3;
-  config.vlanPorts[1].emitTags = false;
+  config.vlanPorts_ref()->resize(2);
+  *config.vlanPorts[0].logicalPort_ref() = 1;
+  *config.vlanPorts[0].vlanID_ref() = 3;
+  *config.vlanPorts[0].emitTags_ref() = false;
+  *config.vlanPorts[1].logicalPort_ref() = 2;
+  *config.vlanPorts[1].vlanID_ref() = 3;
+  *config.vlanPorts[1].emitTags_ref() = false;
 
-  config.aggregatePorts.resize(1);
-  config.aggregatePorts[0].key = static_cast<uint16_t>(id);
-  config.aggregatePorts[0].name = name;
-  config.aggregatePorts[0].description = "double bundle";
-  config.aggregatePorts[0].memberPorts.resize(2);
-  config.aggregatePorts[0].memberPorts[0].memberPortID = 1;
-  config.aggregatePorts[0].memberPorts[1].memberPortID = 2;
+  config.aggregatePorts_ref()->resize(1);
+  *config.aggregatePorts[0].key_ref() = static_cast<uint16_t>(id);
+  *config.aggregatePorts[0].name_ref() = name;
+  *config.aggregatePorts[0].description_ref() = "double bundle";
+  config.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
+  *config.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
+  *config.aggregatePorts[0].memberPorts[1].memberPortID_ref() = 2;
 
   return config;
 }

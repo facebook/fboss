@@ -38,15 +38,16 @@ WedgePort::WedgePort(
     // If the platform port comes with transceiver lanes
     if (!tcvrList.empty()) {
       // All the transceiver lanes should use the same transceiver id
-      auto chipCfg = getPlatform()->getDataPlanePhyChip(tcvrList[0].chip);
+      auto chipCfg =
+          getPlatform()->getDataPlanePhyChip(*tcvrList[0].chip_ref());
       if (!chipCfg) {
         throw FbossError(
             "Port ",
             getPortID(),
             " is using platform unsupported chip ",
-            tcvrList[0].chip);
+            *tcvrList[0].chip_ref());
       }
-      transceiverID_.emplace(TransceiverID(chipCfg->physicalID));
+      transceiverID_.emplace(TransceiverID(*chipCfg->physicalID_ref()));
     }
   }
 }
@@ -92,7 +93,7 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
   int32_t transID = static_cast<int32_t>(getTransceiverID().value());
   auto getTech = [](TransceiverInfo info) {
     if (auto cable = info.cable_ref()) {
-      return cable->transmitterTech;
+      return *cable->transmitterTech_ref();
     }
     return TransmitterTechnology::UNKNOWN;
   };
@@ -123,8 +124,8 @@ folly::Future<std::optional<TxSettings>> WedgePort::getTxSettings(
         return std::optional<TxSettings>();
       }
       auto cableMeters = std::max(1.0, std::min(3.0, *length));
-      const auto it =
-          overrides.find(std::make_pair(cable->transmitterTech, cableMeters));
+      const auto it = overrides.find(
+          std::make_pair(*cable->transmitterTech_ref(), cableMeters));
       if (it != overrides.cend()) {
         return it->second;
       }
@@ -165,16 +166,16 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
 
 std::optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
     cfg::PortSpeed speed) {
-  auto& platformSettings = getPlatform()->config()->thrift.platform;
+  auto& platformSettings = *getPlatform()->config()->thrift.platform_ref();
 
-  auto portsIter = platformSettings.ports.find(getPortID());
-  if (portsIter == platformSettings.ports.end()) {
+  auto portsIter = platformSettings.ports_ref()->find(getPortID());
+  if (portsIter == platformSettings.ports_ref()->end()) {
     return std::nullopt;
   }
 
   auto portConfig = portsIter->second;
-  auto speedIter = portConfig.supportedSpeeds.find(speed);
-  if (speedIter == portConfig.supportedSpeeds.end()) {
+  auto speedIter = portConfig.supportedSpeeds_ref()->find(speed);
+  if (speedIter == portConfig.supportedSpeeds_ref()->end()) {
     throw FbossError("Port ", getPortID(), " does not support speed ", speed);
   }
 
@@ -205,7 +206,7 @@ std::optional<ChannelID> WedgePort::getChannel() const {
     const auto& tcvrList = *tcvrListOpt;
     if (!tcvrList.empty()) {
       // All the transceiver lanes should use the same transceiver id
-      return ChannelID(tcvrList[0].lane);
+      return ChannelID(*tcvrList[0].lane_ref());
     } else {
       return std::nullopt;
     }
@@ -226,7 +227,8 @@ std::vector<int32_t> WedgePort::getChannels() const {
   const auto tcvrListOpt = getTransceiverLanes(port_->getProfileID());
   if (tcvrListOpt) {
     return folly::gen::from(tcvrListOpt.value()) |
-        folly::gen::map([&](const phy::PinID& entry) { return entry.lane; }) |
+        folly::gen::map(
+               [&](const phy::PinID& entry) { return *entry.lane_ref(); }) |
         folly::gen::as<std::vector<int32_t>>();
   }
 
@@ -256,9 +258,9 @@ PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {
   // from a Port SwitchState node. Currently you need platform to get
   // transceiver mapping, which is not ideal.
   PortStatus status;
-  status.enabled = port->isEnabled();
-  status.up = port->isUp();
-  status.speedMbps = static_cast<int64_t>(port->getSpeed());
+  *status.enabled_ref() = port->isEnabled();
+  *status.up_ref() = port->isUp();
+  *status.speedMbps_ref() = static_cast<int64_t>(port->getSpeed());
   if (supportsTransceiver()) {
     status.transceiverIdx_ref().emplace(getTransceiverMapping());
   }

@@ -19,42 +19,42 @@ namespace facebook::fboss {
 class I2cController {
  public:
   I2cController(std::string name) {
-    i2cControllerPlatformStats_.controllerName_ = name;
+    *i2cControllerPlatformStats_.controllerName__ref() = name;
   }
   ~I2cController() {}
 
   // Reset all i2c stats
   void resetStats() {
-    i2cControllerPlatformStats_.readTotal_ = 0;
-    i2cControllerPlatformStats_.readFailed_ = 0;
-    i2cControllerPlatformStats_.readBytes_ = 0;
-    i2cControllerPlatformStats_.writeTotal_ = 0;
-    i2cControllerPlatformStats_.writeFailed_ = 0;
-    i2cControllerPlatformStats_.writeBytes_ = 0;
+    *i2cControllerPlatformStats_.readTotal__ref() = 0;
+    *i2cControllerPlatformStats_.readFailed__ref() = 0;
+    *i2cControllerPlatformStats_.readBytes__ref() = 0;
+    *i2cControllerPlatformStats_.writeTotal__ref() = 0;
+    *i2cControllerPlatformStats_.writeFailed__ref() = 0;
+    *i2cControllerPlatformStats_.writeBytes__ref() = 0;
   }
   // Total number of reads
   void incrReadTotal(uint32_t count = 1) {
-    i2cControllerPlatformStats_.readTotal_ += count;
+    *i2cControllerPlatformStats_.readTotal__ref() += count;
   }
   // Total Read failures
   void incrReadFailed(uint32_t count = 1) {
-    i2cControllerPlatformStats_.readFailed_ += count;
+    *i2cControllerPlatformStats_.readFailed__ref() += count;
   }
   // Number of bytes read
   void incrReadBytes(uint32_t count = 1) {
-    i2cControllerPlatformStats_.readBytes_ += count;
+    *i2cControllerPlatformStats_.readBytes__ref() += count;
   }
   // Total number of writes
   void incrWriteTotal(uint32_t count = 1) {
-    i2cControllerPlatformStats_.writeTotal_ += count;
+    *i2cControllerPlatformStats_.writeTotal__ref() += count;
   }
   // Total write failures
   void incrWriteFailed(uint32_t count = 1) {
-    i2cControllerPlatformStats_.writeFailed_ += count;
+    *i2cControllerPlatformStats_.writeFailed__ref() += count;
   }
   // Number of bytes written
   void incrWriteBytes(uint32_t count = 1) {
-    i2cControllerPlatformStats_.writeBytes_ += count;
+    *i2cControllerPlatformStats_.writeBytes__ref() += count;
   }
 
   /* Get the I2c transaction stats from the i2c controller

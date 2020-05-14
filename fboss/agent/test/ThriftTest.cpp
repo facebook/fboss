@@ -59,30 +59,30 @@ TEST(ThriftTest, getInterfaceDetail) {
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
   handler.getInterfaceDetail(info, 1);
-  EXPECT_EQ("interface1", info.interfaceName);
-  EXPECT_EQ(1, info.interfaceId);
-  EXPECT_EQ(1, info.vlanId);
-  EXPECT_EQ(0, info.routerId);
-  EXPECT_EQ("00:02:00:00:00:01", info.mac);
+  EXPECT_EQ("interface1", *info.interfaceName_ref());
+  EXPECT_EQ(1, *info.interfaceId_ref());
+  EXPECT_EQ(1, *info.vlanId_ref());
+  EXPECT_EQ(0, *info.routerId_ref());
+  EXPECT_EQ("00:02:00:00:00:01", *info.mac_ref());
   std::vector<IpPrefix> expectedAddrs = {
       ipPrefix("10.0.0.1", 24),
       ipPrefix("192.168.0.1", 24),
       ipPrefix("2401:db00:2110:3001::0001", 64),
   };
-  EXPECT_THAT(info.address, UnorderedElementsAreArray(expectedAddrs));
+  EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
   handler.getInterfaceDetail(info, 55);
-  EXPECT_EQ("interface55", info.interfaceName);
-  EXPECT_EQ(55, info.interfaceId);
-  EXPECT_EQ(55, info.vlanId);
-  EXPECT_EQ(0, info.routerId);
-  EXPECT_EQ("00:02:00:00:00:55", info.mac);
+  EXPECT_EQ("interface55", *info.interfaceName_ref());
+  EXPECT_EQ(55, *info.interfaceId_ref());
+  EXPECT_EQ(55, *info.vlanId_ref());
+  EXPECT_EQ(0, *info.routerId_ref());
+  EXPECT_EQ("00:02:00:00:00:55", *info.mac_ref());
   expectedAddrs = {
       ipPrefix("10.0.55.1", 24),
       ipPrefix("192.168.55.1", 24),
       ipPrefix("2401:db00:2110:3055::0001", 64),
   };
-  EXPECT_THAT(info.address, UnorderedElementsAreArray(expectedAddrs));
+  EXPECT_THAT(*info.address_ref(), UnorderedElementsAreArray(expectedAddrs));
 
   // Calling getInterfaceDetail() on an unknown
   // interface should throw an FbossError.
@@ -137,17 +137,17 @@ TEST(ThriftTest, LinkLocalRoutes) {
   auto newRt = updater.updateDone();
   stateV0->resetRouteTables(newRt);
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].mac_ref() = "00:02:00:00:00:01";
-  config.interfaces[0].ipAddresses.resize(3);
-  config.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
-  config.interfaces[0].ipAddresses[1] = "192.168.0.1/24";
-  config.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+  config.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.1/24";
+  config.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
   // Call applyThriftConfig
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();
@@ -175,7 +175,7 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   auto nr = std::make_unique<UnicastRoute>();
   nr->dest.ip = toBinaryAddress(IPAddress(vec.at(0)));
   nr->dest.prefixLength = folly::to<uint8_t>(vec.at(1));
-  nr->nextHopAddrs.push_back(toBinaryAddress(IPAddress(nxtHop)));
+  nr->nextHopAddrs_ref()->push_back(toBinaryAddress(IPAddress(nxtHop)));
   nr->adminDistance_ref() = distance;
   return nr;
 }
@@ -186,17 +186,17 @@ TEST(ThriftTest, syncFib) {
 
   // Create a config
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].mac_ref() = "00:02:00:00:00:01";
-  config.interfaces[0].ipAddresses.resize(3);
-  config.interfaces[0].ipAddresses[0] = "10.0.0.1/24";
-  config.interfaces[0].ipAddresses[1] = "192.168.0.19/24";
-  config.interfaces[0].ipAddresses[2] = "2401:db00:2110:3001::0001/64";
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
+  config.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.19/24";
+  config.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = createTestHandle(&config);

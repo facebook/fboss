@@ -80,8 +80,8 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
-  config->portQueueConfigs["queue_config"] = portQueues;
-  config->ports[0].portQueueConfigName_ref() = "queue_config";
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
 }
 
 std::string getOlympicAclNameForDscp(uint8_t dscp) {
@@ -159,20 +159,21 @@ bool isOlympicWRRQueueId(int queueId) {
 void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
   cfg::QosMap qosMap;
   auto queueToDscpMap = kOlympicQueueToDscp();
-  qosMap.dscpMaps.resize(queueToDscpMap.size());
+  qosMap.dscpMaps_ref()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
     auto [q, dscps] = q2dscps;
-    qosMap.dscpMaps[qosMapIdx].internalTrafficClass = q;
+    *qosMap.dscpMaps[qosMapIdx].internalTrafficClass_ref() = q;
     for (auto dscp : dscps) {
-      qosMap.dscpMaps[qosMapIdx].fromDscpToTrafficClass.push_back(dscp);
+      qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
+          dscp);
     }
-    qosMap.trafficClassToQueueId.emplace(q, q);
+    qosMap.trafficClassToQueueId_ref()->emplace(q, q);
     ++qosMapIdx;
   }
-  cfg.qosPolicies.resize(1);
-  cfg.qosPolicies[0].name = "qp";
-  cfg.qosPolicies[0].qosMap_ref() = qosMap;
+  cfg.qosPolicies_ref()->resize(1);
+  *cfg.qosPolicies[0].name_ref() = "qp";
+  cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
   dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";

@@ -30,10 +30,10 @@ using namespace facebook::fboss::utility;
 
 void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
-  acl.name = aclName;
-  acl.actionType = cfg::AclActionType::DENY;
+  *acl.name_ref() = aclName;
+  *acl.actionType_ref() = cfg::AclActionType::DENY;
   acl.dstPort_ref() = 1;
-  cfg.acls.push_back(acl);
+  cfg.acls_ref()->push_back(acl);
 }
 
 } // unnamed namespace
@@ -72,7 +72,7 @@ TEST_F(BcmAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
     addDenyPortAcl(newCfg, "A");
     addDenyPortAcl(newCfg, "B");
     applyNewConfig(newCfg);
-    newCfg.acls.pop_back();
+    newCfg.acls_ref()->pop_back();
     addDenyPortAcl(newCfg, "C");
     addDenyPortAcl(newCfg, "B");
     applyNewConfig(newCfg);
@@ -101,7 +101,7 @@ TEST_F(BcmAclPriorityTest, AclNameChange) {
     auto newCfg = initialConfig();
     addDenyPortAcl(newCfg, "A");
     applyNewConfig(newCfg);
-    newCfg.acls.back().name = "AA";
+    *newCfg.acls_ref()->back().name_ref() = "AA";
     applyNewConfig(newCfg);
   };
 

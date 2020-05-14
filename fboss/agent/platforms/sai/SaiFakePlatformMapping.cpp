@@ -15,14 +15,16 @@ namespace facebook {
 namespace fboss {
 SaiFakePlatformMapping::SaiFakePlatformMapping() : PlatformMapping() {
   auto agentConfig = utility::getFakeAgentConfig();
-  for (auto& supportedProfile : *agentConfig.platform.supportedProfiles_ref()) {
+  for (auto& supportedProfile :
+       *agentConfig.platform_ref()->supportedProfiles_ref()) {
     setSupportedProfile(supportedProfile.first, supportedProfile.second);
   }
-  for (auto& platformPortEntry : *agentConfig.platform.platformPorts_ref()) {
+  for (auto& platformPortEntry :
+       *agentConfig.platform_ref()->platformPorts_ref()) {
     setPlatformPort(platformPortEntry.first, platformPortEntry.second);
   }
-  for (auto& chip : *agentConfig.platform.chips_ref()) {
-    setChip(chip.name, chip);
+  for (auto& chip : *agentConfig.platform_ref()->chips_ref()) {
+    setChip(*chip.name_ref(), chip);
   }
 }
 } // namespace fboss

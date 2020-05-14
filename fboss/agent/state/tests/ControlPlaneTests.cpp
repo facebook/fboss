@@ -210,7 +210,7 @@ TEST(ControlPlane, applyDefaultConfig) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  config.cpuQueues = cfgCpuQueues;
+  *config.cpuQueues_ref() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -238,7 +238,7 @@ TEST(ControlPlane, applySameConfig) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  config.cpuQueues = cfgCpuQueues;
+  *config.cpuQueues_ref() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -253,14 +253,14 @@ TEST(ControlPlane, resetLowPrioQueue) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  config.cpuQueues = cfgCpuQueues;
+  *config.cpuQueues_ref() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
   auto newCfgCpuQueues = getConfigCPUQueues();
   newCfgCpuQueues.erase(newCfgCpuQueues.begin() + 3);
   cfg::SwitchConfig newConfig;
-  newConfig.cpuQueues = newCfgCpuQueues;
+  *newConfig.cpuQueues_ref() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
 
@@ -291,7 +291,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
   cfg::SwitchConfig config;
-  config.cpuQueues = cfgCpuQueues;
+  *config.cpuQueues_ref() = cfgCpuQueues;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -302,7 +302,7 @@ TEST(ControlPlane, changeLowPrioQueue) {
   lowQueue.portQueueRate_ref()->set_pktsPerSec(getRange(0, 1000));
 
   cfg::SwitchConfig newConfig;
-  newConfig.cpuQueues = newCfgCpuQueues;
+  *newConfig.cpuQueues_ref() = newCfgCpuQueues;
   auto stateV2 = publishAndApplyConfig(stateV1, &newConfig, platform.get());
   EXPECT_NE(nullptr, stateV2);
 

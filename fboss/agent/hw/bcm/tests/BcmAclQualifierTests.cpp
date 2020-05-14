@@ -65,19 +65,19 @@ void checkEnumQualRemoved(
 
 cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
-  acl.name = aclName;
-  acl.actionType = cfg::AclActionType::DENY;
-  cfg->acls.push_back(acl);
-  return &cfg->acls.back();
+  *acl.name_ref() = aclName;
+  *acl.actionType_ref() = cfg::AclActionType::DENY;
+  cfg->acls_ref()->push_back(acl);
+  return &cfg->acls_ref()->back();
 }
 
 void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
-  auto& acls = cfg->acls;
+  auto& acls = *cfg->acls_ref();
   acls.erase(
       std::remove_if(
           acls.begin(),
           acls.end(),
-          [&](cfg::AclEntry const& acl) { return acl.name == aclName; }),
+          [&](cfg::AclEntry const& acl) { return *acl.name_ref() == aclName; }),
       acls.end());
 }
 
@@ -98,7 +98,7 @@ void configureAllIpQualifiers(
     bool enable,
     cfg::IpType ipType) {
   cfg::Ttl ttl;
-  std::tie(ttl.value, ttl.mask) = std::make_tuple(0x80, 0x80);
+  std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
 
   configureQualifier(acl->ipType_ref(), enable, ipType);
   if (ipType == cfg::IpType::IP6) {

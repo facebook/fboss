@@ -147,8 +147,10 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
           ", doesn't have corresponding PlatformPortEntry");
     }
     auto itPortProfileCfg =
-        itPlatformPort->second.supportedProfiles.find(port->getProfileID());
-    if (itPortProfileCfg == itPlatformPort->second.supportedProfiles.end()) {
+        itPlatformPort->second.supportedProfiles_ref()->find(
+            port->getProfileID());
+    if (itPortProfileCfg ==
+        itPlatformPort->second.supportedProfiles_ref()->end()) {
       throw FbossError(
           "Port: ",
           port->getName(),
@@ -161,7 +163,8 @@ BcmPortGroup::LaneMode BcmPortGroup::calculateDesiredLaneMode(
       }
     }
 
-    auto neededMode = numLanesToLaneMode(profileCfg->second.iphy.numLanes);
+    auto neededMode =
+        numLanesToLaneMode(*profileCfg->second.iphy_ref()->numLanes_ref());
     if (neededMode > desiredMode) {
       desiredMode = neededMode;
     }
@@ -190,7 +193,8 @@ std::vector<std::shared_ptr<Port>> BcmPortGroup::getSwPorts(
     const auto& portList = utility::getPlatformPortsByControllingPort(
         platformPorts, controllingPort_->getPortID());
     for (const auto& port : portList) {
-      auto swPort = state->getPorts()->getPortIf(PortID(port.mapping.id));
+      auto swPort =
+          state->getPorts()->getPortIf(PortID(*port.mapping_ref()->id_ref()));
       // Platform port doesn't exist in sw config, no need to program
       if (swPort) {
         ports.push_back(swPort);

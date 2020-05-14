@@ -14,19 +14,19 @@ namespace facebook::fboss::utility {
 
 cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
-  acl.name = aclName;
-  acl.actionType = cfg::AclActionType::PERMIT;
-  cfg->acls.push_back(acl);
-  return &cfg->acls.back();
+  *acl.name_ref() = aclName;
+  *acl.actionType_ref() = cfg::AclActionType::PERMIT;
+  cfg->acls_ref()->push_back(acl);
+  return &cfg->acls_ref()->back();
 }
 
 void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
-  auto& acls = cfg->acls;
+  auto& acls = *cfg->acls_ref();
   acls.erase(
       std::remove_if(
           acls.begin(),
           acls.end(),
-          [&](cfg::AclEntry const& acl) { return acl.name == aclName; }),
+          [&](cfg::AclEntry const& acl) { return *acl.name_ref() == aclName; }),
       acls.end());
 }
 
@@ -36,31 +36,31 @@ void addAclStat(
     const std::string& counterName,
     std::vector<cfg::CounterType> counterTypes) {
   auto counter = cfg::TrafficCounter();
-  counter.name = counterName;
+  *counter.name_ref() = counterName;
   if (!counterTypes.empty()) {
-    counter.types = counterTypes;
+    *counter.types_ref() = counterTypes;
   }
   bool counterExists = false;
-  for (auto& c : cfg->trafficCounters) {
-    if (c.name == counterName) {
+  for (auto& c : *cfg->trafficCounters_ref()) {
+    if (*c.name_ref() == counterName) {
       counterExists = true;
       break;
     }
   }
   if (!counterExists) {
-    cfg->trafficCounters.push_back(counter);
+    cfg->trafficCounters_ref()->push_back(counter);
   }
 
   auto matchAction = cfg::MatchAction();
   matchAction.counter_ref() = counterName;
   auto action = cfg::MatchToAction();
-  action.matcher = matcher;
-  action.action = matchAction;
+  *action.matcher_ref() = matcher;
+  *action.action_ref() = matchAction;
 
   if (!cfg->dataPlaneTrafficPolicy_ref()) {
     cfg->dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
   }
-  cfg->dataPlaneTrafficPolicy_ref()->matchToAction.push_back(action);
+  cfg->dataPlaneTrafficPolicy_ref()->matchToAction_ref()->push_back(action);
 }
 
 void delAclStat(
@@ -69,14 +69,14 @@ void delAclStat(
     const std::string& counterName) {
   int refCnt = 0;
   if (auto dataPlaneTrafficPolicy = cfg->dataPlaneTrafficPolicy_ref()) {
-    auto& matchActions = dataPlaneTrafficPolicy->matchToAction;
+    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction_ref();
     matchActions.erase(
         std::remove_if(
             matchActions.begin(),
             matchActions.end(),
             [&](cfg::MatchToAction const& matchAction) {
-              if (matchAction.matcher == matcher &&
-                  matchAction.action.counter_ref().value_or({}) ==
+              if (*matchAction.matcher_ref() == matcher &&
+                  matchAction.action_ref()->counter_ref().value_or({}) ==
                       counterName) {
                 ++refCnt;
                 return true;
@@ -86,13 +86,13 @@ void delAclStat(
         matchActions.end());
   }
   if (refCnt == 0) {
-    auto& counters = cfg->trafficCounters;
+    auto& counters = *cfg->trafficCounters_ref();
     counters.erase(
         std::remove_if(
             counters.begin(),
             counters.end(),
             [&](cfg::TrafficCounter const& counter) {
-              return counter.name == counterName;
+              return *counter.name_ref() == counterName;
             }),
         counters.end());
   }

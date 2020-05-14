@@ -157,7 +157,7 @@ TEST(LoadBalancer, defaultConfiguration) {
   auto initialState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.loadBalancers = defaultLoadBalancers();
+  *config.loadBalancers_ref() = defaultLoadBalancers();
 
   auto finalState =
       publishAndApplyConfig(initialState, &config, platform.get());
@@ -300,7 +300,7 @@ TEST(LoadBalancerMap, idempotence) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  baseConfig.loadBalancers = defaultLoadBalancers();
+  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -329,7 +329,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   // This config adds a DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
-  config.loadBalancers = defaultLoadBalancers();
+  *config.loadBalancers_ref() = defaultLoadBalancers();
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
@@ -355,7 +355,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  baseConfig.loadBalancers = defaultLoadBalancers();
+  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -393,7 +393,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   auto baseState = std::make_shared<SwitchState>();
 
   cfg::SwitchConfig baseConfig;
-  baseConfig.loadBalancers = defaultLoadBalancers();
+  *baseConfig.loadBalancers_ref() = defaultLoadBalancers();
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -407,9 +407,9 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
 
   // This config modifies the DEFAULT_EMCP_HASH LoadBalancer
   cfg::SwitchConfig config;
-  config.loadBalancers = defaultLoadBalancers();
+  *config.loadBalancers_ref() = defaultLoadBalancers();
   // ECMP will now also use a half-hash
-  config.loadBalancers[0].fieldSelection.transportFields = {};
+  *config.loadBalancers[0].fieldSelection_ref()->transportFields_ref() = {};
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);

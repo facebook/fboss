@@ -43,7 +43,7 @@ void checkFPEntryAndStatCount(
     int aclStatCount,
     int counterCount) {
   const auto stats = hw->getStatUpdater()->getHwTableStats();
-  ASSERT_EQ(aclCount, stats.acl_entries_used);
+  ASSERT_EQ(aclCount, *stats.acl_entries_used_ref());
   ASSERT_EQ(aclCount, fpGroupNumAclEntries(hw->getUnit(), FLAGS_acl_gid));
 
   ASSERT_EQ(
@@ -84,8 +84,8 @@ void checkAclStat(
   for (const auto& aclName : acls) {
     auto swTrafficCounter = getAclTrafficCounter(state, aclName);
     ASSERT_TRUE(swTrafficCounter);
-    ASSERT_EQ(statName, swTrafficCounter->name);
-    ASSERT_EQ(counterTypes, swTrafficCounter->types);
+    ASSERT_EQ(statName, *swTrafficCounter->name_ref());
+    ASSERT_EQ(counterTypes, *swTrafficCounter->types_ref());
     BcmAclStat::isStateSame(hw, hwStat->getHandle(), swTrafficCounter.value());
   }
 
@@ -235,13 +235,13 @@ TEST_F(BcmAclStatTest, AclStatMultipleActions) {
     /* The ACL will have 2 actions: a counter and a queue */
     addAclStat(&newCfg, "acl0", "stat0");
     cfg::QueueMatchAction queueAction;
-    queueAction.queueId = 0;
+    *queueAction.queueId_ref() = 0;
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.sendToQueue_ref() = queueAction;
     cfg::MatchToAction action = cfg::MatchToAction();
-    action.matcher = "acl0";
-    action.action = matchAction;
-    newCfg.dataPlaneTrafficPolicy_ref()->matchToAction.push_back(action);
+    *action.matcher_ref() = "acl0";
+    *action.action_ref() = matchAction;
+    newCfg.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->push_back(action);
     applyNewConfig(newCfg);
   };
 

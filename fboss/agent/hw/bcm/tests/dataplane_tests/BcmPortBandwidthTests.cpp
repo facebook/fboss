@@ -72,12 +72,12 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
   }
 
   void _configureBandwidth(cfg::SwitchConfig* config) const {
-    auto& queue0 = config->portQueueConfigs["queue_config"][kQueueId0()];
+    auto& queue0 = config->portQueueConfigs_ref()["queue_config"][kQueueId0()];
     queue0.portQueueRate_ref() = cfg::PortQueueRate();
     queue0.portQueueRate_ref()->set_pktsPerSec(
         utility::getRange(kMinPps(), kMaxPps()));
 
-    auto& queue1 = config->portQueueConfigs["queue_config"][kQueueId1()];
+    auto& queue1 = config->portQueueConfigs_ref()["queue_config"][kQueueId1()];
     queue1.portQueueRate_ref() = cfg::PortQueueRate();
     queue1.portQueueRate_ref()->set_kbitsPerSec(
         utility::getRange(kMinKbps(), kMaxKbps()));

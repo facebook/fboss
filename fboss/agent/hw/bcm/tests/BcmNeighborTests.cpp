@@ -54,8 +54,8 @@ facebook::fboss::cfg::SwitchConfig PortNeighborV4::initialConfig(
 
 void setTrunk(facebook::fboss::cfg::SwitchConfig* config) {
   std::vector<int> ports;
-  for (auto port : config->ports) {
-    ports.push_back(port.logicalID);
+  for (auto port : *config->ports_ref()) {
+    ports.push_back(*port.logicalID_ref());
   }
   facebook::fboss::utility::addAggPort(kAggID, ports, config);
 }

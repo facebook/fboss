@@ -30,19 +30,19 @@ void fillHwQueueStats(
   for (auto counterId : SaiQueueTraits::CounterIds) {
     switch (counterId) {
       case SAI_QUEUE_STAT_PACKETS:
-        hwPortStats.queueOutPackets_[queueId] = counters[index];
+        hwPortStats.queueOutPackets__ref()[queueId] = counters[index];
         break;
       case SAI_QUEUE_STAT_BYTES:
-        hwPortStats.queueOutBytes_[queueId] = counters[index];
+        hwPortStats.queueOutBytes__ref()[queueId] = counters[index];
         break;
       case SAI_QUEUE_STAT_DROPPED_BYTES:
-        hwPortStats.queueOutDiscardBytes_[queueId] = counters[index];
+        hwPortStats.queueOutDiscardBytes__ref()[queueId] = counters[index];
         break;
       case SAI_QUEUE_STAT_DROPPED_PACKETS:
-        hwPortStats.queueOutDiscardPackets_[queueId] = counters[index];
+        hwPortStats.queueOutDiscardPackets__ref()[queueId] = counters[index];
         break;
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
-        hwPortStats.queueWatermarkBytes_[queueId] = counters[index];
+        hwPortStats.queueWatermarkBytes__ref()[queueId] = counters[index];
         break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);

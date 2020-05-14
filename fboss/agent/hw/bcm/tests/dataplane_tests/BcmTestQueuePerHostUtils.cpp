@@ -62,9 +62,9 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
     portQueues.push_back(queue);
   }
 
-  config->portQueueConfigs["queue_config"] = portQueues;
-  config->ports[0].portQueueConfigName_ref() = "queue_config";
-  config->ports[0].lookupClasses = kLookupClasses();
+  config->portQueueConfigs_ref()["queue_config"] = portQueues;
+  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  *config->ports[0].lookupClasses_ref() = kLookupClasses();
 }
 
 std::string getQueuePerHostAclNameForQueue(int queueId) {

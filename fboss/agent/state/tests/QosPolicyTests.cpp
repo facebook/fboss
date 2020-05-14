@@ -29,8 +29,8 @@ std::vector<cfg::QosRule> dscpRules(
   std::vector<cfg::QosRule> dscpRules;
   for (const auto& pair : rules) {
     cfg::QosRule r;
-    r.queueId = pair.first;
-    r.dscp = pair.second;
+    *r.queueId_ref() = pair.first;
+    *r.dscp_ref() = pair.second;
     dscpRules.push_back(r);
   }
   return dscpRules;
@@ -39,13 +39,14 @@ std::vector<cfg::QosRule> dscpRules(
 void checkQosPolicyQosRules(
     const cfg::QosPolicy& cfgQosPolicy,
     std::shared_ptr<QosPolicy> swQosPolicy) {
-  ASSERT_EQ(swQosPolicy->getName(), cfgQosPolicy.name);
+  ASSERT_EQ(swQosPolicy->getName(), *cfgQosPolicy.name_ref());
   auto swStateFromTcToDscp = swQosPolicy->getDscpMap().from();
   DscpMap cfgDscpMap;
-  for (const auto& rule : cfgQosPolicy.rules) {
-    for (auto dscp : rule.dscp) {
+  for (const auto& rule : *cfgQosPolicy.rules_ref()) {
+    for (auto dscp : *rule.dscp_ref()) {
       cfgDscpMap.addFromEntry(
-          static_cast<TrafficClass>(rule.queueId), static_cast<DSCP>(dscp));
+          static_cast<TrafficClass>(*rule.queueId_ref()),
+          static_cast<DSCP>(dscp));
     }
   }
   ASSERT_EQ(swStateFromTcToDscp, cfgDscpMap.from());
@@ -54,18 +55,18 @@ void checkQosPolicyQosRules(
 void checkQosPolicy(
     const cfg::QosPolicy& cfgQosPolicy,
     std::shared_ptr<QosPolicy> swQosPolicy) {
-  ASSERT_EQ(swQosPolicy->getName(), cfgQosPolicy.name);
-  if (!cfgQosPolicy.rules.empty()) {
+  ASSERT_EQ(swQosPolicy->getName(), *cfgQosPolicy.name_ref());
+  if (!cfgQosPolicy.rules_ref()->empty()) {
     return checkQosPolicyQosRules(cfgQosPolicy, swQosPolicy);
   }
   // use either rules or qosMap
   const auto& qosMap = cfgQosPolicy.qosMap_ref().value_or({});
-  ASSERT_EQ(swQosPolicy->getDscpMap(), DscpMap(qosMap.dscpMaps));
-  ASSERT_EQ(swQosPolicy->getExpMap(), ExpMap(qosMap.expMaps));
+  ASSERT_EQ(swQosPolicy->getDscpMap(), DscpMap(*qosMap.dscpMaps_ref()));
+  ASSERT_EQ(swQosPolicy->getExpMap(), ExpMap(*qosMap.expMaps_ref()));
 
   std::set<std::pair<uint16_t, uint16_t>> cfgQueueMapEntries;
   std::set<std::pair<uint16_t, uint16_t>> swStateQueueMapEntries;
-  for (auto entry : qosMap.trafficClassToQueueId) {
+  for (auto entry : *qosMap.trafficClassToQueueId_ref()) {
     cfgQueueMapEntries.emplace(entry.first, entry.second);
   }
   for (auto entry : swQosPolicy->getTrafficClassToQueueId()) {
@@ -77,7 +78,7 @@ void checkQosPolicy(
 void checkQosSwState(
     cfg::SwitchConfig& config,
     std::shared_ptr<SwitchState> state) {
-  auto cfgQosPolicies = config.qosPolicies;
+  auto cfgQosPolicies = *config.qosPolicies_ref();
   EXPECT_NE(nullptr, state);
   ASSERT_EQ(cfgQosPolicies.size(), state->getQosPolicies()->size());
 
@@ -129,20 +130,20 @@ void checkDelta(
 
 cfg::QosMap cfgQosMap() {
   cfg::QosMap qosMap;
-  qosMap.dscpMaps.resize(8);
-  qosMap.expMaps.resize(8);
+  qosMap.dscpMaps_ref()->resize(8);
+  qosMap.expMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    auto& dscpMap = qosMap.dscpMaps[i];
-    auto& expMap = qosMap.expMaps[i];
-    dscpMap.internalTrafficClass = i;
-    expMap.internalTrafficClass = i;
+    auto& dscpMap = qosMap.dscpMaps_ref()[i];
+    auto& expMap = qosMap.expMaps_ref()[i];
+    *dscpMap.internalTrafficClass_ref() = i;
+    *expMap.internalTrafficClass_ref() = i;
     for (auto j = 0; j < 4; j++) {
-      dscpMap.fromDscpToTrafficClass.push_back(j);
+      dscpMap.fromDscpToTrafficClass_ref()->push_back(j);
     }
-    expMap.fromExpToTrafficClass.push_back(i);
-    dscpMap.fromTrafficClassToDscp_ref() = dscpMap.internalTrafficClass;
-    expMap.fromTrafficClassToExp_ref() = expMap.internalTrafficClass;
-    qosMap.trafficClassToQueueId.emplace(i, i);
+    expMap.fromExpToTrafficClass_ref()->push_back(i);
+    dscpMap.fromTrafficClassToDscp_ref() = *dscpMap.internalTrafficClass_ref();
+    expMap.fromTrafficClassToExp_ref() = *expMap.internalTrafficClass_ref();
+    qosMap.trafficClassToQueueId_ref()->emplace(i, i);
   }
   return qosMap;
 }
@@ -155,9 +156,9 @@ TEST(QosPolicy, AddSinglePolicy) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {46}}});
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {46}}});
+  config.qosPolicies_ref()->push_back(p1);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   checkQosSwState(config, state);
@@ -169,12 +170,12 @@ TEST(QosPolicy, AddMultiplePolicies) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1, p2;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {45, 46}}});
-  config.qosPolicies.push_back(p1);
-  p2.name = "qosPolicy_2";
-  p2.rules = dscpRules({{7, {45, 46}}, {1, {44}}});
-  config.qosPolicies.push_back(p2);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {45, 46}}});
+  config.qosPolicies_ref()->push_back(p1);
+  *p2.name_ref() = "qosPolicy_2";
+  *p2.rules_ref() = dscpRules({{7, {45, 46}}, {1, {44}}});
+  config.qosPolicies_ref()->push_back(p2);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   checkQosSwState(config, state);
@@ -186,12 +187,12 @@ TEST(QosPolicy, SerializePolicies) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1, p2;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {13}}});
-  config.qosPolicies.push_back(p1);
-  p2.name = "qosPolicy_2";
-  p2.rules = dscpRules({{7, {46}}, {1, {44, 45}}});
-  config.qosPolicies.push_back(p2);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {13}}});
+  config.qosPolicies_ref()->push_back(p1);
+  *p2.name_ref() = "qosPolicy_2";
+  *p2.rules_ref() = dscpRules({{7, {46}}, {1, {44, 45}}});
+  config.qosPolicies_ref()->push_back(p2);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
@@ -214,33 +215,34 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1, p2;
-  p1.name = "qosPolicy_1";
-  p2.name = "qosPolicy_2";
+  *p1.name_ref() = "qosPolicy_1";
+  *p2.name_ref() = "qosPolicy_2";
 
   cfg::QosMap qosMap;
-  qosMap.dscpMaps.resize(8);
+  qosMap.dscpMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    qosMap.dscpMaps[i].internalTrafficClass = i;
+    *qosMap.dscpMaps[i].internalTrafficClass_ref() = i;
     for (auto j = 0; j < 8; j++) {
-      qosMap.dscpMaps[i].fromDscpToTrafficClass.push_back(8 * i + j);
+      qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
+          8 * i + j);
     }
-    qosMap.dscpMaps[i].fromTrafficClassToDscp_ref() = i;
+    qosMap.dscpMaps_ref()[i].fromTrafficClassToDscp_ref() = i;
   }
-  qosMap.expMaps.resize(8);
+  qosMap.expMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    qosMap.expMaps[i].internalTrafficClass = i;
-    qosMap.expMaps[i].fromExpToTrafficClass.push_back(i);
-    qosMap.expMaps[i].fromTrafficClassToExp_ref() = i;
+    *qosMap.expMaps[i].internalTrafficClass_ref() = i;
+    qosMap.expMaps_ref()[i].fromExpToTrafficClass_ref()->push_back(i);
+    qosMap.expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
   }
 
   for (auto i = 0; i < 8; i++) {
-    qosMap.trafficClassToQueueId.emplace(i, i);
+    qosMap.trafficClassToQueueId_ref()->emplace(i, i);
   }
   p1.qosMap_ref() = qosMap;
   p2.qosMap_ref() = qosMap;
 
-  config.qosPolicies.push_back(p1);
-  config.qosPolicies.push_back(p2);
+  config.qosPolicies_ref()->push_back(p1);
+  config.qosPolicies_ref()->push_back(p2);
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
@@ -263,9 +265,9 @@ TEST(QosPolicy, EmptyRules) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {}}});
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {}}});
+  config.qosPolicies_ref()->push_back(p1);
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -277,13 +279,13 @@ TEST(QosPolicy, PolicyConflict) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1, p2;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {46}}});
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {46}}});
+  config.qosPolicies_ref()->push_back(p1);
   // Both policies have the same name
-  p2.name = "qosPolicy_1";
-  p2.rules = dscpRules({{7, {46}}, {1, {44, 45}}});
-  config.qosPolicies.push_back(p2);
+  *p2.name_ref() = "qosPolicy_1";
+  *p2.rules_ref() = dscpRules({{7, {46}}, {1, {44, 45}}});
+  config.qosPolicies_ref()->push_back(p2);
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
@@ -295,9 +297,9 @@ TEST(QosPolicy, PolicyInvalidDscpValues) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {44, 255}}});
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {44, 255}}});
+  config.qosPolicies_ref()->push_back(p1);
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
@@ -309,14 +311,14 @@ TEST(QosPolicy, PortDefaultQosPolicy) {
   stateV0->registerPort(PortID(1), "port1");
   stateV0->registerPort(PortID(2), "port2");
 
-  config.ports.resize(2);
-  config.ports[0].logicalID = 1;
-  config.ports[0].name_ref() = "port1";
-  config.ports[1].logicalID = 2;
-  config.ports[1].name_ref() = "port2";
-  config.qosPolicies.resize(1);
-  config.qosPolicies[0].name = "qp1";
-  config.qosPolicies[0].rules = dscpRules({{0, {44, 45, 46}}});
+  config.ports_ref()->resize(2);
+  *config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  *config.ports[1].logicalID_ref() = 2;
+  config.ports_ref()[1].name_ref() = "port2";
+  config.qosPolicies_ref()->resize(1);
+  *config.qosPolicies[0].name_ref() = "qp1";
+  *config.qosPolicies[0].rules_ref() = dscpRules({{0, {44, 45, 46}}});
   cfg::TrafficPolicyConfig trafficPolicy;
   trafficPolicy.defaultQosPolicy_ref() = "qp1";
   config.dataPlaneTrafficPolicy_ref() = trafficPolicy;
@@ -335,16 +337,16 @@ TEST(QosPolicy, PortQosPolicyOverride) {
   stateV0->registerPort(PortID(1), "port1");
   stateV0->registerPort(PortID(2), "port2");
 
-  config.ports.resize(2);
-  config.ports[0].logicalID = 1;
-  config.ports[0].name_ref() = "port1";
-  config.ports[1].logicalID = 2;
-  config.ports[1].name_ref() = "port2";
-  config.qosPolicies.resize(2);
-  config.qosPolicies[0].name = "qp1";
-  config.qosPolicies[0].rules = dscpRules({{0, {46}}});
-  config.qosPolicies[1].name = "qp2";
-  config.qosPolicies[1].rules = dscpRules({{1, {46}}});
+  config.ports_ref()->resize(2);
+  *config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  *config.ports[1].logicalID_ref() = 2;
+  config.ports_ref()[1].name_ref() = "port2";
+  config.qosPolicies_ref()->resize(2);
+  *config.qosPolicies[0].name_ref() = "qp1";
+  *config.qosPolicies[0].rules_ref() = dscpRules({{0, {46}}});
+  *config.qosPolicies[1].name_ref() = "qp2";
+  *config.qosPolicies[1].rules_ref() = dscpRules({{1, {46}}});
   cfg::TrafficPolicyConfig trafficPolicy;
   trafficPolicy.defaultQosPolicy_ref() = "qp1";
   trafficPolicy.portIdToQosPolicy_ref() = {{1, "qp2"}};
@@ -361,30 +363,30 @@ TEST(QosPolicy, QosPolicyDelta) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::QosPolicy p1, p2;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules({{7, {46}}});
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules({{7, {46}}});
+  config.qosPolicies_ref()->push_back(p1);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto qosPoliciesV1 = stateV1->getQosPolicies();
 
   /* Change 1 Policy */
-  auto& p = config.qosPolicies.back();
-  p.rules = dscpRules({{7, {45}}});
+  auto& p = config.qosPolicies_ref()->back();
+  *p.rules_ref() = dscpRules({{7, {45}}});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto qosPoliciesV2 = stateV2->getQosPolicies();
   checkDelta(qosPoliciesV1, qosPoliciesV2, {"qosPolicy_1"}, {}, {});
 
   /* Add 1 Policy */
-  p2.name = "qosPolicy_2";
-  p2.rules = dscpRules({{2, {36}}, {3, {34, 35}}});
-  config.qosPolicies.push_back(p2);
+  *p2.name_ref() = "qosPolicy_2";
+  *p2.rules_ref() = dscpRules({{2, {36}}, {3, {34, 35}}});
+  config.qosPolicies_ref()->push_back(p2);
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto qosPoliciesV3 = stateV3->getQosPolicies();
   checkDelta(qosPoliciesV2, qosPoliciesV3, {}, {"qosPolicy_2"}, {});
 
   /* Remove 1 Policy */
-  config.qosPolicies[0] = config.qosPolicies[1];
-  config.qosPolicies.pop_back();
+  config.qosPolicies_ref()[0] = config.qosPolicies_ref()[1];
+  config.qosPolicies_ref()->pop_back();
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   auto qosPoliciesV4 = stateV4->getQosPolicies();
   checkDelta(qosPoliciesV3, qosPoliciesV4, {}, {}, {"qosPolicy_1"});
@@ -395,26 +397,26 @@ TEST(QosPolicy, QosMap) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
 
-  config.qosPolicies.resize(1);
-  auto& policy = config.qosPolicies[0];
-  policy.name = "qosPolicy";
+  config.qosPolicies_ref()->resize(1);
+  auto& policy = config.qosPolicies_ref()[0];
+  *policy.name_ref() = "qosPolicy";
   policy.qosMap_ref() = cfgQosMap();
   state = publishAndApplyConfig(state, &config, platform.get());
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
 
   // modiify qos map
-  policy.qosMap_ref()->dscpMaps.pop_back();
-  policy.qosMap_ref()->expMaps.pop_back();
+  policy.qosMap_ref()->dscpMaps_ref()->pop_back();
+  policy.qosMap_ref()->expMaps_ref()->pop_back();
   state = publishAndApplyConfig(state, &config, platform.get());
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
 
   // remove expMaps altogether
-  policy.qosMap_ref()->expMaps.clear();
+  policy.qosMap_ref()->expMaps_ref()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
 
   // allow both qos rule or maps
-  policy.rules = dscpRules({{2, {36}}, {3, {34, 35}}});
+  *policy.rules_ref() = dscpRules({{2, {36}}, {3, {34, 35}}});
   EXPECT_NO_THROW(publishAndApplyConfig(state, &config, platform.get()));
 }
 
@@ -423,9 +425,9 @@ TEST(QosPolicy, DefaultQosPolicy) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
 
-  config.qosPolicies.resize(1);
-  auto& policy = config.qosPolicies[0];
-  policy.name = "qosPolicy";
+  config.qosPolicies_ref()->resize(1);
+  auto& policy = config.qosPolicies_ref()[0];
+  *policy.name_ref() = "qosPolicy";
   policy.qosMap_ref() = cfgQosMap();
   state = publishAndApplyConfig(state, &config, platform.get());
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
@@ -450,15 +452,15 @@ TEST(QosPolicy, DefaultQosPolicyOnPorts) {
   state->registerPort(PortID(1), "port1");
   state->registerPort(PortID(2), "port2");
 
-  config.ports.resize(2);
-  config.ports[0].logicalID = 1;
-  config.ports[0].name_ref() = "port1";
-  config.ports[1].logicalID = 2;
-  config.ports[1].name_ref() = "port2";
+  config.ports_ref()->resize(2);
+  *config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  *config.ports[1].logicalID_ref() = 2;
+  config.ports_ref()[1].name_ref() = "port2";
 
-  config.qosPolicies.resize(1);
-  auto& policy = config.qosPolicies[0];
-  policy.name = "qosPolicy";
+  config.qosPolicies_ref()->resize(1);
+  auto& policy = config.qosPolicies_ref()[0];
+  *policy.name_ref() = "qosPolicy";
   policy.qosMap_ref() = cfgQosMap();
   cfg::TrafficPolicyConfig defaultQosPolicy;
   defaultQosPolicy.defaultQosPolicy_ref() = "qosPolicy";
@@ -479,21 +481,21 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   state->registerPort(PortID(1), "port1");
   state->registerPort(PortID(2), "port2");
 
-  config.ports.resize(2);
-  config.ports[0].logicalID = 1;
-  config.ports[0].name_ref() = "port1";
-  config.ports[1].logicalID = 2;
-  config.ports[1].name_ref() = "port2";
+  config.ports_ref()->resize(2);
+  *config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].name_ref() = "port1";
+  *config.ports[1].logicalID_ref() = 2;
+  config.ports_ref()[1].name_ref() = "port2";
 
-  config.qosPolicies.resize(2);
-  auto& policy0 = config.qosPolicies[0];
-  policy0.name = "qosPolicy0";
+  config.qosPolicies_ref()->resize(2);
+  auto& policy0 = config.qosPolicies_ref()[0];
+  *policy0.name_ref() = "qosPolicy0";
   policy0.qosMap_ref() = cfgQosMap();
 
-  auto& policy1 = config.qosPolicies[1];
-  policy1.name = "qosPolicy1";
+  auto& policy1 = config.qosPolicies_ref()[1];
+  *policy1.name_ref() = "qosPolicy1";
   policy1.qosMap_ref() = cfgQosMap();
-  policy1.qosMap_ref()->expMaps.clear();
+  policy1.qosMap_ref()->expMaps_ref()->clear();
 
   cfg::TrafficPolicyConfig defaultQosPolicy;
   defaultQosPolicy.defaultQosPolicy_ref() = "qosPolicy0";
@@ -526,36 +528,36 @@ TEST(QosPolicy, QosPolicyConfigMigrateNoDelta) {
       {6, {32, 35, 26, 27}},
       {7, {46}}};
   cfg::QosPolicy p1;
-  p1.name = "qosPolicy_1";
-  p1.rules = dscpRules(rules);
-  config.qosPolicies.push_back(p1);
+  *p1.name_ref() = "qosPolicy_1";
+  *p1.rules_ref() = dscpRules(rules);
+  config.qosPolicies_ref()->push_back(p1);
   cfg::TrafficPolicyConfig policy;
   policy.defaultQosPolicy_ref() = "qosPolicy_1";
   config.dataPlaneTrafficPolicy_ref() = policy;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
 
   cfg::QosPolicy p2;
-  p2.name = "qosPolicy_1";
+  *p2.name_ref() = "qosPolicy_1";
   cfg::QosMap qosMap;
   for (const auto& entry : rules) {
     cfg::DscpQosMap dscpMap;
-    dscpMap.internalTrafficClass = entry.first;
+    *dscpMap.internalTrafficClass_ref() = entry.first;
     for (auto dscp : entry.second) {
-      dscpMap.fromDscpToTrafficClass.push_back(dscp);
+      dscpMap.fromDscpToTrafficClass_ref()->push_back(dscp);
     }
-    qosMap.dscpMaps.push_back(dscpMap);
+    qosMap.dscpMaps_ref()->push_back(dscpMap);
   }
 
   for (auto i = 0; i < 8; i++) {
     cfg::ExpQosMap expMap;
-    expMap.internalTrafficClass = i;
-    expMap.fromExpToTrafficClass.push_back(i);
+    *expMap.internalTrafficClass_ref() = i;
+    expMap.fromExpToTrafficClass_ref()->push_back(i);
     expMap.fromTrafficClassToExp_ref() = i;
-    qosMap.expMaps.push_back(expMap);
-    qosMap.trafficClassToQueueId.emplace(i, i);
+    qosMap.expMaps_ref()->push_back(expMap);
+    qosMap.trafficClassToQueueId_ref()->emplace(i, i);
   }
   p2.qosMap_ref() = qosMap;
-  config.qosPolicies[0] = p2;
+  config.qosPolicies_ref()[0] = p2;
   auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
 
   StateDelta delta(stateV1, stateV2);

@@ -49,24 +49,24 @@ cfg::LoadBalancer getHalfHashConfig(
     const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
-  loadBalancer.id = id;
+  *loadBalancer.id_ref() = id;
   if (platform->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    loadBalancer.fieldSelection = getHalfHashFields();
+    *loadBalancer.fieldSelection_ref() = getHalfHashFields();
   }
-  loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
+  *loadBalancer.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getFullHashConfig(
     const Platform* platform,
     cfg::LoadBalancerID id) {
   cfg::LoadBalancer loadBalancer;
-  loadBalancer.id = id;
+  *loadBalancer.id_ref() = id;
   if (platform->getAsic()->isSupported(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    loadBalancer.fieldSelection = getFullHashFields();
+    *loadBalancer.fieldSelection_ref() = getFullHashFields();
   }
-  loadBalancer.algorithm = cfg::HashingAlgorithm::CRC16_CCITT;
+  *loadBalancer.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
 cfg::LoadBalancer getTrunkHalfHashConfig(const Platform* platform) {
@@ -201,7 +201,7 @@ bool isLoadBalanced(
   auto portIdToStats = hwSwitchEnsemble->getLatestPortStats(portIDs);
   auto portBytes = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
-                     return portIdAndStats.second.outBytes_;
+                     return *portIdAndStats.second.outBytes__ref();
                    }) |
       folly::gen::as<std::set<uint64_t>>();
 
@@ -214,7 +214,8 @@ bool isLoadBalanced(
   if (!weights.empty()) {
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
     for (auto i = 0; i < ecmpPorts.size(); ++i) {
-      auto portOutBytes = portIdToStats[ecmpPorts[i].phyPortID()].outBytes_;
+      auto portOutBytes =
+          *portIdToStats[ecmpPorts[i].phyPortID()].outBytes__ref();
       auto weightPercent = (static_cast<float>(weights[i]) / maxWeight) * 100.0;
       auto portOutBytesPercent =
           (static_cast<float>(portOutBytes) / highest) * 100.0;

@@ -761,13 +761,14 @@ TEST_F(BcmRouteTest, HostRouteStat) {
         getPlatform()->canUseHostTableForHostRoutes() ? 2 /*host route + nhop*/
                                                       : 1 /*nhop*/;
     EXPECT_EQ(
-        postUpdateStat.l3_host_used,
-        preUpdateStat.l3_host_used + expectedV4HostRouteIncrement);
+        *postUpdateStat.l3_host_used_ref(),
+        *preUpdateStat.l3_host_used_ref() + expectedV4HostRouteIncrement);
     EXPECT_EQ(
-        postUpdateStat.l3_ipv4_host_used,
-        preUpdateStat.l3_ipv4_host_used + expectedV4HostRouteIncrement);
+        *postUpdateStat.l3_ipv4_host_used_ref(),
+        *preUpdateStat.l3_ipv4_host_used_ref() + expectedV4HostRouteIncrement);
     EXPECT_EQ(
-        postUpdateStat.l3_ipv6_host_used, preUpdateStat.l3_ipv6_host_used);
+        *postUpdateStat.l3_ipv6_host_used_ref(),
+        *preUpdateStat.l3_ipv6_host_used_ref());
   };
   setup();
   verify();
@@ -789,10 +790,12 @@ TEST_F(BcmRouteTest, LpmRouteV4Stat) {
   auto verify = [&]() {
     BcmHwTableStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    EXPECT_EQ(postUpdateStat.lpm_ipv4_used, preUpdateStat.lpm_ipv4_used + 1);
     EXPECT_EQ(
-        postUpdateStat.lpm_ipv6_mask_0_64_used,
-        preUpdateStat.lpm_ipv6_mask_0_64_used);
+        *postUpdateStat.lpm_ipv4_used_ref(),
+        *preUpdateStat.lpm_ipv4_used_ref() + 1);
+    EXPECT_EQ(
+        *postUpdateStat.lpm_ipv6_mask_0_64_used_ref(),
+        *preUpdateStat.lpm_ipv6_mask_0_64_used_ref());
   };
   setup();
   verify();
@@ -844,13 +847,15 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
   auto verify = [&]() {
     BcmHwTableStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    EXPECT_EQ(postUpdateStat.lpm_ipv4_used, preUpdateStat.lpm_ipv4_used);
     EXPECT_EQ(
-        postUpdateStat.lpm_ipv6_mask_0_64_used,
-        preUpdateStat.lpm_ipv6_mask_0_64_used);
+        *postUpdateStat.lpm_ipv4_used_ref(),
+        *preUpdateStat.lpm_ipv4_used_ref());
     EXPECT_EQ(
-        postUpdateStat.lpm_ipv6_mask_65_127_used,
-        preUpdateStat.lpm_ipv6_mask_65_127_used + 1);
+        *postUpdateStat.lpm_ipv6_mask_0_64_used_ref(),
+        *preUpdateStat.lpm_ipv6_mask_0_64_used_ref());
+    EXPECT_EQ(
+        *postUpdateStat.lpm_ipv6_mask_65_127_used_ref(),
+        *preUpdateStat.lpm_ipv6_mask_65_127_used_ref() + 1);
   };
   setup();
   verify();
@@ -917,13 +922,13 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
           getProgrammedState(), RouterID(0));
       applyNewState(helper4.resolveNextHops(
           getProgrammedState(),
-          {PortDescriptor(PortID(config.ports[i].get_logicalID()))}));
+          {PortDescriptor(PortID(config.ports_ref()[i].get_logicalID()))}));
 
       auto helper6 = utility::EcmpSetupTargetedPorts<IPAddressV6>(
           getProgrammedState(), RouterID(0));
       applyNewState(helper6.resolveNextHops(
           getProgrammedState(),
-          {PortDescriptor(PortID(config.ports[i].get_logicalID()))}));
+          {PortDescriptor(PortID(config.ports_ref()[i].get_logicalID()))}));
     }
 
     // host route has only one next hop
@@ -999,7 +1004,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
   auto config = initialConfig();
   boost::container::flat_set<PortDescriptor> ports;
   for (auto i = 0; i < 2; i++) {
-    ports.insert(PortDescriptor(PortID(config.ports[i].get_logicalID())));
+    ports.insert(PortDescriptor(PortID(config.ports_ref()[i].get_logicalID())));
   }
   auto route = RoutePrefixV6{folly::IPAddressV6("2401:dead:beef::"), 112};
 

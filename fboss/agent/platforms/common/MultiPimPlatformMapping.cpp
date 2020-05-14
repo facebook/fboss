@@ -30,12 +30,12 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
     int portPimID = 0;
     re2::RE2 portNameRe(kFbossPortNameRegex);
     if (!re2::RE2::FullMatch(
-            port.second.mapping.name, portNameRe, &portPimID)) {
+            *port.second.mapping_ref()->name_ref(), portNameRe, &portPimID)) {
       throw FbossError(
           "Invalid port name:",
-          port.second.mapping.name,
+          *port.second.mapping_ref()->name_ref(),
           " for port id:",
-          port.second.mapping.id);
+          *port.second.mapping_ref()->id_ref());
     }
 
     if (pims_.find(portPimID) == pims_.end()) {
@@ -49,7 +49,7 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
       pims_[portPimID]->setChip(itChip.first, itChip.second);
     }
 
-    for (auto& portProfile : port.second.supportedProfiles) {
+    for (auto& portProfile : *port.second.supportedProfiles_ref()) {
       if (auto itProfile = supportedProfiles_.find(portProfile.first);
           itProfile != supportedProfiles_.end()) {
         pims_[portPimID]->setSupportedProfile(
@@ -57,7 +57,7 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
       } else {
         throw FbossError(
             "Port:",
-            port.second.mapping.name,
+            *port.second.mapping_ref()->name_ref(),
             " uses unsupported profile:",
             apache::thrift::util::enumNameSafe(portProfile.first));
       }

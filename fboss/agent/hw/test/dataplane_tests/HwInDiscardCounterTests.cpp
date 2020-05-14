@@ -29,14 +29,15 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
-    cfg.staticRoutesToNull.resize(2);
-    cfg.staticRoutesToNull[0].routerID = cfg.staticRoutesToNull[1].routerID = 0;
-    cfg.staticRoutesToNull[0].prefix = "0.0.0.0/0";
-    cfg.staticRoutesToNull[1].prefix = "::/0";
+    cfg.staticRoutesToNull_ref()->resize(2);
+    *cfg.staticRoutesToNull[0].routerID_ref() =
+        *cfg.staticRoutesToNull[1].routerID_ref() = 0;
+    *cfg.staticRoutesToNull[0].prefix_ref() = "0.0.0.0/0";
+    *cfg.staticRoutesToNull[1].prefix_ref() = "::/0";
     return cfg;
   }
   void pumpTraffic(bool isV6) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcIp = IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
@@ -55,12 +56,17 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
       pumpTraffic(isV6);
       auto portStatsAfter = getLatestPortStats(portId);
       EXPECT_EQ(
-          1, portStatsAfter.inDiscardsRaw_ - portStatsBefore.inDiscardsRaw_);
+          1,
+          *portStatsAfter.inDiscardsRaw__ref() -
+              *portStatsBefore.inDiscardsRaw__ref());
       EXPECT_EQ(
           1,
-          portStatsAfter.inDstNullDiscards_ -
-              portStatsBefore.inDstNullDiscards_);
-      EXPECT_EQ(0, portStatsAfter.inDiscards_ - portStatsBefore.inDiscards_);
+          *portStatsAfter.inDstNullDiscards__ref() -
+              *portStatsBefore.inDstNullDiscards__ref());
+      EXPECT_EQ(
+          0,
+          *portStatsAfter.inDiscards__ref() -
+              *portStatsBefore.inDiscards__ref());
     };
     verifyAcrossWarmBoots(setup, verify);
   }

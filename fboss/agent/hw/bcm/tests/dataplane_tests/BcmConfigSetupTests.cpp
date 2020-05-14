@@ -23,11 +23,11 @@ cfg::SwitchConfig BcmConfigSetupTest::getConfig() const {
 
 cfg::SwitchConfig BcmConfigSetupTest::setPortsToLoopback(
     std::unique_ptr<AgentConfig> agentCfg) const {
-  auto cfg = agentCfg->thrift.sw;
+  auto cfg = *agentCfg->thrift.sw_ref();
 
-  for (auto& port : cfg.ports) {
-    if (port.state == cfg::PortState::ENABLED) {
-      port.loopbackMode = cfg::PortLoopbackMode::MAC;
+  for (auto& port : *cfg.ports_ref()) {
+    if (*port.state_ref() == cfg::PortState::ENABLED) {
+      *port.loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
     }
   }
   return cfg;

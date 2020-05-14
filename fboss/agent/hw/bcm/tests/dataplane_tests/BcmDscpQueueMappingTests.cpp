@@ -125,7 +125,7 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
 
     auto* acl = utility::addAcl(&newCfg, "acl0");
     cfg::Ttl ttl; // Match packets with hop limit > 127
-    std::tie(ttl.value, ttl.mask) = std::make_tuple(0x80, 0x80);
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
     acl->ttl_ref() = ttl;
     utility::addAclStat(&newCfg, "acl0", kCounterName());
     applyNewConfig(newCfg);

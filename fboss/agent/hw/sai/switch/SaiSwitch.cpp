@@ -623,7 +623,7 @@ void SaiSwitch::fetchL2TableLocked(
     VlanID swVlanId{vlanApi.getAttribute(
         VlanSaiId{fdbEntry.bridgeVlanId()},
         SaiVlanTraits::Attributes::VlanId{})};
-    entry.vlanID = swVlanId;
+    *entry.vlanID_ref() = swVlanId;
 
     // To get the PortID, we get the bridgePortId from the fdb entry,
     // then get that Bridge Port's PortId attribute. We can lookup the
@@ -640,7 +640,7 @@ void SaiSwitch::fetchL2TableLocked(
       XLOG(WARNING) << "l2 table entry had unknown port sai id: " << portSaiId;
       continue;
     }
-    entry.port = portItr->second;
+    *entry.port_ref() = portItr->second;
 
     // entry is filled out; push it onto the L2 table
     l2Table->push_back(entry);

@@ -22,59 +22,60 @@ namespace {
 
 cfg::SwitchConfig createSwitchConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].name = "PrimaryVlan";
-  config.vlans[0].id = 5;
-  config.vlans[0].routable = true;
-  config.vlans[0].intfID_ref() = 1234;
-  config.vlans[1].name = "DefaultHWVlan";
-  config.vlans[1].id = 1;
-  config.vlans[1].routable = true;
-  config.vlans[1].intfID_ref() = 4321;
+  config.vlans_ref()->resize(2);
+  *config.vlans[0].name_ref() = "PrimaryVlan";
+  *config.vlans[0].id_ref() = 5;
+  *config.vlans[0].routable_ref() = true;
+  config.vlans_ref()[0].intfID_ref() = 1234;
+  *config.vlans[1].name_ref() = "DefaultHWVlan";
+  *config.vlans[1].id_ref() = 1;
+  *config.vlans[1].routable_ref() = true;
+  config.vlans_ref()[1].intfID_ref() = 4321;
 
-  config.vlanPorts.resize(10);
-  config.ports.resize(10);
+  config.vlanPorts_ref()->resize(10);
+  config.ports_ref()->resize(10);
   for (int n = 0; n < 10; ++n) {
-    config.ports[n].logicalID = n + 1;
-    config.ports[n].state = cfg::PortState::ENABLED;
-    config.ports[n].minFrameSize = 64;
-    config.ports[n].maxFrameSize = 9000;
-    config.ports[n].routable = true;
-    config.ports[n].ingressVlan = 5;
+    *config.ports[n].logicalID_ref() = n + 1;
+    *config.ports[n].state_ref() = cfg::PortState::ENABLED;
+    *config.ports[n].minFrameSize_ref() = 64;
+    *config.ports[n].maxFrameSize_ref() = 9000;
+    *config.ports[n].routable_ref() = true;
+    *config.ports[n].ingressVlan_ref() = 5;
 
-    config.vlanPorts[n].vlanID = 5;
-    config.vlanPorts[n].logicalPort = n + 1;
-    config.vlanPorts[n].spanningTreeState = cfg::SpanningTreeState::FORWARDING;
-    config.vlanPorts[n].emitTags = 0;
+    *config.vlanPorts[n].vlanID_ref() = 5;
+    *config.vlanPorts[n].logicalPort_ref() = n + 1;
+    *config.vlanPorts[n].spanningTreeState_ref() =
+        cfg::SpanningTreeState::FORWARDING;
+    *config.vlanPorts[n].emitTags_ref() = 0;
   }
 
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = 1234;
-  config.interfaces[0].vlanID = 5;
-  config.interfaces[0].name_ref() = "PrimaryInterface";
-  config.interfaces[0].mtu_ref() = 9000;
-  config.interfaces[0].ipAddresses.resize(5);
-  config.interfaces[0].ipAddresses[0] = "10.164.4.10/24";
-  config.interfaces[0].ipAddresses[1] = "10.164.4.1/24";
-  config.interfaces[0].ipAddresses[2] = "10.164.4.2/24";
-  config.interfaces[0].ipAddresses[3] = "2401:db00:2110:3004::/64";
-  config.interfaces[0].ipAddresses[4] = "2401:db00:2110:3004::000a/64";
-  config.interfaces[0].ndp_ref() = cfg::NdpConfig();
-  config.interfaces[0].ndp_ref()->routerAdvertisementSeconds = 1;
-  config.interfaces[1].intfID = 4321;
-  config.interfaces[1].vlanID = 1;
-  config.interfaces[1].name_ref() = "DefaultHWInterface";
-  config.interfaces[1].mtu_ref() = 9000;
-  config.interfaces[1].ipAddresses.resize(0);
-  config.interfaces[1].ndp_ref() = cfg::NdpConfig();
-  config.interfaces[1].ndp_ref()->routerAdvertisementSeconds = 1;
-  config.arpTimeoutSeconds = 1;
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[0].intfID_ref() = 1234;
+  *config.interfaces[0].vlanID_ref() = 5;
+  config.interfaces_ref()[0].name_ref() = "PrimaryInterface";
+  config.interfaces_ref()[0].mtu_ref() = 9000;
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(5);
+  config.interfaces[0].ipAddresses_ref()[0] = "10.164.4.10/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "10.164.4.1/24";
+  config.interfaces[0].ipAddresses_ref()[2] = "10.164.4.2/24";
+  config.interfaces[0].ipAddresses_ref()[3] = "2401:db00:2110:3004::/64";
+  config.interfaces[0].ipAddresses_ref()[4] = "2401:db00:2110:3004::000a/64";
+  config.interfaces_ref()[0].ndp_ref() = cfg::NdpConfig();
+  *config.interfaces[0].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
+  *config.interfaces[1].intfID_ref() = 4321;
+  *config.interfaces[1].vlanID_ref() = 1;
+  config.interfaces_ref()[1].name_ref() = "DefaultHWInterface";
+  config.interfaces_ref()[1].mtu_ref() = 9000;
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(0);
+  config.interfaces_ref()[1].ndp_ref() = cfg::NdpConfig();
+  *config.interfaces[1].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
+  *config.arpTimeoutSeconds_ref() = 1;
   return config;
 }
 
 cfg::AgentConfig createAgentConfig() {
   cfg::AgentConfig config;
-  config.sw = createSwitchConfig();
+  *config.sw_ref() = createSwitchConfig();
   return config;
 }
 

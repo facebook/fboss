@@ -33,7 +33,7 @@ std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
     HwSwitchEnsemble* ensemble,
     PortID port) {
   auto stats = ensemble->getLatestPortStats({port})[port];
-  return {stats.outUnicastPkts_, stats.outBytes_};
+  return {*stats.outUnicastPkts__ref(), *stats.outBytes__ref()};
 }
 
 void runTxSlowPathBenchmark() {
@@ -60,7 +60,7 @@ void runTxSlowPathBenchmark() {
         // Send packet
         auto txPacket = utility::makeUDPTxPacket(
             hwSwitch,
-            VlanID(config.vlanPorts[0].vlanID),
+            VlanID(*config.vlanPorts[0].vlanID_ref()),
             cpuMac,
             cpuMac,
             kSrcIp,

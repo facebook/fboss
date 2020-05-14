@@ -35,26 +35,26 @@ TEST(StaticRoutes, configureUnconfigure) {
   auto tablesV0 = stateV0->getRouteTables();
 
   cfg::SwitchConfig config;
-  config.staticRoutesToNull.resize(2);
-  config.staticRoutesToNull[0].prefix = "1.1.1.1/32";
-  config.staticRoutesToNull[1].prefix = "2001::1/128";
-  config.staticRoutesToCPU.resize(2);
-  config.staticRoutesToCPU[0].prefix = "2.2.2.2/32";
-  config.staticRoutesToCPU[1].prefix = "2001::2/128";
-  config.staticRoutesWithNhops.resize(4);
-  config.staticRoutesWithNhops[0].prefix = "3.3.3.3/32";
-  config.staticRoutesWithNhops[0].nexthops.resize(1);
-  config.staticRoutesWithNhops[0].nexthops[0] = "1.1.1.1";
-  config.staticRoutesWithNhops[1].prefix = "4.4.4.4/32";
-  config.staticRoutesWithNhops[1].nexthops.resize(1);
-  config.staticRoutesWithNhops[1].nexthops[0] = "2.2.2.2";
+  config.staticRoutesToNull_ref()->resize(2);
+  *config.staticRoutesToNull[0].prefix_ref() = "1.1.1.1/32";
+  *config.staticRoutesToNull[1].prefix_ref() = "2001::1/128";
+  config.staticRoutesToCPU_ref()->resize(2);
+  *config.staticRoutesToCPU[0].prefix_ref() = "2.2.2.2/32";
+  *config.staticRoutesToCPU[1].prefix_ref() = "2001::2/128";
+  config.staticRoutesWithNhops_ref()->resize(4);
+  *config.staticRoutesWithNhops[0].prefix_ref() = "3.3.3.3/32";
+  config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops[0].nexthops_ref()[0] = "1.1.1.1";
+  *config.staticRoutesWithNhops[1].prefix_ref() = "4.4.4.4/32";
+  config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops[1].nexthops_ref()[0] = "2.2.2.2";
   // Now add v6 recursive routes
-  config.staticRoutesWithNhops[2].prefix = "2001::3/128";
-  config.staticRoutesWithNhops[2].nexthops.resize(1);
-  config.staticRoutesWithNhops[2].nexthops[0] = "2001::1";
-  config.staticRoutesWithNhops[3].prefix = "2001::4/128";
-  config.staticRoutesWithNhops[3].nexthops.resize(1);
-  config.staticRoutesWithNhops[3].nexthops[0] = "2001::2";
+  *config.staticRoutesWithNhops[2].prefix_ref() = "2001::3/128";
+  config.staticRoutesWithNhops_ref()[2].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops[2].nexthops_ref()[0] = "2001::1";
+  *config.staticRoutesWithNhops[3].prefix_ref() = "2001::4/128";
+  config.staticRoutesWithNhops_ref()[3].nexthops_ref()->resize(1);
+  config.staticRoutesWithNhops[3].nexthops_ref()[0] = "2001::2";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);

@@ -183,27 +183,30 @@ int SffModule::getQsfpDACGauge() const {
 
 GlobalSensors SffModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  info.temp.value = getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
-  info.temp.flags_ref() = getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
-  info.vcc.value = getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
-  info.vcc.flags_ref() = getQsfpSensorFlags(SffField::VCC_ALARMS);
+  *info.temp_ref()->value_ref() =
+      getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
+  info.temp_ref()->flags_ref() =
+      getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
+  *info.vcc_ref()->value_ref() =
+      getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
+  info.vcc_ref()->flags_ref() = getQsfpSensorFlags(SffField::VCC_ALARMS);
   return info;
 }
 
 Vendor SffModule::getVendorInfo() {
   Vendor vendor = Vendor();
-  vendor.name = getQsfpString(SffField::VENDOR_NAME);
-  vendor.oui = getQsfpString(SffField::VENDOR_OUI);
-  vendor.partNumber = getQsfpString(SffField::PART_NUMBER);
-  vendor.rev = getQsfpString(SffField::REVISION_NUMBER);
-  vendor.serialNumber = getQsfpString(SffField::VENDOR_SERIAL_NUMBER);
-  vendor.dateCode = getQsfpString(SffField::MFG_DATE);
+  *vendor.name_ref() = getQsfpString(SffField::VENDOR_NAME);
+  *vendor.oui_ref() = getQsfpString(SffField::VENDOR_OUI);
+  *vendor.partNumber_ref() = getQsfpString(SffField::PART_NUMBER);
+  *vendor.rev_ref() = getQsfpString(SffField::REVISION_NUMBER);
+  *vendor.serialNumber_ref() = getQsfpString(SffField::VENDOR_SERIAL_NUMBER);
+  *vendor.dateCode_ref() = getQsfpString(SffField::MFG_DATE);
   return vendor;
 }
 
 Cable SffModule::getCableInfo() {
   Cable cable = Cable();
-  cable.transmitterTech = getQsfpTransmitterTechnology();
+  *cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
 
   cable.singleMode_ref() = getQsfpCableLength(SffField::LENGTH_SM_KM);
   if (cable.singleMode_ref().value_or({}) == 0) {
@@ -267,10 +270,10 @@ ThresholdLevels SffModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  thresh.alarm.high = conversion(data[0] << 8 | data[1]);
-  thresh.alarm.low = conversion(data[2] << 8 | data[3]);
-  thresh.warn.high = conversion(data[4] << 8 | data[5]);
-  thresh.warn.low = conversion(data[6] << 8 | data[7]);
+  *thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
+  *thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
+  *thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
+  *thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
 
   return thresh;
 }
@@ -280,13 +283,13 @@ std::optional<AlarmThreshold> SffModule::getThresholdInfo() {
     return {};
   }
   AlarmThreshold threshold = AlarmThreshold();
-  threshold.temp =
+  *threshold.temp_ref() =
       getThresholdValues(SffField::TEMPERATURE_THRESH, SffFieldInfo::getTemp);
-  threshold.vcc =
+  *threshold.vcc_ref() =
       getThresholdValues(SffField::VCC_THRESH, SffFieldInfo::getVcc);
-  threshold.rxPwr =
+  *threshold.rxPwr_ref() =
       getThresholdValues(SffField::RX_PWR_THRESH, SffFieldInfo::getPwr);
-  threshold.txBias =
+  *threshold.txBias_ref() =
       getThresholdValues(SffField::TX_BIAS_THRESH, SffFieldInfo::getTxBias);
   return threshold;
 }
@@ -304,17 +307,19 @@ uint8_t SffModule::getSettingsValue(SffField field, uint8_t mask) {
 
 TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.cdrTx = SffFieldInfo::getFeatureState(
+  *settings.cdrTx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_TX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, TX_MASK));
-  settings.cdrRx = SffFieldInfo::getFeatureState(
+  *settings.cdrRx_ref() = SffFieldInfo::getFeatureState(
       getSettingsValue(SffField::EXTENDED_IDENTIFIER, EXT_ID_CDR_RX_MASK),
       getSettingsValue(SffField::CDR_CONTROL, RX_MASK));
-  settings.powerMeasurement = SffFieldInfo::getFeatureState(getSettingsValue(
-      SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
-  settings.powerControl = getPowerControlValue();
-  settings.rateSelect = getRateSelectValue();
-  settings.rateSelectSetting = getRateSelectSettingValue(settings.rateSelect);
+  *settings.powerMeasurement_ref() =
+      SffFieldInfo::getFeatureState(getSettingsValue(
+          SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
+  *settings.powerControl_ref() = getPowerControlValue();
+  *settings.rateSelect_ref() = getRateSelectValue();
+  *settings.rateSelectSetting_ref() =
+      getRateSelectSettingValue(*settings.rateSelect_ref());
   return settings;
 }
 
@@ -422,7 +427,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.rxPwr.flags_ref() =
+    channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -431,7 +436,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txBias.flags_ref() =
+    channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -440,7 +445,7 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txPwr.flags_ref() =
+    channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
         getQsfpFlags(data + byteOffset[channel], bitOffset[channel]);
   }
 
@@ -449,7 +454,8 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.rxPwr.value = SffFieldInfo::getPwr(value);
+    *channel.sensors_ref()->rxPwr_ref()->value_ref() =
+        SffFieldInfo::getPwr(value);
     data += 2;
     length--;
   }
@@ -459,7 +465,8 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.txBias.value = SffFieldInfo::getTxBias(value);
+    *channel.sensors_ref()->txBias_ref()->value_ref() =
+        SffFieldInfo::getTxBias(value);
     data += 2;
     length--;
   }
@@ -470,7 +477,8 @@ bool SffModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.txPwr.value = SffFieldInfo::getPwr(value);
+    *channel.sensors_ref()->txPwr_ref()->value_ref() =
+        SffFieldInfo::getPwr(value);
     data += 2;
     length--;
   }
@@ -546,12 +554,12 @@ TransmitterTechnology SffModule::getQsfpTransmitterTechnology() const {
 SignalFlags SffModule::getSignalFlagInfo() {
   SignalFlags signalFlags = SignalFlags();
 
-  signalFlags.txLos = getSettingsValue(SffField::LOS, TX_MASK);
-  signalFlags.txLos >>= 4;
-  signalFlags.rxLos = getSettingsValue(SffField::LOS, RX_MASK);
-  signalFlags.txLol = getSettingsValue(SffField::LOL, TX_MASK);
-  signalFlags.txLol >>= 4;
-  signalFlags.rxLol = getSettingsValue(SffField::LOL, RX_MASK);
+  *signalFlags.txLos_ref() = getSettingsValue(SffField::LOS, TX_MASK);
+  *signalFlags.txLos_ref() >>= 4;
+  *signalFlags.rxLos_ref() = getSettingsValue(SffField::LOS, RX_MASK);
+  *signalFlags.txLol_ref() = getSettingsValue(SffField::LOL, TX_MASK);
+  *signalFlags.txLol_ref() >>= 4;
+  *signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, RX_MASK);
 
   return signalFlags;
 }
@@ -610,8 +618,9 @@ RawDOMData SffModule::getRawDOMData() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   RawDOMData data;
   if (present_) {
-    data.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    data.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *data.lower_ref() =
+        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *data.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
       data.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
@@ -623,8 +632,9 @@ DOMDataUnion SffModule::getDOMDataUnion() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   Sff8636Data sffData;
   if (present_) {
-    sffData.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    sffData.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *sffData.lower_ref() =
+        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *sffData.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
       sffData.page3_ref() = IOBuf::wrapBufferAsValue(page3_, MAX_QSFP_PAGE_SIZE);
     }
@@ -957,12 +967,12 @@ void SffModule::overwritePreEmphasis() {
   }
 
   // Get the vendor name and part number and convert them to upper case.
-  auto vendorName = (*cachedInfo)->vendor_ref()->name;
+  auto vendorName = *(*cachedInfo)->vendor_ref()->name_ref();
   std::for_each(vendorName.begin(), vendorName.end(), [](char & c){
     c = ::toupper(c);
   });
 
-  auto partNumber = (*cachedInfo)->vendor_ref()->partNumber;
+  auto partNumber = *(*cachedInfo)->vendor_ref()->partNumber_ref();
   std::for_each(partNumber.begin(), partNumber.end(), [](char & c){
     c = ::toupper(c);
   });
@@ -1011,12 +1021,12 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     }
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(settings.powerControl);
+    setPowerOverrideIfSupported(*settings.powerControl_ref());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setCdrIfSupported(speed, settings.cdrTx, settings.cdrRx);
+      setCdrIfSupported(speed, *settings.cdrTx_ref(), *settings.cdrRx_ref());
       setRateSelectIfSupported(
-        speed, settings.rateSelect, settings.rateSelectSetting);
+          speed, *settings.rateSelect_ref(), *settings.rateSelectSetting_ref());
     }
   } else {
     XLOG(DBG1) << "Customization not supported on " << qsfpImpl_->getName();

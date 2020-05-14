@@ -20,7 +20,7 @@ LoadBalancerID LoadBalancerConfigParser::parseLoadBalancerID(
     const cfg::LoadBalancer& loadBalancerConfig) const {
   // LoadBalancerID is an alias for the type of loadBalancerConfig.id so no
   // validation is necessary
-  return loadBalancerConfig.id;
+  return *loadBalancerConfig.id_ref();
 }
 
 std::tuple<
@@ -31,17 +31,17 @@ std::tuple<
 LoadBalancerConfigParser::parseFields(
     const cfg::LoadBalancer& loadBalancer) const {
   LoadBalancer::IPv4Fields v4Fields(
-      loadBalancer.fieldSelection.ipv4Fields.begin(),
-      loadBalancer.fieldSelection.ipv4Fields.end());
+      loadBalancer.fieldSelection_ref()->ipv4Fields_ref()->begin(),
+      loadBalancer.fieldSelection_ref()->ipv4Fields_ref()->end());
   LoadBalancer::IPv6Fields v6Fields(
-      loadBalancer.fieldSelection.ipv6Fields.begin(),
-      loadBalancer.fieldSelection.ipv6Fields.end());
+      loadBalancer.fieldSelection_ref()->ipv6Fields_ref()->begin(),
+      loadBalancer.fieldSelection_ref()->ipv6Fields_ref()->end());
   LoadBalancer::TransportFields transportFields(
-      loadBalancer.fieldSelection.transportFields.begin(),
-      loadBalancer.fieldSelection.transportFields.end());
+      loadBalancer.fieldSelection_ref()->transportFields_ref()->begin(),
+      loadBalancer.fieldSelection_ref()->transportFields_ref()->end());
   LoadBalancer::MPLSFields mplsFields(
-      loadBalancer.fieldSelection.mplsFields.begin(),
-      loadBalancer.fieldSelection.mplsFields.end());
+      loadBalancer.fieldSelection_ref()->mplsFields_ref()->begin(),
+      loadBalancer.fieldSelection_ref()->mplsFields_ref()->end());
 
   return std::make_tuple(v4Fields, v6Fields, transportFields, mplsFields);
 }
@@ -50,7 +50,7 @@ std::shared_ptr<LoadBalancer> LoadBalancerConfigParser::parse(
     const cfg::LoadBalancer& cfg) const {
   auto loadBalancerID = parseLoadBalancerID(cfg);
   auto fields = parseFields(cfg);
-  auto algorithm = cfg.algorithm; // TODO(samank): handle not being set
+  auto algorithm = *cfg.algorithm_ref(); // TODO(samank): handle not being set
   auto seed = cfg.seed_ref()
       ? *cfg.seed_ref()
       : LoadBalancer::generateDeterministicSeed(loadBalancerID, platform_);

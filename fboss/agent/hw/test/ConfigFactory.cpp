@@ -37,64 +37,69 @@ cfg::SwitchConfig genPortVlanCfg(
   cfg::SwitchConfig config;
 
   // Port config
-  config.ports.resize(ports.size());
+  config.ports_ref()->resize(ports.size());
   auto portItr = ports.begin();
   int portIndex = 0;
   for (; portItr != ports.end(); portItr++, portIndex++) {
-    config.ports[portIndex].logicalID = *portItr;
-    config.ports[portIndex].speed = maxPortSpeed(hwSwitch, *portItr);
+    *config.ports[portIndex].logicalID_ref() = *portItr;
+    *config.ports[portIndex].speed_ref() = maxPortSpeed(hwSwitch, *portItr);
     auto platformPort = hwSwitch->getPlatform()->getPlatformPort(*portItr);
     if (auto entry = platformPort->getPlatformPortEntry()) {
-      config.ports[portIndex].name_ref() = entry->mapping.name;
-      config.ports[portIndex].profileID =
-          platformPort->getProfileIDBySpeed(config.ports[portIndex].speed);
-      if (config.ports[portIndex].profileID ==
+      config.ports_ref()[portIndex].name_ref() =
+          *entry->mapping_ref()->name_ref();
+      *config.ports[portIndex].profileID_ref() =
+          platformPort->getProfileIDBySpeed(
+              *config.ports[portIndex].speed_ref());
+      if (*config.ports[portIndex].profileID_ref() ==
           cfg::PortProfileID::PROFILE_DEFAULT) {
         throw FbossError(
-            entry->mapping.name,
+            *entry->mapping_ref()->name_ref(),
             " has speed: ",
-            apache::thrift::util::enumNameSafe(config.ports[portIndex].speed),
+            apache::thrift::util::enumNameSafe(
+                *config.ports[portIndex].speed_ref()),
             " which has profile: ",
             apache::thrift::util::enumNameSafe(
-                config.ports[portIndex].profileID));
+                *config.ports[portIndex].profileID_ref()));
       }
     } else {
-      config.ports[portIndex].name_ref() =
+      config.ports_ref()[portIndex].name_ref() =
           "eth1/" + std::to_string(*portItr) + "/1";
     }
-    config.ports[portIndex].maxFrameSize = 9412;
-    config.ports[portIndex].state = cfg::PortState::ENABLED;
-    config.ports[portIndex].loopbackMode = lbMode;
-    config.ports[portIndex].ingressVlan = port2vlan.find(*portItr)->second;
-    config.ports[portIndex].routable = true;
-    config.ports[portIndex].parserType = cfg::ParserType::L3;
+    *config.ports[portIndex].maxFrameSize_ref() = 9412;
+    *config.ports[portIndex].state_ref() = cfg::PortState::ENABLED;
+    *config.ports[portIndex].loopbackMode_ref() = lbMode;
+    *config.ports[portIndex].ingressVlan_ref() =
+        port2vlan.find(*portItr)->second;
+    *config.ports[portIndex].routable_ref() = true;
+    *config.ports[portIndex].parserType_ref() = cfg::ParserType::L3;
   }
 
   // Vlan config
-  config.vlans.resize(vlans.size() + 1);
+  config.vlans_ref()->resize(vlans.size() + 1);
   auto vlanCfgItr = vlans.begin();
   int vlanIndex = 0;
   for (; vlanCfgItr != vlans.end(); vlanCfgItr++, vlanIndex++) {
-    config.vlans[vlanIndex].id = *vlanCfgItr;
-    config.vlans[vlanIndex].name = "vlan" + std::to_string(*vlanCfgItr);
-    config.vlans[vlanIndex].routable = true;
+    *config.vlans[vlanIndex].id_ref() = *vlanCfgItr;
+    *config.vlans[vlanIndex].name_ref() = "vlan" + std::to_string(*vlanCfgItr);
+    *config.vlans[vlanIndex].routable_ref() = true;
   }
-  config.vlans[vlanIndex].id = kDefaultVlanId;
-  config.vlans[vlanIndex].name = folly::sformat("vlan{}", kDefaultVlanId);
-  config.vlans[vlanIndex].routable = true;
+  *config.vlans[vlanIndex].id_ref() = kDefaultVlanId;
+  *config.vlans[vlanIndex].name_ref() =
+      folly::sformat("vlan{}", kDefaultVlanId);
+  *config.vlans[vlanIndex].routable_ref() = true;
 
-  config.defaultVlan = kDefaultVlanId;
+  *config.defaultVlan_ref() = kDefaultVlanId;
 
   // Vlan port config
-  config.vlanPorts.resize(port2vlan.size());
+  config.vlanPorts_ref()->resize(port2vlan.size());
   auto vlanItr = port2vlan.begin();
   portIndex = 0;
   for (; vlanItr != port2vlan.end(); vlanItr++, portIndex++) {
-    config.vlanPorts[portIndex].logicalPort = vlanItr->first;
-    config.vlanPorts[portIndex].vlanID = vlanItr->second;
-    config.vlanPorts[portIndex].spanningTreeState =
+    *config.vlanPorts[portIndex].logicalPort_ref() = vlanItr->first;
+    *config.vlanPorts[portIndex].vlanID_ref() = vlanItr->second;
+    *config.vlanPorts[portIndex].spanningTreeState_ref() =
         cfg::SpanningTreeState::FORWARDING;
-    config.vlanPorts[portIndex].emitTags = false;
+    *config.vlanPorts[portIndex].emitTags_ref() = false;
   }
 
   return config;
@@ -152,16 +157,16 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
 
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = kBaseVlanId;
-  config.interfaces[0].vlanID = kBaseVlanId;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].mac_ref() = getLocalCpuMacStr();
-  config.interfaces[0].mtu_ref() = 9000;
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = kBaseVlanId;
+  *config.interfaces[0].vlanID_ref() = kBaseVlanId;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].mac_ref() = getLocalCpuMacStr();
+  config.interfaces_ref()[0].mtu_ref() = 9000;
   if (interfaceHasSubnet) {
-    config.interfaces[0].ipAddresses.resize(2);
-    config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-    config.interfaces[0].ipAddresses[1] = "1::/64";
+    config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+    config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+    config.interfaces[0].ipAddresses_ref()[1] = "1::/64";
   }
   return config;
 }
@@ -182,19 +187,19 @@ cfg::SwitchConfig onePortPerVlanConfig(
     vlanPorts.push_back(port);
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
-  config.interfaces.resize(vlans.size());
+  config.interfaces_ref()->resize(vlans.size());
   for (auto i = 0; i < vlans.size(); ++i) {
-    config.interfaces[i].intfID = kBaseVlanId + i;
-    config.interfaces[i].vlanID = kBaseVlanId + i;
-    config.interfaces[i].routerID = 0;
-    config.interfaces[i].mac_ref() = getLocalCpuMacStr();
-    config.interfaces[i].mtu_ref() = 9000;
+    *config.interfaces[i].intfID_ref() = kBaseVlanId + i;
+    *config.interfaces[i].vlanID_ref() = kBaseVlanId + i;
+    *config.interfaces[i].routerID_ref() = 0;
+    config.interfaces_ref()[i].mac_ref() = getLocalCpuMacStr();
+    config.interfaces_ref()[i].mtu_ref() = 9000;
     if (interfaceHasSubnet) {
-      config.interfaces[i].ipAddresses.resize(2);
+      config.interfaces_ref()[i].ipAddresses_ref()->resize(2);
       auto ipDecimal = folly::sformat("{}", i + 1);
-      config.interfaces[i].ipAddresses[0] =
+      config.interfaces[i].ipAddresses_ref()[0] =
           folly::sformat("{}.0.0.0/24", ipDecimal);
-      config.interfaces[i].ipAddresses[1] =
+      config.interfaces[i].ipAddresses_ref()[1] =
           folly::sformat("{}::/64", ipDecimal);
     }
   }
@@ -215,20 +220,20 @@ cfg::SwitchConfig twoL3IntfConfig(
   std::vector<VlanID> vlans = {VlanID(kBaseVlanId), VlanID(kBaseVlanId + 1)};
   auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans, lbMode);
 
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = kBaseVlanId;
-  config.interfaces[0].vlanID = kBaseVlanId;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/64";
-  config.interfaces[1].intfID = kBaseVlanId + 1;
-  config.interfaces[1].vlanID = kBaseVlanId + 1;
-  config.interfaces[1].routerID = 0;
-  config.interfaces[1].ipAddresses.resize(2);
-  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
-  config.interfaces[1].ipAddresses[1] = "2::1/64";
-  for (auto& interface : config.interfaces) {
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[0].intfID_ref() = kBaseVlanId;
+  *config.interfaces[0].vlanID_ref() = kBaseVlanId;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "1::1/64";
+  *config.interfaces[1].intfID_ref() = kBaseVlanId + 1;
+  *config.interfaces[1].vlanID_ref() = kBaseVlanId + 1;
+  *config.interfaces[1].routerID_ref() = 0;
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  config.interfaces[1].ipAddresses_ref()[0] = "2.2.2.2/24";
+  config.interfaces[1].ipAddresses_ref()[1] = "2::1/64";
+  for (auto& interface : *config.interfaces_ref()) {
     interface.mac_ref() = getLocalCpuMacStr();
     interface.mtu_ref() = 9000;
   }
@@ -240,15 +245,15 @@ void addMatcher(
     const std::string& matcherName,
     const cfg::MatchAction& matchAction) {
   cfg::MatchToAction action = cfg::MatchToAction();
-  action.matcher = matcherName;
-  action.action = matchAction;
+  *action.matcher_ref() = matcherName;
+  *action.action_ref() = matchAction;
   cfg::TrafficPolicyConfig egressTrafficPolicy;
   if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy_ref()) {
     egressTrafficPolicy = *dataPlaneTrafficPolicy;
   }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction.size();
-  egressTrafficPolicy.matchToAction.resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction[curNumMatchActions] = action;
+  auto curNumMatchActions = egressTrafficPolicy.matchToAction_ref()->size();
+  egressTrafficPolicy.matchToAction_ref()->resize(curNumMatchActions + 1);
+  egressTrafficPolicy.matchToAction_ref()[curNumMatchActions] = action;
   config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
 }
 

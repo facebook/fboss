@@ -27,7 +27,7 @@ folly::dynamic LabelForwardingAction::toFollyDynamic() const {
 
 MplsAction LabelForwardingAction::toThrift() const {
   MplsAction mplsActionThrift;
-  mplsActionThrift.action = type_;
+  *mplsActionThrift.action_ref() = type_;
   if (swapWith_) {
     mplsActionThrift.swapLabel_ref() = swapWith_.value();
   } else if (pushStack_) {
@@ -45,12 +45,12 @@ LabelForwardingAction LabelForwardingAction::fromThrift(
     const MplsAction& mplsAction) {
   if (mplsAction.swapLabel_ref()) {
     return LabelForwardingAction(
-        mplsAction.action, mplsAction.swapLabel_ref().value());
+        *mplsAction.action_ref(), mplsAction.swapLabel_ref().value());
   } else if (mplsAction.pushLabels_ref()) {
     return LabelForwardingAction(
-        mplsAction.action, mplsAction.pushLabels_ref().value());
+        *mplsAction.action_ref(), mplsAction.pushLabels_ref().value());
   }
-  return LabelForwardingAction(mplsAction.action);
+  return LabelForwardingAction(*mplsAction.action_ref());
 }
 
 LabelForwardingAction LabelForwardingAction::fromFollyDynamic(

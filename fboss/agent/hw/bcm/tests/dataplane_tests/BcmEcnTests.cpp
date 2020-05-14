@@ -94,8 +94,8 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
     queue2.aqms_ref()->push_back(kGetEcnConfig());
     portQueues.push_back(queue2);
 
-    config->portQueueConfigs["queue_config"] = portQueues;
-    config->ports[0].portQueueConfigName_ref() = "queue_config";
+    config->portQueueConfigs_ref()["queue_config"] = portQueues;
+    config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
   }
 
   void sendEcnCapableUdpPkt(uint8_t dscpVal) {
@@ -145,8 +145,8 @@ TEST_F(BcmEcnTest, verifyEcn) {
   auto verify = [=]() {
     sendEcnCapableUdpPkts(kEcnDscp());
     auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(DBG0) << " ECN counter: " << portStats.outEcnCounter_;
-    EXPECT_GT(portStats.outEcnCounter_, 0);
+    XLOG(DBG0) << " ECN counter: " << *portStats.outEcnCounter__ref();
+    EXPECT_GT(*portStats.outEcnCounter__ref(), 0);
   };
 
   verifyAcrossWarmBoots(setup, verify);

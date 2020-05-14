@@ -15,14 +15,14 @@ namespace fboss {
 
 SimPlatformMapping::SimPlatformMapping(uint32_t numPorts) : PlatformMapping() {
   cfg::PlatformPortEntry port;
-  port.supportedProfiles.emplace(
+  port.supportedProfiles_ref()->emplace(
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91, cfg::PlatformPortConfig());
   for (auto i = 0; i < numPorts; i++) {
     setPlatformPort(i, port);
   }
 
   phy::PortProfileConfig profile;
-  profile.speed = cfg::PortSpeed::HUNDREDG;
+  *profile.speed_ref() = cfg::PortSpeed::HUNDREDG;
   setSupportedProfile(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91, profile);
 }
 } // namespace fboss

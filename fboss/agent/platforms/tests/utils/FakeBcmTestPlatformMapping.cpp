@@ -63,8 +63,8 @@ namespace fboss {
 FakeBcmTestPlatformMapping::FakeBcmTestPlatformMapping() : PlatformMapping() {
   for (auto itProfile : kProfiles) {
     phy::PortProfileConfig profile;
-    profile.speed = itProfile.second.first;
-    profile.iphy.numLanes = itProfile.second.second;
+    *profile.speed_ref() = itProfile.second.first;
+    *profile.iphy_ref()->numLanes_ref() = itProfile.second.second;
     setSupportedProfile(itProfile.first, profile);
   }
 
@@ -72,8 +72,8 @@ FakeBcmTestPlatformMapping::FakeBcmTestPlatformMapping() : PlatformMapping() {
     for (auto itLane : kLanes) {
       auto portID = controllingPort + itLane.first;
       cfg::PlatformPortEntry port;
-      port.mapping.id = portID;
-      port.mapping.controllingPort = controllingPort;
+      *port.mapping_ref()->id_ref() = portID;
+      *port.mapping_ref()->controllingPort_ref() = controllingPort;
       for (auto profile : itLane.second) {
         cfg::PlatformPortConfig portCfg;
         if (auto numLane = kProfiles.find(profile)->second.second;
@@ -84,7 +84,7 @@ FakeBcmTestPlatformMapping::FakeBcmTestPlatformMapping() : PlatformMapping() {
           }
           portCfg.subsumedPorts_ref() = subsumedPorts;
         }
-        port.supportedProfiles.emplace(profile, portCfg);
+        port.supportedProfiles_ref()->emplace(profile, portCfg);
       }
       setPlatformPort(portID, port);
     }

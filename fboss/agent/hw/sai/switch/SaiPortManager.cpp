@@ -33,11 +33,11 @@ using namespace std::chrono;
 namespace facebook::fboss {
 namespace {
 sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
-  if (pause.tx && pause.rx) {
+  if (*pause.tx_ref() && *pause.rx_ref()) {
     return SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
-  } else if (pause.tx) {
+  } else if (*pause.tx_ref()) {
     return SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
-  } else if (pause.rx) {
+  } else if (*pause.rx_ref()) {
     return SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
   } else {
     return SAI_PORT_FLOW_CONTROL_MODE_DISABLE;
@@ -93,49 +93,49 @@ void fillHwPortStats(
   for (auto counterId : counterIds) {
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
-        hwPortStats.inBytes_ = counters[index];
+        *hwPortStats.inBytes__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        hwPortStats.inUnicastPkts_ = counters[index];
+        *hwPortStats.inUnicastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
-        hwPortStats.inMulticastPkts_ = counters[index];
+        *hwPortStats.inMulticastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_BROADCAST_PKTS:
-        hwPortStats.inBroadcastPkts_ = counters[index];
+        *hwPortStats.inBroadcastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_DISCARDS:
-        hwPortStats.inDiscards_ = counters[index];
+        *hwPortStats.inDiscards__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_ERRORS:
-        hwPortStats.inErrors_ = counters[index];
+        *hwPortStats.inErrors__ref() = counters[index];
         break;
       case SAI_PORT_STAT_PAUSE_RX_PKTS:
-        hwPortStats.inPause_ = counters[index];
+        *hwPortStats.inPause__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_OCTETS:
-        hwPortStats.outBytes_ = counters[index];
+        *hwPortStats.outBytes__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        hwPortStats.outUnicastPkts_ = counters[index];
+        *hwPortStats.outUnicastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
-        hwPortStats.outMulticastPkts_ = counters[index];
+        *hwPortStats.outMulticastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS:
-        hwPortStats.outBroadcastPkts_ = counters[index];
+        *hwPortStats.outBroadcastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_DISCARDS:
-        hwPortStats.outDiscards_ = counters[index];
+        *hwPortStats.outDiscards__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_OUT_ERRORS:
-        hwPortStats.outErrors_ = counters[index];
+        *hwPortStats.outErrors__ref() = counters[index];
         break;
       case SAI_PORT_STAT_PAUSE_TX_PKTS:
-        hwPortStats.outPause_ = counters[index];
+        *hwPortStats.outPause__ref() = counters[index];
         break;
       case SAI_PORT_STAT_ECN_MARKED_PACKETS:
-        hwPortStats.outEcnCounter_ = counters[index];
+        *hwPortStats.outEcnCounter__ref() = counters[index];
         break;
       default:
         throw FbossError("Got unexpected port counter id: ", counterId);

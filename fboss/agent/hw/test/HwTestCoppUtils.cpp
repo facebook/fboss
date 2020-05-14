@@ -99,7 +99,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue9.weight_ref() = kCoppHighPriWeight;
   cpuQueues.push_back(queue9);
 
-  config.cpuQueues = cpuQueues;
+  *config.cpuQueues_ref() = cpuQueues;
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
@@ -110,7 +110,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   auto createMatchAction = [](int queueId) {
     cfg::MatchAction action;
     cfg::QueueMatchAction queueAction;
-    queueAction.queueId = queueId;
+    *queueAction.queueId_ref() = queueId;
     action.sendToQueue_ref() = queueAction;
     return action;
   };
@@ -118,7 +118,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // slow-protocols dst mac
   {
     cfg::AclEntry acl;
-    acl.name = "cpuPolicing-high-slow-protocols-mac";
+    *acl.name_ref() = "cpuPolicing-high-slow-protocols-mac";
     acl.dstMac_ref() = LACPDU::kSlowProtocolsDstMac().toString();
     acls.push_back(
         std::make_pair(acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
@@ -129,7 +129,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // to put locally destined traffic to these ports to hi-pri queue.
   auto createHighPriDstClassL3Acl = [&](bool isV4, bool isSrcPort) {
     cfg::AclEntry acl;
-    acl.name = folly::to<std::string>(
+    *acl.name_ref() = folly::to<std::string>(
         "cpuPolicing-high-",
         isV4 ? "dstLocalIp4-" : "dstLocalIp6-",
         isSrcPort ? "srcPort:" : "dstPrt:",
@@ -153,7 +153,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // Dst IP local + DSCP 48 to high pri queue
   auto createHigPriLocalIpNetworkControlAcl = [&](bool isV4) {
     cfg::AclEntry acl;
-    acl.name = folly::to<std::string>(
+    *acl.name_ref() = folly::to<std::string>(
         "cpuPolicing-high-",
         isV4 ? "dstLocalIp4" : "dstLocalIp6",
         "-network-control");
@@ -171,7 +171,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         cfg::AclEntry acl;
         auto dstNetworkStr =
             folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-        acl.name = folly::to<std::string>(
+        *acl.name_ref() = folly::to<std::string>(
             "cpuPolicing-high-", dstNetworkStr, "-network-control");
         acl.dstIp_ref() = dstNetworkStr;
         acl.dscp_ref() = 48;
@@ -188,7 +188,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   // go from more specific to less specific matches.
   auto createMidPriDstClassL3Acl = [&](bool isV4) {
     cfg::AclEntry acl;
-    acl.name = folly::to<std::string>(
+    *acl.name_ref() = folly::to<std::string>(
         "cpuPolicing-mid-", isV4 ? "dstLocalIp4" : "dstLocalIp6");
     acl.lookupClass_ref() = isV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                                  : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
@@ -204,7 +204,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     cfg::AclEntry acl;
     auto dstIp =
         folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-    acl.name = folly::to<std::string>("cpuPolicing-mid-", dstIp);
+    *acl.name_ref() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
     acl.dstIp_ref() = dstIp;
 
     acls.push_back(
@@ -224,19 +224,20 @@ void setDefaultCpuTrafficPolicyConfig(
     const folly::MacAddress& localMac) {
   auto cpuAcls = utility::defaultCpuAcls(localMac, hwAsic);
   // insert cpu acls into global acl field
-  int curNumAcls = config.acls.size();
-  config.acls.resize(curNumAcls + cpuAcls.size());
+  int curNumAcls = config.acls_ref()->size();
+  config.acls_ref()->resize(curNumAcls + cpuAcls.size());
   for (int i = 0; i < cpuAcls.size(); i++) {
-    config.acls[curNumAcls + i] = cpuAcls[i].first;
+    config.acls_ref()[curNumAcls + i] = cpuAcls[i].first;
   }
 
   // prepare cpu traffic config
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cfg::TrafficPolicyConfig trafficConfig;
-  trafficConfig.matchToAction.resize(cpuAcls.size());
+  trafficConfig.matchToAction_ref()->resize(cpuAcls.size());
   for (int i = 0; i < cpuAcls.size(); i++) {
-    trafficConfig.matchToAction[i].matcher = cpuAcls[i].first.name;
-    trafficConfig.matchToAction[i].action = cpuAcls[i].second;
+    *trafficConfig.matchToAction[i].matcher_ref() =
+        *cpuAcls[i].first.name_ref();
+    *trafficConfig.matchToAction[i].action_ref() = cpuAcls[i].second;
   }
   cpuConfig.trafficPolicy_ref() = trafficConfig;
   auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);

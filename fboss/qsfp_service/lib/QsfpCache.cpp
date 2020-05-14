@@ -233,7 +233,7 @@ void QsfpCache::dump() {
   auto lockedTcvrs = tcvrs_.rlock();
   for (const auto& item : *lockedTcvrs) {
     XLOG(INFO) << folly::to<std::string>(
-        item.first, " -> present=", item.second.present);
+        item.first, " -> present=", *item.second.present_ref());
   }
 }
 

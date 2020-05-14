@@ -147,7 +147,7 @@ class HwAlpmStressTest : public HwLinkStateDependentTest {
       addRoutes<AddrT>(getBucketCapacity<AddrT>() - 4, 5);
     };
     auto verifyPostWarmboot = [this]() {
-      auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+      auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
       auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
       auto [sip, dip] = getSrcDstIp<AddrT>();
       auto txPacket = utility::makeUDPTxPacket(

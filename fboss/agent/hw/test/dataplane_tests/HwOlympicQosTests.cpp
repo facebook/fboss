@@ -75,7 +75,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(uint8_t dscp, bool frontPanel) {
-    auto vlanId = VlanID(initialConfig().vlanPorts[0].vlanID);
+    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -104,10 +104,10 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   void sendPacketAndVerifyQueue(uint8_t dscp, int queueId, bool frontPanel) {
     auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto portStatsBefore = getLatestPortStats(portId);
-    auto queuePacketsBefore = portStatsBefore.queueOutPackets_[queueId];
+    auto queuePacketsBefore = portStatsBefore.queueOutPackets__ref()[queueId];
     sendPacket(dscp, frontPanel);
     auto portStatsAfter = getLatestPortStats(portId);
-    auto queuePacketsAfter = portStatsAfter.queueOutPackets_[queueId];
+    auto queuePacketsAfter = portStatsAfter.queueOutPackets__ref()[queueId];
     // Note, on some platforms, due to how loopbacked packets are pruned from
     // being broadcast, they will appear more than once on a queue counter,
     // so we can only check that the counter went up, not that it went up by

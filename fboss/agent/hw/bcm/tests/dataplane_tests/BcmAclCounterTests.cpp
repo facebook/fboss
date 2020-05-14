@@ -69,8 +69,8 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
     acl->proto_ref() = 0x11;
     acl->ipType_ref() = cfg::IpType::IP6;
     acl->ttl_ref() = cfg::Ttl();
-    acl->ttl_ref()->value = 128;
-    acl->ttl_ref()->mask = 128;
+    *acl->ttl_ref()->value_ref() = 128;
+    *acl->ttl_ref()->mask_ref() = 128;
     utility::addAclStat(config, kAclName, kCounterName);
   }
   void setupECMPForwarding() {

@@ -42,11 +42,11 @@ void checkSwAclSendToQueue(
   ASSERT_EQ(
       acl->getAclAction().value().getSendToQueue().value().second, sendToCPU);
   ASSERT_EQ(
-      acl->getAclAction().value().getSendToQueue().value().first.queueId,
+      *acl->getAclAction().value().getSendToQueue().value().first.queueId_ref(),
       queueId);
 }
 void popOneMatchToAction(cfg::SwitchConfig* config) {
-  config->dataPlaneTrafficPolicy_ref()->matchToAction.pop_back();
+  config->dataPlaneTrafficPolicy_ref()->matchToAction_ref()->pop_back();
 }
 void checkSwActionDscpValue(
     std::shared_ptr<SwitchState> state,
@@ -56,14 +56,15 @@ void checkSwActionDscpValue(
   ASSERT_TRUE(acl->getAclAction());
   ASSERT_TRUE(acl->getAclAction().value().getSetDscp());
   ASSERT_EQ(
-      acl->getAclAction().value().getSetDscp().value().dscpValue, dscpValue);
+      *acl->getAclAction().value().getSetDscp().value().dscpValue_ref(),
+      dscpValue);
 }
 void addSetDscpAction(
     cfg::SwitchConfig* config,
     const string& matcherName,
     int32_t dscpValue) {
   cfg::SetDscpMatchAction setDscpMatchAction;
-  setDscpMatchAction.dscpValue = dscpValue;
+  *setDscpMatchAction.dscpValue_ref() = dscpValue;
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.setDscp_ref() = setDscpMatchAction;
   addMatcher(config, matcherName, matchAction);

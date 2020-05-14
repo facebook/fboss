@@ -80,7 +80,11 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;
       agentConfig = AgentConfig::fromFile(FLAGS_config);
-      cfg = (platform->config()->thrift).platform.chip.get_bcm().config;
+      cfg = *(platform->config()->thrift)
+                 .platform_ref()
+                 ->chip_ref()
+                 ->get_bcm()
+                 .config_ref();
     } else {
       throw FbossError("No config file to load!");
     }

@@ -217,7 +217,7 @@ TEST(LldpManagerTest, NotEnabledTest) {
 
 TEST(LldpManagerTest, LldpParse) {
   cfg::SwitchConfig config = testConfigA();
-  config.ports[0].routable = true;
+  *config.ports[0].routable_ref() = true;
 
   auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
@@ -247,13 +247,14 @@ TEST(LldpManagerTest, LldpParse) {
 
 TEST(LldpManagerTest, LldpValidationPass) {
   cfg::SwitchConfig config = testConfigA();
-  config.ports[0].routable = true;
-  config.ports[0].Port::name_ref() = "FooP0";
-  config.ports[0].Port::description_ref() = "FooP0 Port Description here";
+  *config.ports[0].routable_ref() = true;
+  config.ports_ref()[0].Port::name_ref() = "FooP0";
+  config.ports_ref()[0].Port::description_ref() = "FooP0 Port Description here";
 
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME] =
+  config.ports[0].expectedLLDPValues_ref()[cfg::LLDPTag::SYSTEM_NAME] =
       "somesysname0";
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC] = "someportdesc0";
+  config.ports[0].expectedLLDPValues_ref()[cfg::LLDPTag::PORT_DESC] =
+      "someportdesc0";
 
   auto handle = createTestHandle(&config, SwitchFlags::ENABLE_LLDP);
   auto sw = handle->getSw();
@@ -283,17 +284,18 @@ TEST(LldpManagerTest, LldpValidationPass) {
 
 TEST(LldpManagerTest, LldpValidationFail) {
   cfg::SwitchConfig config = testConfigA();
-  config.ports[0].routable = true;
-  config.ports[0].Port::name_ref() = "FooP0";
-  config.ports[0].Port::description_ref() = "FooP0 Port Description here";
+  *config.ports[0].routable_ref() = true;
+  config.ports_ref()[0].Port::name_ref() = "FooP0";
+  config.ports_ref()[0].Port::description_ref() = "FooP0 Port Description here";
 
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::SYSTEM_NAME] =
+  config.ports[0].expectedLLDPValues_ref()[cfg::LLDPTag::SYSTEM_NAME] =
       "somesysname0";
-  config.ports[0].expectedLLDPValues[cfg::LLDPTag::PORT_DESC] = "someportdesc0";
+  config.ports[0].expectedLLDPValues_ref()[cfg::LLDPTag::PORT_DESC] =
+      "someportdesc0";
 
-  for (const auto& v : config.ports[0].expectedLLDPValues) {
+  for (const auto& v : *config.ports[0].expectedLLDPValues_ref()) {
     auto port_name = std::string("<no name set>");
-    auto port_name_opt = config.ports[0].Port::name_ref();
+    auto port_name_opt = config.ports_ref()[0].Port::name_ref();
     if (port_name_opt)
       port_name = *port_name_opt;
 

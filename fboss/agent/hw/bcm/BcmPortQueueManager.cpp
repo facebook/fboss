@@ -380,11 +380,11 @@ void BcmPortQueueManager::updateQueueStat(
 
   if (portStats) {
     if (statType == BcmCosQueueStatType::DROPPED_BYTES) {
-      portStats->queueOutDiscardBytes_[cosQ] = value;
+      portStats->queueOutDiscardBytes__ref()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_BYTES) {
-      portStats->queueOutBytes_[cosQ] = value;
+      portStats->queueOutBytes__ref()[cosQ] = value;
     } else if (statType == BcmCosQueueStatType::OUT_PACKETS) {
-      portStats->queueOutPackets_[cosQ] = value;
+      portStats->queueOutPackets__ref()[cosQ] = value;
     }
   }
 }

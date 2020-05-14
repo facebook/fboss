@@ -18,7 +18,7 @@ using namespace facebook::fboss;
 SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
     const cfg::Fields& hashFields) {
   SaiHashTraits::Attributes::NativeHashFieldList::ValueType nativeHashFields;
-  for (auto field : hashFields.ipv4Fields) {
+  for (auto field : *hashFields.ipv4Fields_ref()) {
     switch (field) {
       case cfg::IPv4Field::SOURCE_ADDRESS:
         nativeHashFields.emplace_back(SAI_NATIVE_HASH_FIELD_SRC_IP);
@@ -28,7 +28,7 @@ SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
         break;
     }
   }
-  for (auto field : hashFields.ipv6Fields) {
+  for (auto field : *hashFields.ipv6Fields_ref()) {
     switch (field) {
       case cfg::IPv6Field::SOURCE_ADDRESS:
         nativeHashFields.emplace_back(SAI_NATIVE_HASH_FIELD_SRC_IP);
@@ -40,7 +40,7 @@ SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
         throw FbossError("Hashing on Flow labels is not supported");
     }
   }
-  for (auto field : hashFields.transportFields) {
+  for (auto field : *hashFields.transportFields_ref()) {
     switch (field) {
       case cfg::TransportField::SOURCE_PORT:
         nativeHashFields.emplace_back(SAI_NATIVE_HASH_FIELD_L4_SRC_PORT);
@@ -50,7 +50,7 @@ SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
         break;
     }
   }
-  if (hashFields.mplsFields.size()) {
+  if (hashFields.mplsFields_ref()->size()) {
     throw FbossError("Hashing on MPLS fields is not supported");
   }
   return nativeHashFields;

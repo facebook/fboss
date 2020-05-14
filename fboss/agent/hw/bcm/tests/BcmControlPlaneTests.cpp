@@ -78,7 +78,7 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
 
   std::optional<cfg::PortQueue> getCfgQueue(int queueID) override {
     std::optional<cfg::PortQueue> cfgQueue{std::nullopt};
-    for (const auto& queue : programmedCfg_.cpuQueues) {
+    for (const auto& queue : *programmedCfg_.cpuQueues_ref()) {
       if (queue.id == queueID) {
         cfgQueue = queue;
         break;
@@ -116,7 +116,7 @@ TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
 TEST_F(BcmControlPlaneTest, ConfigCPUQueuesSetup) {
   auto setup = [=]() {
     auto cfg = initialConfig();
-    cfg.cpuQueues =
+    *cfg.cpuQueues_ref() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
   };
@@ -131,7 +131,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    cfg.cpuQueues =
+    *cfg.cpuQueues_ref() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
@@ -140,7 +140,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     }
 
     // change low queue pps from 100 to 1000. the last one is low queue
-    auto& lowQueue = cfg.cpuQueues.at(cfg.cpuQueues.size() - 1);
+    auto& lowQueue = cfg.cpuQueues_ref()->at(cfg.cpuQueues_ref()->size() - 1);
     lowQueue.portQueueRate_ref() = cfg::PortQueueRate();
     lowQueue.portQueueRate_ref()->set_pktsPerSec(utility::getRange(0, 1000));
 
@@ -167,8 +167,10 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     EXPECT_EQ(
         lowQ->getPortQueueRate().value().getType(),
         cfg::PortQueueRate::Type::pktsPerSec);
-    EXPECT_EQ(lowQ->getPortQueueRate().value().get_pktsPerSec().minimum, 0);
-    EXPECT_EQ(lowQ->getPortQueueRate().value().get_pktsPerSec().maximum, 1000);
+    EXPECT_EQ(
+        *lowQ->getPortQueueRate().value().get_pktsPerSec().minimum_ref(), 0);
+    EXPECT_EQ(
+        *lowQ->getPortQueueRate().value().get_pktsPerSec().maximum_ref(), 1000);
 
     // other queues shouldn't be affected
     for (int i = 1; i < swQueuesAfter.size(); i++) {
@@ -185,7 +187,7 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
   auto setup = [&]() {
     auto cfg = initialConfig();
     // first program the default cpu queues
-    cfg.cpuQueues =
+    *cfg.cpuQueues_ref() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());
     applyNewConfig(cfg);
 
@@ -194,7 +196,7 @@ TEST_F(BcmControlPlaneTest, DisableCPULowQueueSettings) {
     }
 
     // remove the low-prio queue
-    cfg.cpuQueues.erase(cfg.cpuQueues.begin() + 3);
+    cfg.cpuQueues_ref()->erase(cfg.cpuQueues_ref()->begin() + 3);
     applyNewConfig(cfg);
   };
 

@@ -46,25 +46,25 @@ void checkCoppAclMatch(
 
 void addInterface(cfg::SwitchConfig* config) {
   // add one interface, ipAddress
-  config->interfaces.resize(2);
-  config->interfaces[1].intfID = 2;
-  config->vlans.resize(3);
-  config->vlans[2].id = 2;
-  config->interfaces[1].vlanID = 2;
-  config->interfaces[1].routerID = 0;
-  config->interfaces[1].mac_ref() = "00:01:00:11:22:33";
-  config->interfaces[1].ipAddresses.resize(1);
-  config->interfaces[1].ipAddresses[0] = "::11:11:11/120";
+  config->interfaces_ref()->resize(2);
+  *config->interfaces[1].intfID_ref() = 2;
+  config->vlans_ref()->resize(3);
+  *config->vlans[2].id_ref() = 2;
+  *config->interfaces[1].vlanID_ref() = 2;
+  *config->interfaces[1].routerID_ref() = 0;
+  config->interfaces_ref()[1].mac_ref() = "00:01:00:11:22:33";
+  config->interfaces_ref()[1].ipAddresses_ref()->resize(1);
+  config->interfaces[1].ipAddresses_ref()[0] = "::11:11:11/120";
 }
 
 void delInterface(cfg::SwitchConfig* config) {
   // remove the newly added interface and new ip of intf1
-  config->interfaces.pop_back();
-  config->vlans.pop_back();
+  config->interfaces_ref()->pop_back();
+  config->vlans_ref()->pop_back();
 }
 
 void addIpAddress(cfg::SwitchConfig* config, int idx, const std::string& ip) {
-  config->interfaces[idx].ipAddresses.push_back(ip);
+  config->interfaces_ref()[idx].ipAddresses_ref()->push_back(ip);
 }
 
 } // namespace

@@ -74,8 +74,8 @@ std::vector<NextHopThrift> nextHopsThrift() {
   std::vector<folly::IPAddress> addrs{nextHopAddr1, nextHopAddr2, nextHopAddr3};
   for (const auto& addr : addrs) {
     NextHopThrift nexthop;
-    nexthop.address = createV6LinkLocalNextHop(addr);
-    nexthop.weight = static_cast<int32_t>(ECMP_WEIGHT);
+    *nexthop.address_ref() = createV6LinkLocalNextHop(addr);
+    *nexthop.weight_ref() = static_cast<int32_t>(ECMP_WEIGHT);
     nexthops.emplace_back(std::move(nexthop));
   }
   return nexthops;

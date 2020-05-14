@@ -104,14 +104,15 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
-  auto groups =
-      folly::gen::from(*ports) |
+  auto groups = folly::gen::from(*ports) |
       folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
-        return item.second.__isset.transceiverIdx;
-      }) |
+                  return item.second.__isset.transceiverIdx;
+                }) |
       folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
-        return item.second.transceiverIdx_ref().value_unchecked().transceiverId;
-      }) |
+                  return *item.second.transceiverIdx_ref()
+                              .value_unchecked()
+                              .transceiverId_ref();
+                }) |
       folly::gen::as<std::vector>();
 
   for (auto& group : groups) {
@@ -195,29 +196,29 @@ void WedgeManager::publishI2cTransactionStats() {
   for (const I2cControllerStats& counter : counters) {
     // Publish all the counters to FbAgent
 
-    auto statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".readTotal");
-    tcData().setCounter(statName, counter.readTotal_);
+    auto statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".readTotal");
+    tcData().setCounter(statName, *counter.readTotal__ref());
 
-    statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".readFailed");
-    tcData().setCounter(statName, counter.readFailed_);
+    statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".readFailed");
+    tcData().setCounter(statName, *counter.readFailed__ref());
 
-    statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".readBytes");
-    tcData().setCounter(statName, counter.readBytes_);
+    statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".readBytes");
+    tcData().setCounter(statName, *counter.readBytes__ref());
 
-    statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeTotal");
-    tcData().setCounter(statName, counter.writeTotal_);
+    statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".writeTotal");
+    tcData().setCounter(statName, *counter.writeTotal__ref());
 
-    statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeFailed");
-    tcData().setCounter(statName, counter.writeFailed_);
+    statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".writeFailed");
+    tcData().setCounter(statName, *counter.writeFailed__ref());
 
-    statName =
-      folly::to<std::string>("qsfp.", counter.controllerName_, ".writeBytes");
-    tcData().setCounter(statName, counter.writeBytes_);
+    statName = folly::to<std::string>(
+        "qsfp.", *counter.controllerName__ref(), ".writeBytes");
+    tcData().setCounter(statName, *counter.writeBytes__ref());
   }
 }
 

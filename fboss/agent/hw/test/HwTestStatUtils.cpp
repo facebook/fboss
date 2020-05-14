@@ -23,8 +23,8 @@ void updateHwSwitchStats(HwSwitch* hw) {
 }
 
 uint64_t getPortOutPkts(HwPortStats portStats) {
-  return portStats.outUnicastPkts_ + portStats.outMulticastPkts_ +
-      portStats.outBroadcastPkts_;
+  return *portStats.outUnicastPkts__ref() + *portStats.outMulticastPkts__ref() +
+      *portStats.outBroadcastPkts__ref();
 }
 
 } // namespace facebook::fboss

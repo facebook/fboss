@@ -239,8 +239,8 @@ std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
   portQueue->setName(queueName);
   cfg::PortQueueRate portQueueRate;
   cfg::Range range;
-  range.minimum = minPps;
-  range.maximum = maxPps;
+  *range.minimum_ref() = minPps;
+  *range.maximum_ref() = maxPps;
   portQueueRate.set_pktsPerSec(range);
   portQueue->setPortQueueRate(portQueueRate);
   portQueue->setWeight(weight);

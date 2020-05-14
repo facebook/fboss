@@ -16,7 +16,8 @@
 namespace facebook::fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
-  auto& cfg = config()->thrift.platform.chip.get_bcm().config;
+  auto& cfg =
+      *config()->thrift.platform_ref()->chip_ref()->get_bcm().config_ref();
   std::vector<std::string> nameValStrs;
   for (const auto& entry : cfg) {
     nameValStrs.emplace_back(
@@ -32,7 +33,7 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(port.mapping.id));
+      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
     }
   }
   return allPortsinGroup;

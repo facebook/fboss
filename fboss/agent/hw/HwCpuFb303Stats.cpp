@@ -94,9 +94,9 @@ void HwCpuFb303Stats::updateStats(
     updateQueueStat(
         kInDroppedPkts(),
         queueIdAndName.first,
-        curPortStats.queueOutDiscardPackets_);
+        *curPortStats.queueOutDiscardPackets__ref());
     updateQueueStat(
-        kInPkts(), queueIdAndName.first, curPortStats.queueOutPackets_);
+        kInPkts(), queueIdAndName.first, *curPortStats.queueOutPackets__ref());
   }
 }
 

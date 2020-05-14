@@ -52,8 +52,8 @@ namespace facebook::fboss {
 
 state::PortQueueFields PortQueueFields::toThrift() const {
   state::PortQueueFields queue;
-  queue.id = id;
-  queue.weight = weight;
+  *queue.id_ref() = id;
+  *queue.weight_ref() = weight;
   if (reservedBytes) {
     queue.reserved_ref() = reservedBytes.value();
   }
@@ -61,8 +61,9 @@ state::PortQueueFields PortQueueFields::toThrift() const {
     queue.scalingFactor_ref() =
         cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(*scalingFactor);
   }
-  queue.scheduling = cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
-  queue.streamType = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
+  *queue.scheduling_ref() =
+      cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
+  *queue.streamType_ref() = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
   if (name) {
     queue.name_ref() = name.value();
   }
@@ -100,19 +101,19 @@ state::PortQueueFields PortQueueFields::toThrift() const {
 PortQueueFields PortQueueFields::fromThrift(
     state::PortQueueFields const& queueThrift) {
   PortQueueFields queue;
-  queue.id = static_cast<uint8_t>(queueThrift.id);
+  queue.id = static_cast<uint8_t>(*queueThrift.id_ref());
 
-  auto const itrStreamType =
-      cfg::_StreamType_NAMES_TO_VALUES.find(queueThrift.streamType.c_str());
+  auto const itrStreamType = cfg::_StreamType_NAMES_TO_VALUES.find(
+      queueThrift.streamType_ref()->c_str());
   CHECK(itrStreamType != cfg::_StreamType_NAMES_TO_VALUES.end());
   queue.streamType = itrStreamType->second;
 
   auto const itrSched = cfg::_QueueScheduling_NAMES_TO_VALUES.find(
-      queueThrift.scheduling.c_str());
+      queueThrift.scheduling_ref()->c_str());
   CHECK(itrSched != cfg::_QueueScheduling_NAMES_TO_VALUES.end());
   queue.scheduling = itrSched->second;
 
-  queue.weight = queueThrift.weight;
+  queue.weight = *queueThrift.weight_ref();
   if (queueThrift.reserved_ref()) {
     queue.reservedBytes = queueThrift.reserved_ref().value();
   }
@@ -197,13 +198,13 @@ std::string PortQueue::toString() const {
     switch (portQueueRate.getType()) {
       case cfg::PortQueueRate::Type::pktsPerSec:
         type = "pps";
-        rateMin = portQueueRate.get_pktsPerSec().minimum;
-        rateMax = portQueueRate.get_pktsPerSec().maximum;
+        rateMin = *portQueueRate.get_pktsPerSec().minimum_ref();
+        rateMax = *portQueueRate.get_pktsPerSec().maximum_ref();
         break;
       case cfg::PortQueueRate::Type::kbitsPerSec:
         type = "pps";
-        rateMin = portQueueRate.get_kbitsPerSec().minimum;
-        rateMax = portQueueRate.get_kbitsPerSec().maximum;
+        rateMin = *portQueueRate.get_kbitsPerSec().minimum_ref();
+        rateMax = *portQueueRate.get_kbitsPerSec().maximum_ref();
         break;
       case cfg::PortQueueRate::Type::__EMPTY__:
         // needed to handle error from -Werror=switch, fall through

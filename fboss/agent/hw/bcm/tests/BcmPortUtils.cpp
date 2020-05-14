@@ -33,9 +33,11 @@ void updatePortProfileIDAndName(
     const facebook::fboss::Platform* platform) {
   auto platformPort = platform->getPlatformPort(portID);
   if (auto entry = platformPort->getPlatformPortEntry()) {
-    config->ports[portIndex].name_ref() = entry->mapping.name;
-    config->ports[portIndex].profileID =
-        platformPort->getProfileIDBySpeed(config->ports[portIndex].speed);
+    config->ports_ref()[portIndex].name_ref() =
+        *entry->mapping_ref()->name_ref();
+    *config->ports[portIndex].profileID_ref() =
+        platformPort->getProfileIDBySpeed(
+            *config->ports[portIndex].speed_ref());
   } else {
     throw facebook::fboss::FbossError(
         "Port:", portID, " doesn't have PlatformPortEntry");
@@ -129,9 +131,9 @@ void enableOneLane(
   bool firstLane = true;
   int portIndex = 0;
   for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    config->ports[portIndex].state =
+    *config->ports[portIndex].state_ref() =
         firstLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    config->ports[portIndex].speed =
+    *config->ports[portIndex].speed_ref() =
         firstLane ? enabledLaneSpeed : disabledLaneSpeed;
     updatePortProfileIDAndName(config, portIndex, *portItr, platform);
     firstLane = false;
@@ -146,8 +148,8 @@ void enableAllLanes(
   auto portItr = allPortsinGroup.begin();
   int portIndex = 0;
   for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    config->ports[portIndex].speed = enabledLaneSpeed;
-    config->ports[portIndex].state = cfg::PortState::ENABLED;
+    *config->ports[portIndex].speed_ref() = enabledLaneSpeed;
+    *config->ports[portIndex].state_ref() = cfg::PortState::ENABLED;
     updatePortProfileIDAndName(config, portIndex, *portItr, platform);
   }
 }
@@ -163,9 +165,9 @@ void enableTwoLanes(
   int portIndex = 0;
   for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
     oddLane = (*portItr - allPortsinGroup.front()) % 2 == 0 ? true : false;
-    config->ports[portIndex].state =
+    *config->ports[portIndex].state_ref() =
         oddLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    config->ports[portIndex].speed =
+    *config->ports[portIndex].speed_ref() =
         oddLane ? enabledLaneSpeed : disabledLaneSpeed;
     updatePortProfileIDAndName(config, portIndex, *portItr, platform);
   }

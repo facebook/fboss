@@ -103,43 +103,43 @@ void registerPortsAndPopulateConfig(
     state->registerPort(port, folly::to<string>("port", int(port)));
     vlans.insert(vlan);
   }
-  config.ports.resize(port2Vlan.size());
+  config.ports_ref()->resize(port2Vlan.size());
   int index = 0;
   for (const auto& portAndVlan : port2Vlan) {
-    auto& portObj = config.ports[index++];
+    auto& portObj = config.ports_ref()[index++];
     int portInt = int(portAndVlan.first);
-    portObj.logicalID = portInt;
+    *portObj.logicalID_ref() = portInt;
     portObj.name_ref() = folly::to<std::string>("port", portInt);
   }
 
   index = 0;
-  config.vlans.resize(vlans.size());
+  config.vlans_ref()->resize(vlans.size());
   for (const auto& vlanTyped : vlans) {
-    auto& vlanObj = config.vlans[index++];
+    auto& vlanObj = config.vlans_ref()[index++];
     int vlanInt = int(vlanTyped);
-    vlanObj.id = vlanInt;
-    vlanObj.name = folly::to<std::string>("vlan", vlanInt);
+    *vlanObj.id_ref() = vlanInt;
+    *vlanObj.name_ref() = folly::to<std::string>("vlan", vlanInt);
     vlanObj.intfID_ref() = vlanInt; // interface and vlan ids are the same
   }
 
-  config.vlanPorts.resize(port2Vlan.size());
+  config.vlanPorts_ref()->resize(port2Vlan.size());
   index = 0;
   for (const auto& portAndVlan : port2Vlan) {
-    auto& vlanPortObj = config.vlanPorts[index++];
+    auto& vlanPortObj = config.vlanPorts_ref()[index++];
     int portInt = int(portAndVlan.first);
     int vlanInt = int(portAndVlan.second);
-    vlanPortObj.logicalPort = portInt;
-    vlanPortObj.vlanID = vlanInt;
-    vlanPortObj.emitTags = false;
+    *vlanPortObj.logicalPort_ref() = portInt;
+    *vlanPortObj.vlanID_ref() = vlanInt;
+    *vlanPortObj.emitTags_ref() = false;
   }
 
-  config.interfaces.resize(vlans.size());
+  config.interfaces_ref()->resize(vlans.size());
   index = 0;
   for (const auto& vlanTyped : vlans) {
-    cfg::Interface& interfaceObj = config.interfaces[index++];
+    cfg::Interface& interfaceObj = config.interfaces_ref()[index++];
     int vlanInt = int(vlanTyped);
-    interfaceObj.intfID = vlanInt;
-    interfaceObj.vlanID = vlanInt;
+    *interfaceObj.intfID_ref() = vlanInt;
+    *interfaceObj.vlanID_ref() = vlanInt;
     if (vlan2MacPtr) {
       // If the map is provided, it should have outgoing mac for each
       // interface!

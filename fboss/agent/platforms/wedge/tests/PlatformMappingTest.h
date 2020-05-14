@@ -44,7 +44,7 @@ class PlatformMappingTest : public ::testing::Test {
 
     int numIphy = 0, numXphy = 0, numTcvr = 0;
     for (const auto& chip : mapping->getChips()) {
-      switch (chip.second.type) {
+      switch (*chip.second.type_ref()) {
         case phy::DataPlanePhyChipType::IPHY:
           numIphy++;
           break;

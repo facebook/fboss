@@ -194,7 +194,8 @@ bool HwSwitchEnsemble::waitForAnyPortOutBytesIncrement(
     for (const auto& portStat : originalPortStats) {
       auto newPortStatItr = newPortStats.find(portStat.first);
       if (newPortStatItr != newPortStats.end()) {
-        if (newPortStatItr->second.outBytes_ > portStat.second.outBytes_) {
+        if (*newPortStatItr->second.outBytes__ref() >
+            *portStat.second.outBytes__ref()) {
           return true;
         }
       }

@@ -776,58 +776,76 @@ void BcmPort::updateStats() {
   // All stats start with a unitialized (-1) value. If there are no in discards
   // we will just report that as the monotonic counter. Instead set it to
   // 0 if uninintialized
-  curPortStats.inDiscards_ =
-      curPortStats.inDiscards_ == hardware_stats_constants::STAT_UNINITIALIZED()
+  *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
+          hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
-      : curPortStats.inDiscards_;
-  updateStat(now, kInBytes(), snmpIfHCInOctets, &curPortStats.inBytes_);
+      : *curPortStats.inDiscards__ref();
   updateStat(
-      now, kInUnicastPkts(), snmpIfHCInUcastPkts, &curPortStats.inUnicastPkts_);
+      now, kInBytes(), snmpIfHCInOctets, &(*curPortStats.inBytes__ref()));
+  updateStat(
+      now,
+      kInUnicastPkts(),
+      snmpIfHCInUcastPkts,
+      &(*curPortStats.inUnicastPkts__ref()));
   updateStat(
       now,
       kInMulticastPkts(),
       snmpIfHCInMulticastPkts,
-      &curPortStats.inMulticastPkts_);
+      &(*curPortStats.inMulticastPkts__ref()));
   updateStat(
       now,
       kInBroadcastPkts(),
       snmpIfHCInBroadcastPkts,
-      &curPortStats.inBroadcastPkts_);
+      &(*curPortStats.inBroadcastPkts__ref()));
   updateStat(
-      now, kInDiscardsRaw(), snmpIfInDiscards, &curPortStats.inDiscardsRaw_);
-  updateStat(now, kInErrors(), snmpIfInErrors, &curPortStats.inErrors_);
+      now,
+      kInDiscardsRaw(),
+      snmpIfInDiscards,
+      &(*curPortStats.inDiscardsRaw__ref()));
+  updateStat(
+      now, kInErrors(), snmpIfInErrors, &(*curPortStats.inErrors__ref()));
   updateStat(
       now,
       kInIpv4HdrErrors(),
       snmpIpInHdrErrors,
-      &curPortStats.inIpv4HdrErrors_);
+      &(*curPortStats.inIpv4HdrErrors__ref()));
   updateStat(
       now,
       kInIpv6HdrErrors(),
       snmpIpv6IfStatsInHdrErrors,
-      &curPortStats.inIpv6HdrErrors_);
-  updateStat(now, kInPause(), snmpDot3InPauseFrames, &curPortStats.inPause_);
+      &(*curPortStats.inIpv6HdrErrors__ref()));
+  updateStat(
+      now, kInPause(), snmpDot3InPauseFrames, &(*curPortStats.inPause__ref()));
   // Egress Stats
-  updateStat(now, kOutBytes(), snmpIfHCOutOctets, &curPortStats.outBytes_);
+  updateStat(
+      now, kOutBytes(), snmpIfHCOutOctets, &(*curPortStats.outBytes__ref()));
   updateStat(
       now,
       kOutUnicastPkts(),
       snmpIfHCOutUcastPkts,
-      &curPortStats.outUnicastPkts_);
+      &(*curPortStats.outUnicastPkts__ref()));
   updateStat(
       now,
       kOutMulticastPkts(),
       snmpIfHCOutMulticastPkts,
-      &curPortStats.outMulticastPkts_);
+      &(*curPortStats.outMulticastPkts__ref()));
   updateStat(
       now,
       kOutBroadcastPkts(),
       snmpIfHCOutBroadcastPckts,
-      &curPortStats.outBroadcastPkts_);
+      &(*curPortStats.outBroadcastPkts__ref()));
   updateStat(
-      now, kOutDiscards(), snmpIfOutDiscards, &curPortStats.outDiscards_);
-  updateStat(now, kOutErrors(), snmpIfOutErrors, &curPortStats.outErrors_);
-  updateStat(now, kOutPause(), snmpDot3OutPauseFrames, &curPortStats.outPause_);
+      now,
+      kOutDiscards(),
+      snmpIfOutDiscards,
+      &(*curPortStats.outDiscards__ref()));
+  updateStat(
+      now, kOutErrors(), snmpIfOutErrors, &(*curPortStats.outErrors__ref()));
+  updateStat(
+      now,
+      kOutPause(),
+      snmpDot3OutPauseFrames,
+      &(*curPortStats.outPause__ref()));
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
     // ECN stats not supported by TD2
@@ -835,18 +853,19 @@ void BcmPort::updateStats() {
         now,
         kOutEcnCounter(),
         snmpBcmTxEcnErrors,
-        &curPortStats.outEcnCounter_);
+        &(*curPortStats.outEcnCounter__ref()));
   }
   updateStat(
       now,
       kInDstNullDiscards(),
       snmpBcmCustomReceive3,
-      &curPortStats.inDstNullDiscards_);
+      &(*curPortStats.inDstNullDiscards__ref()));
   updateFecStats(now, curPortStats);
   queueManager_->updateQueueStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {lastPortStats.inDstNullDiscards_, curPortStats.inDstNullDiscards_}};
+      {*lastPortStats.inDstNullDiscards__ref(),
+       *curPortStats.inDstNullDiscards__ref()}};
   if (isMmuLossy()) {
     // If MMU setup as lossy, all incoming pause frames will be
     // discarded and will count towards in discards. This makes in discards
@@ -856,12 +875,12 @@ void BcmPort::updateStats() {
     toSubtractFromInDiscardsRaw.emplace_back(
         lastPortStats.inPause_, curPortStats.inPause_);
   }
-  curPortStats.inDiscards_ += utility::subtractIncrements(
-      {lastPortStats.inDiscardsRaw_, curPortStats.inDiscardsRaw_},
+  *curPortStats.inDiscards__ref() += utility::subtractIncrements(
+      {*lastPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
       toSubtractFromInDiscardsRaw);
 
   auto inDiscards = getPortCounterIf(kInDiscards());
-  inDiscards->updateValue(now, curPortStats.inDiscards_);
+  inDiscards->updateValue(now, *curPortStats.inDiscards__ref());
 
   *lockedLastPortStatsPtr = BcmPortStats(curPortStats, now);
 
@@ -910,19 +929,25 @@ void BcmPort::updateFecStats(
   }
 
   fec_stat_accumulate(
-      unit_, port_, corrected_ctrl, &curPortStats.fecCorrectableErrors);
+      unit_,
+      port_,
+      corrected_ctrl,
+      &(*curPortStats.fecCorrectableErrors_ref()));
   fec_stat_accumulate(
-      unit_, port_, uncorrected_ctrl, &curPortStats.fecUncorrectableErrors);
+      unit_,
+      port_,
+      uncorrected_ctrl,
+      &(*curPortStats.fecUncorrectableErrors_ref()));
 
   getPortCounterIf(kFecCorrectable())
-      ->updateValue(now, curPortStats.fecCorrectableErrors);
+      ->updateValue(now, *curPortStats.fecCorrectableErrors_ref());
   getPortCounterIf(kFecUncorrectable())
-      ->updateValue(now, curPortStats.fecUncorrectableErrors);
+      ->updateValue(now, *curPortStats.fecUncorrectableErrors_ref());
 }
 
 void BcmPort::BcmPortStats::setQueueWaterMarks(
     std::map<int16_t, int64_t> queueId2WatermarkBytes) {
-  portStats_.queueWatermarkBytes_ = std::move(queueId2WatermarkBytes);
+  *portStats_.queueWatermarkBytes__ref() = std::move(queueId2WatermarkBytes);
 }
 
 void BcmPort::setQueueWaterMarks(
@@ -979,7 +1004,7 @@ void BcmPort::updatePktLenHist(
 }
 
 BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
-  auto queueInitStats = folly::copy(portStats_.queueOutDiscardBytes_);
+  auto queueInitStats = folly::copy(*portStats_.queueOutDiscardBytes__ref());
   for (auto cosq = 0; cosq < numUnicastQueues; ++cosq) {
     queueInitStats.emplace(cosq, 0);
   }
@@ -1368,7 +1393,7 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  auto modulation = portProfileConfig->iphy.modulation;
+  auto modulation = *portProfileConfig->iphy_ref()->modulation_ref();
   auto desiredSignalling = (modulation == phy::IpModulation::PAM4)
       ? bcmPortPhySignallingModePAM4
       : bcmPortPhySignallingModeNRZ;
@@ -1410,9 +1435,12 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
         swPort->getName());
 
     if (desiredSignalling != tx.signalling_mode ||
-        tx.pre2 != txSettings->pre2 || tx.pre != txSettings->pre ||
-        tx.main != txSettings->main || tx.post != txSettings->post ||
-        tx.post2 != txSettings->post2 || tx.post3 != txSettings->post3) {
+        tx.pre2 != *txSettings->pre2_ref() ||
+        tx.pre != *txSettings->pre_ref() ||
+        tx.main != *txSettings->main_ref() ||
+        tx.post != *txSettings->post_ref() ||
+        tx.post2 != *txSettings->post2_ref() ||
+        tx.post3 != *txSettings->post3_ref()) {
       // settings don't match, reprogram all lanes
       needsReprogramming = true;
       break;
@@ -1433,12 +1461,12 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
     bcm_port_phy_tx_t tx;
     bcm_port_phy_tx_t_init(&tx);
 
-    tx.pre2 = txSettings->pre2;
-    tx.pre = txSettings->pre;
-    tx.main = txSettings->main;
-    tx.post = txSettings->post;
-    tx.post2 = txSettings->post2;
-    tx.post3 = txSettings->post3;
+    tx.pre2 = *txSettings->pre2_ref();
+    tx.pre = *txSettings->pre_ref();
+    tx.main = *txSettings->main_ref();
+    tx.post = *txSettings->post_ref();
+    tx.post2 = *txSettings->post2_ref();
+    tx.post3 = *txSettings->post3_ref();
     tx.tx_tap_mode = bcmPortPhyTxTapMode6Tap;
     tx.signalling_mode = desiredSignalling;
 
@@ -1522,8 +1550,8 @@ bool BcmPort::isValidLocalPort(bcm_gport_t gport) {
 
 void BcmPort::setPause(const std::shared_ptr<Port>& swPort) {
   auto pause = swPort->getPause();
-  int expectTx = (pause.tx) ? 1 : 0;
-  int expectRx = (pause.rx) ? 1 : 0;
+  int expectTx = (*pause.tx_ref()) ? 1 : 0;
+  int expectRx = (*pause.rx_ref()) ? 1 : 0;
 
   int curTx = 0;
   int curRx = 0;

@@ -27,113 +27,113 @@ using namespace facebook::fboss;
 namespace {
 cfg::SwitchConfig interfaceRoutesConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
 
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
 
   return config;
 }
 
 cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].id = 1;
-  config.vlans[1].id = 2;
+  config.vlans_ref()->resize(2);
+  *config.vlans[0].id_ref() = 1;
+  *config.vlans[1].id_ref() = 2;
 
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
-  config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 2;
-  config.interfaces[1].routerID = 0;
-  config.interfaces[1].__isset.mac = true;
-  config.interfaces[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
-  config.interfaces[1].ipAddresses.resize(2);
-  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
-  config.interfaces[1].ipAddresses[1] = "2::1/48";
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
+  *config.interfaces[1].intfID_ref() = 2;
+  *config.interfaces[1].vlanID_ref() = 2;
+  *config.interfaces[1].routerID_ref() = 0;
+  config.interfaces_ref()[1].__isset.mac = true;
+  config.interfaces_ref()[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  config.interfaces[1].ipAddresses_ref()[0] = "2.2.2.2/24";
+  config.interfaces[1].ipAddresses_ref()[1] = "2::1/48";
 
   config.__isset.staticRoutesWithNhops = true;
-  config.staticRoutesWithNhops.resize(2);
-  config.staticRoutesWithNhops[0].nexthops.resize(1);
-  config.staticRoutesWithNhops[0].prefix = "2001::/64";
-  config.staticRoutesWithNhops[0].nexthops[0] = "2::2";
-  config.staticRoutesWithNhops[1].nexthops.resize(1);
-  config.staticRoutesWithNhops[1].prefix = "20.20.20.0/24";
-  config.staticRoutesWithNhops[1].nexthops[0] = "2.2.2.3";
+  config.staticRoutesWithNhops_ref()->resize(2);
+  config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
+  *config.staticRoutesWithNhops[0].prefix_ref() = "2001::/64";
+  config.staticRoutesWithNhops[0].nexthops_ref()[0] = "2::2";
+  config.staticRoutesWithNhops_ref()[1].nexthops_ref()->resize(1);
+  *config.staticRoutesWithNhops[1].prefix_ref() = "20.20.20.0/24";
+  config.staticRoutesWithNhops[1].nexthops_ref()[0] = "2.2.2.3";
 
   return config;
 }
 
 cfg::SwitchConfig interfaceAndStaticRoutesWithoutNextHopsConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(1);
-  config.vlans[0].id = 1;
+  config.vlans_ref()->resize(1);
+  *config.vlans[0].id_ref() = 1;
 
-  config.interfaces.resize(1);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
+  config.interfaces_ref()->resize(1);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
 
   config.__isset.staticRoutesToCPU = true;
-  config.staticRoutesToCPU.resize(2);
-  config.staticRoutesToCPU[0].routerID = 0;
-  config.staticRoutesToCPU[0].prefix = "2001::/64";
-  config.staticRoutesToCPU[1].routerID = 0;
-  config.staticRoutesToCPU[1].prefix = "2.1.2.2/16";
+  config.staticRoutesToCPU_ref()->resize(2);
+  *config.staticRoutesToCPU[0].routerID_ref() = 0;
+  *config.staticRoutesToCPU[0].prefix_ref() = "2001::/64";
+  *config.staticRoutesToCPU[1].routerID_ref() = 0;
+  *config.staticRoutesToCPU[1].prefix_ref() = "2.1.2.2/16";
 
   config.__isset.staticRoutesToNull = true;
-  config.staticRoutesToNull.resize(2);
-  config.staticRoutesToNull[0].routerID = 0;
-  config.staticRoutesToNull[0].prefix = "2002::/64";
-  config.staticRoutesToNull[1].routerID = 0;
-  config.staticRoutesToNull[1].prefix = "2.2.2.2/16";
+  config.staticRoutesToNull_ref()->resize(2);
+  *config.staticRoutesToNull[0].routerID_ref() = 0;
+  *config.staticRoutesToNull[0].prefix_ref() = "2002::/64";
+  *config.staticRoutesToNull[1].routerID_ref() = 0;
+  *config.staticRoutesToNull[1].prefix_ref() = "2.2.2.2/16";
 
   return config;
 }
 
 cfg::SwitchConfig dualVrfConfig() {
   cfg::SwitchConfig config;
-  config.vlans.resize(2);
-  config.vlans[0].id = 1;
-  config.vlans[1].id = 2;
+  config.vlans_ref()->resize(2);
+  *config.vlans[0].id_ref() = 1;
+  *config.vlans[1].id_ref() = 2;
 
-  config.interfaces.resize(2);
-  config.interfaces[0].intfID = 1;
-  config.interfaces[0].vlanID = 1;
-  config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
-  config.interfaces[0].ipAddresses.resize(2);
-  config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
-  config.interfaces[0].ipAddresses[1] = "1::1/48";
-  config.interfaces[1].intfID = 2;
-  config.interfaces[1].vlanID = 2;
-  config.interfaces[1].routerID = 1;
-  config.interfaces[1].__isset.mac = true;
-  config.interfaces[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
-  config.interfaces[1].ipAddresses.resize(2);
-  config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
-  config.interfaces[1].ipAddresses[1] = "2::1/48";
+  config.interfaces_ref()->resize(2);
+  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces[0].vlanID_ref() = 1;
+  *config.interfaces[0].routerID_ref() = 0;
+  config.interfaces_ref()[0].__isset.mac = true;
+  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
+  config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
+  config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
+  *config.interfaces[1].intfID_ref() = 2;
+  *config.interfaces[1].vlanID_ref() = 2;
+  *config.interfaces[1].routerID_ref() = 1;
+  config.interfaces_ref()[1].__isset.mac = true;
+  config.interfaces_ref()[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
+  config.interfaces[1].ipAddresses_ref()[0] = "2.2.2.2/24";
+  config.interfaces[1].ipAddresses_ref()[1] = "2::1/48";
 
   return config;
 }
