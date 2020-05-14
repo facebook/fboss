@@ -120,7 +120,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   using RidAndCidr = std::pair<RouterID, folly::CIDRNetwork>;
   using NextHopAndVlan = std::pair<folly::IPAddress, VlanID>;
   using WithAndWithoutClassIDPrefixes =
-      std::pair<folly::F14FastSet<RidAndCidr>, folly::F14FastSet<RidAndCidr>>;
+      std::pair<std::set<RidAndCidr>, std::set<RidAndCidr>>;
 
   using RouteAndClassID =
       std::pair<RidAndCidr, std::optional<cfg::AclLookupClass>>;
@@ -154,7 +154,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    * non-emptry lookupClasses list.
    *
    * Today, the list of subnets we need to cache is very small. Thus,
-   * folly::F14FastSet is good enough. In future, if we need to cache a large
+   * std::set is good enough. In future, if we need to cache a large
    * number of subnets, we could use a Radix tree.
    */
   boost::container::flat_map<VlanID, folly::F14FastSet<folly::CIDRNetwork>>
@@ -223,7 +223,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    * to prefixes mapping.
    *
    * Today, the list of subnets we need to cache is very small. Thus,
-   * folly::F14FastSet is good enough. In future, if we need to cache a large
+   * std::set is good enough. In future, if we need to cache a large
    * number of subnets, we could use Radix tree.
    *
    * This maintains the list of prefixes that inherit classID from this
@@ -235,7 +235,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   /*
    * Set of prefixes with classID (from any [nexthop + vlan]).
    */
-  folly::F14FastSet<RidAndCidr> allPrefixesWithClassID_;
+  std::set<RidAndCidr> allPrefixesWithClassID_;
 
   SwSwitch* sw_;
 
