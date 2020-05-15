@@ -112,15 +112,18 @@ template <typename AddrT>
 void SaiRouteManager::addOrUpdateRoute(
     SaiRouteHandle* routeHandle,
     RouterID routerId,
-    const std::shared_ptr<Route<AddrT>>& swRoute) {
-  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
-  auto fwd = swRoute->getForwardInfo();
+    const std::shared_ptr<Route<AddrT>>& oldRoute,
+    const std::shared_ptr<Route<AddrT>>& newRoute) {
+  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, newRoute);
+  auto fwd = newRoute->getForwardInfo();
   sai_int32_t packetAction;
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
   std::optional<SaiRouteTraits::Attributes::Metadata> metadata;
-  if (swRoute->getClassID()) {
-    metadata = static_cast<sai_uint32_t>(swRoute->getClassID().value());
+  if (newRoute->getClassID()) {
+    metadata = static_cast<sai_uint32_t>(newRoute->getClassID().value());
+  } else if (oldRoute && oldRoute->getClassID()) {
+    metadata = 0;
   }
 
   if (fwd.getAction() == NEXTHOPS) {
@@ -133,7 +136,7 @@ void SaiRouteManager::addOrUpdateRoute(
      * router_interface which is the proper next hop for the subnet route.
      * (see sairoute.h for an explanation of router_interface_id as next hop)
      */
-    if (swRoute->isConnected()) {
+    if (newRoute->isConnected()) {
       CHECK_EQ(fwd.getNextHopSet().size(), 1);
       InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
       const SaiRouterInterfaceHandle* routerInterfaceHandle =
@@ -184,7 +187,7 @@ void SaiRouteManager::addOrUpdateRoute(
 template <typename AddrT>
 void SaiRouteManager::changeRoute(
     RouterID routerId,
-    const std::shared_ptr<Route<AddrT>>& /* oldSwRoute */,
+    const std::shared_ptr<Route<AddrT>>& oldSwRoute,
     const std::shared_ptr<Route<AddrT>>& newSwRoute) {
   SaiRouteTraits::RouteEntry entry =
       routeEntryFromSwRoute(routerId, newSwRoute);
@@ -197,7 +200,7 @@ void SaiRouteManager::changeRoute(
   if (!validRoute(newSwRoute)) {
     return;
   }
-  addOrUpdateRoute(itr->second.get(), routerId, newSwRoute);
+  addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute);
 }
 
 template <typename AddrT>
@@ -215,7 +218,8 @@ void SaiRouteManager::addRoute(
     return;
   }
   auto routeHandle = std::make_unique<SaiRouteHandle>();
-  addOrUpdateRoute(routeHandle.get(), routerId, swRoute);
+  addOrUpdateRoute(
+      routeHandle.get(), routerId, std::shared_ptr<Route<AddrT>>{}, swRoute);
   handles_.emplace(entry, std::move(routeHandle));
 }
 

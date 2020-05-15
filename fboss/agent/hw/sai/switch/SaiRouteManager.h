@@ -78,7 +78,8 @@ class SaiRouteManager {
   void addOrUpdateRoute(
       SaiRouteHandle* routeHandle,
       RouterID routerId,
-      const std::shared_ptr<Route<AddrT>>& swRoute);
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute);
 
   template <typename AddrT>
   bool validRoute(const std::shared_ptr<Route<AddrT>>& swRoute);
