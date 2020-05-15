@@ -398,12 +398,15 @@ source ./bin/setup_fboss_env
 ./bin/bcm_test --bcm_config ./share/bcm_configs/WEDGE100S+RSW-bcm.conf --flexports --gtest_filter=BcmQosPolicyTest.QosPolicyCreate
 ```
 
-### 3.1.2 Running all FBOSS tests
-FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs all tests relevant to the Wedge platform.
+### 3.1.2 Running FBOSS BCM tests
+FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs tests relevant to the BCM Wedge platform with optional filters.
 ```
 cd /opt/fboss
 source ./bin/setup_fboss_env
-./bin/test_runner.py
+./bin/run_test.py bcm
+./bin/run_test.py bcm --coldboot_only
+./bin/run_test.py bcm --filter=*BcmQosMap*
+./bin/run_test.py bcm --filter=*Route*V6* --coldboot_only
 ```
 
 ---
