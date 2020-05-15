@@ -20,8 +20,10 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
-#include <memory>
 #include "folly/container/F14Map.h"
+
+#include <memory>
+#include <mutex>
 
 namespace facebook::fboss {
 
@@ -55,7 +57,7 @@ class SaiHostifManager {
       cfg::PacketRxReason trapId,
       HostifTrapGroupSaiId trapGroupId,
       uint16_t priority);
-  void processHostifDelta(const StateDelta& delta);
+  void processHostifDelta(const StateDelta& delta, std::mutex& lock);
   SaiQueueHandle* getQueueHandle(const SaiQueueConfig& saiQueueConfig);
   const SaiQueueHandle* getQueueHandle(
       const SaiQueueConfig& saiQueueConfig) const;
@@ -71,8 +73,8 @@ class SaiHostifManager {
 
  private:
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
-  void processQueueDelta(const StateDelta& delta);
-  void processRxReasonToQueueDelta(const StateDelta& delta);
+  void processQueueDelta(const StateDelta& delta, std::mutex& lock);
+  void processRxReasonToQueueDelta(const StateDelta& delta, std::mutex& lock);
   void loadCpuPort();
   void loadCpuPortQueues();
   void changeCpuQueue(

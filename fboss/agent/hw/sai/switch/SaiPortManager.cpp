@@ -390,18 +390,26 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
   return getQueueHandleImpl(swId, saiQueueConfig);
 }
 
-void SaiPortManager::processPortDelta(const StateDelta& stateDelta) {
+void SaiPortManager::processPortDelta(
+    const StateDelta& stateDelta,
+    std::mutex& lock) {
   auto delta = stateDelta.getPortsDelta();
-  DeltaFunctions::forEachRemoved(
-      delta, [this](const auto& oldPort) { removePort(oldPort->getID()); });
-
-  DeltaFunctions::forEachChanged(
-      delta, [this](const auto& oldPort, const auto& newPort) {
-        changePort(oldPort, newPort);
-      });
-
-  DeltaFunctions::forEachAdded(
-      delta, [this](const auto& newPort) { addPort(newPort); });
+  auto processChanged = [this, &lock](
+                            const auto& oldPort, const auto& newPort) {
+    std::lock_guard<std::mutex> g{lock};
+    changePort(oldPort, newPort);
+  };
+  auto processAdded = [this, &lock](const auto& newPort) {
+    std::lock_guard<std::mutex> g{lock};
+    addPort(newPort);
+  };
+  auto processRemoved = [this, &lock](const auto& oldPort) {
+    std::lock_guard<std::mutex> g{lock};
+    removePort(oldPort->getID());
+  };
+  DeltaFunctions::forEachChanged(delta, processChanged);
+  DeltaFunctions::forEachAdded(delta, processAdded);
+  DeltaFunctions::forEachRemoved(delta, processRemoved);
 }
 
 const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {

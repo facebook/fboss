@@ -140,10 +140,6 @@ class SaiSwitch : public HwSwitch {
   void unregisterCallbacksLocked(
       const std::lock_guard<std::mutex>& lock) noexcept;
 
-  std::shared_ptr<SwitchState> stateChangedLocked(
-      const std::lock_guard<std::mutex>& lock,
-      const StateDelta& delta);
-
   bool isValidStateUpdateLocked(
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta) const;

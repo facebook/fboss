@@ -20,6 +20,7 @@
 #include <folly/MacAddress.h>
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <unordered_map>
 
@@ -43,8 +44,8 @@ class SaiSwitchManager {
       const std::optional<SwitchSaiId>& switchId);
   SwitchSaiId getSwitchSaiId() const;
 
-  void processLoadBalancerDelta(const StateDelta& delta);
-  void processQosMapDelta(const StateDelta& delta);
+  void processQosMapDelta(const StateDelta& delta, std::mutex& lock);
+  void processLoadBalancerDelta(const StateDelta& delta, std::mutex& lock);
 
   void resetHashes();
   void resetQosMaps();

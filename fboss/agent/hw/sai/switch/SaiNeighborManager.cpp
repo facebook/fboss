@@ -124,16 +124,21 @@ void SaiNeighborManager::removeNeighbor(
   subscribersForNeighbor_.erase(subscriberKey);
 }
 
-void SaiNeighborManager::processNeighborDelta(const StateDelta& delta) {
+void SaiNeighborManager::processNeighborDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     auto processChanged =
-        [this](const auto& oldNeighbor, const auto& newNeighbor) {
+        [this, &lock](const auto& oldNeighbor, const auto& newNeighbor) {
+          std::lock_guard g{lock};
           changeNeighbor(oldNeighbor, newNeighbor);
         };
-    auto processAdded = [this](const auto& newNeighbor) {
+    auto processAdded = [this, &lock](const auto& newNeighbor) {
+      std::lock_guard g{lock};
       addNeighbor(newNeighbor);
     };
-    auto processRemoved = [this](const auto& oldNeighbor) {
+    auto processRemoved = [this, &lock](const auto& oldNeighbor) {
+      std::lock_guard g{lock};
       removeNeighbor(oldNeighbor);
     };
     DeltaFunctions::forEachChanged(

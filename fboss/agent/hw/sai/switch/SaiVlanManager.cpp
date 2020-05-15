@@ -143,16 +143,25 @@ void SaiVlanManager::changeVlan(
   }
 }
 
-void SaiVlanManager::processVlanDelta(const VlanMapDelta& delta) {
-  auto processChanged = [this](const auto& oldVlan, const auto& newVlan) {
+void SaiVlanManager::processVlanDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
+  auto vlanDelta = delta.getVlansDelta();
+  auto processChanged = [this, &lock](
+                            const auto& oldVlan, const auto& newVlan) {
+    std::lock_guard g{lock};
     changeVlan(oldVlan, newVlan);
   };
-  auto processAdded = [this](const auto& newVlan) { addVlan(newVlan); };
-  auto processRemoved = [this](const auto& oldVlan) {
+  auto processAdded = [this, &lock](const auto& newVlan) {
+    std::lock_guard g{lock};
+    addVlan(newVlan);
+  };
+  auto processRemoved = [this, &lock](const auto& oldVlan) {
+    std::lock_guard g{lock};
     removeVlan(oldVlan->getID());
   };
   DeltaFunctions::forEachChanged(
-      delta, processChanged, processAdded, processRemoved);
+      vlanDelta, processChanged, processAdded, processRemoved);
 }
 
 const SaiVlanHandle* SaiVlanManager::getVlanHandle(VlanID swVlanId) const {

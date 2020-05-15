@@ -231,7 +231,9 @@ void SaiRouteManager::removeRoute(
   }
 }
 
-void SaiRouteManager::processRouteDelta(const StateDelta& delta) {
+void SaiRouteManager::processRouteDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   for (const auto& routeDelta : delta.getRouteTablesDelta()) {
     RouterID routerId;
     if (routeDelta.getOld()) {
@@ -239,14 +241,17 @@ void SaiRouteManager::processRouteDelta(const StateDelta& delta) {
     } else {
       routerId = routeDelta.getNew()->getID();
     }
-    auto processChanged = [this, routerId](
+    auto processChanged = [this, routerId, &lock](
                               const auto& oldRoute, const auto& newRoute) {
+      std::lock_guard<std::mutex> g{lock};
       changeRoute(routerId, oldRoute, newRoute);
     };
-    auto processAdded = [this, routerId](const auto& newRoute) {
+    auto processAdded = [this, routerId, &lock](const auto& newRoute) {
+      std::lock_guard<std::mutex> g{lock};
       addRoute(routerId, newRoute);
     };
-    auto processRemoved = [this, routerId](const auto& oldRoute) {
+    auto processRemoved = [this, routerId, &lock](const auto& oldRoute) {
+      std::lock_guard<std::mutex> g{lock};
       removeRoute(routerId, oldRoute);
     };
     DeltaFunctions::forEachChanged(

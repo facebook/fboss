@@ -66,7 +66,7 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
-  void processPortDelta(const StateDelta& stateDelta);
+  void processPortDelta(const StateDelta& stateDelta, std::mutex& lock);
   void updateStats();
   std::map<PortID, HwPortStats> getPortStats() const;
   void changeQueue(

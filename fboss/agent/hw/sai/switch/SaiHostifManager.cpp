@@ -105,6 +105,12 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
     cfg::PacketRxReason trapId,
     uint32_t queueId,
     uint16_t priority) {
+  XLOGF(
+      INFO,
+      "add trap for {}, send to queue {}, with priority {}",
+      apache::thrift::util::enumName(trapId),
+      queueId,
+      priority);
   if (handles_.find(trapId) != handles_.end()) {
     throw FbossError(
         "Attempted to re-add existing trap for rx reason: ",
@@ -155,7 +161,9 @@ void SaiHostifManager::changeHostifTrap(
   handleItr->second->trapGroup = hostifTrapGroup;
 }
 
-void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
+void SaiHostifManager::processRxReasonToQueueDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   auto controlPlaneDelta = delta.getControlPlaneDelta();
   auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
   auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
@@ -185,10 +193,12 @@ void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
           std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
       if (oldIndex != index ||
           oldRxReasonEntry->queueId != newRxReasonEntry.queueId) {
+        std::lock_guard<std::mutex> g{lock};
         changeHostifTrap(
             newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
       }
     } else {
+      std::lock_guard<std::mutex> g{lock};
       addHostifTrap(
           newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
     }
@@ -203,23 +213,29 @@ void SaiHostifManager::processRxReasonToQueueDelta(const StateDelta& delta) {
           return rxReasonEntry.rxReason == oldRxReasonEntry.rxReason;
         });
     if (newRxReasonEntry == newRxReasonToQueue.end()) {
+      std::lock_guard<std::mutex> g{lock};
       removeHostifTrap(oldRxReasonEntry.rxReason);
     }
   }
 }
 
-void SaiHostifManager::processQueueDelta(const StateDelta& delta) {
+void SaiHostifManager::processQueueDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   auto controlPlaneDelta = delta.getControlPlaneDelta();
   auto& oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
   auto& newQueueConfig = controlPlaneDelta.getNew()->getQueues();
+  std::lock_guard<std::mutex> g{lock};
   changeCpuQueue(oldQueueConfig, newQueueConfig);
 }
 
-void SaiHostifManager::processHostifDelta(const StateDelta& delta) {
+void SaiHostifManager::processHostifDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   // TODO: Can we have reason code to a queue mapping that does not have
   // corresponding sai queue oid for cpu port ?
-  processRxReasonToQueueDelta(delta);
-  processQueueDelta(delta);
+  processRxReasonToQueueDelta(delta, lock);
+  processQueueDelta(delta, lock);
 }
 
 SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(

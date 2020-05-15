@@ -22,6 +22,7 @@
 #include "folly/container/F14Map.h"
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace facebook::fboss {
@@ -51,7 +52,7 @@ class SaiRouterInterfaceManager {
   const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
       const InterfaceID& swId) const;
 
-  void processInterfaceDelta(const StateDelta& stateDelta);
+  void processInterfaceDelta(const StateDelta& stateDelta, std::mutex& lock);
 
  private:
   RouterInterfaceSaiId addOrUpdateRouterInterface(

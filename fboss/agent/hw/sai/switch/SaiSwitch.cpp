@@ -101,8 +101,17 @@ SaiSwitch::~SaiSwitch() {
 }
 
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return initLocked(lock, callback);
+  HwInitResult ret;
+  {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    ret = initLocked(lock, callback);
+  }
+  // N.B., state changed will be locking/unlocking in a more fine grained manner
+  // and expects the mutex to be unlocked
+  if (bootType_ == BootType::WARM_BOOT) {
+    stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+  }
+  return ret;
 }
 
 void SaiSwitch::unregisterCallbacks() noexcept {
@@ -126,8 +135,19 @@ void SaiSwitch::unregisterCallbacks() noexcept {
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return stateChangedLocked(lock, delta);
+  managerTable_->portManager().processPortDelta(delta, saiSwitchMutex_);
+  managerTable_->vlanManager().processVlanDelta(delta, saiSwitchMutex_);
+  managerTable_->switchManager().processQosMapDelta(delta, saiSwitchMutex_);
+  managerTable_->routerInterfaceManager().processInterfaceDelta(
+      delta, saiSwitchMutex_);
+  managerTable_->neighborManager().processNeighborDelta(delta, saiSwitchMutex_);
+  managerTable_->routeManager().processRouteDelta(delta, saiSwitchMutex_);
+  managerTable_->hostifManager().processHostifDelta(delta, saiSwitchMutex_);
+  managerTable_->inSegEntryManager().processInSegEntryDelta(
+      delta.getLabelForwardingInformationBaseDelta(), saiSwitchMutex_);
+  managerTable_->switchManager().processLoadBalancerDelta(
+      delta, saiSwitchMutex_);
+  return delta.newState();
 }
 
 bool SaiSwitch::isValidStateUpdate(const StateDelta& delta) const {
@@ -273,6 +293,10 @@ void SaiSwitch::packetRxCallbackTopHalf(
 void SaiSwitch::linkStateChangedCallback(
     uint32_t count,
     const sai_port_oper_status_notification_t* data) {
+  // TODO(borisb): re-add this back, as soon as we run link state notification
+  //               not in the callback context. Currently, it's a re-entrant
+  //               access deadlock
+  // std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   for (auto i = 0; i < count; i++) {
     auto state = data[i].port_state == SAI_PORT_OPER_STATUS_UP ? "up" : "down";
     XLOG(INFO) << "port " << state << " notification received for " << std::hex
@@ -378,11 +402,7 @@ HwInitResult SaiSwitch::initLocked(
   }
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
-  } else {
-    stateChangedLocked(
-        lock, StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   }
-
   return ret;
 }
 
@@ -453,24 +473,6 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterPortStateChangeCallback(switchId_);
   }
   switchApi.unregisterFdbEventCallback(switchId_);
-}
-
-std::shared_ptr<SwitchState> SaiSwitch::stateChangedLocked(
-    const std::lock_guard<std::mutex>& lock,
-    const StateDelta& delta) {
-  managerTableLocked(lock)->switchManager().processQosMapDelta(delta);
-  managerTableLocked(lock)->portManager().processPortDelta(delta);
-  managerTableLocked(lock)->vlanManager().processVlanDelta(
-      delta.getVlansDelta());
-  managerTableLocked(lock)->routerInterfaceManager().processInterfaceDelta(
-      delta);
-  managerTableLocked(lock)->neighborManager().processNeighborDelta(delta);
-  managerTableLocked(lock)->routeManager().processRouteDelta(delta);
-  managerTableLocked(lock)->hostifManager().processHostifDelta(delta);
-  managerTableLocked(lock)->inSegEntryManager().processInSegEntryDelta(
-      delta.getLabelForwardingInformationBaseDelta());
-  managerTableLocked(lock)->switchManager().processLoadBalancerDelta(delta);
-  return delta.newState();
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(

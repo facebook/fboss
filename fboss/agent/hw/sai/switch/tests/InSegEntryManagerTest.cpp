@@ -16,6 +16,8 @@
 
 #include <folly/Singleton.h>
 
+#include <mutex>
+
 namespace facebook::fboss {
 
 class InSegEntryManagerTest : public ManagerTestBase {
@@ -187,6 +189,7 @@ class InSegEntryManagerTest : public ManagerTestBase {
       EXPECT_EQ(labelStack, stack);
     }
   }
+  std::mutex lock;
 };
 
 TEST_F(InSegEntryManagerTest, createInSegEntry) {
@@ -201,7 +204,7 @@ TEST_F(InSegEntryManagerTest, createInSegEntry) {
       4 /* end next hop id */,
       LabelForwardingAction::LabelForwardingType::SWAP);
   NodeMapDelta<LabelForwardingInformationBase> delta(&empty, &fib);
-  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta, lock);
 
   // verify
   verifyLabelForwardingEntry(
@@ -237,7 +240,7 @@ TEST_F(InSegEntryManagerTest, changeInSegEntry) {
       4 /* end next hop id */,
       LabelForwardingAction::LabelForwardingType::SWAP);
   NodeMapDelta<LabelForwardingInformationBase> delta0(&empty, &fib0);
-  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0, lock);
   LabelForwardingInformationBase fib1{};
   // change
   addEntryToLabelForwardingInformationBase(
@@ -247,7 +250,7 @@ TEST_F(InSegEntryManagerTest, changeInSegEntry) {
       5 /* end next hop id */,
       LabelForwardingAction::LabelForwardingType::PUSH);
   NodeMapDelta<LabelForwardingInformationBase> delta1(&fib0, &fib1);
-  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1, lock);
 
   // verify
   verifyLabelForwardingEntry(
@@ -284,10 +287,10 @@ TEST_F(InSegEntryManagerTest, removeInSegEntry) {
       4 /* end next hop id */,
       LabelForwardingAction::LabelForwardingType::SWAP);
   NodeMapDelta<LabelForwardingInformationBase> delta0(&empty, &fib);
-  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta0, lock);
   // remove
   NodeMapDelta<LabelForwardingInformationBase> delta1(&fib, &empty);
-  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1);
+  saiManagerTable->inSegEntryManager().processInSegEntryDelta(delta1, lock);
 
   const auto* preWarmBootHandle =
       saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);

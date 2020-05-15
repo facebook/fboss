@@ -205,24 +205,34 @@ void SaiSwitchManager::removeLoadBalancer(
   ecmpV6Hash_.reset();
 }
 
-void SaiSwitchManager::processLoadBalancerDelta(const StateDelta& delta) {
+void SaiSwitchManager::processLoadBalancerDelta(
+    const StateDelta& delta,
+    std::mutex& lock) {
   DeltaFunctions::forEachChanged(
       delta.getLoadBalancersDelta(),
-      [this](
+      [this, &lock](
           const std::shared_ptr<LoadBalancer>& /*oldLb*/,
           const std::shared_ptr<LoadBalancer>& newLb) {
+        std::lock_guard<std::mutex> g{lock};
         addOrUpdateLoadBalancer(newLb);
       },
-      [this](const std::shared_ptr<LoadBalancer>& add) {
+      [this, &lock](const std::shared_ptr<LoadBalancer>& add) {
+        std::lock_guard<std::mutex> g{lock};
         addOrUpdateLoadBalancer(add);
       },
-      [this](const std::shared_ptr<LoadBalancer>& remove) {
+      [this, &lock](const std::shared_ptr<LoadBalancer>& remove) {
+        std::lock_guard<std::mutex> g{lock};
         removeLoadBalancer(remove);
       });
 }
 
 // Only handle the global default QoS policy.
-void SaiSwitchManager::processQosMapDelta(const StateDelta& stateDelta) {
+void SaiSwitchManager::processQosMapDelta(
+    const StateDelta& stateDelta,
+    std::mutex& lock) {
+  // Perhaps it is necessary to lock at the "per-qos-map" granularity in
+  // SaiQosMapManager, but for now, just lock for the whole qos map
+  std::lock_guard<std::mutex> g{lock};
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     XLOG(WARNING)
         << "Skip programming default qos map; ASIC doesn't support it";

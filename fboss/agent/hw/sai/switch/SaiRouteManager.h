@@ -19,6 +19,7 @@
 #include "folly/container/F14Map.h"
 
 #include <memory>
+#include <mutex>
 
 namespace facebook::fboss {
 
@@ -62,7 +63,7 @@ class SaiRouteManager {
       RouterID routerId,
       const std::shared_ptr<Route<AddrT>>& swRoute);
 
-  void processRouteDelta(const StateDelta& delta);
+  void processRouteDelta(const StateDelta& delta, std::mutex& lock);
 
   SaiRouteHandle* getRouteHandle(const SaiRouteTraits::RouteEntry& entry);
   const SaiRouteHandle* getRouteHandle(

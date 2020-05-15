@@ -23,6 +23,7 @@
 #include "folly/container/F14Map.h"
 
 #include <memory>
+#include <mutex>
 #include <optional>
 
 namespace facebook::fboss {
@@ -81,7 +82,7 @@ class SaiVlanManager {
   void changeVlan(
       const std::shared_ptr<Vlan>& swVlanOld,
       const std::shared_ptr<Vlan>& swVlanNew);
-  void processVlanDelta(const VlanMapDelta& delta);
+  void processVlanDelta(const StateDelta& delta, std::mutex& lock);
 
   const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
   SaiVlanHandle* getVlanHandle(VlanID swVlanId);

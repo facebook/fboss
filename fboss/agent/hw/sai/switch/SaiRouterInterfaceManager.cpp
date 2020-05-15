@@ -147,16 +147,20 @@ SaiRouterInterfaceManager::getRouterInterfaceHandleImpl(
 }
 
 void SaiRouterInterfaceManager::processInterfaceDelta(
-    const StateDelta& stateDelta) {
+    const StateDelta& stateDelta,
+    std::mutex& lock) {
   auto delta = stateDelta.getIntfsDelta();
   auto processChanged =
-      [this](const auto& oldInterface, const auto& newInterface) {
+      [this, &lock](const auto& oldInterface, const auto& newInterface) {
+        std::lock_guard g{lock};
         changeRouterInterface(oldInterface, newInterface);
       };
-  auto processAdded = [this](const auto& newInterface) {
+  auto processAdded = [this, &lock](const auto& newInterface) {
+    std::lock_guard g{lock};
     addRouterInterface(newInterface);
   };
-  auto processRemoved = [this](const auto& oldInterface) {
+  auto processRemoved = [this, &lock](const auto& oldInterface) {
+    std::lock_guard g{lock};
     removeRouterInterface(oldInterface->getID());
   };
   DeltaFunctions::forEachChanged(

@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 
@@ -11,6 +9,9 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 
 #include "folly/container/F14Map.h"
+
+#include <memory>
+#include <mutex>
 
 namespace facebook::fboss {
 
@@ -34,7 +35,8 @@ class SaiInSegEntryManager {
       : managerTable_(managerTable), platform_(platform) {}
 
   void processInSegEntryDelta(
-      const NodeMapDelta<LabelForwardingInformationBase>& delta);
+      const NodeMapDelta<LabelForwardingInformationBase>& delta,
+      std::mutex& lock);
 
   // for tests only
   const SaiInSegEntryHandle* getInSegEntryHandle(
