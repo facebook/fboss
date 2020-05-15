@@ -59,6 +59,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/json_pointer.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 
 #include <limits>
@@ -288,7 +289,8 @@ void getPortInfoHelper(
   // for new fec types and move over to platform config. We *COULD*
   // hit hardware to ask for this information, but that can lead to
   // interesting failure modes (see T65569157)
-  *portInfo.fecEnabled_ref() = port->getFEC() == cfg::PortFEC::ON;
+  *portInfo.fecEnabled_ref() = port->getFEC() != cfg::PortFEC::OFF;
+  *portInfo.fecMode_ref() = apache::thrift::util::enumName(port->getFEC());
 
   auto pause = port->getPause();
   *portInfo.txPause_ref() = *pause.tx_ref();

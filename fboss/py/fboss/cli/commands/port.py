@@ -86,12 +86,15 @@ class PortDetailsCmd(cmds.FbossCmd):
         speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
         vlans = " ".join(str(vlan) for vlan in (port_info.vlans or []))
 
-        if not hasattr(port_info, "fecEnabled"):
-            fec_status = "N/A"  # many ports don't implement FEC
-        elif port_info.fecEnabled:
-            fec_status = "ENABLED"
+        if hasattr(port_info, "fecMode"):
+            fec_status = port_info.fecMode
         else:
-            fec_status = "DISABLED"
+            if not hasattr(port_info, "fecEnabled"):
+                fec_status = "N/A"  # many ports don't implement FEC
+            elif port_info.fecEnabled:
+                fec_status = "ENABLED"
+            else:
+                fec_status = "DISABLED"
 
         pause = ""
         if port_info.txPause:
@@ -199,14 +202,14 @@ class PortFlapCmd(cmds.FbossCmd):
             resp = client.getPortStatus(ports)
             for port, status in resp.items():
                 if not status.enabled:
-                    print("Port %d is disabled by configuration, cannot flap" % (port))
+                    print("Port %d is disabled by configuration, cannot flap" % port)
                     continue
-                print("Disabling port %d" % (port))
+                print("Disabling port %d" % port)
                 client.setPortState(port, False)
             time.sleep(flap_time)
             for port, status in resp.items():
                 if status.enabled:
-                    print("Enabling port %d" % (port))
+                    print("Enabling port %d" % port)
                     client.setPortState(port, True)
 
     def flap_all_ports(self, flap_time=FLAP_TIME):
@@ -225,12 +228,12 @@ class PortFlapCmd(cmds.FbossCmd):
                         )
                         qsfp_present = qsfp_info.present if qsfp_info else False
                     if qsfp_present:
-                        print("Disabling port %d" % (port))
+                        print("Disabling port %d" % port)
                         client.setPortState(port, False)
                         flapped_ports.append(port)
             time.sleep(flap_time)
             for port in flapped_ports:
-                print("Enabling port %d" % (port))
+                print("Enabling port %d" % port)
                 client.setPortState(port, True)
 
 

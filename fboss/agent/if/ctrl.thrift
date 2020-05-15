@@ -332,6 +332,7 @@ struct PortInfoThrift {
   15: bool txPause = false,
   16: bool rxPause = false,
   17: list<PortQueueThrift> portQueues = [],
+  18: string fecMode,
 }
 
 struct NdpEntryThrift {
