@@ -18,6 +18,9 @@
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 
+#include "folly/container/F14Map.h"
+#include "folly/container/F14Set.h"
+
 #include <memory>
 #include <unordered_map>
 
@@ -60,6 +63,8 @@ class SubscriberForFdbEntry : public SaiObjectEventAggregateSubscriber<
   void createObject(PublisherObjects);
   void removeObject(size_t, PublisherObjects);
 
+  PortID getPortId() const;
+
  private:
   SwitchSaiId switchId_;
   PortID portId_;
@@ -74,6 +79,8 @@ class SaiFdbManager {
   void addFdbEntry(PortID, InterfaceID, folly::MacAddress);
   void removeFdbEntry(InterfaceID, folly::MacAddress);
 
+  void handleLinkDown(PortID portId);
+
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
@@ -81,6 +88,10 @@ class SaiFdbManager {
       PublisherKey<SaiFdbTraits>::custom_type,
       std::shared_ptr<SubscriberForFdbEntry>>
       subscribersForFdbEntry_;
+  folly::F14FastMap<
+      PortID,
+      folly::F14FastSet<PublisherKey<SaiFdbTraits>::custom_type>>
+      portToKeys_;
 };
 
 } // namespace facebook::fboss

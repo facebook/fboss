@@ -187,6 +187,8 @@ class SaiObjectEventAggregateSubscriber
     return object_.get();
   }
 
+  void resetObject();
+
  protected:
   // TODO(pshaikh): extend this to support subscribers who themselves are
   // publishers with custom attributes
@@ -196,8 +198,6 @@ class SaiObjectEventAggregateSubscriber
   void setObject(SubscriberSharedPtr object) {
     object_ = object;
   }
-
-  void resetObject();
 
  private:
   std::array<bool, Size> livePublisherObjects_{false};

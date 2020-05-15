@@ -62,7 +62,7 @@ class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
   void removeObject(size_t index, PublisherObjects objects);
 
   SaiNeighborHandle* getHandle() const {
-    return isAlive() ? handle_.get() : nullptr;
+    return handle_.get();
   }
 
  private:

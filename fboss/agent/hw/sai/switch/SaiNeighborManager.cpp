@@ -54,12 +54,10 @@ void SaiNeighborManager::changeNeighbor(
   if (oldSwEntry->isPending() && newSwEntry->isPending()) {
   }
   if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
-    removeNeighbor(oldSwEntry);
     addNeighbor(newSwEntry);
   }
   if (!oldSwEntry->isPending() && newSwEntry->isPending()) {
     removeNeighbor(oldSwEntry);
-    addNeighbor(newSwEntry);
     // TODO(borisb): unresolve in next hop group...
   }
   if (!oldSwEntry->isPending() && !newSwEntry->isPending()) {

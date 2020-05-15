@@ -39,6 +39,8 @@ class NeighborManagerTest : public ManagerTestBase {
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
+    EXPECT_TRUE(saiNeighborHandle->neighbor);
+    EXPECT_TRUE(saiNeighborHandle->fdbEntry);
   }
 
   template <typename NeighborEntryT>
@@ -48,6 +50,17 @@ class NeighborManagerTest : public ManagerTestBase {
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_FALSE(saiNeighborHandle);
+  }
+
+  template <typename NeighborEntryT>
+  void checkUnresolved(const NeighborEntryT& neighborEntry) {
+    auto saiEntry =
+        saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
+    auto saiNeighborHandle =
+        saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
+    EXPECT_TRUE(saiNeighborHandle);
+    EXPECT_FALSE(saiNeighborHandle->neighbor);
+    EXPECT_FALSE(saiNeighborHandle->fdbEntry);
   }
 
   TestInterface intf0;
@@ -124,4 +137,23 @@ TEST_F(NeighborManagerTest, addDuplicateResolvedNeighbor) {
 
 TEST_F(NeighborManagerTest, addDuplicateUnresolvedNeighbor) {
   // TODO (D13604051)
+}
+
+TEST_F(NeighborManagerTest, linkDown) {
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
+  checkUnresolved(arpEntry);
+}
+
+TEST_F(NeighborManagerTest, linkDownReResolve) {
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
+  checkUnresolved(arpEntry);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
 }

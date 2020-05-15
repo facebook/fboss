@@ -49,10 +49,15 @@ void SubscriberForFdbEntry::removeObject(size_t, PublisherObjects) {
   this->resetObject();
 }
 
+PortID SubscriberForFdbEntry::getPortId() const {
+  return portId_;
+}
+
 void SaiFdbManager::addFdbEntry(
     PortID port,
     InterfaceID interfaceId,
     folly::MacAddress mac) {
+  XLOGF(INFO, "Add fdb entry {}, {}, {}", port, interfaceId, mac);
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
   auto subscriber =
@@ -64,14 +69,51 @@ void SaiFdbManager::addFdbEntry(
       ->get<SaiRouterInterfaceTraits>()
       .subscribe(subscriber);
 
+  portToKeys_[port].emplace(key);
   subscribersForFdbEntry_.emplace(key, subscriber);
 }
 
 void SaiFdbManager::removeFdbEntry(
     InterfaceID interfaceId,
     folly::MacAddress mac) {
+  XLOGF(INFO, "Remove fdb entry {}, {}", interfaceId, mac);
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
-  subscribersForFdbEntry_.erase(key);
+  auto subscriberItr = subscribersForFdbEntry_.find(key);
+  if (subscriberItr == subscribersForFdbEntry_.end()) {
+    XLOG(WARN) << "Attempted to remove non-existent FDB entry";
+    return;
+  }
+  auto portId = subscriberItr->second->getPortId();
+  subscribersForFdbEntry_.erase(subscriberItr);
+  portToKeys_[portId].erase(key);
+  if (portToKeys_[portId].empty()) {
+    portToKeys_.erase(portId);
+  }
+}
+
+void SaiFdbManager::handleLinkDown(PortID portId) {
+  auto portToKeysItr = portToKeys_.find(portId);
+  if (portToKeysItr != portToKeys_.end()) {
+    for (const auto& key : portToKeysItr->second) {
+      auto subscriberItr = subscribersForFdbEntry_.find(key);
+      if (UNLIKELY(subscriberItr == subscribersForFdbEntry_.end())) {
+        XLOGF(
+            FATAL,
+            "no fdb entry found for key in portToKeys_ mapping: {}",
+            key);
+      }
+      /*
+       * remove the fdb entry object, which will trigger removing a chain of
+       * subscribed dependent objects:
+       * fdb_entry->neighbor->next_hop->next_hop_group_member
+       *
+       * Removing the next hop group member will effectively shrink
+       * each affected ECMP group which will minimize blackholing while
+       * ARP/NDP converge.
+       */
+      subscriberItr->second->resetObject();
+    }
+  }
 }
 
 } // namespace facebook::fboss
