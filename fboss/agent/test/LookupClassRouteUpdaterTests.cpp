@@ -493,4 +493,97 @@ TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
 
+template <typename AddrT>
+class LookupClassRouteUpdaterWarmbootTest
+    : public LookupClassRouteUpdaterTest<AddrT> {
+ public:
+  void SetUp() override {
+    using NeighborTableT = std::conditional_t<
+        std::is_same<AddrT, folly::IPAddressV4>::value,
+        ArpTable,
+        NdpTable>;
+
+    auto newState = testStateAWithLookupClasses();
+
+    auto vlan = newState->getVlans()->getVlanIf(this->kVlan());
+    auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
+
+    neighborTable->addEntry(NeighborEntryFields(
+        this->kIpAddressA(),
+        this->kMacAddressA(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        NeighborState::PENDING));
+
+    neighborTable->updateEntry(
+        this->kIpAddressA(),
+        this->kMacAddressA(),
+        PortDescriptor(this->kPortID()),
+        this->kInterfaceID(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    RouteUpdater updater(newState->getRouteTables());
+    updater.addInterfaceAndLinkLocalRoutes(newState->getInterfaces());
+
+    RouteNextHopSet nexthops;
+    // resolved by intf 1
+    nexthops.emplace(
+        UnresolvedNextHop(this->kIpAddressA(), UCMP_DEFAULT_WEIGHT));
+    nexthops.emplace(
+        UnresolvedNextHop(this->kIpAddressB(), UCMP_DEFAULT_WEIGHT));
+
+    updater.addRoute(
+        this->kRid(),
+        this->kroutePrefix1().network,
+        this->kroutePrefix1().mask,
+        this->kClientID(),
+        RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
+
+    auto newRt = updater.updateDone();
+    newState->resetRouteTables(newRt);
+
+    auto routeTableRib = newState->getRouteTables()
+                             ->getRouteTable(this->kRid())
+                             ->template getRib<AddrT>();
+    auto route = routeTableRib->routes()->getRouteIf(this->kroutePrefix1());
+    route->updateClassID(cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+    this->handle_ = createTestHandle(newState);
+    this->sw_ = this->handle_->getSw();
+  }
+};
+
+TYPED_TEST_CASE(LookupClassRouteUpdaterWarmbootTest, TestTypes);
+
+/*
+ * Initialize the Setup() SwitchState to contain:
+ *  - resolved neighbor n1 with classID c1.
+ *  - route with n1 and n2 as nexthop.
+ * (this mimics warmboot)
+ *
+ * Verify if route inherits classID of resolved nexthop viz. c1.
+ * Resolve n2 => gets classID c2.
+ * Verify if route classID is unchanged.
+ * Unresolve n1.
+ * Verify if route now inherits classID from next resolved nexthop i.e. c2.
+ */
+TYPED_TEST(LookupClassRouteUpdaterWarmbootTest, VerifyClassID) {
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // neighbor should get next classID: CLASS_QUEUE_PER_HOST_QUEUE_1
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+
+  // route classID is unchanged
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  // unresolve the nexthop route inherited classID from
+  this->unresolveNeighbor(this->kIpAddressA());
+
+  // route gets classID of next resolved neighbor: CLASS_QUEUE_PER_HOST_QUEUE_1
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+}
+
 } // namespace facebook::fboss
