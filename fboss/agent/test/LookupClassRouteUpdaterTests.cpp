@@ -493,15 +493,40 @@ TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
 
-template <typename AddrT>
+template <typename AddrType, bool RouteFix>
+struct WarmbootTestT {
+  using AddrT = AddrType;
+  static constexpr auto hasRouteFix = RouteFix;
+};
+
+using NoRouteFixV4 = WarmbootTestT<folly::IPAddressV4, false>;
+using RouteFixV4 = WarmbootTestT<folly::IPAddressV4, true>;
+using NoRouteFixV6 = WarmbootTestT<folly::IPAddressV6, false>;
+using RouteFixV6 = WarmbootTestT<folly::IPAddressV6, true>;
+
+using TestTypesWarmboot =
+    ::testing::Types<NoRouteFixV4, RouteFixV4, NoRouteFixV6, RouteFixV6>;
+
+template <typename WarmbootTestT>
 class LookupClassRouteUpdaterWarmbootTest
-    : public LookupClassRouteUpdaterTest<AddrT> {
+    : public LookupClassRouteUpdaterTest<typename WarmbootTestT::AddrT> {
+  using AddrT = typename WarmbootTestT::AddrT;
+  static constexpr auto hasRouteFix = WarmbootTestT::hasRouteFix;
+
  public:
   void SetUp() override {
     using NeighborTableT = std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
         ArpTable,
         NdpTable>;
+
+    if (hasRouteFix) {
+      gflags::SetCommandLineOptionWithMode(
+          "queue_per_host_route_fix", "true", gflags::SET_FLAGS_VALUE);
+    } else {
+      gflags::SetCommandLineOptionWithMode(
+          "queue_per_host_route_fix", "false", gflags::SET_FLAGS_VALUE);
+    }
 
     auto newState = testStateAWithLookupClasses();
 
@@ -553,7 +578,7 @@ class LookupClassRouteUpdaterWarmbootTest
   }
 };
 
-TYPED_TEST_CASE(LookupClassRouteUpdaterWarmbootTest, TestTypes);
+TYPED_TEST_CASE(LookupClassRouteUpdaterWarmbootTest, TestTypesWarmboot);
 
 /*
  * Initialize the Setup() SwitchState to contain:
@@ -561,29 +586,41 @@ TYPED_TEST_CASE(LookupClassRouteUpdaterWarmbootTest, TestTypes);
  *  - route with n1 and n2 as nexthop.
  * (this mimics warmboot)
  *
- * Verify if route inherits classID of resolved nexthop viz. c1.
- * Resolve n2 => gets classID c2.
- * Verify if route classID is unchanged.
- * Unresolve n1.
- * Verify if route now inherits classID from next resolved nexthop i.e. c2.
+ * If queue_per_host_route_fix is true:
+ *     Verify if route inherits classID of resolved nexthop viz. c1.
+ *     Resolve n2 => gets classID c2.
+ *     Verify if route classID is unchanged.
+ *     Unresolve n1.
+ *     Verify if route now inherits classID from next resolved nexthop i.e. c2.
+ *
+ * If queue_per_host_route_fix is false:
+ *     Verify route does not get classID.
  */
 TYPED_TEST(LookupClassRouteUpdaterWarmbootTest, VerifyClassID) {
-  this->verifyClassIDHelper(
-      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  auto routeClassID0 = TypeParam::hasRouteFix
+      ? std::optional(cfg::AclLookupClass{
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0})
+      : std::nullopt;
+  auto routeClassID1 = TypeParam::hasRouteFix
+      ? std::optional(cfg::AclLookupClass{
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1})
+      : std::nullopt;
+
+  this->verifyClassIDHelper(this->kroutePrefix1(), routeClassID0);
 
   // neighbor should get next classID: CLASS_QUEUE_PER_HOST_QUEUE_1
+  // (if route fix is enabled).
   this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
 
   // route classID is unchanged
-  this->verifyClassIDHelper(
-      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(this->kroutePrefix1(), routeClassID0);
 
   // unresolve the nexthop route inherited classID from
   this->unresolveNeighbor(this->kIpAddressA());
 
   // route gets classID of next resolved neighbor: CLASS_QUEUE_PER_HOST_QUEUE_1
-  this->verifyClassIDHelper(
-      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  // (if route fix is enabled).
+  this->verifyClassIDHelper(this->kroutePrefix1(), routeClassID1);
 }
 
 } // namespace facebook::fboss
