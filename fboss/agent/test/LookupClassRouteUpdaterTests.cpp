@@ -382,4 +382,48 @@ TYPED_TEST(LookupClassRouteUpdaterTest, ChangeNextHopSet) {
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
+// Test cases verifying Neighbor changes
+
+TYPED_TEST(LookupClassRouteUpdaterTest, VerifyNeighborAddAndRemove) {
+  // route r1 has ipA and ipB as nexthop.
+  // route r2 has ipB and ipC as nexthop.
+  // None of the nexthops are resolved, thus, no classID for r1 or r2.
+  this->addRoute(
+      this->kroutePrefix1(), {this->kIpAddressA(), this->kIpAddressB()});
+  this->addRoute(
+      this->kroutePrefix2(), {this->kIpAddressB(), this->kIpAddressC()});
+
+  this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
+  this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+
+  // resolve ipA.
+  // route r1 inherits ipA's classID, r2 gets none.
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+
+  // resolve ipB.
+  // route r1 continues to inherit ipA's classID, r2 inherits ipB's classID.
+  this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // unresolve ipA.
+  // r1 inherits ipB's classID.
+  this->unresolveNeighbor(this->kIpAddressA());
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+  this->verifyClassIDHelper(
+      this->kroutePrefix2(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+
+  // unresolve ipB.
+  // None of the nexthops are resolved, thus, no classID for r1 or r2.
+  this->unresolveNeighbor(this->kIpAddressB());
+  this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
+  this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+}
+
 } // namespace facebook::fboss

@@ -816,11 +816,11 @@ void LookupClassRouteUpdater::updateClassIDsForRoutes(
       [this, routesAndClassIDs](const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> {
     auto newState{state};
-    auto routeTables = newState->getRouteTables();
 
     for (const auto& [ridAndCidr, classID] : routesAndClassIDs) {
       auto& [rid, cidr] = ridAndCidr;
       auto& [ipAddress, mask] = cidr;
+      auto routeTables = newState->getRouteTables();
       auto routeTable = routeTables->getRouteTable(rid);
 
       if (ipAddress.isV6()) {
