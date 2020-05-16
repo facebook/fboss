@@ -226,8 +226,8 @@ void LookupClassRouteUpdater::processPortRemoved(
 
     auto& subnetsCache = vlan2SubnetsCache_[vlanID];
     for (auto address : interface->getAddresses()) {
-      subnetsCache.erase(address);
       removeNextHopsForSubnet(stateDelta, address, vlan);
+      subnetsCache.erase(address);
     }
   }
 }
@@ -362,9 +362,13 @@ void LookupClassRouteUpdater::processNeighborRemoved(
     auto& [rid, cidr] = ridAndCidr;
     std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
 
-    // stateDelta.newState() would not contain the neighbor being removed.
-    // Thus, classID of the neighbor being removed won't be chosen by
-    // addRouteAndFindClassID.
+    /*
+     * Reuse addRouteAndFindClassID to find another nexthop (if any) that has
+     * classID. Note that stateDelta.newState() may still contain the neighbor
+     * with classID - if LookupClassUpdater hasn't processed it yet. So the
+     * neighbor being removed is omitted explicitly from the computatation by
+     * passing to addRouteAndFindClassID.
+     */
     if (cidr.first.isV6()) {
       auto route = newState->getRouteTables()
                        ->getRouteTable(rid)
@@ -373,7 +377,11 @@ void LookupClassRouteUpdater::processNeighborRemoved(
                        ->getRouteIf(RoutePrefix<folly::IPAddressV6>{
                            cidr.first.asV6(), cidr.second});
       if (route) {
-        routeClassID = addRouteAndFindClassID(stateDelta, rid, route);
+        routeClassID = addRouteAndFindClassID(
+            stateDelta,
+            rid,
+            route,
+            std::make_pair(removedNeighbor->getIP(), vlanID));
       }
     } else {
       auto route = newState->getRouteTables()
@@ -383,7 +391,11 @@ void LookupClassRouteUpdater::processNeighborRemoved(
                        ->getRouteIf(RoutePrefix<folly::IPAddressV4>{
                            cidr.first.asV4(), cidr.second});
       if (route) {
-        routeClassID = addRouteAndFindClassID(stateDelta, rid, route);
+        routeClassID = addRouteAndFindClassID(
+            stateDelta,
+            rid,
+            route,
+            std::make_pair(removedNeighbor->getIP(), vlanID));
       }
     }
 
@@ -478,7 +490,8 @@ std::optional<cfg::AclLookupClass>
 LookupClassRouteUpdater::addRouteAndFindClassID(
     const StateDelta& stateDelta,
     RouterID rid,
-    const std::shared_ptr<RouteT>& addedRoute) {
+    const std::shared_ptr<RouteT>& addedRoute,
+    std::optional<std::pair<folly::IPAddress, VlanID>> nextHopAndVlanToOmit) {
   auto ridAndCidr = std::make_pair(
       rid,
       folly::CIDRNetwork{addedRoute->prefix().network,
@@ -491,6 +504,13 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
         newState->getInterfaces()->getInterfaceIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
       continue;
+    }
+
+    if (nextHopAndVlanToOmit.has_value()) {
+      const auto& [nextHopToOmit, vlanIDToOmit] = nextHopAndVlanToOmit.value();
+      if (nextHop.addr() == nextHopToOmit && vlanID == vlanIDToOmit) {
+        continue;
+      }
     }
 
     auto neighborClassID =
@@ -544,7 +564,8 @@ void LookupClassRouteUpdater::processRouteAdded(
       rid,
       folly::CIDRNetwork{addedRoute->prefix().network,
                          addedRoute->prefix().mask});
-  auto routeClassID = addRouteAndFindClassID(stateDelta, rid, addedRoute);
+  auto routeClassID =
+      addRouteAndFindClassID(stateDelta, rid, addedRoute, std::nullopt);
 
   if (routeClassID.has_value()) {
     updateClassIDsForRoutes({std::make_pair(ridAndCidr, routeClassID)});

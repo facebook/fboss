@@ -95,7 +95,8 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
   std::optional<cfg::AclLookupClass> addRouteAndFindClassID(
       const StateDelta& stateDelta,
       RouterID rid,
-      const std::shared_ptr<RouteT>& addedRoute);
+      const std::shared_ptr<RouteT>& addedRoute,
+      std::optional<std::pair<folly::IPAddress, VlanID>> nextHopAndVlanToOmit);
 
   template <typename RouteT>
   void processRouteAdded(
