@@ -233,6 +233,27 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     waitForStateUpdates(this->sw_);
   }
 
+  void updateLookupClasses(
+      const std::vector<cfg::AclLookupClass>& lookupClasses) {
+    this->updateState(
+        "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
+          auto newState = state->clone();
+          auto newPortMap = newState->getPorts()->modify(&newState);
+
+          for (auto port : *newPortMap) {
+            auto newPort = port->clone();
+            newPort->setLookupClassesToDistributeTrafficOn(lookupClasses);
+            newPortMap->updatePort(newPort);
+          }
+          return newState;
+        });
+
+    waitForStateUpdates(this->sw_);
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
  protected:
   void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
@@ -424,6 +445,52 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyNeighborAddAndRemove) {
   this->unresolveNeighbor(this->kIpAddressB());
   this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
   this->verifyClassIDHelper(this->kroutePrefix2(), std::nullopt);
+}
+
+// Test cases verifying Port changes
+
+TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesToNoLookupClasses) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  this->updateLookupClasses({});
+
+  this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, PortNoLookupClassesToLookupClasses) {
+  this->updateLookupClasses({});
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+  this->verifyClassIDHelper(this->kroutePrefix1(), std::nullopt);
+
+  this->updateLookupClasses(
+      {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
+       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2,
+       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4});
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+}
+
+TYPED_TEST(LookupClassRouteUpdaterTest, PortLookupClassesChange) {
+  this->addRoute(this->kroutePrefix1(), {this->kIpAddressA()});
+  this->resolveNeighbor(this->kIpAddressA(), this->kMacAddressA());
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  this->updateLookupClasses(
+      {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
+
+  this->verifyClassIDHelper(
+      this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
 }
 
 } // namespace facebook::fboss
