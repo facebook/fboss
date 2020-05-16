@@ -59,6 +59,10 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       const StateDelta& stateDelta,
       const std::shared_ptr<Port>& addedPort,
       bool reAddAllRoutesEnabled);
+  void processPortRemovedForVlan(
+      const StateDelta& stateDelta,
+      const std::shared_ptr<Port>& removedPort,
+      VlanID vlanID);
   void processPortRemoved(
       const StateDelta& stateDelta,
       const std::shared_ptr<Port>& port);
@@ -68,6 +72,20 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
       const std::shared_ptr<Port>& newPort);
 
   void processPortUpdates(const StateDelta& stateDelta);
+
+  // Methods for handling interface updates
+  void processInterfaceAdded(
+      const StateDelta& stateDelta,
+      const std::shared_ptr<Interface>& addedInterface);
+  void processInterfaceRemoved(
+      const StateDelta& stateDelta,
+      const std::shared_ptr<Interface>& removedInterface);
+  void processInterfaceChanged(
+      const StateDelta& stateDelta,
+      const std::shared_ptr<Interface>& oldInterface,
+      const std::shared_ptr<Interface>& newInterface);
+
+  void processInterfaceUpdates(const StateDelta& stateDelta);
 
   // Methods for handling neighbor updates
   template <typename AddedNeighborT>

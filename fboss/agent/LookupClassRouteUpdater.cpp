@@ -44,11 +44,15 @@ void LookupClassRouteUpdater::reAddAllRoutes(const StateDelta& stateDelta) {
     auto rid = routeTable->getID();
 
     for (const auto& route : *(routeTable->getRibV6()->routes())) {
-      processRouteAdded(stateDelta, rid, route);
+      if (!route->getClassID().has_value()) {
+        processRouteAdded(stateDelta, rid, route);
+      }
     }
 
     for (const auto& route : *(routeTable->getRibV4()->routes())) {
-      processRouteAdded(stateDelta, rid, route);
+      if (!route->getClassID().has_value()) {
+        processRouteAdded(stateDelta, rid, route);
+      }
     }
   }
 }
@@ -192,6 +196,35 @@ void LookupClassRouteUpdater::processPortAdded(
   updateSubnetsCache(stateDelta, addedPort, reAddAllRoutesEnabled);
 }
 
+void LookupClassRouteUpdater::processPortRemovedForVlan(
+    const StateDelta& stateDelta,
+    const std::shared_ptr<Port>& removedPort,
+    VlanID vlanID) {
+  auto& newState = stateDelta.newState();
+
+  auto vlanIter = vlan2SubnetsCache_.find(vlanID);
+  if (vlanIter == vlan2SubnetsCache_.end()) {
+    return;
+  }
+
+  auto vlan = newState->getVlans()->getVlanIf(vlanID);
+  if (!vlan || vlanHasOtherPortsWithClassIDs(newState, vlan, removedPort)) {
+    return;
+  }
+
+  auto interface =
+      newState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
+  if (!interface) {
+    return;
+  }
+
+  auto& subnetsCache = vlan2SubnetsCache_[vlanID];
+  for (auto address : interface->getAddresses()) {
+    removeNextHopsForSubnet(stateDelta, address, vlan);
+    subnetsCache.erase(address);
+  }
+}
+
 void LookupClassRouteUpdater::processPortRemoved(
     const StateDelta& stateDelta,
     const std::shared_ptr<Port>& removedPort) {
@@ -205,30 +238,8 @@ void LookupClassRouteUpdater::processPortRemoved(
     return;
   }
 
-  auto& newState = stateDelta.newState();
-
   for (const auto& [vlanID, vlanInfo] : removedPort->getVlans()) {
-    auto vlanIter = vlan2SubnetsCache_.find(vlanID);
-    if (vlanIter == vlan2SubnetsCache_.end()) {
-      continue;
-    }
-
-    auto vlan = newState->getVlans()->getVlanIf(vlanID);
-    if (!vlan || vlanHasOtherPortsWithClassIDs(newState, vlan, removedPort)) {
-      continue;
-    }
-
-    auto interface =
-        newState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
-    if (!interface) {
-      continue;
-    }
-
-    auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-    for (auto address : interface->getAddresses()) {
-      removeNextHopsForSubnet(stateDelta, address, vlan);
-      subnetsCache.erase(address);
-    }
+    processPortRemovedForVlan(stateDelta, removedPort, vlanID);
   }
 }
 
@@ -273,6 +284,76 @@ void LookupClassRouteUpdater::processPortUpdates(const StateDelta& stateDelta) {
       processPortRemoved(stateDelta, oldPort);
     } else {
       processPortChanged(stateDelta, oldPort, newPort);
+    }
+  }
+}
+
+// Methods for handling interface updates
+
+void LookupClassRouteUpdater::processInterfaceAdded(
+    const StateDelta& stateDelta,
+    const std::shared_ptr<Interface>& addedInterface) {
+  CHECK(addedInterface);
+
+  auto switchState = stateDelta.newState();
+
+  auto vlanID = addedInterface->getVlanID();
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return;
+  }
+
+  for (auto& [portID, portInfo] : vlan->getPorts()) {
+    auto port = switchState->getPorts()->getPortIf(portID);
+    // routes are re-added once outside the for loop
+    processPortAdded(stateDelta, port, false /* don't re-add all routes */);
+  }
+
+  reAddAllRoutes(stateDelta);
+}
+
+void LookupClassRouteUpdater::processInterfaceRemoved(
+    const StateDelta& stateDelta,
+    const std::shared_ptr<Interface>& removedInterface) {
+  CHECK(removedInterface);
+
+  auto switchState = stateDelta.newState();
+
+  auto vlanID = removedInterface->getVlanID();
+  auto vlan = switchState->getVlans()->getVlanIf(vlanID);
+  if (!vlan) {
+    return;
+  }
+
+  for (auto& [portID, portInfo] : vlan->getPorts()) {
+    auto port = switchState->getPorts()->getPortIf(portID);
+    processPortRemovedForVlan(stateDelta, port, vlanID);
+  }
+}
+
+void LookupClassRouteUpdater::processInterfaceChanged(
+    const StateDelta& stateDelta,
+    const std::shared_ptr<Interface>& oldInterface,
+    const std::shared_ptr<Interface>& newInterface) {
+  CHECK(oldInterface && newInterface);
+  CHECK_EQ(oldInterface->getID(), newInterface->getID());
+
+  processInterfaceRemoved(stateDelta, oldInterface);
+  processInterfaceAdded(stateDelta, newInterface);
+}
+
+void LookupClassRouteUpdater::processInterfaceUpdates(
+    const StateDelta& stateDelta) {
+  for (const auto& delta : stateDelta.getIntfsDelta()) {
+    auto oldInterface = delta.getOld();
+    auto newInterface = delta.getNew();
+
+    if (!oldInterface && newInterface) {
+      processInterfaceAdded(stateDelta, newInterface);
+    } else if (oldInterface && !newInterface) {
+      processInterfaceRemoved(stateDelta, oldInterface);
+    } else {
+      processInterfaceChanged(stateDelta, oldInterface, newInterface);
     }
   }
 }
@@ -809,6 +890,8 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
    * processRouteUpdates).
    */
   processPortUpdates(stateDelta);
+
+  processInterfaceUpdates(stateDelta);
 
   /*
    * Only RSWs connected to MH-NIC (e.g. Yosemite) need queue-per-host fix, and
