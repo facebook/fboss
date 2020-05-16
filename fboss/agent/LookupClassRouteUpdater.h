@@ -249,7 +249,7 @@ class LookupClassRouteUpdater : public AutoRegisterStateObserver {
    * [nexthop, vlan] separately from the list of prefixes that don't.
    */
   folly::F14FastMap<NextHopAndVlan, WithAndWithoutClassIDPrefixes>
-      nextHopAndVlanToPrefixes_;
+      nextHopAndVlan2Prefixes_;
 
   /*
    * Set of prefixes with classID (from any [nexthop + vlan]).

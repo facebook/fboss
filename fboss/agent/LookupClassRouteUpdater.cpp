@@ -79,12 +79,12 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
     const std::shared_ptr<Vlan>& vlan) {
   auto& [ipAddress, mask] = subnet;
 
-  auto it = nextHopAndVlanToPrefixes_.begin();
-  while (it != nextHopAndVlanToPrefixes_.end()) {
+  auto it = nextHopAndVlan2Prefixes_.begin();
+  while (it != nextHopAndVlan2Prefixes_.end()) {
     const auto& [nextHop, vlanID] = it->first;
 
     // Element pointed by the iterator would be deleted from
-    // nextHopAndVlanToPrefixes_ as part of processNeighborRemoved processing.
+    // nextHopAndVlan2Prefixes_ as part of processNeighborRemoved processing.
     // Thus, advance the iterator to next element.
     ++it;
 
@@ -166,7 +166,7 @@ void LookupClassRouteUpdater::updateSubnetsCache(
           /*
            * When a new subnet is added to the cache, the nextHops of existing
            * routes may become eligible for caching in
-           * nextHopAndVlanToPrefixes_. Furthermore, such a nextHop may have
+           * nextHopAndVlan2Prefixes_. Furthermore, such a nextHop may have
            * classID associated with it, and in that case, the corresponding
            * route could inherit that classID. Thus, re-add all the routes.
            */
@@ -374,7 +374,7 @@ void LookupClassRouteUpdater::processNeighborAdded(
   // If the neighbor is nextHop for a route that is already processed, the
   // neighbor would be present in the cache.
   auto& [withClassIDPrefixes, withoutClassIDPrefixes] =
-      nextHopAndVlanToPrefixes_[std::make_pair(addedNeighbor->getIP(), vlanID)];
+      nextHopAndVlan2Prefixes_[std::make_pair(addedNeighbor->getIP(), vlanID)];
 
   if (!addedNeighbor->getClassID().has_value()) {
     return;
@@ -416,15 +416,15 @@ void LookupClassRouteUpdater::processNeighborRemoved(
     return;
   }
 
-  auto it = nextHopAndVlanToPrefixes_.find(
+  auto it = nextHopAndVlan2Prefixes_.find(
       std::make_pair(removedNeighbor->getIP(), vlanID));
-  CHECK(it != nextHopAndVlanToPrefixes_.end());
+  CHECK(it != nextHopAndVlan2Prefixes_.end());
 
   auto& [withClassIDPrefixes, withoutClassIDPrefixes] = it->second;
 
   if (withClassIDPrefixes.empty() && withoutClassIDPrefixes.empty()) {
     // neighbor being removed is not a nexthop for any route
-    nextHopAndVlanToPrefixes_.erase(it);
+    nextHopAndVlan2Prefixes_.erase(it);
     return;
   }
 
@@ -519,46 +519,44 @@ void LookupClassRouteUpdater::processNeighborChanged(
 template <typename AddrT>
 void LookupClassRouteUpdater::processNeighborUpdates(
     const StateDelta& stateDelta) {
-  {
-    using NeighborTableT = std::conditional_t<
-        std::is_same<AddrT, folly::IPAddressV4>::value,
-        ArpTable,
-        NdpTable>;
+  using NeighborTableT = std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
 
-    for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
-      auto newVlan = vlanDelta.getNew();
-      if (!newVlan) {
-        auto oldVlan = vlanDelta.getOld();
-        for (const auto& oldNeighbor :
-             *(oldVlan->template getNeighborTable<NeighborTableT>())) {
-          processNeighborRemoved(stateDelta, oldVlan->getID(), oldNeighbor);
-        }
+  for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
+    auto newVlan = vlanDelta.getNew();
+    if (!newVlan) {
+      auto oldVlan = vlanDelta.getOld();
+      for (const auto& oldNeighbor :
+           *(oldVlan->template getNeighborTable<NeighborTableT>())) {
+        processNeighborRemoved(stateDelta, oldVlan->getID(), oldNeighbor);
+      }
+      continue;
+    }
+
+    auto vlan = newVlan->getID();
+
+    for (const auto& delta :
+         vlanDelta.template getNeighborDelta<NeighborTableT>()) {
+      auto oldNeighbor = delta.getOld();
+      auto newNeighbor = delta.getNew();
+
+      /*
+       * At this point in time, queue-per-host fix is needed (and thus
+       * supported) for physical link only.
+       */
+      if ((oldNeighbor && !oldNeighbor->getPort().isPhysicalPort()) ||
+          (newNeighbor && !newNeighbor->getPort().isPhysicalPort())) {
         continue;
       }
 
-      auto vlan = newVlan->getID();
-
-      for (const auto& delta :
-           vlanDelta.template getNeighborDelta<NeighborTableT>()) {
-        auto oldNeighbor = delta.getOld();
-        auto newNeighbor = delta.getNew();
-
-        /*
-         * At this point in time, queue-per-host fix is needed (and thus
-         * supported) for physical link only.
-         */
-        if ((oldNeighbor && !oldNeighbor->getPort().isPhysicalPort()) ||
-            (newNeighbor && !newNeighbor->getPort().isPhysicalPort())) {
-          continue;
-        }
-
-        if (!oldNeighbor) {
-          processNeighborAdded(stateDelta, vlan, newNeighbor);
-        } else if (!newNeighbor) {
-          processNeighborRemoved(stateDelta, vlan, oldNeighbor);
-        } else {
-          processNeighborChanged(stateDelta, vlan, oldNeighbor, newNeighbor);
-        }
+      if (!oldNeighbor) {
+        processNeighborAdded(stateDelta, vlan, newNeighbor);
+      } else if (!newNeighbor) {
+        processNeighborRemoved(stateDelta, vlan, oldNeighbor);
+      } else {
+        processNeighborChanged(stateDelta, vlan, oldNeighbor, newNeighbor);
       }
     }
   }
@@ -604,7 +602,7 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
      * retrieve previously cached entry, and if absent, create new entry.
      */
     auto& [withClassIDPrefixes, withoutClassIDPrefixes] =
-        nextHopAndVlanToPrefixes_[std::make_pair(nextHop.addr(), vlanID)];
+        nextHopAndVlan2Prefixes_[std::make_pair(nextHop.addr(), vlanID)];
 
     /*
      * In the current implementation, route inherits classID of the 'first'
@@ -689,8 +687,8 @@ void LookupClassRouteUpdater::processRouteRemoved(
     }
 
     auto it =
-        nextHopAndVlanToPrefixes_.find(std::make_pair(nextHop.addr(), vlanID));
-    CHECK(it != nextHopAndVlanToPrefixes_.end());
+        nextHopAndVlan2Prefixes_.find(std::make_pair(nextHop.addr(), vlanID));
+    CHECK(it != nextHopAndVlan2Prefixes_.end());
     auto& [withClassIDPrefixes, withoutClassIDPrefixes] = it->second;
 
     // The prefix has to be in either of the sets.
@@ -707,13 +705,13 @@ void LookupClassRouteUpdater::processRouteRemoved(
           auto ndpEntry =
               vlan->getNdpTable()->getEntryIf(nextHop.addr().asV6());
           if (!ndpEntry) {
-            nextHopAndVlanToPrefixes_.erase(it);
+            nextHopAndVlan2Prefixes_.erase(it);
           }
         } else if (nextHop.addr().isV4()) {
           auto arpEntry =
               vlan->getArpTable()->getEntryIf(nextHop.addr().asV4());
           if (!arpEntry) {
-            nextHopAndVlanToPrefixes_.erase(it);
+            nextHopAndVlan2Prefixes_.erase(it);
           }
         }
       }
@@ -883,7 +881,7 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
   /*
    * If vlan2SubnetsCache_ is updated after routes are added, every update to
    * vlan2SubnetsCache_ must check if the nextHops of previously processed
-   * routes now become eligible for addition to nextHopAndVlanToPrefixes_.
+   * routes now become eligible for addition to nextHopAndVlan2Prefixes_.
    * This would require processing ALL the routes from the switchState, which
    * is expensive. We avoid that by processing port additions before processing
    * route additions (i.e. by calling processPortUpdates before
