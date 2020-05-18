@@ -29,9 +29,11 @@ BENCHMARK(HwEcmpGroupShrink) {
   static auto ensemble = createHwEnsemble(
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
   auto hwSwitch = ensemble->getHwSwitch();
-  auto config =
-      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
+  if (ensemble->getRunState() < SwitchRunState::CONFIGURED) {
+    auto config = utility::onePortPerVlanConfig(
+        hwSwitch, ensemble->masterLogicalPortIds());
+    ensemble->applyInitialConfig(config);
+  }
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
   auto ecmpRouteState = ecmpHelper.setupECMPForwarding(

@@ -43,7 +43,8 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (thriftThread_) {
     thriftThread_->join();
   }
-  if (initComplete_) { // don't touch programmedState_ unless init done
+  if (runState_ >= SwitchRunState::INITIALIZED) {
+    // don't touch programmedState_ unless init is done
     // ALPM requires that the default routes (always required to be
     // present for ALPM) be deleted last. When we destroy the HwSwitch
     // and the contained routeTable, there is no notion of a *order* of
@@ -112,6 +113,7 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
   initCfgState_ = getProgrammedState();
+  runState_ = SwitchRunState::CONFIGURED;
 }
 
 void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
@@ -234,7 +236,7 @@ void HwSwitchEnsemble::setupEnsemble(
   thriftThread_ = std::move(thriftThread);
 
   getHwSwitch()->switchRunStateChanged(SwitchRunState::INITIALIZED);
-  initComplete_ = true;
+  runState_ = SwitchRunState::INITIALIZED;
 }
 
 void HwSwitchEnsemble::revertToInitCfgState() {

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
@@ -119,6 +120,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * Initiate graceful exit
    */
   void gracefulExit();
+  SwitchRunState getRunState() const {
+    return runState_;
+  }
 
  protected:
   /*
@@ -142,7 +146,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
-  bool initComplete_{false};
+  SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
 };
 
 } // namespace facebook::fboss
