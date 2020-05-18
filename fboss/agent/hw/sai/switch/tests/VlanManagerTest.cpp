@@ -120,7 +120,7 @@ TEST_F(VlanManagerTest, removeVlan) {
   auto swId = VlanID(0);
   auto handle = vlanManager.getVlanHandle(swId);
   EXPECT_TRUE(handle);
-  vlanManager.removeVlan(swId);
+  vlanManager.removeVlan(swVlan);
   handle = vlanManager.getVlanHandle(swId);
   EXPECT_FALSE(handle);
   // TODO: test vlan is gone
@@ -130,8 +130,10 @@ TEST_F(VlanManagerTest, removeNonexistentVlan) {
   std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
   auto& vlanManager = saiManagerTable->vlanManager();
   vlanManager.addVlan(swVlan);
-  auto swId = VlanID(10);
-  EXPECT_THROW(vlanManager.removeVlan(swId), FbossError);
+  TestInterface intf10;
+  intf10.id = 10;
+  auto vlan10 = makeVlan(intf10);
+  EXPECT_THROW(vlanManager.removeVlan(vlan10), FbossError);
 }
 
 TEST_F(VlanManagerTest, changeVlanAddMembers) {
@@ -172,9 +174,9 @@ TEST_F(VlanManagerTest, removeVlanWithMembers) {
   std::shared_ptr<Vlan> swVlan = makeVlan(intf0);
   auto saiId = saiManagerTable->vlanManager().addVlan(swVlan);
   checkVlanMembers(saiId, {0, 1, 2, 3});
-  auto swId = VlanID(0);
   auto& vlanManager = saiManagerTable->vlanManager();
-  vlanManager.removeVlan(swId);
+  vlanManager.removeVlan(swVlan);
+  auto swId = VlanID(0);
   EXPECT_FALSE(vlanManager.getVlanHandle(swId));
 }
 

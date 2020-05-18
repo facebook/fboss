@@ -141,7 +141,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiPortManager::changePort,
       &SaiPortManager::addPort,
       &SaiPortManager::removePort);
-  managerTable_->vlanManager().processVlanDelta(delta, saiSwitchMutex_);
+  processDelta(
+      delta.getVlansDelta(),
+      managerTable_->vlanManager(),
+      &SaiVlanManager::changeVlan,
+      &SaiVlanManager::addVlan,
+      &SaiVlanManager::removeVlan);
   managerTable_->switchManager().processQosMapDelta(delta, saiSwitchMutex_);
   managerTable_->routerInterfaceManager().processInterfaceDelta(
       delta, saiSwitchMutex_);

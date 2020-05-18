@@ -78,11 +78,10 @@ class SaiVlanManager {
       folly::F14FastMap<VlanID, std::unique_ptr<SaiVlanHandle>>;
 
   VlanSaiId addVlan(const std::shared_ptr<Vlan>& swVlan);
-  void removeVlan(const VlanID& swVlanId);
+  void removeVlan(const std::shared_ptr<Vlan>& swVlan);
   void changeVlan(
       const std::shared_ptr<Vlan>& swVlanOld,
       const std::shared_ptr<Vlan>& swVlanNew);
-  void processVlanDelta(const StateDelta& delta, std::mutex& lock);
 
   const SaiVlanHandle* getVlanHandle(VlanID swVlanId) const;
   SaiVlanHandle* getVlanHandle(VlanID swVlanId);
