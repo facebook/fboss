@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
@@ -210,7 +211,7 @@ class BcmNeighborTests : public BcmLinkStateDependentTests {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
 }; // namespace fboss
 
-TYPED_TEST_CASE(BcmNeighborTests, NeighborTypes);
+TYPED_TEST_SUITE(BcmNeighborTests, NeighborTypes);
 
 TYPED_TEST(BcmNeighborTests, AddPendingEntry) {
   auto setup = [this]() {

@@ -244,7 +244,7 @@ class BcmDataPlaneMirrorTest : public BcmLinkStateDependentTests {
   std::unique_ptr<EcmpSetupAnyNPortsT> ecmpHelper_;
 };
 
-TYPED_TEST_CASE(BcmDataPlaneMirrorTest, TestTypes);
+TYPED_TEST_SUITE(BcmDataPlaneMirrorTest, TestTypes);
 
 TYPED_TEST(BcmDataPlaneMirrorTest, SpanPortMirror) {
   this->testPortMirror(kSpan);

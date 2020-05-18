@@ -64,6 +64,7 @@ std::vector<typename SaiObjectTraits::AdapterKey> getObjectKeys(
   keys.resize(c);
   sai_status_t status = sai_get_object_key(
       switch_id, SaiObjectTraits::ObjectType, &c, keys.data());
+  saiLogError(status, SAI_API_UNSPECIFIED, "Failed to get object key");
   for (const auto k : keys) {
     ret.push_back(detail::getAdapterKey<SaiObjectTraits>(k));
   }

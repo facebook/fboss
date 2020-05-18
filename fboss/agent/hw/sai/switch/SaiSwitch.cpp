@@ -56,8 +56,6 @@ DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 
 namespace facebook::fboss {
 
-static SaiSwitch* hwSwitch;
-
 // We need this global SaiSwitch* to support registering SAI callbacks
 // which can then use SaiSwitch to do their work. The current callback
 // facility in SAI does not support passing user data to come back

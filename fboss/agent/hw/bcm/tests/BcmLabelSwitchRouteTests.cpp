@@ -251,7 +251,7 @@ class BcmLabelSwitchRouteTest : public BcmLinkStateDependentTests {
   std::unique_ptr<EcmpSetupHelper> helper_;
 };
 
-TYPED_TEST_CASE(BcmLabelSwitchRouteTest, TestTypes);
+TYPED_TEST_SUITE(BcmLabelSwitchRouteTest, TestTypes);
 
 TYPED_TEST(BcmLabelSwitchRouteTest, Push) {
   auto setup = [=]() {

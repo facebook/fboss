@@ -260,7 +260,6 @@ void SaiPortManager::changeQueue(
     if (portQueueIter == newQueueConfig.end()) {
       SaiQueueConfig saiQueueConfig =
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
-      auto queueHandle = getQueueHandle(swId, saiQueueConfig);
       portHandle->queues.erase(saiQueueConfig);
       if (pitr != portStats_.end()) {
         // Port stats map is sparse, since we don't maintain/publish stats
@@ -437,7 +436,7 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
       continue;
     }
     const auto& counters = handle->port->getStats();
-    auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
+    std::ignore = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats{};
     fillHwPortStats(supportedStats(), counters, hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);

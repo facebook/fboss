@@ -231,7 +231,6 @@ void _realloc(const SaiListT& src, std::vector<T>& dst) {
   static_assert(
       std::is_same<decltype(src.list), T*>::value,
       "pointer in sai list doesn't match vector type");
-  auto tmpAddr = dst.data();
   dst.resize(src.count);
 }
 

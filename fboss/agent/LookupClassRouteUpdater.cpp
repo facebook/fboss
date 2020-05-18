@@ -62,6 +62,7 @@ bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& removedPort) {
   for (auto& [portID, portInfo] : vlan->getPorts()) {
+    std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
 
     if (portID != removedPort->getID() &&
@@ -150,6 +151,7 @@ void LookupClassRouteUpdater::updateSubnetsCache(
   auto& newState = stateDelta.newState();
 
   for (const auto& [vlanID, vlanInfo] : port->getVlans()) {
+    std::ignore = vlanInfo;
     auto vlan = newState->getVlans()->getVlanIf(vlanID);
     if (!vlan) {
       continue;
@@ -618,6 +620,7 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
 
   if (routeClassID.has_value()) {
     auto [it, inserted] = allPrefixesWithClassID_.insert(ridAndCidr);
+    std::ignore = it;
     CHECK(inserted);
   }
 

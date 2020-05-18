@@ -168,7 +168,6 @@ sai_status_t get_acl_table_group_member_attribute_fn(
 }
 
 namespace facebook::fboss {
-static sai_acl_api_t _acl_api;
 
 sai_acl_api_t* FakeAcl::kApi() {
   static sai_acl_api_t kAclApi = {&create_acl_table_fn,

@@ -285,7 +285,6 @@ void SaiHostifManager::changeCpuQueue(
     if (portQueueIter == newQueueConfig.end()) {
       SaiQueueConfig saiQueueConfig =
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
-      auto queueHandle = getQueueHandle(saiQueueConfig);
       cpuPortHandle_->queues.erase(saiQueueConfig);
       cpuStats_.queueRemoved(oldPortQueue->getID());
     }

@@ -384,7 +384,7 @@ class BcmMirrorTest : public BcmTest {
   }
 };
 
-TYPED_TEST_CASE(BcmMirrorTest, TestTypes);
+TYPED_TEST_SUITE(BcmMirrorTest, TestTypes);
 
 TYPED_TEST(BcmMirrorTest, ResolvedSpanMirror) {
   auto setup = [=]() {

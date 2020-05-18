@@ -103,7 +103,8 @@ TxMatchFn checkLldpPDU() {
           srcMac);
     }
 
-    auto tag = c.readBE<uint16_t>();
+    // read out vlan tag
+    c.readBE<uint16_t>();
     auto innerEthertype = c.readBE<uint16_t>();
     if (innerEthertype != LldpManager::ETHERTYPE_LLDP) {
       throw FbossError(" expected LLDP ethertype, found ", innerEthertype);

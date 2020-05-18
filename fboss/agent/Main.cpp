@@ -272,7 +272,9 @@ int fbossMain(
   // executing thrift calls. Redirecting to /dev/null is done so that
   // if somehow a client did manage to get into the shell, the shell
   // would read EOF immediately and exit.
-  freopen("/dev/null", "r", stdin);
+  if (!freopen("/dev/null", "r", stdin)) {
+    XLOG(INFO) << "Could not open /dev/null ";
+  }
 
   // Now that we have parsed the command line flags, create the Platform object
   unique_ptr<Platform> platform =

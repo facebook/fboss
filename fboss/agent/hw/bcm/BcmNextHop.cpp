@@ -107,7 +107,6 @@ void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
     /* program to next hop */
     auto bcmHostPortDesc = bcmHostEntry->getEgressPortDescriptor();
     CHECK(bcmHostPortDesc.has_value());
-    auto bcmHostEgressId = bcmHostEntry->getEgressId();
     auto* bcmHostEgress = bcmHostEntry->getEgress();
     auto mac = bcmHostEgress->getMac();
     if (bcmHostPortDesc->isAggregatePort()) {

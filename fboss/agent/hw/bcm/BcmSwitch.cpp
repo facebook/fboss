@@ -1616,7 +1616,6 @@ void BcmSwitch::processChangedVlan(
   uint32_t numAdded{0};
   uint32_t numRemoved{0};
   while (oldIter != oldPorts.end() || newIter != newPorts.end()) {
-    LoopAction action = LoopAction::CONTINUE;
     if (oldIter == oldPorts.end() ||
         (newIter != newPorts.end() && newIter->first < oldIter->first)) {
       // This port was added

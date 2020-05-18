@@ -14,7 +14,7 @@
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
-#include <boost/math/common_factor.hpp>
+#include <boost/integer/common_factor.hpp>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"

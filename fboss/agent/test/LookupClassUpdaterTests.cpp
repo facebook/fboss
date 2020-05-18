@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -298,7 +299,7 @@ using TestTypes =
 using TestTypesNeighbor =
     ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-TYPED_TEST_CASE(LookupClassUpdaterTest, TestTypes);
+TYPED_TEST_SUITE(LookupClassUpdaterTest, TestTypes);
 
 TYPED_TEST(LookupClassUpdaterTest, VerifyClassID) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
@@ -417,7 +418,7 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
   }
 };
 
-TYPED_TEST_CASE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
+TYPED_TEST_SUITE(LookupClassUpdaterNeighborTest, TestTypesNeighbor);
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyClassIDSameMacDifferentIPs) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
@@ -511,7 +512,7 @@ class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
   }
 };
 
-TYPED_TEST_CASE(LookupClassUpdaterWarmbootTest, TestTypesNeighbor);
+TYPED_TEST_SUITE(LookupClassUpdaterWarmbootTest, TestTypesNeighbor);
 
 /*
  * Initialize the SetUp() SwitchState to carry a neighbor with a classID.

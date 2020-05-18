@@ -12,6 +12,8 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/GtestDefs.h"
+
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -256,7 +258,7 @@ class MirrorManagerTest : public ::testing::Test {
 
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-TYPED_TEST_CASE(MirrorManagerTest, TestTypes);
+TYPED_TEST_SUITE(MirrorManagerTest, TestTypes);
 
 TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
   auto params = MirrorManagerTestParams<TypeParam>::getParams();

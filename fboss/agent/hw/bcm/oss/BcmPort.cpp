@@ -20,7 +20,6 @@ namespace facebook::fboss {
 
 cfg::PortSpeed BcmPort::getMaxSpeed() const {
   int speed;
-  auto unit = hw_->getUnit();
   auto rv = bcm_port_speed_max(hw_->getUnit(), port_, &speed);
   bcmCheckError(rv, "Failed to get max speed for port ", port_);
   return cfg::PortSpeed(speed);

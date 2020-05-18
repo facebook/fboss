@@ -290,7 +290,7 @@ const std::array<TestParameters<folly::IPAddressV6>, 2>
             &kStack1,
             2001}};
 
-TYPED_TEST_CASE(HwLabelEdgeRouteTest, TestTypes);
+TYPED_TEST_SUITE(HwLabelEdgeRouteTest, TestTypes);
 
 TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
   // setup nexthop with only one label

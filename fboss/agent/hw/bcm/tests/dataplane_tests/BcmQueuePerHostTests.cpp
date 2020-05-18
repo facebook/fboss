@@ -221,7 +221,7 @@ class BcmQueuePerHostTest : public BcmLinkStateDependentTests {
 
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-TYPED_TEST_CASE(BcmQueuePerHostTest, TestTypes);
+TYPED_TEST_SUITE(BcmQueuePerHostTest, TestTypes);
 
 TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {

@@ -112,7 +112,7 @@ class HwRouteTest : public HwTest {
 
 using IpTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-TYPED_TEST_CASE(HwRouteTest, IpTypes);
+TYPED_TEST_SUITE(HwRouteTest, IpTypes);
 
 TYPED_TEST(HwRouteTest, VerifyClassID) {
   auto setup = [=]() {

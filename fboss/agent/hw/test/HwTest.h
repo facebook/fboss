@@ -17,6 +17,7 @@
 #include <folly/dynamic.h>
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"

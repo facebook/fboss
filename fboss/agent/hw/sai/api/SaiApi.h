@@ -164,7 +164,6 @@ class SaiApi {
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
     AttrT attr = attrOptional.value_or(AttrT{});
-    sai_status_t status;
     try {
       return std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
     } catch (const SaiApiError& e) {
