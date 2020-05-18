@@ -149,8 +149,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiInSegEntryManager::processChangedInSegEntry,
       &SaiInSegEntryManager::processAddedInSegEntry,
       &SaiInSegEntryManager::processRemovedInSegEntry);
-  managerTable_->switchManager().processLoadBalancerDelta(
-      delta, saiSwitchMutex_);
+  processDelta(
+      delta.getLoadBalancersDelta(),
+      managerTable_->switchManager(),
+      &SaiSwitchManager::changeLoadBalancer,
+      &SaiSwitchManager::addOrUpdateLoadBalancer,
+      &SaiSwitchManager::removeLoadBalancer);
   return delta.newState();
 }
 

@@ -195,6 +195,12 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
   }
 }
 
+void SaiSwitchManager::changeLoadBalancer(
+    const std::shared_ptr<LoadBalancer>& /*oldLb*/,
+    const std::shared_ptr<LoadBalancer>& newLb) {
+  return addOrUpdateLoadBalancer(newLb);
+}
+
 void SaiSwitchManager::removeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& oldLb) {
   if (oldLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
@@ -203,27 +209,6 @@ void SaiSwitchManager::removeLoadBalancer(
   programLoadBalancerParams(oldLb->getID(), std::nullopt, std::nullopt);
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
-}
-
-void SaiSwitchManager::processLoadBalancerDelta(
-    const StateDelta& delta,
-    std::mutex& lock) {
-  DeltaFunctions::forEachChanged(
-      delta.getLoadBalancersDelta(),
-      [this, &lock](
-          const std::shared_ptr<LoadBalancer>& /*oldLb*/,
-          const std::shared_ptr<LoadBalancer>& newLb) {
-        std::lock_guard<std::mutex> g{lock};
-        addOrUpdateLoadBalancer(newLb);
-      },
-      [this, &lock](const std::shared_ptr<LoadBalancer>& add) {
-        std::lock_guard<std::mutex> g{lock};
-        addOrUpdateLoadBalancer(add);
-      },
-      [this, &lock](const std::shared_ptr<LoadBalancer>& remove) {
-        std::lock_guard<std::mutex> g{lock};
-        removeLoadBalancer(remove);
-      });
 }
 
 // Only handle the global default QoS policy.

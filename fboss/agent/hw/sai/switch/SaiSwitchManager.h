@@ -45,7 +45,11 @@ class SaiSwitchManager {
   SwitchSaiId getSwitchSaiId() const;
 
   void processQosMapDelta(const StateDelta& delta, std::mutex& lock);
-  void processLoadBalancerDelta(const StateDelta& delta, std::mutex& lock);
+  void addOrUpdateLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
+  void changeLoadBalancer(
+      const std::shared_ptr<LoadBalancer>& oldLb,
+      const std::shared_ptr<LoadBalancer>& newLb);
+  void removeLoadBalancer(const std::shared_ptr<LoadBalancer>& oldLb);
 
   void resetHashes();
   void resetQosMaps();
@@ -56,8 +60,6 @@ class SaiSwitchManager {
       cfg::LoadBalancerID id,
       std::optional<sai_uint32_t> seed,
       std::optional<cfg::HashingAlgorithm> algo);
-  void addOrUpdateLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
-  void removeLoadBalancer(const std::shared_ptr<LoadBalancer>& oldLb);
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
