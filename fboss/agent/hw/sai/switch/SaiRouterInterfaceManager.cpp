@@ -88,7 +88,9 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
   return routerInterface->adapterKey();
 }
 
-void SaiRouterInterfaceManager::removeRouterInterface(const InterfaceID& swId) {
+void SaiRouterInterfaceManager::removeRouterInterface(
+    const std::shared_ptr<Interface>& swInterface) {
+  auto swId = swInterface->getID();
   auto itr = handles_.find(swId);
   if (itr == handles_.end()) {
     throw FbossError("Failed to remove non-existent router interface: ", swId);
@@ -144,27 +146,6 @@ SaiRouterInterfaceManager::getRouterInterfaceHandleImpl(
     XLOG(FATAL) << "Invalid null router interface for InterfaceID " << swId;
   }
   return itr->second.get();
-}
-
-void SaiRouterInterfaceManager::processInterfaceDelta(
-    const StateDelta& stateDelta,
-    std::mutex& lock) {
-  auto delta = stateDelta.getIntfsDelta();
-  auto processChanged =
-      [this, &lock](const auto& oldInterface, const auto& newInterface) {
-        std::lock_guard g{lock};
-        changeRouterInterface(oldInterface, newInterface);
-      };
-  auto processAdded = [this, &lock](const auto& newInterface) {
-    std::lock_guard g{lock};
-    addRouterInterface(newInterface);
-  };
-  auto processRemoved = [this, &lock](const auto& oldInterface) {
-    std::lock_guard g{lock};
-    removeRouterInterface(oldInterface->getID());
-  };
-  DeltaFunctions::forEachChanged(
-      delta, processChanged, processAdded, processRemoved);
 }
 
 } // namespace facebook::fboss

@@ -210,7 +210,7 @@ TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
   saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
   InterfaceID swId(1);
-  routerInterfaceManager.removeRouterInterface(swId);
+  routerInterfaceManager.removeRouterInterface(swInterface);
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(swId);
   EXPECT_FALSE(routerInterfaceHandle);
@@ -220,6 +220,7 @@ TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {
   auto swInterface = makeInterface(intf1);
   saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
-  InterfaceID swId(2);
-  EXPECT_THROW(routerInterfaceManager.removeRouterInterface(swId), FbossError);
+  auto swInterface2 = makeInterface(testInterfaces[2]);
+  EXPECT_THROW(
+      routerInterfaceManager.removeRouterInterface(swInterface2), FbossError);
 }

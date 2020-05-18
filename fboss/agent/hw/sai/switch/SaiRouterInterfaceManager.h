@@ -44,7 +44,7 @@ class SaiRouterInterfaceManager {
       const SaiPlatform* platform);
   RouterInterfaceSaiId addRouterInterface(
       const std::shared_ptr<Interface>& swInterface);
-  void removeRouterInterface(const InterfaceID& swId);
+  void removeRouterInterface(const std::shared_ptr<Interface>& swInterface);
   void changeRouterInterface(
       const std::shared_ptr<Interface>& oldInterface,
       const std::shared_ptr<Interface>& newInterface);
