@@ -70,7 +70,6 @@ void BcmBstStatsMgr::updateStats() {
   syncStats();
 
   for (const auto& entry : *hw_->getPortTable()) {
-    PortID portID = entry.first;
     BcmPort* bcmPort = entry.second;
 
     auto curPortStatsOptional = bcmPort->getPortStats();

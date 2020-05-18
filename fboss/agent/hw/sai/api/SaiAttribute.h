@@ -179,27 +179,27 @@ _fill(const SrcT& src, DstT& dst) {
   dst = src;
 }
 
-void _fill(const folly::IPAddress& src, sai_ip_address_t& dst) {
+inline void _fill(const folly::IPAddress& src, sai_ip_address_t& dst) {
   dst = facebook::fboss::toSaiIpAddress(src);
 }
 
-void _fill(const sai_ip_address_t& src, folly::IPAddress& dst) {
+inline void _fill(const sai_ip_address_t& src, folly::IPAddress& dst) {
   dst = facebook::fboss::fromSaiIpAddress(src);
 }
 
-void _fill(const folly::IPAddressV4& src, sai_ip4_t& dst) {
+inline void _fill(const folly::IPAddressV4& src, sai_ip4_t& dst) {
   dst = facebook::fboss::toSaiIpAddress(src).addr.ip4;
 }
 
-void _fill(const sai_ip4_t& src, folly::IPAddressV4& dst) {
+inline void _fill(const sai_ip4_t& src, folly::IPAddressV4& dst) {
   dst = facebook::fboss::fromSaiIpAddress(src);
 }
 
-void _fill(const folly::MacAddress& src, sai_mac_t& dst) {
+inline void _fill(const folly::MacAddress& src, sai_mac_t& dst) {
   facebook::fboss::toSaiMacAddress(src, dst);
 }
 
-void _fill(const sai_mac_t& src, folly::MacAddress& dst) {
+inline void _fill(const sai_mac_t& src, folly::MacAddress& dst) {
   dst = facebook::fboss::fromSaiMacAddress(src);
 }
 
