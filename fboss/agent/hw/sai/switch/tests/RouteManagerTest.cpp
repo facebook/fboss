@@ -43,15 +43,15 @@ class RouteManagerTest : public ManagerTestBase {
 
 TEST_F(RouteManagerTest, addRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, addRouteSameNextHops) {
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r1 = makeRoute(tr1);
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r2);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
@@ -59,14 +59,14 @@ TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
   tr2.nextHopInterfaces.push_back(testInterfaces.at(1));
   tr2.nextHopInterfaces.push_back(testInterfaces.at(3));
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r2);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, addRouteOneNextHop) {
   tr1.nextHopInterfaces = {testInterfaces.at(1)};
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, addToCpuRoute) {
@@ -79,7 +79,7 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   auto saiRouteHandle =
@@ -102,7 +102,7 @@ TEST_F(RouteManagerTest, addDropRoute) {
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, addSubnetRoute) {
@@ -117,12 +117,12 @@ TEST_F(RouteManagerTest, addSubnetRoute) {
   r->update(ClientID::INTERFACE_ROUTE, entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }
 
 TEST_F(RouteManagerTest, getRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   SaiRouteHandle* saiRouteHandle =
@@ -132,23 +132,23 @@ TEST_F(RouteManagerTest, getRoute) {
 
 TEST_F(RouteManagerTest, removeRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(entry);
   EXPECT_TRUE(saiRouteHandle);
-  saiManagerTable->routeManager().removeRoute(RouterID(0), r);
+  saiManagerTable->routeManager().removeRoute(r, RouterID(0));
   saiRouteHandle = saiManagerTable->routeManager().getRouteHandle(entry);
   EXPECT_FALSE(saiRouteHandle);
 }
 
 TEST_F(RouteManagerTest, addDupRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
   EXPECT_THROW(
       saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-          RouterID(0), r),
+          r, RouterID(0)),
       FbossError);
 }
 
@@ -156,7 +156,7 @@ TEST_F(RouteManagerTest, getNonexistentRoute) {
   auto r1 = makeRoute(tr1);
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
   SaiRouteHandle* saiRouteHandle =
@@ -168,9 +168,9 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
   auto r1 = makeRoute(tr1);
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
   EXPECT_THROW(
-      saiManagerTable->routeManager().removeRoute(RouterID(0), r2), FbossError);
+      saiManagerTable->routeManager().removeRoute(r2, RouterID(0)), FbossError);
 }
 
 TEST_F(RouteManagerTest, updateNonexistentRoute) {
@@ -179,13 +179,13 @@ TEST_F(RouteManagerTest, updateNonexistentRoute) {
   auto r2 = makeRoute(tr2);
   EXPECT_THROW(
       saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-          RouterID(0), r1, r2),
+          r1, r2, RouterID(0)),
       FbossError);
 }
 
 TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   auto r1 = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
@@ -201,7 +201,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r1, r2);
+      r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
   count = std::count_if(
       nexthopGroupHandle2->subscriberForMembers_.begin(),
@@ -220,14 +220,14 @@ TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
   r1->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
   auto routeEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(routeEntry);
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r1, r2);
+      r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
   auto count = std::count_if(
       nexthopGroupHandle2->subscriberForMembers_.begin(),
@@ -235,7 +235,7 @@ TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
       [](const auto& member) { return member->isAlive(); });
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r2, r1);
+      r2, r1, RouterID(0));
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
 }
 
@@ -243,13 +243,13 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r1 = makeRoute(tr1);
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r2);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
   tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
   tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
   auto r3 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r1, r3);
+      r1, r3, RouterID(0));
   auto routeEntry1 =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle1 =
@@ -281,14 +281,14 @@ TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
   r1->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r1);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
   auto routeEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(routeEntry);
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r1, r2);
+      r1, r2, RouterID(0));
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle;
 
   auto count = std::count_if(
@@ -297,7 +297,7 @@ TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
       [](const auto& member) { return member->isAlive(); });
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      RouterID(0), r2, r1);
+      r2, r1, RouterID(0));
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle);
 }
 
@@ -352,5 +352,5 @@ TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
   r->update(ClientID::INTERFACE_ROUTE, entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(RouterID(0), r);
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
 }

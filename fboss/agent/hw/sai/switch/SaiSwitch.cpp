@@ -170,7 +170,27 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
         &SaiNeighborManager::addNeighbor<NdpEntry>,
         &SaiNeighborManager::removeNeighbor<NdpEntry>);
   }
-  managerTable_->routeManager().processRouteDelta(delta, saiSwitchMutex_);
+
+  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
+    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                        : routeDelta.getNew()->getID();
+    processDelta(
+        routeDelta.getRoutesV4Delta(),
+        managerTable_->routeManager(),
+        &SaiRouteManager::changeRoute<folly::IPAddressV4>,
+        &SaiRouteManager::addRoute<folly::IPAddressV4>,
+        &SaiRouteManager::removeRoute<folly::IPAddressV4>,
+        routerID);
+
+    processDelta(
+        routeDelta.getRoutesV6Delta(),
+        managerTable_->routeManager(),
+        &SaiRouteManager::changeRoute<folly::IPAddressV6>,
+        &SaiRouteManager::addRoute<folly::IPAddressV6>,
+        &SaiRouteManager::removeRoute<folly::IPAddressV6>,
+        routerID);
+  }
+
   managerTable_->hostifManager().processHostifDelta(delta, saiSwitchMutex_);
   processDelta(
       delta.getLabelForwardingInformationBaseDelta(),

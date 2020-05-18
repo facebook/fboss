@@ -186,9 +186,9 @@ void SaiRouteManager::addOrUpdateRoute(
 
 template <typename AddrT>
 void SaiRouteManager::changeRoute(
-    RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& oldSwRoute,
-    const std::shared_ptr<Route<AddrT>>& newSwRoute) {
+    const std::shared_ptr<Route<AddrT>>& newSwRoute,
+    RouterID routerId) {
   SaiRouteTraits::RouteEntry entry =
       routeEntryFromSwRoute(routerId, newSwRoute);
   auto itr = handles_.find(entry);
@@ -205,8 +205,8 @@ void SaiRouteManager::changeRoute(
 
 template <typename AddrT>
 void SaiRouteManager::addRoute(
-    RouterID routerId,
-    const std::shared_ptr<Route<AddrT>>& swRoute) {
+    const std::shared_ptr<Route<AddrT>>& swRoute,
+    RouterID routerId) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   auto itr = handles_.find(entry);
   if (itr != handles_.end()) {
@@ -225,49 +225,13 @@ void SaiRouteManager::addRoute(
 
 template <typename AddrT>
 void SaiRouteManager::removeRoute(
-    RouterID routerId,
-    const std::shared_ptr<Route<AddrT>>& swRoute) {
+    const std::shared_ptr<Route<AddrT>>& swRoute,
+    RouterID routerId) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   size_t count = handles_.erase(entry);
   if (!count) {
     throw FbossError(
         "Failed to remove non-existent route to ", swRoute->prefix().str());
-  }
-}
-
-void SaiRouteManager::processRouteDelta(
-    const StateDelta& delta,
-    std::mutex& lock) {
-  for (const auto& routeDelta : delta.getRouteTablesDelta()) {
-    RouterID routerId;
-    if (routeDelta.getOld()) {
-      routerId = routeDelta.getOld()->getID();
-    } else {
-      routerId = routeDelta.getNew()->getID();
-    }
-    auto processChanged = [this, routerId, &lock](
-                              const auto& oldRoute, const auto& newRoute) {
-      std::lock_guard<std::mutex> g{lock};
-      changeRoute(routerId, oldRoute, newRoute);
-    };
-    auto processAdded = [this, routerId, &lock](const auto& newRoute) {
-      std::lock_guard<std::mutex> g{lock};
-      addRoute(routerId, newRoute);
-    };
-    auto processRemoved = [this, routerId, &lock](const auto& oldRoute) {
-      std::lock_guard<std::mutex> g{lock};
-      removeRoute(routerId, oldRoute);
-    };
-    DeltaFunctions::forEachChanged(
-        routeDelta.getRoutesV4Delta(),
-        processChanged,
-        processAdded,
-        processRemoved);
-    DeltaFunctions::forEachChanged(
-        routeDelta.getRoutesV6Delta(),
-        processChanged,
-        processAdded,
-        processRemoved);
   }
 }
 
@@ -307,26 +271,26 @@ SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry) const;
 
 template void SaiRouteManager::changeRoute<folly::IPAddressV6>(
-    RouterID routerId,
     const std::shared_ptr<Route<folly::IPAddressV6>>& oldSwEntry,
-    const std::shared_ptr<Route<folly::IPAddressV6>>& newSwEntry);
+    const std::shared_ptr<Route<folly::IPAddressV6>>& newSwEntry,
+    RouterID routerId);
 template void SaiRouteManager::changeRoute<folly::IPAddressV4>(
-    RouterID routerId,
     const std::shared_ptr<Route<folly::IPAddressV4>>& oldSwEntry,
-    const std::shared_ptr<Route<folly::IPAddressV4>>& newSwEntry);
+    const std::shared_ptr<Route<folly::IPAddressV4>>& newSwEntry,
+    RouterID routerId);
 
 template void SaiRouteManager::addRoute<folly::IPAddressV6>(
-    RouterID routerId,
-    const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry);
+    const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
+    RouterID routerId);
 template void SaiRouteManager::addRoute<folly::IPAddressV4>(
-    RouterID routerId,
-    const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry);
+    const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
+    RouterID routerId);
 
 template void SaiRouteManager::removeRoute<folly::IPAddressV6>(
-    RouterID routerId,
-    const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry);
+    const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
+    RouterID routerId);
 template void SaiRouteManager::removeRoute<folly::IPAddressV4>(
-    RouterID routerId,
-    const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry);
+    const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
+    RouterID routerId);
 
 } // namespace facebook::fboss
