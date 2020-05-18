@@ -143,8 +143,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   managerTable_->neighborManager().processNeighborDelta(delta, saiSwitchMutex_);
   managerTable_->routeManager().processRouteDelta(delta, saiSwitchMutex_);
   managerTable_->hostifManager().processHostifDelta(delta, saiSwitchMutex_);
-  managerTable_->inSegEntryManager().processInSegEntryDelta(
-      delta.getLabelForwardingInformationBaseDelta(), saiSwitchMutex_);
+  processDelta(
+      delta.getLabelForwardingInformationBaseDelta(),
+      managerTable_->inSegEntryManager(),
+      &SaiInSegEntryManager::processChangedInSegEntry,
+      &SaiInSegEntryManager::processAddedInSegEntry,
+      &SaiInSegEntryManager::processRemovedInSegEntry);
   managerTable_->switchManager().processLoadBalancerDelta(
       delta, saiSwitchMutex_);
   return delta.newState();
@@ -747,6 +751,90 @@ void SaiSwitch::fdbEventCallbackLocked(
     uint32_t /*count*/,
     const sai_fdb_event_notification_data_t* /*data*/) {
   // TODO  - program macs from learn events to FDB
+}
+
+template <
+    typename Delta,
+    typename Manager,
+    typename... Args,
+    typename ChangeFunc,
+    typename AddedFunc,
+    typename RemovedFunc>
+void SaiSwitch::processDelta(
+    Delta delta,
+    Manager& manager,
+    ChangeFunc changedFunc,
+    AddedFunc addedFunc,
+    RemovedFunc removedFunc,
+    Args... args) {
+  DeltaFunctions::forEachChanged(
+      delta,
+      [&](const std::shared_ptr<typename Delta::Node>& removed,
+          const std::shared_ptr<typename Delta::Node>& added) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*changedFunc)(removed, added, args...);
+      },
+      [&](const std::shared_ptr<typename Delta::Node>& added) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*addedFunc)(added, args...);
+      },
+      [&](const std::shared_ptr<typename Delta::Node>& removed) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*removedFunc)(removed, args...);
+      });
+}
+
+template <
+    typename Delta,
+    typename Manager,
+    typename... Args,
+    typename ChangeFunc>
+void SaiSwitch::processChangedDelta(
+    Delta delta,
+    Manager& manager,
+    ChangeFunc changedFunc,
+    Args... args) {
+  DeltaFunctions::forEachChanged(
+      delta,
+      [&](const std::shared_ptr<typename Delta::Node>& added,
+          const std::shared_ptr<typename Delta::Node>& removed) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*changedFunc)(added, removed, args...);
+      });
+}
+
+template <
+    typename Delta,
+    typename Manager,
+    typename... Args,
+    typename AddedFunc>
+void SaiSwitch::processAddedDelta(
+    Delta delta,
+    Manager& manager,
+    AddedFunc addedFunc,
+    Args... args) {
+  DeltaFunctions::forEachAdded(
+      delta, [&](const std::shared_ptr<typename Delta::Node>& added) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*addedFunc)(added, args...);
+      });
+}
+
+template <
+    typename Delta,
+    typename Manager,
+    typename... Args,
+    typename RemovedFunc>
+void SaiSwitch::processRemovedDelta(
+    Delta delta,
+    Manager& manager,
+    RemovedFunc removedFunc,
+    Args... args) {
+  DeltaFunctions::forEachRemoved(
+      delta, [&](const std::shared_ptr<typename Delta::Node>& removed) {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        (manager.*removedFunc)(removed, args...);
+      });
 }
 
 } // namespace facebook::fboss

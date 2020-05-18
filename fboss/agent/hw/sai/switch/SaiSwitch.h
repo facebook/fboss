@@ -224,6 +224,65 @@ class SaiSwitch : public HwSwitch {
       SwitchSaiId switch_id,
       std::unique_ptr<folly::IOBuf> ioBuf,
       std::vector<sai_attribute_t> attrList);
+
+  template <
+      typename Delta,
+      typename Manager,
+      typename... Args,
+      typename ChangeFunc = void (Manager::*)(
+          const std::shared_ptr<typename Delta::Node>&,
+          const std::shared_ptr<typename Delta::Node>&,
+          Args...),
+      typename AddedFunc = void (
+          Manager::*)(const std::shared_ptr<typename Delta::Node>&, Args...),
+      typename RemovedFunc = void (
+          Manager::*)(const std::shared_ptr<typename Delta::Node>&, Args...)>
+  void processDelta(
+      Delta delta,
+      Manager& manager,
+      ChangeFunc changedFunc,
+      AddedFunc addedFunc,
+      RemovedFunc removedFunc,
+      Args... args);
+
+  template <
+      typename Delta,
+      typename Manager,
+      typename... Args,
+      typename ChangeFunc = void (Manager::*)(
+          const std::shared_ptr<typename Delta::Node>&,
+          const std::shared_ptr<typename Delta::Node>&,
+          Args...)>
+  void processChangedDelta(
+      Delta delta,
+      Manager& manager,
+      ChangeFunc changedFunc,
+      Args... args);
+
+  template <
+      typename Delta,
+      typename Manager,
+      typename... Args,
+      typename AddedFunc = void (
+          Manager::*)(const std::shared_ptr<typename Delta::Node>&, Args...)>
+  void processAddedDelta(
+      Delta delta,
+      Manager& manager,
+      AddedFunc addedFunc,
+      Args... args);
+
+  template <
+      typename Delta,
+      typename Manager,
+      typename... Args,
+      typename RemovedFunc = void (
+          Manager::*)(const std::shared_ptr<typename Delta::Node>&, Args...)>
+  void processRemovedDelta(
+      Delta delta,
+      Manager& manager,
+      RemovedFunc removedFunc,
+      Args... args);
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

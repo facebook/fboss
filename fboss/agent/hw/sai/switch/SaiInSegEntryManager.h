@@ -34,15 +34,10 @@ class SaiInSegEntryManager {
       const SaiPlatform* platform)
       : managerTable_(managerTable), platform_(platform) {}
 
-  void processInSegEntryDelta(
-      const NodeMapDelta<LabelForwardingInformationBase>& delta,
-      std::mutex& lock);
-
   // for tests only
   const SaiInSegEntryHandle* getInSegEntryHandle(
       LabelForwardingEntry::Label label) const;
 
- private:
   void processAddedInSegEntry(
       const std::shared_ptr<LabelForwardingEntry>& addedEntry);
   void processChangedInSegEntry(
@@ -51,6 +46,7 @@ class SaiInSegEntryManager {
   void processRemovedInSegEntry(
       const std::shared_ptr<LabelForwardingEntry>& removedEntry);
 
+ private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   folly::

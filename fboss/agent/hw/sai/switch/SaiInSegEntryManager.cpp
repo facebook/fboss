@@ -31,29 +31,6 @@ std::shared_ptr<SaiNextHopGroupHandle> getNextHopGroupHandle(
 } // namespace
 namespace facebook::fboss {
 
-void SaiInSegEntryManager::processInSegEntryDelta(
-    const NodeMapDelta<LabelForwardingInformationBase>& delta,
-    std::mutex& lock) {
-  DeltaFunctions::forEachAdded(delta, [this, &lock](const auto& labelFibEntry) {
-    std::lock_guard<std::mutex> g{lock};
-    processAddedInSegEntry(labelFibEntry);
-  });
-
-  DeltaFunctions::forEachChanged(
-      delta,
-      [this, &lock](
-          const auto& oldLabelFibEntry, const auto& newLabelFibEntry) {
-        std::lock_guard<std::mutex> g{lock};
-        processChangedInSegEntry(oldLabelFibEntry, newLabelFibEntry);
-      });
-
-  DeltaFunctions::forEachRemoved(
-      delta, [this, &lock](const auto& labelFibEntry) {
-        std::lock_guard<std::mutex> g{lock};
-        processRemovedInSegEntry(labelFibEntry);
-      });
-}
-
 void SaiInSegEntryManager::processAddedInSegEntry(
     const std::shared_ptr<LabelForwardingEntry>& addedEntry) {
   SaiInSegEntryHandle handle;
