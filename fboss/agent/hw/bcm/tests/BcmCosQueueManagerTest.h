@@ -24,6 +24,8 @@ class BcmCosQueueManagerTest : public BcmTest {
 
   virtual const QueueConfig& getSwQueues() = 0;
 
+  void checkCosQueueAPI();
+
   void checkDefaultCosqMatch(const std::shared_ptr<PortQueue>& queue);
 
   void checkConfSwHwMatch();

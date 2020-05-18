@@ -7,13 +7,35 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
+
 #include "fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h"
 
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 #include <folly/logging/xlog.h>
 
+using namespace facebook::fboss;
+
 namespace facebook::fboss {
+
+void BcmCosQueueManagerTest::checkCosQueueAPI() {
+  bcm_cos_queue_t getcq;
+  auto port = getHwSwitch()->getPortTable()->getBcmPort(
+      PortID(masterLogicalPortIds()[0]));
+
+  getcq = port->getQueueManager()->getCosQueue(cfg::StreamType::UNICAST, 0);
+  EXPECT_EQ(getcq, BCM_GPORT_UCAST_QUEUE_GROUP_QID_GET(0));
+  getcq = port->getQueueManager()->getCosQueue(cfg::StreamType::MULTICAST, 0);
+  EXPECT_EQ(getcq, BCM_COSQ_GPORT_MCAST_EGRESS_QUEUE_GET(0));
+  EXPECT_THROW(
+      port->getQueueManager()->getCosQueue(cfg::StreamType::ALL, 0),
+      FbossError);
+  EXPECT_THROW(
+      utility::getDefaultControlPlaneQueueSettings(
+          utility::BcmChip::TOMAHAWK, static_cast<cfg::StreamType>(10)),
+      FbossError);
+}
 
 void BcmCosQueueManagerTest::checkDefaultCosqMatch(
     const std::shared_ptr<PortQueue>& queue) {

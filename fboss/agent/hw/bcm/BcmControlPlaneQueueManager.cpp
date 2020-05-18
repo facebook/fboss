@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
@@ -61,7 +62,8 @@ bcm_gport_t BcmControlPlaneQueueManager::getQueueGPort(
   }
   throw FbossError(
       "Failed to retrieve queue gport because unsupported StreamType: ",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
+  ;
 }
 
 const PortQueue& BcmControlPlaneQueueManager::getDefaultQueueSettings(
@@ -96,7 +98,8 @@ int BcmControlPlaneQueueManager::getNumQueues(
   }
   throw FbossError(
       "Failed to retrieve queue size because unsupported StreamType: ",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
+  ;
 }
 
 std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(

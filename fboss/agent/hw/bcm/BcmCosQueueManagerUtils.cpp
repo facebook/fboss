@@ -301,7 +301,8 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
   }
   throw FbossError(
       "Control Plane queue doesn't support streamType:",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
+  ;
 }
 
 } // namespace facebook::fboss::utility

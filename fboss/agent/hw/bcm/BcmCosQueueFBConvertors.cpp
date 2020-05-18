@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
 
@@ -65,7 +66,8 @@ bcm_cosq_control_drop_limit_alpha_value_t cfgAlphaToBcmAlpha(
       // should return in one of the cases
       throw FbossError(
           "Unknown config MMUScalingFactor: ",
-          cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(cfgAlpha));
+          apache::thrift::util::enumNameSafe(cfgAlpha));
+      ;
   }
 }
 

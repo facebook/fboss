@@ -18,6 +18,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+using apache::thrift::TEnumTraits;
 using folly::to;
 using std::string;
 
@@ -60,11 +61,12 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   port.operState = OperState(*portThrift.portOperState_ref());
   port.ingressVlan = VlanID(*portThrift.ingressVlan_ref());
 
-  auto itrSpeed =
-      cfg::_PortSpeed_NAMES_TO_VALUES.find(portThrift.portSpeed_ref()->c_str());
-  CHECK(itrSpeed != cfg::_PortSpeed_NAMES_TO_VALUES.end())
-      << "Invalid port speed: " << *portThrift.portSpeed_ref();
-  port.speed = cfg::PortSpeed(itrSpeed->second);
+  cfg::PortSpeed portSpeed;
+  if (!TEnumTraits<cfg::PortSpeed>::findValue(
+          portThrift.portSpeed.c_str(), &portSpeed)) {
+    CHECK(false) << "Invalid port speed: " << portThrift.portSpeed;
+  }
+  port.speed = portSpeed;
 
   if (portThrift.portProfileID_ref()->empty()) {
     // warm booting from a previous version that didn't have profileID set
@@ -72,38 +74,42 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
                   << " doesn't have portProfileID, set to default.";
     port.profileID = cfg::PortProfileID::PROFILE_DEFAULT;
   } else {
-    auto itProfileID = cfg::_PortProfileID_NAMES_TO_VALUES.find(
-        portThrift.portProfileID_ref()->c_str());
-    CHECK(itProfileID != cfg::_PortProfileID_NAMES_TO_VALUES.end())
-        << "Invalid port profile id: " << *portThrift.portProfileID_ref();
-    port.profileID = cfg::PortProfileID(itProfileID->second);
+    cfg::PortProfileID portProfileID;
+    if (!TEnumTraits<cfg::PortProfileID>::findValue(
+            portThrift.portProfileID.c_str(), &portProfileID)) {
+      CHECK(false) << "Invalid port profile id: " << portThrift.portProfileID;
+    }
+    port.profileID = portProfileID;
   }
 
-  auto itrPortFec =
-      cfg::_PortFEC_NAMES_TO_VALUES.find(portThrift.portFEC_ref()->c_str());
-  CHECK(itrPortFec != cfg::_PortFEC_NAMES_TO_VALUES.end())
-      << "Unexpected FEC value: " << *portThrift.portFEC_ref();
-  port.fec = cfg::PortFEC(itrPortFec->second);
+  cfg::PortFEC portFEC;
+  if (!TEnumTraits<cfg::PortFEC>::findValue(
+          portThrift.portFEC.c_str(), &portFEC)) {
+    CHECK(false) << "Unexpected FEC value: " << portThrift.portFEC;
+  }
+  port.fec = portFEC;
 
   if (portThrift.portLoopbackMode_ref()->empty()) {
     // Backward compatibility for when we were not serializing loopback mode
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
   } else {
-    auto itrPortLoopbackMode = cfg::_PortLoopbackMode_NAMES_TO_VALUES.find(
-        portThrift.portLoopbackMode_ref()->c_str());
-    CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_NAMES_TO_VALUES.end())
-        << "Unexpected loopback mode value: "
-        << *portThrift.portLoopbackMode_ref();
-    port.loopbackMode = cfg::PortLoopbackMode(itrPortLoopbackMode->second);
+    cfg::PortLoopbackMode portLoopbackMode;
+    if (!TEnumTraits<cfg::PortLoopbackMode>::findValue(
+            portThrift.portLoopbackMode.c_str(), &portLoopbackMode)) {
+      CHECK(false) << "Unexpected loopback mode value: "
+                   << portThrift.portLoopbackMode;
+    }
+    port.loopbackMode = portLoopbackMode;
   }
 
   if (portThrift.sampleDest_ref()) {
-    auto itrSampleDestination = cfg::_SampleDestination_NAMES_TO_VALUES.find(
-        portThrift.sampleDest_ref().value().c_str());
-    CHECK(itrSampleDestination != cfg::_SampleDestination_NAMES_TO_VALUES.end())
-        << "Unexpected sample destination value: "
-        << portThrift.sampleDest_ref().value();
-    port.sampleDest = cfg::SampleDestination(itrSampleDestination->second);
+    cfg::SampleDestination sampleDest;
+    if (!TEnumTraits<cfg::SampleDestination>::findValue(
+            portThrift.sampleDest_ref().value().c_str(), &sampleDest)) {
+      CHECK(false) << "Unexpected sample destination value: "
+                   << portThrift.sampleDest_ref().value();
+    }
+    port.sampleDest = sampleDest;
   }
 
   *port.pause.tx_ref() = *portThrift.txPause_ref();
@@ -148,35 +154,39 @@ state::PortFields PortFields::toThrift() const {
   *port.portDescription_ref() = description;
 
   // TODO: store admin state as enum, not string?
-  auto itrAdminState = cfg::_PortState_VALUES_TO_NAMES.find(adminState);
-  CHECK(itrAdminState != cfg::_PortState_VALUES_TO_NAMES.end())
-      << "Unexpected admin state: " << static_cast<int>(adminState);
-  *port.portState_ref() = itrAdminState->second;
+  auto adminStateName = apache::thrift::util::enumName(adminState);
+  if (adminStateName == nullptr) {
+    CHECK(false) << "Unexpected admin state: " << static_cast<int>(adminState);
+  }
+  port.portState = adminStateName;
 
   *port.portOperState_ref() = operState == OperState::UP;
   *port.ingressVlan_ref() = ingressVlan;
 
   // TODO: store speed as enum, not string?
-  auto itrSpeed = cfg::_PortSpeed_VALUES_TO_NAMES.find(speed);
-  CHECK(itrSpeed != cfg::_PortSpeed_VALUES_TO_NAMES.end())
-      << "Unexpected port speed: " << static_cast<int>(speed);
-  *port.portSpeed_ref() = itrSpeed->second;
+  auto speedName = apache::thrift::util::enumName(speed);
+  if (speedName == nullptr) {
+    CHECK(false) << "Unexpected port speed: " << static_cast<int>(speed);
+  }
+  port.portSpeed = speedName;
 
   *port.portProfileID_ref() = apache::thrift::util::enumNameSafe(profileID);
 
   // TODO(aeckert): t24117229 remove this after next version is pushed
   *port.portMaxSpeed_ref() = *port.portSpeed_ref();
 
-  auto itrPortFec = cfg::_PortFEC_VALUES_TO_NAMES.find(fec);
-  CHECK(itrPortFec != cfg::_PortFEC_VALUES_TO_NAMES.end())
-      << "Unexpected port FEC: " << static_cast<int>(fec);
-  *port.portFEC_ref() = itrPortFec->second;
+  auto fecName = apache::thrift::util::enumName(fec);
+  if (fecName == nullptr) {
+    CHECK(false) << "Unexpected port FEC: " << static_cast<int>(fec);
+  }
+  port.portFEC = fecName;
 
-  auto itrPortLoopbackMode =
-      cfg::_PortLoopbackMode_VALUES_TO_NAMES.find(loopbackMode);
-  CHECK(itrPortLoopbackMode != cfg::_PortLoopbackMode_VALUES_TO_NAMES.end())
-      << "Unexpected port LoopbackMode: " << static_cast<int>(loopbackMode);
-  *port.portLoopbackMode_ref() = itrPortLoopbackMode->second;
+  auto loopbackModeName = apache::thrift::util::enumName(loopbackMode);
+  if (loopbackModeName == nullptr) {
+    CHECK(false) << "Unexpected port LoopbackMode: "
+                 << static_cast<int>(loopbackMode);
+  }
+  port.portLoopbackMode = loopbackModeName;
 
   *port.txPause_ref() = *pause.tx_ref();
   *port.rxPause_ref() = *pause.rx_ref();

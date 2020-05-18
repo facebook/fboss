@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
@@ -231,7 +232,8 @@ bcm_cos_queue_t BcmCosQueueManager::getCosQueue(
   }
   throw FbossError(
       "Failed to get cos queue because unknown StreamType ",
-      cfg::_StreamType_VALUES_TO_NAMES.find(streamType)->second);
+      apache::thrift::util::enumNameSafe(streamType));
+  ;
 }
 
 int BcmCosQueueManager::getControlValue(

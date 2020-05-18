@@ -98,6 +98,23 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
 
 } // namespace facebook::fboss
 
+TEST_F(BcmControlPlaneTest, CosQueueUtils) {
+  if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+    return;
+  }
+  // validate cosQueueManager API
+  checkCosQueueAPI();
+
+  auto port = getHwSwitch()->getPortTable()->getBcmPort(
+      PortID(masterLogicalPortIds()[0]));
+  // validate exception handling
+  EXPECT_THROW(
+      port->getQueueManager()->getQueueGPort(cfg::StreamType::ALL, 0),
+      FbossError);
+  EXPECT_THROW(
+      port->getQueueManager()->getNumQueues(cfg::StreamType::ALL), FbossError);
+}
+
 TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
     return;

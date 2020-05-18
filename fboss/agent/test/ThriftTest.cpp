@@ -20,8 +20,10 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
+using apache::thrift::TEnumTraits;
 using cfg::PortSpeed;
 using facebook::network::toBinaryAddress;
 using folly::IPAddress;
@@ -92,7 +94,7 @@ TEST(ThriftTest, getInterfaceDetail) {
 TEST(ThriftTest, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
   // logic, so we want to ensure that these values don't change.
-  for (const auto& [key, value] : cfg::_PortSpeed_VALUES_TO_NAMES) {
+  for (const auto key : TEnumTraits<cfg::PortSpeed>::values) {
     switch (key) {
       case PortSpeed::DEFAULT:
         continue;

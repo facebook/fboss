@@ -238,8 +238,7 @@ void BcmPortQueueManager::programAqm(
 
   auto rv = bcm_cosq_gport_discard_set(hw_->getUnit(), gport, cosQ, &discard);
   bcmCheckError(rv, "Unable to configure aqm for ", portName_, "; cosQ ", cosQ);
-  auto behaviorS =
-      cfg::_QueueCongestionBehavior_VALUES_TO_NAMES.find(behavior)->second;
+  auto behaviorS = apache::thrift::util::enumNameSafe(behavior);
   XLOG(DBG2) << "Setup active queue management[" << behaviorS << "] for "
              << portName_ << "; cosQ " << cosQ << "; flags: " << discard.flags
              << "; queue length min threshold: " << discard.min_thresh

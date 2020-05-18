@@ -140,7 +140,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       itr.first->second.push_back(label++);
     }
     for (auto port : unLabeledPorts_) {
-      auto itr = result.emplace(port, LabelForwardingAction::LabelStack{});
+      result.emplace(port, LabelForwardingAction::LabelStack{});
     }
     return result;
   }

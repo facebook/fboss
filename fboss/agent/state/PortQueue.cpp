@@ -9,8 +9,11 @@
  */
 #include "fboss/agent/state/PortQueue.h"
 #include <folly/Conv.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <sstream>
 #include "fboss/agent/state/NodeBase-defs.h"
+
+using apache::thrift::TEnumTraits;
 
 namespace {
 template <typename Param>
@@ -58,12 +61,23 @@ state::PortQueueFields PortQueueFields::toThrift() const {
     queue.reserved_ref() = reservedBytes.value();
   }
   if (scalingFactor) {
-    queue.scalingFactor_ref() =
-        cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(*scalingFactor);
+    auto scalingFactorName = apache::thrift::util::enumName(*scalingFactor);
+    if (scalingFactorName == nullptr) {
+      CHECK(false) << "Unexpected MMU scaling factor: "
+                   << static_cast<int>(*scalingFactor);
+    }
+    queue.scalingFactor_ref() = scalingFactorName;
   }
-  *queue.scheduling_ref() =
-      cfg::_QueueScheduling_VALUES_TO_NAMES.at(scheduling);
-  *queue.streamType_ref() = cfg::_StreamType_VALUES_TO_NAMES.at(streamType);
+  auto schedulingName = apache::thrift::util::enumName(scheduling);
+  if (schedulingName == nullptr) {
+    CHECK(false) << "Unexpected scheduling: " << static_cast<int>(scheduling);
+  }
+  queue.scheduling = schedulingName;
+  auto streamTypeName = apache::thrift::util::enumName(streamType);
+  if (streamTypeName == nullptr) {
+    CHECK(false) << "Unexpected streamType: " << static_cast<int>(streamType);
+  }
+  queue.streamType = streamTypeName;
   if (name) {
     queue.name_ref() = name.value();
   }
@@ -103,25 +117,32 @@ PortQueueFields PortQueueFields::fromThrift(
   PortQueueFields queue;
   queue.id = static_cast<uint8_t>(*queueThrift.id_ref());
 
-  auto const itrStreamType = cfg::_StreamType_NAMES_TO_VALUES.find(
-      queueThrift.streamType_ref()->c_str());
-  CHECK(itrStreamType != cfg::_StreamType_NAMES_TO_VALUES.end());
-  queue.streamType = itrStreamType->second;
+  cfg::StreamType streamType;
+  if (!TEnumTraits<cfg::StreamType>::findValue(
+          queueThrift.streamType.c_str(), &streamType)) {
+    CHECK(false) << "Invalid stream type: " << queueThrift.streamType;
+  }
+  queue.streamType = streamType;
 
-  auto const itrSched = cfg::_QueueScheduling_NAMES_TO_VALUES.find(
-      queueThrift.scheduling_ref()->c_str());
-  CHECK(itrSched != cfg::_QueueScheduling_NAMES_TO_VALUES.end());
-  queue.scheduling = itrSched->second;
+  cfg::QueueScheduling scheduling;
+  if (!TEnumTraits<cfg::QueueScheduling>::findValue(
+          queueThrift.scheduling.c_str(), &scheduling)) {
+    CHECK(false) << "Invalid scheduling: " << queueThrift.scheduling;
+  }
+  queue.scheduling = scheduling;
 
   queue.weight = *queueThrift.weight_ref();
   if (queueThrift.reserved_ref()) {
     queue.reservedBytes = queueThrift.reserved_ref().value();
   }
   if (queueThrift.scalingFactor_ref()) {
-    auto itrScalingFactor = cfg::_MMUScalingFactor_NAMES_TO_VALUES.find(
-        queueThrift.scalingFactor_ref()->c_str());
-    CHECK(itrScalingFactor != cfg::_MMUScalingFactor_NAMES_TO_VALUES.end());
-    queue.scalingFactor = itrScalingFactor->second;
+    cfg::MMUScalingFactor scalingFactor;
+    if (!TEnumTraits<cfg::MMUScalingFactor>::findValue(
+            queueThrift.scalingFactor_ref()->c_str(), &scalingFactor)) {
+      CHECK(false) << "Invalid MMU scaling factor: "
+                   << queueThrift.scalingFactor_ref()->c_str();
+    }
+    queue.scalingFactor = scalingFactor;
   }
   if (queueThrift.name_ref()) {
     queue.name = queueThrift.name_ref().value();
@@ -160,9 +181,8 @@ PortQueueFields PortQueueFields::fromThrift(
 std::string PortQueue::toString() const {
   std::stringstream ss;
   ss << "Queue id=" << static_cast<int>(getID())
-     << ", streamType=" << cfg::_StreamType_VALUES_TO_NAMES.at(getStreamType())
-     << ", scheduling="
-     << cfg::_QueueScheduling_VALUES_TO_NAMES.at(getScheduling())
+     << ", streamType=" << apache::thrift::util::enumName(getStreamType())
+     << ", scheduling=" << apache::thrift::util::enumName(getScheduling())
      << ", weight=" << getWeight();
   if (getReservedBytes()) {
     ss << ", reservedBytes=" << getReservedBytes().value();
@@ -172,13 +192,12 @@ std::string PortQueue::toString() const {
   }
   if (getScalingFactor()) {
     ss << ", scalingFactor="
-       << cfg::_MMUScalingFactor_VALUES_TO_NAMES.at(getScalingFactor().value());
+       << apache::thrift::util::enumName(getScalingFactor().value());
   }
   if (!getAqms().empty()) {
     ss << ", aqms=[";
     for (const auto& aqm : getAqms()) {
-      ss << "(behavior="
-         << cfg::_QueueCongestionBehavior_VALUES_TO_NAMES.at(aqm.first)
+      ss << "(behavior=" << apache::thrift::util::enumName(aqm.first)
          << ", detection=[min="
          << aqm.second.get_detection().get_linear().minimumLength
          << ", max=" << aqm.second.get_detection().get_linear().maximumLength
