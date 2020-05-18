@@ -86,8 +86,9 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   }
 
   void removePort(PortID port) {
+    auto swPort = getProgrammedState()->getPorts()->getPort(port);
     auto* managerTable = getSaiSwitch()->managerTable();
-    managerTable->portManager().removePort(port);
+    managerTable->portManager().removePort(swPort);
   }
 
   void addPort(PortID port) {

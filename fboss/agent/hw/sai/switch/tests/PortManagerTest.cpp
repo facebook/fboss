@@ -112,7 +112,7 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_TRUE(platformPort);
     auto subsumedPorts = platformPort->getSubsumedPorts(speed);
     EXPECT_EQ(subsumedPorts, expectedPorts);
-    saiManagerTable->portManager().removePort(swPort->getID());
+    saiManagerTable->portManager().removePort(swPort);
   }
 
   TestPort p0;
@@ -167,7 +167,7 @@ TEST_F(PortManagerTest, removePort) {
   saiManagerTable->portManager().addPort(swPort);
   SaiPortHandle* port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_TRUE(port);
-  saiManagerTable->portManager().removePort(PortID(0));
+  saiManagerTable->portManager().removePort(swPort);
   port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_FALSE(port);
 }
@@ -177,8 +177,10 @@ TEST_F(PortManagerTest, removeNonExistentPort) {
   saiManagerTable->portManager().addPort(swPort);
   SaiPortHandle* port = saiManagerTable->portManager().getPortHandle(PortID(0));
   EXPECT_TRUE(port);
-  EXPECT_THROW(
-      saiManagerTable->portManager().removePort(PortID(10)), FbossError);
+  TestPort p10;
+  p10.id = 10;
+  std::shared_ptr<Port> swPort10 = makePort(p10);
+  EXPECT_THROW(saiManagerTable->portManager().removePort(swPort10), FbossError);
 }
 
 TEST_F(PortManagerTest, changePortAdminState) {

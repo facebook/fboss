@@ -209,7 +209,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   return saiPort->adapterKey();
 }
 
-void SaiPortManager::removePort(PortID swId) {
+void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
+  auto swId = swPort->getID();
   auto itr = handles_.find(swId);
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
@@ -281,7 +282,7 @@ void SaiPortManager::changePort(
     // create only attribute has changed, this means delete old one and recreate
     // new one.
     XLOG(INFO) << "lanes changed for " << oldPort->getID();
-    removePort(oldPort->getID());
+    removePort(oldPort);
     addPort(newPort);
     return;
   }
@@ -388,28 +389,6 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
     PortID swId,
     const SaiQueueConfig& saiQueueConfig) {
   return getQueueHandleImpl(swId, saiQueueConfig);
-}
-
-void SaiPortManager::processPortDelta(
-    const StateDelta& stateDelta,
-    std::mutex& lock) {
-  auto delta = stateDelta.getPortsDelta();
-  auto processChanged = [this, &lock](
-                            const auto& oldPort, const auto& newPort) {
-    std::lock_guard<std::mutex> g{lock};
-    changePort(oldPort, newPort);
-  };
-  auto processAdded = [this, &lock](const auto& newPort) {
-    std::lock_guard<std::mutex> g{lock};
-    addPort(newPort);
-  };
-  auto processRemoved = [this, &lock](const auto& oldPort) {
-    std::lock_guard<std::mutex> g{lock};
-    removePort(oldPort->getID());
-  };
-  DeltaFunctions::forEachChanged(delta, processChanged);
-  DeltaFunctions::forEachAdded(delta, processAdded);
-  DeltaFunctions::forEachRemoved(delta, processRemoved);
 }
 
 const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {

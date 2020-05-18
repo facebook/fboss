@@ -50,7 +50,7 @@ class SaiPortManager {
       ConcurrentIndices* concurrentIndices_);
   ~SaiPortManager();
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
-  void removePort(PortID id);
+  void removePort(const std::shared_ptr<Port>& swPort);
   void changePort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
@@ -66,7 +66,6 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
-  void processPortDelta(const StateDelta& stateDelta, std::mutex& lock);
   void updateStats();
   std::map<PortID, HwPortStats> getPortStats() const;
   void changeQueue(

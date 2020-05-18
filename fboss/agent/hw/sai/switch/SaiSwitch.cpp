@@ -135,7 +135,12 @@ void SaiSwitch::unregisterCallbacks() noexcept {
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
-  managerTable_->portManager().processPortDelta(delta, saiSwitchMutex_);
+  processDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      &SaiPortManager::changePort,
+      &SaiPortManager::addPort,
+      &SaiPortManager::removePort);
   managerTable_->vlanManager().processVlanDelta(delta, saiSwitchMutex_);
   managerTable_->switchManager().processQosMapDelta(delta, saiSwitchMutex_);
   managerTable_->routerInterfaceManager().processInterfaceDelta(
