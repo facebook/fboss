@@ -58,6 +58,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmTrunkTests.cpp
   fboss/agent/hw/bcm/tests/BcmTrunkUtils.cpp
   fboss/agent/hw/bcm/tests/BcmUnitTests.cpp
+  fboss/agent/hw/bcm/tests/BcmQcmTests.cpp
   fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
   fboss/agent/hw/bcm/tests/HwTestRouteUtils.cpp
   fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
