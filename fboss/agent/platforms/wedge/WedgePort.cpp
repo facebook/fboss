@@ -246,11 +246,10 @@ TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
   if (!supportsTransceiver()) {
     return TransceiverIdxThrift();
   }
-  return TransceiverIdxThrift(
-      apache::thrift::FragileConstructor::FRAGILE,
-      static_cast<int32_t>(*getTransceiverID()),
-      0, // TODO: deprecate
-      getChannels());
+  TransceiverIdxThrift xcvr;
+  xcvr.set_transceiverId(static_cast<int32_t>(*getTransceiverID()));
+  xcvr.set_channels(getChannels());
+  return xcvr;
 }
 
 PortStatus WedgePort::toThrift(const std::shared_ptr<Port>& port) {

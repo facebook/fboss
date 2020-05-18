@@ -146,14 +146,16 @@ void HwSwitchEnsemble::l2LearningUpdateReceived(
 }
 
 void HwSwitchEnsemble::addHwEventObserver(HwSwitchEventObserverIf* observer) {
-  if (!hwEventObservers_->insert(observer).second) {
+  auto hwEventObservers = hwEventObservers_.wlock();
+  if (!hwEventObservers->insert(observer).second) {
     throw FbossError("Observer was already added");
   }
 }
 
 void HwSwitchEnsemble::removeHwEventObserver(
     HwSwitchEventObserverIf* observer) {
-  if (!hwEventObservers_->erase(observer)) {
+  auto hwEventObservers = hwEventObservers_.wlock();
+  if (!hwEventObservers->erase(observer)) {
     throw FbossError("Observer erase failed");
   }
 }

@@ -629,7 +629,8 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   auto portHandle =
       managerTableLocked(lock)->portManager().getPortHandle(portID);
   if (!portHandle) {
-    throw FbossError("Failed to send packet on invalid port: ", portID);
+    XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
+    return false;
   }
   /* TODO: this hack is required, sending packet out of port with with pipeline
   bypass, doesn't cause vlan tag stripping. fix this once a pipeline bypass with

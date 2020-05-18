@@ -55,7 +55,9 @@ void RouteUpdateLoggingPrefixTracker::stopTracking(
 void RouteUpdateLoggingPrefixTracker::stopTracking(
     const std::string& identifier) {
   XLOG(INFO) << "Stop tracking all prefixes for " << identifier;
-  trackedPrefixes_->erase(identifier);
+  SYNCHRONIZED(trackedPrefixes_) {
+    trackedPrefixes_.erase(identifier);
+  }
 }
 
 bool RouteUpdateLoggingPrefixTracker::trackingImpl(
