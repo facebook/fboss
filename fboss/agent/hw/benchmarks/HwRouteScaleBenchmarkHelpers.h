@@ -28,9 +28,11 @@ void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   static auto ensemble = createHwEnsemble(
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
-  auto config = utility::onePortPerVlanConfig(
-      ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
+  if (ensemble->getRunState() < SwitchRunState::CONFIGURED) {
+    auto config = utility::onePortPerVlanConfig(
+        ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
+    ensemble->applyInitialConfig(config);
+  }
   static const auto states =
       RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
   if (measureAdd) {
