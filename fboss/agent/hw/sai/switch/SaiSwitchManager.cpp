@@ -211,49 +211,35 @@ void SaiSwitchManager::removeLoadBalancer(
   ecmpV6Hash_.reset();
 }
 
-// Only handle the global default QoS policy.
-void SaiSwitchManager::processQosMapDelta(
-    const StateDelta& stateDelta,
-    std::mutex& lock) {
-  // Perhaps it is necessary to lock at the "per-qos-map" granularity in
-  // SaiQosMapManager, but for now, just lock for the whole qos map
-  std::lock_guard<std::mutex> g{lock};
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
-    XLOG(WARNING)
-        << "Skip programming default qos map; ASIC doesn't support it";
-    return;
-  }
-  auto oldDefaultQosPolicy = stateDelta.oldState()
-      ? stateDelta.oldState()->getDefaultDataPlaneQosPolicy()
-      : nullptr;
-  auto newDefaultQosPolicy = stateDelta.newState()
-      ? stateDelta.newState()->getDefaultDataPlaneQosPolicy()
-      : nullptr;
-
+void SaiSwitchManager::addDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
   auto& qosMapManager = managerTable_->qosMapManager();
+  XLOG(INFO) << "Set default qos map";
+  globalDscpToTcQosMap_ =
+      qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
+  globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
+      newDefaultQosPolicy->getTrafficClassToQueueId());
+  // set switch attrs to oids
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
+      globalDscpToTcQosMap_->adapterKey()});
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
+      globalTcToQueueQosMap_->adapterKey()});
+}
 
-  if (newDefaultQosPolicy && !oldDefaultQosPolicy) {
-    XLOG(INFO) << "Set default qos map";
-    globalDscpToTcQosMap_ =
-        qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
-    globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
-        newDefaultQosPolicy->getTrafficClassToQueueId());
-    // set switch attrs to oids
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
-        globalDscpToTcQosMap_->adapterKey()});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
-        globalTcToQueueQosMap_->adapterKey()});
-  } else if (oldDefaultQosPolicy && !newDefaultQosPolicy) {
-    XLOG(INFO) << "Reset default qos map";
-    resetQosMaps();
-    // reset switch attrs to null oid
-  } else {
-    // Since we don't have the benefit of deltas, we want to avoid
-    // running the whole "set qos map" operation on _each_ delta.
-    // Eventually we can check equality here and properly support
-    // modifying the qos map
-    XLOG(WARNING) << "Changing qos map not currently supported";
-  }
+void SaiSwitchManager::removeDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& /*policy*/) {
+  XLOG(INFO) << "Reset default qos map";
+  resetQosMaps();
+}
+
+void SaiSwitchManager::changeDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& /*oldQosPolicy*/,
+    const std::shared_ptr<QosPolicy>& /*newQosPolicy*/) {
+  // Since we don't have the benefit of deltas, we want to avoid
+  // running the whole "set qos map" operation on _each_ delta.
+  // Eventually we can check equality here and properly support
+  // modifying the qos map
+  XLOG(WARNING) << "Changing qos map not currently supported";
 }
 
 void SaiSwitchManager::gracefulExit() {

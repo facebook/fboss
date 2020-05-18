@@ -60,6 +60,7 @@ class StateDelta {
   VlanMapDelta getVlansDelta() const;
   NodeMapDelta<InterfaceMap> getIntfsDelta() const;
   RTMapDelta getRouteTablesDelta() const;
+  DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;

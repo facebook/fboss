@@ -118,6 +118,12 @@ StateDelta::getLabelForwardingInformationBaseDelta() const {
       new_->getLabelForwardingInformationBase().get());
 }
 
+DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
+  return DeltaValue<QosPolicy>(
+      old_->getDefaultDataPlaneQosPolicy(),
+      new_->getDefaultDataPlaneQosPolicy());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
