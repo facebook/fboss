@@ -98,7 +98,6 @@ class SaiNeighborManager {
   const SaiNeighborHandle* getNeighborHandle(
       const SaiNeighborTraits::NeighborEntry& entry) const;
 
-  void processNeighborDelta(const StateDelta& delta, std::mutex& lock);
   void clear();
 
  private:

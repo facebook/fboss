@@ -154,7 +154,22 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiRouterInterfaceManager::changeRouterInterface,
       &SaiRouterInterfaceManager::addRouterInterface,
       &SaiRouterInterfaceManager::removeRouterInterface);
-  managerTable_->neighborManager().processNeighborDelta(delta, saiSwitchMutex_);
+
+  for (const auto& vlanDelta : delta.getVlansDelta()) {
+    processDelta(
+        vlanDelta.getArpDelta(),
+        managerTable_->neighborManager(),
+        &SaiNeighborManager::changeNeighbor<ArpEntry>,
+        &SaiNeighborManager::addNeighbor<ArpEntry>,
+        &SaiNeighborManager::removeNeighbor<ArpEntry>);
+
+    processDelta(
+        vlanDelta.getNdpDelta(),
+        managerTable_->neighborManager(),
+        &SaiNeighborManager::changeNeighbor<NdpEntry>,
+        &SaiNeighborManager::addNeighbor<NdpEntry>,
+        &SaiNeighborManager::removeNeighbor<NdpEntry>);
+  }
   managerTable_->routeManager().processRouteDelta(delta, saiSwitchMutex_);
   managerTable_->hostifManager().processHostifDelta(delta, saiSwitchMutex_);
   processDelta(
