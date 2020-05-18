@@ -26,14 +26,12 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  static auto ensemble = createHwEnsemble(
+  auto ensemble = createHwEnsemble(
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
   auto hwSwitch = ensemble->getHwSwitch();
-  if (ensemble->getRunState() < SwitchRunState::CONFIGURED) {
-    auto config = utility::onePortPerVlanConfig(
-        hwSwitch, ensemble->masterLogicalPortIds());
-    ensemble->applyInitialConfig(config);
-  }
+  auto config =
+      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
   auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
@@ -71,7 +69,6 @@ BENCHMARK(HwEcmpGroupShrink) {
       kEcmpWidth - 1)
     ;
   suspender.rehire();
-  ensemble->revertToInitCfgState();
 }
 
 } // namespace facebook::fboss

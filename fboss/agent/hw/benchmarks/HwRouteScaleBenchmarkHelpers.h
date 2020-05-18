@@ -26,13 +26,11 @@ namespace facebook::fboss {
 template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
-  static auto ensemble = createHwEnsemble(
+  auto ensemble = createHwEnsemble(
       HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
-  if (ensemble->getRunState() < SwitchRunState::CONFIGURED) {
-    auto config = utility::onePortPerVlanConfig(
-        ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
-    ensemble->applyInitialConfig(config);
-  }
+  auto config = utility::onePortPerVlanConfig(
+      ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
+  ensemble->applyInitialConfig(config);
   static const auto states =
       RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
   if (measureAdd) {
@@ -48,7 +46,6 @@ void routeAddDelBenchmarker(bool measureAdd) {
   // route addition
   // - Activate benchmark if we are measuring route deletion
   measureAdd ? suspender.rehire() : suspender.dismiss();
-  ensemble->revertToInitCfgState();
 }
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \

@@ -33,19 +33,17 @@ namespace facebook::fboss {
  */
 BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
-  static auto ensemble =
-      createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
+  auto ensemble = createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
   auto hwSwitch = ensemble->getHwSwitch();
-  if (ensemble->getRunState() < SwitchRunState::CONFIGURED) {
-    auto config = utility::onePortPerVlanConfig(
-        hwSwitch, ensemble->masterLogicalPortIds());
-    ensemble->applyInitialConfig(config);
-  }
+  auto config =
+      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  ensemble->applyInitialConfig(config);
   SwitchStats dummy;
   suspender.dismiss();
   for (auto i = 0; i < 10'000; ++i) {
     hwSwitch->updateStats(&dummy);
   }
+  suspender.rehire();
 }
 
 } // namespace facebook::fboss
