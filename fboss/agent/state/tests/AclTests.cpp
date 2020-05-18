@@ -445,6 +445,25 @@ TEST(Acl, SerializeAclEntry) {
   EXPECT_TRUE(aclAction.getSendToQueue());
   EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
   EXPECT_EQ(*aclAction.getSendToQueue().value().first.queueId_ref(), 3);
+
+  // negative test for invalid ipFrag serialization
+  auto ipFragBad = static_cast<cfg::IpFragMatch>(100);
+  entry->setIpFrag(ipFragBad);
+  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
+  ipFragBad = cfg::IpFragMatch::MATCH_NOT_FRAGMENTED;
+
+  // negative test for invalid ipFrag de-serialization
+  serialized["ipFrag"] = "MATCH_NOT_FRAGMENTED_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
+
+  // negative test for invalid actionType serialization
+  auto aclActionTypeBad = static_cast<cfg::AclActionType>(100);
+  entry->setActionType(aclActionTypeBad);
+  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
+
+  // negative test for invalid aclActionType de-serialization
+  serialized["actionType"] = "PERMIT_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 }
 
 TEST(Acl, SerializePacketCounter) {
@@ -579,6 +598,90 @@ TEST(Acl, IpType) {
   EXPECT_NE(nullptr, aclV1);
   EXPECT_TRUE(aclV1->getIpType());
   EXPECT_EQ(aclV1->getIpType().value(), ipType);
+}
+
+TEST(Acl, LookupClass) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls.resize(1);
+  config.acls[0].name = "acl1";
+  config.acls[0].actionType = cfg::AclActionType::DENY;
+
+  // set lookupClass
+  auto lookupClass = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+  config.acls[0].lookupClass_ref() = lookupClass;
+
+  // apply lookupClass config and validate
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("acl1");
+  ASSERT_NE(nullptr, aclV1);
+  EXPECT_TRUE(aclV1->getLookupClass());
+  EXPECT_EQ(aclV1->getLookupClass().value(), lookupClass);
+
+  // set lookupClassL2
+  auto lookupClassL2 = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
+  config.acls[0].lookupClassL2_ref() = lookupClassL2;
+
+  // apply lookupClassL2 config and validate
+  auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto aclV2 = stateV2->getAcl("acl1");
+  ASSERT_NE(nullptr, aclV2);
+  EXPECT_TRUE(aclV2->getLookupClassL2());
+  EXPECT_EQ(aclV2->getLookupClassL2().value(), lookupClassL2);
+}
+
+TEST(Acl, LookupClassSerialization) {
+  // test for lookupClass serialization/de-serialization
+  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto lookupClass = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0;
+  entry->setLookupClass(lookupClass);
+  auto action = MatchAction();
+  auto counter = cfg::TrafficCounter();
+  counter.name = "stat0.c";
+  action.setTrafficCounter(counter);
+  entry->setAclAction(action);
+
+  auto serialized = entry->toFollyDynamic();
+  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getLookupClass());
+  EXPECT_EQ(entryBack->getLookupClass().value(), lookupClass);
+
+  // negative test for invalid lookupClass serialization
+  auto lookupClassBad = static_cast<cfg::AclLookupClass>(0);
+  entry->setLookupClass(lookupClassBad);
+  EXPECT_THROW(serialized = entry->toFollyDynamic(), FbossError);
+
+  // negative test for invalid lookupClass de-serialization
+  serialized["lookupClass"] = "DST_CLASS_L3_LOCAL_IP6_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
+
+  // test for lookupClassL2 serialization/de-serialization
+  auto entryL2 = std::make_unique<AclEntry>(0, "stat1");
+  auto lookupClassL2 = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
+  entryL2->setLookupClassL2(lookupClassL2);
+  entryL2->setAclAction(action);
+
+  serialized = entryL2->toFollyDynamic();
+  auto entryBackL2 = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entryL2 == *entryBackL2);
+  EXPECT_TRUE(entryBackL2->getLookupClassL2());
+  EXPECT_EQ(entryBackL2->getLookupClassL2().value(), lookupClassL2);
+
+  // negative test for invalid lookupClassL2 serialization
+  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
+  entryL2->setLookupClassL2(lookupClassBad);
+  EXPECT_THROW(serialized = entryL2->toFollyDynamic(), FbossError);
+
+  // negative test for invalid lookupClassL2 de-serialization
+  serialized["lookupClassL2"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 }
 
 TEST(Acl, InvalidTrafficCounter) {

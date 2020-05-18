@@ -14,6 +14,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 
+using apache::thrift::TEnumTraits;
 using folly::IPAddress;
 
 namespace {
@@ -86,9 +87,11 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     aclEntry[kDstPort] = static_cast<uint16_t>(dstPort.value());
   }
   if (ipFrag) {
-    auto itr_ipFrag = cfg::_IpFragMatch_VALUES_TO_NAMES.find(ipFrag.value());
-    CHECK(itr_ipFrag != cfg::_IpFragMatch_VALUES_TO_NAMES.end());
-    aclEntry[kIpFrag] = itr_ipFrag->second;
+    auto ipFragName = apache::thrift::util::enumName(*ipFrag);
+    if (ipFragName == nullptr) {
+      throw FbossError("invalid ipFrag");
+    }
+    aclEntry[kIpFrag] = ipFragName;
   }
   if (icmpCode) {
     aclEntry[kIcmpCode] = static_cast<uint8_t>(icmpCode.value());
@@ -113,17 +116,23 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
   }
   if (lookupClassL2) {
     auto lookupClassNameL2 = apache::thrift::util::enumName(*lookupClassL2);
-    CHECK(lookupClassNameL2 != nullptr);
+    if (lookupClassNameL2 == nullptr) {
+      throw FbossError("invalid lookupClassL2");
+    }
     aclEntry[kLookupClassL2] = lookupClassNameL2;
   }
   if (lookupClass) {
     auto lookupClassName = apache::thrift::util::enumName(*lookupClass);
-    CHECK(lookupClassName != nullptr);
+    if (lookupClassName == nullptr) {
+      throw FbossError("invalid lookupClass");
+    }
     aclEntry[kLookupClass] = lookupClassName;
   }
-  auto itr_action = cfg::_AclActionType_VALUES_TO_NAMES.find(actionType);
-  CHECK(itr_action != cfg::_AclActionType_VALUES_TO_NAMES.end());
-  aclEntry[kActionType] = itr_action->second;
+  auto actionTypeName = apache::thrift::util::enumName(actionType);
+  if (actionTypeName == nullptr) {
+    throw FbossError("invalid actionType");
+  }
+  aclEntry[kActionType] = actionTypeName;
   if (aclAction) {
     aclEntry[kAclAction] = aclAction.value().toFollyDynamic();
   }
@@ -172,9 +181,10 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     aclEntry.l4DstPort = aclEntryJson[kL4DstPort].asInt();
   }
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
-    auto itr_ipFrag = cfg::_IpFragMatch_NAMES_TO_VALUES.find(
-        aclEntryJson[kIpFrag].asString().c_str());
-    aclEntry.ipFrag = cfg::IpFragMatch(itr_ipFrag->second);
+    cfg::IpFragMatch ipFrag;
+    TEnumTraits<cfg::IpFragMatch>::findValue(
+        aclEntryJson[kIpFrag].asString().c_str(), &ipFrag);
+    aclEntry.ipFrag = ipFrag;
   }
   if (aclEntryJson.find(kIcmpType) != aclEntryJson.items().end()) {
     aclEntry.icmpType = aclEntryJson[kIcmpType].asInt();
@@ -192,18 +202,19 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
     aclEntry.ttl = AclTtl::fromFollyDynamic(aclEntryJson[kTtl]);
   }
   if (aclEntryJson.find(kLookupClassL2) != aclEntryJson.items().end()) {
-    auto lookupClassL2Itr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(
-        aclEntryJson[kLookupClassL2].asString().c_str());
-    aclEntry.lookupClassL2 = cfg::AclLookupClass(lookupClassL2Itr->second);
+    cfg::AclLookupClass lookupClassL2;
+    TEnumTraits<cfg::AclLookupClass>::findValue(
+        aclEntryJson[kLookupClassL2].asString().c_str(), &lookupClassL2);
+    aclEntry.lookupClassL2 = lookupClassL2;
   }
   if (aclEntryJson.find(kLookupClass) != aclEntryJson.items().end()) {
-    auto lookupClassItr = cfg::_AclLookupClass_NAMES_TO_VALUES.find(
-        aclEntryJson[kLookupClass].asString().c_str());
-    aclEntry.lookupClass = cfg::AclLookupClass(lookupClassItr->second);
+    cfg::AclLookupClass lookupClass;
+    TEnumTraits<cfg::AclLookupClass>::findValue(
+        aclEntryJson[kLookupClass].asString().c_str(), &lookupClass);
+    aclEntry.lookupClass = lookupClass;
   }
-  aclEntry.actionType = cfg::_AclActionType_NAMES_TO_VALUES
-                            .find(aclEntryJson[kActionType].asString().c_str())
-                            ->second;
+  TEnumTraits<cfg::AclActionType>::findValue(
+      aclEntryJson[kActionType].asString().c_str(), &aclEntry.actionType);
   if (aclEntryJson.find(kAclAction) != aclEntryJson.items().end()) {
     aclEntry.aclAction =
         MatchAction::fromFollyDynamic(aclEntryJson[kAclAction]);
@@ -227,20 +238,40 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
           "; source and destination IPs must be of the same type");
     }
   }
+  // check lookupClass is valid
+  if (aclEntryJson.find(kLookupClass) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClass;
+    if (!TEnumTraits<cfg::AclLookupClass>::findValue(
+            aclEntryJson[kLookupClass].asString().c_str(), &lookupClass)) {
+      throw FbossError(
+          "Unsupported ACL Lookup Class option ",
+          aclEntryJson[kLookupClass].asString());
+    }
+  }
+  // check lookupClassL2 is valid
+  if (aclEntryJson.find(kLookupClassL2) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClassL2;
+    if (!TEnumTraits<cfg::AclLookupClass>::findValue(
+            aclEntryJson[kLookupClassL2].asString().c_str(), &lookupClassL2)) {
+      throw FbossError(
+          "Unsupported ACL Lookup ClassL2 option ",
+          aclEntryJson[kLookupClassL2].asString());
+    }
+  }
   // check ipFrag is valid
   if (aclEntryJson.find(kIpFrag) != aclEntryJson.items().end()) {
-    const auto ipFragName = aclEntryJson[kIpFrag].asString();
-    if (cfg::_IpFragMatch_NAMES_TO_VALUES.find(ipFragName.c_str()) ==
-        cfg::_IpFragMatch_NAMES_TO_VALUES.end()) {
+    cfg::IpFragMatch ipFrag;
+    if (!TEnumTraits<cfg::IpFragMatch>::findValue(
+            aclEntryJson[kIpFrag].asString().c_str(), &ipFrag)) {
       throw FbossError(
           "Unsupported ACL IP fragmentation option ",
           aclEntryJson[kIpFrag].asString());
     }
   }
   // check action is valid
-  if (cfg::_AclActionType_NAMES_TO_VALUES.find(
-          aclEntryJson[kActionType].asString().c_str()) ==
-      cfg::_AclActionType_NAMES_TO_VALUES.end()) {
+  cfg::AclActionType aclActionType;
+  if (!TEnumTraits<cfg::AclActionType>::findValue(
+          aclEntryJson[kActionType].asString().c_str(), &aclActionType)) {
     throw FbossError(
         "Unsupported ACL action ", aclEntryJson[kActionType].asString());
   }

@@ -52,6 +52,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
       return 7;
   }
+  throw FbossError("Unexpected AsicType ", hwAsic->getAsicType());
 }
 
 void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {

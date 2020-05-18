@@ -60,7 +60,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
   SaiRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
 
   // get MTU
-  SaiRouterInterfaceTraits::Attributes::Mtu mtuAttribute{swInterface->getMtu()};
+  SaiRouterInterfaceTraits::Attributes::Mtu mtuAttribute{
+      static_cast<uint32_t>(swInterface->getMtu())};
 
   // create the router interface
   SaiRouterInterfaceTraits::CreateAttributes attributes{

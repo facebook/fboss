@@ -57,9 +57,10 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
     case cfg::PacketRxReason::BGP:
     case cfg::PacketRxReason::BGPV6:
     case cfg::PacketRxReason::LACP:
-      throw FbossError(
-          "Unsupported config reason ", apache::thrift::util::enumName(reason));
+      break;
   }
+  throw FbossError(
+      "Unsupported config reason ", apache::thrift::util::enumName(reason));
 }
 
 cfg::PacketRxReason bcmReasonsToConfigReason(bcm_rx_reasons_t reasons) {
