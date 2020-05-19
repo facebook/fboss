@@ -226,7 +226,6 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   newNewState->resetControlPlane(newControlPlaneNew);
   saiManagerTable->hostifManager().processHostifDelta(
       StateDelta(newState, newNewState), lock);
-  XLOG(INFO) << "BO: done second hostif delta";
   auto hostifTrapHandle = saiManagerTable->hostifManager().getHostifTrapHandle(
       cfg::PacketRxReason::ARP_RESPONSE);
   EXPECT_TRUE(hostifTrapHandle);
@@ -250,7 +249,6 @@ TEST_F(HostifManagerTest, resetSchedulerOid) {
   // Apply the config changes using processHostifDelta
   saiManagerTable->hostifManager().processHostifDelta(
       StateDelta(prevState, newState), lock);
-  XLOG(INFO) << "BO: done second hostif delta";
   const auto queueHandle = saiManagerTable->hostifManager().getQueueHandle(
       std::pair(1, cfg::StreamType::ALL));
 

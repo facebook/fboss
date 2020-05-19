@@ -79,7 +79,7 @@ void __gPacketRxCallback(
 void __glinkStateChangedNotification(
     uint32_t count,
     const sai_port_oper_status_notification_t* data) {
-  __gSaiSwitch->linkStateChangedCallback(count, data);
+  __gSaiSwitch->linkStateChangedCallbackTopHalf(count, data);
 }
 
 void __gFdbEventCallback(
@@ -123,6 +123,13 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     unregisterCallbacksLocked(lock);
   }
 
+  // linkscan is turned off and the evb loop is set to break
+  // just need to block until the last event is processed
+  if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+    linkStateBottomHalfEventBase_.terminateLoopSoon();
+    linkStateBottomHalfThread_->join();
+    // link scan is completely shut-off
+  }
   // rx is turned off and the evb loop is set to break
   // just need to block until the last packet is processed
   if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
@@ -364,31 +371,54 @@ void SaiSwitch::packetRxCallbackTopHalf(
       });
 }
 
-void SaiSwitch::linkStateChangedCallback(
+void SaiSwitch::linkStateChangedCallbackTopHalf(
     uint32_t count,
-    const sai_port_oper_status_notification_t* data) {
-  // TODO(borisb): re-add this back, as soon as we run link state notification
-  //               not in the callback context. Currently, it's a re-entrant
-  //               access deadlock
-  // std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  for (auto i = 0; i < count; i++) {
-    auto state = data[i].port_state == SAI_PORT_OPER_STATUS_UP ? "up" : "down";
-    XLOG(INFO) << "port " << state << " notification received for " << std::hex
-               << data[i].port_id;
+    const sai_port_oper_status_notification_t* operStatus) {
+  std::vector<sai_port_oper_status_notification_t> operStatusTmp;
+  operStatusTmp.resize(count);
+  std::copy(operStatus, operStatus + count, operStatusTmp.data());
+  linkStateBottomHalfEventBase_.runInEventBaseThread(
+      [this, operStatus = std::move(operStatusTmp)]() mutable {
+        linkStateChangedCallbackBottomHalf(std::move(operStatus));
+      });
+}
+
+void SaiSwitch::linkStateChangedCallbackBottomHalf(
+    std::vector<sai_port_oper_status_notification_t> operStatus) {
+  std::map<PortID, bool> swPortId2Status;
+  for (auto i = 0; i < operStatus.size(); i++) {
+    bool up = operStatus[i].port_state == SAI_PORT_OPER_STATUS_UP;
 
     // Look up SwitchState PortID by port sai id in ConcurrentIndices
     const auto portItr =
-        concurrentIndices_->portIds.find(PortSaiId(data[i].port_id));
+        concurrentIndices_->portIds.find(PortSaiId(operStatus[i].port_id));
     if (portItr == concurrentIndices_->portIds.cend()) {
       XLOG(WARNING)
           << "received port notification for port with unknown sai id: "
-          << data[i].port_id;
-      return;
+          << operStatus[i].port_id;
+      continue;
     }
     PortID swPortId = portItr->second;
 
+    XLOGF(
+        INFO,
+        "Link state changed {} ({}): {}",
+        swPortId,
+        PortSaiId{operStatus[i].port_id},
+        up ? "up" : "down");
+
+    if (!up) {
+      std::lock_guard<std::mutex> lock{saiSwitchMutex_};
+      managerTable_->fdbManager().handleLinkDown(swPortId);
+    }
+    swPortId2Status[swPortId] = up;
+  }
+  // Issue callbacks in a separate loop so fast link status change
+  // processing is not at the mercy of what the callback (SwSwitch, HwTest)
+  // does with the callback notification.
+  for (auto swPortIdAndStatus : swPortId2Status) {
     callback_->linkStateChanged(
-        swPortId, data[i].port_state == SAI_PORT_OPER_STATUS_UP);
+        swPortIdAndStatus.first, swPortIdAndStatus.second);
   }
 }
 
@@ -480,7 +510,18 @@ HwInitResult SaiSwitch::initLocked(
   return ret;
 }
 
-void SaiSwitch::initRx(const std::lock_guard<std::mutex>& /* lock */) {
+void SaiSwitch::initLinkScanLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  linkStateBottomHalfThread_ = std::make_unique<std::thread>([this]() {
+    initThread("fbossSaiLnkScnBH");
+    linkStateBottomHalfEventBase_.loopForever();
+  });
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.registerPortStateChangeCallback(
+      switchId_, __glinkStateChangedNotification);
+}
+
+void SaiSwitch::initRxLocked(const std::lock_guard<std::mutex>& /* lock */) {
   rxBottomHalfThread_ = std::make_unique<std::thread>([this]() {
     initThread("fbossSaiRxBH");
     rxBottomHalfEventBase_.loopForever();
@@ -489,7 +530,8 @@ void SaiSwitch::initRx(const std::lock_guard<std::mutex>& /* lock */) {
   switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
 }
 
-void SaiSwitch::initAsyncTx(const std::lock_guard<std::mutex>& /* lock */) {
+void SaiSwitch::initAsyncTxLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
   asyncTxThread_ = std::make_unique<std::thread>([this]() {
     initThread("fbossSaiAsyncTx");
     asyncTxEventBase_.loopForever();
@@ -540,11 +582,11 @@ void SaiSwitch::packetRxCallbackBottomHalf(
 void SaiSwitch::unregisterCallbacksLocked(
     const std::lock_guard<std::mutex>& /* lock */) noexcept {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-    switchApi.unregisterRxCallback(switchId_);
-  }
   if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
     switchApi.unregisterPortStateChangeCallback(switchId_);
+  }
+  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+    switchApi.unregisterRxCallback(switchId_);
   }
   switchApi.unregisterFdbEventCallback(switchId_);
 }
@@ -754,15 +796,13 @@ void SaiSwitch::switchRunStateChangedLocked(
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
     } break;
     case SwitchRunState::CONFIGURED: {
-      auto& switchApi = SaiApiTable::getInstance()->switchApi();
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
-        switchApi.registerPortStateChangeCallback(
-            switchId_, __glinkStateChangedNotification);
+        initLinkScanLocked(lock);
       }
       // TODO: T56772674: Optimize Rx and Tx init
-      initAsyncTx(lock);
+      initAsyncTxLocked(lock);
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-        initRx(lock);
+        initRxLocked(lock);
       }
     } break;
     default:

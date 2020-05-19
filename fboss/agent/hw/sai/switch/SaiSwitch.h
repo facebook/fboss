@@ -80,7 +80,7 @@ class SaiSwitch : public HwSwitch {
 
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 
-  void linkStateChangedCallback(
+  void linkStateChangedCallbackTopHalf(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
   void fdbEventCallback(
@@ -217,8 +217,12 @@ class SaiSwitch : public HwSwitch {
   void gracefulExitLocked(
       folly::dynamic& switchState,
       const std::lock_guard<std::mutex>& lock);
-  void initRx(const std::lock_guard<std::mutex>& lock);
-  void initAsyncTx(const std::lock_guard<std::mutex>& lock);
+  void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
+  void initRxLocked(const std::lock_guard<std::mutex>& lock);
+  void initAsyncTxLocked(const std::lock_guard<std::mutex>& lock);
+
+  void linkStateChangedCallbackBottomHalf(
+      std::vector<sai_port_oper_status_notification_t> data);
 
   void packetRxCallbackBottomHalf(
       SwitchSaiId switch_id,
@@ -322,6 +326,9 @@ class SaiSwitch : public HwSwitch {
   Callback* callback_{nullptr};
 
   SwitchSaiId switchId_;
+
+  std::unique_ptr<std::thread> linkStateBottomHalfThread_;
+  folly::EventBase linkStateBottomHalfEventBase_;
 
   std::unique_ptr<std::thread> rxBottomHalfThread_;
   folly::EventBase rxBottomHalfEventBase_;
