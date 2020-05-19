@@ -316,14 +316,19 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort) const {
   bool adminState =
       swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
-  uint32_t speed = static_cast<uint32_t>(swPort->getSpeed());
+  auto profileID = swPort->getProfileID();
+  auto portProfileConfig = platform_->getPortProfileConfig(profileID);
+  if (!portProfileConfig) {
+    throw FbossError(
+        "port profile config not found for port ", swPort->getID());
+  }
+  auto speed = static_cast<uint32_t>(portProfileConfig->speed);
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
   auto globalFlowControlMode = getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
   auto mediaType = getSaiPortMediaType(platformPort->getTransmitterTech());
-  auto profileID = platformPort->getProfileIDBySpeed(swPort->getSpeed());
   auto phyFecMode = platform_->getPhyFecMode(profileID);
   auto fecMode = getSaiPortFecMode(phyFecMode);
   if (swPort->getFEC() == cfg::PortFEC::ON) {

@@ -131,6 +131,38 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setAdminState(cfg::PortState::ENABLED);
   }
   swPort->setSpeed(testPort.portSpeed);
+  switch (testPort.portSpeed) {
+    case cfg::PortSpeed::DEFAULT:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
+      break;
+    case cfg::PortSpeed::GIGE:
+      throw FbossError("profile gig ethernet is not available");
+      break;
+    case cfg::PortSpeed::XG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC);
+      break;
+    case cfg::PortSpeed::TWENTYG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC);
+      break;
+    case cfg::PortSpeed::TWENTYFIVEG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC);
+      break;
+    case cfg::PortSpeed::FORTYG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC);
+      break;
+    case cfg::PortSpeed::FIFTYG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC);
+      break;
+    case cfg::PortSpeed::HUNDREDG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+      break;
+    case cfg::PortSpeed::TWOHUNDREDG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N);
+      break;
+    case cfg::PortSpeed::FOURHUNDREDG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N);
+      break;
+  }
   return swPort;
 }
 
