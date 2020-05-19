@@ -22,9 +22,10 @@ class TestRunner:
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
+    TESTRUN_TIMEOUT = 300
 
     _GTEST_RESULT_PATTERN = re.compile(
-        r"""\[\s+(?P<status>(OK)|(FAILED)|(SKIPPED))\s+\]\s+
+        r"""\[\s+(?P<status>(OK)|(FAILED)|(SKIPPED)|(TIMEOUT))\s+\]\s+
         (?P<test_case>[\w\.]+)\s+\((?P<duration>\d+)\s+ms\)$""",
         re.VERBOSE,
     )
@@ -62,12 +63,14 @@ class TestRunner:
 
         return ret
 
-    def _parse_gtest_run_output_and_print(self, test_output):
+    def _parse_gtest_run_output(self, test_output):
+        test_summary = []
         for line in test_output.decode("utf-8").split("\n"):
             match = self._GTEST_RESULT_PATTERN.match(line.strip())
             if not match:
                 continue
-            print(line)
+            test_summary.append(line)
+        return test_summary
 
     def _get_bcm_tests_to_run(self, args):
         filter = ("--gtest_filter=" + args.filter) if (args.filter is not None) else ""
@@ -89,18 +92,27 @@ class TestRunner:
                     "--gtest_filter=" + test_to_run,
                     flags,
                 ],
+                timeout=self.TESTRUN_TIMEOUT,
                 env=self.ENV_VAR,
             )
-
             # Add test prefix to test name in the result
             run_test_result = self._add_test_prefix_to_gtest_result(
                 run_test_output, test_prefix
             )
-
-        except subprocess.CalledProcessError as e:
-            # Test aborted, mark it as failed
+        except subprocess.TimeoutExpired:
+            # Test timed out, mark it as TIMEOUT
             run_test_result = (
-                "[  FAILED  ] " + test_prefix + test_to_run + " (0 ms)"
+                "[  TIMEOUT ] "
+                + test_prefix
+                + test_to_run
+                + " ("
+                + str(self.TESTRUN_TIMEOUT * 1000)
+                + " ms)"
+            ).encode("utf-8")
+        except subprocess.CalledProcessError:
+            # Test aborted, mark it as FAILED
+            run_test_result = (
+                "[   FAILED ] " + test_prefix + test_to_run + " (0 ms)"
             ).encode("utf-8")
         return run_test_result
 
@@ -129,8 +141,20 @@ class TestRunner:
         return test_outputs
 
     def _print_output_summary(self, test_outputs):
+        test_summaries = []
+        test_summary_count = {"OK": 0, "FAILED": 0, "SKIPPED": 0, "TIMEOUT": 0}
         for test_output in test_outputs:
-            self._parse_gtest_run_output_and_print(test_output)
+            test_summaries += self._parse_gtest_run_output(test_output)
+        # Print test results and update test result counts
+        for test_summary in test_summaries:
+            print(test_summary)
+            m = re.search(r"[.*[A-Z]{2,10}", test_summary)
+            if m is not None:
+                test_summary_count[m.group()] += 1
+        # Print test result counts
+        print("Summary:")
+        for test_result in test_summary_count:
+            print("  ", test_result, ":", test_summary_count[test_result])
 
     def run_bcm_test(self, args):
         tests_to_run = self._get_bcm_tests_to_run(args)
