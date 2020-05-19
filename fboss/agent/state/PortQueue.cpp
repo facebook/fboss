@@ -55,8 +55,8 @@ namespace facebook::fboss {
 
 state::PortQueueFields PortQueueFields::toThrift() const {
   state::PortQueueFields queue;
-  *queue.id_ref() = id;
-  *queue.weight_ref() = weight;
+  queue.id = id;
+  queue.weight = weight;
   if (reservedBytes) {
     queue.reserved_ref() = reservedBytes.value();
   }
@@ -115,7 +115,7 @@ state::PortQueueFields PortQueueFields::toThrift() const {
 PortQueueFields PortQueueFields::fromThrift(
     state::PortQueueFields const& queueThrift) {
   PortQueueFields queue;
-  queue.id = static_cast<uint8_t>(*queueThrift.id_ref());
+  queue.id = static_cast<uint8_t>(queueThrift.id);
 
   cfg::StreamType streamType;
   if (!TEnumTraits<cfg::StreamType>::findValue(
@@ -131,7 +131,7 @@ PortQueueFields PortQueueFields::fromThrift(
   }
   queue.scheduling = scheduling;
 
-  queue.weight = *queueThrift.weight_ref();
+  queue.weight = queueThrift.weight;
   if (queueThrift.reserved_ref()) {
     queue.reservedBytes = queueThrift.reserved_ref().value();
   }
@@ -217,13 +217,13 @@ std::string PortQueue::toString() const {
     switch (portQueueRate.getType()) {
       case cfg::PortQueueRate::Type::pktsPerSec:
         type = "pps";
-        rateMin = *portQueueRate.get_pktsPerSec().minimum_ref();
-        rateMax = *portQueueRate.get_pktsPerSec().maximum_ref();
+        rateMin = portQueueRate.get_pktsPerSec().minimum;
+        rateMax = portQueueRate.get_pktsPerSec().maximum;
         break;
       case cfg::PortQueueRate::Type::kbitsPerSec:
         type = "pps";
-        rateMin = *portQueueRate.get_kbitsPerSec().minimum_ref();
-        rateMax = *portQueueRate.get_kbitsPerSec().maximum_ref();
+        rateMin = portQueueRate.get_kbitsPerSec().minimum;
+        rateMax = portQueueRate.get_kbitsPerSec().maximum;
         break;
       case cfg::PortQueueRate::Type::__EMPTY__:
         // needed to handle error from -Werror=switch, fall through

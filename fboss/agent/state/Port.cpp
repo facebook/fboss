@@ -26,20 +26,20 @@ namespace facebook::fboss {
 
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
-  *vlanThrift.tagged_ref() = tagged;
+  vlanThrift.tagged = tagged;
   return vlanThrift;
 }
 
 // static
 PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
     const state::VlanInfo& vlanThrift) {
-  return VlanInfo(*vlanThrift.tagged_ref());
+  return VlanInfo(vlanThrift.tagged);
 }
 
 // static
 PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   PortFields port(PortID(portThrift.portId), portThrift.portName);
-  port.description = *portThrift.portDescription_ref();
+  port.description = portThrift.portDescription;
 
   // For backwards compatibility, we still need the ability to read in
   // both possible names for the admin port state. The production agent
@@ -55,11 +55,11 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   };
   auto itrAdminState = transitionAdminStateMap.find(portThrift.portState);
   CHECK(itrAdminState != transitionAdminStateMap.end())
-      << "Invalid port state: " << *portThrift.portState_ref();
+      << "Invalid port state: " << portThrift.portState;
   port.adminState = itrAdminState->second;
 
-  port.operState = OperState(*portThrift.portOperState_ref());
-  port.ingressVlan = VlanID(*portThrift.ingressVlan_ref());
+  port.operState = OperState(portThrift.portOperState);
+  port.ingressVlan = VlanID(portThrift.ingressVlan);
 
   cfg::PortSpeed portSpeed;
   if (!TEnumTraits<cfg::PortSpeed>::findValue(
@@ -68,7 +68,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   }
   port.speed = portSpeed;
 
-  if (portThrift.portProfileID_ref()->empty()) {
+  if (portThrift.portProfileID.empty()) {
     // warm booting from a previous version that didn't have profileID set
     XLOG(WARNING) << "Port:" << port.name
                   << " doesn't have portProfileID, set to default.";
@@ -89,7 +89,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   }
   port.fec = portFEC;
 
-  if (portThrift.portLoopbackMode_ref()->empty()) {
+  if (portThrift.portLoopbackMode.empty()) {
     // Backward compatibility for when we were not serializing loopback mode
     port.loopbackMode = cfg::PortLoopbackMode::NONE;
   } else {
@@ -112,19 +112,19 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     port.sampleDest = sampleDest;
   }
 
-  *port.pause.tx_ref() = *portThrift.txPause_ref();
-  *port.pause.rx_ref() = *portThrift.rxPause_ref();
+  port.pause.tx = portThrift.txPause;
+  port.pause.rx = portThrift.rxPause;
 
-  for (const auto& vlanInfo : *portThrift.vlanMemberShips_ref()) {
+  for (const auto& vlanInfo : portThrift.vlanMemberShips) {
     port.vlans.emplace(
         VlanID(to<uint32_t>(vlanInfo.first)),
         VlanInfo::fromThrift(vlanInfo.second));
   }
 
-  port.sFlowIngressRate = *portThrift.sFlowIngressRate_ref();
-  port.sFlowEgressRate = *portThrift.sFlowEgressRate_ref();
+  port.sFlowIngressRate = portThrift.sFlowIngressRate;
+  port.sFlowEgressRate = portThrift.sFlowEgressRate;
 
-  for (const auto& queue : *portThrift.queues_ref()) {
+  for (const auto& queue : portThrift.queues) {
     port.queues.push_back(
         std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
   }
@@ -138,10 +138,10 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   if (portThrift.qosPolicy_ref()) {
     port.qosPolicy = portThrift.qosPolicy_ref().value();
   }
-  port.maxFrameSize = *portThrift.maxFrameSize_ref();
+  port.maxFrameSize = portThrift.maxFrameSize;
 
   port.lookupClassesToDistrubuteTrafficOn =
-      *portThrift.lookupClassesToDistrubuteTrafficOn_ref();
+      portThrift.lookupClassesToDistrubuteTrafficOn;
 
   return port;
 }
@@ -151,7 +151,7 @@ state::PortFields PortFields::toThrift() const {
 
   port.portId = id;
   port.portName = name;
-  *port.portDescription_ref() = description;
+  port.portDescription = description;
 
   // TODO: store admin state as enum, not string?
   auto adminStateName = apache::thrift::util::enumName(adminState);
@@ -160,8 +160,8 @@ state::PortFields PortFields::toThrift() const {
   }
   port.portState = adminStateName;
 
-  *port.portOperState_ref() = operState == OperState::UP;
-  *port.ingressVlan_ref() = ingressVlan;
+  port.portOperState = operState == OperState::UP;
+  port.ingressVlan = ingressVlan;
 
   // TODO: store speed as enum, not string?
   auto speedName = apache::thrift::util::enumName(speed);
@@ -170,10 +170,10 @@ state::PortFields PortFields::toThrift() const {
   }
   port.portSpeed = speedName;
 
-  *port.portProfileID_ref() = apache::thrift::util::enumNameSafe(profileID);
+  port.portProfileID = apache::thrift::util::enumNameSafe(profileID);
 
   // TODO(aeckert): t24117229 remove this after next version is pushed
-  *port.portMaxSpeed_ref() = *port.portSpeed_ref();
+  port.portMaxSpeed = port.portSpeed;
 
   auto fecName = apache::thrift::util::enumName(fec);
   if (fecName == nullptr) {
@@ -188,19 +188,19 @@ state::PortFields PortFields::toThrift() const {
   }
   port.portLoopbackMode = loopbackModeName;
 
-  *port.txPause_ref() = *pause.tx_ref();
-  *port.rxPause_ref() = *pause.rx_ref();
+  port.txPause = pause.tx;
+  port.rxPause = pause.rx;
 
   for (const auto& vlan : vlans) {
-    port.vlanMemberShips_ref()[to<string>(vlan.first)] = vlan.second.toThrift();
+    port.vlanMemberShips[to<string>(vlan.first)] = vlan.second.toThrift();
   }
 
-  *port.sFlowIngressRate_ref() = sFlowIngressRate;
-  *port.sFlowEgressRate_ref() = sFlowEgressRate;
+  port.sFlowIngressRate = sFlowIngressRate;
+  port.sFlowEgressRate = sFlowEgressRate;
 
   for (const auto& queue : queues) {
     // TODO: Use PortQueue::toThrift() when available
-    port.queues_ref()->push_back(queue->getFields()->toThrift());
+    port.queues.push_back(queue->getFields()->toThrift());
   }
 
   if (ingressMirror) {
@@ -217,9 +217,8 @@ state::PortFields PortFields::toThrift() const {
     port.sampleDest_ref() = apache::thrift::util::enumName(sampleDest.value());
   }
 
-  *port.lookupClassesToDistrubuteTrafficOn_ref() =
-      lookupClassesToDistrubuteTrafficOn;
-  *port.maxFrameSize_ref() = maxFrameSize;
+  port.lookupClassesToDistrubuteTrafficOn = lookupClassesToDistrubuteTrafficOn;
+  port.maxFrameSize = maxFrameSize;
   return port;
 }
 
@@ -228,9 +227,9 @@ Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}
 void Port::initDefaultConfigState(cfg::Port* config) const {
   // Copy over port identifiers and reset to (default)
   // admin disabled state.
-  *config->logicalID_ref() = getID();
+  config->logicalID = getID();
   config->name_ref() = getName();
-  *config->state_ref() = cfg::PortState::DISABLED;
+  config->state = cfg::PortState::DISABLED;
 }
 
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {
