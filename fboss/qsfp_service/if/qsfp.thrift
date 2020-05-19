@@ -10,7 +10,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 
 service QsfpService extends fb303.FacebookService {
-  transceiver.TransceiverType type(1: i32 idx)
+  transceiver.TransceiverType getType(1: i32 idx)
 
   /*
    * Get all information about a transceiver
