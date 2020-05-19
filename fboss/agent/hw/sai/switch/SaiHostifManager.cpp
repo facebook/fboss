@@ -162,9 +162,7 @@ void SaiHostifManager::changeHostifTrap(
 }
 
 void SaiHostifManager::processRxReasonToQueueDelta(
-    const StateDelta& delta,
-    std::mutex& lock) {
-  auto controlPlaneDelta = delta.getControlPlaneDelta();
+    const DeltaValue<ControlPlane>& controlPlaneDelta) {
   auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
   auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
   /*
@@ -193,12 +191,10 @@ void SaiHostifManager::processRxReasonToQueueDelta(
           std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
       if (oldIndex != index ||
           oldRxReasonEntry->queueId != newRxReasonEntry.queueId) {
-        std::lock_guard<std::mutex> g{lock};
         changeHostifTrap(
             newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
       }
     } else {
-      std::lock_guard<std::mutex> g{lock};
       addHostifTrap(
           newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
     }
@@ -213,29 +209,24 @@ void SaiHostifManager::processRxReasonToQueueDelta(
           return rxReasonEntry.rxReason == oldRxReasonEntry.rxReason;
         });
     if (newRxReasonEntry == newRxReasonToQueue.end()) {
-      std::lock_guard<std::mutex> g{lock};
       removeHostifTrap(oldRxReasonEntry.rxReason);
     }
   }
 }
 
 void SaiHostifManager::processQueueDelta(
-    const StateDelta& delta,
-    std::mutex& lock) {
-  auto controlPlaneDelta = delta.getControlPlaneDelta();
+    const DeltaValue<ControlPlane>& controlPlaneDelta) {
   auto& oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
   auto& newQueueConfig = controlPlaneDelta.getNew()->getQueues();
-  std::lock_guard<std::mutex> g{lock};
   changeCpuQueue(oldQueueConfig, newQueueConfig);
 }
 
 void SaiHostifManager::processHostifDelta(
-    const StateDelta& delta,
-    std::mutex& lock) {
+    const DeltaValue<ControlPlane>& controlPlaneDelta) {
   // TODO: Can we have reason code to a queue mapping that does not have
   // corresponding sai queue oid for cpu port ?
-  processRxReasonToQueueDelta(delta, lock);
-  processQueueDelta(delta, lock);
+  processRxReasonToQueueDelta(controlPlaneDelta);
+  processQueueDelta(controlPlaneDelta);
 }
 
 SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(

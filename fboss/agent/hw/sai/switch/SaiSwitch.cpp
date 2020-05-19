@@ -153,10 +153,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiVlanManager::addVlan,
       &SaiVlanManager::removeVlan);
 
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+  auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
+  if ((qosDelta.getOld() != qosDelta.getNew()) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     // Only handle the global default QoS policy.
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
-    auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
     if (qosDelta.getOld() && qosDelta.getNew()) {
       managerTable_->switchManager().changeDefaultDataPlaneQosPolicy(
           qosDelta.getOld(), qosDelta.getNew());
@@ -215,7 +216,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
         routerID);
   }
 
-  managerTable_->hostifManager().processHostifDelta(delta, saiSwitchMutex_);
+  {
+    auto controlPlaneDelta = delta.getControlPlaneDelta();
+    if (controlPlaneDelta.getOld() != controlPlaneDelta.getNew()) {
+      auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+      managerTable_->hostifManager().processHostifDelta(controlPlaneDelta);
+    }
+  }
+
   processDelta(
       delta.getLabelForwardingInformationBaseDelta(),
       managerTable_->inSegEntryManager(),

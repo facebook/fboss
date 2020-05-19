@@ -21,10 +21,7 @@
 
 using namespace facebook::fboss;
 
-class HostifManagerTest : public ManagerTestBase {
- protected:
-  std::mutex lock;
-};
+class HostifManagerTest : public ManagerTestBase {};
 
 TEST_F(HostifManagerTest, createHostifTrap) {
   uint32_t queueId = 4;
@@ -83,8 +80,9 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
   prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
   newState->resetControlPlane(newControlPlane);
+  auto delta = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(prevState, newState), lock);
+      delta.getControlPlaneDelta());
   saiManagerTable->hostifManager().updateStats();
 
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
@@ -111,8 +109,9 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
   newState->resetControlPlane(newControlPlane);
+  auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(prevState, newState), lock);
+      delta0.getControlPlaneDelta());
 
   auto newNewControlPlane = newControlPlane->clone();
   std::vector<uint8_t> newQueueIds = {1, 2};
@@ -120,8 +119,9 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   newNewControlPlane->resetQueues(newQueueConfig);
   auto newNewState = newState->clone();
   newNewState->resetControlPlane(newNewControlPlane);
+  auto delta1 = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(newState, newNewState), lock);
+      delta1.getControlPlaneDelta());
   saiManagerTable->hostifManager().updateStats();
 
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
@@ -154,8 +154,9 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
   prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
   newState->resetControlPlane(newControlPlane);
+  auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(prevState, newState), lock);
+      delta0.getControlPlaneDelta());
 
   auto newNewControlPlane = newControlPlane->clone();
   auto newQueueConfig = makeQueueConfig({1}, cfg::StreamType::ALL);
@@ -163,8 +164,9 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
   newNewControlPlane->resetQueues(newQueueConfig);
   auto newNewState = newState->clone();
   newNewState->resetControlPlane(newNewControlPlane);
+  auto delta1 = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(newState, newNewState), lock);
+      delta1.getControlPlaneDelta());
   saiManagerTable->hostifManager().updateStats();
 
   auto oldQueueName = folly::to<std::string>("queue", 1);
@@ -202,8 +204,9 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   prevState->resetControlPlane(prevControlPlane);
   auto newState = std::make_shared<SwitchState>();
   newState->resetControlPlane(newControlPlane);
+  auto delta0 = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(prevState, newState), lock);
+      delta0.getControlPlaneDelta());
   int index = 0;
   for (auto rxEntry : rxReasonToQueueMappings) {
     auto hostifTrapHandle =
@@ -224,8 +227,9 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   newControlPlaneNew->resetRxReasonToQueue(rxReasonToQueues);
   auto newNewState = std::make_shared<SwitchState>();
   newNewState->resetControlPlane(newControlPlaneNew);
+  auto delta = StateDelta(newState, newNewState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(newState, newNewState), lock);
+      delta.getControlPlaneDelta());
   auto hostifTrapHandle = saiManagerTable->hostifManager().getHostifTrapHandle(
       cfg::PacketRxReason::ARP_RESPONSE);
   EXPECT_TRUE(hostifTrapHandle);
@@ -247,8 +251,9 @@ TEST_F(HostifManagerTest, resetSchedulerOid) {
   newState->resetControlPlane(newControlPlane);
 
   // Apply the config changes using processHostifDelta
+  auto delta = StateDelta(prevState, newState);
   saiManagerTable->hostifManager().processHostifDelta(
-      StateDelta(prevState, newState), lock);
+      delta.getControlPlaneDelta());
   const auto queueHandle = saiManagerTable->hostifManager().getQueueHandle(
       std::pair(1, cfg::StreamType::ALL));
 
