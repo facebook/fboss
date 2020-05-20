@@ -29,8 +29,6 @@ class BcmQcmTest : public BcmTest {
   }
 
   bool skipTest() {
-    bool asicSupport =
-        getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM);
 #if (!defined(BCM_VER_MAJOR)) || (!defined(BCM_VER_MINOR)) || \
     (!defined(BCM_VER_RELEASE))
     XLOG(WARN) << "Since BCM version not defined, test is not supported";
@@ -39,7 +37,7 @@ class BcmQcmTest : public BcmTest {
     XLOG(WARN) << "Test not supported for BCM SDK version other than 6.5.16";
     return true;
 #else
-    return !asicSupport;
+    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM);
 #endif
   }
 };
