@@ -55,13 +55,14 @@ void runTxSlowPathBenchmark() {
   std::thread t([cpuMac, hwSwitch, &config, &packetTxDone]() {
     const auto kSrcIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
     const auto kDstIp = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+    const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
     while (!packetTxDone) {
       for (auto i = 0; i < 1'000; ++i) {
         // Send packet
         auto txPacket = utility::makeUDPTxPacket(
             hwSwitch,
             VlanID(*config.vlanPorts[0].vlanID_ref()),
-            cpuMac,
+            kSrcMac,
             cpuMac,
             kSrcIp,
             kDstIp,
