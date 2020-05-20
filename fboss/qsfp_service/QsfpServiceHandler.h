@@ -18,7 +18,7 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
 
   void init();
   facebook::fb303::cpp2::fb_status getStatus() override;
-  TransceiverType type(int32_t idx) override;
+  TransceiverType getType(int32_t idx) override;
   /*
    * Returns all qsfp information for the transceiver
    */

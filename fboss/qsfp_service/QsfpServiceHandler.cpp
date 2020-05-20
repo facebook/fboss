@@ -20,7 +20,7 @@ facebook::fb303::cpp2::fb_status QsfpServiceHandler::getStatus() {
   return facebook::fb303::cpp2::fb_status::ALIVE;
 }
 
-TransceiverType QsfpServiceHandler::type(int32_t /* unused */) {
+TransceiverType QsfpServiceHandler::getType(int32_t /* unused */) {
   auto log = LOG_THRIFT_CALL(INFO);
   return TransceiverType::QSFP;
 }
