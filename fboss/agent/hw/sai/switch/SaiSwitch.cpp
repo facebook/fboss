@@ -844,10 +844,7 @@ bool SaiSwitch::getAndClearNeighborHitLocked(
 void SaiSwitch::clearPortStatsLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     const std::unique_ptr<std::vector<int32_t>>& ports) {
-  for (const auto& port : *ports) {
-    auto handle = managerTable_->portManager().getPortHandle(PortID{port});
-    handle->port->clearStats();
-  }
+  managerTable_->portManager().clearStats(ports);
 }
 
 BootType SaiSwitch::getBootTypeLocked(

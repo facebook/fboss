@@ -450,6 +450,14 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   return portStats;
 }
 
+void SaiPortManager::clearStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) const {
+  auto statsToClear = supportedStats();
+  for (auto port : *ports) {
+    getPortHandle(PortID{port})->port->clearStats(statsToClear);
+  }
+}
+
 const HwPortFb303Stats* SaiPortManager::getLastPortStat(PortID port) const {
   auto pitr = portStats_.find(port);
   return pitr != portStats_.end() ? pitr->second.get() : nullptr;

@@ -68,6 +68,7 @@ class SaiPortManager {
       const SaiQueueConfig& saiQueueConfig);
   void updateStats();
   std::map<PortID, HwPortStats> getPortStats() const;
+  void clearStats(const std::unique_ptr<std::vector<int32_t>>& ports) const;
   void changeQueue(
       PortID swId,
       const QueueConfig& oldQueueConfig,
