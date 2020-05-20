@@ -54,6 +54,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MoveWrapper.h>
 #include <folly/Range.h>
+#include <folly/container/F14Map.h>
 #include <folly/functional/Partial.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -1621,6 +1622,11 @@ void ThriftHandler::addMplsRoutesImpl(
     std::shared_ptr<SwitchState>* state,
     ClientID clientId,
     const std::vector<MplsRoute>& mplsRoutes) const {
+  /* cache to return interface for non-link local but directly connected next
+   * hop address for label fib entry  */
+  folly::F14FastMap<std::pair<RouterID, folly::IPAddress>, InterfaceID>
+      labelFibEntryNextHopAddress2Interface;
+
   auto labelFib =
       (*state)->getLabelForwardingInformationBase().get()->modify(state);
   for (const auto& mplsRoute : mplsRoutes) {
@@ -1631,8 +1637,67 @@ void ThriftHandler::addMplsRoutesImpl(
     auto adminDistance = mplsRoute.adminDistance_ref().has_value()
         ? mplsRoute.adminDistance_ref().value()
         : sw_->clientIdToAdminDistance(static_cast<int>(clientId));
-    LabelNextHopSet nexthops =
-        util::toRouteNextHopSet(*mplsRoute.nextHops_ref());
+    // check for each next hop if these are resolved, if not resolve them
+    // unresolved next hop must always be directly connected for MPLS
+    // so unresolved next hops must be directly reachable via one of the
+    // interface
+    LabelNextHopSet nexthops;
+    for (auto& nexthop : util::toRouteNextHopSet(*mplsRoute.nextHops_ref())) {
+      if (nexthop.isResolved()) {
+        nexthops.emplace(nexthop);
+        continue;
+      }
+      if (nexthop.addr().isV6() && nexthop.addr().isLinkLocal()) {
+        throw FbossError(
+            "v6 link-local nexthop: ",
+            nexthop.addr().str(),
+            " must have interface id");
+      }
+      // BGP leaks MPLS routes to OpenR which then sends routes to agent
+      // In such routes, interface id information is absent, because neither
+      // BGP nor OpenR has enough information (in different scenarios) to
+      // resolve this interface ID. Consequently doing this in agent. Each such
+      // unresolved next hop will always be in the subnet of one of the
+      // interface routes. look for all interfaces of a router to find an
+      // interface which can reach this next hop. searching interfaces of a
+      // default router, in future if multiple routers are to be supported,
+      // router id must either be part of MPLS route or some configured router
+      // id for unresolved MPLS next hops.
+      // router id of MPLS route is to be used ONLY for resolving unresolved
+      // next hop addresses. MPLS has no notion of multiple switching domains
+      // within the same switch, all the labels must be unique.
+      // So router ID has no relevance to label switching.
+      auto iter = labelFibEntryNextHopAddress2Interface.find(
+          std::make_pair(RouterID(0), nexthop.addr()));
+      if (iter == labelFibEntryNextHopAddress2Interface.end()) {
+        auto result = (*state)->getInterfaces()->getIntfAddrToReach(
+            RouterID(0), nexthop.addr());
+        if (!result.intf) {
+          throw FbossError(
+              "nexthop : ", nexthop.addr().str(), " is not connected");
+        }
+        if (result.intf->hasAddress(nexthop.addr())) {
+          // attempt to program local interface address as next hop
+          throw FbossError(
+              "invalid next hop, nexthop : ",
+              nexthop.addr().str(),
+              " is same as interface address");
+        }
+
+        std::tie(iter, std::ignore) =
+            labelFibEntryNextHopAddress2Interface.emplace(
+                std::make_pair<RouterID, folly::IPAddress>(
+                    RouterID(0), nexthop.addr()),
+                result.intf->getID());
+      }
+
+      nexthops.emplace(ResolvedNextHop(
+          nexthop.addr(),
+          iter->second,
+          nexthop.weight(),
+          nexthop.labelForwardingAction()));
+    }
+
     // validate top label
     labelFib = labelFib->programLabel(
         state,
