@@ -28,6 +28,7 @@ class HwEcmpDataPlaneTestUtil {
       const std::vector<NextHopWeight>& weights) = 0;
 
   void pumpTraffic(int ecmpWidth, bool loopThroughFrontPanel);
+  void unresolveNextHop(unsigned int id);
   void resolveNextHopsandClearStats(unsigned int ecmpWidth);
   void shrinkECMP(unsigned int ecmpWidth);
   void expandECMP(unsigned int ecmpWidth);

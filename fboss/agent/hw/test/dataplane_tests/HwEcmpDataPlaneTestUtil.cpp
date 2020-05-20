@@ -25,6 +25,14 @@ void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::pumpTraffic(
 }
 
 template <typename EcmpSetupHelperT>
+void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::unresolveNextHop(
+    unsigned int id) {
+  auto portDesc = helper_->ecmpPortDescriptorAt(id);
+  ensemble_->applyNewState(
+      helper_->unresolveNextHops(ensemble_->getProgrammedState(), {portDesc}));
+}
+
+template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::resolveNextHopsandClearStats(
     unsigned int ecmpWidth) {
   ensemble_->applyNewState(

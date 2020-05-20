@@ -253,6 +253,11 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs) const;
+
+  // targeted unresolve
+  std::shared_ptr<SwitchState> unresolveNextHops(
+      const std::shared_ptr<SwitchState>& inputState,
+      const boost::container::flat_set<PortDescriptor>& portDescs) const;
   /*
    * Setup ECMP group with next hops going over any N ports
    */
@@ -330,6 +335,11 @@ class MplsEcmpSetupAnyNPorts {
    * their ARP/NDP resolved
    */
   std::shared_ptr<SwitchState> resolveNextHops(
+      const std::shared_ptr<SwitchState>& inputState,
+      const boost::container::flat_set<PortDescriptor>& portDescs) const;
+
+  // targeted unresolve
+  std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs) const;
 

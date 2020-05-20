@@ -133,6 +133,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     helper_->resolveNextHopsandClearStats(ecmpWidth);
   }
 
+  void unresolveNextHop(unsigned int id) {
+    helper_->unresolveNextHop(id);
+  }
+
   void shrinkECMP(unsigned int ecmpWidth) {
     helper_->shrinkECMP(ecmpWidth);
     resolveNextHopsandClearStats(ecmpWidth);
@@ -188,6 +192,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             {}, /*weights*/
             false /*loopThroughFrontPanel*/,
             deviation);
+        // Now that we are done checking, unresolve the shrunk next hop
+        unresolveNextHop(width);
       }
 
       while (width < ecmpWidth) {
