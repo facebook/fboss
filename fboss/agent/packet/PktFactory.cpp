@@ -237,7 +237,8 @@ EthFrame getEthFrame(
     AddrT dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId) {
+    uint16_t vlanId,
+    size_t payloadSize) {
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   constexpr auto etherType =
       isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
@@ -253,10 +254,18 @@ EthFrame getEthFrame(
   udpHdr.srcPort = sPort;
   udpHdr.dstPort = dPort;
 
+  if (payloadSize == 256) {
+    return utility::EthFrame(
+        ethHdr,
+        utility::IPPacket<AddrT>(
+            ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload)));
+  }
   return utility::EthFrame(
       ethHdr,
       utility::IPPacket<AddrT>(
-          ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload)));
+          ipHdr,
+          utility::UDPDatagram(
+              udpHdr, std::vector<uint8_t>(payloadSize, 0xff))));
 }
 
 template <typename AddrT>
@@ -302,7 +311,8 @@ template EthFrame getEthFrame<folly::IPAddressV4>(
     folly::IPAddressV4 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId);
+    uint16_t vlanId,
+    size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::MacAddress srcMac,
@@ -311,7 +321,8 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::IPAddressV6 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    uint16_t vlanId);
+    uint16_t vlanId,
+    size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV4>(
     folly::MacAddress srcMac,

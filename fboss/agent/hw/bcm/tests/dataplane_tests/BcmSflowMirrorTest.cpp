@@ -26,7 +26,7 @@ constexpr auto kIpStr = "2401:db00:dead:beef:";
 namespace facebook::fboss {
 class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
  protected:
-  utility::EthFrame genPacket(int portIndex) {
+  utility::EthFrame genPacket(int portIndex, size_t payloadSize) {
     auto vlanId = utility::kBaseVlanId + portIndex;
     auto mac = utility::getInterfaceMac(
         getProgrammedState(), static_cast<VlanID>(vlanId));
@@ -34,7 +34,8 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     folly::IPAddressV6 dip{folly::to<std::string>(kIpStr, portIndex, "::1")};
     uint16_t sport = 9701;
     uint16_t dport = 9801;
-    return utility::getEthFrame(mac, mac, sip, dip, sport, dport, vlanId);
+    return utility::getEthFrame(
+        mac, mac, sip, dip, sport, dport, vlanId, payloadSize);
   }
 
   void sendPkt(PortID port, std::unique_ptr<TxPacket> pkt) {
@@ -42,11 +43,11 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
   }
 
-  void generateTraffic() {
+  void generateTraffic(size_t payloadSize = 1400) {
     auto ports = masterLogicalPortIds();
     for (auto i = 1; i < ports.size(); i++) {
       auto port = ports[i];
-      auto pkt = genPacket(i);
+      auto pkt = genPacket(i, payloadSize);
       sendPkt(ports[i], pkt.getTxPacket(getHwSwitch()));
     }
   }
@@ -60,9 +61,10 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     return (HwSwitch::LINKSCAN_DESIRED | HwSwitch::PACKET_RX_DESIRED);
   }
 
-  void configMirror(cfg::SwitchConfig* config, bool truncate) {
+  void
+  configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
     cfg::SflowTunnel sflowTunnel;
-    sflowTunnel.ip = "101.101.101.101";
+    sflowTunnel.ip = isV4 ? "101.101.101.101" : "2401:101:101::101";
     sflowTunnel.udpSrcPort_ref() = 6545;
     sflowTunnel.udpDstPort_ref() = 5343;
 
@@ -105,12 +107,23 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     auto mirror = mirrors->getMirrorIf("mirror")->clone();
     ASSERT_NE(mirror, nullptr);
 
-    mirror->setMirrorTunnel(MirrorTunnel(
-        folly::IPAddress("101.1.1.101"),
-        mirror->getDestinationIp().value(),
-        mac,
-        mac,
-        mirror->getTunnelUdpPorts().value()));
+    auto ip = mirror->getDestinationIp().value();
+    if (ip.isV4()) {
+      mirror->setMirrorTunnel(MirrorTunnel(
+          folly::IPAddress("101.1.1.101"),
+          mirror->getDestinationIp().value(),
+          mac,
+          mac,
+          mirror->getTunnelUdpPorts().value()));
+    } else {
+      mirror->setMirrorTunnel(MirrorTunnel(
+          folly::IPAddress("2401:101:1:1::101"),
+          mirror->getDestinationIp().value(),
+          mac,
+          mac,
+          mirror->getTunnelUdpPorts().value()));
+    }
+
     mirror->setEgressPort(masterLogicalPortIds()[0]);
     mirrors->updateNode(mirror);
     state->resetMirrors(mirrors);
@@ -132,7 +145,7 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
   auto verify = [=]() {
     auto ports = masterLogicalPortIds();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
-    auto pkt = genPacket(1);
+    auto pkt = genPacket(1, 256);
     auto packetCapture =
         HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
@@ -159,6 +172,85 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
     //    source_sample : 1, dest_sample : 1, flex_sample : 1
     //    multicast : 1, discarded : 1, truncated : 1,
     //    dest_port_encoding : 3, reserved : 23
+    EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
+  if (!getPlatform()->sflowSamplingSupported() ||
+      !getPlatform()->mirrorPktTruncationSupported()) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configMirror(&config, true);
+    configSampling(&config, 1);
+    applyNewConfig(config);
+    resolveMirror();
+  };
+  auto verify = [=]() {
+    auto ports = masterLogicalPortIds();
+    bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
+    auto pkt = genPacket(1, 8000);
+    auto packetCapture =
+        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    sendPkt(masterLogicalPortIds()[1], pkt.getTxPacket(getHwSwitch()));
+    auto capturedPkt = snooper.waitForPacket(10);
+    ASSERT_TRUE(capturedPkt.has_value());
+
+    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto __ = folly::io::Cursor(_->buf());
+    XLOG(INFO) << PktUtil::hexDump(__);
+
+    // packet's payload is truncated before it was mirrored
+    EXPECT_LE(capturedPkt->length(), pkt.length());
+    auto capturedHdrSize =
+        18 /* ethernet */ + 20 /* ipv4 */ + 8 /* udp */ + 8 /* sflow */;
+    EXPECT_GE(capturedPkt->length(), capturedHdrSize);
+    EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
+    auto payload = capturedPkt->v4PayLoad()->payload()->payload();
+    EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
+  if (!getPlatform()->sflowSamplingSupported() ||
+      !getPlatform()->mirrorPktTruncationSupported() ||
+      !getPlatform()->v6MirrorTunnelSupported()) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configMirror(&config, true, false);
+    configSampling(&config, 1);
+    applyNewConfig(config);
+    resolveMirror();
+  };
+  auto verify = [=]() {
+    auto ports = masterLogicalPortIds();
+    bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
+    auto pkt = genPacket(1, 8000);
+    auto packetCapture =
+        HwTestPacketTrapEntry(getHwSwitch(), masterLogicalPortIds()[0]);
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    sendPkt(masterLogicalPortIds()[1], pkt.getTxPacket(getHwSwitch()));
+    auto capturedPkt = snooper.waitForPacket(10);
+    ASSERT_TRUE(capturedPkt.has_value());
+
+    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto __ = folly::io::Cursor(_->buf());
+    XLOG(INFO) << PktUtil::hexDump(__);
+
+    // packet's payload is truncated before it was mirrored
+    EXPECT_LE(capturedPkt->length(), pkt.length());
+    auto capturedHdrSize =
+        18 /* ethernet */ + 40 /* ipv6 */ + 8 /* udp */ + 8 /* sflow */;
+    EXPECT_GE(capturedPkt->length(), capturedHdrSize);
+    EXPECT_EQ(capturedPkt->length() - capturedHdrSize, 210); /* TODO: why? */
+    auto payload = capturedPkt->v6PayLoad()->payload()->payload();
     EXPECT_EQ(static_cast<PortID>(payload[0]), masterLogicalPortIds()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
