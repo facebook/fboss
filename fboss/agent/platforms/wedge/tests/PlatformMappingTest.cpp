@@ -82,18 +82,38 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   }
 
   // Not override case will read directly from PlatformPortConfig
-  // ce0(port id 36) 100G optic serdes_tx_taps_ce0=nrz:-6:92:-24
-  auto pinCfgs = mapping->getPortIphyPinConfigs(
-      PortID(36), cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
-  EXPECT_EQ(pinCfgs.size(), 4);
-  for (auto pinCfg : pinCfgs) {
-    if (auto tx = pinCfg.tx_ref()) {
-      EXPECT_EQ(tx->pre2, 0);
-      EXPECT_EQ(tx->pre, -6);
-      EXPECT_EQ(tx->main, 92);
-      EXPECT_EQ(tx->post, -24);
-      EXPECT_EQ(tx->post2, 0);
-      EXPECT_EQ(tx->post3, 0);
+  std::unordered_map<PortID, std::vector<int>> uplinkTxMap = {
+      {PortID(36), {0, -6, 92, -24, 0, 0}},
+      {PortID(37), {0, -2, 90, -18, 0, 0}},
+      {PortID(56), {0, -2, 90, -18, 0, 0}},
+      {PortID(57), {0, -2, 90, -18, 0, 0}},
+      {PortID(17), {0, -6, 92, -24, 0, 0}},
+      {PortID(18), {0, -2, 90, -22, 0, 0}},
+      {PortID(76), {0, -2, 78, -10, 0, 0}},
+      {PortID(77), {0, -2, 66, -8, 0, 0}},
+      {PortID(96), {0, -2, 66, -8, 0, 0}},
+      {PortID(97), {0, -2, 78, -10, 0, 0}},
+      {PortID(156), {0, -2, 88, -20, 0, 0}},
+      {PortID(157), {0, -6, 92, -24, 0, 0}},
+      {PortID(116), {0, -2, 90, -18, 0, 0}},
+      {PortID(117), {0, -2, 90, -18, 0, 0}},
+      {PortID(136), {0, -2, 88, -20, 0, 0}},
+      {PortID(137), {0, -6, 92, -24, 0, 0}},
+
+  };
+  for (auto uplinkTx : uplinkTxMap) {
+    const auto& pinCfgs = mapping->getPortIphyPinConfigs(
+        uplinkTx.first, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
+    EXPECT_EQ(pinCfgs.size(), 4);
+    for (auto pinCfg : pinCfgs) {
+      if (auto tx = pinCfg.tx_ref()) {
+        EXPECT_EQ(tx->pre2, uplinkTx.second[0]);
+        EXPECT_EQ(tx->pre, uplinkTx.second[1]);
+        EXPECT_EQ(tx->main, uplinkTx.second[2]);
+        EXPECT_EQ(tx->post, uplinkTx.second[3]);
+        EXPECT_EQ(tx->post2, uplinkTx.second[4]);
+        EXPECT_EQ(tx->post3, uplinkTx.second[5]);
+      }
     }
   }
 }
