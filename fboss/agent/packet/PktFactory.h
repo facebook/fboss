@@ -260,7 +260,8 @@ EthFrame getEthFrame(
     AddrT srcIp,
     AddrT dstIp,
     uint16_t sPort,
-    uint16_t dPort);
+    uint16_t dPort,
+    uint16_t vlanId = 1);
 
 template <typename AddrT>
 EthFrame getEthFrame(

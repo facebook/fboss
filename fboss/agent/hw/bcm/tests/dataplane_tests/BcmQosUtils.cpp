@@ -103,7 +103,7 @@ void disableTTLDecrements(
   auto bcmHostKey = BcmHostKey(vrfId, addr);
   const auto hostTable = hw->getHostTable();
   auto bcmHost = hostTable->getBcmHostIf(bcmHostKey);
-  CHECK(bcmHost);
+  CHECK(bcmHost) << "failed to find host for " << bcmHostKey.str();
 
   bcm_if_t id = bcmHost->getEgressId();
   bcm_l3_egress_t egr;
