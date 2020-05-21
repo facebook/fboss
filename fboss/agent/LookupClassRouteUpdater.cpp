@@ -619,9 +619,7 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
   }
 
   if (routeClassID.has_value()) {
-    auto [it, inserted] = allPrefixesWithClassID_.insert(ridAndCidr);
-    std::ignore = it;
-    CHECK(inserted);
+    allPrefixesWithClassID_.insert(ridAndCidr);
   }
 
   return routeClassID;
