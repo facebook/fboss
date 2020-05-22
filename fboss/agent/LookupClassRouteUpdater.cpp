@@ -241,6 +241,7 @@ void LookupClassRouteUpdater::processPortRemoved(
   }
 
   for (const auto& [vlanID, vlanInfo] : removedPort->getVlans()) {
+    std::ignore = vlanInfo;
     processPortRemovedForVlan(stateDelta, removedPort, vlanID);
   }
 }
@@ -306,6 +307,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
   }
 
   for (auto& [portID, portInfo] : vlan->getPorts()) {
+    std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
     // routes are re-added once outside the for loop
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
@@ -328,6 +330,7 @@ void LookupClassRouteUpdater::processInterfaceRemoved(
   }
 
   for (auto& [portID, portInfo] : vlan->getPorts()) {
+    std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
     processPortRemovedForVlan(stateDelta, port, vlanID);
   }
