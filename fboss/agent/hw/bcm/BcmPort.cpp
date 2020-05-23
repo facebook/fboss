@@ -1481,18 +1481,7 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
 }
 
 void BcmPort::setLoopbackMode(const std::shared_ptr<Port>& swPort) {
-  int newLoopbackMode{BCM_PORT_LOOPBACK_NONE};
-  switch (swPort->getLoopbackMode()) {
-    case cfg::PortLoopbackMode::NONE:
-      newLoopbackMode = BCM_PORT_LOOPBACK_NONE;
-      break;
-    case cfg::PortLoopbackMode::PHY:
-      newLoopbackMode = BCM_PORT_LOOPBACK_PHY;
-      break;
-    case cfg::PortLoopbackMode::MAC:
-      newLoopbackMode = BCM_PORT_LOOPBACK_MAC;
-      break;
-  }
+  int newLoopbackMode = utility::fbToBcmLoopbackMode(swPort->getLoopbackMode());
   int oldLoopbackMode;
   auto rv = bcm_port_loopback_get(unit_, port_, &oldLoopbackMode);
   bcmCheckError(

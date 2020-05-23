@@ -169,4 +169,18 @@ bcm_gport_t getPortGport(int unit, int port) {
   facebook::fboss::bcmCheckError(rv, "failed to get gport for port");
   return portGport;
 }
+
+bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode) {
+  switch (inMode) {
+    case cfg::PortLoopbackMode::NONE:
+      return BCM_PORT_LOOPBACK_NONE;
+    case cfg::PortLoopbackMode::PHY:
+      return BCM_PORT_LOOPBACK_PHY;
+    case cfg::PortLoopbackMode::MAC:
+      return BCM_PORT_LOOPBACK_MAC;
+  }
+  CHECK(0) << "Should never reach here";
+  return BCM_PORT_LOOPBACK_NONE;
+}
+
 } // namespace facebook::fboss::utility

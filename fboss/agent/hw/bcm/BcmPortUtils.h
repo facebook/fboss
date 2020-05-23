@@ -39,4 +39,5 @@ uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg);
 
 bcm_gport_t getPortGport(int unit, int port);
 
+bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode);
 } // namespace facebook::fboss::utility
