@@ -41,11 +41,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   };
   explicit HwSwitchEnsemble(uint32_t featuresDesired);
   ~HwSwitchEnsemble() override;
-  /*
-   * Revert back to post init state. Can be used by each
-   * benchmark iteration to start with a clean slate.
-   */
-  void revertToInitCfgState();
   void setAllowPartialStateApplication(bool allow) {
     allowPartialStateApplication_ = allow;
   }
@@ -138,7 +133,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const std::map<PortID, HwPortStats>& originalPortStats);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
-  std::shared_ptr<SwitchState> initCfgState_;
   std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;

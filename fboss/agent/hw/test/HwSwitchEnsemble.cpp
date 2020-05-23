@@ -112,7 +112,6 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
       << "applyInitialConfig";
   linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
-  initCfgState_ = getProgrammedState();
   runState_ = SwitchRunState::CONFIGURED;
 }
 
@@ -239,11 +238,6 @@ void HwSwitchEnsemble::setupEnsemble(
 
   getHwSwitch()->switchRunStateChanged(SwitchRunState::INITIALIZED);
   runState_ = SwitchRunState::INITIALIZED;
-}
-
-void HwSwitchEnsemble::revertToInitCfgState() {
-  CHECK(initCfgState_);
-  applyNewState(initCfgState_);
 }
 
 void HwSwitchEnsemble::gracefulExit() {
