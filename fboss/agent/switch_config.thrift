@@ -1086,6 +1086,55 @@ enum L2LearningMode {
 }
 
 /*
+ * Used for QCM. Weight factors used to compute interest
+ * function to evaluate flows which  are source of congestion
+ */
+enum BurstMonitorWeight {
+  FLOW_MAX_RX_BYTES = 0
+  FLOW_SUM_RX_BYTES = 1
+  QUEUE_MAX_BUF_BYTES = 2
+  QUEUE_MAX_SUM_BYTES = 3
+  QUEUE_MAX_DROP_BYTES = 4
+  QUEUE_SUM_DROP_BYTES = 5
+  QUEUE_MAX_RX_BYTES = 6
+  QUEUE_SUM_RX_BYTES = 7
+  MAX_TM_UTIL = 8
+  AVG_TM_UTIL = 9
+  RANDOM_NUM = 10
+  VIEW_ID = 11
+  MAX_VIEW_ID = 12
+  VIEW_ID_THRESHOLD = 13
+  FLOW_MAX_RX_PKTS = 14
+  FLOW_SUM_RX_PKTS = 15
+  QUEUE_MAX_DROP_PKTS = 16
+  QUEUE_SUM_DROP_PKTS = 17
+  QUEUE_MAX_RX_PKTS = 18
+  QUEUE_SUM_RX_PKTS = 19
+  QUEUE_MAX_TX_BYTES = 20
+  QUEUE_SUM_TX_BYTES = 21
+  QUEUE_MAX_TX_PKTS = 22
+  QUEUE_SUM_TX_PKTS = 23
+}
+
+/* allow configuration of qcm functionality */
+struct QcmConfig {
+  1: i32 numFlowSamplesPerView = 16
+  2: i32 flowLimit = 1000
+  3: i32 numFlowsClear = 100
+  4: i32 scanIntervalInUsecs = 1000
+  5: i32 exportThreshold = 1
+  6: map<BurstMonitorWeight, i16> flowWeights
+  7: i32 agingIntervalInMsecs = 1000
+  8: string collectorDstIp
+  9: IpType ipType = IP6
+  10: optional i16 collectorSrcPort
+  // Arbitrary high number to keep the dstPort unique
+  11: i16 collectorDstPort = 3000
+  12: optional i16 collectorDscp
+  13: optional i32 ppsToQcm
+}
+
+/*
  * Switch specific settings: global to the switch
  */
 struct SwitchSettings {
@@ -1193,4 +1242,5 @@ struct SwitchConfig {
   40: map<PortQueueConfigName, list<PortQueue>> portQueueConfigs = {}
 
   41: SwitchSettings switchSettings
+  42: optional QcmConfig qcmConfig
 }
