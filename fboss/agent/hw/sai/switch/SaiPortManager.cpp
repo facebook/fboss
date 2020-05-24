@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -32,56 +33,6 @@ using namespace std::chrono;
 
 namespace facebook::fboss {
 namespace {
-sai_port_flow_control_mode_t getSaiPortPauseMode(cfg::PortPause pause) {
-  if (*pause.tx_ref() && *pause.rx_ref()) {
-    return SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE;
-  } else if (*pause.tx_ref()) {
-    return SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY;
-  } else if (*pause.rx_ref()) {
-    return SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY;
-  } else {
-    return SAI_PORT_FLOW_CONTROL_MODE_DISABLE;
-  }
-}
-
-sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
-    cfg::PortLoopbackMode loopbackMode) {
-  switch (loopbackMode) {
-    case cfg::PortLoopbackMode::NONE:
-      return SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
-    case cfg::PortLoopbackMode::PHY:
-      return SAI_PORT_INTERNAL_LOOPBACK_MODE_PHY;
-    case cfg::PortLoopbackMode::MAC:
-      return SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC;
-    default:
-      return SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE;
-  }
-}
-
-sai_port_media_type_t getSaiPortMediaType(
-    TransmitterTechnology transmitterTech) {
-  switch (transmitterTech) {
-    case TransmitterTechnology::COPPER:
-      return SAI_PORT_MEDIA_TYPE_COPPER;
-    case TransmitterTechnology::OPTICAL:
-      return SAI_PORT_MEDIA_TYPE_FIBER;
-    default:
-      return SAI_PORT_MEDIA_TYPE_UNKNOWN;
-  }
-}
-
-sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
-  if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
-    return SAI_PORT_FEC_MODE_FC;
-  } else if (
-      fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544 ||
-      fec == phy::FecMode::RS544_2N) {
-    return SAI_PORT_FEC_MODE_RS;
-  } else {
-    return SAI_PORT_FEC_MODE_NONE;
-  }
-}
-
 void fillHwPortStats(
     const std::vector<sai_stat_id_t>& counterIds,
     const std::vector<sai_object_id_t>& counters,
@@ -322,12 +273,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto speed = static_cast<uint32_t>(portProfileConfig->speed);
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
-  auto globalFlowControlMode = getSaiPortPauseMode(swPort->getPause());
+  auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
-      getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
-  auto mediaType = getSaiPortMediaType(platformPort->getTransmitterTech());
+      utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
+  auto mediaType =
+      utility::getSaiPortMediaType(platformPort->getTransmitterTech());
   auto phyFecMode = platform_->getPhyFecMode(profileID);
-  auto fecMode = getSaiPortFecMode(phyFecMode);
+  auto fecMode = utility::getSaiPortFecMode(phyFecMode);
   if (swPort->getFEC() == cfg::PortFEC::ON) {
     fecMode = SAI_PORT_FEC_MODE_RS;
   }

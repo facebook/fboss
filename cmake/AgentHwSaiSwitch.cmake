@@ -15,6 +15,7 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiNextHopManager.cpp
   fboss/agent/hw/sai/switch/SaiNextHopGroupManager.cpp
   fboss/agent/hw/sai/switch/SaiPortManager.cpp
+  fboss/agent/hw/sai/switch/SaiPortUtils.cpp
   fboss/agent/hw/sai/switch/SaiQosMapManager.cpp
   fboss/agent/hw/sai/switch/SaiQueueManager.cpp
   fboss/agent/hw/sai/switch/SaiRouteManager.cpp
