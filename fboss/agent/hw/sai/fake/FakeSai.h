@@ -40,7 +40,7 @@ struct FakeSai {
   static std::shared_ptr<FakeSai> getInstance();
   static void clear();
 
-  FakeAclManager aclManager;
+  FakeAclTableManager aclTableManager;
   FakeBridgeManager bridgeManager;
   FakeFdbManager fdbManager;
   FakeHashManager hashManager;
