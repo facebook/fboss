@@ -70,9 +70,6 @@ sai_port_media_type_t getSaiPortMediaType(
   }
 }
 
-// TODO: remove the following declaration line (workaround for a warning) when
-// SaiPortManager::attributesFromSwPort starts using getSaiPortFecMode()
-sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) __attribute__((unused));
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
   if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
     return SAI_PORT_FEC_MODE_FC;
