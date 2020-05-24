@@ -161,4 +161,7 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
       desiredLoopbackMode);
 }
 
+uint64_t BcmSwitchEnsemble::getSwitchId() const {
+  return getHwSwitch()->getUnit();
+}
 } // namespace facebook::fboss

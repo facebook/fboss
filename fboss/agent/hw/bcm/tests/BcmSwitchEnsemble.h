@@ -44,6 +44,7 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   std::vector<PortID> masterLogicalPortIds() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
+  uint64_t getSwitchId() const override;
   bool isRouteScaleEnabled() const override;
 
   void dumpHwCounters() const override;

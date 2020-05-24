@@ -122,4 +122,7 @@ std::map<PortID, HwPortStats> SaiSwitchEnsemble::getLatestPortStats(
       folly::gen::as<std::map<PortID, HwPortStats>>();
 }
 
+uint64_t SaiSwitchEnsemble::getSwitchId() const {
+  return getHwSwitch()->getSwitchId();
+}
 } // namespace facebook::fboss
