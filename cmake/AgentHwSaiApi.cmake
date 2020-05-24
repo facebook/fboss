@@ -38,6 +38,7 @@ add_library(sai_api
   fboss/agent/hw/sai/api/SaiApiLock.cpp
   fboss/agent/hw/sai/api/SaiApiTable.cpp
   fboss/agent/hw/sai/api/SwitchApi.cpp
+  fboss/agent/hw/sai/api/AclApi.h
   fboss/agent/hw/sai/api/BridgeApi.h
   fboss/agent/hw/sai/api/FdbApi.h
   fboss/agent/hw/sai/api/HashApi.h

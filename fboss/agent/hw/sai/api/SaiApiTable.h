@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
@@ -47,6 +48,9 @@ class SaiApiTable {
    * Adapter Host.
    */
   void queryApis();
+
+  AclApi& aclApi();
+  const AclApi& aclApi() const;
 
   BridgeApi& bridgeApi();
   const BridgeApi& bridgeApi() const;
@@ -113,6 +117,7 @@ class SaiApiTable {
 
  private:
   std::tuple<
+      std::unique_ptr<AclApi>,
       std::unique_ptr<BridgeApi>,
       std::unique_ptr<FdbApi>,
       std::unique_ptr<HashApi>,

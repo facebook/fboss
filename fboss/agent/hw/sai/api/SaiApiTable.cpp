@@ -35,6 +35,7 @@ void SaiApiTable::queryApis() {
     return;
   }
   apisQueried_ = true;
+  std::get<std::unique_ptr<AclApi>>(apis_) = std::make_unique<AclApi>();
   std::get<std::unique_ptr<BridgeApi>>(apis_) = std::make_unique<BridgeApi>();
   std::get<std::unique_ptr<FdbApi>>(apis_) = std::make_unique<FdbApi>();
   std::get<std::unique_ptr<HashApi>>(apis_) = std::make_unique<HashApi>();

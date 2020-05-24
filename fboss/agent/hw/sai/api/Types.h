@@ -15,6 +15,8 @@ extern "C" {
 #include <sai.h>
 }
 
+FBOSS_STRONG_TYPE(sai_object_id_t, AclTableSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, AclEntrySaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgePortSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HashSaiId);
