@@ -114,6 +114,10 @@ class SaiSwitch : public HwSwitch {
     return platform_;
   }
 
+  const ConcurrentIndices& concurrentIndices() const {
+    return *concurrentIndices_;
+  }
+
  private:
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
