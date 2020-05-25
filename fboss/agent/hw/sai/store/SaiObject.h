@@ -345,6 +345,11 @@ class SaiObject {
     publisher.notifyCreate(publisherKey, object);
   }
 
+  folly::dynamic adapterHostKeyToFollyDynamic();
+
+  static typename SaiObjectTraits::AdapterHostKey follyDynamicToAdapterHostKey(
+      folly::dynamic);
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {

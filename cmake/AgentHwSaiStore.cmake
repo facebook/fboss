@@ -5,6 +5,7 @@
 
 add_library(sai_store
   fboss/agent/hw/sai/store/SaiObjectEventPublisher.cpp
+  fboss/agent/hw/sai/store/SaiObject.cpp
   fboss/agent/hw/sai/store/SaiStore.cpp
 )
 

@@ -159,3 +159,42 @@ TEST_F(NextHopGroupStoreTest, nhopGroupMemberSerDeser) {
       createNextHopGroupMember(nextHopGroupId, nextHopId, std::nullopt);
   verifyAdapterKeySerDeser<SaiNextHopGroupMemberTraits>({nextHopGroupMemberId});
 }
+
+TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
+  // Create a next hop group
+  auto nextHopGroupId = createNextHopGroup();
+
+  // Create four next hops and four next hop group members
+  folly::IPAddress ip1{"10.10.10.1"};
+  folly::IPAddress ip2{"10.10.10.2"};
+  folly::IPAddress ip3{"10.10.10.3"};
+  folly::IPAddress ip4{"10.10.10.4"};
+  auto nextHopId1 = createNextHop(ip1);
+  auto nextHopId2 = createNextHop(ip2);
+  auto nextHopId3 = createMplsNextHop(ip3, {102, 103});
+  auto nextHopId4 = createMplsNextHop(ip4, {201, 203});
+
+  createNextHopGroupMember(nextHopGroupId, nextHopId1, std::nullopt);
+  createNextHopGroupMember(nextHopGroupId, nextHopId2, std::nullopt);
+  createNextHopGroupMember(nextHopGroupId, nextHopId3, std::nullopt);
+  createNextHopGroupMember(nextHopGroupId, nextHopId4, std::nullopt);
+
+  // perform a warm boot load
+  SaiStore s(0);
+  s.reload();
+  auto& store0 = s.get<SaiNextHopGroupTraits>();
+
+  SaiNextHopGroupTraits::AdapterHostKey k;
+  k.insert(SaiIpNextHopTraits::AdapterHostKey{42, ip1});
+  k.insert(SaiIpNextHopTraits::AdapterHostKey{42, ip2});
+  k.insert(SaiMplsNextHopTraits::AdapterHostKey{
+      42, ip3, std::vector<sai_uint32_t>{102, 103}});
+  k.insert(SaiMplsNextHopTraits::AdapterHostKey{
+      42, ip4, std::vector<sai_uint32_t>{201, 203}});
+  auto got = store0.get(k);
+  EXPECT_TRUE(got);
+  auto json = got->adapterHostKeyToFollyDynamic();
+  auto k1 =
+      SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(k1, k);
+}
