@@ -254,50 +254,173 @@ sai_status_t create_acl_table_group_fn(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_int32_t> stage;
+  std::vector<sai_int32_t> bindPointTypeList;
+  sai_int32_t type;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_TABLE_GROUP_ATTR_ACL_STAGE:
+        stage = attr_list[i].value.s32;
+        break;
+      case SAI_ACL_TABLE_GROUP_ATTR_ACL_BIND_POINT_TYPE_LIST:
+        for (int j = 0; j < attr_list[j].value.s32list.count; ++j) {
+          bindPointTypeList.push_back(attr_list[i].value.s32list.list[j]);
+        }
+        break;
+      case SAI_ACL_TABLE_GROUP_ATTR_TYPE:
+        type = attr_list[i].value.s32;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+        break;
+    }
+  }
+
+  if (!stage) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *acl_table_group_id =
+      fs->aclTableGroupManager.create(stage.value(), bindPointTypeList, type);
+
+  return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_acl_table_group_fn(sai_object_id_t /*acl_table_group_id*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+sai_status_t remove_acl_table_group_fn(sai_object_id_t acl_table_group_id) {
+  auto fs = FakeSai::getInstance();
+  fs->aclTableGroupManager.remove(acl_table_group_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_acl_table_group_attribute_fn(
     sai_object_id_t /*acl_table_group_id*/,
-    const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    const sai_attribute_t* attr) {
+  switch (attr->id) {
+    default:
+      // SAI spec does not support setting any attribute for ACL table group
+      // post creation.
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_acl_table_group_attribute_fn(
-    sai_object_id_t /*acl_table_group_id*/,
-    uint32_t /*attr_count*/,
-    sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    sai_object_id_t acl_table_group_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_TABLE_GROUP_ATTR_MEMBER_LIST: {
+        const auto& aclTableGroupMemberMap =
+            fs->aclTableGroupManager.get(acl_table_group_id).fm().map();
+        if (aclTableGroupMemberMap.size() > attr_list[i].value.objlist.count) {
+          attr_list[i].value.objlist.count = aclTableGroupMemberMap.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        attr_list[i].value.objlist.count = aclTableGroupMemberMap.size();
+        int j = 0;
+        for (const auto& m : aclTableGroupMemberMap) {
+          attr_list[i].value.objlist.list[j++] = m.first;
+        }
+      } break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t create_acl_table_group_member_fn(
-    sai_object_id_t* /*acl_table_group_member_id*/,
+    sai_object_id_t* acl_table_group_member_id,
     sai_object_id_t /*switch_id*/,
-    uint32_t /*attr_count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_object_id_t> tableGroupId;
+  std::optional<sai_object_id_t> tableId;
+  std::optional<sai_uint32_t> priority;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_GROUP_ID:
+        tableGroupId = attr_list[i].value.oid;
+        break;
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_ID:
+        tableId = attr_list[i].value.oid;
+        break;
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
+        priority = attr_list[i].value.u32;
+        break;
+    }
+  }
+
+  if (!tableGroupId || !tableId || !priority) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *acl_table_group_member_id = fs->aclTableGroupManager.createMember(
+      tableGroupId.value(),
+      tableGroupId.value(),
+      tableId.value(),
+      priority.value());
+
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t remove_acl_table_group_member_fn(
-    sai_object_id_t /*acl_table_group_member_id*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    sai_object_id_t acl_table_group_member_id) {
+  auto fs = FakeSai::getInstance();
+  fs->aclTableGroupManager.removeMember(acl_table_group_member_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_acl_table_group_member_attribute_fn(
     sai_object_id_t /*acl_table_group_member_id*/,
-    const sai_attribute_t* /*attr*/) {
+    const sai_attribute_t* attr) {
   return SAI_STATUS_NOT_IMPLEMENTED;
+
+  switch (attr->id) {
+    default:
+      // SAI spec does not support setting any attribute for ACL table group
+      // memeber post creation.
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_acl_table_group_member_attribute_fn(
-    sai_object_id_t /*acl_table_group_member_id*/,
-    uint32_t /*attr_count*/,
-    sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    sai_object_id_t acl_table_group_member_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& aclTableGroupMember =
+      fs->aclTableGroupManager.getMember(acl_table_group_member_id);
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_GROUP_ID:
+        attr_list[i].value.oid = aclTableGroupMember.tableGroupId;
+        break;
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_ID:
+        attr_list[i].value.oid = aclTableGroupMember.tableId;
+        break;
+      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
+        attr_list[i].value.u32 = aclTableGroupMember.priority;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 namespace facebook::fboss {
