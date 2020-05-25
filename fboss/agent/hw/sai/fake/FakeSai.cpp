@@ -26,6 +26,7 @@ std::shared_ptr<FakeSai> FakeSai::getInstance() {
 void FakeSai::clear() {
   auto fs = FakeSai::getInstance();
 
+  fs->aclTableGroupManager.clearWithMembers();
   fs->aclTableManager.clearWithMembers();
   fs->bridgeManager.clearWithMembers();
   fs->fdbManager.clear();
