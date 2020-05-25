@@ -52,6 +52,44 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclTableId, fs->aclTableManager.getMember(aclEntryId).tableId);
   }
 
+  AclTableGroupSaiId createAclTableGroup() const {
+    return aclApi->create<SaiAclTableGroupTraits>(
+        {SAI_ACL_STAGE_INGRESS, std::nullopt, std::nullopt}, kSwitchID());
+  }
+
+  AclTableGroupMemberSaiId createAclTableGroupMember(
+      AclTableGroupSaiId aclTableGroupId,
+      AclTableSaiId aclTableId) const {
+    SaiAclTableGroupMemberTraits::Attributes::TableGroupId
+        aclTableGroupTableGroupIdAttribute{aclTableGroupId};
+    SaiAclTableGroupMemberTraits::Attributes::TableId
+        aclTableGroupTableIdAttribute{aclTableId};
+    SaiAclTableGroupMemberTraits::Attributes::Priority
+        aclTableGroupPriorityAttribute{1};
+
+    return aclApi->create<SaiAclTableGroupMemberTraits>(
+        {aclTableGroupTableGroupIdAttribute,
+         aclTableGroupTableIdAttribute,
+         aclTableGroupPriorityAttribute},
+        kSwitchID());
+  }
+
+  void checkAclTableGroup(AclTableGroupSaiId aclTableGroupId) const {
+    EXPECT_EQ(
+        aclTableGroupId, fs->aclTableGroupManager.get(aclTableGroupId).id);
+  }
+
+  void checkAclTableGroupMember(
+      AclTableGroupSaiId aclTableGroupId,
+      AclTableGroupMemberSaiId aclTableGroupMemberId) {
+    EXPECT_EQ(
+        aclTableGroupMemberId,
+        fs->aclTableGroupManager.getMember(aclTableGroupMemberId).id);
+    EXPECT_EQ(
+        aclTableGroupId,
+        fs->aclTableGroupManager.getMember(aclTableGroupMemberId).tableGroupId);
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<AclApi> aclApi;
 };
@@ -177,4 +215,128 @@ TEST_F(AclApiTest, formatAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::TableId tableId{0};
   std::string expected("TableId: 0");
   EXPECT_EQ(expected, fmt::format("{}", tableId));
+}
+
+TEST_F(AclApiTest, createAclTableGroup) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+}
+
+TEST_F(AclApiTest, removeAclTableGroup) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  aclApi->remove(aclTableGroupId);
+}
+
+TEST_F(AclApiTest, createAclTableGroupMember) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclTableGroupMemberId =
+      createAclTableGroupMember(aclTableGroupId, aclTableId);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
+}
+
+TEST_F(AclApiTest, removeAclTableGroupMember) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclTableGroupMemberId =
+      createAclTableGroupMember(aclTableGroupId, aclTableId);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
+
+  aclApi->remove(aclTableGroupMemberId);
+}
+
+TEST_F(AclApiTest, multipleAclTableGroupMember) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+
+  auto aclTableId1 = createAclTable();
+  checkAclTable(aclTableId1);
+  auto aclTableId2 = createAclTable();
+  checkAclTable(aclTableId2);
+
+  auto aclTableGroupMemberId1 =
+      createAclTableGroupMember(aclTableGroupId, aclTableId1);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId1);
+  auto aclTableGroupMemberId2 =
+      createAclTableGroupMember(aclTableGroupId, aclTableId1);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId2);
+}
+
+TEST_F(AclApiTest, getAclTableGroupAttribute) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclTableGroupMemberId =
+      createAclTableGroupMember(aclTableGroupId, aclTableId);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
+
+  auto aclTableGroupMembersGot = aclApi->getAttribute(
+      aclTableGroupId, SaiAclTableGroupTraits::Attributes::MemberList());
+
+  EXPECT_EQ(aclTableGroupMembersGot.size(), 1);
+  EXPECT_EQ(aclTableGroupMembersGot[0], aclTableGroupMemberId);
+}
+
+TEST_F(AclApiTest, getAclTableGroupMemberAttribute) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclTableGroupMemberId =
+      createAclTableGroupMember(aclTableGroupId, aclTableId);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
+
+  auto aclTableGroupIdGot = aclApi->getAttribute(
+      aclTableGroupMemberId,
+      SaiAclTableGroupMemberTraits::Attributes::TableGroupId());
+
+  EXPECT_EQ(aclTableGroupIdGot, aclTableGroupId);
+}
+
+TEST_F(AclApiTest, setAclTableGroupAttribute) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+
+  // SAI spec does not support setting any attribute for ACL table group post
+  // creation.
+  SaiAclTableGroupTraits::Attributes::MemberList memberList{};
+  EXPECT_THROW(aclApi->setAttribute(aclTableGroupId, memberList), SaiApiError);
+}
+
+TEST_F(AclApiTest, setAclTableGroupMemberAttribute) {
+  auto aclTableGroupId = createAclTableGroup();
+  checkAclTableGroup(aclTableGroupId);
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+  auto aclTableGroupMemberId =
+      createAclTableGroupMember(aclTableGroupId, aclTableId);
+  checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
+
+  // SAI spec does not support setting any attribute for ACL table group member
+  // post creation.
+  SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{1};
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableGroupMemberId, tableGroupId), SaiApiError);
+}
+
+TEST_F(AclApiTest, formatAclTableGroupStageAttribute) {
+  SaiAclTableGroupTraits::Attributes::Stage stage{0};
+  std::string expected("Stage: 0");
+  EXPECT_EQ(expected, fmt::format("{}", stage));
+}
+
+TEST_F(AclApiTest, formatAclTableGroupMemberAttribute) {
+  SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{0};
+  std::string expected("TableGroupId: 0");
+  EXPECT_EQ(expected, fmt::format("{}", tableGroupId));
 }
