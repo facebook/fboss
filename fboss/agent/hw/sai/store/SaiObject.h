@@ -200,6 +200,22 @@ class SaiObject {
         detail::adapterHostKey<SaiObjectTraits>(adapterKey_, attributes_);
   }
 
+  // load with adapter key and adapter host key
+  explicit SaiObject(
+      const typename SaiObjectTraits::AdapterKey& adapterKey,
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey)
+      : adapterKey_(adapterKey), adapterHostKey_(adapterHostKey) {
+    static_assert(
+        !AdapterHostKeyWarmbootRecoverable<SaiObjectTraits>::value,
+        "object adapter host key is recoverable");
+    auto& api =
+        SaiApiTable::getInstance()->getApi<typename SaiObjectTraits::SaiApiT>();
+    // N.B., fills out attributes_ as a side effect
+    // XXX TODO: side-effect mode does NOT work with optionals
+    attributes_ = api.getAttribute(adapterKey_, attributes_);
+    live_ = true;
+  }
+
   // Create a new one from adapter host key and attributes
   SaiObject(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,

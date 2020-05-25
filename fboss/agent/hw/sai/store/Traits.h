@@ -64,4 +64,8 @@ struct PublisherKey<
     : detail::PublisherKeyInternal<
           ObjectTraits,
           typename ObjectTraits::CreateAttributes> {};
+
+template <typename ObjectTraits>
+struct AdapterHostKeyWarmbootRecoverable : std::true_type {};
+
 } // namespace facebook::fboss
