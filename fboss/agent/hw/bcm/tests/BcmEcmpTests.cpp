@@ -7,8 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmEcmpTests.h"
-
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
@@ -51,8 +49,47 @@ facebook::fboss::RoutePrefixV6 kDefaultRoute{IPAddressV6(), 0};
 }
 namespace facebook::fboss {
 
-const uint8_t BcmEcmpTest::numNextHops_ = 8;
+class BcmEcmpTest : public BcmLinkStateDependentTests {
+ public:
+ protected:
+  const RouterID kRid{0};
+  constexpr static uint8_t numNextHops_{8};
+  std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
+  std::vector<NextHopWeight> swSwitchWeights_ = {ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT,
+                                                 ECMP_WEIGHT};
+  std::vector<NextHopWeight> hwSwitchWeights_ = {UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT,
+                                                 UCMP_DEFAULT_WEIGHT};
+  void SetUp() override;
+  cfg::SwitchConfig initialConfig() const override;
 
+  void runSimpleTest(
+      const std::vector<NextHopWeight>& swWs,
+      const std::vector<NextHopWeight>& hwWs,
+      // TODO: Fix warm boot for ECMP and enable warmboot for these tests -
+      // T29840275
+      bool warmboot = false);
+  void runVaryOneNextHopFromHundredTest(
+      size_t routeNumNextHops,
+      NextHopWeight value,
+      const std::vector<NextHopWeight>& hwWs);
+  void resolveNhops(int numNhops);
+  void resolveNhops(const std::vector<PortDescriptor>& portDescs);
+  void programRouteWithUnresolvedNhops(size_t numRouteNextHops = 0);
+  const BcmEcmpEgress* getEcmpEgress() const;
+  const BcmMultiPathNextHop* getBcmMultiPathNextHop() const;
+};
 void BcmEcmpTest::SetUp() {
   BcmLinkStateDependentTests::SetUp();
   ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
