@@ -87,7 +87,9 @@ class SaiObjectStore {
     return ins.first;
   }
 
-  void reload(const folly::dynamic* adapterKeysJson) {
+  void reload(
+      const folly::dynamic* adapterKeysJson,
+      const folly::dynamic* adapterKeys2AdapterHostKey) {
     if (!switchId_) {
       XLOG(FATAL)
           << "Attempted to reload() on a SaiObjectStore without a switchId";
@@ -111,7 +113,7 @@ class SaiObjectStore {
           keys.end());
     }
     for (const auto k : keys) {
-      ObjectType obj(k);
+      ObjectType obj = getObject(k, adapterKeys2AdapterHostKey);
       auto adapterHostKey = obj.adapterHostKey();
       XLOGF(DBG5, "SaiStore reloaded {}", obj);
       auto ins = objects_.refOrEmplace(adapterHostKey, std::move(obj));
@@ -204,6 +206,19 @@ class SaiObjectStore {
   }
 
  private:
+  ObjectType getObject(
+      typename SaiObjectTraits::AdapterKey key,
+      const folly::dynamic* adapterKey2AdapterHostKey) {
+    if constexpr (!AdapterHostKeyWarmbootRecoverable<SaiObjectTraits>::value) {
+      if (auto ahk = getAdapterHostKey(key, adapterKey2AdapterHostKey)) {
+        return ObjectType(key, ahk.value());
+      }
+      // API tests program using API and reload without json
+      // such cases has null adapterKeys2AdapterHostKey json
+    }
+    return ObjectType(key);
+  }
+
   std::pair<std::shared_ptr<ObjectType>, bool> program(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
       const typename SaiObjectTraits::CreateAttributes& attributes) {
@@ -226,6 +241,20 @@ class SaiObjectStore {
     return adapterKeysJson ? adapterKeysFromFollyDynamic(*adapterKeysJson)
                            : getObjectKeys<SaiObjectTraits>(switchId_.value());
   }
+
+  std::optional<typename SaiObjectTraits::AdapterHostKey> getAdapterHostKey(
+      const typename SaiObjectTraits::AdapterKey& key,
+      const folly::dynamic* adapterKeys2AdapterHostKey) {
+    if (!adapterKeys2AdapterHostKey) {
+      return std::nullopt;
+    }
+    auto iter = adapterKeys2AdapterHostKey->find(folly::to<std::string>(key));
+    CHECK(iter != adapterKeys2AdapterHostKey->items().end());
+
+    return SaiObject<SaiObjectTraits>::follyDynamicToAdapterHostKey(
+        iter->second);
+  }
+
   std::optional<sai_object_id_t> switchId_;
   UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>
       objects_;
@@ -261,7 +290,9 @@ class SaiStore {
   /*
    * Reload the SaiStore from the current SAI state via SAI api calls.
    */
-  void reload(const folly::dynamic* adapterKeys = nullptr);
+  void reload(
+      const folly::dynamic* adapterKeys = nullptr,
+      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr);
 
   /*
    *

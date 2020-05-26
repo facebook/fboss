@@ -36,12 +36,19 @@ void SaiStore::setSwitchId(sai_object_id_t switchId) {
       [switchId](auto& store) { store.setSwitchId(switchId); }, stores_);
 }
 
-void SaiStore::reload(const folly::dynamic* adapterKeysJson) {
+void SaiStore::reload(
+    const folly::dynamic* adapterKeysJson,
+    const folly::dynamic* adapterKeys2AdapterHostKeyJson) {
   tupleForEach(
-      [adapterKeysJson](auto& store) {
-        store.reload(
-            adapterKeysJson ? &((*adapterKeysJson)[store.objectTypeName()])
-                            : nullptr);
+      [adapterKeysJson, adapterKeys2AdapterHostKeyJson](auto& store) {
+        const folly::dynamic* adapterKeys = adapterKeysJson
+            ? &((*adapterKeysJson)[store.objectTypeName()])
+            : nullptr;
+        const folly::dynamic* adapterHostKeys = adapterKeys2AdapterHostKeyJson
+            ? adapterKeys2AdapterHostKeyJson->get_ptr(store.objectTypeName())
+            : nullptr;
+
+        store.reload(adapterKeys, adapterHostKeys);
       },
       stores_);
 }

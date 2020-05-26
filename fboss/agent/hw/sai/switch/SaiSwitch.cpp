@@ -472,6 +472,8 @@ HwInitResult SaiSwitch::initLocked(
       wbHelper->canWarmBoot() ? BootType::WARM_BOOT : BootType::COLD_BOOT;
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
+  std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
+
   std::optional<SwitchSaiId> existingSwitchId;
 
   sai_api_initialize(0, platform_->getServiceMethodTable());
@@ -482,6 +484,11 @@ HwInitResult SaiSwitch::initLocked(
     if (platform_->getAsic()->needsObjectKeyCache()) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
+      if (switchStateJson[kHwSwitch].find(kAdapterKey2AdapterHostKey) !=
+          switchStateJson[kHwSwitch].items().end()) {
+        adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
+            switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
+      }
       const auto& switchKeysJson = (*adapterKeysJson)[saiObjectTypeToString(
           SaiSwitchTraits::ObjectType)];
       CHECK_EQ(1, switchKeysJson.size());
@@ -504,7 +511,8 @@ HwInitResult SaiSwitch::initLocked(
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchId_);
   if (platform_->getObjectKeysSupported()) {
-    saiStore->reload(adapterKeysJson.get());
+    saiStore->reload(
+        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;

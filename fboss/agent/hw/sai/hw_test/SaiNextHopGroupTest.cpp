@@ -142,8 +142,7 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
     unresolveNeighbors(2);
   };
   auto verify = [=]() { verifyMemberCount(2); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupRemovePort) {
