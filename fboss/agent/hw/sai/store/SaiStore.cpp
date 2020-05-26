@@ -72,4 +72,28 @@ void SaiStore::exitForWarmBoot() {
   tupleForEach([](auto& store) { store.exitForWarmBoot(); }, stores_);
 }
 
+folly::dynamic SaiStore::adapterKeys2AdapterHostKeysFollyDynamic() const {
+  folly::dynamic storeJson = folly::dynamic::object;
+
+  tupleForEach(
+      [&storeJson](auto& store) {
+        using ObjectTraits =
+            typename std::decay_t<decltype(store)>::ObjectTraits;
+
+        if constexpr (!AdapterHostKeyWarmbootRecoverable<ObjectTraits>::value) {
+          folly::dynamic json = folly::dynamic::object;
+          const auto& objects = store.objects();
+          for (auto iter : objects) {
+            auto object = iter.second.lock();
+            json[folly::to<std::string>(object->adapterKey())] =
+                object->adapterHostKeyToFollyDynamic();
+          }
+          storeJson[store.objectTypeName()] = json;
+        }
+      },
+      stores_);
+
+  return storeJson;
+}
+
 } // namespace facebook::fboss

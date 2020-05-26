@@ -792,6 +792,8 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
 
   folly::dynamic hwSwitch = folly::dynamic::object;
   hwSwitch[kAdapterKeys] = adapterKeys;
+  hwSwitch[kAdapterKey2AdapterHostKey] =
+      SaiStore::getInstance()->adapterKeys2AdapterHostKeysFollyDynamic();
   return hwSwitch;
 }
 

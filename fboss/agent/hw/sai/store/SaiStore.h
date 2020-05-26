@@ -31,6 +31,12 @@ extern "C" {
 
 namespace facebook::fboss {
 
+inline constexpr auto kAdapterKey2AdapterHostKey = "adapterKey2AdapterHostKey";
+
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
+    : std::false_type {};
+
 namespace detail {
 
 /*
@@ -192,6 +198,11 @@ class SaiObjectStore {
     objects_.clear();
   }
 
+  const UnorderedRefMap<typename SaiObjectTraits::AdapterHostKey, ObjectType>&
+  objects() const {
+    return objects_;
+  }
+
  private:
   std::pair<std::shared_ptr<ObjectType>, bool> program(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
@@ -265,6 +276,8 @@ class SaiStore {
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();
+
+  folly::dynamic adapterKeys2AdapterHostKeysFollyDynamic() const;
 
  private:
   sai_object_id_t switchId_{};

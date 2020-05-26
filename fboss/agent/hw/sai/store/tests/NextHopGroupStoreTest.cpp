@@ -197,4 +197,15 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   auto k1 =
       SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(json);
   EXPECT_EQ(k1, k);
+
+  auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
+  EXPECT_TRUE(!ak2AhkJson.empty());
+  auto& nhgAk2AhkJson =
+      ak2AhkJson[saiObjectTypeToString(SAI_OBJECT_TYPE_NEXT_HOP_GROUP)];
+  EXPECT_TRUE(!nhgAk2AhkJson.empty());
+  EXPECT_EQ(nhgAk2AhkJson.size(), 1);
+
+  auto iter = nhgAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
+  EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
+  EXPECT_EQ(iter->second, json);
 }
