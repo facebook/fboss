@@ -237,24 +237,6 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmEcmpTest, L2ResolveOneNhopInEcmp) {
-  auto setup = [=]() {
-    programRouteWithUnresolvedNhops();
-    resolveNhops(1);
-  };
-  auto verify = [=]() {
-    auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
-    ASSERT_EQ(BcmEcmpTest::numNextHops_, egressIdsInSw.size());
-    auto pathsInHwCount =
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
-    ASSERT_EQ(1, pathsInHwCount);
-  };
-  // TODO support warm boot test for this case - T29840275
-  setup();
-  verify();
-}
-
 TEST_F(BcmEcmpTest, L2ResolveOneNhopThenLinkDown) {
   programRouteWithUnresolvedNhops();
   auto nhop = ecmpHelper_->nhop(0);
