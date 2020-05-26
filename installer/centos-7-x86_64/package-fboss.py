@@ -97,6 +97,13 @@ class PackageFboss:
             print(f"Copying {full_file_name} to {full_config_name}")
             shutil.copytree(full_file_name, full_config_name)
 
+    # TODO Future work planned
+    # - All tests should consume /etc/coop/agent.conf where sw config block could
+    #   be empty
+    # - fboss/bcm_configs/* to be replaced with fboss/agent_configs/* where for each
+    #   config under agent_config has sw config block empty
+    # - package-fboss.py, and helper scripts would need to be modified to work with
+    #   agent_configs
     def _copy_configs(self, tmp_dir_name):
         bcm_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/bcm_configs"

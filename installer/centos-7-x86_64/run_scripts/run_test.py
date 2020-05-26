@@ -11,14 +11,14 @@ from argparse import ArgumentParser
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
+OPT_ARG_BCM_CONF_FILE = "--conf-file"
 SUB_CMD_BCM = "bcm"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/bcm_test/warm_boot/can_warm_boot_0"
 
 
 class TestRunner:
     ENV_VAR = dict(os.environ)
-    BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
-    WEDGE100S_RSW_BCM_CONF_PATH = os.path.join(BCM_CONFIG_DIR, "WEDGE100S+RSW-bcm.conf")
+    BCM_CONF_PATH = "/etc/coop/bcm.conf"
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
@@ -79,7 +79,7 @@ class TestRunner:
         )
         return self._parse_list_test_output(output)
 
-    def _run_bcm_test(self, test_to_run, setup_warmboot, warmrun):
+    def _run_bcm_test(self, conf_file, test_to_run, setup_warmboot, warmrun):
         flags = self.WARMBOOT_SETUP_OPTION if setup_warmboot else ""
         test_prefix = self.WARMBOOT_PREFIX if warmrun else self.COLDBOOT_PREFIX
         try:
@@ -87,7 +87,7 @@ class TestRunner:
                 [
                     "bcm_test",
                     "--bcm_config",
-                    self.WEDGE100S_RSW_BCM_CONF_PATH,
+                    conf_file,
                     "--flexports",
                     "--gtest_filter=" + test_to_run,
                     flags,
@@ -122,11 +122,18 @@ class TestRunner:
         if args.coldboot_only is False:
             warmboot = True
 
+        conf_file = (
+            args.conf_file if (args.conf_file is not None) else self.BCM_CONF_PATH
+        )
+        if not os.path.exists(conf_file):
+            print("########## Conf file not found: " + conf_file)
+            return []
+
         test_outputs = []
         for test_to_run in tests_to_run:
             # Run the test for coldboot verification
             print("########## Running test: " + test_to_run, flush=True)
-            test_output = self._run_bcm_test(test_to_run, warmboot, False)
+            test_output = self._run_bcm_test(conf_file, test_to_run, warmboot, False)
             test_outputs.append(test_output)
 
             # Run the test again for warmboot verificationif the test supports it
@@ -135,7 +142,7 @@ class TestRunner:
                     "########## Verifying test with warmboot: " + test_to_run,
                     flush=True,
                 )
-                test_output = self._run_bcm_test(test_to_run, False, True)
+                test_output = self._run_bcm_test(conf_file, test_to_run, False, True)
                 test_outputs.append(test_output)
 
         return test_outputs
@@ -183,6 +190,15 @@ if __name__ == "__main__":
             "only run tests that match the filter e.g. "
             + OPT_ARG_FILTER
             + "=*Route*V6*"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_BCM_CONF_FILE,
+        type=str,
+        help=(
+            "run with the specified config file e.g. "
+            + OPT_ARG_BCM_CONF_FILE
+            + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
         ),
     )
 
