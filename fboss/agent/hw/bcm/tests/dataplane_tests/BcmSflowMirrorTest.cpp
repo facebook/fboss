@@ -19,6 +19,9 @@
 using namespace std::chrono_literals;
 using namespace ::testing;
 
+DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for bcm test");
+DEFINE_int32(sflow_test_time, 5, "sflow test traffic time in seconds");
+
 namespace {
 constexpr auto kIpStr = "2401:db00:dead:beef:";
 }
@@ -128,6 +131,63 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     mirrors->updateNode(mirror);
     state->resetMirrors(mirrors);
     applyNewState(state);
+  }
+
+  void setupRoutes(bool disableTTL = true) {
+    auto ports = masterLogicalPortIds();
+    auto size = ports.size();
+    boost::container::flat_set<PortDescriptor> nhops;
+    for (auto i = 1; i < size; i++) {
+      nhops.insert(PortDescriptor(ports[i]));
+    }
+
+    auto vlanId = utility::firstVlanID(initialConfig());
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> helper6{
+        getProgrammedState(),
+        utility::getInterfaceMac(getProgrammedState(), vlanId)};
+    auto state = helper6.resolveNextHops(getProgrammedState(), nhops);
+    state = applyNewState(state);
+
+    if (disableTTL) {
+      for (const auto& nhop : helper6.getNextHops()) {
+        if (nhop.portDesc == PortDescriptor(ports[0])) {
+          continue;
+        }
+        utility::disableTTLDecrements(
+            getHwSwitch(), helper6.getRouterId(), folly::IPAddress(nhop.ip));
+      }
+    }
+
+    state = helper6.setupECMPForwarding(state, nhops);
+    for (auto i = 1; i < size; i++) {
+      boost::container::flat_set<PortDescriptor> port;
+      port.insert(PortDescriptor(ports[i]));
+      state = helper6.setupECMPForwarding(
+          state,
+          {PortDescriptor(ports[i])},
+          {RouteV6::Prefix{
+              folly::IPAddressV6(folly::to<std::string>(kIpStr, i, "::0")),
+              80}});
+      state = applyNewState(state);
+    }
+  }
+
+  uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
+    auto portStats = stats.at(masterLogicalPortIds()[0]);
+    return portStats.outUnicastPkts_;
+  }
+
+  uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
+    uint64_t expectedSampleCount = 0;
+    uint64_t allPortRx = 0;
+    for (auto port : masterLogicalPortIds()) {
+      auto portStats = stats.at(port);
+      allPortRx += portStats.inUnicastPkts_;
+      expectedSampleCount += (portStats.inUnicastPkts_ / FLAGS_sflow_test_rate);
+    }
+    XLOG(INFO) << "total packets rx " << allPortRx;
+    XLOG(INFO) << "expected sample count " << expectedSampleCount;
+    return expectedSampleCount;
   }
 };
 
@@ -256,4 +316,35 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(BcmSflowMirrorTest, VerifySampledPacketCount) {
+  if (!getPlatform()->sflowSamplingSupported()) {
+    return;
+  }
+  auto setup = [=]() {
+    auto config = initialConfig();
+    configMirror(&config, false);
+    configSampling(&config, FLAGS_sflow_test_rate);
+    applyNewConfig(config);
+    setupRoutes();
+    resolveMirror();
+  };
+  auto verify = [=]() {
+    generateTraffic();
+    std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
+    bringDownPorts(masterLogicalPortIds());
+    auto stats = getLatestPortStats(masterLogicalPortIds());
+    auto actualSampleCount = getSampleCount(stats);
+    auto expectedSampleCount = getExpectedSampleCount(stats);
+    EXPECT_NE(actualSampleCount, 0);
+    EXPECT_NE(expectedSampleCount, 0);
+    auto difference = (expectedSampleCount > actualSampleCount)
+        ? (expectedSampleCount - actualSampleCount)
+        : (actualSampleCount - expectedSampleCount);
+    auto percentError = (difference * 100) / actualSampleCount;
+    EXPECT_LE(percentError, 5);
+    XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
+    XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
