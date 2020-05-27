@@ -46,7 +46,7 @@ void verifyLabeledNextHop(
     const HwSwitch* /* unused */,
     typename Route<AddrT>::Prefix /* unused */,
     LabelForwardingEntry::Label /* unused */) {
-  // TODO
+  throw FbossError("Unimplemented Test Case for SAI");
 }
 template void verifyLabeledNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
@@ -62,7 +62,7 @@ void verifyLabeledNextHopWithStack(
     const HwSwitch* /* unused */,
     typename Route<AddrT>::Prefix /* unused */,
     const LabelForwardingAction::LabelStack& /* unused */) {
-  // TODO
+  throw FbossError("Unimplemented Test Case for SAI");
 }
 template void verifyLabeledNextHopWithStack<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
@@ -81,7 +81,7 @@ void verifyMultiPathNextHop(
         map<PortDescriptor, LabelForwardingAction::LabelStack>& /* unused */,
     int /* unused */,
     int /* unused */) {
-  // TODO
+  throw FbossError("Unimplemented Test Case for SAI");
 }
 template void verifyMultiPathNextHop<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
@@ -103,7 +103,7 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
     int /* unused */,
     const LabelForwardingAction::LabelStack& /* unused */,
     bool /* unused */) {
-  // TODO
+  throw FbossError("Unimplemented Test Case for SAI");
 }
 template void verifyLabeledMultiPathNextHopMemberWithStack<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
@@ -124,6 +124,44 @@ void verifyProgrammedStackOnInterface(
     const InterfaceID& /* unused */,
     const LabelForwardingAction::LabelStack& /* unused */,
     long /* unused */) {
-  // TODO
+  throw FbossError("Unimplemented Test Case for SAI");
 }
+
+template <typename AddrT>
+void verifyLabelSwitchAction(
+    const HwSwitch* /* unused */,
+    const LabelForwardingEntry::Label /* unused */,
+    const LabelForwardingAction::LabelForwardingType /* unused */,
+    const EcmpMplsNextHop<AddrT>& /* unused */) {
+  throw FbossError("Unimplemented Test Case for SAI");
+}
+template void verifyLabelSwitchAction<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<folly::IPAddressV6>& nexthop);
+template void verifyLabelSwitchAction<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<folly::IPAddressV4>& nexthop);
+
+template <typename AddrT>
+void verifyMultiPathLabelSwitchAction(
+    const HwSwitch* /* unused */,
+    const LabelForwardingEntry::Label /* unused */,
+    const LabelForwardingAction::LabelForwardingType /* unused */,
+    const std::vector<EcmpMplsNextHop<AddrT>>& /* unused */) {
+  throw FbossError("Unimplemented Test Case for SAI");
+}
+template void verifyMultiPathLabelSwitchAction<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV6>>& nexthops);
+template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
 } // namespace facebook::fboss::utility

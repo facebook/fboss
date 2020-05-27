@@ -9,13 +9,16 @@
  */
 
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
+#include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmMplsTestUtils.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 
 extern "C" {
@@ -202,4 +205,160 @@ void verifyProgrammedStackOnInterface(
             LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()}));
   }
 }
+
+template <typename AddrT>
+void verifyLabelSwitchAction(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<AddrT>& nexthop) {
+  bcm_mpls_tunnel_switch_t info;
+  bcm_mpls_tunnel_switch_t_init(&info);
+  info.label = label;
+  info.port = BCM_GPORT_INVALID;
+  auto rv = bcm_mpls_tunnel_switch_get(
+      static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit(),
+      &info);
+  ASSERT_EQ(rv, 0);
+  EXPECT_EQ(
+      info.action,
+      utility::getLabelSwitchAction(
+          LabelNextHopEntry::Action::NEXTHOPS, action));
+  bcm_mac_t mac;
+  macToBcm(nexthop.mac, &mac);
+  bcm_if_t labelActionIntf = -1;
+  switch (action) {
+    case LabelForwardingAction::LabelForwardingType::SWAP: {
+      utility::verifyLabeledEgress(
+          info.egress_if, nexthop.action.swapWith().value());
+      labelActionIntf = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+                            ->getIntfTable()
+                            ->getBcmIntf(InterfaceID(utility::kBaseVlanId))
+                            ->getBcmIfId();
+      break;
+    }
+    case LabelForwardingAction::LabelForwardingType::PUSH: {
+      auto stack = nexthop.action.pushStack().value();
+      auto tunnelStack =
+          LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()};
+      utility::verifyTunneledEgress(info.egress_if, stack[0], tunnelStack);
+      auto tunnel = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+                        ->getIntfTable()
+                        ->getBcmIntf(InterfaceID(utility::kBaseVlanId))
+                        ->getBcmLabeledTunnel(tunnelStack);
+      labelActionIntf = tunnel->getTunnelInterface();
+      break;
+    }
+    case LabelForwardingAction::LabelForwardingType::PHP: {
+      labelActionIntf = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+                            ->getIntfTable()
+                            ->getBcmIntf(InterfaceID(utility::kBaseVlanId))
+                            ->getBcmIfId();
+      break;
+    }
+    case LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP:
+    case LabelForwardingAction::LabelForwardingType::NOOP:
+      break;
+  }
+
+  if (action != LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP &&
+      action != LabelForwardingAction::LabelForwardingType::NOOP) {
+    ASSERT_NE(labelActionIntf, -1);
+    utility::verifyEgress(
+        info.egress_if,
+        static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+            ->getPortTable()
+            ->getBcmPortId(nexthop.portDesc.phyPortID()),
+        mac,
+        labelActionIntf);
+  }
+}
+template void verifyLabelSwitchAction<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<folly::IPAddressV6>& nexthop);
+template void verifyLabelSwitchAction<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<folly::IPAddressV4>& nexthop);
+
+template <typename AddrT>
+void verifyLabeledMultiPath(
+    const HwSwitch* hwSwitch,
+    const bcm_if_t egress_if,
+    const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
+  std::map<
+      bcm_port_t,
+      std::pair<bcm_mpls_label_t, LabelForwardingAction::LabelStack>>
+      stacks;
+  for (auto i = 0; i < nexthops.size(); i++) {
+    auto port = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
+                    ->getPortTable()
+                    ->getBcmPortId(nexthops[i].portDesc.phyPortID());
+    auto nexthop = nexthops[i];
+    if (!nexthop.action.pushStack()) {
+      stacks.emplace(
+          port,
+          std::make_pair(
+              nexthop.action.swapWith().value(),
+              LabelForwardingAction::LabelStack()));
+    } else {
+      stacks.emplace(
+          port,
+          utility::getEgressLabelAndTunnelStackFromPushStack(
+              nexthop.action.pushStack().value()));
+    }
+  }
+  utility::verifyLabeledMultiPathEgress(0, nexthops.size(), egress_if, stacks);
+}
+template void verifyLabeledMultiPath<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    const bcm_if_t egress_if,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV6>>& nexthops);
+template void verifyLabeledMultiPath<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    const bcm_if_t egress_if,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
+
+template <typename AddrT>
+void verifyMultiPathLabelSwitchAction(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<AddrT>>& nexthops) {
+  bcm_mpls_tunnel_switch_t info;
+  bcm_mpls_tunnel_switch_t_init(&info);
+  info.label = label;
+  info.port = BCM_GPORT_INVALID;
+  auto rv = bcm_mpls_tunnel_switch_get(
+      static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit(),
+      &info);
+  ASSERT_EQ(rv, 0);
+  EXPECT_EQ(
+      info.action,
+      utility::getLabelSwitchAction(
+          LabelNextHopEntry::Action::NEXTHOPS, action));
+  switch (action) {
+    case LabelForwardingAction::LabelForwardingType::SWAP:
+    case LabelForwardingAction::LabelForwardingType::PUSH: {
+      verifyLabeledMultiPath(hwSwitch, info.egress_if, nexthops);
+    } break;
+    case LabelForwardingAction::LabelForwardingType::PHP:
+    case LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP:
+    case LabelForwardingAction::LabelForwardingType::NOOP:
+      break;
+  }
+}
+template void verifyMultiPathLabelSwitchAction<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV6>>& nexthops);
+template void verifyMultiPathLabelSwitchAction<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<folly::IPAddressV4>>& nexthops);
 } // namespace facebook::fboss::utility

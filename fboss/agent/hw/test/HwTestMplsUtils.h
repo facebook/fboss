@@ -10,6 +10,7 @@
 #pragma once
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_set.hpp>
@@ -24,6 +25,7 @@ namespace facebook::fboss::utility {
 
 int getLabelSwappedWithForTopLabel(const HwSwitch* hwSwitch, uint32_t label);
 
+// Utility functions used for HwLabelEdgeRouteTest
 template <typename AddrT>
 void verifyLabeledNextHop(
     const HwSwitch* hwSwitch,
@@ -58,4 +60,19 @@ void verifyProgrammedStackOnInterface(
     const InterfaceID& intfID,
     const LabelForwardingAction::LabelStack& stack,
     long refCount);
+
+// Utility functions used for HwLabelSwitchRouteTest
+template <typename AddrT>
+void verifyLabelSwitchAction(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const EcmpMplsNextHop<AddrT>& nexthop);
+
+template <typename AddrT>
+void verifyMultiPathLabelSwitchAction(
+    const HwSwitch* hwSwitch,
+    const LabelForwardingEntry::Label label,
+    const LabelForwardingAction::LabelForwardingType action,
+    const std::vector<EcmpMplsNextHop<AddrT>>& nexthops);
 } // namespace facebook::fboss::utility
