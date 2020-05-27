@@ -252,6 +252,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_MTU:
         attr->value.u32 = port.mtu;
         break;
+      case SAI_PORT_ATTR_OPER_STATUS:
+        attr->value.s32 = SAI_PORT_OPER_STATUS_UP;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

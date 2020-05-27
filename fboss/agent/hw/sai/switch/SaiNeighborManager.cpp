@@ -157,14 +157,23 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
 }
 
 void SubscriberForNeighbor::createObject(PublisherObjects objects) {
+  auto port = std::get<PortWeakPtr>(objects).lock();
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       fdbEntry->adapterHostKey().switchId(), interface->adapterKey(), ip_);
 
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
   auto createAttributes =
       SaiNeighborTraits::CreateAttributes{fdbEntry->adapterHostKey().mac()};
-  this->setObject(adapterHostKey, createAttributes);
+  // notify next hop subscriber only if port link status is up
+  // this is to prevent creation of next hop and next hop group members
+  // for links which are down.
+  this->setObject(
+      adapterHostKey,
+      createAttributes,
+      portOperStatus == SAI_PORT_OPER_STATUS_UP);
   handle_->neighbor = getSaiObject();
   handle_->fdbEntry = fdbEntry.get();
 }

@@ -61,9 +61,10 @@ void SaiObjectEventAggregateSubscriber<
     PublisherObjectTraits...>::
     setObject(
         typename SubscriberTraits::AdapterHostKey key,
-        typename SubscriberTraits::CreateAttributes attr) {
+        typename SubscriberTraits::CreateAttributes attr,
+        bool notify) {
   auto& store = SaiStore::getInstance()->get<SubscriberTraits>();
-  object_ = store.setObject(key, attr);
+  object_ = store.setObject(key, attr, notify);
 }
 
 } // namespace facebook::fboss

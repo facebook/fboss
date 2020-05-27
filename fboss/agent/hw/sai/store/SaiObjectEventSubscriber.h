@@ -192,7 +192,7 @@ class SaiObjectEventAggregateSubscriber
  protected:
   // TODO(pshaikh): extend this to support subscribers who themselves are
   // publishers with custom attributes
-  void setObject(AdapterHostKey key, CreateAttributes attr);
+  void setObject(AdapterHostKey key, CreateAttributes attr, bool notify = true);
 
   // TODO(pshaikh): remove this after above API is extended
   void setObject(SubscriberSharedPtr object) {

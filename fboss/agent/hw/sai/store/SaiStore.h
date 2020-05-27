@@ -128,15 +128,16 @@ class SaiObjectStore {
 
   std::shared_ptr<ObjectType> setObject(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
-      const typename SaiObjectTraits::CreateAttributes& attributes) {
+      const typename SaiObjectTraits::CreateAttributes& attributes,
+      bool notify = true) {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       static_assert(
           !IsPublisherKeyCustomType<SaiObjectTraits>::value,
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto [object, notify] = program(adapterHostKey, attributes);
-    if (notify) {
+    auto [object, programmed] = program(adapterHostKey, attributes);
+    if (notify && programmed) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
         object->notifyAfterCreate(object);
       }
@@ -148,13 +149,14 @@ class SaiObjectStore {
   std::shared_ptr<ObjectType> setObject(
       const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
       const typename SaiObjectTraits::CreateAttributes& attributes,
-      const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey) {
+      const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey,
+      bool notify = true) {
     static_assert(
         IsPublisherKeyCustomType<SaiObjectTraits>::value,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(DBG5, "SaiStore setting object {}", adapterHostKey, attributes);
-    auto [object, notify] = program(adapterHostKey, attributes);
-    if (notify) {
+    auto [object, programmed] = program(adapterHostKey, attributes);
+    if (notify && programmed) {
       if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
         object->setCustomPublisherKey(publisherKey);
         object->notifyAfterCreate(object);
