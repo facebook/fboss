@@ -22,10 +22,6 @@ using namespace ::testing;
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for bcm test");
 DEFINE_int32(sflow_test_time, 5, "sflow test traffic time in seconds");
 
-namespace {
-constexpr auto kIpStr = "2401:db00:dead:beef:";
-}
-
 namespace facebook::fboss {
 class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
  protected:
@@ -186,9 +182,47 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
       expectedSampleCount += (portStats.inUnicastPkts_ / FLAGS_sflow_test_rate);
     }
     XLOG(INFO) << "total packets rx " << allPortRx;
-    XLOG(INFO) << "expected sample count " << expectedSampleCount;
     return expectedSampleCount;
   }
+
+  void runSampleRateTest(size_t payloadSize = kDefaultPayloadSize) {
+    if (!getPlatform()->sflowSamplingSupported()) {
+      return;
+    }
+    if (payloadSize > kDefaultPayloadSize &&
+        !getPlatform()->mirrorPktTruncationSupported()) {
+      return;
+    }
+    auto setup = [=]() {
+      auto config = initialConfig();
+      configMirror(&config, false);
+      configSampling(&config, FLAGS_sflow_test_rate);
+      applyNewConfig(config);
+      setupRoutes();
+      resolveMirror();
+    };
+    auto verify = [=]() {
+      generateTraffic(payloadSize);
+      std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
+      bringDownPorts(masterLogicalPortIds());
+      auto stats = getLatestPortStats(masterLogicalPortIds());
+      auto actualSampleCount = getSampleCount(stats);
+      auto expectedSampleCount = getExpectedSampleCount(stats);
+      EXPECT_NE(actualSampleCount, 0);
+      EXPECT_NE(expectedSampleCount, 0);
+      auto difference = (expectedSampleCount > actualSampleCount)
+          ? (expectedSampleCount - actualSampleCount)
+          : (actualSampleCount - expectedSampleCount);
+      auto percentError = (difference * 100) / actualSampleCount;
+      EXPECT_LE(percentError, 5);
+      XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
+      XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  constexpr static size_t kDefaultPayloadSize = 1400;
+  constexpr static auto kIpStr = "2401:db00:dead:beef:";
 };
 
 TEST_F(BcmSflowMirrorTest, VerifySampledPacket) {
@@ -317,34 +351,10 @@ TEST_F(BcmSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
 }
 
 TEST_F(BcmSflowMirrorTest, VerifySampledPacketCount) {
-  if (!getPlatform()->sflowSamplingSupported()) {
-    return;
-  }
-  auto setup = [=]() {
-    auto config = initialConfig();
-    configMirror(&config, false);
-    configSampling(&config, FLAGS_sflow_test_rate);
-    applyNewConfig(config);
-    setupRoutes();
-    resolveMirror();
-  };
-  auto verify = [=]() {
-    generateTraffic();
-    std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
-    bringDownPorts(masterLogicalPortIds());
-    auto stats = getLatestPortStats(masterLogicalPortIds());
-    auto actualSampleCount = getSampleCount(stats);
-    auto expectedSampleCount = getExpectedSampleCount(stats);
-    EXPECT_NE(actualSampleCount, 0);
-    EXPECT_NE(expectedSampleCount, 0);
-    auto difference = (expectedSampleCount > actualSampleCount)
-        ? (expectedSampleCount - actualSampleCount)
-        : (actualSampleCount - expectedSampleCount);
-    auto percentError = (difference * 100) / actualSampleCount;
-    EXPECT_LE(percentError, 5);
-    XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
-    XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
-  };
-  verifyAcrossWarmBoots(setup, verify);
+  runSampleRateTest();
+}
+
+TEST_F(BcmSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
+  runSampleRateTest(8192);
 }
 } // namespace facebook::fboss
