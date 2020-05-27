@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -43,12 +44,14 @@ BENCHMARK(HwEcmpGroupShrink) {
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
 
-  auto newState = ensemble->getProgrammedState()->clone();
-  auto newPort = newState->getPorts()
-                     ->getPort(ecmpHelper.ecmpPortDescriptorAt(0).phyPortID())
-                     ->modify(&newState);
-  newPort->setLoopbackMode(cfg::PortLoopbackMode::NONE);
-  ensemble->applyNewState(newState);
+  // Toggle loopback mode via direct SDK calls rathe than going through
+  // applyState interface. We want to start the clock ASAP post the link toggle,
+  // so avoiding any extra apply state over head may give us slightly more
+  // accurate reading for this micro benchmark.
+  utility::setPortLoopbackMode(
+      hwSwitch,
+      ecmpHelper.ecmpPortDescriptorAt(0).phyPortID(),
+      cfg::PortLoopbackMode::NONE);
   // We restart benchmarking ASAP *after* we have triggered port down
   // event above. This is analogous to starting a timer immediately
   // after a event that triggers a port down event. However, with such
