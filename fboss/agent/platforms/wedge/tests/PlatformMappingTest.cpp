@@ -152,7 +152,13 @@ TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
   std::vector<cfg::PortProfileID> expectedProfiles = {
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC};
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL};
 
   // Wedge40 has 16 * 4 = 64 logical ports
   // 16 TD2 Warp cores + 16 transceivers
