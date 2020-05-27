@@ -37,24 +37,31 @@ struct SaiNeighborHandle {
 class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
                                   SubscriberForNeighbor,
                                   SaiNeighborTraits,
+                                  SaiPortTraits,
                                   SaiRouterInterfaceTraits,
                                   SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
       SubscriberForNeighbor,
       SaiNeighborTraits,
+      SaiPortTraits,
       SaiRouterInterfaceTraits,
       SaiFdbTraits>;
+  using PortWeakPtr = std::weak_ptr<const SaiObject<SaiPortTraits>>;
   using RouterInterfaceWeakPtr =
       std::weak_ptr<const SaiObject<SaiRouterInterfaceTraits>>;
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
-  using PublisherObjects = std::tuple<RouterInterfaceWeakPtr, FdbWeakptr>;
+  using PublisherObjects =
+      std::tuple<PortWeakPtr, RouterInterfaceWeakPtr, FdbWeakptr>;
 
+  // TODO(AGGPORT): support aggregate port ID
   SubscriberForNeighbor(
+      PortID port,
       InterfaceID interfaceId,
       folly::IPAddress ip,
       folly::MacAddress mac)
-      : Base(interfaceId, std::make_tuple(interfaceId, mac)),
+      : Base(port, interfaceId, std::make_tuple(interfaceId, mac)),
+        port_(port),
         ip_(ip),
         handle_(std::make_unique<SaiNeighborHandle>()) {}
 
@@ -66,6 +73,7 @@ class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
+  PortDescriptor port_;
   folly::IPAddress ip_;
   std::unique_ptr<SaiNeighborHandle> handle_;
 };

@@ -89,12 +89,16 @@ void SaiNeighborManager::addNeighbor(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
 
+  // TODO(AGGPORT): support aggregate port ID
+  auto portID = swEntry->getPort().phyPortID();
   managerTable_->fdbManager().addFdbEntry(
-      swEntry->getPort().phyPortID(), swEntry->getIntfID(), swEntry->getMac());
+      portID, swEntry->getIntfID(), swEntry->getMac());
 
   auto subscriber = std::make_shared<SubscriberForNeighbor>(
-      swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());
+      portID, swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());
 
+  SaiObjectEventPublisher::getInstance()->get<SaiPortTraits>().subscribe(
+      subscriber);
   SaiObjectEventPublisher::getInstance()
       ->get<SaiRouterInterfaceTraits>()
       .subscribe(subscriber);
