@@ -32,7 +32,7 @@ from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
-from neteng.fboss.ctrl.ttypes import PortLedExternalState
+from neteng.fboss.ctrl.ttypes import PortLedExternalState, PrbsComponent
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
@@ -383,6 +383,106 @@ class PortState(object):
         port.PortSetLedCmd(cli_opts).run(ports, value)
 
 
+class PrbsContext(CliOptions):  # noqa: B903
+    def __init__(self, cli_opts, component):
+        self.component = component
+        super(PrbsContext, self).__init__(
+            cli_opts.hostname, cli_opts.snapshot_file, cli_opts.port, cli_opts.timeout
+        )
+
+
+class PortPrbsCli(object):
+    """ Port prbs sub-commands """
+
+    def __init__(self):
+        self.prbs.add_command(self.asic, name="asic")
+        self.prbs.add_command(self.gearbox, name="gearbox")
+
+        self.gearbox.add_command(self.system, name="system")
+        self.gearbox.add_command(self.line, name="line")
+
+        self.system.add_command(self._enable, name="enable")
+        self.system.add_command(self._disable, name="disable")
+        self.system.add_command(self._stats, name="stats")
+        self.system.add_command(self._clear, name="clear")
+
+        self.line.add_command(self._enable, name="enable")
+        self.line.add_command(self._disable, name="disable")
+        self.line.add_command(self._stats, name="stats")
+        self.line.add_command(self._clear, name="clear")
+
+        self.asic.add_command(self._enable, name="enable")
+        self.asic.add_command(self._disable, name="disable")
+        self.asic.add_command(self._stats, name="stats")
+        self.asic.add_command(self._clear, name="clear")
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def prbs():
+        """ Port prbs commands """
+        pass
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    def gearbox():
+        """ Port prbs gearbox commands """
+        pass
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    @click.pass_context
+    def system(ctx):  # noqa: B902
+        """ Port prbs gearbox system commands """
+        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_SYSTEM)
+        pass
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    @click.pass_context
+    def line(ctx):  # noqa: B902
+        """ Port prbs gearbox system commands """
+        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_LINE)
+        pass
+
+    @click.group(cls=AliasedGroup)  # noqa: B902
+    @click.pass_context
+    def asic(ctx):  # noqa: B902
+        """ Port prbs asic commands """
+        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.ASIC)
+        pass
+
+    @click.command()
+    @click.argument("ports", nargs=-1, type=PortType())
+    @click.option(
+        "-p",
+        type=int,
+        default=31,
+        help="The polynomial to be used for PRBS (default: 31)",
+    )
+    @click.pass_obj
+    def _enable(obj, ports, p):  # noqa: B902
+        """ Enable prbs for given [port(s)] """
+        port.PortPrbsCmd(obj, obj.component, ports).set_prbs(True, p)
+
+    @click.command()
+    @click.argument("ports", nargs=-1, type=PortType())
+    @click.pass_obj
+    def _disable(obj, ports):  # noqa: B902
+        """ Disable prbs for given [port(s)] """
+        port.PortPrbsCmd(obj, obj.component, ports).set_prbs(False)
+
+    @click.command()
+    @click.argument("ports", nargs=-1, type=PortType())
+    @click.pass_obj
+    def _stats(obj, ports):  # noqa: B902
+        """ Get stats of prbs for given [port(s)] """
+
+        port.PortPrbsCmd(obj, obj.component, ports).get_prbs_stats()
+
+    @click.command()
+    @click.argument("ports", nargs=-1, type=PortType())
+    @click.pass_obj
+    def _clear(obj, ports):  # noqa: B902
+        """ Clear stats of prbs for given [port(s)] """
+        port.PortPrbsCmd(obj, obj.component, ports).clear_prbs_stats()
+
+
 class PortTransceiver(object):
     """ Port transceiver sub-commands """
 
@@ -414,6 +514,7 @@ class PortCli(object):
         self.port.add_command(PortState().state)
         self.port.add_command(PortTransceiver().transceiver)
         self.port.add_command(Stats().stats)
+        self.port.add_command(PortPrbsCli().prbs)
 
     @click.group(cls=AliasedGroup)
     def port():

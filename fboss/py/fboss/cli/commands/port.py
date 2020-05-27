@@ -237,6 +237,62 @@ class PortFlapCmd(cmds.FbossCmd):
                 client.setPortState(port, True)
 
 
+class PortPrbsCmd(cmds.FbossCmd):
+    def __init__(self, cli_opts, component, ports):
+        self.component = component
+        self.ports = ports
+        super(PortPrbsCmd, self).__init__(cli_opts)
+
+    def clear_prbs_stats(self):
+        with self._create_agent_client() as client:
+            for port in self.ports:
+                print("Clearing PRBS stats for port %s" % port)
+                client.clearPortPrbsStats(port, self.component)
+
+    def get_prbs_stats(self):
+        with self._create_agent_client() as client:
+            for port in self.ports:
+                resp = client.getPortPrbsStats(port, self.component)
+                print("Getting PRBS stats for port %s" % port)
+                self._print_prbs_stats(resp)
+
+    def set_prbs(self, enable, polynominal=31):
+        with self._create_agent_client() as client:
+            enable_str = "Enabling" if enable else "Disabling"
+            for port in self.ports:
+                print("{} PRBS on port {}".format(enable_str, port))
+                client.setPortPrbs(port, self.component, enable, polynominal)
+
+    def _print_prbs_stats(self, port_stats):
+        field_fmt = "{:<4} {:>16}  {:>16}  {:>16}  {:>16}  {:>16}"
+        print(
+            field_fmt.format(
+                "Lane",
+                "BER",
+                "Max_BER",
+                "LOL_Events",
+                "SinceLastLocked",
+                "SinceLastCleared",
+            )
+        )
+
+        for lane_stats in port_stats.laneStats:
+            print(
+                field_fmt.format(
+                    lane_stats.laneId,
+                    "out-of-lock"
+                    if not lane_stats.locked
+                    else "{:.2e}".format(lane_stats.ber),
+                    "N/A"
+                    if lane_stats.maxBer < 0
+                    else "{:.2e}".format(lane_stats.maxBer),
+                    lane_stats.numLossOfLock,
+                    "{:d}s".format(lane_stats.timeSinceLastLocked),
+                    "{:d}s".format(lane_stats.timeSinceLastClear),
+                )
+            )
+
+
 class PortSetStatusCmd(cmds.FbossCmd):
     def run(self, ports, status):
         try:

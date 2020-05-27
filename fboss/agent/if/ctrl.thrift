@@ -366,6 +366,33 @@ struct PortStatus {
   5: i64 speedMbps,  // TODO: i32 (someone is optimistic about port speeds)
 }
 
+enum PrbsComponent {
+  ASIC = 0,
+  GB_SYSTEM = 1,
+  GB_LINE = 2
+}
+
+struct PrbsState {
+  1: bool enabled = false,
+  2: i32 polynominal
+}
+
+struct PrbsLaneStats {
+  1: i32 laneId,
+  2: bool locked,
+  3: double ber,
+  4: double maxBer,
+  5: i32 numLossOfLock,
+  6: i32 timeSinceLastLocked,
+  7: i32 timeSinceLastClear,
+}
+
+struct PrbsStats {
+  1: i32 portId,
+  2: PrbsComponent component,
+  3: list<PrbsLaneStats> laneStats,
+}
+
 enum CaptureDirection {
   CAPTURE_ONLY_RX = 0,
   CAPTURE_ONLY_TX = 1,
@@ -679,6 +706,43 @@ service FbossCtrl extends fb303.FacebookService {
    */
   void setPortState(1: i32 portId, 2: bool enable)
     throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Change the PRBS setting on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  void setPortPrbs(
+    1: i32 portId,
+    2: PrbsComponent component,
+    3: bool enable,
+    4: i32 polynominal
+  ) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Get the PRBS stats on a port. Useful when debugging a link
+   * down or flapping issue.
+   */
+  PrbsStats getPortPrbsStats(
+    1: i32 portId,
+    2: PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Clear the PRBS stats counter on a port. Useful when debugging a link
+   * down or flapping issue.
+   * This clearPortPrbsStats will result in:
+   * 1. reset ber (due to reset accumulated error count if implemented)
+   * 2. reset maxBer
+   * 3. reset numLossOfLock to 0
+   * 4. set timeLastCleared to now
+   * 5. set timeLastLocked to timeLastCollect if locked else epoch
+   * 6. locked status not changed
+   * 7. timeLastCollect not changed
+   */
+  void clearPortPrbsStats(
+    1: i32 portId,
+    2: PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error)
 
   /*
    * Return info related to the port including name, description, speed,
