@@ -81,6 +81,24 @@ TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
   checkMissing(arpEntry);
 }
 
+TEST_F(NeighborManagerTest, changeResolvedNeighbor) {
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  auto arpEntryNew = makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0]);
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
+  checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac);
+}
+
+TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  auto arpEntryNew = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
+  checkEntry(arpEntryNew, h0.mac);
+}
+
 TEST_F(NeighborManagerTest, addUnresolvedNeighbor) {
   auto pendingEntry = makePendingArpEntry(intf0.id, h0);
   EXPECT_TRUE(pendingEntry->isPending());

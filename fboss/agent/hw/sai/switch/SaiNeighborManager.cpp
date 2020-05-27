@@ -52,6 +52,7 @@ void SaiNeighborManager::changeNeighbor(
     const std::shared_ptr<NeighborEntryT>& oldSwEntry,
     const std::shared_ptr<NeighborEntryT>& newSwEntry) {
   if (oldSwEntry->isPending() && newSwEntry->isPending()) {
+    // We don't maintain pending entries so nothing to do here
   }
   if (oldSwEntry->isPending() && !newSwEntry->isPending()) {
     addNeighbor(newSwEntry);
@@ -61,6 +62,10 @@ void SaiNeighborManager::changeNeighbor(
     // TODO(borisb): unresolve in next hop group...
   }
   if (!oldSwEntry->isPending() && !newSwEntry->isPending()) {
+    if (*oldSwEntry != *newSwEntry) {
+      removeNeighbor(oldSwEntry);
+      addNeighbor(newSwEntry);
+    }
   }
 }
 
