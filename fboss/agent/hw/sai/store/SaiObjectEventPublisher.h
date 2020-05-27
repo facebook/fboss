@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
@@ -60,6 +61,16 @@ struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
 
 template <>
 struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
+
+template <>
+struct IsObjectPublisher<SaiPortTraits> : std::true_type {};
+
+template <>
+struct IsPublisherKeyCustomType<SaiPortTraits> : std::true_type {};
+
+template <>
+struct PublisherKey<SaiPortTraits>
+    : detail::PublisherKeyInternal<SaiPortTraits, PortID> {};
 
 template <>
 struct PublisherKey<SaiFdbTraits>
@@ -202,7 +213,8 @@ class SaiObjectEventPublisher {
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
       detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
-      detail::SaiObjectEventPublisher<SaiRouterInterfaceTraits>>
+      detail::SaiObjectEventPublisher<SaiRouterInterfaceTraits>,
+      detail::SaiObjectEventPublisher<SaiPortTraits>>
       publishers_;
 };
 

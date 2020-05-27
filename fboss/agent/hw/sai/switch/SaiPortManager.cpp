@@ -142,7 +142,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   auto handle = std::make_unique<SaiPortHandle>();
 
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
-  auto saiPort = portStore.setObject(portKey, attributes);
+  auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
       swPort->getID(), saiPort->adapterKey());
@@ -240,7 +240,7 @@ void SaiPortManager::changePort(
   SaiPortTraits::AdapterHostKey portKey{
       GET_ATTR(Port, HwLaneList, newAttributes)};
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
-  portStore.setObject(portKey, newAttributes);
+  portStore.setObject(portKey, newAttributes, newPort->getID());
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
