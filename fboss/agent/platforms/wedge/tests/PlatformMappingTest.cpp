@@ -187,7 +187,15 @@ TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91};
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER};
 
   // Galaxy FC has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 0 transceivers
@@ -209,7 +217,15 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91};
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER};
 
   // Galaxy LC has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 16 transceivers
