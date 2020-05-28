@@ -1002,6 +1002,70 @@ void ThriftHandler::getPortStatus(
   getPortStatusImpl(statusMap, ports);
 }
 
+void ThriftHandler::clearPortPrbsStats(
+    int32_t portId,
+    PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  if (component == PrbsComponent::ASIC) {
+    sw_->clearPortAsicPrbsStats(portId);
+  } else {
+    XLOG(INFO) << "ClearPortPrbsStats has not been implemented for component "
+               << apache::thrift::util::enumNameSafe(component);
+  }
+}
+
+void ThriftHandler::getPortPrbsStats(
+    PrbsStats& prbsStats,
+    int32_t portId,
+    PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  if (component == PrbsComponent::ASIC) {
+    auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
+    prbsStats.portId = portId;
+    prbsStats.component = PrbsComponent::ASIC;
+    for (const auto& lane : asicPrbsStats) {
+      prbsStats.laneStats.push_back(lane);
+    }
+  } else {
+    XLOG(INFO) << "GetPortPrbsStats has not been implemented for component "
+               << apache::thrift::util::enumNameSafe(component);
+  }
+}
+
+void ThriftHandler::setPortPrbs(
+    int32_t portNum,
+    PrbsComponent component,
+    bool enable,
+    int32_t polynominal) {
+  auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
+  ensureConfigured(__func__);
+  PortID portId = PortID(portNum);
+  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  if (!port) {
+    throw FbossError("no such port ", portNum);
+  }
+
+  PrbsState newPrbsState;
+  newPrbsState.enabled = enable;
+  newPrbsState.polynominal = polynominal;
+
+  if (component == PrbsComponent::ASIC) {
+    auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+      shared_ptr<SwitchState> newState{state};
+      auto newPort = port->modify(&newState);
+      newPort->setAsicPrbs(newPrbsState);
+      return newState;
+    };
+    sw_->updateStateBlocking("set port asic prbs", updateFn);
+  } else {
+    XLOG(INFO) << "SetPortPrbs has not been implemented for component "
+               << apache::thrift::util::enumNameSafe(component);
+  }
+}
+
 void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
   ensureConfigured(__func__);
