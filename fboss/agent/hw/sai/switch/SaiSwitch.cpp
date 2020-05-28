@@ -864,6 +864,29 @@ void SaiSwitch::switchRunStateChangedLocked(
     } break;
     case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+        /*
+         * Post warmboot synchronize hw link state with switch state maintained
+         * at callback (SwSwitch or HwTest). Since the
+         * callback_->linkStateChanged is called asynchronously, its possible
+         * that prior to going down for warm boot there was a link event which
+         * did not get communicated to up via callback_ before we received the
+         * signal to do graceful exit. In such a case the switch state would
+         * have a incorrect view of link state than the HW. Synchronize them.
+         * Note that we dd this prior to registering our own linkscan callback
+         * handler. This isn't required, but seems easier to reason about than
+         * having interspersed callbacks from HW
+         */
+        if (bootType_ == BootType::WARM_BOOT) {
+          for (const auto& portIdAndHandle : managerTable_->portManager()) {
+            const auto& port = portIdAndHandle.second->port;
+            auto operStatus =
+                SaiApiTable::getInstance()->portApi().getAttribute(
+                    port->adapterKey(),
+                    SaiPortTraits::Attributes::OperStatus{});
+            callback_->linkStateChanged(
+                portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
+          }
+        }
         initLinkScanLocked(lock);
       }
       // TODO: T56772674: Optimize Rx and Tx init
