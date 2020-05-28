@@ -115,6 +115,12 @@ void fec_stat_accumulate(
   COMPILER_64_ADD_32(*accumulator, count);
 }
 
+// We pass in PRBS polynominal from cli as integers. However bcm api has it's
+// own value that should be used mapping to different PRBS polynominal values.
+// Hence we have a map here to mark the projection. The key here is the
+// polynominal from cli and the value is the value used in bcm api.
+static std::map<int32_t, int32_t> asicPrbsPolynominalMap =
+    {{7, 0}, {15, 1}, {23, 2}, {31, 3}, {9, 4}, {11, 5}, {58, 6}};
 } // namespace
 
 namespace facebook::fboss {
@@ -427,6 +433,8 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 
   setupStatsIfNeeded(port);
 
+  setupPrbs(port);
+
   {
     XLOG(DBG3) << "Saving port settings for " << port->getName();
     auto lockedSettings = programmedSettings_.wlock();
@@ -712,6 +720,79 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
   if (!savedPort || swPort->getName() != savedPort->getName() ||
       hasPortQueueChanges(savedPort, swPort)) {
     reinitPortStats(swPort);
+  }
+}
+
+void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
+  auto prbsState = swPort->getAsicPrbs();
+  if (prbsState.enabled) {
+    auto asicPrbsPolynominalIter =
+        asicPrbsPolynominalMap.find(prbsState.polynominal);
+    if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.end()) {
+      throw FbossError(
+          "Polynominal value not supported: ", prbsState.polynominal);
+    } else {
+      auto rv = bcm_port_control_set(
+          unit_,
+          port_,
+          bcmPortControlPrbsPolynomial,
+          asicPrbsPolynominalIter->second);
+
+      bcmCheckError(
+          rv, "failed to set prbs polynomial for port ", swPort->getID());
+    }
+  }
+
+  std::string enableStr = prbsState.enabled ? "enable" : "disable";
+
+  int currVal{0};
+  auto rv =
+      bcm_port_control_get(unit_, port_, bcmPortControlPrbsTxEnable, &currVal);
+  bcmCheckError(
+      rv,
+      folly::sformat(
+          "Failed to get bcmPortControlPrbsTxEnable for port {} : {}",
+          port_,
+          bcm_errmsg(rv)));
+
+  if (currVal != (prbsState.enabled ? 1 : 0)) {
+    rv = bcm_port_control_set(
+        unit_,
+        port_,
+        bcmPortControlPrbsTxEnable,
+        ((prbsState.enabled) ? 1 : 0));
+
+    bcmCheckError(
+        rv,
+        folly::sformat(
+            "Setting prbs tx {} failed for port {}", enableStr, port_));
+  } else {
+    XLOG(DBG2) << "bcmPortControlPrbsTxEnable is already " << enableStr
+               << " for port " << port_;
+  }
+
+  rv = bcm_port_control_get(unit_, port_, bcmPortControlPrbsRxEnable, &currVal);
+  bcmCheckError(
+      rv,
+      folly::sformat(
+          "Failed to get bcmPortControlPrbsRxEnable for port {} : {}",
+          port_,
+          bcm_errmsg(rv)));
+
+  if (currVal != (prbsState.enabled ? 1 : 0)) {
+    rv = bcm_port_control_set(
+        unit_,
+        port_,
+        bcmPortControlPrbsRxEnable,
+        ((prbsState.enabled) ? 1 : 0));
+
+    bcmCheckError(
+        rv,
+        folly::sformat(
+            "Setting prbs rx {} failed for port {}", enableStr, port_));
+  } else {
+    XLOG(DBG2) << "bcmPortControlPrbsRxEnable is already " << enableStr
+               << " for port " << port_;
   }
 }
 

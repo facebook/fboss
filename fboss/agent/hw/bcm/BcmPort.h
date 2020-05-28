@@ -136,6 +136,7 @@ class BcmPort {
   void configureSampleDestination(cfg::SampleDestination sampleDest);
   void setPortResource(const std::shared_ptr<Port>& swPort);
   void setupStatsIfNeeded(const std::shared_ptr<Port>& swPort);
+  void setupPrbs(const std::shared_ptr<Port>& swPort);
 
   /*
    * Update this port's statistics.
