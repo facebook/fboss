@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -108,6 +109,15 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   // and expects the mutex to be unlocked
   if (bootType_ == BootType::WARM_BOOT) {
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+  } else {
+    /*
+     * TODO(skhare)
+     * SwitchState does not carry AclTable today, and thus a single table is
+     * created explicitly and every AclEntry is added to the same table.
+     * Extend SwitchState to carry AclTable, and then let stateChanged()
+     * AclTable Delta processing handle the AclTable creation.
+     */
+    managerTable_->aclTableManager().addAclTable();
   }
   return ret;
 }
@@ -236,6 +246,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiSwitchManager::changeLoadBalancer,
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
+
+  processDelta(
+      delta.getAclsDelta(),
+      managerTable_->aclTableManager(),
+      &SaiAclTableManager::changedAclEntry,
+      &SaiAclTableManager::addAclEntry,
+      &SaiAclTableManager::removeAclEntry);
+
   return delta.newState();
 }
 

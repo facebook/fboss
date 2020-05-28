@@ -5,6 +5,7 @@
 
 add_library(sai_switch
   fboss/agent/hw/sai/switch/ConcurrentIndices.cpp
+  fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/SaiBridgeManager.cpp
   fboss/agent/hw/sai/switch/SaiFdbManager.cpp
   fboss/agent/hw/sai/switch/SaiHashManager.cpp

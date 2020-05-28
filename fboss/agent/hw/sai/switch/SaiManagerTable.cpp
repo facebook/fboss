@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
@@ -43,6 +44,7 @@ SaiManagerTable::SaiManagerTable(
 void SaiManagerTable::createSaiTableManagers(
     SaiPlatform* platform,
     ConcurrentIndices* concurrentIndices) {
+  aclTableManager_ = std::make_unique<SaiAclTableManager>(this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
   hashManager_ = std::make_unique<SaiHashManager>(this);
@@ -99,7 +101,16 @@ SaiManagerTable::~SaiManagerTable() {
   qosMapManager_.reset();
   hostifManager_.reset();
 
+  aclTableManager_.reset();
+
   switchManager_.reset();
+}
+
+SaiAclTableManager& SaiManagerTable::aclTableManager() {
+  return *aclTableManager_;
+}
+const SaiAclTableManager& SaiManagerTable::aclTableManager() const {
+  return *aclTableManager_;
 }
 
 SaiBridgeManager& SaiManagerTable::bridgeManager() {

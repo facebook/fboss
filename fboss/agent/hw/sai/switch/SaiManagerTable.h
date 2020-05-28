@@ -21,6 +21,7 @@ struct dynamic;
 namespace facebook::fboss {
 
 class ConcurrentIndices;
+class SaiAclTableManager;
 class SaiBridgeManager;
 class SaiFdbManager;
 class SaiHashManager;
@@ -49,6 +50,9 @@ class SaiManagerTable {
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);
   ~SaiManagerTable();
+
+  SaiAclTableManager& aclTableManager();
+  const SaiAclTableManager& aclTableManager() const;
 
   SaiBridgeManager& bridgeManager();
   const SaiBridgeManager& bridgeManager() const;
@@ -102,6 +106,7 @@ class SaiManagerTable {
   const SaiInSegEntryManager& inSegEntryManager() const;
 
  private:
+  std::unique_ptr<SaiAclTableManager> aclTableManager_;
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiFdbManager> fdbManager_;
   std::unique_ptr<SaiHashManager> hashManager_;
