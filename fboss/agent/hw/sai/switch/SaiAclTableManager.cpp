@@ -23,6 +23,10 @@ void SaiAclTableManager::addAclTable() {
    * Add single ACL Table for now (called during SaiSwitch::init()).
    * Later, extend SwitchState to carry AclTable, and then process it to
    * addAclTable.
+   *
+   * After ACL table is added, add it to appropriate ACL group:
+   * managerTable_->switchManager().addTableGroupMember(SAI_ACL_STAGE_INGRESS,
+   * aclTableSaiId);
    */
 }
 
@@ -31,6 +35,10 @@ void SaiAclTableManager::removeAclTable() {
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to remove
    * AclTable.
+   *
+   * Before ACL table is removed, remove it from appropriate ACL group:
+   * managerTable_->switchManager().removeTableGroupMember(SAI_ACL_STAGE_INGRESS,
+   * aclTableSaiId);
    */
   CHECK(false);
 }

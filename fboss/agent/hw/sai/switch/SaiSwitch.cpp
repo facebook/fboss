@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
@@ -110,6 +111,9 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   if (bootType_ == BootType::WARM_BOOT) {
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   } else {
+    managerTable_->aclTableGroupManager().addAclTableGroup(
+        SAI_ACL_STAGE_INGRESS);
+
     /*
      * TODO(skhare)
      * SwitchState does not carry AclTable today, and thus a single table is
