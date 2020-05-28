@@ -1,8 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -15,7 +15,7 @@ const facebook::fboss::LabelForwardingEntry::Label kTopLabel{1101};
 namespace facebook::fboss {
 
 template <typename AddrT>
-class BcmLabelSwitchRouteTest : public BcmLinkStateDependentTests {
+class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
  public:
   using EcmpSetupHelper = utility::MplsEcmpSetupTargetedPorts<AddrT>;
   using EcmpNextHop = utility::EcmpMplsNextHop<AddrT>;
@@ -115,9 +115,9 @@ class BcmLabelSwitchRouteTest : public BcmLinkStateDependentTests {
   std::unique_ptr<EcmpSetupHelper> helper_;
 };
 
-TYPED_TEST_SUITE(BcmLabelSwitchRouteTest, TestTypes);
+TYPED_TEST_SUITE(HwLabelSwitchRouteTest, TestTypes);
 
-TYPED_TEST(BcmLabelSwitchRouteTest, Push) {
+TYPED_TEST(HwLabelSwitchRouteTest, Push) {
   auto setup = [=]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::PUSH);
@@ -129,7 +129,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, Push) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, Swap) {
+TYPED_TEST(HwLabelSwitchRouteTest, Swap) {
   auto setup = [=]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
@@ -141,7 +141,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, Swap) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
+TYPED_TEST(HwLabelSwitchRouteTest, EcmpPush) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
@@ -156,7 +156,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPush) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, EcmpSwap) {
+TYPED_TEST(HwLabelSwitchRouteTest, EcmpSwap) {
   if (!this->isSupported(HwAsic::Feature::MPLS_ECMP)) {
     return;
   }
@@ -171,7 +171,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, EcmpSwap) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, Php) {
+TYPED_TEST(HwLabelSwitchRouteTest, Php) {
   auto setup = [=]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::PHP);
@@ -183,7 +183,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, Php) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPhp) {
+TYPED_TEST(HwLabelSwitchRouteTest, EcmpPhp) {
   auto setup = [=]() {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::PHP);
@@ -195,7 +195,7 @@ TYPED_TEST(BcmLabelSwitchRouteTest, EcmpPhp) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmLabelSwitchRouteTest, Pop) {
+TYPED_TEST(HwLabelSwitchRouteTest, Pop) {
   auto setup = [=]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
