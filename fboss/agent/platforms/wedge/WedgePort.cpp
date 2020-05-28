@@ -164,24 +164,6 @@ void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
   speed_ = speed;
 }
 
-std::optional<cfg::PlatformPortSettings> WedgePort::getPlatformPortSettings(
-    cfg::PortSpeed speed) {
-  auto& platformSettings = *getPlatform()->config()->thrift.platform_ref();
-
-  auto portsIter = platformSettings.ports_ref()->find(getPortID());
-  if (portsIter == platformSettings.ports_ref()->end()) {
-    return std::nullopt;
-  }
-
-  auto portConfig = portsIter->second;
-  auto speedIter = portConfig.supportedSpeeds_ref()->find(speed);
-  if (speedIter == portConfig.supportedSpeeds_ref()->end()) {
-    throw FbossError("Port ", getPortID(), " does not support speed ", speed);
-  }
-
-  return speedIter->second;
-}
-
 bool WedgePort::isControllingPort() const {
   if (!bcmPort_ || !bcmPort_->getPortGroup()) {
     return false;

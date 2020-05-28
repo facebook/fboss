@@ -99,11 +99,6 @@ class WedgePort : public BcmPlatformPort {
     port_ = std::move(port);
   }
 
-  // TODO: make return value not optional after all platforms are
-  // updated to support port programming like this.
-  std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
-      cfg::PortSpeed speed);
-
   BcmPortGroup::LaneMode getLaneMode() const;
 
  protected:

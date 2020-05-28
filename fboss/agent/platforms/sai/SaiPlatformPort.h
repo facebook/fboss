@@ -51,8 +51,6 @@ class SaiPlatformPort : public PlatformPort {
   bool checkSupportsTransceiver();
 
  private:
-  std::optional<cfg::PlatformPortSettings> getPlatformPortSettings(
-      cfg::PortSpeed speed) const;
   std::vector<phy::PinID> getTransceiverLanes() const;
   folly::Future<TransmitterTechnology> getTransmitterTechInternal(
       folly::EventBase* evb);
