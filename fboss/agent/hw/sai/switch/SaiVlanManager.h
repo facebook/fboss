@@ -93,7 +93,6 @@ class SaiVlanManager {
  private:
   void createVlanMember(VlanID swVlanId, PortID swPortId);
   SaiVlanHandle* getVlanHandleImpl(VlanID swVlanId) const;
-  SaiVlanHandle* getVlanHandleImpl(VlanSaiId vlanId) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 
