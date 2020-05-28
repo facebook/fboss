@@ -1518,6 +1518,14 @@ void SwSwitch::clearPortStats(
   getHw()->clearPortStats(ports);
 }
 
+std::vector<PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(int32_t portId) {
+  return getHw()->getPortAsicPrbsStats(portId);
+}
+
+void SwSwitch::clearPortAsicPrbsStats(int32_t portId) {
+  getHw()->clearPortAsicPrbsStats(portId);
+}
+
 bool SwSwitch::isStandaloneRibEnabled() const {
   return getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB;
 }
