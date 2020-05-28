@@ -38,6 +38,9 @@ struct SaiPortHandle {
 };
 
 class SaiPortManager {
+  using Handles = folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>>;
+  using Stats = folly::F14FastMap<PortID, std::unique_ptr<HwPortFb303Stats>>;
+
  public:
   SaiPortManager(
       SaiManagerTable* managerTable,
@@ -72,6 +75,12 @@ class SaiPortManager {
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
   cfg::PortSpeed getMaxSpeed(PortID port) const;
+  Handles::const_iterator begin() const {
+    return handles_.begin();
+  }
+  Handles::const_iterator end() const {
+    return handles_.end();
+  }
 
  private:
   const std::vector<sai_stat_id_t>& supportedStats() const;
@@ -83,8 +92,8 @@ class SaiPortManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
-  folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>> handles_;
-  folly::F14FastMap<PortID, std::unique_ptr<HwPortFb303Stats>> portStats_;
+  Handles handles_;
+  Stats portStats_;
 };
 
 } // namespace facebook::fboss

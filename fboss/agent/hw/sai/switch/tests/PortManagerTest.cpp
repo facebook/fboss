@@ -135,6 +135,22 @@ TEST_F(PortManagerTest, addTwoPorts) {
   checkPort(PortID(10), saiId2, true);
 }
 
+TEST_F(PortManagerTest, iterator) {
+  std::set<PortSaiId> addedPorts;
+  auto& portMgr = saiManagerTable->portManager();
+  std::shared_ptr<Port> swPort = makePort(p0);
+  addedPorts.insert(portMgr.addPort(swPort));
+  std::shared_ptr<Port> port2 = makePort(p1);
+  addedPorts.insert(portMgr.addPort(port2));
+  for (const auto& portIdAnHandle : portMgr) {
+    auto& handle = portIdAnHandle.second;
+    EXPECT_TRUE(
+        addedPorts.find(handle->port->adapterKey()) != addedPorts.end());
+    addedPorts.erase(handle->port->adapterKey());
+  }
+  EXPECT_EQ(0, addedPorts.size());
+}
+
 TEST_F(PortManagerTest, addDupIdPorts) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
