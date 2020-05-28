@@ -15,11 +15,68 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+
 #include <boost/container/flat_map.hpp>
+
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
 #include <bcm/field.h>
 }
+
+namespace {
+
+struct LaneRateMapKey {
+  LaneRateMapKey(uint32 speed, uint32 numLanes, bcm_port_phy_fec_t fecType)
+      : speed_(speed), numLanes_(numLanes), fecType_(fecType) {}
+
+  bool operator<(const LaneRateMapKey& other) const {
+    return speed_ != other.speed_
+        ? (speed_ < other.speed_)
+        : (numLanes_ != other.numLanes_ ? (numLanes_ < other.numLanes_)
+                                        : (fecType_ < other.fecType_));
+  }
+
+  uint32 speed_; /* port speed in Mbps */
+  uint32 numLanes_; /* number of lanes */
+  bcm_port_phy_fec_t fecType_; /* FEC type */
+};
+using LaneRateMap = std::map<LaneRateMapKey, double>;
+
+static const LaneRateMap kLaneRateMap = {
+    {{10000, 1, bcmPortPhyFecNone}, 10.3125},
+    {{10000, 1, bcmPortPhyFecBaseR}, 10.3125},
+    {{20000, 1, bcmPortPhyFecNone}, 10.3125},
+    {{20000, 1, bcmPortPhyFecBaseR}, 10.3125},
+    {{40000, 4, bcmPortPhyFecNone}, 10.3125},
+    {{40000, 4, bcmPortPhyFecBaseR}, 10.3125},
+    {{40000, 2, bcmPortPhyFecNone}, 10.3125},
+    {{25000, 1, bcmPortPhyFecNone}, 25.78125},
+    {{25000, 1, bcmPortPhyFecBaseR}, 25.78125},
+    {{25000, 1, bcmPortPhyFecRsFec}, 25.7812},
+    {{50000, 1, bcmPortPhyFecNone}, 51.5625},
+    {{50000, 1, bcmPortPhyFecRsFec}, 51.5625},
+    {{50000, 1, bcmPortPhyFecRs544}, 53.125},
+    {{50000, 1, bcmPortPhyFecRs272}, 53.125},
+    {{50000, 2, bcmPortPhyFecNone}, 25.78125},
+    {{50000, 2, bcmPortPhyFecRsFec}, 25.78125},
+    {{50000, 2, bcmPortPhyFecRs544}, 26.5625},
+    {{100000, 2, bcmPortPhyFecNone}, 51.5625},
+    {{100000, 2, bcmPortPhyFecRsFec}, 51.5625},
+    {{100000, 2, bcmPortPhyFecRs544}, 53.125},
+    {{100000, 2, bcmPortPhyFecRs272}, 53.125},
+    {{100000, 4, bcmPortPhyFecNone}, 25.78125},
+    {{100000, 4, bcmPortPhyFecRsFec}, 25.78125},
+    {{100000, 4, bcmPortPhyFecRs544}, 26.5625},
+    {{200000, 4, bcmPortPhyFecNone}, 51.5625},
+    {{200000, 4, bcmPortPhyFecRs272}, 53.125},
+    {{200000, 4, bcmPortPhyFecRs544}, 53.125},
+    {{200000, 4, bcmPortPhyFecRs544_2xN}, 53.125},
+    {{400000, 8, bcmPortPhyFecRs544_2xN}, 53.125}};
+} // namespace
 
 namespace facebook::fboss {
 
@@ -61,11 +118,13 @@ void BcmStatUpdater::toBeRemovedAclStat(BcmAclStatHandle handle) {
 void BcmStatUpdater::refreshPostBcmStateChange(const StateDelta& delta) {
   refreshHwTableStats(delta);
   refreshAclStats();
+  refreshPrbsStats(delta);
 }
 
 void BcmStatUpdater::updateStats() {
   updateAclStats();
   updateHwTableStats();
+  updatePrbsStats();
 }
 
 void BcmStatUpdater::updateAclStats() {
@@ -83,6 +142,73 @@ void BcmStatUpdater::updateAclStats() {
 
 void BcmStatUpdater::updateHwTableStats() {
   bcmTableStatsManager_->publish(*tableStats_.rlock());
+}
+
+void BcmStatUpdater::updatePrbsStats() {
+  uint32 status;
+  auto lockedAsicPrbsStats = portAsicPrbsStats_.wlock();
+  for (auto& entry : *lockedAsicPrbsStats) {
+    auto& lanePrbsStatsTable = entry.second;
+
+    for (auto& lanePrbsStatsEntry : lanePrbsStatsTable) {
+      bcm_gport_t gport = lanePrbsStatsEntry.getGportId();
+      bcm_port_phy_control_get(
+          hw_->getUnit(), gport, BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, &status);
+      if ((int32_t)status == -1) {
+        lanePrbsStatsEntry.lossOfLock();
+      } else if ((int32_t)status == -2) {
+        lanePrbsStatsEntry.locked();
+      } else {
+        lanePrbsStatsEntry.updateLaneStats(status);
+      }
+    }
+  }
+}
+
+double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
+  auto profileID = swPort->getProfileID();
+  auto platformPortEntry = hw_->getPlatform()
+                               ->getPlatformPort(swPort->getID())
+                               ->getPlatformPortEntry();
+  if (!platformPortEntry.has_value()) {
+    throw FbossError("No PlatformPortEntry found for ", swPort->getName());
+  }
+
+  auto platformPortConfig =
+      platformPortEntry.value().supportedProfiles.find(profileID);
+  if (platformPortConfig == platformPortEntry.value().supportedProfiles.end()) {
+    throw FbossError(
+        "No speed profile with id ",
+        apache::thrift::util::enumNameSafe(profileID),
+        " found in PlatformPortEntry for ",
+        swPort->getName());
+  }
+
+  const auto portProfileConfig =
+      hw_->getPlatform()->getPortProfileConfig(profileID);
+  if (!portProfileConfig) {
+    throw FbossError(
+        "Platform doesn't support speed profile: ",
+        apache::thrift::util::enumNameSafe(profileID));
+  }
+
+  auto portSpeed = static_cast<int>((*portProfileConfig).get_speed());
+  auto fecType = utility::phyFecModeToBcmPortPhyFec(
+      (*portProfileConfig).get_iphy().get_fec());
+  auto numLanes =
+      utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy).size();
+
+  double laneRateGb;
+  auto laneRateGbIter =
+      kLaneRateMap.find(LaneRateMapKey(portSpeed, numLanes, fecType));
+  if (laneRateGbIter != kLaneRateMap.end()) {
+    laneRateGb = laneRateGbIter->second;
+  } else {
+    laneRateGb = portSpeed / 1000 / numLanes;
+  }
+
+  double laneRate = laneRateGb * 1024. * 1024. * 1024.;
+  return laneRate;
 }
 
 size_t BcmStatUpdater::getCounterCount() const {
@@ -105,6 +231,37 @@ void BcmStatUpdater::clearPortStats(
       XLOG(ERR) << "Clear Failed for port " << port << " :" << bcm_errmsg(ret);
       return;
     }
+  }
+}
+
+std::vector<PrbsLaneStats> BcmStatUpdater::getPortAsicPrbsStats(
+    int32_t portId) {
+  std::vector<PrbsLaneStats> prbsStats;
+  auto lockedPortAsicPrbsStats = portAsicPrbsStats_.rlock();
+  auto portAsicPrbsStatIter = lockedPortAsicPrbsStats->find(portId);
+  if (portAsicPrbsStatIter == lockedPortAsicPrbsStats->end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portId);
+  }
+  auto lanePrbsStatsTable = portAsicPrbsStatIter->second;
+  XLOG(DBG3) << "lanePrbsStatsMap size: " << lanePrbsStatsTable.size();
+
+  for (const auto& lanePrbsStats : lanePrbsStatsTable) {
+    prbsStats.push_back(lanePrbsStats.getPrbsLaneStats());
+  }
+  return prbsStats;
+}
+
+void BcmStatUpdater::clearPortAsicPrbsStats(int32_t portId) {
+  auto lockedPortAsicPrbsStats = portAsicPrbsStats_.wlock();
+  auto portAsicPrbsStatIter = lockedPortAsicPrbsStats->find(portId);
+  if (portAsicPrbsStatIter == lockedPortAsicPrbsStats->end()) {
+    XLOG(ERR) << "Asic prbs lane error map not initialized for port " << portId;
+    return;
+  }
+  auto& lanePrbsStatsTable = portAsicPrbsStatIter->second;
+  for (auto& lanePrbsStats : lanePrbsStatsTable) {
+    lanePrbsStats.clearLaneStats();
   }
 }
 
@@ -148,6 +305,76 @@ void BcmStatUpdater::refreshAclStats() {
     }
     toBeAddedAclStats_.pop();
   }
+}
+
+void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
+  // Add or remove ports into PrbsStats.
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(),
+      [&](const std::shared_ptr<Port>& oldPort,
+          const std::shared_ptr<Port>& newPort) {
+        if (oldPort->getAsicPrbs() == newPort->getAsicPrbs()) {
+          // nothing changed
+          return;
+        }
+
+        auto lockedPortAsicPrbsStats = portAsicPrbsStats_.wlock();
+        if (!newPort->getAsicPrbs().enabled) {
+          lockedPortAsicPrbsStats->erase(oldPort->getID());
+          return;
+        }
+
+        // Find how many lanes does the port associate with.
+        auto profileID = newPort->getProfileID();
+        if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+          XLOG(WARNING)
+              << newPort->getName()
+              << " has default profile, skip refreshPrbsStats for now";
+          return;
+        }
+
+        const auto& platformPortEntry = hw_->getPlatform()
+                                            ->getPlatformPort(newPort->getID())
+                                            ->getPlatformPortEntry();
+        if (!platformPortEntry.has_value()) {
+          throw FbossError(
+              "No PlatformPortEntry found for ", newPort->getName());
+        }
+
+        const auto& platformPortConfig =
+            platformPortEntry.value().supportedProfiles.find(profileID);
+        if (platformPortConfig ==
+            platformPortEntry.value().supportedProfiles.end()) {
+          throw FbossError(
+              "No speed profile with id ",
+              apache::thrift::util::enumNameSafe(profileID),
+              " found in PlatformPortEntry for ",
+              newPort->getName());
+        }
+
+        const auto& portProfileConfig =
+            hw_->getPlatform()->getPortProfileConfig(profileID);
+        if (!portProfileConfig.has_value()) {
+          throw FbossError(
+              "No port profile with id ",
+              apache::thrift::util::enumNameSafe(profileID),
+              " found in PlatformConfig for ",
+              newPort->getName());
+        }
+
+        const auto& iphyLaneConfigs =
+            utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy);
+
+        auto lanePrbsStatsTable = LanePrbsStatsTable();
+        for (int lane = 0; lane < iphyLaneConfigs.size(); lane++) {
+          bcm_gport_t gport;
+          BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, newPort->getID());
+          lanePrbsStatsTable.push_back(
+              LanePrbsStatsEntry(lane, gport, calculateLaneRate(newPort)));
+        }
+        (*lockedPortAsicPrbsStats)[newPort->getID()] =
+            std::move(lanePrbsStatsTable);
+      });
 }
 
 void BcmStatUpdater::updateAclStat(
