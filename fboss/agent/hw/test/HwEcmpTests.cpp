@@ -44,6 +44,15 @@ class HwEcmpTest : public HwLinkStateDependentTest {
         getProgrammedState(),
         flat_set<PortDescriptor>(portDescs.begin(), portDescs.end())));
   }
+  void unresolveNhops(int numNhops) {
+    applyNewState(
+        ecmpHelper_->unresolveNextHops(getProgrammedState(), numNhops));
+  }
+  void unresolveNhops(const std::vector<PortDescriptor>& portDescs) {
+    applyNewState(ecmpHelper_->unresolveNextHops(
+        getProgrammedState(),
+        flat_set<PortDescriptor>(portDescs.begin(), portDescs.end())));
+  }
   void programRouteWithUnresolvedNhops() {
     applyNewState(
         ecmpHelper_->setupECMPForwarding(getProgrammedState(), kNumNextHops));
@@ -87,7 +96,7 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
   auto verifyPostWarmboot = [=]() {
     auto nhop = ecmpHelper_->nhop(0);
     // ECMP stays shrunk on port up
-    ASSERT_EQ(0, getEcmpSizeInHw());
+    EXPECT_EQ(0, getEcmpSizeInHw());
 
     // Bring port back down so we can warmboot more than once. This is
     // necessary because verify() and verifyPostWarmboot() assume that the port
@@ -99,4 +108,28 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
+  auto setup = [=]() {
+    programRouteWithUnresolvedNhops();
+    auto nhop = ecmpHelper_->nhop(0);
+    resolveNhops(1);
+    EXPECT_EQ(1, getEcmpSizeInHw());
+    bringDownPort(nhop.portDesc.phyPortID());
+    // ECMP shrunk on port down
+    EXPECT_EQ(0, getEcmpSizeInHw());
+    bringUpPort(nhop.portDesc.phyPortID());
+    // ECMP stays shrunk on port up
+    EXPECT_EQ(0, getEcmpSizeInHw());
+    // Re resolve nhop1
+    unresolveNhops(1);
+    resolveNhops(1);
+  };
+
+  auto verify = [=]() {
+    // ECMP  expands post resolution
+    EXPECT_EQ(1, getEcmpSizeInHw());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

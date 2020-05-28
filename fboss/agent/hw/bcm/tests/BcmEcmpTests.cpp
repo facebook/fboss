@@ -237,44 +237,6 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
-  auto setup = [=]() {
-    programRouteWithUnresolvedNhops();
-    auto nhop = ecmpHelper_->nhop(0);
-    resolveNhops(1);
-    auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
-    ASSERT_EQ(numNextHops_, egressIdsInSw.size());
-    ASSERT_EQ(
-        1,
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-    bringDownPort(nhop.portDesc.phyPortID());
-    // ECMP shrunk on port down
-    ASSERT_EQ(
-        0,
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-    bringUpPort(nhop.portDesc.phyPortID());
-    // ECMP stays shrunk on port up
-    ASSERT_EQ(
-        0,
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-    // Re resolve nhop1
-    resolveNhops(1);
-  };
-
-  auto verify = [=]() {
-    auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
-
-    // ECMP  expands post resolution
-    ASSERT_EQ(
-        1,
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size()));
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(BcmEcmpTest, L2ResolveAllNhopsInEcmp) {
   runSimpleTest({0, 0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1});
 }
