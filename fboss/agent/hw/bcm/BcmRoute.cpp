@@ -31,18 +31,6 @@ extern "C" {
 
 namespace facebook::fboss {
 
-namespace {
-auto constexpr kAction = "action";
-auto constexpr kEcmp = "ecmp";
-auto constexpr kForwardInfo = "forwardInfo";
-auto constexpr kMaskLen = "maskLen";
-auto constexpr kNetwork = "network";
-auto constexpr kRoutes = "routes";
-
-// TODO: Assumes we have only one VRF
-auto constexpr kDefaultVrf = 0;
-} // namespace
-
 BcmRoute::BcmRoute(
     BcmSwitch* hw,
     bcm_vrf_t vrf,
