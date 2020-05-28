@@ -433,7 +433,7 @@ void setAggregatePortMemberIDs(
   members.resize(portIDs.size());
 
   for (const auto& it : folly::enumerate(portIDs)) {
-    members[it.index].set_memberPortID(*it);
+    members[it.index].memberPortID_ref() = *it;
   }
 }
 

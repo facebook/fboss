@@ -36,16 +36,16 @@ cfg::Fields halfFlow() {
 
   std::set<cfg::IPv4Field> v4Fields = {cfg::IPv4Field::SOURCE_ADDRESS,
                                        cfg::IPv4Field::DESTINATION_ADDRESS};
-  fields.set_ipv4Fields(std::move(v4Fields));
+  fields.ipv4Fields_ref() = std::move(v4Fields);
 
   std::set<cfg::IPv6Field> v6Fields = {cfg::IPv6Field::SOURCE_ADDRESS,
                                        cfg::IPv6Field::DESTINATION_ADDRESS};
-  fields.set_ipv6Fields(std::move(v6Fields));
+  fields.ipv6Fields_ref() = std::move(v6Fields);
 
   std::set<cfg::MPLSField> mplsFields = {LoadBalancer::MPLSField::TOP_LABEL,
                                          LoadBalancer::MPLSField::SECOND_LABEL,
                                          LoadBalancer::MPLSField::THIRD_LABEL};
-  fields.set_mplsFields(std::move(mplsFields));
+  fields.mplsFields_ref() = std::move(mplsFields);
   return fields;
 }
 
@@ -54,7 +54,7 @@ cfg::Fields fullFlow() {
 
   std::set<cfg::TransportField> transportFields = {
       cfg::TransportField::SOURCE_PORT, cfg::TransportField::DESTINATION_PORT};
-  fields.set_transportFields(std::move(transportFields));
+  fields.transportFields_ref() = std::move(transportFields);
 
   return fields;
 }
@@ -62,9 +62,9 @@ cfg::Fields fullFlow() {
 cfg::LoadBalancer defaultEcmpHash() {
   cfg::LoadBalancer ecmpDefault;
 
-  ecmpDefault.set_id(cfg::LoadBalancerID::ECMP);
-  ecmpDefault.set_fieldSelection(fullFlow());
-  ecmpDefault.set_algorithm(cfg::HashingAlgorithm::CRC16_CCITT);
+  ecmpDefault.id_ref() = cfg::LoadBalancerID::ECMP;
+  ecmpDefault.fieldSelection_ref() = fullFlow();
+  ecmpDefault.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
 
   return ecmpDefault;
 }
@@ -72,9 +72,9 @@ cfg::LoadBalancer defaultEcmpHash() {
 cfg::LoadBalancer defaultLagHash() {
   cfg::LoadBalancer lagDefault;
 
-  lagDefault.set_id(cfg::LoadBalancerID::AGGREGATE_PORT);
-  lagDefault.set_fieldSelection(halfFlow());
-  lagDefault.set_algorithm(cfg::HashingAlgorithm::CRC16_CCITT);
+  lagDefault.id_ref() = cfg::LoadBalancerID::AGGREGATE_PORT;
+  lagDefault.fieldSelection_ref() = halfFlow();
+  lagDefault.algorithm_ref() = cfg::HashingAlgorithm::CRC16_CCITT;
 
   return lagDefault;
 }
@@ -318,7 +318,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
 
   cfg::SwitchConfig baseConfig;
   std::vector<cfg::LoadBalancer> ecmpLoadBalancer = {defaultEcmpHash()};
-  baseConfig.set_loadBalancers(ecmpLoadBalancer);
+  baseConfig.loadBalancers_ref() = ecmpLoadBalancer;
 
   auto startState =
       publishAndApplyConfig(baseState, &baseConfig, platform.get());
@@ -367,7 +367,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   // This config removes the DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
   std::vector<cfg::LoadBalancer> ecmpLoadBalancer = {defaultEcmpHash()};
-  config.set_loadBalancers(ecmpLoadBalancer);
+  config.loadBalancers_ref() = ecmpLoadBalancer;
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);

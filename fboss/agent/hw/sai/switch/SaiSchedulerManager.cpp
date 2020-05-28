@@ -93,8 +93,8 @@ void SaiSchedulerManager::fillSchedulerSettings(
           ? QueueScheduling::WEIGHTED_ROUND_ROBIN
           : QueueScheduling::STRICT_PRIORITY);
   cfg::Range range;
-  range.set_minimum(minBwRate);
-  range.set_maximum(maxBwRate);
+  range.minimum_ref() = minBwRate;
+  range.maximum_ref() = maxBwRate;
   cfg::PortQueueRate portQueueRate;
   if (meterType == SAI_METER_TYPE_BYTES) {
     portQueueRate.set_kbitsPerSec(range);

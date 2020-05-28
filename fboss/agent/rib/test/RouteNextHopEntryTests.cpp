@@ -96,7 +96,7 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
   route.set_dest(kDestPrefix);
-  route.set_nextHops(nextHopsThrift());
+  route.nextHops_ref() = nextHopsThrift();
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
 
@@ -118,7 +118,7 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
   route.set_dest(kDestPrefix);
-  route.set_nextHopAddrs(nextHopsBinaryAddress);
+  route.nextHopAddrs_ref() = nextHopsBinaryAddress;
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
 
@@ -135,7 +135,7 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {
   UnicastRoute route;
   route.set_dest(kDestPrefix);
-  route.set_nextHops(nextHopsThrift());
+  route.nextHops_ref() = nextHopsThrift();
   route.adminDistance_ref() = AdminDistance::IBGP;
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
@@ -150,7 +150,7 @@ TEST(RouteNextHopEntry, EmptyListIsDrop) {
   // passed both nextHopAddrs and nextHops
   UnicastRoute route;
   route.set_dest(kDestPrefix);
-  route.set_nextHops(noNextHops);
+  route.nextHops_ref() = noNextHops;
 
   auto nextHopEntry = RouteNextHopEntry::from(route, kDefaultAdminDistance);
 

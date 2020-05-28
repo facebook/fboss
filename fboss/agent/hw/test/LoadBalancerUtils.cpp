@@ -29,19 +29,19 @@ namespace facebook::fboss::utility {
 namespace {
 cfg::Fields getHalfHashFields() {
   cfg::Fields hashFields;
-  hashFields.set_ipv4Fields(std::set<cfg::IPv4Field>(
-      {cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS}));
-  hashFields.set_ipv6Fields(std::set<cfg::IPv6Field>(
-      {cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS}));
+  hashFields.ipv4Fields_ref() = std::set<cfg::IPv4Field>(
+      {cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS});
+  hashFields.ipv6Fields_ref() = std::set<cfg::IPv6Field>(
+      {cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS});
 
   return hashFields;
 }
 
 cfg::Fields getFullHashFields() {
   auto hashFields = getHalfHashFields();
-  hashFields.set_transportFields(
+  hashFields.transportFields_ref() =
       std::set<cfg::TransportField>({cfg::TransportField::SOURCE_PORT,
-                                     cfg::TransportField::DESTINATION_PORT}));
+                                     cfg::TransportField::DESTINATION_PORT});
   return hashFields;
 }
 

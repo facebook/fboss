@@ -247,8 +247,8 @@ TransceiverIdxThrift WedgePort::getTransceiverMapping() const {
     return TransceiverIdxThrift();
   }
   TransceiverIdxThrift xcvr;
-  xcvr.set_transceiverId(static_cast<int32_t>(*getTransceiverID()));
-  xcvr.set_channels(getChannels());
+  xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
+  xcvr.channels_ref() = getChannels();
   return xcvr;
 }
 

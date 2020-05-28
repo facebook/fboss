@@ -268,7 +268,7 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndSflowTunnel) {
 
 TEST_F(MirrorTest, MirrorWithNameNoPortNoIp) {
   cfg::Mirror mirror0;
-  mirror0.set_name("mirror0");
+  mirror0.name_ref() = "mirror0";
   config_.mirrors_ref()->push_back(mirror0);
   publishWithFbossError();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
@@ -277,9 +277,9 @@ TEST_F(MirrorTest, MirrorWithNameNoPortNoIp) {
 
 TEST_F(MirrorTest, MirrorWithNameAndDscpNoPortNoIp) {
   cfg::Mirror mirror0;
-  mirror0.set_name("mirror0");
+  mirror0.name_ref() = "mirror0";
   config_.mirrors_ref()->push_back(mirror0);
-  mirror0.set_dscp(MirrorTest::dscp);
+  mirror0.dscp_ref() = MirrorTest::dscp;
   publishWithFbossError();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");
   EXPECT_EQ(mirror, nullptr);
@@ -287,7 +287,7 @@ TEST_F(MirrorTest, MirrorWithNameAndDscpNoPortNoIp) {
 
 TEST_F(MirrorTest, MirrorWithTunnelNoPortNoIp) {
   cfg::Mirror mirror0;
-  mirror0.set_name("mirror0");
+  mirror0.name_ref() = "mirror0";
   config_.mirrors_ref()->push_back(mirror0);
   publishWithFbossError();
   auto mirror = state_->getMirrors()->getMirrorIf("mirror0");

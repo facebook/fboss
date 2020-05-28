@@ -43,8 +43,8 @@ constexpr int kDefaultPortQueuePacketsPerSecMax = 0;
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
-  range.set_minimum(minimum);
-  range.set_maximum(maximum);
+  range.minimum_ref() = minimum;
+  range.maximum_ref() = maximum;
 
   return range;
 }

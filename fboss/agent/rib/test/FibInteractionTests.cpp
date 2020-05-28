@@ -292,9 +292,9 @@ facebook::fboss::UnicastRoute createUnicastRoute(
   unicastRoute.set_dest(network);
 
   std::vector<facebook::fboss::NextHopThrift> nexthops(1);
-  nexthops.back().set_address(facebook::network::toBinaryAddress(nexthop));
-  nexthops.back().set_weight(facebook::fboss::ECMP_WEIGHT);
-  unicastRoute.set_nextHops(std::move(nexthops));
+  nexthops.back().address_ref() = facebook::network::toBinaryAddress(nexthop);
+  nexthops.back().weight_ref() = facebook::fboss::ECMP_WEIGHT;
+  unicastRoute.nextHops_ref() = std::move(nexthops);
 
   return unicastRoute;
 }
