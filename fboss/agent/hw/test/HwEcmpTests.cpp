@@ -63,15 +63,6 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwEcmpTest, L2ResolveOneNhopInEcmp) {
-  auto setup = [=]() {
-    programRouteWithUnresolvedNhops();
-    resolveNhops(1);
-  };
-  auto verify = [=]() { EXPECT_EQ(1, getEcmpSizeInHw()); };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
   auto setup = [=]() {
     programRouteWithUnresolvedNhops();
