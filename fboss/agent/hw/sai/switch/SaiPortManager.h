@@ -31,11 +31,6 @@ class HwPortFb303Stats;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 
-struct SaiCpuPortHandle {
-  PortSaiId cpuPortId;
-  SaiQueueHandles queues;
-};
-
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;

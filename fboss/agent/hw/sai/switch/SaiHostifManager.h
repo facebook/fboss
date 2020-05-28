@@ -32,6 +32,11 @@ class SaiManagerTable;
 using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
 using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
 
+struct SaiCpuPortHandle {
+  PortSaiId cpuPortId;
+  SaiQueueHandles queues;
+};
+
 struct SaiHostifTrapHandle {
   std::shared_ptr<SaiHostifTrapGroup> trapGroup;
   std::shared_ptr<SaiHostifTrap> trap;
