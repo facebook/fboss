@@ -17,7 +17,7 @@ SaiAclTableManager::SaiAclTableManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-void SaiAclTableManager::addAclTable() {
+void SaiAclTableManager::addAclTable(const std::string& /*aclTableName*/) {
   /*
    * TODO(skhare)
    * Add single ACL Table for now (called during SaiSwitch::init()).
