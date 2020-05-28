@@ -2473,6 +2473,14 @@ void BcmSwitch::clearPortStats(
   bcmStatUpdater_->clearPortStats(ports);
 }
 
+std::vector<PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(int32_t portId) {
+  return bcmStatUpdater_->getPortAsicPrbsStats(portId);
+}
+
+void BcmSwitch::clearPortAsicPrbsStats(int32_t portId) {
+  bcmStatUpdater_->clearPortAsicPrbsStats(portId);
+}
+
 void BcmSwitch::dumpState(const std::string& path) const {
   auto stateString = gatherSdkState();
   if (stateString.length() > 0) {

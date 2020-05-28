@@ -261,6 +261,11 @@ class HwSwitch {
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
 
+  virtual std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t /*portId*/) {
+    return std::vector<PrbsLaneStats>();
+  }
+  virtual void clearPortAsicPrbsStats(int32_t /*portId*/) {}
+
   virtual BootType getBootType() const = 0;
 
   virtual cfg::PortSpeed getPortMaxSpeed(PortID /* port */) const = 0;
