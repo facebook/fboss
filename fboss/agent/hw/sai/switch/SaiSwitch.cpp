@@ -416,6 +416,29 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         up ? "up" : "down");
 
     if (!up) {
+      /*
+       * Only link down are handled in the fast path. We let the
+       * link up processing happen via the regular state change
+       * mechanism. Reason for that is, post a link down
+       * - We signal FDB entry, neighbor entry, next hop and next hop group
+       *   that a link went down.
+       * - Next hop group then shrinks the group based on which next hops are
+       * affected.
+       * - We now signal the callback (SwSwitch for wedge_agent, HwTest for hw
+       * tests) for this link down state
+       *    - SwSwitch in turn schedules a non coalescing port down state update
+       *    - Schedules a neighbor remove state update
+       * - Meanwhile, if we get a port up event, we will just signal this upto
+       * the SwSwitch and not handle this is in the fast path. Reason being,
+       * post a link up the link is not immediately ready for packet handling,
+       * so if we expand ECMP groups in the fast path, we will see some ms of
+       * traffic loss. So we let the link up processing happen via switch
+       * updates, which means that it will be queued behind the link down and
+       * neighbor purge. So a ECMP group reexpansion would need both a link up
+       * and neighbor add state update for expansion. At this point we are
+       * guaranteed to have the link be ready for packet transmission, since we
+       * already resolved neighbors over that link.
+       */
       std::lock_guard<std::mutex> lock{saiSwitchMutex_};
       managerTable_->fdbManager().handleLinkDown(swPortId);
     }
