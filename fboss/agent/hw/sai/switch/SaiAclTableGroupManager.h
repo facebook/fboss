@@ -23,6 +23,20 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 
+using SaiAclTableGroup = SaiObject<SaiAclTableGroupTraits>;
+using SaiAclTableGroupMember = SaiObject<SaiAclTableGroupMemberTraits>;
+
+struct SaiAclTableGroupMemberHandle {
+  std::shared_ptr<SaiAclTableGroupMember> aclTableGroupMember;
+};
+
+struct SaiAclTableGroupHandle {
+  std::shared_ptr<SaiAclTableGroupHandle> aclTableGroup;
+  // SAI ACl Table Group member name (ACL Table name) to corresponding handle
+  folly::F14FastMap<std::string, std::unique_ptr<SaiAclTableGroupMemberHandle>>
+      aclTableGroupMembers;
+};
+
 class SaiAclTableGroupManager {
  public:
   SaiAclTableGroupManager(
@@ -41,6 +55,16 @@ class SaiAclTableGroupManager {
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+
+  // SAI ACL Table Group to corresponding Handle
+  /*
+   * TODO(skhare)
+   * Extend SwitchState to carry AclTable, then use AclStage in the
+   * SwitchState's AclTable as the key.
+   */
+  using SaiAclTableGroupHandles = folly::
+      F14FastMap<sai_acl_stage_t, std::unique_ptr<SaiAclTableGroupHandle>>;
+  SaiAclTableGroupHandles handles_;
 };
 
 } // namespace facebook::fboss
