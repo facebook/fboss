@@ -37,6 +37,8 @@ extern "C" {
 #include <bcm/port.h>
 }
 
+DECLARE_uint32(ecmp_width);
+
 using boost::container::flat_set;
 using facebook::fboss::utility::getEcmpGroupInHw;
 using facebook::fboss::utility::getEcmpSizeInHw;
@@ -162,7 +164,7 @@ void BcmEcmpTest::runSimpleTest(
     }
     auto pathsInHwCount = pathsInHw.size();
     ASSERT_EQ(totalHwWeight, pathsInHwCount);
-    ASSERT_LE(pathsInHwCount, 64);
+    ASSERT_LE(pathsInHwCount, FLAGS_ecmp_width);
   };
   if (warmboot) {
     verifyAcrossWarmBoots(setup, verify);
