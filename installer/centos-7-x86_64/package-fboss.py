@@ -11,9 +11,21 @@ import tempfile
 import git
 
 
+OPT_ARG_SCRATCH_PATH = "--scratch-path"
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rpm", help="Builds RPM", action="store_true")
+    parser.add_argument(
+        OPT_ARG_SCRATCH_PATH,
+        type=str,
+        help=(
+            "use this path for build and install files e.g. "
+            + OPT_ARG_SCRATCH_PATH
+            + "=/opt/app"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -50,7 +62,11 @@ class PackageFboss:
     }
 
     def __init__(self):
-        self.tmp_dir_name = tempfile.mkdtemp(prefix=PackageFboss.FBOSS_BINS)
+
+        self.scratch_path = args.scratch_path
+        self.tmp_dir_name = tempfile.mkdtemp(
+            prefix=PackageFboss.FBOSS_BINS, dir=args.scratch_path
+        )
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
@@ -67,8 +83,11 @@ class PackageFboss:
         self.rpm_src_fboss_tar_abs = self.rpm_src_fboss_dir_abs + ".tar.gz"
 
     def _get_install_dir_for(self, name):
+        get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
+        if self.scratch_path is not None:
+            get_install_dir_cmd += ["--scratch-path=" + self.scratch_path]
         return (
-            subprocess.check_output([PackageFboss.GETDEPS, "show-inst-dir", name])
+            subprocess.check_output(get_install_dir_cmd)
             .decode("utf-8")
             .strip()
             .split("\n")[-1]
