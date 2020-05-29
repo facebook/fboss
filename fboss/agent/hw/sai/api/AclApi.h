@@ -48,7 +48,7 @@ struct SaiAclTableGroupTraits {
   };
 
   using AdapterKey = AclTableGroupSaiId;
-  using AdapterhostKey = std::tuple<
+  using AdapterHostKey = std::tuple<
       Attributes::Stage,
       std::optional<Attributes::BindPointTypeList>,
       std::optional<Attributes::Type>>;
@@ -85,7 +85,7 @@ struct SaiAclTableGroupMemberTraits {
   };
 
   using AdapterKey = AclTableGroupMemberSaiId;
-  using AdapterhostKey = std::tuple<
+  using AdapterHostKey = std::tuple<
       Attributes::TableGroupId,
       Attributes::TableId,
       Attributes::Priority>;
@@ -148,7 +148,7 @@ SAI_ATTRIBUTE_NAME(AclTable, EntryList);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
 
 struct SaiAclEntryTraits {
-  static constexpr sai_object_id_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
   using SaiApiT = AclApi;
   struct Attributes {
     using EnumType = sai_acl_entry_attr_t;

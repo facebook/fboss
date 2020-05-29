@@ -93,6 +93,24 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       *count = fs->inSegEntryManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP:
+      *count = fs->aclTableGroupManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER: {
+      for (const auto& aclTableGroupMember : fs->aclTableGroupManager.map()) {
+        *count += aclTableGroupMember.second.fm().map().size();
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_TABLE:
+      *count = fs->aclTableManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_ACL_ENTRY: {
+      for (const auto& aclEntry : fs->aclTableManager.map()) {
+        *count += aclEntry.second.fm().map().size();
+      }
+      break;
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }

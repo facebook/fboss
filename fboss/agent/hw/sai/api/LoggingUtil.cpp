@@ -166,6 +166,14 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "bridge-port";
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       return "inseg-entry";
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP:
+      return "acl-table-group";
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER:
+      return "acl-table-group-member";
+    case SAI_OBJECT_TYPE_ACL_TABLE:
+      return "acl-table";
+    case SAI_OBJECT_TYPE_ACL_ENTRY:
+      return "acl-entry";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

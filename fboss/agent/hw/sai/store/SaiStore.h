@@ -315,6 +315,10 @@ class SaiStore {
  private:
   sai_object_id_t switchId_{};
   std::tuple<
+      detail::SaiObjectStore<SaiAclTableGroupTraits>,
+      detail::SaiObjectStore<SaiAclTableGroupMemberTraits>,
+      detail::SaiObjectStore<SaiAclTableTraits>,
+      detail::SaiObjectStore<SaiAclEntryTraits>,
       detail::SaiObjectStore<SaiBridgeTraits>,
       detail::SaiObjectStore<SaiBridgePortTraits>,
       detail::SaiObjectStore<SaiPortTraits>,
