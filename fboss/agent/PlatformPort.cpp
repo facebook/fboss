@@ -54,6 +54,19 @@ std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
 
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
     cfg::PortSpeed speed) const {
+  auto profile = getProfileIDBySpeedIf(speed);
+  if (!profile.has_value()) {
+    throw FbossError(
+        "Platform port ",
+        getPortID(),
+        " has no profile for speed ",
+        apache::thrift::util::enumNameSafe(speed));
+  }
+  return profile.value();
+}
+
+std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
+    cfg::PortSpeed speed) const {
   // If we don't have a platform config, just return a default profile
   // (this prevents tests without a platform config from crashing, and
   // an exception will still be thrown when trying to actually program
@@ -77,12 +90,7 @@ cfg::PortProfileID PlatformPort::getProfileIDBySpeed(
           apache::thrift::util::enumNameSafe(profileID));
     }
   }
-
-  throw FbossError(
-      "Platform port ",
-      getPortID(),
-      " has no profile for speed ",
-      apache::thrift::util::enumNameSafe(speed));
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

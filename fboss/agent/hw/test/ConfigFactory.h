@@ -66,6 +66,22 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port1,
     PortID port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+void updatePortSpeed(
+    const HwSwitch& hwSwitch,
+    cfg::SwitchConfig& cfg,
+    PortID port,
+    cfg::PortSpeed speed);
+std::vector<cfg::Port>::iterator findCfgPort(
+    cfg::SwitchConfig& cfg,
+    PortID portID);
+std::vector<cfg::Port>::iterator findCfgPortIf(
+    cfg::SwitchConfig& cfg,
+    PortID portID);
+void configurePortGroup(
+    const HwSwitch& hwSwitch,
+    cfg::SwitchConfig& config,
+    cfg::PortSpeed speed,
+    std::vector<PortID> allPortsInGroup);
 
 void addMatcher(
     cfg::SwitchConfig* config,
