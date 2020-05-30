@@ -1707,7 +1707,7 @@ void ThriftHandler::addMplsRoutesImpl(
     // interface
     LabelNextHopSet nexthops;
     for (auto& nexthop : util::toRouteNextHopSet(*mplsRoute.nextHops_ref())) {
-      if (nexthop.isResolved()) {
+      if (nexthop.isResolved() || nexthop.isPopAndLookup()) {
         nexthops.emplace(nexthop);
         continue;
       }

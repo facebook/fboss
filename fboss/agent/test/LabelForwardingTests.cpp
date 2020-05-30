@@ -422,4 +422,56 @@ TEST_F(LabelForwardingTest, nextHopWithInterfaceAddress) {
       FbossError);
 }
 
+TEST_F(LabelForwardingTest, popAndLookUp) {
+  MplsRoute mplsRoute0;
+  mplsRoute0.topLabel = 10010;
+  folly::IPAddress ips0{"::"};
+  NextHopThrift nexthop;
+
+  nexthop.mplsAction_ref() = MplsAction();
+  nexthop.mplsAction_ref()->action = MplsActionCode::POP_AND_LOOKUP;
+  nexthop.address.addr.append(
+      reinterpret_cast<const char*>(ips0.bytes()),
+      folly::IPAddressV6::byteCount());
+
+  mplsRoute0.nextHops.emplace_back(nexthop);
+  sw->fibSynced();
+  sw->fibSynced();
+  auto routes0 = std::make_unique<std::vector<MplsRoute>>();
+  routes0->push_back(mplsRoute0);
+  EXPECT_NO_THROW(thriftHandler->addMplsRoutes(
+      static_cast<int>(ClientID::OPENR), std::move(routes0)));
+}
+
+TEST_F(LabelForwardingTest, popAndLookUpInvalid) {
+  MplsRoute mplsRoute0;
+  mplsRoute0.topLabel = 10010;
+
+  folly::IPAddress ips0{"::"};
+  NextHopThrift nexthop0;
+  nexthop0.mplsAction_ref() = MplsAction();
+  nexthop0.mplsAction_ref()->action = MplsActionCode::POP_AND_LOOKUP;
+  nexthop0.address.addr.append(
+      reinterpret_cast<const char*>(ips0.bytes()),
+      folly::IPAddressV6::byteCount());
+  mplsRoute0.nextHops.emplace_back(nexthop0);
+
+  folly::IPAddress ips1{"::1"};
+  NextHopThrift nexthop1;
+  nexthop1.mplsAction_ref() = MplsAction();
+  nexthop1.mplsAction_ref()->action = MplsActionCode::POP_AND_LOOKUP;
+  nexthop1.address.addr.append(
+      reinterpret_cast<const char*>(ips1.bytes()),
+      folly::IPAddressV6::byteCount());
+  mplsRoute0.nextHops.emplace_back(nexthop1);
+
+  sw->fibSynced();
+  auto routes0 = std::make_unique<std::vector<MplsRoute>>();
+  routes0->push_back(mplsRoute0);
+  EXPECT_THROW(
+      thriftHandler->addMplsRoutes(
+          static_cast<int>(ClientID::OPENR), std::move(routes0)),
+      FbossError);
+}
+
 } // namespace facebook::fboss
