@@ -195,6 +195,11 @@ void SaiHostifManager::processRxReasonToQueueDelta(
             newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
       }
     } else {
+      if (newRxReasonEntry.rxReason == cfg::PacketRxReason::UNMATCHED) {
+        // what is the trap for unmatched?
+        XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
+        continue;
+      }
       addHostifTrap(
           newRxReasonEntry.rxReason, newRxReasonEntry.queueId, priority);
     }
