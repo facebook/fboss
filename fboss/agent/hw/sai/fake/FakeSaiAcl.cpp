@@ -24,6 +24,7 @@ sai_status_t create_acl_table_fn(
   std::optional<sai_int32_t> stage;
   std::vector<int32_t> bindPointTypeList;
   std::vector<int32_t> actionTypeList;
+  sai_uint8_t fieldDscp = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -31,14 +32,17 @@ sai_status_t create_acl_table_fn(
         stage = attr_list[i].value.s32;
         break;
       case SAI_ACL_TABLE_ATTR_ACL_BIND_POINT_TYPE_LIST:
-        for (int j = 0; j < attr_list[j].value.s32list.count; ++j) {
+        for (int j = 0; j < attr_list[i].value.s32list.count; ++j) {
           bindPointTypeList.push_back(attr_list[i].value.s32list.list[j]);
         }
         break;
       case SAI_ACL_TABLE_ATTR_ACL_ACTION_TYPE_LIST:
-        for (int j = 0; j < attr_list[j].value.s32list.count; ++j) {
+        for (int j = 0; j < attr_list[i].value.s32list.count; ++j) {
           actionTypeList.push_back(attr_list[i].value.s32list.list[j]);
         }
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
+        fieldDscp = attr_list[i].value.u8;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -51,7 +55,7 @@ sai_status_t create_acl_table_fn(
   }
 
   *acl_table_id = fs->aclTableManager.create(
-      stage.value(), bindPointTypeList, actionTypeList);
+      stage.value(), bindPointTypeList, actionTypeList, fieldDscp);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -82,6 +86,35 @@ sai_status_t get_acl_table_attribute_fn(
   auto fs = FakeSai::getInstance();
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
+      case SAI_ACL_TABLE_ATTR_ACL_STAGE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.s32 = aclTable.stage;
+      } break;
+      case SAI_ACL_TABLE_ATTR_ACL_BIND_POINT_TYPE_LIST: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        if (aclTable.bindPointTypeList.size() > attr[i].value.s32list.count) {
+          attr[i].value.s32list.count = aclTable.bindPointTypeList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+
+        attr[i].value.s32list.count = aclTable.bindPointTypeList.size();
+        int j = 0;
+        for (const auto& bindPointType : aclTable.bindPointTypeList) {
+          attr[i].value.s32list.list[j++] = bindPointType;
+        }
+      } break;
+      case SAI_ACL_TABLE_ATTR_ACL_ACTION_TYPE_LIST: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        if (aclTable.actionTypeList.size() > attr[i].value.s32list.count) {
+          attr[i].value.s32list.count = aclTable.actionTypeList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        attr[i].value.s32list.count = aclTable.actionTypeList.size();
+        int j = 0;
+        for (const auto& actionType : aclTable.actionTypeList) {
+          attr[i].value.s32list.list[j++] = actionType;
+        }
+      } break;
       case SAI_ACL_TABLE_ATTR_ENTRY_LIST: {
         const auto& aclEntryMap =
             fs->aclTableManager.get(acl_table_id).fm().map();
@@ -94,6 +127,10 @@ sai_status_t get_acl_table_attribute_fn(
         for (const auto& m : aclEntryMap) {
           attr[i].value.objlist.list[j++] = m.first;
         }
+      } break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_DSCP: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldDscp;
       } break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -266,7 +303,7 @@ sai_status_t create_acl_table_group_fn(
         stage = attr_list[i].value.s32;
         break;
       case SAI_ACL_TABLE_GROUP_ATTR_ACL_BIND_POINT_TYPE_LIST:
-        for (int j = 0; j < attr_list[j].value.s32list.count; ++j) {
+        for (int j = 0; j < attr_list[i].value.s32list.count; ++j) {
           bindPointTypeList.push_back(attr_list[i].value.s32list.list[j]);
         }
         break;

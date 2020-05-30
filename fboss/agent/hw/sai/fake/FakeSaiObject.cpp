@@ -275,6 +275,36 @@ sai_status_t sai_get_object_key(
       for (const auto& entry : fs->inSegEntryManager.map()) {
         object_list[i++].key.inseg_entry = entry.first.sai_inseg_entry;
       }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP: {
+      for (const auto& aclTableGroup : fs->aclTableGroupManager.map()) {
+        object_list[i++].key.object_id = aclTableGroup.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER: {
+      for (const auto& aclTableGroup : fs->aclTableGroupManager.map()) {
+        for (const auto& aclTableGroupMember :
+             aclTableGroup.second.fm().map()) {
+          object_list[i++].key.object_id = aclTableGroupMember.second.id;
+        }
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_TABLE: {
+      for (const auto& aclTable : fs->aclTableManager.map()) {
+        object_list[i++].key.object_id = aclTable.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_ENTRY: {
+      for (const auto& aclTable : fs->aclTableManager.map()) {
+        for (const auto& aclEntry : aclTable.second.fm().map()) {
+          object_list[i++].key.object_id = aclEntry.second.id;
+        }
+      }
+      break;
     }
     default:
       return SAI_STATUS_INVALID_PARAMETER;

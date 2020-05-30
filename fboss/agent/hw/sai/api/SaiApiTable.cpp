@@ -61,6 +61,14 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<VlanApi>>(apis_) = std::make_unique<VlanApi>();
 }
 
+AclApi& SaiApiTable::aclApi() {
+  return getApi<AclApi>();
+}
+
+const AclApi& SaiApiTable::aclApi() const {
+  return getApi<AclApi>();
+}
+
 BridgeApi& SaiApiTable::bridgeApi() {
   return getApi<BridgeApi>();
 }

@@ -75,10 +75,12 @@ class FakeAclTable {
   FakeAclTable(
       sai_int32_t stage,
       std::vector<sai_int32_t> bindPointTypeList,
-      std::vector<sai_int32_t> actionTypeList)
+      std::vector<sai_int32_t> actionTypeList,
+      sai_uint8_t fieldDscp)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
-        actionTypeList(actionTypeList) {}
+        actionTypeList(actionTypeList),
+        fieldDscp(fieldDscp) {}
 
   static sai_acl_api_t* kApi();
 
@@ -87,6 +89,7 @@ class FakeAclTable {
   sai_int32_t stage;
   std::vector<sai_int32_t> bindPointTypeList;
   std::vector<sai_int32_t> actionTypeList;
+  sai_uint8_t fieldDscp;
 
   FakeManager<sai_object_id_t, FakeAclEntry>& fm() {
     return fm_;
