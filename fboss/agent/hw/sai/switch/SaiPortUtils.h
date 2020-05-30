@@ -25,7 +25,8 @@ sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
     cfg::PortLoopbackMode loopbackMode);
 
 sai_port_media_type_t getSaiPortMediaType(
-    TransmitterTechnology transmitterTech);
+    TransmitterTechnology transmitterTech,
+    cfg::PortSpeed speed);
 
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec);
 

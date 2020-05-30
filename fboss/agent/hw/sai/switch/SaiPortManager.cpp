@@ -276,8 +276,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
-  auto mediaType =
-      utility::getSaiPortMediaType(platformPort->getTransmitterTech());
+  auto mediaType = utility::getSaiPortMediaType(
+      platformPort->getTransmitterTech(), swPort->getSpeed());
   auto phyFecMode = platform_->getPhyFecMode(profileID);
   auto fecMode = utility::getSaiPortFecMode(phyFecMode);
   if (swPort->getFEC() == cfg::PortFEC::ON) {

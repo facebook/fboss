@@ -39,15 +39,29 @@ sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
 }
 
 sai_port_media_type_t getSaiPortMediaType(
-    TransmitterTechnology transmitterTech) {
+    TransmitterTechnology transmitterTech,
+    cfg::PortSpeed speed) {
   switch (transmitterTech) {
     case TransmitterTechnology::COPPER:
       return SAI_PORT_MEDIA_TYPE_COPPER;
+
     case TransmitterTechnology::OPTICAL:
       return SAI_PORT_MEDIA_TYPE_FIBER;
-    default:
-      return SAI_PORT_MEDIA_TYPE_UNKNOWN;
+
+    case TransmitterTechnology::BACKPLANE:
+    // TODO: fix this once SAI is upgraded with below symbol
+    // return SAI_PORT_MEDIA_TYPE_BACKPLANE;
+    case TransmitterTechnology::UNKNOWN:
+      switch (speed) {
+        case cfg::PortSpeed::FORTYG:
+        case cfg::PortSpeed::HUNDREDG:
+          return SAI_PORT_MEDIA_TYPE_FIBER;
+
+        default:
+          return SAI_PORT_MEDIA_TYPE_COPPER;
+      }
   }
+  return SAI_PORT_MEDIA_TYPE_UNKNOWN;
 }
 
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
@@ -61,4 +75,5 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
     return SAI_PORT_FEC_MODE_NONE;
   }
 }
+
 } // namespace facebook::fboss::utility
