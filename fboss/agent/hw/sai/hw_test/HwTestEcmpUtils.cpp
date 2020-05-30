@@ -21,7 +21,7 @@
 
 namespace facebook::fboss::utility {
 
-int getEcmpSizeInHw(
+std::multiset<uint64_t> getEcmpMembersInHw(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
     facebook::fboss::RouterID rid,
@@ -56,6 +56,6 @@ int getEcmpSizeInHw(
   auto memberList = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
       routeHandle->nextHopGroupHandle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::NextHopMemberList());
-  return memberList.size();
+  return std::multiset<uint64_t>(memberList.begin(), memberList.end());
 }
 } // namespace facebook::fboss::utility

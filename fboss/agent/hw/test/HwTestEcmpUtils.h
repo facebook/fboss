@@ -14,14 +14,24 @@
 
 #include <folly/IPAddress.h>
 
+#include <set>
+
 namespace facebook::fboss {
 class HwSwitch;
 namespace utility {
 
-int getEcmpSizeInHw(
+std::multiset<uint64_t> getEcmpMembersInHw(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
     facebook::fboss::RouterID rid,
     int sizeInSw);
+
+inline int getEcmpSizeInHw(
+    const facebook::fboss::HwSwitch* hw,
+    const folly::CIDRNetwork& prefix,
+    facebook::fboss::RouterID rid,
+    int sizeInSw) {
+  return getEcmpMembersInHw(hw, prefix, rid, sizeInSw).size();
 }
+} // namespace utility
 } // namespace facebook::fboss

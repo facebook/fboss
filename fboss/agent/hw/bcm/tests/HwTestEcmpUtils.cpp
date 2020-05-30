@@ -15,13 +15,14 @@
 
 namespace facebook::fboss::utility {
 
-int getEcmpSizeInHw(
+std::multiset<uint64_t> getEcmpMembersInHw(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
     facebook::fboss::RouterID rid,
     int sizeInSw) {
-  auto bcmSw = static_cast<const facebook::fboss::BcmSwitch*>(hw);
+  auto bcmSw = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSw, prefix.first, prefix.second, rid);
-  return utility::getEcmpSizeInHw(bcmSw->getUnit(), ecmp, sizeInSw);
+  auto members = utility::getEcmpGroupInHw(bcmSw->getUnit(), ecmp, sizeInSw);
+  return std::multiset<uint64_t>(members.begin(), members.end());
 }
 } // namespace facebook::fboss::utility
