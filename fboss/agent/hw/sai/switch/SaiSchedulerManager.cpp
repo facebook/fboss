@@ -49,8 +49,9 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
         break;
     }
   }
+  // weight 0 is invalid
   return SaiSchedulerTraits::CreateAttributes(
-      {type, weight, meterType, minBwRate, maxBwRate});
+      {type, !weight ? 1 : weight, meterType, minBwRate, maxBwRate});
 }
 
 } // namespace
