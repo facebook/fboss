@@ -128,7 +128,7 @@ sai_status_t get_acl_table_attribute_fn(
           attr[i].value.objlist.list[j++] = m.first;
         }
       } break;
-      case SAI_ACL_ENTRY_ATTR_FIELD_DSCP: {
+      case SAI_ACL_TABLE_ATTR_FIELD_DSCP: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.u8 = aclTable.fieldDscp;
       } break;
@@ -353,6 +353,33 @@ sai_status_t get_acl_table_group_attribute_fn(
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
+      case SAI_ACL_TABLE_GROUP_ATTR_ACL_STAGE: {
+        const auto& aclTableGroup =
+            fs->aclTableGroupManager.get(acl_table_group_id);
+        attr_list[i].value.s32 = aclTableGroup.stage;
+      } break;
+      case SAI_ACL_TABLE_GROUP_ATTR_ACL_BIND_POINT_TYPE_LIST: {
+        const auto& aclTableGroup =
+            fs->aclTableGroupManager.get(acl_table_group_id);
+        if (aclTableGroup.bindPointTypeList.size() >
+            attr_list[i].value.s32list.count) {
+          attr_list[i].value.s32list.count =
+              aclTableGroup.bindPointTypeList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+
+        attr_list[i].value.s32list.count =
+            aclTableGroup.bindPointTypeList.size();
+        int j = 0;
+        for (const auto& bindPointType : aclTableGroup.bindPointTypeList) {
+          attr_list[i].value.s32list.list[j++] = bindPointType;
+        }
+      } break;
+      case SAI_ACL_TABLE_GROUP_ATTR_TYPE: {
+        const auto& aclTableGroup =
+            fs->aclTableGroupManager.get(acl_table_group_id);
+        attr_list[i].value.s32 = aclTableGroup.type;
+      } break;
       case SAI_ACL_TABLE_GROUP_ATTR_MEMBER_LIST: {
         const auto& aclTableGroupMemberMap =
             fs->aclTableGroupManager.get(acl_table_group_id).fm().map();
