@@ -1,6 +1,7 @@
 add_executable(store_test
     fboss/agent/test/oss/Main.cpp
     fboss/agent/hw/sai/store/tests/SaiEmptyStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/AclTableStoreTest.cpp
     fboss/agent/hw/sai/store/tests/BridgeStoreTest.cpp
     fboss/agent/hw/sai/store/tests/FdbStoreTest.cpp
     fboss/agent/hw/sai/store/tests/HashStoreTest.cpp
