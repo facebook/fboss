@@ -32,9 +32,19 @@ class AclTableStoreTest : public SaiStoreTest {
     return actionTypeList;
   }
 
+  sai_uint32_t kPriority() const {
+    return SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY;
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {stage, kBindPointTypeList(), kActionTypeList(), true}, 0);
+  }
+
+  AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
+    SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
+    return saiApiTable->aclApi().create<SaiAclEntryTraits>(
+        {aclTableIdAttribute, this->kPriority(), true}, 0);
   }
 };
 
@@ -61,4 +71,65 @@ TEST_F(AclTableStoreTest, loadAclTables) {
   auto got2 = store.get(k2);
   EXPECT_NE(got2, nullptr);
   EXPECT_EQ(got2->adapterKey(), aclTableId2);
+}
+
+TEST_F(AclTableStoreTest, loadAclEntry) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+  auto aclEntryId = createAclEntry(aclTableId);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiAclEntryTraits>();
+
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority(), true};
+  auto got = store.get(k);
+  EXPECT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), aclEntryId);
+}
+
+TEST_F(AclTableStoreTest, aclTableCtorLoad) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+  SaiObject<SaiAclTableTraits> obj(aclTableId);
+  EXPECT_EQ(obj.adapterKey(), aclTableId);
+}
+
+TEST_F(AclTableStoreTest, aclEntryLoadCtor) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+  auto aclEntryId = createAclEntry(aclTableId);
+
+  SaiObject<SaiAclEntryTraits> obj(aclEntryId);
+  EXPECT_EQ(obj.adapterKey(), aclEntryId);
+}
+
+TEST_F(AclTableStoreTest, aclTableCtorCreate) {
+  SaiAclTableTraits::CreateAttributes c{SAI_ACL_STAGE_INGRESS,
+                                        this->kBindPointTypeList(),
+                                        this->kActionTypeList(),
+                                        true};
+  SaiAclTableTraits::AdapterHostKey k{SAI_ACL_STAGE_INGRESS,
+                                      this->kBindPointTypeList(),
+                                      this->kActionTypeList(),
+                                      true};
+  SaiObject<SaiAclTableTraits> obj(k, c, 0);
+  EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), SAI_ACL_STAGE_INGRESS);
+}
+
+TEST_F(AclTableStoreTest, AclEntryCreateCtor) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+
+  SaiAclEntryTraits::CreateAttributes c{aclTableId, this->kPriority(), true};
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority(), true};
+  SaiObject<SaiAclEntryTraits> obj(k, c, 0);
+  EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
+}
+
+TEST_F(AclTableStoreTest, serDeserAclTableStore) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+  verifyAdapterKeySerDeser<SaiAclTableTraits>({aclTableId});
+}
+
+TEST_F(AclTableStoreTest, serDeserAclEntryStore) {
+  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+  auto aclEntryId = createAclEntry(aclTableId);
+  verifyAdapterKeySerDeser<SaiAclEntryTraits>({aclEntryId});
 }
