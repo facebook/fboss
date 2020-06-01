@@ -729,6 +729,12 @@ void BcmSwitch::setupLinkscan() {
     rv = bcm_port_config_get(unit_, &pcfg);
     bcmCheckError(rv, "failed to get port configuration");
     forceLinkscanOn(pcfg.port);
+    // Sometimes after warmboot sw does not have the correct state of every port
+    // so we need to update sw state here. This needs to be done after linkscan
+    // is enabled otherwise the sdk may return inconsistent results
+    for (auto& port : *portTable_) {
+      callback_->linkStateChanged(port.first, port.second->isUp());
+    }
   }
 }
 
