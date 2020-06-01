@@ -102,15 +102,6 @@ struct PhyFwVersion {
   4: optional i32 dateCode
 }
 
-struct PhySettings {
-  1: list<PhyPortSettings> ports = []
-  2: optional PhyFwVersion expectedFw
-}
-
-struct Phys {
-  1: map<i16, PhySettings> phys,
-}
-
 
 /*
  * ===== Port speed profile configs =====

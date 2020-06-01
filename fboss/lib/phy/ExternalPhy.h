@@ -128,31 +128,9 @@ class ExternalPhy {
 
   virtual PhyFwVersion fwVersion() = 0;
 
-  /* TODO (ccpowers): remove all of these old functions using
-    - PhyPortSettings
-    - PhySettings
-    once the new configuration format is fully supported */
-
-  // Program all settings in one go. This is a rather inflexible API
-  // in that we expect to use all lanes in the external phy and that
-  // all logical ports are the same speed on a given side of the phy.
-  //
-  // Down the line we can support mismatched speeds using more first
-  // class integration with the switch state.
-  virtual void program(PhySettings settings) = 0;
-  virtual void programOnePort(PhyPortSettings settings) = 0;
   virtual void programOnePort(PhyPortConfig config) = 0;
-  virtual PhySettings getSettings() = 0;
 
-  virtual bool legalSettings(const PhySettings& settings) {
-    // optionally overridable by subclasses
-    return true;
-  }
   virtual bool legalOnePortConfig(const PhyPortConfig& /* config */) {
-    // optionally overridable by subclasses
-    return true;
-  }
-  virtual bool legalOnePortSettings(const PhyPortSettings& /* config */) {
     // optionally overridable by subclasses
     return true;
   }
@@ -160,8 +138,6 @@ class ExternalPhy {
   virtual Loopback getLoopback(Side side) = 0;
   virtual void setLoopback(Side side, Loopback loopback) = 0;
 
-  virtual ExternalPhyPortStats getPortStats(
-      const PhyPortSettings& settings) = 0;
   virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
       uint32_t sysLanes,
       uint32_t lineLanes) {
@@ -179,6 +155,12 @@ class ExternalPhy {
       const PhyPortConfig& rhs) {
     return lhs == rhs;
   }
+
+ private:
+  /* TODO (ccpowers): remove all of these old functions using
+    - PhyPortSettings
+    once the new configuration format is fully supported */
+  virtual void programOnePort(PhyPortSettings settings) = 0;
 };
 
 } // namespace facebook::fboss::phy
