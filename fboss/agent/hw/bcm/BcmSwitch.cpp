@@ -2939,7 +2939,10 @@ std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
 
 static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
   L2EntryThrift entry;
-  auto l2Table = static_cast<std::vector<L2EntryThrift>*>(user_data);
+  auto* cookie =
+      static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
+          user_data);
+  auto [hw, l2Table] = *cookie;
   entry.mac = folly::sformat(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
@@ -2951,11 +2954,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
   entry.vlanID = l2addr->vid;
   entry.port = 0;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
-    // Ideally we would return the corresponding BcmTrunk aggregatePortId here
-    // rather than the SDK assigned trunk ids. However since this function does
-    // not synchronize with update thread, it would be racy to look agg port
-    // id here. So for now, make do with SDK trunk id
-    entry.trunk_ref() = l2addr->tgid;
+    entry.trunk_ref() = hw->getTrunkTable()->getAggregatePortId(l2addr->tgid);
     XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
                << " Trunk: " << entry.trunk_ref().value_or({});
   } else {
@@ -2979,7 +2978,8 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
 }
 
 void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
-  int rv = bcm_l2_traverse(unit_, _addL2Entry, l2Table);
+  auto cookie = std::make_pair(this, l2Table);
+  int rv = bcm_l2_traverse(unit_, _addL2Entry, &cookie);
   bcmCheckError(rv, "bcm_l2_traverse failed");
 }
 
