@@ -1130,7 +1130,7 @@ struct QcmConfig {
   4: i32 scanIntervalInUsecs = 1000
   5: i32 exportThreshold = 1
   6: map<BurstMonitorWeight, i16> flowWeights
-  7: i32 agingIntervalInMsecs = 1000
+  7: i32 agingIntervalInMsecs = 50
   8: string collectorDstIp
   9: IpType ipType = IP6
   10: optional i16 collectorSrcPort

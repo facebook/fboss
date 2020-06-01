@@ -342,6 +342,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/BcmPortQueueManager.cpp
     fboss/agent/hw/bcm/BcmPortResourceBuilder.cpp
     fboss/agent/hw/bcm/BcmPortTable.cpp
+    fboss/agent/hw/bcm/BcmQcmManager.cpp
     fboss/agent/hw/bcm/BcmQosMap.cpp
     fboss/agent/hw/bcm/BcmQosMapEntry.cpp
     fboss/agent/hw/bcm/BcmQosPolicy.cpp
@@ -382,6 +383,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/bcm/oss/BcmAPI.cpp
     fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
     fboss/agent/hw/bcm/oss/BcmPort.cpp
+    fboss/agent/hw/bcm/oss/BcmQcmManager.cpp
     fboss/agent/hw/bcm/oss/BcmSwitch.cpp
     fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
     fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp

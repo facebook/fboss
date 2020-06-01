@@ -17,6 +17,9 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+DECLARE_int32(qcm_ifp_gid);
+DECLARE_int32(qcm_ifp_pri);
+
 namespace facebook::fboss {
 
 class BcmPlatformPort;

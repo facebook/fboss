@@ -54,6 +54,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
@@ -187,6 +188,13 @@ DEFINE_int32(
 
 DEFINE_int32(acl_g_pri, 0, "Group priority for ACL field group");
 DEFINE_int32(ll_mcast_g_pri, 2, "Group pri for link local mcast field group");
+DEFINE_int32(
+    qcm_ifp_gid,
+    5,
+    "Content aware processor group ID for ACLs specific to qcm");
+// Put lowest priority for this group among all i.e. lower than acl_g_pri,
+// ll_mcast_g_pri,
+DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -394,7 +402,8 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       mirrorTable_(new BcmMirrorTable(this)),
       bstStatsMgr_(new BcmBstStatsMgr(this)),
       switchSettings_(new BcmSwitchSettings(this)),
-      macTable_(new BcmMacTable(this)) {
+      macTable_(new BcmMacTable(this)),
+      qcmManager_(new BcmQcmManager(this)) {
   exportSdkVersion();
 }
 
@@ -442,6 +451,7 @@ void BcmSwitch::resetTables() {
   bstStatsMgr_.reset();
   switchSettings_.reset();
   macTable_.reset();
+  qcmManager_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -489,6 +499,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
   bstStatsMgr_->stopBufferStatCollection();
+  qcmManager_->stopQcm();
 
   std::lock_guard<std::mutex> g(lock_);
 

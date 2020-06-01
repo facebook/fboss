@@ -85,6 +85,7 @@ class BcmLabelMap;
 class BcmSwitchSettings;
 class BcmMacTable;
 class PortQueue;
+class BcmQcmManager;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -455,6 +456,11 @@ class BcmSwitch : public BcmSwitchIf {
   BcmBstStatsMgr* getBstStatsMgr() const {
     return bstStatsMgr_.get();
   }
+
+  BcmQcmManager* getBcmQcmMgr() const {
+    return qcmManager_.get();
+  }
+
   /**
    * Runs a diag cmd on the corresponding unit
    */
@@ -893,6 +899,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmUnit> unitObject_;
   BootType bootType_{BootType::UNINITIALIZED};
   int64_t bstStatsUpdateTime_{0};
+  std::unique_ptr<BcmQcmManager> qcmManager_;
 
   /*
    * Lock to synchronize access to all BCM* data structures

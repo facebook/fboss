@@ -39,6 +39,7 @@ class BcmSwitchSettings {
 
   std::optional<cfg::L2LearningMode> l2LearningMode_{std::nullopt};
   bool l2AddrCallBackRegisterd_{false};
+  std::optional<bool> qcmEnable_{std::nullopt};
 };
 
 } // namespace facebook::fboss

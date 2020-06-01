@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -232,8 +233,13 @@ void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {
 }
 
 void BcmSwitchSettings::setQcmEnable(bool qcmEnable) {
-  XLOG(INFO) << "Set to:" << qcmEnable;
-  // TODO (rohitpuri)
-}
+  XLOG(DBG3) << "Set qcm =" << qcmEnable;
+  if (qcmEnable_.has_value() && qcmEnable_.value() == qcmEnable) {
+    return;
+  }
 
+  const auto bcmQcmMgrPtr = hw_->getBcmQcmMgr();
+  qcmEnable ? bcmQcmMgrPtr->initQcm() : bcmQcmMgrPtr->stopQcm();
+  qcmEnable_ = qcmEnable;
+}
 } // namespace facebook::fboss
