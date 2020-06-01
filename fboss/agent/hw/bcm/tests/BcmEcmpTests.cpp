@@ -23,6 +23,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 
 #include <folly/IPAddress.h>
 
@@ -48,7 +49,8 @@ using folly::IPAddressV6;
 
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{IPAddressV6(), 0};
-}
+folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
+} // namespace
 namespace facebook::fboss {
 
 class BcmEcmpTest : public BcmLinkStateDependentTests {
@@ -145,14 +147,9 @@ void BcmEcmpTest::runSimpleTest(
     resolveNhops(swWs.size());
   };
   auto verify = [=]() {
-    auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
-    auto totalHwWeight =
-        std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
-    ASSERT_EQ(totalHwWeight, egressIdsInSw.size());
-    auto pathsInHw =
-        getEcmpGroupInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
-    std::set<bcm_if_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
+    auto pathsInHw = utility::getEcmpMembersInHw(
+        getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+    std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
     // This check assumes that egress ids grow as you add more egresses
     // That assumption could prove incorrect, in which case we would
     // need to map ips to egresses, somehow.
@@ -162,6 +159,8 @@ void BcmEcmpTest::runSimpleTest(
       ASSERT_EQ(count, *expectedCountIter);
       expectedCountIter++;
     }
+    auto totalHwWeight =
+        std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
     auto pathsInHwCount = pathsInHw.size();
     ASSERT_EQ(totalHwWeight, pathsInHwCount);
     ASSERT_LE(pathsInHwCount, FLAGS_ecmp_width);
@@ -239,15 +238,6 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmEcmpTest, L2ResolveAllNhopsInEcmp) {
-  runSimpleTest({0, 0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1});
-}
-
-// Test basic UCMP
-TEST_F(BcmEcmpTest, L2ResolveAllNhopsInUcmp) {
-  runSimpleTest({3, 2, 1, 1, 4, 1, 3, 5}, {3, 2, 1, 1, 4, 1, 3, 5});
-}
-
 // Test what happens when totalWeight > 64 in UCMP and some of the
 // weights are too low, resulting in them going to zero when
 // multiplied by 64/W (where W is the total weight of the nexthops).
@@ -262,11 +252,9 @@ TEST_F(BcmEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
 // Test link down in UCMP scenario
 TEST_F(BcmEcmpTest, L2ResolveAllNhopsInUcmpThenLinkDown) {
   runSimpleTest({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1}, false);
-  auto ecmpEgress = getEcmpEgress();
-  auto egressIdsInSw = ecmpEgress->paths();
   bringDownPort(ecmpHelper_->nhop(0).portDesc.phyPortID());
-  auto pathsInHwCount =
-      getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
+  auto pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
   ASSERT_EQ(7, pathsInHwCount);
 }
 
@@ -274,19 +262,17 @@ TEST_F(BcmEcmpTest, L2ResolveAllNhopsInUcmpThenLinkDown) {
 TEST_F(BcmEcmpTest, L2ResolveBothNhopsInUcmpThenLinkFlap) {
   runSimpleTest({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1}, false);
   auto nhop = ecmpHelper_->nhop(0);
-  auto ecmpEgress = getEcmpEgress();
-  auto egressIdsInSw = ecmpEgress->paths();
   bringDownPort(nhop.portDesc.phyPortID());
-  auto pathsInHwCount =
-      getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
+  auto pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
   ASSERT_EQ(7, pathsInHwCount);
   bringUpPort(nhop.portDesc.phyPortID());
-  pathsInHwCount =
-      getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
+  pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
   ASSERT_EQ(7, pathsInHwCount);
   resolveNhops(1);
-  pathsInHwCount =
-      getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
+  pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
   ASSERT_EQ(10, pathsInHwCount);
 }
 

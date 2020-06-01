@@ -10,6 +10,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
   fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
   fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
+  fboss/agent/hw/bcm/tests/HwTestEcmpUtils.cpp
   fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
