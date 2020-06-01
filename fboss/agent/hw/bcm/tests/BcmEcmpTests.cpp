@@ -209,17 +209,6 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Test what happens when totalWeight > 64 in UCMP and some of the
-// weights are too low, resulting in them going to zero when
-// multiplied by 64/W (where W is the total weight of the nexthops).
-// TODO(borisb): Think of a better algorithm for this case than wi*(64/W)
-TEST_F(BcmEcmpTest, UcmpOverflowZero) {
-  runSimpleTest({50, 50, 1, 1}, {31, 31, 1, 1});
-}
-TEST_F(BcmEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
-  runSimpleTest({50, 50, 1, 1, 1, 1, 1, 1}, {29, 29, 1, 1, 1, 1, 1, 1});
-}
-
 // Test link down in UCMP scenario
 TEST_F(BcmEcmpTest, L2ResolveAllNhopsInUcmpThenLinkDown) {
   runSimpleTest({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1}, false);
