@@ -50,7 +50,7 @@ using folly::IPAddressV6;
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
-}
+} // namespace
 namespace facebook::fboss {
 
 class BcmEcmpTest : public BcmLinkStateDependentTests {
@@ -84,10 +84,6 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
       // TODO: Fix warm boot for ECMP and enable warmboot for these tests -
       // T29840275
       bool warmboot = false);
-  void runVaryOneNextHopFromHundredTest(
-      size_t routeNumNextHops,
-      NextHopWeight value,
-      const std::vector<NextHopWeight>& hwWs);
   void resolveNhops(int numNhops);
   void resolveNhops(const std::vector<PortDescriptor>& portDescs);
   void programRouteWithUnresolvedNhops(size_t numRouteNextHops = 0);
@@ -173,18 +169,6 @@ void BcmEcmpTest::runSimpleTest(
   }
 }
 
-void BcmEcmpTest::runVaryOneNextHopFromHundredTest(
-    size_t routeNumNextHops,
-    NextHopWeight value,
-    const std::vector<NextHopWeight>& hwWs) {
-  std::vector<NextHopWeight> swWs;
-  for (size_t i = 0; i < routeNumNextHops - 1; ++i) {
-    swWs.push_back(100);
-  }
-  swWs.push_back(value);
-  runSimpleTest(swWs, hwWs);
-}
-
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
   auto routeTable = getProgrammedState()->getRouteTables()->getRouteTable(kRid);
   auto resolvedRoute = routeTable->getRibV6()->exactMatch(kDefaultRoute);
@@ -261,78 +245,6 @@ TEST_F(BcmEcmpTest, L2ResolveBothNhopsInUcmpThenLinkFlap) {
   pathsInHwCount = utility::getEcmpSizeInHw(
       getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
   ASSERT_EQ(10, pathsInHwCount);
-}
-
-// Tests for some simple cases we expect to see with the lbw community
-
-TEST_F(BcmEcmpTest, FourLinksHundred) {
-  runVaryOneNextHopFromHundredTest(4, 100, {1, 1, 1, 1});
-}
-TEST_F(BcmEcmpTest, EightLinksHundred) {
-  runVaryOneNextHopFromHundredTest(8, 100, {1, 1, 1, 1, 1, 1, 1, 1});
-}
-
-TEST_F(BcmEcmpTest, FourLinksNinety) {
-  runVaryOneNextHopFromHundredTest(4, 90, {10, 10, 10, 9});
-}
-TEST_F(BcmEcmpTest, EightLinksNinety) {
-  runVaryOneNextHopFromHundredTest(8, 90, {8, 8, 8, 8, 8, 8, 8, 7});
-}
-
-TEST_F(BcmEcmpTest, FourLinksEighty) {
-  runVaryOneNextHopFromHundredTest(4, 80, {5, 5, 5, 4});
-}
-TEST_F(BcmEcmpTest, EightLinksEighty) {
-  runVaryOneNextHopFromHundredTest(8, 80, {5, 5, 5, 5, 5, 5, 5, 4});
-}
-
-TEST_F(BcmEcmpTest, FourLinksSeventy) {
-  runVaryOneNextHopFromHundredTest(4, 70, {10, 10, 10, 7});
-}
-TEST_F(BcmEcmpTest, EightLinksSeventy) {
-  runVaryOneNextHopFromHundredTest(8, 70, {8, 8, 8, 8, 8, 8, 8, 5});
-}
-
-TEST_F(BcmEcmpTest, FourLinksSixty) {
-  runVaryOneNextHopFromHundredTest(4, 60, {5, 5, 5, 3});
-}
-TEST_F(BcmEcmpTest, EightLinksSixty) {
-  runVaryOneNextHopFromHundredTest(8, 60, {5, 5, 5, 5, 5, 5, 5, 3});
-}
-
-TEST_F(BcmEcmpTest, FourLinksFifty) {
-  runVaryOneNextHopFromHundredTest(4, 50, {2, 2, 2, 1});
-}
-TEST_F(BcmEcmpTest, EightLinksFifty) {
-  runVaryOneNextHopFromHundredTest(8, 50, {2, 2, 2, 2, 2, 2, 2, 1});
-}
-
-TEST_F(BcmEcmpTest, FourLinksForty) {
-  runVaryOneNextHopFromHundredTest(4, 40, {5, 5, 5, 2});
-}
-TEST_F(BcmEcmpTest, EightLinksForty) {
-  runVaryOneNextHopFromHundredTest(8, 40, {5, 5, 5, 5, 5, 5, 5, 2});
-}
-
-TEST_F(BcmEcmpTest, FourLinksThirty) {
-  runVaryOneNextHopFromHundredTest(4, 30, {10, 10, 10, 3});
-}
-TEST_F(BcmEcmpTest, EightLinksThirty) {
-  runVaryOneNextHopFromHundredTest(8, 30, {8, 8, 8, 8, 8, 8, 8, 2});
-}
-
-TEST_F(BcmEcmpTest, FourLinksTwenty) {
-  runVaryOneNextHopFromHundredTest(4, 20, {5, 5, 5, 1});
-}
-TEST_F(BcmEcmpTest, EightLinksTwenty) {
-  runVaryOneNextHopFromHundredTest(8, 20, {5, 5, 5, 5, 5, 5, 5, 1});
-}
-
-TEST_F(BcmEcmpTest, FourLinksTen) {
-  runVaryOneNextHopFromHundredTest(4, 10, {10, 10, 10, 1});
-}
-TEST_F(BcmEcmpTest, EightLinksTen) {
-  runVaryOneNextHopFromHundredTest(8, 10, {9, 9, 9, 9, 9, 9, 9, 1});
 }
 
 TEST_F(BcmEcmpTest, ResolvePendingResolveNexthop) {
