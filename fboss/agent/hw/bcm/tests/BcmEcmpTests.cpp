@@ -50,7 +50,7 @@ using folly::IPAddressV6;
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
-} // namespace
+}
 namespace facebook::fboss {
 
 class BcmEcmpTest : public BcmLinkStateDependentTests {
@@ -202,19 +202,6 @@ const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
 
 const BcmEcmpEgress* BcmEcmpTest::getEcmpEgress() const {
   return getBcmMultiPathNextHop()->getEgress();
-}
-
-TEST_F(BcmEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
-  auto setup = [=]() { programRouteWithUnresolvedNhops(); };
-  auto verify = [=]() {
-    auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
-    ASSERT_EQ(numNextHops_, egressIdsInSw.size());
-    auto pathsInHwCount =
-        getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());
-    ASSERT_EQ(0, pathsInHwCount);
-  };
-  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {

@@ -123,4 +123,13 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
+  auto setup = [=]() { programRouteWithUnresolvedNhops(); };
+  auto verify = [=]() {
+    EXPECT_EQ(0, getEcmpSizeInHw());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
