@@ -16,6 +16,7 @@ extern "C" {
 }
 
 #include <boost/container/flat_map.hpp>
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <folly/dynamic.h>
 
 #include "fboss/agent/hw/bcm/MinimumLinkCountMap.h"
@@ -65,6 +66,9 @@ class BcmTrunkTable {
   const BcmSwitch* const hw_{nullptr};
 
   TrunkToMinimumLinkCountMap trunkToMinLinkCount_;
+
+  // Used for thread-safe id translation
+  folly::ConcurrentHashMap<AggregatePortID, bcm_trunk_t> tgidLookup_;
 
  public:
   using iterator = decltype(trunks_)::iterator;

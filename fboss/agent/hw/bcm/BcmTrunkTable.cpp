@@ -24,22 +24,22 @@ extern "C" {
 namespace facebook::fboss {
 
 BcmTrunkTable::BcmTrunkTable(const BcmSwitch* hw)
-    : trunks_(), hw_(hw), trunkToMinLinkCount_() {}
+    : trunks_(), hw_(hw), trunkToMinLinkCount_(), tgidLookup_() {}
 
 BcmTrunkTable::~BcmTrunkTable() {}
 
 bcm_trunk_t BcmTrunkTable::getBcmTrunkId(AggregatePortID id) const {
-  auto iter = trunks_.find(id);
-  if (iter == trunks_.end()) {
+  auto iter = tgidLookup_.find(id);
+  if (iter == tgidLookup_.end()) {
     throw FbossError("Cannot find the BCM trunk id for aggregatePort ", id);
   }
-  return iter->second->id();
+  return iter->second;
 }
 
 AggregatePortID BcmTrunkTable::getAggregatePortId(bcm_trunk_t trunk) const {
-  for (const auto& idAndTrunk : trunks_) {
-    if (idAndTrunk.second->id() == trunk) {
-      return idAndTrunk.first;
+  for (const auto [aggregateID, trunkID] : tgidLookup_) {
+    if (trunkID == trunk) {
+      return aggregateID;
     }
   }
   throw FbossError("Cannot find the aggregatePort id for trunk ", trunk);
@@ -62,6 +62,7 @@ void BcmTrunkTable::addTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   }
 
   trunkToMinLinkCount_.addOrUpdate(trunkID, aggPort->getMinimumLinkCount());
+  tgidLookup_.insert(aggPort->getID(), trunkID);
 }
 
 void BcmTrunkTable::programTrunk(
@@ -94,6 +95,7 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
   auto trunkID = it->second->id();
   trunks_.erase(it);
   trunkToMinLinkCount_.del(trunkID);
+  tgidLookup_.erase(aggPort->getID());
 }
 
 /* 1. If bcm_trunk_t == INVALID, then
