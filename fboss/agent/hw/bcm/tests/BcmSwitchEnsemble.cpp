@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
+#include <folly/logging/xlog.h>
 #include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
@@ -19,11 +20,10 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateToggler.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/platforms/tests/utils/CreateTestPlatform.h"
-
-#include <folly/logging/xlog.h>
 
 DECLARE_bool(setup_thrift);
 DECLARE_int32(update_bststats_interval_s);
@@ -50,6 +50,23 @@ void addFlexPort(
   addPort(cfg, start + 1, speed / 4, false);
   addPort(cfg, start + 2, speed / 2, false);
   addPort(cfg, start + 3, speed / 4, false);
+}
+
+void modifyCfgForQcmTests(facebook::fboss::BcmConfig::ConfigMap& cfg) {
+  if (cfg.find("l2_mem_entries") != cfg.end()) {
+    // remove
+    cfg.erase("l2_mem_entries");
+  }
+  cfg["flowtracker_enable"] = "2";
+  cfg["qcm_flow_enable"] = "1";
+  cfg["qcm_max_flows"] = "1000";
+  cfg["num_queues_pci"] = "46";
+  cfg["num_queues_uc0"] = "1";
+  cfg["num_queues_uc1"] = "1";
+  cfg["flowtracker_max_export_pkt_length"] = "1500";
+  cfg["flowtracker_enterprise_number"] = "0xAABBCCDD";
+  cfg["fpem_mem_entries"] = "0x2000";
+  cfg["ctr_evict_enable"] = "0";
 }
 
 } // namespace
@@ -89,11 +106,15 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
       throw FbossError("No config file to load!");
     }
   }
+  if (FLAGS_load_qcm_fw &&
+      platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
+    XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";
+    modifyCfgForQcmTests(cfg);
+  }
   BcmAPI::init(cfg);
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), featuresDesired);
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
-
   std::unique_ptr<HwLinkStateToggler> linkToggler;
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = createLinkToggler(

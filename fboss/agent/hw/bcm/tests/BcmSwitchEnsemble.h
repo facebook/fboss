@@ -18,8 +18,6 @@
 DECLARE_bool(flexports);
 DECLARE_string(bcm_config);
 DECLARE_string(config);
-DECLARE_string(qcm_fw_path);
-DECLARE_bool(load_qcm_fw);
 
 namespace facebook::fboss {
 
