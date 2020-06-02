@@ -195,6 +195,19 @@ void getPortInfoHelper(
     portInfo.vlans_ref()->push_back(entry.first);
   }
 
+  std::shared_ptr<QosPolicy> qosPolicy;
+  auto state = sw.getAppliedState();
+  if (port->getQosPolicy().has_value()) {
+    auto appliedPolicyName = port->getQosPolicy();
+    qosPolicy =
+        *appliedPolicyName == state->getDefaultDataPlaneQosPolicy()->getName()
+        ? state->getDefaultDataPlaneQosPolicy()
+        : state->getQosPolicy(*appliedPolicyName);
+    if (!qosPolicy) {
+      throw std::runtime_error("qosPolicy state is null");
+    }
+  }
+
   for (const auto& queue : port->getPortQueues()) {
     PortQueueThrift pq;
     *pq.id_ref() = queue->getID();
@@ -275,6 +288,26 @@ void getPortInfoHelper(
     if (queue->getBandwidthBurstMaxKbits()) {
       pq.bandwidthBurstMaxKbits_ref() =
           queue->getBandwidthBurstMaxKbits().value();
+    }
+
+    if (!port->getLookupClassesToDistributeTrafficOn().empty()) {
+      // On MH-NIC setup, RSW downlinks implement queue-pe-host.
+      // For such configurations traffic goes to queue corresponding
+      // to host regardless of DSCP value
+      auto kMaxDscp = 64;
+      std::vector<signed char> dscps(kMaxDscp);
+      std::iota(dscps.begin(), dscps.end(), 0);
+      pq.dscps_ref() = dscps;
+    } else if (qosPolicy) {
+      std::vector<signed char> dscps;
+      auto tcToDscp = qosPolicy->getDscpMap().from();
+      auto tcToQueueId = qosPolicy->getTrafficClassToQueueId();
+      for (const auto& entry : tcToDscp) {
+        if (tcToQueueId[entry.trafficClass()] == queue->getID()) {
+          dscps.push_back(entry.attr());
+        }
+      }
+      pq.dscps_ref() = dscps;
     }
 
     portInfo.portQueues_ref()->push_back(pq);
