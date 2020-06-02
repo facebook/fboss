@@ -140,13 +140,23 @@ void SaiSwitchManager::resetQosMaps() {
   // to gate reset. This should only be true if resetting is supported and
   // would do something meaningful.
   if (globalDscpToTcQosMap_) {
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::QosDscpToTcMap{SAI_NULL_OBJECT_ID});
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::QosTcToQueueMap{SAI_NULL_OBJECT_ID});
-    globalDscpToTcQosMap_.reset();
-    globalTcToQueueQosMap_.reset();
+    // Unfortunately we cant consult the ASIC capability here, since
+    // resetQosMaps can be called from call chain that starts from platform
+    // being destroyed. Which then leads to HwSwitch being destroyed followed by
+    // manager table destruction. Since getAsic is pure virtual in Platform we
+    // can't call that here. So we cache whether switch level qos maps
+    // programmed.
+    if (switchQosMapsProgrammed_) {
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::QosDscpToTcMap{SAI_NULL_OBJECT_ID});
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::QosTcToQueueMap{SAI_NULL_OBJECT_ID});
+    } else {
+      // TODO: remove qos map from each port
+    }
   }
+  globalDscpToTcQosMap_.reset();
+  globalTcToQueueQosMap_.reset();
 }
 
 void SaiSwitchManager::programLoadBalancerParams(
@@ -219,11 +229,17 @@ void SaiSwitchManager::addDefaultDataPlaneQosPolicy(
       qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
   globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
       newDefaultQosPolicy->getTrafficClassToQueueId());
-  // set switch attrs to oids
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
-      globalDscpToTcQosMap_->adapterKey()});
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
-      globalTcToQueueQosMap_->adapterKey()});
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+    // set switch attrs to oids
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
+        globalDscpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
+        globalTcToQueueQosMap_->adapterKey()});
+    switchQosMapsProgrammed_ = true;
+  } else {
+    // TODO set qos policy for each port
+  }
 }
 
 void SaiSwitchManager::removeDefaultDataPlaneQosPolicy(

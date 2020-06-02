@@ -173,9 +173,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiVlanManager::removeVlan);
 
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
-  if ((qosDelta.getOld() != qosDelta.getNew()) &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
-    // Only handle the global default QoS policy.
+  if ((qosDelta.getOld() != qosDelta.getNew())) {
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
     if (qosDelta.getOld() && qosDelta.getNew()) {
       managerTable_->switchManager().changeDefaultDataPlaneQosPolicy(
@@ -187,9 +185,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       managerTable_->switchManager().removeDefaultDataPlaneQosPolicy(
           qosDelta.getOld());
     }
-  } else {
-    XLOG(WARNING)
-        << "Skip programming default qos map; ASIC doesn't support it";
   }
 
   processDelta(
