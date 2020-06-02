@@ -68,6 +68,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_SERDES_PREEMPHASIS,
         std::vector<uint32_t>>;
     using Mtu = SaiAttribute<EnumType, SAI_PORT_ATTR_MTU, sai_uint32_t>;
+    using QosDscpToTcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosTcToQueueMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -82,7 +92,9 @@ struct SaiPortTraits {
       std::optional<Attributes::GlobalFlowControlMode>,
       std::optional<Attributes::PortVlanId>,
       std::optional<Attributes::Preemphasis>,
-      std::optional<Attributes::Mtu>>;
+      std::optional<Attributes::Mtu>,
+      std::optional<Attributes::QosDscpToTcMap>,
+      std::optional<Attributes::QosTcToQueueMap>>;
 
   static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
   static constexpr std::array<sai_stat_id_t, 15> CounterIds = {
@@ -115,6 +127,8 @@ SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Preemphasis)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
+SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosTcToQueueMap)
 
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)

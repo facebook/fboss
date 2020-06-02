@@ -40,6 +40,8 @@ class PortApiTest : public ::testing::Test {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
                                       std::nullopt};
     return portApi->create<SaiPortTraits>(a, 0);
   }

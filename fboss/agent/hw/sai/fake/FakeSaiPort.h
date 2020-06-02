@@ -38,6 +38,8 @@ class FakePort {
   std::vector<sai_object_id_t> queueIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
+  sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;

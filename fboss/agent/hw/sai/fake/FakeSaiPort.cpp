@@ -32,6 +32,8 @@ sai_status_t create_port_fn(
   std::optional<sai_vlan_id_t> vlanId;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
+  sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -70,6 +72,12 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_MTU:
         mtu = attr_list[i].value.u32;
         break;
+      case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
+        qosDscpToTcMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
+        qosTcToQueueMap = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -101,6 +109,8 @@ sai_status_t create_port_fn(
     port.preemphasis = preemphasis;
   }
   port.mtu = mtu;
+  port.qosDscpToTcMap = qosDscpToTcMap;
+  port.qosTcToQueueMap = qosTcToQueueMap;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 7; queueId++) {
     auto saiQueueId = fs->queueManager.create(
@@ -181,6 +191,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_MTU:
       port.mtu = attr->value.u32;
       break;
+    case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
+      port.qosDscpToTcMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
+      port.qosTcToQueueMap = attr->value.oid;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -254,6 +270,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_OPER_STATUS:
         attr->value.s32 = SAI_PORT_OPER_STATUS_UP;
+        break;
+      case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
+        attr->value.oid = port.qosDscpToTcMap;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
+        attr->value.oid = port.qosTcToQueueMap;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
