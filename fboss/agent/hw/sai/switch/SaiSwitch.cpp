@@ -184,7 +184,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
           qosDelta.getNew());
     } else if (qosDelta.getOld()) {
-      managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
+      managerTable_->switchManager().removeDefaultDataPlaneQosPolicy(
           qosDelta.getOld());
     }
   } else {
