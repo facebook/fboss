@@ -259,4 +259,31 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Test link down in UCMP scenario
+TEST_F(HwEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
+  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
+  bringDownPort(ecmpHelper_->nhop(0).portDesc.phyPortID());
+  auto pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  EXPECT_EQ(7, pathsInHwCount);
+}
+
+// Test link flap in UCMP scenario
+TEST_F(HwEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
+  programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
+  auto nhop = ecmpHelper_->nhop(0);
+  bringDownPort(nhop.portDesc.phyPortID());
+  auto pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  EXPECT_EQ(7, pathsInHwCount);
+  bringUpPort(nhop.portDesc.phyPortID());
+  pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  EXPECT_EQ(7, pathsInHwCount);
+  unresolveNhops(1);
+  resolveNhops(1);
+  pathsInHwCount = utility::getEcmpSizeInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  EXPECT_EQ(10, pathsInHwCount);
+}
 } // namespace facebook::fboss
