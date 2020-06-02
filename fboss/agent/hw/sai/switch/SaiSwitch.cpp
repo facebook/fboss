@@ -113,17 +113,19 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   // N.B., state changed will be locking/unlocking in a more fine grained manner
   // and expects the mutex to be unlocked
   if (bootType_ != BootType::WARM_BOOT) {
-    managerTable_->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
+      managerTable_->aclTableGroupManager().addAclTableGroup(
+          SAI_ACL_STAGE_INGRESS);
 
-    /*
-     * TODO(skhare)
-     * SwitchState does not carry AclTable today, and thus a single table is
-     * created explicitly and every AclEntry is added to the same table.
-     * Extend SwitchState to carry AclTable, and then let stateChanged()
-     * AclTable Delta processing handle the AclTable creation.
-     */
-    managerTable_->aclTableManager().addAclTable(kAclTable1);
+      /*
+       * TODO(skhare)
+       * SwitchState does not carry AclTable today, and thus a single table is
+       * created explicitly and every AclEntry is added to the same table.
+       * Extend SwitchState to carry AclTable, and then let stateChanged()
+       * AclTable Delta processing handle the AclTable creation.
+       */
+      managerTable_->aclTableManager().addAclTable(kAclTable1);
+    }
   }
   stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   return ret;
@@ -254,12 +256,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
-  processDelta(
-      delta.getAclsDelta(),
-      managerTable_->aclTableManager(),
-      &SaiAclTableManager::changedAclEntry,
-      &SaiAclTableManager::addAclEntry,
-      &SaiAclTableManager::removeAclEntry);
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
+    processDelta(
+        delta.getAclsDelta(),
+        managerTable_->aclTableManager(),
+        &SaiAclTableManager::changedAclEntry,
+        &SaiAclTableManager::addAclEntry,
+        &SaiAclTableManager::removeAclEntry);
+  }
 
   return delta.newState();
 }

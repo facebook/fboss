@@ -10,6 +10,9 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
 namespace facebook::fboss {
 
 SaiAclTableManager::SaiAclTableManager(
@@ -18,6 +21,8 @@ SaiAclTableManager::SaiAclTableManager(
     : managerTable_(managerTable), platform_(platform) {}
 
 void SaiAclTableManager::addAclTable(const std::string& /*aclTableName*/) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   /*
    * TODO(skhare)
    * Add single ACL Table for now (called during SaiSwitch::init()).
@@ -31,6 +36,8 @@ void SaiAclTableManager::addAclTable(const std::string& /*aclTableName*/) {
 }
 
 void SaiAclTableManager::removeAclTable() {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to remove
@@ -44,6 +51,8 @@ void SaiAclTableManager::removeAclTable() {
 }
 
 void SaiAclTableManager::changedAclTable() {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to change
@@ -56,17 +65,23 @@ void SaiAclTableManager::changedAclTable() {
 
 void SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& /*addedAclEntry*/) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   // TODO(skhare) add Acl Entry
 }
 
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& /*removedAclEntry*/) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   // TODO(skhare) remove Acl Entry
 }
 
 void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
