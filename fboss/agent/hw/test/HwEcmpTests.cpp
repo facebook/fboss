@@ -81,43 +81,55 @@ class HwEcmpTest : public HwLinkStateDependentTest {
     return utility::getEcmpSizeInHw(
         getHwSwitch(), kDefaultRoutePrefix, kRid, sizeInSw);
   }
-  void runSimpleTest(
+  void runSimpleUcmpTest(
       const std::vector<NextHopWeight>& swWs,
       const std::vector<NextHopWeight>& hwWs);
+  void programResolvedUcmp(
+      const std::vector<NextHopWeight>& swWs,
+      const std::vector<NextHopWeight>& hwWs);
+  void verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs);
 };
 
-void HwEcmpTest::runSimpleTest(
+void HwEcmpTest::programResolvedUcmp(
     const std::vector<NextHopWeight>& swWs,
     const std::vector<NextHopWeight>& hwWs) {
   EXPECT_EQ(swWs.size(), hwWs.size());
   EXPECT_LE(swWs.size(), kNumNextHops);
-  auto setup = [=]() {
-    for (uint8_t i = 0; i < swWs.size(); ++i) {
-      swSwitchWeights_[i] = swWs[i];
-      hwSwitchWeights_[i] = hwWs[i];
-    }
-    programRouteWithUnresolvedNhops(swWs.size());
-    resolveNhops(swWs.size());
-  };
-  auto verify = [=]() {
-    auto pathsInHw = utility::getEcmpMembersInHw(
-        getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-    std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
-    // This check assumes that egress ids grow as you add more egresses
-    // That assumption could prove incorrect, in which case we would
-    // need to map ips to egresses, somehow.
-    auto expectedCountIter = hwWs.begin();
-    for (const auto& path : uniquePaths) {
-      auto count = pathsInHw.count(path);
-      EXPECT_EQ(count, *expectedCountIter);
-      expectedCountIter++;
-    }
-    auto totalHwWeight =
-        std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
-    auto pathsInHwCount = pathsInHw.size();
-    EXPECT_EQ(totalHwWeight, pathsInHwCount);
-    EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
-  };
+  for (uint8_t i = 0; i < swWs.size(); ++i) {
+    swSwitchWeights_[i] = swWs[i];
+    hwSwitchWeights_[i] = hwWs[i];
+  }
+  programRouteWithUnresolvedNhops(swWs.size());
+  resolveNhops(swWs.size());
+}
+
+void HwEcmpTest::verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs) {
+  auto pathsInHw = utility::getEcmpMembersInHw(
+      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
+  // This check assumes that egress ids grow as you add more egresses
+  // That assumption could prove incorrect, in which case we would
+  // need to map ips to egresses, somehow.
+  auto expectedCountIter = hwWs.begin();
+  for (const auto& path : uniquePaths) {
+    auto count = pathsInHw.count(path);
+    EXPECT_EQ(count, *expectedCountIter);
+    expectedCountIter++;
+  }
+  auto totalHwWeight =
+      std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
+  auto pathsInHwCount = pathsInHw.size();
+  EXPECT_EQ(totalHwWeight, pathsInHwCount);
+  EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
+}
+
+void HwEcmpTest::runSimpleUcmpTest(
+    const std::vector<NextHopWeight>& swWs,
+    const std::vector<NextHopWeight>& hwWs) {
+  EXPECT_EQ(swWs.size(), hwWs.size());
+  EXPECT_LE(swWs.size(), kNumNextHops);
+  auto setup = [this, &swWs, &hwWs]() { programResolvedUcmp(swWs, hwWs); };
+  auto verify = [this, &hwWs]() { verifyResolvedUcmp(hwWs); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -194,11 +206,11 @@ TEST_F(HwEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
 // TODO(borisb): Think of a better algorithm for this case than wi*(64/W)
 TEST_F(HwEcmpTest, UcmpOverflowZero) {
   EXPECT_EQ(64, FLAGS_ecmp_width);
-  runSimpleTest({50, 50, 1, 1}, {31, 31, 1, 1});
+  runSimpleUcmpTest({50, 50, 1, 1}, {31, 31, 1, 1});
 }
 TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
   EXPECT_EQ(64, FLAGS_ecmp_width);
-  runSimpleTest({50, 50, 1, 1, 1, 1, 1, 1}, {29, 29, 1, 1, 1, 1, 1, 1});
+  runSimpleUcmpTest({50, 50, 1, 1, 1, 1, 1, 1}, {29, 29, 1, 1, 1, 1, 1, 1});
 }
 
 TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
