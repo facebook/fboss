@@ -9,6 +9,7 @@
 #
 
 import collections
+import itertools
 import time
 from math import log10
 
@@ -155,22 +156,40 @@ class PortDetailsCmd(cmds.FbossCmd):
                     print(
                         "    Queue {} {:29}{}".format(queue.id, name, ",".join(attrs))
                     )
-                    continue
+                else:
+                    print(
+                        "    Queue {} {:29}{}".format(queue.id, name, ",".join(attrs))
+                    )
+                    for aqm in queue.aqms:
+                        attrs = []
+                        if aqm.behavior == QueueCongestionBehavior.EARLY_DROP:
+                            attrs.append("EARLY DROP")
+                        elif aqm.behavior == QueueCongestionBehavior.ECN:
+                            attrs.append("ECN")
+                        if hasattr(aqm.detection, "linear") and aqm.detection.linear:
+                            attrs.append("{}={}".format("detection", "linear"))
+                            linear = aqm.detection.linear
+                            attrs.append(
+                                "{}={}".format("minThresh", linear.minimumLength)
+                            )
+                            attrs.append(
+                                "{}={}".format("maxThresh", linear.maximumLength)
+                            )
 
-                print("    Queue {} {:29}{}".format(queue.id, name, ",".join(attrs)))
-                for aqm in queue.aqms:
-                    attrs = []
-                    if aqm.behavior == QueueCongestionBehavior.EARLY_DROP:
-                        attrs.append("EARLY DROP")
-                    elif aqm.behavior == QueueCongestionBehavior.ECN:
-                        attrs.append("ECN")
-                    if hasattr(aqm.detection, "linear") and aqm.detection.linear:
-                        attrs.append("{}={}".format("detection", "linear"))
-                        linear = aqm.detection.linear
-                        attrs.append("{}={}".format("minThresh", linear.minimumLength))
-                        attrs.append("{}={}".format("maxThresh", linear.maximumLength))
+                            print("{:<41}{}".format("", ",".join(attrs)))
 
-                        print("{:<41}{}".format("", ",".join(attrs)))
+                if hasattr(queue, "dscps") and queue.dscps:
+                    dscpRanges = []
+                    for _, dscpRange in itertools.groupby(
+                        enumerate(sorted(queue.dscps)), lambda p: p[1] - p[0]
+                    ):
+                        dscpRange = list(dscpRange)
+                        dscpRanges.append(
+                            "[{}]".format(dscpRange[0][1])
+                            if len(dscpRange) == 1
+                            else "[{}-{}]".format(dscpRange[0][1], dscpRange[-1][1])
+                        )
+                    print("{:<41}DSCP={}".format("", ",".join(dscpRanges)))
 
     def _print_port_counters(self, client, port_info):
         pass
