@@ -112,9 +112,7 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   }
   // N.B., state changed will be locking/unlocking in a more fine grained manner
   // and expects the mutex to be unlocked
-  if (bootType_ == BootType::WARM_BOOT) {
-    stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
-  } else {
+  if (bootType_ != BootType::WARM_BOOT) {
     managerTable_->aclTableGroupManager().addAclTableGroup(
         SAI_ACL_STAGE_INGRESS);
 
@@ -127,6 +125,7 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
      */
     managerTable_->aclTableManager().addAclTable(kAclTable1);
   }
+  stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   return ret;
 }
 
@@ -505,9 +504,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
     state->resetControlPlane(cpu);
-    state->publish();
   }
-
+  state->publish();
   return state;
 }
 
