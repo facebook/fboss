@@ -248,16 +248,6 @@ void SaiSwitchManager::removeDefaultDataPlaneQosPolicy(
   resetQosMaps();
 }
 
-void SaiSwitchManager::changeDefaultDataPlaneQosPolicy(
-    const std::shared_ptr<QosPolicy>& /*oldQosPolicy*/,
-    const std::shared_ptr<QosPolicy>& /*newQosPolicy*/) {
-  // Since we don't have the benefit of deltas, we want to avoid
-  // running the whole "set qos map" operation on _each_ delta.
-  // Eventually we can check equality here and properly support
-  // modifying the qos map
-  XLOG(WARNING) << "Changing qos map not currently supported";
-}
-
 void SaiSwitchManager::gracefulExit() {
   // On graceful exit we trigger the warm boot path on
   // ASIC by destroying the switch (and thus calling the

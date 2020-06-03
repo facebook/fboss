@@ -172,6 +172,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
         qosPolicy.getTrafficClassToQueueId();
   }
 
+  bool operator!=(const QosPolicy& qosPolicy) const {
+    return !(*this == qosPolicy);
+  }
+
   const std::string& getName() const {
     return getFields()->name;
   }

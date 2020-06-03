@@ -176,8 +176,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   if ((qosDelta.getOld() != qosDelta.getNew())) {
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
     if (qosDelta.getOld() && qosDelta.getNew()) {
-      managerTable_->switchManager().changeDefaultDataPlaneQosPolicy(
-          qosDelta.getOld(), qosDelta.getNew());
+      if (*qosDelta.getOld() != *qosDelta.getNew()) {
+        managerTable_->switchManager().removeDefaultDataPlaneQosPolicy(
+            qosDelta.getOld());
+        managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
+            qosDelta.getNew());
+      }
     } else if (qosDelta.getNew()) {
       managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
           qosDelta.getNew());
