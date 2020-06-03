@@ -194,6 +194,25 @@ TEST_F(PortStoreTest, portSetMtu) {
   EXPECT_EQ(apiMtu, kMtu);
 }
 
+TEST_F(PortStoreTest, portSetQoSMaps) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  EXPECT_EQ(GET_OPT_ATTR(Port, Mtu, portObj.attributes()), 1514);
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::QosDscpToTcMap>>(newAttrs) =
+      42;
+  std::get<std::optional<SaiPortTraits::Attributes::QosTcToQueueMap>>(
+      newAttrs) = 43;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(GET_OPT_ATTR(Port, QosDscpToTcMap, portObj.attributes()), 42);
+  EXPECT_EQ(GET_OPT_ATTR(Port, QosTcToQueueMap, portObj.attributes()), 43);
+  auto apiQosDscpToTc = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::QosDscpToTcMap{});
+  EXPECT_EQ(apiQosDscpToTc, 42);
+  auto apiQosTcToQueue = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::QosTcToQueueMap{});
+  EXPECT_EQ(apiQosTcToQueue, 43);
+}
 /*
  * Confirm that moving out of a SaiObject<SaiPortTraits> works as expected
  */
