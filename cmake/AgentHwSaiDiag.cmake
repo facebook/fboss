@@ -5,6 +5,7 @@
 
 add_library(diag_shell
   fboss/agent/hw/sai/diag/DiagShell.cpp
+  fboss/agent/hw/sai/diag/oss/DiagShell.cpp
 )
 
 target_link_libraries(diag_shell
@@ -13,6 +14,7 @@ target_link_libraries(diag_shell
   error
   sai_switch
   Folly::folly
+  sai_ctrl_cpp2
 )
 
 set_target_properties(diag_shell PROPERTIES COMPILE_FLAGS

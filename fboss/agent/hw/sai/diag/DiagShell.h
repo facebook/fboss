@@ -17,6 +17,7 @@
 #include <folly/File.h>
 #include <folly/Synchronized.h>
 #include <thrift/lib/cpp2/async/ServerStream.h>
+#include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 
 namespace facebook::fboss {
 
@@ -58,7 +59,9 @@ class DiagShell {
   explicit DiagShell(const SaiSwitch* hw);
   ~DiagShell() noexcept;
 
-  void consumeInput(std::unique_ptr<std::string> input);
+  void consumeInput(
+      std::unique_ptr<std::string> input,
+      std::unique_ptr<ClientInformation> client);
 
   void setPublisher(
       apache::thrift::ServerStreamPublisher<std::string>&& publisher);
@@ -72,6 +75,12 @@ class DiagShell {
 
  private:
   void produceOutput();
+  std::string getClientInformationStr(
+      std::unique_ptr<ClientInformation> clientInfo) const;
+  void logToScuba(
+      std::unique_ptr<ClientInformation> client,
+      const std::string& input,
+      const std::optional<std::string>& result = std::nullopt) const;
   std::unique_ptr<Repl> makeRepl() const;
 
   std::unique_ptr<detail::PtyMaster> ptym_;

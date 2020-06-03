@@ -25,6 +25,11 @@
 
 #include <thread>
 
+DEFINE_bool(
+    sai_log_to_scribe,
+    false,
+    "Log SAI shell commands and output to scribe");
+
 namespace facebook::fboss {
 
 namespace detail {
@@ -192,17 +197,23 @@ DiagShell::~DiagShell() noexcept {
   }
 }
 
-void DiagShell::consumeInput(std::unique_ptr<std::string> input) {
+void DiagShell::consumeInput(
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
   if (!hasPublisher()) {
     std::string msg = "No diag shell connected!";
     XLOG(WARNING) << msg;
     throw FbossError(msg);
+  }
+  if (FLAGS_sai_log_to_scribe) {
+    logToScuba(std::move(client), *input);
   }
   std::size_t ret =
       folly::writeFull(ptym_->file.fd(), input->c_str(), input->size() + 1);
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
 }
 
+// TODO: Log command output to Scuba
 void DiagShell::produceOutput() {
   std::size_t nread;
   while (true) {

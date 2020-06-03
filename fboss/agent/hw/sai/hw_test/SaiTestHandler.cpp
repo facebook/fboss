@@ -39,8 +39,8 @@ SaiTestHandler::startDiagShell() {
 
 void SaiTestHandler::produceDiagShellInput(
     std::unique_ptr<std::string> input,
-    std::unique_ptr<ClientInformation> /* client */) {
-  diagShell_.consumeInput(std::move(input));
+    std::unique_ptr<ClientInformation> client) {
+  diagShell_.consumeInput(std::move(input), std::move(client));
 }
 
 } // namespace facebook::fboss
