@@ -216,6 +216,20 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portMtu);
   auto gotPortMtu = portApi->getAttribute(portId, portMtu);
   EXPECT_EQ(gotPortMtu, mtu);
+
+  // Port DSCP to TC
+  sai_object_id_t qosMapDscpToTc{42};
+  SaiPortTraits::Attributes::QosDscpToTcMap portDscpToTc{qosMapDscpToTc};
+  portApi->setAttribute(portId, portDscpToTc);
+  auto gotPortDscpToTc = portApi->getAttribute(portId, portDscpToTc);
+  EXPECT_EQ(gotPortDscpToTc, qosMapDscpToTc);
+
+  // Port TC to queue
+  sai_object_id_t qosMapTcToQueue{43};
+  SaiPortTraits::Attributes::QosTcToQueueMap portTcToQueue{qosMapTcToQueue};
+  portApi->setAttribute(portId, portTcToQueue);
+  auto gotPortTcToQueue = portApi->getAttribute(portId, portTcToQueue);
+  EXPECT_EQ(gotPortTcToQueue, qosMapTcToQueue);
 }
 
 // ObjectApi tests
