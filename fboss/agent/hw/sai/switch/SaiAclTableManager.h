@@ -49,9 +49,12 @@ class SaiAclTableManager {
    * data type for {add, remove, changed}AclTable:
    * const std:shared_ptr<AclTable>&.
    */
-  void addAclTable(const std::string& aclTableName);
+  AclTableSaiId addAclTable(const std::string& aclTableName);
   void removeAclTable();
   void changedAclTable();
+
+  const SaiAclTableHandle* getAclTableHandle(
+      const std::string& aclTableName) const;
 
   void addAclEntry(const std::shared_ptr<AclEntry>& addedAclEntry);
   void removeAclEntry(const std::shared_ptr<AclEntry>& removedAclEntry);
@@ -60,6 +63,9 @@ class SaiAclTableManager {
       const std::shared_ptr<AclEntry>& newAclEntry);
 
  private:
+  SaiAclTableHandle* FOLLY_NULLABLE
+  getAclTableHandleImpl(const std::string& aclTableName) const;
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

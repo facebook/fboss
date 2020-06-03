@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -20,7 +21,7 @@ SaiAclTableManager::SaiAclTableManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-void SaiAclTableManager::addAclTable(const std::string& /*aclTableName*/) {
+AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
 
   /*
@@ -33,6 +34,33 @@ void SaiAclTableManager::addAclTable(const std::string& /*aclTableName*/) {
    * managerTable_->switchManager().addTableGroupMember(SAI_ACL_STAGE_INGRESS,
    * aclTableSaiId);
    */
+
+  // If we already store a handle for this this Acl Table, fail to add a new one
+  auto handle = getAclTableHandle(aclTableName);
+  if (handle) {
+    throw FbossError("attempted to add a duplicate aclTable: ", aclTableName);
+  }
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& aclTableStore = s->get<SaiAclTableTraits>();
+  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
+  // TODO(skhare)
+  // Pass Complete actionTypeList
+  std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_SET_DSCP};
+  SaiAclTableTraits::AdapterHostKey adapterHostKey{
+      SAI_ACL_STAGE_INGRESS, bindPointList, actionTypeList, true};
+  SaiAclTableTraits::CreateAttributes attributes{
+      SAI_ACL_STAGE_INGRESS, bindPointList, actionTypeList, true};
+
+  auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
+  auto aclTableHandle = std::make_unique<SaiAclTableHandle>();
+  aclTableHandle->aclTable = saiAclTable;
+  auto [it, inserted] =
+      handles_.emplace(aclTableName, std::move(aclTableHandle));
+  std::ignore = it;
+  CHECK(inserted);
+
+  return it->second->aclTable->adapterKey();
 }
 
 void SaiAclTableManager::removeAclTable() {
@@ -61,6 +89,23 @@ void SaiAclTableManager::changedAclTable() {
    * limitations.
    */
   CHECK(false);
+}
+
+const SaiAclTableHandle* SaiAclTableManager::getAclTableHandle(
+    const std::string& aclTableName) const {
+  return getAclTableHandleImpl(aclTableName);
+}
+
+SaiAclTableHandle* FOLLY_NULLABLE SaiAclTableManager::getAclTableHandleImpl(
+    const std::string& aclTableName) const {
+  auto itr = handles_.find(aclTableName);
+  if (itr == handles_.end()) {
+    return nullptr;
+  }
+  if (!itr->second || !itr->second->aclTable) {
+    XLOG(FATAL) << "invalid null Acl table for: " << aclTableName;
+  }
+  return itr->second.get();
 }
 
 void SaiAclTableManager::addAclEntry(
