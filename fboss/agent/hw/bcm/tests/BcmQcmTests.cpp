@@ -8,6 +8,7 @@
 
 #include "fboss/agent/hw/bcm/BcmLogBuffer.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -29,15 +30,11 @@ class BcmQcmTest : public BcmTest {
   }
 
   bool skipTest() {
-#if (!defined(BCM_VER_MAJOR)) || (!defined(BCM_VER_MINOR)) || \
-    (!defined(BCM_VER_RELEASE))
-    XLOG(WARN) << "Since BCM version not defined, test is not supported";
-    return true;
-#elif (BCM_VER_MAJOR != 6) || (BCM_VER_MINOR != 5) || (BCM_VER_RELEASE != 16)
+#if BCM_VER_SUPPORT_QCM
+    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM);
+#else
     XLOG(WARN) << "Test not supported for BCM SDK version other than 6.5.16";
     return true;
-#else
-    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM);
 #endif
   }
 };

@@ -75,6 +75,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/dataplane_tests/Bcm2QueueToOlympicQoSTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmMirroringTests.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmQcmDataTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmConfigSetupTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmPortBandwidthTests.cpp
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmDscpQueueMappingTests.cpp
