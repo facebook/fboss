@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <chrono>
 #include <thread>
@@ -77,10 +78,11 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   void sendPacket(uint8_t dscp, bool frontPanel) {
     auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
-        intfMac, // src mac
+        srcMac, // src mac
         intfMac, // dst mac
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
