@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 
-#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
 #include <folly/logging/xlog.h>
@@ -213,6 +212,7 @@ void HwPortFb303Stats::updateStats(
         kOutPkts(), queueIdAndName.first, *curPortStats.queueOutPackets__ref());
   }
   updateQueueWatermarkStats(curPortStats.queueWatermarkBytes_);
+  portStats_ = curPortStats;
 }
 
 void HwPortFb303Stats::updateStat(

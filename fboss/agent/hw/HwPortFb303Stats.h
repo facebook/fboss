@@ -34,6 +34,10 @@ class HwPortFb303Stats {
       const HwPortStats& latestStats,
       const std::chrono::seconds& retrievedAt);
 
+  const HwPortStats& portStats() const {
+    return portStats_;
+  }
+
   void portNameChanged(const std::string& newName) {
     auto oldPortName = portName_;
     portName_ = newName;
@@ -107,6 +111,7 @@ class HwPortFb303Stats {
   std::string portName_;
   HwFb303Stats portCounters_;
   QueueId2Name queueId2Name_;
+  HwPortStats portStats_;
 };
 
 } // namespace facebook::fboss
