@@ -207,6 +207,20 @@ class SaiObjectStore {
     return objects_;
   }
 
+  typename UnorderedRefMap<
+      typename SaiObjectTraits::AdapterHostKey,
+      ObjectType>::MapType::const_iterator
+  begin() const {
+    return objects_.begin();
+  }
+
+  typename UnorderedRefMap<
+      typename SaiObjectTraits::AdapterHostKey,
+      ObjectType>::MapType::const_iterator
+  end() const {
+    return objects_.end();
+  }
+
  private:
   ObjectType getObject(
       typename SaiObjectTraits::AdapterKey key,

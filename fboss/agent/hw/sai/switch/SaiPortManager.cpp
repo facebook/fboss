@@ -270,16 +270,20 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto portProfileConfig = platform_->getPortProfileConfig(profileID);
   if (!portProfileConfig) {
     throw FbossError(
-        "port profile config not found for port ", swPort->getID());
+        "port profile config with id ",
+        profileID,
+        " not found for port ",
+        swPort->getID());
   }
   auto speed = static_cast<uint32_t>(portProfileConfig->speed);
   auto platformPort = platform_->getPort(swPort->getID());
-  auto hwLaneList = platformPort->getHwPortLanes(swPort->getSpeed());
+  auto hwLaneList =
+      platformPort->getHwPortLanes(static_cast<cfg::PortSpeed>(speed));
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
   auto mediaType = utility::getSaiPortMediaType(
-      platformPort->getTransmitterTech(), swPort->getSpeed());
+      platformPort->getTransmitterTech(), static_cast<cfg::PortSpeed>(speed));
   auto phyFecMode = platform_->getPhyFecMode(profileID);
   auto fecMode = utility::getSaiPortFecMode(phyFecMode);
   if (swPort->getFEC() == cfg::PortFEC::ON) {
@@ -299,6 +303,50 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          swPort->getMaxFrameSize(),
                                          std::nullopt,
                                          std::nullopt};
+}
+
+std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
+    SaiPortTraits::CreateAttributes attributes) const {
+  auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
+  auto lanes = GET_ATTR(Port, HwLaneList, attributes);
+  auto portID = platform_->findPortID(speed, lanes);
+  auto platformPort = platform_->getPort(portID);
+  auto port = std::make_shared<Port>(portID, folly::to<std::string>(portID));
+
+  // speed, hw lane list, fec mode
+  port->setProfileId(platformPort->getProfileIDBySpeed(speed));
+
+  // admin state
+  bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
+  port->setAdminState(
+      isEnabled ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
+
+  // flow control mode
+  cfg::PortPause pause;
+  auto globalFlowControlMode =
+      GET_OPT_ATTR(Port, GlobalFlowControlMode, attributes);
+  pause.rx_ref() =
+      (globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE ||
+       globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_RX_ONLY);
+  pause.tx_ref() =
+      (globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_BOTH_ENABLE ||
+       globalFlowControlMode == SAI_PORT_FLOW_CONTROL_MODE_TX_ONLY);
+  port->setPause(pause);
+
+  // vlan id
+  auto vlan = GET_OPT_ATTR(Port, PortVlanId, attributes);
+  port->setIngressVlan(static_cast<VlanID>(vlan));
+
+  auto lbMode = GET_OPT_ATTR(Port, InternalLoopbackMode, attributes);
+  port->setLoopbackMode(utility::getCfgPortInternalLoopbackMode(
+      static_cast<sai_port_internal_loopback_mode_t>(lbMode)));
+
+  // TODO: support Preemphasis once it is also used
+
+  // mtu
+  port->setMaxFrameSize(GET_OPT_ATTR(Port, Mtu, attributes));
+
+  return port;
 }
 
 // private const getter for use by const and non-const getters
@@ -421,5 +469,16 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
   // SAI_PORT_ATTR_SUPPORTED_SPEED to query the list of supported speeds
   // and return the maximum supported speed.
   return platform_->getPortMaxSpeed(port);
+}
+
+std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
+  auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
+  auto portMap = std::make_shared<PortMap>();
+  for (auto& iter : portStore) {
+    auto saiPort = iter.second.lock();
+    auto port = swPortFromAttributes(saiPort->attributes());
+    portMap->addNode(port);
+  }
+  return portMap;
 }
 } // namespace facebook::fboss

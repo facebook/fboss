@@ -82,6 +82,11 @@ class SaiPortManager {
     return handles_.end();
   }
 
+  std::shared_ptr<PortMap> reconstructPortsFromStore() const;
+
+  std::shared_ptr<Port> swPortFromAttributes(
+      SaiPortTraits::CreateAttributes attributees) const;
+
  private:
   const std::vector<sai_stat_id_t>& supportedStats() const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;

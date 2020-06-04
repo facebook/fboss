@@ -73,6 +73,12 @@ class SaiPlatform : public Platform, public StateObserver {
     return {};
   }
 
+  PortID findPortID(cfg::PortSpeed speed, std::vector<uint32_t> lanes) const;
+
+  bool supportsAddRemovePort() const override {
+    return true;
+  }
+
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();

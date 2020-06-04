@@ -161,12 +161,12 @@ class SaiObjectEventPublisher {
   }
 
   void notifyDelete(Key key) {
+    livePublishers_.erase(key);
     auto subscription = subscriptions_.get(key);
     if (!subscription) {
       return;
     }
     subscription->removeSignal_();
-    livePublishers_.erase(key);
   }
 
  private:

@@ -38,6 +38,20 @@ sai_port_internal_loopback_mode_t getSaiPortInternalLoopbackMode(
   }
 }
 
+cfg::PortLoopbackMode getCfgPortInternalLoopbackMode(
+    sai_port_internal_loopback_mode_t mode) {
+  switch (mode) {
+    case SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE:
+      return cfg::PortLoopbackMode::NONE;
+    case SAI_PORT_INTERNAL_LOOPBACK_MODE_PHY:
+      return cfg::PortLoopbackMode::PHY;
+    case SAI_PORT_INTERNAL_LOOPBACK_MODE_MAC:
+      return cfg::PortLoopbackMode::MAC;
+    default:
+      return cfg::PortLoopbackMode::NONE;
+  }
+}
+
 sai_port_media_type_t getSaiPortMediaType(
     TransmitterTechnology transmitterTech,
     cfg::PortSpeed speed) {

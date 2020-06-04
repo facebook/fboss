@@ -508,6 +508,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     cpu->resetQueues(cpuQueues);
     state->resetControlPlane(cpu);
   }
+  // reconstruct ports
+  state->resetPorts(managerTable_->portManager().reconstructPortsFromStore());
   state->publish();
   return state;
 }

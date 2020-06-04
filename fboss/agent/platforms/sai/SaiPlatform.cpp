@@ -191,4 +191,18 @@ QsfpCache* SaiPlatform::getQsfpCache() const {
   return qsfpCache_.get();
 }
 
+PortID SaiPlatform::findPortID(
+    cfg::PortSpeed speed,
+    std::vector<uint32_t> lanes) const {
+  for (const auto& portMapping : portMapping_) {
+    const auto& platformPort = portMapping.second;
+    if (!platformPort->getProfileIDBySpeedIf(speed) ||
+        platformPort->getHwPortLanes(speed) != lanes) {
+      continue;
+    }
+    return platformPort->getPortID();
+  }
+  throw FbossError("platform port not found");
+}
+
 } // namespace facebook::fboss
