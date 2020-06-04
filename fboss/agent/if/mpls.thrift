@@ -11,6 +11,7 @@ typedef i32 MplsLabel
 // label is 20 bit in MPLS header
 const MplsLabel MAX_MPLS_LABEL = 0xfffff
 
+// first element represents bottom of stack, last element represents top of stack
 typedef list<MplsLabel> MplsLabelStack
 
 enum MplsActionCode {
