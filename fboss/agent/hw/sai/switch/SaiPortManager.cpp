@@ -41,6 +41,8 @@ void fillHwPortStats(
   if (counters.size() != counterIds.size()) {
     throw FbossError("port counter size does not match counter id size");
   }
+  // TODO fill these in when we have debug counte support in SAI
+  hwPortStats.inDstNullDiscards__ref() = 0;
   for (auto counterId : counterIds) {
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
