@@ -44,6 +44,9 @@ enum InterfaceMode {
   XLAUI = 40
   SFI = 41
   GMII = 42
+  XLPPI = 44
+  AUI_C2C = 46
+  AUI_C2M = 47
 }
 
 enum Side {
@@ -122,6 +125,12 @@ struct PortProfileConfig {
   1: switch_config.PortSpeed speed
   2: ProfileSideConfig iphy
   3: optional ProfileSideConfig xphyLine
+  // We used to think xphy system should be identical to iphy based on their
+  // direct connection. However, it's not always true in some platform.
+  // For example, Minipack might use KR interface mode in iphy but acutually
+  // use AUI_C2C on xphy system for new firmware.
+  // Hence, introducing xphy system to distinguish the difference.
+  4: optional ProfileSideConfig xphySystem
 }
 
 /*

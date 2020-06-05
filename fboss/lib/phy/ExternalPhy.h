@@ -155,12 +155,6 @@ class ExternalPhy {
       const PhyPortConfig& rhs) {
     return lhs == rhs;
   }
-
- private:
-  /* TODO (ccpowers): remove all of these old functions using
-    - PhyPortSettings
-    once the new configuration format is fully supported */
-  virtual void programOnePort(PhyPortSettings settings) = 0;
 };
 
 } // namespace facebook::fboss::phy
