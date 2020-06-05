@@ -116,8 +116,6 @@ struct PhyPortConfig {
 
   bool operator==(const PhyPortConfig& rhs) const;
   bool operator!=(const PhyPortConfig& rhs) const;
-  PhyPortSettings toPhyPortSettings(int16_t phyID) const;
-  static PhyPortConfig fromPhyPortSettings(const PhyPortSettings& settings);
   std::string str();
   folly::dynamic toDynamic() const;
 };

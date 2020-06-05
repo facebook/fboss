@@ -139,64 +139,6 @@ ExternalPhyProfileConfig ExternalPhyProfileConfig::fromPortProfileConfig(
   return xphyCfg;
 }
 
-PhyPortSettings PhyPortConfig::toPhyPortSettings(int16_t phyID) const {
-  PhyPortSettings settings;
-
-  for (auto in : config.system.lanes) {
-    settings.system_ref()->lanes_ref()->insert(
-        std::pair<int16_t, LaneSettings>(in.first, in.second.toLaneSettings()));
-  }
-  for (auto in : config.line.lanes) {
-    settings.line_ref()->lanes_ref()->insert(
-        std::pair<int16_t, LaneSettings>(in.first, in.second.toLaneSettings()));
-  }
-
-  *settings.phyID_ref() = phyID;
-  *settings.speed_ref() = profile.speed;
-  *settings.line_ref()->modulation_ref() = *profile.line.modulation_ref();
-  *settings.system_ref()->modulation_ref() = *profile.system.modulation_ref();
-  *settings.line_ref()->fec_ref() = *profile.line.fec_ref();
-  *settings.system_ref()->fec_ref() = *profile.system.fec_ref();
-
-  return settings;
-}
-
-PhyPortConfig PhyPortConfig::fromPhyPortSettings(
-    const PhyPortSettings& settings) {
-  PhyPortConfig result;
-
-  for (auto in : *settings.system_ref()->lanes_ref()) {
-    result.config.system.lanes.insert(std::pair<int32_t, LaneConfig>(
-        in.first, LaneConfig::fromLaneSettings(in.second)));
-  }
-
-  for (auto in : *settings.line_ref()->lanes_ref()) {
-    result.config.line.lanes.insert(std::pair<int32_t, LaneConfig>(
-        in.first, LaneConfig::fromLaneSettings(in.second)));
-  }
-
-  result.config.system =
-      PhySideConfig::fromPhyPortSideSettings(*settings.system_ref());
-  result.config.line =
-      PhySideConfig::fromPhyPortSideSettings(*settings.line_ref());
-
-  *result.profile.line.numLanes_ref() =
-      settings.line_ref()->lanes_ref()->size();
-  *result.profile.line.modulation_ref() =
-      *settings.line_ref()->modulation_ref();
-  *result.profile.line.fec_ref() = *settings.line_ref()->fec_ref();
-
-  *result.profile.system.numLanes_ref() =
-      settings.system_ref()->lanes_ref()->size();
-  *result.profile.system.modulation_ref() =
-      *settings.system_ref()->modulation_ref();
-  *result.profile.system.fec_ref() = *settings.system_ref()->fec_ref();
-
-  result.profile.speed = *settings.speed_ref();
-
-  return result;
-}
-
 folly::dynamic LaneConfig::toDynamic() const {
   folly::dynamic obj = folly::dynamic::object;
   obj["polaritySwap"] = thriftOptToDynamic(polaritySwap);
