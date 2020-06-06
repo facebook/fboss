@@ -11,7 +11,9 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
@@ -58,7 +60,10 @@ void fillHwPortStats(
         *hwPortStats.inBroadcastPkts__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_DISCARDS:
-        *hwPortStats.inDiscards__ref() = counters[index];
+        // Fill into inDiscards raw, we will then compute
+        // inDiscards by subtracting dst null and in pause
+        // discards from these
+        *hwPortStats.inDiscardsRaw__ref() = counters[index];
         break;
       case SAI_PORT_STAT_IF_IN_ERRORS:
         *hwPortStats.inErrors__ref() = counters[index];
@@ -421,16 +426,33 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
 void SaiPortManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   for (const auto& [portId, handle] : handles_) {
-    if (portStats_.find(portId) == portStats_.end()) {
+    auto pitr = portStats_.find(portId);
+    if (pitr == portStats_.end()) {
       // We don't maintain port stats for disabled ports.
       continue;
     }
+    const auto& prevPortStats = pitr->second->portStats();
+    HwPortStats curPortStats{prevPortStats};
+    // All stats start with a unitialized (-1) value. If there are no in
+    // discards (first collection) we will just report that -1 as the monotonic
+    // counter. Instead set it to 0 if uninintialized
+    *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
+            hardware_stats_constants::STAT_UNINITIALIZED()
+        ? 0
+        : *curPortStats.inDiscards__ref();
     handle->port->updateStats(supportedStats());
     const auto& counters = handle->port->getStats();
-    HwPortStats hwPortStats;
-    fillHwPortStats(supportedStats(), counters, hwPortStats);
-    managerTable_->queueManager().updateStats(handle->queues, hwPortStats);
-    portStats_[portId]->updateStats(hwPortStats, now);
+    fillHwPortStats(supportedStats(), counters, curPortStats);
+    std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
+        {*prevPortStats.inDstNullDiscards__ref(),
+         *curPortStats.inDstNullDiscards__ref()},
+        {*prevPortStats.inPause__ref(), *curPortStats.inPause__ref()}};
+    *curPortStats.inDiscards__ref() += utility::subtractIncrements(
+        {*prevPortStats.inDiscardsRaw__ref(),
+         *curPortStats.inDiscardsRaw__ref()},
+        toSubtractFromInDiscardsRaw);
+    managerTable_->queueManager().updateStats(handle->queues, curPortStats);
+    portStats_[portId]->updateStats(curPortStats, now);
   }
 }
 
