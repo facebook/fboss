@@ -70,6 +70,12 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
       sw.setLagAlgorithm(attr->value.s32);
       break;
+    case SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP:
+      sw.setDscpToTc(attr->value.oid);
+      break;
+    case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
+      sw.setTcToQueue(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_RESTART_WARM:
       sw.setRestartWarm(attr->value.booldata);
       break;
@@ -180,6 +186,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_RESTART_WARM:
         attr[i].value.booldata = sw.restartWarm();
+        break;
+      case SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP:
+        attr[i].value.oid = sw.dscpToTc();
+        break;
+      case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
+        attr[i].value.oid = sw.tcToQueue();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

@@ -90,6 +90,18 @@ class FakeSwitch {
   bool restartWarm() const {
     return restartWarm_;
   }
+  void setDscpToTc(sai_object_id_t oid) {
+    qosMapDscpToTc_ = oid;
+  }
+  void setTcToQueue(sai_object_id_t oid) {
+    qosMapTcToQueue_ = oid;
+  }
+  sai_object_id_t dscpToTc() const {
+    return qosMapDscpToTc_;
+  }
+  sai_object_id_t tcToQueue() const {
+    return qosMapTcToQueue_;
+  }
   sai_object_id_t id;
 
  private:
@@ -100,8 +112,10 @@ class FakeSwitch {
   sai_uint32_t lagSeed_{0};
   sai_int32_t ecmpAlgorithm_{SAI_HASH_ALGORITHM_CRC};
   sai_int32_t lagAlgorithm_{SAI_HASH_ALGORITHM_CRC};
-  sai_object_id_t ecmpHashV4_{0};
-  sai_object_id_t ecmpHashV6_{0};
+  sai_object_id_t ecmpHashV4_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t ecmpHashV6_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosMapDscpToTc_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosMapTcToQueue_{SAI_NULL_OBJECT_ID};
   std::vector<int8_t> hwInfo_;
   bool restartWarm_{false};
 };

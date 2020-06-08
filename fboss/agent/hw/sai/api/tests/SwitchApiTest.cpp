@@ -181,3 +181,18 @@ TEST_F(SwitchApiTest, setGetWarmRestart) {
   SaiSwitchTraits::Attributes::SwitchRestartWarm blank{false};
   EXPECT_TRUE(switchApi->getAttribute(switchId, blank));
 }
+
+TEST_F(SwitchApiTest, setGetSetQosMaps) {
+  SaiSwitchTraits::Attributes::QosDscpToTcMap dscpToTc{42};
+  SaiSwitchTraits::Attributes::QosTcToQueueMap tcToQueue{43};
+  switchApi->setAttribute(switchId, dscpToTc);
+  switchApi->setAttribute(switchId, tcToQueue);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::QosDscpToTcMap{}),
+      42);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::QosTcToQueueMap{}),
+      43);
+}
