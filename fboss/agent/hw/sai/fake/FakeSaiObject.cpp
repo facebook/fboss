@@ -22,7 +22,8 @@ sai_status_t sai_get_object_count(
   auto fs = facebook::fboss::FakeSai::getInstance();
   switch (object_type) {
     case SAI_OBJECT_TYPE_PORT:
-      *count = fs->portManager.map().size();
+      // All ports excluding CPU port
+      *count = fs->portManager.map().size() - 1;
       break;
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       *count = fs->virtualRouteManager.map().size();
@@ -134,6 +135,9 @@ sai_status_t sai_get_object_key(
   switch (object_type) {
     case SAI_OBJECT_TYPE_PORT: {
       for (const auto& p : fs->portManager.map()) {
+        if (fs->cpuPortId == p.second.id) {
+          continue;
+        }
         object_list[i++].key.object_id = p.second.id;
       }
       break;

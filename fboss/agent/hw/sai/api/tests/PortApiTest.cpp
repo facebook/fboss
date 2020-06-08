@@ -234,20 +234,15 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
 
 // ObjectApi tests
 TEST_F(PortApiTest, portCount) {
-  uint32_t count = getObjectCount<SaiPortTraits>(0);
-  // cpu port
-  EXPECT_EQ(count, 1);
   createFivePorts();
-  count = getObjectCount<SaiPortTraits>(0);
-  EXPECT_EQ(count, 6);
+  auto count = getObjectCount<SaiPortTraits>(0);
+  EXPECT_EQ(count, 5);
 }
 
 TEST_F(PortApiTest, portKeys) {
   auto portIds = createFivePorts();
   auto keys = getObjectKeys<SaiPortTraits>(0);
-  EXPECT_EQ(keys.size(), 6);
-  // cpu port
-  portIds.push_back(PortSaiId(0));
+  EXPECT_EQ(keys.size(), 5);
   std::sort(portIds.begin(), portIds.end());
   std::sort(keys.begin(), keys.end());
   EXPECT_EQ(keys, portIds);
