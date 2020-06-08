@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -28,6 +29,7 @@ class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
+class QosPolicy;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 
@@ -81,6 +83,9 @@ class SaiPortManager {
   Handles::const_iterator end() const {
     return handles_.end();
   }
+  void addDefaultDataPlaneQosPolicy(const std::shared_ptr<QosPolicy>& policy);
+  void removeDefaultDataPlaneQosPolicy(
+      const std::shared_ptr<QosPolicy>& policy);
 
   std::shared_ptr<PortMap> reconstructPortsFromStore() const;
 
@@ -99,6 +104,8 @@ class SaiPortManager {
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
   Stats portStats_;
+  std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
+  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 };
 
 } // namespace facebook::fboss

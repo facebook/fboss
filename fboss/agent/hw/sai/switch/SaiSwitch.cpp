@@ -192,7 +192,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiVlanManager::addVlan,
       &SaiVlanManager::removeVlan);
 
-  processDefaultDataPlanePolicyDelta(delta, managerTable_->switchManager());
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+    processDefaultDataPlanePolicyDelta(delta, managerTable_->switchManager());
+  } else {
+    processDefaultDataPlanePolicyDelta(delta, managerTable_->portManager());
+  }
 
   processDelta(
       delta.getIntfsDelta(),

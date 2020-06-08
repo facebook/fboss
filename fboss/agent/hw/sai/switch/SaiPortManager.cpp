@@ -503,4 +503,22 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
   }
   return portMap;
 }
+
+void SaiPortManager::addDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
+  auto& qosMapManager = managerTable_->qosMapManager();
+  XLOG(INFO) << "Set default qos map";
+  globalDscpToTcQosMap_ =
+      qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
+  globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
+      newDefaultQosPolicy->getTrafficClassToQueueId());
+  // TODO set qos map on each port
+}
+
+void SaiPortManager::removeDefaultDataPlaneQosPolicy(
+    const std::shared_ptr<QosPolicy>& policy) {
+  // TODO remove qos map from each port
+  globalDscpToTcQosMap_.reset();
+  globalTcToQueueQosMap_.reset();
+}
 } // namespace facebook::fboss

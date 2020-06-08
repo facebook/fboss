@@ -70,7 +70,6 @@ class SaiSwitchManager {
   std::shared_ptr<SaiHash> ecmpV6Hash_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
-  bool switchQosMapsProgrammed_{false};
 };
 
 } // namespace facebook::fboss
