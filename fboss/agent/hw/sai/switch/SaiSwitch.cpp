@@ -158,6 +158,26 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   }
 }
 
+template <typename ManagerT>
+void SaiSwitch::processDefaultDataPlanePolicyDelta(
+    const StateDelta& delta,
+    ManagerT& mgr) {
+  auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
+  if ((qosDelta.getOld() != qosDelta.getNew())) {
+    auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+    if (qosDelta.getOld() && qosDelta.getNew()) {
+      if (*qosDelta.getOld() != *qosDelta.getNew()) {
+        mgr.removeDefaultDataPlaneQosPolicy(qosDelta.getOld());
+        mgr.addDefaultDataPlaneQosPolicy(qosDelta.getNew());
+      }
+    } else if (qosDelta.getNew()) {
+      mgr.addDefaultDataPlaneQosPolicy(qosDelta.getNew());
+    } else if (qosDelta.getOld()) {
+      mgr.removeDefaultDataPlaneQosPolicy(qosDelta.getOld());
+    }
+  }
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   processDelta(
       delta.getPortsDelta(),
@@ -172,24 +192,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiVlanManager::addVlan,
       &SaiVlanManager::removeVlan);
 
-  auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
-  if ((qosDelta.getOld() != qosDelta.getNew())) {
-    auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
-    if (qosDelta.getOld() && qosDelta.getNew()) {
-      if (*qosDelta.getOld() != *qosDelta.getNew()) {
-        managerTable_->switchManager().removeDefaultDataPlaneQosPolicy(
-            qosDelta.getOld());
-        managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
-            qosDelta.getNew());
-      }
-    } else if (qosDelta.getNew()) {
-      managerTable_->switchManager().addDefaultDataPlaneQosPolicy(
-          qosDelta.getNew());
-    } else if (qosDelta.getOld()) {
-      managerTable_->switchManager().removeDefaultDataPlaneQosPolicy(
-          qosDelta.getOld());
-    }
-  }
+  processDefaultDataPlanePolicyDelta(delta, managerTable_->switchManager());
 
   processDelta(
       delta.getIntfsDelta(),

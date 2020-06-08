@@ -233,6 +233,11 @@ class SaiSwitch : public HwSwitch {
       std::unique_ptr<folly::IOBuf> ioBuf,
       std::vector<sai_attribute_t> attrList);
 
+  template <typename ManagerT>
+  void processDefaultDataPlanePolicyDelta(
+      const StateDelta& delta,
+      ManagerT& mgr);
+
   template <
       typename Delta,
       typename Manager,
