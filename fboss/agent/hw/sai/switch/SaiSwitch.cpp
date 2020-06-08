@@ -54,7 +54,7 @@ extern "C" {
 }
 
 DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
-DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
+DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
 
 namespace {
 auto constexpr kAclTable1 = "AclTable1";
