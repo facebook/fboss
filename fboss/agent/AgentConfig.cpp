@@ -61,9 +61,13 @@ std::unique_ptr<AgentConfig> AgentConfig::fromRawConfig(
   return std::make_unique<AgentConfig>(std::move(agentConfig), configStr);
 }
 
-const std::string AgentConfig::swConfigRaw() const {
+std::string AgentConfig::swConfigRaw() const {
   return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       *thrift.sw_ref());
+}
+
+std::string AgentConfig::agentConfigRaw() const {
+  return apache::thrift::SimpleJSONSerializer::serialize<std::string>(thrift);
 }
 
 void AgentConfig::dumpConfig(folly::StringPiece path) const {

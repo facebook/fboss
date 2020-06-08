@@ -27,7 +27,9 @@ struct AgentConfig {
       const std::string& contents);
 
   // serialize just the sw component
-  const std::string swConfigRaw() const;
+  std::string swConfigRaw() const;
+  // serialize entire agent config
+  std::string agentConfigRaw() const;
 
   void dumpConfig(folly::StringPiece path) const;
 
