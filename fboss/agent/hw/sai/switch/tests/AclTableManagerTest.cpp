@@ -10,6 +10,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -23,6 +24,11 @@ class AclTableManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
     ManagerTestBase::SetUp();
+
+    // In our implementation, a table is always member of group
+    // for corresponding SAI_ACL_STAGE_*.
+    saiManagerTable->aclTableGroupManager().addAclTableGroup(
+        SAI_ACL_STAGE_INGRESS);
   }
 };
 

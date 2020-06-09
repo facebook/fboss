@@ -11,6 +11,9 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -59,7 +62,13 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       handles_.emplace(aclTableName, std::move(aclTableHandle));
   CHECK(inserted);
 
-  return it->second->aclTable->adapterKey();
+  auto aclTableSaiId = it->second->aclTable->adapterKey();
+
+  // Add ACL Table to group based on the stage
+  managerTable_->aclTableGroupManager().addAclTableGroupMember(
+      SAI_ACL_STAGE_INGRESS, aclTableSaiId, aclTableName);
+
+  return aclTableSaiId;
 }
 
 void SaiAclTableManager::removeAclTable() {

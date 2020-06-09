@@ -45,17 +45,29 @@ class SaiAclTableGroupManager {
 
   AclTableGroupSaiId addAclTableGroup(sai_acl_stage_t aclStage);
 
-  void addTableGroupMember(
+  AclTableGroupMemberSaiId addAclTableGroupMember(
       sai_acl_stage_t aclStage,
-      AclTableSaiId aclTableSaiId);
-  void removeTableGroupMember(
+      AclTableSaiId aclTableSaiId,
+      const std::string& aclTableName);
+  void removeAclTableGroupMember(
       sai_acl_stage_t aclStage,
-      AclTableSaiId aclTableSaiId);
+      AclTableSaiId aclTableSaiId,
+      const std::string& aclTableName);
 
   const SaiAclTableGroupHandle* FOLLY_NULLABLE
   getAclTableGroupHandle(sai_acl_stage_t aclStage) const;
+  SaiAclTableGroupHandle* FOLLY_NULLABLE
+  getAclTableGroupHandle(sai_acl_stage_t aclStage);
+
+  const SaiAclTableGroupMemberHandle* FOLLY_NULLABLE
+  getAclTableGroupMemberHandle(
+      const SaiAclTableGroupHandle* aclTableGroupHandle,
+      const std::string& aclTableName) const;
 
  private:
+  SaiAclTableGroupHandle* FOLLY_NULLABLE
+  getAclTableGroupHandleImpl(sai_acl_stage_t aclStage) const;
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 

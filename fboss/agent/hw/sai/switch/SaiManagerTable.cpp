@@ -104,8 +104,11 @@ SaiManagerTable::~SaiManagerTable() {
   qosMapManager_.reset();
   hostifManager_.reset();
 
-  aclTableManager_.reset();
+  // Reset ACL Table group before Acl Table, since ACL Table group members
+  // refer to ACL Table and those references to ACL Table must be released
+  // before attempting to reset (remove) ACL Table.
   aclTableGroupManager_.reset();
+  aclTableManager_.reset();
 
   switchManager_.reset();
 }

@@ -39,7 +39,7 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
 
   SaiAclTableGroupTraits::AdapterHostKey adapterHostKey{
       aclStage, bindPointList, type};
-  SaiAclTableGroupTraits::AdapterHostKey attributes{
+  SaiAclTableGroupTraits::CreateAttributes attributes{
       aclStage, bindPointList, type};
 
   auto saiAclTableGroup =
@@ -56,6 +56,17 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
 const SaiAclTableGroupHandle* FOLLY_NULLABLE
 SaiAclTableGroupManager::getAclTableGroupHandle(
     sai_acl_stage_t aclStage) const {
+  return getAclTableGroupHandleImpl(aclStage);
+}
+
+SaiAclTableGroupHandle* FOLLY_NULLABLE
+SaiAclTableGroupManager::getAclTableGroupHandle(sai_acl_stage_t aclStage) {
+  return getAclTableGroupHandleImpl(aclStage);
+}
+
+SaiAclTableGroupHandle* FOLLY_NULLABLE
+SaiAclTableGroupManager::getAclTableGroupHandleImpl(
+    sai_acl_stage_t aclStage) const {
   auto itr = handles_.find(aclStage);
   if (itr == handles_.end()) {
     return nullptr;
@@ -66,21 +77,87 @@ SaiAclTableGroupManager::getAclTableGroupHandle(
   return itr->second.get();
 }
 
-void SaiAclTableGroupManager::addTableGroupMember(
-    sai_acl_stage_t /*aclStage*/,
-    AclTableSaiId /*aclTableSaiId*/) {
+AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
+    sai_acl_stage_t aclStage,
+    AclTableSaiId aclTableSaiId,
+    const std::string& aclTableName) {
+  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+
+  // If we attempt to add member to a group that does not exist, fail.
+  auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
+  if (!aclTableGroupHandle) {
+    throw FbossError(
+        "attempted to add AclTable to a group that does not exist: ", aclStage);
+  }
+
+  // If we already store a handle for this this Acl Table group member, fail to
+  // add new one.
+  auto aclTableGroupMemberHandle =
+      getAclTableGroupMemberHandle(aclTableGroupHandle, aclTableName);
+  if (aclTableGroupMemberHandle) {
+    throw FbossError(
+        "attempted to add a duplicate aclTableGroup member: ", aclTableName);
+  }
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& aclTableGroupMemberStore = s->get<SaiAclTableGroupMemberTraits>();
+
+  SaiAclTableGroupMemberTraits::Attributes::TableGroupId
+      aclTableGroupIdAttribute{
+          aclTableGroupHandle->aclTableGroup->adapterKey()};
+  SaiAclTableGroupMemberTraits::Attributes::TableId aclTableIdAttribute{
+      aclTableSaiId};
+
   /*
    * TODO(skhare)
-   * Add given aclTableSaiId to group for aclStage
+   * Priority is valid for SEQUENTIAL ACL table groups only, while we only use
+   * PARALLEL ACL groups today.
+   * But Priority field is mandatory as per SAI spec, so set it to some value.
+   * In future, if we support SEQUENTIAL ACL groups, read MINIMUM and MAXIMUM
+   * PRIORITY Switch attribute and use as appropriate below.
    */
+  SaiAclTableGroupMemberTraits::Attributes::Priority priority{
+      SAI_SWITCH_ATTR_ACL_TABLE_MINIMUM_PRIORITY};
+
+  SaiAclTableGroupMemberTraits::AdapterHostKey adapterHostKey{
+      aclTableGroupIdAttribute, aclTableIdAttribute, priority};
+  SaiAclTableGroupMemberTraits::CreateAttributes attributes{
+      aclTableGroupIdAttribute, aclTableIdAttribute, priority};
+  auto saiAclTableGroupMember =
+      aclTableGroupMemberStore.setObject(adapterHostKey, attributes);
+
+  auto groupMemberHandle = std::make_unique<SaiAclTableGroupMemberHandle>();
+  groupMemberHandle->aclTableGroupMember = saiAclTableGroupMember;
+
+  auto [it, inserted] = aclTableGroupHandle->aclTableGroupMembers.emplace(
+      aclTableName, std::move(groupMemberHandle));
+  CHECK(inserted);
+
+  return it->second->aclTableGroupMember->adapterKey();
 }
 
-void SaiAclTableGroupManager::removeTableGroupMember(
+void SaiAclTableGroupManager::removeAclTableGroupMember(
     sai_acl_stage_t /*aclStage*/,
-    AclTableSaiId /*aclTableSaiId*/) {
+    AclTableSaiId /*aclTableSaiId*/,
+    const std::string& /*aclTableName*/) {
   /*
    * TODO(skhare)
    * Remove given aclTableSaiId from group for aclStage
    */
 }
+
+const SaiAclTableGroupMemberHandle* FOLLY_NULLABLE
+SaiAclTableGroupManager::getAclTableGroupMemberHandle(
+    const SaiAclTableGroupHandle* aclTableGroupHandle,
+    const std::string& aclTableName) const {
+  auto itr = aclTableGroupHandle->aclTableGroupMembers.find(aclTableName);
+  if (itr == aclTableGroupHandle->aclTableGroupMembers.end()) {
+    return nullptr;
+  }
+  if (!itr->second || !itr->second->aclTableGroupMember) {
+    XLOG(FATAL) << "invalid null Acl table group member for: " << aclTableName;
+  }
+  return itr->second.get();
+}
+
 } // namespace facebook::fboss
