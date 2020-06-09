@@ -57,7 +57,6 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   aclTableHandle->aclTable = saiAclTable;
   auto [it, inserted] =
       handles_.emplace(aclTableName, std::move(aclTableHandle));
-  std::ignore = it;
   CHECK(inserted);
 
   return it->second->aclTable->adapterKey();

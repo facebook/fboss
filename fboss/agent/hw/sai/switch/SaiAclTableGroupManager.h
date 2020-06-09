@@ -31,7 +31,7 @@ struct SaiAclTableGroupMemberHandle {
 };
 
 struct SaiAclTableGroupHandle {
-  std::shared_ptr<SaiAclTableGroupHandle> aclTableGroup;
+  std::shared_ptr<SaiAclTableGroup> aclTableGroup;
   // SAI ACl Table Group member name (ACL Table name) to corresponding handle
   folly::F14FastMap<std::string, std::unique_ptr<SaiAclTableGroupMemberHandle>>
       aclTableGroupMembers;
@@ -43,7 +43,7 @@ class SaiAclTableGroupManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
-  void addAclTableGroup(sai_acl_stage_t aclStage);
+  AclTableGroupSaiId addAclTableGroup(sai_acl_stage_t aclStage);
 
   void addTableGroupMember(
       sai_acl_stage_t aclStage,
@@ -51,6 +51,9 @@ class SaiAclTableGroupManager {
   void removeTableGroupMember(
       sai_acl_stage_t aclStage,
       AclTableSaiId aclTableSaiId);
+
+  const SaiAclTableGroupHandle* FOLLY_NULLABLE
+  getAclTableGroupHandle(sai_acl_stage_t aclStage) const;
 
  private:
   SaiManagerTable* managerTable_;
