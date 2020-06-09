@@ -58,6 +58,8 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
 void PlatformMapping::merge(PlatformMapping* mapping) {
   for (auto port : mapping->platformPorts_) {
     platformPorts_.emplace(port.first, std::move(port.second));
+    mergePortConfigOverrides(
+        port.first, mapping->getPortConfigOverrides(port.first));
   }
   mapping->platformPorts_.clear();
 
@@ -158,5 +160,59 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   // otherwise, we just need to return iphy config directly
   return iphyCfg;
 }
+
+std::vector<cfg::PlatformPortConfigOverride>
+PlatformMapping::getPortConfigOverrides(int32_t port) const {
+  std::vector<cfg::PlatformPortConfigOverride> overrides;
+  for (const auto& portConfigOverride : portConfigOverrides_) {
+    if (auto portList = portConfigOverride.factor.ports_ref()) {
+      if (std::find(portList->begin(), portList->end(), port) !=
+          portList->end()) {
+        overrides.push_back(portConfigOverride);
+      }
+    } else {
+      // If factor.ports is empty, which means such override apply for all ports
+      overrides.push_back(portConfigOverride);
+    }
+  }
+  return overrides;
+}
+
+void PlatformMapping::mergePortConfigOverrides(
+    int32_t port,
+    std::vector<cfg::PlatformPortConfigOverride> overrides) {
+  for (auto& portOverrides : overrides) {
+    int numMismatch = 0;
+    for (auto& curOverride : portConfigOverrides_) {
+      if (portOverrides.pins != curOverride.pins ||
+          portOverrides.factor.profiles_ref() !=
+              curOverride.factor.profiles_ref() ||
+          portOverrides.factor.cableLengths_ref() !=
+              curOverride.factor.cableLengths_ref()) {
+        numMismatch++;
+        continue;
+      }
+
+      auto portList = portOverrides.factor.ports_ref();
+      auto curPortList = curOverride.factor.ports_ref();
+      if (portList && curPortList) {
+        curPortList->push_back(port);
+      }
+    }
+    // if none of the existing override matches, add this override directly
+    if (numMismatch == portConfigOverrides_.size()) {
+      if (auto portList = portOverrides.factor.ports_ref()) {
+        cfg::PlatformPortConfigOverride newOverride;
+        newOverride.factor = portOverrides.factor;
+        newOverride.factor.ports_ref() = {port};
+        newOverride.pins = portOverrides.pins;
+        portConfigOverrides_.push_back(newOverride);
+      } else {
+        portConfigOverrides_.push_back(portOverrides);
+      }
+    }
+  }
+}
+
 } // namespace fboss
 } // namespace facebook

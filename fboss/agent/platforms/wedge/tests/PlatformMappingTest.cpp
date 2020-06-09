@@ -152,6 +152,53 @@ TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
   }
 }
 
+TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
+  auto miln4_2 = std::make_unique<Minipack16QPimPlatformMapping>(
+      ExternalPhyVersion::MILN4_2);
+  auto miln5_2 = std::make_unique<Minipack16QPimPlatformMapping>(
+      ExternalPhyVersion::MILN5_2);
+  for (const auto& port : miln5_2->getPlatformPorts()) {
+    miln4_2->mergePortConfigOverrides(
+        port.first, miln5_2->getPortConfigOverrides(port.first));
+  }
+
+  // Now 4.2 should be exactly the same as 5.2
+  EXPECT_EQ(miln4_2->getPortConfigOverrides().size(), 1);
+  for (auto miln4_2Override : miln4_2->getPortConfigOverrides()) {
+    auto overrideProfileList = miln4_2Override.factor.profiles_ref();
+    EXPECT_TRUE(overrideProfileList);
+    EXPECT_TRUE(
+        std::find(
+            overrideProfileList->begin(),
+            overrideProfileList->end(),
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528) !=
+        overrideProfileList->end());
+
+    auto overridePortList = miln4_2Override.factor.ports_ref();
+    EXPECT_EQ(overridePortList->size(), miln4_2->getPlatformPorts().size());
+    // Now all the port should use this override
+    for (const auto& port : miln4_2->getPlatformPorts()) {
+      EXPECT_TRUE(
+          std::find(
+              overridePortList->begin(), overridePortList->end(), port.first) !=
+          overridePortList->end());
+
+      auto pinCfgs = miln4_2->getPortIphyPinConfigs(
+          PortID(port.first), cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528);
+      for (auto pinCfg : pinCfgs) {
+        auto tx = pinCfg.tx_ref();
+        EXPECT_TRUE(tx.has_value());
+        EXPECT_EQ(tx->pre2, 0);
+        EXPECT_EQ(tx->pre, 0);
+        EXPECT_EQ(tx->main, 128);
+        EXPECT_EQ(tx->post, 0);
+        EXPECT_EQ(tx->post2, 0);
+        EXPECT_EQ(tx->post3, 0);
+      }
+    }
+  }
+}
+
 TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {

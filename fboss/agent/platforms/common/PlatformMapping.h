@@ -56,6 +56,16 @@ class PlatformMapping {
   cfg::PortProfileID getPortMaxSpeedProfile(PortID portID) const;
   cfg::PortSpeed getPortMaxSpeed(PortID portID) const;
 
+  const std::vector<cfg::PlatformPortConfigOverride>& getPortConfigOverrides()
+      const {
+    return portConfigOverrides_;
+  }
+  std::vector<cfg::PlatformPortConfigOverride> getPortConfigOverrides(
+      int32_t port) const;
+  void mergePortConfigOverrides(
+      int32_t port,
+      std::vector<cfg::PlatformPortConfigOverride> overrides);
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::map<cfg::PortProfileID, phy::PortProfileConfig> supportedProfiles_;

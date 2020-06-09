@@ -62,6 +62,9 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
             apache::thrift::util::enumNameSafe(portProfile.first));
       }
     }
+
+    auto portConfigOverrides = getPortConfigOverrides(port.first);
+    pims_[portPimID]->mergePortConfigOverrides(port.first, portConfigOverrides);
   }
 }
 
