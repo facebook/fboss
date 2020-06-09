@@ -36,6 +36,8 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     *cfg.staticRoutesToNull[1].prefix_ref() = "::/0";
     return cfg;
   }
+
+ protected:
   void pumpTraffic(bool isV6) {
     auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -46,38 +48,28 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(pkt), PortID(masterLogicalPortIds()[0]));
   }
-
- protected:
-  void runTest(bool isV6) {
-    auto setup = [=]() {};
-    auto verify = [=]() {
-      PortID portId = masterLogicalPortIds()[0];
-      auto portStatsBefore = getLatestPortStats(portId);
-      pumpTraffic(isV6);
-      auto portStatsAfter = getLatestPortStats(portId);
-      EXPECT_EQ(
-          1,
-          *portStatsAfter.inDiscardsRaw__ref() -
-              *portStatsBefore.inDiscardsRaw__ref());
-      EXPECT_EQ(
-          1,
-          *portStatsAfter.inDstNullDiscards__ref() -
-              *portStatsBefore.inDstNullDiscards__ref());
-      EXPECT_EQ(
-          0,
-          *portStatsAfter.inDiscards__ref() -
-              *portStatsBefore.inDiscards__ref());
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
 };
 
-TEST_F(HwInDiscardsCounterTest, v6) {
-  runTest(true);
-}
-
-TEST_F(HwInDiscardsCounterTest, v4) {
-  runTest(false);
-}
-
+TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    PortID portId = masterLogicalPortIds()[0];
+    auto portStatsBefore = getLatestPortStats(portId);
+    pumpTraffic(true);
+    pumpTraffic(false);
+    auto portStatsAfter = getLatestPortStats(portId);
+    EXPECT_EQ(
+        2,
+        *portStatsAfter.inDiscardsRaw__ref() -
+            *portStatsBefore.inDiscardsRaw__ref());
+    EXPECT_EQ(
+        2,
+        *portStatsAfter.inDstNullDiscards__ref() -
+            *portStatsBefore.inDstNullDiscards__ref());
+    EXPECT_EQ(
+        0,
+        *portStatsAfter.inDiscards__ref() - *portStatsBefore.inDiscards__ref());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+} // namespace facebook::fboss
 } // namespace facebook::fboss
