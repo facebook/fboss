@@ -11,10 +11,10 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmTest2QueueUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.h"
 
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
