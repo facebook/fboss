@@ -15,7 +15,6 @@ add_library(bcm_test_platforms
   fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.cpp
   fboss/agent/platforms/tests/utils/BcmTestWedge400Platform.cpp
   fboss/agent/platforms/tests/utils/BcmTestWedge400Port.cpp
-  fboss/agent/platforms/tests/utils/BcmTestMinipackPlatform.cpp
   fboss/agent/platforms/tests/utils/BcmTestMinipackPort.cpp
   fboss/agent/platforms/tests/utils/BcmTestYampPlatform.cpp
   fboss/agent/platforms/tests/utils/BcmTestYampPort.cpp
@@ -27,6 +26,7 @@ add_library(bcm_test_platforms
   fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawk3Platform.cpp
   fboss/agent/platforms/tests/utils/BcmTestWedge40Platform.cpp
   fboss/agent/platforms/tests/utils/FakeBcmTestPlatform.cpp
+  fboss/agent/platforms/tests/utils/oss/BcmTestMinipackPlatform.cpp
 )
 
 target_link_libraries(bcm_test_platforms

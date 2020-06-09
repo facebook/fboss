@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/wedge/minipack/Minipack16QPimPlatformMapping.h"
+#include <folly/logging/xlog.h>
 
 namespace {
 constexpr auto kJsonMiln42PlatformMappingStr = R"(
@@ -97961,7 +97962,15 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
 
 namespace facebook {
 namespace fboss {
-Minipack16QPimPlatformMapping::Minipack16QPimPlatformMapping()
-    : MultiPimPlatformMapping(kJsonMiln42PlatformMappingStr) {}
+Minipack16QPimPlatformMapping::Minipack16QPimPlatformMapping(
+    ExternalPhyVersion xphyVersion)
+    : MultiPimPlatformMapping(
+          xphyVersion == ExternalPhyVersion::MILN4_2
+              ? kJsonMiln42PlatformMappingStr
+              : kJsonMiln52PlatformMappingStr) {
+  XLOG(INFO) << "Initializing Minipack16QPimPlatformMapping for xphy ver: "
+             << (xphyVersion == ExternalPhyVersion::MILN4_2 ? "MILN4_2"
+                                                            : "MILN5_2");
+}
 } // namespace fboss
 } // namespace facebook

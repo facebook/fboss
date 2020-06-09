@@ -10,13 +10,14 @@
 #pragma once
 
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 
 namespace facebook {
 namespace fboss {
 
 class Minipack16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
-  Minipack16QPimPlatformMapping();
+  explicit Minipack16QPimPlatformMapping(ExternalPhyVersion xphyVersion);
 
  private:
   // Forbidden copy constructor and assignment operator

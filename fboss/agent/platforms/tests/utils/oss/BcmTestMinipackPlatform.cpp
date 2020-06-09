@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPlatform.h"
+
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPort.h"
 #include "fboss/agent/platforms/wedge/minipack/MinipackPlatformMapping.h"
@@ -18,7 +19,8 @@ BcmTestMinipackPlatform::BcmTestMinipackPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgeTomahawk3Platform(
           std::move(productInfo),
-          std::make_unique<MinipackPlatformMapping>()) {}
+          std::make_unique<MinipackPlatformMapping>(
+              ExternalPhyVersion::MILN5_2)) {}
 
 std::unique_ptr<BcmTestPort> BcmTestMinipackPlatform::createTestPort(
     PortID id) {

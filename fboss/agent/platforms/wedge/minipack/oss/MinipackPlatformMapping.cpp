@@ -14,9 +14,11 @@
 
 namespace facebook {
 namespace fboss {
-MinipackPlatformMapping::MinipackPlatformMapping() {
+MinipackPlatformMapping::MinipackPlatformMapping(
+    ExternalPhyVersion xphyVersion) {
   // current Minipack oss platform only supports 16Q pims
-  auto minipack16Q = std::make_unique<Minipack16QPimPlatformMapping>();
+  auto minipack16Q =
+      std::make_unique<Minipack16QPimPlatformMapping>(xphyVersion);
   for (uint8_t pimID = 2; pimID < 10; pimID++) {
     this->merge(minipack16Q->getPimPlatformMapping(pimID));
   }

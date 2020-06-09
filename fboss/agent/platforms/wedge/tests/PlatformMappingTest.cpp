@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/wedge/tests/PlatformMappingTest.h"
 
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
@@ -143,8 +144,12 @@ TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
   // 32 TH3 Blackhawk cores + 128 transceivers + 32 xphy
   setExpection(128, 32, 32, 128, expectedProfiles);
 
-  auto mapping = std::make_unique<Minipack16QPimPlatformMapping>();
-  verify(mapping.get());
+  // both xphy version should pass the same standard
+  for (auto xphyVersion :
+       {ExternalPhyVersion::MILN4_2, ExternalPhyVersion::MILN5_2}) {
+    auto mapping = std::make_unique<Minipack16QPimPlatformMapping>(xphyVersion);
+    verify(mapping.get());
+  }
 }
 
 TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {

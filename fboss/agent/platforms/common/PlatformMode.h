@@ -25,4 +25,8 @@ enum class PlatformMode : char {
   WEDGE400,
 };
 
-}
+enum class ExternalPhyVersion : char {
+  MILN4_2,
+  MILN5_2,
+};
+} // namespace facebook::fboss
