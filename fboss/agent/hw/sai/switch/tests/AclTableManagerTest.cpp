@@ -34,3 +34,42 @@ TEST_F(AclTableManagerTest, addAclTable) {
       aclTableId, SaiAclTableTraits::Attributes::Stage());
   EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);
 }
+
+TEST_F(AclTableManagerTest, addTwoAclTable) {
+  AclTableSaiId aclTableId =
+      saiManagerTable->aclTableManager().addAclTable("AclTable1");
+
+  AclTableSaiId aclTableId2 =
+      saiManagerTable->aclTableManager().addAclTable("AclTable2");
+
+  auto stageGot = saiApiTable->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::Stage());
+  EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);
+
+  auto stageGot2 = saiApiTable->aclApi().getAttribute(
+      aclTableId2, SaiAclTableTraits::Attributes::Stage());
+  EXPECT_EQ(stageGot2, SAI_ACL_STAGE_INGRESS);
+}
+
+TEST_F(AclTableManagerTest, addDupAclTable) {
+  saiManagerTable->aclTableManager().addAclTable("AclTable1");
+  EXPECT_THROW(
+      saiManagerTable->aclTableManager().addAclTable("AclTable1"), FbossError);
+}
+
+TEST_F(AclTableManagerTest, getAclTable) {
+  saiManagerTable->aclTableManager().addAclTable("AclTable1");
+  auto handle =
+      saiManagerTable->aclTableManager().getAclTableHandle("AclTable1");
+
+  EXPECT_TRUE(handle);
+  EXPECT_TRUE(handle->aclTable);
+}
+
+TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
+  saiManagerTable->aclTableManager().addAclTable("AclTable1");
+  auto handle =
+      saiManagerTable->aclTableManager().getAclTableHandle("AclTable2");
+
+  EXPECT_FALSE(handle);
+}
