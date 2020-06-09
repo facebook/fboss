@@ -1132,12 +1132,13 @@ struct QcmConfig {
   6: map<BurstMonitorWeight, i16> flowWeights
   7: i32 agingIntervalInMsecs = 50
   8: string collectorDstIp
-  9: IpType ipType = IP6
   10: optional i16 collectorSrcPort
   // Arbitrary high number to keep the dstPort unique
   11: i16 collectorDstPort = 3000
   12: optional i16 collectorDscp
   13: optional i32 ppsToQcm
+  14: string collectorSrcIp
+  15: list<i32> monitorQcmPortList = []
 }
 
 /*
