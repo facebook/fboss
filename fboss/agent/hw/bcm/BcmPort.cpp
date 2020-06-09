@@ -1691,7 +1691,7 @@ void BcmPort::attachIngressQosPolicy(const std::string& name) {
    */
   auto rv =
       bcm_port_dscp_map_mode_set(hw_->getUnit(), port_, BCM_PORT_DSCP_MAP_ALL);
-  bcmCheckError(rv, "failed to get dscp map mode");
+  bcmCheckError(rv, "failed to set dscp map mode");
 
   auto qosPolicy = hw_->getQosPolicyTable()->getQosPolicy(name);
   rv = bcm_qos_port_map_set(
