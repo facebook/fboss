@@ -134,7 +134,8 @@ ExternalPhyProfileConfig ExternalPhyProfileConfig::fromPortProfileConfig(
   }
   ExternalPhyProfileConfig xphyCfg;
   xphyCfg.speed = *portCfg.speed_ref();
-  xphyCfg.system = *portCfg.iphy_ref();
+  xphyCfg.system = portCfg.xphySystem_ref() ? *portCfg.xphySystem_ref()
+                                            : *portCfg.iphy_ref();
   xphyCfg.line = *portCfg.xphyLine_ref();
   return xphyCfg;
 }
