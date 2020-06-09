@@ -523,6 +523,17 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
   }
 }
 
+SignalFlags CmisModule::getSignalFlagInfo() {
+  SignalFlags signalFlags = SignalFlags();
+
+  signalFlags.txLos_ref() = getSettingsValue(CmisField::TX_LOS_FLAG);
+  signalFlags.rxLos_ref() = getSettingsValue(CmisField::RX_LOS_FLAG);
+  signalFlags.txLol_ref() = getSettingsValue(CmisField::TX_LOL_FLAG);
+  signalFlags.rxLol_ref() = getSettingsValue(CmisField::RX_LOL_FLAG);
+
+  return signalFlags;
+}
+
 void CmisModule::setQsfpFlatMem() {
   uint8_t flatMem;
   int offset;
