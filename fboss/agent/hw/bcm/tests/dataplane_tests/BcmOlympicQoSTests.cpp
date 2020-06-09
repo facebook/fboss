@@ -167,45 +167,11 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifyDscpQueueMapping();
   void verifyWRR();
   void verifySP();
   void verifyWRRAndICP();
   void verifyWRRAndNC();
 };
-
-void BcmOlympicQoSTest::verifyDscpQueueMapping() {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
-  auto setup = [=]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-    auto kEcmpWidthForTest = 1;
-    setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
-  };
-
-  auto verify = [=]() {
-    for (const auto& entry : utility::kOlympicQueueToDscp()) {
-      auto queueId = entry.first;
-      auto dscpVals = entry.second;
-
-      for (const auto& dscpVal : dscpVals) {
-        auto beforeQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                      .get_queueOutPackets_()
-                                      .at(queueId);
-        sendUdpPkt(dscpVal);
-        auto afterQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                     .get_queueOutPackets_()
-                                     .at(queueId);
-
-        EXPECT_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
-      }
-    }
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
 
 void BcmOlympicQoSTest::verifyWRR() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
