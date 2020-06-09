@@ -1404,7 +1404,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
     for (const auto& entry : nhts) {
       if (*entry.address_ref() == bAddr) {
         if (intf.has_value()) {
-          EXPECT_TRUE(entry.address_ref()->__isset.ifName);
+          EXPECT_TRUE(entry.address_ref()->ifName_ref());
           EXPECT_EQ(
               bAddr.ifName_ref().value_unchecked(),
               entry.address_ref()->ifName_ref().value_unchecked());

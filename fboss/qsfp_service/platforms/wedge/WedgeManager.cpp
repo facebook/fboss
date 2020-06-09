@@ -106,7 +106,7 @@ void WedgeManager::syncPorts(
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
   auto groups = folly::gen::from(*ports) |
       folly::gen::filter([](const std::pair<int32_t, PortStatus>& item) {
-                  return item.second.__isset.transceiverIdx;
+                  return item.second.transceiverIdx_ref();
                 }) |
       folly::gen::groupBy([](const std::pair<int32_t, PortStatus>& item) {
                   return *item.second.transceiverIdx_ref()

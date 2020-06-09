@@ -261,7 +261,7 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
 
   // Make sure page3 exist
   if (!flatMem) {
-    rawDOMData.page3_ref().value_unchecked() = IOBuf(IOBuf::CREATE, 128);
+    rawDOMData.page3_ref() = IOBuf(IOBuf::CREATE, 128);
     uint8_t page3 = 0x3;
     bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page3);
     usleep(20000); // Delay required by Intel Transceiver.
@@ -273,7 +273,6 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
         128,
         128,
         rawDOMData.page3_ref().value_unchecked().writableData());
-    rawDOMData.__isset.page3 = true;
   }
   return rawDOMData;
 }
@@ -476,7 +475,7 @@ void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   printf("  Date Code: %s\n", vendorDate.str().c_str());
 
   // print page3 values
-  if (!rawDOMData.__isset.page3) {
+  if (!rawDOMData.page3_ref()) {
     return;
   }
 
