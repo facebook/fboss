@@ -59,29 +59,28 @@ std::string get2QueueCounterNameForDscp(uint8_t dscp) {
   return folly::to<std::string>("dscp", dscp, "_counter");
 }
 
-void add2QueueAcls(cfg::SwitchConfig* config) {
-  for (const auto& entry : k2QueueToDscp()) {
-    auto queueId = entry.first;
-    auto dscpVals = entry.second;
-
-    /*
-     * By default (if no ACL match), the traffic gets processed by the default
-     * queue. Thus, we don't generate ACLs for dscp to default queue mapping.
-     * We mimic it here.
-     */
-    if (queueId == k2QueueDefaultQueueId) {
-      continue;
+void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
+  cfg::QosMap qosMap;
+  auto queueToDscpMap = k2QueueToDscp();
+  qosMap.dscpMaps_ref()->resize(queueToDscpMap.size());
+  ssize_t qosMapIdx = 0;
+  for (const auto& q2dscps : queueToDscpMap) {
+    auto [q, dscps] = q2dscps;
+    *qosMap.dscpMaps[qosMapIdx].internalTrafficClass_ref() = q;
+    for (auto dscp : dscps) {
+      qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
+          dscp);
     }
-
-    for (const auto& dscpVal : dscpVals) {
-      auto aclName = get2QueueAclNameForDscp(dscpVal);
-      auto counterName = get2QueueCounterNameForDscp(dscpVal);
-
-      utility::addDscpAclToCfg(config, aclName, dscpVal);
-      utility::addTrafficCounter(config, counterName);
-      utility::addQueueMatcher(config, aclName, queueId, counterName);
-    }
+    qosMap.trafficClassToQueueId_ref()->emplace(q, q);
+    ++qosMapIdx;
   }
+  cfg.qosPolicies_ref()->resize(1);
+  *cfg.qosPolicies[0].name_ref() = "qp";
+  cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
+
+  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
+  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
 }
 
 const std::map<int, std::vector<uint8_t>>& k2QueueToDscp() {

@@ -32,7 +32,7 @@ constexpr int k2QueueDefaultQueueId = k2QueueLowPriQueueId;
 constexpr int k2QueueHighestSPQueueId = k2QueueNCQueueId;
 
 void add2QueueConfig(cfg::SwitchConfig* config);
-void add2QueueAcls(cfg::SwitchConfig* config);
+void add2QueueQosMaps(cfg::SwitchConfig& cfg);
 
 std::string get2QueueCounterNameForDscp(uint8_t dscp);
 

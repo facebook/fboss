@@ -7,10 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
@@ -24,11 +21,21 @@
 
 namespace facebook::fboss {
 
-class Bcm2QueueToOlympicQoSTest : public BcmLinkStateDependentTests {
+class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    /*
+     * N.B., On one platform, we have to program qos maps before we program l3
+     * interfaces. Even if we enforce that ordering in SaiSwitch, we must still
+     * send the qos maps in the same delta as the config with the interface.
+     *
+     * Since we may want to vary the qos maps per test, we shouldn't program
+     * l3 interfaces as part of initial config, and only together with the
+     * qos maps.
+     */
+    utility::add2QueueQosMaps(cfg);
     return cfg;
   }
 
@@ -57,8 +64,8 @@ class Bcm2QueueToOlympicQoSTest : public BcmLinkStateDependentTests {
         static_cast<uint8_t>(dscpVal << 2)); // Trailing 2 bits are for ECN
   }
 
-  void sendUdpPkt(int hopLimit = 64) {
-    getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(hopLimit));
+  void sendUdpPkt(int dscpVal) {
+    getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(dscpVal));
   }
 
   void _verifyDscpQueueMappingHelper(
@@ -82,7 +89,7 @@ class Bcm2QueueToOlympicQoSTest : public BcmLinkStateDependentTests {
   }
 };
 
-TEST_F(Bcm2QueueToOlympicQoSTest, VerifyDscpQueueMapping) {
+TEST_F(Hw2QueueToOlympicQoSTest, VerifyDscpQueueMapping) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -90,11 +97,6 @@ TEST_F(Bcm2QueueToOlympicQoSTest, VerifyDscpQueueMapping) {
   auto setup = [=]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     setupECMPForwarding(ecmpHelper6);
-
-    auto newCfg{initialConfig()};
-    utility::add2QueueConfig(&newCfg);
-    utility::add2QueueAcls(&newCfg);
-    applyNewConfig(newCfg);
   };
 
   auto verify = [=]() {
