@@ -161,6 +161,14 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
     portStats_.emplace(
         swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
   }
+  if (globalDscpToTcQosMap_) {
+    // Both global maps must exist in one of them exists
+    CHECK(globalTcToQueueQosMap_);
+    setQosMaps(
+        globalDscpToTcQosMap_->adapterKey(),
+        globalTcToQueueQosMap_->adapterKey(),
+        {swPort->getID()});
+  }
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
   concurrentIndices_->vlanIds.emplace(
       saiPort->adapterKey(), swPort->getIngressVlan());
@@ -172,6 +180,12 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   auto itr = handles_.find(swId);
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
+  }
+  if (globalDscpToTcQosMap_) {
+    setQosMaps(
+        QosMapSaiId(SAI_NULL_OBJECT_ID),
+        QosMapSaiId(SAI_NULL_OBJECT_ID),
+        {swPort->getID()});
   }
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
