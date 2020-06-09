@@ -16,10 +16,13 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 using folly::IOBuf;
 using std::lock_guard;
 using std::memcpy;
 using std::mutex;
+using namespace apache::thrift;
 
 DECLARE_int32(remediate_interval);
 
@@ -248,7 +251,8 @@ double CmisModule::getQsfpOMLength(CmisField field) const {
   return value * qsfpMultiplier.at(field);
 }
 
-bool CmisModule::getSensorInfo(GlobalSensors& info) {
+GlobalSensors CmisModule::getSensorInfo() {
+  GlobalSensors info = GlobalSensors();
   info.temp.value =
       getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
   info.temp.flags_ref() =
@@ -256,20 +260,22 @@ bool CmisModule::getSensorInfo(GlobalSensors& info) {
   info.vcc.value = getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
   info.vcc.flags_ref() =
       getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
-  return true;
+  return info;
 }
 
-bool CmisModule::getVendorInfo(Vendor& vendor) {
+Vendor CmisModule::getVendorInfo() {
+  Vendor vendor = Vendor();
   vendor.name = getQsfpString(CmisField::VENDOR_NAME);
   vendor.oui = getQsfpString(CmisField::VENDOR_OUI);
   vendor.partNumber = getQsfpString(CmisField::PART_NUMBER);
   vendor.rev = getQsfpString(CmisField::REVISION_NUMBER);
   vendor.serialNumber = getQsfpString(CmisField::VENDOR_SERIAL_NUMBER);
   vendor.dateCode = getQsfpString(CmisField::MFG_DATE);
-  return true;
+  return vendor;
 }
 
-void CmisModule::getCableInfo(Cable& cable) {
+Cable CmisModule::getCableInfo() {
+  Cable cable = Cable();
   cable.transmitterTech = getQsfpTransmitterTechnology();
 
   if (auto length = getQsfpSMFLength(); length != 0) {
@@ -290,6 +296,7 @@ void CmisModule::getCableInfo(Cable& cable) {
   if (auto length = getQsfpDACLength(); length != 0) {
     cable.length_ref() = length;
   }
+  return cable;
 }
 
 /*
@@ -320,10 +327,11 @@ ThresholdLevels CmisModule::getThresholdValues(
   return thresh;
 }
 
-bool CmisModule::getThresholdInfo(AlarmThreshold& threshold) {
+std::optional<AlarmThreshold> CmisModule::getThresholdInfo() {
   if (flatMem_) {
-    return false;
+    return {};
   }
+  AlarmThreshold threshold = AlarmThreshold();
   threshold.temp =
       getThresholdValues(CmisField::TEMPERATURE_THRESH, CmisFieldInfo::getTemp);
   threshold.vcc =
@@ -332,7 +340,7 @@ bool CmisModule::getThresholdInfo(AlarmThreshold& threshold) {
       getThresholdValues(CmisField::RX_PWR_THRESH, CmisFieldInfo::getPwr);
   threshold.txBias =
       getThresholdValues(CmisField::TX_BIAS_THRESH, CmisFieldInfo::getTxBias);
-  return true;
+  return threshold;
 }
 
 uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) {
@@ -346,7 +354,8 @@ uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) {
   return data[0] & mask;
 }
 
-bool CmisModule::getTransceiverSettingsInfo(TransceiverSettings& settings) {
+TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
+  TransceiverSettings settings = TransceiverSettings();
   settings.cdrTx = CmisFieldInfo::getFeatureState(
       getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
       getSettingsValue(CmisField::TX_CDR_CONTROL));
@@ -364,7 +373,7 @@ bool CmisModule::getTransceiverSettingsInfo(TransceiverSettings& settings) {
 
   getApplicationCapabilities();
 
-  return true;
+  return settings;
 }
 
 void CmisModule::getApplicationCapabilities() {
@@ -769,7 +778,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         "Port: ",
         qsfpImpl_->getName(),
         " Unsupported speed: ",
-        cfg::_PortSpeed_VALUES_TO_NAMES.find(speed)->second));
+        apache::thrift::util::enumNameSafe(speed)));
   }
 
   auto capabilityIter = moduleCapabilities_.find(applicationIter->second);
@@ -879,8 +888,7 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   if (customizationSupported()) {
-    TransceiverSettings settings;
-    getTransceiverSettingsInfo(settings);
+    TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
     setPowerOverrideIfSupported(settings.powerControl);

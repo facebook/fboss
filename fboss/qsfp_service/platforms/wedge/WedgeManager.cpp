@@ -4,6 +4,8 @@
 
 #include <folly/logging/xlog.h>
 #include <fb303/ThreadCachedServiceData.h>
+#include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
@@ -39,13 +41,28 @@ void WedgeManager::initTransceiverMap() {
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
-    auto qsfp = std::make_unique<SffModule>(
-        std::move(qsfpImpl),
-        (portGroupMap_.size() == 0 ?
-          numPortsPerTransceiver() :
-          portGroupMap_[idx].size()));
-    transceivers_.push_back(move(qsfp));
-    XLOG(INFO) << "making QSFP for " << idx;
+    TransceiverManagementInterface
+        transceiverManagementInterface = TransceiverManagementInterface::SFF;
+    try {
+      transceiverManagementInterface =
+        qsfpImpl->getTransceiverManagementInterface();
+    } catch (const I2cError& ex) {
+      XLOG(ERR) << "failed detecting transceiver type: " << ex.what()
+                << " Transceiver " << idx << " may not be present: ";
+    }
+
+    if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
+    {
+      XLOG(INFO) << "making CMIS QSFP for " << idx;
+      std::unique_ptr<QsfpModule> qsfp = std::make_unique<CmisModule>(
+          std::move(qsfpImpl), numPortsPerTransceiver());
+      transceivers_.push_back(move(qsfp));
+    } else {
+      XLOG(INFO) << "making Sff QSFP for " << idx;
+      std::unique_ptr<QsfpModule> qsfp = std::make_unique<SffModule>(
+          std::move(qsfpImpl), numPortsPerTransceiver());
+      transceivers_.push_back(move(qsfp));
+    }
   }
 
   refreshTransceivers();

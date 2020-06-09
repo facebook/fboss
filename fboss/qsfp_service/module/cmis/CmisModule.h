@@ -145,11 +145,11 @@ class CmisModule : public QsfpModule {
   /*
    * Retreives all alarm and warning thresholds
    */
-  bool getThresholdInfo(AlarmThreshold& threshold) override;
+  std::optional<AlarmThreshold> getThresholdInfo() override;
   /*
    * Gather the sensor info for thrift queries
    */
-  bool getSensorInfo(GlobalSensors& sensor) override;
+  GlobalSensors getSensorInfo() override;
   /*
    * Gather per-channel information for thrift queries
    */
@@ -161,11 +161,11 @@ class CmisModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  bool getVendorInfo(Vendor& vendor) override;
+  Vendor getVendorInfo() override;
   /*
    * Gather the cable info for thrift queries
    */
-  void getCableInfo(Cable& cable) override;
+  Cable getCableInfo() override;
   /*
    * Retrieves the values of settings based on field name and bit placement
    * Default mask is a noop
@@ -174,7 +174,7 @@ class CmisModule : public QsfpModule {
   /*
    * Gather info on what features are enabled and supported
    */
-  virtual bool getTransceiverSettingsInfo(TransceiverSettings& settings) override;
+  virtual TransceiverSettings getTransceiverSettingsInfo() override;
   /*
    * Gather supported applications for this module
    */
