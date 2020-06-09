@@ -65629,6 +65629,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 1
+        },
+        "xphySystem": {
+          "numLanes": 2,
+          "modulation": 1,
+          "fec": 1
         }
     },
     "8": {
@@ -65644,6 +65649,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528
+        },
+        "xphySystem": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544
         }
     },
     "9": {
@@ -65656,6 +65666,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "interfaceMode": 12
         },
         "xphyLine": {
+          "numLanes": 4,
+          "modulation": 2,
+          "fec": 544
+        },
+        "xphySystem": {
           "numLanes": 4,
           "modulation": 2,
           "fec": 544
