@@ -504,6 +504,32 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
   return portMap;
 }
 
+void SaiPortManager::setQosMaps(
+    QosMapSaiId dscpToTc,
+    QosMapSaiId tcToQueue,
+    const folly::F14FastSet<PortID>& ports) {
+  for (auto& portIdAndHandle : handles_) {
+    if (ports.find(portIdAndHandle.first) == ports.end()) {
+      continue;
+    }
+    auto& port = portIdAndHandle.second->port;
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+  }
+}
+
+void SaiPortManager::setQosMapsOnAllPorts(
+    QosMapSaiId dscpToTc,
+    QosMapSaiId tcToQueue) {
+  folly::F14FastSet<PortID> allPorts;
+  for (const auto& portIdAndHandle : handles_) {
+    allPorts.insert(portIdAndHandle.first);
+  }
+  setQosMaps(dscpToTc, tcToQueue, allPorts);
+}
+
 void SaiPortManager::addDefaultDataPlaneQosPolicy(
     const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
   auto& qosMapManager = managerTable_->qosMapManager();
@@ -512,12 +538,15 @@ void SaiPortManager::addDefaultDataPlaneQosPolicy(
       qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
   globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
       newDefaultQosPolicy->getTrafficClassToQueueId());
-  // TODO set qos map on each port
+  setQosMapsOnAllPorts(
+      globalDscpToTcQosMap_->adapterKey(),
+      globalTcToQueueQosMap_->adapterKey());
 }
 
 void SaiPortManager::removeDefaultDataPlaneQosPolicy(
     const std::shared_ptr<QosPolicy>& policy) {
-  // TODO remove qos map from each port
+  setQosMapsOnAllPorts(
+      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
 }

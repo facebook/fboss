@@ -22,6 +22,7 @@
 #include "fboss/agent/types.h"
 
 #include "folly/container/F14Map.h"
+#include "folly/container/F14Set.h"
 
 namespace facebook::fboss {
 
@@ -93,6 +94,12 @@ class SaiPortManager {
       SaiPortTraits::CreateAttributes attributees) const;
 
  private:
+  void setQosMaps(
+      QosMapSaiId dscpToTc,
+      QosMapSaiId tcToQueue,
+      const folly::F14FastSet<PortID>& ports);
+
+  void setQosMapsOnAllPorts(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
   const std::vector<sai_stat_id_t>& supportedStats() const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
