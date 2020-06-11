@@ -20,12 +20,17 @@ namespace facebook::fboss {
 
 template <typename AddrT>
 class HwRouteTest : public HwLinkStateDependentTest {
+ public:
+  using Type = AddrT;
+
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::twoL3IntfConfig(
+    return utility::onePortPerVlanConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
+        {masterLogicalPortIds()[0],
+         masterLogicalPortIds()[1],
+         masterLogicalPortIds()[2],
+         masterLogicalPortIds()[3]},
         cfg::PortLoopbackMode::MAC);
   }
 
@@ -151,6 +156,81 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
     this->verifyClassIDHelper(this->kGetRoutePrefix2(), this->kLookupClass());
   };
 
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
+  using AddrT = typename TestFixture::Type;
+  auto setup = [=]() {
+    this->applyNewConfig(this->initialConfig());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    auto state0 = ecmpHelper.setupECMPForwarding(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0])},
+        {this->kGetRoutePrefix0()});
+    this->applyNewState(state0);
+
+    auto state1 = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(
+            this->getProgrammedState(),
+            {PortDescriptor(this->masterLogicalPortIds()[1])}),
+        {PortDescriptor(this->masterLogicalPortIds()[1])},
+        {this->kGetRoutePrefix1()});
+    this->applyNewState(state1);
+  };
+  auto verify = [=]() {
+    auto routePrefix0 = this->kGetRoutePrefix0();
+    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    EXPECT_TRUE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
+    EXPECT_FALSE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr0));
+
+    auto routePrefix1 = this->kGetRoutePrefix1();
+    auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
+    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("2.0.0.2")));
+    } else {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("2::2")));
+    }
+    EXPECT_FALSE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr1));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
+  using AddrT = typename TestFixture::Type;
+
+  auto setup = [=]() {
+    this->applyNewConfig(this->initialConfig());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    auto state = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(this->getProgrammedState(), 1),
+        1,
+        {this->kGetRoutePrefix0()});
+    this->applyNewState(state);
+    state = ecmpHelper.unresolveNextHops(this->getProgrammedState(), 1);
+    this->applyNewState(state);
+  };
+  auto verify = [=]() {
+    auto routePrefix = this->kGetRoutePrefix0();
+    auto cidr = folly::CIDRNetwork(routePrefix.network, routePrefix.mask);
+    EXPECT_TRUE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
+    EXPECT_FALSE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr));
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
