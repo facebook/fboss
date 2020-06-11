@@ -14,7 +14,11 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/QosPolicy.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
+
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -66,12 +70,28 @@ class QosMapManagerTest : public ManagerTestBase {
       EXPECT_TRUE(foundTc);
     }
   }
+  std::shared_ptr<SwitchState> makeSwitchState(
+      std::shared_ptr<QosPolicy> policy,
+      std::shared_ptr<SwitchState> in = std::make_shared<SwitchState>()) {
+    auto newState = in->clone();
+    newState->setDefaultDataPlaneQosPolicy(policy);
+    return newState;
+  }
 };
 
 TEST_F(QosMapManagerTest, addQosMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
   saiManagerTable->qosMapManager().addQosMap(qp);
+  auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  validateQosPolicy(saiQosMapHandle, testQosPolicy);
+}
+
+TEST_F(QosMapManagerTest, addQosMapDelta) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto newState = makeSwitchState(makeQosPolicy("default", testQosPolicy));
+  saiPlatform->getHwSwitch()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), newState));
   auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   validateQosPolicy(saiQosMapHandle, testQosPolicy);
 }

@@ -215,11 +215,10 @@ void SaiSwitchManager::addDefaultDataPlaneQosPolicy(
     const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(INFO) << "Set default qos map";
-  globalDscpToTcQosMap_ =
-      qosMapManager.setDscpQosMap(newDefaultQosPolicy->getDscpMap());
-  globalTcToQueueQosMap_ = qosMapManager.setTcQosMap(
-      newDefaultQosPolicy->getTrafficClassToQueueId());
-
+  qosMapManager.addQosMap(newDefaultQosPolicy);
+  auto qosMapHandle = qosMapManager.getQosMap();
+  globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
+  globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
   // set switch attrs to oids
   switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
       globalDscpToTcQosMap_->adapterKey()});

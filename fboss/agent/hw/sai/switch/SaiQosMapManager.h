@@ -40,14 +40,14 @@ class SaiQosMapManager {
   void changeQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
-  std::shared_ptr<SaiQosMap> setDscpQosMap(const DscpMap& newDscpMap);
-  std::shared_ptr<SaiQosMap> setTcQosMap(
-      const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap);
 
   SaiQosMapHandle* getQosMap();
   const SaiQosMapHandle* getQosMap() const;
 
  private:
+  std::shared_ptr<SaiQosMap> setDscpQosMap(const DscpMap& newDscpMap);
+  std::shared_ptr<SaiQosMap> setTcQosMap(
+      const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap);
   void setQosMap(const std::shared_ptr<QosPolicy>& newQosPolicy);
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
