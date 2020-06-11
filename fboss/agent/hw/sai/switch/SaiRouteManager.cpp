@@ -21,6 +21,21 @@
 
 namespace facebook::fboss {
 
+sai_object_id_t SaiRouteHandle::nextHopAdapterKey() const {
+  return std::visit(
+      [](auto& handle) { return handle->adapterKey(); }, nexthopHandle_);
+}
+
+std::shared_ptr<SaiNextHopGroupHandle> SaiRouteHandle::nextHopGroupHandle()
+    const {
+  auto* nextHopGroupHandle =
+      std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(&nexthopHandle_);
+  if (!nextHopGroupHandle) {
+    return nullptr;
+  }
+  return *nextHopGroupHandle;
+}
+
 SaiRouteManager::SaiRouteManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
@@ -119,7 +134,7 @@ void SaiRouteManager::addOrUpdateRoute(
   auto fwd = newRoute->getForwardInfo();
   sai_int32_t packetAction;
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
-  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  SaiRouteHandle::NextHopHandle nextHopHandle;
   std::optional<SaiRouteTraits::Attributes::Metadata> metadata;
   if (newRoute->getClassID()) {
     metadata = static_cast<sai_uint32_t>(newRoute->getClassID().value());
@@ -159,13 +174,14 @@ void SaiRouteManager::addOrUpdateRoute(
        * SaiNextHopGroup corresponding to ECMP over those next hops. When no
        * route refers to a next hop set, it will be removed in SAI as well.
        */
-      nextHopGroupHandle =
+      auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               fwd.normalizedNextHops());
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(nextHopGroupId), metadata};
+      nextHopHandle = nextHopGroupHandle;
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -182,7 +198,7 @@ void SaiRouteManager::addOrUpdateRoute(
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
   auto route = store.setObject(entry, attributes.value());
   routeHandle->route = route;
-  routeHandle->nextHopGroupHandle = nextHopGroupHandle;
+  routeHandle->nexthopHandle_ = nextHopHandle;
 }
 
 template <typename AddrT>
@@ -295,6 +311,14 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::beforeRemove() {
       SAI_NULL_OBJECT_ID;
   route->setAttributes(attributes);
   this->setPublisherObject(nullptr);
+}
+
+template <typename NextHopTraitsT>
+sai_object_id_t SaiRouteNextHopHandle<NextHopTraitsT>::adapterKey() const {
+  auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
+  CHECK(route);
+  auto attributes = route->attributes();
+  return GET_OPT_ATTR(Route, NextHopId, attributes);
 }
 
 template class SaiRouteNextHopHandle<SaiIpNextHopTraits>;

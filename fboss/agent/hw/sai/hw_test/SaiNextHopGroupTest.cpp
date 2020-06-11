@@ -58,7 +58,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
     const auto* routeHandle =
         managerTable->routeManager().getRouteHandle(routeEntry());
     const auto& subscribers =
-        routeHandle->nextHopGroupHandle->subscriberForMembers_;
+        routeHandle->nextHopGroupHandle()->subscriberForMembers_;
     return std::count_if(
         subscribers.begin(), subscribers.end(), [](const auto& subscriber) {
           return subscriber->isAlive();
@@ -69,7 +69,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
     const auto* managerTable = getSaiSwitch()->managerTable();
     const auto* routeHandle =
         managerTable->routeManager().getRouteHandle(routeEntry());
-    const auto& nextHopGroupHandle = routeHandle->nextHopGroupHandle;
+    const auto nextHopGroupHandle = routeHandle->nextHopGroupHandle();
     auto adapterKey = nextHopGroupHandle->nextHopGroup->adapterKey();
 
     auto& api = SaiApiTable::getInstance()->nextHopGroupApi();

@@ -118,6 +118,12 @@ struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<SubscriberForNextHopGroupMember>>
       subscriberForMembers_;
+  sai_object_id_t adapterKey() const {
+    if (!nextHopGroup) {
+      return SAI_NULL_OBJECT_ID;
+    }
+    return nextHopGroup->adapterKey();
+  }
 };
 
 class SaiNextHopGroupManager {

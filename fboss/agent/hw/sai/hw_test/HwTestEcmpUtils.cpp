@@ -46,7 +46,8 @@ std::multiset<uint64_t> getEcmpMembersInHw(
         "/",
         static_cast<int>(prefix.second));
   }
-  if (!routeHandle->nextHopGroupHandle) {
+  auto handle = routeHandle->nextHopGroupHandle();
+  if (!handle) {
     throw FbossError(
         "No next hop group found for: ",
         prefix.first,
@@ -54,7 +55,7 @@ std::multiset<uint64_t> getEcmpMembersInHw(
         static_cast<int>(prefix.second));
   }
   auto memberList = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
-      routeHandle->nextHopGroupHandle->nextHopGroup->adapterKey(),
+      handle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::NextHopMemberList());
   return std::multiset<uint64_t>(memberList.begin(), memberList.end());
 }

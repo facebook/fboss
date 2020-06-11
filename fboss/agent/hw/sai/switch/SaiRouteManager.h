@@ -46,6 +46,7 @@ class SaiRouteNextHopHandle
           subscriber);
   void afterCreate(PublisherObject nexthop) override;
   void beforeRemove() override;
+  sai_object_id_t adapterKey() const;
 
  private:
   SaiManagerTable* managerTable_;
@@ -57,8 +58,14 @@ using SaiRouteIpNextHopHandle = SaiRouteNextHopHandle<SaiIpNextHopTraits>;
 using SaiRouteMplsNextHopHandle = SaiRouteNextHopHandle<SaiMplsNextHopTraits>;
 
 struct SaiRouteHandle {
-  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;
+  using NextHopHandle = std::variant<
+      std::shared_ptr<SaiNextHopGroupHandle>,
+      std::shared_ptr<SaiRouteIpNextHopHandle>,
+      std::shared_ptr<SaiRouteMplsNextHopHandle>>;
+  NextHopHandle nexthopHandle_;
   std::shared_ptr<SaiRoute> route;
+  sai_object_id_t nextHopAdapterKey() const;
+  std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle() const;
 };
 
 class SaiRouteManager {
