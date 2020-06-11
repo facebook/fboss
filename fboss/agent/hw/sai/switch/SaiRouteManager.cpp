@@ -160,7 +160,7 @@ void SaiRouteManager::addOrUpdateRoute(
        */
       nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              fwd.getNextHopSet());
+              fwd.normalizedNextHops());
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
       attributes = SaiRouteTraits::CreateAttributes{
