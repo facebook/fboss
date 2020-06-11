@@ -57,7 +57,7 @@ bool isEgressToIp(
     host.l3a_flags |= BCM_L3_IP6;
   }
   host.l3a_vrf = rid;
-  bcm_l3_host_find(unit, &host);
+  CHECK_EQ(bcm_l3_host_find(unit, &host), 0);
   return egress == host.l3a_intf;
 }
 
@@ -82,6 +82,9 @@ bool isHwRouteToCpu(
 
   bcm_l3_route_t route = getBcmRoute(bcmSwitch->getUnit(), cidrNetwork);
 
+  if (route.l3a_flags & BCM_L3_MULTIPATH) {
+    return false;
+  }
   bcm_l3_egress_t egress;
   bcm_l3_egress_t_init(&egress);
   CHECK_EQ(bcm_l3_egress_get(bcmSwitch->getUnit(), route.l3a_intf, &egress), 0);
@@ -114,8 +117,11 @@ bool isHwRouteToNextHop(
     // check for member to ip, interface
     bcm_l3_egress_ecmp_t ecmp;
     bcm_l3_egress_ecmp_t_init(&ecmp);
+    ecmp.ecmp_intf = route.l3a_intf;
+    ecmp.flags = BCM_L3_WITH_ID;
     int count = 0;
-    bcm_l3_ecmp_get(bcmSwitch->getUnit(), &ecmp, 0, nullptr, &count);
+    CHECK_EQ(
+        bcm_l3_ecmp_get(bcmSwitch->getUnit(), &ecmp, 0, nullptr, &count), 0);
     std::vector<bcm_l3_ecmp_member_t> members;
     members.resize(count);
     CHECK_EQ(

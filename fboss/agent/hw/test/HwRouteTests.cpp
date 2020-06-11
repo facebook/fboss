@@ -234,4 +234,91 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
+  using AddrT = typename TestFixture::Type;
+  auto setup = [=]() {
+    this->applyNewConfig(this->initialConfig());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    auto state0 = ecmpHelper.setupECMPForwarding(
+        this->getProgrammedState(),
+        {PortDescriptor(this->masterLogicalPortIds()[0]),
+         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {this->kGetRoutePrefix0()});
+    this->applyNewState(state0);
+
+    auto state1 = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(
+            this->getProgrammedState(),
+            {PortDescriptor(this->masterLogicalPortIds()[2]),
+             PortDescriptor(this->masterLogicalPortIds()[3])}),
+        {PortDescriptor(this->masterLogicalPortIds()[2]),
+         PortDescriptor(this->masterLogicalPortIds()[3])},
+        {this->kGetRoutePrefix1()});
+    this->applyNewState(state1);
+  };
+  auto verify = [=]() {
+    auto routePrefix0 = this->kGetRoutePrefix0();
+    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    EXPECT_FALSE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
+    EXPECT_TRUE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr0));
+    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      EXPECT_FALSE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("1.0.0.1")));
+      EXPECT_FALSE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("2.0.0.2")));
+    } else {
+      EXPECT_FALSE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("1::1")));
+      EXPECT_FALSE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr0,
+          folly::IPAddress("2::1")));
+    }
+
+    auto routePrefix1 = this->kGetRoutePrefix1();
+    auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
+    EXPECT_FALSE(
+        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr1));
+    EXPECT_TRUE(utility::isHwRouteMultiPath(
+        this->getHwSwitch(), this->kRouterID(), cidr1));
+    if (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("3.0.0.3")));
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("4.0.0.4")));
+    } else {
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("3::3")));
+      EXPECT_TRUE(utility::isHwRouteToNextHop(
+          this->getHwSwitch(),
+          this->kRouterID(),
+          cidr1,
+          folly::IPAddress("4::4")));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
