@@ -82,6 +82,7 @@ class SaiPlatform : public Platform, public StateObserver {
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
+  void updateQsfpCache(const StateDelta& delta);
   std::unique_ptr<SaiSwitch> saiSwitch_;
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
   std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;

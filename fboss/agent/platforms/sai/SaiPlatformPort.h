@@ -49,6 +49,7 @@ class SaiPlatformPort : public PlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const = 0;
   bool checkSupportsTransceiver();
+  TransceiverIdxThrift getTransceiverMapping(cfg::PortSpeed speed);
 
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;

@@ -17,6 +17,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -82,7 +83,28 @@ void SaiPlatform::onHwInitialized(SwSwitch* sw) {
   sw->registerStateObserver(this, "SaiPlatform");
 }
 
-void SaiPlatform::stateUpdated(const StateDelta& delta) {}
+void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
+  QsfpCache::PortMapThrift changedPorts;
+  auto portsDelta = delta.getPortsDelta();
+  for (const auto& entry : portsDelta) {
+    auto port = entry.getNew();
+    if (port) {
+      auto platformPort = getPort(port->getID());
+      PortStatus portStatus;
+      portStatus.enabled = port->isEnabled();
+      portStatus.up = port->isUp();
+      portStatus.speedMbps = static_cast<int64_t>(port->getSpeed());
+      portStatus.set_transceiverIdx(
+          platformPort->getTransceiverMapping(port->getSpeed()));
+      changedPorts.insert(std::make_pair(port->getID(), portStatus));
+    }
+  }
+  qsfpCache_->portsChanged(changedPorts);
+}
+
+void SaiPlatform::stateUpdated(const StateDelta& delta) {
+  updateQsfpCache(delta);
+}
 
 void SaiPlatform::onInitialConfigApplied(SwSwitch* /* sw */) {}
 

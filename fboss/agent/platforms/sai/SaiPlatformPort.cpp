@@ -152,4 +152,27 @@ TransmitterTechnology SaiPlatformPort::getTransmitterTech() {
   return getTransmitterTechInternal(&evb).getVia(&evb);
 }
 
+TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
+    cfg::PortSpeed speed) {
+  if (!checkSupportsTransceiver()) {
+    return TransceiverIdxThrift();
+  }
+  auto profileID = getProfileIDBySpeed(speed);
+  auto platformPortEntry = getPlatformPortEntry();
+  std::vector<int32_t> lanes;
+  if (!platformPortEntry.has_value()) {
+    throw FbossError(
+        "Platform Port entry does not exist for port: ", getPortID());
+  }
+  auto transceiverLanes = utility::getTransceiverLanes(
+      *platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
+  for (auto entry : transceiverLanes) {
+    lanes.push_back(entry.lane);
+  }
+  TransceiverIdxThrift xcvr;
+  xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
+  xcvr.channels_ref() = lanes;
+  return xcvr;
+}
+
 } // namespace facebook::fboss
