@@ -91,9 +91,13 @@ TEST_F(AclTableGroupStoreTest, loadAclTableGroups) {
   EXPECT_EQ(got2->adapterKey(), aclTableGroupId2);
 }
 
-TEST_F(AclTableGroupStoreTest, loadAclTableGroupMember) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+class AclTableGroupStoreParamTest
+    : public AclTableGroupStoreTest,
+      public testing::WithParamInterface<sai_acl_stage_t> {};
+
+TEST_P(AclTableGroupStoreParamTest, loadAclTableGroupMember) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
+  auto aclTableId = createAclTable(GetParam());
   auto aclTableGroupMemberId =
       createAclTableGroupMember(aclTableGroupId, aclTableId);
 
@@ -109,15 +113,15 @@ TEST_F(AclTableGroupStoreTest, loadAclTableGroupMember) {
   EXPECT_EQ(got->adapterKey(), aclTableId);
 }
 
-TEST_F(AclTableGroupStoreTest, aclTableGroupLoadCtor) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableGroupStoreParamTest, aclTableGroupLoadCtor) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
   SaiObject<SaiAclTableGroupTraits> obj(aclTableGroupId);
   EXPECT_EQ(obj.adapterKey(), aclTableGroupId);
 }
 
-TEST_F(AclTableGroupStoreTest, aclTableGroupMemberLoadCtor) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableGroupStoreParamTest, aclTableGroupMemberLoadCtor) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
+  auto aclTableId = createAclTable(GetParam());
   auto aclTableGroupMemberId =
       createAclTableGroupMember(aclTableGroupId, aclTableId);
 
@@ -125,21 +129,18 @@ TEST_F(AclTableGroupStoreTest, aclTableGroupMemberLoadCtor) {
   EXPECT_EQ(obj.adapterKey(), aclTableGroupMemberId);
 }
 
-TEST_F(AclTableGroupStoreTest, aclTableGroupCreateCtor) {
-  SaiAclTableGroupTraits::CreateAttributes c{SAI_ACL_STAGE_INGRESS,
-                                             this->kBindPointTypeList(),
-                                             this->kTableGroupType()};
-  SaiAclTableGroupTraits::AdapterHostKey k{SAI_ACL_STAGE_INGRESS,
-                                           this->kBindPointTypeList(),
-                                           this->kTableGroupType()};
+TEST_P(AclTableGroupStoreParamTest, aclTableGroupCreateCtor) {
+  SaiAclTableGroupTraits::CreateAttributes c{
+      GetParam(), this->kBindPointTypeList(), this->kTableGroupType()};
+  SaiAclTableGroupTraits::AdapterHostKey k{
+      GetParam(), this->kBindPointTypeList(), this->kTableGroupType()};
   SaiObject<SaiAclTableGroupTraits> obj(k, c, 0);
-  EXPECT_EQ(
-      GET_ATTR(AclTableGroup, Stage, obj.attributes()), SAI_ACL_STAGE_INGRESS);
+  EXPECT_EQ(GET_ATTR(AclTableGroup, Stage, obj.attributes()), GetParam());
 }
 
-TEST_F(AclTableGroupStoreTest, aclTableGroupMemberCreateCtor) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableGroupStoreParamTest, aclTableGroupMemberCreateCtor) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
+  auto aclTableId = createAclTable(GetParam());
 
   SaiAclTableGroupMemberTraits::CreateAttributes c{
       aclTableGroupId, aclTableId, this->kPriority()};
@@ -152,16 +153,21 @@ TEST_F(AclTableGroupStoreTest, aclTableGroupMemberCreateCtor) {
       aclTableGroupId);
 }
 
-TEST_F(AclTableGroupStoreTest, serDeserAclTableGroupStore) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableGroupStoreParamTest, serDeserAclTableGroupStore) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
   verifyAdapterKeySerDeser<SaiAclTableGroupTraits>({aclTableGroupId});
 }
 
-TEST_F(AclTableGroupStoreTest, serDeserAclTableGroupMemberStore) {
-  auto aclTableGroupId = createAclTableGroup(SAI_ACL_STAGE_INGRESS);
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableGroupStoreParamTest, serDeserAclTableGroupMemberStore) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
+  auto aclTableId = createAclTable(GetParam());
   auto aclTableGroupMemberId =
       createAclTableGroupMember(aclTableGroupId, aclTableId);
   verifyAdapterKeySerDeser<SaiAclTableGroupMemberTraits>(
       {aclTableGroupMemberId});
 }
+
+INSTANTIATE_TEST_CASE_P(
+    AclTableGroupStoreParamTestInstantiation,
+    AclTableGroupStoreParamTest,
+    testing::Values(SAI_ACL_STAGE_INGRESS, SAI_ACL_STAGE_EGRESS));

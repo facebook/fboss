@@ -73,8 +73,12 @@ TEST_F(AclTableStoreTest, loadAclTables) {
   EXPECT_EQ(got2->adapterKey(), aclTableId2);
 }
 
-TEST_F(AclTableStoreTest, loadAclEntry) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+class AclTableStoreParamTest
+    : public AclTableStoreTest,
+      public testing::WithParamInterface<sai_acl_stage_t> {};
+
+TEST_P(AclTableStoreParamTest, loadAclEntry) {
+  auto aclTableId = createAclTable(GetParam());
   auto aclEntryId = createAclEntry(aclTableId);
 
   SaiStore s(0);
@@ -87,35 +91,31 @@ TEST_F(AclTableStoreTest, loadAclEntry) {
   EXPECT_EQ(got->adapterKey(), aclEntryId);
 }
 
-TEST_F(AclTableStoreTest, aclTableCtorLoad) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableStoreParamTest, aclTableCtorLoad) {
+  auto aclTableId = createAclTable(GetParam());
   SaiObject<SaiAclTableTraits> obj(aclTableId);
   EXPECT_EQ(obj.adapterKey(), aclTableId);
 }
 
-TEST_F(AclTableStoreTest, aclEntryLoadCtor) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableStoreParamTest, aclEntryLoadCtor) {
+  auto aclTableId = createAclTable(GetParam());
   auto aclEntryId = createAclEntry(aclTableId);
 
   SaiObject<SaiAclEntryTraits> obj(aclEntryId);
   EXPECT_EQ(obj.adapterKey(), aclEntryId);
 }
 
-TEST_F(AclTableStoreTest, aclTableCtorCreate) {
-  SaiAclTableTraits::CreateAttributes c{SAI_ACL_STAGE_INGRESS,
-                                        this->kBindPointTypeList(),
-                                        this->kActionTypeList(),
-                                        true};
-  SaiAclTableTraits::AdapterHostKey k{SAI_ACL_STAGE_INGRESS,
-                                      this->kBindPointTypeList(),
-                                      this->kActionTypeList(),
-                                      true};
+TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
+  SaiAclTableTraits::CreateAttributes c{
+      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(), true};
+  SaiAclTableTraits::AdapterHostKey k{
+      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(), true};
   SaiObject<SaiAclTableTraits> obj(k, c, 0);
-  EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), SAI_ACL_STAGE_INGRESS);
+  EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());
 }
 
-TEST_F(AclTableStoreTest, AclEntryCreateCtor) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
+  auto aclTableId = createAclTable(GetParam());
 
   SaiAclEntryTraits::CreateAttributes c{aclTableId, this->kPriority(), true};
   SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority(), true};
@@ -123,13 +123,18 @@ TEST_F(AclTableStoreTest, AclEntryCreateCtor) {
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }
 
-TEST_F(AclTableStoreTest, serDeserAclTableStore) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableStoreParamTest, serDeserAclTableStore) {
+  auto aclTableId = createAclTable(GetParam());
   verifyAdapterKeySerDeser<SaiAclTableTraits>({aclTableId});
 }
 
-TEST_F(AclTableStoreTest, serDeserAclEntryStore) {
-  auto aclTableId = createAclTable(SAI_ACL_STAGE_INGRESS);
+TEST_P(AclTableStoreParamTest, serDeserAclEntryStore) {
+  auto aclTableId = createAclTable(GetParam());
   auto aclEntryId = createAclEntry(aclTableId);
   verifyAdapterKeySerDeser<SaiAclEntryTraits>({aclEntryId});
 }
+
+INSTANTIATE_TEST_CASE_P(
+    AclTableStoreParamTestInstantiation,
+    AclTableStoreParamTest,
+    testing::Values(SAI_ACL_STAGE_INGRESS, SAI_ACL_STAGE_EGRESS));
