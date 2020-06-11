@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/types.h"
 
@@ -20,45 +21,38 @@
 
 using namespace facebook::fboss;
 
+namespace {
+constexpr auto kAclTable2 = "AclTable2";
+}
+
 class AclTableGroupManagerTest : public ManagerTestBase {
- public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
-  }
+  // INGRESS Acl table group and a single Acl table are
+  // created on init, nothing to special to do in
+  // setting up these test cases.
 };
 
 TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
-  AclTableGroupSaiId aclTableGroupId =
-      saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS);
+  // Acl table group ingress should already be added
+  auto aclTableGroupId = saiManagerTable->aclTableGroupManager()
+                             .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
+                             ->aclTableGroup->adapterKey();
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableGroupId, SaiAclTableGroupTraits::Attributes::Stage());
   EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);
 }
 
-TEST_F(AclTableGroupManagerTest, addTwoAclTableGroup) {
-  AclTableGroupSaiId aclTableGroupId =
-      saiManagerTable->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS);
-
+TEST_F(AclTableGroupManagerTest, addEgressAclTableGroup) {
   AclTableGroupSaiId aclTableGroupId2 =
       saiManagerTable->aclTableGroupManager().addAclTableGroup(
           SAI_ACL_STAGE_EGRESS);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
-      aclTableGroupId, SaiAclTableGroupTraits::Attributes::Stage());
-  EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);
-
-  auto stageGot2 = saiApiTable->aclApi().getAttribute(
       aclTableGroupId2, SaiAclTableGroupTraits::Attributes::Stage());
-  EXPECT_EQ(stageGot2, SAI_ACL_STAGE_EGRESS);
+  EXPECT_EQ(stageGot, SAI_ACL_STAGE_EGRESS);
 }
 
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroup) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
-
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroup(
           SAI_ACL_STAGE_INGRESS),
@@ -66,8 +60,6 @@ TEST_F(AclTableGroupManagerTest, addDupAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, getAclTableGroup) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
   auto handle = saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
       SAI_ACL_STAGE_INGRESS);
 
@@ -76,8 +68,6 @@ TEST_F(AclTableGroupManagerTest, getAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, checkNonExistentAclTableGroup) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
   auto handle = saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
       SAI_ACL_STAGE_EGRESS);
 
@@ -85,12 +75,9 @@ TEST_F(AclTableGroupManagerTest, checkNonExistentAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
-  // When an ACL table is created, it is implicitly added to a group.
-  AclTableSaiId aclTableId =
-      saiManagerTable->aclTableManager().addAclTable("AclTable1");
-
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
           SAI_ACL_STAGE_INGRESS);
@@ -99,7 +86,7 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
 
   auto aclTableGroupMemberHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
-          aclTableGroupHandle, "AclTable1");
+          aclTableGroupHandle, SaiSwitch::kAclTable1);
   EXPECT_TRUE(aclTableGroupMemberHandle);
   EXPECT_TRUE(aclTableGroupMemberHandle->aclTableGroupMember);
 
@@ -112,14 +99,9 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
 }
 
 TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
   // When an ACL table is created, it is implicitly added to a group.
-  AclTableSaiId aclTableId =
-      saiManagerTable->aclTableManager().addAclTable("AclTable1");
-
   AclTableSaiId aclTableId2 =
-      saiManagerTable->aclTableManager().addAclTable("AclTable2");
+      saiManagerTable->aclTableManager().addAclTable(kAclTable2);
 
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
@@ -127,24 +109,11 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
   EXPECT_TRUE(aclTableGroupHandle);
   EXPECT_TRUE(aclTableGroupHandle->aclTableGroup);
 
-  auto aclTableGroupMemberHandle =
-      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
-          aclTableGroupHandle, "AclTable1");
-  EXPECT_TRUE(aclTableGroupMemberHandle);
-  EXPECT_TRUE(aclTableGroupMemberHandle->aclTableGroupMember);
-
   auto aclTableGroupMemberHandle2 =
       saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
-          aclTableGroupHandle, "AclTable2");
+          aclTableGroupHandle, kAclTable2);
   EXPECT_TRUE(aclTableGroupMemberHandle2);
   EXPECT_TRUE(aclTableGroupMemberHandle2->aclTableGroupMember);
-
-  AclTableGroupMemberSaiId aclTableGroupMemberId =
-      aclTableGroupMemberHandle->aclTableGroupMember->adapterKey();
-  auto tableIdGot = saiApiTable->aclApi().getAttribute(
-      aclTableGroupMemberId,
-      SaiAclTableGroupMemberTraits::Attributes::TableGroupId());
-  EXPECT_EQ(tableIdGot, aclTableId);
 
   AclTableGroupMemberSaiId aclTableGroupMemberId2 =
       aclTableGroupMemberHandle2->aclTableGroupMember->adapterKey();
@@ -153,25 +122,17 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
       SaiAclTableGroupMemberTraits::Attributes::TableGroupId());
   EXPECT_EQ(tableIdGot2, aclTableId2);
 }
-
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
-
-  // When an ACL table is created, it is implicitly added to a group.
-  AclTableSaiId aclTableId =
-      saiManagerTable->aclTableManager().addAclTable("AclTable1");
-
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroupMember(
-          SAI_ACL_STAGE_INGRESS, aclTableId, "AclTable1"),
+          SAI_ACL_STAGE_INGRESS, aclTableId, SaiSwitch::kAclTable1),
       FbossError);
 }
 
 TEST_F(AclTableGroupManagerTest, checkNonExistentAclTableGroupMember) {
-  saiManagerTable->aclTableGroupManager().addAclTableGroup(
-      SAI_ACL_STAGE_INGRESS);
-
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
           SAI_ACL_STAGE_INGRESS);
@@ -180,6 +141,6 @@ TEST_F(AclTableGroupManagerTest, checkNonExistentAclTableGroupMember) {
 
   auto aclTableGroupMemberHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
-          aclTableGroupHandle, "AclTable1");
+          aclTableGroupHandle, kAclTable2);
   EXPECT_FALSE(aclTableGroupMemberHandle);
 }

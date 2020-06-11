@@ -21,17 +21,11 @@
 
 using namespace facebook::fboss;
 
-class AclTableManagerTest : public ManagerTestBase {
- public:
-  void SetUp() override {
-    ManagerTestBase::SetUp();
+namespace {
+constexpr auto kAclTable2 = "AclTable2";
+}
 
-    // In our implementation, a table is always member of group
-    // for corresponding SAI_ACL_STAGE_*.
-    saiManagerTable->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
-  }
-};
+class AclTableManagerTest : public ManagerTestBase {};
 
 TEST_F(AclTableManagerTest, addAclTable) {
   auto aclTableId = saiManagerTable->aclTableManager()
@@ -44,11 +38,12 @@ TEST_F(AclTableManagerTest, addAclTable) {
 }
 
 TEST_F(AclTableManagerTest, addTwoAclTable) {
-  AclTableSaiId aclTableId =
-      saiManagerTable->aclTableManager().addAclTable("AclTable1");
-
+  // AclTable1 should already be added
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
   AclTableSaiId aclTableId2 =
-      saiManagerTable->aclTableManager().addAclTable("AclTable2");
+      saiManagerTable->aclTableManager().addAclTable(kAclTable2);
 
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
@@ -60,24 +55,22 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
 }
 
 TEST_F(AclTableManagerTest, addDupAclTable) {
-  saiManagerTable->aclTableManager().addAclTable("AclTable1");
   EXPECT_THROW(
-      saiManagerTable->aclTableManager().addAclTable("AclTable1"), FbossError);
+      saiManagerTable->aclTableManager().addAclTable(SaiSwitch::kAclTable1),
+      FbossError);
 }
 
 TEST_F(AclTableManagerTest, getAclTable) {
-  saiManagerTable->aclTableManager().addAclTable("AclTable1");
-  auto handle =
-      saiManagerTable->aclTableManager().getAclTableHandle("AclTable1");
+  auto handle = saiManagerTable->aclTableManager().getAclTableHandle(
+      SaiSwitch::kAclTable1);
 
   EXPECT_TRUE(handle);
   EXPECT_TRUE(handle->aclTable);
 }
 
 TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
-  saiManagerTable->aclTableManager().addAclTable("AclTable1");
   auto handle =
-      saiManagerTable->aclTableManager().getAclTableHandle("AclTable2");
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2);
 
   EXPECT_FALSE(handle);
 }
