@@ -26,6 +26,7 @@
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/RouteTableMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
@@ -42,6 +43,7 @@ class Route;
 class SflowCollector;
 class SflowCollectorMap;
 class SwitchSettings;
+class QcmCfg;
 
 struct SwitchStateFields {
   SwitchStateFields();
@@ -86,6 +88,7 @@ struct SwitchStateFields {
   std::shared_ptr<ForwardingInformationBaseMap> fibs;
   std::shared_ptr<LabelForwardingInformationBase> labelFib;
   std::shared_ptr<SwitchSettings> switchSettings;
+  std::shared_ptr<QcmCfg> qcmCfg;
 
   VlanID defaultVlan{0};
 
@@ -255,6 +258,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->switchSettings;
   }
 
+  const std::shared_ptr<QcmCfg> getQcmCfg() const {
+    return getFields()->qcmCfg;
+  }
+
   void setArpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getNdpTimeout() const {
@@ -348,11 +355,15 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetForwardingInformationBases(
       std::shared_ptr<ForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
+  void resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg);
 
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
     if (auto defaultDataPlaneQosPolicy = getDefaultDataPlaneQosPolicy()) {
       defaultDataPlaneQosPolicy->publish();
+    }
+    if (auto qcmCfg = getQcmCfg()) {
+      qcmCfg->publish();
     }
     BaseT::publish();
   }

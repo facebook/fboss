@@ -1122,19 +1122,27 @@ enum BurstMonitorWeight {
   QUEUE_SUM_TX_PKTS = 23
 }
 
+const i16 DEFAULT_QCM_COLLECTOR_DST_PORT = 30000
+const i32 DEFAULT_QCM_AGING_INTERVAL_MSECS = 50
+const i32 DEFAULT_QCM_EXPORT_THRESHOLD = 1
+const i32 DEFAULT_QCM_SCAN_INTERVAL_USECS = 1000
+const i32 DEFAULT_QCM_NUM_FLOWS_TO_CLEAR = 100
+const i32 DEFAULT_QCM_FLOW_LIMIT = 1000
+const i32 DEFAULT_QCM_FLOWS_PER_VIEW = 16
+
 /* allow configuration of qcm functionality */
 struct QcmConfig {
-  1: i32 numFlowSamplesPerView = 16
-  2: i32 flowLimit = 1000
-  3: i32 numFlowsClear = 100
-  4: i32 scanIntervalInUsecs = 1000
-  5: i32 exportThreshold = 1
+  1: i32 numFlowSamplesPerView = DEFAULT_QCM_FLOWS_PER_VIEW
+  2: i32 flowLimit = DEFAULT_QCM_FLOW_LIMIT
+  3: i32 numFlowsClear = DEFAULT_QCM_NUM_FLOWS_TO_CLEAR
+  4: i32 scanIntervalInUsecs = DEFAULT_QCM_SCAN_INTERVAL_USECS
+  5: i32 exportThreshold = DEFAULT_QCM_EXPORT_THRESHOLD
   6: map<BurstMonitorWeight, i16> flowWeights
-  7: i32 agingIntervalInMsecs = 50
+  7: i32 agingIntervalInMsecs = DEFAULT_QCM_AGING_INTERVAL_MSECS
   8: string collectorDstIp
   10: optional i16 collectorSrcPort
   // Arbitrary high number to keep the dstPort unique
-  11: i16 collectorDstPort = 3000
+  11: i16 collectorDstPort = DEFAULT_QCM_COLLECTOR_DST_PORT
   12: optional i16 collectorDscp
   13: optional i32 ppsToQcm
   14: string collectorSrcIp

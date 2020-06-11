@@ -55,6 +55,7 @@ constexpr auto kAggregatePorts = "aggregatePorts";
 constexpr auto kLabelForwardingInformationBase = "labelFib";
 constexpr auto kSwitchSettings = "switchSettings";
 constexpr auto kDefaultDataplaneQosPolicy = "defaultDataPlaneQosPolicy";
+constexpr auto kQcmCfg = "qcmConfig";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -96,6 +97,9 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
+  if (qcmCfg) {
+    switchState[kQcmCfg] = qcmCfg->toFollyDynamic();
+  }
   if (defaultDataPlaneQosPolicy) {
     switchState[kDefaultDataplaneQosPolicy] =
         defaultDataPlaneQosPolicy->toFollyDynamic();
@@ -156,6 +160,11 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
      * that keeps  default qos policy in qos policy map will be removed. */
     switchState.qosPolicies->removeNodeIf(name);
   }
+
+  if (swJson.find(kQcmCfg) != swJson.items().end()) {
+    switchState.qcmCfg = QcmCfg::fromFollyDynamic(swJson[kQcmCfg]);
+  }
+
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -292,6 +301,10 @@ void SwitchState::resetLoadBalancers(
 void SwitchState::resetSwitchSettings(
     std::shared_ptr<SwitchSettings> switchSettings) {
   writableFields()->switchSettings = switchSettings;
+}
+
+void SwitchState::resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
+  writableFields()->qcmCfg = qcmCfg;
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {

@@ -52,6 +52,7 @@ add_library(state
   fboss/agent/state/StateDelta.cpp
   fboss/agent/state/StateUtils.cpp
   fboss/agent/state/SwitchSettings.cpp
+  fboss/agent/state/QcmConfig.cpp
   fboss/agent/state/SwitchState.cpp
   fboss/agent/state/Vlan.cpp
   fboss/agent/state/VlanMap.cpp

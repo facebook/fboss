@@ -31,6 +31,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTable.h"
@@ -256,6 +257,8 @@ class ThriftConfigApplier {
       const shared_ptr<SflowCollector>& orig,
       const cfg::SflowCollector* config);
   shared_ptr<SwitchSettings> updateSwitchSettings();
+  shared_ptr<QcmCfg> updateQcmCfg(bool* changed);
+  shared_ptr<QcmCfg> createQcmCfg(const cfg::QcmConfig& config);
   shared_ptr<ControlPlane> updateControlPlane();
   std::shared_ptr<MirrorMap> updateMirrors();
   std::shared_ptr<Mirror> createMirror(const cfg::Mirror* config);
@@ -299,6 +302,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newSwitchSettings) {
       new_->resetSwitchSettings(std::move(newSwitchSettings));
       changed = true;
+    }
+  }
+
+  {
+    auto newQcmConfig = updateQcmCfg(&changed);
+    if (changed) {
+      new_->resetQcmCfg(newQcmConfig);
     }
   }
 
@@ -2027,6 +2037,55 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setIsVirtual(config->isVirtual);
   newIntf->setIsStateSyncDisabled(config->isStateSyncDisabled);
   return newIntf;
+}
+
+shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
+    const cfg::QcmConfig& config) {
+  auto newQcmCfg = make_shared<QcmCfg>();
+
+  WeightMap newWeightMap;
+  for (const auto& weights : config.flowWeights) {
+    newWeightMap.emplace(static_cast<int>(weights.first), weights.second);
+  }
+  newQcmCfg->setFlowWeightMap(newWeightMap);
+
+  if (auto srcPort = config.collectorSrcPort_ref()) {
+    newQcmCfg->setCollectorSrcPort(*srcPort);
+  }
+  newQcmCfg->setNumFlowSamplesPerView(config.numFlowSamplesPerView);
+  newQcmCfg->setFlowLimit(config.flowLimit);
+  newQcmCfg->setNumFlowsClear(config.numFlowsClear);
+  newQcmCfg->setScanIntervalInUsecs(config.scanIntervalInUsecs);
+  newQcmCfg->setExportThreshold(config.exportThreshold);
+  newQcmCfg->setAgingInterval(config.agingIntervalInMsecs);
+  newQcmCfg->setCollectorDstIp(IPAddress::createNetwork(config.collectorDstIp));
+  newQcmCfg->setCollectorDstPort(config.collectorDstPort);
+  if (auto dscp = config.collectorDscp_ref()) {
+    newQcmCfg->setCollectorDscp(*dscp);
+  }
+  if (auto ppsToQcm = config.ppsToQcm_ref()) {
+    newQcmCfg->setPpsToQcm(*ppsToQcm);
+  }
+  newQcmCfg->setCollectorSrcIp(IPAddress::createNetwork(config.collectorSrcIp));
+  newQcmCfg->setMonitorQcmPortList(config.monitorQcmPortList);
+  return newQcmCfg;
+}
+
+shared_ptr<QcmCfg> ThriftConfigApplier::updateQcmCfg(bool* changed) {
+  auto origQcmConfig = orig_->getQcmCfg();
+  if (!cfg_->qcmConfig_ref()) {
+    if (origQcmConfig) {
+      // going from cfg to empty
+      *changed = true;
+    }
+    return nullptr;
+  }
+  auto newQcmCfg = createQcmCfg(*cfg_->qcmConfig_ref());
+  if (origQcmConfig && (*origQcmConfig == *newQcmCfg)) {
+    return nullptr;
+  }
+  *changed = true;
+  return newQcmCfg;
 }
 
 shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
