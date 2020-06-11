@@ -84,5 +84,10 @@ void assertSINGLEMode(
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup);
 
+void updateFlexConfig(
+    cfg::SwitchConfig* config,
+    FlexPortMode flexMode,
+    std::vector<PortID> allPortsinGroup,
+    const Platform* platform);
 } // namespace utility
 } // namespace facebook::fboss

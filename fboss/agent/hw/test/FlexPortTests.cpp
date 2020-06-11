@@ -22,43 +22,6 @@ using namespace facebook::fboss;
 
 namespace {
 
-void updateFlexConfig(
-    cfg::SwitchConfig* config,
-    FlexPortMode flexMode,
-    std::vector<PortID> allPortsinGroup,
-    const Platform* platform) {
-  if (flexMode == FlexPortMode::FOURX10G) {
-    facebook::fboss::utility::enableAllLanes(
-        config, cfg::PortSpeed::XG, allPortsinGroup, platform);
-  } else if (flexMode == FlexPortMode::FOURX25G) {
-    facebook::fboss::utility::enableAllLanes(
-        config, cfg::PortSpeed::TWENTYFIVEG, allPortsinGroup, platform);
-  } else if (flexMode == FlexPortMode::ONEX40G) {
-    facebook::fboss::utility::enableOneLane(
-        config,
-        cfg::PortSpeed::FORTYG,
-        cfg::PortSpeed::XG,
-        allPortsinGroup,
-        platform);
-  } else if (flexMode == FlexPortMode::TWOX50G) {
-    facebook::fboss::utility::enableTwoLanes(
-        config,
-        cfg::PortSpeed::FIFTYG,
-        cfg::PortSpeed::TWENTYFIVEG,
-        allPortsinGroup,
-        platform);
-  } else if (flexMode == FlexPortMode::ONEX100G) {
-    facebook::fboss::utility::enableOneLane(
-        config,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWENTYFIVEG,
-        allPortsinGroup,
-        platform);
-  } else {
-    throw std::runtime_error("invalid FlexConfig Mode");
-  }
-}
-
 void assertFlexConfig(
     HwSwitch* hw,
     FlexPortMode flexMode,
@@ -85,7 +48,7 @@ void assertFlexConfig(
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup);
   } else {
-    throw std::runtime_error("invalid FlexConfig Mode");
+    throw FbossError("invalid FlexConfig Mode");
   }
 }
 
@@ -111,7 +74,7 @@ class HwFlexPortTest : public HwTest {
       applyNewConfig(cfg);
 
       cfg = utility::oneL3IntfNPortConfig(getHwSwitch(), allPortsinGroup);
-      updateFlexConfig(
+      utility::updateFlexConfig(
           &cfg, flexMode, allPortsinGroup, getHwSwitch()->getPlatform());
       applyNewConfig(cfg);
     };
