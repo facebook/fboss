@@ -168,11 +168,12 @@ void SaiRouteManager::addOrUpdateRoute(
           routerInterfaceHandle->routerInterface->adapterKey()};
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(routerInterfaceId), metadata};
-    } else {
+    } else if (fwd.getNextHopSet().size() > 1) {
       /*
-       * A Route which has NextHop(s) will create or reference an existing
-       * SaiNextHopGroup corresponding to ECMP over those next hops. When no
-       * route refers to a next hop set, it will be removed in SAI as well.
+       * A Route which has more than one NextHops will create or reference an
+       * existing SaiNextHopGroup corresponding to ECMP over those next hops.
+       * When no route refers to a next hop set, it will be removed in SAI as
+       * well.
        */
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
@@ -182,6 +183,58 @@ void SaiRouteManager::addOrUpdateRoute(
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(nextHopGroupId), metadata};
       nextHopHandle = nextHopGroupHandle;
+    } else {
+      CHECK_EQ(fwd.getNextHopSet().size(), 1);
+      /* A route which has oonly one next hop, create a subscriber for next hop
+       * to make route point back and forth next hop or CPU
+       */
+      auto swNextHop =
+          folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
+      auto subscriber =
+          managerTable_->nextHopManager().refOrEmplaceSubscriber(swNextHop);
+
+      SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+      sai_object_id_t cpuPortId{
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+      attributes =
+          SaiRouteTraits::CreateAttributes{packetAction, cpuPortId, metadata};
+
+      auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
+      auto route = store.setObject(entry, attributes.value());
+      routeHandle->route = route;
+
+      if (auto* ipNextHop =
+              std::get_if<std::shared_ptr<SubscriberForIpNextHop>>(
+                  &subscriber)) {
+        SaiObjectEventPublisher::getInstance()
+            ->get<SaiNeighborTraits>()
+            .subscribe(*ipNextHop);
+
+        auto nexthopSubscriber =
+            std::make_shared<SaiRouteNextHopHandle<SaiIpNextHopTraits>>(
+                managerTable_, route->adapterHostKey(), *ipNextHop);
+        SaiObjectEventPublisher::getInstance()
+            ->get<SaiIpNextHopTraits>()
+            .subscribe(nexthopSubscriber);
+        routeHandle->nexthopHandle_ = nexthopSubscriber;
+      } else if (
+          auto* mplsNextHop =
+              std::get_if<std::shared_ptr<SubscriberForMplsNextHop>>(
+                  &subscriber)) {
+        SaiObjectEventPublisher::getInstance()
+            ->get<SaiNeighborTraits>()
+            .subscribe(*mplsNextHop);
+
+        auto nexthopSubscriber =
+            std::make_shared<SaiRouteNextHopHandle<SaiMplsNextHopTraits>>(
+                managerTable_, route->adapterHostKey(), *mplsNextHop);
+        SaiObjectEventPublisher::getInstance()
+            ->get<SaiMplsNextHopTraits>()
+            .subscribe(nexthopSubscriber);
+        routeHandle->nexthopHandle_ = nexthopSubscriber;
+      }
+      return;
     }
   } else if (fwd.getAction() == TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -300,6 +353,7 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::afterCreate(
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
       nextHopId;
   route->setAttributes(attributes);
+  updateMetadata();
 }
 
 template <typename NextHopTraitsT>
@@ -307,8 +361,13 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::beforeRemove() {
   // set route to CPU
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
   auto attributes = route->attributes();
+
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  sai_object_id_t cpuPortId{
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          switchId, SaiSwitchTraits::Attributes::CpuPort{})};
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
-      SAI_NULL_OBJECT_ID;
+      cpuPortId;
   route->setAttributes(attributes);
   this->setPublisherObject(nullptr);
 }
@@ -319,6 +378,29 @@ sai_object_id_t SaiRouteNextHopHandle<NextHopTraitsT>::adapterKey() const {
   CHECK(route);
   auto attributes = route->attributes();
   return GET_OPT_ATTR(Route, NextHopId, attributes);
+}
+
+template <typename NextHopTraitsT>
+void SaiRouteNextHopHandle<NextHopTraitsT>::updateMetadata() const {
+  auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
+  CHECK(route);
+
+  auto expectedMetadata =
+      std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(
+          route->attributes());
+
+  auto& api = SaiApiTable::getInstance()->routeApi();
+  std::optional<SaiRouteTraits::Attributes::Metadata> actualMetadata =
+      api.getAttribute(
+          route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
+
+  if (!expectedMetadata.has_value()) {
+    SaiRouteTraits::Attributes::Metadata resetMetadata =
+        SaiRouteTraits::Attributes::Metadata::defaultValue();
+    api.setAttribute(route->adapterKey(), resetMetadata);
+  } else if (expectedMetadata != actualMetadata) {
+    api.setAttribute(route->adapterKey(), expectedMetadata.value());
+  }
 }
 
 template class SaiRouteNextHopHandle<SaiIpNextHopTraits>;

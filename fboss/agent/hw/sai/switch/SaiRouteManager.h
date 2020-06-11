@@ -49,6 +49,7 @@ class SaiRouteNextHopHandle
   sai_object_id_t adapterKey() const;
 
  private:
+  void updateMetadata() const;
   SaiManagerTable* managerTable_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
   std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber_;

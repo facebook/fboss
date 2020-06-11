@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
@@ -19,11 +19,14 @@
 namespace facebook::fboss {
 
 template <typename AddrT>
-class HwRouteTest : public HwTest {
+class HwRouteTest : public HwLinkStateDependentTest {
  protected:
-  cfg::SwitchConfig initialConfig() const {
+  cfg::SwitchConfig initialConfig() const override {
     return utility::twoL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
   }
 
   RouterID kRouterID() const {
