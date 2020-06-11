@@ -73,6 +73,7 @@ class QosMapManagerTest : public ManagerTestBase {
   std::shared_ptr<SwitchState> makeSwitchState(
       std::shared_ptr<QosPolicy> policy,
       std::shared_ptr<SwitchState> in = std::make_shared<SwitchState>()) {
+    in->publish();
     auto newState = in->clone();
     newState->setDefaultDataPlaneQosPolicy(policy);
     return newState;
@@ -107,6 +108,19 @@ TEST_F(QosMapManagerTest, removeQosMap) {
   EXPECT_FALSE(saiQosMapHandle);
 }
 
+TEST_F(QosMapManagerTest, removeQosMapDelta) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto newState = makeSwitchState(makeQosPolicy("default", testQosPolicy));
+  saiPlatform->getHwSwitch()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), newState));
+  auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  validateQosPolicy(saiQosMapHandle, testQosPolicy);
+  auto newerState = makeSwitchState(nullptr, newState);
+  saiPlatform->getHwSwitch()->stateChanged(StateDelta(newState, newerState));
+  saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  EXPECT_FALSE(saiQosMapHandle);
+}
+
 TEST_F(QosMapManagerTest, changeQosMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
@@ -117,6 +131,23 @@ TEST_F(QosMapManagerTest, changeQosMap) {
   TestQosPolicy testQosPolicy2{{11, 2, 4}, {43, 0, 4}, {1, 1, 1}};
   auto qp2 = makeQosPolicy("default", testQosPolicy2);
   saiManagerTable->qosMapManager().changeQosMap(qp, qp2);
+  saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  EXPECT_TRUE(saiQosMapHandle);
+  validateQosPolicy(saiQosMapHandle, testQosPolicy2);
+}
+
+TEST_F(QosMapManagerTest, changeQosMapDelta) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto newState = makeSwitchState(makeQosPolicy("default", testQosPolicy));
+  saiPlatform->getHwSwitch()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), newState));
+  auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  validateQosPolicy(saiQosMapHandle, testQosPolicy);
+
+  TestQosPolicy testQosPolicy2{{11, 2, 4}, {43, 0, 4}, {1, 1, 1}};
+  auto newerState =
+      makeSwitchState(makeQosPolicy("default", testQosPolicy2), newState);
+  saiPlatform->getHwSwitch()->stateChanged(StateDelta(newState, newerState));
   saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_TRUE(saiQosMapHandle);
   validateQosPolicy(saiQosMapHandle, testQosPolicy2);

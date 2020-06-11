@@ -230,6 +230,7 @@ void SaiSwitchManager::removeDefaultDataPlaneQosPolicy(
     const std::shared_ptr<QosPolicy>& /*policy*/) {
   XLOG(INFO) << "Reset default qos map";
   resetQosMaps();
+  managerTable_->qosMapManager().removeQosMap();
 }
 
 void SaiSwitchManager::gracefulExit() {
