@@ -24,6 +24,11 @@ namespace facebook::fboss {
 
 class HwOlympicQosTests : public HwLinkStateDependentTest {
  protected:
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
+        getProgrammedState(), RouterID(0));
+  }
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::twoL3IntfConfig(
         getHwSwitch(),
@@ -49,20 +54,11 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     }
 
     auto setup = [=]() {
-      helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-          getProgrammedState(), RouterID(0));
       applyNewState(helper_->setupECMPForwarding(
           helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
     };
 
     auto verify = [=]() {
-      // In the warm boot run, we don't have a setup hook before we run verify,
-      // so we need to create the ecmp helper (which is used in packet sending)
-      // before we execute verify.
-      if (!helper_) {
-        helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-            getProgrammedState(), RouterID(0));
-      }
       for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
         auto [q, dscps] = q2dscps;
         for (auto dscp : dscps) {
