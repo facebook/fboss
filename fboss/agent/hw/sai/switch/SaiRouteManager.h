@@ -18,6 +18,8 @@
 
 #include "folly/container/F14Map.h"
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+
 #include <memory>
 #include <mutex>
 
@@ -28,6 +30,31 @@ class SaiPlatform;
 class SaiNextHopGroupHandle;
 
 using SaiRoute = SaiObject<SaiRouteTraits>;
+
+template <typename T>
+class SaiNeighborSubscriberForNextHop;
+
+template <typename NextHopTraitsT>
+class SaiRouteNextHopHandle
+    : public detail::SaiObjectEventSubscriber<NextHopTraitsT> {
+ public:
+  using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
+  SaiRouteNextHopHandle(
+      SaiManagerTable* managerTable,
+      SaiRouteTraits::AdapterHostKey routeKey,
+      std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>>
+          subscriber);
+  void afterCreate(PublisherObject nexthop) override;
+  void beforeRemove() override;
+
+ private:
+  SaiManagerTable* managerTable_;
+  typename SaiRouteTraits::AdapterHostKey routeKey_;
+  std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber_;
+};
+
+using SaiRouteIpNextHopHandle = SaiRouteNextHopHandle<SaiIpNextHopTraits>;
+using SaiRouteMplsNextHopHandle = SaiRouteNextHopHandle<SaiMplsNextHopTraits>;
 
 struct SaiRouteHandle {
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle;

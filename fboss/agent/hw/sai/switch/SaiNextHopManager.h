@@ -81,6 +81,10 @@ class SaiNeighborSubscriberForNextHop
     this->resetObject();
   }
 
+  typename NextHopTraits::AdapterHostKey adapterHostKey() const {
+    return key_;
+  }
+
  private:
   typename NextHopTraits::AdapterHostKey key_;
 };

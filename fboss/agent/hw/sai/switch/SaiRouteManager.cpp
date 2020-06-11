@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -260,6 +261,44 @@ SaiRouteHandle* SaiRouteManager::getRouteHandleImpl(
 void SaiRouteManager::clear() {
   handles_.clear();
 }
+
+template <typename NextHopTraitsT>
+SaiRouteNextHopHandle<NextHopTraitsT>::SaiRouteNextHopHandle(
+    SaiManagerTable* managerTable,
+    SaiRouteTraits::AdapterHostKey routeKey,
+    std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber)
+    : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
+          subscriber->adapterHostKey()),
+      managerTable_(managerTable),
+      routeKey_(std::move(routeKey)),
+      subscriber_(subscriber) {}
+
+template <typename NextHopTraitsT>
+void SaiRouteNextHopHandle<NextHopTraitsT>::afterCreate(
+    SaiRouteNextHopHandle<NextHopTraitsT>::PublisherObject nexthop) {
+  this->setPublisherObject(nexthop);
+  // set route to next hop
+  auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
+  auto attributes = route->attributes();
+  sai_object_id_t nextHopId = nexthop->adapterKey();
+  std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
+      nextHopId;
+  route->setAttributes(attributes);
+}
+
+template <typename NextHopTraitsT>
+void SaiRouteNextHopHandle<NextHopTraitsT>::beforeRemove() {
+  // set route to CPU
+  auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
+  auto attributes = route->attributes();
+  std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
+      SAI_NULL_OBJECT_ID;
+  route->setAttributes(attributes);
+  this->setPublisherObject(nullptr);
+}
+
+template class SaiRouteNextHopHandle<SaiIpNextHopTraits>;
+template class SaiRouteNextHopHandle<SaiMplsNextHopTraits>;
 
 template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV6>(
