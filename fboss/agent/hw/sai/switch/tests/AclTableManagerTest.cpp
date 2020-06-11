@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/types.h"
 
@@ -33,9 +34,10 @@ class AclTableManagerTest : public ManagerTestBase {
 };
 
 TEST_F(AclTableManagerTest, addAclTable) {
-  AclTableSaiId aclTableId =
-      saiManagerTable->aclTableManager().addAclTable("AclTable1");
-
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+  // Acl table is added ass part of sai switch init in test setup
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
   EXPECT_EQ(stageGot, SAI_ACL_STAGE_INGRESS);

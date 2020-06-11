@@ -56,10 +56,6 @@ extern "C" {
 DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
 DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
 
-namespace {
-auto constexpr kAclTable1 = "AclTable1";
-} // namespace
-
 namespace facebook::fboss {
 
 // We need this global SaiSwitch* to support registering SAI callbacks

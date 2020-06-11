@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
@@ -49,6 +50,7 @@ class ManagerTestBase : public ::testing::Test {
     NEIGHBOR = 8,
     QUEUE = 16,
   };
+  void setupSaiPlatform();
 
   /*
    * TestPort, TestRemoteHost, and TestInterface are helper structs for
@@ -165,11 +167,10 @@ class ManagerTestBase : public ::testing::Test {
       const TestQosPolicy& qosPolicy);
 
   std::shared_ptr<FakeSai> fs;
-  // TODO - Add FakeSaiPlatform
-  std::shared_ptr<SaiPlatform> saiPlatform;
+  std::unique_ptr<SaiPlatform> saiPlatform;
   std::shared_ptr<SaiApiTable> saiApiTable;
   std::unique_ptr<ConcurrentIndices> concurrentIndices;
-  std::unique_ptr<SaiManagerTable> saiManagerTable;
+  SaiManagerTable* saiManagerTable{nullptr};
 
   std::array<TestInterface, 10> testInterfaces;
   uint32_t setupStage{SetupStage::BLANK};

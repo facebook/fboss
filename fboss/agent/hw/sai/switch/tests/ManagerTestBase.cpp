@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/test/FakeAgentConfigFactory.h"
@@ -35,8 +36,10 @@ namespace facebook::fboss {
 void ManagerTestBase::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  fs = FakeSai::getInstance();
-  sai_api_initialize(0, nullptr);
+  setupSaiPlatform();
+}
+
+void ManagerTestBase::setupSaiPlatform() {
   auto productInfo = fakeProductInfo();
   saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
   auto thriftAgentConfig = utility::getFakeAgentConfig();
@@ -46,18 +49,12 @@ void ManagerTestBase::SetUp() {
       std::move(agentConfig),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
+  saiPlatform->getHwSwitch()->init(nullptr);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();
   saiApiTable = SaiApiTable::getInstance();
-  saiApiTable->queryApis();
-  concurrentIndices = std::make_unique<ConcurrentIndices>();
-  saiManagerTable =
-      std::make_unique<SaiManagerTable>(saiPlatform.get(), std::nullopt);
+  saiManagerTable = saiSwitch->managerTable();
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  s->setSwitchId(switchId);
-  s->reload();
-  saiManagerTable->createSaiTableManagers(
-      saiPlatform.get(), concurrentIndices.get());
 
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
@@ -98,29 +95,25 @@ void ManagerTestBase::SetUp() {
 }
 
 void ManagerTestBase::TearDown() {
-  saiManagerTable.reset();
+  saiPlatform.reset();
   SaiStore::getInstance()->release();
   FakeSai::clear();
 }
 
 void ManagerTestBase::setupForWarmBoot() {
 #if !defined(IS_OSS) && __has_feature(address_sanitizer)
-  auto* leakedManagerTable = saiManagerTable.release();
-  __lsan_ignore_object(leakedManagerTable);
+  auto* leakedPlatform = saiPlatform.release();
+  __lsan_ignore_object(leakedPlatform);
 #else
-  saiManagerTable.release();
+  saiPlatform.release();
 #endif
   SaiStore::getInstance()->exitForWarmBoot();
   SaiStore::getInstance()->reload();
 }
 
 void ManagerTestBase::warmBoot() {
-  saiManagerTable =
-      std::make_unique<SaiManagerTable>(saiPlatform.get(), std::nullopt);
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
   SaiStore::getInstance()->setSwitchId(switchId);
-  saiManagerTable->createSaiTableManagers(
-      saiPlatform.get(), concurrentIndices.get());
 }
 
 std::shared_ptr<Port> ManagerTestBase::makePort(

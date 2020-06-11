@@ -35,6 +35,8 @@ class SaiSwitch : public HwSwitch {
 
   ~SaiSwitch() override;
 
+  static auto constexpr kAclTable1 = "AclTable1";
+
   HwInitResult init(Callback* callback) noexcept override;
 
   void unregisterCallbacks() noexcept override;
