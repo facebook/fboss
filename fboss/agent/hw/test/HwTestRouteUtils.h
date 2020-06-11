@@ -22,4 +22,21 @@ std::optional<cfg::AclLookupClass> getHwRouteClassID(
     RouterID rid,
     const folly::CIDRNetwork& cidrNetwork);
 
+bool isHwRouteToCpu(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
+
+bool isHwRouteMultiPath(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
+
+bool isHwRouteToNextHop(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork,
+    folly::IPAddress ip,
+    std::optional<uint64_t> weight = std::nullopt);
+
 } // namespace facebook::fboss::utility
