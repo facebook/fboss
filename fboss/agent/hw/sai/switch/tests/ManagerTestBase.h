@@ -175,6 +175,10 @@ class ManagerTestBase : public ::testing::Test {
   std::array<TestInterface, 10> testInterfaces;
   uint32_t setupStage{SetupStage::BLANK};
 
+  void stateChanged(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState);
+
  private:
   static constexpr uint8_t kPortQueueMax = 8;
 };

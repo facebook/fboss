@@ -303,4 +303,12 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
   return std::make_shared<QosPolicy>(name, dscpMap, expMap, tc2q);
 }
 
+void ManagerTestBase::stateChanged(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) {
+  StateDelta delta(oldState, newState);
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
+  saiPlatform->getHwSwitch()->stateChanged(delta);
+}
+
 } // namespace facebook::fboss
