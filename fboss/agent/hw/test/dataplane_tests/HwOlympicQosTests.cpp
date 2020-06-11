@@ -30,11 +30,8 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
         getProgrammedState(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::twoL3IntfConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+    auto cfg = utility::onePortPerVlanConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     /*
      * N.B., On one platform, we have to program qos maps before we program l3
      * interfaces. Even if we enforce that ordering in SaiSwitch, we must still
