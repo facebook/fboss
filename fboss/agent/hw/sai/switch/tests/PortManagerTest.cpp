@@ -365,3 +365,21 @@ TEST_F(PortManagerTest, getTransceiverID) {
     }
   }
 }
+
+TEST_F(PortManagerTest, attributesFromSwPort) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+  portMgr.addPort(swPort);
+  auto portHandle = portMgr.getPortHandle(PortID(0));
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+  EXPECT_EQ(attrs, portHandle->port->attributes());
+}
+
+TEST_F(PortManagerTest, swPortFromAttributes) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+  portMgr.addPort(swPort);
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+  auto newPort = portMgr.swPortFromAttributes(attrs);
+  EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
+}
