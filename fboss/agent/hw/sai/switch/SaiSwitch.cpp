@@ -683,7 +683,24 @@ void SaiSwitch::unregisterCallbacksLocked(
 
 bool SaiSwitch::isValidStateUpdateLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    const StateDelta& /* delta */) const {
+    const StateDelta& delta) const {
+  auto globalQosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
+  if (globalQosDelta.getNew()) {
+    auto& newPolicy = globalQosDelta.getNew();
+    if (newPolicy->getDscpMap().empty() ||
+        newPolicy->getTrafficClassToQueueId().empty()) {
+      XLOG(INFO)
+          << " Both DSCP to TC and TC to Queue maps must be provided in valid qos policies";
+      return false;
+    }
+    /*
+     * Not adding a check for expMap even though we don't support
+     * MPLS QoS yet. Unfortunately, SwSwitch implicitly sets a exp map
+     * even if the config doesn't have one. So no point in warning/failing
+     * on what could be just system generated behavior.
+     * TODO: see if we can stop doing this at SwSwitch layre
+     */
+  }
   return true;
 }
 

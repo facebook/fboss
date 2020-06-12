@@ -188,6 +188,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
     return getFields()->dscpMap;
   }
 
+  void setDscpMap(DscpMap dscpMap) {
+    writableFields()->dscpMap = std::move(dscpMap);
+  }
+
   const ExpMap& getExpMap() const {
     return getFields()->expMap;
   }
@@ -198,6 +202,10 @@ class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
 
   void setExpMap(ExpMap expMap) {
     writableFields()->expMap = std::move(expMap);
+  }
+
+  void setTrafficClassToQueueIdMap(TrafficClassToQueueId tc2Q) {
+    writableFields()->trafficClassToQueueId = std::move(tc2Q);
   }
 
  private:

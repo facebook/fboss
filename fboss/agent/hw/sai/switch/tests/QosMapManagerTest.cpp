@@ -149,3 +149,41 @@ TEST_F(QosMapManagerTest, changeQosMapDelta) {
   EXPECT_TRUE(saiQosMapHandle);
   validateQosPolicy(saiQosMapHandle, testQosPolicy2);
 }
+
+TEST_F(QosMapManagerTest, validQosPolicy) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qosPolicy = makeQosPolicy("default", testQosPolicy);
+  auto newState = makeSwitchState(qosPolicy);
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), newState)));
+}
+
+TEST_F(QosMapManagerTest, missingTCToQ) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qosPolicy = makeQosPolicy("default", testQosPolicy);
+  qosPolicy->setTrafficClassToQueueIdMap(QosPolicy::TrafficClassToQueueId{});
+  auto newState = makeSwitchState(qosPolicy);
+  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), newState)));
+}
+
+TEST_F(QosMapManagerTest, missingDscpMap) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qosPolicy = makeQosPolicy("default", testQosPolicy);
+  qosPolicy->setDscpMap(DscpMap{});
+  auto newState = makeSwitchState(qosPolicy);
+  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), newState)));
+}
+
+TEST_F(QosMapManagerTest, expMap) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qosPolicy = makeQosPolicy("default", testQosPolicy);
+  ExpMap exp;
+  exp.addFromEntry(TrafficClass{1}, EXP{2});
+  exp.addToEntry(TrafficClass{2}, EXP{1});
+  qosPolicy->setExpMap(exp);
+  auto newState = makeSwitchState(qosPolicy);
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), newState)));
+}
