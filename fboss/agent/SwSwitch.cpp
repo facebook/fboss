@@ -1071,19 +1071,20 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
     auto* port = newState->getPorts()->getPortIf(portId).get();
 
     if (port) {
-      port = port->modify(&newState);
-      port->setOperState(up);
+      if (port->isUp() != up) {
+        port = port->modify(&newState);
+        port->setOperState(up);
+        // Log event and update counters if there is a change
+        logLinkStateEvent(portId, up);
+        setPortStatusCounter(portId, up);
+        portStats(portId)->linkStateChange();
+      }
     }
 
     return newState;
   };
   updateStateNoCoalescing(
       "Port OperState Update", std::move(updateOperStateFn));
-
-  // Log event and update counters
-  logLinkStateEvent(portId, up);
-  setPortStatusCounter(portId, up);
-  portStats(portId)->linkStateChange();
 }
 
 void SwSwitch::startThreads() {
