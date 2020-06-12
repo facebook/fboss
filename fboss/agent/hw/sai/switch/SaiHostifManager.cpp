@@ -362,4 +362,35 @@ SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
     cfg::PacketRxReason rxReason) {
   return getHostifTrapHandleImpl(rxReason);
 }
+
+void SaiHostifManager::setQosPolicy() {
+  auto& qosMapManager = managerTable_->qosMapManager();
+  XLOG(INFO) << "Set cpu qoss map";
+  auto qosMapHandle = qosMapManager.getQosMap();
+  globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
+  globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
+  setCpuQosPolicy(
+      globalDscpToTcQosMap_->adapterKey(),
+      globalTcToQueueQosMap_->adapterKey());
+}
+
+void SaiHostifManager::clearQosPolicy() {
+  setCpuQosPolicy(
+      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  globalDscpToTcQosMap_.reset();
+  globalTcToQueueQosMap_.reset();
+}
+
+void SaiHostifManager::setCpuQosPolicy(
+    QosMapSaiId dscpToTc,
+    QosMapSaiId tcToQueue) {
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  portApi.setAttribute(
+      cpuPortHandle_->cpuPortId,
+      SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
+  portApi.setAttribute(
+      cpuPortHandle_->cpuPortId,
+      SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+}
+
 } // namespace facebook::fboss

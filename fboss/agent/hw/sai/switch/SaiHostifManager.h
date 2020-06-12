@@ -77,6 +77,9 @@ class SaiHostifManager {
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
 
  private:
+  void setQosPolicy();
+  void clearQosPolicy();
+  void setCpuQosPolicy(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
   void processQueueDelta(const DeltaValue<ControlPlane>& delta);
   void processRxReasonToQueueDelta(const DeltaValue<ControlPlane>& delta);
@@ -92,6 +95,13 @@ class SaiHostifManager {
   SaiManagerTable* managerTable_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
+  /*
+   * We only permit a single QoS policy across the
+   * front panel and CPU ports. So when set, these
+   * pointers hold references to that policy
+   */
+  std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
+  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
   HwCpuFb303Stats cpuStats_;
 };
