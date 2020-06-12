@@ -1300,6 +1300,10 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         auto speedChanged = oldPort->getSpeed() != newPort->getSpeed();
         XLOG_IF(DBG1, speedChanged) << "New speed on port " << id;
 
+        auto profileIDChanged =
+            oldPort->getProfileID() != newPort->getProfileID();
+        XLOG_IF(DBG1, profileIDChanged) << "New profileID on port " << id;
+
         auto vlanChanged =
             oldPort->getIngressVlan() != newPort->getIngressVlan();
         XLOG_IF(DBG1, vlanChanged) << "New ingress vlan on port " << id;
@@ -1335,8 +1339,8 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         auto asicPrbsChanged = oldPort->getAsicPrbs() != newPort->getAsicPrbs();
         XLOG_IF(DBG1, asicPrbsChanged) << "New asicPrbs on port " << id;
 
-        if (speedChanged || vlanChanged || pauseChanged || sFlowChanged ||
-            fecChanged || loopbackChanged || mirrorChanged ||
+        if (speedChanged || profileIDChanged || vlanChanged || pauseChanged ||
+            sFlowChanged || fecChanged || loopbackChanged || mirrorChanged ||
             qosPolicyChanged || nameChanged || asicPrbsChanged) {
           bcmPort->program(newPort);
         }
