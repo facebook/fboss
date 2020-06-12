@@ -31,16 +31,31 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
-  AclTableSaiId createAclTable() const {
+  AclTableSaiId createAclTable(
+      const std::vector<sai_int32_t>& aclTableBindPointTypeListAttribute =
+          std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT},
+      const std::vector<sai_int32_t>& aclTableActionTypeListAttribute =
+          std::vector<sai_int32_t>{SAI_ACL_ACTION_TYPE_REDIRECT}) const {
+    SaiAclTableTraits::Attributes::Stage aclTableStageAttribute{
+        SAI_ACL_STAGE_INGRESS};
+    SaiAclTableTraits::Attributes::FieldDscp aclTableFieldDscpAttribute{false};
+
     return aclApi->create<SaiAclTableTraits>(
-        {SAI_ACL_STAGE_INGRESS, std::nullopt, std::nullopt, std::nullopt},
+        {aclTableStageAttribute,
+         aclTableBindPointTypeListAttribute,
+         aclTableActionTypeListAttribute,
+         aclTableFieldDscpAttribute},
         kSwitchID());
   }
 
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
+    SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
+    SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{1};
+
     return aclApi->create<SaiAclEntryTraits>(
-        {aclTableIdAttribute, std::nullopt, std::nullopt}, kSwitchID());
+        {aclTableIdAttribute, aclPriorityAttribute, aclFieldDscpAttribute},
+        kSwitchID());
   }
 
   void checkAclTable(AclTableSaiId aclTableId) const {
@@ -52,9 +67,19 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclTableId, fs->aclTableManager.getMember(aclEntryId).tableId);
   }
 
-  AclTableGroupSaiId createAclTableGroup() const {
+  AclTableGroupSaiId createAclTableGroup(
+      const std::vector<sai_int32_t>& aclTableGroupBindPointTypeListAttribute =
+          std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT}) const {
+    SaiAclTableGroupTraits::Attributes::Stage aclTableGroupStageAttribute{
+        SAI_ACL_STAGE_INGRESS};
+    SaiAclTableGroupTraits::Attributes::Type aclTableGroupTypeAttribute{
+        SAI_ACL_TABLE_GROUP_TYPE_SEQUENTIAL};
+
     return aclApi->create<SaiAclTableGroupTraits>(
-        {SAI_ACL_STAGE_INGRESS, std::nullopt, std::nullopt}, kSwitchID());
+        {aclTableGroupStageAttribute,
+         aclTableGroupBindPointTypeListAttribute,
+         aclTableGroupTypeAttribute},
+        kSwitchID());
   }
 
   AclTableGroupMemberSaiId createAclTableGroupMember(
@@ -155,24 +180,41 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   auto aclEntryId = createAclEntry(aclTableId);
   checkAclEntry(aclTableId, aclEntryId);
 
-  auto aclEntriesGot = aclApi->getAttribute(
+  auto aclTableStageGot =
+      aclApi->getAttribute(aclTableId, SaiAclTableTraits::Attributes::Stage());
+  auto aclTableBindPointTypeListGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::BindPointTypeList());
+  auto aclTableActionTypeListGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::ActionTypeList());
+  auto aclTableEntryListGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::EntryList());
-  EXPECT_EQ(aclEntriesGot.size(), 1);
-  EXPECT_EQ(aclEntriesGot[0], static_cast<uint32_t>(aclEntryId));
+  auto aclTableFieldDscpGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDscp());
+
+  EXPECT_EQ(aclTableStageGot, SAI_ACL_STAGE_INGRESS);
+  EXPECT_EQ(aclTableBindPointTypeListGot.size(), 1);
+  EXPECT_EQ(aclTableBindPointTypeListGot[0], SAI_ACL_BIND_POINT_TYPE_PORT);
+  EXPECT_EQ(aclTableActionTypeListGot.size(), 1);
+  EXPECT_EQ(aclTableActionTypeListGot[0], SAI_ACL_ACTION_TYPE_REDIRECT);
+  EXPECT_EQ(aclTableEntryListGot.size(), 1);
+  EXPECT_EQ(aclTableEntryListGot[0], static_cast<uint32_t>(aclEntryId));
+  EXPECT_EQ(aclTableFieldDscpGot, false);
 }
 
 TEST_F(AclApiTest, getAclEntryAttribute) {
   auto aclTableId = createAclTable();
   checkAclTable(aclTableId);
 
-  SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
-  SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
-  auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
-      {aclTableIdAttribute, aclPriorityAttribute, std::nullopt}, kSwitchID());
+  auto aclEntryId = createAclEntry(aclTableId);
   checkAclEntry(aclTableId, aclEntryId);
+
   auto aclPriorityGot = aclApi->getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::Priority());
-  EXPECT_EQ(aclPriorityAttribute, aclPriorityGot);
+  auto aclFieldDscpGot = aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+
+  EXPECT_EQ(aclPriorityGot, 1);
+  EXPECT_EQ(aclFieldDscpGot, 1);
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -184,8 +226,18 @@ TEST_F(AclApiTest, setAclTableAttribute) {
 
   // SAI spec does not support setting any attribute for ACL table post
   // creation.
+  SaiAclTableTraits::Attributes::Stage stage{SAI_ACL_STAGE_EGRESS};
+  SaiAclTableTraits::Attributes::BindPointTypeList bindPointTypeList{};
+  SaiAclTableTraits::Attributes::ActionTypeList actionTypeList{};
   SaiAclTableTraits::Attributes::EntryList entryList{};
+  SaiAclTableTraits::Attributes::FieldDscp fieldDscp{true};
+
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, stage), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableId, bindPointTypeList), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, actionTypeList), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, entryList), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDscp), SaiApiError);
 }
 
 TEST_F(AclApiTest, setAclEntryAttribute) {
@@ -194,15 +246,34 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute1{1};
+  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{1};
+
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
-      {aclTableIdAttribute, aclPriorityAttribute1, std::nullopt}, kSwitchID());
+      {aclTableIdAttribute, aclPriorityAttribute1, aclFieldDscpAttribute},
+      kSwitchID());
   checkAclEntry(aclTableId, aclEntryId);
 
+  // SAI spec does not support setting tableId for ACL entry post
+  // creation.
+  SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute2{2};
+  EXPECT_THROW(
+      aclApi->setAttribute(aclEntryId, aclTableIdAttribute2), SaiApiError);
+
+  // SAI spec supports setting priority and fieldDscp for ACL entry post
+  // creation.
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute2{2};
+  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{2};
+
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
+
   auto aclPriorityGot = aclApi->getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::Priority());
+  auto aclFeildDscpGot = aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+
   EXPECT_EQ(aclPriorityAttribute2, aclPriorityGot);
+  EXPECT_EQ(aclFieldDscpAttribute2, aclFeildDscpGot);
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {
@@ -279,9 +350,19 @@ TEST_F(AclApiTest, getAclTableGroupAttribute) {
       createAclTableGroupMember(aclTableGroupId, aclTableId);
   checkAclTableGroupMember(aclTableGroupId, aclTableGroupMemberId);
 
+  auto aclTableGroupStageGot = aclApi->getAttribute(
+      aclTableGroupId, SaiAclTableGroupTraits::Attributes::Stage());
+  auto aclTableGroupBindPointTypeListGot = aclApi->getAttribute(
+      aclTableGroupId, SaiAclTableGroupTraits::Attributes::BindPointTypeList());
+  auto aclTableGroupTypeGot = aclApi->getAttribute(
+      aclTableGroupId, SaiAclTableGroupTraits::Attributes::Type());
   auto aclTableGroupMembersGot = aclApi->getAttribute(
       aclTableGroupId, SaiAclTableGroupTraits::Attributes::MemberList());
 
+  EXPECT_EQ(aclTableGroupStageGot, SAI_ACL_STAGE_INGRESS);
+  EXPECT_EQ(aclTableGroupBindPointTypeListGot.size(), 1);
+  EXPECT_EQ(aclTableGroupBindPointTypeListGot[0], SAI_ACL_BIND_POINT_TYPE_PORT);
+  EXPECT_EQ(aclTableGroupTypeGot, SAI_ACL_TABLE_GROUP_TYPE_SEQUENTIAL);
   EXPECT_EQ(aclTableGroupMembersGot.size(), 1);
   EXPECT_EQ(aclTableGroupMembersGot[0], aclTableGroupMemberId);
 }
@@ -299,8 +380,16 @@ TEST_F(AclApiTest, getAclTableGroupMemberAttribute) {
   auto aclTableGroupIdGot = aclApi->getAttribute(
       aclTableGroupMemberId,
       SaiAclTableGroupMemberTraits::Attributes::TableGroupId());
+  auto aclTableIdGot = aclApi->getAttribute(
+      aclTableGroupMemberId,
+      SaiAclTableGroupMemberTraits::Attributes::TableId());
+  auto aclPriorityGot = aclApi->getAttribute(
+      aclTableGroupMemberId,
+      SaiAclTableGroupMemberTraits::Attributes::Priority());
 
   EXPECT_EQ(aclTableGroupIdGot, aclTableGroupId);
+  EXPECT_EQ(aclTableIdGot, aclTableId);
+  EXPECT_EQ(aclPriorityGot, 1);
 }
 
 TEST_F(AclApiTest, setAclTableGroupAttribute) {
@@ -309,7 +398,16 @@ TEST_F(AclApiTest, setAclTableGroupAttribute) {
 
   // SAI spec does not support setting any attribute for ACL table group post
   // creation.
+  SaiAclTableGroupTraits::Attributes::Stage stage{SAI_ACL_STAGE_EGRESS};
+  SaiAclTableGroupTraits::Attributes::BindPointTypeList bindPointTypeList{};
+  SaiAclTableGroupTraits::Attributes::Type type{
+      SAI_ACL_TABLE_GROUP_TYPE_PARALLEL};
   SaiAclTableGroupTraits::Attributes::MemberList memberList{};
+
+  EXPECT_THROW(aclApi->setAttribute(aclTableGroupId, stage), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableGroupId, bindPointTypeList), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableGroupId, type), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableGroupId, memberList), SaiApiError);
 }
 
@@ -325,8 +423,15 @@ TEST_F(AclApiTest, setAclTableGroupMemberAttribute) {
   // SAI spec does not support setting any attribute for ACL table group member
   // post creation.
   SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{1};
+  SaiAclTableGroupMemberTraits::Attributes::TableId tableId{1};
+  SaiAclTableGroupMemberTraits::Attributes::Priority priority{1};
+
   EXPECT_THROW(
       aclApi->setAttribute(aclTableGroupMemberId, tableGroupId), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableGroupMemberId, tableId), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableGroupMemberId, priority), SaiApiError);
 }
 
 TEST_F(AclApiTest, formatAclTableGroupStageAttribute) {
