@@ -56,18 +56,49 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     };
 
     auto verify = [=]() {
+      auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
+      auto portStatsBefore = getLatestPortStats(portId);
       for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
-        auto [q, dscps] = q2dscps;
-        for (auto dscp : dscps) {
-          sendPacketAndVerifyQueue(dscp, q, frontPanel);
+        for (auto dscp : q2dscps.second) {
+          sendPacket(dscp, frontPanel);
         }
       }
+      EXPECT_TRUE(verifyQueueMappings(portStatsBefore));
     };
-
     verifyAcrossWarmBoots(setup, verify);
   }
 
  private:
+  bool verifyQueueMappings(const HwPortStats& portStatsBefore) {
+    auto retries = 10;
+    auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    bool statsMatch;
+    do {
+      auto portStatsAfter = getLatestPortStats(portId);
+      statsMatch = true;
+      for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+        auto queuePacketsBefore =
+            portStatsBefore.queueOutPackets__ref()->find(q2dscps.first)->second;
+        auto queuePacketsAfter =
+            portStatsAfter.queueOutPackets__ref()[q2dscps.first];
+        // Note, on some platforms, due to how loopbacked packets are pruned
+        // from being broadcast, they will appear more than once on a queue
+        // counter, so we can only check that the counter went up, not that it
+        // went up by exactly one.
+        if (queuePacketsAfter < queuePacketsBefore + q2dscps.second.size()) {
+          statsMatch = false;
+          break;
+        }
+      }
+      if (!statsMatch) {
+        std::this_thread::sleep_for(20ms);
+      } else {
+        break;
+      }
+      XLOG(INFO) << " Retrying ...";
+    } while (--retries && !statsMatch);
+    return statsMatch;
+  }
   void sendPacket(uint8_t dscp, bool frontPanel) {
     auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -89,25 +120,12 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
       auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+      getHwSwitchEnsemble()->getHwSwitch()->sendPacketOutOfPortSync(
           std::move(txPacket), outPort);
     } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      getHwSwitchEnsemble()->getHwSwitch()->sendPacketSwitchedSync(
+          std::move(txPacket));
     }
-  }
-
-  void sendPacketAndVerifyQueue(uint8_t dscp, int queueId, bool frontPanel) {
-    auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
-    auto portStatsBefore = getLatestPortStats(portId);
-    auto queuePacketsBefore = portStatsBefore.queueOutPackets__ref()[queueId];
-    sendPacket(dscp, frontPanel);
-    auto portStatsAfter = getLatestPortStats(portId);
-    auto queuePacketsAfter = portStatsAfter.queueOutPackets__ref()[queueId];
-    // Note, on some platforms, due to how loopbacked packets are pruned from
-    // being broadcast, they will appear more than once on a queue counter,
-    // so we can only check that the counter went up, not that it went up by
-    // exactly one.
-    EXPECT_GT(queuePacketsAfter, queuePacketsBefore);
   }
 
   static inline constexpr auto kEcmpWidth = 1;
