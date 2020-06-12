@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -16,6 +17,9 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <optional>
 
@@ -213,7 +217,7 @@ void SaiRouteManager::addOrUpdateRoute(
 
         auto nexthopSubscriber =
             std::make_shared<SaiRouteNextHopHandle<SaiIpNextHopTraits>>(
-                managerTable_, route->adapterHostKey(), *ipNextHop);
+                managerTable_, platform_, route->adapterHostKey(), *ipNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiIpNextHopTraits>()
             .subscribe(nexthopSubscriber);
@@ -228,7 +232,10 @@ void SaiRouteManager::addOrUpdateRoute(
 
         auto nexthopSubscriber =
             std::make_shared<SaiRouteNextHopHandle<SaiMplsNextHopTraits>>(
-                managerTable_, route->adapterHostKey(), *mplsNextHop);
+                managerTable_,
+                platform_,
+                route->adapterHostKey(),
+                *mplsNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiMplsNextHopTraits>()
             .subscribe(nexthopSubscriber);
@@ -334,11 +341,13 @@ void SaiRouteManager::clear() {
 template <typename NextHopTraitsT>
 SaiRouteNextHopHandle<NextHopTraitsT>::SaiRouteNextHopHandle(
     SaiManagerTable* managerTable,
+    const SaiPlatform* platform,
     SaiRouteTraits::AdapterHostKey routeKey,
     std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           subscriber->adapterHostKey()),
       managerTable_(managerTable),
+      platform_(platform),
       routeKey_(std::move(routeKey)),
       subscriber_(subscriber) {}
 
@@ -353,7 +362,9 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::afterCreate(
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
       nextHopId;
   route->setAttributes(attributes);
-  updateMetadata();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
+    updateMetadata();
+  }
 }
 
 template <typename NextHopTraitsT>

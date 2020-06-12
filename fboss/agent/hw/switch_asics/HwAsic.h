@@ -27,6 +27,7 @@ class HwAsic {
     WARM_BOOT,
     QOS_MAP_GLOBAL,
     QCM,
+    ROUTE_METADATA,
   };
 
   enum class AsicType {

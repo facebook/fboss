@@ -41,6 +41,7 @@ class SaiRouteNextHopHandle
   using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
   SaiRouteNextHopHandle(
       SaiManagerTable* managerTable,
+      const SaiPlatform* platform,
       SaiRouteTraits::AdapterHostKey routeKey,
       std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>>
           subscriber);
@@ -51,6 +52,7 @@ class SaiRouteNextHopHandle
  private:
   void updateMetadata() const;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
   std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber_;
 };

@@ -14,6 +14,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::WARM_BOOT:
+    case HwAsic::Feature::ROUTE_METADATA:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

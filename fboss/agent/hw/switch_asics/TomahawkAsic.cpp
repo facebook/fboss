@@ -19,6 +19,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::QCM:
+    case HwAsic::Feature::ROUTE_METADATA:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
