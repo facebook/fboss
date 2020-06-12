@@ -32,7 +32,7 @@ using namespace facebook::fboss;
 class QosMapManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::BLANK;
+    setupStage = SetupStage::PORT;
     ManagerTestBase::SetUp();
   }
   void validateQosPolicy(
@@ -186,4 +186,28 @@ TEST_F(QosMapManagerTest, expMap) {
   auto newState = makeSwitchState(qosPolicy);
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), newState)));
+}
+
+TEST_F(QosMapManagerTest, addPortQos) {
+  auto switchState = std::make_shared<SwitchState>();
+  auto port = std::make_shared<Port>(PortID(1), "eth1/1/1");
+  port->setQosPolicy("qos");
+  switchState->getPorts()->addPort(port);
+  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), switchState)));
+}
+
+TEST_F(QosMapManagerTest, changAddsPortQos) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto port = std::make_shared<Port>(PortID(1), "eth1/1/1");
+  port->publish();
+  oldState->getPorts()->addPort(port);
+  oldState->publish();
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(std::make_shared<SwitchState>(), oldState)));
+  auto newState = oldState->clone();
+  auto newPort = port->modify(&newState);
+  newPort->setQosPolicy("qos");
+  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+      StateDelta(oldState, newState)));
 }

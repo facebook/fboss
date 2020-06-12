@@ -701,6 +701,30 @@ bool SaiSwitch::isValidStateUpdateLocked(
      * TODO: see if we can stop doing this at SwSwitch layre
      */
   }
+  bool hasPortQos = false;
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(),
+      [&hasPortQos](const auto& /*oldPort*/, const auto& newPort) {
+        if (newPort->getQosPolicy()) {
+          hasPortQos = true;
+          return LoopAction::BREAK;
+        }
+        return LoopAction::CONTINUE;
+      },
+      [&hasPortQos](const auto& newPort) {
+        if (newPort->getQosPolicy()) {
+          hasPortQos = true;
+          return LoopAction::BREAK;
+        }
+        return LoopAction::CONTINUE;
+      },
+      [](const auto& /*oldPort*/) {});
+
+  if (hasPortQos) {
+    XLOG(INFO) << " Port qos policy specialization is not supported";
+    return false;
+  }
+
   return true;
 }
 
