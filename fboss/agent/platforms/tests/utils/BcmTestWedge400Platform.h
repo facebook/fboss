@@ -20,6 +20,10 @@ class BcmTestWedge400Platform : public BcmTestWedgeTomahawk3Platform {
   explicit BcmTestWedge400Platform(
       std::unique_ptr<PlatformProductInfo> productInfo);
 
+  bool supportsAddRemovePort() const override {
+    return true;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge400Platform(BcmTestWedge400Platform const&) = delete;

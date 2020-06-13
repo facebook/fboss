@@ -31,78 +31,129 @@ cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
   return hwSwitch->getPlatform()->getPortMaxSpeed(port);
 }
 
+// Return the ID for a profile that doesn't subsume any other ports.
+cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
+  for (auto it : portEntry.supportedProfiles) {
+    auto id = it.first;
+    auto cfg = it.second;
+    if (!cfg.subsumedPorts_ref() || cfg.subsumedPorts_ref()->empty()) {
+      return id;
+    }
+  }
+
+  throw FbossError("No safe profile found for port ", portEntry.mapping.id);
+}
+
+cfg::PortSpeed getPortSpeedFromProfile(
+    const Platform* platform,
+    cfg::PortProfileID profileID) {
+  auto profile = platform->getPortProfileConfig(profileID);
+  if (!profile.has_value()) {
+    throw FbossError("No profile ", profileID, " found for platform");
+  }
+  return profile->speed;
+}
+
+cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
+  cfg::Port defaultConfig;
+  auto platform = hwSwitch->getPlatform();
+  // Platforms that require the profile ID should all have platformPortEntries
+  // generated. Other platforms can just use their max port speed until
+  // we make it a required field.
+  // If the platform supports removing ports, then pick a speed profile that
+  // doesn't remove any ports. Otherwise just use the max speed available.
+  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry();
+      entry && platform->supportsAddRemovePort()) {
+    defaultConfig.name_ref() = entry->mapping.name;
+    defaultConfig.profileID = getSafeProfileID(entry.value());
+    if (defaultConfig.profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
+      throw FbossError(entry->mapping.name, " has DEFAULT safe profile");
+    }
+    defaultConfig.speed =
+        getPortSpeedFromProfile(platform, defaultConfig.profileID);
+  } else {
+    XLOG(INFO) << "No platformPortEntry for port " << id
+               << ", defaulting to max port speed instead of safe profile";
+    defaultConfig.speed = maxPortSpeed(hwSwitch, id);
+    defaultConfig.name_ref() = "eth1/" + std::to_string(id) + "/1";
+  }
+
+  defaultConfig.logicalID = id;
+  defaultConfig.state = cfg::PortState::DISABLED;
+
+  return defaultConfig;
+}
+
+// Fill in configs for all remaining ports that exist in the default state
+cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
+  cfg::SwitchConfig config;
+  auto platform = hwSwitch->getPlatform();
+
+  // TODO(daiweix): remove this if block after converting all tests
+  // to access config.ports by portID instead of directly by index,
+  // e.g. BcmMirrorTest.UpdatePortMirror.
+  if (!platform->supportsAddRemovePort()) {
+    return config;
+  }
+
+  for (const auto& it : platform->getPlatformPorts()) {
+    auto mapping = it.second.get_mapping();
+    auto id = mapping.id;
+    if (findCfgPortIf(config, PortID(id)) != config.ports.end()) {
+      continue;
+    }
+    config.ports.push_back(createDefaultPortConfig(hwSwitch, PortID(id)));
+  }
+  return config;
+}
+
 cfg::SwitchConfig genPortVlanCfg(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE) {
-  cfg::SwitchConfig config;
+  auto config = createDefaultConfig(hwSwitch);
 
   // Port config
-  config.ports_ref()->resize(ports.size());
-  auto portItr = ports.begin();
-  int portIndex = 0;
-  for (; portItr != ports.end(); portItr++, portIndex++) {
-    *config.ports[portIndex].logicalID_ref() = *portItr;
-    *config.ports[portIndex].speed_ref() = maxPortSpeed(hwSwitch, *portItr);
-    auto platformPort = hwSwitch->getPlatform()->getPlatformPort(*portItr);
-    if (auto entry = platformPort->getPlatformPortEntry()) {
-      config.ports_ref()[portIndex].name_ref() =
-          *entry->mapping_ref()->name_ref();
-      *config.ports[portIndex].profileID_ref() =
-          platformPort->getProfileIDBySpeed(
-              *config.ports[portIndex].speed_ref());
-      if (*config.ports[portIndex].profileID_ref() ==
-          cfg::PortProfileID::PROFILE_DEFAULT) {
-        throw FbossError(
-            *entry->mapping_ref()->name_ref(),
-            " has speed: ",
-            apache::thrift::util::enumNameSafe(
-                *config.ports[portIndex].speed_ref()),
-            " which has profile: ",
-            apache::thrift::util::enumNameSafe(
-                *config.ports[portIndex].profileID_ref()));
-      }
-    } else {
-      config.ports_ref()[portIndex].name_ref() =
-          "eth1/" + std::to_string(*portItr) + "/1";
+  for (auto portID : ports) {
+    if (findCfgPortIf(config, portID) == config.ports.end()) {
+      config.ports.push_back(createDefaultPortConfig(hwSwitch, portID));
     }
-    *config.ports[portIndex].maxFrameSize_ref() = 9412;
-    *config.ports[portIndex].state_ref() = cfg::PortState::ENABLED;
-    *config.ports[portIndex].loopbackMode_ref() = lbMode;
-    *config.ports[portIndex].ingressVlan_ref() =
-        port2vlan.find(*portItr)->second;
-    *config.ports[portIndex].routable_ref() = true;
-    *config.ports[portIndex].parserType_ref() = cfg::ParserType::L3;
+    updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
+    auto portCfg = findCfgPort(config, portID);
+    portCfg->maxFrameSize_ref() = 9412;
+    portCfg->state_ref() = cfg::PortState::ENABLED;
+    portCfg->loopbackMode_ref() = lbMode;
+    portCfg->ingressVlan_ref() = port2vlan.find(portID)->second;
+    portCfg->routable_ref() = true;
+    portCfg->parserType_ref() = cfg::ParserType::L3;
   }
 
   // Vlan config
-  config.vlans_ref()->resize(vlans.size() + 1);
-  auto vlanCfgItr = vlans.begin();
-  int vlanIndex = 0;
-  for (; vlanCfgItr != vlans.end(); vlanCfgItr++, vlanIndex++) {
-    *config.vlans[vlanIndex].id_ref() = *vlanCfgItr;
-    *config.vlans[vlanIndex].name_ref() = "vlan" + std::to_string(*vlanCfgItr);
-    *config.vlans[vlanIndex].routable_ref() = true;
+  for (auto vlanID : vlans) {
+    cfg::Vlan vlan;
+    vlan.id_ref() = vlanID;
+    vlan.name_ref() = "vlan" + std::to_string(vlanID);
+    vlan.routable_ref() = true;
+    config.vlans.push_back(vlan);
   }
-  *config.vlans[vlanIndex].id_ref() = kDefaultVlanId;
-  *config.vlans[vlanIndex].name_ref() =
-      folly::sformat("vlan{}", kDefaultVlanId);
-  *config.vlans[vlanIndex].routable_ref() = true;
 
-  *config.defaultVlan_ref() = kDefaultVlanId;
+  cfg::Vlan defaultVlan;
+  defaultVlan.id_ref() = kDefaultVlanId;
+  defaultVlan.name_ref() = folly::sformat("vlan{}", kDefaultVlanId);
+  defaultVlan.routable_ref() = true;
+  config.vlans.push_back(defaultVlan);
+  config.defaultVlan_ref() = kDefaultVlanId;
 
   // Vlan port config
-  config.vlanPorts_ref()->resize(port2vlan.size());
-  auto vlanItr = port2vlan.begin();
-  portIndex = 0;
-  for (; vlanItr != port2vlan.end(); vlanItr++, portIndex++) {
-    *config.vlanPorts[portIndex].logicalPort_ref() = vlanItr->first;
-    *config.vlanPorts[portIndex].vlanID_ref() = vlanItr->second;
-    *config.vlanPorts[portIndex].spanningTreeState_ref() =
-        cfg::SpanningTreeState::FORWARDING;
-    *config.vlanPorts[portIndex].emitTags_ref() = false;
+  for (auto vlanPortPair : port2vlan) {
+    cfg::VlanPort vlanPort;
+    vlanPort.logicalPort_ref() = vlanPortPair.first;
+    vlanPort.vlanID_ref() = vlanPortPair.second;
+    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
+    vlanPort.emitTags_ref() = false;
+    config.vlanPorts.push_back(vlanPort);
   }
 
   return config;

@@ -154,18 +154,20 @@ void enableAllLanes(
     std::vector<PortID> allPortsinGroup,
     const Platform* platform) {
   // keep all except
-  auto portItr = allPortsinGroup.begin();
-  int portIndex = 0;
-  for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    *config->ports[portIndex].speed_ref() = enabledLaneSpeed;
-    *config->ports[portIndex].state_ref() = cfg::PortState::ENABLED;
+  for (auto portID : allPortsinGroup) {
+    auto port = std::find_if(
+        config->ports_ref()->begin(),
+        config->ports_ref()->end(),
+        [&portID](auto portCfg) {
+          return static_cast<PortID>(*portCfg.logicalID_ref()) == portID;
+        });
+    port->speed_ref() = enabledLaneSpeed;
+    port->state_ref() = cfg::PortState::ENABLED;
 
-    auto [name, profileID] = getMappingNameAndProfileID(
-        platform,
-        static_cast<PortID>(*config->ports[portIndex].logicalID_ref()),
-        enabledLaneSpeed);
-    config->ports_ref()[portIndex].name_ref() = name;
-    *config->ports[portIndex].profileID_ref() = profileID;
+    auto [name, profileID] =
+        getMappingNameAndProfileID(platform, portID, enabledLaneSpeed);
+    port->name_ref() = name;
+    port->profileID_ref() = profileID;
   }
 }
 
@@ -177,21 +179,23 @@ void enableTwoLanes(
     const Platform* platform) {
   // keep only first and third
   auto front = allPortsinGroup.front();
-  auto portItr = config->ports_ref()->begin();
-  while (portItr != config->ports_ref()->end()) {
-    if ((static_cast<PortID>(*portItr->logicalID_ref()) % 2) != 0) {
-      portItr = config->ports_ref()->erase(portItr);
+  for (auto portID : allPortsinGroup) {
+    auto port = std::find_if(
+        config->ports_ref()->begin(),
+        config->ports_ref()->end(),
+        [&portID](auto portCfg) {
+          return static_cast<PortID>(*portCfg.logicalID_ref()) == portID;
+        });
+    if ((static_cast<PortID>(portID) % 2) != 0) {
+      config->ports_ref()->erase(port);
     } else {
-      *portItr->speed_ref() = enabledLaneSpeed;
-      *portItr->state_ref() = cfg::PortState::ENABLED;
+      port->speed_ref() = enabledLaneSpeed;
+      port->state_ref() = cfg::PortState::ENABLED;
 
-      auto [name, profileID] = getMappingNameAndProfileID(
-          platform,
-          static_cast<PortID>(*portItr->logicalID_ref()),
-          enabledLaneSpeed);
-      portItr->name_ref() = name;
-      *portItr->profileID_ref() = profileID;
-      portItr++;
+      auto [name, profileID] =
+          getMappingNameAndProfileID(platform, portID, enabledLaneSpeed);
+      port->name_ref() = name;
+      port->profileID_ref() = profileID;
     }
   }
 
