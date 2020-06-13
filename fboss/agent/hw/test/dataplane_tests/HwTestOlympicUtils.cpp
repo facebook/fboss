@@ -178,6 +178,11 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
   dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
   cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuConfig;
+  cfg::TrafficPolicyConfig cpuTrafficPolicy;
+  cpuTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  cpuConfig.trafficPolicy_ref() = cpuTrafficPolicy;
+  cfg.cpuTrafficPolicy_ref() = cpuConfig;
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
