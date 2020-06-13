@@ -334,6 +334,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
   // speed, hw lane list, fec mode
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
+  port->setSpeed(speed);
 
   // admin state
   bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
