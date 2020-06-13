@@ -10,12 +10,15 @@
 
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmQcmCollector.h"
+#include "fboss/agent/state/QcmConfig.h"
+#include "fboss/agent/state/SwitchState.h"
 
 extern "C" {
-#include <bcm/collector.h>
 #include <bcm/cosq.h>
 #include <bcm/flowtracker.h>
 #include <bcm/init.h>
@@ -32,12 +35,10 @@ extern "C" {
 }
 
 namespace {
-constexpr int kUc0CosQueue = 46;
-constexpr int kUc0DmaChannel = 5;
-// just use 1 flow group Id for now always
-constexpr int kQcmFlowGroupId = 1;
+constexpr int kUc0CosQueue = 46; // cos queue that maps from switch to QCM CPU
+constexpr int kUc0DmaChannel = 5; // DMA channel id from bcm switch to QCM CPU
+constexpr int kQcmFlowGroupId = 1; // Use a specific flow group Id (out of 15)
 constexpr int kQcmDomainId = 0x123456;
-
 std::vector<bcm_flowtracker_tracking_param_type_t> kBcmFlowTrackerParamsVec = {
     bcmFlowtrackerTrackingParamTypeSrcIPv6,
     bcmFlowtrackerTrackingParamTypeDstIPv6,
@@ -45,10 +46,13 @@ std::vector<bcm_flowtracker_tracking_param_type_t> kBcmFlowTrackerParamsVec = {
     bcmFlowtrackerTrackingParamTypeL4DstPort,
     bcmFlowtrackerTrackingParamTypeIPProtocol,
     bcmFlowtrackerTrackingParamTypeIngPort};
-
 } // namespace
 
 namespace facebook::fboss {
+
+int BcmQcmManager::getQcmFlowGroupId() {
+  return kQcmFlowGroupId;
+}
 
 void BcmQcmManager::createIfpGroup() {
   bcm_field_qset_t qset;
@@ -177,12 +181,17 @@ void BcmQcmManager::updateQcmMonitoredPortsIfNeeded(
   }
 }
 
+BcmQcmManager::BcmQcmManager(BcmSwitch* hw)
+    : hw_(hw), qcmCollector_(new BcmQcmCollector(hw, this)) {}
+
 BcmQcmManager::~BcmQcmManager() {
   XLOG(INFO) << "Destroying Qcm Manager";
-  stopQcm();
+  stop();
+  // reset collector
+  qcmCollector_.reset();
 }
 
-void BcmQcmManager::stopQcm() {
+void BcmQcmManager::stop() {
   if (!qcmInitDone_) {
     return;
   }
@@ -313,37 +322,47 @@ uint32_t BcmQcmManager::getLearnedFlowCount() {
   return flowCount;
 }
 
-void BcmQcmManager::initQcm() {
-  XLOG(INFO) << "Start QCM";
+void BcmQcmManager::initRxQueue() {
+  auto rv =
+      bcm_rx_queue_channel_set(hw_->getUnit(), kUc0CosQueue, kUc0DmaChannel);
+  bcmCheckError(rv, "bcm_rx_queue_channel_set failed");
+}
 
+void BcmQcmManager::initPipeMode() {
   bcm_info_t info;
   auto rv = bcm_info_get(hw_->getUnit(), &info);
   bcmCheckError(rv, "failed to get unit info");
 
   num_pipes_ = info.num_pipes;
-
-  rv = bcm_rx_queue_channel_set(hw_->getUnit(), kUc0CosQueue, kUc0DmaChannel);
-  bcmCheckError(rv, "bcm_rx_queue_channel_set failed");
-
   rv = bcm_field_group_oper_mode_set(
       hw_->getUnit(),
       bcmFieldQualifyStageIngressExactMatch,
       bcmFieldGroupOperModePipeLocal);
   bcmCheckError(rv, "bcm_field_group_oper_mode_set failed");
+}
+
+void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
+  XLOG(INFO) << "[QCM] Start Init";
+
+  qcmCfg_ = swState->getQcmCfg();
+  initRxQueue();
+  initPipeMode();
 
   initExactMatchGroupCreate();
   createIfpGroup();
 
+  /* program flow tracker specific tables */
   createFlowGroup();
-
   setFlowGroupTrigger();
-  setAgingInterval(qcmCfg_.agingIntervalInMsecs);
-
+  setAgingInterval(qcmCfg_->getAgingInterval());
   setTrackingParams();
+  flowLimitSet(qcmCfg_->getFlowLimit());
+  setFlowViewCfg();
 
-  /* create flow group */
-  flowLimitSet(qcmCfg_.flowLimit);
+  /* create collector */
+  qcmCollector_->init(swState);
+
   qcmInitDone_ = true;
-  XLOG(INFO) << "Qcm init completed";
+  XLOG(INFO) << "[QCM] Init done";
 }
 } // namespace facebook::fboss

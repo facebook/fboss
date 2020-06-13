@@ -28,6 +28,10 @@ const folly::IPAddress kIPv6FlowSrcAddress2 = folly::IPAddressV6("1::10");
 const folly::IPAddress kIPv6FlowSrcAddress3 = folly::IPAddressV6("1::11");
 const folly::IPAddress kIPv6FlowSrcAddress4 = folly::IPAddressV6("1::12");
 const folly::IPAddress kIPv4FlowSrcAddress = folly::IPAddressV4("10.0.0.1");
+
+const std::string kCollctorSrcIp = "10.0.0.2/32";
+const std::string kCollctorDstIp = "11.0.0.2/32";
+int kCollectorUDPSrcPort = 20000;
 const int kMaskV6 = 120;
 } // namespace
 
@@ -54,6 +58,12 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
   void setupHelper() {
     auto newCfg{initialConfig()};
+    auto qcmCfg = cfg::QcmConfig();
+    // some dummy address
+    qcmCfg.collectorDstIp = kCollctorSrcIp;
+    qcmCfg.collectorSrcIp = kCollctorDstIp;
+    qcmCfg.collectorSrcPort = kCollectorUDPSrcPort;
+    newCfg.qcmConfig_ref() = qcmCfg;
     newCfg.switchSettings.qcmEnable = true;
     applyNewConfig(newCfg);
 

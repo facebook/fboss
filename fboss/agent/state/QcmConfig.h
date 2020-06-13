@@ -41,7 +41,7 @@ struct QcmCfgFields {
   WeightMap flowWeights;
   folly::CIDRNetwork collectorDstIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork collectorSrcIp{std::make_pair(folly::IPAddress(), 0)};
-  std::optional<uint32_t> collectorSrcPort;
+  uint32_t collectorSrcPort;
   uint32_t collectorDstPort{
       cfg::switch_config_constants::DEFAULT_QCM_COLLECTOR_DST_PORT()};
   std::optional<uint32_t> collectorDscp{std::nullopt};
@@ -155,7 +155,7 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
     writableFields()->collectorSrcIp = ip;
   }
 
-  std::optional<uint32_t> getCollectorSrcPort() const {
+  uint32_t getCollectorSrcPort() const {
     return getFields()->collectorSrcPort;
   }
 

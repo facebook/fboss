@@ -499,7 +499,7 @@ void BcmSwitch::gracefulExit(folly::dynamic& switchState) {
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
   portTable_->preparePortsForGracefulExit();
   bstStatsMgr_->stopBufferStatCollection();
-  qcmManager_->stopQcm();
+  qcmManager_->stop();
 
   std::lock_guard<std::mutex> g(lock_);
 
@@ -1010,7 +1010,8 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   if (oldSwitchSettings->isQcmEnable() != newSwitchSettings->isQcmEnable()) {
     XLOG(DBG3) << "Set QCM enable: " << std::boolalpha
                << newSwitchSettings->isQcmEnable();
-    switchSettings_->setQcmEnable(newSwitchSettings->isQcmEnable());
+    switchSettings_->setQcmEnable(
+        newSwitchSettings->isQcmEnable(), delta.newState());
   }
 }
 

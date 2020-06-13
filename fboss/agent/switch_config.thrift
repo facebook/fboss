@@ -1140,7 +1140,7 @@ struct QcmConfig {
   6: map<BurstMonitorWeight, i16> flowWeights
   7: i32 agingIntervalInMsecs = DEFAULT_QCM_AGING_INTERVAL_MSECS
   8: string collectorDstIp
-  10: optional i16 collectorSrcPort
+  10: i16 collectorSrcPort
   // Arbitrary high number to keep the dstPort unique
   11: i16 collectorDstPort = DEFAULT_QCM_COLLECTOR_DST_PORT
   12: optional i16 collectorDscp

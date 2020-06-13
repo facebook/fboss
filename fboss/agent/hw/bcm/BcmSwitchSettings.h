@@ -11,6 +11,7 @@ extern "C" {
 namespace facebook::fboss {
 
 class BcmSwitch;
+class SwitchState;
 
 class BcmSwitchSettings {
  public:
@@ -26,7 +27,9 @@ class BcmSwitchSettings {
   void enableL2LearningCallback();
   void disableL2LearningCallback();
 
-  void setQcmEnable(bool qcmEnable);
+  void setQcmEnable(
+      bool qcmEnable,
+      const std::shared_ptr<SwitchState>& swState);
 
  private:
   void enableL2LearningHardware();

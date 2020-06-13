@@ -41,6 +41,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmPort.cpp
   fboss/agent/hw/bcm/BcmPortUtils.cpp
   fboss/agent/hw/bcm/BcmPortDescriptor.cpp
+  fboss/agent/hw/bcm/BcmQcmCollector.cpp
   fboss/agent/hw/bcm/BcmQcmManager.cpp
   fboss/agent/hw/bcm/BcmPortTable.cpp
   fboss/agent/hw/bcm/BcmPortGroup.cpp
@@ -84,6 +85,7 @@ add_library(bcm
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
   fboss/agent/hw/bcm/oss/BcmPort.cpp
   fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
+  fboss/agent/hw/bcm/oss/BcmQcmCollector.cpp
   fboss/agent/hw/bcm/oss/BcmQcmManager.cpp
 )
 

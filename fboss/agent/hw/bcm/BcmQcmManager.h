@@ -20,31 +20,44 @@ extern "C" {
 
 namespace facebook::fboss {
 
+class BcmQcmCollector;
+class QcmCfg;
+
 class BcmQcmManager {
  public:
-  explicit BcmQcmManager(BcmSwitch* hw) : hw_(hw) {}
+  explicit BcmQcmManager(BcmSwitch* hw);
   ~BcmQcmManager();
-  void initQcm();
-  void stopQcm();
+  void init(const std::shared_ptr<SwitchState>& swState);
+  void stop();
   void updateQcmMonitoredPortsIfNeeded(
       const std::set<bcm_port_t>& upPorts,
       bool installStats = false);
-  int createIfpEntry(int port, bool usePolicer, bool attachStats);
-  uint64_t getIfpStatCounter(const int portId);
-  uint32_t getLearnedFlowCount();
   void flowLimitSet(int flowLimit);
 
+  // utility routines used by tests
+  uint64_t getIfpStatCounter(const int portId);
+  uint32_t getLearnedFlowCount();
+  static int getQcmFlowGroupId();
+
  private:
-  void updateQcmMonitoredPorts(std::set<bcm_port_t>& upPorts);
+  // setup communications between QCM, Switch CPU
+  void initRxQueue();
+  void initPipeMode();
+
+  // setup QCM flowtracker
   void initExactMatchGroupCreate();
-  void getPortsForQcmMonitoring(std::set<bcm_port_t>& upPortSet);
   int createFlowGroup();
   void createIfpGroup();
   void setFlowViewCfg();
-  void createAndAttachStats(const int ifpEntry);
   void setFlowGroupTrigger();
   void setAgingInterval(const int agingIntervalInMsecs);
+  int createIfpEntry(int port, bool usePolicer, bool attachStats);
   void setTrackingParams();
+
+  // helper routines
+  void updateQcmMonitoredPorts(std::set<bcm_port_t>& upPorts);
+  void getPortsForQcmMonitoring(std::set<bcm_port_t>& upPortSet);
+  void createAndAttachStats(const int ifpEntry);
 
   BcmSwitch* hw_;
   // pipe to field group
@@ -57,7 +70,8 @@ class BcmQcmManager {
   std::map<int, int> ifpEntryToStatMap_;
   std::mutex monitoredPortsLock_;
   bool qcmInitDone_{false};
-  cfg::QcmConfig qcmCfg_;
+  std::shared_ptr<QcmCfg> qcmCfg_;
+  std::unique_ptr<BcmQcmCollector> qcmCollector_;
 };
 
 } // namespace facebook::fboss

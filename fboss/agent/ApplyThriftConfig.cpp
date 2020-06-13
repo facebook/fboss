@@ -2049,9 +2049,7 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   }
   newQcmCfg->setFlowWeightMap(newWeightMap);
 
-  if (auto srcPort = config.collectorSrcPort_ref()) {
-    newQcmCfg->setCollectorSrcPort(*srcPort);
-  }
+  newQcmCfg->setCollectorSrcPort(config.collectorSrcPort);
   newQcmCfg->setNumFlowSamplesPerView(config.numFlowSamplesPerView);
   newQcmCfg->setFlowLimit(config.flowLimit);
   newQcmCfg->setNumFlowsClear(config.numFlowsClear);

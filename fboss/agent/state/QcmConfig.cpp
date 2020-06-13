@@ -45,9 +45,7 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   }
   qcmCfg[kAgingIntervalInMsecs] = static_cast<uint32_t>(agingIntervalInMsecs);
   qcmCfg[kCollectorDstIp] = folly::IPAddress::networkToString(collectorDstIp);
-  if (collectorSrcPort) {
-    qcmCfg[kCollectorSrcPort] = collectorSrcPort.value();
-  }
+  qcmCfg[kCollectorSrcPort] = static_cast<uint32_t>(collectorSrcPort);
   qcmCfg[kCollectorDstPort] = static_cast<uint32_t>(collectorDstPort);
   if (collectorDscp) {
     qcmCfg[kCollectorDscp] = collectorDscp.value();

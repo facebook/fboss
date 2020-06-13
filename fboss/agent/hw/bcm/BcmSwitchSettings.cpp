@@ -232,14 +232,16 @@ void BcmSwitchSettings::disablePendingEntriesOnUnknownSrcL2() {
   }
 }
 
-void BcmSwitchSettings::setQcmEnable(bool qcmEnable) {
+void BcmSwitchSettings::setQcmEnable(
+    bool qcmEnable,
+    const std::shared_ptr<SwitchState>& swState) {
   XLOG(DBG3) << "Set qcm =" << qcmEnable;
   if (qcmEnable_.has_value() && qcmEnable_.value() == qcmEnable) {
     return;
   }
 
   const auto bcmQcmMgrPtr = hw_->getBcmQcmMgr();
-  qcmEnable ? bcmQcmMgrPtr->initQcm() : bcmQcmMgrPtr->stopQcm();
+  qcmEnable ? bcmQcmMgrPtr->init(swState) : bcmQcmMgrPtr->stop();
   qcmEnable_ = qcmEnable;
 }
 } // namespace facebook::fboss
