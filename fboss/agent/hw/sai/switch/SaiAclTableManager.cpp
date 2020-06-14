@@ -51,9 +51,41 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   // Pass Complete actionTypeList
   std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_SET_DSCP};
   SaiAclTableTraits::AdapterHostKey adapterHostKey{
-      SAI_ACL_STAGE_INGRESS, bindPointList, actionTypeList, true};
+      SAI_ACL_STAGE_INGRESS,
+      bindPointList,
+      actionTypeList,
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
   SaiAclTableTraits::CreateAttributes attributes{
-      SAI_ACL_STAGE_INGRESS, bindPointList, actionTypeList, true};
+      SAI_ACL_STAGE_INGRESS,
+      bindPointList,
+      actionTypeList,
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
 
   auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
   auto aclTableHandle = std::make_unique<SaiAclTableHandle>();

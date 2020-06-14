@@ -121,11 +121,33 @@ struct SaiAclTableTraits {
         std::vector<sai_object_id_t>>;
 
     /*
-     * TODO (skhare) Add all the FIELD_* FBOSS needs.
-     * Find a way to express at least one FIELD_* is mandatory.
+     * At least one Field* must be set.
      */
+    using FieldSrcIpV6 =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6, bool>;
+    using FieldDstIpV6 =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6, bool>;
+    using FieldL4SrcPort =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT, bool>;
+    using FieldL4DstPort =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_L4_DST_PORT, bool>;
+    using FieldIpProtocol =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL, bool>;
+    using FieldTcpFlags =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS, bool>;
+    using FieldInPort =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IN_PORT, bool>;
+    using FieldOutPort =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT, bool>;
+    using FieldIpFrag =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG, bool>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DSCP, bool>;
+    using FieldDstMac =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_MAC, bool>;
+    using FieldIpType =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE, bool>;
+    using FieldTtl = SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TTL, bool>;
   };
 
   using AdapterKey = AclTableSaiId;
@@ -133,19 +155,56 @@ struct SaiAclTableTraits {
       Attributes::Stage,
       std::optional<Attributes::BindPointTypeList>,
       std::optional<Attributes::ActionTypeList>,
-      std::optional<Attributes::FieldDscp>>;
+      std::optional<Attributes::FieldSrcIpV6>,
+      std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldL4SrcPort>,
+      std::optional<Attributes::FieldL4DstPort>,
+      std::optional<Attributes::FieldIpProtocol>,
+      std::optional<Attributes::FieldTcpFlags>,
+      std::optional<Attributes::FieldInPort>,
+      std::optional<Attributes::FieldOutPort>,
+      std::optional<Attributes::FieldIpFrag>,
+      std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldDstMac>,
+      std::optional<Attributes::FieldIpType>,
+      std::optional<Attributes::FieldTtl>>;
+
   using CreateAttributes = std::tuple<
       Attributes::Stage,
       std::optional<Attributes::BindPointTypeList>,
       std::optional<Attributes::ActionTypeList>,
-      std::optional<Attributes::FieldDscp>>;
+      std::optional<Attributes::FieldSrcIpV6>,
+      std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldL4SrcPort>,
+      std::optional<Attributes::FieldL4DstPort>,
+      std::optional<Attributes::FieldIpProtocol>,
+      std::optional<Attributes::FieldTcpFlags>,
+      std::optional<Attributes::FieldInPort>,
+      std::optional<Attributes::FieldOutPort>,
+      std::optional<Attributes::FieldIpFrag>,
+      std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldDstMac>,
+      std::optional<Attributes::FieldIpType>,
+      std::optional<Attributes::FieldTtl>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclTable, Stage);
 SAI_ATTRIBUTE_NAME(AclTable, BindPointTypeList);
 SAI_ATTRIBUTE_NAME(AclTable, ActionTypeList);
 SAI_ATTRIBUTE_NAME(AclTable, EntryList);
+SAI_ATTRIBUTE_NAME(AclTable, FieldSrcIpV6);
+SAI_ATTRIBUTE_NAME(AclTable, FieldDstIpV6);
+SAI_ATTRIBUTE_NAME(AclTable, FieldL4SrcPort);
+SAI_ATTRIBUTE_NAME(AclTable, FieldL4DstPort);
+SAI_ATTRIBUTE_NAME(AclTable, FieldIpProtocol);
+SAI_ATTRIBUTE_NAME(AclTable, FieldTcpFlags);
+SAI_ATTRIBUTE_NAME(AclTable, FieldInPort);
+SAI_ATTRIBUTE_NAME(AclTable, FieldOutPort);
+SAI_ATTRIBUTE_NAME(AclTable, FieldIpFrag);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
+SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);
+SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 
 struct SaiAclEntryTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;

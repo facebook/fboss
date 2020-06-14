@@ -38,7 +38,25 @@ class AclTableStoreTest : public SaiStoreTest {
 
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
-        {stage, kBindPointTypeList(), kActionTypeList(), true}, 0);
+        {
+            stage,
+            kBindPointTypeList(),
+            kActionTypeList(),
+            true, // srcIpv6
+            true, // dstIpv6
+            true, // l4SrcPort
+            true, // l4DstPort
+            true, // ipProtocol
+            true, // tcpFlags
+            true, // inPort
+            true, // outPort
+            true, // ipFrag
+            true, // dscp
+            true, // dstMac
+            true, // ipType
+            true // ttl
+        },
+        0);
   }
 
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
@@ -56,18 +74,48 @@ TEST_F(AclTableStoreTest, loadAclTables) {
   s.reload();
   auto& store = s.get<SaiAclTableTraits>();
 
-  SaiAclTableTraits::AdapterHostKey k{SAI_ACL_STAGE_INGRESS,
-                                      this->kBindPointTypeList(),
-                                      this->kActionTypeList(),
-                                      true};
+  SaiAclTableTraits::AdapterHostKey k{
+      SAI_ACL_STAGE_INGRESS,
+      this->kBindPointTypeList(),
+      this->kActionTypeList(),
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
+
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclTableId);
 
-  SaiAclTableTraits::AdapterHostKey k2{SAI_ACL_STAGE_EGRESS,
-                                       this->kBindPointTypeList(),
-                                       this->kActionTypeList(),
-                                       true};
+  SaiAclTableTraits::AdapterHostKey k2{
+      SAI_ACL_STAGE_EGRESS,
+      this->kBindPointTypeList(),
+      this->kActionTypeList(),
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
+
   auto got2 = store.get(k2);
   EXPECT_NE(got2, nullptr);
   EXPECT_EQ(got2->adapterKey(), aclTableId2);
@@ -107,9 +155,43 @@ TEST_P(AclTableStoreParamTest, aclEntryLoadCtor) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
   SaiAclTableTraits::CreateAttributes c{
-      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(), true};
+      GetParam(),
+      this->kBindPointTypeList(),
+      this->kActionTypeList(),
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
+
   SaiAclTableTraits::AdapterHostKey k{
-      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(), true};
+      GetParam(),
+      this->kBindPointTypeList(),
+      this->kActionTypeList(),
+      true, // srcIpv6
+      true, // dstIpv6
+      true, // l4SrcPort
+      true, // l4DstPort
+      true, // ipProtocol
+      true, // tcpFlags
+      true, // inPort
+      true, // outPort
+      true, // ipFrag
+      true, // dscp
+      true, // dstMac
+      true, // ipType
+      true // ttl
+  };
+
   SaiObject<SaiAclTableTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());
 }

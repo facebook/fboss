@@ -76,11 +76,35 @@ class FakeAclTable {
       sai_int32_t stage,
       std::vector<sai_int32_t> bindPointTypeList,
       std::vector<sai_int32_t> actionTypeList,
-      sai_uint8_t fieldDscp)
+      sai_uint8_t fieldSrcIpV6,
+      sai_uint8_t fieldDstIpV6,
+      sai_uint8_t fieldL4SrcPort,
+      sai_uint8_t fieldL4DstPort,
+      sai_uint8_t fieldIpProtocol,
+      sai_uint8_t fieldTcpFlags,
+      sai_uint8_t fieldInPort,
+      sai_uint8_t fieldOutPort,
+      sai_uint8_t fieldIpFrag,
+      sai_uint8_t fieldDscp,
+      sai_uint8_t fieldDstMac,
+      sai_uint8_t fieldIpType,
+      sai_uint8_t fieldTtl)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
-        fieldDscp(fieldDscp) {}
+        fieldSrcIpV6(fieldSrcIpV6),
+        fieldDstIpV6(fieldDstIpV6),
+        fieldL4SrcPort(fieldL4SrcPort),
+        fieldL4DstPort(fieldL4DstPort),
+        fieldIpProtocol(fieldIpProtocol),
+        fieldTcpFlags(fieldTcpFlags),
+        fieldInPort(fieldInPort),
+        fieldOutPort(fieldOutPort),
+        fieldIpFrag(fieldIpFrag),
+        fieldDscp(fieldDscp),
+        fieldDstMac(fieldDstMac),
+        fieldIpType(fieldIpType),
+        fieldTtl(fieldTtl) {}
 
   static sai_acl_api_t* kApi();
 
@@ -89,7 +113,19 @@ class FakeAclTable {
   sai_int32_t stage;
   std::vector<sai_int32_t> bindPointTypeList;
   std::vector<sai_int32_t> actionTypeList;
+  sai_uint8_t fieldSrcIpV6;
+  sai_uint8_t fieldDstIpV6;
+  sai_uint8_t fieldL4SrcPort;
+  sai_uint8_t fieldL4DstPort;
+  sai_uint8_t fieldIpProtocol;
+  sai_uint8_t fieldTcpFlags;
+  sai_uint8_t fieldInPort;
+  sai_uint8_t fieldOutPort;
+  sai_uint8_t fieldIpFrag;
   sai_uint8_t fieldDscp;
+  sai_uint8_t fieldDstMac;
+  sai_uint8_t fieldIpType;
+  sai_uint8_t fieldTtl;
 
   FakeManager<sai_object_id_t, FakeAclEntry>& fm() {
     return fm_;

@@ -38,13 +38,26 @@ class AclApiTest : public ::testing::Test {
           std::vector<sai_int32_t>{SAI_ACL_ACTION_TYPE_REDIRECT}) const {
     SaiAclTableTraits::Attributes::Stage aclTableStageAttribute{
         SAI_ACL_STAGE_INGRESS};
-    SaiAclTableTraits::Attributes::FieldDscp aclTableFieldDscpAttribute{false};
 
     return aclApi->create<SaiAclTableTraits>(
-        {aclTableStageAttribute,
-         aclTableBindPointTypeListAttribute,
-         aclTableActionTypeListAttribute,
-         aclTableFieldDscpAttribute},
+        {
+            aclTableStageAttribute,
+            aclTableBindPointTypeListAttribute,
+            aclTableActionTypeListAttribute,
+            true, // srcIpv6
+            true, // dstIpv6
+            true, // l4SrcPort
+            true, // l4DstPort
+            true, // ipProtocol
+            true, // tcpFlags
+            true, // inPort
+            true, // outPort
+            true, // ipFrag
+            true, // dscp
+            true, // dstMac
+            true, // ipType
+            true // ttl
+        },
         kSwitchID());
   }
 
@@ -198,7 +211,7 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableActionTypeListGot[0], SAI_ACL_ACTION_TYPE_REDIRECT);
   EXPECT_EQ(aclTableEntryListGot.size(), 1);
   EXPECT_EQ(aclTableEntryListGot[0], static_cast<uint32_t>(aclEntryId));
-  EXPECT_EQ(aclTableFieldDscpGot, false);
+  EXPECT_EQ(aclTableFieldDscpGot, true);
 }
 
 TEST_F(AclApiTest, getAclEntryAttribute) {

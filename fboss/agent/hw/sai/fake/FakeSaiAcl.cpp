@@ -24,7 +24,19 @@ sai_status_t create_acl_table_fn(
   std::optional<sai_int32_t> stage;
   std::vector<int32_t> bindPointTypeList;
   std::vector<int32_t> actionTypeList;
+  sai_uint8_t fieldSrcIpV6 = 0;
+  sai_uint8_t fieldDstIpV6 = 0;
+  sai_uint8_t fieldL4SrcPort = 0;
+  sai_uint8_t fieldL4DstPort = 0;
+  sai_uint8_t fieldIpProtocol = 0;
+  sai_uint8_t fieldTcpFlags = 0;
+  sai_uint8_t fieldInPort = 0;
+  sai_uint8_t fieldOutPort = 0;
+  sai_uint8_t fieldIpFrag = 0;
   sai_uint8_t fieldDscp = 0;
+  sai_uint8_t fieldDstMac = 0;
+  sai_uint8_t fieldIpType = 0;
+  sai_uint8_t fieldTtl = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -41,9 +53,47 @@ sai_status_t create_acl_table_fn(
           actionTypeList.push_back(attr_list[i].value.s32list.list[j]);
         }
         break;
+
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6:
+        fieldSrcIpV6 = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6:
+        fieldDstIpV6 = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT:
+        fieldL4SrcPort = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_L4_DST_PORT:
+        fieldL4DstPort = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL:
+        fieldIpProtocol = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS:
+        fieldTcpFlags = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT:
+        fieldInPort = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT:
+        fieldOutPort = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG:
+        fieldIpFrag = attr_list[i].value.u8;
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
         fieldDscp = attr_list[i].value.u8;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
+        fieldDstMac = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE:
+        fieldIpType = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TTL:
+        fieldTtl = attr_list[i].value.u8;
+        break;
+
       default:
         return SAI_STATUS_INVALID_PARAMETER;
         break;
@@ -55,7 +105,22 @@ sai_status_t create_acl_table_fn(
   }
 
   *acl_table_id = fs->aclTableManager.create(
-      stage.value(), bindPointTypeList, actionTypeList, fieldDscp);
+      stage.value(),
+      bindPointTypeList,
+      actionTypeList,
+      fieldSrcIpV6,
+      fieldDstIpV6,
+      fieldL4SrcPort,
+      fieldL4DstPort,
+      fieldIpProtocol,
+      fieldTcpFlags,
+      fieldInPort,
+      fieldOutPort,
+      fieldIpFrag,
+      fieldDscp,
+      fieldDstMac,
+      fieldIpType,
+      fieldTtl);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -128,10 +193,60 @@ sai_status_t get_acl_table_attribute_fn(
           attr[i].value.objlist.list[j++] = m.first;
         }
       } break;
+
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldSrcIpV6;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldDstIpV6;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldL4SrcPort;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_L4_DST_PORT: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldL4DstPort;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldIpProtocol;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldTcpFlags;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldInPort;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldOutPort;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldIpFrag;
+      } break;
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.u8 = aclTable.fieldDscp;
       } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldDstMac;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldIpType;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_TTL: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldTtl;
+      } break;
+
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }

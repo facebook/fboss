@@ -42,7 +42,25 @@ class AclTableGroupStoreTest : public SaiStoreTest {
 
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
-        {stage, kBindPointTypeList(), kActionTypeList(), true}, 0);
+        {
+            stage,
+            kBindPointTypeList(),
+            kActionTypeList(),
+            true, // srcIpv6
+            true, // dstIpv6
+            true, // l4SrcPort
+            true, // l4DstPort
+            true, // ipProtocol
+            true, // tcpFlags
+            true, // inPort
+            true, // outPort
+            true, // ipFrag
+            true, // dscp
+            true, // dstMac
+            true, // ipType
+            true // ttl
+        },
+        0);
   }
 
   AclTableGroupSaiId createAclTableGroup(sai_int32_t stage) const {
