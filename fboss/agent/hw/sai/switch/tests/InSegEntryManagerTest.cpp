@@ -230,15 +230,14 @@ TEST_F(InSegEntryManagerTest, createInSegEntry) {
   auto preWarmBootAdapterKey = preWarmBootHandle->inSegEntry->adapterKey();
   auto preWarmBootAttributes = preWarmBootHandle->inSegEntry->attributes();
 
-  ManagerTestBase::setupForWarmBoot();
-  ManagerTestBase::warmBoot();
+  ManagerTestBase::pseudoWarmBootExitAndStoreReload();
 
   // verify pre and post matches
-  auto postWarmBootHandle =
+  auto postStoreReloadHandle =
       SaiStore::getInstance()->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
-  ASSERT_NE(postWarmBootHandle, nullptr);
-  auto postWarmBootAttributes = postWarmBootHandle->attributes();
-  EXPECT_EQ(preWarmBootAttributes, postWarmBootAttributes);
+  ASSERT_NE(postStoreReloadHandle, nullptr);
+  auto postStoreReloadAttributes = postStoreReloadHandle->attributes();
+  EXPECT_EQ(preWarmBootAttributes, postStoreReloadAttributes);
 }
 
 TEST_F(InSegEntryManagerTest, changeInSegEntry) {
@@ -277,15 +276,14 @@ TEST_F(InSegEntryManagerTest, changeInSegEntry) {
   auto preWarmBootAdapterKey = preWarmBootHandle->inSegEntry->adapterKey();
   auto preWarmBootAttributes = preWarmBootHandle->inSegEntry->attributes();
 
-  ManagerTestBase::setupForWarmBoot();
-  ManagerTestBase::warmBoot();
+  ManagerTestBase::pseudoWarmBootExitAndStoreReload();
 
   // verify pre and post matches
-  auto postWarmBootHandle =
+  auto postStoreReloadHandle =
       SaiStore::getInstance()->get<SaiInSegTraits>().get(preWarmBootAdapterKey);
-  ASSERT_NE(postWarmBootHandle, nullptr);
-  auto postWarmBootAttributes = postWarmBootHandle->attributes();
-  EXPECT_EQ(preWarmBootAttributes, postWarmBootAttributes);
+  ASSERT_NE(postStoreReloadHandle, nullptr);
+  auto postStoreReloadAttributes = postStoreReloadHandle->attributes();
+  EXPECT_EQ(preWarmBootAttributes, postStoreReloadAttributes);
 }
 
 TEST_F(InSegEntryManagerTest, removeInSegEntry) {
@@ -309,12 +307,11 @@ TEST_F(InSegEntryManagerTest, removeInSegEntry) {
       saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
   ASSERT_EQ(preWarmBootHandle, nullptr);
 
-  ManagerTestBase::setupForWarmBoot();
-  ManagerTestBase::warmBoot();
+  ManagerTestBase::pseudoWarmBootExitAndStoreReload();
 
-  const auto* postWarmBootHandle =
+  const auto* postStoreReloadHandle =
       saiManagerTable->inSegEntryManager().getInSegEntryHandle(100);
-  ASSERT_EQ(postWarmBootHandle, nullptr);
+  ASSERT_EQ(postStoreReloadHandle, nullptr);
 }
 
 } // namespace facebook::fboss

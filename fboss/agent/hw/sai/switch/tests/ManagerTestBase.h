@@ -115,8 +115,15 @@ class ManagerTestBase : public ::testing::Test {
 
   void SetUp() override;
   void TearDown() override;
-  void setupForWarmBoot();
-  void warmBoot();
+  /*
+   * Pretend warm boot where we
+   * - Ask the store do a warm boot exit
+   * - Leak platform (so as to not dereference dead objects from thee
+   *   store when we desroy platform->saiSwitch->managerTable
+   * - Reload store for tests to verify that the right objects were
+   *   recovered by the store
+   */
+  void pseudoWarmBootExitAndStoreReload();
 
   std::shared_ptr<ArpEntry> makePendingArpEntry(
       int id,

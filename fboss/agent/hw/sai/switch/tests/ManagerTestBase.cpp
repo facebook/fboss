@@ -100,20 +100,15 @@ void ManagerTestBase::TearDown() {
   FakeSai::clear();
 }
 
-void ManagerTestBase::setupForWarmBoot() {
+void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
+  SaiStore::getInstance()->exitForWarmBoot();
 #if !defined(IS_OSS) && __has_feature(address_sanitizer)
   auto* leakedPlatform = saiPlatform.release();
   __lsan_ignore_object(leakedPlatform);
 #else
   saiPlatform.release();
 #endif
-  SaiStore::getInstance()->exitForWarmBoot();
   SaiStore::getInstance()->reload();
-}
-
-void ManagerTestBase::warmBoot() {
-  SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
-  SaiStore::getInstance()->setSwitchId(switchId);
 }
 
 std::shared_ptr<Port> ManagerTestBase::makePort(
