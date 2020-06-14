@@ -190,6 +190,10 @@ TEST_F(QosMapManagerTest, expMap) {
 
 TEST_F(QosMapManagerTest, addPortQos) {
   auto switchState = std::make_shared<SwitchState>();
+  auto qosPolicies = std::make_shared<QosPolicyMap>();
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
+  switchState->resetQosPolicies(qosPolicies);
   auto port = std::make_shared<Port>(PortID(1), "eth1/1/1");
   port->setQosPolicy("qos");
   switchState->getPorts()->addPort(port);
@@ -198,15 +202,22 @@ TEST_F(QosMapManagerTest, addPortQos) {
 }
 
 TEST_F(QosMapManagerTest, changAddsPortQos) {
-  auto oldState = std::make_shared<SwitchState>();
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto oldState = makeSwitchState(makeQosPolicy("qos", testQosPolicy));
   auto port = std::make_shared<Port>(PortID(1), "eth1/1/1");
-  port->publish();
-  oldState->getPorts()->addPort(port);
+  port->setQosPolicy("qos");
+  auto ports = std::make_shared<PortMap>();
+  ports->addPort(port);
+  oldState->resetPorts(ports);
   oldState->publish();
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), oldState)));
   auto newState = oldState->clone();
   auto newPort = port->modify(&newState);
+  auto qosPolicies = std::make_shared<QosPolicyMap>();
+  qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
+  newState->resetQosPolicies(qosPolicies);
+  newState->setDefaultDataPlaneQosPolicy(nullptr);
   newPort->setQosPolicy("qos");
   EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(oldState, newState)));

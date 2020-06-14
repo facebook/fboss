@@ -689,7 +689,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
     auto& newPolicy = globalQosDelta.getNew();
     if (newPolicy->getDscpMap().empty() ||
         newPolicy->getTrafficClassToQueueId().empty()) {
-      XLOG(INFO)
+      XLOG(ERR)
           << " Both DSCP to TC and TC to Queue maps must be provided in valid qos policies";
       return false;
     }
@@ -701,27 +701,10 @@ bool SaiSwitch::isValidStateUpdateLocked(
      * TODO: see if we can stop doing this at SwSwitch layre
      */
   }
-  bool hasPortQos = false;
-  DeltaFunctions::forEachChanged(
-      delta.getPortsDelta(),
-      [&hasPortQos](const auto& /*oldPort*/, const auto& newPort) {
-        if (newPort->getQosPolicy()) {
-          hasPortQos = true;
-          return LoopAction::BREAK;
-        }
-        return LoopAction::CONTINUE;
-      },
-      [&hasPortQos](const auto& newPort) {
-        if (newPort->getQosPolicy()) {
-          hasPortQos = true;
-          return LoopAction::BREAK;
-        }
-        return LoopAction::CONTINUE;
-      },
-      [](const auto& /*oldPort*/) {});
 
-  if (hasPortQos) {
-    XLOG(INFO) << " Port qos policy specialization is not supported";
+  auto qosDelta = delta.getQosPoliciesDelta();
+  if (qosDelta.getNew()->size() > 0) {
+    XLOG(ERR) << "Only default data plane qos policy is supported";
     return false;
   }
 
