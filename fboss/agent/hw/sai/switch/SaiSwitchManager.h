@@ -44,9 +44,8 @@ class SaiSwitchManager {
       const std::optional<SwitchSaiId>& switchId);
   SwitchSaiId getSwitchSaiId() const;
 
-  void addDefaultDataPlaneQosPolicy(const std::shared_ptr<QosPolicy>& policy);
-  void removeDefaultDataPlaneQosPolicy(
-      const std::shared_ptr<QosPolicy>& policy);
+  void setQosPolicy();
+  void clearQosPolicy();
   void addOrUpdateLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
   void changeLoadBalancer(
       const std::shared_ptr<LoadBalancer>& oldLb,

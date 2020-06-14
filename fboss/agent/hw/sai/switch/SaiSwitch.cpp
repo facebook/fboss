@@ -178,17 +178,22 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
     const StateDelta& delta,
     ManagerT& mgr) {
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
+  auto& qosMapManager = managerTable_->qosMapManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
-        mgr.removeDefaultDataPlaneQosPolicy(qosDelta.getOld());
-        mgr.addDefaultDataPlaneQosPolicy(qosDelta.getNew());
+        mgr.clearQosPolicy();
+        qosMapManager.removeQosMap();
+        qosMapManager.addQosMap(qosDelta.getNew());
+        mgr.setQosPolicy();
       }
     } else if (qosDelta.getNew()) {
-      mgr.addDefaultDataPlaneQosPolicy(qosDelta.getNew());
+      qosMapManager.addQosMap(qosDelta.getNew());
+      mgr.setQosPolicy();
     } else if (qosDelta.getOld()) {
-      mgr.removeDefaultDataPlaneQosPolicy(qosDelta.getOld());
+      mgr.clearQosPolicy();
+      qosMapManager.removeQosMap();
     }
   }
 }

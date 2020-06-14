@@ -211,11 +211,9 @@ void SaiSwitchManager::removeLoadBalancer(
   ecmpV6Hash_.reset();
 }
 
-void SaiSwitchManager::addDefaultDataPlaneQosPolicy(
-    const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
+void SaiSwitchManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(INFO) << "Set default qos map";
-  qosMapManager.addQosMap(newDefaultQosPolicy);
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
@@ -226,11 +224,9 @@ void SaiSwitchManager::addDefaultDataPlaneQosPolicy(
       globalTcToQueueQosMap_->adapterKey()});
 }
 
-void SaiSwitchManager::removeDefaultDataPlaneQosPolicy(
-    const std::shared_ptr<QosPolicy>& /*policy*/) {
+void SaiSwitchManager::clearQosPolicy() {
   XLOG(INFO) << "Reset default qos map";
   resetQosMaps();
-  managerTable_->qosMapManager().removeQosMap();
 }
 
 void SaiSwitchManager::gracefulExit() {

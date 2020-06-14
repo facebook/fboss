@@ -84,9 +84,8 @@ class SaiPortManager {
   Handles::const_iterator end() const {
     return handles_.end();
   }
-  void addDefaultDataPlaneQosPolicy(const std::shared_ptr<QosPolicy>& policy);
-  void removeDefaultDataPlaneQosPolicy(
-      const std::shared_ptr<QosPolicy>& policy);
+  void setQosPolicy();
+  void clearQosPolicy();
 
   std::shared_ptr<PortMap> reconstructPortsFromStore() const;
 

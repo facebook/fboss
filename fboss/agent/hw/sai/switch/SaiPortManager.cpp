@@ -545,11 +545,9 @@ void SaiPortManager::setQosMapsOnAllPorts(
   setQosMaps(dscpToTc, tcToQueue, allPorts);
 }
 
-void SaiPortManager::addDefaultDataPlaneQosPolicy(
-    const std::shared_ptr<QosPolicy>& newDefaultQosPolicy) {
+void SaiPortManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(INFO) << "Set default qos map";
-  qosMapManager.addQosMap(newDefaultQosPolicy);
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
@@ -558,8 +556,7 @@ void SaiPortManager::addDefaultDataPlaneQosPolicy(
       globalTcToQueueQosMap_->adapterKey());
 }
 
-void SaiPortManager::removeDefaultDataPlaneQosPolicy(
-    const std::shared_ptr<QosPolicy>& policy) {
+void SaiPortManager::clearQosPolicy() {
   setQosMapsOnAllPorts(
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
