@@ -31,14 +31,14 @@ class SaiPlatform;
 
 using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 
-class SubscriberForFdbEntry : public SaiObjectEventAggregateSubscriber<
-                                  SubscriberForFdbEntry,
-                                  SaiFdbTraits,
-                                  SaiBridgePortTraits,
-                                  SaiRouterInterfaceTraits> {
+class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
+                            ManagedFdbEntry,
+                            SaiFdbTraits,
+                            SaiBridgePortTraits,
+                            SaiRouterInterfaceTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      SubscriberForFdbEntry,
+      ManagedFdbEntry,
       SaiFdbTraits,
       SaiBridgePortTraits,
       SaiRouterInterfaceTraits>;
@@ -49,7 +49,7 @@ class SubscriberForFdbEntry : public SaiObjectEventAggregateSubscriber<
   using PublisherObjects =
       std::tuple<BridgePortWeakPtr, RouterInterfaceWeakPtr>;
 
-  SubscriberForFdbEntry(
+  ManagedFdbEntry(
       SwitchSaiId switchId,
       PortID portId,
       InterfaceID interfaceId,
@@ -86,8 +86,8 @@ class SaiFdbManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<
       PublisherKey<SaiFdbTraits>::custom_type,
-      std::shared_ptr<SubscriberForFdbEntry>>
-      subscribersForFdbEntry_;
+      std::shared_ptr<ManagedFdbEntry>>
+      managedFdbEntries_;
   folly::F14FastMap<
       PortID,
       folly::F14FastSet<PublisherKey<SaiFdbTraits>::custom_type>>

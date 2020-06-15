@@ -27,7 +27,7 @@ SaiFdbManager::SaiFdbManager(
     const SaiPlatform* platform)
     : managerTable_(managerTable), platform_(platform) {}
 
-void SubscriberForFdbEntry::createObject(PublisherObjects objects) {
+void ManagedFdbEntry::createObject(PublisherObjects objects) {
   /* both interface and  bridge port exist, create fdb entry */
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto vlan = SaiApiTable::getInstance()->routerInterfaceApi().getAttribute(
@@ -44,12 +44,12 @@ void SubscriberForFdbEntry::createObject(PublisherObjects objects) {
       store.setObject(entry, attributes, std::make_tuple(interfaceId_, mac_));
   setObject(fdbEntry);
 }
-void SubscriberForFdbEntry::removeObject(size_t, PublisherObjects) {
+void ManagedFdbEntry::removeObject(size_t, PublisherObjects) {
   /* either interface is removed or bridge port is removed, delete fdb entry */
   this->resetObject();
 }
 
-PortID SubscriberForFdbEntry::getPortId() const {
+PortID ManagedFdbEntry::getPortId() const {
   return portId_;
 }
 
@@ -60,17 +60,17 @@ void SaiFdbManager::addFdbEntry(
   XLOGF(INFO, "Add fdb entry {}, {}, {}", port, interfaceId, mac);
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
-  auto subscriber =
-      std::make_shared<SubscriberForFdbEntry>(switchId, port, interfaceId, mac);
+  auto managedFdbEntry =
+      std::make_shared<ManagedFdbEntry>(switchId, port, interfaceId, mac);
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
-      subscriber);
+      managedFdbEntry);
   SaiObjectEventPublisher::getInstance()
       ->get<SaiRouterInterfaceTraits>()
-      .subscribe(subscriber);
+      .subscribe(managedFdbEntry);
 
   portToKeys_[port].emplace(key);
-  subscribersForFdbEntry_.emplace(key, subscriber);
+  managedFdbEntries_.emplace(key, managedFdbEntry);
 }
 
 void SaiFdbManager::removeFdbEntry(
@@ -78,13 +78,13 @@ void SaiFdbManager::removeFdbEntry(
     folly::MacAddress mac) {
   XLOGF(INFO, "Remove fdb entry {}, {}", interfaceId, mac);
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
-  auto subscriberItr = subscribersForFdbEntry_.find(key);
-  if (subscriberItr == subscribersForFdbEntry_.end()) {
+  auto fdbEntryItr = managedFdbEntries_.find(key);
+  if (fdbEntryItr == managedFdbEntries_.end()) {
     XLOG(WARN) << "Attempted to remove non-existent FDB entry";
     return;
   }
-  auto portId = subscriberItr->second->getPortId();
-  subscribersForFdbEntry_.erase(subscriberItr);
+  auto portId = fdbEntryItr->second->getPortId();
+  managedFdbEntries_.erase(fdbEntryItr);
   portToKeys_[portId].erase(key);
   if (portToKeys_[portId].empty()) {
     portToKeys_.erase(portId);
@@ -95,8 +95,8 @@ void SaiFdbManager::handleLinkDown(PortID portId) {
   auto portToKeysItr = portToKeys_.find(portId);
   if (portToKeysItr != portToKeys_.end()) {
     for (const auto& key : portToKeysItr->second) {
-      auto subscriberItr = subscribersForFdbEntry_.find(key);
-      if (UNLIKELY(subscriberItr == subscribersForFdbEntry_.end())) {
+      auto fdbEntryItr = managedFdbEntries_.find(key);
+      if (UNLIKELY(fdbEntryItr == managedFdbEntries_.end())) {
         XLOGF(
             FATAL,
             "no fdb entry found for key in portToKeys_ mapping: {}",
@@ -111,7 +111,7 @@ void SaiFdbManager::handleLinkDown(PortID portId) {
        * each affected ECMP group which will minimize blackholing while
        * ARP/NDP converge.
        */
-      subscriberItr->second->resetObject();
+      fdbEntryItr->second->resetObject();
     }
   }
 }
