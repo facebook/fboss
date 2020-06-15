@@ -16,8 +16,6 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
-using namespace std::chrono_literals;
-
 namespace facebook::fboss {
 
 class HwOlympicQosTests : public HwLinkStateDependentTest {
