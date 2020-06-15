@@ -80,8 +80,8 @@ void SaiVlanManager::createVlanMember(VlanID swVlanId, PortID swPortId) {
 
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
-  auto vlanMember = std::make_shared<SubscriberForVlanMember>(
-      swPortId, swVlanId, vlanIdAttribute);
+  auto vlanMember =
+      std::make_shared<ManagedVlanMember>(swPortId, swVlanId, vlanIdAttribute);
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       vlanMember);
   vlanHandle->vlanMembers.emplace(swPortId, std::move(vlanMember));
@@ -163,7 +163,7 @@ SaiVlanHandle* SaiVlanManager::getVlanHandleImpl(VlanID swVlanId) const {
   return itr->second.get();
 }
 
-void SubscriberForVlanMember::createObject(PublisherObjects objects) {
+void ManagedVlanMember::createObject(PublisherObjects objects) {
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   CHECK(bridgePort);
   BridgePortSaiId bridgePortSaiId = bridgePort->adapterKey();
@@ -179,7 +179,7 @@ void SubscriberForVlanMember::createObject(PublisherObjects objects) {
   this->setObject(memberAdapterHostKey, memberAttributes);
 }
 
-void SubscriberForVlanMember::removeObject(size_t, PublisherObjects) {
+void ManagedVlanMember::removeObject(size_t, PublisherObjects) {
   this->resetObject();
 }
 } // namespace facebook::fboss
