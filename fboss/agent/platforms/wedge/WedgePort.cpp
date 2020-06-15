@@ -106,6 +106,23 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
       std::move(handleError));
 }
 
+folly::Future<std::optional<Cable>> WedgePort::getCableInfo(
+    folly::EventBase* evb) const {
+  auto getCable = [](TransceiverInfo info) -> std::optional<Cable> {
+    return info.cable_ref().to_optional();
+  };
+  auto transID = getTransceiverID();
+  auto handleErr = [transID](const std::exception& e) -> std::optional<Cable> {
+    XLOG(ERR) << "Error retrieving cable info for transceiver " << *transID
+              << " Exception: " << folly::exceptionStr(e);
+    return std::nullopt;
+  };
+  return getTransceiverInfo()
+      .via(evb)
+      .thenValueInline(getCable)
+      .thenError<std::exception>(std::move(handleErr));
+}
+
 // Get correct transmitter setting.
 folly::Future<std::optional<phy::TxSettings>> WedgePort::getTxSettings(
     folly::EventBase* evb) const {

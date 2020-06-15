@@ -140,8 +140,9 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
             portConfigOverride.factor, id, profileID, cableLength)) {
       auto overrideIphy = portConfigOverride.pins.iphy;
       if (!overrideIphy.empty()) {
-        // make sure the override iphy config size == iphyCfg
-        if (overrideIphy.size() != iphyCfg.size()) {
+        // make sure the override iphy config size == iphyCfg or override
+        // size == 1, in which case we use the same override for all lanes
+        if (overrideIphy.size() != iphyCfg.size() && overrideIphy.size() != 1) {
           throw FbossError(
               "Port ",
               id,
@@ -159,7 +160,10 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
         for (int i = 0; i < iphyCfg.size(); i++) {
           phy::PinConfig pinCfg;
           pinCfg.id = iphyCfg.at(i).id;
-          if (auto tx = overrideIphy.at(i).tx_ref()) {
+          // Default to the first entry if we run out
+          const auto& override =
+              overrideIphy.at(i < overrideIphy.size() ? i : 0);
+          if (auto tx = override.tx_ref()) {
             pinCfg.tx_ref() = *tx;
           }
           newOverrideIphy.push_back(pinCfg);

@@ -147,6 +147,26 @@ Wedge100Port::TxOverrides Wedge100Port::getTxOverrides() const {
   return TxOverrides();
 }
 
+std::vector<phy::PinConfig> Wedge100Port::getIphyPinConfigs(
+    cfg::PortProfileID profileID) const {
+  if (!supportsTransceiver()) {
+    return {};
+  }
+  folly::EventBase evb;
+  if (auto cable = getCableInfo(&evb).getVia(&evb)) {
+    if (auto cableLength = cable->length_ref()) {
+      // TODO(pgardideh): this is temporary until we fully remove any dependence
+      // on transmitter tech and only rely on the profile ID
+      if (*cable->transmitterTech_ref() == TransmitterTechnology::COPPER) {
+        auto cableMeters = std::max(1.0, std::min(3.0, *cableLength));
+        return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
+            getPortID(), profileID, cableMeters);
+      }
+    }
+  }
+  return {};
+}
+
 bool Wedge100Port::isTop() {
   if (auto tcvrID = getTransceiverID(); tcvrID) {
     return !((*tcvrID) & 0x1);

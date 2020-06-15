@@ -44,7 +44,7 @@ class PlatformPort {
 
   const std::optional<cfg::PlatformPortEntry> getPlatformPortEntry() const;
 
-  std::vector<phy::PinConfig> getIphyPinConfigs(
+  virtual std::vector<phy::PinConfig> getIphyPinConfigs(
       cfg::PortProfileID profileID) const;
 
   cfg::PortProfileID getProfileIDBySpeed(cfg::PortSpeed speed) const;
