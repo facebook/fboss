@@ -34,15 +34,15 @@ struct SaiNeighborHandle {
   const SaiFdbEntry* fdbEntry;
 };
 
-class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
-                                  SubscriberForNeighbor,
-                                  SaiNeighborTraits,
-                                  SaiPortTraits,
-                                  SaiRouterInterfaceTraits,
-                                  SaiFdbTraits> {
+class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
+                            ManagedNeighbor,
+                            SaiNeighborTraits,
+                            SaiPortTraits,
+                            SaiRouterInterfaceTraits,
+                            SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      SubscriberForNeighbor,
+      ManagedNeighbor,
       SaiNeighborTraits,
       SaiPortTraits,
       SaiRouterInterfaceTraits,
@@ -55,7 +55,7 @@ class SubscriberForNeighbor : public SaiObjectEventAggregateSubscriber<
       std::tuple<PortWeakPtr, RouterInterfaceWeakPtr, FdbWeakptr>;
 
   // TODO(AGGPORT): support aggregate port ID
-  SubscriberForNeighbor(
+  ManagedNeighbor(
       PortID port,
       InterfaceID interfaceId,
       folly::IPAddress ip,
@@ -115,8 +115,8 @@ class SaiNeighborManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
-      std::shared_ptr<SubscriberForNeighbor>>
-      subscribersForNeighbor_;
+      std::shared_ptr<ManagedNeighbor>>
+      managedNeighbors_;
 };
 
 } // namespace facebook::fboss

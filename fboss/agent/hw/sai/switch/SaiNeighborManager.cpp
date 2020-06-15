@@ -83,8 +83,7 @@ void SaiNeighborManager::addNeighbor(
   }
   XLOG(INFO) << "addNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (subscribersForNeighbor_.find(subscriberKey) !=
-      subscribersForNeighbor_.end()) {
+  if (managedNeighbors_.find(subscriberKey) != managedNeighbors_.end()) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
@@ -94,7 +93,7 @@ void SaiNeighborManager::addNeighbor(
   managerTable_->fdbManager().addFdbEntry(
       portID, swEntry->getIntfID(), swEntry->getMac());
 
-  auto subscriber = std::make_shared<SubscriberForNeighbor>(
+  auto subscriber = std::make_shared<ManagedNeighbor>(
       portID, swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());
 
   SaiObjectEventPublisher::getInstance()->get<SaiPortTraits>().subscribe(
@@ -104,7 +103,7 @@ void SaiNeighborManager::addNeighbor(
       .subscribe(subscriber);
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);
-  subscribersForNeighbor_.emplace(subscriberKey, std::move(subscriber));
+  managedNeighbors_.emplace(subscriberKey, std::move(subscriber));
 }
 
 template <typename NeighborEntryT>
@@ -121,18 +120,17 @@ void SaiNeighborManager::removeNeighbor(
   }
   XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (subscribersForNeighbor_.find(subscriberKey) ==
-      subscribersForNeighbor_.end()) {
+  if (managedNeighbors_.find(subscriberKey) == managedNeighbors_.end()) {
     throw FbossError(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP());
   }
   managerTable_->fdbManager().removeFdbEntry(
       swEntry->getIntfID(), swEntry->getMac());
-  subscribersForNeighbor_.erase(subscriberKey);
+  managedNeighbors_.erase(subscriberKey);
 }
 
 void SaiNeighborManager::clear() {
-  subscribersForNeighbor_.clear();
+  managedNeighbors_.clear();
 }
 
 const SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
@@ -145,8 +143,8 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
 }
 SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
     const SaiNeighborTraits::NeighborEntry& saiEntry) const {
-  auto itr = subscribersForNeighbor_.find(saiEntry);
-  if (itr == subscribersForNeighbor_.end()) {
+  auto itr = managedNeighbors_.find(saiEntry);
+  if (itr == managedNeighbors_.end()) {
     return nullptr;
   }
   auto subscriber = itr->second.get();
@@ -156,7 +154,7 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
   return subscriber->getHandle();
 }
 
-void SubscriberForNeighbor::createObject(PublisherObjects objects) {
+void ManagedNeighbor::createObject(PublisherObjects objects) {
   auto port = std::get<PortWeakPtr>(objects).lock();
   auto interface = std::get<RouterInterfaceWeakPtr>(objects).lock();
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
@@ -178,7 +176,7 @@ void SubscriberForNeighbor::createObject(PublisherObjects objects) {
   handle_->fdbEntry = fdbEntry.get();
 }
 
-void SubscriberForNeighbor::removeObject(size_t, PublisherObjects) {
+void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
   this->resetObject();
   handle_->neighbor = nullptr;
   handle_->fdbEntry = nullptr;
