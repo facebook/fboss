@@ -86,8 +86,6 @@ class WedgePort : public BcmPlatformPort {
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   folly::Future<std::optional<Cable>> getCableInfo(folly::EventBase* evb) const;
-  folly::Future<std::optional<phy::TxSettings>> getTxSettings(
-      folly::EventBase* evb) const override;
 
   bool shouldUsePortResourceAPIs() const override {
     return false;
@@ -117,10 +115,6 @@ class WedgePort : public BcmPlatformPort {
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const&) = delete;
   WedgePort& operator=(WedgePort const&) = delete;
-
-  virtual TxOverrides getTxOverrides() const override {
-    return TxOverrides();
-  }
 
   folly::Future<TransceiverInfo> getTransceiverInfo() const;
 

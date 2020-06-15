@@ -49,11 +49,6 @@ folly::Future<TransmitterTechnology> BcmTestPort::getTransmitterTech(
       TransmitterTechnology::UNKNOWN);
 }
 
-folly::Future<std::optional<phy::TxSettings>> BcmTestPort::getTxSettings(
-    folly::EventBase* /*evb*/) const {
-  return std::nullopt;
-}
-
 std::optional<TransceiverID> BcmTestPort::getTransceiverID() const {
   return std::nullopt;
 }

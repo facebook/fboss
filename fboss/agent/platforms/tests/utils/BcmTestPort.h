@@ -38,8 +38,6 @@ class BcmTestPort : public BcmPlatformPort {
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   std::optional<TransceiverID> getTransceiverID() const override;
-  folly::Future<std::optional<phy::TxSettings>> getTxSettings(
-      folly::EventBase* evb) const override;
   bool supportsTransceiver() const override;
   void statusIndication(
       bool enabled,
@@ -72,10 +70,6 @@ class BcmTestPort : public BcmPlatformPort {
   // Forbidden copy constructor and assignment operator
   BcmTestPort(BcmTestPort const&) = delete;
   BcmTestPort& operator=(BcmTestPort const&) = delete;
-
-  BcmTestPort::TxOverrides getTxOverrides() const override {
-    return BcmTestPort::TxOverrides();
-  }
 
   bool shouldDisableFec_{false};
   BcmPort* bcmPort_{nullptr};

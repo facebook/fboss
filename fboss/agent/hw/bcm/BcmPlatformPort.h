@@ -53,13 +53,6 @@ class BcmPlatformPort : public PlatformPort {
   virtual folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb = nullptr) const = 0;
 
-  /*
-   * getTxSettings() returns the correct transmitter's amplitude control
-   * parameter and Equalization control information.
-   */
-  virtual folly::Future<std::optional<phy::TxSettings>> getTxSettings(
-      folly::EventBase* evb = nullptr) const = 0;
-
   virtual const XPEs getEgressXPEs() const = 0;
 
   virtual bool shouldUsePortResourceAPIs() const = 0;
@@ -71,8 +64,6 @@ class BcmPlatformPort : public PlatformPort {
   // Forbidden copy constructor and assignment operator
   BcmPlatformPort(BcmPlatformPort const&) = delete;
   BcmPlatformPort& operator=(BcmPlatformPort const&) = delete;
-
-  virtual TxOverrides getTxOverrides() const = 0;
 };
 
 } // namespace facebook::fboss

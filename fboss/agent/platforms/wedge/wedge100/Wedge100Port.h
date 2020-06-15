@@ -66,8 +66,6 @@ class Wedge100Port : public WedgePort {
  private:
   bool isTop();
 
-  TxOverrides getTxOverrides() const override;
-
   bool useCompactMode();
   LedColor getLedColor(bool up, bool adminUp);
   LedColor internalLedState_;
