@@ -194,11 +194,15 @@ class SaiApi {
   }
 
   template <typename AdapterKeyT, typename AttrT>
-  void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
-    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+  void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
     auto status = impl()._setAttribute(key, saiAttr(attr));
     saiApiCheckError(status, ApiT::ApiType, "Failed to set attribute");
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
+  }
+  template <typename AdapterKeyT, typename AttrT>
+  void setAttribute(const AdapterKeyT& key, const AttrT& attr) {
+    std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
+    setAttributeUnlocked(key, attr);
   }
 
   template <typename SaiObjectTraits>

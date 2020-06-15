@@ -18,9 +18,14 @@ namespace facebook::fboss {
 
 void SaiRepl::doRun() {
   shellThread_ = std::make_unique<std::thread>([switchId = switchId_]() {
-    folly::setThreadName("Sai Repl");
+    folly::setThreadName("SaiRepl");
     SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
-    SaiApiTable::getInstance()->switchApi().setAttribute(switchId, shell);
+    // Need to use unlocked API since this set attribute will start
+    // a shell REPL loop, we can't get into that loop while holding
+    // a lock. We rely on adapter implementation to make setting
+    // of this attribtute thread safe.
+    SaiApiTable::getInstance()->switchApi().setAttributeUnlocked(
+        switchId, shell);
   });
 }
 
