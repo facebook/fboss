@@ -191,6 +191,10 @@ bool HwSwitchEnsemble::waitPortStatsCondition(
   return false;
 }
 
+HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
+  return getLatestPortStats(std::vector<PortID>{port})[port];
+}
+
 bool HwSwitchEnsemble::waitForAnyPortOutBytesIncrement(
     const std::map<PortID, HwPortStats>& originalPortStats) {
   auto conditionFn = [&originalPortStats](const auto& newPortStats) {

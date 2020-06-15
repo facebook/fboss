@@ -94,7 +94,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   gotExpectedWatermark(PortID port, int queueId, bool expectZero, int retries) {
     do {
       auto queueWaterMarks = *getHwSwitchEnsemble()
-                                  ->getLatestPortStats({port})[port]
+                                  ->getLatestPortStats(port)
                                   .queueWatermarkBytes__ref();
       XLOG(DBG0) << "queueId: " << queueId
                  << " Watermark: " << queueWaterMarks[queueId];

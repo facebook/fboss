@@ -32,7 +32,7 @@ namespace facebook::fboss {
 std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
     HwSwitchEnsemble* ensemble,
     PortID port) {
-  auto stats = ensemble->getLatestPortStats({port})[port];
+  auto stats = ensemble->getLatestPortStats(port);
   return {*stats.outUnicastPkts__ref(), *stats.outBytes__ref()};
 }
 
