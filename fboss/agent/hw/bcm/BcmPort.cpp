@@ -1367,27 +1367,35 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
 }
 
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
+  const auto& iphyPinConfigs =
+      getPlatformPort()->getIphyPinConfigs(swPort->getProfileID());
+  if (iphyPinConfigs.empty()) {
+    XLOG(INFO) << "No iphy pin configs to program for " << swPort->getName();
+    return;
+  }
   if (platformPort_->shouldUsePortResourceAPIs()) {
-    setTxSettingViaPhyTx(swPort);
+    setTxSettingViaPhyTx(swPort, iphyPinConfigs);
   } else {
-    setTxSettingViaPhyControl(swPort);
+    setTxSettingViaPhyControl(swPort, iphyPinConfigs);
   }
 }
 
 // Set the preemphasis (pre-tap; main-tap; post-tap) setting for the transmitter
 // and the amplitude control (driver current) values
-void BcmPort::setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort) {
+void BcmPort::setTxSettingViaPhyControl(
+    const std::shared_ptr<Port>& swPort,
+    const std::vector<phy::PinConfig>& iphyPinConfigs) {
   // Changing the preemphasis/driver-current setting won't cause link flap,
   // so it's safe to not check for port status
-  folly::EventBase evb;
-  // Get current preemphasis setting
-  auto tx = getPlatformPort()->getTxSettings(&evb).getVia(&evb);
+
+  // All the pins use the same config so just use the first one
+  const auto tx = iphyPinConfigs.front().tx_ref();
   if (!tx.has_value()) {
     // If TxSetting returns no values, it means that we don't need to update
     // tx setting for the port. So do nothing
     return;
   }
-  auto correctTx = tx.value();
+  const auto correctTx = tx.value();
   uint32_t dc;
   uint32_t preTap;
   uint32_t mainTap;
@@ -1446,7 +1454,9 @@ void BcmPort::setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort) {
   }
 }
 
-void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
+void BcmPort::setTxSettingViaPhyTx(
+    const std::shared_ptr<Port>& swPort,
+    const std::vector<phy::PinConfig>& iphyPinConfigs) {
   auto profileID = swPort->getProfileID();
   if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
     XLOG(WARNING)
@@ -1464,8 +1474,7 @@ void BcmPort::setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort) {
         swPort->getName());
   }
 
-  const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(
-      getPlatformPort()->getIphyPinConfigs(profileID));
+  const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(iphyPinConfigs);
   if (iphyLaneConfigs.empty()) {
     XLOG(INFO) << "No iphy lane configs needed to program for "
                << swPort->getName();

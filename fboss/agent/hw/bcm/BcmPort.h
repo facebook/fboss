@@ -249,8 +249,12 @@ class BcmPort {
   void setPause(const std::shared_ptr<Port>& swPort);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
-  void setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort);
-  void setTxSettingViaPhyTx(const std::shared_ptr<Port>& swPort);
+  void setTxSettingViaPhyControl(
+      const std::shared_ptr<Port>& swPort,
+      const std::vector<phy::PinConfig>& iphyPinConfigs);
+  void setTxSettingViaPhyTx(
+      const std::shared_ptr<Port>& swPort,
+      const std::vector<phy::PinConfig>& iphyPinConfigs);
 
   void setLoopbackMode(const std::shared_ptr<Port>& swPort);
 
