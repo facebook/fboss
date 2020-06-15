@@ -31,7 +31,8 @@ class PlatformMapping {
 
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PortID id,
-      cfg::PortProfileID profileID) const;
+      cfg::PortProfileID profileID,
+      std::optional<double> cableLength = std::nullopt) const;
 
   const std::map<std::string, phy::DataPlanePhyChip>& getChips() const {
     return chips_;

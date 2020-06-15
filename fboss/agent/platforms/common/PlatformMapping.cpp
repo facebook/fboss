@@ -19,7 +19,8 @@ namespace {
 bool matchPlatformPortConfigOverrideFactor(
     const facebook::fboss::cfg::PlatformPortConfigOverrideFactor& factor,
     facebook::fboss::PortID portID,
-    facebook::fboss::cfg::PortProfileID profileID) {
+    facebook::fboss::cfg::PortProfileID profileID,
+    std::optional<double> cableLength) {
   if (auto overridePorts = factor.ports_ref()) {
     if (std::find(
             overridePorts->begin(),
@@ -32,6 +33,15 @@ bool matchPlatformPortConfigOverrideFactor(
     if (std::find(
             overrideProfiles->begin(), overrideProfiles->end(), profileID) ==
         overrideProfiles->end()) {
+      return false;
+    }
+  }
+  if (auto overrideCableLength = factor.cableLengths_ref()) {
+    if (!cableLength.has_value() ||
+        std::find(
+            overrideCableLength->begin(),
+            overrideCableLength->end(),
+            cableLength.value()) == overrideCableLength->end()) {
       return false;
     }
   }
@@ -106,7 +116,8 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
 
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PortID id,
-    cfg::PortProfileID profileID) const {
+    cfg::PortProfileID profileID,
+    std::optional<double> cableLength) const {
   auto itPlatformPort = platformPorts_.find(id);
   if (itPlatformPort == platformPorts_.end()) {
     throw FbossError("No PlatformPortEntry found for port ", id);
@@ -126,7 +137,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   // Check whether there's an override
   for (const auto portConfigOverride : portConfigOverrides_) {
     if (matchPlatformPortConfigOverrideFactor(
-            portConfigOverride.factor, id, profileID)) {
+            portConfigOverride.factor, id, profileID, cableLength)) {
       auto overrideIphy = portConfigOverride.pins.iphy;
       if (!overrideIphy.empty()) {
         // make sure the override iphy config size == iphyCfg

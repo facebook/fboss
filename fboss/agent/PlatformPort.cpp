@@ -49,7 +49,7 @@ const std::optional<cfg::PlatformPortEntry> PlatformPort::getPlatformPortEntry()
 
 std::vector<phy::PinConfig> PlatformPort::getIphyPinConfigs(
     cfg::PortProfileID profileID) const {
-  return platform_->getPortIphyPinConfigs(id_, profileID);
+  return platform_->getPlatformMapping()->getPortIphyPinConfigs(id_, profileID);
 }
 
 cfg::PortProfileID PlatformPort::getProfileIDBySpeed(

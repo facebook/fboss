@@ -90,10 +90,6 @@ class Platform {
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
       cfg::PortProfileID PortProfileID) const;
 
-  std::vector<phy::PinConfig> getPortIphyPinConfigs(
-      PortID id,
-      cfg::PortProfileID profileID) const;
-
   /*
    * Get list of supported profiles from platform config. Returns empty map if
    * no platform config is found.
@@ -246,6 +242,10 @@ class Platform {
   }
 
   phy::FecMode getPhyFecMode(cfg::PortProfileID profileID) const;
+
+  const PlatformMapping* getPlatformMapping() const {
+    return platformMapping_.get();
+  }
 
  private:
   /*
