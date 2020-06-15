@@ -1366,6 +1366,49 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
+  // lane number is relative, so we can use the port resource api directly
+  if (platformPort_->shouldUsePortResourceAPIs()) {
+    bcm_gport_t gport;
+    BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, port_);
+
+    bcm_port_phy_tx_t tx;
+    bcm_port_phy_tx_t_init(&tx);
+
+    auto rv = bcm_port_phy_tx_get(unit_, gport, &tx);
+    bcmCheckError(
+        rv, "Unable to get tx settings on lane ", lane, " for port ", port_);
+    phy::TxSettings txSettings;
+    txSettings.pre2_ref() = tx.pre2;
+    txSettings.pre_ref() = tx.pre;
+    txSettings.main_ref() = tx.main;
+    txSettings.post_ref() = tx.post;
+    txSettings.post2_ref() = tx.post2;
+    txSettings.post3_ref() = tx.post3;
+    return txSettings;
+  } else {
+    uint32_t dc, preTap, mainTap, postTap;
+    auto rv = bcm_port_phy_control_get(
+        unit_, port_, BCM_PORT_PHY_CONTROL_DRIVER_CURRENT, &dc);
+    bcmCheckError(rv, "failed to get driver current");
+    auto pre = bcm_port_phy_control_get(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, &preTap);
+    bcmCheckError(pre, "failed to get pre-tap");
+    auto main = bcm_port_phy_control_get(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, &mainTap);
+    bcmCheckError(main, "failed to get main-tap");
+    auto post = bcm_port_phy_control_get(
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, &postTap);
+    bcmCheckError(post, "failed to get post-tap");
+    phy::TxSettings txSettings;
+    txSettings.driveCurrent_ref() = dc;
+    txSettings.pre_ref() = preTap;
+    txSettings.main_ref() = mainTap;
+    txSettings.post_ref() = postTap;
+    return txSettings;
+  }
+}
+
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
   const auto& iphyPinConfigs =
       getPlatformPort()->getIphyPinConfigs(swPort->getProfileID());

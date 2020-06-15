@@ -124,6 +124,9 @@ class BcmPort {
   cfg::PortSpeed getSpeed() const;
   cfg::PortSpeed getMaxSpeed() const;
 
+  // Reads Tx Settings from chip given a relative lane number
+  phy::TxSettings getTxSettingsForLane(int lane) const;
+
   /*
    * Setters.
    */

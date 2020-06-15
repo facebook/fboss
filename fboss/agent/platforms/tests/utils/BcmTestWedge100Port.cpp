@@ -18,4 +18,13 @@ BcmTestWedge100Port::BcmTestWedge100Port(
     BcmTestWedge100Platform* platform)
     : BcmTestPort(id, platform) {}
 
+std::vector<phy::PinConfig> BcmTestWedge100Port::getIphyPinConfigs(
+    cfg::PortProfileID profileID) const {
+  // For Wedge100 getPortIphyPinConfigs needs a cable length to be able to
+  // match platform port config overrides. Hardcode cable length for tests so we
+  // don't need qsfp service
+  return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
+      getPortID(), profileID, 1.0);
+}
+
 } // namespace facebook::fboss

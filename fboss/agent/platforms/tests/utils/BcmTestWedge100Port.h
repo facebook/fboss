@@ -27,6 +27,9 @@ class BcmTestWedge100Port : public BcmTestPort {
     };
   }
 
+  std::vector<phy::PinConfig> getIphyPinConfigs(
+      cfg::PortProfileID profileID) const override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge100Port(BcmTestWedge100Port const&) = delete;

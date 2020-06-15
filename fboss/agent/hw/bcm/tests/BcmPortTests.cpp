@@ -544,4 +544,42 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(BcmPortTest, VerifyTxSettings) {
+  auto setup = [this]() { applyNewConfig(initialConfig()); };
+  auto verify = [this]() {
+    for (const auto& port : *getProgrammedState()->getPorts()) {
+      if (port->isEnabled()) {
+        const auto& platformPort =
+            getPlatform()->getPlatformPort(port->getID());
+        const auto& iphyConfigs =
+            platformPort->getIphyPinConfigs(port->getProfileID());
+        int minLane = -1;
+        for (const auto& iphy : iphyConfigs) {
+          if (minLane < 0 || iphy.get_id().get_lane() < minLane) {
+            minLane = iphy.get_id().get_lane();
+          }
+        }
+        for (const auto& iphy : iphyConfigs) {
+          auto expectedTx = iphy.tx_ref();
+          if (!expectedTx.has_value()) {
+            continue;
+          }
+
+          auto lane = iphy.get_id().get_lane() - minLane;
+          auto* bcmPort =
+              getHwSwitch()->getPortTable()->getBcmPort(port->getID());
+          auto programmedTx = bcmPort->getTxSettingsForLane(lane);
+          EXPECT_EQ(programmedTx.pre, expectedTx->pre);
+          EXPECT_EQ(programmedTx.main, expectedTx->main);
+          EXPECT_EQ(programmedTx.post, expectedTx->post);
+          EXPECT_EQ(programmedTx.driveCurrent, expectedTx->driveCurrent);
+          EXPECT_EQ(programmedTx.pre2, expectedTx->pre2);
+          EXPECT_EQ(programmedTx.post2, expectedTx->post2);
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
