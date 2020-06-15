@@ -315,6 +315,129 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
         port.second.mapping.name.rfind("eth301", 0) == 0);
   }
 }
+
+// Array of tx setting override groups for wedge100
+// Each group is a mapping of cableLength => {driveCurrent, pre, main, post}
+static const std::vector<std::map<double, std::array<int, 4>>>
+    kWedge100TxGroups = {
+        {
+            {1.0, {0xa, 0x4, 0x3c, 0x30}},
+            {1.5, {0xa, 0x4, 0x3c, 0x30}},
+            {2.0, {0xa, 0x4, 0x3c, 0x30}},
+            {2.5, {0xc, 0x6, 0x3e, 0x32}},
+            {3.0, {0xc, 0x6, 0x3e, 0x32}},
+        },
+        {
+            {1.0, {0xa, 0x6, 0x40, 0x2a}},
+            {1.5, {0xa, 0x7, 0x3e, 0x2b}},
+            {2.0, {0xb, 0x8, 0x3c, 0x2c}},
+            {2.5, {0xc, 0x7, 0x3d, 0x2c}},
+            {3.0, {0xc, 0x6, 0x3c, 0x2e}},
+        },
+        {
+            {1.0, {0x9, 0x8, 0x42, 0x26}},
+            {1.5, {0x9, 0x9, 0x41, 0x26}},
+            {2.0, {0x9, 0x9, 0x40, 0x27}},
+            {2.5, {0x9, 0x9, 0x3f, 0x28}},
+            {3.0, {0xa, 0x8, 0x40, 0x28}},
+        },
+        {
+            {1.0, {0x8, 0x6, 0x46, 0x24}},
+            {1.5, {0x9, 0x6, 0x46, 0x24}},
+            {2.0, {0x9, 0x7, 0x45, 0x24}},
+            {2.5, {0x9, 0x8, 0x43, 0x25}},
+            {3.0, {0xa, 0x8, 0x43, 0x25}},
+        },
+        {
+            {1.0, {0x8, 0x6, 0x4c, 0x1e}},
+            {1.5, {0x9, 0x7, 0x4b, 0x1e}},
+            {2.0, {0x9, 0x7, 0x4b, 0x1e}},
+            {2.5, {0x9, 0x8, 0x49, 0x1f}},
+            {3.0, {0xa, 0x8, 0x48, 0x20}},
+        },
+        {
+            {1.0, {0x8, 0x6, 0x4e, 0x1c}},
+            {1.5, {0x9, 0x6, 0x4d, 0x1d}},
+            {2.0, {0xa, 0x7, 0x4b, 0x1e}},
+            {2.5, {0xa, 0x8, 0x49, 0x1f}},
+            {3.0, {0xa, 0x8, 0x48, 0x20}},
+        },
+        {
+            {1.0, {0x8, 0x6, 0x50, 0x1a}},
+            {1.5, {0x9, 0x6, 0x4e, 0x1c}},
+            {2.0, {0x9, 0x6, 0x4e, 0x1c}},
+            {2.5, {0x9, 0x7, 0x4b, 0x1e}},
+            {3.0, {0x9, 0x8, 0x4a, 0x1e}},
+        },
+};
+
+// Each front panel port maps to one trace group in the above
+// vector. The index is the TransceiverID, the value is the index
+// for which set of overrides to use from kWedge100TxGroups.
+static const std::array<uint8_t, 28> kWedge100PortGroupMapping = {{
+    1, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5,
+    6, 6, 6, 5, 5, 5, 4, 4, 3, 3, 3, 3, 2, 2,
+}};
+
+TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
+  std::unordered_set<cfg::PortProfileID> downlinkProfiles({
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
+      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER,
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+      cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER,
+  });
+  auto mapping = std::make_unique<Wedge100PlatformMapping>();
+  for (auto& port : mapping->getPlatformPorts()) {
+    const auto& chipName =
+        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+    const auto& chip = mapping->getChips().at(chipName);
+    auto transID = chip.get_physicalID();
+    // Skip uplinks since we don't have tx settings for them yet
+    if (transID >= kWedge100PortGroupMapping.size()) {
+      continue;
+    }
+
+    const auto& profiles = port.second.supportedProfiles;
+    for (auto profile : profiles) {
+      // skip uplink profiles
+      if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
+        continue;
+      }
+      auto itProfileCfg = mapping->getSupportedProfiles().find(profile.first);
+      EXPECT_TRUE(itProfileCfg != mapping->getSupportedProfiles().end());
+
+      const auto& txSettingsGroup =
+          kWedge100TxGroups[kWedge100PortGroupMapping[transID]];
+      for (auto& setting : txSettingsGroup) {
+        auto cableLength = setting.first;
+        auto expectedTx = setting.second;
+        auto pinCfgs = mapping->getPortIphyPinConfigs(
+            PortID(port.first), profile.first, cableLength);
+        auto pinCfg = pinCfgs.at(0);
+        auto tx = pinCfg.tx_ref();
+
+        EXPECT_TRUE(tx.has_value());
+        EXPECT_EQ(tx->pre2, 0);
+        EXPECT_EQ(tx->pre, expectedTx[1]);
+        EXPECT_EQ(tx->main, expectedTx[2]);
+        EXPECT_EQ(tx->post, expectedTx[3]);
+        EXPECT_EQ(tx->post2, 0);
+        EXPECT_EQ(tx->post3, 0);
+        EXPECT_EQ(tx->driveCurrent, expectedTx[0]);
+      }
+    }
+  }
+}
 } // namespace test
 } // namespace fboss
 } // namespace facebook
