@@ -85,7 +85,7 @@ class WedgePort : public BcmPlatformPort {
 
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
-  folly::Future<std::optional<TxSettings>> getTxSettings(
+  folly::Future<std::optional<phy::TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
 
   bool shouldUsePortResourceAPIs() const override {

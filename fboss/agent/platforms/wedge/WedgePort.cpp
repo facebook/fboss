@@ -107,21 +107,21 @@ folly::Future<TransmitterTechnology> WedgePort::getTransmitterTech(
 }
 
 // Get correct transmitter setting.
-folly::Future<std::optional<TxSettings>> WedgePort::getTxSettings(
+folly::Future<std::optional<phy::TxSettings>> WedgePort::getTxSettings(
     folly::EventBase* evb) const {
   DCHECK(evb);
 
   auto txOverrides = getTxOverrides();
   if (txOverrides.empty()) {
-    return folly::makeFuture<std::optional<TxSettings>>(std::nullopt);
+    return folly::makeFuture<std::optional<phy::TxSettings>>(std::nullopt);
   }
 
   auto getTx = [overrides = std::move(txOverrides)](
-                   TransceiverInfo info) -> std::optional<TxSettings> {
+                   TransceiverInfo info) -> std::optional<phy::TxSettings> {
     if (auto cable = info.cable_ref()) {
       auto length = cable->length_ref();
       if (!length) {
-        return std::optional<TxSettings>();
+        return std::optional<phy::TxSettings>();
       }
       auto cableMeters = std::max(1.0, std::min(3.0, *length));
       const auto it = overrides.find(
@@ -131,13 +131,13 @@ folly::Future<std::optional<TxSettings>> WedgePort::getTxSettings(
       }
     }
     // not enough cable info. return the default value
-    return std::optional<TxSettings>();
+    return std::optional<phy::TxSettings>();
   };
   auto transID = getTransceiverID();
   auto handleErr = [transID](const std::exception& e) {
     XLOG(ERR) << "Error retrieving cable info for transceiver " << *transID
               << " Exception: " << folly::exceptionStr(e);
-    return std::optional<TxSettings>();
+    return std::optional<phy::TxSettings>();
   };
   return getTransceiverInfo()
       .via(evb)

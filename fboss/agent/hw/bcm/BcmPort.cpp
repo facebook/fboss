@@ -1426,25 +1426,23 @@ void BcmPort::setTxSettingViaPhyControl(const std::shared_ptr<Port>& swPort) {
                << static_cast<uint32_t>(correctTx.driveCurrent) << " from "
                << dc;
   }
-  if (preTap != correctTx.preTap && correctTx.preTap != 0) {
+  if (preTap != correctTx.pre && correctTx.pre != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, correctTx.preTap);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, correctTx.pre);
     XLOG(DBG1) << "Set pre-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.preTap) << " from " << preTap;
+               << static_cast<uint32_t>(correctTx.pre) << " from " << preTap;
   }
-  if (mainTap != correctTx.mainTap && correctTx.mainTap != 0) {
+  if (mainTap != correctTx.main && correctTx.main != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, correctTx.mainTap);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, correctTx.main);
     XLOG(DBG1) << "Set main-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.mainTap) << " from "
-               << mainTap;
+               << static_cast<uint32_t>(correctTx.main) << " from " << mainTap;
   }
-  if (postTap != correctTx.postTap && correctTx.postTap != 0) {
+  if (postTap != correctTx.post && correctTx.post != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, correctTx.postTap);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, correctTx.post);
     XLOG(DBG1) << "Set post-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.postTap) << " from "
-               << postTap;
+               << static_cast<uint32_t>(correctTx.post) << " from " << postTap;
   }
 }
 

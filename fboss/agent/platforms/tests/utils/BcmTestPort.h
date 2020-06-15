@@ -38,7 +38,7 @@ class BcmTestPort : public BcmPlatformPort {
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   std::optional<TransceiverID> getTransceiverID() const override;
-  folly::Future<std::optional<TxSettings>> getTxSettings(
+  folly::Future<std::optional<phy::TxSettings>> getTxSettings(
       folly::EventBase* evb) const override;
   bool supportsTransceiver() const override;
   void statusIndication(
