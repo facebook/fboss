@@ -194,7 +194,7 @@ void SaiRouteManager::addOrUpdateRoute(
        */
       auto swNextHop =
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
-      auto subscriber =
+      auto managedNextHop =
           managerTable_->nextHopManager().refOrEmplaceNextHop(swNextHop);
 
       SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
@@ -209,35 +209,27 @@ void SaiRouteManager::addOrUpdateRoute(
       routeHandle->route = route;
 
       if (auto* ipNextHop =
-              std::get_if<std::shared_ptr<ManagedIpNextHop>>(&subscriber)) {
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiNeighborTraits>()
-            .subscribe(*ipNextHop);
-
-        auto nexthopSubscriber =
-            std::make_shared<SaiRouteNextHopHandle<SaiIpNextHopTraits>>(
+              std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
+        auto managedRouteNextHop =
+            std::make_shared<ManagedRouteNextHop<SaiIpNextHopTraits>>(
                 managerTable_, platform_, route->adapterHostKey(), *ipNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiIpNextHopTraits>()
-            .subscribe(nexthopSubscriber);
-        routeHandle->nexthopHandle_ = nexthopSubscriber;
+            .subscribe(managedRouteNextHop);
+        routeHandle->nexthopHandle_ = managedRouteNextHop;
       } else if (
-          auto* mplsNextHop =
-              std::get_if<std::shared_ptr<ManagedMplsNextHop>>(&subscriber)) {
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiNeighborTraits>()
-            .subscribe(*mplsNextHop);
-
-        auto nexthopSubscriber =
-            std::make_shared<SaiRouteNextHopHandle<SaiMplsNextHopTraits>>(
+          auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
+              &managedNextHop)) {
+        auto managedRouteNextHop =
+            std::make_shared<ManagedRouteNextHop<SaiMplsNextHopTraits>>(
                 managerTable_,
                 platform_,
                 route->adapterHostKey(),
                 *mplsNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiMplsNextHopTraits>()
-            .subscribe(nexthopSubscriber);
-        routeHandle->nexthopHandle_ = nexthopSubscriber;
+            .subscribe(managedRouteNextHop);
+        routeHandle->nexthopHandle_ = managedRouteNextHop;
       }
       return;
     }
@@ -337,21 +329,21 @@ void SaiRouteManager::clear() {
 }
 
 template <typename NextHopTraitsT>
-SaiRouteNextHopHandle<NextHopTraitsT>::SaiRouteNextHopHandle(
+ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform,
     SaiRouteTraits::AdapterHostKey routeKey,
-    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> subscriber)
+    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
-          subscriber->adapterHostKey()),
+          managedNextHop->adapterHostKey()),
       managerTable_(managerTable),
       platform_(platform),
       routeKey_(std::move(routeKey)),
-      subscriber_(subscriber) {}
+      managedNextHop_(managedNextHop) {}
 
 template <typename NextHopTraitsT>
-void SaiRouteNextHopHandle<NextHopTraitsT>::afterCreate(
-    SaiRouteNextHopHandle<NextHopTraitsT>::PublisherObject nexthop) {
+void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
+    ManagedRouteNextHop<NextHopTraitsT>::PublisherObject nexthop) {
   this->setPublisherObject(nexthop);
   // set route to next hop
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
@@ -366,7 +358,7 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::afterCreate(
 }
 
 template <typename NextHopTraitsT>
-void SaiRouteNextHopHandle<NextHopTraitsT>::beforeRemove() {
+void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
   // set route to CPU
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
   auto attributes = route->attributes();
@@ -382,7 +374,7 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::beforeRemove() {
 }
 
 template <typename NextHopTraitsT>
-sai_object_id_t SaiRouteNextHopHandle<NextHopTraitsT>::adapterKey() const {
+sai_object_id_t ManagedRouteNextHop<NextHopTraitsT>::adapterKey() const {
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
   CHECK(route);
   auto attributes = route->attributes();
@@ -390,7 +382,7 @@ sai_object_id_t SaiRouteNextHopHandle<NextHopTraitsT>::adapterKey() const {
 }
 
 template <typename NextHopTraitsT>
-void SaiRouteNextHopHandle<NextHopTraitsT>::updateMetadata() const {
+void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata() const {
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
   CHECK(route);
 
@@ -412,8 +404,8 @@ void SaiRouteNextHopHandle<NextHopTraitsT>::updateMetadata() const {
   }
 }
 
-template class SaiRouteNextHopHandle<SaiIpNextHopTraits>;
-template class SaiRouteNextHopHandle<SaiMplsNextHopTraits>;
+template class ManagedRouteNextHop<SaiIpNextHopTraits>;
+template class ManagedRouteNextHop<SaiMplsNextHopTraits>;
 
 template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV6>(

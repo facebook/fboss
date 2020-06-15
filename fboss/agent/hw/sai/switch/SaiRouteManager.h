@@ -35,15 +35,15 @@ template <typename T>
 class ManagedNextHop;
 
 template <typename NextHopTraitsT>
-class SaiRouteNextHopHandle
+class ManagedRouteNextHop
     : public detail::SaiObjectEventSubscriber<NextHopTraitsT> {
  public:
   using PublisherObject = std::shared_ptr<const SaiObject<NextHopTraitsT>>;
-  SaiRouteNextHopHandle(
+  ManagedRouteNextHop(
       SaiManagerTable* managerTable,
       const SaiPlatform* platform,
       SaiRouteTraits::AdapterHostKey routeKey,
-      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> subscriber);
+      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
   void afterCreate(PublisherObject nexthop) override;
   void beforeRemove() override;
   sai_object_id_t adapterKey() const;
@@ -53,17 +53,17 @@ class SaiRouteNextHopHandle
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
-  std::shared_ptr<ManagedNextHop<NextHopTraitsT>> subscriber_;
+  std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
 };
 
-using SaiRouteIpNextHopHandle = SaiRouteNextHopHandle<SaiIpNextHopTraits>;
-using SaiRouteMplsNextHopHandle = SaiRouteNextHopHandle<SaiMplsNextHopTraits>;
+using ManagedRouteIpNextHop = ManagedRouteNextHop<SaiIpNextHopTraits>;
+using ManagedRouteMplsNextHop = ManagedRouteNextHop<SaiMplsNextHopTraits>;
 
 struct SaiRouteHandle {
   using NextHopHandle = std::variant<
       std::shared_ptr<SaiNextHopGroupHandle>,
-      std::shared_ptr<SaiRouteIpNextHopHandle>,
-      std::shared_ptr<SaiRouteMplsNextHopHandle>>;
+      std::shared_ptr<ManagedRouteIpNextHop>,
+      std::shared_ptr<ManagedRouteMplsNextHop>>;
   NextHopHandle nexthopHandle_;
   std::shared_ptr<SaiRoute> route;
   sai_object_id_t nextHopAdapterKey() const;

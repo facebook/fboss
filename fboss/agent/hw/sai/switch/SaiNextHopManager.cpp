@@ -109,22 +109,36 @@ ManagedSaiNextHop SaiNextHopManager::refOrEmplaceNextHop(
   if (auto ipNextHopKey =
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    auto result = managedIpNextHops_.refOrEmplace(
+    auto [entry, emplaced] = managedIpNextHops_.refOrEmplace(
         *ipNextHopKey,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*ipNextHopKey).value(), ip},
         *ipNextHopKey);
-    return result.first;
+
+    if (emplaced) {
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiNeighborTraits>()
+          .subscribe(entry);
+    }
+
+    return entry;
   } else if (
       auto mplsNextHopKey =
           std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    auto result = managedMplsNextHops_.refOrEmplace(
+    auto [entry, emplaced] = managedMplsNextHops_.refOrEmplace(
         *mplsNextHopKey,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*mplsNextHopKey).value(), ip},
         *mplsNextHopKey);
-    return result.first;
+
+    if (emplaced) {
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiNeighborTraits>()
+          .subscribe(entry);
+    }
+
+    return entry;
   }
 
   throw FbossError("next hop key not found for a given next hop subscriber");

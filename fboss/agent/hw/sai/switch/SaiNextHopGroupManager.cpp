@@ -82,13 +82,6 @@ ManagedNextHopGroupMember::ManagedNextHopGroupMember(
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     const ResolvedNextHop& nexthop) {
   managedNextHop_ = managerTable->nextHopManager().refOrEmplaceNextHop(nexthop);
-  std::visit(
-      [](auto arg) {
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiNeighborTraits>()
-            .subscribe(arg);
-      },
-      managedNextHop_);
 
   auto nextHopKey = managerTable->nextHopManager().getAdapterHostKey(nexthop);
   auto nextHopWeight = (nexthop.weight() == ECMP_WEIGHT ? 1 : nexthop.weight());
