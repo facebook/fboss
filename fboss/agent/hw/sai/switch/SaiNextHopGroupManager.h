@@ -41,14 +41,14 @@ template <typename T>
 class ManagedNextHop;
 
 template <typename NextHopTraits>
-class SaiNextHopSubscriberForNextHopGroupMember
+class ManagedSaiNextHopGroupMember
     : public SaiObjectEventAggregateSubscriber<
-          SaiNextHopSubscriberForNextHopGroupMember<NextHopTraits>,
+          ManagedSaiNextHopGroupMember<NextHopTraits>,
           SaiNextHopGroupMemberTraits,
           NextHopTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      SaiNextHopSubscriberForNextHopGroupMember<NextHopTraits>,
+      ManagedSaiNextHopGroupMember<NextHopTraits>,
       SaiNextHopGroupMemberTraits,
       NextHopTraits>;
 
@@ -56,7 +56,7 @@ class SaiNextHopSubscriberForNextHopGroupMember
   using PublisherObjects = std::tuple<NextHopWeakPtr>;
   using NextHopWeight =
       typename SaiNextHopGroupMemberTraits::Attributes::Weight;
-  SaiNextHopSubscriberForNextHopGroupMember(
+  ManagedSaiNextHopGroupMember(
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       NextHopWeight weight,
       typename PublisherKey<NextHopTraits>::type attrs)
@@ -85,21 +85,22 @@ class SaiNextHopSubscriberForNextHopGroupMember
   NextHopWeight weight_;
 };
 
-class SubscriberForNextHopGroupMember {
+class ManagedNextHopGroupMember {
  public:
-  using SubscriberForSaiIpNextHopGroupMember =
-      SaiNextHopSubscriberForNextHopGroupMember<SaiIpNextHopTraits>;
-  using SubscriberForSaiMplsNextHopGroupMember =
-      SaiNextHopSubscriberForNextHopGroupMember<SaiMplsNextHopTraits>;
+  using ManagedIpNextHopGroupMember =
+      ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
+  using ManagedMplsNextHopGroupMember =
+      ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
 
-  SubscriberForNextHopGroupMember(
+  ManagedNextHopGroupMember(
       SaiManagerTable* managerTable,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
       const ResolvedNextHop& nexthop);
 
   bool isAlive() const {
     return std::visit(
-        [](auto arg) { return arg && arg->isAlive(); }, nexthopSubscriber_);
+        [](auto arg) { return arg && arg->isAlive(); },
+        managedNextHopGroupMember_);
   }
 
  private:
@@ -109,15 +110,14 @@ class SubscriberForNextHopGroupMember {
       managedNextHop_;
 
   std::variant<
-      std::shared_ptr<SubscriberForSaiIpNextHopGroupMember>,
-      std::shared_ptr<SubscriberForSaiMplsNextHopGroupMember>>
-      nexthopSubscriber_;
+      std::shared_ptr<ManagedIpNextHopGroupMember>,
+      std::shared_ptr<ManagedMplsNextHopGroupMember>>
+      managedNextHopGroupMember_;
 };
 
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
-  std::vector<std::shared_ptr<SubscriberForNextHopGroupMember>>
-      subscriberForMembers_;
+  std::vector<std::shared_ptr<ManagedNextHopGroupMember>> members_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -144,8 +144,8 @@ class SaiNextHopGroupManager {
   FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
   FlatRefMap<
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
-      SubscriberForNextHopGroupMember>
-      memberSubscribers_;
+      ManagedNextHopGroupMember>
+      managedNextHopGroupMembers_;
 };
 
 } // namespace facebook::fboss

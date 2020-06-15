@@ -70,14 +70,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   for (const auto& swNextHop : swNextHops) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
     auto key = std::make_pair(nextHopGroupId, resolvedNextHop);
-    auto result = memberSubscribers_.refOrEmplace(
+    auto result = managedNextHopGroupMembers_.refOrEmplace(
         key, managerTable_, nextHopGroupId, resolvedNextHop);
-    nextHopGroupHandle->subscriberForMembers_.push_back(result.first);
+    nextHopGroupHandle->members_.push_back(result.first);
   }
   return nextHopGroupHandle;
 }
 
-SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
+ManagedNextHopGroupMember::ManagedNextHopGroupMember(
     SaiManagerTable* managerTable,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
     const ResolvedNextHop& nexthop) {
@@ -95,21 +95,23 @@ SubscriberForNextHopGroupMember::SubscriberForNextHopGroupMember(
   if (auto* ipKey =
           std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an IP subscriber
-    auto subscriber = std::make_shared<SubscriberForSaiIpNextHopGroupMember>(
-        nexthopGroupId, nextHopWeight, *ipKey);
+    auto managedNextHopGroupMember =
+        std::make_shared<ManagedIpNextHopGroupMember>(
+            nexthopGroupId, nextHopWeight, *ipKey);
     SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
-        subscriber);
-    nexthopSubscriber_ = subscriber;
+        managedNextHopGroupMember);
+    managedNextHopGroupMember_ = managedNextHopGroupMember;
   } else if (
       auto* mplsKey =
           std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&nextHopKey)) {
     // make an MPLS subscriber
-    auto subscriber = std::make_shared<SubscriberForSaiMplsNextHopGroupMember>(
-        nexthopGroupId, nextHopWeight, *mplsKey);
+    auto managedNextHopGroupMember =
+        std::make_shared<ManagedMplsNextHopGroupMember>(
+            nexthopGroupId, nextHopWeight, *mplsKey);
     SaiObjectEventPublisher::getInstance()
         ->get<SaiMplsNextHopTraits>()
-        .subscribe(subscriber);
-    nexthopSubscriber_ = subscriber;
+        .subscribe(managedNextHopGroupMember);
+    managedNextHopGroupMember_ = managedNextHopGroupMember;
   }
 }
 } // namespace facebook::fboss
