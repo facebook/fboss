@@ -38,7 +38,7 @@ using SaiNextHopGroupMember = SaiObject<SaiNextHopGroupMemberTraits>;
 using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 
 template <typename T>
-class SaiNeighborSubscriberForNextHop;
+class ManagedNextHop;
 
 template <typename NextHopTraits>
 class SaiNextHopSubscriberForNextHopGroupMember
@@ -104,9 +104,9 @@ class SubscriberForNextHopGroupMember {
 
  private:
   std::variant<
-      std::shared_ptr<SaiNeighborSubscriberForNextHop<SaiIpNextHopTraits>>,
-      std::shared_ptr<SaiNeighborSubscriberForNextHop<SaiMplsNextHopTraits>>>
-      neighborSubscriber_;
+      std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>>,
+      std::shared_ptr<ManagedNextHop<SaiMplsNextHopTraits>>>
+      managedNextHop_;
 
   std::variant<
       std::shared_ptr<SubscriberForSaiIpNextHopGroupMember>,

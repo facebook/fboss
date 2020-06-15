@@ -195,7 +195,7 @@ void SaiRouteManager::addOrUpdateRoute(
       auto swNextHop =
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
       auto subscriber =
-          managerTable_->nextHopManager().refOrEmplaceSubscriber(swNextHop);
+          managerTable_->nextHopManager().refOrEmplaceNextHop(swNextHop);
 
       SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
       sai_object_id_t cpuPortId{
@@ -209,8 +209,7 @@ void SaiRouteManager::addOrUpdateRoute(
       routeHandle->route = route;
 
       if (auto* ipNextHop =
-              std::get_if<std::shared_ptr<SubscriberForIpNextHop>>(
-                  &subscriber)) {
+              std::get_if<std::shared_ptr<ManagedIpNextHop>>(&subscriber)) {
         SaiObjectEventPublisher::getInstance()
             ->get<SaiNeighborTraits>()
             .subscribe(*ipNextHop);
@@ -224,8 +223,7 @@ void SaiRouteManager::addOrUpdateRoute(
         routeHandle->nexthopHandle_ = nexthopSubscriber;
       } else if (
           auto* mplsNextHop =
-              std::get_if<std::shared_ptr<SubscriberForMplsNextHop>>(
-                  &subscriber)) {
+              std::get_if<std::shared_ptr<ManagedMplsNextHop>>(&subscriber)) {
         SaiObjectEventPublisher::getInstance()
             ->get<SaiNeighborTraits>()
             .subscribe(*mplsNextHop);
@@ -343,7 +341,7 @@ SaiRouteNextHopHandle<NextHopTraitsT>::SaiRouteNextHopHandle(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform,
     SaiRouteTraits::AdapterHostKey routeKey,
-    std::shared_ptr<SaiNeighborSubscriberForNextHop<NextHopTraitsT>> subscriber)
+    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> subscriber)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           subscriber->adapterHostKey()),
       managerTable_(managerTable),

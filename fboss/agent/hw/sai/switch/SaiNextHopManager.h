@@ -35,20 +35,19 @@ using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
 using SaiNextHop = typename ConditionSaiObjectType<SaiNextHopTraits>::type;
 
 template <typename NextHopTraits>
-class SaiNeighborSubscriberForNextHop
-    : public SaiObjectEventAggregateSubscriber<
-          SaiNeighborSubscriberForNextHop<NextHopTraits>,
-          NextHopTraits,
-          SaiNeighborTraits> {
+class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
+                           ManagedNextHop<NextHopTraits>,
+                           NextHopTraits,
+                           SaiNeighborTraits> {
  public:
   using AdapterHostKey = typename NextHopTraits::AdapterHostKey;
   using NeighborWeakPtr = std::weak_ptr<const SaiObject<SaiNeighborTraits>>;
   using PublishedObjects = std::tuple<NeighborWeakPtr>;
   using Base = SaiObjectEventAggregateSubscriber<
-      SaiNeighborSubscriberForNextHop<NextHopTraits>,
+      ManagedNextHop<NextHopTraits>,
       NextHopTraits,
       SaiNeighborTraits>;
-  SaiNeighborSubscriberForNextHop(
+  ManagedNextHop(
       SaiNeighborTraits::NeighborEntry entry,
       const typename NextHopTraits::AdapterHostKey& key)
       : Base(entry), key_(key) {}
@@ -89,14 +88,12 @@ class SaiNeighborSubscriberForNextHop
   typename NextHopTraits::AdapterHostKey key_;
 };
 
-using SubscriberForIpNextHop =
-    SaiNeighborSubscriberForNextHop<SaiIpNextHopTraits>;
-using SubscriberForMplsNextHop =
-    SaiNeighborSubscriberForNextHop<SaiMplsNextHopTraits>;
+using ManagedIpNextHop = ManagedNextHop<SaiIpNextHopTraits>;
+using ManagedMplsNextHop = ManagedNextHop<SaiMplsNextHopTraits>;
 
-using SaiNeighborSubscriber = std::variant<
-    std::shared_ptr<SubscriberForIpNextHop>,
-    std::shared_ptr<SubscriberForMplsNextHop>>;
+using ManagedSaiNextHop = std::variant<
+    std::shared_ptr<ManagedIpNextHop>,
+    std::shared_ptr<ManagedMplsNextHop>>;
 
 class SaiNextHopManager {
  public:
@@ -114,21 +111,18 @@ class SaiNextHopManager {
   SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
       const ResolvedNextHop& swNextHop);
 
-  SaiNeighborSubscriber refOrEmplaceSubscriber(
-      const ResolvedNextHop& swNextHop);
+  ManagedSaiNextHop refOrEmplaceNextHop(const ResolvedNextHop& swNextHop);
 
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 
+  UnorderedRefMap<typename ManagedIpNextHop::AdapterHostKey, ManagedIpNextHop>
+      managedIpNextHops_;
   UnorderedRefMap<
-      typename SubscriberForIpNextHop::AdapterHostKey,
-      SubscriberForIpNextHop>
-      ipSubscribers_;
-  UnorderedRefMap<
-      typename SubscriberForMplsNextHop::AdapterHostKey,
-      SubscriberForMplsNextHop>
-      mplsSubscribers_;
+      typename ManagedMplsNextHop::AdapterHostKey,
+      ManagedMplsNextHop>
+      managedMplsNextHops_;
 };
 
 } // namespace facebook::fboss

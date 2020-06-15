@@ -100,7 +100,7 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
 }
 
-SaiNeighborSubscriber SaiNextHopManager::refOrEmplaceSubscriber(
+ManagedSaiNextHop SaiNextHopManager::refOrEmplaceNextHop(
     const ResolvedNextHop& swNextHop) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto nexthopKey = getAdapterHostKey(swNextHop);
@@ -109,7 +109,7 @@ SaiNeighborSubscriber SaiNextHopManager::refOrEmplaceSubscriber(
   if (auto ipNextHopKey =
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    auto result = ipSubscribers_.refOrEmplace(
+    auto result = managedIpNextHops_.refOrEmplace(
         *ipNextHopKey,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*ipNextHopKey).value(), ip},
@@ -119,7 +119,7 @@ SaiNeighborSubscriber SaiNextHopManager::refOrEmplaceSubscriber(
       auto mplsNextHopKey =
           std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
-    auto result = mplsSubscribers_.refOrEmplace(
+    auto result = managedMplsNextHops_.refOrEmplace(
         *mplsNextHopKey,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*mplsNextHopKey).value(), ip},
