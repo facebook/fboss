@@ -71,7 +71,8 @@ bool SaiPlatformPort::shouldDisableFEC() const {
 }
 
 bool SaiPlatformPort::checkSupportsTransceiver() {
-  return supportsTransceiver() && !FLAGS_skip_transceiver_programming;
+  return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
+      transceiverID_.has_value();
 }
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
