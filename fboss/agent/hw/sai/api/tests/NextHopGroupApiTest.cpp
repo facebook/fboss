@@ -24,6 +24,21 @@ class NextHopGroupApiTest : public ::testing::Test {
     sai_api_initialize(0, nullptr);
     nextHopGroupApi = std::make_unique<NextHopGroupApi>();
   }
+
+  NextHopGroupSaiId createNextHopGroup(
+      const sai_next_hop_group_type_t nextHopGroupType) const {
+    return nextHopGroupApi->create<SaiNextHopGroupTraits>(
+        {nextHopGroupType}, 0);
+  }
+
+  NextHopGroupMemberSaiId createNextHopGroupMember(
+      const sai_object_id_t nextHopGroupId,
+      const sai_object_id_t nextHopId,
+      const sai_uint32_t nextHopWeight) const {
+    return nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(
+        {nextHopGroupId, nextHopId, nextHopWeight}, 0);
+  }
+
   void checkNextHopGroup(const sai_object_id_t& nextHopGroupId) const {
     EXPECT_EQ(nextHopGroupId, fs->nextHopGroupManager.get(nextHopGroupId).id);
   }
@@ -45,44 +60,120 @@ class NextHopGroupApiTest : public ::testing::Test {
 };
 
 TEST_F(NextHopGroupApiTest, createNextHopGroup) {
-  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
-      {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   checkNextHopGroup(nextHopGroupId);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroup) {
-  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
-      {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   checkNextHopGroup(nextHopGroupId);
   nextHopGroupApi->remove(nextHopGroupId);
 }
 
-TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
-  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
-      {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+TEST_F(NextHopGroupApiTest, getNextHopGroupAttributes) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   checkNextHopGroup(nextHopGroupId);
-  sai_object_id_t nextHopId = 42;
-  sai_uint32_t nextHopWeight = 2;
 
-  typename SaiNextHopGroupMemberTraits::CreateAttributes c{
-      nextHopGroupId, nextHopId, nextHopWeight};
+  sai_uint32_t nextHopWeight = 2;
   auto nextHopGroupMemberId =
-      nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
+      createNextHopGroupMember(nextHopGroupId, 42, nextHopWeight);
+  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
+
+  auto nextHopMemberListGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::NextHopMemberList());
+  auto nextHopTypeGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::Type());
+
+  EXPECT_EQ(nextHopMemberListGot.size(), 1);
+  EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+}
+
+// SAI spec does not support setting any attribute for next hop group post
+// creation.
+TEST_F(NextHopGroupApiTest, setNextHopGroupAttributes) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  checkNextHopGroup(nextHopGroupId);
+
+  SaiNextHopGroupTraits::Attributes::Type nextHopGroupType{
+      SAI_NEXT_HOP_GROUP_TYPE_PROTECTION};
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList NextHopMemberList{};
+
+  EXPECT_THROW(
+      nextHopGroupApi->setAttribute(nextHopGroupId, nextHopGroupType),
+      SaiApiError);
+  EXPECT_THROW(
+      nextHopGroupApi->setAttribute(nextHopGroupId, NextHopMemberList),
+      SaiApiError);
+}
+
+TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  checkNextHopGroup(nextHopGroupId);
+
+  sai_uint32_t nextHopWeight = 2;
+  auto nextHopGroupMemberId =
+      createNextHopGroupMember(nextHopGroupId, 42, nextHopWeight);
   checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
 }
 
 TEST_F(NextHopGroupApiTest, removeNextHopGroupMember) {
-  auto nextHopGroupId = nextHopGroupApi->create<SaiNextHopGroupTraits>(
-      {SAI_NEXT_HOP_GROUP_TYPE_ECMP}, 0);
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   checkNextHopGroup(nextHopGroupId);
-  sai_object_id_t nextHopId = 42;
+
   sai_uint32_t nextHopWeight = 2;
-  typename SaiNextHopGroupMemberTraits::CreateAttributes c{
-      nextHopGroupId, nextHopId, nextHopWeight};
   auto nextHopGroupMemberId =
-      nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(c, 0);
-  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
+      createNextHopGroupMember(nextHopGroupId, 42, nextHopWeight);
+  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, 2);
   nextHopGroupApi->remove(nextHopGroupMemberId);
+}
+
+TEST_F(NextHopGroupApiTest, getNextHopGroupMemberAttributes) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  checkNextHopGroup(nextHopGroupId);
+
+  sai_uint32_t nextHopWeight = 2;
+  auto nextHopGroupMemberId =
+      createNextHopGroupMember(nextHopGroupId, 42, nextHopWeight);
+  checkNextHopGroupMember(nextHopGroupId, nextHopGroupMemberId, nextHopWeight);
+
+  auto nextHopIdGot = nextHopGroupApi->getAttribute(
+      nextHopGroupMemberId,
+      SaiNextHopGroupMemberTraits::Attributes::NextHopId());
+  auto nextHopGroupIdGot = nextHopGroupApi->getAttribute(
+      nextHopGroupMemberId,
+      SaiNextHopGroupMemberTraits::Attributes::NextHopGroupId());
+  auto nextHopWeightGot = nextHopGroupApi->getAttribute(
+      nextHopGroupMemberId, SaiNextHopGroupMemberTraits::Attributes::Weight());
+
+  EXPECT_EQ(nextHopIdGot, 42);
+  EXPECT_EQ(nextHopGroupIdGot, nextHopGroupId);
+  EXPECT_EQ(nextHopWeightGot, nextHopWeight);
+}
+
+// SAI spec does not support setting any attribute for next hop group member
+// post creation.
+TEST_F(NextHopGroupApiTest, setNextHopGroupMemberAttributes) {
+  auto groupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  checkNextHopGroup(groupId);
+
+  sai_uint32_t nextHopWeight = 2;
+  auto nextHopGroupMemberId =
+      createNextHopGroupMember(groupId, 42, nextHopWeight);
+  checkNextHopGroupMember(groupId, nextHopGroupMemberId, nextHopWeight);
+
+  SaiNextHopGroupMemberTraits::Attributes::NextHopId nextHopId{42};
+  SaiNextHopGroupMemberTraits::Attributes::NextHopGroupId nextHopGroupId{
+      groupId};
+  SaiNextHopGroupMemberTraits::Attributes::Weight weight{nextHopWeight};
+
+  EXPECT_THROW(
+      nextHopGroupApi->setAttribute(nextHopGroupMemberId, nextHopId),
+      SaiApiError);
+  EXPECT_THROW(
+      nextHopGroupApi->setAttribute(nextHopGroupMemberId, nextHopGroupId),
+      SaiApiError);
+  EXPECT_THROW(
+      nextHopGroupApi->setAttribute(nextHopGroupMemberId, weight), SaiApiError);
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
