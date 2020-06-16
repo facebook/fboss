@@ -199,12 +199,18 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
-  processDelta(
+  processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
-      &SaiPortManager::changePort,
-      &SaiPortManager::addPort,
       &SaiPortManager::removePort);
+  processChangedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      &SaiPortManager::changePort);
+  processAddedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      &SaiPortManager::addPort);
   processDelta(
       delta.getVlansDelta(),
       managerTable_->vlanManager(),
