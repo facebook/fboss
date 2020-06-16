@@ -29,9 +29,8 @@ class HostifApiTest : public ::testing::Test {
   std::unique_ptr<HostifApi> hostifApi;
 
   HostifTrapSaiId createHostifTrap(
-      sai_hostif_trap_type_t trapId,
+      sai_hostif_trap_type_t trapType,
       sai_object_id_t trapGroupId) {
-    SaiHostifTrapTraits::Attributes::TrapType trapType(trapId);
     SaiHostifTrapTraits::Attributes::PacketAction packetAction(
         SAI_PACKET_ACTION_TRAP);
     SaiHostifTrapTraits::Attributes::TrapGroup trapGroup(trapGroupId);
@@ -39,17 +38,17 @@ class HostifApiTest : public ::testing::Test {
         SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY);
     SaiHostifTrapTraits::CreateAttributes attributes{
         trapType, packetAction, trapPriority, trapGroup};
-    HostifTrapSaiId trap =
+    HostifTrapSaiId trapId =
         hostifApi->create<SaiHostifTrapTraits>(attributes, 0);
-    return trap;
+    return trapId;
   }
 
   HostifTrapGroupSaiId createHostifTrapGroup(uint32_t queueId) {
     SaiHostifTrapGroupTraits::Attributes::Queue queue(queueId);
     SaiHostifTrapGroupTraits::CreateAttributes attributes{queue, 0};
-    HostifTrapGroupSaiId trapGroup =
+    HostifTrapGroupSaiId trapGroupId =
         hostifApi->create<SaiHostifTrapGroupTraits>(attributes, 0);
-    return trapGroup;
+    return trapGroupId;
   }
 };
 
@@ -67,23 +66,23 @@ TEST_F(HostifApiTest, sendPacket) {
 TEST_F(HostifApiTest, createTrap) {
   sai_hostif_trap_type_t trapType = SAI_HOSTIF_TRAP_TYPE_LACP;
   uint32_t queueId = 10;
-  sai_object_id_t trapGroup = createHostifTrapGroup(queueId);
-  sai_object_id_t trap = createHostifTrap(trapType, trapGroup);
-  EXPECT_EQ(fs->hostIfTrapManager.get(trap).trapType, trapType);
+  sai_object_id_t trapGroupId = createHostifTrapGroup(queueId);
+  sai_object_id_t trapId = createHostifTrap(trapType, trapGroupId);
+  EXPECT_EQ(fs->hostIfTrapManager.get(trapId).trapType, trapType);
   EXPECT_EQ(
-      fs->hostIfTrapManager.get(trap).packetAction, SAI_PACKET_ACTION_TRAP);
-  EXPECT_EQ(fs->hostifTrapGroupManager.get(trapGroup).queueId, queueId);
+      fs->hostIfTrapManager.get(trapId).packetAction, SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(fs->hostifTrapGroupManager.get(trapGroupId).queueId, queueId);
 }
 
 TEST_F(HostifApiTest, removeTrap) {
   sai_hostif_trap_type_t trapType = SAI_HOSTIF_TRAP_TYPE_LACP;
   uint32_t queueId = 10;
-  auto trapGroup = createHostifTrapGroup(queueId);
-  auto trap = createHostifTrap(trapType, trapGroup);
+  auto trapGroupId = createHostifTrapGroup(queueId);
+  auto trapId = createHostifTrap(trapType, trapGroupId);
   EXPECT_EQ(fs->hostIfTrapManager.map().size(), 1);
   EXPECT_EQ(fs->hostifTrapGroupManager.map().size(), 1);
-  hostifApi->remove(trapGroup);
-  hostifApi->remove(trap);
+  hostifApi->remove(trapGroupId);
+  hostifApi->remove(trapId);
   EXPECT_EQ(fs->hostIfTrapManager.map().size(), 0);
   EXPECT_EQ(fs->hostifTrapGroupManager.map().size(), 0);
 }
@@ -105,4 +104,80 @@ TEST_F(HostifApiTest, formatTrapAttributes) {
   EXPECT_EQ("TrapGroup: 42", fmt::format("{}", tg));
   SaiHostifTrapTraits::Attributes::TrapPriority tp(3);
   EXPECT_EQ("TrapPriority: 3", fmt::format("{}", tp));
+}
+
+TEST_F(HostifApiTest, getTrapGroupAttributes) {
+  HostifTrapGroupSaiId trapGroupId = createHostifTrapGroup(1);
+
+  auto trapGroupQueueGot = hostifApi->getAttribute(
+      trapGroupId, SaiHostifTrapGroupTraits::Attributes::Queue());
+  auto trapGroupPolicierGot = hostifApi->getAttribute(
+      trapGroupId, SaiHostifTrapGroupTraits::Attributes::Policer());
+
+  EXPECT_EQ(trapGroupQueueGot, 1);
+  EXPECT_EQ(trapGroupPolicierGot, 0);
+}
+
+TEST_F(HostifApiTest, setTrapGroupAttributes) {
+  HostifTrapGroupSaiId trapGroupId = createHostifTrapGroup(1);
+
+  SaiHostifTrapGroupTraits::Attributes::Queue queue(42);
+  SaiHostifTrapGroupTraits::Attributes::Policer policier(42);
+
+  // SAI spec does not support setting any attribute for trap group post
+  // creation.
+  EXPECT_THROW(hostifApi->setAttribute(trapGroupId, queue), SaiApiError);
+  EXPECT_THROW(hostifApi->setAttribute(trapGroupId, policier), SaiApiError);
+}
+
+TEST_F(HostifApiTest, getTrapAttributes) {
+  HostifTrapGroupSaiId trapGroupId = createHostifTrapGroup(1);
+  HostifTrapSaiId trapId =
+      createHostifTrap(SAI_HOSTIF_TRAP_TYPE_LACP, trapGroupId);
+
+  auto trapPacketActionGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::PacketAction());
+  auto trapGroupGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::TrapGroup());
+  auto trapPriorityGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::TrapPriority());
+  auto trapTypeGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::TrapType());
+
+  EXPECT_EQ(trapPacketActionGot, SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(trapGroupGot, trapGroupId);
+  EXPECT_EQ(trapPriorityGot, SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY);
+  EXPECT_EQ(trapTypeGot, SAI_HOSTIF_TRAP_TYPE_LACP);
+}
+
+TEST_F(HostifApiTest, setTrapAttributes) {
+  HostifTrapGroupSaiId trapGroupId = createHostifTrapGroup(1);
+  HostifTrapSaiId trapId =
+      createHostifTrap(SAI_HOSTIF_TRAP_TYPE_LACP, trapGroupId);
+
+  SaiHostifTrapTraits::Attributes::PacketAction packetAction(
+      SAI_PACKET_ACTION_LOG);
+  SaiHostifTrapTraits::Attributes::TrapGroup trapGroup(42);
+  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority(
+      SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY);
+
+  hostifApi->setAttribute(trapId, packetAction);
+  hostifApi->setAttribute(trapId, trapGroup);
+  hostifApi->setAttribute(trapId, trapPriority);
+
+  auto trapPacketActionGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::PacketAction());
+  auto trapGroupGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::TrapGroup());
+  auto trapPriorityGot = hostifApi->getAttribute(
+      trapId, SaiHostifTrapTraits::Attributes::TrapPriority());
+
+  EXPECT_EQ(trapPacketActionGot, SAI_PACKET_ACTION_LOG);
+  EXPECT_EQ(trapGroupGot, 42);
+  EXPECT_EQ(trapPriorityGot, SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY);
+
+  // SAI spec does not support setting type attribute for Trap post creation.
+  SaiHostifTrapTraits::Attributes::TrapType trapType(
+      SAI_HOSTIF_TRAP_TYPE_EAPOL);
+  EXPECT_THROW(hostifApi->setAttribute(trapId, trapType), SaiApiError);
 }
