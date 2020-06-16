@@ -31,6 +31,23 @@ cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
   return hwSwitch->getPlatform()->getPortMaxSpeed(port);
 }
 
+std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
+  auto platform = hwSwitch->getPlatform();
+  std::string chip;
+  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry()) {
+    auto pins = entry->mapping_ref()->pins_ref();
+    if (!pins->empty()) {
+      chip = pins->front().a.chip;
+    } else {
+      XLOG(INFO) << "No pins for port " << id << ", return empty chip name";
+    }
+  } else {
+    XLOG(INFO) << "No platformPortEntry for port " << id
+               << ", return empty chip name";
+  }
+  return chip;
+}
+
 // Return the ID for a profile that doesn't subsume any other ports.
 cfg::PortProfileID getSafeProfileID(const cfg::PlatformPortEntry& portEntry) {
   for (auto it : portEntry.supportedProfiles) {
@@ -116,18 +133,34 @@ cfg::SwitchConfig genPortVlanCfg(
   auto config = createDefaultConfig(hwSwitch);
 
   // Port config
+  std::map<std::string, cfg::PortProfileID> chipToProfileID;
   for (auto portID : ports) {
     if (findCfgPortIf(config, portID) == config.ports.end()) {
       config.ports.push_back(createDefaultPortConfig(hwSwitch, portID));
     }
     updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
     auto portCfg = findCfgPort(config, portID);
+    auto chip = getAsicChipFromPortID(hwSwitch, portID);
+    chipToProfileID[chip] = portCfg->profileID;
     portCfg->maxFrameSize_ref() = 9412;
     portCfg->state_ref() = cfg::PortState::ENABLED;
     portCfg->loopbackMode_ref() = lbMode;
     portCfg->ingressVlan_ref() = port2vlan.find(portID)->second;
     portCfg->routable_ref() = true;
     portCfg->parserType_ref() = cfg::ParserType::L3;
+  }
+
+  // make ports belonging to the same asic core use the same profileID
+  for (auto port : hwSwitch->getPlatform()->getPlatformPorts()) {
+    auto portID = PortID(port.first);
+    auto chip = getAsicChipFromPortID(hwSwitch, portID);
+    if (findCfgPortIf(config, portID) != config.ports.end() &&
+        chipToProfileID.find(chip) != chipToProfileID.end()) {
+      auto portCfg = findCfgPort(config, portID);
+      if (chipToProfileID[chip] != portCfg->profileID) {
+        updatePortProfile(*hwSwitch, config, portID, chipToProfileID[chip]);
+      }
+    }
   }
 
   // Vlan config
@@ -341,6 +374,26 @@ void addMatcher(
   egressTrafficPolicy.matchToAction_ref()->resize(curNumMatchActions + 1);
   egressTrafficPolicy.matchToAction_ref()[curNumMatchActions] = action;
   config->dataPlaneTrafficPolicy_ref() = egressTrafficPolicy;
+}
+
+void updatePortProfile(
+    const HwSwitch& hwSwitch,
+    cfg::SwitchConfig& cfg,
+    PortID portID,
+    cfg::PortProfileID profileID) {
+  auto cfgPort = findCfgPort(cfg, portID);
+  auto platform = hwSwitch.getPlatform();
+  auto supportsAddRemovePort = platform->supportsAddRemovePort();
+  auto platformPort = platform->getPlatformPort(portID);
+  if (auto platPortEntry = platformPort->getPlatformPortEntry()) {
+    const auto& supportedProfiles = platPortEntry->supportedProfiles;
+    auto profile = supportedProfiles.find(profileID);
+    if (profile != supportedProfiles.end()) {
+      cfgPort->profileID_ref() = profileID;
+      removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
+      cfgPort->speed_ref() = platform->getPortProfileConfig(profileID)->speed;
+    }
+  }
 }
 
 void updatePortSpeed(

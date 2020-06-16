@@ -66,6 +66,11 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port1,
     PortID port2,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE);
+void updatePortProfile(
+    const HwSwitch& hwSwitch,
+    cfg::SwitchConfig& cfg,
+    PortID port,
+    cfg::PortProfileID profileID);
 void updatePortSpeed(
     const HwSwitch& hwSwitch,
     cfg::SwitchConfig& cfg,
