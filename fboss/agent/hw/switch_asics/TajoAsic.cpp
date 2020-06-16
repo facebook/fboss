@@ -24,11 +24,11 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
+    case HwAsic::Feature::QUEUE:
       return true;
     case HwAsic::Feature::ACL:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
-    case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::ROUTE_METADATA:
