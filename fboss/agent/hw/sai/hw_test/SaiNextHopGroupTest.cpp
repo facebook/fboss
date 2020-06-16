@@ -84,18 +84,6 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
     EXPECT_EQ(nextHopGroupMemberCount(), count);
   }
 
-  void removePort(PortID port) {
-    auto swPort = getProgrammedState()->getPorts()->getPort(port);
-    auto* managerTable = getSaiSwitch()->managerTable();
-    managerTable->portManager().removePort(swPort);
-  }
-
-  void addPort(PortID port) {
-    auto swPort = getProgrammedState()->getPort(port);
-    auto* managerTable = getSaiSwitch()->managerTable();
-    managerTable->portManager().addPort(swPort);
-  }
-
  protected:
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
@@ -144,25 +132,25 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(SaiNextHopGroupTest, addNextHopGroupRemovePort) {
+TEST_F(SaiNextHopGroupTest, addNextHopGroupPortDown) {
   auto setup = [=]() {
     resolveNeighbors(4);
     addRoute(4);
-    removePort(masterLogicalPortIds()[0]);
+    bringDownPort(masterLogicalPortIds()[0]);
   };
   auto verify = [=]() { verifyMemberCount(3); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(SaiNextHopGroupTest, addNextHopGroupRemovePortAddPort) {
+TEST_F(SaiNextHopGroupTest, addNextHopGroupPortDownPortUp) {
   auto setup = [=]() {
     resolveNeighbors(4);
     addRoute(4);
-    removePort(masterLogicalPortIds()[0]);
-    addPort(masterLogicalPortIds()[0]);
+    bringDownPort(masterLogicalPortIds()[0]);
+    unresolveNeighbors(1);
+    bringUpPort(masterLogicalPortIds()[0]);
+    resolveNeighbors(1);
   };
   auto verify = [=]() { verifyMemberCount(4); };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
