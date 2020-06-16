@@ -28,6 +28,7 @@
 namespace facebook::fboss {
 
 class SaiManagerTable;
+class SaiPlatform;
 
 using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
 using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
@@ -44,7 +45,9 @@ struct SaiHostifTrapHandle {
 
 class SaiHostifManager {
  public:
-  explicit SaiHostifManager(SaiManagerTable* managerTable);
+  explicit SaiHostifManager(
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform);
   HostifTrapSaiId addHostifTrap(
       cfg::PacketRxReason trapId,
       uint32_t queueId,
@@ -83,6 +86,8 @@ class SaiHostifManager {
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
   void processQueueDelta(const DeltaValue<ControlPlane>& delta);
   void processRxReasonToQueueDelta(const DeltaValue<ControlPlane>& delta);
+  void processQosDelta(const DeltaValue<ControlPlane>& delta);
+
   void loadCpuPort();
   void loadCpuPortQueues();
   void changeCpuQueue(
@@ -93,6 +98,7 @@ class SaiHostifManager {
   SaiHostifTrapHandle* getHostifTrapHandleImpl(
       cfg::PacketRxReason rxReason) const;
   SaiManagerTable* managerTable_;
+  const SaiPlatform* platform_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
   /*

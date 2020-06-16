@@ -12,6 +12,8 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/ControlPlane.h"
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -161,6 +163,24 @@ void SaiHostifManager::changeHostifTrap(
   handleItr->second->trapGroup = hostifTrapGroup;
 }
 
+void SaiHostifManager::processQosDelta(
+    const DeltaValue<ControlPlane>& controlPlaneDelta) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+    // Global QOS policy applies to all ports including the CPU port
+    // nothing to do here
+    return;
+  }
+  auto oldQos = controlPlaneDelta.getOld()->getQosPolicy();
+  auto newQos = controlPlaneDelta.getNew()->getQosPolicy();
+  if (oldQos != newQos) {
+    if (newQos) {
+      setQosPolicy();
+    } else if (oldQos) {
+      clearQosPolicy();
+    }
+  }
+}
+
 void SaiHostifManager::processRxReasonToQueueDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
   auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
@@ -232,6 +252,7 @@ void SaiHostifManager::processHostifDelta(
   // corresponding sai queue oid for cpu port ?
   processRxReasonToQueueDelta(controlPlaneDelta);
   processQueueDelta(controlPlaneDelta);
+  processQosDelta(controlPlaneDelta);
 }
 
 SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(
@@ -318,8 +339,10 @@ void SaiHostifManager::loadCpuPort() {
   loadCpuPortQueues();
 }
 
-SaiHostifManager::SaiHostifManager(SaiManagerTable* managerTable)
-    : managerTable_(managerTable) {
+SaiHostifManager::SaiHostifManager(
+    SaiManagerTable* managerTable,
+    const SaiPlatform* platform)
+    : managerTable_(managerTable), platform_(platform) {
   loadCpuPort();
 }
 
@@ -365,7 +388,9 @@ SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
 
 void SaiHostifManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(INFO) << "Set cpu qoss map";
+  XLOG(INFO) << "Set cpu qos map";
+  // We allow only a single QoS policy right now, so
+  // pick that up.
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpQosMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcQosMap;
