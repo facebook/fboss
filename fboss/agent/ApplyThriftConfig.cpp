@@ -899,10 +899,18 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   std::optional<cfg::QosMap> qosMap;
   if (newQosPolicy) {
+    bool qosPolicyFound = false;
     for (auto qosPolicy : cfg_->qosPolicies) {
-      if (qosPolicy.name == newQosPolicy.value() && qosPolicy.qosMap_ref()) {
+      if (qosPolicyFound) {
+        break;
+      }
+      qosPolicyFound = (qosPolicy.name == newQosPolicy.value());
+      if (qosPolicyFound && qosPolicy.qosMap_ref()) {
         qosMap = qosPolicy.qosMap_ref().value();
       }
+    }
+    if (!qosPolicyFound) {
+      throw FbossError("qos policy ", newQosPolicy.value(), " not found");
     }
   }
 
@@ -2157,11 +2165,18 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   std::optional<cfg::QosMap> qosMap;
   if (qosPolicy) {
+    bool qosPolicyFound = false;
     for (auto policy : cfg_->qosPolicies) {
-      if (policy.name == qosPolicy.value() && policy.qosMap_ref()) {
-        qosMap = policy.qosMap_ref().value();
+      if (qosPolicyFound) {
         break;
       }
+      qosPolicyFound = (policy.name == qosPolicy.value());
+      if (qosPolicyFound && policy.qosMap_ref()) {
+        qosMap = policy.qosMap_ref().value();
+      }
+    }
+    if (!qosPolicyFound) {
+      throw FbossError("qos policy ", qosPolicy.value(), " not found");
     }
   }
 

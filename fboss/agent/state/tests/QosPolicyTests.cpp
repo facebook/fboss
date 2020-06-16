@@ -564,3 +564,45 @@ TEST(QosPolicy, QosPolicyConfigMigrateNoDelta) {
   const auto& policyDelta = delta.getQosPoliciesDelta();
   ASSERT_EQ(policyDelta.begin(), policyDelta.end());
 }
+
+TEST(QosPolicy, InvalidPortQosPolicy) {
+  cfg::SwitchConfig config0;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  stateV0->registerPort(PortID(1), "port1");
+
+  config0.ports_ref()->resize(1);
+  *config0.ports[0].logicalID_ref() = 1;
+  config0.ports_ref()[0].name_ref() = "port1";
+  cfg::TrafficPolicyConfig trafficPolicy0;
+  trafficPolicy0.portIdToQosPolicy_ref() = {{1, "qp3"}};
+  config0.dataPlaneTrafficPolicy_ref() = trafficPolicy0;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config0, platform.get()), FbossError);
+
+  cfg::SwitchConfig config1;
+  auto stateV1 = make_shared<SwitchState>();
+  stateV1->registerPort(PortID(1), "port1");
+
+  config1.ports_ref()->resize(1);
+  *config1.ports[0].logicalID_ref() = 1;
+  config1.ports_ref()[0].name_ref() = "port1";
+  cfg::TrafficPolicyConfig trafficPolicy1;
+  trafficPolicy1.defaultQosPolicy_ref() = "qp1";
+  config1.dataPlaneTrafficPolicy_ref() = trafficPolicy1;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV1, &config1, platform.get()), FbossError);
+
+  cfg::SwitchConfig config2;
+  auto stateV2 = make_shared<SwitchState>();
+  stateV2->registerPort(PortID(1), "port1");
+
+  cfg::TrafficPolicyConfig cpuPolicy;
+  cpuPolicy.defaultQosPolicy_ref() = "qp1";
+  cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
+  cpuTrafficPolicy.trafficPolicy_ref() = cpuPolicy;
+  config2.cpuTrafficPolicy_ref() = cpuTrafficPolicy;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV2, &config2, platform.get()), FbossError);
+}
