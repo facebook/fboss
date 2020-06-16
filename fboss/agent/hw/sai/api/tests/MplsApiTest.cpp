@@ -25,40 +25,87 @@ class MplsApiTest : public ::testing::Test {
     sai_api_initialize(0, nullptr);
     mplsApi = std::make_unique<MplsApi>();
   }
+
+  SaiInSegTraits::InSegEntry createInSegEntry(
+      const sai_packet_action_t packetAction,
+      const sai_uint8_t numOfPop,
+      const sai_object_id_t nextHopId) const {
+    sai_object_id_t switchId = 0;
+    uint32_t label = 42;
+    SaiInSegTraits::InSegEntry inSegEntry{switchId, label};
+
+    SaiInSegTraits::CreateAttributes attrs{packetAction, numOfPop, nextHopId};
+    mplsApi->create<SaiInSegTraits>(inSegEntry, attrs);
+
+    return inSegEntry;
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<MplsApi> mplsApi;
 };
 
 TEST_F(MplsApiTest, createInSegEntry) {
-  SaiInSegTraits::InSegEntry is{0, 42};
-  SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create<SaiInSegTraits>(is, attrs);
+  SaiInSegTraits::InSegEntry inSegEntry =
+      createInSegEntry(SAI_PACKET_ACTION_FORWARD, 1, 10);
   EXPECT_EQ(
-      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
+      mplsApi->getAttribute(inSegEntry, SaiInSegTraits::Attributes::NumOfPop{}),
+      1);
 }
 
 TEST_F(MplsApiTest, removeInSegEntry) {
-  SaiInSegTraits::InSegEntry is{0, 42};
-  SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create<SaiInSegTraits>(is, attrs);
-  mplsApi->remove(is);
+  SaiInSegTraits::InSegEntry inSegEntry =
+      createInSegEntry(SAI_PACKET_ACTION_FORWARD, 1, 10);
+  mplsApi->remove(inSegEntry);
+}
+
+TEST_F(MplsApiTest, getAttributes) {
+  SaiInSegTraits::InSegEntry inSegEntry =
+      createInSegEntry(SAI_PACKET_ACTION_FORWARD, 1, 10);
+
+  SaiInSegTraits::Attributes::PacketAction packetActionGot =
+      mplsApi->getAttribute(
+          inSegEntry, SaiInSegTraits::Attributes::PacketAction{});
+  SaiInSegTraits::Attributes::NumOfPop numOfPopGot =
+      mplsApi->getAttribute(inSegEntry, SaiInSegTraits::Attributes::NumOfPop{});
+  SaiInSegTraits::Attributes::NextHopId nextHopIdGot = mplsApi->getAttribute(
+      inSegEntry, SaiInSegTraits::Attributes::NextHopId{});
+
+  EXPECT_EQ(packetActionGot, SAI_PACKET_ACTION_FORWARD);
+  EXPECT_EQ(numOfPopGot, 1);
+  EXPECT_EQ(nextHopIdGot, 10);
 }
 
 TEST_F(MplsApiTest, setAttributes) {
-  SaiInSegTraits::InSegEntry is{0, 42};
-  SaiInSegTraits::CreateAttributes attrs{SAI_PACKET_ACTION_FORWARD, 1, 10};
-  mplsApi->create<SaiInSegTraits>(is, attrs);
-  EXPECT_EQ(
-      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 1);
-  mplsApi->setAttribute(is, SaiInSegTraits::Attributes::NumOfPop{2});
-  EXPECT_EQ(
-      mplsApi->getAttribute(is, SaiInSegTraits::Attributes::NumOfPop{}), 2);
+  SaiInSegTraits::InSegEntry inSegEntry =
+      createInSegEntry(SAI_PACKET_ACTION_FORWARD, 1, 10);
+
+  SaiInSegTraits::Attributes::PacketAction packetAction{SAI_PACKET_ACTION_COPY};
+  SaiInSegTraits::Attributes::NumOfPop numOfPop{2};
+  SaiInSegTraits::Attributes::NextHopId nextHopId{11};
+
+  mplsApi->setAttribute(inSegEntry, packetAction);
+  mplsApi->setAttribute(inSegEntry, numOfPop);
+  mplsApi->setAttribute(inSegEntry, nextHopId);
+
+  SaiInSegTraits::Attributes::PacketAction packetActionGot =
+      mplsApi->getAttribute(
+          inSegEntry, SaiInSegTraits::Attributes::PacketAction{});
+  SaiInSegTraits::Attributes::NumOfPop numOfPopGot =
+      mplsApi->getAttribute(inSegEntry, SaiInSegTraits::Attributes::NumOfPop{});
+  SaiInSegTraits::Attributes::NextHopId nextHopIdGot = mplsApi->getAttribute(
+      inSegEntry, SaiInSegTraits::Attributes::NextHopId{});
+
+  EXPECT_EQ(packetActionGot, packetAction);
+  EXPECT_EQ(numOfPopGot, numOfPop);
+  EXPECT_EQ(nextHopIdGot, nextHopId);
 }
 
 TEST_F(MplsApiTest, inSegEntrySerDeser) {
-  SaiInSegTraits::InSegEntry is{0, 42};
+  SaiInSegTraits::InSegEntry inSegEntry{0, 42};
   EXPECT_EQ(
-      is, SaiInSegTraits::InSegEntry::fromFollyDynamic(is.toFollyDynamic()));
+      inSegEntry,
+      SaiInSegTraits::InSegEntry::fromFollyDynamic(
+          inSegEntry.toFollyDynamic()));
 }
 
 TEST_F(MplsApiTest, formatInSegAttributes) {
