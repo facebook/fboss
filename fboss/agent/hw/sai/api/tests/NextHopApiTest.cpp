@@ -81,35 +81,81 @@ TEST_F(NextHopApiTest, removeNextHop) {
   EXPECT_EQ(fs->nextHopManager.map().size(), 0);
 }
 
-TEST_F(NextHopApiTest, getIp) {
+TEST_F(NextHopApiTest, getIpTypeAttribute) {
   auto nextHopId = createNextHop(ip4);
-  SaiIpNextHopTraits::Attributes::Ip ipAttribute;
-  EXPECT_EQ(ip4, nextHopApi->getAttribute(nextHopId, ipAttribute));
+
+  auto nextHopIpGot =
+      nextHopApi->getAttribute(nextHopId, SaiIpNextHopTraits::Attributes::Ip());
+  auto nextHopRouterInterfaceIdGot = nextHopApi->getAttribute(
+      nextHopId, SaiIpNextHopTraits::Attributes::RouterInterfaceId());
+  auto nextHopTypeGot = nextHopApi->getAttribute(
+      nextHopId, SaiIpNextHopTraits::Attributes::Type());
+
+  EXPECT_EQ(nextHopIpGot, ip4);
+  EXPECT_EQ(nextHopRouterInterfaceIdGot, 0);
+  EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_TYPE_IP);
+
+  // IP does not support get LabelStack for Mpls
+  EXPECT_THROW(
+      nextHopApi->getAttribute(
+          nextHopId, SaiMplsNextHopTraits::Attributes::LabelStack()),
+      SaiApiError);
 }
 
-TEST_F(NextHopApiTest, getLabelStack) {
-  auto nextHopId = createMplsNextHop(ip4, {1001, 2001, 3001});
-  SaiMplsNextHopTraits::Attributes::Ip ipAttribute;
-  EXPECT_EQ(ip4, nextHopApi->getAttribute(nextHopId, ipAttribute));
-  SaiMplsNextHopTraits::Attributes::LabelStack labelStackAttribute;
+TEST_F(NextHopApiTest, getMplsTypeAttribute) {
+  std::vector<sai_uint32_t> stack{1001, 2001, 3001};
+  auto nextHopId = createMplsNextHop(ip4, stack);
 
-  EXPECT_EQ(
-      std::vector<sai_uint32_t>({1001, 2001, 3001}),
-      nextHopApi->getAttribute(nextHopId, labelStackAttribute));
+  auto nextHopIpGot =
+      nextHopApi->getAttribute(nextHopId, SaiIpNextHopTraits::Attributes::Ip());
+  auto nextHopRouterInterfaceIdGot = nextHopApi->getAttribute(
+      nextHopId, SaiIpNextHopTraits::Attributes::RouterInterfaceId());
+  auto nextHopLabelStackGot = nextHopApi->getAttribute(
+      nextHopId, SaiMplsNextHopTraits::Attributes::LabelStack());
+  auto nextHopTypeGot = nextHopApi->getAttribute(
+      nextHopId, SaiIpNextHopTraits::Attributes::Type());
+
+  EXPECT_EQ(nextHopIpGot, ip4);
+  EXPECT_EQ(nextHopRouterInterfaceIdGot, 0);
+  EXPECT_EQ(nextHopLabelStackGot, stack);
+  EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_TYPE_MPLS);
 }
 
 // IP is create only, so if we try to set it, we expect to fail
-TEST_F(NextHopApiTest, setIp) {
+TEST_F(NextHopApiTest, setIpTypeAttribute) {
   auto nextHopId = createNextHop(ip4);
+
   SaiIpNextHopTraits::Attributes::Ip ipAttribute(ip4);
+  SaiIpNextHopTraits::Attributes::RouterInterfaceId routerInterfaceIdAttribute{
+      1};
+  SaiIpNextHopTraits::Attributes::Type typeAttribute{SAI_NEXT_HOP_TYPE_IP};
+
+  EXPECT_THROW(nextHopApi->setAttribute(nextHopId, ipAttribute);, SaiApiError);
   EXPECT_THROW(
-      try {
-        nextHopApi->setAttribute(nextHopId, ipAttribute);
-      } catch (const SaiApiError& e) {
-        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
-        throw;
-      },
+      nextHopApi->setAttribute(nextHopId, routerInterfaceIdAttribute),
       SaiApiError);
+  EXPECT_THROW(nextHopApi->setAttribute(nextHopId, typeAttribute), SaiApiError);
+}
+
+// MPLS is create only as well, so if we try to set it, we expect to fail
+TEST_F(NextHopApiTest, setMplsTypeAttribute) {
+  std::vector<sai_uint32_t> stack{1001, 2001, 3001};
+  auto nextHopId = createMplsNextHop(ip4, stack);
+
+  SaiIpNextHopTraits::Attributes::Ip ipAttribute(ip4);
+  SaiIpNextHopTraits::Attributes::RouterInterfaceId routerInterfaceIdAttribute{
+      1};
+  SaiMplsNextHopTraits::Attributes::LabelStack labelStackAttribute{
+      std::vector<sai_uint32_t>{2001, 3001, 4001}};
+  SaiIpNextHopTraits::Attributes::Type typeAttribute{SAI_NEXT_HOP_TYPE_IP};
+
+  EXPECT_THROW(nextHopApi->setAttribute(nextHopId, ipAttribute);, SaiApiError);
+  EXPECT_THROW(
+      nextHopApi->setAttribute(nextHopId, routerInterfaceIdAttribute),
+      SaiApiError);
+  EXPECT_THROW(
+      nextHopApi->setAttribute(nextHopId, labelStackAttribute), SaiApiError);
+  EXPECT_THROW(nextHopApi->setAttribute(nextHopId, typeAttribute), SaiApiError);
 }
 
 TEST_F(NextHopApiTest, formatNextHopAttributes) {
