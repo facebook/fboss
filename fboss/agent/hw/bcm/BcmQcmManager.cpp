@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
+#include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmQcmCollector.h"
 #include "fboss/agent/state/QcmConfig.h"
@@ -52,6 +53,22 @@ namespace facebook::fboss {
 
 int BcmQcmManager::getQcmFlowGroupId() {
   return kQcmFlowGroupId;
+}
+
+void BcmQcmManager::stopQcmFirmware() {
+  XLOG(INFO) << "[QCM] Firmware stop ..";
+  BcmFwLoader::stopFirmware(hw_);
+
+  auto rv = bcm_cosq_burst_monitor_detach(hw_->getUnit());
+  bcmCheckError(rv, "bcm_cosq_burst_monitor_detach failed");
+}
+
+void BcmQcmManager::initQcmFirmware() {
+  XLOG(INFO) << "[QCM] Firmware load ..";
+  BcmFwLoader::loadFirmware(hw_, hw_->getPlatform()->getAsic());
+
+  auto rv = bcm_cosq_burst_monitor_init(hw_->getUnit());
+  bcmCheckError(rv, "bcm_cosq_burst_monitor_init failed");
 }
 
 void BcmQcmManager::createIfpGroup() {
@@ -197,6 +214,8 @@ void BcmQcmManager::stop() {
   }
   XLOG(INFO) << "Stopping QCM ..";
   // TODO rohitpuri
+  // stop firmware
+  stopQcmFirmware();
   qcmInitDone_ = false;
 }
 
@@ -345,6 +364,7 @@ void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   XLOG(INFO) << "[QCM] Start Init";
 
   qcmCfg_ = swState->getQcmCfg();
+  initQcmFirmware();
   initRxQueue();
   initPipeMode();
 

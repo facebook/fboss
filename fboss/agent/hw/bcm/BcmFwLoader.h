@@ -24,6 +24,7 @@ enum class FwType {
 
 using BcmFwLoadFunc = std::function<
     void(const BcmSwitch*, const int core_id, const std::string& fwFile)>;
+using BcmFwStopFunc = std::function<void(const BcmSwitch*, const int core_id)>;
 using FwFileFunc = std::function<std::string()>;
 using FwFileErrorHandler = std::function<void(const std::string& filePath)>;
 
@@ -40,14 +41,17 @@ struct BcmFirmware {
   FwFileErrorHandler fwFileErrorHandler_;
   FwFileFunc getFwFile_;
   BcmFwLoadFunc bcmFwLoadFunc_;
+  BcmFwStopFunc bcmFwStopFunc_;
 };
 
 class BcmFwLoader {
  public:
   static void loadFirmware(BcmSwitch* sw, HwAsic* hwAsic);
+  static void stopFirmware(BcmSwitch* sw);
 
  private:
   static void loadFirmwareImpl(BcmSwitch* sw, FwType fwType);
+  static void stopFirmwareImpl(BcmSwitch* sw, FwType fwType);
   static std::string getFwFile(const BcmFirmware& fw);
 };
 

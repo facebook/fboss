@@ -18,9 +18,12 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+// QCM firmware has suffix of <BCM56960>_<version_number>.
+// <version_number> has been bumped to 1 since BCM provided new release of
+// the firmware.
 DEFINE_string(
     qcm_fw_path,
-    "/var/facebook/fboss/BCM56960_0_qcm.srec",
+    "/var/facebook/fboss/BCM56960_1_qcm.srec",
     "Location of qcm firmware");
 DEFINE_bool(load_qcm_fw, false, "Enable load of qcm fimrware");
 DEFINE_bool(
@@ -50,11 +53,12 @@ static void loadQcmFw(
   // This is mostly for debugging purposes and is not a requirement
   cmd = "mcsstatus";
   sw->printDiagCmd(cmd.c_str());
+}
 
-  cmd = "mcsmsg Init";
-  sw->printDiagCmd(cmd.c_str());
-
-  cmd = folly::to<std::string>("mcsmsg ", ucontrollerId);
+static void stopQcmFw(
+    const facebook::fboss::BcmSwitch* sw,
+    const int ucontrollerId) {
+  std::string cmd = folly::to<std::string>("mcsmsg stop ", ucontrollerId);
   sw->printDiagCmd(cmd.c_str());
 }
 
@@ -89,6 +93,7 @@ static const std::vector<facebook::fboss::BcmFirmware> fwImages = {
         .fwFileErrorHandler_ = fwQcmFileErrorHandler,
         .getFwFile_ = loadQcmFileFile,
         .bcmFwLoadFunc_ = loadQcmFw,
+        .bcmFwStopFunc_ = stopQcmFw,
     },
 };
 } // namespace
@@ -140,6 +145,20 @@ void BcmFwLoader::loadFirmwareImpl(BcmSwitch* sw, FwType fwType) {
   }
 }
 
+void BcmFwLoader::stopFirmwareImpl(BcmSwitch* sw, FwType fwType) {
+  // Find fw
+  auto fwIt = std::find_if(
+      fwImages.begin(), fwImages.end(), [&fwType](const auto& f) -> bool {
+        return f.fwType == fwType;
+      });
+
+  if (fwIt == fwImages.end()) {
+    throw FbossError("Micro controller firmware not found, type : ", fwType);
+  }
+  const BcmFirmware& fw = *fwIt;
+  fw.bcmFwStopFunc_(sw, fw.core_id);
+}
+
 void BcmFwLoader::loadFirmware(BcmSwitch* sw, HwAsic* hwAsic) {
   if (hwAsic && hwAsic->isSupported(HwAsic::Feature::QCM)) {
     // QCM fw is supported on Tomahawk only
@@ -151,5 +170,8 @@ void BcmFwLoader::loadFirmware(BcmSwitch* sw, HwAsic* hwAsic) {
   return;
 }
 
+void BcmFwLoader::stopFirmware(BcmSwitch* sw) {
+  stopFirmwareImpl(sw, FwType::QCM);
+}
 } // namespace fboss
 } // namespace facebook

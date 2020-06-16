@@ -14,12 +14,16 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+namespace {
+const std::string kCollctorSrcIp = "10.0.0.2/32";
+const std::string kCollctorDstIp = "11.0.0.2/32";
+int kCollectorUDPSrcPort = 20000;
+} // namespace
 namespace facebook::fboss {
 class BcmQcmTest : public BcmTest {
  protected:
   void SetUp() override {
     FLAGS_load_qcm_fw = true;
-    FLAGS_qcm_fw_path = "/var/facebook/fboss/BCM56960_0_qcm.srec";
     BcmTest::SetUp();
   }
 
@@ -27,6 +31,18 @@ class BcmQcmTest : public BcmTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     return cfg;
+  }
+
+  void setupHelper() {
+    auto newCfg{initialConfig()};
+    auto qcmCfg = cfg::QcmConfig();
+    // some dummy address
+    qcmCfg.collectorDstIp = kCollctorDstIp;
+    qcmCfg.collectorSrcIp = kCollctorSrcIp;
+    qcmCfg.collectorSrcPort = kCollectorUDPSrcPort;
+    newCfg.qcmConfig_ref() = qcmCfg;
+    newCfg.switchSettings.qcmEnable = true;
+    applyNewConfig(newCfg);
   }
 
   bool skipTest() {
@@ -49,7 +65,7 @@ TEST_F(BcmQcmTest, VerifyQcmFirmwareInit) {
   // intent of this test is to load the QcmFirmware during
   // initialization (using flags above in SetUp) and ensure it goes through fine
   // Verify if the status of firmware is good
-  auto setup = [=]() {};
+  auto setup = [=]() { setupHelper(); };
 
   auto verify = [this]() {
     BcmLogBuffer logBuffer;
@@ -59,6 +75,10 @@ TEST_F(BcmQcmTest, VerifyQcmFirmwareInit) {
     XLOG(INFO) << "MCStatus:" << mcsStatusStr;
     EXPECT_TRUE(mcsStatusStr.find("uC 0 status: OK") != std::string::npos);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  // TODO: rohitpuri
+  // Enable warmboot once QCM supports it CS00010434741
+  // verifyAcrossWarmBoots(setup, verify);
+  setup();
+  verify();
 }
 } // namespace facebook::fboss

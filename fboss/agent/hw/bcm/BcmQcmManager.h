@@ -43,6 +43,7 @@ class BcmQcmManager {
   // setup communications between QCM, Switch CPU
   void initRxQueue();
   void initPipeMode();
+  void initQcmFirmware();
 
   // setup QCM flowtracker
   void initExactMatchGroupCreate();
@@ -53,6 +54,9 @@ class BcmQcmManager {
   void setAgingInterval(const int agingIntervalInMsecs);
   int createIfpEntry(int port, bool usePolicer, bool attachStats);
   void setTrackingParams();
+
+  // destory functons
+  void stopQcmFirmware();
 
   // helper routines
   void updateQcmMonitoredPorts(std::set<bcm_port_t>& upPorts);
