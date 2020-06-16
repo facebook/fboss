@@ -165,12 +165,8 @@ sai_status_t set_bridge_port_attribute_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   switch (attr->id) {
-    case SAI_BRIDGE_PORT_ATTR_PORT_ID:
-      bridgePort.portId = attr->value.oid;
-      res = SAI_STATUS_SUCCESS;
-      break;
-    case SAI_BRIDGE_PORT_ATTR_TYPE:
-      bridgePort.type = attr->value.s32;
+    case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
+      bridgePort.learningMode = attr->value.s32;
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_BRIDGE_PORT_ATTR_ADMIN_STATE:
