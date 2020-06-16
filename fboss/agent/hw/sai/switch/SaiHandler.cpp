@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -21,6 +23,9 @@ SaiHandler::~SaiHandler() {}
 apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiHandler::startDiagShell() {
   XLOG(INFO) << "New diag shell session connecting";
+  if (!hw_->isFullyInitialized()) {
+    throw FbossError("switch is still initializing or is exiting ");
+  }
   if (diagShell_.hasPublisher()) {
     throw FbossError("Diag shell already connected");
   }

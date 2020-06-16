@@ -908,6 +908,15 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   return hwSwitch;
 }
 
+bool SaiSwitch::isFullyInitialized() const {
+  auto state = getSwitchRunState();
+  return state >= SwitchRunState::INITIALIZED &&
+      state != SwitchRunState::EXITING;
+}
+SwitchRunState SaiSwitch::getSwitchRunState() const {
+  return runState_;
+}
+
 void SaiSwitch::switchRunStateChangedLocked(
     const std::lock_guard<std::mutex>& lock,
     SwitchRunState newState) {
@@ -952,6 +961,7 @@ void SaiSwitch::switchRunStateChangedLocked(
     default:
       break;
   }
+  runState_ = newState;
 }
 
 void SaiSwitch::exitFatalLocked(

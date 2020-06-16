@@ -119,6 +119,8 @@ class SaiSwitch : public HwSwitch {
   const ConcurrentIndices& concurrentIndices() const {
     return *concurrentIndices_;
   }
+  SwitchRunState getSwitchRunState() const;
+  bool isFullyInitialized() const;
 
  private:
   /*
@@ -346,6 +348,7 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<std::thread> asyncTxThread_;
   folly::EventBase asyncTxEventBase_;
+  std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 };
 
 } // namespace facebook::fboss

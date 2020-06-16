@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
 #include <folly/logging/xlog.h>
 
 using folly::fbstring;
@@ -23,6 +25,9 @@ SaiTestHandler::~SaiTestHandler() {}
 apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiTestHandler::startDiagShell() {
   XLOG(INFO) << "New diag shell session connecting";
+  if (!hw_->isFullyInitialized()) {
+    throw FbossError("switch is still initializing or is exiting ");
+  }
   if (diagShell_.hasPublisher()) {
     throw FbossError("Diag shell already connected");
   }
