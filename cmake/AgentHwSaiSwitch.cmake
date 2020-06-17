@@ -62,3 +62,9 @@ target_link_libraries(thrift_handler
   handler
   sai_ctrl_cpp2
 )
+
+set_target_properties(thrift_handler PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
