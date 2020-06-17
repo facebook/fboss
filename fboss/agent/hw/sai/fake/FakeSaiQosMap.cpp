@@ -61,9 +61,6 @@ sai_status_t set_qos_map_attribute_fn(
   auto fs = FakeSai::getInstance();
   auto& qm = fs->qosMapManager.get(qos_map_id);
   switch (attr->id) {
-    case SAI_QOS_MAP_ATTR_TYPE:
-      qm.type = attr->value.s32;
-      break;
     case SAI_QOS_MAP_ATTR_MAP_TO_VALUE_LIST: {
       std::vector<sai_qos_map_t> mapToValueList;
       mapToValueList.reserve(attr->value.qosmap.count);

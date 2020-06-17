@@ -92,3 +92,40 @@ TEST_F(QosMapApiTest, sai_qos_map_t_Equality) {
   qm1.value.color = SAI_PACKET_COLOR_RED;
   EXPECT_NE(qm1, qm2);
 }
+
+TEST_F(QosMapApiTest, getQosMapAttribute) {
+  std::unordered_map<int, int> dscpToTc{
+      {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
+  auto qosMapId = createDscpToTcQosMap(dscpToTc);
+
+  auto qosMapTypeGot =
+      qosMapApi->getAttribute(qosMapId, SaiQosMapTraits::Attributes::Type());
+  auto qosMapToValueListGot = qosMapApi->getAttribute(
+      qosMapId, SaiQosMapTraits::Attributes::MapToValueList());
+
+  EXPECT_EQ(qosMapTypeGot, SAI_QOS_MAP_TYPE_DSCP_TO_TC);
+  EXPECT_EQ(qosMapToValueListGot.size(), dscpToTc.size());
+}
+
+TEST_F(QosMapApiTest, setQosMapAttribute) {
+  std::unordered_map<int, int> dscpToTc{
+      {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
+  auto qosMapId = createDscpToTcQosMap(dscpToTc);
+
+  // QosMap supports setting MapToValueList post creation
+  std::vector<sai_qos_map_t> qosMapList{};
+  SaiQosMapTraits::Attributes::MapToValueList qosMapToValueList{qosMapList};
+  qosMapApi->setAttribute(qosMapId, qosMapToValueList);
+
+  EXPECT_EQ(
+      qosMapApi
+          ->getAttribute(
+              qosMapId, SaiQosMapTraits::Attributes::MapToValueList())
+          .size(),
+      qosMapList.size());
+
+  // QosMap does not support setting type attribute post creation
+  SaiQosMapTraits::Attributes::Type qosMapType(SAI_QOS_MAP_TYPE_DSCP_TO_TC);
+
+  EXPECT_THROW(qosMapApi->setAttribute(qosMapId, qosMapType), SaiApiError);
+}
