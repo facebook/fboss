@@ -131,6 +131,22 @@ TEST_F(RouteApiTest, setV6RouteMetaData) {
       routeApi->getAttribute(r, SaiRouteTraits::Attributes::Metadata()), 42);
 }
 
+TEST_F(RouteApiTest, setPacketAction) {
+  folly::CIDRNetwork prefix(ip4, 24);
+  SaiRouteTraits::RouteEntry r(0, 0, prefix);
+  SaiRouteTraits::Attributes::PacketAction packetActionAttribute{
+      SAI_PACKET_ACTION_DROP};
+  routeApi->create<SaiRouteTraits>(
+      r, {packetActionAttribute, std::nullopt, std::nullopt});
+
+  packetActionAttribute = SAI_PACKET_ACTION_FORWARD;
+  routeApi->setAttribute(r, packetActionAttribute);
+
+  EXPECT_EQ(
+      routeApi->getAttribute(r, SaiRouteTraits::Attributes::PacketAction()),
+      SAI_PACKET_ACTION_FORWARD);
+}
+
 TEST_F(RouteApiTest, routeCount) {
   uint32_t count = getObjectCount<SaiRouteTraits>(0);
   EXPECT_EQ(count, 0);
