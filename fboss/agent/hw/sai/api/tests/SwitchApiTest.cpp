@@ -68,6 +68,12 @@ TEST_F(SwitchApiTest, testGetPortIds) {
   EXPECT_EQ(portIds.size(), numPorts);
 }
 
+TEST_F(SwitchApiTest, setPortList) {
+  SaiSwitchTraits::Attributes::PortList portList{
+      std::vector<sai_object_id_t>{}};
+  EXPECT_THROW(switchApi->setAttribute(switchId, portList), SaiApiError);
+}
+
 TEST_F(SwitchApiTest, testSetMac) {
   folly::MacAddress newSrcMac("DE:AD:BE:EF:42:42");
   SaiSwitchTraits::Attributes::SrcMac ma(newSrcMac);
@@ -108,6 +114,11 @@ TEST_F(SwitchApiTest, getCpuPort) {
   EXPECT_EQ(cpuPort, 0);
 }
 
+TEST_F(SwitchApiTest, setCpuPort) {
+  SaiSwitchTraits::Attributes::CpuPort cpuPort{1};
+  EXPECT_THROW(switchApi->setAttribute(switchId, cpuPort), SaiApiError);
+}
+
 TEST_F(SwitchApiTest, setGetShellEnable) {
   SaiSwitchTraits::Attributes::SwitchShellEnable shell{true};
   switchApi->setAttribute(switchId, shell);
@@ -123,6 +134,11 @@ TEST_F(SwitchApiTest, getHashIds) {
   EXPECT_EQ(
       switchApi->getAttribute(switchId, SaiSwitchTraits::Attributes::LagHash{}),
       1234);
+}
+
+TEST_F(SwitchApiTest, setHashIds) {
+  SaiSwitchTraits::Attributes::EcmpHash ecmpHash{1};
+  EXPECT_THROW(switchApi->setAttribute(switchId, ecmpHash), SaiApiError);
 }
 
 TEST_F(SwitchApiTest, setGetHashSeeds) {
