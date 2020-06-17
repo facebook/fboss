@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/MacAddress.h>
@@ -101,12 +102,27 @@ struct SaiTxPacketTraits {
         EnumType,
         SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG,
         SaiObjectIdT>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    using EgressQueueIndex = SaiAttribute<
+        EnumType,
+        SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX,
+        sai_uint8_t>;
+#endif
   };
-  using TxAttributes = std::
-      tuple<Attributes::TxType, std::optional<Attributes::EgressPortOrLag>>;
+  using TxAttributes = std::tuple<
+      Attributes::TxType,
+      std::optional<Attributes::EgressPortOrLag>
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      ,
+      std::optional<Attributes::EgressQueueIndex>
+#endif
+      >;
 };
 SAI_ATTRIBUTE_NAME(TxPacket, TxType)
 SAI_ATTRIBUTE_NAME(TxPacket, EgressPortOrLag)
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+SAI_ATTRIBUTE_NAME(TxPacket, EgressQueueIndex)
+#endif
 
 struct SaiRxPacketTraits {
   struct Attributes {

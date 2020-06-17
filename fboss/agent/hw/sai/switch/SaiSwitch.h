@@ -52,14 +52,14 @@ class SaiSwitch : public HwSwitch {
   bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      std::optional<uint8_t> queue) noexcept override;
+      std::optional<uint8_t> queueId) noexcept override;
 
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
   bool sendPacketOutOfPortSync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      std::optional<uint8_t> queue = std::nullopt) noexcept override;
+      std::optional<uint8_t> queueId) noexcept override;
 
   void updateStats(SwitchStats* switchStats) override;
 
@@ -164,7 +164,7 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
-      std::optional<uint8_t> queue) noexcept;
+      std::optional<uint8_t> queueId) noexcept;
 
   bool sendPacketSwitchedSyncLocked(
       const std::lock_guard<std::mutex>& lock,
@@ -173,7 +173,8 @@ class SaiSwitch : public HwSwitch {
   bool sendPacketOutOfPortSyncLocked(
       const std::lock_guard<std::mutex>& lock,
       std::unique_ptr<TxPacket> pkt,
-      PortID portID) noexcept;
+      PortID portID,
+      std::optional<uint8_t> queueId) noexcept;
 
   void updateStatsLocked(
       const std::lock_guard<std::mutex>& lock,

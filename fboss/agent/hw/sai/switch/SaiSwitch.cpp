@@ -319,9 +319,9 @@ bool SaiSwitch::sendPacketSwitchedAsync(
 bool SaiSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    std::optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queueId) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketOutOfPortAsyncLocked(lock, std::move(pkt), portID, queue);
+  return sendPacketOutOfPortAsyncLocked(lock, std::move(pkt), portID, queueId);
 }
 
 bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
@@ -332,10 +332,9 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
 bool SaiSwitch::sendPacketOutOfPortSync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    std::optional<uint8_t> /* queueId */) noexcept {
-  // TODO: Implement once hostif supports pakcet tx with queue ID.
+    std::optional<uint8_t> queueId) noexcept {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID);
+  return sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID, queueId);
 }
 
 void SaiSwitch::updateStats(SwitchStats* switchStats) {
@@ -743,11 +742,11 @@ bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
-    std::optional<uint8_t> /* queue */) noexcept {
+    std::optional<uint8_t> queueId) noexcept {
   asyncTxEventBase_.runInEventBaseThread(
-      [this, pkt = std::move(pkt), portID]() mutable {
+      [this, pkt = std::move(pkt), portID, queueId]() mutable {
         std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-        sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID);
+        sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID, queueId);
       });
   return true;
 }
@@ -778,7 +777,11 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
 
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  SaiTxPacketTraits::TxAttributes attributes{txType, 0, std::nullopt};
+#else
   SaiTxPacketTraits::TxAttributes attributes{txType, 0};
+#endif
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -790,7 +793,8 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
 bool SaiSwitch::sendPacketOutOfPortSyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt,
-    PortID portID) noexcept {
+    PortID portID,
+    std::optional<uint8_t> queueId) noexcept {
   auto portHandle =
       managerTableLocked(lock)->portManager().getPortHandle(portID);
   if (!portHandle) {
@@ -841,7 +845,14 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(
       portHandle->port->adapterKey());
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
+      queueId.value_or(0));
+  SaiTxPacketTraits::TxAttributes attributes{
+      txType, egressPort, egressQueueIndex};
+#else
   SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
+#endif
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   hostifApi.send(attributes, switchId_, txPacket);
   return true;

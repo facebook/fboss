@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -25,6 +26,7 @@ sai_status_t send_hostif_fn(
     const sai_attribute_t* attr_list) {
   sai_object_id_t tx_port;
   sai_hostif_tx_type_t tx_type;
+  sai_uint8_t queueId = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE:
@@ -32,10 +34,16 @@ sai_status_t send_hostif_fn(
         break;
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
         tx_port = attr_list[i].value.oid;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
+        queueId = attr_list[i].value.u8;
+        break;
+#endif
     }
   }
   XLOG(INFO) << "Sending packet on port : " << std::hex << tx_port
-             << " tx type : " << tx_type;
+             << " tx type : " << tx_type << " on queue: " << queueId;
 
   return SAI_STATUS_SUCCESS;
 }
