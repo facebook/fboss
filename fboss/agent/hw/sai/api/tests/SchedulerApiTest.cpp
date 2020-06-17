@@ -91,6 +91,84 @@ TEST_F(SchedulerApiTest, removeScheduler) {
   EXPECT_EQ(fs->scheduleManager.map().size(), 0);
 }
 
+TEST_F(SchedulerApiTest, getSchedulerOptionalAttribute) {
+  uint64_t minBwRate = 6000;
+  uint64_t maxBwRate = 8000;
+  uint8_t weight = 240;
+  auto saiSchedulerId =
+      createScheduler(true, true, weight, minBwRate, maxBwRate);
+  checkScheduler(saiSchedulerId);
+
+  auto maxBwRateGot = schedulerApi->getAttribute(
+      saiSchedulerId, SaiSchedulerTraits::Attributes::MaxBandwidthRate());
+  auto minBwRateGot = schedulerApi->getAttribute(
+      saiSchedulerId, SaiSchedulerTraits::Attributes::MinBandwidthRate());
+  auto maxBwBurstRateGot = schedulerApi->getAttribute(
+      saiSchedulerId, SaiSchedulerTraits::Attributes::MaxBandwidthBurstRate());
+  auto minBwBurstRateGot = schedulerApi->getAttribute(
+      saiSchedulerId, SaiSchedulerTraits::Attributes::MinBandwidthBurstRate());
+
+  // Min/max bandwidth rates are required and set during creation
+  // Min/max bandwidth burst rates are not set (default value of 0)
+  EXPECT_EQ(maxBwRateGot, maxBwRate);
+  EXPECT_EQ(minBwRateGot, minBwRate);
+  EXPECT_EQ(maxBwBurstRateGot, 0);
+  EXPECT_EQ(minBwBurstRateGot, 0);
+}
+
+TEST_F(SchedulerApiTest, setSchedulerAttribute) {
+  auto saiSchedulerId = createScheduler(true, true, 240, 6000, 8000);
+  checkScheduler(saiSchedulerId);
+
+  SaiSchedulerTraits::Attributes::SchedulingType schedulingType{
+      SAI_SCHEDULING_TYPE_WRR};
+  SaiSchedulerTraits::Attributes::SchedulingWeight schedulingWeight{42};
+  SaiSchedulerTraits::Attributes::MeterType meterType{SAI_METER_TYPE_PACKETS};
+  SaiSchedulerTraits::Attributes::MinBandwidthRate minBwRate{5000};
+  SaiSchedulerTraits::Attributes::MaxBandwidthRate maxBwRate{9000};
+  SaiSchedulerTraits::Attributes::MinBandwidthBurstRate minBwBurstRate{8000};
+  SaiSchedulerTraits::Attributes::MaxBandwidthBurstRate maxBwBurstRate{9999};
+
+  schedulerApi->setAttribute(saiSchedulerId, schedulingType);
+  schedulerApi->setAttribute(saiSchedulerId, schedulingWeight);
+  schedulerApi->setAttribute(saiSchedulerId, meterType);
+  schedulerApi->setAttribute(saiSchedulerId, minBwRate);
+  schedulerApi->setAttribute(saiSchedulerId, maxBwRate);
+  schedulerApi->setAttribute(saiSchedulerId, minBwBurstRate);
+  schedulerApi->setAttribute(saiSchedulerId, maxBwBurstRate);
+
+  EXPECT_EQ(
+      schedulingType,
+      schedulerApi->getAttribute(
+          saiSchedulerId, SaiSchedulerTraits::Attributes::SchedulingType()));
+  EXPECT_EQ(
+      schedulingWeight,
+      schedulerApi->getAttribute(
+          saiSchedulerId, SaiSchedulerTraits::Attributes::SchedulingWeight()));
+  EXPECT_EQ(
+      meterType,
+      schedulerApi->getAttribute(
+          saiSchedulerId, SaiSchedulerTraits::Attributes::MeterType()));
+  EXPECT_EQ(
+      minBwRate,
+      schedulerApi->getAttribute(
+          saiSchedulerId, SaiSchedulerTraits::Attributes::MinBandwidthRate()));
+  EXPECT_EQ(
+      maxBwRate,
+      schedulerApi->getAttribute(
+          saiSchedulerId, SaiSchedulerTraits::Attributes::MaxBandwidthRate()));
+  EXPECT_EQ(
+      minBwBurstRate,
+      schedulerApi->getAttribute(
+          saiSchedulerId,
+          SaiSchedulerTraits::Attributes::MinBandwidthBurstRate()));
+  EXPECT_EQ(
+      maxBwBurstRate,
+      schedulerApi->getAttribute(
+          saiSchedulerId,
+          SaiSchedulerTraits::Attributes::MaxBandwidthBurstRate()));
+}
+
 TEST_F(SchedulerApiTest, formatSchedulerAttributes) {
   SaiSchedulerTraits::Attributes::SchedulingType st(SAI_SCHEDULING_TYPE_WRR);
   EXPECT_EQ("SchedulingType: 1", fmt::format("{}", st));
