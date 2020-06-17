@@ -74,6 +74,52 @@ TEST_F(QueueApiTest, removeQueue) {
   EXPECT_EQ(fs->queueManager.map().size(), numCpuQueues);
 }
 
+TEST_F(QueueApiTest, setQueueAttribute) {
+  PortSaiId saiPortId{1};
+  uint8_t queueIndex = 10;
+  auto saiQueueId = createQueue(saiPortId, true, queueIndex);
+  checkQueue(saiQueueId);
+
+  SaiQueueTraits::Attributes::ParentSchedulerNode parentSchedulerNode{2};
+  SaiQueueTraits::Attributes::WredProfileId wredProfileId{1};
+  SaiQueueTraits::Attributes::BufferProfileId bufferProfileId{1};
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerProfileId{1};
+
+  queueApi->setAttribute(saiQueueId, parentSchedulerNode);
+  queueApi->setAttribute(saiQueueId, wredProfileId);
+  queueApi->setAttribute(saiQueueId, bufferProfileId);
+  queueApi->setAttribute(saiQueueId, schedulerProfileId);
+
+  SaiQueueTraits::Attributes::ParentSchedulerNode parentSchedulerNodeGot =
+      queueApi->getAttribute(
+          saiQueueId, SaiQueueTraits::Attributes::ParentSchedulerNode());
+  SaiQueueTraits::Attributes::WredProfileId wredProfileIdGot =
+      queueApi->getAttribute(
+          saiQueueId, SaiQueueTraits::Attributes::WredProfileId());
+  SaiQueueTraits::Attributes::BufferProfileId bufferProfileIdGot =
+      queueApi->getAttribute(
+          saiQueueId, SaiQueueTraits::Attributes::BufferProfileId());
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerProfileIdGot =
+      queueApi->getAttribute(
+          saiQueueId, SaiQueueTraits::Attributes::SchedulerProfileId());
+
+  EXPECT_EQ(parentSchedulerNodeGot, parentSchedulerNode);
+  EXPECT_EQ(wredProfileIdGot, wredProfileId);
+  EXPECT_EQ(bufferProfileIdGot, bufferProfileId);
+  EXPECT_EQ(schedulerProfileIdGot, schedulerProfileId);
+
+  // Queue does not support setting type, port and index attributes post
+  // creation
+
+  SaiQueueTraits::Attributes::Type type{SAI_QUEUE_TYPE_MULTICAST};
+  SaiQueueTraits::Attributes::Port port{saiPortId};
+  SaiQueueTraits::Attributes::Index queueId{queueIndex};
+
+  EXPECT_THROW(queueApi->setAttribute(saiQueueId, type), SaiApiError);
+  EXPECT_THROW(queueApi->setAttribute(saiQueueId, port), SaiApiError);
+  EXPECT_THROW(queueApi->setAttribute(saiQueueId, queueId), SaiApiError);
+}
+
 TEST_F(QueueApiTest, formatQueueAttributes) {
   SaiQueueTraits::Attributes::Type t{SAI_QUEUE_TYPE_UNICAST};
   EXPECT_EQ("Type: 1", fmt::format("{}", t));
