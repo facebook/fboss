@@ -21,7 +21,9 @@ namespace facebook::fboss {
 
 class FakeVirtualRouter {
  public:
+  FakeVirtualRouter() {}
   sai_object_id_t id;
+  folly::MacAddress srcMac;
 };
 
 using FakeVirtualRouterManager =

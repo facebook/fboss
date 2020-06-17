@@ -32,6 +32,30 @@ TEST_F(VirtualRouterApiTest, createVirtualRouter) {
   virtualRouterApi->create<SaiVirtualRouterTraits>(c, 0);
 }
 
+TEST_F(VirtualRouterApiTest, removeVirtualRouter) {
+  SaiVirtualRouterTraits::CreateAttributes c{};
+  VirtualRouterSaiId virtualRouterId =
+      virtualRouterApi->create<SaiVirtualRouterTraits>(c, 0);
+
+  virtualRouterApi->remove(virtualRouterId);
+}
+
+TEST_F(VirtualRouterApiTest, setVirtualRouterAttributes) {
+  SaiVirtualRouterTraits::CreateAttributes c{};
+  VirtualRouterSaiId virtualRouterId =
+      virtualRouterApi->create<SaiVirtualRouterTraits>(c, 0);
+
+  SaiVirtualRouterTraits::Attributes::SrcMac srcMac{
+      folly::MacAddress{"42:42:42:42:42:42"}};
+  virtualRouterApi->setAttribute(virtualRouterId, srcMac);
+
+  SaiVirtualRouterTraits::Attributes::SrcMac srcMacGot =
+      virtualRouterApi->getAttribute(
+          virtualRouterId, SaiVirtualRouterTraits::Attributes::SrcMac{});
+
+  EXPECT_EQ(srcMacGot, srcMac);
+}
+
 TEST_F(VirtualRouterApiTest, formatVirtualRouterAttributes) {
   std::string macStr("42:42:42:42:42:42");
   SaiVirtualRouterTraits::Attributes::SrcMac sm{folly::MacAddress{macStr}};
