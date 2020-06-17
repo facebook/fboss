@@ -169,7 +169,23 @@ void BcmQcmCollector::init(const std::shared_ptr<SwitchState>& swState) {
   XLOG(INFO) << "Collector Init done";
 }
 
+void BcmQcmCollector::destroyCollector() {
+  auto rv = bcm_collector_destroy(hw_->getUnit(), kQcmCollectorId);
+  bcmCheckError(rv, "bcm_collector_destroy failed");
+}
+
+void BcmQcmCollector::destroyExportProfile() {
+  auto rv = bcm_collector_export_profile_destroy(
+      hw_->getUnit(), kQcmCollectorExportProfileId);
+  bcmCheckError(rv, "bcm_collector_export_profile_destroy failed");
+}
+
 void BcmQcmCollector::stop() {
-  // TODO rohitpuri
+  collectorTemplateDetach();
+  destroyCollector();
+  destroyExportProfile();
+  destroyFlowTrackerTemplate();
+
+  XLOG(INFO) << "Collector stop done";
 }
 } // namespace facebook::fboss

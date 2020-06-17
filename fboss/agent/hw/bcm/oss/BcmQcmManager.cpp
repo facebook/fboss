@@ -15,4 +15,5 @@ namespace facebook::fboss {
 void BcmQcmManager::setFlowViewCfg() {}
 void BcmQcmManager::updateQcmMonitoredPorts(
     std::set<bcm_port_t>& /* unused */) {}
+void BcmQcmManager::resetBurstMonitor() {}
 } // namespace facebook::fboss

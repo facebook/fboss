@@ -66,11 +66,22 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     newCfg.qcmConfig_ref() = qcmCfg;
     newCfg.switchSettings.qcmEnable = true;
     applyNewConfig(newCfg);
+    cfg_ = newCfg;
 
     getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
         true /* attach stat */);
     addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
+  }
+
+  void setupQcmOnly(const bool qcmEnable) {
+    cfg_.switchSettings.qcmEnable = qcmEnable;
+    applyNewConfig(cfg_);
+    if (qcmEnable) {
+      getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
+          true /* attach stat */);
+    }
   }
 
   uint32_t featuresDesired() const override {
@@ -131,6 +142,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 #endif
   }
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper6_;
+  cfg::SwitchConfig cfg_;
 };
 
 // Intent of this test is to setup QCM tables
@@ -237,4 +249,38 @@ TEST_F(BcmQcmDataTest, RestrictFlowLearning) {
   verify();
 }
 
+// Intent of this test is to enable QCM, do flow learning
+// // stop qcm and ensure that flow tracker is disabled,
+// // enable QCM again and ensure flow learning happens as desired
+TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
+  if (!isQcmSupported()) {
+    return;
+  }
+  auto setup = [=]() { setupHelper(); };
+  auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
+  auto verify = [&]() {
+    for (int i = 0; i < kPktTxCount; i++) {
+      sendL3Packet(
+          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress1);
+    }
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
+  };
+  auto verifyStop = [&]() {
+    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->isFlowTrackerDisabled());
+  };
+
+  // run with qcm enabled
+  setup();
+  verify();
+
+  // run setup with qcm disabled
+  bool qcmEnable = false;
+  setupQcm(qcmEnable);
+  verifyStop();
+
+  // enable qcm again
+  qcmEnable = true;
+  setupQcm(qcmEnable);
+  verify();
+}
 } // namespace facebook::fboss

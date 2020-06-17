@@ -38,6 +38,7 @@ class BcmQcmManager {
   uint64_t getIfpStatCounter(const int portId);
   uint32_t getLearnedFlowCount();
   static int getQcmFlowGroupId();
+  bool isFlowTrackerDisabled();
 
  private:
   // setup communications between QCM, Switch CPU
@@ -55,7 +56,11 @@ class BcmQcmManager {
   int createIfpEntry(int port, bool usePolicer, bool attachStats);
   void setTrackingParams();
 
-  // destory functons
+  // destroy routines
+  void deleteIfpEntries();
+  void destroyFlowGroup();
+  void destroyExactMatchGroup();
+  void resetBurstMonitor();
   void stopQcmFirmware();
 
   // helper routines

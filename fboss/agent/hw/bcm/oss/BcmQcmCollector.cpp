@@ -13,4 +13,6 @@
 namespace facebook::fboss {
 void BcmQcmCollector::collectorTemplateAttach() {}
 void BcmQcmCollector::flowTrackerTemplateCreate() {}
+void BcmQcmCollector::collectorTemplateDetach() {}
+void BcmQcmCollector::destroyFlowTrackerTemplate() {}
 } // namespace facebook::fboss

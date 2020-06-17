@@ -42,5 +42,11 @@ class BcmQcmCollector {
   void collectorCreate();
   void exportProfileCreate();
   void flowTrackerTemplateCreate();
+
+  // destory routines
+  void collectorTemplateDetach();
+  void destroyCollector();
+  void destroyExportProfile();
+  void destroyFlowTrackerTemplate();
 };
 } // namespace facebook::fboss

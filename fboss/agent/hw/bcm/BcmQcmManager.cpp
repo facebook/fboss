@@ -208,12 +208,55 @@ BcmQcmManager::~BcmQcmManager() {
   qcmCollector_.reset();
 }
 
+void BcmQcmManager::destroyFlowGroup() {
+  auto rv = bcm_flowtracker_group_destroy(hw_->getUnit(), kQcmFlowGroupId);
+  bcmCheckError(rv, "destroyFlowGroup failed");
+}
+
+bool BcmQcmManager::isFlowTrackerDisabled() {
+  bcm_flowtracker_group_info_t flow_group_info;
+  auto rv = bcm_flowtracker_group_get(
+      hw_->getUnit(), kQcmFlowGroupId, &flow_group_info);
+  if (rv == BCM_E_INIT) {
+    return true;
+  }
+  return false;
+}
+
+void BcmQcmManager::destroyExactMatchGroup() {
+  int rv = 0;
+  for (const auto exactMatchElem : exactMatchGroups_) {
+    rv = bcm_field_group_destroy(hw_->getUnit(), exactMatchElem.second);
+    bcmCheckError(rv, "Exact macth group destroy failed");
+  }
+  exactMatchGroups_.clear();
+  rv = bcm_field_group_destroy(hw_->getUnit(), FLAGS_qcm_ifp_gid);
+  bcmCheckError(rv, "ifp group destroy failed");
+}
+
+void BcmQcmManager::deleteIfpEntries() {
+  for (const auto& ifpEntry : portToIfpEntryMap_) {
+    auto rv = bcm_field_entry_destroy(hw_->getUnit(), ifpEntry.second);
+    bcmCheckError(rv, "bcm_field_entry_destroy failed");
+  }
+  portToIfpEntryMap_.clear();
+  ifpEntryToStatMap_.clear();
+  qcmMonitoredPorts_.clear();
+}
+
 void BcmQcmManager::stop() {
   if (!qcmInitDone_) {
     return;
   }
   XLOG(INFO) << "Stopping QCM ..";
-  // TODO rohitpuri
+  if (qcmCollector_) {
+    qcmCollector_->stop();
+  }
+  deleteIfpEntries(); // step 2
+  destroyFlowGroup(); // step 3
+  destroyExactMatchGroup(); // step 4
+  resetBurstMonitor();
+
   // stop firmware
   stopQcmFirmware();
   qcmInitDone_ = false;
