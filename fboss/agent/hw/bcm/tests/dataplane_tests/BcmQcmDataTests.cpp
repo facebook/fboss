@@ -7,10 +7,14 @@
  */
 
 #include <folly/IPAddressV6.h>
+#include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmQcmCollector.h"
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/BcmAclUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
+#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -20,6 +24,7 @@
 
 namespace {
 constexpr int kPktTxCount = 10;
+constexpr int kAclPktTxCount = 100;
 const folly::IPAddressV6 kIPv6Route = folly::IPAddressV6("2401::201:ab00");
 const folly::IPAddress kIPv6FlowDstAddress =
     folly::IPAddressV6("2401::201:ab01");
@@ -29,10 +34,16 @@ const folly::IPAddress kIPv6FlowSrcAddress3 = folly::IPAddressV6("1::11");
 const folly::IPAddress kIPv6FlowSrcAddress4 = folly::IPAddressV6("1::12");
 const folly::IPAddress kIPv4FlowSrcAddress = folly::IPAddressV4("10.0.0.1");
 
-const std::string kCollctorSrcIp = "10.0.0.2/32";
-const std::string kCollctorDstIp = "11.0.0.2/32";
+const std::string kCollectorSrcIpv4 = "10.0.0.2/32";
+const std::string kCollectorDstIpv4 = "11.0.0.2/32";
+
+const std::string kCollectorSrcIpv6 = "2401::301:ab01/128";
+const std::string kCollectorDstIpv6 = "2401::401:ab01/128";
 int kCollectorUDPSrcPort = 20000;
 const int kMaskV6 = 120;
+
+const std::string kCollectorAclCounter = "collectorAclCounter";
+const std::string kCollectorAcl = "testCollectorAcl";
 } // namespace
 
 namespace facebook::fboss {
@@ -56,14 +67,25 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     return config;
   }
 
-  void setupHelper() {
-    auto newCfg{initialConfig()};
+  cfg::QcmConfig getQcmConfig(bool isIpv6 = false) {
     auto qcmCfg = cfg::QcmConfig();
     // some dummy address
-    qcmCfg.collectorDstIp = kCollctorSrcIp;
-    qcmCfg.collectorSrcIp = kCollctorDstIp;
+    if (isIpv6) {
+      qcmCfg.collectorDstIp = kCollectorDstIpv6;
+      qcmCfg.collectorSrcIp = kCollectorSrcIpv6;
+    } else {
+      qcmCfg.collectorDstIp = kCollectorDstIpv4;
+      qcmCfg.collectorSrcIp = kCollectorSrcIpv4;
+    }
     qcmCfg.collectorSrcPort = kCollectorUDPSrcPort;
-    newCfg.qcmConfig_ref() = qcmCfg;
+    qcmCfg.agingIntervalInMsecs = 1000;
+    qcmCfg.numFlowSamplesPerView = 1;
+    return qcmCfg;
+  }
+
+  void setupHelper() {
+    auto newCfg{initialConfig()};
+    newCfg.qcmConfig_ref() = getQcmConfig();
     newCfg.switchSettings.qcmEnable = true;
     applyNewConfig(newCfg);
     cfg_ = newCfg;
@@ -82,6 +104,33 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
           {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
           true /* attach stat */);
     }
+  }
+
+  void setUpHelperWithAcls(bool isIpv6) {
+    auto newCfg{initialConfig()};
+    newCfg.switchSettings.qcmEnable = true;
+
+    auto qcmCfg = getQcmConfig(isIpv6);
+    // add an acl
+    auto* acl = utility::addAcl(&newCfg, kCollectorAcl);
+    acl->dstMac_ref() = BcmQcmCollector::getCollectorDstMac().toString();
+    if (!isIpv6) {
+      acl->dstIp_ref() = kCollectorDstIpv4;
+      acl->srcIp_ref() = kCollectorSrcIpv4;
+    } else {
+      acl->dstIp_ref() = kCollectorDstIpv6;
+      acl->srcIp_ref() = kCollectorSrcIpv6;
+    }
+    acl->l4DstPort_ref() = qcmCfg.collectorDstPort; // pick the default
+    utility::addAclStat(&newCfg, kCollectorAcl, kCollectorAclCounter);
+
+    newCfg.qcmConfig_ref() = qcmCfg;
+    applyNewConfig(newCfg);
+
+    getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
+        true /* attach stat */);
+    addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
   uint32_t featuresDesired() const override {
@@ -283,4 +332,42 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
   setupQcm(qcmEnable);
   verify();
 }
+
+class BcmQcmDataCollectorParamTest : public BcmQcmDataTest,
+                                     public testing::WithParamInterface<bool> {
+};
+
+TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
+  if (!isQcmSupported()) {
+    return;
+  }
+  auto setup = [=](const bool isIpv6) { setUpHelperWithAcls(isIpv6); };
+  auto verify = [&]() {
+    int port1Counter = 0;
+    for (int i = 0; i < kAclPktTxCount; i++) {
+      sendL3Packet(kIPv6FlowDstAddress, masterLogicalPortIds()[1]);
+      port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
+          masterLogicalPortIds()[1]);
+      EXPECT_EQ(port1Counter, 1);
+    }
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
+    auto statHandle = getHwSwitch()
+                          ->getAclTable()
+                          ->getAclStat(kCollectorAclCounter)
+                          ->getHandle();
+    auto aclCounter = utility::getAclInOutPackets(getUnit(), statHandle);
+    EXPECT_GT(aclCounter, 0);
+  };
+  // TODO: rohitpuri
+  // Enable warmboot once QCM supports it CS00010434741
+  // verifyAcrossWarmBoots(setup, verify);
+  bool isIpv6 = GetParam();
+  setup(isIpv6);
+  verify();
+}
+
+INSTANTIATE_TEST_CASE_P(
+    BcmQcmDataCollectorParamTestInstantitation,
+    BcmQcmDataCollectorParamTest,
+    ::testing::Values(false, true));
 } // namespace facebook::fboss
