@@ -59,7 +59,7 @@ class QsfpModuleTest : public ::testing::Test {
       apache::thrift::FragileConstructor::FRAGILE, qsfp_->getID(), 0, {});
     return PortStatus(
       apache::thrift::FragileConstructor::FRAGILE,
-      enabled, up, false, tcvr, speed);
+      enabled, up, false, tcvr, speed, "");
   }
 
   std::unique_ptr<MockSffModule> qsfp_;
