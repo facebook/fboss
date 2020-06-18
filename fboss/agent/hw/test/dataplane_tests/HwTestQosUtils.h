@@ -27,5 +27,14 @@ bool verifyQueueMappings(
     HwSwitchEnsemble* ensemble,
     facebook::fboss::PortID egressPort);
 
+void verifyWRRHelper(
+    const std::map<int, uint64_t>& queueStats,
+    int maxWeightQueueId,
+    const std::map<int, uint8_t>& wrrQueueToWeight);
+
+void verifySPHelper(
+    const std::map<int, uint64_t>& queueStats,
+    int trafficQueueId);
+
 } // namespace utility
 } // namespace facebook::fboss
