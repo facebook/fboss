@@ -16,13 +16,14 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
 class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
- protected:
+ private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
@@ -32,9 +33,9 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     }
     return cfg;
   }
-
-  MacAddress kDstMac() const {
-    return getPlatform()->getLocalMac();
+  MacAddress dstMac() const {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    return utility::getInterfaceMac(getProgrammedState(), vlanId);
   }
 
   template <typename ECMP_HELPER>
@@ -46,14 +47,13 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
 
     return utility::makeUDPTxPacket(
         getHwSwitch(),
-        vlanId,
-        intfMac,
-        intfMac,
+        utility::firstVlanID(initialConfig()),
+        srcMac,
+        dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
@@ -141,8 +141,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       return;
     }
 
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                             getPlatform()->getLocalMac()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
     auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
 
@@ -159,17 +158,17 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifyWRR();
-  void verifySP();
-  void verifyWRRAndICP();
-  void verifyWRRAndNC();
-
- private:
   void clearPortStats() {
     auto ports = std::make_unique<std::vector<int32_t>>();
     ports->emplace_back((masterLogicalPortIds()[0]));
     getHwSwitch()->clearPortStats(ports);
   }
+
+ protected:
+  void verifyWRR();
+  void verifySP();
+  void verifyWRRAndICP();
+  void verifyWRRAndNC();
 };
 
 void HwOlympicQosSchedulerTest::verifyWRR() {
@@ -177,8 +176,7 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
     return;
   }
 
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                           getPlatform()->getLocalMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicWRRQueueIds()); };
 
@@ -201,8 +199,7 @@ void HwOlympicQosSchedulerTest::verifySP() {
     return;
   }
 
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                           getPlatform()->getLocalMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicSPQueueIds()); };
 
