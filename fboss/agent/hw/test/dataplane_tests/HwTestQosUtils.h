@@ -13,12 +13,15 @@
 
 #include "fboss/agent/types.h"
 
+#include <folly/IPAddress.h>
+
 #include <map>
 #include <vector>
 
 namespace facebook::fboss {
 class HwSwitchEnsemble;
 struct HwPortStats;
+class HwSwitch;
 namespace utility {
 
 bool verifyQueueMappings(
@@ -36,5 +39,9 @@ void verifySPHelper(
     const std::map<int, uint64_t>& queueStats,
     int trafficQueueId);
 
+void disableTTLDecrements(
+    HwSwitch* hw,
+    RouterID routerId,
+    const folly::IPAddress& nhop);
 } // namespace utility
 } // namespace facebook::fboss

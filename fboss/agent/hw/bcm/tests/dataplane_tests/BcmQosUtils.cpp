@@ -8,11 +8,9 @@
  *
  */
 #include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmHost.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 
-#include <glog/logging.h>
+#include "fboss/agent/hw/bcm/BcmError.h"
+
 #include <gtest/gtest.h>
 
 extern "C" {
@@ -94,26 +92,4 @@ int BcmCosToQueueMapper::gportTraverseCallback(
 
   return BCM_E_NONE;
 }
-
-void disableTTLDecrements(
-    BcmSwitch* hw,
-    RouterID routerId,
-    const folly::IPAddress& addr) {
-  auto vrfId = hw->getBcmVrfId(routerId);
-  auto bcmHostKey = BcmHostKey(vrfId, addr);
-  const auto hostTable = hw->getHostTable();
-  auto bcmHost = hostTable->getBcmHostIf(bcmHostKey);
-  CHECK(bcmHost) << "failed to find host for " << bcmHostKey.str();
-
-  bcm_if_t id = bcmHost->getEgressId();
-  bcm_l3_egress_t egr;
-  auto rv = bcm_l3_egress_get(hw->getUnit(), bcmHost->getEgressId(), &egr);
-  bcmCheckError(rv, "failed bcm_l3_egress_get");
-
-  // Opennsl does not define a flag for BCM_L3_KEEP_TTL
-  uint32_t flags = BCM_L3_REPLACE | BCM_L3_WITH_ID | BCM_L3_KEEP_TTL;
-  rv = bcm_l3_egress_create(hw->getUnit(), flags, &egr, &id);
-  bcmCheckError(rv, "failed bcm_l3_egress_create");
-}
-
 } // namespace facebook::fboss::utility

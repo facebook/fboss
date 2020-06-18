@@ -2,11 +2,11 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/Mirror.h"

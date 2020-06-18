@@ -39,10 +39,10 @@ std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
     if (!pins->empty()) {
       chip = pins->front().a.chip;
     } else {
-      XLOG(INFO) << "No pins for port " << id << ", return empty chip name";
+      XLOG(DBG5) << "No pins for port " << id << ", return empty chip name";
     }
   } else {
-    XLOG(INFO) << "No platformPortEntry for port " << id
+    XLOG(DBG5) << "No platformPortEntry for port " << id
                << ", return empty chip name";
   }
   return chip;

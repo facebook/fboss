@@ -58,9 +58,4 @@ class BcmCosToQueueMapper {
   bool initialized_{false};
 };
 
-void disableTTLDecrements(
-    BcmSwitch* hw,
-    RouterID routerId,
-    const folly::IPAddress& addr);
-
 } // namespace facebook::fboss::utility
