@@ -89,7 +89,7 @@ cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
     defaultConfig.speed =
         getPortSpeedFromProfile(platform, defaultConfig.profileID);
   } else {
-    XLOG(INFO) << "No platformPortEntry for port " << id
+    XLOG(DBG5) << "No platformPortEntry for port " << id
                << ", defaulting to max port speed instead of safe profile";
     defaultConfig.speed = maxPortSpeed(hwSwitch, id);
     defaultConfig.name_ref() = "eth1/" + std::to_string(id) + "/1";
