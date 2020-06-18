@@ -325,6 +325,8 @@ void getPortInfoHelper(
   // interesting failure modes (see T65569157)
   *portInfo.fecEnabled_ref() = port->getFEC() != cfg::PortFEC::OFF;
   *portInfo.fecMode_ref() = apache::thrift::util::enumName(port->getFEC());
+  *portInfo.profileID_ref() =
+      apache::thrift::util::enumName(port->getProfileID());
 
   auto pause = port->getPause();
   *portInfo.txPause_ref() = *pause.tx_ref();

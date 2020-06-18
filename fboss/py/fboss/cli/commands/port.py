@@ -116,6 +116,8 @@ class PortDetailsCmd(cmds.FbossCmd):
             ("Forward Error Correction", fec_status),
             ("Pause", pause),
         ]
+        if hasattr(port_info, "profileID") and port_info.profileID:
+            lines.append(("ProfileID", port_info.profileID))
 
         print()
         print("\n".join(fmt.format(*l) for l in lines))
@@ -442,9 +444,17 @@ class PortStatusCmd(cmds.FbossCmd):
         if hasattr(self, "_qsfp_client") and self._qsfp_client:
             self._qsfp_client.__exit__(exec, None, None)
 
-    def _get_field_format(self, internal_port):
+    def _get_field_format(self, internal_port, port_status_map):
         if internal_port:
-            field_fmt = "{:<6} {:>11} {:>12}  {}{:>10}  {:>12}  {:>6}  {:>6}"
+            maxProfileLen = max(
+                len(getattr(portStatus, "profileID", "") or "")
+                for portStatus in port_status_map.values()
+            )
+            maxProfileLen = max(maxProfileLen, len("ProfileID"))
+            field_fmt = (
+                "{:<6} {:>11} {:>12}  {}{:>10}  {:>12}  {:>6}  {:>6}  {:>%d}"
+                % maxProfileLen
+            )
             print(
                 field_fmt.format(
                     "ID",
@@ -455,9 +465,10 @@ class PortStatusCmd(cmds.FbossCmd):
                     "Transceiver",
                     "TcvrId",
                     "Speed",
+                    "ProfileID",
                 )
             )
-            print("-" * 75)
+            print("-" * (75 + maxProfileLen))
         else:
             field_fmt = "{:<11} {:>12}  {}{:>10}  {:>12}  {:>6}"
             print(
@@ -469,8 +480,8 @@ class PortStatusCmd(cmds.FbossCmd):
         return field_fmt
 
     def list_ports(self, client, ports, internal_port=False, all=False):
-        field_fmt = self._get_field_format(internal_port)
         port_status_map = client.getPortStatus(ports)
+        field_fmt = self._get_field_format(internal_port, port_status_map)
         qsfp_info_map = utils.get_qsfp_info_map(
             self._qsfp_client, None, continue_on_error=True
         )
@@ -508,6 +519,7 @@ class PortStatusCmd(cmds.FbossCmd):
                         attrs["present"],
                         transceiver.transceiverId if transceiver else "",
                         speed,
+                        attrs["profileID"],
                     )
                 )
             elif all:

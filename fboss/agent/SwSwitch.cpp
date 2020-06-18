@@ -135,6 +135,7 @@ facebook::fboss::PortStatus fillInPortStatus(
   status.enabled = port.isEnabled();
   status.up = port.isUp();
   status.speedMbps = static_cast<int>(port.getSpeed());
+  status.profileID = apache::thrift::util::enumName(port.getProfileID());
 
   try {
     status.transceiverIdx_ref() =

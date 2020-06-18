@@ -334,6 +334,7 @@ struct PortInfoThrift {
   16: bool rxPause = false,
   17: list<PortQueueThrift> portQueues = [],
   18: string fecMode,
+  19: string profileID,
 }
 
 struct NdpEntryThrift {
@@ -365,6 +366,7 @@ struct PortStatus {
   3: optional bool present,  # deprecated
   4: optional TransceiverIdxThrift transceiverIdx,
   5: i64 speedMbps,  // TODO: i32 (someone is optimistic about port speeds)
+  6: string profileID,
 }
 
 enum PrbsComponent {

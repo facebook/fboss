@@ -85,6 +85,8 @@ def get_status_strs(status, is_present):
     link_status = "Up"
     present = "Present"
     speed = ""
+    profileID = getattr(status, "profileID", "")
+
     if status.speedMbps:
         speed = "{}G".format(status.speedMbps // 1000)
     padding = 0
@@ -117,6 +119,7 @@ def get_status_strs(status, is_present):
     attrs["color_align"] = color_align
     attrs["present"] = present
     attrs["speed"] = speed
+    attrs["profileID"] = profileID if profileID else "-"
 
     return attrs
 
