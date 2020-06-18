@@ -7,12 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
+
 #include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
@@ -23,13 +20,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/IPAddress.h>
-
-extern "C" {
-#include <bcm/cosq.h>
-#include <bcm/l3.h>
-#include <bcm/stat.h>
-#include <bcm/types.h>
-}
 
 namespace facebook::fboss {
 
