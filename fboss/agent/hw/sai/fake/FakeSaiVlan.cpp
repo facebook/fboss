@@ -89,19 +89,13 @@ sai_status_t set_vlan_attribute_fn(
 }
 
 sai_status_t set_vlan_member_attribute_fn(
-    sai_object_id_t vlan_member_id,
+    sai_object_id_t /* vlan_member_id */,
     const sai_attribute_t* attr) {
-  auto fs = FakeSai::getInstance();
-  auto& vlanMember = fs->vlanManager.getMember(vlan_member_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
   switch (attr->id) {
-    case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
-      vlanMember.bridgePortId = attr->value.oid;
-      res = SAI_STATUS_SUCCESS;
-      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -127,17 +121,18 @@ sai_status_t create_vlan_member_fn(
   }
   *vlan_member_id =
       fs->vlanManager.createMember(vlanId.value(), vlanId.value());
+  auto& vlanMember = fs->vlanManager.getMember(*vlan_member_id);
+
   for (int i = 0; i < attr_count; ++i) {
-    if (attr_list[i].id == SAI_VLAN_MEMBER_ATTR_VLAN_ID) {
-      auto& vlanMember = fs->vlanManager.getMember(*vlan_member_id);
-      vlanMember.vlanId = attr_list[i].value.oid;
-    } else {
-      sai_status_t res =
-          set_vlan_member_attribute_fn(*vlan_member_id, &attr_list[i]);
-      if (res != SAI_STATUS_SUCCESS) {
-        fs->vlanManager.removeMember(*vlan_member_id);
-        return res;
-      }
+    switch (attr_list[i].id) {
+      case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
+        vlanMember.vlanId = attr_list[i].value.oid;
+        break;
+      case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
+        vlanMember.bridgePortId = attr_list[i].value.oid;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
     }
   }
   return SAI_STATUS_SUCCESS;
