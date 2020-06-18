@@ -7,8 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
@@ -22,13 +21,14 @@
 
 namespace facebook::fboss {
 
-class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
+class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addOlympicQueueConfig(&cfg);
+      utility::addOlympicQosMaps(cfg);
     }
     return cfg;
   }
@@ -172,7 +172,7 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
   }
 };
 
-void BcmOlympicQoSTest::verifyWRR() {
+void HwOlympicQosSchedulerTest::verifyWRR() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -196,7 +196,7 @@ void BcmOlympicQoSTest::verifyWRR() {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-void BcmOlympicQoSTest::verifySP() {
+void HwOlympicQosSchedulerTest::verifySP() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -226,43 +226,32 @@ void BcmOlympicQoSTest::verifySP() {
   verify();
 }
 
-void BcmOlympicQoSTest::verifyWRRAndICP() {
+void HwOlympicQosSchedulerTest::verifyWRRAndICP() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndICPQueueIds(),
       utility::kOlympicICPQueueId); // SP should starve WRR queues
                                     // altogether
 }
 
-void BcmOlympicQoSTest::verifyWRRAndNC() {
+void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndNCQueueIds(),
       utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
 }
 
-class BcmOlympicQoSMapTest : public BcmOlympicQoSTest {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = BcmOlympicQoSTest::initialConfig();
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQosMaps(cfg);
-    }
-    return cfg;
-  }
-};
-
-TEST_F(BcmOlympicQoSMapTest, VerifyWRR) {
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRR) {
   verifyWRR();
 }
 
-TEST_F(BcmOlympicQoSMapTest, VerifySP) {
+TEST_F(HwOlympicQosSchedulerTest, VerifySP) {
   verifySP();
 }
 
-TEST_F(BcmOlympicQoSMapTest, VerifyWRRAndICP) {
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndICP) {
   verifyWRRAndICP();
 }
 
-TEST_F(BcmOlympicQoSMapTest, VerifyWRRAndNC) {
+TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndNC) {
   verifyWRRAndNC();
 }
 

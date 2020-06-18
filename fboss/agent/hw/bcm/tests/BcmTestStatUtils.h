@@ -30,6 +30,4 @@ uint64_t getQueueOutPackets(
     int queueId,
     bool isMulticast);
 
-void clearPortStats(int unit, bcm_port_t port);
-
 } // namespace facebook::fboss::utility
