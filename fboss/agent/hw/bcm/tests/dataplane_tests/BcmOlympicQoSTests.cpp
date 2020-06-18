@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
@@ -149,9 +148,11 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
 
     auto verify = [=]() {
       sendUdpPktsForAllQueues(queueIds);
+      clearPortStats();
       utility::verifySPHelper(
-          utility::clearAndGetQueueStats(
-              getUnit(), masterLogicalPortIds()[0], queueIds),
+          getHwSwitchEnsemble()
+              ->getLatestPortStats(masterLogicalPortIds()[0])
+              .queueOutPackets_,
           trafficQueueId);
     };
 
@@ -162,6 +163,13 @@ class BcmOlympicQoSTest : public BcmLinkStateDependentTests {
   void verifySP();
   void verifyWRRAndICP();
   void verifyWRRAndNC();
+
+ private:
+  void clearPortStats() {
+    auto ports = std::make_unique<std::vector<int32_t>>();
+    ports->emplace_back((masterLogicalPortIds()[0]));
+    getHwSwitch()->clearPortStats(ports);
+  }
 };
 
 void BcmOlympicQoSTest::verifyWRR() {
@@ -176,11 +184,11 @@ void BcmOlympicQoSTest::verifyWRR() {
 
   auto verify = [=]() {
     sendUdpPktsForAllQueues(utility::kOlympicWRRQueueIds());
+    clearPortStats();
     utility::verifyWRRHelper(
-        utility::clearAndGetQueueStats(
-            getUnit(),
-            masterLogicalPortIds()[0],
-            utility::kOlympicWRRQueueIds()),
+        getHwSwitchEnsemble()
+            ->getLatestPortStats(masterLogicalPortIds()[0])
+            .queueOutPackets_,
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
         utility::kOlympicWRRQueueToWeight());
   };
@@ -200,11 +208,11 @@ void BcmOlympicQoSTest::verifySP() {
 
   auto verify = [=]() {
     sendUdpPktsForAllQueues(utility::kOlympicSPQueueIds());
+    clearPortStats();
     utility::verifySPHelper(
-        utility::clearAndGetQueueStats(
-            getUnit(),
-            masterLogicalPortIds()[0],
-            utility::kOlympicSPQueueIds()),
+        getHwSwitchEnsemble()
+            ->getLatestPortStats(masterLogicalPortIds()[0])
+            .queueOutPackets_,
         utility::kOlympicHighestSPQueueId); // SP queue with highest queueId
                                             // should starve other SP queues
                                             // altogether

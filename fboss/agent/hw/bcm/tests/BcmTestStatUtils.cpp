@@ -65,27 +65,4 @@ uint64_t getQueueOutPackets(
   return utility::getQueueOutPackets(unit, gport, cosq);
 }
 
-void clearPortStats(int unit, bcm_port_t port) {
-  auto rv = bcm_stat_clear(unit, port);
-  bcmCheckError(rv, "failed to clear port stats");
-}
-
-std::map<int, uint64_t> clearAndGetQueueStats(
-    int unit,
-    bcm_port_t port,
-    const std::vector<int>& queueIds) {
-  clearPortStats(unit, port);
-
-  std::map<int, uint64_t> queueStats;
-  auto portGport = utility::getPortGport(unit, port);
-  utility::BcmCosToQueueMapper cosToQueueMapper(portGport);
-  for (const auto& queueId : queueIds) {
-    auto queueGportId = cosToQueueMapper.getUcastQueueForCos(queueId);
-    queueStats.insert(
-        {queueId, utility::getQueueOutPackets(unit, queueGportId)});
-  }
-
-  return queueStats;
-}
-
 } // namespace facebook::fboss::utility

@@ -32,8 +32,4 @@ uint64_t getQueueOutPackets(
 
 void clearPortStats(int unit, bcm_port_t port);
 
-std::map<int, uint64_t> clearAndGetQueueStats(
-    int unit,
-    bcm_port_t port,
-    const std::vector<int>& queueIds);
 } // namespace facebook::fboss::utility

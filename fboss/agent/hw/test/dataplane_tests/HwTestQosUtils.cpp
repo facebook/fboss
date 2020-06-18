@@ -59,7 +59,7 @@ bool verifyQueueMappings(
 
 // Packets processed by WRR queues should be in proportion to their weights
 void verifyWRRHelper(
-    const std::map<int, uint64_t>& queueStats,
+    const std::map<int16_t, int64_t>& queueStats,
     int maxWeightQueueId,
     const std::map<int, uint8_t>& wrrQueueToWeight) {
   /*
@@ -106,7 +106,7 @@ void verifyWRRHelper(
 
 // Only trafficQueueId should have traffic
 void verifySPHelper(
-    const std::map<int, uint64_t>& queueStats,
+    const std::map<int16_t, int64_t>& queueStats,
     int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
   for (const auto& queueStat : queueStats) {

@@ -31,12 +31,12 @@ bool verifyQueueMappings(
     facebook::fboss::PortID egressPort);
 
 void verifyWRRHelper(
-    const std::map<int, uint64_t>& queueStats,
+    const std::map<int16_t, int64_t>& queueStats,
     int maxWeightQueueId,
     const std::map<int, uint8_t>& wrrQueueToWeight);
 
 void verifySPHelper(
-    const std::map<int, uint64_t>& queueStats,
+    const std::map<int16_t, int64_t>& queueStats,
     int trafficQueueId);
 
 void disableTTLDecrements(
