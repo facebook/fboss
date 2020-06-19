@@ -51,6 +51,9 @@ namespace facebook::fboss {
 
 class BcmPortTest : public BcmTest {
  protected:
+  std::vector<PortID> initialConfiguredPorts() const {
+    return {masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+  }
   cfg::SwitchConfig initialConfig() const override {
     return utility::oneL3IntfTwoPortConfig(
         getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
@@ -60,8 +63,7 @@ class BcmPortTest : public BcmTest {
 TEST_F(BcmPortTest, PortApplyConfig) {
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {
-    for (auto index : {0, 1}) {
-      auto portId = masterLogicalPortIds()[index];
+    for (auto portId : initialConfiguredPorts()) {
       // check port should exist in portTable_
       ASSERT_TRUE(
           getHwSwitch()->getPortTable()->getBcmPortIf(PortID(portId)) !=
@@ -81,20 +83,18 @@ TEST_F(BcmPortTest, PortSflowConfig) {
   auto constexpr kEgressRate = 20;
   auto setup = [this, kIngressRate, kEgressRate]() {
     auto newCfg = initialConfig();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].sFlowIngressRate_ref() = kIngressRate;
-      *newCfg.ports[index].sFlowEgressRate_ref() = kEgressRate;
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->sFlowIngressRate_ref() = kIngressRate;
+      portCfg->sFlowEgressRate_ref() = kEgressRate;
     }
     applyNewConfig(newCfg);
   };
   auto verify = [this, kIngressRate, kEgressRate]() {
-    for (auto index : {0, 1}) {
+    for (auto portId : initialConfiguredPorts()) {
       int ingressSamplingRate, egressSamplingRate;
       getSflowRates(
-          getUnit(),
-          masterLogicalPortIds()[index],
-          &ingressSamplingRate,
-          &egressSamplingRate);
+          getUnit(), portId, &ingressSamplingRate, &egressSamplingRate);
       ASSERT_EQ(kIngressRate, ingressSamplingRate);
       ASSERT_EQ(kEgressRate, egressSamplingRate);
     }
@@ -108,7 +108,9 @@ TEST_F(BcmPortTest, PortLoopbackMode) {
     std::vector<cfg::PortLoopbackMode> loopbackModes = {
         cfg::PortLoopbackMode::MAC, cfg::PortLoopbackMode::PHY};
     for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = loopbackModes[index];
+      auto portId = initialConfiguredPorts()[index];
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = loopbackModes[index];
     }
     applyNewConfig(newCfg);
   };
@@ -138,21 +140,19 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::FORTYG;
-      *newCfg.ports[index].profileID_ref() =
-          getPlatform()
-              ->getPlatformPort(PortID(*newCfg.ports[index].logicalID_ref()))
-              ->getProfileIDBySpeed(*newCfg.ports[index].speed_ref());
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
     }
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    for (auto index : {0, 1}) {
-      auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_MAC);
-      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::FORTYG);
+    for (auto portId : initialConfiguredPorts()) {
+      utility::assertPortLoopbackMode(
+          getHwSwitch(), portId, BCM_PORT_LOOPBACK_MAC);
+      utility::assertPort(getHwSwitch(), portId, true, cfg::PortSpeed::FORTYG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -165,21 +165,19 @@ TEST_F(BcmPortTest, PortLoopbackModePHY40G) {
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::FORTYG;
-      *newCfg.ports[index].profileID_ref() =
-          getPlatform()
-              ->getPlatformPort(PortID(*newCfg.ports[index].logicalID_ref()))
-              ->getProfileIDBySpeed(*newCfg.ports[index].speed_ref());
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
     }
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    for (auto index : {0, 1}) {
-      auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_PHY);
-      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::FORTYG);
+    for (auto portId : initialConfiguredPorts()) {
+      utility::assertPortLoopbackMode(
+          getHwSwitch(), portId, BCM_PORT_LOOPBACK_PHY);
+      utility::assertPort(getHwSwitch(), portId, true, cfg::PortSpeed::FORTYG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -192,21 +190,20 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC100G) {
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::HUNDREDG;
-      *newCfg.ports[index].profileID_ref() =
-          getPlatform()
-              ->getPlatformPort(PortID(*newCfg.ports[index].logicalID_ref()))
-              ->getProfileIDBySpeed(*newCfg.ports[index].speed_ref());
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
     }
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    for (auto index : {0, 1}) {
-      auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_MAC);
-      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::HUNDREDG);
+    for (auto portId : initialConfiguredPorts()) {
+      utility::assertPortLoopbackMode(
+          getHwSwitch(), portId, BCM_PORT_LOOPBACK_MAC);
+      utility::assertPort(
+          getHwSwitch(), portId, true, cfg::PortSpeed::HUNDREDG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -219,21 +216,20 @@ TEST_F(BcmPortTest, PortLoopbackModePHY100G) {
 
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::HUNDREDG;
-      *newCfg.ports[index].profileID_ref() =
-          getPlatform()
-              ->getPlatformPort(PortID(*newCfg.ports[index].logicalID_ref()))
-              ->getProfileIDBySpeed(*newCfg.ports[index].speed_ref());
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::PHY;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
     }
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    for (auto index : {0, 1}) {
-      auto id = masterLogicalPortIds()[index];
-      utility::assertPortLoopbackMode(getHwSwitch(), id, BCM_PORT_LOOPBACK_PHY);
-      utility::assertPort(getHwSwitch(), id, true, cfg::PortSpeed::HUNDREDG);
+    for (auto portId : initialConfiguredPorts()) {
+      utility::assertPortLoopbackMode(
+          getHwSwitch(), portId, BCM_PORT_LOOPBACK_PHY);
+      utility::assertPort(
+          getHwSwitch(), portId, true, cfg::PortSpeed::HUNDREDG);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -249,9 +245,11 @@ TEST_F(BcmPortTest, SampleDestination) {
     std::vector<cfg::SampleDestination> sampleDestinations = {
         cfg::SampleDestination::CPU, cfg::SampleDestination::MIRROR};
     for (auto index : {0, 1}) {
-      newCfg.ports_ref()[index].sampleDest_ref() = sampleDestinations[index];
+      auto portId = initialConfiguredPorts()[index];
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->sampleDest_ref() = sampleDestinations[index];
       if (sampleDestinations[index] == cfg::SampleDestination::MIRROR) {
-        newCfg.ports_ref()[index].ingressMirror_ref() = "sflow";
+        portCfg->ingressMirror_ref() = "sflow";
       }
     }
     cfg::MirrorTunnel tunnel;
@@ -303,7 +301,9 @@ TEST_F(BcmPortTest, IngressMirror) {
     tunnel.greTunnel_ref() = greTunnel;
     newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
 
-    newCfg.ports_ref()[1].ingressMirror_ref() = "mirror";
+    auto portId = masterLogicalPortIds()[1];
+    auto portCfg = utility::findCfgPort(newCfg, portId);
+    portCfg->ingressMirror_ref() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
@@ -326,7 +326,9 @@ TEST_F(BcmPortTest, EgressMirror) {
     tunnel.greTunnel_ref() = greTunnel;
     newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
 
-    newCfg.ports_ref()[1].egressMirror_ref() = "mirror";
+    auto portId = masterLogicalPortIds()[1];
+    auto portCfg = utility::findCfgPort(newCfg, portId);
+    portCfg->egressMirror_ref() = "mirror";
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
@@ -352,8 +354,10 @@ TEST_F(BcmPortTest, SampleDestinationMirror) {
     mirror.destination_ref()->tunnel_ref() = tunnel;
     newCfg.mirrors_ref()->push_back(mirror);
 
-    newCfg.ports_ref()[1].ingressMirror_ref() = "mirror";
-    newCfg.ports_ref()[1].sampleDest_ref() = cfg::SampleDestination::MIRROR;
+    auto portId = masterLogicalPortIds()[1];
+    auto portCfg = utility::findCfgPort(newCfg, portId);
+    portCfg->ingressMirror_ref() = "mirror";
+    portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
     return applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -377,8 +381,10 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
     mirror.destination_ref()->tunnel_ref() = tunnel;
     newCfg.mirrors_ref()->push_back(mirror);
 
-    newCfg.ports_ref()[1].ingressMirror_ref() = "mirror";
-    newCfg.ports_ref()[1].sampleDest_ref() = cfg::SampleDestination::CPU;
+    auto portId = masterLogicalPortIds()[1];
+    auto portCfg = utility::findCfgPort(newCfg, portId);
+    portCfg->ingressMirror_ref() = "mirror";
+    portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
     return applyNewConfig(newCfg);
   };
   auto verify = [=]() {
@@ -404,13 +410,11 @@ TEST_F(BcmPortTest, FECStatus100GPort) {
             ->getBcmPort(PortID(masterLogicalPortIds()[1]))
             ->getPlatformPort());
     platformPort->setShouldDisableFec();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::HUNDREDG;
-      *newCfg.ports[index].profileID_ref() =
-          getPlatform()
-              ->getPlatformPort(PortID(*newCfg.ports[index].logicalID_ref()))
-              ->getProfileIDBySpeed(*newCfg.ports[index].speed_ref());
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
     }
     applyNewConfig(newCfg);
   };
@@ -437,10 +441,12 @@ TEST_F(BcmPortTest, FECStatusNon100GPort) {
             ->getBcmPort(PortID(masterLogicalPortIds()[1]))
             ->getPlatformPort());
     platformPort->setShouldDisableFec();
-    for (auto index : {0, 1}) {
-      *newCfg.ports[index].loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      *newCfg.ports[index].speed_ref() = cfg::PortSpeed::FORTYG;
-      *newCfg.ports[index].fec_ref() = cfg::PortFEC::ON;
+    for (auto portId : initialConfiguredPorts()) {
+      auto portCfg = utility::findCfgPort(newCfg, portId);
+      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
+      utility::updatePortSpeed(
+          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
+      portCfg->fec_ref() = cfg::PortFEC::ON;
     }
     applyNewConfig(newCfg);
   };
