@@ -918,17 +918,16 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
     auto config = initialConfig();
     applyNewConfig(config);
     for (auto i = 0; i < 2; i++) {
+      auto portId = masterLogicalPortIds()[i];
       auto helper4 = utility::EcmpSetupTargetedPorts<IPAddressV4>(
           getProgrammedState(), RouterID(0));
       applyNewState(helper4.resolveNextHops(
-          getProgrammedState(),
-          {PortDescriptor(PortID(config.ports_ref()[i].get_logicalID()))}));
+          getProgrammedState(), {PortDescriptor(portId)}));
 
       auto helper6 = utility::EcmpSetupTargetedPorts<IPAddressV6>(
           getProgrammedState(), RouterID(0));
       applyNewState(helper6.resolveNextHops(
-          getProgrammedState(),
-          {PortDescriptor(PortID(config.ports_ref()[i].get_logicalID()))}));
+          getProgrammedState(), {PortDescriptor(portId)}));
     }
 
     // host route has only one next hop
@@ -1004,7 +1003,8 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
   auto config = initialConfig();
   boost::container::flat_set<PortDescriptor> ports;
   for (auto i = 0; i < 2; i++) {
-    ports.insert(PortDescriptor(PortID(config.ports_ref()[i].get_logicalID())));
+    auto portId = masterLogicalPortIds()[i];
+    ports.insert(PortDescriptor(portId));
   }
   auto route = RoutePrefixV6{folly::IPAddressV6("2401:dead:beef::"), 112};
 
