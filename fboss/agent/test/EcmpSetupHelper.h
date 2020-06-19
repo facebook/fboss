@@ -32,11 +32,16 @@ namespace facebook::fboss::utility {
 
 template <typename IPAddrT>
 struct EcmpNextHop {
-  EcmpNextHop(IPAddrT _ip, PortDescriptor _portDesc, folly::MacAddress _mac)
-      : ip(_ip), portDesc(_portDesc), mac(_mac) {}
+  EcmpNextHop(
+      IPAddrT _ip,
+      PortDescriptor _portDesc,
+      folly::MacAddress _mac,
+      InterfaceID _intf)
+      : ip(_ip), portDesc(_portDesc), mac(_mac), intf(_intf) {}
   IPAddrT ip;
   PortDescriptor portDesc;
   folly::MacAddress mac;
+  InterfaceID intf;
 };
 
 template <typename IPAddrT>
@@ -45,11 +50,17 @@ struct EcmpMplsNextHop {
       IPAddrT _ip,
       PortDescriptor _portDesc,
       folly::MacAddress _mac,
+      InterfaceID _intf,
       LabelForwardingAction _action)
-      : ip(_ip), portDesc(_portDesc), mac(_mac), action(std::move(_action)) {}
+      : ip(_ip),
+        portDesc(_portDesc),
+        mac(_mac),
+        intf(_intf),
+        action(std::move(_action)) {}
   IPAddrT ip;
   PortDescriptor portDesc;
   folly::MacAddress mac;
+  InterfaceID intf;
   LabelForwardingAction action;
 };
 

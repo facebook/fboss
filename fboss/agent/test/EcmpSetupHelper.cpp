@@ -210,7 +210,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
         IPAddrT(bytes),
         portDescAndVlan.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
-                   : MacAddress::fromHBO(baseMac + offset)));
+                   : MacAddress::fromHBO(baseMac + offset),
+        InterfaceID(vlan)));
   }
 }
 
@@ -469,6 +470,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
         portDescAndVlan.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
                    : MacAddress::fromHBO(baseMac + offset),
+        InterfaceID(vlan),
         getLabelForwardingAction(portDescAndVlan.first)));
   }
 }
