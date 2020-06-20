@@ -674,8 +674,9 @@ TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
   auto setup = [=]() {
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -695,8 +696,9 @@ TYPED_TEST(BcmMirrorTest, PortMirroringIfResolved) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -742,8 +744,9 @@ TYPED_TEST(BcmMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -801,8 +804,9 @@ TYPED_TEST(BcmMirrorTest, PortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -845,8 +849,9 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -866,10 +871,11 @@ TYPED_TEST(BcmMirrorTest, UpdatePortMirror) {
     this->applyNewState(newState);
 
     cfg.mirrors_ref()[0] = this->getSpanMirror();
-    cfg.ports_ref()[0].ingressMirror_ref().reset();
-    cfg.ports_ref()[0].egressMirror_ref().reset();
-    cfg.ports_ref()[1].ingressMirror_ref() = kSpan;
-    cfg.ports_ref()[1].egressMirror_ref() = kSpan;
+    portCfg->ingressMirror_ref().reset();
+    portCfg->egressMirror_ref().reset();
+    portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
+    portCfg->ingressMirror_ref() = kSpan;
+    portCfg->egressMirror_ref() = kSpan;
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -904,8 +910,9 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
-    cfg.ports_ref()[0].ingressMirror_ref() = kErspan;
-    cfg.ports_ref()[0].egressMirror_ref() = kErspan;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
+    portCfg->ingressMirror_ref() = kErspan;
+    portCfg->egressMirror_ref() = kErspan;
     this->applyNewConfig(cfg);
 
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -923,8 +930,8 @@ TYPED_TEST(BcmMirrorTest, RemovePortMirror) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    cfg.ports_ref()[0].ingressMirror_ref().reset();
-    cfg.ports_ref()[0].egressMirror_ref().reset();
+    portCfg->ingressMirror_ref().reset();
+    portCfg->egressMirror_ref().reset();
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -1322,9 +1329,10 @@ TYPED_TEST(BcmMirrorTest, SampleOnePort) {
     auto cfg = this->initialConfig();
     /* sampling one port and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    cfg.ports_ref()[1].ingressMirror_ref() = *cfg.mirrors[0].name_ref();
-    cfg.ports_ref()[1].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-    *cfg.ports[1].sFlowIngressRate_ref() = 90000;
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
+    portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+    *portCfg->sFlowIngressRate_ref() = 90000;
     this->applyNewConfig(cfg);
 
     // resolve mirror
@@ -1373,10 +1381,11 @@ TYPED_TEST(BcmMirrorTest, SampleAllPorts) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1427,12 +1436,15 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirror) {
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
-      cfg.ports_ref()[i].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *cfg.ports[i].sFlowIngressRate_ref() = 90000;
-      cfg.ports_ref()[i].ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+      auto portId = this->masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
-    cfg.ports_ref()[2].ingressMirror_ref() = *cfg.mirrors[1].name_ref();
-    cfg.ports_ref()[2].egressMirror_ref() = *cfg.mirrors[1].name_ref();
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
+    portCfg->ingressMirror_ref() = *cfg.mirrors[1].name_ref();
+    portCfg->egressMirror_ref() = *cfg.mirrors[1].name_ref();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1513,12 +1525,15 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
-      cfg.ports_ref()[i].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *cfg.ports[i].sFlowIngressRate_ref() = 90000;
-      cfg.ports_ref()[i].ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+      auto portId = this->masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
-    cfg.ports_ref()[2].ingressMirror_ref() = *cfg.mirrors[1].name_ref();
-    cfg.ports_ref()[2].egressMirror_ref() = *cfg.mirrors[1].name_ref();
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
+    portCfg->ingressMirror_ref() = *cfg.mirrors[1].name_ref();
+    portCfg->egressMirror_ref() = *cfg.mirrors[1].name_ref();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1555,9 +1570,10 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     newState->resetMirrors(mirrors);
     this->applyNewState(newState);
 
-    cfg.ports_ref()[1].sampleDest_ref() = cfg::SampleDestination::CPU;
-    *cfg.ports[1].sFlowIngressRate_ref() = 0;
-    cfg.ports_ref()[1].ingressMirror_ref().reset();
+    portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[1]);
+    portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
+    *portCfg->sFlowIngressRate_ref() = 0;
+    portCfg->ingressMirror_ref().reset();
     this->applyNewConfig(cfg);
   };
   auto verify = [=]() {
@@ -1604,12 +1620,15 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     cfg.mirrors_ref()->push_back(this->getErspanMirror());
 
     for (auto i = 0; i < 2; i++) {
-      cfg.ports_ref()[i].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *cfg.ports[i].sFlowIngressRate_ref() = 90000;
-      cfg.ports_ref()[i].ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+      auto portId = this->masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
-    cfg.ports_ref()[2].ingressMirror_ref() = *cfg.mirrors[1].name_ref();
-    cfg.ports_ref()[2].egressMirror_ref() = *cfg.mirrors[1].name_ref();
+    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[2]);
+    portCfg->ingressMirror_ref() = *cfg.mirrors[1].name_ref();
+    portCfg->egressMirror_ref() = *cfg.mirrors[1].name_ref();
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
@@ -1647,9 +1666,11 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     this->applyNewState(newState);
 
     for (auto i = 0; i < 2; i++) {
-      cfg.ports_ref()[i].sampleDest_ref() = cfg::SampleDestination::CPU;
-      *cfg.ports[i].sFlowIngressRate_ref() = 0;
-      cfg.ports_ref()[i].ingressMirror_ref().reset();
+      auto portId = this->masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::CPU;
+      *portCfg->sFlowIngressRate_ref() = 0;
+      portCfg->ingressMirror_ref().reset();
     }
     this->applyNewConfig(cfg);
     // TODO(pshaikh): skip unresolving mirror if tunnel parameters are unchanged
@@ -1728,10 +1749,11 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolved) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1795,10 +1817,11 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1882,10 +1905,11 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1936,10 +1960,11 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUpdate) {
         ->sflowTunnel_ref()
         ->udpDstPort_ref() = 9898;
     /* sampling all ports and send traffic to sflow mirror */
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -1975,10 +2000,11 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPorts) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
@@ -2029,10 +2055,11 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
     cfg.mirrors_ref()->push_back(this->getSflowMirror());
-    for (auto& port : *cfg.ports_ref()) {
-      port.sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      *port.sFlowIngressRate_ref() = 90000;
-      port.ingressMirror_ref() = *cfg.mirrors[0].name_ref();
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors[0].name_ref();
     }
     this->applyNewConfig(cfg);
     // resolve mirror
