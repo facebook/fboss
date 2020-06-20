@@ -31,19 +31,28 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
-  AclTableSaiId createAclTable(
-      const std::vector<sai_int32_t>& aclTableBindPointTypeListAttribute =
-          std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT},
-      const std::vector<sai_int32_t>& aclTableActionTypeListAttribute =
-          std::vector<sai_int32_t>{SAI_ACL_ACTION_TYPE_REDIRECT}) const {
+  const std::vector<sai_int32_t>& kActionTypeList() const {
+    static const std::vector<sai_int32_t> actionTypeList = {
+        SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+        SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
+        SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
+        SAI_ACL_ACTION_TYPE_SET_TC,
+        SAI_ACL_ACTION_TYPE_SET_DSCP};
+
+    return actionTypeList;
+  }
+
+  AclTableSaiId createAclTable() const {
     SaiAclTableTraits::Attributes::Stage aclTableStageAttribute{
         SAI_ACL_STAGE_INGRESS};
+    std::vector<sai_int32_t> aclTableBindPointTypeListAttribute{
+        SAI_ACL_BIND_POINT_TYPE_PORT};
 
     return aclApi->create<SaiAclTableTraits>(
         {
             aclTableStageAttribute,
             aclTableBindPointTypeListAttribute,
-            aclTableActionTypeListAttribute,
+            kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
             true, // l4SrcPort
@@ -207,8 +216,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableStageGot, SAI_ACL_STAGE_INGRESS);
   EXPECT_EQ(aclTableBindPointTypeListGot.size(), 1);
   EXPECT_EQ(aclTableBindPointTypeListGot[0], SAI_ACL_BIND_POINT_TYPE_PORT);
-  EXPECT_EQ(aclTableActionTypeListGot.size(), 1);
-  EXPECT_EQ(aclTableActionTypeListGot[0], SAI_ACL_ACTION_TYPE_REDIRECT);
+  EXPECT_TRUE(aclTableActionTypeListGot == kActionTypeList());
+
   EXPECT_EQ(aclTableEntryListGot.size(), 1);
   EXPECT_EQ(aclTableEntryListGot[0], static_cast<uint32_t>(aclEntryId));
   EXPECT_EQ(aclTableFieldDscpGot, true);
