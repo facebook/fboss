@@ -148,25 +148,22 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 }
 
 void SaiPlatform::initPorts() {
-  auto& platform = config()->thrift.platform;
   auto platformMode = getMode();
-  if (auto platformPorts = platform.platformPorts_ref()) {
-    for (auto& port : *platformPorts) {
-      std::unique_ptr<SaiPlatformPort> saiPort;
-      PortID portId(port.first);
-      if (platformMode == PlatformMode::WEDGE400C) {
-        saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-      } else if (
-          platformMode == PlatformMode::WEDGE ||
-          platformMode == PlatformMode::WEDGE100 ||
-          platformMode == PlatformMode::GALAXY_LC ||
-          platformMode == PlatformMode::GALAXY_FC) {
-        saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
-      } else {
-        saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
-      }
-      portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
+  for (auto& port : getPlatformPorts()) {
+    std::unique_ptr<SaiPlatformPort> saiPort;
+    PortID portId(port.first);
+    if (platformMode == PlatformMode::WEDGE400C) {
+      saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
+    } else if (
+        platformMode == PlatformMode::WEDGE ||
+        platformMode == PlatformMode::WEDGE100 ||
+        platformMode == PlatformMode::GALAXY_LC ||
+        platformMode == PlatformMode::GALAXY_FC) {
+      saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
+    } else {
+      saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
+    portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
   }
 }
 
