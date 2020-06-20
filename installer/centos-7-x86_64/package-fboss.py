@@ -52,7 +52,7 @@ class PackageFboss:
         "fboss": (BIN, ["wedge_agent", "bcm_test", "sai_test-fake-1.5.0"]),
         "gflags": (LIB, ["libgflags.so.2.2"]),
         "glog": (LIB64, ["libglog.so.0"]),
-        "zstd": (LIB64, ["libzstd.so.1.4.4"]),
+        "zstd": (LIB64, ["libzstd.so.1"]),
         "libusb": (LIB, ["libusb-1.0.so.0"]),
         "libnl": (LIB, ["libnl-3.so.200"]),
         "libcurl": (LIB, ["libcurl.so.4"]),
