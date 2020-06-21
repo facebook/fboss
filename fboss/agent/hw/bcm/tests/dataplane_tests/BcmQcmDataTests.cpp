@@ -332,6 +332,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
     // send 1 flow
     auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
         createQcmFlows(1, kPktTxCount);
+    std::ignore = nonFlowLearnPortCounter;
     EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
   };
@@ -367,6 +368,7 @@ TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
   auto verify = [&]() {
     auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
         createQcmFlows(1, kAclPktTxCount);
+    std::ignore = nonFlowLearnPortCounter;
     EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
     auto statHandle = getHwSwitch()
