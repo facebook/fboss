@@ -7,7 +7,9 @@
  */
 
 #include <folly/IPAddressV6.h>
+#include <folly/logging/xlog.h>
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmLogBuffer.h"
 #include "fboss/agent/hw/bcm/BcmQcmCollector.h"
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -28,10 +30,14 @@ constexpr int kAclPktTxCount = 100;
 const folly::IPAddressV6 kIPv6Route = folly::IPAddressV6("2401::201:ab00");
 const folly::IPAddress kIPv6FlowDstAddress =
     folly::IPAddressV6("2401::201:ab01");
-const folly::IPAddress kIPv6FlowSrcAddress1 = folly::IPAddressV6("1::9");
-const folly::IPAddress kIPv6FlowSrcAddress2 = folly::IPAddressV6("1::10");
-const folly::IPAddress kIPv6FlowSrcAddress3 = folly::IPAddressV6("1::11");
-const folly::IPAddress kIPv6FlowSrcAddress4 = folly::IPAddressV6("1::12");
+
+const std::array<folly::IPAddress, 4> kIPv6FlowSrcAddress{
+    folly::IPAddressV6("1::9"),
+    folly::IPAddressV6("1::10"),
+    folly::IPAddressV6("1::11"),
+    folly::IPAddressV6("1::12"),
+};
+
 const folly::IPAddress kIPv4FlowSrcAddress = folly::IPAddressV4("10.0.0.1");
 
 const std::string kCollectorSrcIpv4 = "10.0.0.2/32";
@@ -90,9 +96,6 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     applyNewConfig(newCfg);
     cfg_ = newCfg;
 
-    getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
-        true /* attach stat */);
     addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
@@ -104,6 +107,34 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
           {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
           true /* attach stat */);
     }
+  }
+
+  std::tuple<int, int> createQcmFlows(int numFlows, int pktCount) {
+    int port1Counter = 0, port0Counter = 0;
+    // monitor following 2 ports
+    getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
+        true /* attach stat */);
+    if (numFlows > kIPv6FlowSrcAddress.size()) {
+      XLOG(ERR) << "Flow count requested : " << numFlows
+                << " more than pool of addresses. Count= "
+                << kIPv6FlowSrcAddress.size();
+      return {0, 0};
+    }
+    // send flows
+    for (int i = 0; i < pktCount; i++) {
+      for (int j = 0; j < numFlows; j++) {
+        sendL3Packet(
+            kIPv6FlowDstAddress,
+            masterLogicalPortIds()[1],
+            kIPv6FlowSrcAddress[j]);
+      }
+    }
+    port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
+        masterLogicalPortIds()[1]);
+    port0Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
+        masterLogicalPortIds()[0]);
+    return {port0Counter, port1Counter};
   }
 
   void setUpHelperWithAcls(bool isIpv6) {
@@ -166,7 +197,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     EthHdr eth{intfMac, intfMac, std::move(vlans), 0x86DD};
     // construct l3 hdr
     bool isV6 = dstIp.isV6();
-    const auto dummySrcIp = isV6 ? kIPv6FlowSrcAddress2 : kIPv4FlowSrcAddress;
+    const auto dummySrcIp = isV6 ? kIPv6FlowSrcAddress[0] : kIPv4FlowSrcAddress;
     auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
     auto pkt = utility::makeTCPTxPacket(
         getHwSwitch(),
@@ -194,6 +225,29 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
   cfg::SwitchConfig cfg_;
 };
 
+TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
+  if (!isQcmSupported()) {
+    // This test only applies to ceratin ASIC e.g. TH
+    // and to specific sdk versions
+    return;
+  }
+
+  // intent of this test is to load the QcmFirmware during
+  // initialization (using flags above in SetUp) and ensure it goes through fine
+  // Verify if the status of firmware is good
+  auto setup = [=]() { setupHelper(); };
+
+  auto verify = [this]() {
+    BcmLogBuffer logBuffer;
+    getHwSwitch()->printDiagCmd("mcsstatus Quick=true");
+    std::string mcsStatusStr =
+        logBuffer.getBuffer()->moveToFbString().toStdString();
+    XLOG(INFO) << "MCStatus:" << mcsStatusStr;
+    EXPECT_TRUE(mcsStatusStr.find("uC 0 status: OK") != std::string::npos);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Intent of this test is to setup QCM tables
 // send a flow and verify if the flow learning happens
 // Only first pkt should hit the ifp entry, all subsequent pkts should
@@ -206,25 +260,15 @@ TEST_F(BcmQcmDataTest, FlowLearning) {
   auto setup = [&]() { setupHelper(); };
 
   auto verify = [&]() {
-    int port0Counter = 0, port1Counter = 0;
-    for (int i = 0; i < kPktTxCount; i++) {
-      sendL3Packet(kIPv6FlowDstAddress, masterLogicalPortIds()[1]);
-      int prevPort0Counter = port0Counter;
-      port0Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
-          masterLogicalPortIds()[0]);
-      port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
-          masterLogicalPortIds()[1]);
-      EXPECT_EQ(port1Counter, 1);
-      EXPECT_EQ(port0Counter, prevPort0Counter + 1);
-    }
+    // send 1 flow only
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(1, kPktTxCount);
+    EXPECT_EQ(flowLearnPortCounter, 1);
+    EXPECT_EQ(nonFlowLearnPortCounter, kPktTxCount);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
   };
 
-  // TODO: rohitpuri
-  // Enable warmboot once QCM supports it CS00010434741
-  // verifyAcrossWarmBoots(setup, verify);
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Intent of this test is to setup QCM tables
@@ -237,24 +281,15 @@ TEST_F(BcmQcmDataTest, MultiFlows) {
   auto setup = [&]() { setupHelper(); };
 
   auto verify = [&]() {
-    for (int i = 0; i < kPktTxCount; i++) {
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress1);
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress2);
-      auto port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
-          masterLogicalPortIds()[1]);
-      // we learn 2 flows after first hit, so counter never goes higher than 2
-      EXPECT_EQ(port1Counter, 2);
-    }
+    // send 2 flows
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(2, kPktTxCount);
+    EXPECT_EQ(nonFlowLearnPortCounter, 2 * kPktTxCount);
+    EXPECT_EQ(flowLearnPortCounter, 2);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 2);
   };
 
-  // TODO: rohitpuri
-  // Enable warmboot once QCM supports it CS00010434741
-  // verifyAcrossWarmBoots(setup, verify);
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Intent of this test is to setup QCM tables
@@ -265,42 +300,28 @@ TEST_F(BcmQcmDataTest, RestrictFlowLearning) {
   if (!isQcmSupported()) {
     return;
   }
-  auto setup = [&]() {
-    setupHelper();
-    // force the flow learning to 1 only
-    getHwSwitch()->getBcmQcmMgr()->flowLimitSet(1);
-  };
+  auto setup = [&]() { setupHelper(); };
 
   auto verify = [&]() {
-    for (int i = 0; i < kPktTxCount; i++) {
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress1);
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress2);
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress3);
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress4);
-    }
-    int counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
-        masterLogicalPortIds()[1]);
+    // force the flow learning to 1 only
+    getHwSwitch()->getBcmQcmMgr()->flowLimitSet(1);
+    // send 4 flows
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(4, kPktTxCount);
 
     // we learn 4 flows after first hit, but 3 hits after that
     // so its 9x3 + 4
-    EXPECT_EQ(counter, 31);
+    EXPECT_EQ(flowLearnPortCounter, 31);
+    EXPECT_EQ(nonFlowLearnPortCounter, 4 * kPktTxCount);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
   };
 
-  // TODO: rohitpuri
-  // Enable warmboot once QCM supports it CS00010434741
-  // verifyAcrossWarmBoots(setup, verify);
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Intent of this test is to enable QCM, do flow learning
-// // stop qcm and ensure that flow tracker is disabled,
-// // enable QCM again and ensure flow learning happens as desired
+// Stop qcm and ensure that flow tracker is disabled,
+// Enable QCM again and ensure flow learning happens as desired
 TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
   if (!isQcmSupported()) {
     return;
@@ -308,10 +329,10 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
   auto setup = [=]() { setupHelper(); };
   auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
   auto verify = [&]() {
-    for (int i = 0; i < kPktTxCount; i++) {
-      sendL3Packet(
-          kIPv6FlowDstAddress, masterLogicalPortIds()[1], kIPv6FlowSrcAddress1);
-    }
+    // send 1 flow
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(1, kPktTxCount);
+    EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
   };
   auto verifyStop = [&]() {
@@ -341,15 +362,12 @@ TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
   if (!isQcmSupported()) {
     return;
   }
-  auto setup = [=](const bool isIpv6) { setUpHelperWithAcls(isIpv6); };
+  bool isIpv6 = GetParam();
+  auto setup = [this, isIpv6]() { setUpHelperWithAcls(isIpv6); };
   auto verify = [&]() {
-    int port1Counter = 0;
-    for (int i = 0; i < kAclPktTxCount; i++) {
-      sendL3Packet(kIPv6FlowDstAddress, masterLogicalPortIds()[1]);
-      port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
-          masterLogicalPortIds()[1]);
-      EXPECT_EQ(port1Counter, 1);
-    }
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(1, kAclPktTxCount);
+    EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
     auto statHandle = getHwSwitch()
                           ->getAclTable()
@@ -358,12 +376,7 @@ TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
     auto aclCounter = utility::getAclInOutPackets(getUnit(), statHandle);
     EXPECT_GT(aclCounter, 0);
   };
-  // TODO: rohitpuri
-  // Enable warmboot once QCM supports it CS00010434741
-  // verifyAcrossWarmBoots(setup, verify);
-  bool isIpv6 = GetParam();
-  setup(isIpv6);
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 INSTANTIATE_TEST_CASE_P(
