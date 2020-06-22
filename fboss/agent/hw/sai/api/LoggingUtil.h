@@ -195,4 +195,21 @@ struct formatter<sai_qos_map_t> {
   }
 };
 
+// Formatting for AclEntryField<T>
+template <typename T>
+struct formatter<facebook::fboss::AclEntryField<T>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+
+  auto format(
+      const facebook::fboss::AclEntryField<T>& aclEntryField,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", aclEntryField.str());
+  }
+};
+
 } // namespace fmt

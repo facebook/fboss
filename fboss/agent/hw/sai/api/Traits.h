@@ -21,6 +21,7 @@ extern "C" {
 #include <sai.h>
 }
 
+#include <boost/functional/hash.hpp>
 #include "fboss/lib/TupleUtils.h"
 
 namespace facebook::fboss {
@@ -100,6 +101,48 @@ template <>
 struct WrappedSaiType<std::vector<sai_qos_map_t>> {
   using value = sai_qos_map_list_t;
 };
+
+template <typename T>
+class AclEntryField {
+ public:
+  AclEntryField(){};
+  AclEntryField(T dataAndMask) : dataAndMask_(dataAndMask) {}
+  T getDataAndMask() const {
+    return dataAndMask_;
+  }
+
+  void setDataAndMask(T dataAndMask) {
+    dataAndMask_ = dataAndMask;
+  }
+
+  std::string str() const {
+    return folly::to<std::string>(
+        "data: ", dataAndMask_.first, " mask: ", dataAndMask_.second);
+  }
+
+ private:
+  T dataAndMask_;
+};
+
+template <typename T>
+struct WrappedSaiType<AclEntryField<T>> {
+  using value = sai_acl_field_data_t;
+};
+
+template <typename T>
+bool operator==(const AclEntryField<T>& lhs, const AclEntryField<T>& rhs) {
+  return lhs.getDataAndMask() == rhs.getDataAndMask();
+}
+
+template <typename T>
+std::size_t hash_value(const AclEntryField<T>& key) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, boost::hash_value(key.getDataAndMask()));
+  return seed;
+}
+
+// AclEntryField's data and mask always have the same data type
+using AclEntryFieldU8 = AclEntryField<std::pair<sai_uint8_t, sai_uint8_t>>;
 
 template <typename T>
 struct IsSaiTypeWrapper

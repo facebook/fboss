@@ -153,12 +153,13 @@ DEFINE_extract(std::vector<sai_int8_t>, s8list);
 DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
+DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
+
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
 DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(sai_vlan_list_t, vlanlist);
 DEFINE_extract(sai_map_list_t, maplist);
-DEFINE_extract(sai_acl_field_data_t, aclfield);
 DEFINE_extract(sai_acl_action_data_t, aclaction);
 DEFINE_extract(sai_acl_capability_t, aclcapability);
 DEFINE_extract(sai_acl_resource_list_t, aclresource);
@@ -219,6 +220,19 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
       "pointer in sai list doesn't match vector type");
   dst.resize(src.count);
   std::copy(src.list, src.list + src.count, std::begin(dst));
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldU8& dst) {
+  dst.setDataAndMask(std::make_pair(src.data.u8, src.mask.u8));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldU8& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  std::tie(dst.data.u8, dst.mask.u8) = src.getDataAndMask();
 }
 
 template <typename SrcT, typename DstT>

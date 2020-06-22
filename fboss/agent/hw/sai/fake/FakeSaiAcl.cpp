@@ -271,7 +271,9 @@ sai_status_t set_acl_entry_attribute_fn(
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
-      aclEntry.fieldDscp = attr->value.u8;
+      aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
+      aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
+      aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -296,7 +298,9 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.u32 = aclEntry.priority;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
-        attr_list[i].value.u8 = aclEntry.fieldDscp;
+        attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

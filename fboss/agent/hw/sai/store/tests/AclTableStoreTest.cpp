@@ -36,6 +36,12 @@ class AclTableStoreTest : public SaiStoreTest {
     return SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY;
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
+    // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
+    // mask of 0xFC to match on 6-bit DSCP
+    return std::make_pair(10, 0xFC);
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
@@ -62,7 +68,10 @@ class AclTableStoreTest : public SaiStoreTest {
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     return saiApiTable->aclApi().create<SaiAclEntryTraits>(
-        {aclTableIdAttribute, this->kPriority(), true}, 0);
+        {aclTableIdAttribute,
+         this->kPriority(),
+         AclEntryFieldU8(this->kDscp())},
+        0);
   }
 };
 
@@ -133,7 +142,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
   s.reload();
   auto& store = s.get<SaiAclEntryTraits>();
 
-  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority(), true};
+  SaiAclEntryTraits::AdapterHostKey k{
+      aclTableId, this->kPriority(), this->kDscp()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -199,8 +209,10 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
-  SaiAclEntryTraits::CreateAttributes c{aclTableId, this->kPriority(), true};
-  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority(), true};
+  SaiAclEntryTraits::CreateAttributes c{
+      aclTableId, this->kPriority(), this->kDscp()};
+  SaiAclEntryTraits::AdapterHostKey k{
+      aclTableId, this->kPriority(), this->kDscp()};
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }

@@ -31,6 +31,18 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
+    // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
+    // mask of 0xFC to match on 6-bit DSCP
+    return std::make_pair(10, 0xFC);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kDscp2() const {
+    // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
+    // mask of 0xFC to match on 6-bit DSCP
+    return std::make_pair(20, 0xFC);
+  }
+
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -73,7 +85,8 @@ class AclApiTest : public ::testing::Test {
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
-    SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{1};
+    SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
+        AclEntryFieldU8(kDscp())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute, aclPriorityAttribute, aclFieldDscpAttribute},
@@ -236,7 +249,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
 
   EXPECT_EQ(aclPriorityGot, 1);
-  EXPECT_EQ(aclFieldDscpGot, 1);
+  EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), kDscp());
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -268,7 +281,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute1{1};
-  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{1};
+  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
+      AclEntryFieldU8(kDscp())};
 
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
       {aclTableIdAttribute, aclPriorityAttribute1, aclFieldDscpAttribute},
@@ -284,18 +298,21 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   // SAI spec supports setting priority and fieldDscp for ACL entry post
   // creation.
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute2{2};
-  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{2};
+  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
+      AclEntryFieldU8(kDscp2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
 
   auto aclPriorityGot = aclApi->getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::Priority());
-  auto aclFeildDscpGot = aclApi->getAttribute(
+  auto aclFieldDscpGot = aclApi->getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
 
   EXPECT_EQ(aclPriorityAttribute2, aclPriorityGot);
-  EXPECT_EQ(aclFieldDscpAttribute2, aclFeildDscpGot);
+  EXPECT_EQ(
+      aclFieldDscpAttribute2.value().getDataAndMask(),
+      aclFieldDscpGot.getDataAndMask());
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {

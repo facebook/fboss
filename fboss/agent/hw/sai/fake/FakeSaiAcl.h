@@ -65,7 +65,10 @@ class FakeAclEntry {
 
   sai_object_id_t tableId;
   sai_uint32_t priority;
-  sai_uint8_t fieldDscp;
+
+  bool fieldDscpEnable;
+  sai_uint8_t fieldDscpData;
+  sai_uint8_t fieldDscpMask;
 
   sai_object_id_t id;
 };

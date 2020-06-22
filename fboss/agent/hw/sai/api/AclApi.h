@@ -221,7 +221,7 @@ struct SaiAclEntryTraits {
      * Find a way to express at least one FIELD_* is mandatory.
      */
     using FieldDscp =
-        SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, sai_uint8_t>;
+        SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
   };
 
   using AdapterKey = AclEntrySaiId;
