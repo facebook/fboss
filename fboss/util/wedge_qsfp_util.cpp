@@ -64,10 +64,11 @@ DEFINE_bool(optical_loopback, false,
             "Set the module to be optical loopback, only for Miniphoton");
 DEFINE_bool(clear_loopback, false,
             "Clear the module loopback bits, only for Miniphoton");
-DEFINE_bool(read_reg, false, "Read a register, use with --offset");
+DEFINE_bool(read_reg, false, "Read a register, use with --offset and optionally --length");
 DEFINE_bool(write_reg, false, "Write a register, use with --offset and --data");
 DEFINE_int32(offset, -1, "The offset of register to read/write (0..255)");
 DEFINE_int32(data, 0, "The byte to write to the register, use with --offset");
+DEFINE_int32(length, 1, "The number of bytes to read from the register (1..128), use with --offset");
 
 enum LoopbackMode {
   noLoopback,
@@ -179,15 +180,31 @@ bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
-void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset) {
-  uint8_t buf[1];
+void doReadReg(TransceiverI2CApi* bus, unsigned int port, int offset, int length) {
+  uint8_t buf[128];
   try {
-    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, 1, buf);
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, offset, length, buf);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to read module\n", port);
     return;
   }
-  printf("QSFP %d: Value at offset %d: 0x%02x\n", port, offset, buf[0]);
+  // Print the read registers
+  // Print 16 bytes in a line with offset at start and extra gap after 8 bytes
+  for (int i=0; i<length; i++) {
+    if (i % 16 == 0) {
+      // New line after 16 bytes (except the first line)
+      if (i != 0) {
+        printf("\n");
+      }
+      // 2 byte offset at start of every line
+      printf("%04x: ", offset+i);
+    } else if (i % 8 == 0) {
+      // Extra gap after 8 bytes in a line
+      printf(" ");
+    }
+    printf("%02x ", buf[i]);
+  }
+  printf("\n");
 }
 
 void doWriteReg(TransceiverI2CApi* bus, unsigned int port, int offset, uint8_t value) {
@@ -738,7 +755,14 @@ int main(int argc, char* argv[]) {
         retcode = EX_SOFTWARE;
       }
       else {
-        doReadReg(bus.get(), portNum, FLAGS_offset);
+        if (FLAGS_length > 128) {
+          fprintf(stderr,
+               "QSFP %d: Fail to read register. The --length value should be between 1 to 128",
+               portNum);
+          retcode = EX_SOFTWARE;
+        } else {
+          doReadReg(bus.get(), portNum, FLAGS_offset, FLAGS_length);
+        }
       }
     }
 
