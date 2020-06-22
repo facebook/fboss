@@ -276,6 +276,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
+      aclEntry.fieldRouteDstUserMetaEnable = attr->value.aclfield.enable;
+      aclEntry.fieldRouteDstUserMetaData = attr->value.aclfield.data.u32;
+      aclEntry.fieldRouteDstUserMetaMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -301,6 +307,14 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
+        attr_list[i].value.aclfield.enable =
+            aclEntry.fieldRouteDstUserMetaEnable;
+        attr_list[i].value.aclfield.data.u32 =
+            aclEntry.fieldRouteDstUserMetaData;
+        attr_list[i].value.aclfield.mask.u32 =
+            aclEntry.fieldRouteDstUserMetaMask;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

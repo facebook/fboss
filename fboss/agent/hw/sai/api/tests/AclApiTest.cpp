@@ -43,6 +43,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(20, 0xFC);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kRouteDstUserMeta() const {
+    return std::make_pair(11, 0xFFFFFFFF);
+  }
+
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -87,9 +91,15 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
+    SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
+        aclFieldRouteDstUserMetaAttribute{
+            AclEntryFieldU32(kRouteDstUserMeta())};
 
     return aclApi->create<SaiAclEntryTraits>(
-        {aclTableIdAttribute, aclPriorityAttribute, aclFieldDscpAttribute},
+        {aclTableIdAttribute,
+         aclPriorityAttribute,
+         aclFieldDscpAttribute,
+         aclFieldRouteDstUserMetaAttribute},
         kSwitchID());
   }
 
@@ -283,9 +293,14 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute1{1};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
       AclEntryFieldU8(kDscp())};
+  SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
+      aclFieldRouteDstUserMetaAttribute{AclEntryFieldU32(kRouteDstUserMeta())};
 
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
-      {aclTableIdAttribute, aclPriorityAttribute1, aclFieldDscpAttribute},
+      {aclTableIdAttribute,
+       aclPriorityAttribute1,
+       aclFieldDscpAttribute,
+       aclFieldRouteDstUserMetaAttribute},
       kSwitchID());
   checkAclEntry(aclTableId, aclEntryId);
 

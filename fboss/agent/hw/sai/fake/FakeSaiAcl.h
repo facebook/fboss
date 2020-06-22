@@ -70,6 +70,10 @@ class FakeAclEntry {
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
 
+  bool fieldRouteDstUserMetaEnable;
+  sai_uint32_t fieldRouteDstUserMetaData;
+  sai_uint32_t fieldRouteDstUserMetaMask;
+
   sai_object_id_t id;
 };
 

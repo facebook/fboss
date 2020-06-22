@@ -222,22 +222,29 @@ struct SaiAclEntryTraits {
      */
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
+    using FieldRouteDstUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META,
+        AclEntryFieldU32>;
   };
 
   using AdapterKey = AclEntrySaiId;
   using AdapterHostKey = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
-      std::optional<Attributes::FieldDscp>>;
+      std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldRouteDstUserMeta>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
-      std::optional<Attributes::FieldDscp>>;
+      std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldRouteDstUserMeta>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
 SAI_ATTRIBUTE_NAME(AclEntry, Priority);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 
 class AclApi : public SaiApi<AclApi> {
  public:

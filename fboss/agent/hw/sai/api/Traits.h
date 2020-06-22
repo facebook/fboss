@@ -143,6 +143,7 @@ std::size_t hash_value(const AclEntryField<T>& key) {
 
 // AclEntryField's data and mask always have the same data type
 using AclEntryFieldU8 = AclEntryField<std::pair<sai_uint8_t, sai_uint8_t>>;
+using AclEntryFieldU32 = AclEntryField<std::pair<sai_uint32_t, sai_uint32_t>>;
 
 template <typename T>
 struct IsSaiTypeWrapper
