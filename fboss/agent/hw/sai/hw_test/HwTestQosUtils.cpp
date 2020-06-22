@@ -15,9 +15,10 @@
 namespace facebook::fboss::utility {
 
 void disableTTLDecrements(
-    HwSwitch* hw,
-    RouterID routerId,
-    const folly::IPAddress& nhop) {
+    HwSwitch* /*hw*/,
+    RouterID /*routerId*/,
+    InterfaceID /*intf*/,
+    const folly::IPAddress& /*nhop*/) {
   throw FbossError("Disable TTL decrement not iimplemented");
 }
 } // namespace facebook::fboss::utility

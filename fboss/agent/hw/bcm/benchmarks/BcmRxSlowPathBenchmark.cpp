@@ -10,11 +10,11 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
@@ -81,6 +81,7 @@ void runRxSlowPathBenchmark() {
   utility::disableTTLDecrements(
       bcmSwitch,
       ecmpHelper.getRouterId(),
+      ecmpHelper.getNextHops()[0].intf,
       folly::IPAddress(ecmpHelper.getNextHops()[0].ip));
 
   // Send packet

@@ -42,6 +42,7 @@ void verifySPHelper(
 void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
+    InterfaceID intf,
     const folly::IPAddress& nhop);
 } // namespace utility
 } // namespace facebook::fboss

@@ -128,11 +128,12 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds) {
     auto kEcmpWidthForTest = 1;
     setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
-    for (const auto& nextHopIp : ecmpHelper6.getNextHops()) {
+    for (const auto& nextHop : ecmpHelper6.getNextHops()) {
       utility::disableTTLDecrements(
           getHwSwitch(),
           ecmpHelper6.getRouterId(),
-          folly::IPAddress(nextHopIp.ip));
+          nextHop.intf,
+          folly::IPAddress(nextHop.ip));
     }
   }
 

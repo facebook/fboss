@@ -92,11 +92,12 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
 
   template <typename ECMP_HELPER>
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
-    for (const auto& nextHopIp : ecmpHelper.getNextHops()) {
+    for (const auto& nextHop : ecmpHelper.getNextHops()) {
       utility::disableTTLDecrements(
           getHwSwitch(),
           ecmpHelper.getRouterId(),
-          folly::IPAddress(nextHopIp.ip));
+          nextHop.intf,
+          folly::IPAddress(nextHop.ip));
     }
   }
 

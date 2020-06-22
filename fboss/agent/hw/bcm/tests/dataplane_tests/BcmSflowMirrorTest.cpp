@@ -150,7 +150,10 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
           continue;
         }
         utility::disableTTLDecrements(
-            getHwSwitch(), helper6.getRouterId(), folly::IPAddress(nhop.ip));
+            getHwSwitch(),
+            helper6.getRouterId(),
+            nhop.intf,
+            folly::IPAddress(nhop.ip));
       }
     }
 

@@ -18,6 +18,7 @@ namespace facebook::fboss::utility {
 void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
+    InterfaceID /*intf*/,
     const folly::IPAddress& nhop) {
   auto bcmHw = static_cast<BcmSwitch*>(hw);
   auto vrfId = bcmHw->getBcmVrfId(routerId);
