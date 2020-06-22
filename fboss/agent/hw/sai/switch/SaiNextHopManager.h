@@ -112,6 +112,14 @@ class SaiNextHopManager {
       const ResolvedNextHop& swNextHop);
 
   ManagedSaiNextHop refOrEmplaceNextHop(const ResolvedNextHop& swNextHop);
+  const ManagedIpNextHop* getNextHop(
+      const ManagedIpNextHop::AdapterHostKey& key) const {
+    return managedIpNextHops_.get(key);
+  }
+  const ManagedMplsNextHop* getNextHop(
+      const ManagedMplsNextHop::AdapterHostKey& key) const {
+    return managedMplsNextHops_.get(key);
+  }
 
  private:
   SaiManagerTable* managerTable_;
