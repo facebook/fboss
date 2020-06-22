@@ -136,6 +136,10 @@ class ExternalPhy {
   virtual Loopback getLoopback(Side side) = 0;
   virtual void setLoopback(Side side, Loopback loopback) = 0;
 
+  virtual void clearPrbsErrorCounter(
+      const PhyPortConfig& /* config */,
+      Side /* side */) {}
+
   virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
       uint32_t sysLanes,
       uint32_t lineLanes) {
