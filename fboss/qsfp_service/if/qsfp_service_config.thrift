@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 namespace cpp2 facebook.fboss.cfg
+namespace go neteng.fboss.qsfp_service_config
 namespace py neteng.fboss.qsfp_service_config
 namespace py3 neteng.fboss
 namespace rust facebook.fboss

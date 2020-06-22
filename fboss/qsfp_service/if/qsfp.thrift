@@ -1,4 +1,5 @@
 namespace cpp2 facebook.fboss
+namespace go neteng.fboss.qsfp
 namespace py neteng.fboss.qsfp
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp

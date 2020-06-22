@@ -1,6 +1,7 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+namespace go neteng.fboss.switch_config
 namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
