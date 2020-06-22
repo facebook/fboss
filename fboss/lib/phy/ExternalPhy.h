@@ -140,6 +140,12 @@ class ExternalPhy {
       const PhyPortConfig& /* config */,
       Side /* side */) {}
 
+  virtual void setPortPrbs(
+      const PhyPortConfig& /* config */,
+      Side /* side */,
+      bool /* enable */,
+      int32_t /* polynominal */) {}
+
   virtual std::vector<ExternalPhyLaneDiagInfo> getOnePortDiagInfo(
       uint32_t sysLanes,
       uint32_t lineLanes) {
