@@ -223,7 +223,7 @@ class SaiApi {
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    XLOGF(DBG5, "got SAI stats for {}", key);
+    XLOGF(DBG6, "got SAI stats for {}", key);
     return getStatsImpl<SaiObjectTraits>(
         key,
         SaiObjectTraits::CounterIds.data(),
