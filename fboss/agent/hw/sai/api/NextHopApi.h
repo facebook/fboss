@@ -12,6 +12,8 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -55,7 +57,12 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_MPLS> {
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
-      typename Attributes::LabelStack>;
+      typename Attributes::LabelStack
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      ,
+      std::optional<typename Attributes::DisableTtlDecrement>
+#endif
+      >;
 };
 
 template <typename Attributes>
@@ -65,7 +72,12 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_IP> {
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
-      typename Attributes::Ip>;
+      typename Attributes::Ip
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      ,
+      std::optional<typename Attributes::DisableTtlDecrement>
+#endif
+      >;
 };
 } // namespace detail
 
@@ -127,6 +139,13 @@ struct SaiNextHopTraitsT {
     using LabelStack =
         typename detail::NextHopAttributesTypes<type>::LabelStack;
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    using DisableTtlDecrement = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_ATTR_DECREMENT_TTL,
+        bool,
+        SaiBoolDefault>;
+#endif
   };
   using AdapterKey = NextHopSaiId;
   using AdapterHostKey = typename detail::
@@ -156,6 +175,9 @@ SAI_ATTRIBUTE_NAME(IpNextHop, Type)
 SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
 SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
 SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+SAI_ATTRIBUTE_NAME(IpNextHop, DisableTtlDecrement);
+#endif
 
 class NextHopApi : public SaiApi<NextHopApi> {
  public:

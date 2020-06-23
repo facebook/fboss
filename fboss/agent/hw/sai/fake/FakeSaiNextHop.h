@@ -25,16 +25,19 @@ struct FakeNextHop {
       sai_next_hop_type_t type,
       const folly::IPAddress& ip,
       sai_object_id_t routerInterfaceId,
-      std::vector<sai_uint32_t> labels)
+      std::vector<sai_uint32_t> labels,
+      bool disableTtlDecrement)
       : type(type),
         ip(ip),
         routerInterfaceId(routerInterfaceId),
-        labelStack(std::move(labels)) {}
+        labelStack(std::move(labels)),
+        disableTtlDecrement(disableTtlDecrement) {}
   sai_next_hop_type_t type;
   folly::IPAddress ip;
   sai_object_id_t routerInterfaceId;
   sai_object_id_t id;
   std::vector<sai_uint32_t> labelStack;
+  bool disableTtlDecrement{false};
 };
 
 using FakeNextHopManager = FakeManager<sai_object_id_t, FakeNextHop>;

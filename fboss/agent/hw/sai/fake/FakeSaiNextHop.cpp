@@ -10,6 +10,7 @@
 #include "FakeSai.h"
 #include "FakeSaiPort.h"
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 #include <folly/logging/xlog.h>
 #include <optional>
@@ -27,6 +28,7 @@ sai_status_t create_next_hop_fn(
   std::optional<folly::IPAddress> ip;
   std::optional<sai_object_id_t> routerInterfaceId;
   std::vector<sai_uint32_t> labelStack;
+  bool disableTtlDecrement{false};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_ATTR_TYPE:
@@ -47,6 +49,11 @@ sai_status_t create_next_hop_fn(
           labelStack[j] = attr_list[i].value.u32list.list[j];
         }
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
+        disableTtlDecrement = attr_list[i].value.booldata;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -55,7 +62,11 @@ sai_status_t create_next_hop_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *next_hop_id = fs->nextHopManager.create(
-      type.value(), ip.value(), routerInterfaceId.value(), labelStack);
+      type.value(),
+      ip.value(),
+      routerInterfaceId.value(),
+      labelStack,
+      disableTtlDecrement);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -105,6 +116,11 @@ sai_status_t get_next_hop_attribute_fn(
           attr[i].value.u32list.list[j] = nextHop.labelStack[j];
         }
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
+        attr[i].value.booldata = nextHop.disableTtlDecrement;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

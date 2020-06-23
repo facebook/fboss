@@ -30,4 +30,10 @@ struct SaiIntDefault {
     return 0;
   }
 };
+
+struct SaiBoolDefault {
+  bool operator()() const {
+    return false;
+  }
+};
 } // namespace facebook::fboss

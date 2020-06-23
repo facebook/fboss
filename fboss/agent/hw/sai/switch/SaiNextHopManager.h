@@ -57,21 +57,31 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 
     /* when neighbor is created setup next hop */
     if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
-      this->setObject(
-          key_,
-          {SAI_NEXT_HOP_TYPE_IP,
-           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
-               key_),
-           std::get<typename NextHopTraits::Attributes::Ip>(key_)});
+      this->setObject(key_, {
+        SAI_NEXT_HOP_TYPE_IP,
+            std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
+                key_),
+            std::get<typename NextHopTraits::Attributes::Ip>(key_)
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+
+                ,
+            std::nullopt
+#endif
+      });
 
     } else {
-      this->setObject(
-          key_,
-          {SAI_NEXT_HOP_TYPE_MPLS,
-           std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
-               key_),
-           std::get<typename NextHopTraits::Attributes::Ip>(key_),
-           std::get<typename NextHopTraits::Attributes::LabelStack>(key_)});
+      this->setObject(key_, {
+        SAI_NEXT_HOP_TYPE_MPLS,
+            std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(
+                key_),
+            std::get<typename NextHopTraits::Attributes::Ip>(key_),
+            std::get<typename NextHopTraits::Attributes::LabelStack>(key_)
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+
+                ,
+            std::nullopt
+#endif
+      });
     }
   }
 
