@@ -67,7 +67,8 @@ void SaiPlatformPort::statusIndication(
     bool /* errors */) {}
 void SaiPlatformPort::prepareForGracefulExit() {}
 bool SaiPlatformPort::shouldDisableFEC() const {
-  return true;
+  // disable for backplane port for galaxy switches
+  return !transceiverID_.has_value();
 }
 
 bool SaiPlatformPort::checkSupportsTransceiver() {

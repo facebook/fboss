@@ -294,24 +294,29 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         " not found for port ",
         swPort->getID());
   }
-  auto speed = static_cast<uint32_t>(portProfileConfig->speed);
+  auto speed = portProfileConfig->speed;
   auto platformPort = platform_->getPort(swPort->getID());
-  auto hwLaneList =
-      platformPort->getHwPortLanes(static_cast<cfg::PortSpeed>(speed));
+  auto hwLaneList = platformPort->getHwPortLanes(speed);
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
-  auto mediaType = utility::getSaiPortMediaType(
-      platformPort->getTransmitterTech(), static_cast<cfg::PortSpeed>(speed));
-  auto phyFecMode = platform_->getPhyFecMode(profileID);
-  auto fecMode = utility::getSaiPortFecMode(phyFecMode);
-  if (swPort->getFEC() == cfg::PortFEC::ON) {
-    fecMode = SAI_PORT_FEC_MODE_RS;
-  }
+  auto mediaType =
+      utility::getSaiPortMediaType(platformPort->getTransmitterTech(), speed);
 
+  auto enableFec = (speed >= cfg::PortSpeed::HUNDREDG) ||
+      ((swPort->getFEC() != cfg::PortFEC::OFF) &&
+       (!platformPort->shouldDisableFEC()));
+
+  SaiPortTraits::Attributes::FecMode fecMode;
+  if (!enableFec) {
+    fecMode = SAI_PORT_FEC_MODE_NONE;
+  } else {
+    auto phyFecMode = platform_->getPhyFecMode(profileID);
+    fecMode = utility::getSaiPortFecMode(phyFecMode);
+  }
   uint16_t vlanId = swPort->getIngressVlan();
   return SaiPortTraits::CreateAttributes{hwLaneList,
-                                         speed,
+                                         static_cast<uint32_t>(speed),
                                          adminState,
                                          fecMode,
                                          internalLoopbackMode,

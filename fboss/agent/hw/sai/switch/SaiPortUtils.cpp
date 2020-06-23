@@ -79,15 +79,24 @@ sai_port_media_type_t getSaiPortMediaType(
 }
 
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
-  if (fec == phy::FecMode::CL91 || fec == phy::FecMode::CL74) {
-    return SAI_PORT_FEC_MODE_FC;
-  } else if (
-      fec == phy::FecMode::RS528 || fec == phy::FecMode::RS544 ||
-      fec == phy::FecMode::RS544_2N) {
-    return SAI_PORT_FEC_MODE_RS;
-  } else {
-    return SAI_PORT_FEC_MODE_NONE;
+  sai_port_fec_mode_t mode = SAI_PORT_FEC_MODE_NONE;
+  switch (fec) {
+    case phy::FecMode::NONE:
+      mode = SAI_PORT_FEC_MODE_NONE;
+      break;
+
+    case phy::FecMode::CL74:
+      mode = SAI_PORT_FEC_MODE_FC;
+      break;
+
+    case phy::FecMode::CL91:
+    case phy::FecMode::RS528:
+    case phy::FecMode::RS544:
+    case phy::FecMode::RS544_2N:
+      mode = SAI_PORT_FEC_MODE_RS;
+      break;
   }
+  return mode;
 }
 
 } // namespace facebook::fboss::utility
