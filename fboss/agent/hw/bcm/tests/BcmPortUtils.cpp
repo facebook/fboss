@@ -26,18 +26,25 @@ int getUnit(const facebook::fboss::HwSwitch* hw) {
   return static_cast<const facebook::fboss::BcmSwitch*>(hw)->getUnit();
 }
 
+std::vector<facebook::fboss::cfg::Port>::iterator findCfgPort(
+    facebook::fboss::cfg::SwitchConfig* cfg,
+    facebook::fboss::PortID portID) {
+  return std::find_if(
+      cfg->ports.begin(), cfg->ports.end(), [&portID](auto& port) {
+        return facebook::fboss::PortID(port.logicalID) == portID;
+      });
+}
+
 void updatePortProfileIDAndName(
     facebook::fboss::cfg::SwitchConfig* config,
-    int portIndex,
     facebook::fboss::PortID portID,
     const facebook::fboss::Platform* platform) {
   auto platformPort = platform->getPlatformPort(portID);
   if (auto entry = platformPort->getPlatformPortEntry()) {
-    config->ports_ref()[portIndex].name_ref() =
-        *entry->mapping_ref()->name_ref();
-    *config->ports[portIndex].profileID_ref() =
-        platformPort->getProfileIDBySpeed(
-            *config->ports[portIndex].speed_ref());
+    auto portCfg = findCfgPort(config, portID);
+    portCfg->name_ref() = *entry->mapping_ref()->name_ref();
+    portCfg->profileID_ref() =
+        platformPort->getProfileIDBySpeed(*portCfg->speed_ref());
   } else {
     throw facebook::fboss::FbossError(
         "Port:", portID, " doesn't have PlatformPortEntry");
@@ -127,15 +134,13 @@ void enableOneLane(
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup,
     const Platform* platform) {
-  auto portItr = allPortsinGroup.begin();
   bool firstLane = true;
-  int portIndex = 0;
-  for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    *config->ports[portIndex].state_ref() =
+  for (auto portID : allPortsinGroup) {
+    auto portCfg = findCfgPort(config, portID);
+    portCfg->state_ref() =
         firstLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    *config->ports[portIndex].speed_ref() =
-        firstLane ? enabledLaneSpeed : disabledLaneSpeed;
-    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
+    portCfg->speed_ref() = firstLane ? enabledLaneSpeed : disabledLaneSpeed;
+    updatePortProfileIDAndName(config, portID, platform);
     firstLane = false;
   }
 }
@@ -145,12 +150,11 @@ void enableAllLanes(
     cfg::PortSpeed enabledLaneSpeed,
     std::vector<PortID> allPortsinGroup,
     const Platform* platform) {
-  auto portItr = allPortsinGroup.begin();
-  int portIndex = 0;
-  for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    *config->ports[portIndex].speed_ref() = enabledLaneSpeed;
-    *config->ports[portIndex].state_ref() = cfg::PortState::ENABLED;
-    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
+  for (auto portID : allPortsinGroup) {
+    auto portCfg = findCfgPort(config, portID);
+    portCfg->speed_ref() = enabledLaneSpeed;
+    portCfg->state_ref() = cfg::PortState::ENABLED;
+    updatePortProfileIDAndName(config, portID, platform);
   }
 }
 
@@ -160,16 +164,14 @@ void enableTwoLanes(
     cfg::PortSpeed disabledLaneSpeed,
     std::vector<PortID> allPortsinGroup,
     const Platform* platform) {
-  auto portItr = allPortsinGroup.begin();
   bool oddLane;
-  int portIndex = 0;
-  for (; portItr != allPortsinGroup.end(); portItr++, portIndex++) {
-    oddLane = (*portItr - allPortsinGroup.front()) % 2 == 0 ? true : false;
-    *config->ports[portIndex].state_ref() =
+  for (auto portID : allPortsinGroup) {
+    auto portCfg = findCfgPort(config, portID);
+    oddLane = (portID - allPortsinGroup.front()) % 2 == 0 ? true : false;
+    portCfg->state_ref() =
         oddLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
-    *config->ports[portIndex].speed_ref() =
-        oddLane ? enabledLaneSpeed : disabledLaneSpeed;
-    updatePortProfileIDAndName(config, portIndex, *portItr, platform);
+    portCfg->speed_ref() = oddLane ? enabledLaneSpeed : disabledLaneSpeed;
+    updatePortProfileIDAndName(config, portID, platform);
   }
 }
 

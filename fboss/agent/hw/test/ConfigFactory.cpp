@@ -106,13 +106,6 @@ cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
   cfg::SwitchConfig config;
   auto platform = hwSwitch->getPlatform();
 
-  // TODO(daiweix): remove this if block after converting all tests
-  // to access config.ports by portID instead of directly by index,
-  // e.g. BcmMirrorTest.UpdatePortMirror.
-  if (!platform->supportsAddRemovePort()) {
-    return config;
-  }
-
   for (const auto& it : platform->getPlatformPorts()) {
     auto mapping = it.second.get_mapping();
     auto id = mapping.id;
