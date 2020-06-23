@@ -21,33 +21,29 @@ namespace {
 
 void fillHwQueueStats(
     uint8_t queueId,
-    const std::vector<uint64_t>& counters,
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwPortStats& hwPortStats) {
-  uint16_t index = 0;
-  if (counters.size() != SaiQueueTraits::CounterIds.size()) {
-    throw FbossError("queue counter size does not match counter id size");
-  }
-  for (auto counterId : SaiQueueTraits::CounterIds) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_QUEUE_STAT_PACKETS:
-        hwPortStats.queueOutPackets__ref()[queueId] = counters[index];
+        hwPortStats.queueOutPackets__ref()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_BYTES:
-        hwPortStats.queueOutBytes__ref()[queueId] = counters[index];
+        hwPortStats.queueOutBytes__ref()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_DROPPED_BYTES:
-        hwPortStats.queueOutDiscardBytes__ref()[queueId] = counters[index];
+        hwPortStats.queueOutDiscardBytes__ref()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_DROPPED_PACKETS:
-        hwPortStats.queueOutDiscardPackets__ref()[queueId] = counters[index];
+        hwPortStats.queueOutDiscardPackets__ref()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
-        hwPortStats.queueWatermarkBytes__ref()[queueId] = counters[index];
+        hwPortStats.queueWatermarkBytes__ref()[queueId] = value;
         break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
-    index++;
   }
 }
 } // namespace

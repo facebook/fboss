@@ -36,69 +36,64 @@ using namespace std::chrono;
 namespace facebook::fboss {
 namespace {
 void fillHwPortStats(
-    const std::vector<sai_stat_id_t>& counterIds,
-    const std::vector<sai_object_id_t>& counters,
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwPortStats& hwPortStats) {
-  auto index = 0;
-  if (counters.size() != counterIds.size()) {
-    throw FbossError("port counter size does not match counter id size");
-  }
-  // TODO fill these in when we have debug counte support in SAI
+  // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards__ref() = 0;
-  for (auto counterId : counterIds) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
-        *hwPortStats.inBytes__ref() = counters[index];
+        *hwPortStats.inBytes__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        *hwPortStats.inUnicastPkts__ref() = counters[index];
+        *hwPortStats.inUnicastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
-        *hwPortStats.inMulticastPkts__ref() = counters[index];
+        *hwPortStats.inMulticastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_BROADCAST_PKTS:
-        *hwPortStats.inBroadcastPkts__ref() = counters[index];
+        *hwPortStats.inBroadcastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_DISCARDS:
         // Fill into inDiscards raw, we will then compute
         // inDiscards by subtracting dst null and in pause
         // discards from these
-        *hwPortStats.inDiscardsRaw__ref() = counters[index];
+        *hwPortStats.inDiscardsRaw__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_ERRORS:
-        *hwPortStats.inErrors__ref() = counters[index];
+        *hwPortStats.inErrors__ref() = value;
         break;
       case SAI_PORT_STAT_PAUSE_RX_PKTS:
-        *hwPortStats.inPause__ref() = counters[index];
+        *hwPortStats.inPause__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_OCTETS:
-        *hwPortStats.outBytes__ref() = counters[index];
+        *hwPortStats.outBytes__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        *hwPortStats.outUnicastPkts__ref() = counters[index];
+        *hwPortStats.outUnicastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
-        *hwPortStats.outMulticastPkts__ref() = counters[index];
+        *hwPortStats.outMulticastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS:
-        *hwPortStats.outBroadcastPkts__ref() = counters[index];
+        *hwPortStats.outBroadcastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_DISCARDS:
-        *hwPortStats.outDiscards__ref() = counters[index];
+        *hwPortStats.outDiscards__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_ERRORS:
-        *hwPortStats.outErrors__ref() = counters[index];
+        *hwPortStats.outErrors__ref() = value;
         break;
       case SAI_PORT_STAT_PAUSE_TX_PKTS:
-        *hwPortStats.outPause__ref() = counters[index];
+        *hwPortStats.outPause__ref() = value;
         break;
       case SAI_PORT_STAT_ECN_MARKED_PACKETS:
-        *hwPortStats.outEcnCounter__ref() = counters[index];
+        *hwPortStats.outEcnCounter__ref() = value;
         break;
       default:
         throw FbossError("Got unexpected port counter id: ", counterId);
     }
-    index++;
   }
 }
 } // namespace
@@ -462,7 +457,7 @@ void SaiPortManager::updateStats() {
         : *curPortStats.inDiscards__ref();
     handle->port->updateStats(supportedStats());
     const auto& counters = handle->port->getStats();
-    fillHwPortStats(supportedStats(), counters, curPortStats);
+    fillHwPortStats(counters, curPortStats);
     std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
         {*prevPortStats.inDstNullDiscards__ref(),
          *curPortStats.inDstNullDiscards__ref()},
@@ -486,7 +481,7 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
     const auto& counters = handle->port->getStats();
     std::ignore = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats{};
-    fillHwPortStats(supportedStats(), counters, hwPortStats);
+    fillHwPortStats(counters, hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);
   }

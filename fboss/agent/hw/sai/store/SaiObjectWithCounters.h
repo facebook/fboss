@@ -33,24 +33,29 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
       sai_object_id_t switchId)
       : SaiObject<SaiObjectTraits>(adapterHostKey, attributes, switchId) {}
 
+  using StatsMap = folly::F14FastMap<sai_stat_id_t, uint64_t>;
+
   template <typename T = SaiObjectTraits>
   void updateStats() {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
     auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
-    counters_ = api.template getStats<T>(this->adapterKey());
+    const auto& counters = api.template getStats<T>(this->adapterKey());
+    fillInStats(SaiObjectTraits::CounterIds.data(), counters);
   }
 
   template <typename T = SaiObjectTraits>
   void updateStats(const std::vector<sai_stat_id_t>& counterIds) {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
     auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
-    counters_ = api.template getStats<T>(this->adapterKey(), counterIds);
+    const auto& counters =
+        api.template getStats<T>(this->adapterKey(), counterIds);
+    fillInStats(counterIds.data(), counters);
   }
 
   template <typename T = SaiObjectTraits>
-  const std::vector<uint64_t>& getStats() const {
+  const StatsMap getStats() const {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
-    return counters_;
+    return counterId2Value_;
   }
 
   template <typename T = SaiObjectTraits>
@@ -68,7 +73,14 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
   }
 
  private:
-  std::vector<uint64_t> counters_;
+  void fillInStats(
+      const sai_stat_id_t* ids,
+      const std::vector<uint64_t>& counters) {
+    for (auto i = 0; i < counters.size(); ++i) {
+      counterId2Value_[ids[i]] = counters[i];
+    }
+  }
+  StatsMap counterId2Value_;
 };
 
 } // namespace facebook::fboss
