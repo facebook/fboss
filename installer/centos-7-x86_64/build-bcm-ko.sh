@@ -3,7 +3,7 @@
 KERNDIR=/usr/src/kernels/$(uname -r)
 export KERNDIR
 
-OPENNSADIR=$(./build/fbcode_builder/getdeps.py show-inst-dir OpenNSA)
+OPENNSADIR=$(./build/fbcode_builder/getdeps.py show-inst-dir OpenNSA "$@")
 SDK=$OPENNSADIR/src/gpl-modules
 export SDK
 
