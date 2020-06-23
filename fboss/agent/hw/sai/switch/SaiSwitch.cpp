@@ -956,16 +956,17 @@ void SaiSwitch::switchRunStateChangedLocked(
          * handler. This isn't required, but seems easier to reason about than
          * having interspersed callbacks from HW
          */
-        if (bootType_ == BootType::WARM_BOOT) {
-          for (const auto& portIdAndHandle : managerTable_->portManager()) {
-            const auto& port = portIdAndHandle.second->port;
-            auto operStatus =
-                SaiApiTable::getInstance()->portApi().getAttribute(
-                    port->adapterKey(),
-                    SaiPortTraits::Attributes::OperStatus{});
-            callback_->linkStateChanged(
-                portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
-          }
+        /*
+         * For cold boot, if port link state is changed before link scan is
+         * registered, switch state will not reflect correct port status. as a
+         * result invoke link scan call back for cold boot.
+         */
+        for (const auto& portIdAndHandle : managerTable_->portManager()) {
+          const auto& port = portIdAndHandle.second->port;
+          auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+              port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+          callback_->linkStateChanged(
+              portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
         }
         initLinkScanLocked(lock);
       }
