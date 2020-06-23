@@ -47,9 +47,15 @@ sai_hostif_trap_type_t SaiHostifManager::packetReasonToHostifTrap(
       return SAI_HOSTIF_TRAP_TYPE_LACP;
     case cfg::PacketRxReason::L3_MTU_ERROR:
       return SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR;
-    default:
-      throw FbossError("invalid packet reason: ", reason);
+    case cfg::PacketRxReason::TTL_1:
+      return SAI_HOSTIF_TRAP_TYPE_TTL_ERROR;
+    case cfg::PacketRxReason::BPDU:
+    case cfg::PacketRxReason::L3_SLOW_PATH:
+    case cfg::PacketRxReason::L3_DEST_MISS:
+    case cfg::PacketRxReason::UNMATCHED:
+      break;
   }
+  throw FbossError("invalid packet reason: ", reason);
 }
 
 cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
@@ -75,6 +81,8 @@ cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
       return cfg::PacketRxReason::LACP;
     case SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR:
       return cfg::PacketRxReason::L3_MTU_ERROR;
+    case SAI_HOSTIF_TRAP_TYPE_TTL_ERROR:
+      return cfg::PacketRxReason::TTL_1;
     default:
       throw FbossError("invalid trap type: ", trapType);
   }
