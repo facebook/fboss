@@ -403,7 +403,20 @@ void BcmQcmManager::initPipeMode() {
   bcmCheckError(rv, "bcm_field_group_oper_mode_set failed");
 }
 
+bool BcmQcmManager::isQcmSupported(BcmSwitch* hw) {
+#if BCM_VER_SUPPORT_QCM
+  if (hw && hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM)) {
+    return true;
+  }
+  // fall through if BCM_VER_SUPPORT_QCMm but no qcm support
+#endif
+  return false;
+}
+
 void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
+  if (!isQcmSupported(hw_)) {
+    return;
+  }
   XLOG(INFO) << "[QCM] Start Init";
 
   qcmCfg_ = swState->getQcmCfg();

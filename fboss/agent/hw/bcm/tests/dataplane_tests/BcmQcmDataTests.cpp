@@ -214,19 +214,12 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), from);
   }
 
-  bool isQcmSupported() {
-#if BCM_VER_SUPPORT_QCM
-    return getPlatform()->getAsic()->isSupported(HwAsic::Feature::QCM);
-#else
-    return false;
-#endif
-  }
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper6_;
   cfg::SwitchConfig cfg_;
 };
 
 TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     // This test only applies to ceratin ASIC e.g. TH
     // and to specific sdk versions
     return;
@@ -254,7 +247,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
 // not hit the ifp entry
 // Since its 1 flow, we should only learn 1 flow
 TEST_F(BcmQcmDataTest, FlowLearning) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
   auto setup = [&]() { setupHelper(); };
@@ -275,7 +268,7 @@ TEST_F(BcmQcmDataTest, FlowLearning) {
 // send multple flows and check that learning happens
 // for multiple flows
 TEST_F(BcmQcmDataTest, MultiFlows) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
   auto setup = [&]() { setupHelper(); };
@@ -297,7 +290,7 @@ TEST_F(BcmQcmDataTest, MultiFlows) {
 // Ensure that only 1 flow is learned
 // also ifp entry should hit multiple times
 TEST_F(BcmQcmDataTest, RestrictFlowLearning) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
   auto setup = [&]() { setupHelper(); };
@@ -323,7 +316,7 @@ TEST_F(BcmQcmDataTest, RestrictFlowLearning) {
 // Stop qcm and ensure that flow tracker is disabled,
 // Enable QCM again and ensure flow learning happens as desired
 TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
   auto setup = [=]() { setupHelper(); };
@@ -360,7 +353,7 @@ class BcmQcmDataCollectorParamTest : public BcmQcmDataTest,
 };
 
 TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
-  if (!isQcmSupported()) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
   bool isIpv6 = GetParam();

@@ -34,6 +34,9 @@ class BcmQcmManager {
       bool installStats = false);
   void flowLimitSet(int flowLimit);
 
+  // utility routines
+  static bool isQcmSupported(BcmSwitch* hw);
+
   // utility routines used by tests
   uint64_t getIfpStatCounter(const int portId);
   uint32_t getLearnedFlowCount();
