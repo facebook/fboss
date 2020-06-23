@@ -660,8 +660,9 @@ void SaiSwitch::packetRxCallbackBottomHalf(
 
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   if (portItr == concurrentIndices_->portIds.cend()) {
-    XLOG(WARNING) << "RX packet had port with unknown sai id: 0x" << std::hex
-                  << portSaiId;
+    // TODO: add counter to keep track of spurious rx packet
+    XLOG(DBG6) << "RX packet had port with unknown sai id: 0x" << std::hex
+               << portSaiId;
     return;
   }
   PortID swPortId = portItr->second;
