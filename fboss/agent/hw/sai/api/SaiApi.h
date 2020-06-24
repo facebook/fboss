@@ -27,6 +27,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <sai.h>
 }
@@ -68,7 +70,11 @@ class SaiApi {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status = impl()._create(
         &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
-    saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
+    saiApiCheckError(
+        status,
+        ApiT::ApiType,
+        fmt::format(
+            "Failed to create sai entity {}: {}", key, createAttributes));
     XLOGF(DBG5, "created SAI object: {}: {}", key, createAttributes);
     return key;
   }
@@ -86,7 +92,11 @@ class SaiApi {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status =
         impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
-    saiApiCheckError(status, ApiT::ApiType, "Failed to create sai entity");
+    saiApiCheckError(
+        status,
+        ApiT::ApiType,
+        fmt::format(
+            "Failed to create sai entity: {}: {}", entry, createAttributes));
     XLOGF(DBG5, "created SAI object: {}: {}", entry, createAttributes);
   }
 
@@ -94,7 +104,10 @@ class SaiApi {
   void remove(const AdapterKeyT& key) {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status = impl()._remove(key);
-    saiApiCheckError(status, ApiT::ApiType, "Failed to remove sai object");
+    saiApiCheckError(
+        status,
+        ApiT::ApiType,
+        fmt::format("Failed to remove sai object : {}", key));
     XLOGF(DBG5, "removed SAI object: {}", key);
   }
 
@@ -133,7 +146,10 @@ class SaiApi {
       attr.realloc();
       status = impl()._getAttribute(key, attr.saiAttr());
     }
-    saiApiCheckError(status, ApiT::ApiType, "Failed to get sai attribute");
+    saiApiCheckError(
+        status,
+        ApiT::ApiType,
+        fmt::format("Failed to get sai attribute: {}: {}", key, attr));
     XLOGF(DBG5, "got SAI attribute: {}: {}", key, attr);
     return attr.value();
   }
@@ -196,7 +212,10 @@ class SaiApi {
   template <typename AdapterKeyT, typename AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
     auto status = impl()._setAttribute(key, saiAttr(attr));
-    saiApiCheckError(status, ApiT::ApiType, "Failed to set attribute");
+    saiApiCheckError(
+        status,
+        ApiT::ApiType,
+        fmt::format("Failed to set attribute {} to {}", key, attr));
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
   template <typename AdapterKeyT, typename AttrT>
@@ -265,7 +284,8 @@ class SaiApi {
     counters.resize(numCounters);
     sai_status_t status = impl()._getStats(
         key, counters.size(), counterIds, mode, counters.data());
-    saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
+    saiApiCheckError(
+        status, ApiT::ApiType, fmt::format("Failed to get stats {}", key));
     return counters;
   }
   template <typename SaiObjectTraits>
