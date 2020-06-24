@@ -208,13 +208,14 @@ class SaiApi {
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
-      const std::vector<sai_stat_id_t>& counterIds) const {
+      const std::vector<sai_stat_id_t>& counterIds,
+      sai_stats_mode_t mode) const {
     static_assert(
         SaiObjectHasStats<SaiObjectTraits>::value,
         "getStats only supported for Sai objects with stats");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     return getStatsImpl<SaiObjectTraits>(
-        key, counterIds.data(), counterIds.size());
+        key, counterIds.data(), counterIds.size(), mode);
   }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
@@ -227,7 +228,8 @@ class SaiApi {
     return getStatsImpl<SaiObjectTraits>(
         key,
         SaiObjectTraits::CounterIds.data(),
-        SaiObjectTraits::CounterIds.size());
+        SaiObjectTraits::CounterIds.size(),
+        SaiObjectTraits::CounterMode);
   }
   template <typename SaiObjectTraits>
   void clearStats(
@@ -257,15 +259,12 @@ class SaiApi {
   std::vector<uint64_t> getStatsImpl(
       const typename SaiObjectTraits::AdapterKey& key,
       const sai_stat_id_t* counterIds,
-      size_t numCounters) const {
+      size_t numCounters,
+      sai_stats_mode_t mode) const {
     std::vector<uint64_t> counters;
     counters.resize(numCounters);
     sai_status_t status = impl()._getStats(
-        key,
-        counters.size(),
-        counterIds,
-        SaiObjectTraits::CounterMode,
-        counters.data());
+        key, counters.size(), counterIds, mode, counters.data());
     saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
     return counters;
   }

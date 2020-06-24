@@ -455,7 +455,7 @@ void SaiPortManager::updateStats() {
             hardware_stats_constants::STAT_UNINITIALIZED()
         ? 0
         : *curPortStats.inDiscards__ref();
-    handle->port->updateStats(supportedStats());
+    handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
     const auto& counters = handle->port->getStats();
     fillHwPortStats(counters, curPortStats);
     std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {

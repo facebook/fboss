@@ -44,11 +44,13 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
   }
 
   template <typename T = SaiObjectTraits>
-  void updateStats(const std::vector<sai_stat_id_t>& counterIds) {
+  void updateStats(
+      const std::vector<sai_stat_id_t>& counterIds,
+      sai_stats_mode_t mode) {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
     auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
     const auto& counters =
-        api.template getStats<T>(this->adapterKey(), counterIds);
+        api.template getStats<T>(this->adapterKey(), counterIds, mode);
     fillInStats(counterIds.data(), counters);
   }
 
