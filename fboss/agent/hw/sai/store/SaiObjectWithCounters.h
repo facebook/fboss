@@ -40,7 +40,7 @@ class SaiObjectWithCounters : public SaiObject<SaiObjectTraits> {
     static_assert(SaiObjectHasStats<T>::value, "invalid traits for the api");
     auto& api = SaiApiTable::getInstance()->getApi<typename T::SaiApiT>();
     const auto& counters = api.template getStats<T>(this->adapterKey());
-    fillInStats(SaiObjectTraits::CounterIds.data(), counters);
+    fillInStats(SaiObjectTraits::CounterIdsToRead.data(), counters);
   }
 
   template <typename T = SaiObjectTraits>

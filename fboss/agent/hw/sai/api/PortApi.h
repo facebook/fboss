@@ -96,8 +96,7 @@ struct SaiPortTraits {
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>>;
 
-  static constexpr sai_stats_mode_t CounterMode = SAI_STATS_MODE_READ;
-  static constexpr std::array<sai_stat_id_t, 15> CounterIds = {
+  static constexpr std::array<sai_stat_id_t, 15> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
@@ -114,6 +113,7 @@ struct SaiPortTraits {
       SAI_PORT_STAT_PAUSE_TX_PKTS,
       SAI_PORT_STAT_ECN_MARKED_PACKETS,
   };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)

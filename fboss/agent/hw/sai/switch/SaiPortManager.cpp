@@ -426,11 +426,11 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
   }
   auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
   counterIds.resize(
-      ecnSupported ? SaiPortTraits::CounterIds.size()
-                   : SaiPortTraits::CounterIds.size() - 1);
+      ecnSupported ? SaiPortTraits::CounterIdsToRead.size()
+                   : SaiPortTraits::CounterIdsToRead.size() - 1);
   std::copy_if(
-      SaiPortTraits::CounterIds.begin(),
-      SaiPortTraits::CounterIds.end(),
+      SaiPortTraits::CounterIdsToRead.begin(),
+      SaiPortTraits::CounterIdsToRead.end(),
       counterIds.begin(),
       [ecnSupported](auto statId) {
         return ecnSupported || statId != SAI_PORT_STAT_ECN_MARKED_PACKETS;

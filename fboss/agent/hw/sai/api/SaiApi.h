@@ -246,9 +246,9 @@ class SaiApi {
     XLOGF(DBG6, "got SAI stats for {}", key);
     return getStatsImpl<SaiObjectTraits>(
         key,
-        SaiObjectTraits::CounterIds.data(),
-        SaiObjectTraits::CounterIds.size(),
-        SaiObjectTraits::CounterMode);
+        SaiObjectTraits::CounterIdsToRead.data(),
+        SaiObjectTraits::CounterIdsToRead.size(),
+        SAI_STATS_MODE_READ);
   }
   template <typename SaiObjectTraits>
   void clearStats(
