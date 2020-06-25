@@ -86,6 +86,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  sai_uint8_t kSetTC() const {
+    return 1;
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
@@ -115,19 +119,22 @@ class AclTableStoreTest : public SaiStoreTest {
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     return saiApiTable->aclApi().create<SaiAclEntryTraits>(
-        {aclTableIdAttribute,
-         this->kPriority(),
-         AclEntryFieldIpV6(this->kSrcIpV6()),
-         AclEntryFieldIpV6(this->kDstIpV6()),
-         AclEntryFieldU16(this->kL4SrcPort()),
-         AclEntryFieldU16(this->kL4DstPort()),
-         AclEntryFieldU8(this->kIpProtocol()),
-         AclEntryFieldU8(this->kTcpFlags()),
-         AclEntryFieldU8(this->kDscp()),
-         AclEntryFieldU8(this->kTtl()),
-         AclEntryFieldU32(this->kFdbDstUserMeta()),
-         AclEntryFieldU32(this->kRouteDstUserMeta()),
-         AclEntryFieldU32(this->kNeighborDstUserMeta())},
+        {
+            aclTableIdAttribute,
+            this->kPriority(),
+            AclEntryFieldIpV6(this->kSrcIpV6()),
+            AclEntryFieldIpV6(this->kDstIpV6()),
+            AclEntryFieldU16(this->kL4SrcPort()),
+            AclEntryFieldU16(this->kL4DstPort()),
+            AclEntryFieldU8(this->kIpProtocol()),
+            AclEntryFieldU8(this->kTcpFlags()),
+            AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldU8(this->kTtl()),
+            AclEntryFieldU32(this->kFdbDstUserMeta()),
+            AclEntryFieldU32(this->kRouteDstUserMeta()),
+            AclEntryFieldU32(this->kNeighborDstUserMeta()),
+            AclEntryActionU8(this->kSetTC()),
+        },
         0);
   }
 };
@@ -217,7 +224,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),
-                                      this->kNeighborDstUserMeta()};
+                                      this->kNeighborDstUserMeta(),
+                                      this->kSetTC()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -301,7 +309,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kTtl(),
                                         this->kFdbDstUserMeta(),
                                         this->kRouteDstUserMeta(),
-                                        this->kNeighborDstUserMeta()};
+                                        this->kNeighborDstUserMeta(),
+                                        this->kSetTC()};
   SaiAclEntryTraits::AdapterHostKey k{aclTableId,
                                       this->kPriority(),
                                       this->kSrcIpV6(),
@@ -314,7 +323,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),
-                                      this->kNeighborDstUserMeta()};
+                                      this->kNeighborDstUserMeta(),
+                                      this->kSetTC()};
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }

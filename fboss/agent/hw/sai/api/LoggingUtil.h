@@ -212,4 +212,21 @@ struct formatter<facebook::fboss::AclEntryField<T>> {
   }
 };
 
+// Formatting for AclEntryAction<T>
+template <typename T>
+struct formatter<facebook::fboss::AclEntryAction<T>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+
+  auto format(
+      const facebook::fboss::AclEntryAction<T>& aclEntryAction,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", aclEntryAction.str());
+  }
+};
+
 } // namespace fmt

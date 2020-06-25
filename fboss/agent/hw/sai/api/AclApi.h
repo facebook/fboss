@@ -281,6 +281,14 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         AclEntryFieldU32>;
+
+    /*
+     * TODO (skhare) Add all the ACTIONS_* FBOSS needs.
+     */
+    using ActionSetTC = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_SET_TC,
+        AclEntryActionU8>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -297,7 +305,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
-      std::optional<Attributes::FieldNeighborDstUserMeta>>;
+      std::optional<Attributes::FieldNeighborDstUserMeta>,
+      std::optional<Attributes::ActionSetTC>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
@@ -311,7 +320,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
-      std::optional<Attributes::FieldNeighborDstUserMeta>>;
+      std::optional<Attributes::FieldNeighborDstUserMeta>,
+      std::optional<Attributes::ActionSetTC>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -327,6 +337,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
 
 class AclApi : public SaiApi<AclApi> {
  public:

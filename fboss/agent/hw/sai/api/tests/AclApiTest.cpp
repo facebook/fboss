@@ -87,6 +87,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  sai_uint8_t kSetTC() const {
+    return 1;
+  }
+
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -156,6 +160,8 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
         aclFieldNeighborDstUserMetaAttribute{
             AclEntryFieldU32(kNeighborDstUserMeta())};
+    SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
+        AclEntryActionU8(kSetTC())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -170,7 +176,8 @@ class AclApiTest : public ::testing::Test {
          aclFieldTtlAttribute,
          aclFieldFdbDstUserMetaAttribute,
          aclFieldRouteDstUserMetaAttribute,
-         aclFieldNeighborDstUserMetaAttribute},
+         aclFieldNeighborDstUserMetaAttribute,
+         aclActionSetTC},
         kSwitchID());
   }
 
@@ -385,6 +392,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
       aclFieldNeighborDstUserMetaAttribute{
           AclEntryFieldU32(kNeighborDstUserMeta())};
+  SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
+      AclEntryActionU8(kSetTC())};
 
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
       {aclTableIdAttribute,
@@ -399,7 +408,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
        aclFieldTtlAttribute,
        aclFieldFdbDstUserMetaAttribute,
        aclFieldRouteDstUserMetaAttribute,
-       aclFieldNeighborDstUserMetaAttribute},
+       aclFieldNeighborDstUserMetaAttribute,
+       aclActionSetTC},
       kSwitchID());
   checkAclEntry(aclTableId, aclEntryId);
 

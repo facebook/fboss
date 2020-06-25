@@ -157,13 +157,13 @@ DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
 DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(sai_vlan_list_t, vlanlist);
 DEFINE_extract(sai_map_list_t, maplist);
-DEFINE_extract(sai_acl_action_data_t, aclaction);
 DEFINE_extract(sai_acl_capability_t, aclcapability);
 DEFINE_extract(sai_acl_resource_list_t, aclresource);
 DEFINE_extract(sai_tlv_list_t, tlvlist);
@@ -278,6 +278,19 @@ inline void _fill(
   dst.enable = true;
   facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().first, &dst.data.ip6);
   facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().second, &dst.mask.ip6);
+}
+
+inline void _fill(
+    const sai_acl_action_data_t& src,
+    facebook::fboss::AclEntryActionU8& dst) {
+  dst.setData(src.parameter.u8);
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryActionU8& src,
+    sai_acl_action_data_t& dst) {
+  dst.enable = true;
+  dst.parameter.u8 = src.getData();
 }
 
 template <typename SrcT, typename DstT>

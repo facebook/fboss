@@ -112,6 +112,9 @@ class FakeAclEntry {
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
 
+  bool actionSetTCEnable;
+  sai_uint8_t actionSetTCData;
+
   sai_object_id_t id;
 };
 

@@ -154,6 +154,46 @@ using AclEntryFieldIpV6 =
     AclEntryField<std::pair<folly::IPAddressV6, folly::IPAddressV6>>;
 
 template <typename T>
+class AclEntryAction {
+ public:
+  AclEntryAction(){};
+  AclEntryAction(T data) : data_(data) {}
+  T getData() const {
+    return data_;
+  }
+
+  void setData(T data) {
+    data_ = data;
+  }
+
+  std::string str() const {
+    return folly::to<std::string>("data: ", data_);
+  }
+
+ private:
+  T data_;
+};
+
+template <typename T>
+struct WrappedSaiType<AclEntryAction<T>> {
+  using value = sai_acl_action_data_t;
+};
+
+template <typename T>
+bool operator==(const AclEntryAction<T>& lhs, const AclEntryAction<T>& rhs) {
+  return lhs.getData() == rhs.getData();
+}
+
+template <typename T>
+std::size_t hash_value(const AclEntryAction<T>& key) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, boost::hash_value(key.getData()));
+  return seed;
+}
+
+using AclEntryActionU8 = AclEntryAction<sai_uint8_t>;
+
+template <typename T>
 struct IsSaiTypeWrapper
     : std::negation<std::is_same<typename WrappedSaiType<T>::value, T>> {};
 
