@@ -43,6 +43,14 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort() const {
+    return std::make_pair(9001, 0xFFFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort() const {
+    return std::make_pair(9002, 0xFFFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kIpProtocol() const {
     return std::make_pair(6, 0xFF);
   }
@@ -117,6 +125,10 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldIpV6(kSrcIpV6())};
     SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
         AclEntryFieldIpV6(kDstIpV6())};
+    SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute{
+        AclEntryFieldU16(kL4SrcPort())};
+    SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute{
+        AclEntryFieldU16(kL4DstPort())};
     SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute{
         AclEntryFieldU8(kIpProtocol())};
     SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
@@ -134,6 +146,8 @@ class AclApiTest : public ::testing::Test {
          aclPriorityAttribute,
          aclFieldSrcIpV6,
          aclFieldDstIpV6,
+         aclFieldL4SrcPortAttribute,
+         aclFieldL4DstPortAttribute,
          aclFieldIpProtocolAttribute,
          aclFieldTcpFlagsAttribute,
          aclFieldDscpAttribute,
@@ -334,6 +348,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldIpV6(kSrcIpV6())};
   SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
       AclEntryFieldIpV6(kDstIpV6())};
+  SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute{
+      AclEntryFieldU16(kL4SrcPort())};
+  SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute{
+      AclEntryFieldU16(kL4DstPort())};
   SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute{
       AclEntryFieldU8(kIpProtocol())};
   SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
@@ -350,6 +368,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
        aclPriorityAttribute1,
        aclFieldSrcIpV6,
        aclFieldDstIpV6,
+       aclFieldL4SrcPortAttribute,
+       aclFieldL4DstPortAttribute,
        aclFieldIpProtocolAttribute,
        aclFieldTcpFlagsAttribute,
        aclFieldDscpAttribute,

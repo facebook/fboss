@@ -76,6 +76,14 @@ class FakeAclEntry {
   folly::IPAddressV6 fieldDstIpV6Data;
   folly::IPAddressV6 fieldDstIpV6Mask;
 
+  bool fieldL4SrcPortEnable;
+  sai_uint16_t fieldL4SrcPortData;
+  sai_uint16_t fieldL4SrcPortMask;
+
+  bool fieldL4DstPortEnable;
+  sai_uint16_t fieldL4DstPortData;
+  sai_uint16_t fieldL4DstPortMask;
+
   bool fieldIpProtocolEnable;
   sai_uint8_t fieldIpProtocolData;
   sai_uint8_t fieldIpProtocolMask;

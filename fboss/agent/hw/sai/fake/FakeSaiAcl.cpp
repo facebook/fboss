@@ -287,6 +287,18 @@ sai_status_t set_acl_entry_attribute_fn(
           facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip6);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
+      aclEntry.fieldL4SrcPortEnable = attr->value.aclfield.enable;
+      aclEntry.fieldL4SrcPortData = attr->value.aclfield.data.u16;
+      aclEntry.fieldL4SrcPortMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
+      aclEntry.fieldL4DstPortEnable = attr->value.aclfield.enable;
+      aclEntry.fieldL4DstPortData = attr->value.aclfield.data.u16;
+      aclEntry.fieldL4DstPortMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
       aclEntry.fieldIpProtocolEnable = attr->value.aclfield.enable;
       aclEntry.fieldIpProtocolData = attr->value.aclfield.data.u8;
@@ -351,6 +363,16 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.fieldDstIpV6Data, &attr_list[i].value.aclfield.data.ip6);
         facebook::fboss::toSaiIpAddressV6(
             aclEntry.fieldDstIpV6Mask, &attr_list[i].value.aclfield.mask.ip6);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldL4SrcPortEnable;
+        attr_list[i].value.aclfield.data.u16 = aclEntry.fieldL4SrcPortData;
+        attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldL4SrcPortMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldL4DstPortEnable;
+        attr_list[i].value.aclfield.data.u16 = aclEntry.fieldL4DstPortData;
+        attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldL4DstPortMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
         attr_list[i].value.aclfield.enable = aclEntry.fieldIpProtocolEnable;

@@ -148,6 +148,7 @@ std::size_t hash_value(const AclEntryField<T>& key) {
  * have corresponding '0' bit in the same position of the mask are ignored.
  */
 using AclEntryFieldU8 = AclEntryField<std::pair<sai_uint8_t, sai_uint8_t>>;
+using AclEntryFieldU16 = AclEntryField<std::pair<sai_uint16_t, sai_uint16_t>>;
 using AclEntryFieldU32 = AclEntryField<std::pair<sai_uint32_t, sai_uint32_t>>;
 using AclEntryFieldIpV6 =
     AclEntryField<std::pair<folly::IPAddressV6, folly::IPAddressV6>>;

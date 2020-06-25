@@ -154,6 +154,7 @@ DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 
@@ -235,6 +236,19 @@ inline void _fill(
     sai_acl_field_data_t& dst) {
   dst.enable = true;
   std::tie(dst.data.u8, dst.mask.u8) = src.getDataAndMask();
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldU16& dst) {
+  dst.setDataAndMask(std::make_pair(src.data.u16, src.mask.u16));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldU16& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  std::tie(dst.data.u16, dst.mask.u16) = src.getDataAndMask();
 }
 
 inline void _fill(

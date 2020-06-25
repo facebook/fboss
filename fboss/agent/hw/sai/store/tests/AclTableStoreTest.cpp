@@ -48,6 +48,14 @@ class AclTableStoreTest : public SaiStoreTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort() const {
+    return std::make_pair(9001, 0xFFFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort() const {
+    return std::make_pair(9002, 0xFFFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kIpProtocol() const {
     return std::make_pair(6, 0xFF);
   }
@@ -100,6 +108,8 @@ class AclTableStoreTest : public SaiStoreTest {
          this->kPriority(),
          AclEntryFieldIpV6(this->kSrcIpV6()),
          AclEntryFieldIpV6(this->kDstIpV6()),
+         AclEntryFieldU16(this->kL4SrcPort()),
+         AclEntryFieldU16(this->kL4DstPort()),
          AclEntryFieldU8(this->kIpProtocol()),
          AclEntryFieldU8(this->kTcpFlags()),
          AclEntryFieldU8(this->kDscp()),
@@ -180,6 +190,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kPriority(),
                                       this->kSrcIpV6(),
                                       this->kDstIpV6(),
+                                      this->kL4SrcPort(),
+                                      this->kL4DstPort(),
                                       this->kIpProtocol(),
                                       this->kTcpFlags(),
                                       this->kDscp(),
@@ -254,6 +266,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kPriority(),
                                         this->kSrcIpV6(),
                                         this->kDstIpV6(),
+                                        this->kL4SrcPort(),
+                                        this->kL4DstPort(),
                                         this->kIpProtocol(),
                                         this->kTcpFlags(),
                                         this->kDscp(),
@@ -263,6 +277,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kPriority(),
                                       this->kSrcIpV6(),
                                       this->kDstIpV6(),
+                                      this->kL4SrcPort(),
+                                      this->kL4DstPort(),
                                       this->kIpProtocol(),
                                       this->kTcpFlags(),
                                       this->kDscp(),
