@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>
@@ -23,6 +23,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    utility::addOlympicQosMaps(cfg);
     return cfg;
   }
 
@@ -61,7 +62,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
   }
 
- protected:
   /*
    * In practice, sending single packet usually (but not always) returned BST
    * value > 0 (usually 2, but  other times it was 0). Thus, send a large
@@ -72,24 +72,12 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       sendUdpPkt(dscpVal);
     }
   }
-  void _createAcl(uint8_t dscpVal, int queueId, const std::string& aclName) {
-    auto newCfg{initialConfig()};
-    utility::addDscpAclToCfg(&newCfg, aclName, dscpVal);
-    utility::addQueueMatcher(&newCfg, aclName, queueId);
-    applyNewConfig(newCfg);
-  }
-
-  void _setup(uint8_t kDscp) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-    setupECMPForwarding(ecmpHelper6);
-  }
 
   void
   assertWatermark(PortID port, int queueId, bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedWatermark(port, queueId, expectZero, retries));
   }
 
- private:
   bool
   gotExpectedWatermark(PortID port, int queueId, bool expectZero, int retries) {
     do {
@@ -109,46 +97,36 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     XLOG(INFO) << " Did not get expected watermark value";
     return false;
   }
+
+ protected:
+  void runTest(int queueId) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+      return;
+    }
+
+    auto setup = [this]() {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+      setupECMPForwarding(ecmpHelper6);
+    };
+    auto verify = [this, queueId]() {
+      auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
+      sendUdpPkts(dscpsForQueue[0]);
+      // Assert non zero watermark
+      assertWatermark(masterLogicalPortIds()[0], queueId, false);
+      // Assert zero watermark
+      assertWatermark(masterLogicalPortIds()[0], queueId, true, 5);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
 };
 
 TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
-  uint8_t kDscp = 10;
-  int kDefQueueId = 0;
-
-  auto setup = [=]() { _setup(kDscp); };
-  auto verify = [=]() {
-    sendUdpPkts(kDscp);
-    // Assert non zero watermark
-    assertWatermark(masterLogicalPortIds()[0], kDefQueueId, false);
-    // Assert zero watermark
-    assertWatermark(masterLogicalPortIds()[0], kDefQueueId, true, 5);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
+  runTest(utility::kOlympicSilverQueueId);
 }
 
 TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
-  uint8_t kDscp = 10;
-  int kNonDefQueueId = 1;
-  auto kAclName = "acl1";
-
-  auto setup = [=]() {
-    _createAcl(kDscp, kNonDefQueueId, kAclName);
-    _setup(kDscp);
-  };
-  auto verify = [=]() {
-    sendUdpPkts(kDscp);
-    // Assert non zero watermark
-    assertWatermark(masterLogicalPortIds()[0], kNonDefQueueId, false);
-    // Assert zero watermark
-    assertWatermark(masterLogicalPortIds()[0], kNonDefQueueId, true, 5);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
+  runTest(utility::kOlympicGoldQueueId);
 }
 
 } // namespace facebook::fboss
