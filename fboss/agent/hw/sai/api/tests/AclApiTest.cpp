@@ -311,8 +311,39 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::ActionTypeList());
   auto aclTableEntryListGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::EntryList());
+
+  auto aclTableFieldSrcIpV6Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldSrcIpV6());
+  auto aclTableFieldDstIpV6Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV6());
+  auto aclTableFieldL4SrcPortGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldL4SrcPort());
+  auto aclTableFieldL4DstPortGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldL4DstPort());
+  auto aclTableFieldIpProtocolGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldIpProtocol());
+  auto aclTableFieldTcpFlagsGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldTcpFlags());
+  auto aclTableFieldInPortGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldInPort());
+  auto aclTableFieldOutPortGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldOutPort());
+  auto aclTableFieldIpFragGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldIpFrag());
   auto aclTableFieldDscpGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldDscp());
+  auto aclTableFieldDstMacGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDstMac());
+  auto aclTableFieldIpTypeGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldIpType());
+  auto aclTableFieldTtlGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldTtl());
+  auto aclTableFieldFdbDstUserMetaGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldFdbDstUserMeta());
+  auto aclTableFieldRouteDstUserMetaGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldRouteDstUserMeta());
+  auto aclTableFieldNeighborDstUserMetaGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta());
 
   EXPECT_EQ(aclTableStageGot, SAI_ACL_STAGE_INGRESS);
   EXPECT_EQ(aclTableBindPointTypeListGot.size(), 1);
@@ -321,7 +352,23 @@ TEST_F(AclApiTest, getAclTableAttribute) {
 
   EXPECT_EQ(aclTableEntryListGot.size(), 1);
   EXPECT_EQ(aclTableEntryListGot[0], static_cast<uint32_t>(aclEntryId));
+
+  EXPECT_EQ(aclTableFieldSrcIpV6Got, true);
+  EXPECT_EQ(aclTableFieldDstIpV6Got, true);
+  EXPECT_EQ(aclTableFieldL4SrcPortGot, true);
+  EXPECT_EQ(aclTableFieldL4DstPortGot, true);
+  EXPECT_EQ(aclTableFieldIpProtocolGot, true);
+  EXPECT_EQ(aclTableFieldTcpFlagsGot, true);
+  EXPECT_EQ(aclTableFieldInPortGot, true);
+  EXPECT_EQ(aclTableFieldOutPortGot, true);
+  EXPECT_EQ(aclTableFieldIpFragGot, true);
   EXPECT_EQ(aclTableFieldDscpGot, true);
+  EXPECT_EQ(aclTableFieldDstMacGot, true);
+  EXPECT_EQ(aclTableFieldIpTypeGot, true);
+  EXPECT_EQ(aclTableFieldTtlGot, true);
+  EXPECT_EQ(aclTableFieldFdbDstUserMetaGot, true);
+  EXPECT_EQ(aclTableFieldRouteDstUserMetaGot, true);
+  EXPECT_EQ(aclTableFieldNeighborDstUserMetaGot, true);
 }
 
 TEST_F(AclApiTest, getAclEntryAttribute) {
@@ -353,14 +400,51 @@ TEST_F(AclApiTest, setAclTableAttribute) {
   SaiAclTableTraits::Attributes::BindPointTypeList bindPointTypeList{};
   SaiAclTableTraits::Attributes::ActionTypeList actionTypeList{};
   SaiAclTableTraits::Attributes::EntryList entryList{};
-  SaiAclTableTraits::Attributes::FieldDscp fieldDscp{true};
+
+  SaiAclTableTraits::Attributes::FieldSrcIpV6 fieldSrcIpv6{false};
+  SaiAclTableTraits::Attributes::FieldDstIpV6 fieldDstIpV6{false};
+  SaiAclTableTraits::Attributes::FieldL4SrcPort fieldL4SrcPort{false};
+  SaiAclTableTraits::Attributes::FieldL4DstPort fieldL4DstPort{false};
+  SaiAclTableTraits::Attributes::FieldIpProtocol fieldIpProtocol{false};
+  SaiAclTableTraits::Attributes::FieldTcpFlags fieldTcpFlags{false};
+  SaiAclTableTraits::Attributes::FieldInPort fieldInPort{false};
+  SaiAclTableTraits::Attributes::FieldOutPort fieldOutPort{false};
+  SaiAclTableTraits::Attributes::FieldIpFrag fieldIpFrag{false};
+  SaiAclTableTraits::Attributes::FieldDscp fieldDscp{false};
+  SaiAclTableTraits::Attributes::FieldDstMac fieldDstMac{false};
+  SaiAclTableTraits::Attributes::FieldIpType fieldIpType{false};
+  SaiAclTableTraits::Attributes::FieldTtl fieldTtl{false};
+  SaiAclTableTraits::Attributes::FieldFdbDstUserMeta fieldFdbDstUserMeta{false};
+  SaiAclTableTraits::Attributes::FieldRouteDstUserMeta fieldRouteDstUserMeta{
+      false};
+  SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta
+      fieldNeieghborDstUserMeta{false};
 
   EXPECT_THROW(aclApi->setAttribute(aclTableId, stage), SaiApiError);
   EXPECT_THROW(
       aclApi->setAttribute(aclTableId, bindPointTypeList), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, actionTypeList), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, entryList), SaiApiError);
+
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldSrcIpv6), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDstIpV6), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldL4SrcPort), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldL4DstPort), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpProtocol), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldTcpFlags), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldInPort), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldOutPort), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpFrag), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDscp), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDstMac), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpType), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldTtl), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableId, fieldFdbDstUserMeta), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableId, fieldRouteDstUserMeta), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableId, fieldNeieghborDstUserMeta), SaiApiError);
 }
 
 TEST_F(AclApiTest, setAclEntryAttribute) {
