@@ -133,7 +133,10 @@ class FakeAclTable {
       sai_uint8_t fieldDscp,
       sai_uint8_t fieldDstMac,
       sai_uint8_t fieldIpType,
-      sai_uint8_t fieldTtl)
+      sai_uint8_t fieldTtl,
+      sai_uint8_t fieldFdbDstUserMeta,
+      sai_uint8_t fieldRouteDstUserMeta,
+      sai_uint8_t fieldNeighborDstUserMeta)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
@@ -149,7 +152,10 @@ class FakeAclTable {
         fieldDscp(fieldDscp),
         fieldDstMac(fieldDstMac),
         fieldIpType(fieldIpType),
-        fieldTtl(fieldTtl) {}
+        fieldTtl(fieldTtl),
+        fieldFdbDstUserMeta(fieldFdbDstUserMeta),
+        fieldRouteDstUserMeta(fieldRouteDstUserMeta),
+        fieldNeighborDstUserMeta(fieldNeighborDstUserMeta) {}
 
   static sai_acl_api_t* kApi();
 
@@ -171,6 +177,9 @@ class FakeAclTable {
   sai_uint8_t fieldDstMac;
   sai_uint8_t fieldIpType;
   sai_uint8_t fieldTtl;
+  sai_uint8_t fieldFdbDstUserMeta;
+  sai_uint8_t fieldRouteDstUserMeta;
+  sai_uint8_t fieldNeighborDstUserMeta;
 
   FakeManager<sai_object_id_t, FakeAclEntry>& fm() {
     return fm_;

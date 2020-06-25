@@ -104,7 +104,10 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // dscp
             true, // dstMac
             true, // ipType
-            true // ttl
+            true, // ttl
+            true, // fdb meta
+            true, // route meta
+            true // neighbor meta
         },
         0);
   }
@@ -153,7 +156,10 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
 
   auto got = store.get(k);
@@ -176,7 +182,10 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
 
   auto got2 = store.get(k2);
@@ -245,7 +254,10 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
 
   SaiAclTableTraits::AdapterHostKey k{
@@ -264,7 +276,10 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
 
   SaiObject<SaiAclTableTraits> obj(k, c, 0);

@@ -38,6 +38,9 @@ sai_status_t create_acl_table_fn(
   sai_uint8_t fieldDstMac = 0;
   sai_uint8_t fieldIpType = 0;
   sai_uint8_t fieldTtl = 0;
+  sai_uint8_t fieldFdbDstUserMeta = 0;
+  sai_uint8_t fieldRouteDstUserMeta = 0;
+  sai_uint8_t fieldNeighborDstUserMeta = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -94,7 +97,15 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_TTL:
         fieldTtl = attr_list[i].value.u8;
         break;
-
+      case SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META:
+        fieldFdbDstUserMeta = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META:
+        fieldRouteDstUserMeta = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META:
+        fieldNeighborDstUserMeta = attr_list[i].value.u8;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
         break;
@@ -121,7 +132,10 @@ sai_status_t create_acl_table_fn(
       fieldDscp,
       fieldDstMac,
       fieldIpType,
-      fieldTtl);
+      fieldTtl,
+      fieldFdbDstUserMeta,
+      fieldRouteDstUserMeta,
+      fieldNeighborDstUserMeta);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -247,7 +261,18 @@ sai_status_t get_acl_table_attribute_fn(
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.u8 = aclTable.fieldTtl;
       } break;
-
+      case SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldFdbDstUserMeta;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldRouteDstUserMeta;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldNeighborDstUserMeta;
+      } break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }

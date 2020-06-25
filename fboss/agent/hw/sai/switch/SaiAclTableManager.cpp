@@ -68,7 +68,10 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
   SaiAclTableTraits::CreateAttributes attributes{
       SAI_ACL_STAGE_INGRESS,
@@ -86,7 +89,10 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // dscp
       true, // dstMac
       true, // ipType
-      true // ttl
+      true, // ttl
+      true, // fdb meta
+      true, // route meta
+      true // neighbor meta
   };
 
   auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);

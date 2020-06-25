@@ -148,6 +148,18 @@ struct SaiAclTableTraits {
     using FieldIpType =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE, bool>;
     using FieldTtl = SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TTL, bool>;
+    using FieldFdbDstUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
+        bool>;
+    using FieldRouteDstUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
+        bool>;
+    using FieldNeighborDstUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
+        bool>;
   };
 
   using AdapterKey = AclTableSaiId;
@@ -167,7 +179,10 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
-      std::optional<Attributes::FieldTtl>>;
+      std::optional<Attributes::FieldTtl>,
+      std::optional<Attributes::FieldFdbDstUserMeta>,
+      std::optional<Attributes::FieldRouteDstUserMeta>,
+      std::optional<Attributes::FieldNeighborDstUserMeta>>;
 
   using CreateAttributes = std::tuple<
       Attributes::Stage,
@@ -185,7 +200,10 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
-      std::optional<Attributes::FieldTtl>>;
+      std::optional<Attributes::FieldTtl>,
+      std::optional<Attributes::FieldFdbDstUserMeta>,
+      std::optional<Attributes::FieldRouteDstUserMeta>,
+      std::optional<Attributes::FieldNeighborDstUserMeta>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclTable, Stage);
@@ -205,6 +223,9 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
+SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
 
 struct SaiAclEntryTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
