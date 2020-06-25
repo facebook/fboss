@@ -287,10 +287,28 @@ sai_status_t set_acl_entry_attribute_fn(
           facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip6);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
+      aclEntry.fieldIpProtocolEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIpProtocolData = attr->value.aclfield.data.u8;
+      aclEntry.fieldIpProtocolMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
+      aclEntry.fieldTcpFlagsEnable = attr->value.aclfield.enable;
+      aclEntry.fieldTcpFlagsData = attr->value.aclfield.data.u8;
+      aclEntry.fieldTcpFlagsMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
       aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
+      aclEntry.fieldTtlEnable = attr->value.aclfield.enable;
+      aclEntry.fieldTtlData = attr->value.aclfield.data.u8;
+      aclEntry.fieldTtlMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
@@ -334,10 +352,25 @@ sai_status_t get_acl_entry_attribute_fn(
         facebook::fboss::toSaiIpAddressV6(
             aclEntry.fieldDstIpV6Mask, &attr_list[i].value.aclfield.mask.ip6);
         break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIpProtocolEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldIpProtocolData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIpProtocolMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldTcpFlagsEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTcpFlagsData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTcpFlagsMask;
+        break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldTtlEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTtlData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTtlMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
         attr_list[i].value.aclfield.enable =

@@ -228,8 +228,18 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6,
         AclEntryFieldIpV6>;
+    using FieldIpProtocol = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL,
+        AclEntryFieldU8>;
+    using FieldTcpFlags = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS,
+        AclEntryFieldU8>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
+    using FieldTtl =
+        SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_TTL, AclEntryFieldU8>;
     using FieldRouteDstUserMeta = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META,
@@ -242,14 +252,20 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::Priority>,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldIpProtocol>,
+      std::optional<Attributes::FieldTcpFlags>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldRouteDstUserMeta>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldIpProtocol>,
+      std::optional<Attributes::FieldTcpFlags>,
       std::optional<Attributes::FieldDscp>,
+      std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldRouteDstUserMeta>>;
 };
 
@@ -257,7 +273,10 @@ SAI_ATTRIBUTE_NAME(AclEntry, TableId);
 SAI_ATTRIBUTE_NAME(AclEntry, Priority);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldIpProtocol);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldTcpFlags);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 
 class AclApi : public SaiApi<AclApi> {

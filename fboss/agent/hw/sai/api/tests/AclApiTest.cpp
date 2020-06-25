@@ -43,6 +43,14 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kIpProtocol() const {
+    return std::make_pair(6, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kTcpFlags() const {
+    return std::make_pair(1, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
     // mask of 0xFC to match on 6-bit DSCP
@@ -53,6 +61,10 @@ class AclApiTest : public ::testing::Test {
     // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
     // mask of 0xFC to match on 6-bit DSCP
     return std::make_pair(20, 0xFC);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kTtl() const {
+    return std::make_pair(128, 128);
   }
 
   std::pair<sai_uint32_t, sai_uint32_t> kRouteDstUserMeta() const {
@@ -105,8 +117,14 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldIpV6(kSrcIpV6())};
     SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
         AclEntryFieldIpV6(kDstIpV6())};
+    SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute{
+        AclEntryFieldU8(kIpProtocol())};
+    SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
+        AclEntryFieldU8(kTcpFlags())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
+    SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
+        AclEntryFieldU8(kTtl())};
     SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
         aclFieldRouteDstUserMetaAttribute{
             AclEntryFieldU32(kRouteDstUserMeta())};
@@ -116,7 +134,10 @@ class AclApiTest : public ::testing::Test {
          aclPriorityAttribute,
          aclFieldSrcIpV6,
          aclFieldDstIpV6,
+         aclFieldIpProtocolAttribute,
+         aclFieldTcpFlagsAttribute,
          aclFieldDscpAttribute,
+         aclFieldTtlAttribute,
          aclFieldRouteDstUserMetaAttribute},
         kSwitchID());
   }
@@ -313,8 +334,14 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldIpV6(kSrcIpV6())};
   SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
       AclEntryFieldIpV6(kDstIpV6())};
+  SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute{
+      AclEntryFieldU8(kIpProtocol())};
+  SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
+      AclEntryFieldU8(kTcpFlags())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
       AclEntryFieldU8(kDscp())};
+  SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
+      AclEntryFieldU8(kTtl())};
   SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
       aclFieldRouteDstUserMetaAttribute{AclEntryFieldU32(kRouteDstUserMeta())};
 
@@ -323,7 +350,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
        aclPriorityAttribute1,
        aclFieldSrcIpV6,
        aclFieldDstIpV6,
+       aclFieldIpProtocolAttribute,
+       aclFieldTcpFlagsAttribute,
        aclFieldDscpAttribute,
+       aclFieldTtlAttribute,
        aclFieldRouteDstUserMetaAttribute},
       kSwitchID());
   checkAclEntry(aclTableId, aclEntryId);
