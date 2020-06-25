@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -20,7 +20,7 @@
 
 namespace facebook::fboss {
 
-class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
+class HwPortBandwidthTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -129,7 +129,7 @@ class BcmPortBandwidthTest : public BcmLinkStateDependentTests {
 };
 
 template <typename GetQueueOutCntT>
-void BcmPortBandwidthTest::verifyRateHelper(
+void HwPortBandwidthTest::verifyRateHelper(
     const std::string& testType,
     uint8_t dscpVal,
     uint32_t maxRate,
@@ -179,7 +179,7 @@ void BcmPortBandwidthTest::verifyRateHelper(
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmPortBandwidthTest, VerifyPps) {
+TEST_F(HwPortBandwidthTest, VerifyPps) {
   auto getPackets = [this]() {
     return getLatestPortStats(masterLogicalPortIds()[0])
         .get_queueOutPackets_()
@@ -189,7 +189,7 @@ TEST_F(BcmPortBandwidthTest, VerifyPps) {
   verifyRateHelper("pps", kQueueId0Dscp(), kMaxPps(), getPackets);
 }
 
-TEST_F(BcmPortBandwidthTest, VerifyKbps) {
+TEST_F(HwPortBandwidthTest, VerifyKbps) {
   auto getKbits = [this]() {
     auto outBytes = getLatestPortStats(masterLogicalPortIds()[0])
                         .get_queueOutBytes_()
