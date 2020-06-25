@@ -198,11 +198,11 @@ HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
 bool HwSwitchEnsemble::waitForAnyPortOutBytesIncrement(
     const std::map<PortID, HwPortStats>& originalPortStats) {
   auto conditionFn = [&originalPortStats](const auto& newPortStats) {
-    for (const auto& portStat : originalPortStats) {
-      auto newPortStatItr = newPortStats.find(portStat.first);
+    for (const auto& [portId, portStat] : originalPortStats) {
+      auto newPortStatItr = newPortStats.find(portId);
       if (newPortStatItr != newPortStats.end()) {
         if (*newPortStatItr->second.outBytes__ref() >
-            *portStat.second.outBytes__ref()) {
+            portStat.outBytes__ref()) {
           return true;
         }
       }
