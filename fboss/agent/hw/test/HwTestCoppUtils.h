@@ -33,6 +33,7 @@ constexpr uint32_t kCoppDefaultPriWeight = 1;
 constexpr uint32_t kCoppMidPriWeight = 2;
 constexpr uint32_t kCoppHighPriWeight = 4;
 
+constexpr uint32_t kAveragePacketSize = 300;
 constexpr uint32_t kCoppLowPriPktsPerSec = 100;
 constexpr uint32_t kCoppDefaultPriPktsPerSec = 200;
 

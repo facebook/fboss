@@ -64,6 +64,27 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   return defaultStreamType;
 }
 
+cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
+  uint32_t pps, bps;
+  if (queueId == kCoppLowPriQueueId) {
+    pps = kCoppLowPriPktsPerSec;
+  } else if (queueId == kCoppDefaultPriQueueId) {
+    pps = kCoppDefaultPriPktsPerSec;
+  } else {
+    throw FbossError("Unexpected queue id ", queueId);
+  }
+
+  auto portQueueRate = cfg::PortQueueRate();
+  if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+    portQueueRate.set_pktsPerSec(getRange(0, pps));
+  } else {
+    bps = pps * kAveragePacketSize * 8 / 1000;
+    portQueueRate.set_kbitsPerSec(getRange(0, bps));
+  }
+
+  return portQueueRate;
+}
+
 void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> cpuQueues;
 
@@ -73,9 +94,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue0.streamType = getCpuDefaultStreamType(hwAsic);
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = kCoppLowPriWeight;
-  queue0.portQueueRate_ref() = cfg::PortQueueRate();
-  queue0.portQueueRate_ref()->set_pktsPerSec(
-      getRange(0, kCoppLowPriPktsPerSec));
+  queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
   queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
   queue0.sharedBytes_ref() = kCoppLowPriSharedBytes;
   cpuQueues.push_back(queue0);
@@ -86,9 +105,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue1.streamType = getCpuDefaultStreamType(hwAsic);
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = kCoppDefaultPriWeight;
-  queue1.portQueueRate_ref() = cfg::PortQueueRate();
-  queue1.portQueueRate_ref()->set_pktsPerSec(
-      getRange(0, kCoppDefaultPriPktsPerSec));
+  queue1.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
   queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
   queue1.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
   cpuQueues.push_back(queue1);
