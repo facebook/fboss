@@ -41,9 +41,13 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
         maxBwRate = *portQueueRate.get_pktsPerSec().maximum_ref();
         break;
       case PortQueueRate::Type::kbitsPerSec:
+        /*
+         * config sets the rate in kbps (kilo bits per second) whereas SAI
+         * expects it in bytes per second.
+         */
         meterType = SAI_METER_TYPE_BYTES;
-        minBwRate = *portQueueRate.get_kbitsPerSec().minimum_ref();
-        maxBwRate = *portQueueRate.get_kbitsPerSec().maximum_ref();
+        minBwRate = *portQueueRate.get_kbitsPerSec().minimum_ref() * 1000 / 8;
+        maxBwRate = *portQueueRate.get_kbitsPerSec().maximum_ref() * 1000 / 8;
         break;
       default:
         break;

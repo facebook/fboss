@@ -66,6 +66,10 @@ class SchedulerManagerTest : public ManagerTestBase {
         schedulerApi.getAttribute(saiSchedulerId, schedulingType);
     SaiSchedulerTraits::Attributes::MeterType meterType;
     auto gotMeterType = schedulerApi.getAttribute(saiSchedulerId, meterType);
+    if (queueRateType == cfg::PortQueueRate::Type::kbitsPerSec) {
+      min = min * 1000 / 8;
+      max = max * 1000 / 8;
+    }
     SaiSchedulerTraits::Attributes::MinBandwidthRate minBwRate;
     auto gotMinBwRate = schedulerApi.getAttribute(saiSchedulerId, minBwRate);
     SaiSchedulerTraits::Attributes::MaxBandwidthRate maxBwRate;
