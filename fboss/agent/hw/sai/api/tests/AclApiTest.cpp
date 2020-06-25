@@ -31,10 +31,24 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
+  sai_uint32_t kPriority() const {
+    return 1;
+  }
+
+  sai_uint32_t kPriority2() const {
+    return 2;
+  }
+
   std::pair<folly::IPAddressV6, folly::IPAddressV6> kSrcIpV6() const {
     return std::make_pair(
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kSrcIpV6_2() const {
+    return std::make_pair(
+        folly::IPAddressV6("2620:0:1cfe:face:c00c::3"),
+        folly::IPAddressV6("2620:0:1cfe:face:c00c::3"));
   }
 
   std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6() const {
@@ -43,20 +57,42 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
   }
 
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6_2() const {
+    return std::make_pair(
+        folly::IPAddressV6("2620:0:1cfe:face:c00c::4"),
+        folly::IPAddressV6("2620:0:1cfe:face:c00c::4"));
+  }
+
   std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort() const {
     return std::make_pair(9001, 0xFFFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort2() const {
+    return std::make_pair(10001, 0xFFFF);
   }
 
   std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort() const {
     return std::make_pair(9002, 0xFFFF);
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort2() const {
+    return std::make_pair(10002, 0xFFFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kIpProtocol() const {
     return std::make_pair(6, 0xFF);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kIpProtocol2() const {
+    return std::make_pair(17, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kTcpFlags() const {
     return std::make_pair(1, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kTcpFlags2() const {
+    return std::make_pair(2, 0xFF);
   }
 
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
@@ -75,20 +111,38 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(128, 128);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kTtl2() const {
+    return std::make_pair(64, 64);
+  }
+
   std::pair<sai_uint32_t, sai_uint32_t> kFdbDstUserMeta() const {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kFdbDstUserMeta2() const {
+    return std::make_pair(12, 0xFFFFFFFF);
+  }
   std::pair<sai_uint32_t, sai_uint32_t> kRouteDstUserMeta() const {
     return std::make_pair(11, 0xFFFFFFFF);
+  }
+
+  std::pair<sai_uint32_t, sai_uint32_t> kRouteDstUserMeta2() const {
+    return std::make_pair(12, 0xFFFFFFFF);
   }
 
   std::pair<sai_uint32_t, sai_uint32_t> kNeighborDstUserMeta() const {
     return std::make_pair(11, 0xFFFFFFFF);
   }
+  std::pair<sai_uint32_t, sai_uint32_t> kNeighborDstUserMeta2() const {
+    return std::make_pair(12, 0xFFFFFFFF);
+  }
 
   sai_uint8_t kSetTC() const {
     return 1;
+  }
+
+  sai_uint8_t kSetTC2() const {
+    return 2;
   }
 
   const std::vector<sai_int32_t>& kActionTypeList() const {
@@ -135,7 +189,7 @@ class AclApiTest : public ::testing::Test {
 
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
-    SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
+    SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{kPriority()};
     SaiAclEntryTraits::Attributes::FieldSrcIpV6 aclFieldSrcIpV6{
         AclEntryFieldIpV6(kSrcIpV6())};
     SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
@@ -213,7 +267,7 @@ class AclApiTest : public ::testing::Test {
     SaiAclTableGroupMemberTraits::Attributes::TableId
         aclTableGroupTableIdAttribute{aclTableId};
     SaiAclTableGroupMemberTraits::Attributes::Priority
-        aclTableGroupPriorityAttribute{1};
+        aclTableGroupPriorityAttribute{kPriority()};
 
     return aclApi->create<SaiAclTableGroupMemberTraits>(
         {aclTableGroupTableGroupIdAttribute,
@@ -236,6 +290,68 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(
         aclTableGroupId,
         fs->aclTableGroupManager.getMember(aclTableGroupMemberId).tableGroupId);
+  }
+
+  void getAndVerifyAclEntryAttribute(
+      AclEntrySaiId aclEntryId,
+      sai_uint32_t priority,
+      const std::pair<folly::IPAddressV6, folly::IPAddressV6>& srcIpV6,
+      const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6,
+      const std::pair<sai_uint16_t, sai_uint16_t>& l4SrcPort,
+      const std::pair<sai_uint16_t, sai_uint16_t>& L4DstPort,
+      const std::pair<sai_uint8_t, sai_uint8_t>& ipProtocol,
+      const std::pair<sai_uint8_t, sai_uint8_t>& tcpFlags,
+      const std::pair<sai_uint8_t, sai_uint8_t>& dscp,
+      const std::pair<sai_uint8_t, sai_uint8_t>& ttl,
+      const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
+      const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
+      const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
+      sai_uint8_t setTC) const {
+    auto aclPriorityGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::Priority());
+
+    auto aclFieldSrcIpV6Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
+    auto aclFieldDstIpV6Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
+    auto aclFieldL4SrcPortGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldL4SrcPort());
+    auto aclFieldL4DstPortGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldL4DstPort());
+    auto aclFieldIpProtocolGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIpProtocol());
+    auto aclFieldTcpFlagsGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldTcpFlags());
+    auto aclFieldDscpGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+    auto aclFieldTtlGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldTtl());
+    auto aclFieldFdbDstUserMetaGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta());
+    auto aclFieldRouteDstUserMetaGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta());
+    auto aclFieldNeighborDstUserMetaGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta());
+
+    auto aclActionSetTCGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
+
+    EXPECT_EQ(aclPriorityGot, priority);
+
+    EXPECT_EQ(aclFieldSrcIpV6Got.getDataAndMask(), srcIpV6);
+    EXPECT_EQ(aclFieldDstIpV6Got.getDataAndMask(), dstIpV6);
+    EXPECT_EQ(aclFieldL4SrcPortGot.getDataAndMask(), l4SrcPort);
+    EXPECT_EQ(aclFieldL4DstPortGot.getDataAndMask(), L4DstPort);
+    EXPECT_EQ(aclFieldIpProtocolGot.getDataAndMask(), ipProtocol);
+    EXPECT_EQ(aclFieldTcpFlagsGot.getDataAndMask(), tcpFlags);
+    EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), dscp);
+    EXPECT_EQ(aclFieldTtlGot.getDataAndMask(), ttl);
+    EXPECT_EQ(aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbDstUserMeta);
+    EXPECT_EQ(aclFieldRouteDstUserMetaGot.getDataAndMask(), routeDstUserMeta);
+    EXPECT_EQ(
+        aclFieldNeighborDstUserMetaGot.getDataAndMask(), neighborDstUserMeta);
+
+    EXPECT_EQ(aclActionSetTCGot.getData(), setTC);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -378,13 +494,21 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
   auto aclEntryId = createAclEntry(aclTableId);
   checkAclEntry(aclTableId, aclEntryId);
 
-  auto aclPriorityGot = aclApi->getAttribute(
-      aclEntryId, SaiAclEntryTraits::Attributes::Priority());
-  auto aclFieldDscpGot = aclApi->getAttribute(
-      aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
-
-  EXPECT_EQ(aclPriorityGot, 1);
-  EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), kDscp());
+  getAndVerifyAclEntryAttribute(
+      aclEntryId,
+      kPriority(),
+      kSrcIpV6(),
+      kDstIpV6(),
+      kL4SrcPort(),
+      kL4DstPort(),
+      kIpProtocol(),
+      kTcpFlags(),
+      kDscp(),
+      kTtl(),
+      kFdbDstUserMeta(),
+      kRouteDstUserMeta(),
+      kNeighborDstUserMeta(),
+      kSetTC());
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -451,50 +575,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   auto aclTableId = createAclTable();
   checkAclTable(aclTableId);
 
-  SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
-  SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute1{1};
-  SaiAclEntryTraits::Attributes::FieldSrcIpV6 aclFieldSrcIpV6{
-      AclEntryFieldIpV6(kSrcIpV6())};
-  SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
-      AclEntryFieldIpV6(kDstIpV6())};
-  SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute{
-      AclEntryFieldU16(kL4SrcPort())};
-  SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute{
-      AclEntryFieldU16(kL4DstPort())};
-  SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute{
-      AclEntryFieldU8(kIpProtocol())};
-  SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
-      AclEntryFieldU8(kTcpFlags())};
-  SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
-      AclEntryFieldU8(kDscp())};
-  SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
-      AclEntryFieldU8(kTtl())};
-  SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
-      aclFieldFdbDstUserMetaAttribute{AclEntryFieldU32(kFdbDstUserMeta())};
-  SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
-      aclFieldRouteDstUserMetaAttribute{AclEntryFieldU32(kRouteDstUserMeta())};
-  SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
-      aclFieldNeighborDstUserMetaAttribute{
-          AclEntryFieldU32(kNeighborDstUserMeta())};
-  SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
-      AclEntryActionU8(kSetTC())};
-
-  auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
-      {aclTableIdAttribute,
-       aclPriorityAttribute1,
-       aclFieldSrcIpV6,
-       aclFieldDstIpV6,
-       aclFieldL4SrcPortAttribute,
-       aclFieldL4DstPortAttribute,
-       aclFieldIpProtocolAttribute,
-       aclFieldTcpFlagsAttribute,
-       aclFieldDscpAttribute,
-       aclFieldTtlAttribute,
-       aclFieldFdbDstUserMetaAttribute,
-       aclFieldRouteDstUserMetaAttribute,
-       aclFieldNeighborDstUserMetaAttribute,
-       aclActionSetTC},
-      kSwitchID());
+  auto aclEntryId = createAclEntry(aclTableId);
   checkAclEntry(aclTableId, aclEntryId);
 
   // SAI spec does not support setting tableId for ACL entry post
@@ -505,22 +586,65 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   // SAI spec supports setting priority and fieldDscp for ACL entry post
   // creation.
-  SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute2{2};
+  SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute2{kPriority2()};
+
+  SaiAclEntryTraits::Attributes::FieldSrcIpV6 aclFieldSrcIpV6Attribute2{
+      AclEntryFieldIpV6(kSrcIpV6_2())};
+  SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6Attribute2{
+      AclEntryFieldIpV6(kDstIpV6_2())};
+  SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute2{
+      AclEntryFieldU16(kL4SrcPort2())};
+  SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute2{
+      AclEntryFieldU16(kL4DstPort2())};
+  SaiAclEntryTraits::Attributes::FieldIpProtocol aclFieldIpProtocolAttribute2{
+      AclEntryFieldU8(kIpProtocol2())};
+  SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute2{
+      AclEntryFieldU8(kTcpFlags2())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
       AclEntryFieldU8(kDscp2())};
+  SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute2{
+      AclEntryFieldU8(kTtl2())};
+  SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
+      aclFieldFdbDstUserMetaAttribute2{AclEntryFieldU32(kFdbDstUserMeta2())};
+  SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
+      aclFieldRouteDstUserMetaAttribute2{
+          AclEntryFieldU32(kRouteDstUserMeta2())};
+  SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
+      aclFieldNeighborDstUserMetaAttribute2{
+          AclEntryFieldU32(kNeighborDstUserMeta2())};
+  SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC2{
+      AclEntryActionU8(kSetTC2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
+
+  aclApi->setAttribute(aclEntryId, aclFieldSrcIpV6Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldL4SrcPortAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldL4DstPortAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldIpProtocolAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldTcpFlagsAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldTtlAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclActionSetTC2);
 
-  auto aclPriorityGot = aclApi->getAttribute(
-      aclEntryId, SaiAclEntryTraits::Attributes::Priority());
-  auto aclFieldDscpGot = aclApi->getAttribute(
-      aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
-
-  EXPECT_EQ(aclPriorityAttribute2, aclPriorityGot);
-  EXPECT_EQ(
-      aclFieldDscpAttribute2.value().getDataAndMask(),
-      aclFieldDscpGot.getDataAndMask());
+  getAndVerifyAclEntryAttribute(
+      aclEntryId,
+      kPriority2(),
+      kSrcIpV6_2(),
+      kDstIpV6_2(),
+      kL4SrcPort2(),
+      kL4DstPort2(),
+      kIpProtocol2(),
+      kTcpFlags2(),
+      kDscp2(),
+      kTtl2(),
+      kFdbDstUserMeta2(),
+      kRouteDstUserMeta2(),
+      kNeighborDstUserMeta2(),
+      kSetTC2());
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {
@@ -671,7 +795,7 @@ TEST_F(AclApiTest, setAclTableGroupMemberAttribute) {
   // post creation.
   SaiAclTableGroupMemberTraits::Attributes::TableGroupId tableGroupId{1};
   SaiAclTableGroupMemberTraits::Attributes::TableId tableId{1};
-  SaiAclTableGroupMemberTraits::Attributes::Priority priority{1};
+  SaiAclTableGroupMemberTraits::Attributes::Priority priority{kPriority()};
 
   EXPECT_THROW(
       aclApi->setAttribute(aclTableGroupMemberId, tableGroupId), SaiApiError);
