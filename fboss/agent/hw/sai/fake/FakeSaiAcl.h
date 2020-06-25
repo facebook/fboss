@@ -68,51 +68,51 @@ class FakeAclEntry {
   sai_object_id_t tableId;
   sai_uint32_t priority;
 
-  bool fieldSrcIpV6Enable;
+  bool fieldSrcIpV6Enable{false};
   folly::IPAddressV6 fieldSrcIpV6Data;
   folly::IPAddressV6 fieldSrcIpV6Mask;
 
-  bool fieldDstIpV6Enable;
+  bool fieldDstIpV6Enable{false};
   folly::IPAddressV6 fieldDstIpV6Data;
   folly::IPAddressV6 fieldDstIpV6Mask;
 
-  bool fieldL4SrcPortEnable;
+  bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;
   sai_uint16_t fieldL4SrcPortMask;
 
-  bool fieldL4DstPortEnable;
+  bool fieldL4DstPortEnable{false};
   sai_uint16_t fieldL4DstPortData;
   sai_uint16_t fieldL4DstPortMask;
 
-  bool fieldIpProtocolEnable;
+  bool fieldIpProtocolEnable{false};
   sai_uint8_t fieldIpProtocolData;
   sai_uint8_t fieldIpProtocolMask;
 
-  bool fieldTcpFlagsEnable;
+  bool fieldTcpFlagsEnable{false};
   sai_uint8_t fieldTcpFlagsData;
   sai_uint8_t fieldTcpFlagsMask;
 
-  bool fieldDscpEnable;
+  bool fieldDscpEnable{false};
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
 
-  bool fieldTtlEnable;
+  bool fieldTtlEnable{false};
   sai_uint8_t fieldTtlData;
   sai_uint8_t fieldTtlMask;
 
-  bool fieldFdbDstUserMetaEnable;
+  bool fieldFdbDstUserMetaEnable{false};
   sai_uint32_t fieldFdbDstUserMetaData;
   sai_uint32_t fieldFdbDstUserMetaMask;
 
-  bool fieldRouteDstUserMetaEnable;
+  bool fieldRouteDstUserMetaEnable{false};
   sai_uint32_t fieldRouteDstUserMetaData;
   sai_uint32_t fieldRouteDstUserMetaMask;
 
-  bool fieldNeighborDstUserMetaEnable;
+  bool fieldNeighborDstUserMetaEnable{false};
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
 
-  bool actionSetTCEnable;
+  bool actionSetTCEnable{false};
   sai_uint8_t actionSetTCData;
 
   sai_object_id_t id;
