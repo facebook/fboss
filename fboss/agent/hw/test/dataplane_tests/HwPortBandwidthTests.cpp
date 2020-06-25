@@ -8,20 +8,20 @@
  *
  */
 
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
 class HwPortBandwidthTest : public HwLinkStateDependentTest {
- protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
@@ -33,38 +33,6 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     }
 
     return cfg;
-  }
-
-  uint8_t kQueueId0() const {
-    return 0;
-  }
-
-  uint8_t kQueueId0Dscp() const {
-    return utility::kOlympicQueueToDscp().at(kQueueId0()).front();
-  }
-
-  uint32_t kMinPps() const {
-    return 0;
-  }
-
-  uint32_t kMaxPps() const {
-    return 100;
-  }
-
-  uint8_t kQueueId1() const {
-    return 1;
-  }
-
-  uint8_t kQueueId1Dscp() const {
-    return utility::kOlympicQueueToDscp().at(kQueueId1()).front();
-  }
-
-  uint32_t kMinKbps() const {
-    return 0;
-  }
-
-  uint32_t kMaxKbps() const {
-    return 1000;
   }
 
   void _configureBandwidth(cfg::SwitchConfig* config) const {
@@ -97,14 +65,19 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     }
   }
 
+  MacAddress dstMac() const {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+  }
+
   void sendUdpPkt(uint8_t dscpVal) {
     auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
-        intfMac,
-        intfMac,
+        srcMac,
+        dstMac(),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
@@ -118,6 +91,39 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     for (int i = 0; i < cnt; i++) {
       sendUdpPkt(dscpVal);
     }
+  }
+
+ protected:
+  uint8_t kQueueId0() const {
+    return 0;
+  }
+
+  uint8_t kQueueId0Dscp() const {
+    return utility::kOlympicQueueToDscp().at(kQueueId0()).front();
+  }
+
+  uint32_t kMinPps() const {
+    return 0;
+  }
+
+  uint32_t kMaxPps() const {
+    return 100;
+  }
+
+  uint8_t kQueueId1() const {
+    return 1;
+  }
+
+  uint8_t kQueueId1Dscp() const {
+    return utility::kOlympicQueueToDscp().at(kQueueId1()).front();
+  }
+
+  uint32_t kMinKbps() const {
+    return 0;
+  }
+
+  uint32_t kMaxKbps() const {
+    return 1000;
   }
 
   template <typename GetQueueOutCntT>
@@ -140,8 +146,7 @@ void HwPortBandwidthTest::verifyRateHelper(
 
   auto setup = [=]() {
     auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                             getPlatform()->getLocalMac()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
     setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
     disableTTLDecrements(ecmpHelper6);
   };
