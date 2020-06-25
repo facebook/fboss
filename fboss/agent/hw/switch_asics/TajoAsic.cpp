@@ -32,6 +32,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SCHEDULER_PPS:
       return false;
   }
   return false;

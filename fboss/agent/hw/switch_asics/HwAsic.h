@@ -28,6 +28,7 @@ class HwAsic {
     QOS_MAP_GLOBAL,
     QCM,
     ROUTE_METADATA,
+    SCHEDULER_PPS,
   };
 
   enum class AsicType {

@@ -15,6 +15,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::SCHEDULER_PPS:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
