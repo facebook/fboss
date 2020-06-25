@@ -170,7 +170,16 @@ class PortApi : public SaiApi<PortApi> {
       const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) const {
-    return api_->get_port_stats(key, num_of_counters, counter_ids, counters);
+    /*
+     * Unfortunately not all vendors implement the ext stats api.
+     * ext stats api matter only for modes other than the (default)
+     * SAI_STATS_MODE_READ. So play defensive and call ext mode only
+     * when called with something other than default
+     */
+    return mode == SAI_STATS_MODE_READ
+        ? api_->get_port_stats(key, num_of_counters, counter_ids, counters)
+        : api_->get_port_stats_ext(
+              key, num_of_counters, counter_ids, mode, counters);
   }
 
   sai_status_t _clearStats(

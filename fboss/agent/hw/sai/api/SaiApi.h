@@ -257,6 +257,7 @@ class SaiApi {
               SaiObjectTraits::CounterIdsToReadAndClear.size(),
               mode);
   }
+
   template <typename SaiObjectTraits>
   void clearStats(
       const typename SaiObjectTraits::AdapterKey& key,
