@@ -250,7 +250,7 @@ TEST_F(PortApiTest, portKeys) {
 
 TEST_F(PortApiTest, getAllStats) {
   auto id = createPort(100000, {42}, true);
-  auto stats = portApi->getStats<SaiPortTraits>(id);
+  auto stats = portApi->getStats<SaiPortTraits>(id, SAI_STATS_MODE_READ);
   EXPECT_EQ(stats.size(), SaiPortTraits::CounterIdsToRead.size());
 }
 
