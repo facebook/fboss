@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeSaiAcl.h"
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 using facebook::fboss::FakeSai;
@@ -270,6 +271,22 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.priority = attr->value.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
+      aclEntry.fieldSrcIpV6Enable = attr->value.aclfield.enable;
+      aclEntry.fieldSrcIpV6Data =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.data.ip6);
+      aclEntry.fieldSrcIpV6Mask =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip6);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
+      aclEntry.fieldDstIpV6Enable = attr->value.aclfield.enable;
+      aclEntry.fieldDstIpV6Data =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.data.ip6);
+      aclEntry.fieldDstIpV6Mask =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip6);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
       aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
@@ -302,6 +319,20 @@ sai_status_t get_acl_entry_attribute_fn(
         break;
       case SAI_ACL_ENTRY_ATTR_PRIORITY:
         attr_list[i].value.u32 = aclEntry.priority;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldSrcIpV6Enable;
+        facebook::fboss::toSaiIpAddressV6(
+            aclEntry.fieldSrcIpV6Data, &attr_list[i].value.aclfield.data.ip6);
+        facebook::fboss::toSaiIpAddressV6(
+            aclEntry.fieldSrcIpV6Mask, &attr_list[i].value.aclfield.mask.ip6);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldDstIpV6Enable;
+        facebook::fboss::toSaiIpAddressV6(
+            aclEntry.fieldDstIpV6Data, &attr_list[i].value.aclfield.data.ip6);
+        facebook::fboss::toSaiIpAddressV6(
+            aclEntry.fieldDstIpV6Mask, &attr_list[i].value.aclfield.mask.ip6);
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;

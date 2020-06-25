@@ -155,6 +155,7 @@ DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
@@ -247,6 +248,22 @@ inline void _fill(
     sai_acl_field_data_t& dst) {
   dst.enable = true;
   std::tie(dst.data.u32, dst.mask.u32) = src.getDataAndMask();
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldIpV6& dst) {
+  dst.setDataAndMask(std::make_pair(
+      facebook::fboss::fromSaiIpAddress(src.data.ip6),
+      facebook::fboss::fromSaiIpAddress(src.mask.ip6)));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldIpV6& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().first, &dst.data.ip6);
+  facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().second, &dst.mask.ip6);
 }
 
 template <typename SrcT, typename DstT>

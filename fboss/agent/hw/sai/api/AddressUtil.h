@@ -32,6 +32,8 @@ sai_ip_address_t toSaiIpAddress(const folly::IPAddress& addr);
 sai_ip_address_t toSaiIpAddress(const folly::IPAddressV4& addr);
 sai_ip_address_t toSaiIpAddress(const folly::IPAddressV6& addr);
 
+void toSaiIpAddressV6(const folly::IPAddressV6& addr, sai_ip6_t* ip6);
+
 folly::CIDRNetwork fromSaiIpPrefix(const sai_ip_prefix_t& prefix);
 sai_ip_prefix_t toSaiIpPrefix(const folly::CIDRNetwork& prefix);
 

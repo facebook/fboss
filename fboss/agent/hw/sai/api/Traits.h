@@ -141,9 +141,16 @@ std::size_t hash_value(const AclEntryField<T>& key) {
   return seed;
 }
 
-// AclEntryField's data and mask always have the same data type
+/*
+ * AclEntryField's data and mask always have the same data type:
+ * Packet matching takes into account only the bits in the data which have a
+ * corresponding '1' in the same position of the mask. Bits in the data which
+ * have corresponding '0' bit in the same position of the mask are ignored.
+ */
 using AclEntryFieldU8 = AclEntryField<std::pair<sai_uint8_t, sai_uint8_t>>;
 using AclEntryFieldU32 = AclEntryField<std::pair<sai_uint32_t, sai_uint32_t>>;
+using AclEntryFieldIpV6 =
+    AclEntryField<std::pair<folly::IPAddressV6, folly::IPAddressV6>>;
 
 template <typename T>
 struct IsSaiTypeWrapper

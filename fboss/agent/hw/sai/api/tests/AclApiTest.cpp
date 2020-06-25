@@ -31,6 +31,18 @@ class AclApiTest : public ::testing::Test {
     return 0;
   }
 
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kSrcIpV6() const {
+    return std::make_pair(
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6() const {
+    return std::make_pair(
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
     // mask of 0xFC to match on 6-bit DSCP
@@ -89,6 +101,10 @@ class AclApiTest : public ::testing::Test {
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{1};
+    SaiAclEntryTraits::Attributes::FieldSrcIpV6 aclFieldSrcIpV6{
+        AclEntryFieldIpV6(kSrcIpV6())};
+    SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
+        AclEntryFieldIpV6(kDstIpV6())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
     SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
@@ -98,6 +114,8 @@ class AclApiTest : public ::testing::Test {
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
          aclPriorityAttribute,
+         aclFieldSrcIpV6,
+         aclFieldDstIpV6,
          aclFieldDscpAttribute,
          aclFieldRouteDstUserMetaAttribute},
         kSwitchID());
@@ -291,6 +309,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
   SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute1{1};
+  SaiAclEntryTraits::Attributes::FieldSrcIpV6 aclFieldSrcIpV6{
+      AclEntryFieldIpV6(kSrcIpV6())};
+  SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
+      AclEntryFieldIpV6(kDstIpV6())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
       AclEntryFieldU8(kDscp())};
   SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
@@ -299,6 +321,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
       {aclTableIdAttribute,
        aclPriorityAttribute1,
+       aclFieldSrcIpV6,
+       aclFieldDstIpV6,
        aclFieldDscpAttribute,
        aclFieldRouteDstUserMetaAttribute},
       kSwitchID());

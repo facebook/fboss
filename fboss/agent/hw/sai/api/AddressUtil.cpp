@@ -77,6 +77,11 @@ sai_ip_address_t toSaiIpAddress(const folly::IPAddressV6& addr) {
   return out;
 }
 
+void toSaiIpAddressV6(const folly::IPAddressV6& addr, sai_ip6_t* ip6) {
+  folly::ByteRange r = addr.toBinary();
+  std::copy(std::begin(r), std::end(r), std::begin(*ip6));
+}
+
 folly::CIDRNetwork fromSaiIpPrefix(const sai_ip_prefix_t& prefix) {
   folly::IPAddress outAddr;
   folly::IPAddress mask;

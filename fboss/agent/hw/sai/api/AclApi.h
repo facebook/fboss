@@ -220,6 +220,14 @@ struct SaiAclEntryTraits {
      * TODO (skhare) Add all the FIELD_* FBOSS needs.
      * Find a way to express at least one FIELD_* is mandatory.
      */
+    using FieldSrcIpV6 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6,
+        AclEntryFieldIpV6>;
+    using FieldDstIpV6 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6,
+        AclEntryFieldIpV6>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
     using FieldRouteDstUserMeta = SaiAttribute<
@@ -232,17 +240,23 @@ struct SaiAclEntryTraits {
   using AdapterHostKey = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
+      std::optional<Attributes::FieldSrcIpV6>,
+      std::optional<Attributes::FieldDstIpV6>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldRouteDstUserMeta>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
+      std::optional<Attributes::FieldSrcIpV6>,
+      std::optional<Attributes::FieldDstIpV6>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldRouteDstUserMeta>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
 SAI_ATTRIBUTE_NAME(AclEntry, Priority);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV6);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 
