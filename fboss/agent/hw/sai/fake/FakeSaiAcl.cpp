@@ -323,10 +323,22 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldTtlMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
+      aclEntry.fieldFdbDstUserMetaEnable = attr->value.aclfield.enable;
+      aclEntry.fieldFdbDstUserMetaData = attr->value.aclfield.data.u32;
+      aclEntry.fieldFdbDstUserMetaMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
       aclEntry.fieldRouteDstUserMetaEnable = attr->value.aclfield.enable;
       aclEntry.fieldRouteDstUserMetaData = attr->value.aclfield.data.u32;
       aclEntry.fieldRouteDstUserMetaMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
+      aclEntry.fieldNeighborDstUserMetaEnable = attr->value.aclfield.enable;
+      aclEntry.fieldNeighborDstUserMetaData = attr->value.aclfield.data.u32;
+      aclEntry.fieldNeighborDstUserMetaMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
     default:
@@ -394,6 +406,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTtlData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTtlMask;
         break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldFdbDstUserMetaEnable;
+        attr_list[i].value.aclfield.data.u32 = aclEntry.fieldFdbDstUserMetaData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldFdbDstUserMetaMask;
+        break;
       case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
         attr_list[i].value.aclfield.enable =
             aclEntry.fieldRouteDstUserMetaEnable;
@@ -401,6 +418,14 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.fieldRouteDstUserMetaData;
         attr_list[i].value.aclfield.mask.u32 =
             aclEntry.fieldRouteDstUserMetaMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
+        attr_list[i].value.aclfield.enable =
+            aclEntry.fieldNeighborDstUserMetaEnable;
+        attr_list[i].value.aclfield.data.u32 =
+            aclEntry.fieldNeighborDstUserMetaData;
+        attr_list[i].value.aclfield.mask.u32 =
+            aclEntry.fieldNeighborDstUserMetaMask;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

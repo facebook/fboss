@@ -75,7 +75,15 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(128, 128);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kFdbDstUserMeta() const {
+    return std::make_pair(11, 0xFFFFFFFF);
+  }
+
   std::pair<sai_uint32_t, sai_uint32_t> kRouteDstUserMeta() const {
+    return std::make_pair(11, 0xFFFFFFFF);
+  }
+
+  std::pair<sai_uint32_t, sai_uint32_t> kNeighborDstUserMeta() const {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
@@ -137,9 +145,14 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kDscp())};
     SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
         AclEntryFieldU8(kTtl())};
+    SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
+        aclFieldFdbDstUserMetaAttribute{AclEntryFieldU32(kFdbDstUserMeta())};
     SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
         aclFieldRouteDstUserMetaAttribute{
             AclEntryFieldU32(kRouteDstUserMeta())};
+    SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
+        aclFieldNeighborDstUserMetaAttribute{
+            AclEntryFieldU32(kNeighborDstUserMeta())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -152,7 +165,9 @@ class AclApiTest : public ::testing::Test {
          aclFieldTcpFlagsAttribute,
          aclFieldDscpAttribute,
          aclFieldTtlAttribute,
-         aclFieldRouteDstUserMetaAttribute},
+         aclFieldFdbDstUserMetaAttribute,
+         aclFieldRouteDstUserMetaAttribute,
+         aclFieldNeighborDstUserMetaAttribute},
         kSwitchID());
   }
 
@@ -360,8 +375,13 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kDscp())};
   SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
       AclEntryFieldU8(kTtl())};
+  SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
+      aclFieldFdbDstUserMetaAttribute{AclEntryFieldU32(kFdbDstUserMeta())};
   SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta
       aclFieldRouteDstUserMetaAttribute{AclEntryFieldU32(kRouteDstUserMeta())};
+  SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
+      aclFieldNeighborDstUserMetaAttribute{
+          AclEntryFieldU32(kNeighborDstUserMeta())};
 
   auto aclEntryId = aclApi->create<SaiAclEntryTraits>(
       {aclTableIdAttribute,
@@ -374,7 +394,9 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
        aclFieldTcpFlagsAttribute,
        aclFieldDscpAttribute,
        aclFieldTtlAttribute,
-       aclFieldRouteDstUserMetaAttribute},
+       aclFieldFdbDstUserMetaAttribute,
+       aclFieldRouteDstUserMetaAttribute,
+       aclFieldNeighborDstUserMetaAttribute},
       kSwitchID());
   checkAclEntry(aclTableId, aclEntryId);
 
