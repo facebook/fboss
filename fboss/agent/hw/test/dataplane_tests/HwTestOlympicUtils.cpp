@@ -81,7 +81,9 @@ void addOlympicQueueConfig(cfg::SwitchConfig* config) {
   portQueues.push_back(queue7);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  for (auto& port : *config->ports_ref()) {
+    port.portQueueConfigName_ref() = "queue_config";
+  }
 }
 
 std::string getOlympicAclNameForDscp(uint8_t dscp) {
