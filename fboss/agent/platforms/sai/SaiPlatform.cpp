@@ -94,8 +94,8 @@ void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
       portStatus.enabled = port->isEnabled();
       portStatus.up = port->isUp();
       portStatus.speedMbps = static_cast<int64_t>(port->getSpeed());
-      portStatus.set_transceiverIdx(
-          platformPort->getTransceiverMapping(port->getSpeed()));
+      portStatus.transceiverIdx_ref() =
+          platformPort->getTransceiverMapping(port->getSpeed());
       changedPorts.insert(std::make_pair(port->getID(), portStatus));
     }
   }

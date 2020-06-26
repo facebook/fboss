@@ -195,8 +195,8 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
   for (auto rxEntry : rxReasonToQueueMappings) {
     auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-    rxReasonToQueue.set_rxReason(rxEntry.first);
-    rxReasonToQueue.set_queueId(rxEntry.second);
+    rxReasonToQueue.rxReason_ref() = rxEntry.first;
+    rxReasonToQueue.queueId_ref() = rxEntry.second;
     rxReasonToQueues.push_back(rxReasonToQueue);
   }
   newControlPlane->resetRxReasonToQueue(rxReasonToQueues);
@@ -220,8 +220,8 @@ TEST_F(HostifManagerTest, checkHostifPriority) {
   // Remove two traps and ensure the priority is reassigned.
   rxReasonToQueues.clear();
   auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-  rxReasonToQueue.set_rxReason(cfg::PacketRxReason::ARP_RESPONSE);
-  rxReasonToQueue.set_queueId(1);
+  rxReasonToQueue.rxReason_ref() = cfg::PacketRxReason::ARP_RESPONSE;
+  rxReasonToQueue.queueId_ref() = 1;
   rxReasonToQueues.push_back(rxReasonToQueue);
   auto newControlPlaneNew = prevControlPlane->clone();
   newControlPlaneNew->resetRxReasonToQueue(rxReasonToQueues);

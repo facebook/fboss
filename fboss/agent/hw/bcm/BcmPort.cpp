@@ -1089,10 +1089,10 @@ BcmPort::BcmPortStats::BcmPortStats(int numUnicastQueues) : BcmPortStats() {
   for (auto cosq = 0; cosq < numUnicastQueues; ++cosq) {
     queueInitStats.emplace(cosq, 0);
   }
-  portStats_.set_queueOutDiscardBytes_(queueInitStats);
-  portStats_.set_queueOutBytes_(queueInitStats);
-  portStats_.set_queueOutPackets_(queueInitStats);
-  portStats_.set_queueWatermarkBytes_(queueInitStats);
+  portStats_.queueOutDiscardBytes__ref() = queueInitStats;
+  portStats_.queueOutBytes__ref() = queueInitStats;
+  portStats_.queueOutPackets__ref() = queueInitStats;
+  portStats_.queueWatermarkBytes__ref() = queueInitStats;
 }
 
 BcmPort::BcmPortStats::BcmPortStats(

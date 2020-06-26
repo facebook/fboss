@@ -257,10 +257,10 @@ void getPortInfoHelper(
       if (queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::pktsPerSec) {
         Range range;
-        range.set_minimum(
-            *queue->getPortQueueRate().value().get_pktsPerSec().minimum_ref());
-        range.set_maximum(
-            *queue->getPortQueueRate().value().get_pktsPerSec().maximum_ref());
+        range.minimum_ref() =
+            *queue->getPortQueueRate().value().get_pktsPerSec().minimum_ref();
+        range.maximum_ref() =
+            *queue->getPortQueueRate().value().get_pktsPerSec().maximum_ref();
         PortQueueRate portQueueRate;
         portQueueRate.set_pktsPerSec(range);
 
@@ -269,10 +269,10 @@ void getPortInfoHelper(
           queue->getPortQueueRate().value().getType() ==
           cfg::PortQueueRate::Type::kbitsPerSec) {
         Range range;
-        range.set_minimum(
-            *queue->getPortQueueRate().value().get_kbitsPerSec().minimum_ref());
-        range.set_maximum(
-            *queue->getPortQueueRate().value().get_kbitsPerSec().maximum_ref());
+        range.minimum_ref() =
+            *queue->getPortQueueRate().value().get_kbitsPerSec().minimum_ref();
+        range.maximum_ref() =
+            *queue->getPortQueueRate().value().get_kbitsPerSec().maximum_ref();
         PortQueueRate portQueueRate;
         portQueueRate.set_kbitsPerSec(range);
 

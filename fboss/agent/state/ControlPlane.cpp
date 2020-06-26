@@ -74,8 +74,8 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
           reasonToQueueEntry.at(kRxReason).asString(), &reason);
       CHECK(found);
       cfg::PacketRxReasonToQueue reasonToQueue;
-      reasonToQueue.set_rxReason(reason);
-      reasonToQueue.set_queueId(reasonToQueueEntry.at(kQueueId).asInt());
+      reasonToQueue.rxReason_ref() = reason;
+      reasonToQueue.queueId_ref() = reasonToQueueEntry.at(kQueueId).asInt();
       controlPlane.rxReasonToQueue.push_back(reasonToQueue);
     }
   } else if (json.find(kRxReasonToQueue) != json.items().end()) {
@@ -87,8 +87,8 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamic(
           reasonToQueueJson.first.asString(), &reason);
       CHECK(found);
       cfg::PacketRxReasonToQueue reasonToQueue;
-      reasonToQueue.set_rxReason(reason);
-      reasonToQueue.set_queueId(reasonToQueueJson.second.asInt());
+      reasonToQueue.rxReason_ref() = reason;
+      reasonToQueue.queueId_ref() = reasonToQueueJson.second.asInt();
       controlPlane.rxReasonToQueue.push_back(reasonToQueue);
     }
   }

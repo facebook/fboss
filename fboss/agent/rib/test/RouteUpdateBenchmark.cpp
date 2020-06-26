@@ -132,7 +132,7 @@ static void runNewRibTest() {
       IpPrefix prefix;
       prefix.ip = facebook::network::toBinaryAddress(route.prefix.first);
       prefix.prefixLength = route.prefix.second;
-      routeToAdd.set_dest(prefix);
+      routeToAdd.dest_ref() = prefix;
       routeToAdd.nextHops_ref() = nextHopsThrift(route.nhops);
 
       routesToAdd.push_back(std::move(routeToAdd));

@@ -287,9 +287,9 @@ facebook::fboss::UnicastRoute createUnicastRoute(
   facebook::fboss::UnicastRoute unicastRoute;
 
   facebook::fboss::IpPrefix network;
-  network.set_ip(facebook::network::toBinaryAddress(address));
-  network.set_prefixLength(mask);
-  unicastRoute.set_dest(network);
+  network.ip_ref() = facebook::network::toBinaryAddress(address);
+  network.prefixLength_ref() = mask;
+  unicastRoute.dest_ref() = network;
 
   std::vector<facebook::fboss::NextHopThrift> nexthops(1);
   nexthops.back().address_ref() = facebook::network::toBinaryAddress(nexthop);
