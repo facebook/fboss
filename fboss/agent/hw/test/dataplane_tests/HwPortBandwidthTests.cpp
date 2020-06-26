@@ -185,6 +185,9 @@ void HwPortBandwidthTest::verifyRateHelper(
 }
 
 TEST_F(HwPortBandwidthTest, VerifyPps) {
+  if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
+    return;
+  }
   auto getPackets = [this]() {
     return getLatestPortStats(masterLogicalPortIds()[0])
         .get_queueOutPackets_()
