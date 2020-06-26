@@ -131,7 +131,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::unique_ptr<std::thread> thriftThread);
 
  private:
-  bool waitForAnyPortOutBytesIncrement(
+  bool waitForAnyPorAndQueutOutBytesIncrement(
       const std::map<PortID, HwPortStats>& originalPortStats);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};

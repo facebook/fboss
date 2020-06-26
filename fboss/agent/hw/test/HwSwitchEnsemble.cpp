@@ -16,6 +16,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -162,7 +163,7 @@ void HwSwitchEnsemble::removeHwEventObserver(
 bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
   bool result = getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
-  return result && waitForAnyPortOutBytesIncrement(originalPortStats);
+  return result && waitForAnyPorAndQueutOutBytesIncrement(originalPortStats);
 }
 
 bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
@@ -172,7 +173,7 @@ bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
   auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
   bool result =
       getHwSwitch()->sendPacketOutOfPortSync(std::move(pkt), portID, queue);
-  return result && waitForAnyPortOutBytesIncrement(originalPortStats);
+  return result && waitForAnyPorAndQueutOutBytesIncrement(originalPortStats);
 }
 
 bool HwSwitchEnsemble::waitPortStatsCondition(
@@ -195,15 +196,31 @@ HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }
 
-bool HwSwitchEnsemble::waitForAnyPortOutBytesIncrement(
+bool HwSwitchEnsemble::waitForAnyPorAndQueutOutBytesIncrement(
     const std::map<PortID, HwPortStats>& originalPortStats) {
-  auto conditionFn = [&originalPortStats](const auto& newPortStats) {
+  auto queueStatsSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
+  auto conditionFn = [&originalPortStats,
+                      queueStatsSupported](const auto& newPortStats) {
     for (const auto& [portId, portStat] : originalPortStats) {
       auto newPortStatItr = newPortStats.find(portId);
       if (newPortStatItr != newPortStats.end()) {
         if (*newPortStatItr->second.outBytes__ref() >
             portStat.outBytes__ref()) {
-          return true;
+          // Wait for queue stat increment if queues are supported
+          // on this platform
+          if (!queueStatsSupported ||
+              std::any_of(
+                  portStat.queueOutBytes__ref()->begin(),
+                  portStat.queueOutBytes__ref()->end(),
+                  [newPortStatItr](auto queueAndBytes) {
+                    auto [qid, oldQbytes] = queueAndBytes;
+                    const auto newQueueStats =
+                        newPortStatItr->second.queueOutBytes__ref();
+                    return newQueueStats->find(qid)->second > oldQbytes;
+                  })) {
+            return true;
+          }
         }
       }
     }
