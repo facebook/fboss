@@ -87,11 +87,8 @@ class HwAlpmStressTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::twoL3IntfConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+    return utility::onePortPerVlanConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
   }
   /*
    * ALPM algorithm on TD2 in a nutshell
