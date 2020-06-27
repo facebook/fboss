@@ -1044,8 +1044,14 @@ void ThriftHandler::clearPortPrbsStats(
   ensureConfigured(__func__);
   if (component == PrbsComponent::ASIC) {
     sw_->clearPortAsicPrbsStats(portId);
+  } else if (
+      component == PrbsComponent::GB_SYSTEM ||
+      component == PrbsComponent::GB_LINE) {
+    phy::Side side = (component == PrbsComponent::GB_SYSTEM) ? phy::Side::SYSTEM
+                                                             : phy::Side::LINE;
+    sw_->clearPortGearboxPrbsStats(portId, side);
   } else {
-    XLOG(INFO) << "ClearPortPrbsStats has not been implemented for component "
+    XLOG(INFO) << "Unrecognized component to ClearPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
@@ -1064,8 +1070,19 @@ void ThriftHandler::getPortPrbsStats(
     for (const auto& lane : asicPrbsStats) {
       prbsStats.laneStats.push_back(lane);
     }
+  } else if (
+      component == PrbsComponent::GB_SYSTEM ||
+      component == PrbsComponent::GB_LINE) {
+    phy::Side side = (component == PrbsComponent::GB_SYSTEM) ? phy::Side::SYSTEM
+                                                             : phy::Side::LINE;
+    auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
+    prbsStats.portId = portId;
+    prbsStats.component = component;
+    for (const auto& lane : gearboxPrbsStats) {
+      prbsStats.laneStats.push_back(lane);
+    }
   } else {
-    XLOG(INFO) << "GetPortPrbsStats has not been implemented for component "
+    XLOG(INFO) << "Unrecognized component to GetPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
