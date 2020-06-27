@@ -99,6 +99,7 @@ class BcmStatUpdater {
       PrbsLaneStats prbsLaneStats = PrbsLaneStats();
       steady_clock::time_point now = steady_clock::now();
       prbsLaneStats.laneId = laneId_;
+      prbsLaneStats.locked = locked_;
       if (!locked_) {
         prbsLaneStats.ber = 0.;
       } else {
