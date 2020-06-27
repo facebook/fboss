@@ -1095,8 +1095,24 @@ void ThriftHandler::setPortPrbs(
       return newState;
     };
     sw_->updateStateBlocking("set port asic prbs", updateFn);
+  } else if (component == PrbsComponent::GB_SYSTEM) {
+    auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+      shared_ptr<SwitchState> newState{state};
+      auto newPort = port->modify(&newState);
+      newPort->setGbSystemPrbs(newPrbsState);
+      return newState;
+    };
+    sw_->updateStateBlocking("set port gearbox system side prbs", updateFn);
+  } else if (component == PrbsComponent::GB_LINE) {
+    auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+      shared_ptr<SwitchState> newState{state};
+      auto newPort = port->modify(&newState);
+      newPort->setGbLinePrbs(newPrbsState);
+      return newState;
+    };
+    sw_->updateStateBlocking("set port gearbox line side prbs", updateFn);
   } else {
-    XLOG(INFO) << "SetPortPrbs has not been implemented for component "
+    XLOG(INFO) << "Unrecognized component to setPortPrbs: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
