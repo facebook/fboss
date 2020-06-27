@@ -30,6 +30,7 @@ struct ExternalPhyLaneStats {
   uint64_t numAdapt{0};
   uint64_t numReadapt{0};
   uint64_t numLinkLost{0};
+  std::optional<int64_t> prbsErrorCounts;
 };
 
 struct ExternalPhyPortSideStats {
@@ -153,6 +154,12 @@ class ExternalPhy {
   };
 
   virtual ExternalPhyPortStats getPortStats(const PhyPortConfig& config) = 0;
+
+  virtual float_t getLaneSpeed(
+      const PhyPortConfig& /* config */,
+      Side /* side */) {
+    return 0.;
+  }
 
   virtual void reset() = 0;
 
