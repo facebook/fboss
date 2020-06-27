@@ -50,7 +50,7 @@ BcmAclStat::~BcmAclStat() {
 }
 
 bool BcmAclStat::isStateSame(
-    BcmSwitch* hw,
+    const BcmSwitch* hw,
     BcmAclStatHandle statHandle,
     cfg::TrafficCounter& counter) {
   std::vector<bcm_field_stat_t> expectedCounterTypes;

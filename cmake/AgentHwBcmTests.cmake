@@ -10,11 +10,12 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmColdBootStateTests.cpp
   fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
   fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
+  fboss/agent/hw/bcm/tests/HwTestAclUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestEcmpUtils.cpp
-  fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMacUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestMplsUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
+  fboss/agent/hw/bcm/tests/HwVlanUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAclCoppTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclQualifierTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
@@ -39,7 +40,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmLabelForwardingTests.cpp
   fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.cpp
   fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
-  fboss/agent/hw/bcm/tests/BcmMatchActionsTests.cpp
   fboss/agent/hw/bcm/tests/BcmMirrorTests.cpp
   fboss/agent/hw/bcm/tests/BcmMplsTestUtils.cpp
   fboss/agent/hw/bcm/tests/BcmNeighborTests.cpp

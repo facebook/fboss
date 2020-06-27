@@ -413,7 +413,7 @@ BcmAclEntry::~BcmAclEntry() {
 }
 
 bool BcmAclEntry::isStateSame(
-    BcmSwitch* hw,
+    const BcmSwitch* hw,
     int gid,
     BcmAclEntryHandle handle,
     const std::shared_ptr<AclEntry>& acl) {

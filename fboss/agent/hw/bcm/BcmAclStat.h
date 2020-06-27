@@ -38,7 +38,7 @@ class BcmAclStat {
    * ranges
    */
   static bool isStateSame(
-      BcmSwitch* hw,
+      const BcmSwitch* hw,
       BcmAclStatHandle statHandle,
       cfg::TrafficCounter& counter);
 

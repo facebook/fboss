@@ -7,27 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
-#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
-
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <string>
 
-using std::string;
-
 using namespace facebook::fboss;
-using namespace facebook::fboss::utility;
-
-DECLARE_int32(acl_gid);
 
 namespace {
 
@@ -61,26 +51,26 @@ void checkSwActionDscpValue(
 }
 void addSetDscpAction(
     cfg::SwitchConfig* config,
-    const string& matcherName,
+    const std::string& matcherName,
     int32_t dscpValue) {
   cfg::SetDscpMatchAction setDscpMatchAction;
   *setDscpMatchAction.dscpValue_ref() = dscpValue;
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.setDscp_ref() = setDscpMatchAction;
-  addMatcher(config, matcherName, matchAction);
+  utility::addMatcher(config, matcherName, matchAction);
 }
 } // namespace
 
 namespace facebook::fboss {
 
-class BcmMatchActionsTest : public BcmTest {
+class HwAclMatchActionsTest : public HwTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
-    return oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+  cfg::SwitchConfig initialConfig() const {
+    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
   }
 };
 
-TEST_F(BcmMatchActionsTest, AddTrafficPolicy) {
+TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -88,14 +78,14 @@ TEST_F(BcmMatchActionsTest, AddTrafficPolicy) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(1, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmMatchActionsTest, SetDscpMatchAction) {
+TEST_F(HwAclMatchActionsTest, SetDscpMatchAction) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -103,14 +93,14 @@ TEST_F(BcmMatchActionsTest, SetDscpMatchAction) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(1, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwActionDscpValue(getProgrammedState(), "acl1", 8);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmMatchActionsTest, AddSameMatcherTwice) {
+TEST_F(HwAclMatchActionsTest, AddSameMatcherTwice) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -122,16 +112,16 @@ TEST_F(BcmMatchActionsTest, AddSameMatcherTwice) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(2, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    EXPECT_EQ(2, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl2");
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl2");
     checkSwActionDscpValue(getProgrammedState(), "acl2", 8);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmMatchActionsTest, AddMultipleActions) {
+TEST_F(HwAclMatchActionsTest, AddMultipleActions) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -143,18 +133,18 @@ TEST_F(BcmMatchActionsTest, AddMultipleActions) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(3, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
+    EXPECT_EQ(3, utility::getAclTableNumAclEntries(getHwSwitch()));
     for (const auto& matcher : {"acl1", "acl2"}) {
-      checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), matcher);
+      utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), matcher);
       checkSwAclSendToQueue(getProgrammedState(), matcher, false, 0);
     }
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl3");
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl3");
     checkSwActionDscpValue(getProgrammedState(), "acl3", 8);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmMatchActionsTest, AddRemoveActions) {
+TEST_F(HwAclMatchActionsTest, AddRemoveActions) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -169,12 +159,12 @@ TEST_F(BcmMatchActionsTest, AddRemoveActions) {
   };
 
   auto verify = [this]() {
-    EXPECT_EQ(0, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
+    EXPECT_EQ(0, utility::getAclTableNumAclEntries(getHwSwitch()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
+TEST_F(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
@@ -187,8 +177,8 @@ TEST_F(BcmMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(1, fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid));
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
   };
   verifyAcrossWarmBoots(setup, verify);
