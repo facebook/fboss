@@ -1528,6 +1528,16 @@ void SwSwitch::clearPortAsicPrbsStats(int32_t portId) {
   getHw()->clearPortAsicPrbsStats(portId);
 }
 
+std::vector<PrbsLaneStats> SwSwitch::getPortGearboxPrbsStats(
+    int32_t portId,
+    phy::Side side) {
+  return getHw()->getPortGearboxPrbsStats(portId, side);
+}
+
+void SwSwitch::clearPortGearboxPrbsStats(int32_t portId, phy::Side side) {
+  getHw()->clearPortGearboxPrbsStats(portId, side);
+}
+
 bool SwSwitch::isStandaloneRibEnabled() const {
   return getFlags() & SwitchFlags::ENABLE_STANDALONE_RIB;
 }

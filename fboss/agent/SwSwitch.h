@@ -666,6 +666,11 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
   void clearPortAsicPrbsStats(int32_t portId);
+
+  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
+      int32_t portId,
+      phy::Side side);
+  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side);
   SwitchRunState getSwitchRunState() const;
 
   template <typename AddressT>
