@@ -478,6 +478,11 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId) override;
   void clearPortAsicPrbsStats(int32_t portId) override;
+
+  std::vector<PrbsLaneStats> getPortGearboxPrbsStats(
+      int32_t portId,
+      phy::Side side) override;
+  void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.
