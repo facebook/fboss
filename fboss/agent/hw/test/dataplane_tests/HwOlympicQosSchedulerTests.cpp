@@ -54,6 +54,10 @@ void verifyWRRHelper(
   for (const auto& queueStat : queueStats) {
     auto currQueueId = queueStat.first;
     auto currQueueBytes = queueStat.second;
+    if (wrrQueueToWeight.find(currQueueId) == wrrQueueToWeight.end()) {
+      EXPECT_EQ(0, currQueueBytes);
+      continue;
+    }
     auto currQueueWeight = wrrQueueToWeight.at(currQueueId);
     auto currQueueNormalizedBytes = currQueueBytes / currQueueWeight;
 
