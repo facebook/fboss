@@ -31,7 +31,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
       auto qosPolicyName = "qp1";
       utility::setDefaultQosPolicy(&cfg, qosPolicyName);
       utility::addDscpQosPolicy(&cfg, qosPolicyName, {{kQueueId(), {kDscp()}}});
-      _createMultiAqmProfileQueue(&cfg);
+      _createMultiAqmProfileQueue(&cfg, masterLogicalPortIds()[0]);
     }
 
     return cfg;
@@ -105,7 +105,8 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     return wredAQM;
   }
 
-  void _createMultiAqmProfileQueue(cfg::SwitchConfig* config) const {
+  void _createMultiAqmProfileQueue(cfg::SwitchConfig* config, PortID portID)
+      const {
     std::vector<cfg::PortQueue> portQueues;
 
     cfg::PortQueue queue1;
@@ -119,7 +120,11 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
     portQueues.push_back(queue1);
 
     config->portQueueConfigs_ref()["queue_config"] = portQueues;
-    config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = std::find_if(
+        config->ports.begin(), config->ports.end(), [&portID](auto& port) {
+          return PortID(port.logicalID) == portID;
+        });
+    portCfg->portQueueConfigName_ref() = "queue_config";
   }
 
   void sendUdpPkt(uint8_t trafficClass) {

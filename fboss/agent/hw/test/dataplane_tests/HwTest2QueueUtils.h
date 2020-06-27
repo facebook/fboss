@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 #include <string>
 
@@ -31,7 +32,7 @@ constexpr uint32_t k2QueueEcn1Weight = 8;
 constexpr int k2QueueDefaultQueueId = k2QueueLowPriQueueId;
 constexpr int k2QueueHighestSPQueueId = k2QueueNCQueueId;
 
-void add2QueueConfig(cfg::SwitchConfig* config);
+void add2QueueConfig(cfg::SwitchConfig* config, PortID portID);
 void add2QueueQosMaps(cfg::SwitchConfig& cfg);
 
 std::string get2QueueCounterNameForDscp(uint8_t dscp);

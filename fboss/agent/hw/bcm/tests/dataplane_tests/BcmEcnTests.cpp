@@ -30,7 +30,7 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addDscpAclToCfg(&cfg, kAclName(), kEcnDscp());
       utility::addQueueMatcher(&cfg, kAclName(), kEcnQueueId());
-      _createEcnQueue(&cfg);
+      _createEcnQueue(&cfg, masterLogicalPortIds()[0]);
     }
 
     return cfg;
@@ -78,7 +78,7 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
     return ecnAQM;
   }
 
-  void _createEcnQueue(cfg::SwitchConfig* config) const {
+  void _createEcnQueue(cfg::SwitchConfig* config, PortID portID) const {
     std::vector<cfg::PortQueue> portQueues;
 
     cfg::PortQueue queue0;
@@ -98,7 +98,8 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
     portQueues.push_back(queue2);
 
     config->portQueueConfigs_ref()["queue_config"] = portQueues;
-    config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(*config, portID);
+    portCfg->portQueueConfigName_ref() = "queue_config";
   }
 
   void sendEcnCapableUdpPkt(uint8_t dscpVal) {

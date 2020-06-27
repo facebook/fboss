@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 /*
  * This utility is to provide utils for bcm queue-per host tests.
@@ -28,7 +29,7 @@ constexpr int kQueuePerHostQueue4 = 4;
 const std::vector<int>& kQueuePerhostQueueIds();
 const std::vector<cfg::AclLookupClass>& kLookupClasses();
 
-void addQueuePerHostQueueConfig(cfg::SwitchConfig* config);
+void addQueuePerHostQueueConfig(cfg::SwitchConfig* config, PortID portID);
 void addQueuePerHostAcls(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility

@@ -29,7 +29,7 @@ class BcmQueuePerHostTest : public BcmLinkStateDependentTests {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addQueuePerHostQueueConfig(&cfg);
+      utility::addQueuePerHostQueueConfig(&cfg, masterLogicalPortIds()[0]);
       utility::addQueuePerHostAcls(&cfg);
     }
     return cfg;

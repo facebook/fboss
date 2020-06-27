@@ -47,7 +47,7 @@ const std::vector<cfg::AclLookupClass>& kLookupClasses() {
   return lookupClasses;
 }
 
-void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
+void addQueuePerHostQueueConfig(cfg::SwitchConfig* config, PortID portID) {
   std::vector<cfg::PortQueue> portQueues;
 
   // All Queue-per-host queues are identical by design
@@ -63,8 +63,12 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
   }
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
-  *config->ports[0].lookupClasses_ref() = kLookupClasses();
+  auto portCfg = std::find_if(
+      config->ports.begin(), config->ports.end(), [&portID](auto& port) {
+        return PortID(port.logicalID) == portID;
+      });
+  portCfg->portQueueConfigName_ref() = "queue_config";
+  portCfg->lookupClasses_ref() = kLookupClasses();
 }
 
 std::string getQueuePerHostAclNameForQueue(int queueId) {

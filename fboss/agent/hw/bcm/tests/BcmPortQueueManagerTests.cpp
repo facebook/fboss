@@ -204,7 +204,8 @@ TEST_F(BcmPortQueueManagerTest, ConfigPortQueuesSetup) {
     auto cfg = initialConfig();
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(getPlatform()->getMMUCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
   };
 
@@ -227,7 +228,8 @@ TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
     auto cfg = initialConfig();
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
 
     for (const auto& queue : getSwQueues()) {
@@ -295,11 +297,12 @@ TEST_F(BcmPortQueueManagerTest, ClearPortQueueSettings) {
     }
     queue0.aqms_ref()->push_back(getEarlyDropAqmConfig(mmuCellBytes()));
     cfg.portQueueConfigs_ref()["queue_config"] = portQueues;
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
 
     // remove all port queue settings
-    cfg.ports_ref()[0].portQueueConfigName_ref().reset();
+    portCfg->portQueueConfigName_ref().reset();
     cfg.portQueueConfigs_ref()->erase("queue_config");
     applyNewConfig(cfg);
   };
@@ -334,7 +337,8 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
   {
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
     if (!queue0.aqms_ref()) {
       queue0.aqms_ref() = {};
@@ -348,7 +352,8 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
   {
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
     if (!queue0.aqms_ref()) {
       queue0.aqms_ref() = {};
@@ -362,7 +367,8 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
   {
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     auto& queue0 = cfg.portQueueConfigs_ref()["queue_config"][0];
     if (!queue0.aqms_ref()) {
       queue0.aqms_ref() = {};
@@ -377,7 +383,8 @@ TEST_F(BcmPortQueueManagerTest, ChangePortQueueAQM) {
   {
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
     checkConfSwHwMatch();
   }
@@ -395,7 +402,8 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappings) {
     auto cfg = initialConfig();
     cfg.portQueueConfigs_ref()["queue_config"] =
         getConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     applyNewConfig(cfg);
   };
 
@@ -446,7 +454,8 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappingsOverride) {
     auto cfg = initialConfig();
     cfg.portQueueConfigs_ref()["queue_config"] =
         get7ConfigPortQueues(mmuCellBytes());
-    cfg.ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+    auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+    portCfg->portQueueConfigName_ref() = "queue_config";
     cfg::QosMap qosMap;
     for (auto i = 0; i < 8; i++) {
       /* must provide all queue traffic class to queue id */

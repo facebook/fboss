@@ -80,19 +80,23 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
-    for (auto i = 1; i < config->ports.size(); i++) {
-      config->ports[i].sFlowIngressRate = sampleRate;
-      config->ports[i].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-      config->ports[i].ingressMirror_ref() = "mirror";
+    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
+      auto portId = masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(*config, portId);
+      portCfg->sFlowIngressRate = sampleRate;
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      portCfg->ingressMirror_ref() = "mirror";
     }
   }
 
   void configIngressMirrorOnPort(cfg::SwitchConfig* config, PortID port) const {
-    for (auto i = 1; i < config->ports.size(); i++) {
-      if (static_cast<PortID>(config->ports[i].logicalID) == port) {
-        config->ports[i].ingressMirror_ref() = "mirror";
-        config->ports[i].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-        config->ports[i].sFlowIngressRate = 1;
+    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
+      auto portId = masterLogicalPortIds()[i];
+      auto portCfg = utility::findCfgPort(*config, portId);
+      if (static_cast<PortID>(portCfg->logicalID) == port) {
+        portCfg->ingressMirror_ref() = "mirror";
+        portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+        portCfg->sFlowIngressRate = 1;
         break;
       }
     }

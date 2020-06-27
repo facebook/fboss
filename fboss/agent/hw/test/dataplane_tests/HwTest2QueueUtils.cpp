@@ -17,7 +17,7 @@ namespace facebook::fboss::utility {
 
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 // XXX this is 2Q config minus ECN. If needed, add 2Q + ECN config
-void add2QueueConfig(cfg::SwitchConfig* config) {
+void add2QueueConfig(cfg::SwitchConfig* config, PortID portID) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
@@ -48,7 +48,11 @@ void add2QueueConfig(cfg::SwitchConfig* config) {
   portQueues.push_back(queue7);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  config->ports_ref()[0].portQueueConfigName_ref() = "queue_config";
+  auto portCfg = std::find_if(
+      config->ports.begin(), config->ports.end(), [&portID](auto& port) {
+        return PortID(port.logicalID) == portID;
+      });
+  portCfg->portQueueConfigName_ref() = "queue_config";
 }
 
 std::string get2QueueAclNameForDscp(uint8_t dscp) {
