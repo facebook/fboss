@@ -59,8 +59,9 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
       // of number of packets it would be sample. So for e.g. if we set
       // a sampling rate to 10% and send a 100 packets. Slightly more than
       // 10 packets will be sampled.
-      *cfg.ports[0].sFlowIngressRate_ref() = enableSflow ? 1 : 0;
-      *cfg.ports[0].sFlowEgressRate_ref() = enableSflow ? 1 : 0;
+      auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[0]);
+      portCfg->sFlowIngressRate_ref() = enableSflow ? 1 : 0;
+      portCfg->sFlowEgressRate_ref() = enableSflow ? 1 : 0;
       applyNewConfig(cfg);
       utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
       auto newState = ecmpHelper.setupECMPForwarding(
