@@ -655,26 +655,30 @@ void SaiSwitch::packetRxCallbackBottomHalf(
         XLOG(INFO) << "invalid attribute received";
     }
   }
+  folly::io::Cursor c0(ioBuf.get());
   CHECK(portSaiIdOpt);
   PortSaiId portSaiId{portSaiIdOpt.value()};
 
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   if (portItr == concurrentIndices_->portIds.cend()) {
     // TODO: add counter to keep track of spurious rx packet
-    XLOG(DBG6) << "RX packet had port with unknown sai id: 0x" << std::hex
-               << portSaiId;
+    XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
+              << portSaiId;
+    XLOG(DBG6) << PktUtil::hexDump(c0);
     return;
   }
   PortID swPortId = portItr->second;
 
   const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
   if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-    XLOG(WARNING) << "RX packet had port in no known vlan: 0x" << std::hex
-                  << portSaiId;
+    XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
+              << portSaiId;
+    XLOG(DBG6) << PktUtil::hexDump(c0);
     return;
   }
   VlanID swVlanId = vlanItr->second;
 
+  XLOG(DBG6) << "Rx packet on port: " << swPortId << " and vlan: " << swVlanId;
   auto rxPacket = std::make_unique<SaiRxPacket>(
       ioBuf->length(), ioBuf->writableData(), swPortId, swVlanId);
   callback_->packetReceived(std::move(rxPacket));
@@ -787,8 +791,12 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  hostifApi.send(attributes, switchId_, txPacket);
-  return true;
+  auto rv = hostifApi.send(attributes, switchId_, txPacket);
+  if (rv != SAI_STATUS_SUCCESS) {
+    saiLogError(
+        rv, SAI_API_HOSTIF, "failed to send packet with pipeline lookup");
+  }
+  return rv == SAI_STATUS_SUCCESS;
 }
 
 bool SaiSwitch::sendPacketOutOfPortSyncLocked(
@@ -855,8 +863,11 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
 #endif
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  hostifApi.send(attributes, switchId_, txPacket);
-  return true;
+  auto rv = hostifApi.send(attributes, switchId_, txPacket);
+  if (rv != SAI_STATUS_SUCCESS) {
+    saiLogError(rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
+  }
+  return rv == SAI_STATUS_SUCCESS;
 }
 
 void SaiSwitch::updateStatsLocked(
