@@ -118,6 +118,14 @@ bool QsfpModule::detectPresenceLocked() {
     if (!present_) {
       info_.wlock()->reset();
     }
+    // In the case of an OBO module or an inaccessable present module,
+    // we need to fill in the essential info before parsing the DOM data
+    // which may not be available.
+    TransceiverInfo info;
+    info.present_ref() = present_;
+    info.transceiver_ref() = type();
+    info.port_ref() = qsfpImpl_->getNum();
+    *info_.wlock() = info;
   }
   return currentQsfpStatus;
 }
