@@ -1148,6 +1148,7 @@ struct QcmConfig {
   13: optional i32 ppsToQcm
   14: string collectorSrcIp
   15: list<i32> monitorQcmPortList = []
+  16: map<i32, list<i32>> port2QosQueueIds
 }
 
 /*

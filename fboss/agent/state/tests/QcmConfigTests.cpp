@@ -33,6 +33,9 @@ TEST(QcmConfigTest, applyConfig) {
   qcmCfg.numFlowsClear = 22;
   qcmCfg.collectorDstIp = "10.10.10.10/32";
   qcmCfg.collectorSrcIp = "11.11.11.11/24";
+  qcmCfg.port2QosQueueIds[1] = {0, 1, 2};
+  qcmCfg.port2QosQueueIds[2] = {3, 4, 5};
+
   config.qcmConfig_ref() = qcmCfg;
   auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   EXPECT_NE(nullptr, state1);
@@ -55,6 +58,16 @@ TEST(QcmConfigTest, applyConfig) {
       folly::CIDRNetwork(folly::IPAddress("11.11.11.0"), 24));
   auto portList = qcmConfig1->getMonitorQcmPortList();
   EXPECT_EQ(portList.size(), 0);
+  // verify port2QosQueueIds field
+  int initPortId = 1;
+  int initQosQueueId = 0;
+  auto port2QosQueueIds = qcmConfig1->getPort2QosQueueIdMap();
+  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+    EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
+    for (const auto& qosQueueId : perPortQosQueueIds.second) {
+      EXPECT_EQ(qosQueueId, initQosQueueId++);
+    }
+  }
 
   // re-program the map
   map.emplace(1, 9);
@@ -64,6 +77,8 @@ TEST(QcmConfigTest, applyConfig) {
   qcmCfg.exportThreshold = 20;
   qcmCfg.agingIntervalInMsecs = 21;
   qcmCfg.monitorQcmPortList = {102, 103, 104, 105};
+  qcmCfg.port2QosQueueIds = {};
+  qcmCfg.port2QosQueueIds[3] = {6, 7};
   int collectorDscp = 20;
   qcmCfg.collectorDscp_ref() = collectorDscp;
   int ppsToQcm = 1000;
@@ -83,6 +98,14 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_EQ(qcmConfig2->getPpsToQcm(), 1000);
   portList = qcmConfig2->getMonitorQcmPortList();
   EXPECT_EQ(4, portList.size());
+
+  port2QosQueueIds = qcmConfig2->getPort2QosQueueIdMap();
+  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+    EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
+    for (const auto& qosQueueId : perPortQosQueueIds.second) {
+      EXPECT_EQ(qosQueueId, initQosQueueId++);
+    }
+  }
 
   // remove the cfg
   config.qcmConfig_ref().reset();
@@ -114,7 +137,21 @@ TEST(QcmConfigTest, ToFromJSON) {
             112,
             113,
             114
-          ]
+          ],
+          "port2QosQueueIds": {
+            "10": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "11": [
+              4,
+              5,
+              6,
+              7
+            ]
+           }
         }
   )";
 
@@ -125,6 +162,16 @@ TEST(QcmConfigTest, ToFromJSON) {
   EXPECT_EQ(10, qcmCfg->getNumFlowsClear());
   EXPECT_EQ(10, qcmCfg->getScanIntervalInUsecs());
   EXPECT_EQ(10, qcmCfg->getExportThreshold());
+
+  int initPortId = 10;
+  int initQosQueueId = 0;
+  const auto& port2QosQueueIds = qcmCfg->getPort2QosQueueIdMap();
+  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+    EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
+    for (const auto& qosQueueId : perPortQosQueueIds.second) {
+      EXPECT_EQ(qosQueueId, initQosQueueId++);
+    }
+  }
 
   int weightKeyValues = 0;
   int weightDataValues = 1;

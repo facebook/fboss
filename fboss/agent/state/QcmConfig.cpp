@@ -27,6 +27,7 @@ constexpr auto kCollectorDscp = "collectorDscp";
 constexpr auto kPpsToQcm = "ppsToQcm";
 constexpr auto kCollectorSrcIp = "collectorSrcIp";
 constexpr auto kMonitorQcmPortList = "monitorQcmPortList";
+constexpr auto kPort2QosQueueIds = "port2QosQueueIds";
 } // namespace
 
 namespace facebook::fboss {
@@ -55,9 +56,15 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   }
   qcmCfg[kCollectorSrcIp] = folly::IPAddress::networkToString(collectorSrcIp);
 
-  std::vector<int32_t> qcmPorts;
+  qcmCfg[kMonitorQcmPortList] = folly::dynamic::array;
   for (const auto& qcmPort : monitorQcmPortList) {
     qcmCfg[kMonitorQcmPortList].push_back(qcmPort);
+  }
+  qcmCfg[kPort2QosQueueIds] = folly::dynamic::object;
+  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+    for (const auto& qosQueueId : perPortQosQueueIds.second) {
+      qcmCfg[kPort2QosQueueIds][perPortQosQueueIds.first].push_back(qosQueueId);
+    }
   }
   return qcmCfg;
 }
@@ -111,6 +118,15 @@ QcmCfgFields QcmCfgFields::fromFollyDynamic(const folly::dynamic& json) {
     for (const auto& qcmPort : json[kMonitorQcmPortList]) {
       uint32_t port = qcmPort.asInt();
       qcmCfgFields.monitorQcmPortList.push_back(port);
+    }
+  }
+
+  if (json.find(kPort2QosQueueIds) != json.items().end()) {
+    for (const auto& perPortQosQueueIds : json[kPort2QosQueueIds].items()) {
+      for (const auto& queueId : perPortQosQueueIds.second) {
+        qcmCfgFields.port2QosQueueIds[perPortQosQueueIds.first.asInt()].insert(
+            queueId.asInt());
+      }
     }
   }
   return qcmCfgFields;

@@ -19,6 +19,7 @@ namespace facebook::fboss {
 class SwitchState;
 
 typedef boost::container::flat_map<int, int> WeightMap;
+typedef std::map<int, std::set<int>> Port2QosQueueIdMap;
 
 struct QcmCfgFields {
   template <typename Fn>
@@ -47,6 +48,7 @@ struct QcmCfgFields {
   std::optional<uint32_t> collectorDscp{std::nullopt};
   std::optional<uint32_t> ppsToQcm{std::nullopt};
   std::vector<int32_t> monitorQcmPortList;
+  Port2QosQueueIdMap port2QosQueueIds;
 };
 
 class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
@@ -80,6 +82,7 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
         getFields()->collectorDscp == qcm.getCollectorDscp() &&
         getFields()->ppsToQcm == qcm.getPpsToQcm() &&
         getFields()->flowWeights == qcm.getFlowWeightMap() &&
+        getFields()->port2QosQueueIds == qcm.getPort2QosQueueIdMap() &&
         qcmMonitoredPortsChanged;
   }
 
@@ -137,6 +140,14 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
 
   void setFlowWeightMap(WeightMap map) {
     writableFields()->flowWeights = map;
+  }
+
+  Port2QosQueueIdMap getPort2QosQueueIdMap() const {
+    return getFields()->port2QosQueueIds;
+  }
+
+  void setPort2QosQueueIdMap(Port2QosQueueIdMap& map) {
+    writableFields()->port2QosQueueIds = map;
   }
 
   folly::CIDRNetwork getCollectorDstIp() const {

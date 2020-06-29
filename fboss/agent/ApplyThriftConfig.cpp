@@ -2057,6 +2057,16 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   }
   newQcmCfg->setFlowWeightMap(newWeightMap);
 
+  Port2QosQueueIdMap port2QosQueueIds;
+  for (const auto& perPortQosQueueIds : config.port2QosQueueIds) {
+    std::set<int> queueIds;
+    for (const auto& queueId : perPortQosQueueIds.second) {
+      queueIds.insert(queueId);
+    }
+    port2QosQueueIds[perPortQosQueueIds.first] = queueIds;
+  }
+  newQcmCfg->setPort2QosQueueIdMap(port2QosQueueIds);
+
   newQcmCfg->setCollectorSrcPort(config.collectorSrcPort);
   newQcmCfg->setNumFlowSamplesPerView(config.numFlowSamplesPerView);
   newQcmCfg->setFlowLimit(config.flowLimit);
