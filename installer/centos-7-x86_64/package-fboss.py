@@ -49,7 +49,27 @@ class PackageFboss:
     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
     NAME_TO_EXECUTABLES = {
-        "fboss": (BIN, ["wedge_agent", "bcm_test", "sai_test-fake-1.5.0"]),
+        "fboss": (
+            BIN,
+            [
+                "wedge_agent",
+                "bcm_test",
+                "sai_test-fake-1.5.0",
+                "bcm_ecmp_shrink_speed",
+                "bcm_ecmp_shrink_with_competing_route_updates_speed",
+                "bcm_fsw_scale_route_add_speed",
+                "bcm_fsw_scale_route_del_speed",
+                "bcm_th_alpm_scale_route_add_speed",
+                "bcm_th_alpm_scale_route_del_speed",
+                "bcm_hgrid_du_scale_route_add_speed",
+                "bcm_hgrid_du_scale_route_del_speed",
+                "bcm_hgrid_uu_scale_route_add_speed",
+                "bcm_hgrid_uu_scale_route_del_speed",
+                "bcm_stats_collection_speed",
+                "bcm_tx_slow_path_rate",
+                "bcm_warm_boot_exit_speed",
+            ],
+        ),
         "gflags": (LIB, ["libgflags.so.2.2"]),
         "glog": (LIB64, ["libglog.so.0"]),
         "zstd": (LIB64, ["libzstd.so.1"]),

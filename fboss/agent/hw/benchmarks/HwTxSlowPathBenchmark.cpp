@@ -19,7 +19,6 @@
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
 #include <folly/json.h>
-#include "common/time/Time.h"
 
 #include <chrono>
 #include <iostream>
@@ -76,9 +75,8 @@ void runTxSlowPathBenchmark() {
   auto [pktsBefore, bytesBefore] =
       getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
   auto timeBefore = std::chrono::steady_clock::now();
-  constexpr auto kBurnIntevalMs = 5000;
   // Let the packet flood warm up
-  WallClockMs::Burn(kBurnIntevalMs);
+  std::this_thread::sleep_for(std::chrono::seconds(5));
   auto [pktsAfter, bytesAfter] =
       getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
   auto timeAfter = std::chrono::steady_clock::now();

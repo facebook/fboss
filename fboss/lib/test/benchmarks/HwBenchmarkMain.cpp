@@ -8,8 +8,6 @@
  *
  */
 
-#include "common/time/TimeUtil.h"
-
 #include <folly/Benchmark.h>
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
@@ -21,10 +19,14 @@
 
 #include <iostream>
 
-using facebook::timevalToUsec;
+const int64_t kUsecPerSecond = 1000000;
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 DECLARE_int64(bm_max_iters);
+
+inline int64_t timevalToUsec(const timeval& tv) {
+  return (int64_t(tv.tv_sec) * kUsecPerSecond) + tv.tv_usec;
+}
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);

@@ -110,3 +110,47 @@ target_link_libraries(bcm_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(bcm_switch_ensemble
+  fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.cpp
+  fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
+  fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
+)
+
+target_link_libraries(bcm_switch_ensemble
+  config
+  core
+  bcm
+  bcm_link_state_toggler
+  hw_stat_utils
+  hw_switch_ensemble
+  bcm_test_platforms
+  Folly::folly
+)
+
+add_library(hw_stat_utils
+  fboss/agent/hw/test/HwTestStatUtils.cpp
+)
+
+target_link_libraries(hw_stat_utils
+  hw_switch
+  stats
+  hardware_stats_cpp2
+  Folly::folly
+)
+
+add_library(bcm_ecmp_utils
+  fboss/agent/hw/bcm/tests/HwTestEcmpUtils.cpp
+)
+
+target_link_libraries(bcm_ecmp_utils
+  bcm
+)
+
+add_library(bcm_port_utils
+  fboss/agent/hw/bcm/tests/HwTestPortUtils.cpp
+)
+
+target_link_libraries(bcm_port_utils
+  bcm
+)

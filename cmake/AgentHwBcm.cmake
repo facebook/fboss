@@ -90,9 +90,12 @@ add_library(bcm
 )
 
 target_link_libraries(bcm
+  config
+  sflow_cpp2
   hw_switch_warmboot_helper
   hw_switch_stats
   bcm_types
+  packettrace_cpp2
   buffer_stats
   handler
   core
@@ -137,6 +140,15 @@ target_link_libraries(bcm_mpls_utils
   mpls_cpp2
   label_forwarding_utils
   ${OPENNSA}
+)
+
+add_library(bcm_link_state_toggler
+  fboss/agent/hw/bcm/tests/BcmLinkStateToggler.cpp
+)
+
+target_link_libraries(bcm_link_state_toggler
+  bcm
+  hw_link_state_toggler
 )
 
 set_target_properties(bcm_mpls_utils PROPERTIES COMPILE_FLAGS

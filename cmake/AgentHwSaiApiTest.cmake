@@ -1,3 +1,8 @@
+# CMake to build libraries and binaries in fboss/agent/hw/bcm
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
 add_executable(api_test
     fboss/agent/test/oss/Main.cpp
     fboss/agent/hw/sai/api/tests/AttributeTest.cpp
