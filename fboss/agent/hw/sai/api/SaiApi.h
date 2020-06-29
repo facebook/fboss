@@ -266,8 +266,7 @@ class SaiApi {
         SaiObjectHasStats<SaiObjectTraits>::value,
         "clearStats only supported for Sai objects with stats");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    return clearStatsImpl<SaiObjectTraits>(
-        key, counterIds.data(), counterIds.size());
+    clearStatsImpl<SaiObjectTraits>(key, counterIds.data(), counterIds.size());
   }
   template <typename SaiObjectTraits>
   void clearStats(const typename SaiObjectTraits::AdapterKey& key) const {
@@ -275,10 +274,14 @@ class SaiApi {
         SaiObjectHasStats<SaiObjectTraits>::value,
         "clearStats only supported for Sai objects with stats");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    return clearStatsImpl<SaiObjectTraits>(
+    clearStatsImpl<SaiObjectTraits>(
         key,
-        SaiObjectTraits::CounterIds.data(),
-        SaiObjectTraits::CounterIds.size());
+        SaiObjectTraits::CounterIdsToRead.data(),
+        SaiObjectTraits::CounterIdsToRead.size());
+    clearStatsImpl<SaiObjectTraits>(
+        key,
+        SaiObjectTraits::CounterIdsToReadAndClear.data(),
+        SaiObjectTraits::CounterIdsToReadAndClear.size());
   }
 
  private:
@@ -304,8 +307,10 @@ class SaiApi {
       const typename SaiObjectTraits::AdapterKey& key,
       const sai_stat_id_t* counterIds,
       size_t numCounters) const {
-    sai_status_t status = impl()._clearStats(key, numCounters, counterIds);
-    saiApiCheckError(status, ApiT::ApiType, "Failed to clear stats");
+    if (numCounters) {
+      sai_status_t status = impl()._clearStats(key, numCounters, counterIds);
+      saiApiCheckError(status, ApiT::ApiType, "Failed to clear stats");
+    }
   }
   ApiT& impl() {
     return static_cast<ApiT&>(*this);

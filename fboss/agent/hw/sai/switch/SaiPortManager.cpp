@@ -504,7 +504,11 @@ void SaiPortManager::clearStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) const {
   auto statsToClear = supportedStats();
   for (auto port : *ports) {
-    getPortHandle(PortID(port))->port->clearStats(statsToClear);
+    auto portHandle = getPortHandle(PortID(port));
+    portHandle->port->clearStats(statsToClear);
+    for (auto& queueAndHandle : portHandle->queues) {
+      queueAndHandle.second->queue->clearStats();
+    }
   }
 }
 
