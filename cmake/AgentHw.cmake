@@ -13,6 +13,11 @@ target_link_libraries(counter_utils
   hardware_stats_cpp2
 )
 
+
+add_library(hw_switch_stats
+  fboss/agent/hw/HwSwitchStats.cpp
+)
+
 add_library(hw_fb303_stats
   fboss/agent/hw/HwFb303Stats.cpp
 )
@@ -36,6 +41,12 @@ add_library(buffer_stats
 
 target_link_libraries(hw_switch_warmboot_helper
   utils
+  Folly::folly
+)
+
+target_link_libraries(hw_switch_stats
+  stats
+  fb303::fb303
   Folly::folly
 )
 

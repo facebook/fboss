@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
@@ -22,6 +23,8 @@
 #include <thread>
 
 namespace facebook::fboss {
+
+HwSwitchStats* getSwitchStats();
 
 class ConcurrentIndices;
 

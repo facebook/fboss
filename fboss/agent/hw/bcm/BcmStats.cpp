@@ -7,74 +7,14 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "BcmStats.h"
-
-#include "fboss/agent/SwitchStats.h"
-
-using facebook::fb303::RATE;
-using facebook::fb303::SUM;
+#include "fboss/agent/hw/bcm/BcmStats.h"
 
 namespace facebook::fboss {
 
-folly::ThreadLocalPtr<BcmStats> BcmStats::stats_;
-
-BcmStats::BcmStats()
-    : BcmStats(fb303::ThreadCachedServiceData::get()->getThreadStats()) {}
-
-BcmStats::BcmStats(ThreadLocalStatsMap* map)
-    : txPktAlloc_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.tx.pkt.allocated",
-          SUM,
-          RATE),
-      txPktFree_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.tx.pkt.freed",
-          SUM,
-          RATE),
-      txSent_(map, SwitchStats::kCounterPrefix + "bcm.tx.pkt.sent", SUM, RATE),
-      txSentDone_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.tx.pkt.sent.done",
-          SUM,
-          RATE),
-      txErrors_(map, SwitchStats::kCounterPrefix + "bcm.tx.errors", SUM, RATE),
-      txPktAllocErrors_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.tx.pkt.allocation.errors",
-          SUM,
-          RATE),
-      txQueued_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.tx.pkt.queued_us",
-          100,
-          0,
-          1000),
-      parityErrors_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.parity.errors",
-          SUM,
-          RATE),
-      corrParityErrors_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.parity.corr",
-          SUM,
-          RATE),
-      uncorrParityErrors_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.parity.uncorr",
-          SUM,
-          RATE),
-      asicErrors_(
-          map,
-          SwitchStats::kCounterPrefix + "bcm.asic.error",
-          SUM,
-          RATE) {}
-
-BcmStats* BcmStats::createThreadStats() {
-  BcmStats* s = new BcmStats();
-  stats_.reset(s);
-  return s;
+HwSwitchStats* getSwitchStats() {
+  static HwSwitchStats bcmStats(
+      fb303::ThreadCachedServiceData::get()->getThreadStats(), "bcm");
+  return &bcmStats;
 }
 
 } // namespace facebook::fboss

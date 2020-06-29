@@ -26,7 +26,7 @@ void freeTxBuf(void* /*ptr*/, void* arg) {
   bcm_pkt_t* pkt = reinterpret_cast<bcm_pkt_t*>(arg);
   int rv = bcm_pkt_free(pkt->unit, pkt);
   bcmLogError(rv, "Failed to free packet");
-  BcmStats::get()->txPktFree();
+  getSwitchStats()->txPktFree();
 }
 
 inline void txCallbackImpl(int /*unit*/, bcm_pkt_t* pkt, void* cookie) {
@@ -42,7 +42,7 @@ inline void txCallbackImpl(int /*unit*/, bcm_pkt_t* pkt, void* cookie) {
   auto end = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
       end - bcmTxPkt->getQueueTime());
-  BcmStats::get()->txSentDone(duration.count());
+  getSwitchStats()->txSentDone(duration.count());
 }
 } // namespace
 
@@ -67,12 +67,12 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size)
     : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
   int rv = bcm_pkt_alloc(unit, size, BCM_TX_CRC_APPEND | BCM_TX_ETHER, &pkt_);
   if (BCM_FAILURE(rv)) {
-    BcmStats::get()->txPktAllocErrors();
+    getSwitchStats()->txPktAllocErrors();
     bcmCheckError(rv, "Failed to allocate packet.");
   } else {
     buf_ = IOBuf::takeOwnership(
         pkt_->pkt_data->data, size, freeTxBuf, reinterpret_cast<void*>(pkt_));
-    BcmStats::get()->txPktAlloc();
+    getSwitchStats()->txPktAlloc();
   }
 }
 
@@ -93,13 +93,13 @@ inline int BcmTxPacket::sendImpl(unique_ptr<BcmTxPacket> pkt) noexcept {
   auto rv = bcm_tx(bcmPkt->unit, bcmPkt, pkt.get());
   if (BCM_SUCCESS(rv)) {
     pkt.release();
-    BcmStats::get()->txSent();
+    getSwitchStats()->txSent();
   } else {
     bcmLogError(rv, "failed to send packet");
     if (rv == BCM_E_MEMORY) {
-      BcmStats::get()->txPktAllocErrors();
+      getSwitchStats()->txPktAllocErrors();
     } else if (rv) {
-      BcmStats::get()->txError();
+      getSwitchStats()->txError();
     }
   }
   return rv;

@@ -91,6 +91,7 @@ add_library(bcm
 
 target_link_libraries(bcm
   hw_switch_warmboot_helper
+  hw_switch_stats
   bcm_types
   buffer_stats
   handler

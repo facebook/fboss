@@ -58,6 +58,12 @@ DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
 
 namespace facebook::fboss {
 
+HwSwitchStats* getSwitchStats() {
+  static HwSwitchStats saiStats(
+      fb303::ThreadCachedServiceData::get()->getThreadStats(), "sai");
+  return &saiStats;
+}
+
 // We need this global SaiSwitch* to support registering SAI callbacks
 // which can then use SaiSwitch to do their work. The current callback
 // facility in SAI does not support passing user data to come back
@@ -729,6 +735,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
 std::unique_ptr<TxPacket> SaiSwitch::allocatePacketLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     uint32_t size) const {
+  getSwitchStats()->txPktAlloc();
   return std::make_unique<SaiTxPacket>(size);
 }
 
@@ -779,6 +786,7 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
     folly::io::Cursor dump(pkt->buf());
     XLOG(DBG5) << PktUtil::hexDump(dump);
   }
+  getSwitchStats()->txSent();
 
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
@@ -813,7 +821,7 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   /* TODO: this hack is required, sending packet out of port with with pipeline
   bypass, doesn't cause vlan tag stripping. fix this once a pipeline bypass with
   vlan stripping is available. */
-
+  getSwitchStats()->txSent();
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT)) {
     folly::io::Cursor cursor(pkt->buf());

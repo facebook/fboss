@@ -163,12 +163,12 @@ void defaultCallback(
 
 void exportEventCounters(const bcm_switch_event_t eventID, bool fatal) {
   if (eventID != BCM_SWITCH_EVENT_PARITY_ERROR) {
-    BcmStats::get()->asicError();
+    getSwitchStats()->asicError();
   } else {
     if (fatal) {
-      BcmStats::get()->uncorrParityError();
+      getSwitchStats()->uncorrParityError();
     } else {
-      BcmStats::get()->corrParityError();
+      getSwitchStats()->corrParityError();
     }
   }
 }

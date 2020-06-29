@@ -306,6 +306,7 @@ add_library(fboss_agent STATIC
     fboss/agent/hw/BufferStatsLogger.cpp
     fboss/agent/hw/CounterUtils.cpp
     fboss/agent/hw/HwSwitchWarmBootHelper.cpp
+    fboss/agent/hw/HwSwitchStats.cpp
     fboss/agent/hw/bcm/BcmAclEntry.cpp
     fboss/agent/hw/bcm/BcmAclStat.cpp
     fboss/agent/hw/bcm/BcmAclTable.cpp
