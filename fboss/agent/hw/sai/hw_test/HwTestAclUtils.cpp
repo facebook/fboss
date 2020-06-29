@@ -25,4 +25,23 @@ void checkSwHwAclMatch(
   throw FbossError("Not implemented");
 }
 
+bool isAclTableEnabled(const HwSwitch* /*hwSwitch*/) {
+  throw FbossError("Not implemented");
+  return false;
+}
+
+template bool isQualifierPresent<cfg::IpFragMatch>(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& aclName);
+
+template <typename T>
+bool isQualifierPresent(
+    const HwSwitch* /*hwSwitch*/,
+    const std::shared_ptr<SwitchState>& /*state*/,
+    const std::string& /*aclName*/) {
+  throw FbossError("Not implemented");
+  return false;
+}
+
 } // namespace facebook::fboss::utility

@@ -7,61 +7,18 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
 
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmAclEntry.h"
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
-#include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-
-#include <boost/container/flat_map.hpp>
 #include <string>
-
-extern "C" {
-#include <bcm/error.h>
-#include <bcm/field.h>
-}
-
-DECLARE_int32(acl_gid);
 
 namespace {
 
 using namespace facebook::fboss;
-using namespace facebook::fboss::utility;
-
-bool aclEnabled(int unit, bcm_field_group_t group) {
-  int enable = -1;
-  auto rv = bcm_field_group_enable_get(unit, group, &enable);
-  bcmCheckError(rv, "failed to get field group enable status");
-  CHECK(enable == 0 || enable == 1);
-  return (enable == 1);
-}
-
-template <typename Func, typename Param>
-void checkEnumQualRemoved(
-    Func getBcmQualifierFn,
-    Param hwValue,
-    BcmSwitch* hw,
-    int unit,
-    std::shared_ptr<SwitchState> state,
-    const std::string& aclName) {
-  auto swAcl = state->getAcl(aclName);
-  ASSERT_NE(nullptr, swAcl);
-  auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
-  ASSERT_NE(nullptr, hwAcl);
-  ASSERT_EQ(
-      BCM_E_INTERNAL, getBcmQualifierFn(unit, hwAcl->getHandle(), hwValue));
-}
 
 cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
@@ -154,14 +111,14 @@ void configureAllIcmpQualifiers(
 
 namespace facebook::fboss {
 
-class BcmAclQualifierTest : public BcmTest {
+class HwAclQualifierTest : public HwTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
   }
 };
 
-TEST_F(BcmAclQualifierTest, AclNoQualifier) {
+TEST_F(HwAclQualifierTest, AclNoQualifier) {
   // While comparing a Acl's h/w and s/w state, we make certain
   // assumptions about what the SDK will return for unset fields.
   // These assumptions have been arrived at experimentally and could
@@ -175,15 +132,15 @@ TEST_F(BcmAclQualifierTest, AclNoQualifier) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclIp4TcpQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "ip4_tcp");
@@ -194,15 +151,15 @@ TEST_F(BcmAclQualifierTest, AclIp4TcpQualifiers) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4_tcp");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4_tcp");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclIp6TcpQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "ip6_tcp");
@@ -213,15 +170,15 @@ TEST_F(BcmAclQualifierTest, AclIp6TcpQualifiers) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6_tcp");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6_tcp");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclIcmp4Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "icmp4");
@@ -231,15 +188,15 @@ TEST_F(BcmAclQualifierTest, AclIcmp4Qualifiers) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp4");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp4");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclIcmp6Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "icmp6");
@@ -249,15 +206,15 @@ TEST_F(BcmAclQualifierTest, AclIcmp6Qualifiers) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp6");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp6");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclRemove) {
+TEST_F(HwAclQualifierTest, AclRemove) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl0 = addAcl(&newCfg, "acl0");
@@ -271,15 +228,15 @@ TEST_F(BcmAclQualifierTest, AclRemove) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclModifyQualifier) {
+TEST_F(HwAclQualifierTest, AclModifyQualifier) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = addAcl(&newCfg, "acl0");
@@ -298,23 +255,17 @@ TEST_F(BcmAclQualifierTest, AclModifyQualifier) {
   };
 
   auto verify = [=]() {
-    ASSERT_TRUE(aclEnabled(getUnit(), FLAGS_acl_gid));
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
-    bcm_field_IpFrag_t hwValueIpFrag{};
-    checkEnumQualRemoved(
-        bcm_field_qualify_IpFrag_get,
-        &hwValueIpFrag,
-        getHwSwitch(),
-        getUnit(),
-        getProgrammedState(),
-        "acl0");
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    EXPECT_FALSE(utility::isQualifierPresent<cfg::IpFragMatch>(
+        getHwSwitch(), getProgrammedState(), "acl0"));
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclQualifierTest, AclEmptyCodeIcmp) {
+TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = addAcl(&newCfg, "acl0");
@@ -332,8 +283,8 @@ TEST_F(BcmAclQualifierTest, AclEmptyCodeIcmp) {
   };
 
   auto verify = [=]() {
-    EXPECT_EQ(fpGroupNumAclEntries(getUnit(), FLAGS_acl_gid), 1);
-    checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
   };
 
   verifyAcrossWarmBoots(setup, verify);

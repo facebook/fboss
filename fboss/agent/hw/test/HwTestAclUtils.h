@@ -23,4 +23,12 @@ void checkSwHwAclMatch(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName);
 
+bool isAclTableEnabled(const HwSwitch* hwSwitch);
+
+template <typename T>
+bool isQualifierPresent(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& aclName);
+
 } // namespace facebook::fboss::utility

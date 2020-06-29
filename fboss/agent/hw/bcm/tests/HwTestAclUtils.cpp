@@ -53,4 +53,38 @@ void checkSwHwAclMatch(
       bcmSwitch, FLAGS_acl_gid, hwAcl->getHandle(), swAcl));
 }
 
+bool isAclTableEnabled(const HwSwitch* hwSwitch) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+
+  bcm_field_group_t gid = FLAGS_acl_gid;
+  int enable = -1;
+
+  auto rv = bcm_field_group_enable_get(bcmSwitch->getUnit(), gid, &enable);
+  bcmCheckError(rv, "failed to get field group enable status");
+  CHECK(enable == 0 || enable == 1);
+  return (enable == 1);
+}
+
+template bool isQualifierPresent<cfg::IpFragMatch>(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& aclName);
+
+template <typename T>
+bool isQualifierPresent(
+    const HwSwitch* hwSwitch,
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& aclName) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+
+  auto swAcl = state->getAcl(aclName);
+  auto hwAcl = bcmSwitch->getAclTable()->getAclIf(swAcl->getPriority());
+
+  bcm_field_IpFrag_t hwValueIpFrag{};
+  auto ret = bcm_field_qualify_IpFrag_get(
+      bcmSwitch->getUnit(), hwAcl->getHandle(), &hwValueIpFrag);
+
+  return ret != BCM_E_INTERNAL;
+}
+
 } // namespace facebook::fboss::utility
