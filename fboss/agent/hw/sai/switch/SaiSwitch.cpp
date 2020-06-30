@@ -766,28 +766,25 @@ bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
 bool SaiSwitch::sendPacketSwitchedSyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt) noexcept {
-  /*
-  TODO: remove this hack when difference in src and dst mac is no longer
-  required pipe line look up causes packet to pass through pipeline and
-  subjected to forwarding as if normal packet.in such a case having same source
-  & destination mac address, may cause drop. so change destination mac address
-  */
   folly::io::Cursor cursor(pkt->buf());
-  EthHdr ethHdr{cursor};
-  if (ethHdr.getSrcMac() == ethHdr.getDstMac()) {
-    auto* pktData = pkt->buf()->writableData();
-    /* pktData[6]...pktData[11] is src mac */
-    folly::MacAddress hackedMac{"fa:ce:b0:00:00:0c"};
-    for (auto i = 0; i < folly::MacAddress::SIZE; i++) {
-      pktData[folly::MacAddress::SIZE + i] = hackedMac.bytes()[i];
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED)) {
+    EthHdr ethHdr{cursor};
+    if (ethHdr.getSrcMac() == ethHdr.getDstMac()) {
+      auto* pktData = pkt->buf()->writableData();
+      /* pktData[6]...pktData[11] is src mac */
+      folly::MacAddress hackedMac{"fa:ce:b0:00:00:0c"};
+      for (auto i = 0; i < folly::MacAddress::SIZE; i++) {
+        pktData[folly::MacAddress::SIZE + i] = hackedMac.bytes()[i];
+      }
+      XLOG(DBG5) << "hacked packet as source and destination mac are same";
+      cursor.reset(pkt->buf());
     }
-    XLOG(DBG5) << "hacked packet as source and destination mac are same, "
-               << "hacked packet as follows :";
-    folly::io::Cursor dump(pkt->buf());
-    XLOG(DBG5) << PktUtil::hexDump(dump);
   }
   getSwitchStats()->txSent();
 
+  XLOG(DBG6) << "sending packet with pipeline look up";
+  XLOG(DBG6) << PktUtil::hexDump(cursor);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)

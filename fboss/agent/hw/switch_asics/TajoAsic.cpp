@@ -25,6 +25,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QUEUE:
+    case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
       return true;
     case HwAsic::Feature::ACL:
     case HwAsic::Feature::HOT_SWAP:

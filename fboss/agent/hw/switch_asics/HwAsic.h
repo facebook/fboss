@@ -29,6 +29,7 @@ class HwAsic {
     QCM,
     ROUTE_METADATA,
     SCHEDULER_PPS,
+    SMAC_EQUALS_DMAC_CHECK_ENABLED,
   };
 
   enum class AsicType {

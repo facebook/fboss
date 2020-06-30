@@ -29,6 +29,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
+    case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
       return false;
   }
   return false;
