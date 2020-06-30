@@ -67,7 +67,7 @@ struct TxSettings {
   5: i16 post2 = 0
   6: i16 post3 = 0
   7: i16 amp = 0
-  8: i16 driveCurrent = 0
+  8: optional i16 driveCurrent
 }
 
 struct PolaritySwap {

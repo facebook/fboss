@@ -579,9 +579,11 @@ TEST_F(BcmPortTest, VerifyTxSettings) {
           EXPECT_EQ(programmedTx.pre, expectedTx->pre);
           EXPECT_EQ(programmedTx.main, expectedTx->main);
           EXPECT_EQ(programmedTx.post, expectedTx->post);
-          EXPECT_EQ(programmedTx.driveCurrent, expectedTx->driveCurrent);
           EXPECT_EQ(programmedTx.pre2, expectedTx->pre2);
           EXPECT_EQ(programmedTx.post2, expectedTx->post2);
+          if (auto programmedDC = expectedTx->driveCurrent_ref()) {
+            EXPECT_EQ(*programmedDC, *expectedTx->driveCurrent_ref());
+          }
         }
       }
     }

@@ -317,7 +317,8 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
 }
 
 // Array of tx setting override groups for wedge100
-// Each group is a mapping of cableLength => {driveCurrent, pre, main, post}
+// Each group is a mapping of cableLength => {driveCurrent_ref().value(), pre,
+// main, post}
 static const std::vector<std::map<double, std::array<int, 4>>>
     kWedge100TxGroups = {
         {
@@ -433,7 +434,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
         EXPECT_EQ(tx->post, expectedTx[3]);
         EXPECT_EQ(tx->post2, 0);
         EXPECT_EQ(tx->post3, 0);
-        EXPECT_EQ(tx->driveCurrent, expectedTx[0]);
+        EXPECT_EQ(*tx->driveCurrent_ref(), expectedTx[0]);
       }
     }
   }

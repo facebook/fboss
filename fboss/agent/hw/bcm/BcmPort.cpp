@@ -1466,16 +1466,16 @@ void BcmPort::setTxSettingViaPhyControl(
 
   // only perform an overwrite if the current setting doesn't match the
   // current one
-  if (dc != correctTx.driveCurrent && correctTx.driveCurrent != 0) {
-    bcm_port_phy_control_set(
-        unit_,
-        port_,
-        BCM_PORT_PHY_CONTROL_DRIVER_CURRENT,
-        correctTx.driveCurrent);
+  if (auto correctDc = correctTx.driveCurrent_ref()) {
+    // const auto correctDc =
+    //     static_cast<uint32_t>(correctTx.driveCurrent_ref().value());
+    if (dc != correctDc && correctDc != 0) {
+      bcm_port_phy_control_set(
+          unit_, port_, BCM_PORT_PHY_CONTROL_DRIVER_CURRENT, *correctDc);
 
-    XLOG(DBG1) << "Set drive current on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.driveCurrent) << " from "
-               << dc;
+      XLOG(DBG1) << "Set drive current on port " << swPort->getID() << " to be "
+                 << static_cast<uint32_t>(*correctDc) << " from " << dc;
+    }
   }
   if (preTap != correctTx.pre && correctTx.pre != 0) {
     bcm_port_phy_control_set(
