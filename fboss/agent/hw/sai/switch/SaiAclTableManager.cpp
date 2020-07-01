@@ -22,7 +22,16 @@ namespace facebook::fboss {
 SaiAclTableManager::SaiAclTableManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    : managerTable_(managerTable),
+      platform_(platform),
+      aclEntryMinimumPriority_(
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              managerTable_->switchManager().getSwitchSaiId(),
+              SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
+      aclEntryMaximumPriority_(
+          SaiApiTable::getInstance()->switchApi().getAttribute(
+              managerTable_->switchManager().getSwitchSaiId(),
+              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())) {}
 
 AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));

@@ -25,6 +25,9 @@ static constexpr uint32_t kMaxPortQueues =
 static constexpr uint32_t kMaxCpuQueues = 8;
 static constexpr sai_object_id_t kEcmpHashId = 1234;
 static constexpr sai_object_id_t kLagHashId = 1234;
+static constexpr uint32_t kDefaultAclEntryMinimumPriority = 0;
+static constexpr uint32_t kDefaultAclEntryMaximumPriority =
+    std::numeric_limits<uint32_t>::max();
 } // namespace
 
 sai_status_t set_switch_attribute_fn(
@@ -192,6 +195,12 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
         attr[i].value.oid = sw.tcToQueue();
+        break;
+      case SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY:
+        attr[i].value.oid = kDefaultAclEntryMinimumPriority;
+        break;
+      case SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY:
+        attr[i].value.oid = kDefaultAclEntryMaximumPriority;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

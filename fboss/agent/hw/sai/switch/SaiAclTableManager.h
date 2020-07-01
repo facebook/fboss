@@ -77,6 +77,9 @@ class SaiAclTableManager {
   using SaiAclTableHandles =
       folly::F14FastMap<std::string, std::unique_ptr<SaiAclTableHandle>>;
   SaiAclTableHandles handles_;
+
+  const sai_uint32_t aclEntryMinimumPriority_;
+  const sai_uint32_t aclEntryMaximumPriority_;
 };
 
 } // namespace facebook::fboss

@@ -120,6 +120,14 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using AclEntryMinimumPriority = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ACL_ENTRY_MINIMUM_PRIORITY,
+        sai_uint32_t>;
+    using AclEntryMaximumPriority = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY,
+        sai_uint32_t>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -162,6 +170,9 @@ SAI_ATTRIBUTE_NAME(Switch, LagHash)
 SAI_ATTRIBUTE_NAME(Switch, EcmpHash)
 SAI_ATTRIBUTE_NAME(Switch, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Switch, QosTcToQueueMap)
+
+SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
+SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
