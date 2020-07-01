@@ -158,6 +158,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
+DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
@@ -291,6 +292,19 @@ inline void _fill(
     sai_acl_action_data_t& dst) {
   dst.enable = true;
   dst.parameter.u8 = src.getData();
+}
+
+inline void _fill(
+    const sai_acl_action_data_t& src,
+    facebook::fboss::AclEntryActionU32& dst) {
+  dst.setData(src.parameter.u32);
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryActionU32& src,
+    sai_acl_action_data_t& dst) {
+  dst.enable = true;
+  dst.parameter.u32 = src.getData();
 }
 
 template <typename SrcT, typename DstT>

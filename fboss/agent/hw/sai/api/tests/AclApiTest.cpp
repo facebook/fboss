@@ -137,6 +137,14 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(12, 0xFFFFFFFF);
   }
 
+  sai_uint32_t kPacketAction() const {
+    return SAI_PACKET_ACTION_DROP;
+  }
+
+  sai_uint32_t kPacketAction2() const {
+    return SAI_PACKET_ACTION_TRAP;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -214,6 +222,9 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
         aclFieldNeighborDstUserMetaAttribute{
             AclEntryFieldU32(kNeighborDstUserMeta())};
+
+    SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
+        AclEntryActionU32(kPacketAction())};
     SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
         AclEntryActionU8(kSetTC())};
 
@@ -231,6 +242,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldFdbDstUserMetaAttribute,
          aclFieldRouteDstUserMetaAttribute,
          aclFieldNeighborDstUserMetaAttribute,
+         aclActionPacketAction,
          aclActionSetTC},
         kSwitchID());
   }
@@ -306,6 +318,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
+      sai_uint32_t packetAction,
       sai_uint8_t setTC) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -333,6 +346,8 @@ class AclApiTest : public ::testing::Test {
     auto aclFieldNeighborDstUserMetaGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta());
 
+    auto aclActionPacketActionGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
     auto aclActionSetTCGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
 
@@ -351,6 +366,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(
         aclFieldNeighborDstUserMetaGot.getDataAndMask(), neighborDstUserMeta);
 
+    EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionSetTCGot.getData(), setTC);
   }
 
@@ -508,6 +524,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kFdbDstUserMeta(),
       kRouteDstUserMeta(),
       kNeighborDstUserMeta(),
+      kPacketAction(),
       kSetTC());
 }
 
@@ -612,6 +629,9 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
       aclFieldNeighborDstUserMetaAttribute2{
           AclEntryFieldU32(kNeighborDstUserMeta2())};
+
+  SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
+      AclEntryActionU32(kPacketAction2())};
   SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC2{
       AclEntryActionU8(kSetTC2())};
 
@@ -628,6 +648,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
 
   getAndVerifyAclEntryAttribute(
@@ -644,6 +665,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kFdbDstUserMeta2(),
       kRouteDstUserMeta2(),
       kNeighborDstUserMeta2(),
+      kPacketAction2(),
       kSetTC2());
 }
 

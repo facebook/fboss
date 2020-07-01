@@ -366,6 +366,10 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldNeighborDstUserMetaMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+      aclEntry.actionPacketActionEnable = attr->value.aclaction.enable;
+      aclEntry.actionPacketActionData = attr->value.aclaction.parameter.u32;
+      res = SAI_STATUS_SUCCESS;
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
       aclEntry.actionSetTCEnable = attr->value.aclaction.enable;
       aclEntry.actionSetTCData = attr->value.aclaction.parameter.u8;
@@ -456,6 +460,11 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.fieldNeighborDstUserMetaData;
         attr_list[i].value.aclfield.mask.u32 =
             aclEntry.fieldNeighborDstUserMetaMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+        attr_list[i].value.aclaction.enable = aclEntry.actionPacketActionEnable;
+        attr_list[i].value.aclaction.parameter.u32 =
+            aclEntry.actionPacketActionData;
         break;
       case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
         attr_list[i].value.aclaction.enable = aclEntry.actionSetTCEnable;

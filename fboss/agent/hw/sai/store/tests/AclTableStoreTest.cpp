@@ -86,6 +86,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  sai_uint32_t kPacketAction() const {
+    return SAI_PACKET_ACTION_DROP;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -133,6 +137,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kFdbDstUserMeta()),
             AclEntryFieldU32(this->kRouteDstUserMeta()),
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
+            AclEntryActionU32(this->kPacketAction()),
             AclEntryActionU8(this->kSetTC()),
         },
         0);
@@ -225,6 +230,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
+                                      this->kPacketAction(),
                                       this->kSetTC()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
@@ -310,6 +316,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kFdbDstUserMeta(),
                                         this->kRouteDstUserMeta(),
                                         this->kNeighborDstUserMeta(),
+                                        this->kPacketAction(),
                                         this->kSetTC()};
   SaiAclEntryTraits::AdapterHostKey k{aclTableId,
                                       this->kPriority(),
@@ -324,6 +331,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
+                                      this->kPacketAction(),
                                       this->kSetTC()};
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
