@@ -721,6 +721,7 @@ install(TARGETS wedge_agent)
 set(SAI_VER_MAJOR "1")
 set(SAI_VER_MINOR "5")
 set(SAI_VER_RELEASE "0")
+set(SAI_VER_SUFFIX "${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
 # Build all cmake files under cmake/*cmake
 file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
@@ -734,4 +735,4 @@ install(TARGETS fake_sai)
 
 install(
   TARGETS
-  sai_test-fake-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE})
+  sai_test-fake-${SAI_VER_SUFFIX})

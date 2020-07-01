@@ -40,11 +40,39 @@ set_target_properties(sai_switch_ensemble PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_ecmp_utils
+  fboss/agent/hw/sai/hw_test/HwTestEcmpUtils.cpp
+)
+
+target_link_libraries(sai_ecmp_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_ecmp_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
+add_library(sai_port_utils
+  fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
+)
+
+target_link_libraries(sai_port_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_port_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
-  add_executable(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+  add_executable(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     fboss/agent/hw/sai/hw_test/HwTestAclUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestEcmpUtils.cpp
@@ -58,7 +86,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
   )
 
-  target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+  target_link_libraries(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     # --whole-archive is needed for gtest to find these tests
     -Wl,--whole-archive
     ${SAI_IMPL_ARG}
@@ -71,7 +99,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${LIBGMOCK_LIBRARIES}
   )
 
-  set_target_properties(sai_test-${SAI_IMPL_NAME}-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}
+  set_target_properties(sai_test-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
       -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
@@ -90,5 +118,5 @@ if(SAI_IMPL)
   BUILD_SAI_TEST("sai_impl" ${SAI_IMPL})
   install(
     TARGETS
-    sai_test-sai_impl-${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE})
+    sai_test-sai_impl-${SAI_VER_SUFFIX})
 endif()

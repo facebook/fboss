@@ -9,4 +9,5 @@ add_library(hw_benchmark_main
 
 target_link_libraries(hw_benchmark_main
   Folly::folly
+  Folly::follybenchmark
 )
