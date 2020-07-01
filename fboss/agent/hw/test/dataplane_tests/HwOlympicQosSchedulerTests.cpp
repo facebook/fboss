@@ -281,12 +281,7 @@ void HwOlympicQosSchedulerTest::verifySP() {
                                             // altogether
   };
 
-  // TODO Post warmboot queue6 (SP queue with lower queueid) sees traffic
-  // instead of queue7 (SP queue with higher queueid). Broadcom case
-  // CS7388709 is tracking this.
-  // verifyAcrossWarmBoots(setup, verify);
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRAndICP() {
