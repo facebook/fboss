@@ -65,7 +65,17 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
   auto node = macTable->getNodeIf(mac);
 
   // Delete if the entry to delete exists, otherwise do nothing.
-  if (node &&
+  // The 'exists' check needs to verify that both MAC address and classID are
+  // identical. For example, consider following sequence:
+  //    - MAC address gets learned (has no ClassID).
+  //    - MacTableUtils programs the MAC on ASIC.
+  //    - LookupClassUpdater may reprogram the MAC with classID.
+  //    - This could cause the ASIC to generate another MAC remove callback.
+  //      for MAC (without classID) that just got removed.
+  //    - We don't want the callback processing to remove the 'MAC with
+  //      classID' we just programmed. Checking if both MAC and classID are
+  //      identical achieves that.
+  if (node && node->getClassID() == l2Entry.getClassID() &&
       l2EntryUpdateType == L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE) {
     macTable = macTable->modify(&vlan, &newState);
     macTable->removeEntry(mac);
