@@ -212,3 +212,31 @@ TEST_F(SwitchApiTest, setGetSetQosMaps) {
           switchId, SaiSwitchTraits::Attributes::QosTcToQueueMap{}),
       43);
 }
+
+TEST_F(SwitchApiTest, getAclEntryMinimumPriority) {
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AclEntryMinimumPriority()),
+      0);
+}
+
+TEST_F(SwitchApiTest, setAclEntryMinimumPriority) {
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId, SaiSwitchTraits::Attributes::AclEntryMinimumPriority(42)),
+      SaiApiError);
+}
+
+TEST_F(SwitchApiTest, getAclEntryMaximumPriority) {
+  EXPECT_NE(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AclEntryMaximumPriority()),
+      0);
+}
+
+TEST_F(SwitchApiTest, setAclEntryMaximumPriority) {
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId, SaiSwitchTraits::Attributes::AclEntryMaximumPriority(42)),
+      SaiApiError);
+}
