@@ -8,10 +8,10 @@
  *
  */
 
+#include "fboss/agent/hw/test/HwVlanUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
-#include "fboss/agent/hw/test/HwVlanUtils.h"
 
 #include <folly/gen/Base.h>
 

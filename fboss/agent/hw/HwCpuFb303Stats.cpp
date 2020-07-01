@@ -46,9 +46,7 @@ void HwCpuFb303Stats::setupStats() {
   }
 }
 
-void HwCpuFb303Stats::queueChanged(
-    int queueId,
-    const std::string& queueName) {
+void HwCpuFb303Stats::queueChanged(int queueId, const std::string& queueName) {
   auto qitr = queueId2Name_.find(queueId);
   std::optional<std::string> oldQueueName = qitr == queueId2Name_.end()
       ? std::nullopt
