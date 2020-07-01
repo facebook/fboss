@@ -224,14 +224,6 @@ state::PortFields PortFields::toThrift() const {
 
 Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}
 
-void Port::initDefaultConfigState(cfg::Port* config) const {
-  // Copy over port identifiers and reset to (default)
-  // admin disabled state.
-  config->logicalID = getID();
-  config->name_ref() = getName();
-  config->state = cfg::PortState::DISABLED;
-}
-
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

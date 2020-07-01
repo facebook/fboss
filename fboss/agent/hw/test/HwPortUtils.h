@@ -61,6 +61,10 @@ void enableTwoLanes(
     std::vector<PortID> allPortsinGroup,
     const Platform* platform);
 
+void cleanPortConfig(
+    cfg::SwitchConfig* config,
+    std::vector<PortID> allPortsinGroup);
+
 void updateFlexConfig(
     cfg::SwitchConfig* config,
     FlexPortMode flexMode,

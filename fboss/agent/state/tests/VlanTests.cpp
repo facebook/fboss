@@ -279,18 +279,21 @@ void checkChangedVlans(
 TEST(VlanMap, applyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  stateV0->registerPort(PortID(1), "port1");
-  stateV0->registerPort(PortID(2), "port2");
-  stateV0->registerPort(PortID(3), "port3");
-  stateV0->registerPort(PortID(4), "port4");
-  stateV0->registerPort(PortID(9), "port9");
-  stateV0->registerPort(PortID(19), "port19");
-  stateV0->registerPort(PortID(20), "port29");
+  cfg::SwitchConfig config;
+
+  std::vector<int> ports = {1, 2, 3, 4, 9, 19, 20};
+  config.ports_ref()->resize(ports.size());
+  for (int i = 0; i < ports.size(); i++) {
+    int port = ports[i];
+    stateV0->registerPort(PortID(port), folly::format("port{}", port).str());
+    config.ports[i].logicalID_ref() = port;
+    config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
+    config.ports[i].state_ref() = cfg::PortState::DISABLED;
+  }
 
   auto vlansV0 = stateV0->getVlans();
 
   // Apply new config settings
-  cfg::SwitchConfig config;
   config.vlans_ref()->resize(2);
   *config.vlans[0].id_ref() = 1234;
   *config.vlans[0].name_ref() = kVlan1234;

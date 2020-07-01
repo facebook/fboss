@@ -447,14 +447,14 @@ TEST(Port, ToFromJSONLoopbackModeMissingFromJson) {
   EXPECT_EQ(dyn1, dyn2);
 }
 
-TEST(Port, initDefaultConfig) {
+TEST(Port, emptyConfig) {
   auto platform = createMockPlatform();
   PortID portID(1);
   auto state = make_shared<SwitchState>();
   state->registerPort(portID, "port1");
   state->getPorts()->getPortIf(portID)->setAdminState(cfg::PortState::DISABLED);
   // Make sure we also update the port queues to default queue so that the
-  // config change won't be triggered because of empty queue cfg
+  // config change won't be triggered because of empty queue cfg.
   QueueConfig queues;
   for (int i = 0; i <
        platform->getAsic()->getDefaultNumPortQueues(cfg::StreamType::UNICAST);
@@ -465,19 +465,25 @@ TEST(Port, initDefaultConfig) {
   }
   state->getPorts()->getPortIf(portID)->resetPortQueues(queues);
 
-  // Applying an empty config should result in no changes.
+  // Applying same config should result in no change.
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  config.ports[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::DISABLED;
+  config.ports[0].state_ref() = cfg::PortState::DISABLED;
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
-  // Adding a port entry in the config and initializing it with
-  // initDefaultConfigState() should also result in no changes.
-  config.ports_ref()->resize(1);
-  state->getPort(portID)->initDefaultConfigState(&config.ports_ref()[0]);
-  EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
+  // If platform does not support addRemovePort (by default),
+  // empty config should throw exception.
+  cfg::SwitchConfig emptyConfig;
+  EXPECT_THROW(
+      publishAndApplyConfig(state, &emptyConfig, platform.get()), FbossError);
+
+  // If platform supports addRemovePort, change should happen.
+  ON_CALL(*platform.get(), supportsAddRemovePort())
+      .WillByDefault(testing::Return(true));
+  EXPECT_NE(
+      nullptr, publishAndApplyConfig(state, &emptyConfig, platform.get()));
 }
 
 TEST(Port, pauseConfig) {
@@ -820,17 +826,19 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(portsV2->getPort(PortID(3))->isPublished());
   EXPECT_TRUE(portsV2->getPort(PortID(4))->isPublished());
 
-  // If we remove port3 from the config, it should be marked down
-  config.ports_ref()->resize(3);
-  *config.ports[0].logicalID_ref() = 1;
+  // If we disable port3 from the config, it should be marked down
+  config.ports[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[1].logicalID_ref() = 2;
+  config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
-  *config.ports[1].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[2].logicalID_ref() = 4;
-  config.ports_ref()[2].name_ref() = "port4";
-  *config.ports[2].state_ref() = cfg::PortState::ENABLED;
+  config.ports[1].state_ref() = cfg::PortState::ENABLED;
+  config.ports[2].logicalID_ref() = 3;
+  config.ports_ref()[2].name_ref() = "port3";
+  config.ports[2].state_ref() = cfg::PortState::DISABLED;
+  config.ports[3].logicalID_ref() = 4;
+  config.ports_ref()[3].name_ref() = "port4";
+  config.ports[3].state_ref() = cfg::PortState::ENABLED;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);

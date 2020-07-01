@@ -128,6 +128,13 @@ void assertPortLoopbackMode(
   CHECK_EQ(expectedLoopbackMode, loopbackMode);
 }
 
+void cleanPortConfig(
+    cfg::SwitchConfig* /* config */,
+    std::vector<PortID> /* allPortsinGroup */) {
+  // no need to remove portCfg not in allPortsinGroup for bcm tests
+  // do nothing
+}
+
 void enableOneLane(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,

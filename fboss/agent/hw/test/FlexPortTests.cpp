@@ -22,25 +22,6 @@ using namespace facebook::fboss;
 
 namespace {
 
-void cleanPortConfig(
-    cfg::SwitchConfig* config,
-    std::vector<PortID> allPortsinGroup) {
-  // remove portCfg not in allPortsinGroup
-  auto removed = std::remove_if(
-      config->ports_ref()->begin(),
-      config->ports_ref()->end(),
-      [&allPortsinGroup](auto portCfg) {
-        auto portID = static_cast<PortID>(*portCfg.logicalID_ref());
-        for (auto id : allPortsinGroup) {
-          if (portID == id) {
-            return false;
-          }
-        }
-        return true;
-      });
-  config->ports_ref()->erase(removed, config->ports_ref()->end());
-}
-
 void assertFlexConfig(
     HwSwitch* hw,
     FlexPortMode flexMode,
@@ -90,11 +71,11 @@ class HwFlexPortTest : public HwTest {
     auto setup = [this, &allPortsinGroup, flexMode]() {
       auto cfg =
           utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
-      cleanPortConfig(&cfg, allPortsinGroup);
+      facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
       applyNewConfig(cfg);
 
       cfg = utility::oneL3IntfNPortConfig(getHwSwitch(), allPortsinGroup);
-      cleanPortConfig(&cfg, allPortsinGroup);
+      facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
       utility::updateFlexConfig(
           &cfg, flexMode, allPortsinGroup, getHwSwitch()->getPlatform());
       applyNewConfig(cfg);

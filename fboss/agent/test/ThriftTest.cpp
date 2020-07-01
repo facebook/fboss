@@ -150,6 +150,13 @@ TEST(ThriftTest, LinkLocalRoutes) {
   config.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
   config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.1/24";
   config.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
+  config.ports_ref()->resize(10);
+  for (int i = 0; i < 10; i++) {
+    auto port = i + 1;
+    config.ports[i].logicalID_ref() = port;
+    config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
+    config.ports[i].state_ref() = cfg::PortState::DISABLED;
+  }
   // Call applyThriftConfig
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   stateV1->publish();

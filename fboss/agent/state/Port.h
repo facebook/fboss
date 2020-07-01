@@ -101,16 +101,6 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   Port(PortID id, const std::string& name);
 
-  /*
-   * Initialize a cfg::Port object with the default settings
-   * that would be applied for this port. Port identifiers
-   * like port ID and name are retained.
-   *
-   * The resulting cfg::Port object can be passed to applyConfig() to return
-   * the port to a state as if it had been newly constructed.
-   */
-  void initDefaultConfigState(cfg::Port* config) const;
-
   PortID getID() const {
     return getFields()->id;
   }

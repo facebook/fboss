@@ -682,10 +682,8 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts() {
     if (platform_->supportsAddRemovePort()) {
       changed = true;
     } else {
-      cfg::Port defaultConfig;
-      origPort->initDefaultConfigState(&defaultConfig);
-      auto newPort = updatePort(origPort, &defaultConfig);
-      changed |= updateMap(&newPorts, origPort, newPort);
+      throw FbossError(
+          "New config is missing configuration for port ", origPort->getID());
     }
   }
 

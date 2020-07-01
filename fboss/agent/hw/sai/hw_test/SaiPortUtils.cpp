@@ -106,6 +106,25 @@ void assertPortLoopbackMode(
   CHECK_EQ(expectedLoopbackMode, loopbackMode.value());
 }
 
+void cleanPortConfig(
+    cfg::SwitchConfig* config,
+    std::vector<PortID> allPortsinGroup) {
+  // remove portCfg not in allPortsinGroup
+  auto removed = std::remove_if(
+      config->ports_ref()->begin(),
+      config->ports_ref()->end(),
+      [&allPortsinGroup](auto portCfg) {
+        auto portID = static_cast<PortID>(*portCfg.logicalID_ref());
+        for (auto id : allPortsinGroup) {
+          if (portID == id) {
+            return false;
+          }
+        }
+        return true;
+      });
+  config->ports_ref()->erase(removed, config->ports_ref()->end());
+}
+
 void enableOneLane(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,
