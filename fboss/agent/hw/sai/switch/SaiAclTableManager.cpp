@@ -52,6 +52,21 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
                                           SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
                                           SAI_ACL_ACTION_TYPE_SET_TC,
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
+
+  /*
+   * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
+   * However, the solution is not applicable for Trident2 as FBOSS does not
+   * implement queues on Trident2.
+   * Furthermore, Trident2 supports fewer ACL qualifiers than other
+   * hardwares. Thus, avoid programming unncessary qualifiers (or else we run
+   * out resources).
+   */
+  auto fieldFdbDstUserMeta = platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+      ? std::make_optional(
+            SaiAclTableTraits::Attributes::FieldFdbDstUserMeta{true})
+      : std::nullopt;
+
   SaiAclTableTraits::AdapterHostKey adapterHostKey{
       SAI_ACL_STAGE_INGRESS,
       bindPointList,
@@ -69,7 +84,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // dstMac
       true, // ipType
       true, // ttl
-      true, // fdb meta
+      fieldFdbDstUserMeta, // fdb meta
       true, // route meta
       true // neighbor meta
   };
@@ -90,7 +105,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // dstMac
       true, // ipType
       true, // ttl
-      true, // fdb meta
+      fieldFdbDstUserMeta, // fdb meta
       true, // route meta
       true // neighbor meta
   };
