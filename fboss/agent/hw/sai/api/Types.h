@@ -36,6 +36,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, SwitchSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, BufferPoolSaiId);
 
 namespace facebook::fboss {
 
