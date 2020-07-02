@@ -253,6 +253,7 @@ using facebook::fboss::macFromBcm;
 using facebook::fboss::PortDescriptor;
 using facebook::fboss::PortID;
 using facebook::fboss::VlanID;
+using facebook::fboss::cfg::AclLookupClass;
 
 L2Entry createL2Entry(const bcm_l2_addr_t* l2Addr, bool isPending) {
   CHECK(l2Addr);
@@ -266,14 +267,18 @@ L2Entry createL2Entry(const bcm_l2_addr_t* l2Addr, bool isPending) {
         VlanID(l2Addr->vid),
         PortDescriptor(PortID(l2Addr->port)),
         l2EntryType,
-        facebook::fboss::cfg::AclLookupClass(l2Addr->group));
+        l2Addr->group != 0
+            ? std::optional<AclLookupClass>(AclLookupClass(l2Addr->group))
+            : std::nullopt);
   } else {
     return L2Entry(
         macFromBcm(l2Addr->mac),
         VlanID(l2Addr->vid),
         PortDescriptor(AggregatePortID(l2Addr->tgid)),
         l2EntryType,
-        facebook::fboss::cfg::AclLookupClass(l2Addr->group));
+        l2Addr->group != 0
+            ? std::optional<AclLookupClass>(AclLookupClass(l2Addr->group))
+            : std::nullopt);
   }
 }
 
