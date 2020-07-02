@@ -79,10 +79,7 @@ void runRxSlowPathBenchmark() {
   ensemble.applyNewState(ecmpRouteState);
   // Disable TTL decrements
   utility::disableTTLDecrements(
-      bcmSwitch,
-      ecmpHelper.getRouterId(),
-      ecmpHelper.getNextHops()[0].intf,
-      folly::IPAddress(ecmpHelper.getNextHops()[0].ip));
+      bcmSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   // Send packet
   auto txPacket = utility::makeUDPTxPacket(

@@ -10,7 +10,7 @@
 
 #pragma once
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -22,6 +22,8 @@ namespace facebook::fboss {
 class HwSwitchEnsemble;
 struct HwPortStats;
 class HwSwitch;
+class PortDescriptor;
+
 namespace utility {
 
 bool verifyQueueMappings(
@@ -34,6 +36,16 @@ void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID intf,
+    const PortDescriptor& port,
     const folly::IPAddress& nhop);
+
+template <typename EcmpNhopT>
+void disableTTLDecrements(
+    HwSwitch* hw,
+    RouterID routerId,
+    const EcmpNhopT& nhop) {
+  disableTTLDecrements(
+      hw, routerId, nhop.intf, nhop.portDesc, folly::IPAddress(nhop.ip));
+}
 } // namespace utility
 } // namespace facebook::fboss

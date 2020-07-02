@@ -227,10 +227,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
     for (const auto& nextHop : ecmpHelper6.getNextHops()) {
       utility::disableTTLDecrements(
-          getHwSwitch(),
-          ecmpHelper6.getRouterId(),
-          nextHop.intf,
-          folly::IPAddress(nextHop.ip));
+          getHwSwitch(), ecmpHelper6.getRouterId(), nextHop);
     }
   }
 

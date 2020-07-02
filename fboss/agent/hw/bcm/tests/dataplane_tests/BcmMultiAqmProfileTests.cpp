@@ -76,10 +76,7 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
     for (const auto& nextHop : ecmpHelper.getNextHops()) {
       utility::disableTTLDecrements(
-          getHwSwitch(),
-          ecmpHelper.getRouterId(),
-          nextHop.intf,
-          folly::IPAddress(nextHop.ip));
+          getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
     }
   }
 
