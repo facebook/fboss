@@ -7,11 +7,16 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <tuple>
 
-#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 
+#include <folly/FileUtil.h>
+#include <folly/MapUtil.h>
 #include <folly/Singleton.h>
+#include <folly/String.h>
 
 extern "C" {
 #include <sai.h>
@@ -21,6 +26,12 @@ DEFINE_bool(
     enable_replayer,
     false,
     "Flag to indicate whether function wrapper and logger is enabled.");
+
+DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
+
+using folly::to;
+using std::string;
+using std::vector;
 
 extern "C" {
 
@@ -43,10 +54,6 @@ sai_status_t __wrap_sai_api_query(
   // (See 'AclApiTracer.h' for example).
 
   sai_status_t rv = __real_sai_api_query(sai_api_id, api_method_table);
-
-  if (!FLAGS_enable_replayer) {
-    return rv;
-  }
 
   switch (sai_api_id) {
     case (SAI_API_ACL):
@@ -72,8 +79,216 @@ folly::Singleton<facebook::fboss::SaiTracer> _saiTracer;
 
 namespace facebook::fboss {
 
+SaiTracer::SaiTracer() {
+  saiLogFile_ = folly::File(FLAGS_sai_log.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+  setupGlobals();
+  initVarCounts();
+}
+
+SaiTracer::~SaiTracer() {
+  fsync(saiLogFile_.wlock()->fd());
+}
+
 std::shared_ptr<SaiTracer> SaiTracer::getInstance() {
   return _saiTracer.try_get();
 }
+
+void SaiTracer::writeToFile(const vector<string>& strVec) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  auto constexpr lineEnd = ";\n";
+  auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
+
+  auto bytesWritten = saiLogFile_.withWLock([&](auto& lockedFile) {
+    return folly::writeFull(lockedFile.fd(), lines.c_str(), lines.size());
+  });
+  if (bytesWritten < 0) {
+    throw SysError(
+        errno,
+        "error writing ",
+        lines.size(),
+        " bytes to SAI Replayer log file");
+  }
+}
+
+void SaiTracer::logCreateFn(
+    const string& fn_name,
+    sai_object_id_t* create_object_id,
+    sai_object_id_t switch_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines = setAttrList(attr_list, attr_count, object_type);
+
+  // Then create new variable - declareVariable returns
+  // 1. Declaration of the new variable
+  // 2. name of the new variable
+  auto [declaration, varName] = declareVariable(create_object_id, object_type);
+  lines.push_back(declaration);
+
+  // Make the function call & write to file
+  lines.push_back(createFnCall(
+      fn_name,
+      varName,
+      getVariable(switch_id, SAI_OBJECT_TYPE_SWITCH),
+      attr_count,
+      object_type));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logRemoveFn(
+    const string& fn_name,
+    sai_object_id_t remove_object_id,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Directly make remove call
+  writeToFile({to<string>(
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(remove_object_id, object_type),
+      ")")});
+}
+
+void SaiTracer::logSetAttrFn(
+    const string& fn_name,
+    sai_object_id_t set_object_id,
+    const sai_attribute_t* attr,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup one attribute
+  vector<string> lines = setAttrList(attr, 1, object_type);
+
+  // Make setAttribute call
+  lines.push_back(to<string>(
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(set_object_id, object_type),
+      ", sai_attributes)"));
+  writeToFile(lines);
+}
+
+std::tuple<string, string> SaiTracer::declareVariable(
+    sai_object_id_t* object_id,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return std::make_tuple("", "");
+  }
+
+  auto constexpr varType = "sai_object_id_t ";
+
+  // Get the prefix name for pbject type
+  string varPrefix = folly::get_or_throw(
+      varNames_, object_type, "Unsupported Sai Object type in Sai Tracer");
+
+  // Get the variable count for declaration (e.g. aclTable_1)
+  uint num = folly::get_or_throw(
+      varCounts_, object_type, "Unsupported Sai Object type in Sai Tracer")++;
+  string varName = to<string>(varPrefix, num);
+
+  // Add this variable to the variable map
+  folly::get_or_throw(
+      variables_, object_type, "Unsupported Sai Object type in Sai Tracer")
+      .wlock()
+      ->emplace(*object_id, varName);
+  return std::make_tuple(to<string>(varType, varName), varName);
+}
+
+string SaiTracer::getVariable(
+    sai_object_id_t object_id,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return "";
+  }
+
+  // Check variable map to get object_id -> variable name mapping
+  return folly::get_or_throw(
+             variables_,
+             object_type,
+             "Unsupported Sai Object type in Sai Tracer")
+      .withRLock([&](auto& vars) {
+        return folly::get_default(vars, object_id, to<string>(object_id));
+      });
+}
+
+vector<string> SaiTracer::setAttrList(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return {};
+  }
+
+  auto constexpr sai_attribute = "sai_attributes";
+  vector<string> attrLines;
+
+  // Setup ids
+  for (int i = 0; i < attr_count; ++i) {
+    attrLines.push_back(
+        to<string>(sai_attribute, "[", i, "].id = ", attr_list[i].id));
+  }
+
+  // Call functions defined in *ApiTracer.h to serialize attributes
+  // that are specific to each Sai object type
+  switch (object_type) {
+    case SAI_OBJECT_TYPE_ACL_TABLE:
+      setAclTableAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP:
+      setAclTableGroupAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER:
+      setAclTableGroupMemberAttributes(attr_list, attr_count, attrLines);
+      break;
+    default:
+      // TODO: For other APIs, create new API wrappers and invoke
+      // setAttributes() function here
+      break;
+  }
+
+  return attrLines;
+}
+
+string SaiTracer::createFnCall(
+    const string& fn_name,
+    const string& var1,
+    const string& var2,
+    uint32_t attr_count,
+    sai_object_type_t object_type) {
+  // This helper method produces the create call. For example -
+  // bridge_api->create_bridge_port(&bridgePort_1, switch_0, 4, sai_attributes);
+  return to<string>(
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(&",
+      var1,
+      ", ",
+      var2,
+      ", ",
+      attr_count,
+      ", sai_attributes)");
+}
+
+void SaiTracer::setupGlobals() {}
+
+void SaiTracer::initVarCounts() {}
 
 } // namespace facebook::fboss
