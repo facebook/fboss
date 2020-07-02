@@ -174,6 +174,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_tx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     hw_tx_slow_path_rate
+    -Wl,--whole-archive
     sai_switch_ensemble
     -Wl,--no-whole-archive
     ${SAI_IMPL_ARG}
@@ -190,6 +191,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     hw_warm_boot_exit_speed
+    -Wl,--whole-archive
     sai_switch_ensemble
     -Wl,--no-whole-archive
     ${SAI_IMPL_ARG}
@@ -205,6 +207,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
     hw_ecmp_shrink_speed
     sai_switch_ensemble
     -Wl,--no-whole-archive
