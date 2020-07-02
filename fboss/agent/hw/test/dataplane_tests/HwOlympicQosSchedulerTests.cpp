@@ -22,8 +22,9 @@
 
 namespace {
 // Packets processed by WRR queues should be in proportion to their weights
-void verifyWRRHelper(
-    const std::map<int16_t, int64_t>& queueStats,
+bool verifyWRRHelper(
+    facebook::fboss::HwSwitchEnsemble* hwEnsemble,
+    facebook::fboss::PortID portId,
     int maxWeightQueueId,
     const std::map<int, uint8_t>& wrrQueueToWeight) {
   /*
@@ -35,53 +36,84 @@ void verifyWRRHelper(
    */
   const double kVariance = 0.05; // i.e. + or -5%
 
-  auto maxWeightQueueBytes = queueStats.find(maxWeightQueueId)->second;
-  auto maxWeightQueueWeight = wrrQueueToWeight.at(maxWeightQueueId);
-  auto maxWeightQueueNormalizedBytes =
-      maxWeightQueueBytes / maxWeightQueueWeight;
-  auto lowMaxWeightQueueNormalizedBytes =
-      maxWeightQueueNormalizedBytes * (1 - kVariance);
-  auto highMaxWeightQueueNormalizedBytes =
-      maxWeightQueueNormalizedBytes * (1 + kVariance);
+  auto retries = 5;
+  while (retries--) {
+    auto queueStats = hwEnsemble->getLatestPortStats(portId).queueOutPackets_;
+    auto maxWeightQueueBytes = queueStats.find(maxWeightQueueId)->second;
+    auto maxWeightQueueWeight = wrrQueueToWeight.at(maxWeightQueueId);
+    auto maxWeightQueueNormalizedBytes =
+        maxWeightQueueBytes / maxWeightQueueWeight;
+    auto lowMaxWeightQueueNormalizedBytes =
+        maxWeightQueueNormalizedBytes * (1 - kVariance);
+    auto highMaxWeightQueueNormalizedBytes =
+        maxWeightQueueNormalizedBytes * (1 + kVariance);
 
-  XLOG(DBG0) << "Max weight:: QueueId: " << maxWeightQueueId
-             << " stat: " << maxWeightQueueBytes
-             << " weight: " << static_cast<int>(maxWeightQueueWeight)
-             << " normalized (stat/weight): " << maxWeightQueueNormalizedBytes
-             << " low normalized: " << lowMaxWeightQueueNormalizedBytes
-             << " high normalized: " << highMaxWeightQueueNormalizedBytes;
+    XLOG(DBG0) << "Max weight:: QueueId: " << maxWeightQueueId
+               << " stat: " << maxWeightQueueBytes
+               << " weight: " << static_cast<int>(maxWeightQueueWeight)
+               << " normalized (stat/weight): " << maxWeightQueueNormalizedBytes
+               << " low normalized: " << lowMaxWeightQueueNormalizedBytes
+               << " high normalized: " << highMaxWeightQueueNormalizedBytes;
+    auto distributionOk = true;
+    for (const auto& queueStat : queueStats) {
+      auto currQueueId = queueStat.first;
+      auto currQueueBytes = queueStat.second;
+      if (wrrQueueToWeight.find(currQueueId) == wrrQueueToWeight.end()) {
+        if (currQueueBytes) {
+          distributionOk = false;
+          break;
+        }
+        continue;
+      }
+      auto currQueueWeight = wrrQueueToWeight.at(currQueueId);
+      auto currQueueNormalizedBytes = currQueueBytes / currQueueWeight;
 
-  for (const auto& queueStat : queueStats) {
-    auto currQueueId = queueStat.first;
-    auto currQueueBytes = queueStat.second;
-    if (wrrQueueToWeight.find(currQueueId) == wrrQueueToWeight.end()) {
-      EXPECT_EQ(0, currQueueBytes);
-      continue;
+      XLOG(DBG0) << "Curr queue :: QueueId: " << currQueueId
+                 << " stat: " << currQueueBytes
+                 << " weight: " << static_cast<int>(currQueueWeight)
+                 << " normalized (stat/weight): " << currQueueNormalizedBytes;
+
+      if (!(lowMaxWeightQueueNormalizedBytes < currQueueNormalizedBytes &&
+            currQueueNormalizedBytes < highMaxWeightQueueNormalizedBytes)) {
+        distributionOk = false;
+        break;
+      }
     }
-    auto currQueueWeight = wrrQueueToWeight.at(currQueueId);
-    auto currQueueNormalizedBytes = currQueueBytes / currQueueWeight;
-
-    XLOG(DBG0) << "Curr queue :: QueueId: " << currQueueId
-               << " stat: " << currQueueBytes
-               << " weight: " << static_cast<int>(currQueueWeight)
-               << " normalized (stat/weight): " << currQueueNormalizedBytes;
-
-    EXPECT_TRUE(
-        lowMaxWeightQueueNormalizedBytes < currQueueNormalizedBytes &&
-        currQueueNormalizedBytes < highMaxWeightQueueNormalizedBytes);
+    if (distributionOk) {
+      return true;
+    }
+    XLOG(INFO) << " Retrying ...";
+    sleep(1);
   }
+  return false;
 }
 // Only trafficQueueId should have traffic
-void verifySPHelper(
-    const std::map<int16_t, int64_t>& queueStats,
+bool verifySPHelper(
+    facebook::fboss::HwSwitchEnsemble* hwEnsemble,
+    facebook::fboss::PortID portId,
     int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
-  for (const auto& queueStat : queueStats) {
-    auto queueId = queueStat.first;
-    auto statVal = queueStat.second;
-    XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
-    EXPECT_TRUE(queueId != trafficQueueId ? statVal == 0 : statVal != 0);
+  auto retries = 5;
+  while (retries--) {
+    auto distributionOk = true;
+    auto queueStats = hwEnsemble->getLatestPortStats(portId).queueOutPackets_;
+    for (const auto& queueStat : queueStats) {
+      auto queueId = queueStat.first;
+      auto statVal = queueStat.second;
+      XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
+      distributionOk =
+          (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
+      if (!distributionOk) {
+        break;
+      }
+    }
+    if (distributionOk) {
+      return true;
+    }
+    XLOG(INFO) << " Retrying ...";
+    sleep(1);
   }
+  return false;
 }
 } // namespace
 
@@ -214,11 +246,8 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     auto verify = [=]() {
       sendUdpPktsForAllQueues(queueIds);
       clearPortStats();
-      verifySPHelper(
-          getHwSwitchEnsemble()
-              ->getLatestPortStats(masterLogicalPortIds()[0])
-              .queueOutPackets_,
-          trafficQueueId);
+      EXPECT_TRUE(verifySPHelper(
+          getHwSwitchEnsemble(), masterLogicalPortIds()[0], trafficQueueId));
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -249,12 +278,11 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
   auto verify = [=]() {
     sendUdpPktsForAllQueues(utility::kOlympicWRRQueueIds());
     clearPortStats();
-    verifyWRRHelper(
-        getHwSwitchEnsemble()
-            ->getLatestPortStats(masterLogicalPortIds()[0])
-            .queueOutPackets_,
+    EXPECT_TRUE(verifyWRRHelper(
+        getHwSwitchEnsemble(),
+        masterLogicalPortIds()[0],
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
-        utility::kOlympicWRRQueueToWeight());
+        utility::kOlympicWRRQueueToWeight()));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -272,13 +300,13 @@ void HwOlympicQosSchedulerTest::verifySP() {
   auto verify = [=]() {
     sendUdpPktsForAllQueues(utility::kOlympicSPQueueIds());
     clearPortStats();
-    verifySPHelper(
-        getHwSwitchEnsemble()
-            ->getLatestPortStats(masterLogicalPortIds()[0])
-            .queueOutPackets_,
-        utility::kOlympicHighestSPQueueId); // SP queue with highest queueId
-                                            // should starve other SP queues
-                                            // altogether
+    EXPECT_TRUE(verifySPHelper(
+        getHwSwitchEnsemble(),
+        masterLogicalPortIds()[0],
+        // SP queue with highest queueId
+        // should starve other SP queues
+        // altogether
+        utility::kOlympicHighestSPQueueId));
   };
 
   verifyAcrossWarmBoots(setup, verify);
