@@ -38,6 +38,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt,
         std::nullopt,
         std::nullopt,
+        std::nullopt,
     };
   }
 

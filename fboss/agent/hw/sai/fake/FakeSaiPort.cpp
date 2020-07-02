@@ -8,6 +8,7 @@
  *
  */
 #include "FakeSaiPort.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -34,6 +35,7 @@ sai_status_t create_port_fn(
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
+  bool disableTtlDecrement{false};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -78,6 +80,13 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
         qosTcToQueueMap = attr_list[i].value.oid;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_PORT_ATTR_DECREMENT_TTL:
+#else
+      case SAI_PORT_ATTR_CUSTOM_RANGE_START:
+#endif
+        disableTtlDecrement = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -111,6 +120,7 @@ sai_status_t create_port_fn(
   port.mtu = mtu;
   port.qosDscpToTcMap = qosDscpToTcMap;
   port.qosTcToQueueMap = qosTcToQueueMap;
+  port.disableTtlDecrement = disableTtlDecrement;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 7; queueId++) {
     auto saiQueueId = fs->queueManager.create(
@@ -197,6 +207,13 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       port.qosTcToQueueMap = attr->value.oid;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    case SAI_PORT_ATTR_DECREMENT_TTL:
+#else
+    case SAI_PORT_ATTR_CUSTOM_RANGE_START:
+#endif
+      port.disableTtlDecrement = attr->value.booldata;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -276,6 +293,13 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
         attr->value.oid = port.qosTcToQueueMap;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_PORT_ATTR_DECREMENT_TTL:
+#else
+      case SAI_PORT_ATTR_CUSTOM_RANGE_START:
+#endif
+        attr->value.booldata = port.disableTtlDecrement;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

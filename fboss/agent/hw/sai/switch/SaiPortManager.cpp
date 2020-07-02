@@ -333,6 +333,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          swPort->getMaxFrameSize(),
                                          std::nullopt,
+                                         std::nullopt,
                                          std::nullopt};
 }
 
