@@ -214,6 +214,19 @@ TEST_F(PortStoreTest, portSetQoSMaps) {
       portId, SaiPortTraits::Attributes::QosTcToQueueMap{});
   EXPECT_EQ(apiQosTcToQueue, 43);
 }
+
+TEST_F(PortStoreTest, portSetDisableTtl) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj(portId);
+  EXPECT_FALSE(GET_OPT_ATTR(Port, DisableTtlDecrement, portObj.attributes()));
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::DisableTtlDecrement>>(
+      newAttrs) = true;
+  portObj.setAttributes(newAttrs);
+  EXPECT_TRUE(GET_OPT_ATTR(Port, DisableTtlDecrement, portObj.attributes()));
+  EXPECT_TRUE(saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::DisableTtlDecrement{}));
+}
 /*
  * Confirm that moving out of a SaiObject<SaiPortTraits> works as expected
  */
