@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeSaiAcl.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBridge.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiBuffer.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiFdb.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHash.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
@@ -43,6 +44,7 @@ struct FakeSai {
   FakeAclTableGroupManager aclTableGroupManager;
   FakeAclTableManager aclTableManager;
   FakeBridgeManager bridgeManager;
+  FakeBufferPoolManager bufferPoolManager;
   FakeFdbManager fdbManager;
   FakeHashManager hashManager;
   FakeHostifTrapManager hostIfTrapManager;

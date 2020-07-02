@@ -8,6 +8,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/AttributeTest.cpp
     fboss/agent/hw/sai/api/tests/AttributeDataTypesTest.cpp
     fboss/agent/hw/sai/api/tests/BridgeApiTest.cpp
+    fboss/agent/hw/sai/api/tests/BufferApiTest.cpp
     fboss/agent/hw/sai/api/tests/FdbApiTest.cpp
     fboss/agent/hw/sai/api/tests/HashApiTest.cpp
     fboss/agent/hw/sai/api/tests/HostifApiTest.cpp
