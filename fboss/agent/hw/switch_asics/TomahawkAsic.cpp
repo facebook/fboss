@@ -21,6 +21,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::SCHEDULER_PPS:
+    case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -30,6 +31,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
+    case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
       return false;
   }
   return false;
