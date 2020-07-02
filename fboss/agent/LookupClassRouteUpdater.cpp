@@ -873,11 +873,21 @@ void LookupClassRouteUpdater::clearClassIDsForRoutes() const {
 }
 
 void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
+  /*
+   * If FLAGS_queue_per_host_route_fix is false:
+   *  - if inited_ is false i.e. first call to this state observer, disable
+   *  queue-per-host route fix (clear classIDs associated with routes).
+   *  - if inited_ is true i.e. subsequent calls to state observer, do nothing.
+   */
   if (!inited_) {
     inited_ = true;
     if (!FLAGS_queue_per_host_route_fix) {
       clearClassIDsForRoutes<folly::IPAddressV6>();
       clearClassIDsForRoutes<folly::IPAddressV4>();
+      return;
+    }
+  } else {
+    if (!FLAGS_queue_per_host_route_fix) {
       return;
     }
   }
