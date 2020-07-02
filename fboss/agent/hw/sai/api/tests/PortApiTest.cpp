@@ -231,6 +231,11 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portTcToQueue);
   auto gotPortTcToQueue = portApi->getAttribute(portId, portTcToQueue);
   EXPECT_EQ(gotPortTcToQueue, qosMapTcToQueue);
+
+  // Port TTL decrement
+  SaiPortTraits::Attributes::DisableTtlDecrement disableTtlDec{true};
+  portApi->setAttribute(portId, disableTtlDec);
+  EXPECT_TRUE(portApi->getAttribute(portId, disableTtlDec));
 }
 
 // ObjectApi tests
