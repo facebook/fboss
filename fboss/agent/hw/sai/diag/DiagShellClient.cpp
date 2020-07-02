@@ -12,6 +12,8 @@
 
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
+#include <folly/Range.h>
+#include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
 #include <folly/init/Init.h>
 
@@ -22,21 +24,64 @@
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <iostream>
 #include <thread>
 
+DEFINE_string(host, "::1", "The host to connect to");
+DEFINE_int32(port, 5909, "The port to connect to");
+
 namespace {
+using folly::ByteRange;
+using folly::IPAddress;
+using folly::IPAddressV6;
+
+const IPAddress getIPFromHost(const std::string& hostname) {
+  if (IPAddress::validate(hostname)) {
+    return IPAddress(hostname);
+  }
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  struct addrinfo* result = nullptr;
+  auto rv = getaddrinfo(hostname.c_str(), nullptr, &hints, &result);
+  SCOPE_EXIT {
+    LOG(INFO) << "Finished getting IP for " << hostname;
+    freeaddrinfo(result);
+  };
+  if (rv < 0) {
+    LOG(ERROR) << "Could not get an IP for " << hostname;
+    return IPAddress();
+  }
+  struct addrinfo* res;
+  for (res = result; res != nullptr; res = res->ai_next) {
+    if (res->ai_addr->sa_family == AF_INET) { // IPV4
+      struct sockaddr_in* sp = (struct sockaddr_in*)res->ai_addr;
+      return IPAddress::fromLong(sp->sin_addr.s_addr);
+    } else if (res->ai_addr->sa_family == AF_INET6) { // IPV6
+      struct sockaddr_in6* sp = (struct sockaddr_in6*)res->ai_addr;
+      return IPAddress::fromBinary(ByteRange(
+          static_cast<unsigned char*>(&(sp->sin6_addr.s6_addr[0])),
+          IPAddressV6::byteCount()));
+    }
+  }
+  LOG(ERROR) << "Could not get an IP for " << hostname;
+  return IPAddress();
+}
 
 std::unique_ptr<facebook::fboss::SaiCtrlAsyncClient> getStreamingClient(
     folly::EventBase* evb,
-    const folly::IPAddress& ip) {
-  folly::SocketAddress addr{ip, 5909};
+    const IPAddress& ip) {
+  folly::SocketAddress addr(ip, FLAGS_port);
   return std::make_unique<facebook::fboss::SaiCtrlAsyncClient>(
       apache::thrift::RocketClientChannel::newChannel(
           folly::AsyncSocket::UniquePtr(new folly::AsyncSocket(evb, addr))));
 }
 
-void subscribeToDiagShell(folly::EventBase* evb, const folly::IPAddress& ip) {
+void subscribeToDiagShell(folly::EventBase* evb, const IPAddress& ip) {
   auto client = getStreamingClient(evb, ip);
   auto responseAndStream = client->sync_startDiagShell();
   folly::writeFull(
@@ -60,10 +105,10 @@ void subscribeToDiagShell(folly::EventBase* evb, const folly::IPAddress& ip) {
                   // N.B., can't use folly logging, because it messes with the
                   // terminal mode such that backspace, ctrl+D, etc.. don't seem
                   // to work anymore.
-                  std::cout << "error in stream: " << msg << "\n";
+                  LOG(ERROR) << "error in stream: " << msg;
                   evb->terminateLoopSoon();
                 } else {
-                  std::cout << "stream completed!\n";
+                  LOG(INFO) << "stream completed!";
                   evb->terminateLoopSoon();
                 }
               })
@@ -71,7 +116,7 @@ void subscribeToDiagShell(folly::EventBase* evb, const folly::IPAddress& ip) {
   evb->loop();
 }
 
-void handleStdin(folly::EventBase* evb, const folly::IPAddress& ip) {
+void handleStdin(folly::EventBase* evb, const IPAddress& ip) {
   auto client = getStreamingClient(evb, ip);
   ssize_t nread;
   constexpr ssize_t bufSize = 512;
@@ -88,7 +133,7 @@ void handleStdin(folly::EventBase* evb, const folly::IPAddress& ip) {
         facebook::fboss::ClientInformation ci;
         client->sync_produceDiagShellInput(input, ci);
       } catch (const std::exception& e) {
-        std::cout << "cli caught server exception " << e.what() << "\n";
+        LOG(ERROR) << "cli caught server exception " << e.what();
       }
     }
   }
@@ -106,16 +151,24 @@ void handleStdin(folly::EventBase* evb, const folly::IPAddress& ip) {
  */
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  folly::init(&argc, &argv);
   folly::EventBase streamEvb;
   folly::EventBase stdinEvb;
 
-  std::thread streamT([&streamEvb]() {
-    subscribeToDiagShell(&streamEvb, folly::IPAddress{"::1"});
-  });
+  // Converts the host to IP address if a hostname is given
+  IPAddress hostIP = getIPFromHost(FLAGS_host);
+  // No host given
+  if (hostIP.empty()) {
+    LOG(ERROR) << "No host given to connect";
+    exit(1);
+  }
+
+  LOG(INFO) << "Connecting to: " << hostIP;
+  std::thread streamT(
+      [&streamEvb, &hostIP]() { subscribeToDiagShell(&streamEvb, hostIP); });
 
   std::thread readStdinT(
-      [&stdinEvb]() { handleStdin(&stdinEvb, folly::IPAddress{"::1"}); });
+      [&stdinEvb, &hostIP]() { handleStdin(&stdinEvb, hostIP); });
 
   readStdinT.join();
   streamEvb.terminateLoopSoon();
