@@ -9,7 +9,11 @@
  */
 
 #pragma once
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
@@ -36,16 +40,28 @@ void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID intf,
-    const PortDescriptor& port,
     const folly::IPAddress& nhop);
+
+inline void disableTTLDecrements(
+    HwSwitch* /*hw*/,
+    const PortDescriptor& /*port*/) {
+  // TODO
+  throw FbossError("Port disable decrement not implemented yet");
+}
 
 template <typename EcmpNhopT>
 void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
     const EcmpNhopT& nhop) {
-  disableTTLDecrements(
-      hw, routerId, nhop.intf, nhop.portDesc, folly::IPAddress(nhop.ip));
+  auto asic = hw->getPlatform()->getAsic();
+  if (asic->isSupported(HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrements(hw, routerId, nhop.intf, folly::IPAddress(nhop.ip));
+  } else if (asic->isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrements(hw, nhop.portDesc);
+  } else {
+    throw FbossError("Disable decrement not supported");
+  }
 }
 } // namespace utility
 } // namespace facebook::fboss

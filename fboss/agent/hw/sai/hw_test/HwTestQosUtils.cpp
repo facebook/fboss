@@ -25,7 +25,6 @@ void disableTTLDecrements(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID intf,
-    const PortDescriptor& /*port*/,
     const folly::IPAddress& nhopIp) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
