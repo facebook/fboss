@@ -165,12 +165,15 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 }
 
 void SaiQueueManager::updateStats(
-    SaiQueueHandles& queueHandles,
+    const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats) {
-  for (auto& queueHandle : queueHandles) {
-    queueHandle.second->queue->updateStats();
+  for (auto queueHandle : queueHandles) {
+    queueHandle->queue->updateStats();
+    const auto& counters = queueHandle->queue->getStats();
+    auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
+        queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Index{});
+    fillHwQueueStats(queueId, counters, hwPortStats);
   }
-  getStats(queueHandles, hwPortStats);
 }
 
 void SaiQueueManager::getStats(

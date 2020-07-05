@@ -54,7 +54,9 @@ class SaiQueueManager {
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
       const QueueConfig& queues);
-  void updateStats(SaiQueueHandles& queueHandles, HwPortStats& stats);
+  void updateStats(
+      const std::vector<SaiQueueHandle*>& queues,
+      HwPortStats& stats);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 

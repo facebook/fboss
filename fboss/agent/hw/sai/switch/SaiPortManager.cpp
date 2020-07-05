@@ -490,7 +490,8 @@ void SaiPortManager::updateStats(PortID portId) {
   *curPortStats.inDiscards__ref() += utility::subtractIncrements(
       {*prevPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
       toSubtractFromInDiscardsRaw);
-  managerTable_->queueManager().updateStats(handle->queues, curPortStats);
+  managerTable_->queueManager().updateStats(
+      handle->configuredQueues, curPortStats);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 

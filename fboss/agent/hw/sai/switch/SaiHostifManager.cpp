@@ -360,7 +360,7 @@ void SaiHostifManager::updateStats() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats cpuQueueStats;
   managerTable_->queueManager().updateStats(
-      cpuPortHandle_->queues, cpuQueueStats);
+      cpuPortHandle_->configuredQueues, cpuQueueStats);
   cpuStats_.updateStats(cpuQueueStats, now);
 }
 

@@ -80,9 +80,11 @@ void HwCpuFb303Stats::updateStats(
                              int queueId,
                              const std::map<int16_t, int64_t>& queueStats) {
     auto qitr = queueStats.find(queueId);
-    CHECK(qitr != queueStats.end())
-        << "Missing stat: " << statKey
-        << " for queue: :" << queueId2Name_[queueId];
+    if (qitr == queueStats.end()) {
+      // may not update stats for every queue but only those that application
+      // cares about.
+      return;
+    }
     queueCounters_.updateStat(
         timeRetrieved_,
         statName(statKey, queueId, queueId2Name_[queueId]),
