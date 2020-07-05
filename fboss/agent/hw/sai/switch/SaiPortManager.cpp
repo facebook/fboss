@@ -451,37 +451,39 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
   return counterIds;
 }
 
-void SaiPortManager::updateStats() {
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  for (const auto& [portId, handle] : handles_) {
-    auto pitr = portStats_.find(portId);
-    if (pitr == portStats_.end()) {
-      // We don't maintain port stats for disabled ports.
-      continue;
-    }
-    const auto& prevPortStats = pitr->second->portStats();
-    HwPortStats curPortStats{prevPortStats};
-    // All stats start with a unitialized (-1) value. If there are no in
-    // discards (first collection) we will just report that -1 as the monotonic
-    // counter. Instead set it to 0 if uninintialized
-    *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
-            hardware_stats_constants::STAT_UNINITIALIZED()
-        ? 0
-        : *curPortStats.inDiscards__ref();
-    handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
-    const auto& counters = handle->port->getStats();
-    fillHwPortStats(counters, curPortStats);
-    std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-        {*prevPortStats.inDstNullDiscards__ref(),
-         *curPortStats.inDstNullDiscards__ref()},
-        {*prevPortStats.inPause__ref(), *curPortStats.inPause__ref()}};
-    *curPortStats.inDiscards__ref() += utility::subtractIncrements(
-        {*prevPortStats.inDiscardsRaw__ref(),
-         *curPortStats.inDiscardsRaw__ref()},
-        toSubtractFromInDiscardsRaw);
-    managerTable_->queueManager().updateStats(handle->queues, curPortStats);
-    portStats_[portId]->updateStats(curPortStats, now);
+void SaiPortManager::updateStats(PortID portId) {
+  auto handlesItr = handles_.find(portId);
+  if (handlesItr == handles_.end()) {
+    return;
   }
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  auto* handle = handlesItr->second.get();
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // We don't maintain port stats for disabled ports.
+    return;
+  }
+  const auto& prevPortStats = portStatItr->second->portStats();
+  HwPortStats curPortStats{prevPortStats};
+  // All stats start with a unitialized (-1) value. If there are no in
+  // discards (first collection) we will just report that -1 as the monotonic
+  // counter. Instead set it to 0 if uninintialized
+  *curPortStats.inDiscards__ref() = *curPortStats.inDiscards__ref() ==
+          hardware_stats_constants::STAT_UNINITIALIZED()
+      ? 0
+      : *curPortStats.inDiscards__ref();
+  handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
+  const auto& counters = handle->port->getStats();
+  fillHwPortStats(counters, curPortStats);
+  std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
+      {*prevPortStats.inDstNullDiscards__ref(),
+       *curPortStats.inDstNullDiscards__ref()},
+      {*prevPortStats.inPause__ref(), *curPortStats.inPause__ref()}};
+  *curPortStats.inDiscards__ref() += utility::subtractIncrements(
+      {*prevPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
+      toSubtractFromInDiscardsRaw);
+  managerTable_->queueManager().updateStats(handle->queues, curPortStats);
+  portStats_[portId]->updateStats(curPortStats, now);
 }
 
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
@@ -501,15 +503,14 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
   return portStats;
 }
 
-void SaiPortManager::clearStats(
-    const std::unique_ptr<std::vector<int32_t>>& ports) const {
-  auto statsToClear = supportedStats();
-  for (auto port : *ports) {
-    auto portHandle = getPortHandle(PortID(port));
-    portHandle->port->clearStats(statsToClear);
-    for (auto& queueAndHandle : portHandle->queues) {
-      queueAndHandle.second->queue->clearStats();
-    }
+void SaiPortManager::clearStats(PortID port) {
+  auto portHandle = getPortHandle(PortID(port));
+  if (!portHandle) {
+    return;
+  }
+  portHandle->port->clearStats(supportedStats());
+  for (auto& queueAndHandle : portHandle->queues) {
+    queueAndHandle.second->queue->clearStats();
   }
 }
 

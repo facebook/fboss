@@ -67,9 +67,7 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig);
-  void updateStats();
   std::map<PortID, HwPortStats> getPortStats() const;
-  void clearStats(const std::unique_ptr<std::vector<int32_t>>& ports) const;
   void changeQueue(
       PortID swId,
       const QueueConfig& oldQueueConfig,
@@ -91,6 +89,10 @@ class SaiPortManager {
 
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees) const;
+
+  void updateStats(PortID portID);
+
+  void clearStats(PortID portID);
 
  private:
   void setQosMaps(

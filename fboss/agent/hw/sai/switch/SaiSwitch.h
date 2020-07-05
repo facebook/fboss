@@ -179,10 +179,6 @@ class SaiSwitch : public HwSwitch {
       PortID portID,
       std::optional<uint8_t> queueId) noexcept;
 
-  void updateStatsLocked(
-      const std::lock_guard<std::mutex>& lock,
-      SwitchStats* switchStats);
-
   void fetchL2TableLocked(
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
@@ -207,10 +203,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       RouterID vrf,
       folly::IPAddress& ip);
-
-  void clearPortStatsLocked(
-      const std::lock_guard<std::mutex>& lock,
-      const std::unique_ptr<std::vector<int32_t>>& ports);
 
   cfg::PortSpeed getPortMaxSpeedLocked(
       const std::lock_guard<std::mutex>& lock,

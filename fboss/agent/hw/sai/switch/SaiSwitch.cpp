@@ -344,8 +344,18 @@ bool SaiSwitch::sendPacketOutOfPortSync(
 }
 
 void SaiSwitch::updateStats(SwitchStats* switchStats) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  updateStatsLocked(lock, switchStats);
+  auto& portManager = managerTable_->portManager();
+  auto iter = concurrentIndices_->portIds.begin();
+  while (iter != concurrentIndices_->portIds.end()) {
+    {
+      std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+      portManager.updateStats(iter->second);
+    }
+    ++iter;
+  }
+
+  std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+  managerTable_->hostifManager().updateStats();
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
@@ -416,8 +426,11 @@ bool SaiSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) {
 
 void SaiSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  clearPortStatsLocked(lock, ports);
+  auto& portManager = managerTable_->portManager();
+  for (auto port : *ports) {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    portManager.clearStats(static_cast<PortID>(port));
+  }
 }
 
 cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
@@ -875,13 +888,6 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
   return rv == SAI_STATUS_SUCCESS;
 }
 
-void SaiSwitch::updateStatsLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    SwitchStats* /* switchStats */) {
-  managerTable_->portManager().updateStats();
-  managerTable_->hostifManager().updateStats();
-}
-
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     std::vector<L2EntryThrift>* l2Table) const {
@@ -1020,12 +1026,6 @@ bool SaiSwitch::getAndClearNeighborHitLocked(
     RouterID /* vrf */,
     folly::IPAddress& /* ip */) {
   return true;
-}
-
-void SaiSwitch::clearPortStatsLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    const std::unique_ptr<std::vector<int32_t>>& ports) {
-  managerTable_->portManager().clearStats(ports);
 }
 
 BootType SaiSwitch::getBootTypeLocked(

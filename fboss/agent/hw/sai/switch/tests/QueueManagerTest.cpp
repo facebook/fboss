@@ -299,7 +299,7 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
   saiManagerTable->portManager().changePort(swPort, newPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
   checkCounterExportAndValue(
@@ -321,7 +321,7 @@ TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto newQueueConfig = makeQueueConfig({newQueueIds});
   newNewPort->resetPortQueues(newQueueConfig);
   saiManagerTable->portManager().changePort(newPort, newNewPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newPort->getID());
   checkCounterExportAndValue(
@@ -339,7 +339,7 @@ TEST_F(QueueManagerTest, changePortQueueNameAndCheckStats) {
   auto queueConfig = makeQueueConfig({queueIds});
   newPort->resetPortQueues(queueConfig);
   saiManagerTable->portManager().changePort(oldPort, newPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   auto newNewPort = newPort->clone();
   queueConfig[0]->setName("portQueue");
   newNewPort->resetPortQueues(queueConfig);
@@ -364,7 +364,7 @@ TEST_F(QueueManagerTest, changePortNameAndCheckStats) {
   auto newNewPort = newPort->clone();
   newNewPort->setName("eth1/1/1");
   saiManagerTable->portManager().changePort(newPort, newNewPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
   checkCounterExportAndValue(
@@ -390,7 +390,7 @@ TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
   auto newNewPort = newPort->clone();
   newNewPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(newPort, newNewPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   portStat =
       saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
   EXPECT_EQ(portStat, nullptr);
@@ -415,7 +415,7 @@ TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   auto newNewPort = newPort->clone();
   newNewPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(newPort, newNewPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(newPort->getID());
   portStat =
       saiManagerTable->portManager().getLastPortStat(newNewPort->getID());
   EXPECT_EQ(portStat, nullptr);

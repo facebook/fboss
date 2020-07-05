@@ -289,7 +289,7 @@ TEST_F(PortManagerTest, updateStats) {
   std::shared_ptr<Port> swPort = makePort(p0);
   auto saiId = saiManagerTable->portManager().addPort(swPort);
   checkPort(PortID(0), saiId, true);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(swPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
   for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
@@ -334,7 +334,7 @@ TEST_F(PortManagerTest, collectStatsAfterPortDisable) {
   auto newPort = swPort->clone();
   newPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(swPort, newPort);
-  saiManagerTable->portManager().updateStats();
+  saiManagerTable->portManager().updateStats(swPort->getID());
   EXPECT_EQ(saiManagerTable->portManager().getPortStats().size(), 0);
   checkCounterExport(swPort->getName(), ExpectExport::NO_EXPORT);
 }
