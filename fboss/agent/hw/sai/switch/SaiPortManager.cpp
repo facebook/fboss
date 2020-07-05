@@ -149,6 +149,12 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
       swPort->getID(), saiPort->adapterKey());
   loadPortQueues(handle.get());
+  for (auto portQueue : swPort->getPortQueues()) {
+    auto queueKey =
+        std::make_pair(portQueue->getID(), portQueue->getStreamType());
+    const auto& configuredQueue = handle->queues[queueKey];
+    handle->configuredQueues.push_back(configuredQueue.get());
+  }
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
   handles_.emplace(swPort->getID(), std::move(handle));
@@ -201,6 +207,7 @@ void SaiPortManager::changeQueue(
     throw FbossError("Attempted to change non-existent port ");
   }
   auto pitr = portStats_.find(swId);
+  portHandle->configuredQueues.clear();
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
@@ -215,6 +222,7 @@ void SaiPortManager::changeQueue(
       // for disabled ports
       pitr->second->queueChanged(newPortQueue->getID(), queueName);
     }
+    portHandle->configuredQueues.push_back(queueHandle);
   }
 
   for (auto oldPortQueue : oldQueueConfig) {

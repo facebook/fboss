@@ -37,6 +37,7 @@ using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiBridgePort> bridgePort;
+  std::vector<SaiQueueHandle*> configuredQueues;
   SaiQueueHandles queues;
 };
 

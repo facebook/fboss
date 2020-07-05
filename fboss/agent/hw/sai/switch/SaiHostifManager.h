@@ -36,6 +36,7 @@ using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
 struct SaiCpuPortHandle {
   PortSaiId cpuPortId;
   SaiQueueHandles queues;
+  std::vector<SaiQueueHandle*> configuredQueues;
 };
 
 struct SaiHostifTrapHandle {

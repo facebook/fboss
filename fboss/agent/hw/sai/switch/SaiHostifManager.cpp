@@ -288,6 +288,7 @@ SaiQueueHandle* SaiHostifManager::getQueueHandle(
 void SaiHostifManager::changeCpuQueue(
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
+  cpuPortHandle_->configuredQueues.clear();
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
@@ -298,6 +299,7 @@ void SaiHostifManager::changeCpuQueue(
         ? *newPortQueue->getName()
         : folly::to<std::string>("cpuQueue", newPortQueue->getID());
     cpuStats_.queueChanged(newPortQueue->getID(), queueName);
+    cpuPortHandle_->configuredQueues.push_back(queueHandle);
   }
   for (auto oldPortQueue : oldQueueConfig) {
     auto portQueueIter = std::find_if(
