@@ -28,16 +28,6 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
-    /*
-     * N.B., On one platform, we have to program qos maps before we program l3
-     * interfaces. Even if we enforce that ordering in SaiSwitch, we must still
-     * send the qos maps in the same delta as the config with the interface.
-     *
-     * Since we may want to vary the qos maps per test, we shouldn't program
-     * l3 interfaces as part of initial config, and only together with the
-     * qos maps.
-     */
-    utility::addOlympicQosMaps(cfg);
     return cfg;
   }
 
@@ -49,6 +39,9 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     auto setup = [=]() {
       applyNewState(helper_->setupECMPForwarding(
           helper_->resolveNextHops(getProgrammedState(), 2), kEcmpWidth));
+      auto newCfg{initialConfig()};
+      utility::addOlympicQosMaps(newCfg);
+      applyNewConfig(newCfg);
     };
 
     auto verify = [=]() {
