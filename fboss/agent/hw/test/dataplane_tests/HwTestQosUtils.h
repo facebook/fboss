@@ -42,12 +42,7 @@ void disableTTLDecrements(
     InterfaceID intf,
     const folly::IPAddress& nhop);
 
-inline void disableTTLDecrements(
-    HwSwitch* /*hw*/,
-    const PortDescriptor& /*port*/) {
-  // TODO
-  throw FbossError("Port disable decrement not implemented yet");
-}
+void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/);
 
 template <typename EcmpNhopT>
 void disableTTLDecrements(

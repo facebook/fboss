@@ -36,4 +36,8 @@ void disableTTLDecrements(
   rv = bcm_l3_egress_create(bcmHw->getUnit(), flags, &egr, &id);
   bcmCheckError(rv, "failed bcm_l3_egress_create");
 }
+
+void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/) {
+  throw FbossError("Port disable decrement not supported on BRCM ASICs");
+}
 } // namespace facebook::fboss::utility

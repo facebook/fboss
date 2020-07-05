@@ -13,9 +13,11 @@
 #include "fboss/agent/FbossError.h"
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -40,4 +42,16 @@ void disableTTLDecrements(
   throw FbossError("Disable TTL decrement for nhops is not supported");
 #endif
 }
+
+void disableTTLDecrements(HwSwitch* hw, const PortDescriptor& port) {
+  if (!port.isPhysicalPort()) {
+    throw FbossError("Port disable decrement not supported for LAGs yet");
+  }
+  auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
+  auto portHandle = managerTable->portManager().getPortHandle(port.phyPortID());
+  SaiPortTraits::Attributes::DisableTtlDecrement disableTtl{true};
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portHandle->port->adapterKey(), disableTtl);
+}
+
 } // namespace facebook::fboss::utility
