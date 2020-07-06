@@ -14,7 +14,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmWedge40Platform.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
-  fboss/agent/platforms/sai/SaiFakePlatformMapping.cpp
   fboss/agent/platforms/sai/SaiHwPlatform.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
@@ -29,6 +28,7 @@ target_link_libraries(sai_platform
   thrift_handler
   switch_asics
   hw_switch_warmboot_helper
+  fake_test_platform_mapping
   galaxy_platform_mapping
   wedge100_platform_mapping
   wedge40_platform_mapping

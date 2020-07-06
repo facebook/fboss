@@ -10,19 +10,29 @@
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
-#include "fboss/agent/platforms/sai/SaiFakePlatformMapping.h"
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <cstdio>
 #include <cstring>
+namespace {
+std::vector<int> getControllingPortIDs() {
+  std::vector<int> results;
+  for (int i = 0; i < 128; i += 4) {
+    results.push_back(i);
+  }
+  return results;
+}
+} // namespace
+
 namespace facebook::fboss {
 
 SaiFakePlatform::SaiFakePlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : SaiPlatform(
           std::move(productInfo),
-          std::make_unique<SaiFakePlatformMapping>()) {
+          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {
   asic_ = std::make_unique<FakeAsic>();
 }
 

@@ -19,7 +19,6 @@ add_library(bcm_test_platforms
   fboss/agent/platforms/tests/utils/BcmTestYampPlatform.cpp
   fboss/agent/platforms/tests/utils/BcmTestYampPort.cpp
   fboss/agent/platforms/tests/utils/FakeBcmTestPlatform.cpp
-  fboss/agent/platforms/tests/utils/FakeBcmTestPlatformMapping.cpp
   fboss/agent/platforms/tests/utils/FakeBcmTestPort.cpp
   fboss/agent/platforms/tests/utils/CreateTestPlatform.cpp
   fboss/agent/platforms/tests/utils/BcmTestWedgeTomahawkPlatform.cpp
@@ -33,6 +32,7 @@ target_link_libraries(bcm_test_platforms
   bcm
   config_factory
   product_info
+  fake_test_platform_mapping
   galaxy_platform_mapping
   minipack_platform_mapping
   wedge100_platform_mapping

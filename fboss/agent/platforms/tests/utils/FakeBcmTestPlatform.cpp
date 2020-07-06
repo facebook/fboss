@@ -12,15 +12,25 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
-#include "fboss/agent/platforms/tests/utils/FakeBcmTestPlatformMapping.h"
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/FakeBcmTestPort.h"
+
+namespace {
+std::vector<int> getControllingPortIDs() {
+  std::vector<int> results;
+  for (int i = 1; i < 33; i += 4) {
+    results.push_back(i);
+  }
+  return results;
+}
+} // namespace
 
 namespace facebook::fboss {
 
 FakeBcmTestPlatform::FakeBcmTestPlatform()
     : BcmTestPlatform(
           fakeProductInfo(),
-          std::make_unique<FakeBcmTestPlatformMapping>()) {
+          std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {
   asic_ = std::make_unique<FakeAsic>();
 }
 

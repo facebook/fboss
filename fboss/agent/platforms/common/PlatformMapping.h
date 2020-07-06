@@ -19,6 +19,7 @@ class PlatformMapping {
  public:
   PlatformMapping() {}
   explicit PlatformMapping(const std::string& jsonPlatformMappingStr);
+  virtual ~PlatformMapping() = default;
 
   const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts() const {
     return platformPorts_;

@@ -357,12 +357,13 @@ TEST_F(PortManagerTest, subsumedPorts) {
 
 TEST_F(PortManagerTest, getTransceiverID) {
   std::vector<uint16_t> controllingPorts = {0, 4, 24};
+  std::vector<uint16_t> expectedTcvrIDs = {0, 1, 6};
   for (auto i = 0; i < controllingPorts.size(); i++) {
     for (auto lane = 0; lane < 4; lane++) {
       uint16_t port = controllingPorts[i] + lane;
       SaiPlatformPort* platformPort = saiPlatform->getPort(PortID(port));
       EXPECT_TRUE(platformPort);
-      EXPECT_EQ(controllingPorts[i], platformPort->getTransceiverID().value());
+      EXPECT_EQ(expectedTcvrIDs[i], platformPort->getTransceiverID().value());
     }
   }
 }

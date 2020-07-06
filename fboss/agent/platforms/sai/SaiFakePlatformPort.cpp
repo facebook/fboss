@@ -13,9 +13,9 @@
 namespace facebook::fboss {
 
 uint32_t SaiFakePlatformPort::getPhysicalLaneId(
-    uint32_t /* chipId */,
+    uint32_t chipId,
     uint32_t logicalLane) const {
-  return logicalLane;
+  return chipId * 4 + logicalLane;
 }
 
 bool SaiFakePlatformPort::supportsTransceiver() const {

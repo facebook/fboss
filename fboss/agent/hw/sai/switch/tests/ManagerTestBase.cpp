@@ -18,7 +18,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
-#include "fboss/agent/hw/test/FakeAgentConfigFactory.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -31,6 +30,18 @@
 #include <sanitizer/lsan_interface.h>
 #endif
 
+namespace {
+facebook::fboss::cfg::AgentConfig getDummyConfig() {
+  facebook::fboss::cfg::AgentConfig config;
+
+  config.platform.platformSettings_ref() = {};
+  config.platform.platformSettings_ref()->insert(std::make_pair(
+      facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
+      "test connection handle"));
+  return config;
+}
+} // namespace
+
 namespace facebook::fboss {
 
 void ManagerTestBase::SetUp() {
@@ -42,7 +53,7 @@ void ManagerTestBase::SetUp() {
 void ManagerTestBase::setupSaiPlatform() {
   auto productInfo = fakeProductInfo();
   saiPlatform = std::make_unique<SaiFakePlatform>(std::move(productInfo));
-  auto thriftAgentConfig = utility::getFakeAgentConfig();
+  auto thriftAgentConfig = getDummyConfig();
   auto agentConfig = std::make_unique<AgentConfig>(
       std::move(thriftAgentConfig), "dummyConfigStr");
   saiPlatform->init(
