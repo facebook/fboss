@@ -133,7 +133,7 @@ TEST_F(HwAclQualifierTest, AclNoQualifier) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
   };
 
@@ -152,7 +152,7 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4_tcp");
   };
 
@@ -171,7 +171,7 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6_tcp");
   };
 
@@ -189,7 +189,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp4");
   };
 
@@ -207,7 +207,7 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp6");
   };
 
@@ -229,7 +229,7 @@ TEST_F(HwAclQualifierTest, AclRemove) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
   };
 
@@ -256,7 +256,7 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
 
   auto verify = [=]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
     EXPECT_FALSE(utility::isQualifierPresent<cfg::IpFragMatch>(
         getHwSwitch(), getProgrammedState(), "acl0"));
@@ -283,7 +283,7 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   };
 
   auto verify = [=]() {
-    EXPECT_EQ(1, utility::getAclTableNumAclEntries(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
   };
 

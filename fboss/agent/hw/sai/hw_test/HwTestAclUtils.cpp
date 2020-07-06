@@ -11,11 +11,37 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss::utility {
-int getAclTableNumAclEntries(const HwSwitch* /*hwSwitch*/) {
-  throw FbossError("Not implemented");
-  return 0;
+int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableId = aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+
+  auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::EntryList());
+
+  return aclTableEntryListGot.size();
+}
+
+bool numAclTableNumAclEntriesMatch(
+    const HwSwitch* hwSwitch,
+    int expectedNumAclEntries) {
+  auto asicType = hwSwitch->getPlatform()->getAsic()->getAsicType();
+  if (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2 ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    // TODO(skhare)
+    // Fix after CSP CS00010652266 is fixed.
+    return true;
+  }
+
+  return utility::getAclTableNumAclEntries(hwSwitch) == expectedNumAclEntries;
 }
 
 void checkSwHwAclMatch(
@@ -25,9 +51,14 @@ void checkSwHwAclMatch(
   throw FbossError("Not implemented");
 }
 
-bool isAclTableEnabled(const HwSwitch* /*hwSwitch*/) {
-  throw FbossError("Not implemented");
-  return false;
+bool isAclTableEnabled(const HwSwitch* hwSwitch) {
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableHandle =
+      aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+
+  return aclTableHandle != nullptr;
 }
 
 template bool isQualifierPresent<cfg::IpFragMatch>(
