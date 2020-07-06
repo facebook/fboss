@@ -76,7 +76,7 @@ void configureAllIpQualifiers(
   }
   configureQualifier(
       acl->ipFrag_ref(), enable, cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
-  configureQualifier(acl->dscp_ref(), enable, 0x42);
+  configureQualifier(acl->dscp_ref(), enable, 0x24);
   configureQualifier(acl->ttl_ref(), enable, ttl);
 }
 
