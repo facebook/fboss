@@ -25,17 +25,14 @@ using std::mutex;
 
 using namespace apache::thrift;
 
-DEFINE_bool(aoi_override, false, "To override pre-emphasis value on AOI modules");
+// TODO: Since this is an extended experiment, we resue the aoi_override flag
+// to mark the ones that will apply the settings overwrite. Will rename when
+// override become official across DC.
+DEFINE_bool(aoi_override, false, "To override channel control settings on optic modules");
 
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
-
-static std::set<std::string> kPreEmphasisAOIPN = {
-  {"AQPLBCQ4EDOA0967"},
-  {"AQPLBCQ4EDMA1105"},
-  {"AQPLBCQ4EDOA1106"}
-};
 
 }
 
@@ -104,7 +101,9 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::VCC_THRESH, {SffPages::PAGE3, 144, 8}},
     {SffField::RX_PWR_THRESH, {SffPages::PAGE3, 176, 8}},
     {SffField::TX_BIAS_THRESH, {SffPages::PAGE3, 184, 8}},
+    {SffField::TX_EQUALIZATION, {SffPages::PAGE3, 234, 2}},
     {SffField::RX_EMPHASIS, {SffPages::PAGE3, 236, 2}},
+    {SffField::RX_AMPLITUDE, {SffPages::PAGE3, 238, 2}},
 };
 
 static SffFieldMultiplier qsfpMultiplier = {
@@ -955,7 +954,7 @@ void SffModule::ensureTxEnabled() {
       TransceiverI2CApi::ADDR_QSFP, offset, 1, buf.data());
 }
 
-void SffModule::overwritePreEmphasis() {
+void SffModule::overwriteChannelControlSettings() {
   // Most transceiver we use have their RX emphasis control set to 0.
   // However modules from AOI set those as 2dB which causes lower
   // signal quality when working with credo xphy on yamp. Thus as part
@@ -966,45 +965,41 @@ void SffModule::overwritePreEmphasis() {
     return;
   }
 
-  // Get the vendor name and part number and convert them to upper case.
-  auto vendorName = *(*cachedInfo)->vendor_ref()->name_ref();
-  std::for_each(vendorName.begin(), vendorName.end(), [](char & c){
-    c = ::toupper(c);
-  });
-
-  auto partNumber = *(*cachedInfo)->vendor_ref()->partNumber_ref();
-  std::for_each(partNumber.begin(), partNumber.end(), [](char & c){
-    c = ::toupper(c);
-  });
-
-  if (vendorName != "AOI") {
-    // Vendor name is not AOI. Do not execute.
-    return;
-  }
-
-  if (kPreEmphasisAOIPN.find(partNumber) != kPreEmphasisAOIPN.end()) {
-    // Made sure the PN and Vendor is the one that needs the
-      // overwrite, now execute.
-      XLOG(INFO) << "overwrite the PreEmphasis value on "
-                  << qsfpImpl_->getName();
       uint8_t page = 3;
       qsfpImpl_->writeTransceiver(
         TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
       int offset;
       int length;
       int dataAddress;
+
+      std::array<uint8_t, 2> buf = {{0}};
+      getQsfpFieldAddress(SffField::TX_EQUALIZATION,
+                          dataAddress,
+                          offset,
+                          length);
+      CHECK_EQ(length, 2);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+
       getQsfpFieldAddress(SffField::RX_EMPHASIS,
                           dataAddress,
                           offset,
                           length);
-      std::array<uint8_t, 2> buf = {{0}};
+      CHECK_EQ(length, 2);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
+
+      buf.fill(0x22);
+      getQsfpFieldAddress(SffField::RX_AMPLITUDE,
+                          dataAddress,
+                          offset,
+                          length);
       CHECK_EQ(length, 2);
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP, offset, length, buf.data());
 
       // Bump up the ODS counter.
       StatsPublisher::bumpAOIOverride();
-  }
 }
 
 void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
@@ -1015,9 +1010,9 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // Before turning up power, check whether we want to override
-    // pre-emphasis or no.
+    // channel control settings or no.
     if (FLAGS_aoi_override) {
-      overwritePreEmphasis();
+      overwriteChannelControlSettings();
     }
 
     // We want this on regardless of speed

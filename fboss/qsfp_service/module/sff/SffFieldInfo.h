@@ -65,7 +65,9 @@ enum class SffField {
   RX_PWR_THRESH,
   TX_BIAS_THRESH,
   EXTENDED_RATE_COMPLIANCE,
+  TX_EQUALIZATION,
   RX_EMPHASIS,
+  RX_AMPLITUDE,
 
   // SFP-specific Fields
   /* 0xA0 Address Fields */
