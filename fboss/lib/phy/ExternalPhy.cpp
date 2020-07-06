@@ -61,17 +61,6 @@ bool PhySideConfig::operator==(const PhySideConfig& rhs) const {
       lanes.begin(), lanes.end(), rhs.lanes.begin(), rhs.lanes.end());
 }
 
-PhySideConfig PhySideConfig::fromPhyPortSideSettings(
-    const PhyPortSideSettings& settings) {
-  PhySideConfig phySideConfig;
-
-  for (auto in : *settings.lanes_ref()) {
-    phySideConfig.lanes.insert(std::pair<int32_t, LaneConfig>(
-        in.first, LaneConfig::fromLaneSettings(in.second)));
-  }
-  return phySideConfig;
-}
-
 bool ExternalPhyConfig::operator==(const ExternalPhyConfig& rhs) const {
   return (system == rhs.system) && (line == rhs.line);
 }

@@ -84,21 +84,6 @@ struct LaneSettings {
   3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
 }
 
-struct PhyPortSideSettings {
-  // map of lanes that are part of this port, along with any
-  // lane-specific settings
-  1: map<i16, LaneSettings> lanes
-  2: IpModulation modulation
-  3: FecMode fec
-}
-
-struct PhyPortSettings {
-  1: switch_config.PortSpeed speed
-  2: PhyPortSideSettings line
-  3: PhyPortSideSettings system
-  4: i16 phyID
-}
-
 struct PhyFwVersion {
   1: i32 version
   2: i32 crc
