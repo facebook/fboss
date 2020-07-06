@@ -44,6 +44,13 @@ class SaiAclTableManager {
       const SaiPlatform* platform);
 
   /*
+   * TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
+   * DSCP Mask is for 6-bit DSCP.
+   * Thus, match all mask is  0b111111 i.e. 0x3F.
+   */
+  static auto constexpr kDscpMask = 0x3F;
+
+  /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then pass and process following
    * data type for {add, remove, changed}AclTable:

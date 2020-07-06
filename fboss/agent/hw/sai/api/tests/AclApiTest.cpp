@@ -96,15 +96,11 @@ class AclApiTest : public ::testing::Test {
   }
 
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
-    // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
-    // mask of 0xFC to match on 6-bit DSCP
-    return std::make_pair(10, 0xFC);
+    return std::make_pair(10, 0x3F);
   }
 
   std::pair<sai_uint8_t, sai_uint8_t> kDscp2() const {
-    // TOS is 8-bits: 6-bit DSCP followed by 2-bit ECN.
-    // mask of 0xFC to match on 6-bit DSCP
-    return std::make_pair(20, 0xFC);
+    return std::make_pair(20, 0x3F);
   }
 
   std::pair<sai_uint8_t, sai_uint8_t> kTtl() const {
