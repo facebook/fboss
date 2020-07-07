@@ -103,6 +103,16 @@ void checkSwHwAclMatch(
     EXPECT_EQ(l4DstPortMaskGot, SaiAclTableManager::kL4PortMask);
   }
 
+  if (swAcl->getProto()) {
+    auto aclFieldIpProtocolGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldIpProtocol());
+    auto [ipProtocolDataGot, ipProtocolMaskGot] =
+        aclFieldIpProtocolGot.getDataAndMask();
+    EXPECT_EQ(ipProtocolDataGot, swAcl->getProto().value());
+    EXPECT_EQ(ipProtocolMaskGot, SaiAclTableManager::kIpProtocolMask);
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
