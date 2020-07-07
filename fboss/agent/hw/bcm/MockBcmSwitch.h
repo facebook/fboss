@@ -111,6 +111,7 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(writableAclTable, BcmAclTable*());
   MOCK_CONST_METHOD0(getWarmBootCache, BcmWarmBootCache*());
   MOCK_CONST_METHOD1(dumpState, void(const std::string& path));
+  MOCK_CONST_METHOD1(dumpDebugState, void(const std::string& path));
   MOCK_CONST_METHOD0(gatherSdkState, std::string());
   MOCK_CONST_METHOD0(exitFatal, void());
   MOCK_METHOD2(

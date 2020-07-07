@@ -420,6 +420,13 @@ class BcmSwitch : public BcmSwitchIf {
   void dumpState(const std::string& path) const override;
 
   /**
+   * Log the hardware state for the switch
+   */
+  void dumpDebugState(const std::string& path) const override {
+    dumpState(path);
+  }
+
+  /**
    * Set the aging timer for MAC address aging
    */
   void setMacAging(std::chrono::seconds agingInterval);

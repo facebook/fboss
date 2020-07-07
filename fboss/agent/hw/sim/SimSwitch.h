@@ -93,6 +93,7 @@ class SimSwitch : public HwSwitch {
   SimPlatform* getPlatform() const override {
     return platform_;
   }
+  void dumpDebugState(const std::string& /*path*/) const override {}
 
  private:
   // Forbidden copy constructor and assignment operator

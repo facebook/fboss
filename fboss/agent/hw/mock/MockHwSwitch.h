@@ -78,6 +78,7 @@ class MockHwSwitch : public HwSwitch {
   MockPlatform* getPlatform() const override {
     return platform_;
   }
+  MOCK_CONST_METHOD1(dumpDebugState, void(const std::string& path));
 
  private:
   MockPlatform* platform_;
