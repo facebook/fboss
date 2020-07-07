@@ -61,6 +61,12 @@ void checkSwHwAclMatch(
       aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
+  auto aclFieldPriorityExpected =
+      aclTableManager.swPriorityToSaiPriority(swAcl->getPriority());
+  auto aclFieldPriorityGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Priority());
+  EXPECT_EQ(aclFieldPriorityGot, aclFieldPriorityExpected);
+
   if (swAcl->getSrcIp().first && swAcl->getSrcIp().first.isV6()) {
     auto aclFieldSrcIpV6Got = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());

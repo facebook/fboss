@@ -90,11 +90,11 @@ class SaiAclTableManager {
       const SaiAclTableHandle* aclTableHandle,
       const std::string& aclEntryName) const;
 
+  sai_uint32_t swPriorityToSaiPriority(int priority) const;
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;
-
-  sai_uint32_t swPriorityToSaiPriority(int priority) const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
