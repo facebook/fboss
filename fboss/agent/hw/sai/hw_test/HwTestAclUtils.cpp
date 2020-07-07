@@ -138,6 +138,50 @@ void checkSwHwAclMatch(
     EXPECT_EQ(ttlVal, swAcl->getTtl().value().getValue());
     EXPECT_EQ(ttlMask, swAcl->getTtl().value().getMask());
   }
+
+  if (swAcl->getLookupClass()) {
+    auto lookupClassExpected =
+        static_cast<int>(swAcl->getLookupClass().value());
+    auto aclFieldRouteDstUserMetaGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta());
+    auto [routeDstUserMetaDataGot, routeDstUserMetaMaskGot] =
+        aclFieldRouteDstUserMetaGot.getDataAndMask();
+    EXPECT_EQ(routeDstUserMetaDataGot, lookupClassExpected);
+
+    /*
+     * TODO(skhare)
+     * CSP: CS00010615865
+     * kLookupClassMask = 0xffffffff, but roueDstUserMetaMaskGot is 0x000003ff.
+     * Note, however, the following still holds true:
+     * routeDstUserMetaDataGot & routeDstUserMetaMaskGot = lookupClassExpected
+     * But SAI implementation should still return the correct mask 0xffffffff.
+     */
+    // EXPECT_EQ(routeDstUserMetaMaskGot, SaiAclTableManager::kLookupClassMask);
+    std::ignore = routeDstUserMetaMaskGot;
+
+    auto aclFieldNeighborDstUserMetaGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId,
+            SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta());
+    auto [neighborDstUserMetaDataGot, neighborDstUserMetaMaskGot] =
+        aclFieldNeighborDstUserMetaGot.getDataAndMask();
+    EXPECT_EQ(neighborDstUserMetaDataGot, lookupClassExpected);
+
+    /*
+     * TODO(skhare)
+     * CSP: CS00010615865
+     * kLookupClassMask = 0xffffffff, but neighborDstUserMetaMaskGot is
+     * 0x000003ff. Note, however, the following still holds true:
+     * neighborDstUserMetaDataGot & neighborDstUserMetaMaskGot =
+     * lookupClassExpected
+     *
+     * But SAI implementation should still return the * correct mask 0xffffffff.
+     */
+    // EXPECT_EQ(neighborDstUserMetaMaskGot,
+    // SaiAclTableManager::kLookupClassMask);
+    std::ignore = neighborDstUserMetaMaskGot;
+  }
 }
 
 bool isAclTableEnabled(const HwSwitch* hwSwitch) {
