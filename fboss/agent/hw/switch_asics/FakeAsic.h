@@ -34,6 +34,10 @@ class FakeAsic : public HwAsic {
   bool needsObjectKeyCache() const override {
     return false;
   }
+  uint64_t getMMUSizeBytes() const override {
+    // Fake MMU size
+    return 64 * 1024 * 1024;
+  }
 };
 
 } // namespace facebook::fboss

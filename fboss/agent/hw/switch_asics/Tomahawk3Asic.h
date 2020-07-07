@@ -36,6 +36,9 @@ class Tomahawk3Asic : public BroadcomAsic {
   uint32_t getMaxLabelStackDepth() const override {
     return 9;
   }
+  uint64_t getMMUSizeBytes() const override {
+    return 64 * 1024 * 1024;
+  }
 };
 
 } // namespace facebook::fboss

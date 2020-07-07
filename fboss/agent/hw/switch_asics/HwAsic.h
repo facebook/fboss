@@ -53,6 +53,7 @@ class HwAsic {
   virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
   virtual bool needsObjectKeyCache() const = 0;
   virtual uint32_t getMaxLabelStackDepth() const = 0;
+  virtual uint64_t getMMUSizeBytes() const = 0;
 };
 
 } // namespace facebook::fboss

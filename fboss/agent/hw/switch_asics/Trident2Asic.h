@@ -36,6 +36,9 @@ class Trident2Asic : public BroadcomAsic {
   uint32_t getMaxLabelStackDepth() const override {
     return 2;
   }
+  uint64_t getMMUSizeBytes() const override {
+    return 16 * 1024 * 1024;
+  }
 };
 
 } // namespace facebook::fboss

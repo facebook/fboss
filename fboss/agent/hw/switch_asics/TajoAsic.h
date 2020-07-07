@@ -35,6 +35,9 @@ class TajoAsic : public HwAsic {
   uint32_t getMaxLabelStackDepth() const override {
     return 3;
   }
+  uint64_t getMMUSizeBytes() const override {
+    return 64 * 1024 * 1024;
+  }
 };
 
 } // namespace facebook::fboss
