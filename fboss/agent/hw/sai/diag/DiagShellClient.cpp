@@ -135,6 +135,10 @@ void handleStdin(folly::EventBase* evb, const IPAddress& ip) {
       } catch (const std::exception& e) {
         LOG(ERROR) << "cli caught server exception " << e.what();
       }
+      // When user enters quit, finish the stdin thread
+      if (input.find("quit") == 0) {
+        break;
+      }
     }
   }
 }
