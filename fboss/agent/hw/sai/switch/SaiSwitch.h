@@ -125,9 +125,7 @@ class SaiSwitch : public HwSwitch {
   SwitchRunState getSwitchRunState() const;
   bool isFullyInitialized() const;
 
-  void dumpDebugState(const std::string& /*path*/) const override {
-    // TODO
-  }
+  void dumpDebugState(const std::string& /*path*/) const override;
 
  private:
   /*

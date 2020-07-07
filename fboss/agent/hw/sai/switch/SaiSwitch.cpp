@@ -1140,4 +1140,7 @@ void SaiSwitch::processRemovedDelta(
       });
 }
 
+void SaiSwitch::dumpDebugState(const std::string& path) const {
+  saiCheckError(sai_dbg_generate_dump(path.c_str()));
+}
 } // namespace facebook::fboss
