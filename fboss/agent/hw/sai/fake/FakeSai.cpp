@@ -9,6 +9,7 @@
  */
 #include "FakeSai.h"
 
+#include <folly/FileUtil.h>
 #include <folly/Singleton.h>
 
 #include <folly/logging/xlog.h>
@@ -190,5 +191,12 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
 }
 
 sai_status_t sai_log_set(sai_api_t /*api*/, sai_log_level_t /*log_level*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t sai_dbg_generate_dump(const char* dump_file_name) {
+  folly::writeFile(
+      std::string("Hello from land of FakeSai. All hunky dory here"),
+      dump_file_name);
   return SAI_STATUS_SUCCESS;
 }
