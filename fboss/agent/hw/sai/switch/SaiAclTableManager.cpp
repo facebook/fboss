@@ -312,6 +312,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getTtl().value().getMask()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta>
+      fieldRouteDstUserMeta{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta>
+      fieldNeighborDstUserMeta{std::nullopt};
+
+  if (addedAclEntry->getLookupClass()) {
+    auto lookupClass =
+        static_cast<int>(addedAclEntry->getLookupClass().value());
+    fieldRouteDstUserMeta =
+        SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta{
+            AclEntryFieldU32(std::make_pair(lookupClass, kLookupClassMask))};
+    fieldNeighborDstUserMeta =
+        SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta{
+            AclEntryFieldU32(std::make_pair(lookupClass, kLookupClassMask))};
+  }
+
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
@@ -327,7 +343,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-         fieldDscp.has_value() || fieldTtl.has_value()) &&
+         fieldDscp.has_value() || fieldTtl.has_value() ||
+         fieldRouteDstUserMeta.has_value() ||
+         fieldNeighborDstUserMeta.has_value()) &&
         aclActionPacketAction.has_value())) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
@@ -346,8 +364,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDscp,
       fieldTtl,
       std::nullopt, // fdb meta
-      std::nullopt, // route meta
-      std::nullopt, // neighbor meta
+      fieldRouteDstUserMeta,
+      fieldNeighborDstUserMeta,
       aclActionPacketAction,
       std::nullopt, // setTC
   };
@@ -363,8 +381,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDscp,
       fieldTtl,
       std::nullopt, // fdb meta
-      std::nullopt, // route meta
-      std::nullopt, // neighbor meta
+      fieldRouteDstUserMeta,
+      fieldNeighborDstUserMeta,
       aclActionPacketAction,
       std::nullopt, // setTC
   };

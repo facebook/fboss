@@ -58,6 +58,7 @@ class SaiAclTableManager {
 
   static auto constexpr kIpProtocolMask = 0xFF;
   static auto constexpr kTcpFlagsMask = 0xFF;
+  static auto constexpr kLookupClassMask = 0xFFFFFFFF;
 
   /*
    * TODO(skhare)
