@@ -113,6 +113,16 @@ void checkSwHwAclMatch(
     EXPECT_EQ(ipProtocolMaskGot, SaiAclTableManager::kIpProtocolMask);
   }
 
+  if (swAcl->getTcpFlagsBitMap()) {
+    auto aclFieldTcpFlagsGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldTcpFlags());
+    auto [tcpFlagsDataGot, tcpFlagsMaskGot] =
+        aclFieldTcpFlagsGot.getDataAndMask();
+    EXPECT_EQ(tcpFlagsDataGot, swAcl->getTcpFlagsBitMap().value());
+    EXPECT_EQ(tcpFlagsMaskGot, SaiAclTableManager::kTcpFlagsMask);
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
