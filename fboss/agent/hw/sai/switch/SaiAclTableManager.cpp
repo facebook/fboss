@@ -243,6 +243,28 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
 
   // TODO(skhare) Support all other ACL fields
+  std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
+      std::nullopt};
+  if (addedAclEntry->getSrcIp().first &&
+      addedAclEntry->getSrcIp().first.isV6()) {
+    auto srcIpV6Mask = folly::IPAddressV6(
+        folly::IPAddressV6::fetchMask(addedAclEntry->getSrcIp().second));
+    fieldSrcIpV6 = SaiAclEntryTraits::Attributes::FieldSrcIpV6{
+        AclEntryFieldIpV6(std::make_pair(
+            addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
+  }
+
+  std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6> fieldDstIpV6{
+      std::nullopt};
+  if (addedAclEntry->getDstIp().first &&
+      addedAclEntry->getDstIp().first.isV6()) {
+    auto dstIpV6Mask = folly::IPAddressV6(
+        folly::IPAddressV6::fetchMask(addedAclEntry->getDstIp().second));
+    fieldDstIpV6 = SaiAclEntryTraits::Attributes::FieldDstIpV6{
+        AclEntryFieldIpV6(std::make_pair(
+            addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
   if (addedAclEntry->getDscp()) {
@@ -270,7 +292,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
-  if (!((fieldDscp.has_value() || fieldTtl.has_value()) &&
+  if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
+         fieldDscp.has_value() || fieldTtl.has_value()) &&
         aclActionPacketAction.has_value())) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
@@ -280,8 +303,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   SaiAclEntryTraits::AdapterHostKey adapterHostKey{
       aclTableId,
       priority,
-      std::nullopt, // srcIPv6
-      std::nullopt, // dstIPv6
+      fieldSrcIpV6,
+      fieldDstIpV6,
       std::nullopt, // l4srcPort
       std::nullopt, // l4dstPort
       std::nullopt, // ipProtocol
@@ -297,8 +320,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
       priority,
-      std::nullopt, // srcIPv6
-      std::nullopt, // dstIPv6
+      fieldSrcIpV6,
+      fieldDstIpV6,
       std::nullopt, // l4srcPort
       std::nullopt, // l4dstPort
       std::nullopt, // ipProtocol
