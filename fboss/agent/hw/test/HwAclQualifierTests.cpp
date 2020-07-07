@@ -114,6 +114,24 @@ void configureAllIcmpQualifiers(
 namespace facebook::fboss {
 
 class HwAclQualifierTest : public HwTest {
+ public:
+  void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
+    /*
+     * lookupClassL2 is not configured for Trident2 or else we run out of
+     * resources.
+     * Note: lookupclassL2 is needed for MH-NIC queue-per-host solution.
+     * However, the solution is not applicable for Trident2 as we don't
+     * implement queues on trident2.
+     */
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      configureQualifier(
+          acl->lookupClassL2_ref(),
+          true,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    }
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
@@ -147,6 +165,7 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "ip4_tcp");
     configureAllHwQualifiers(acl1, true);
+    configureAllL2QualifiersHelper(acl1);
     configureAllIpQualifiers(acl1, true, cfg::IpType::IP4);
     configureAllTcpQualifiers(acl1, true);
     applyNewConfig(newCfg);
@@ -166,6 +185,7 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "ip6_tcp");
     configureAllHwQualifiers(acl1, true);
+    configureAllL2QualifiersHelper(acl1);
     configureAllIpQualifiers(acl1, true, cfg::IpType::IP6);
     configureAllTcpQualifiers(acl1, true);
     applyNewConfig(newCfg);
@@ -185,6 +205,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "icmp4");
     configureAllHwQualifiers(acl1, true);
+    configureAllL2QualifiersHelper(acl1);
     configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4);
     applyNewConfig(newCfg);
   };
@@ -203,6 +224,7 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
     auto newCfg = initialConfig();
     auto* acl1 = addAcl(&newCfg, "icmp6");
     configureAllHwQualifiers(acl1, true);
+    configureAllL2QualifiersHelper(acl1);
     configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6);
     applyNewConfig(newCfg);
   };
@@ -244,6 +266,7 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
     auto* acl = addAcl(&newCfg, "acl0");
     // icmp6
     configureAllHwQualifiers(acl, true);
+    configureAllL2QualifiersHelper(acl);
     configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6);
     applyNewConfig(newCfg);
     // ip6 tcp
