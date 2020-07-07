@@ -51,6 +51,12 @@ class SaiAclTableManager {
   static auto constexpr kDscpMask = 0x3F;
 
   /*
+   * L4 Src/Dst Port Mask.
+   * L4 Src/Dst Port is 16-bit.
+   */
+  static auto constexpr kL4PortMask = 0xFFFF;
+
+  /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then pass and process following
    * data type for {add, remove, changed}AclTable:
