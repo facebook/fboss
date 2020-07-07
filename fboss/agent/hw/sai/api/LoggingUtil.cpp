@@ -164,6 +164,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "bridge";
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       return "bridge-port";
+    case SAI_OBJECT_TYPE_BUFFER_POOL:
+      return "buffer-pool";
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       return "inseg-entry";
     case SAI_OBJECT_TYPE_ACL_TABLE_GROUP:

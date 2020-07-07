@@ -30,6 +30,7 @@ class BufferApi;
 
 struct SaiBufferPoolTraits {
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_BUFFER_POOL;
   using SaiApiT = BufferApi;
   struct Attributes {
     using EnumType = sai_buffer_pool_attr_t;

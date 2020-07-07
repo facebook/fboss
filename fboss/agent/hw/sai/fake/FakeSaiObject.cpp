@@ -76,6 +76,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_BRIDGE:
       *count = fs->bridgeManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_BUFFER_POOL:
+      *count = fs->bufferPoolManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_BRIDGE_PORT: {
       for (const auto& br : fs->bridgeManager.map()) {
         *count += br.second.fm().map().size();
