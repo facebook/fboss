@@ -83,6 +83,26 @@ void checkSwHwAclMatch(
     EXPECT_EQ(dstIpV6MaskGot, dstIpV6MaskExpected);
   }
 
+  if (swAcl->getL4SrcPort()) {
+    auto aclFieldL4SrcPortGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldL4SrcPort());
+    auto [l4SrcPortDataGot, l4SrcPortMaskGot] =
+        aclFieldL4SrcPortGot.getDataAndMask();
+    EXPECT_EQ(l4SrcPortDataGot, swAcl->getL4SrcPort().value());
+    EXPECT_EQ(l4SrcPortMaskGot, SaiAclTableManager::kL4PortMask);
+  }
+
+  if (swAcl->getL4DstPort()) {
+    auto aclFieldL4DstPortGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldL4DstPort());
+    auto [l4DstPortDataGot, l4DstPortMaskGot] =
+        aclFieldL4DstPortGot.getDataAndMask();
+    EXPECT_EQ(l4DstPortDataGot, swAcl->getL4DstPort().value());
+    EXPECT_EQ(l4DstPortMaskGot, SaiAclTableManager::kL4PortMask);
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
