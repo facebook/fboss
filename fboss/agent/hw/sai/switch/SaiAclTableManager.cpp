@@ -281,6 +281,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
+      std::nullopt};
+  if (addedAclEntry->getProto()) {
+    fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
+        AclEntryFieldU8(std::make_pair(
+            addedAclEntry->getProto().value(), kIpProtocolMask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
   if (addedAclEntry->getDscp()) {
@@ -310,7 +318,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // honored.
   if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-         fieldDscp.has_value() || fieldTtl.has_value()) &&
+         fieldIpProtocol.has_value() || fieldDscp.has_value() ||
+         fieldTtl.has_value()) &&
         aclActionPacketAction.has_value())) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
@@ -324,7 +333,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldL4SrcPort,
       fieldL4DstPort,
-      std::nullopt, // ipProtocol
+      fieldIpProtocol,
       std::nullopt, // tcpFlags
       fieldDscp,
       fieldTtl,
@@ -341,7 +350,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldL4SrcPort,
       fieldL4DstPort,
-      std::nullopt, // ipProtocol
+      fieldIpProtocol,
       std::nullopt, // tcpFlags
       fieldDscp,
       fieldTtl,

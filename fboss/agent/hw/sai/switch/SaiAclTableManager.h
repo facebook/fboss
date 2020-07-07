@@ -56,6 +56,8 @@ class SaiAclTableManager {
    */
   static auto constexpr kL4PortMask = 0xFFFF;
 
+  static auto constexpr kIpProtocolMask = 0xFF;
+
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then pass and process following
