@@ -309,6 +309,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void setExternalLedState(int32_t portNum, PortLedExternalState ledState)
       override;
 
+  void getHwDebugDump(std::string& out) override;
+
  protected:
   void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,

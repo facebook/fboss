@@ -12,6 +12,7 @@
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/LldpManager.h"
@@ -1933,4 +1934,9 @@ void ThriftHandler::getMplsRouteDetails(
   *mplsRouteDetail.action_ref() = forwardActionStr(fwd.getAction());
 }
 
+void ThriftHandler::getHwDebugDump(std::string& out) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  out = sw_->getHw()->getDebugDump();
+}
 } // namespace facebook::fboss

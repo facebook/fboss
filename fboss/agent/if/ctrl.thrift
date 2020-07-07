@@ -789,6 +789,12 @@ service FbossCtrl extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 
   /*
+   * Information about Hw state, often useful for debugging
+   * on a box
+   */
+  string getHwDebugDump()
+
+  /*
    * Type of boot performed by the controller
    */
   BootType getBootType()
