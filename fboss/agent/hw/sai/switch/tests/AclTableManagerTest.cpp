@@ -25,7 +25,24 @@ namespace {
 constexpr auto kAclTable2 = "AclTable2";
 }
 
-class AclTableManagerTest : public ManagerTestBase {};
+class AclTableManagerTest : public ManagerTestBase {
+ public:
+  int kPriority() {
+    return 0;
+  }
+
+  uint8_t kDscp() {
+    return 10;
+  }
+
+  uint8_t kDscp2() {
+    return 20;
+  }
+
+  cfg::AclActionType kActionType() {
+    return cfg::AclActionType::DENY;
+  }
+};
 
 TEST_F(AclTableManagerTest, addAclTable) {
   auto aclTableId = saiManagerTable->aclTableManager()
@@ -73,4 +90,100 @@ TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
       saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2);
 
   EXPECT_FALSE(handle);
+}
+
+TEST_F(AclTableManagerTest, addAclEntry) {
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+
+  auto tableIdGot = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::TableId());
+  EXPECT_EQ(tableIdGot, aclTableId);
+}
+
+TEST_F(AclTableManagerTest, addTwoAclEntry) {
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+
+  auto tableIdGot = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::TableId());
+  EXPECT_EQ(tableIdGot, aclTableId);
+
+  auto aclEntry2 = std::make_shared<AclEntry>(kPriority(), "AclEntry2");
+  aclEntry2->setDscp(kDscp2());
+  aclEntry2->setActionType(kActionType());
+
+  AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry2, SaiSwitch::kAclTable1);
+
+  auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
+      aclEntryId2, SaiAclEntryTraits::Attributes::TableId());
+  EXPECT_EQ(tableIdGot2, aclTableId);
+}
+
+TEST_F(AclTableManagerTest, addDupAclEntry) {
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+
+  auto dupAclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  dupAclEntry->setDscp(kDscp());
+  dupAclEntry->setActionType(cfg::AclActionType::DENY);
+
+  EXPECT_THROW(
+      saiManagerTable->aclTableManager().addAclEntry(
+          dupAclEntry, SaiSwitch::kAclTable1),
+      FbossError);
+}
+
+TEST_F(AclTableManagerTest, getAclEntry) {
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      SaiSwitch::kAclTable1);
+
+  EXPECT_TRUE(aclTableHandle);
+  EXPECT_TRUE(aclTableHandle->aclTable);
+
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, "AclEntry1");
+
+  EXPECT_TRUE(aclEntryHandle);
+  EXPECT_TRUE(aclEntryHandle->aclEntry);
+}
+
+TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      SaiSwitch::kAclTable1);
+
+  EXPECT_TRUE(aclTableHandle);
+  EXPECT_TRUE(aclTableHandle->aclTable);
+
+  auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, "AclEntry1");
+  EXPECT_FALSE(aclEntryHandle);
 }
