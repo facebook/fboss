@@ -26,17 +26,17 @@ class BufferApiTest : public ::testing::Test {
       sai_buffer_pool_type_t _type,
       sai_uint64_t _size,
       sai_buffer_pool_threshold_mode_t _mode) {
-    SaiBufferPoolTraits::Attributes::PoolType type{_type};
-    SaiBufferPoolTraits::Attributes::PoolSize size{_size};
+    SaiBufferPoolTraits::Attributes::Type type{_type};
+    SaiBufferPoolTraits::Attributes::Size size{_size};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{_mode};
     SaiBufferPoolTraits::CreateAttributes c{type, size, mode};
     return bufferApi->create<SaiBufferPoolTraits>(c, 0);
   }
   void checkBufferPool(BufferPoolSaiId id) const {
-    SaiBufferPoolTraits::Attributes::PoolType type;
+    SaiBufferPoolTraits::Attributes::Type type;
     auto gotType = bufferApi->getAttribute(id, type);
     EXPECT_EQ(fs->bufferPoolManager.get(id).poolType, gotType);
-    SaiBufferPoolTraits::Attributes::PoolSize size;
+    SaiBufferPoolTraits::Attributes::Size size;
     auto gotSize = bufferApi->getAttribute(id, size);
     EXPECT_EQ(fs->bufferPoolManager.get(id).size, gotSize);
     SaiBufferPoolTraits::Attributes::ThresholdMode mode;
@@ -60,11 +60,10 @@ TEST_F(BufferApiTest, getBufferPoolAttributes) {
   auto id = createBufferPool(
       SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC);
   EXPECT_EQ(
-      bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::PoolType{}),
+      bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::Type{}),
       SAI_BUFFER_POOL_TYPE_INGRESS);
   EXPECT_EQ(
-      bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::PoolSize{}),
-      42);
+      bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::Size{}), 42);
   EXPECT_EQ(
       bufferApi->getAttribute(
           id, SaiBufferPoolTraits::Attributes::ThresholdMode{}),

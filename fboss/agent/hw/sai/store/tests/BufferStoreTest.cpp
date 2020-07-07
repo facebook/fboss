@@ -25,8 +25,8 @@ using namespace facebook::fboss;
 class BufferStoreTest : public SaiStoreTest {
  public:
   SaiBufferPoolTraits::CreateAttributes createAttrs() const {
-    SaiBufferPoolTraits::Attributes::PoolType type{SAI_BUFFER_POOL_TYPE_EGRESS};
-    SaiBufferPoolTraits::Attributes::PoolSize size{42};
+    SaiBufferPoolTraits::Attributes::Type type{SAI_BUFFER_POOL_TYPE_EGRESS};
+    SaiBufferPoolTraits::Attributes::Size size{42};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
     return {type, size, mode};
@@ -74,12 +74,12 @@ TEST_F(BufferStoreTest, bufferPoolLoadCtor) {
   auto poolId = createBufferPool();
   SaiObject<SaiBufferPoolTraits> obj(poolId);
   EXPECT_EQ(obj.adapterKey(), poolId);
-  EXPECT_EQ(GET_ATTR(BufferPool, PoolSize, obj.attributes()), 42);
+  EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
 
 TEST_F(BufferStoreTest, bufferPoolCreateCtor) {
   SaiObject<SaiBufferPoolTraits> obj({24}, createAttrs(), 0);
-  EXPECT_EQ(GET_ATTR(BufferPool, PoolSize, obj.attributes()), 42);
+  EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
 
 TEST_F(BufferStoreTest, serDeserBufferPool) {
