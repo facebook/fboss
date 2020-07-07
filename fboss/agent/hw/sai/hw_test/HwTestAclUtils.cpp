@@ -14,6 +14,9 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/state/SwitchState.h"
+
+#include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
 int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
@@ -45,10 +48,25 @@ bool numAclTableNumAclEntriesMatch(
 }
 
 void checkSwHwAclMatch(
-    const HwSwitch* /*hw*/,
-    std::shared_ptr<SwitchState> /*state*/,
-    const std::string& /*aclName*/) {
-  throw FbossError("Not implemented");
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName) {
+  auto swAcl = state->getAcl(aclName);
+
+  if (swAcl->getDscp()) {
+    const auto& aclTableManager =
+        static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
+    auto aclTableHandle =
+        aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+    auto aclEntryHandle =
+        aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
+    auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+    auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+    auto [dscpVal, dscpMask] = aclFieldDscpGot.getDataAndMask();
+    EXPECT_EQ(dscpVal, swAcl->getDscp().value());
+    EXPECT_EQ(dscpMask, SaiAclTableManager::kDscpMask);
+  }
 }
 
 bool isAclTableEnabled(const HwSwitch* hwSwitch) {
