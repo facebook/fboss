@@ -337,6 +337,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SAI_PACKET_ACTION_DROP};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionSetTC> aclActionSetTC{
+      std::nullopt};
+
+  auto action = addedAclEntry->getAclAction();
+  if (action) {
+    if (action.value().getSendToQueue()) {
+      auto sendToQueue = action.value().getSendToQueue().value();
+      bool sendToCpu = sendToQueue.second;
+      if (!sendToCpu) {
+        auto queueId =
+            static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+        aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
+            AclEntryActionU8(queueId)};
+      }
+    }
+  }
+
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
@@ -346,7 +363,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldDscp.has_value() || fieldTtl.has_value() ||
          fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
-        aclActionPacketAction.has_value())) {
+        (aclActionPacketAction.has_value() || aclActionSetTC.has_value()))) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -367,7 +384,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
-      std::nullopt, // setTC
+      aclActionSetTC,
   };
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
@@ -384,7 +401,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
-      std::nullopt, // setTC
+      aclActionSetTC,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
