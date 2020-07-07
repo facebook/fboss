@@ -61,6 +61,28 @@ void checkSwHwAclMatch(
       aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
+  if (swAcl->getSrcIp().first && swAcl->getSrcIp().first.isV6()) {
+    auto aclFieldSrcIpV6Got = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
+    auto [srcIpV6DataGot, srcIpV6MaskGot] = aclFieldSrcIpV6Got.getDataAndMask();
+    auto srcIpV6MaskExpected = folly::IPAddressV6(
+        folly::IPAddressV6::fetchMask(swAcl->getSrcIp().second));
+
+    EXPECT_EQ(srcIpV6DataGot, swAcl->getSrcIp().first.asV6());
+    EXPECT_EQ(srcIpV6MaskGot, srcIpV6MaskExpected);
+  }
+
+  if (swAcl->getDstIp().first && swAcl->getDstIp().first.isV6()) {
+    auto aclFieldDstIpV6Got = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
+    auto [dstIpV6DataGot, dstIpV6MaskGot] = aclFieldDstIpV6Got.getDataAndMask();
+    auto dstIpV6MaskExpected = folly::IPAddressV6(
+        folly::IPAddressV6::fetchMask(swAcl->getDstIp().second));
+
+    EXPECT_EQ(dstIpV6DataGot, swAcl->getDstIp().first.asV6());
+    EXPECT_EQ(dstIpV6MaskGot, dstIpV6MaskExpected);
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
