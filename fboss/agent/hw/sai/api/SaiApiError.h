@@ -92,6 +92,4 @@ void saiCheckError(sai_status_t status, Args&&... args) {
   saiApiCheckError(status, SAI_API_UNSPECIFIED, std::forward<Args>(args)...);
 }
 
-// TODO: saiLogFatal
-
 } // namespace facebook::fboss
