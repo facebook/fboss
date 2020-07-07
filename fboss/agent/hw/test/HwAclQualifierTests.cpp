@@ -86,6 +86,8 @@ void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
 }
 
 void configureAllTcpQualifiers(cfg::AclEntry* acl, bool enable) {
+  configureQualifier(acl->l4SrcPort_ref(), enable, 10);
+  configureQualifier(acl->l4DstPort_ref(), enable, 20);
   configureQualifier(acl->proto_ref(), enable, 6);
   configureQualifier(acl->tcpFlagsBitMap_ref(), enable, 16);
 }
