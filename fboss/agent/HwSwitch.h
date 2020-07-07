@@ -283,6 +283,7 @@ class HwSwitch {
     return featuresDesired_;
   }
 
+  std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
 
  private:
