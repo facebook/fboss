@@ -250,6 +250,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldTtl> fieldTtl{std::nullopt};
+  if (addedAclEntry->getTtl()) {
+    fieldTtl =
+        SaiAclEntryTraits::Attributes::FieldTtl{AclEntryFieldU8(std::make_pair(
+            addedAclEntry->getTtl().value().getValue(),
+            addedAclEntry->getTtl().value().getMask()))};
+  }
+
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
@@ -262,7 +270,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) At least one field and one action must be specified.
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
-  if (!(fieldDscp.has_value() && aclActionPacketAction.has_value())) {
+  if (!((fieldDscp.has_value() || fieldTtl.has_value()) &&
+        aclActionPacketAction.has_value())) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -278,7 +287,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt, // ipProtocol
       std::nullopt, // tcpFlags
       fieldDscp,
-      std::nullopt, // ttl
+      fieldTtl,
       std::nullopt, // fdb meta
       std::nullopt, // route meta
       std::nullopt, // neighbor meta
@@ -295,7 +304,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt, // ipProtocol
       std::nullopt, // tcpFlags
       fieldDscp,
-      std::nullopt, // ttl
+      fieldTtl,
       std::nullopt, // fdb meta
       std::nullopt, // route meta
       std::nullopt, // neighbor meta
