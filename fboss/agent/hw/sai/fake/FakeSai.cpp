@@ -104,6 +104,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_bridge_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_API_BUFFER:
+      facebook::fboss::populate_buffer_api(
+          (sai_buffer_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_API_FDB:
       facebook::fboss::populate_fdb_api((sai_fdb_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;

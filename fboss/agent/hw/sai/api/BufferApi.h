@@ -33,16 +33,14 @@ struct SaiBufferPoolTraits {
   using SaiApiT = BufferApi;
   struct Attributes {
     using EnumType = sai_buffer_pool_attr_t;
-    using PoolType = SaiAttribute<
-        EnumType,
-        SAI_BUFFER_POOL_ATTR_TYPE,
-        sai_buffer_pool_type_t>;
+    using PoolType =
+        SaiAttribute<EnumType, SAI_BUFFER_POOL_ATTR_TYPE, sai_int32_t>;
     using PoolSize =
         SaiAttribute<EnumType, SAI_BUFFER_POOL_ATTR_SIZE, sai_uint64_t>;
     using ThresholdMode = SaiAttribute<
         EnumType,
         SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE,
-        sai_buffer_pool_threshold_mode_t>;
+        sai_int32_t>;
   };
   using AdapterKey = BufferPoolSaiId;
   using AdapterHostKey = Attributes::PoolType;
