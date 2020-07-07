@@ -163,8 +163,13 @@ void SaiAclTableManager::changedAclTable() {
   CHECK(false);
 }
 
-const SaiAclTableHandle* SaiAclTableManager::getAclTableHandle(
-    const std::string& aclTableName) const {
+const SaiAclTableHandle* FOLLY_NULLABLE
+SaiAclTableManager::getAclTableHandle(const std::string& aclTableName) const {
+  return getAclTableHandleImpl(aclTableName);
+}
+
+SaiAclTableHandle* FOLLY_NULLABLE
+SaiAclTableManager::getAclTableHandle(const std::string& aclTableName) {
   return getAclTableHandleImpl(aclTableName);
 }
 
@@ -180,30 +185,184 @@ SaiAclTableHandle* FOLLY_NULLABLE SaiAclTableManager::getAclTableHandleImpl(
   return itr->second.get();
 }
 
-void SaiAclTableManager::addAclEntry(
-    const std::shared_ptr<AclEntry>& /*addedAclEntry*/) {
+sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
+  /*
+   * TODO(skhare)
+   * SwitchState: smaller ACL ID means higher priority.
+   * BCM API: larger priority means higher priority.
+   * BCM SAI: larger priority means higher priority (TODO: confirm).
+   * Tajo SAI: ?  TODO find the behavior and then remove below CHECK
+   * SAI spec: does not define?
+   * But larger priority means higher priority is documented here:
+   * https://github.com/opencomputeproject/SAI/blob/master/doc/SAI-Proposal-ACL-1.md
+   */
+  CHECK(
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO);
+
+  sai_uint32_t saiPriority = aclEntryMaximumPriority_ - priority;
+  if (saiPriority < aclEntryMinimumPriority_) {
+    throw FbossError(
+        "Acl Entry priority out of range. Supported: [",
+        aclEntryMinimumPriority_,
+        ", ",
+        aclEntryMaximumPriority_,
+        "], specified: ",
+        saiPriority);
+  }
+
+  return saiPriority;
+}
+
+AclEntrySaiId SaiAclTableManager::addAclEntry(
+    const std::shared_ptr<AclEntry>& addedAclEntry,
+    const std::string& aclTableName) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
 
-  // TODO(skhare) add Acl Entry
+  // If we attempt to add entry to a table that does not exist, fail.
+  auto aclTableHandle = getAclTableHandle(aclTableName);
+  if (!aclTableHandle) {
+    throw FbossError(
+        "attempted to add AclEntry to a AclTable that does not exist: ",
+        aclTableName);
+  }
+
+  // If we already store a handle for this this Acl Entry, fail to add new one.
+  auto aclEntryHandle =
+      getAclEntryHandle(aclTableHandle, addedAclEntry->getID());
+  if (aclEntryHandle) {
+    throw FbossError(
+        "attempted to add a duplicate aclEntry: ", addedAclEntry->getID());
+  }
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& aclEntryStore = s->get<SaiAclEntryTraits>();
+
+  SaiAclEntryTraits::Attributes::TableId aclTableId{
+      aclTableHandle->aclTable->adapterKey()};
+  SaiAclEntryTraits::Attributes::Priority priority{
+      swPriorityToSaiPriority(addedAclEntry->getPriority())};
+
+  // TODO(skhare) Support all other ACL fields
+  std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
+      std::nullopt};
+  if (addedAclEntry->getDscp()) {
+    fieldDscp = SaiAclEntryTraits::Attributes::FieldDscp{AclEntryFieldU8(
+        std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
+  }
+
+  // TODO(skhare) Support all other ACL actions
+  std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
+      aclActionPacketAction{std::nullopt};
+  const auto& act = addedAclEntry->getActionType();
+  if (act == cfg::AclActionType::DENY) {
+    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+        SAI_PACKET_ACTION_DROP};
+  }
+
+  // TODO(skhare) At least one field and one action must be specified.
+  // Once we add support for all fields and actions, throw error if that is not
+  // honored.
+  if (!(fieldDscp.has_value() && aclActionPacketAction.has_value())) {
+    XLOG(DBG)
+        << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
+    return AclEntrySaiId{0};
+  }
+
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{
+      aclTableId,
+      priority,
+      std::nullopt, // srcIPv6
+      std::nullopt, // dstIPv6
+      std::nullopt, // l4srcPort
+      std::nullopt, // l4dstPort
+      std::nullopt, // ipProtocol
+      std::nullopt, // tcpFlags
+      fieldDscp,
+      std::nullopt, // ttl
+      std::nullopt, // fdb meta
+      std::nullopt, // route meta
+      std::nullopt, // neighbor meta
+      aclActionPacketAction,
+      std::nullopt, // setTC
+  };
+  SaiAclEntryTraits::CreateAttributes attributes{
+      aclTableId,
+      priority,
+      std::nullopt, // srcIPv6
+      std::nullopt, // dstIPv6
+      std::nullopt, // l4srcPort
+      std::nullopt, // l4dstPort
+      std::nullopt, // ipProtocol
+      std::nullopt, // tcpFlags
+      fieldDscp,
+      std::nullopt, // ttl
+      std::nullopt, // fdb meta
+      std::nullopt, // route meta
+      std::nullopt, // neighbor meta
+      aclActionPacketAction,
+      std::nullopt, // setTC
+  };
+
+  auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
+  auto entryHandle = std::make_unique<SaiAclEntryHandle>();
+  entryHandle->aclEntry = saiAclEntry;
+
+  auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
+      addedAclEntry->getID(), std::move(entryHandle));
+  CHECK(inserted);
+
+  return it->second->aclEntry->adapterKey();
 }
 
 void SaiAclTableManager::removeAclEntry(
-    const std::shared_ptr<AclEntry>& /*removedAclEntry*/) {
+    const std::shared_ptr<AclEntry>& removedAclEntry,
+    const std::string& aclTableName) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
 
-  // TODO(skhare) remove Acl Entry
+  // If we attempt to remove entry for a table that does not exist, fail.
+  auto aclTableHandle = getAclTableHandle(aclTableName);
+  if (!aclTableHandle) {
+    throw FbossError(
+        "attempted to remove AclEntry to a AclTable that does not exist: ",
+        aclTableName);
+  }
+
+  // If we attempt to remove entry that does not exist, fail.
+  auto itr = aclTableHandle->aclTableMembers.find(removedAclEntry->getID());
+  if (itr == aclTableHandle->aclTableMembers.end()) {
+    throw FbossError(
+        "attempted to remove aclEntry which does not exist: ",
+        removedAclEntry->getID());
+  }
+
+  aclTableHandle->aclTableMembers.erase(itr);
 }
 
 void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
-    const std::shared_ptr<AclEntry>& newAclEntry) {
+    const std::shared_ptr<AclEntry>& newAclEntry,
+    const std::string& aclTableName) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
 
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
-  removeAclEntry(oldAclEntry);
-  addAclEntry(newAclEntry);
+  removeAclEntry(oldAclEntry, aclTableName);
+  addAclEntry(newAclEntry, aclTableName);
 }
+
+const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
+    const SaiAclTableHandle* aclTableHandle,
+    const std::string& aclEntryName) const {
+  auto itr = aclTableHandle->aclTableMembers.find(aclEntryName);
+  if (itr == aclTableHandle->aclTableMembers.end()) {
+    return nullptr;
+  }
+  if (!itr->second || !itr->second->aclEntry) {
+    XLOG(FATAL) << "invalid null Acl entry for: " << aclEntryName;
+  }
+  return itr->second.get();
+}
+
 } // namespace facebook::fboss

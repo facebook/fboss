@@ -300,7 +300,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
         managerTable_->aclTableManager(),
         &SaiAclTableManager::changedAclEntry,
         &SaiAclTableManager::addAclEntry,
-        &SaiAclTableManager::removeAclEntry);
+        &SaiAclTableManager::removeAclEntry,
+        kAclTable1);
   }
 
   return delta.newState();

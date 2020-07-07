@@ -60,18 +60,31 @@ class SaiAclTableManager {
   void removeAclTable();
   void changedAclTable();
 
-  const SaiAclTableHandle* getAclTableHandle(
-      const std::string& aclTableName) const;
+  const SaiAclTableHandle* FOLLY_NULLABLE
+  getAclTableHandle(const std::string& aclTableName) const;
+  SaiAclTableHandle* FOLLY_NULLABLE
+  getAclTableHandle(const std::string& aclTableName);
 
-  void addAclEntry(const std::shared_ptr<AclEntry>& addedAclEntry);
-  void removeAclEntry(const std::shared_ptr<AclEntry>& removedAclEntry);
+  AclEntrySaiId addAclEntry(
+      const std::shared_ptr<AclEntry>& addedAclEntry,
+      const std::string& aclTableName);
+  void removeAclEntry(
+      const std::shared_ptr<AclEntry>& removedAclEntry,
+      const std::string& aclTableName);
   void changedAclEntry(
       const std::shared_ptr<AclEntry>& oldAclEntry,
-      const std::shared_ptr<AclEntry>& newAclEntry);
+      const std::shared_ptr<AclEntry>& newAclEntry,
+      const std::string& aclTableName);
+
+  const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
+      const SaiAclTableHandle* aclTableHandle,
+      const std::string& aclEntryName) const;
 
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;
+
+  sai_uint32_t swPriorityToSaiPriority(int priority) const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
