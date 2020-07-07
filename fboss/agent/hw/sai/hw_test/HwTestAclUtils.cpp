@@ -53,19 +53,28 @@ void checkSwHwAclMatch(
     const std::string& aclName) {
   auto swAcl = state->getAcl(aclName);
 
+  const auto& aclTableManager =
+      static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
+  auto aclTableHandle =
+      aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+  auto aclEntryHandle =
+      aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
+  auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+
   if (swAcl->getDscp()) {
-    const auto& aclTableManager =
-        static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
-    auto aclTableHandle =
-        aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
-    auto aclEntryHandle =
-        aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
-    auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
     auto [dscpVal, dscpMask] = aclFieldDscpGot.getDataAndMask();
     EXPECT_EQ(dscpVal, swAcl->getDscp().value());
     EXPECT_EQ(dscpMask, SaiAclTableManager::kDscpMask);
+  }
+
+  if (swAcl->getTtl()) {
+    auto aclFieldTtlGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldTtl());
+    auto [ttlVal, ttlMask] = aclFieldTtlGot.getDataAndMask();
+    EXPECT_EQ(ttlVal, swAcl->getTtl().value().getValue());
+    EXPECT_EQ(ttlMask, swAcl->getTtl().value().getMask());
   }
 }
 
