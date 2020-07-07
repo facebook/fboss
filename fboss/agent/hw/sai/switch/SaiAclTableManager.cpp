@@ -289,6 +289,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getProto().value(), kIpProtocolMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldTcpFlags> fieldTcpFlags{
+      std::nullopt};
+  if (addedAclEntry->getTcpFlagsBitMap()) {
+    fieldTcpFlags = SaiAclEntryTraits::Attributes::FieldTcpFlags{
+        AclEntryFieldU8(std::make_pair(
+            addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
   if (addedAclEntry->getDscp()) {
@@ -318,8 +326,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // honored.
   if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-         fieldIpProtocol.has_value() || fieldDscp.has_value() ||
-         fieldTtl.has_value()) &&
+         fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
+         fieldDscp.has_value() || fieldTtl.has_value()) &&
         aclActionPacketAction.has_value())) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
@@ -334,7 +342,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
-      std::nullopt, // tcpFlags
+      fieldTcpFlags,
       fieldDscp,
       fieldTtl,
       std::nullopt, // fdb meta
@@ -351,7 +359,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
-      std::nullopt, // tcpFlags
+      fieldTcpFlags,
       fieldDscp,
       fieldTtl,
       std::nullopt, // fdb meta

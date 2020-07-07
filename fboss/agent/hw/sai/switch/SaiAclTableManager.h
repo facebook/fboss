@@ -57,6 +57,7 @@ class SaiAclTableManager {
   static auto constexpr kL4PortMask = 0xFFFF;
 
   static auto constexpr kIpProtocolMask = 0xFF;
+  static auto constexpr kTcpFlagsMask = 0xFF;
 
   /*
    * TODO(skhare)
