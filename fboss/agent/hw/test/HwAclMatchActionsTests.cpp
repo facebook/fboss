@@ -71,16 +71,19 @@ class HwAclMatchActionsTest : public HwTest {
 };
 
 TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
+  constexpr uint32_t kDscp = 0x24;
+  constexpr int kQueueId = 4;
+
   auto setup = [this]() {
     auto newCfg = initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", 0);
-    utility::addQueueMatcher(&newCfg, "acl1", 0);
+    utility::addDscpAclToCfg(&newCfg, "acl1", kDscp);
+    utility::addQueueMatcher(&newCfg, "acl1", kQueueId);
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
     EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
+    checkSwAclSendToQueue(getProgrammedState(), "acl1", false, kQueueId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

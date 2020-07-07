@@ -188,6 +188,23 @@ void checkSwHwAclMatch(
     // SaiAclTableManager::kLookupClassMask);
     std::ignore = neighborDstUserMetaMaskGot;
   }
+
+  auto action = swAcl->getAclAction();
+  if (action) {
+    if (action.value().getSendToQueue()) {
+      auto sendToQueue = action.value().getSendToQueue().value();
+      bool sendToCpu = sendToQueue.second;
+      if (!sendToCpu) {
+        auto expectedQueueId =
+            static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+        auto aclActionSetTCGot =
+            SaiApiTable::getInstance()->aclApi().getAttribute(
+                aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
+        auto queueIdGot = aclActionSetTCGot.getData();
+        EXPECT_EQ(queueIdGot, expectedQueueId);
+      }
+    }
+  }
 }
 
 bool isAclTableEnabled(const HwSwitch* hwSwitch) {
