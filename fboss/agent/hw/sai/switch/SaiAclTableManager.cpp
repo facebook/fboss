@@ -251,7 +251,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   // If we already store a handle for this this Acl Entry, fail to add new one.
   auto aclEntryHandle =
-      getAclEntryHandle(aclTableHandle, addedAclEntry->getID());
+      getAclEntryHandle(aclTableHandle, addedAclEntry->getPriority());
   if (aclEntryHandle) {
     throw FbossError(
         "attempted to add a duplicate aclEntry: ", addedAclEntry->getID());
@@ -472,7 +472,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->aclEntry = saiAclEntry;
 
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
-      addedAclEntry->getID(), std::move(entryHandle));
+      addedAclEntry->getPriority(), std::move(entryHandle));
   CHECK(inserted);
 
   return it->second->aclEntry->adapterKey();
@@ -492,7 +492,8 @@ void SaiAclTableManager::removeAclEntry(
   }
 
   // If we attempt to remove entry that does not exist, fail.
-  auto itr = aclTableHandle->aclTableMembers.find(removedAclEntry->getID());
+  auto itr =
+      aclTableHandle->aclTableMembers.find(removedAclEntry->getPriority());
   if (itr == aclTableHandle->aclTableMembers.end()) {
     throw FbossError(
         "attempted to remove aclEntry which does not exist: ",
@@ -518,13 +519,13 @@ void SaiAclTableManager::changedAclEntry(
 
 const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
     const SaiAclTableHandle* aclTableHandle,
-    const std::string& aclEntryName) const {
-  auto itr = aclTableHandle->aclTableMembers.find(aclEntryName);
+    int priority) const {
+  auto itr = aclTableHandle->aclTableMembers.find(priority);
   if (itr == aclTableHandle->aclTableMembers.end()) {
     return nullptr;
   }
   if (!itr->second || !itr->second->aclEntry) {
-    XLOG(FATAL) << "invalid null Acl entry for: " << aclEntryName;
+    XLOG(FATAL) << "invalid null Acl entry for: " << priority;
   }
   return itr->second.get();
 }

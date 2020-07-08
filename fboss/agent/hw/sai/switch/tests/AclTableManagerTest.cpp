@@ -28,7 +28,11 @@ constexpr auto kAclTable2 = "AclTable2";
 class AclTableManagerTest : public ManagerTestBase {
  public:
   int kPriority() {
-    return 0;
+    return 1;
+  }
+
+  int kPriority2() {
+    return 2;
   }
 
   uint8_t kDscp() {
@@ -125,7 +129,7 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
   EXPECT_EQ(tableIdGot, aclTableId);
 
-  auto aclEntry2 = std::make_shared<AclEntry>(kPriority(), "AclEntry2");
+  auto aclEntry2 = std::make_shared<AclEntry>(kPriority2(), "AclEntry2");
   aclEntry2->setDscp(kDscp2());
   aclEntry2->setActionType(kActionType());
 
@@ -170,7 +174,7 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, "AclEntry1");
+      aclTableHandle, kPriority());
 
   EXPECT_TRUE(aclEntryHandle);
   EXPECT_TRUE(aclEntryHandle->aclEntry);
@@ -184,6 +188,6 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, "AclEntry1");
+      aclTableHandle, kPriority());
   EXPECT_FALSE(aclEntryHandle);
 }

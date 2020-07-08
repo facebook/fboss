@@ -32,9 +32,8 @@ struct SaiAclEntryHandle {
 
 struct SaiAclTableHandle {
   std::shared_ptr<SaiAclTable> aclTable;
-  // SAI ACl Entry name to corresponding handle
-  folly::F14FastMap<std::string, std::unique_ptr<SaiAclEntryHandle>>
-      aclTableMembers;
+  // SAI ACL priority to corresponding handle
+  folly::F14FastMap<int, std::unique_ptr<SaiAclEntryHandle>> aclTableMembers;
 };
 
 class SaiAclTableManager {
@@ -88,7 +87,7 @@ class SaiAclTableManager {
 
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
-      const std::string& aclEntryName) const;
+      int priority) const;
 
   sai_uint32_t swPriorityToSaiPriority(int priority) const;
 

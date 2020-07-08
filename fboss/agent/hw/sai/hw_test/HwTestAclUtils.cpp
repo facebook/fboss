@@ -58,7 +58,7 @@ void checkSwHwAclMatch(
   auto aclTableHandle =
       aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
   auto aclEntryHandle =
-      aclTableManager.getAclEntryHandle(aclTableHandle, aclName);
+      aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
   auto aclFieldPriorityExpected =
