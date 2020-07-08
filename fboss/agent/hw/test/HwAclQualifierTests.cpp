@@ -20,24 +20,6 @@ namespace {
 
 using namespace facebook::fboss;
 
-cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
-  auto acl = cfg::AclEntry();
-  *acl.name_ref() = aclName;
-  *acl.actionType_ref() = cfg::AclActionType::DENY;
-  cfg->acls_ref()->push_back(acl);
-  return &cfg->acls_ref()->back();
-}
-
-void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
-  auto& acls = *cfg->acls_ref();
-  acls.erase(
-      std::remove_if(
-          acls.begin(),
-          acls.end(),
-          [&](cfg::AclEntry const& acl) { return *acl.name_ref() == aclName; }),
-      acls.end());
-}
-
 template <typename T, typename U>
 void configureQualifier(
     apache::thrift::optional_field_ref<T&> ref,
@@ -147,7 +129,7 @@ TEST_F(HwAclQualifierTest, AclNoQualifier) {
   // we need to update our code.
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    addAcl(&newCfg, "acl0");
+    utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     applyNewConfig(newCfg);
   };
 
@@ -163,7 +145,7 @@ TEST_F(HwAclQualifierTest, AclNoQualifier) {
 TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl1 = addAcl(&newCfg, "ip4_tcp");
+    auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
     configureAllIpQualifiers(acl1, true, cfg::IpType::IP4);
@@ -183,7 +165,7 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
 TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl1 = addAcl(&newCfg, "ip6_tcp");
+    auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
     configureAllIpQualifiers(acl1, true, cfg::IpType::IP6);
@@ -203,7 +185,7 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
 TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl1 = addAcl(&newCfg, "icmp4");
+    auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
     configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4);
@@ -222,7 +204,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
 TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl1 = addAcl(&newCfg, "icmp6");
+    auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
     configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6);
@@ -241,13 +223,13 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
 TEST_F(HwAclQualifierTest, AclRemove) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl0 = addAcl(&newCfg, "acl0");
+    auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     acl0->proto_ref() = 6;
-    auto* acl1 = addAcl(&newCfg, "acl1");
+    auto* acl1 = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
     acl1->proto_ref() = 58;
     applyNewConfig(newCfg);
 
-    delAcl(&newCfg, "acl0");
+    utility::delAcl(&newCfg, "acl0");
     applyNewConfig(newCfg);
   };
 
@@ -263,7 +245,7 @@ TEST_F(HwAclQualifierTest, AclRemove) {
 TEST_F(HwAclQualifierTest, AclModifyQualifier) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl = addAcl(&newCfg, "acl0");
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // icmp6
     configureAllHwQualifiers(acl, true);
     configureAllL2QualifiersHelper(acl);
@@ -293,7 +275,7 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
 TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
-    auto* acl = addAcl(&newCfg, "acl0");
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // add a icmp rule w/ type and code value
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl->proto_ref() = 58;

@@ -20,7 +20,6 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/BcmAclStatTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclPriorityTests.cpp
   fboss/agent/hw/bcm/tests/BcmAclUnitTests.cpp
-  fboss/agent/hw/bcm/tests/BcmAclUtils.cpp
   fboss/agent/hw/bcm/tests/BcmAddDelEcmpTests.cpp
   fboss/agent/hw/bcm/tests/BcmBstStatsMgrTest.cpp
   fboss/agent/hw/bcm/tests/BcmControlPlaneTests.cpp

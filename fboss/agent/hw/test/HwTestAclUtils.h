@@ -35,4 +35,28 @@ bool isQualifierPresent(
     const std::shared_ptr<SwitchState>& state,
     const std::string& aclName);
 
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclName,
+    const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT);
+
+void delAcl(cfg::SwitchConfig* cfg, const std::string& aclName);
+
+void addAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName,
+    std::vector<cfg::CounterType> counterTypes = {});
+
+void delAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& counterName);
+
+void renameAclStat(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::string& oldCounterName,
+    const std::string& newCounterName);
+
 } // namespace facebook::fboss::utility

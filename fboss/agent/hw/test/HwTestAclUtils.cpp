@@ -8,14 +8,17 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/tests/BcmAclUtils.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 
 namespace facebook::fboss::utility {
 
-cfg::AclEntry* addAcl(cfg::SwitchConfig* cfg, const std::string& aclName) {
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclName,
+    const cfg::AclActionType& aclActionType) {
   auto acl = cfg::AclEntry();
   *acl.name_ref() = aclName;
-  *acl.actionType_ref() = cfg::AclActionType::PERMIT;
+  *acl.actionType_ref() = aclActionType;
   cfg->acls_ref()->push_back(acl);
   return &cfg->acls_ref()->back();
 }
