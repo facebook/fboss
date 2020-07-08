@@ -27,6 +27,8 @@ sai_status_t create_acl_table_fn(
   std::vector<int32_t> actionTypeList;
   sai_uint8_t fieldSrcIpV6 = 0;
   sai_uint8_t fieldDstIpV6 = 0;
+  sai_uint8_t fieldSrcIpV4 = 0;
+  sai_uint8_t fieldDstIpV4 = 0;
   sai_uint8_t fieldL4SrcPort = 0;
   sai_uint8_t fieldL4DstPort = 0;
   sai_uint8_t fieldIpProtocol = 0;
@@ -63,6 +65,12 @@ sai_status_t create_acl_table_fn(
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6:
         fieldDstIpV6 = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IP:
+        fieldSrcIpV4 = attr_list[i].value.u8;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_IP:
+        fieldDstIpV4 = attr_list[i].value.u8;
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT:
         fieldL4SrcPort = attr_list[i].value.u8;
@@ -122,6 +130,8 @@ sai_status_t create_acl_table_fn(
       actionTypeList,
       fieldSrcIpV6,
       fieldDstIpV6,
+      fieldSrcIpV4,
+      fieldDstIpV4,
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
@@ -216,6 +226,14 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.u8 = aclTable.fieldDstIpV6;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IP: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldSrcIpV4;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_IP: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.u8 = aclTable.fieldDstIpV4;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);

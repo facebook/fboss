@@ -181,6 +181,8 @@ class AclApiTest : public ::testing::Test {
             kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
+            true, // srcIpv4
+            true, // dstIpv4
             true, // l4SrcPort
             true, // l4DstPort
             true, // ipProtocol
@@ -459,6 +461,10 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldSrcIpV6());
   auto aclTableFieldDstIpV6Got = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV6());
+  auto aclTableFieldSrcIpV4Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldSrcIpV4());
+  auto aclTableFieldDstIpV4Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV4());
   auto aclTableFieldL4SrcPortGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldL4SrcPort());
   auto aclTableFieldL4DstPortGot = aclApi->getAttribute(
@@ -498,6 +504,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
 
   EXPECT_EQ(aclTableFieldSrcIpV6Got, true);
   EXPECT_EQ(aclTableFieldDstIpV6Got, true);
+  EXPECT_EQ(aclTableFieldSrcIpV4Got, true);
+  EXPECT_EQ(aclTableFieldDstIpV4Got, true);
   EXPECT_EQ(aclTableFieldL4SrcPortGot, true);
   EXPECT_EQ(aclTableFieldL4DstPortGot, true);
   EXPECT_EQ(aclTableFieldIpProtocolGot, true);
@@ -556,6 +564,8 @@ TEST_F(AclApiTest, setAclTableAttribute) {
 
   SaiAclTableTraits::Attributes::FieldSrcIpV6 fieldSrcIpv6{false};
   SaiAclTableTraits::Attributes::FieldDstIpV6 fieldDstIpV6{false};
+  SaiAclTableTraits::Attributes::FieldSrcIpV4 fieldSrcIpv4{false};
+  SaiAclTableTraits::Attributes::FieldDstIpV4 fieldDstIpV4{false};
   SaiAclTableTraits::Attributes::FieldL4SrcPort fieldL4SrcPort{false};
   SaiAclTableTraits::Attributes::FieldL4DstPort fieldL4DstPort{false};
   SaiAclTableTraits::Attributes::FieldIpProtocol fieldIpProtocol{false};
@@ -581,6 +591,8 @@ TEST_F(AclApiTest, setAclTableAttribute) {
 
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldSrcIpv6), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDstIpV6), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldSrcIpv4), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDstIpV4), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldL4SrcPort), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldL4DstPort), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpProtocol), SaiApiError);

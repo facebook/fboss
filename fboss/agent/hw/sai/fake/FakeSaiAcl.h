@@ -132,6 +132,8 @@ class FakeAclTable {
       std::vector<sai_int32_t> actionTypeList,
       sai_uint8_t fieldSrcIpV6,
       sai_uint8_t fieldDstIpV6,
+      sai_uint8_t fieldSrcIpV4,
+      sai_uint8_t fieldDstIpV4,
       sai_uint8_t fieldL4SrcPort,
       sai_uint8_t fieldL4DstPort,
       sai_uint8_t fieldIpProtocol,
@@ -151,6 +153,8 @@ class FakeAclTable {
         actionTypeList(actionTypeList),
         fieldSrcIpV6(fieldSrcIpV6),
         fieldDstIpV6(fieldDstIpV6),
+        fieldSrcIpV4(fieldSrcIpV4),
+        fieldDstIpV4(fieldDstIpV4),
         fieldL4SrcPort(fieldL4SrcPort),
         fieldL4DstPort(fieldL4DstPort),
         fieldIpProtocol(fieldIpProtocol),
@@ -175,6 +179,8 @@ class FakeAclTable {
   std::vector<sai_int32_t> actionTypeList;
   sai_uint8_t fieldSrcIpV6;
   sai_uint8_t fieldDstIpV6;
+  sai_uint8_t fieldSrcIpV4;
+  sai_uint8_t fieldDstIpV4;
   sai_uint8_t fieldL4SrcPort;
   sai_uint8_t fieldL4DstPort;
   sai_uint8_t fieldIpProtocol;

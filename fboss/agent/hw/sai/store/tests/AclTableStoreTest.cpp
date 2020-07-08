@@ -99,11 +99,11 @@ class AclTableStoreTest : public SaiStoreTest {
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
-            stage,
-            kBindPointTypeList(),
-            kActionTypeList(),
+            stage, kBindPointTypeList(), kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
+            true, // srcIpv4
+            true, // dstIpv4
             true, // l4SrcPort
             true, // l4DstPort
             true, // ipProtocol
@@ -161,6 +161,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
+      true, // srcIpv4
+      true, // dstIpv4
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
@@ -187,6 +189,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
+      true, // srcIpv4
+      true, // dstIpv4
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
@@ -257,11 +261,11 @@ TEST_P(AclTableStoreParamTest, aclEntryLoadCtor) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
   SaiAclTableTraits::CreateAttributes c{
-      GetParam(),
-      this->kBindPointTypeList(),
-      this->kActionTypeList(),
+      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
+      true, // srcIpv4
+      true, // dstIpv4
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
@@ -279,11 +283,11 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
   };
 
   SaiAclTableTraits::AdapterHostKey k{
-      GetParam(),
-      this->kBindPointTypeList(),
-      this->kActionTypeList(),
+      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
+      true, // srcIpv4
+      true, // dstIpv4
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol

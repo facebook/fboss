@@ -63,6 +63,25 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
   /*
+   * TODO(skhare)
+   * Trident2 supports fewer ACL qualifiers than other hardwares, and enabling
+   * below causes it to run out of resources.
+   * One possible alternative is to implement Trident2-specific solution viz.:
+   * Trident2 uses same fields for both V4 and V6.
+   * For a V4 packet, the lower 32-bit is the V4 address, with all other
+   * (128-32) bits set to 0. Thus, we could use srcIPv6/dstIPv6 ACL for src/dst
+   * IPv4.
+   */
+  auto fieldSrcIpV4 = platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+      ? std::make_optional(SaiAclTableTraits::Attributes::FieldSrcIpV4{true})
+      : std::nullopt;
+  auto fieldDstIpV4 = platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+      ? std::make_optional(SaiAclTableTraits::Attributes::FieldDstIpV4{true})
+      : std::nullopt;
+
+  /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
    * However, the solution is not applicable for Trident2 as FBOSS does not
    * implement queues on Trident2.
@@ -82,6 +101,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       actionTypeList,
       true, // srcIpv6
       true, // dstIpv6
+      fieldSrcIpV4,
+      fieldDstIpV4,
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
@@ -103,6 +124,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       actionTypeList,
       true, // srcIpv6
       true, // dstIpv6
+      fieldSrcIpV4,
+      fieldDstIpV4,
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
