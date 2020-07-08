@@ -157,10 +157,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta) const;
 
-  std::unique_ptr<TxPacket> allocatePacketLocked(
-      const std::lock_guard<std::mutex>& lock,
-      uint32_t size) const;
-
   bool sendPacketSwitchedAsyncLocked(
       const std::lock_guard<std::mutex>& lock,
       std::unique_ptr<TxPacket> pkt) noexcept;
@@ -200,11 +196,6 @@ class SaiSwitch : public HwSwitch {
 
   bool isPortUpLocked(const std::lock_guard<std::mutex>& lock, PortID port)
       const;
-
-  bool getAndClearNeighborHitLocked(
-      const std::lock_guard<std::mutex>& lock,
-      RouterID vrf,
-      folly::IPAddress& ip);
 
   cfg::PortSpeed getPortMaxSpeedLocked(
       const std::lock_guard<std::mutex>& lock,

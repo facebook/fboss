@@ -314,8 +314,8 @@ bool SaiSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) const {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return allocatePacketLocked(lock, size);
+  getSwitchStats()->txPktAlloc();
+  return std::make_unique<SaiTxPacket>(size);
 }
 
 bool SaiSwitch::sendPacketSwitchedAsync(
@@ -421,9 +421,10 @@ bool SaiSwitch::isPortUp(PortID port) const {
   return isPortUpLocked(lock, port);
 }
 
-bool SaiSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getAndClearNeighborHitLocked(lock, vrf, ip);
+bool SaiSwitch::getAndClearNeighborHit(
+    RouterID /*vrf*/,
+    folly::IPAddress& /*ip*/) {
+  return true;
 }
 
 void SaiSwitch::clearPortStats(
@@ -749,13 +750,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
   return true;
 }
 
-std::unique_ptr<TxPacket> SaiSwitch::allocatePacketLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    uint32_t size) const {
-  getSwitchStats()->txPktAlloc();
-  return std::make_unique<SaiTxPacket>(size);
-}
-
 bool SaiSwitch::sendPacketSwitchedAsyncLocked(
     const std::lock_guard<std::mutex>& lock,
     std::unique_ptr<TxPacket> pkt) noexcept {
@@ -1023,13 +1017,6 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeedLocked(
     PortID port) const {
   auto* managerTable = managerTableLocked(lock);
   return managerTable->portManager().getMaxSpeed(port);
-}
-
-bool SaiSwitch::getAndClearNeighborHitLocked(
-    const std::lock_guard<std::mutex>& /* lock */,
-    RouterID /* vrf */,
-    folly::IPAddress& /* ip */) {
-  return true;
 }
 
 BootType SaiSwitch::getBootTypeLocked(
