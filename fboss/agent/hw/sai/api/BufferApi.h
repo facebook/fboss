@@ -49,7 +49,7 @@ struct SaiBufferPoolTraits {
 
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToRead = {};
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
-      SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
+    SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
   };
 };
 
@@ -84,6 +84,23 @@ class BufferApi : public SaiApi<BufferApi> {
   }
   sai_status_t _setAttribute(BufferPoolSaiId key, const sai_attribute_t* attr) {
     return api_->set_buffer_pool_attribute(key, attr);
+  }
+
+  sai_status_t _getStats(
+      BufferPoolSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return api_->get_buffer_pool_stats_ext(
+        key, num_of_counters, counter_ids, mode, counters);
+  }
+
+  sai_status_t _clearStats(
+      BufferPoolSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_buffer_pool_stats(key, num_of_counters, counter_ids);
   }
   sai_buffer_api_t* api_;
   friend class SaiApi<BufferApi>;
