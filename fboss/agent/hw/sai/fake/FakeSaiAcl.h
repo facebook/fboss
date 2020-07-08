@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
 extern "C" {
@@ -75,6 +76,14 @@ class FakeAclEntry {
   bool fieldDstIpV6Enable{false};
   folly::IPAddressV6 fieldDstIpV6Data;
   folly::IPAddressV6 fieldDstIpV6Mask;
+
+  bool fieldSrcIpV4Enable{false};
+  folly::IPAddressV4 fieldSrcIpV4Data;
+  folly::IPAddressV4 fieldSrcIpV4Mask;
+
+  bool fieldDstIpV4Enable{false};
+  folly::IPAddressV4 fieldDstIpV4Data;
+  folly::IPAddressV4 fieldDstIpV4Mask;
 
   bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;

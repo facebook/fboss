@@ -431,6 +431,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       priority,
       fieldSrcIpV6,
       fieldDstIpV6,
+      std::nullopt, // srcIPv4
+      std::nullopt, // dstIPv4
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
@@ -449,6 +451,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       priority,
       fieldSrcIpV6,
       fieldDstIpV6,
+      std::nullopt, // srcIPv4
+      std::nullopt, // dstIPv4
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,

@@ -152,6 +152,8 @@ using AclEntryFieldU16 = AclEntryField<std::pair<sai_uint16_t, sai_uint16_t>>;
 using AclEntryFieldU32 = AclEntryField<std::pair<sai_uint32_t, sai_uint32_t>>;
 using AclEntryFieldIpV6 =
     AclEntryField<std::pair<folly::IPAddressV6, folly::IPAddressV6>>;
+using AclEntryFieldIpV4 =
+    AclEntryField<std::pair<folly::IPAddressV4, folly::IPAddressV4>>;
 
 template <typename T>
 class AclEntryAction {

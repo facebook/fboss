@@ -63,6 +63,26 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV6("2620:0:1cfe:face:c00c::4"));
   }
 
+  std::pair<folly::IPAddressV4, folly::IPAddressV4> kSrcIpV4() const {
+    return std::make_pair(
+        folly::IPAddressV4("10.0.0.1"), folly::IPAddressV4("255.255.255.0"));
+  }
+
+  std::pair<folly::IPAddressV4, folly::IPAddressV4> kSrcIpV4_2() const {
+    return std::make_pair(
+        folly::IPAddressV4("10.0.0.2"), folly::IPAddressV4("255.255.255.0"));
+  }
+
+  std::pair<folly::IPAddressV4, folly::IPAddressV4> kDstIpV4() const {
+    return std::make_pair(
+        folly::IPAddressV4("20.0.0.1"), folly::IPAddressV4("255.255.255.0"));
+  }
+
+  std::pair<folly::IPAddressV4, folly::IPAddressV4> kDstIpV4_2() const {
+    return std::make_pair(
+        folly::IPAddressV4("20.0.0.2"), folly::IPAddressV4("255.255.255.0"));
+  }
+
   std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort() const {
     return std::make_pair(9001, 0xFFFF);
   }
@@ -208,6 +228,10 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldIpV6(kSrcIpV6())};
     SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
         AclEntryFieldIpV6(kDstIpV6())};
+    SaiAclEntryTraits::Attributes::FieldSrcIpV4 aclFieldSrcIpV4{
+        AclEntryFieldIpV4(kSrcIpV4())};
+    SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4{
+        AclEntryFieldIpV4(kDstIpV4())};
     SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute{
         AclEntryFieldU16(kL4SrcPort())};
     SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute{
@@ -241,6 +265,8 @@ class AclApiTest : public ::testing::Test {
          aclPriorityAttribute,
          aclFieldSrcIpV6,
          aclFieldDstIpV6,
+         aclFieldSrcIpV4,
+         aclFieldDstIpV4,
          aclFieldL4SrcPortAttribute,
          aclFieldL4DstPortAttribute,
          aclFieldIpProtocolAttribute,
@@ -318,6 +344,8 @@ class AclApiTest : public ::testing::Test {
       sai_uint32_t priority,
       const std::pair<folly::IPAddressV6, folly::IPAddressV6>& srcIpV6,
       const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6,
+      const std::pair<folly::IPAddressV4, folly::IPAddressV4>& srcIpV4,
+      const std::pair<folly::IPAddressV4, folly::IPAddressV4>& dstIpV4,
       const std::pair<sai_uint16_t, sai_uint16_t>& l4SrcPort,
       const std::pair<sai_uint16_t, sai_uint16_t>& L4DstPort,
       const std::pair<sai_uint8_t, sai_uint8_t>& ipProtocol,
@@ -337,6 +365,10 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
     auto aclFieldDstIpV6Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
+    auto aclFieldSrcIpV4Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV4());
+    auto aclFieldDstIpV4Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV4());
     auto aclFieldL4SrcPortGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldL4SrcPort());
     auto aclFieldL4DstPortGot = aclApi->getAttribute(
@@ -367,6 +399,8 @@ class AclApiTest : public ::testing::Test {
 
     EXPECT_EQ(aclFieldSrcIpV6Got.getDataAndMask(), srcIpV6);
     EXPECT_EQ(aclFieldDstIpV6Got.getDataAndMask(), dstIpV6);
+    EXPECT_EQ(aclFieldSrcIpV4Got.getDataAndMask(), srcIpV4);
+    EXPECT_EQ(aclFieldDstIpV4Got.getDataAndMask(), dstIpV4);
     EXPECT_EQ(aclFieldL4SrcPortGot.getDataAndMask(), l4SrcPort);
     EXPECT_EQ(aclFieldL4DstPortGot.getDataAndMask(), L4DstPort);
     EXPECT_EQ(aclFieldIpProtocolGot.getDataAndMask(), ipProtocol);
@@ -534,6 +568,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kPriority(),
       kSrcIpV6(),
       kDstIpV6(),
+      kSrcIpV4(),
+      kDstIpV4(),
       kL4SrcPort(),
       kL4DstPort(),
       kIpProtocol(),
@@ -633,6 +669,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldIpV6(kSrcIpV6_2())};
   SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6Attribute2{
       AclEntryFieldIpV6(kDstIpV6_2())};
+  SaiAclEntryTraits::Attributes::FieldSrcIpV4 aclFieldSrcIpV4Attribute2{
+      AclEntryFieldIpV4(kSrcIpV4_2())};
+  SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4Attribute2{
+      AclEntryFieldIpV4(kDstIpV4_2())};
   SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute2{
       AclEntryFieldU16(kL4SrcPort2())};
   SaiAclEntryTraits::Attributes::FieldL4DstPort aclFieldL4DstPortAttribute2{
@@ -665,6 +705,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   aclApi->setAttribute(aclEntryId, aclFieldSrcIpV6Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldSrcIpV4Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldDstIpV4Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldL4SrcPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldL4DstPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIpProtocolAttribute2);
@@ -683,6 +725,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kPriority2(),
       kSrcIpV6_2(),
       kDstIpV6_2(),
+      kSrcIpV4_2(),
+      kDstIpV4_2(),
       kL4SrcPort2(),
       kL4DstPort2(),
       kIpProtocol2(),

@@ -330,6 +330,22 @@ sai_status_t set_acl_entry_attribute_fn(
           facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip6);
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP:
+      aclEntry.fieldSrcIpV4Enable = attr->value.aclfield.enable;
+      aclEntry.fieldSrcIpV4Data =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.data.ip4);
+      aclEntry.fieldSrcIpV4Mask =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip4);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
+      aclEntry.fieldDstIpV4Enable = attr->value.aclfield.enable;
+      aclEntry.fieldDstIpV4Data =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.data.ip4);
+      aclEntry.fieldDstIpV4Mask =
+          facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip4);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
       aclEntry.fieldL4SrcPortEnable = attr->value.aclfield.enable;
       aclEntry.fieldL4SrcPortData = attr->value.aclfield.data.u16;
@@ -432,6 +448,20 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.fieldDstIpV6Data, &attr_list[i].value.aclfield.data.ip6);
         facebook::fboss::toSaiIpAddressV6(
             aclEntry.fieldDstIpV6Mask, &attr_list[i].value.aclfield.mask.ip6);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldSrcIpV4Enable;
+        attr_list[i].value.aclfield.data.ip4 =
+            facebook::fboss::toSaiIpAddress(aclEntry.fieldSrcIpV4Data).addr.ip4;
+        attr_list[i].value.aclfield.mask.ip4 =
+            facebook::fboss::toSaiIpAddress(aclEntry.fieldSrcIpV4Mask).addr.ip4;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldDstIpV4Enable;
+        attr_list[i].value.aclfield.data.ip4 =
+            facebook::fboss::toSaiIpAddress(aclEntry.fieldDstIpV4Data).addr.ip4;
+        attr_list[i].value.aclfield.mask.ip4 =
+            facebook::fboss::toSaiIpAddress(aclEntry.fieldDstIpV4Mask).addr.ip4;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
         attr_list[i].value.aclfield.enable = aclEntry.fieldL4SrcPortEnable;

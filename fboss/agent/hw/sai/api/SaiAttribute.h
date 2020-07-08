@@ -157,6 +157,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 
@@ -279,6 +280,24 @@ inline void _fill(
   dst.enable = true;
   facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().first, &dst.data.ip6);
   facebook::fboss::toSaiIpAddressV6(src.getDataAndMask().second, &dst.mask.ip6);
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldIpV4& dst) {
+  dst.setDataAndMask(std::make_pair(
+      facebook::fboss::fromSaiIpAddress(src.data.ip4),
+      facebook::fboss::fromSaiIpAddress(src.mask.ip4)));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldIpV4& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  dst.data.ip4 =
+      facebook::fboss::toSaiIpAddress(src.getDataAndMask().first).addr.ip4;
+  dst.mask.ip4 =
+      facebook::fboss::toSaiIpAddress(src.getDataAndMask().second).addr.ip4;
 }
 
 inline void _fill(

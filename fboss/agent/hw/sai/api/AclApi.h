@@ -259,6 +259,14 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6,
         AclEntryFieldIpV6>;
+    using FieldSrcIpV4 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP,
+        AclEntryFieldIpV4>;
+    using FieldDstIpV4 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_DST_IP,
+        AclEntryFieldIpV4>;
     using FieldL4SrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT,
@@ -316,6 +324,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::Priority>,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldSrcIpV4>,
+      std::optional<Attributes::FieldDstIpV4>,
       std::optional<Attributes::FieldL4SrcPort>,
       std::optional<Attributes::FieldL4DstPort>,
       std::optional<Attributes::FieldIpProtocol>,
@@ -333,6 +343,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::Priority>,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldSrcIpV4>,
+      std::optional<Attributes::FieldDstIpV4>,
       std::optional<Attributes::FieldL4SrcPort>,
       std::optional<Attributes::FieldL4DstPort>,
       std::optional<Attributes::FieldIpProtocol>,
@@ -351,6 +363,8 @@ SAI_ATTRIBUTE_NAME(AclEntry, TableId);
 SAI_ATTRIBUTE_NAME(AclEntry, Priority);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV4);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV4);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldL4SrcPort);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldL4DstPort);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpProtocol);
