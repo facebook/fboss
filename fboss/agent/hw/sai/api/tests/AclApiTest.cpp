@@ -149,6 +149,14 @@ class AclApiTest : public ::testing::Test {
     return 2;
   }
 
+  sai_uint8_t kSetDSCP() const {
+    return 10;
+  }
+
+  sai_uint8_t kSetDSCP2() const {
+    return 20;
+  }
+
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -223,6 +231,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryActionU32(kPacketAction())};
     SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
         AclEntryActionU8(kSetTC())};
+    SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP{
+        AclEntryActionU8(kSetDSCP())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -239,7 +249,8 @@ class AclApiTest : public ::testing::Test {
          aclFieldRouteDstUserMetaAttribute,
          aclFieldNeighborDstUserMetaAttribute,
          aclActionPacketAction,
-         aclActionSetTC},
+         aclActionSetTC,
+         aclActionSetDSCP},
         kSwitchID());
   }
 
@@ -315,7 +326,8 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
       sai_uint32_t packetAction,
-      sai_uint8_t setTC) const {
+      sai_uint8_t setTC,
+      sai_uint8_t setDSCP) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
 
@@ -346,6 +358,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
     auto aclActionSetTCGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
+    auto aclActionSetDSCPGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionSetDSCP());
 
     EXPECT_EQ(aclPriorityGot, priority);
 
@@ -364,6 +378,7 @@ class AclApiTest : public ::testing::Test {
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionSetTCGot.getData(), setTC);
+    EXPECT_EQ(aclActionSetDSCPGot.getData(), setDSCP);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -521,7 +536,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kRouteDstUserMeta(),
       kNeighborDstUserMeta(),
       kPacketAction(),
-      kSetTC());
+      kSetTC(),
+      kSetDSCP());
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -630,6 +646,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryActionU32(kPacketAction2())};
   SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC2{
       AclEntryActionU8(kSetTC2())};
+  SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP2{
+      AclEntryActionU8(kSetDSCP2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -646,6 +664,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
+  aclApi->setAttribute(aclEntryId, aclActionSetDSCP2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -662,7 +681,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kRouteDstUserMeta2(),
       kNeighborDstUserMeta2(),
       kPacketAction2(),
-      kSetTC2());
+      kSetTC2(),
+      kSetDSCP2());
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {

@@ -294,6 +294,10 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_TC,
         AclEntryActionU8>;
+    using ActionSetDSCP = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP,
+        AclEntryActionU8>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -312,7 +316,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::ActionPacketAction>,
-      std::optional<Attributes::ActionSetTC>>;
+      std::optional<Attributes::ActionSetTC>,
+      std::optional<Attributes::ActionSetDSCP>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
@@ -328,7 +333,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::ActionPacketAction>,
-      std::optional<Attributes::ActionSetTC>>;
+      std::optional<Attributes::ActionSetTC>,
+      std::optional<Attributes::ActionSetDSCP>>;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -346,6 +352,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);
 
 class AclApi : public SaiApi<AclApi> {
  public:

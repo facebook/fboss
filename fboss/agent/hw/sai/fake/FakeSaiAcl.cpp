@@ -375,6 +375,11 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionSetTCData = attr->value.aclaction.parameter.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
+      aclEntry.actionSetDSCPEnable = attr->value.aclaction.enable;
+      aclEntry.actionSetDSCPData = attr->value.aclaction.parameter.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -469,6 +474,10 @@ sai_status_t get_acl_entry_attribute_fn(
       case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
         attr_list[i].value.aclaction.enable = aclEntry.actionSetTCEnable;
         attr_list[i].value.aclaction.parameter.u8 = aclEntry.actionSetTCData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
+        attr_list[i].value.aclaction.enable = aclEntry.actionSetDSCPEnable;
+        attr_list[i].value.aclaction.parameter.u8 = aclEntry.actionSetDSCPData;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

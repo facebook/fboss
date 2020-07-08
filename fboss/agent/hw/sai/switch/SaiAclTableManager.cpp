@@ -385,6 +385,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
       aclActionSetTC,
+      std::nullopt, // set DSCP
   };
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
@@ -402,6 +403,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
       aclActionSetTC,
+      std::nullopt, // set DSCP
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

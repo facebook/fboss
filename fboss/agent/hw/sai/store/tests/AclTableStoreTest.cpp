@@ -92,6 +92,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return 1;
   }
 
+  sai_uint8_t kSetDSCP() const {
+    return 10;
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
@@ -137,6 +141,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionU8(this->kSetTC()),
+            AclEntryActionU8(this->kSetDSCP()),
         },
         0);
   }
@@ -229,7 +234,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
-                                      this->kSetTC()};
+                                      this->kSetTC(),
+                                      this->kSetDSCP()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -315,7 +321,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kRouteDstUserMeta(),
                                         this->kNeighborDstUserMeta(),
                                         this->kPacketAction(),
-                                        this->kSetTC()};
+                                        this->kSetTC(),
+                                        this->kSetDSCP()};
   SaiAclEntryTraits::AdapterHostKey k{aclTableId,
                                       this->kPriority(),
                                       this->kSrcIpV6(),
@@ -330,7 +337,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
-                                      this->kSetTC()};
+                                      this->kSetTC(),
+                                      this->kSetDSCP()};
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }

@@ -118,6 +118,9 @@ class FakeAclEntry {
   bool actionSetTCEnable{false};
   sai_uint8_t actionSetTCData;
 
+  bool actionSetDSCPEnable{false};
+  sai_uint8_t actionSetDSCPData;
+
   sai_object_id_t id;
 };
 
