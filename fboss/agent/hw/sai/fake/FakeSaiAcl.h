@@ -139,24 +139,24 @@ class FakeAclTable {
       sai_int32_t stage,
       std::vector<sai_int32_t> bindPointTypeList,
       std::vector<sai_int32_t> actionTypeList,
-      sai_uint8_t fieldSrcIpV6,
-      sai_uint8_t fieldDstIpV6,
-      sai_uint8_t fieldSrcIpV4,
-      sai_uint8_t fieldDstIpV4,
-      sai_uint8_t fieldL4SrcPort,
-      sai_uint8_t fieldL4DstPort,
-      sai_uint8_t fieldIpProtocol,
-      sai_uint8_t fieldTcpFlags,
-      sai_uint8_t fieldInPort,
-      sai_uint8_t fieldOutPort,
-      sai_uint8_t fieldIpFrag,
-      sai_uint8_t fieldDscp,
-      sai_uint8_t fieldDstMac,
-      sai_uint8_t fieldIpType,
-      sai_uint8_t fieldTtl,
-      sai_uint8_t fieldFdbDstUserMeta,
-      sai_uint8_t fieldRouteDstUserMeta,
-      sai_uint8_t fieldNeighborDstUserMeta)
+      bool fieldSrcIpV6,
+      bool fieldDstIpV6,
+      bool fieldSrcIpV4,
+      bool fieldDstIpV4,
+      bool fieldL4SrcPort,
+      bool fieldL4DstPort,
+      bool fieldIpProtocol,
+      bool fieldTcpFlags,
+      bool fieldInPort,
+      bool fieldOutPort,
+      bool fieldIpFrag,
+      bool fieldDscp,
+      bool fieldDstMac,
+      bool fieldIpType,
+      bool fieldTtl,
+      bool fieldFdbDstUserMeta,
+      bool fieldRouteDstUserMeta,
+      bool fieldNeighborDstUserMeta)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
@@ -186,24 +186,24 @@ class FakeAclTable {
   sai_int32_t stage;
   std::vector<sai_int32_t> bindPointTypeList;
   std::vector<sai_int32_t> actionTypeList;
-  sai_uint8_t fieldSrcIpV6;
-  sai_uint8_t fieldDstIpV6;
-  sai_uint8_t fieldSrcIpV4;
-  sai_uint8_t fieldDstIpV4;
-  sai_uint8_t fieldL4SrcPort;
-  sai_uint8_t fieldL4DstPort;
-  sai_uint8_t fieldIpProtocol;
-  sai_uint8_t fieldTcpFlags;
-  sai_uint8_t fieldInPort;
-  sai_uint8_t fieldOutPort;
-  sai_uint8_t fieldIpFrag;
-  sai_uint8_t fieldDscp;
-  sai_uint8_t fieldDstMac;
-  sai_uint8_t fieldIpType;
-  sai_uint8_t fieldTtl;
-  sai_uint8_t fieldFdbDstUserMeta;
-  sai_uint8_t fieldRouteDstUserMeta;
-  sai_uint8_t fieldNeighborDstUserMeta;
+  bool fieldSrcIpV6;
+  bool fieldDstIpV6;
+  bool fieldSrcIpV4;
+  bool fieldDstIpV4;
+  bool fieldL4SrcPort;
+  bool fieldL4DstPort;
+  bool fieldIpProtocol;
+  bool fieldTcpFlags;
+  bool fieldInPort;
+  bool fieldOutPort;
+  bool fieldIpFrag;
+  bool fieldDscp;
+  bool fieldDstMac;
+  bool fieldIpType;
+  bool fieldTtl;
+  bool fieldFdbDstUserMeta;
+  bool fieldRouteDstUserMeta;
+  bool fieldNeighborDstUserMeta;
 
   FakeManager<sai_object_id_t, FakeAclEntry>& fm() {
     return fm_;
