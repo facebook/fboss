@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -58,6 +59,14 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
  protected:
   void SetUp() override {
     FLAGS_load_qcm_fw = true;
+    // program ifp entries with the statistics enabled
+    // for testing
+    FLAGS_enable_qcm_ifp_statistics = true;
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
+    // allow enough init gpoort count to squeeze in 2 ports for monitoring
+    // but not more, this is to test various corner scenarios when
+    // we run out of QCM port monitoring capacity
+    FLAGS_init_gport_available_count = queueIds.size() * 2;
     BcmLinkStateDependentTests::SetUp();
     ecmpHelper6_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), RouterID(0));
@@ -83,6 +92,15 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
       qcmCfg.collectorDstIp = kCollectorDstIpv4;
       qcmCfg.collectorSrcIp = kCollectorSrcIpv4;
     }
+    // only configured ports from beginning, need the cos queues
+    const auto& portList = {masterLogicalPortIds()[0],
+                            masterLogicalPortIds()[1]};
+    for (const auto& port : portList) {
+      for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
+        qcmCfg.port2QosQueueIds[port].push_back(queueId);
+      }
+    }
+
     qcmCfg.collectorSrcPort = kCollectorUDPSrcPort;
     qcmCfg.agingIntervalInMsecs = 1000;
     qcmCfg.numFlowSamplesPerView = 1;
@@ -91,30 +109,39 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
   void setupHelper() {
     auto newCfg{initialConfig()};
-    newCfg.qcmConfig_ref() = getQcmConfig();
+    auto qcmCfg = getQcmConfig();
     newCfg.switchSettings.qcmEnable = true;
+    newCfg.qcmConfig_ref() = qcmCfg;
     applyNewConfig(newCfg);
     cfg_ = newCfg;
 
     addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
+  void setupHelperWithPorts(const std::vector<int32_t>& monitorPortList) {
+    auto newCfg{initialConfig()};
+    auto qcmCfg = getQcmConfig();
+    Port2QosQueueIdMap map = {};
+
+    for (const auto& port : monitorPortList) {
+      qcmCfg.monitorQcmPortList.emplace_back(port);
+      for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
+        qcmCfg.port2QosQueueIds[port].push_back(queueId);
+      }
+    }
+    newCfg.qcmConfig_ref() = qcmCfg;
+    newCfg.switchSettings.qcmEnable = true;
+
+    applyNewConfig(newCfg);
+  }
+
   void setupQcmOnly(const bool qcmEnable) {
     cfg_.switchSettings.qcmEnable = qcmEnable;
     applyNewConfig(cfg_);
-    if (qcmEnable) {
-      getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
-          true /* attach stat */);
-    }
   }
 
   std::tuple<int, int> createQcmFlows(int numFlows, int pktCount) {
     int port1Counter = 0, port0Counter = 0;
-    // monitor following 2 ports
-    getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
-        true /* attach stat */);
     if (numFlows > kIPv6FlowSrcAddress.size()) {
       XLOG(ERR) << "Flow count requested : " << numFlows
                 << " more than pool of addresses. Count= "
@@ -157,10 +184,6 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
     newCfg.qcmConfig_ref() = qcmCfg;
     applyNewConfig(newCfg);
-
-    getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
-        true /* attach stat */);
     addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
@@ -217,6 +240,117 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper6_;
   cfg::SwitchConfig cfg_;
 };
+
+// Intent of this test is to add thrift configuration for some
+// ports and ensure that they are programmed and get priority
+// over the other cfged ports
+// In this case masterLogicalPortIds(2),masterLogicalPortIds(3)
+// should get prioritized over masterLogicalPortIds(0),
+// masterLogicalPortIds(1) for programming
+TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    // This test only applies to ceratin ASIC e.g. TH
+    // and to specific sdk versions
+    return;
+  }
+
+  auto setup = [&]() {
+    setupHelperWithPorts(
+        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]});
+  };
+  auto verify = [&]() {
+    Port2QosQueueIdMap portMap;
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
+    const std::set<int> queueIdSet(queueIds.begin(), queueIds.end());
+    portMap[masterLogicalPortIds()[0]] = queueIdSet;
+    portMap[masterLogicalPortIds()[1]] = queueIdSet;
+    // Expect that we are not able to update QCM monitored ports here with
+    // these 2 ports {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
+
+    // provide space for 2 more ports
+    getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size() * 2);
+
+    portMap.clear();
+    portMap[masterLogicalPortIds()[2]] = queueIdSet;
+    portMap[masterLogicalPortIds()[3]] = queueIdSet;
+    // these 2 ports should already be programmed during setup above
+    // note: they get priroity over the other cfged ports such as logical port
+    // 0, 1
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+    EXPECT_EQ(
+        getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(),
+        queueIdSet.size() * 2);
+
+    portMap.clear();
+    portMap[masterLogicalPortIds()[0]] = queueIdSet;
+    portMap[masterLogicalPortIds()[1]] = queueIdSet;
+    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Intent of this test is to ensure that
+// port monitoring works and  obeyes constraint of available gports.
+TEST_F(BcmQcmDataTest, VerifyPortMonitoringNoneConfigured) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    // This test only applies to ceratin ASIC e.g. TH
+    // and to specific sdk versions
+    return;
+  }
+
+  auto setup = [&]() { setupHelper(); };
+
+  auto verify = [&]() {
+    Port2QosQueueIdMap portMap;
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
+    const std::set<int> queueIdSet(queueIds.begin(), queueIds.end());
+
+    getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size() - 1);
+    portMap[masterLogicalPortIds()[2]] = queueIdSet;
+    // monitoring for this port should fail, as gports available are less than
+    // queueIds
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+
+    getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size());
+    // monitoring for the port suceeds now, that gports are available
+    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
+    portMap.clear();
+    portMap[masterLogicalPortIds()[3]] = queueIdSet;
+    // since available gports is 0, it should fail
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+
+    getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size());
+    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
+
+    getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(2 * queueIdSet.size());
+    portMap.clear();
+    portMap[masterLogicalPortIds()[2]] = queueIdSet;
+    portMap[masterLogicalPortIds()[3]] = queueIdSet;
+    // since these ports are already programmed, this update should fail
+    // even though gports are available
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+        portMap));
+    EXPECT_EQ(
+        getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(),
+        2 * queueIdSet.size());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
   if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {

@@ -60,12 +60,16 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   for (const auto& qcmPort : monitorQcmPortList) {
     qcmCfg[kMonitorQcmPortList].push_back(qcmPort);
   }
-  qcmCfg[kPort2QosQueueIds] = folly::dynamic::object;
+  folly::dynamic port2QosQueueMap = folly::dynamic::object;
   for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+    folly::dynamic qcmSet = folly::dynamic::array;
     for (const auto& qosQueueId : perPortQosQueueIds.second) {
-      qcmCfg[kPort2QosQueueIds][perPortQosQueueIds.first].push_back(qosQueueId);
+      qcmSet.push_back(qosQueueId);
     }
+    port2QosQueueMap[folly::to<std::string>(
+        static_cast<int>(perPortQosQueueIds.first))] = qcmSet;
   }
+  qcmCfg[kPort2QosQueueIds] = port2QosQueueMap;
   return qcmCfg;
 }
 

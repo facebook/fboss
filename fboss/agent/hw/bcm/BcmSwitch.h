@@ -523,6 +523,8 @@ class BcmSwitch : public BcmSwitchIf {
   addL2TableCbForPendingOnly(int unit, bcm_l2_addr_t* l2Addr, void* userData);
   static int deleteL2TableCb(int unit, bcm_l2_addr_t* l2Addr, void* userData);
 
+  bool isPortEnabled(PortID port) const;
+
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
   // Forbidden copy constructor and assignment operator

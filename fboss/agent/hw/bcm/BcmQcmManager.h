@@ -5,6 +5,7 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/QcmConfig.h"
 
 extern "C" {
 #include <bcm/flowtracker.h>
@@ -18,6 +19,8 @@ extern "C" {
 #define BCM_VER_SUPPORT_QCM \
   (BCM_VER_MAJOR == 6) && (BCM_VER_MINOR == 5) && (BCM_VER_RELEASE == 16)
 
+typedef std::set<int> QosQueueIds;
+
 namespace facebook::fboss {
 
 class BcmQcmCollector;
@@ -29,10 +32,10 @@ class BcmQcmManager {
   ~BcmQcmManager();
   void init(const std::shared_ptr<SwitchState>& swState);
   void stop();
-  void updateQcmMonitoredPortsIfNeeded(
-      const std::set<bcm_port_t>& upPorts,
-      bool installStats = false);
+  bool updateQcmMonitoredPortsIfNeeded(
+      const Port2QosQueueIdMap& candidatePortMap);
   void flowLimitSet(int flowLimit);
+  void processPortsForQcm(const std::shared_ptr<SwitchState>& swState);
 
   // utility routines
   static bool isQcmSupported(BcmSwitch* hw);
@@ -42,12 +45,19 @@ class BcmQcmManager {
   uint32_t getLearnedFlowCount();
   static int getQcmFlowGroupId();
   bool isFlowTrackerDisabled();
+  void setAvailableGPorts(int portCount) {
+    gPortsAvailable_.store(portCount);
+  }
+  int getAvailableGPorts() {
+    return gPortsAvailable_.load();
+  }
 
  private:
   // setup communications between QCM, Switch CPU
   void initRxQueue();
   void initPipeMode();
   void initQcmFirmware();
+  void initAvailableGPorts();
 
   // setup QCM flowtracker
   void initExactMatchGroupCreate();
@@ -59,6 +69,18 @@ class BcmQcmManager {
   int createIfpEntry(int port, bool usePolicer, bool attachStats);
   void setTrackingParams();
 
+  // port monitoring
+  QosQueueIds getQosQueueIds(
+      const std::shared_ptr<QcmCfg>& qcmCfg,
+      const int portId);
+  void findPortsForMonitoring(
+      const std::shared_ptr<SwitchState>& swState,
+      std::set<bcm_port_t>& ports);
+  void setupPortsForMonitoring(const Port2QosQueueIdMap& portMap);
+  void setupConfiguredPortsForMonitoring(
+      const std::shared_ptr<SwitchState>& swState,
+      const std::vector<int32_t>& qcmPortList);
+
   // destroy routines
   void deleteIfpEntries();
   void destroyFlowGroup();
@@ -67,7 +89,7 @@ class BcmQcmManager {
   void stopQcmFirmware();
 
   // helper routines
-  void updateQcmMonitoredPorts(std::set<bcm_port_t>& upPorts);
+  void updateQcmMonitoredPorts(const Port2QosQueueIdMap& portMap);
   void getPortsForQcmMonitoring(std::set<bcm_port_t>& upPortSet);
   void createAndAttachStats(const int ifpEntry);
 
@@ -75,7 +97,8 @@ class BcmQcmManager {
   // pipe to field group
   std::map<int, bcm_field_group_t> exactMatchGroups_;
   int num_pipes_;
-  std::set<bcm_port_t> qcmMonitoredPorts_;
+
+  Port2QosQueueIdMap qcmMonitoredPorts_;
   // map of {port_id,  ifp_entry_id }
   std::map<int, int> portToIfpEntryMap_;
   // map of {ifp_entry, stat_id}
@@ -84,6 +107,7 @@ class BcmQcmManager {
   bool qcmInitDone_{false};
   std::shared_ptr<QcmCfg> qcmCfg_;
   std::unique_ptr<BcmQcmCollector> qcmCollector_;
+  std::atomic<int> gPortsAvailable_{0};
 };
 
 } // namespace facebook::fboss

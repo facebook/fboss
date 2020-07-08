@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmQcmCollector.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -34,6 +35,15 @@ extern "C" {
 #include <soc/drv.h>
 #endif
 }
+
+DEFINE_bool(
+    enable_qcm_ifp_statistics,
+    false,
+    "Enable statistics on ifp entries. Used for testing only");
+DEFINE_int32(
+    init_gport_available_count,
+    0,
+    "User override for the initial gport count");
 
 namespace {
 constexpr int kUc0CosQueue = 46; // cos queue that maps from switch to QCM CPU
@@ -177,25 +187,21 @@ void BcmQcmManager::createAndAttachStats(const int ifpEntry) {
   XLOG(INFO) << "ifpEntry=" << ifpEntry << ", stat_id=" << stat_id;
 }
 
-void BcmQcmManager::updateQcmMonitoredPortsIfNeeded(
-    const std::set<bcm_port_t>& updatedPorts,
-    bool installStats) {
+void BcmQcmManager::setupPortsForMonitoring(const Port2QosQueueIdMap& portMap) {
   std::lock_guard<std::mutex> g(monitoredPortsLock_);
   int ifpEntry = 0;
-  for (const auto& updatedPort : updatedPorts) {
-    if (qcmMonitoredPorts_.find(updatedPort) == qcmMonitoredPorts_.end()) {
-      XLOG(INFO) << "Create IFP entry for: " << updatedPort
-                 << ", installStats: " << installStats;
-      ifpEntry =
-          createIfpEntry(updatedPort, false /* create policer */, installStats);
-      portToIfpEntryMap_[updatedPort] = ifpEntry;
+  for (const auto& port : portMap) {
+    if (qcmMonitoredPorts_.find(port.first) == qcmMonitoredPorts_.end()) {
+      XLOG(DBG3) << "Create IFP entry for: " << port.first;
+      ifpEntry = createIfpEntry(
+          port.first,
+          false /* create policer */,
+          FLAGS_enable_qcm_ifp_statistics);
+      portToIfpEntryMap_[port.first] = ifpEntry;
+      qcmMonitoredPorts_[port.first] = port.second;
     }
   }
-
-  if (updatedPorts != qcmMonitoredPorts_) {
-    qcmMonitoredPorts_ = updatedPorts;
-    updateQcmMonitoredPorts(qcmMonitoredPorts_);
-  }
+  updateQcmMonitoredPorts(qcmMonitoredPorts_);
 }
 
 BcmQcmManager::BcmQcmManager(BcmSwitch* hw)
@@ -324,8 +330,6 @@ int BcmQcmManager::createIfpEntry(int port, bool usePolicer, bool createStats) {
   rv = bcm_field_action_add(
       hw_->getUnit(), entry, bcmFieldActionCosQCpuNew, 46, 0);
   bcmCheckError(rv, "failed to create action");
-
-  XLOG(INFO) << "createStats:" << createStats;
   if (createStats) {
     createAndAttachStats(entry);
   }
@@ -334,7 +338,7 @@ int BcmQcmManager::createIfpEntry(int port, bool usePolicer, bool createStats) {
   bcm_field_entry_install(hw_->getUnit(), entry);
   bcmCheckError(rv, "Failed to install link-local mcast field processor rule");
 
-  XLOG(INFO) << "IFP entry installed for port: " << port;
+  XLOG(DBG3) << "IFP entry installed for port: " << port;
   return entry;
 }
 
@@ -413,6 +417,85 @@ bool BcmQcmManager::isQcmSupported(BcmSwitch* hw) {
   return false;
 }
 
+QosQueueIds BcmQcmManager::getQosQueueIds(
+    const std::shared_ptr<QcmCfg>& qcmCfg,
+    const int portId) {
+  // QCM queues to be monitored comes from config
+  // Today QCM will monitor icp, silver, gold, bronze queues on the port
+  // (olympic qos model) or upto first 5 queues if queue_per_host is enabled.
+  const auto& port2QosQueueIdMap = qcmCfg->getPort2QosQueueIdMap();
+  auto iter = port2QosQueueIdMap.find(portId);
+  if (iter == port2QosQueueIdMap.end()) {
+    XLOG(ERR) << "Unable to find QosQueueIds for port: " << portId;
+    return {};
+  }
+  return iter->second;
+}
+
+// find the candidate ports needed for monitoring
+// Note that intent of QCM monitoring is to enable
+// monitoring for first x enabled ports
+// if these ports later have admin down or are removed
+// we don't explicitly remove them from the QCM monitoring
+// as this requires removing IFP entries and
+// associated state which can be source of problem at
+// run-time especially if the port state keeps changing
+// So most of this configuration is 1-time programming
+// for simpliciity
+// @returns true if we end up updating the qcm ports
+// @returns false if QCM ports are not updated
+bool BcmQcmManager::updateQcmMonitoredPortsIfNeeded(
+    const Port2QosQueueIdMap& candidatePortMap) {
+  Port2QosQueueIdMap finalPortMap{};
+  for (const auto& candidatePort : candidatePortMap) {
+    // walk all candidate ports which which satisfy following criteria
+    // (1) Enough gports available
+    // (2) Not already configured
+    const auto& queueSet = candidatePort.second;
+    std::lock_guard<std::mutex> g(monitoredPortsLock_);
+    if ((qcmMonitoredPorts_.find(candidatePort.first) ==
+         qcmMonitoredPorts_.end()) &&
+        gPortsAvailable_ >= queueSet.size()) {
+      finalPortMap[candidatePort.first] = candidatePort.second;
+      gPortsAvailable_ -= queueSet.size();
+    }
+  }
+  if (finalPortMap.size()) {
+    setupPortsForMonitoring(finalPortMap);
+  }
+  return finalPortMap.size() ? true : false;
+}
+
+// invoked during normal cfg reload processing
+void BcmQcmManager::processPortsForQcm(
+    const std::shared_ptr<SwitchState>& swState) {
+  Port2QosQueueIdMap candidatePortMap{};
+  for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
+    PortID portId = portIDAndBcmPort.first;
+    // walk all ports which which satify following criteria
+    // (1) enabled (admin up)
+    if (hw_->isPortEnabled(portId)) {
+      const auto& queueIdSet = getQosQueueIds(swState->getQcmCfg(), portId);
+      if (!queueIdSet.empty()) {
+        candidatePortMap[portId] = queueIdSet;
+      }
+    }
+  }
+  updateQcmMonitoredPortsIfNeeded(candidatePortMap);
+}
+
+// Invoked during qcm init, so these ports get priority
+// in programming (as qcm ports are limited)
+void BcmQcmManager::setupConfiguredPortsForMonitoring(
+    const std::shared_ptr<SwitchState>& swState,
+    const std::vector<int32_t>& qcmPortList) {
+  Port2QosQueueIdMap candidatePortMap{};
+  for (const auto& port : qcmPortList) {
+    candidatePortMap[port] = getQosQueueIds(swState->getQcmCfg(), port);
+  }
+  updateQcmMonitoredPortsIfNeeded(candidatePortMap);
+}
+
 void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   if (!isQcmSupported(hw_)) {
     return;
@@ -423,6 +506,14 @@ void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   initQcmFirmware();
   initRxQueue();
   initPipeMode();
+  if (FLAGS_init_gport_available_count) {
+    // user override, used in tests to limit
+    // number of configured ports.
+    gPortsAvailable_ = FLAGS_init_gport_available_count;
+  } else {
+    // pick from the HW limits
+    initAvailableGPorts();
+  }
 
   initExactMatchGroupCreate();
   createIfpGroup();
@@ -435,6 +526,9 @@ void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   flowLimitSet(qcmCfg_->getFlowLimit());
   setFlowViewCfg();
 
+  // Configured ports get priority in monitoring
+  // these are the uplnk ports today, but can be configured differently
+  setupConfiguredPortsForMonitoring(swState, qcmCfg_->getMonitorQcmPortList());
   /* create collector */
   qcmCollector_->init(swState);
 

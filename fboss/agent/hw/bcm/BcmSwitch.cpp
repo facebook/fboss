@@ -595,6 +595,10 @@ void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
   }
 }
 
+bool BcmSwitch::isPortEnabled(PortID port) const {
+  return portTable_->getBcmPort(port)->isEnabled();
+}
+
 bool BcmSwitch::isPortUp(PortID port) const {
   return portTable_->getBcmPort(port)->isUp();
 }
@@ -1017,6 +1021,16 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
                << newSwitchSettings->isQcmEnable();
     switchSettings_->setQcmEnable(
         newSwitchSettings->isQcmEnable(), delta.newState());
+  }
+
+  // Its possible during switch init, qcm is enabled
+  // but all the ports are not enabled yet, so we trigger processing
+  // ports on every cfg reload
+  // QCM logic determines eligibility if there are any new ports
+  // and update internally
+  if (newSwitchSettings->isQcmEnable()) {
+    XLOG(DBG3) << "Qcm enabled. Evaluate the monitored ports";
+    qcmManager_->processPortsForQcm(delta.newState());
   }
 }
 
