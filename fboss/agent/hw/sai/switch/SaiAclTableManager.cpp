@@ -211,17 +211,16 @@ SaiAclTableHandle* FOLLY_NULLABLE SaiAclTableManager::getAclTableHandleImpl(
 sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
   /*
    * TODO(skhare)
+   * When adding HwAclPriorityTests, add a test to verify that SAI
+   * implementation treats larger value of priority as higher priority.
    * SwitchState: smaller ACL ID means higher priority.
    * BCM API: larger priority means higher priority.
    * BCM SAI: larger priority means higher priority (TODO: confirm).
-   * Tajo SAI: ?  TODO find the behavior and then remove below CHECK
+   * Tajo SAI: larger priority means higher priority.
    * SAI spec: does not define?
    * But larger priority means higher priority is documented here:
    * https://github.com/opencomputeproject/SAI/blob/master/doc/SAI-Proposal-ACL-1.md
    */
-  CHECK(
-      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO);
-
   sai_uint32_t saiPriority = aclEntryMaximumPriority_ - priority;
   if (saiPriority < aclEntryMinimumPriority_) {
     throw FbossError(
