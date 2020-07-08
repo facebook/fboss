@@ -328,6 +328,28 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryFieldU32(std::make_pair(lookupClass, kLookupClassMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
+      fieldFdbDstUserMeta{std::nullopt};
+
+  if (addedAclEntry->getLookupClassL2()) {
+    if (platform_->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      /*
+       * lookupClassL2 is not configured on Trident2 or else the ASIC runs out
+       * of resources. lookupClassL2 is needed for MH-NIC queue-per-host
+       * solution. However, the solution is not applicable for Trident2 as we
+       * don't implement queues on Trident2.
+       */
+      throw FbossError(
+          "attempted to configure lookupClassL2 on Trident2, not needed/supported",
+          addedAclEntry->getID());
+    }
+    auto lookupClassL2 =
+        static_cast<int>(addedAclEntry->getLookupClassL2().value());
+    fieldFdbDstUserMeta = SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta{
+        AclEntryFieldU32(std::make_pair(lookupClassL2, kLookupClassMask))};
+  }
+
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
@@ -361,7 +383,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
          fieldDscp.has_value() || fieldTtl.has_value() ||
-         fieldRouteDstUserMeta.has_value() ||
+         fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionSetTC.has_value()))) {
     XLOG(DBG)
@@ -380,7 +402,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldTcpFlags,
       fieldDscp,
       fieldTtl,
-      std::nullopt, // fdb meta
+      fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
@@ -398,7 +420,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldTcpFlags,
       fieldDscp,
       fieldTtl,
-      std::nullopt, // fdb meta
+      fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
