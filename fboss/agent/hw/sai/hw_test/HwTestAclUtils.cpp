@@ -67,26 +67,56 @@ void checkSwHwAclMatch(
       aclEntryId, SaiAclEntryTraits::Attributes::Priority());
   EXPECT_EQ(aclFieldPriorityGot, aclFieldPriorityExpected);
 
-  if (swAcl->getSrcIp().first && swAcl->getSrcIp().first.isV6()) {
-    auto aclFieldSrcIpV6Got = SaiApiTable::getInstance()->aclApi().getAttribute(
-        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
-    auto [srcIpV6DataGot, srcIpV6MaskGot] = aclFieldSrcIpV6Got.getDataAndMask();
-    auto srcIpV6MaskExpected = folly::IPAddressV6(
-        folly::IPAddressV6::fetchMask(swAcl->getSrcIp().second));
+  if (swAcl->getSrcIp().first) {
+    if (swAcl->getSrcIp().first.isV6()) {
+      auto aclFieldSrcIpV6Got =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
+      auto [srcIpV6DataGot, srcIpV6MaskGot] =
+          aclFieldSrcIpV6Got.getDataAndMask();
+      auto srcIpV6MaskExpected = folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(swAcl->getSrcIp().second));
 
-    EXPECT_EQ(srcIpV6DataGot, swAcl->getSrcIp().first.asV6());
-    EXPECT_EQ(srcIpV6MaskGot, srcIpV6MaskExpected);
+      EXPECT_EQ(srcIpV6DataGot, swAcl->getSrcIp().first.asV6());
+      EXPECT_EQ(srcIpV6MaskGot, srcIpV6MaskExpected);
+    } else if (swAcl->getSrcIp().first.isV4()) {
+      auto aclFieldSrcIpV4Got =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV4());
+      auto [srcIpV4DataGot, srcIpV4MaskGot] =
+          aclFieldSrcIpV4Got.getDataAndMask();
+      auto srcIpV4MaskExpected = folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(swAcl->getSrcIp().second));
+
+      EXPECT_EQ(srcIpV4DataGot, swAcl->getSrcIp().first.asV4());
+      EXPECT_EQ(srcIpV4MaskGot, srcIpV4MaskExpected);
+    }
   }
 
-  if (swAcl->getDstIp().first && swAcl->getDstIp().first.isV6()) {
-    auto aclFieldDstIpV6Got = SaiApiTable::getInstance()->aclApi().getAttribute(
-        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
-    auto [dstIpV6DataGot, dstIpV6MaskGot] = aclFieldDstIpV6Got.getDataAndMask();
-    auto dstIpV6MaskExpected = folly::IPAddressV6(
-        folly::IPAddressV6::fetchMask(swAcl->getDstIp().second));
+  if (swAcl->getDstIp().first) {
+    if (swAcl->getDstIp().first.isV6()) {
+      auto aclFieldDstIpV6Got =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
+      auto [dstIpV6DataGot, dstIpV6MaskGot] =
+          aclFieldDstIpV6Got.getDataAndMask();
+      auto dstIpV6MaskExpected = folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(swAcl->getDstIp().second));
 
-    EXPECT_EQ(dstIpV6DataGot, swAcl->getDstIp().first.asV6());
-    EXPECT_EQ(dstIpV6MaskGot, dstIpV6MaskExpected);
+      EXPECT_EQ(dstIpV6DataGot, swAcl->getDstIp().first.asV6());
+      EXPECT_EQ(dstIpV6MaskGot, dstIpV6MaskExpected);
+    } else if (swAcl->getDstIp().first.isV4()) {
+      auto aclFieldDstIpV4Got =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV4());
+      auto [dstIpV4DataGot, dstIpV4MaskGot] =
+          aclFieldDstIpV4Got.getDataAndMask();
+      auto dstIpV4MaskExpected = folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(swAcl->getDstIp().second));
+
+      EXPECT_EQ(dstIpV4DataGot, swAcl->getDstIp().first.asV4());
+      EXPECT_EQ(dstIpV4MaskGot, dstIpV4MaskExpected);
+    }
   }
 
   if (swAcl->getL4SrcPort()) {
