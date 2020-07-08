@@ -17,6 +17,7 @@ class L2TableCmd(cmds.FbossCmd):
         with self._create_agent_client() as client:
             resp = client.getL2Table()
             port_map = client.getAllPortInfo()
+            agg_ports = client.getAggregatePortTable()
 
         if not resp:
             print("No L2 Entries Found")
@@ -28,7 +29,13 @@ class L2TableCmd(cmds.FbossCmd):
 
         for entry in resp:
             if entry.trunk:
-                port_data = f"{entry.trunk} (Trunk)"
+                relevant = [
+                    agg_port for agg_port in agg_ports if agg_port.key == entry.trunk
+                ]
+                if relevant and len(relevant) == 1:
+                    port_data = relevant[0].name
+                else:
+                    port_data = f"{entry.trunk} (Trunk)"
             else:
                 port_info = port_map.get(entry.port, None)
                 if not port_info:
