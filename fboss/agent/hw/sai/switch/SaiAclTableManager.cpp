@@ -362,6 +362,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::ActionSetTC> aclActionSetTC{
       std::nullopt};
 
+  std::optional<SaiAclEntryTraits::Attributes::ActionSetDSCP> aclActionSetDSCP{
+      std::nullopt};
+
   auto action = addedAclEntry->getAclAction();
   if (action) {
     if (action.value().getSendToQueue()) {
@@ -374,6 +377,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryActionU8(queueId)};
       }
     }
+
+    if (action.value().getSetDscp()) {
+      const int dscpValue =
+          *action.value().getSetDscp().value().dscpValue_ref();
+
+      aclActionSetDSCP = SaiAclEntryTraits::Attributes::ActionSetDSCP{
+          AclEntryActionU8(dscpValue)};
+    }
   }
 
   // TODO(skhare) At least one field and one action must be specified.
@@ -385,7 +396,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldDscp.has_value() || fieldTtl.has_value() ||
          fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
-        (aclActionPacketAction.has_value() || aclActionSetTC.has_value()))) {
+        (aclActionPacketAction.has_value() || aclActionSetTC.has_value() ||
+         aclActionSetDSCP.has_value()))) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -407,7 +419,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
       aclActionSetTC,
-      std::nullopt, // set DSCP
+      aclActionSetDSCP,
   };
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
@@ -425,7 +437,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
       aclActionSetTC,
-      std::nullopt, // set DSCP
+      aclActionSetDSCP,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
