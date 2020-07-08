@@ -264,4 +264,33 @@ bool isQualifierPresent(
   return false;
 }
 
+void checkAclEntryAndStatCount(
+    const HwSwitch* /*hwSwitch*/,
+    int /*aclCount*/,
+    int /*aclStatCount*/,
+    int /*counterCount*/) {
+  throw FbossError("Not implemented");
+}
+
+void checkAclStat(
+    const HwSwitch* /*hw*/,
+    std::shared_ptr<SwitchState> /*state*/,
+    std::vector<std::string> /*acls*/,
+    const std::string& /*statName*/,
+    std::vector<cfg::CounterType> /*counterTypes*/) {
+  throw FbossError("Not implemented");
+}
+
+void checkAclStatDeleted(
+    const HwSwitch* /*hwSwitch*/,
+    const std::string& /*statName*/) {
+  throw FbossError("Not implemented");
+}
+
+void checkAclStatSize(
+    const HwSwitch* /*hwSwitch*/,
+    const std::string& /*statName*/) {
+  throw FbossError("Not implemented");
+}
+
 } // namespace facebook::fboss::utility

@@ -35,6 +35,27 @@ bool isQualifierPresent(
     const std::shared_ptr<SwitchState>& state,
     const std::string& aclName);
 
+void checkAclEntryAndStatCount(
+    const HwSwitch* hwSwitch,
+    int aclCount,
+    int aclStatCount,
+    int counterCount);
+
+std::optional<cfg::TrafficCounter> getAclTrafficCounter(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName);
+
+void checkAclStat(
+    const HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> state,
+    std::vector<std::string> acls,
+    const std::string& statName,
+    std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::PACKETS});
+
+void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
+
+void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName);
+
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,

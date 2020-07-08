@@ -10,7 +10,19 @@
 
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 
+#include "fboss/agent/state/SwitchState.h"
+
 namespace facebook::fboss::utility {
+
+std::optional<cfg::TrafficCounter> getAclTrafficCounter(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName) {
+  auto swAcl = state->getAcl(aclName);
+  if (swAcl && swAcl->getAclAction()) {
+    return swAcl->getAclAction()->getTrafficCounter();
+  }
+  return std::nullopt;
+}
 
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,
