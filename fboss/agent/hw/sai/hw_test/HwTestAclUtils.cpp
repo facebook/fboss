@@ -226,6 +226,17 @@ void checkSwHwAclMatch(
         EXPECT_EQ(queueIdGot, expectedQueueId);
       }
     }
+
+    if (action.value().getSetDscp()) {
+      const int expectedDscpValue =
+          *action.value().getSetDscp().value().dscpValue_ref();
+
+      auto aclActionSetDSCPGot =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::ActionSetDSCP());
+      auto dscpValueGot = aclActionSetDSCPGot.getData();
+      EXPECT_EQ(dscpValueGot, expectedDscpValue);
+    }
   }
 }
 
