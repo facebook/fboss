@@ -268,24 +268,58 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) Support all other ACL fields
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
-  if (addedAclEntry->getSrcIp().first &&
-      addedAclEntry->getSrcIp().first.isV6()) {
-    auto srcIpV6Mask = folly::IPAddressV6(
-        folly::IPAddressV6::fetchMask(addedAclEntry->getSrcIp().second));
-    fieldSrcIpV6 = SaiAclEntryTraits::Attributes::FieldSrcIpV6{
-        AclEntryFieldIpV6(std::make_pair(
-            addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
+  std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV4> fieldSrcIpV4{
+      std::nullopt};
+  if (addedAclEntry->getSrcIp().first) {
+    if (addedAclEntry->getSrcIp().first.isV6()) {
+      auto srcIpV6Mask = folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(addedAclEntry->getSrcIp().second));
+      fieldSrcIpV6 = SaiAclEntryTraits::Attributes::FieldSrcIpV6{
+          AclEntryFieldIpV6(std::make_pair(
+              addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
+    } else if (addedAclEntry->getSrcIp().first.isV4()) {
+      if (platform_->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        // TODO(skhare) See TODO about Trident2 in addAclTable
+        throw FbossError(
+            "attempted to configure SrcIP IPv4 on Trident2, TODO: add support",
+            addedAclEntry->getID());
+      }
+
+      auto srcIpV4Mask = folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(addedAclEntry->getSrcIp().second));
+      fieldSrcIpV4 = SaiAclEntryTraits::Attributes::FieldSrcIpV4{
+          AclEntryFieldIpV4(std::make_pair(
+              addedAclEntry->getSrcIp().first.asV4(), srcIpV4Mask))};
+    }
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6> fieldDstIpV6{
       std::nullopt};
-  if (addedAclEntry->getDstIp().first &&
-      addedAclEntry->getDstIp().first.isV6()) {
-    auto dstIpV6Mask = folly::IPAddressV6(
-        folly::IPAddressV6::fetchMask(addedAclEntry->getDstIp().second));
-    fieldDstIpV6 = SaiAclEntryTraits::Attributes::FieldDstIpV6{
-        AclEntryFieldIpV6(std::make_pair(
-            addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
+  std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV4> fieldDstIpV4{
+      std::nullopt};
+  if (addedAclEntry->getDstIp().first) {
+    if (addedAclEntry->getDstIp().first.isV6()) {
+      auto dstIpV6Mask = folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(addedAclEntry->getDstIp().second));
+      fieldDstIpV6 = SaiAclEntryTraits::Attributes::FieldDstIpV6{
+          AclEntryFieldIpV6(std::make_pair(
+              addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
+    } else if (addedAclEntry->getDstIp().first.isV4()) {
+      if (platform_->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        // TODO(skhare) See TODO about Trident2 in addAclTable
+        throw FbossError(
+            "attempted to configure DstIP IPv4 on Trident2, TODO: add support",
+            addedAclEntry->getID());
+      }
+
+      auto dstIpV4Mask = folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(addedAclEntry->getDstIp().second));
+      fieldDstIpV4 = SaiAclEntryTraits::Attributes::FieldDstIpV4{
+          AclEntryFieldIpV4(std::make_pair(
+              addedAclEntry->getDstIp().first.asV4(), dstIpV4Mask))};
+    }
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldL4SrcPort> fieldL4SrcPort{
@@ -414,6 +448,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // Once we add support for all fields and actions, throw error if that is not
   // honored.
   if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
+         fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
          fieldDscp.has_value() || fieldTtl.has_value() ||
@@ -431,8 +466,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       priority,
       fieldSrcIpV6,
       fieldDstIpV6,
-      std::nullopt, // srcIPv4
-      std::nullopt, // dstIPv4
+      fieldSrcIpV4,
+      fieldDstIpV4,
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
@@ -451,8 +486,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       priority,
       fieldSrcIpV6,
       fieldDstIpV6,
-      std::nullopt, // srcIPv4
-      std::nullopt, // dstIPv4
+      fieldSrcIpV4,
+      fieldDstIpV4,
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
