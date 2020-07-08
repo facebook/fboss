@@ -145,6 +145,28 @@ void checkSwHwAclMatch(
     EXPECT_EQ(ttlMask, swAcl->getTtl().value().getMask());
   }
 
+  if (swAcl->getLookupClassL2()) {
+    auto lookupClassL2Expected =
+        static_cast<int>(swAcl->getLookupClassL2().value());
+    auto aclFieldFdbDstUserMetaGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            aclEntryId, SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta());
+    auto [fdbDstUserMetaDataGot, fdbDstUserMetaMaskGot] =
+        aclFieldFdbDstUserMetaGot.getDataAndMask();
+    EXPECT_EQ(fdbDstUserMetaDataGot, lookupClassL2Expected);
+
+    /*
+     * TODO(skhare)
+     * CSP: CS00010615865
+     * kLookupClassMask = 0xffffffff, but fdbDstUserMetaMaskGot is 0x000003ff.
+     * Note, however, the following still holds true:
+     * fdbDstUserMetaDataGot & fdbDstUserMetaMaskGot = lookupClassL2Expected
+     * But SAI implementation should still return the correct mask 0xffffffff.
+     */
+    // EXPECT_EQ(fdbDstUserMetaMaskGot, SaiAclTableManager::kLookupClassMask);
+    std::ignore = fdbDstUserMetaMaskGot;
+  }
+
   if (swAcl->getLookupClass()) {
     auto lookupClassExpected =
         static_cast<int>(swAcl->getLookupClass().value());
