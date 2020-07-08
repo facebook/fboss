@@ -24,6 +24,7 @@ class ConcurrentIndices;
 class SaiAclTableGroupManager;
 class SaiAclTableManager;
 class SaiBridgeManager;
+class SaiBufferManager;
 class SaiFdbManager;
 class SaiHashManager;
 class SaiHostifManager;
@@ -60,6 +61,9 @@ class SaiManagerTable {
 
   SaiBridgeManager& bridgeManager();
   const SaiBridgeManager& bridgeManager() const;
+
+  SaiBufferManager& bufferManager();
+  const SaiBufferManager& bufferManager() const;
 
   SaiFdbManager& fdbManager();
   const SaiFdbManager& fdbManager() const;
@@ -113,6 +117,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiAclTableGroupManager> aclTableGroupManager_;
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
+  std::unique_ptr<SaiBufferManager> bufferManager_;
   std::unique_ptr<SaiFdbManager> fdbManager_;
   std::unique_ptr<SaiHashManager> hashManager_;
   std::unique_ptr<SaiHostifManager> hostifManager_;

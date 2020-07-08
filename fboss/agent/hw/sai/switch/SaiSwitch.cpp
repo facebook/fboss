@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -619,6 +620,8 @@ HwInitResult SaiSwitch::initLocked(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
+
+  managerTable_->bufferManager().setupEgressBufferPool();
   callback_ = callback;
   __gSaiSwitch = this;
   if (FLAGS_enable_sai_debug_log) {

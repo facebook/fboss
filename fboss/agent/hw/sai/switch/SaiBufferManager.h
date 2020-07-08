@@ -31,12 +31,12 @@ struct SaiBufferPoolHandle {
 class SaiBufferManager {
  public:
   SaiBufferManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
-  void addEgressBufferPool();
+  void setupEgressBufferPool();
 
  private:
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unique_ptr<SaiBufferPoolHandle> egressBufferPool_;
+  std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
 };
 
 } // namespace facebook::fboss

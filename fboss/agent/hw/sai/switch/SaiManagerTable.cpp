@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
@@ -49,6 +50,7 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiAclTableGroupManager>(this, platform);
   aclTableManager_ = std::make_unique<SaiAclTableManager>(this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
+  bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
   hashManager_ = std::make_unique<SaiHashManager>(this);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
@@ -110,6 +112,7 @@ SaiManagerTable::~SaiManagerTable() {
   aclTableGroupManager_.reset();
   aclTableManager_.reset();
 
+  bufferManager_.reset();
   switchManager_.reset();
 }
 
@@ -132,6 +135,13 @@ SaiBridgeManager& SaiManagerTable::bridgeManager() {
 }
 const SaiBridgeManager& SaiManagerTable::bridgeManager() const {
   return *bridgeManager_;
+}
+
+SaiBufferManager& SaiManagerTable::bufferManager() {
+  return *bufferManager_;
+}
+const SaiBufferManager& SaiManagerTable::bufferManager() const {
+  return *bufferManager_;
 }
 
 SaiFdbManager& SaiManagerTable::fdbManager() {
