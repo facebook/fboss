@@ -17,6 +17,7 @@ using std::make_shared;
 TEST(QcmConfigTest, applyConfig) {
   WeightMap map;
 
+  map.emplace(10, 1); // default
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
 
@@ -43,6 +44,7 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_TRUE(qcmConfig1);
   EXPECT_FALSE(qcmConfig1->isPublished());
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
+  EXPECT_EQ(qcmConfig1->getFlowWeightMap(), map);
   // default should kick in
   EXPECT_EQ(
       qcmConfig1->getNumFlowSamplesPerView(),

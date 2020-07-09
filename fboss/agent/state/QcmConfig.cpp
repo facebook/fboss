@@ -40,10 +40,13 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   qcmCfg[kNumFlowsClear] = static_cast<uint32_t>(numFlowsClear);
   qcmCfg[kScanIntervalInUsecs] = static_cast<uint32_t>(scanIntervalInUsecs);
   qcmCfg[kExportThreshold] = static_cast<uint32_t>(exportThreshold);
-  qcmCfg[kFlowWeights] = folly::dynamic::object;
+
+  folly::dynamic flowWeightMap = folly::dynamic::object;
   for (const auto& weight : flowWeights) {
-    qcmCfg[kFlowWeights][weight.first] = weight.second;
+    flowWeightMap[folly::to<std::string>(static_cast<int>(weight.first))] =
+        weight.second;
   }
+  qcmCfg[kFlowWeights] = flowWeightMap;
   qcmCfg[kAgingIntervalInMsecs] = static_cast<uint32_t>(agingIntervalInMsecs);
   qcmCfg[kCollectorDstIp] = folly::IPAddress::networkToString(collectorDstIp);
   qcmCfg[kCollectorSrcPort] = static_cast<uint32_t>(collectorSrcPort);

@@ -1138,7 +1138,9 @@ struct QcmConfig {
   3: i32 numFlowsClear = DEFAULT_QCM_NUM_FLOWS_TO_CLEAR
   4: i32 scanIntervalInUsecs = DEFAULT_QCM_SCAN_INTERVAL_USECS
   5: i32 exportThreshold = DEFAULT_QCM_EXPORT_THRESHOLD
-  6: map<BurstMonitorWeight, i16> flowWeights
+  6: map<BurstMonitorWeight, i16> flowWeights = {
+      BurstMonitorWeight.RANDOM_NUM: 1
+  }
   7: i32 agingIntervalInMsecs = DEFAULT_QCM_AGING_INTERVAL_MSECS
   8: string collectorDstIp
   10: i16 collectorSrcPort
