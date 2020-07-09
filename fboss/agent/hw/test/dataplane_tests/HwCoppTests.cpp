@@ -31,6 +31,8 @@ const auto kIPv6LinkLocalMcastAddress = folly::IPAddressV6("ff02::5");
 const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
 
+const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
+
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
@@ -365,7 +367,8 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           utility::kCoppMidPriQueueId,
           address,
           utility::kNonSpecialPort1,
-          utility::kNonSpecialPort2);
+          utility::kNonSpecialPort2,
+          kMcastMacAddress);
 
       // Also high-pri queue should always be 0
       EXPECT_EQ(
@@ -542,7 +545,7 @@ TEST_F(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
-          std::nullopt,
+          kMcastMacAddress,
           kNetworkControlDscp);
     }
   };
