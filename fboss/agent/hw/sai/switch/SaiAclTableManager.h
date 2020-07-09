@@ -58,6 +58,8 @@ class SaiAclTableManager {
   static auto constexpr kIpProtocolMask = 0xFF;
   static auto constexpr kTcpFlagsMask = 0xFF;
   static auto constexpr kLookupClassMask = 0xFFFFFFFF;
+  // Mask is not applicable for given field
+  static auto constexpr kMaskDontCare = 0;
 
   /*
    * TODO(skhare)
@@ -90,6 +92,8 @@ class SaiAclTableManager {
       int priority) const;
 
   sai_uint32_t swPriorityToSaiPriority(int priority) const;
+
+  sai_acl_ip_frag_t cfgIpFragToSaiIpFrag(cfg::IpFragMatch cfgType) const;
 
  private:
   SaiAclTableHandle* FOLLY_NULLABLE

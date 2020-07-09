@@ -235,6 +235,24 @@ sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
   return saiPriority;
 }
 
+sai_acl_ip_frag_t SaiAclTableManager::cfgIpFragToSaiIpFrag(
+    cfg::IpFragMatch cfgType) const {
+  switch (cfgType) {
+    case cfg::IpFragMatch::MATCH_NOT_FRAGMENTED:
+      return SAI_ACL_IP_FRAG_NON_FRAG;
+    case cfg::IpFragMatch::MATCH_FIRST_FRAGMENT:
+      return SAI_ACL_IP_FRAG_HEAD;
+    case cfg::IpFragMatch::MATCH_NOT_FRAGMENTED_OR_FIRST_FRAGMENT:
+      return SAI_ACL_IP_FRAG_NON_FRAG_OR_HEAD;
+    case cfg::IpFragMatch::MATCH_NOT_FIRST_FRAGMENT:
+      return SAI_ACL_IP_FRAG_NON_HEAD;
+    case cfg::IpFragMatch::MATCH_ANY_FRAGMENT:
+      return SAI_ACL_IP_FRAG_ANY;
+  }
+  // should return in one of the cases
+  throw FbossError("Unsupported IP fragment option");
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
@@ -353,6 +371,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getTcpFlagsBitMap().value(), kTcpFlagsMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldIpFrag> fieldIpFrag{
+      std::nullopt};
+  if (addedAclEntry->getIpFrag()) {
+    auto ipFragData = cfgIpFragToSaiIpFrag(addedAclEntry->getIpFrag().value());
+    fieldIpFrag = SaiAclEntryTraits::Attributes::FieldIpFrag{
+        AclEntryFieldU32(std::make_pair(ipFragData, kMaskDontCare))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
   if (addedAclEntry->getDscp()) {
@@ -450,8 +476,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-         fieldDscp.has_value() || fieldTtl.has_value() ||
-         fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+         fieldIpFrag.has_value() || fieldDscp.has_value() ||
+         fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
+         fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionSetTC.has_value() ||
          aclActionSetDSCP.has_value()))) {
@@ -471,7 +498,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4DstPort,
       fieldIpProtocol,
       fieldTcpFlags,
-      std::nullopt, // ip frag
+      fieldIpFrag,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
@@ -492,7 +519,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4DstPort,
       fieldIpProtocol,
       fieldTcpFlags,
-      std::nullopt, // ip frag
+      fieldIpFrag,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
