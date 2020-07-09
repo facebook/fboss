@@ -159,6 +159,16 @@ void checkSwHwAclMatch(
     EXPECT_EQ(tcpFlagsMaskGot, SaiAclTableManager::kTcpFlagsMask);
   }
 
+  if (swAcl->getIpFrag()) {
+    auto aclFieldIpFragDataExpected =
+        aclTableManager.cfgIpFragToSaiIpFrag(swAcl->getIpFrag().value());
+    auto aclFieldIpFragGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIpFrag());
+    auto [ipFragDataGot, ipFragMaskGot] = aclFieldIpFragGot.getDataAndMask();
+    EXPECT_EQ(ipFragDataGot, aclFieldIpFragDataExpected);
+    EXPECT_EQ(ipFragMaskGot, SaiAclTableManager::kMaskDontCare);
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
