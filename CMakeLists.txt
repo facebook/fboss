@@ -133,7 +133,6 @@ add_fbthrift_cpp_library(
   fboss/agent/switch_state.thrift
   OPTIONS
     json
-    optionals
   DEPENDS
     switch_config_cpp2
 )
