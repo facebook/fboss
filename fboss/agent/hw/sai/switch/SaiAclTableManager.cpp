@@ -471,6 +471,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4DstPort,
       fieldIpProtocol,
       fieldTcpFlags,
+      std::nullopt, // ip frag
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
@@ -491,6 +492,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldL4DstPort,
       fieldIpProtocol,
       fieldTcpFlags,
+      std::nullopt, // ip frag
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,

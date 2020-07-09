@@ -115,6 +115,16 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(2, 0xFF);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kIpFrag() const {
+    return std::make_pair(
+        SAI_ACL_IP_FRAG_ANY, 0 /* mask is N/A for field ip frag */);
+  }
+
+  std::pair<sai_uint32_t, sai_uint32_t> kIpFrag2() const {
+    return std::make_pair(
+        SAI_ACL_IP_FRAG_NON_FRAG, 0 /* mask is N/A for field ip frag */);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     return std::make_pair(10, 0x3F);
   }
@@ -240,6 +250,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kIpProtocol())};
     SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute{
         AclEntryFieldU8(kTcpFlags())};
+    SaiAclEntryTraits::Attributes::FieldIpFrag aclFieldIpFragAttribute{
+        AclEntryFieldU32(kIpFrag())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
     SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
@@ -271,6 +283,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldL4DstPortAttribute,
          aclFieldIpProtocolAttribute,
          aclFieldTcpFlagsAttribute,
+         aclFieldIpFragAttribute,
          aclFieldDscpAttribute,
          aclFieldTtlAttribute,
          aclFieldFdbDstUserMetaAttribute,
@@ -350,6 +363,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint16_t, sai_uint16_t>& L4DstPort,
       const std::pair<sai_uint8_t, sai_uint8_t>& ipProtocol,
       const std::pair<sai_uint8_t, sai_uint8_t>& tcpFlags,
+      const std::pair<sai_uint32_t, sai_uint32_t>& ipFrag,
       const std::pair<sai_uint8_t, sai_uint8_t>& dscp,
       const std::pair<sai_uint8_t, sai_uint8_t>& ttl,
       const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
@@ -377,6 +391,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIpProtocol());
     auto aclFieldTcpFlagsGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldTcpFlags());
+    auto aclFieldIpFragGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIpFrag());
     auto aclFieldDscpGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
     auto aclFieldTtlGot = aclApi->getAttribute(
@@ -405,6 +421,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldL4DstPortGot.getDataAndMask(), L4DstPort);
     EXPECT_EQ(aclFieldIpProtocolGot.getDataAndMask(), ipProtocol);
     EXPECT_EQ(aclFieldTcpFlagsGot.getDataAndMask(), tcpFlags);
+    EXPECT_EQ(aclFieldIpFragGot.getDataAndMask(), ipFrag);
     EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), dscp);
     EXPECT_EQ(aclFieldTtlGot.getDataAndMask(), ttl);
     EXPECT_EQ(aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbDstUserMeta);
@@ -574,6 +591,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kL4DstPort(),
       kIpProtocol(),
       kTcpFlags(),
+      kIpFrag(),
       kDscp(),
       kTtl(),
       kFdbDstUserMeta(),
@@ -681,6 +699,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kIpProtocol2())};
   SaiAclEntryTraits::Attributes::FieldTcpFlags aclFieldTcpFlagsAttribute2{
       AclEntryFieldU8(kTcpFlags2())};
+  SaiAclEntryTraits::Attributes::FieldIpFrag aclFieldIpFragAttribute2{
+      AclEntryFieldU32(kIpFrag2())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
       AclEntryFieldU8(kDscp2())};
   SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute2{
@@ -711,6 +731,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldL4DstPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIpProtocolAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldTcpFlagsAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldIpFragAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldTtlAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
@@ -731,6 +752,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kL4DstPort2(),
       kIpProtocol2(),
       kTcpFlags2(),
+      kIpFrag2(),
       kDscp2(),
       kTtl2(),
       kFdbDstUserMeta2(),

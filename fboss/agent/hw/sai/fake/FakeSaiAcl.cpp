@@ -370,6 +370,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldTcpFlagsMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
+      aclEntry.fieldIpFragEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIpFragData = attr->value.aclfield.data.u32;
+      aclEntry.fieldIpFragMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
       aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
@@ -482,6 +488,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldTcpFlagsEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldTcpFlagsData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldTcpFlagsMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIpFragEnable;
+        attr_list[i].value.aclfield.data.u32 = aclEntry.fieldIpFragData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldIpFragMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
