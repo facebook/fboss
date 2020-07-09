@@ -57,6 +57,47 @@ SAI_ATTRIBUTE_NAME(BufferPool, Type);
 SAI_ATTRIBUTE_NAME(BufferPool, Size);
 SAI_ATTRIBUTE_NAME(BufferPool, ThresholdMode);
 
+template <>
+struct SaiObjectHasStats<SaiBufferPoolTraits> : public std::true_type {};
+
+struct SaiBufferProfileTraits {
+  static constexpr sai_api_t ApiType = SAI_API_BUFFER;
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_BUFFER_PROFILE;
+  using SaiApiT = BufferApi;
+  struct Attributes {
+    using EnumType = sai_buffer_profile_attr_t;
+    using PoolId = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_POOL_ID,
+        sai_object_id_t>;
+    using ReservedBytes = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE,
+        sai_uint64_t>;
+    using ThresholdMode = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE,
+        sai_int32_t>;
+    using SharedDynamicThreshold = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH,
+        sai_int8_t>;
+    using SharedStaticThreshold = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH,
+        sai_int8_t>;
+  };
+  using AdapterKey = BufferProfileSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::PoolId,
+      Attributes::ReservedBytes,
+      Attributes::ThresholdMode,
+      Attributes::SharedDynamicThreshold,
+      Attributes::SharedStaticThreshold>;
+  using AdapterHostKey = CreateAttributes;
+};
+
 class BufferApi : public SaiApi<BufferApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;
