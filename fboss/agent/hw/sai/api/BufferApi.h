@@ -49,7 +49,7 @@ struct SaiBufferPoolTraits {
 
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToRead = {};
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
-    SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
+      SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
   };
 };
 
