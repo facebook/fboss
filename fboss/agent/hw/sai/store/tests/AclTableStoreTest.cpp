@@ -87,6 +87,14 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(1 /* Host unreachable */, 0xFF);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Type() const {
+    return std::make_pair(1 /* Destination unreachable */, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Code() const {
+    return std::make_pair(4 /* Port unreachable */, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     return std::make_pair(10, 0x3F);
   }
@@ -166,6 +174,8 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kIpFrag()),
             AclEntryFieldU8(this->kIcmpV4Type()),
             AclEntryFieldU8(this->kIcmpV4Code()),
+            AclEntryFieldU8(this->kIcmpV6Type()),
+            AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
             AclEntryFieldU8(this->kTtl()),
             AclEntryFieldU32(this->kFdbDstUserMeta()),
@@ -277,6 +287,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kIpFrag(),
                                       this->kIcmpV4Type(),
                                       this->kIcmpV4Code(),
+                                      this->kIcmpV6Type(),
+                                      this->kIcmpV6Code(),
                                       this->kDscp(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
@@ -377,6 +389,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kIpFrag(),
                                         this->kIcmpV4Type(),
                                         this->kIcmpV4Code(),
+                                        this->kIcmpV6Type(),
+                                        this->kIcmpV6Code(),
                                         this->kDscp(),
                                         this->kTtl(),
                                         this->kFdbDstUserMeta(),
@@ -398,6 +412,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kIpFrag(),
                                       this->kIcmpV4Type(),
                                       this->kIcmpV4Code(),
+                                      this->kIcmpV6Type(),
+                                      this->kIcmpV6Code(),
                                       this->kDscp(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),

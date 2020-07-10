@@ -424,6 +424,18 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldIcmpV4CodeMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
+      aclEntry.fieldIcmpV6TypeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIcmpV6TypeData = attr->value.aclfield.data.u8;
+      aclEntry.fieldIcmpV6TypeMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE:
+      aclEntry.fieldIcmpV6CodeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIcmpV6CodeData = attr->value.aclfield.data.u8;
+      aclEntry.fieldIcmpV6CodeMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       aclEntry.fieldDscpEnable = attr->value.aclfield.enable;
       aclEntry.fieldDscpData = attr->value.aclfield.data.u8;
@@ -551,6 +563,16 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldIcmpV4CodeEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldIcmpV4CodeData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIcmpV4CodeMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIcmpV6TypeEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldIcmpV6TypeData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIcmpV6TypeMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIcmpV6CodeEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldIcmpV6CodeData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIcmpV6CodeMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;

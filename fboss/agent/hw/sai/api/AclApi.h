@@ -315,6 +315,14 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_ICMP_CODE,
         AclEntryFieldU8>;
+    using FieldIcmpV6Type = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE,
+        AclEntryFieldU8>;
+    using FieldIcmpV6Code = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE,
+        AclEntryFieldU8>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_DSCP, AclEntryFieldU8>;
     using FieldTtl =
@@ -365,6 +373,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
       std::optional<Attributes::FieldIcmpV4Code>,
+      std::optional<Attributes::FieldIcmpV6Type>,
+      std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
@@ -387,6 +397,8 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
       std::optional<Attributes::FieldIcmpV4Code>,
+      std::optional<Attributes::FieldIcmpV6Type>,
+      std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldTtl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
@@ -410,6 +422,8 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTcpFlags);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpFrag);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV4Type);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV4Code);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Type);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDscp);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);

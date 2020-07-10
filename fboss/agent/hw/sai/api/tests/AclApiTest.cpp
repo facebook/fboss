@@ -141,6 +141,22 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(1 /* Redirect Datagram for the host*/, 0xFF);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Type() const {
+    return std::make_pair(1 /* Destination unreachable */, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Type2() const {
+    return std::make_pair(3 /* Time exceeded */, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Code() const {
+    return std::make_pair(4 /* Port unreachable */, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV6Code2() const {
+    return std::make_pair(1 /* Fragment reassembly time exceeded */, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     return std::make_pair(10, 0x3F);
   }
@@ -276,6 +292,10 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kIcmpV4Type())};
     SaiAclEntryTraits::Attributes::FieldIcmpV4Code aclFieldIcmpV4CodeAttribute{
         AclEntryFieldU8(kIcmpV4Code())};
+    SaiAclEntryTraits::Attributes::FieldIcmpV6Type aclFieldIcmpV6TypeAttribute{
+        AclEntryFieldU8(kIcmpV6Type())};
+    SaiAclEntryTraits::Attributes::FieldIcmpV6Code aclFieldIcmpV6CodeAttribute{
+        AclEntryFieldU8(kIcmpV6Code())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
     SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
@@ -310,6 +330,8 @@ class AclApiTest : public ::testing::Test {
          aclFieldIpFragAttribute,
          aclFieldIcmpV4TypeAttribute,
          aclFieldIcmpV4CodeAttribute,
+         aclFieldIcmpV6TypeAttribute,
+         aclFieldIcmpV6CodeAttribute,
          aclFieldDscpAttribute,
          aclFieldTtlAttribute,
          aclFieldFdbDstUserMetaAttribute,
@@ -392,6 +414,8 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& ipFrag,
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV4Type,
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV4Code,
+      const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Type,
+      const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Code,
       const std::pair<sai_uint8_t, sai_uint8_t>& dscp,
       const std::pair<sai_uint8_t, sai_uint8_t>& ttl,
       const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
@@ -425,6 +449,10 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Type());
     auto aclFieldIcmpV4CodeGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Code());
+    auto aclFieldIcmpV6TypeGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Type());
+    auto aclFieldIcmpV6CodeGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Code());
     auto aclFieldDscpGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
     auto aclFieldTtlGot = aclApi->getAttribute(
@@ -456,6 +484,8 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldIpFragGot.getDataAndMask(), ipFrag);
     EXPECT_EQ(aclFieldIcmpV4TypeGot.getDataAndMask(), icmpV4Type);
     EXPECT_EQ(aclFieldIcmpV4CodeGot.getDataAndMask(), icmpV4Code);
+    EXPECT_EQ(aclFieldIcmpV6TypeGot.getDataAndMask(), icmpV6Type);
+    EXPECT_EQ(aclFieldIcmpV6CodeGot.getDataAndMask(), icmpV6Code);
     EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), dscp);
     EXPECT_EQ(aclFieldTtlGot.getDataAndMask(), ttl);
     EXPECT_EQ(aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbDstUserMeta);
@@ -640,6 +670,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kIpFrag(),
       kIcmpV4Type(),
       kIcmpV4Code(),
+      kIcmpV6Type(),
+      kIcmpV6Code(),
       kDscp(),
       kTtl(),
       kFdbDstUserMeta(),
@@ -761,6 +793,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kIcmpV4Type2())};
   SaiAclEntryTraits::Attributes::FieldIcmpV4Code aclFieldIcmpV4CodeAttribute2{
       AclEntryFieldU8(kIcmpV4Code2())};
+  SaiAclEntryTraits::Attributes::FieldIcmpV6Type aclFieldIcmpV6TypeAttribute2{
+      AclEntryFieldU8(kIcmpV6Type2())};
+  SaiAclEntryTraits::Attributes::FieldIcmpV6Code aclFieldIcmpV6CodeAttribute2{
+      AclEntryFieldU8(kIcmpV6Code2())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
       AclEntryFieldU8(kDscp2())};
   SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute2{
@@ -794,6 +830,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldIpFragAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV4TypeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV4CodeAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldIcmpV6TypeAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldIcmpV6CodeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldTtlAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
@@ -817,6 +855,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kIpFrag2(),
       kIcmpV4Type2(),
       kIcmpV4Code2(),
+      kIcmpV6Type2(),
+      kIcmpV6Code2(),
       kDscp2(),
       kTtl2(),
       kFdbDstUserMeta2(),
