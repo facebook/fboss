@@ -158,6 +158,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdT, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 
@@ -298,6 +299,33 @@ inline void _fill(
       facebook::fboss::toSaiIpAddress(src.getDataAndMask().first).addr.ip4;
   dst.mask.ip4 =
       facebook::fboss::toSaiIpAddress(src.getDataAndMask().second).addr.ip4;
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldSaiObjectIdT& dst) {
+  /*
+   * Mask is not needed for sai_object_id_t Acl Entry field.
+   * Thus, there is no oid field in sai_acl_field_data_mask_t.
+   * oid is u64, but unfortunately, u64 was not added to
+   * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
+   * This will be ignored by the implementation anyway.
+   */
+  dst.setDataAndMask(std::make_pair(src.data.oid, src.mask.u32));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldSaiObjectIdT& src,
+    sai_acl_field_data_t& dst) {
+  /*
+   * Mask is not needed for sai_object_id_t Acl Entry field.
+   * Thus, there is no oid field in sai_acl_field_data_mask_t.
+   * oid is u64, but unfortunately, u64 was not added to
+   * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
+   * This will be ignored by the implementation anyway.
+   */
+  dst.enable = true;
+  std::tie(dst.data.oid, dst.mask.u32) = src.getDataAndMask();
 }
 
 inline void _fill(

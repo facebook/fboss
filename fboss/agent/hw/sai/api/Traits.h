@@ -155,6 +155,16 @@ using AclEntryFieldIpV6 =
 using AclEntryFieldIpV4 =
     AclEntryField<std::pair<folly::IPAddressV4, folly::IPAddressV4>>;
 
+/*
+ * Mask is not needed for sai_object_id_t Acl Entry field.
+ * Thus, there is no oid field in sai_acl_field_data_mask_t.
+ * oid is u64, but unfortunately, u64 was not added to
+ * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
+ * This will be ignored by the implementation anyway.
+ */
+using AclEntryFieldSaiObjectIdT =
+    AclEntryField<std::pair<sai_object_id_t, sai_uint32_t>>;
+
 template <typename T>
 class AclEntryAction {
  public:

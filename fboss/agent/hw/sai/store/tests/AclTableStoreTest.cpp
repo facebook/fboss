@@ -58,6 +58,10 @@ class AclTableStoreTest : public SaiStoreTest {
         folly::IPAddressV4("20.0.0.1"), folly::IPAddressV4("255.255.255.0"));
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kOutPort() const {
+    return std::make_pair(42, 0);
+  }
+
   std::pair<sai_uint16_t, sai_uint16_t> kL4SrcPort() const {
     return std::make_pair(9001, 0xFFFF);
   }
@@ -167,6 +171,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldIpV6(this->kDstIpV6()),
             AclEntryFieldIpV4(this->kSrcIpV4()),
             AclEntryFieldIpV4(this->kDstIpV4()),
+            AclEntryFieldSaiObjectIdT(this->kOutPort()),
             AclEntryFieldU16(this->kL4SrcPort()),
             AclEntryFieldU16(this->kL4DstPort()),
             AclEntryFieldU8(this->kIpProtocol()),
@@ -280,6 +285,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kDstIpV6(),
                                       this->kSrcIpV4(),
                                       this->kDstIpV4(),
+                                      this->kOutPort(),
                                       this->kL4SrcPort(),
                                       this->kL4DstPort(),
                                       this->kIpProtocol(),
@@ -382,6 +388,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kDstIpV6(),
                                         this->kSrcIpV4(),
                                         this->kDstIpV4(),
+                                        this->kOutPort(),
                                         this->kL4SrcPort(),
                                         this->kL4DstPort(),
                                         this->kIpProtocol(),
@@ -405,6 +412,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kDstIpV6(),
                                       this->kSrcIpV4(),
                                       this->kDstIpV4(),
+                                      this->kOutPort(),
                                       this->kL4SrcPort(),
                                       this->kL4DstPort(),
                                       this->kIpProtocol(),
