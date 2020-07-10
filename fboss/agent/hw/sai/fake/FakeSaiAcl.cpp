@@ -36,6 +36,8 @@ sai_status_t create_acl_table_fn(
   bool fieldInPort = 0;
   bool fieldOutPort = 0;
   bool fieldIpFrag = 0;
+  bool fieldIcmpV4Type = 0;
+  bool fieldIcmpV4Code = 0;
   bool fieldDscp = 0;
   bool fieldDstMac = 0;
   bool fieldIpType = 0;
@@ -93,6 +95,12 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG:
         fieldIpFrag = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_TYPE:
+        fieldIcmpV4Type = attr_list[i].value.booldata;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_CODE:
+        fieldIcmpV4Code = attr_list[i].value.booldata;
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
         fieldDscp = attr_list[i].value.booldata;
         break;
@@ -139,6 +147,8 @@ sai_status_t create_acl_table_fn(
       fieldInPort,
       fieldOutPort,
       fieldIpFrag,
+      fieldIcmpV4Type,
+      fieldIcmpV4Code,
       fieldDscp,
       fieldDstMac,
       fieldIpType,
@@ -262,6 +272,14 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldIpFrag;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_TYPE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldIcmpV4Type;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_CODE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldIcmpV4Code;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);

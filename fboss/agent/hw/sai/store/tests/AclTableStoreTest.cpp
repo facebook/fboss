@@ -126,6 +126,8 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // inPort
             true, // outPort
             true, // ipFrag
+            true, // icmpv4Type
+            true, // icmpv4Code
             true, // dscp
             true, // dstMac
             true, // ipType
@@ -188,6 +190,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // inPort
       true, // outPort
       true, // ipFrag
+      true, // icmpv4Type
+      true, // icmpv4Code
       true, // dscp
       true, // dstMac
       true, // ipType
@@ -216,6 +220,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
       true, // inPort
       true, // outPort
       true, // ipFrag
+      true, // icmpv4Type
+      true, // icmpv4Code
       true, // dscp
       true, // dstMac
       true, // ipType
@@ -294,6 +300,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // inPort
       true, // outPort
       true, // ipFrag
+      true, // icmpv4Type
+      true, // icmpv4Code
       true, // dscp
       true, // dstMac
       true, // ipType
@@ -316,6 +324,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // inPort
       true, // outPort
       true, // ipFrag
+      true, // icmpv4Type
+      true, // icmpv4Code
       true, // dscp
       true, // dstMac
       true, // ipType

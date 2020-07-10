@@ -55,6 +55,8 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // inPort
             true, // outPort
             true, // ipFrag
+            true, // icmpv4Type
+            true, // icmpv4Code
             true, // dscp
             true, // dstMac
             true, // ipType
