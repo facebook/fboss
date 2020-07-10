@@ -170,26 +170,47 @@ void checkSwHwAclMatch(
   }
 
   if (swAcl->getIcmpType()) {
-    if (swAcl->getProto() &&
-        swAcl->getProto().value() == AclEntryFields::kProtoIcmp) {
-      auto aclFieldIcmpV4TypeGot =
-          SaiApiTable::getInstance()->aclApi().getAttribute(
-              aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Type());
-      auto [icmpV4TypeDataGot, icmpV4TypeMaskGot] =
-          aclFieldIcmpV4TypeGot.getDataAndMask();
-
-      EXPECT_EQ(icmpV4TypeDataGot, swAcl->getIcmpType().value());
-      EXPECT_EQ(icmpV4TypeMaskGot, SaiAclTableManager::kIcmpTypeMask);
-
-      if (swAcl->getIcmpCode()) {
-        auto aclFieldIcmpV4CodeGot =
+    if (swAcl->getProto()) {
+      if (swAcl->getProto().value() == AclEntryFields::kProtoIcmp) {
+        auto aclFieldIcmpV4TypeGot =
             SaiApiTable::getInstance()->aclApi().getAttribute(
-                aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Code());
-        auto [icmpV4CodeDataGot, icmpV4CodeMaskGot] =
-            aclFieldIcmpV4CodeGot.getDataAndMask();
+                aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Type());
+        auto [icmpV4TypeDataGot, icmpV4TypeMaskGot] =
+            aclFieldIcmpV4TypeGot.getDataAndMask();
 
-        EXPECT_EQ(icmpV4CodeDataGot, swAcl->getIcmpCode().value());
-        EXPECT_EQ(icmpV4CodeMaskGot, SaiAclTableManager::kIcmpCodeMask);
+        EXPECT_EQ(icmpV4TypeDataGot, swAcl->getIcmpType().value());
+        EXPECT_EQ(icmpV4TypeMaskGot, SaiAclTableManager::kIcmpTypeMask);
+
+        if (swAcl->getIcmpCode()) {
+          auto aclFieldIcmpV4CodeGot =
+              SaiApiTable::getInstance()->aclApi().getAttribute(
+                  aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Code());
+          auto [icmpV4CodeDataGot, icmpV4CodeMaskGot] =
+              aclFieldIcmpV4CodeGot.getDataAndMask();
+
+          EXPECT_EQ(icmpV4CodeDataGot, swAcl->getIcmpCode().value());
+          EXPECT_EQ(icmpV4CodeMaskGot, SaiAclTableManager::kIcmpCodeMask);
+        }
+      } else if (swAcl->getProto().value() == AclEntryFields::kProtoIcmpv6) {
+        auto aclFieldIcmpV6TypeGot =
+            SaiApiTable::getInstance()->aclApi().getAttribute(
+                aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Type());
+        auto [icmpV6TypeDataGot, icmpV6TypeMaskGot] =
+            aclFieldIcmpV6TypeGot.getDataAndMask();
+
+        EXPECT_EQ(icmpV6TypeDataGot, swAcl->getIcmpType().value());
+        EXPECT_EQ(icmpV6TypeMaskGot, SaiAclTableManager::kIcmpTypeMask);
+
+        if (swAcl->getIcmpCode()) {
+          auto aclFieldIcmpV6CodeGot =
+              SaiApiTable::getInstance()->aclApi().getAttribute(
+                  aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Code());
+          auto [icmpV6CodeDataGot, icmpV6CodeMaskGot] =
+              aclFieldIcmpV6CodeGot.getDataAndMask();
+
+          EXPECT_EQ(icmpV6CodeDataGot, swAcl->getIcmpCode().value());
+          EXPECT_EQ(icmpV6CodeMaskGot, SaiAclTableManager::kIcmpCodeMask);
+        }
       }
     }
   }
