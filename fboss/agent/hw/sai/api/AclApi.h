@@ -149,6 +149,10 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMP_TYPE, bool>;
     using FieldIcmpV4Code =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMP_CODE, bool>;
+    using FieldIcmpV6Type =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_TYPE, bool>;
+    using FieldIcmpV6Code =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_CODE, bool>;
     using FieldDscp =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DSCP, bool>;
     using FieldDstMac =
@@ -188,6 +192,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
       std::optional<Attributes::FieldIcmpV4Code>,
+      std::optional<Attributes::FieldIcmpV6Type>,
+      std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
@@ -213,6 +219,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
       std::optional<Attributes::FieldIcmpV4Code>,
+      std::optional<Attributes::FieldIcmpV6Type>,
+      std::optional<Attributes::FieldIcmpV6Code>,
       std::optional<Attributes::FieldDscp>,
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
@@ -239,6 +247,8 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldOutPort);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpFrag);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV4Type);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV4Code);
+SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Type);
+SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV6Code);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDscp);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);

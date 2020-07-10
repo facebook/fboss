@@ -97,6 +97,14 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
           HwAsic::AsicType::ASIC_TYPE_TRIDENT2
       ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV4Code{true})
       : std::nullopt;
+  auto fieldIcmpV6Type = platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV6Type{true})
+      : std::nullopt;
+  auto fieldIcmpV6Code = platform_->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV6Code{true})
+      : std::nullopt;
 
   /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
@@ -129,6 +137,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // ipFrag
       fieldIcmpV4Type,
       fieldIcmpV4Code,
+      fieldIcmpV6Type,
+      fieldIcmpV6Code,
       true, // dscp
       true, // dstMac
       true, // ipType
@@ -154,6 +164,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // ipFrag
       fieldIcmpV4Type,
       fieldIcmpV4Code,
+      fieldIcmpV6Type,
+      fieldIcmpV6Code,
       true, // dscp
       true, // dstMac
       true, // ipType

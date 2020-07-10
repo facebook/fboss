@@ -164,6 +164,8 @@ class FakeAclTable {
       bool fieldIpFrag,
       bool fieldIcmpV4Type,
       bool fieldIcmpV4Code,
+      bool fieldIcmpV6Type,
+      bool fieldIcmpV6Code,
       bool fieldDscp,
       bool fieldDstMac,
       bool fieldIpType,
@@ -187,6 +189,8 @@ class FakeAclTable {
         fieldIpFrag(fieldIpFrag),
         fieldIcmpV4Type(fieldIcmpV4Type),
         fieldIcmpV4Code(fieldIcmpV4Code),
+        fieldIcmpV6Type(fieldIcmpV6Type),
+        fieldIcmpV6Code(fieldIcmpV6Code),
         fieldDscp(fieldDscp),
         fieldDstMac(fieldDstMac),
         fieldIpType(fieldIpType),
@@ -215,6 +219,8 @@ class FakeAclTable {
   bool fieldIpFrag;
   bool fieldIcmpV4Type;
   bool fieldIcmpV4Code;
+  bool fieldIcmpV6Type;
+  bool fieldIcmpV6Code;
   bool fieldDscp;
   bool fieldDstMac;
   bool fieldIpType;

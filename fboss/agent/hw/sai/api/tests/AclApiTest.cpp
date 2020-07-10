@@ -238,6 +238,8 @@ class AclApiTest : public ::testing::Test {
             true, // ipFrag
             true, // icmpV4Type
             true, // icmpV4Code
+            true, // icmpV6Type
+            true, // icmpV6Code
             true, // dscp
             true, // dstMac
             true, // ipType
@@ -566,6 +568,10 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldIcmpV4Type());
   auto aclTableFieldIcmpV4CodeGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldIcmpV4Code());
+  auto aclTableFieldIcmpV6TypeGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldIcmpV6Type());
+  auto aclTableFieldIcmpV6CodeGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldIcmpV6Code());
   auto aclTableFieldDscpGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldDscp());
   auto aclTableFieldDstMacGot = aclApi->getAttribute(
@@ -602,6 +608,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableFieldIpFragGot, true);
   EXPECT_EQ(aclTableFieldIcmpV4TypeGot, true);
   EXPECT_EQ(aclTableFieldIcmpV4CodeGot, true);
+  EXPECT_EQ(aclTableFieldIcmpV6TypeGot, true);
+  EXPECT_EQ(aclTableFieldIcmpV6CodeGot, true);
   EXPECT_EQ(aclTableFieldDscpGot, true);
   EXPECT_EQ(aclTableFieldDstMacGot, true);
   EXPECT_EQ(aclTableFieldIpTypeGot, true);
@@ -669,6 +677,8 @@ TEST_F(AclApiTest, setAclTableAttribute) {
   SaiAclTableTraits::Attributes::FieldIpFrag fieldIpFrag{false};
   SaiAclTableTraits::Attributes::FieldIcmpV4Type fieldIcmpV4Type{false};
   SaiAclTableTraits::Attributes::FieldIcmpV4Code fieldIcmpV4Code{false};
+  SaiAclTableTraits::Attributes::FieldIcmpV6Type fieldIcmpV6Type{false};
+  SaiAclTableTraits::Attributes::FieldIcmpV6Code fieldIcmpV6Code{false};
   SaiAclTableTraits::Attributes::FieldDscp fieldDscp{false};
   SaiAclTableTraits::Attributes::FieldDstMac fieldDstMac{false};
   SaiAclTableTraits::Attributes::FieldIpType fieldIpType{false};
@@ -698,6 +708,8 @@ TEST_F(AclApiTest, setAclTableAttribute) {
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpFrag), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIcmpV4Type), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIcmpV4Code), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIcmpV6Type), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIcmpV6Code), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDscp), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldDstMac), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpType), SaiApiError);
