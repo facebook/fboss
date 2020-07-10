@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
 

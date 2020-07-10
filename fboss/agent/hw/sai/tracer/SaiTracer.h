@@ -58,6 +58,9 @@ class SaiTracer {
       sai_object_id_t object_id,
       sai_object_type_t object_type);
 
+  uint32_t
+  checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
+
   sai_acl_api_t* aclApi_;
 
  private:
@@ -80,23 +83,45 @@ class SaiTracer {
       uint32_t attr_count,
       sai_object_type_t object_type);
 
+  void checkAttrCount(uint32_t attr_count);
+
   // Init functions
   void setupGlobals();
   void initVarCounts();
 
+  uint32_t maxAttrCount_;
+  uint32_t maxListCount_;
   folly::Synchronized<folly::File> saiLogFile_;
 
   // Variables mappings in generated C code
   std::map<sai_object_type_t, std::atomic<uint32_t>> varCounts_;
 
-  std::map<sai_object_type_t, std::string> varNames_;
+  std::map<sai_object_type_t, std::string> varNames_{
+      {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
+      {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
+      {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
+      {SAI_OBJECT_TYPE_SWITCH, "switch_"}};
+
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableGroupMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>>
+      aclTableGroupMemberMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
 
   std::map<
       sai_object_type_t,
       folly::Synchronized<std::map<sai_object_id_t, std::string>>>
-      variables_;
+      variables_{
+          {SAI_OBJECT_TYPE_ACL_TABLE, aclTableMap_},
+          {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, aclTableGroupMap_},
+          {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, aclTableGroupMemberMap_},
+          {SAI_OBJECT_TYPE_SWITCH, switchMap_}};
 
-  std::map<sai_object_type_t, std::string> fnPrefix_;
+  std::map<sai_object_type_t, std::string> fnPrefix_{
+      {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
+      {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
+      {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
+      {SAI_OBJECT_TYPE_SWITCH, "switch_api->"}};
 };
 
 } // namespace facebook::fboss

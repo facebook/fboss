@@ -29,6 +29,16 @@ DEFINE_bool(
 
 DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
 
+DEFINE_int32(
+    default_list_size,
+    128,
+    "Default size of the lists initialzied by SAI replayer");
+
+DEFINE_int32(
+    default_list_count,
+    6,
+    "Default number of the lists initialzied by SAI replayer");
+
 using folly::to;
 using std::string;
 using std::vector;
@@ -236,6 +246,8 @@ vector<string> SaiTracer::setAttrList(
     return {};
   }
 
+  checkAttrCount(attr_count);
+
   auto constexpr sai_attribute = "sai_attributes";
   vector<string> attrLines;
 
@@ -287,8 +299,64 @@ string SaiTracer::createFnCall(
       ", sai_attributes)");
 }
 
-void SaiTracer::setupGlobals() {}
+void SaiTracer::checkAttrCount(uint32_t attr_count) {
+  // If any object has more than the current sai_attribute list has (128 by
+  // default), sai_attributes will be reallocated to have enough space for all
+  // attributes
+  if (attr_count > maxAttrCount_) {
+    maxAttrCount_ = attr_count;
+    writeToFile({to<string>(
+        "sai_attributes = (sai_attribute_t*)realloc(sai_attributes, sizeof(sai_attribute_t) * ",
+        maxAttrCount_,
+        ")")});
+  }
+}
 
-void SaiTracer::initVarCounts() {}
+uint32_t SaiTracer::checkListCount(
+    uint32_t list_count,
+    uint32_t elem_size,
+    uint32_t elem_count) {
+  // If any object uses more than the current number of lists (6 by default),
+  // sai replayer will initialize more lists on stack
+  if (list_count > maxListCount_) {
+    writeToFile({to<string>("int list_", maxListCount_, "[128]")});
+    maxListCount_ = list_count;
+  }
+
+  // TODO(zecheng): Handle list size that's larger than 512 bytes.
+  if (elem_size * elem_count > FLAGS_default_list_size * sizeof(int)) {
+    writeToFile({to<string>(
+        "printf(\"[ERROR] The replayed program is using more than ",
+        FLAGS_default_list_size * sizeof(int),
+        " bytes in a list attribute. Excess bytes will not be included.\")")});
+  }
+
+  // Return the maximum number of elements can be written into the list
+  return FLAGS_default_list_size * sizeof(int) / elem_size;
+}
+
+void SaiTracer::setupGlobals() {
+  // TODO(zecheng): Handle list size that's larger than 512 bytes.
+
+  vector<string> globalVar = {to<string>(
+      "sai_attribute_t *sai_attributes = malloc(sizeof(sai_attribute_t) * ",
+      FLAGS_default_list_size,
+      ")")};
+  for (int i = 0; i < FLAGS_default_list_count; i++) {
+    globalVar.push_back(
+        to<string>("int list_", i, "[", FLAGS_default_list_size, "]"));
+  }
+  writeToFile(globalVar);
+
+  maxAttrCount_ = FLAGS_default_list_size;
+  maxListCount_ = FLAGS_default_list_count;
+}
+
+void SaiTracer::initVarCounts() {
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+}
 
 } // namespace facebook::fboss

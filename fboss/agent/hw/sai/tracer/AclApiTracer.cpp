@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
 
