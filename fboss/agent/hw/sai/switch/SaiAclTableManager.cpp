@@ -416,6 +416,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV4Code> fieldIcmpV4Code{
       std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV6Type> fieldIcmpV6Type{
+      std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV6Code> fieldIcmpV6Code{
+      std::nullopt};
   if (addedAclEntry->getIcmpType()) {
     if (platform_->getAsic()->getAsicType() ==
         HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
@@ -425,15 +429,26 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           addedAclEntry->getID());
     }
 
-    if (addedAclEntry->getProto() &&
-        addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmp) {
-      fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
-          AclEntryFieldU8(std::make_pair(
-              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
-      if (addedAclEntry->getIcmpCode()) {
-        fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
+    if (addedAclEntry->getProto()) {
+      if (addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmp) {
+        fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
             AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+        if (addedAclEntry->getIcmpCode()) {
+          fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
+              AclEntryFieldU8(std::make_pair(
+                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+        }
+      } else if (
+          addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmpv6) {
+        fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
+            AclEntryFieldU8(std::make_pair(
+                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+        if (addedAclEntry->getIcmpCode()) {
+          fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
+              AclEntryFieldU8(std::make_pair(
+                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+        }
       }
     }
   }
@@ -536,7 +551,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
          fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-         fieldIcmpV4Code.has_value() || fieldDscp.has_value() ||
+         fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
+         fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
          fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
          fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
@@ -561,8 +577,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpFrag,
       fieldIcmpV4Type,
       fieldIcmpV4Code,
-      std::nullopt, // icmpV6Type
-      std::nullopt, // icmpV6Code
+      fieldIcmpV6Type,
+      fieldIcmpV6Code,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
@@ -586,8 +602,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpFrag,
       fieldIcmpV4Type,
       fieldIcmpV4Code,
-      std::nullopt, // icmpV6Type
-      std::nullopt, // icmpV6Code
+      fieldIcmpV6Type,
+      fieldIcmpV6Code,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
