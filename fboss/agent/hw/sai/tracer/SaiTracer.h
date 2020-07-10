@@ -38,7 +38,8 @@ class SaiTracer {
   void logSwitchCreateFn(
       sai_object_id_t* switch_id,
       uint32_t attr_count,
-      const sai_attribute_t* attr_list);
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
 
   void logCreateFn(
       const std::string& fn_name,
@@ -46,18 +47,21 @@ class SaiTracer {
       sai_object_id_t switch_id,
       uint32_t attr_count,
       const sai_attribute_t* attr_list,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv);
 
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv);
 
   void logSetAttrFn(
       const std::string& fn_name,
       sai_object_id_t set_object_id,
       const sai_attribute_t* attr,
-      sai_object_type_t object_type);
+      sai_object_type_t object_type,
+      sai_status_t rv);
 
   std::string getVariable(
       sai_object_id_t object_id,
@@ -92,6 +96,8 @@ class SaiTracer {
       uint32_t attr_count,
       sai_object_type_t object_type);
 
+  std::string rvCheck(sai_status_t rv);
+
   void checkAttrCount(uint32_t attr_count);
 
   // Init functions
@@ -100,6 +106,7 @@ class SaiTracer {
 
   uint32_t maxAttrCount_;
   uint32_t maxListCount_;
+  uint32_t numCalls_;
   folly::Synchronized<folly::File> saiLogFile_;
 
   // Variables mappings in generated C code

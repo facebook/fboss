@@ -27,7 +27,8 @@ sai_status_t wrap_create_port(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_PORT);
+      SAI_OBJECT_TYPE_PORT,
+      rv);
   return rv;
 }
 
@@ -35,7 +36,7 @@ sai_status_t wrap_remove_port(sai_object_id_t port_id) {
   auto rv = SaiTracer::getInstance()->portApi_->remove_port(port_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_port", port_id, SAI_OBJECT_TYPE_PORT);
+      "remove_port", port_id, SAI_OBJECT_TYPE_PORT, rv);
   return rv;
 }
 
@@ -46,7 +47,7 @@ sai_status_t wrap_set_port_attribute(
       SaiTracer::getInstance()->portApi_->set_port_attribute(port_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_port_attribute", port_id, attr, SAI_OBJECT_TYPE_PORT);
+      "set_port_attribute", port_id, attr, SAI_OBJECT_TYPE_PORT, rv);
   return rv;
 }
 

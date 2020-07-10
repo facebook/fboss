@@ -27,7 +27,8 @@ sai_status_t wrap_create_bridge(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_BRIDGE);
+      SAI_OBJECT_TYPE_BRIDGE,
+      rv);
   return rv;
 }
 
@@ -35,7 +36,7 @@ sai_status_t wrap_remove_bridge(sai_object_id_t bridge_id) {
   auto rv = SaiTracer::getInstance()->bridgeApi_->remove_bridge(bridge_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_bridge", bridge_id, SAI_OBJECT_TYPE_BRIDGE);
+      "remove_bridge", bridge_id, SAI_OBJECT_TYPE_BRIDGE, rv);
   return rv;
 }
 
@@ -46,7 +47,7 @@ sai_status_t wrap_set_bridge_attribute(
       bridge_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_bridge_attribute", bridge_id, attr, SAI_OBJECT_TYPE_BRIDGE);
+      "set_bridge_attribute", bridge_id, attr, SAI_OBJECT_TYPE_BRIDGE, rv);
   return rv;
 }
 
@@ -99,7 +100,8 @@ sai_status_t wrap_create_bridge_port(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_BRIDGE_PORT);
+      SAI_OBJECT_TYPE_BRIDGE_PORT,
+      rv);
   return rv;
 }
 
@@ -108,7 +110,7 @@ sai_status_t wrap_remove_bridge_port(sai_object_id_t bridge_port_id) {
       SaiTracer::getInstance()->bridgeApi_->remove_bridge_port(bridge_port_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_bridge_port", bridge_port_id, SAI_OBJECT_TYPE_BRIDGE_PORT);
+      "remove_bridge_port", bridge_port_id, SAI_OBJECT_TYPE_BRIDGE_PORT, rv);
   return rv;
 }
 
@@ -122,7 +124,8 @@ sai_status_t wrap_set_bridge_port_attribute(
       "set_bridge_port_attribute",
       bridge_port_id,
       attr,
-      SAI_OBJECT_TYPE_BRIDGE_PORT);
+      SAI_OBJECT_TYPE_BRIDGE_PORT,
+      rv);
   return rv;
 }
 

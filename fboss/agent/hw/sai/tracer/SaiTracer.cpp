@@ -152,7 +152,8 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
 void SaiTracer::logSwitchCreateFn(
     sai_object_id_t* switch_id,
     uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -170,6 +171,7 @@ void SaiTracer::logSwitchCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
+      "status = ",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_SWITCH,
@@ -179,7 +181,10 @@ void SaiTracer::logSwitchCreateFn(
       varName,
       ", ",
       attr_count,
-      ", &sai_attributes)"));
+      ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
 
   writeToFile(lines);
 }
@@ -190,7 +195,8 @@ void SaiTracer::logCreateFn(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list,
-    sai_object_type_t object_type) {
+    sai_object_type_t object_type,
+    sai_status_t rv) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -212,32 +218,40 @@ void SaiTracer::logCreateFn(
       attr_count,
       object_type));
 
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
   writeToFile(lines);
 }
 
 void SaiTracer::logRemoveFn(
     const string& fn_name,
     sai_object_id_t remove_object_id,
-    sai_object_type_t object_type) {
+    sai_object_type_t object_type,
+    sai_status_t rv) {
   if (!FLAGS_enable_replayer) {
     return;
   }
 
-  // Directly make remove call
   writeToFile({to<string>(
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(remove_object_id, object_type),
-      ")")});
+                   "status = ",
+                   folly::get_or_throw(
+                       fnPrefix_,
+                       object_type,
+                       "Unsupported Sai Object type in Sai Tracer"),
+                   fn_name,
+                   "(",
+                   getVariable(remove_object_id, object_type),
+                   ")"),
+               rvCheck(rv)});
 }
 
 void SaiTracer::logSetAttrFn(
     const string& fn_name,
     sai_object_id_t set_object_id,
     const sai_attribute_t* attr,
-    sai_object_type_t object_type) {
+    sai_object_type_t object_type,
+    sai_status_t rv) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -247,12 +261,17 @@ void SaiTracer::logSetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
+      "status = ",
       folly::get_or_throw(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
       "(",
       getVariable(set_object_id, object_type),
       ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
   writeToFile(lines);
 }
 
@@ -369,6 +388,7 @@ string SaiTracer::createFnCall(
   // This helper method produces the create call. For example -
   // bridge_api->create_bridge_port(&bridgePort_1, switch_0, 4, sai_attributes);
   return to<string>(
+      "status = ",
       folly::get_or_throw(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
@@ -379,6 +399,15 @@ string SaiTracer::createFnCall(
       ", ",
       attr_count,
       ", sai_attributes)");
+}
+
+string SaiTracer::rvCheck(sai_status_t rv) {
+  return to<string>(
+      "if (status != ",
+      rv,
+      ") printf(\"Unexpected rv at ",
+      numCalls_++,
+      " with status %d \\n\", status)");
 }
 
 void SaiTracer::checkAttrCount(uint32_t attr_count) {
@@ -430,10 +459,12 @@ void SaiTracer::setupGlobals() {
   }
 
   globalVar.push_back("uint8_t* mac");
+  globalVar.push_back("sai_status_t status");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
   maxListCount_ = FLAGS_default_list_count;
+  numCalls_ = 0;
 }
 
 void SaiTracer::initVarCounts() {

@@ -20,7 +20,8 @@ sai_status_t wrap_create_switch(
   auto rv = SaiTracer::getInstance()->switchApi_->create_switch(
       switch_id, attr_count, attr_list);
 
-  SaiTracer::getInstance()->logSwitchCreateFn(switch_id, attr_count, attr_list);
+  SaiTracer::getInstance()->logSwitchCreateFn(
+      switch_id, attr_count, attr_list, rv);
   return rv;
 }
 
@@ -28,7 +29,7 @@ sai_status_t wrap_remove_switch(sai_object_id_t switch_id) {
   auto rv = SaiTracer::getInstance()->switchApi_->remove_switch(switch_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_switch", switch_id, SAI_OBJECT_TYPE_SWITCH);
+      "remove_switch", switch_id, SAI_OBJECT_TYPE_SWITCH, rv);
   return rv;
 }
 
@@ -39,7 +40,7 @@ sai_status_t wrap_set_switch_attribute(
       switch_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH);
+      "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH, rv);
   return rv;
 }
 

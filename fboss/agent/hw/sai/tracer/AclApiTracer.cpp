@@ -27,7 +27,8 @@ sai_status_t wrap_create_acl_table(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_ACL_TABLE);
+      SAI_OBJECT_TYPE_ACL_TABLE,
+      rv);
   return rv;
 }
 
@@ -35,7 +36,7 @@ sai_status_t wrap_remove_acl_table(sai_object_id_t acl_table_id) {
   auto rv = SaiTracer::getInstance()->aclApi_->remove_acl_table(acl_table_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_acl_table", acl_table_id, SAI_OBJECT_TYPE_ACL_TABLE);
+      "remove_acl_table", acl_table_id, SAI_OBJECT_TYPE_ACL_TABLE, rv);
   return rv;
 }
 
@@ -46,7 +47,11 @@ sai_status_t wrap_set_acl_table_attribute(
       acl_table_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_acl_table_attribute", acl_table_id, attr, SAI_OBJECT_TYPE_ACL_TABLE);
+      "set_acl_table_attribute",
+      acl_table_id,
+      attr,
+      SAI_OBJECT_TYPE_ACL_TABLE,
+      rv);
   return rv;
 }
 
@@ -74,7 +79,8 @@ sai_status_t wrap_create_acl_entry(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_ACL_ENTRY);
+      SAI_OBJECT_TYPE_ACL_ENTRY,
+      rv);
   return rv;
 }
 
@@ -82,7 +88,7 @@ sai_status_t wrap_remove_acl_entry(sai_object_id_t acl_entry_id) {
   auto rv = SaiTracer::getInstance()->aclApi_->remove_acl_entry(acl_entry_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_acl_entry", acl_entry_id, SAI_OBJECT_TYPE_ACL_ENTRY);
+      "remove_acl_entry", acl_entry_id, SAI_OBJECT_TYPE_ACL_ENTRY, rv);
   return rv;
 }
 
@@ -93,7 +99,11 @@ sai_status_t wrap_set_acl_entry_attribute(
       acl_entry_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_acl_entry_attribute", acl_entry_id, attr, SAI_OBJECT_TYPE_ACL_ENTRY);
+      "set_acl_entry_attribute",
+      acl_entry_id,
+      attr,
+      SAI_OBJECT_TYPE_ACL_ENTRY,
+      rv);
   return rv;
 }
 
@@ -184,7 +194,8 @@ sai_status_t wrap_create_acl_table_group(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP,
+      rv);
   return rv;
 }
 
@@ -195,7 +206,8 @@ sai_status_t wrap_remove_acl_table_group(sai_object_id_t acl_table_group_id) {
   SaiTracer::getInstance()->logRemoveFn(
       "remove_acl_table_group",
       acl_table_group_id,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP,
+      rv);
   return rv;
 }
 
@@ -209,7 +221,8 @@ sai_status_t wrap_set_acl_table_group_attribute(
       "set_acl_table_group_attribute",
       acl_table_group_id,
       attr,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP,
+      rv);
   return rv;
 }
 
@@ -236,7 +249,8 @@ sai_status_t wrap_create_acl_table_group_member(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER,
+      rv);
   return rv;
 }
 
@@ -248,7 +262,8 @@ sai_status_t wrap_remove_acl_table_group_member(
   SaiTracer::getInstance()->logRemoveFn(
       "remove_acl_table_group_member",
       acl_table_group_member_id,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER,
+      rv);
   return rv;
 }
 
@@ -263,7 +278,8 @@ sai_status_t wrap_set_acl_table_group_member_attribute(
       "set_acl_table_group_member_attribute",
       acl_table_group_member_id,
       attr,
-      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
+      SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER,
+      rv);
   return rv;
 }
 

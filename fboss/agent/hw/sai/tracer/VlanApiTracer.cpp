@@ -27,7 +27,8 @@ sai_status_t wrap_create_vlan(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_VLAN);
+      SAI_OBJECT_TYPE_VLAN,
+      rv);
   return rv;
 }
 
@@ -35,7 +36,7 @@ sai_status_t wrap_remove_vlan(sai_object_id_t vlan_id) {
   auto rv = SaiTracer::getInstance()->vlanApi_->remove_vlan(vlan_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_vlan", vlan_id, SAI_OBJECT_TYPE_VLAN);
+      "remove_vlan", vlan_id, SAI_OBJECT_TYPE_VLAN, rv);
   return rv;
 }
 
@@ -46,7 +47,7 @@ sai_status_t wrap_set_vlan_attribute(
       SaiTracer::getInstance()->vlanApi_->set_vlan_attribute(vlan_id, attr);
 
   SaiTracer::getInstance()->logSetAttrFn(
-      "set_vlan_attribute", vlan_id, attr, SAI_OBJECT_TYPE_VLAN);
+      "set_vlan_attribute", vlan_id, attr, SAI_OBJECT_TYPE_VLAN, rv);
   return rv;
 }
 
@@ -72,7 +73,8 @@ sai_status_t wrap_create_vlan_member(
       switch_id,
       attr_count,
       attr_list,
-      SAI_OBJECT_TYPE_VLAN_MEMBER);
+      SAI_OBJECT_TYPE_VLAN_MEMBER,
+      rv);
   return rv;
 }
 
@@ -81,7 +83,7 @@ sai_status_t wrap_remove_vlan_member(sai_object_id_t vlan_member_id) {
       SaiTracer::getInstance()->vlanApi_->remove_vlan_member(vlan_member_id);
 
   SaiTracer::getInstance()->logRemoveFn(
-      "remove_vlan_member", vlan_member_id, SAI_OBJECT_TYPE_VLAN_MEMBER);
+      "remove_vlan_member", vlan_member_id, SAI_OBJECT_TYPE_VLAN_MEMBER, rv);
   return rv;
 }
 
@@ -95,7 +97,8 @@ sai_status_t wrap_set_vlan_member_attribute(
       "set_vlan_member_attribute",
       vlan_member_id,
       attr,
-      SAI_OBJECT_TYPE_VLAN_MEMBER);
+      SAI_OBJECT_TYPE_VLAN_MEMBER,
+      rv);
   return rv;
 }
 
