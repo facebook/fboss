@@ -79,6 +79,14 @@ class AclTableStoreTest : public SaiStoreTest {
         SAI_ACL_IP_FRAG_ANY, 0 /*mask is N/A for field ip frag */);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV4Type() const {
+    return std::make_pair(3 /* Destination unreachable */, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kIcmpV4Code() const {
+    return std::make_pair(1 /* Host unreachable */, 0xFF);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kDscp() const {
     return std::make_pair(10, 0x3F);
   }
@@ -154,6 +162,8 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIpProtocol()),
             AclEntryFieldU8(this->kTcpFlags()),
             AclEntryFieldU32(this->kIpFrag()),
+            AclEntryFieldU8(this->kIcmpV4Type()),
+            AclEntryFieldU8(this->kIcmpV4Code()),
             AclEntryFieldU8(this->kDscp()),
             AclEntryFieldU8(this->kTtl()),
             AclEntryFieldU32(this->kFdbDstUserMeta()),
@@ -259,6 +269,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kIpProtocol(),
                                       this->kTcpFlags(),
                                       this->kIpFrag(),
+                                      this->kIcmpV4Type(),
+                                      this->kIcmpV4Code(),
                                       this->kDscp(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
@@ -353,6 +365,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kIpProtocol(),
                                         this->kTcpFlags(),
                                         this->kIpFrag(),
+                                        this->kIcmpV4Type(),
+                                        this->kIcmpV4Code(),
                                         this->kDscp(),
                                         this->kTtl(),
                                         this->kFdbDstUserMeta(),
@@ -372,6 +386,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kIpProtocol(),
                                       this->kTcpFlags(),
                                       this->kIpFrag(),
+                                      this->kIcmpV4Type(),
+                                      this->kIcmpV4Code(),
                                       this->kDscp(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),

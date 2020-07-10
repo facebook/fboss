@@ -105,6 +105,14 @@ class FakeAclEntry {
   sai_uint8_t fieldIpFragData;
   sai_uint8_t fieldIpFragMask;
 
+  bool fieldIcmpV4TypeEnable{false};
+  sai_uint8_t fieldIcmpV4TypeData;
+  sai_uint8_t fieldIcmpV4TypeMask;
+
+  bool fieldIcmpV4CodeEnable{false};
+  sai_uint8_t fieldIcmpV4CodeData;
+  sai_uint8_t fieldIcmpV4CodeMask;
+
   bool fieldDscpEnable{false};
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
