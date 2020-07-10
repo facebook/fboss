@@ -14,9 +14,11 @@
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
 #include <folly/FileUtil.h>
+#include <folly/MacAddress.h>
 #include <folly/MapUtil.h>
 #include <folly/Singleton.h>
 #include <folly/String.h>
@@ -85,6 +87,11 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_port_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapPortApi();
       break;
+    case (SAI_API_SWITCH):
+      SaiTracer::getInstance()->switchApi_ =
+          static_cast<sai_switch_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapSwitchApi();
+      break;
     case (SAI_API_VLAN):
       SaiTracer::getInstance()->vlanApi_ =
           static_cast<sai_vlan_api_t*>(*api_method_table);
@@ -140,6 +147,41 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
         lines.size(),
         " bytes to SAI Replayer log file");
   }
+}
+
+void SaiTracer::logSwitchCreateFn(
+    sai_object_id_t* switch_id,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_SWITCH);
+
+  // Then create new variable - declareVariable returns
+  // 1. Declaration of the new variable
+  // 2. name of the new variable
+  auto [declaration, varName] =
+      declareVariable(switch_id, SAI_OBJECT_TYPE_SWITCH);
+  lines.push_back(declaration);
+
+  // Make the function call
+  lines.push_back(to<string>(
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_SWITCH,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "create_switch",
+      "(&",
+      varName,
+      ", ",
+      attr_count,
+      ", &sai_attributes)"));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::logCreateFn(
@@ -300,6 +342,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_SWITCH:
+      setSwitchAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_VLAN:
       setVlanAttributes(attr_list, attr_count, attrLines);
       break;
@@ -374,15 +419,17 @@ uint32_t SaiTracer::checkListCount(
 
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
-
   vector<string> globalVar = {to<string>(
       "sai_attribute_t *sai_attributes = malloc(sizeof(sai_attribute_t) * ",
       FLAGS_default_list_size,
       ")")};
+
   for (int i = 0; i < FLAGS_default_list_count; i++) {
     globalVar.push_back(
         to<string>("int list_", i, "[", FLAGS_default_list_size, "]"));
   }
+
+  globalVar.push_back("uint8_t* mac");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
@@ -396,10 +443,12 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
 }

@@ -161,6 +161,36 @@ string u32Attr(const sai_attribute_t* attr_list, int i) {
       "sai_attributes[", i, "].value.u32 = ", attr_list[i].value.u32);
 }
 
+void s8ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines,
+    bool nullable) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_int8_t), attr_list[i].value.s8list.count);
+
+  string prefix = to<string>("sai_attributes", "[", i, "].value.s8list.");
+  attrLines.push_back(
+      to<string>(prefix, "count = ", attr_list[i].value.s8list.count));
+
+  // Attribute SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO uses s8list as a char array.
+  // If the list count is 0, we'll replace it with NULL.
+  if (nullable && attr_list[i].value.s8list.count == 0) {
+    attrLines.push_back(to<string>(prefix, "list = NULL"));
+  } else {
+    attrLines.push_back(
+        to<string>(prefix, "list = (sai_int8_t*)(list_", listIndex, ")"));
+  }
+
+  for (int j = 0; j < std::min(attr_list[i].value.s8list.count, listLimit);
+       ++j) {
+    attrLines.push_back(to<string>(
+        prefix, "list[", j, "] = ", attr_list[i].value.s8list.list[j]));
+  }
+}
+
 void s32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
@@ -200,6 +230,22 @@ void u32ListAttr(
        ++j) {
     attrLines.push_back(to<string>(
         prefix, "list[", j, "] = ", attr_list[i].value.u32list.list[j]));
+  }
+}
+
+void macAddressAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    vector<string>& attrLines) {
+  // The underlying type of sai_mac_t is uint8_t[6]
+  // TODO(zecheng): Create helper function to handle this
+  attrLines.push_back(to<string>("mac = sai_attributes[", i, "].value.mac"));
+  for (int j = 0; j < 6; ++j) {
+    attrLines.push_back(to<string>(
+        "mac[",
+        j,
+        "] = ",
+        static_cast<const uint8_t*>(attr_list[i].value.mac)[j]));
   }
 }
 

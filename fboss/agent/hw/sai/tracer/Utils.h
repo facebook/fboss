@@ -66,6 +66,13 @@ std::string s32Attr(const sai_attribute_t* attr_list, int i);
 
 std::string u32Attr(const sai_attribute_t* attr_list, int i);
 
+void s8ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listCount,
+    std::vector<std::string>& attrLines,
+    bool nullable = false);
+
 void s32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
@@ -76,6 +83,11 @@ void u32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listCount,
+    std::vector<std::string>& attrLines);
+
+void macAddressAttr(
+    const sai_attribute_t* attr_list,
+    int i,
     std::vector<std::string>& attrLines);
 
 } // namespace facebook::fboss
