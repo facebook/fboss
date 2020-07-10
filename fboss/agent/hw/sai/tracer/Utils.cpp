@@ -55,6 +55,84 @@ void oidListAttr(
   }
 }
 
+void aclEntryActionU8Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("sai_attributes", "[", i, "].value.aclaction.");
+  attrLines.push_back(
+      to<string>(prefix, "enable = ", attr_list[i].value.aclaction.enable));
+  attrLines.push_back(to<string>(
+      prefix, "parameter.u8 = ", attr_list[i].value.aclaction.parameter.u8));
+}
+
+void aclEntryFieldIpV6Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  // The underlying implementation of sai_ip6_t is uint8_t[16]
+  for (int j = 0; j < 16; ++j) {
+    attrLines.push_back(to<string>(
+        "sai_attributes",
+        "[",
+        i,
+        "].value.aclfield.data.ip6[",
+        j,
+        "] = ",
+        attr_list[i].value.aclfield.data.ip6[j]));
+  }
+
+  for (int j = 0; j < 16; ++j) {
+    attrLines.push_back(to<string>(
+        "sai_attributes",
+        "[",
+        i,
+        "].value.aclfield.mask.ip6[",
+        j,
+        "] = ",
+        attr_list[i].value.aclfield.mask.ip6[j]));
+  }
+}
+
+void aclEntryFieldU8Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+  attrLines.push_back(
+      to<string>(prefix, "data.u8 = ", attr_list[i].value.aclfield.data.u8));
+  attrLines.push_back(
+      to<string>(prefix, "mask.u8 = ", attr_list[i].value.aclfield.mask.u8));
+}
+
+void aclEntryFieldU16Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+  attrLines.push_back(
+      to<string>(prefix, "data.u16 = ", attr_list[i].value.aclfield.data.u16));
+  attrLines.push_back(
+      to<string>(prefix, "mask.u16 = ", attr_list[i].value.aclfield.mask.u16));
+}
+
+void aclEntryFieldU32Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+  attrLines.push_back(
+      to<string>(prefix, "data.u32 = ", attr_list[i].value.aclfield.data.u32));
+  attrLines.push_back(
+      to<string>(prefix, "mask.u32 = ", attr_list[i].value.aclfield.mask.u32));
+}
+
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "sai_attributes[",

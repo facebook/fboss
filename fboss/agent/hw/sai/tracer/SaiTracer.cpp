@@ -260,6 +260,9 @@ vector<string> SaiTracer::setAttrList(
   // Call functions defined in *ApiTracer.h to serialize attributes
   // that are specific to each Sai object type
   switch (object_type) {
+    case SAI_OBJECT_TYPE_ACL_ENTRY:
+      setAclEntryAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_ACL_TABLE:
       setAclTableAttributes(attr_list, attr_count, attrLines);
       break;
@@ -353,6 +356,7 @@ void SaiTracer::setupGlobals() {
 }
 
 void SaiTracer::initVarCounts() {
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);

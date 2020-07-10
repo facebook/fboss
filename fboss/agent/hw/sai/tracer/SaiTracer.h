@@ -97,11 +97,13 @@ class SaiTracer {
   std::map<sai_object_type_t, std::atomic<uint32_t>> varCounts_;
 
   std::map<sai_object_type_t, std::string> varNames_{
+      {SAI_OBJECT_TYPE_ACL_ENTRY, "aclEntry_"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"}};
 
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclEntryMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableGroupMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>>
@@ -112,12 +114,14 @@ class SaiTracer {
       sai_object_type_t,
       folly::Synchronized<std::map<sai_object_id_t, std::string>>>
       variables_{
+          {SAI_OBJECT_TYPE_ACL_ENTRY, aclEntryMap_},
           {SAI_OBJECT_TYPE_ACL_TABLE, aclTableMap_},
           {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, aclTableGroupMap_},
           {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, aclTableGroupMemberMap_},
           {SAI_OBJECT_TYPE_SWITCH, switchMap_}};
 
   std::map<sai_object_type_t, std::string> fnPrefix_{
+      {SAI_OBJECT_TYPE_ACL_ENTRY, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},

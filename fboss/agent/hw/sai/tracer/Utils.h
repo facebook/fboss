@@ -31,6 +31,31 @@ void oidListAttr(
     std::vector<std::string>& attrLines,
     sai_object_type_t object_type);
 
+void aclEntryActionU8Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldIpV6Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldU8Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldU16Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldU32Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 std::string boolAttr(const sai_attribute_t* attr_list, int i);
 
 std::string u8Attr(const sai_attribute_t* attr_list, int i);

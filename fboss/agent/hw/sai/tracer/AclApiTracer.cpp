@@ -65,19 +65,36 @@ sai_status_t wrap_create_acl_entry(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->aclApi_->create_acl_entry(
+  auto rv = SaiTracer::getInstance()->aclApi_->create_acl_entry(
       acl_entry_id, switch_id, attr_count, attr_list);
+
+  SaiTracer::getInstance()->logCreateFn(
+      "create_acl_entry",
+      acl_entry_id,
+      switch_id,
+      attr_count,
+      attr_list,
+      SAI_OBJECT_TYPE_ACL_ENTRY);
+  return rv;
 }
 
 sai_status_t wrap_remove_acl_entry(sai_object_id_t acl_entry_id) {
-  return SaiTracer::getInstance()->aclApi_->remove_acl_entry(acl_entry_id);
+  auto rv = SaiTracer::getInstance()->aclApi_->remove_acl_entry(acl_entry_id);
+
+  SaiTracer::getInstance()->logRemoveFn(
+      "remove_acl_entry", acl_entry_id, SAI_OBJECT_TYPE_ACL_ENTRY);
+  return rv;
 }
 
 sai_status_t wrap_set_acl_entry_attribute(
     sai_object_id_t acl_entry_id,
     const sai_attribute_t* attr) {
-  return SaiTracer::getInstance()->aclApi_->set_acl_entry_attribute(
+  auto rv = SaiTracer::getInstance()->aclApi_->set_acl_entry_attribute(
       acl_entry_id, attr);
+
+  SaiTracer::getInstance()->logSetAttrFn(
+      "set_acl_entry_attribute", acl_entry_id, attr, SAI_OBJECT_TYPE_ACL_ENTRY);
+  return rv;
 }
 
 sai_status_t wrap_get_acl_entry_attribute(
@@ -288,6 +305,47 @@ sai_acl_api_t* wrapAclApi() {
       &wrap_get_acl_table_group_member_attribute};
 
   return &aclWrappers;
+}
+
+void setAclEntryAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_ENTRY_ATTR_TABLE_ID:
+        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_ACL_TABLE));
+        break;
+      case SAI_ACL_ENTRY_ATTR_PRIORITY:
+        attrLines.push_back(u32Attr(attr_list, i));
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
+        aclEntryFieldIpV6Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
+      case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
+        aclEntryFieldU32Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
+      case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
+        aclEntryFieldU16Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
+      case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
+      case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
+      case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
+        aclEntryFieldU8Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
+        aclEntryActionU8Attr(attr_list, i, attrLines);
+        break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
 }
 
 void setAclTableAttributes(
