@@ -60,6 +60,8 @@ class SaiAclTableManager {
   static auto constexpr kLookupClassMask = 0xFFFFFFFF;
   // Mask is not applicable for given field
   static auto constexpr kMaskDontCare = 0;
+  static auto constexpr kIcmpTypeMask = 0xFF;
+  static auto constexpr kIcmpCodeMask = 0xFF;
 
   /*
    * TODO(skhare)

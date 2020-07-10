@@ -400,6 +400,32 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         AclEntryFieldU32(std::make_pair(ipFragData, kMaskDontCare))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV4Type> fieldIcmpV4Type{
+      std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV4Code> fieldIcmpV4Code{
+      std::nullopt};
+  if (addedAclEntry->getIcmpType()) {
+    if (platform_->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      // TODO(skhare) See TODO about Trident2 in addAclTable
+      throw FbossError(
+          "attempted to configure ICMPv4 Type ACL Trident2, TODO: add support ",
+          addedAclEntry->getID());
+    }
+
+    if (addedAclEntry->getProto() &&
+        addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmp) {
+      fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
+          AclEntryFieldU8(std::make_pair(
+              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      if (addedAclEntry->getIcmpCode()) {
+        fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
+            AclEntryFieldU8(std::make_pair(
+                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+      }
+    }
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldDscp> fieldDscp{
       std::nullopt};
   if (addedAclEntry->getDscp()) {
@@ -497,7 +523,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
          fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
          fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-         fieldIpFrag.has_value() || fieldDscp.has_value() ||
+         fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
+         fieldIcmpV4Code.has_value() || fieldDscp.has_value() ||
          fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
          fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
@@ -520,8 +547,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpProtocol,
       fieldTcpFlags,
       fieldIpFrag,
-      std::nullopt, // icmpV4Type
-      std::nullopt, // icmpV4Code
+      fieldIcmpV4Type,
+      fieldIcmpV4Code,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
@@ -543,8 +570,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpProtocol,
       fieldTcpFlags,
       fieldIpFrag,
-      std::nullopt, // icmpV4Type
-      std::nullopt, // icmpV4Code
+      fieldIcmpV4Type,
+      fieldIcmpV4Code,
       fieldDscp,
       fieldTtl,
       fieldFdbDstUserMeta,
