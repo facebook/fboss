@@ -12,6 +12,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
 #include <folly/FileUtil.h>
 #include <folly/MapUtil.h>
@@ -39,6 +40,7 @@ DEFINE_int32(
     6,
     "Default number of the lists initialzied by SAI replayer");
 
+using facebook::fboss::SaiTracer;
 using folly::to;
 using std::string;
 using std::vector;
@@ -67,9 +69,14 @@ sai_status_t __wrap_sai_api_query(
 
   switch (sai_api_id) {
     case (SAI_API_ACL):
-      facebook::fboss::SaiTracer::getInstance()->aclApi_ =
+      SaiTracer::getInstance()->aclApi_ =
           static_cast<sai_acl_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapAclApi();
+      break;
+    case (SAI_API_VLAN):
+      SaiTracer::getInstance()->vlanApi_ =
+          static_cast<sai_vlan_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapVlanApi();
       break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke wrapApi()
@@ -272,6 +279,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER:
       setAclTableGroupMemberAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_VLAN:
+      setVlanAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_VLAN_MEMBER:
+      setVlanMemberAttributes(attr_list, attr_count, attrLines);
+      break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke
       // setAttributes() function here
@@ -360,7 +373,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
 }
 
 } // namespace facebook::fboss

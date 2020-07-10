@@ -62,6 +62,7 @@ class SaiTracer {
   checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
 
   sai_acl_api_t* aclApi_;
+  sai_vlan_api_t* vlanApi_;
 
  private:
   void writeToFile(const std::vector<std::string>& strVec);
@@ -101,14 +102,20 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
-      {SAI_OBJECT_TYPE_SWITCH, "switch_"}};
+      {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
+      {SAI_OBJECT_TYPE_SWITCH, "switch_"},
+      {SAI_OBJECT_TYPE_VLAN, "vlan_"},
+      {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"}};
 
   folly::Synchronized<std::map<sai_object_id_t, std::string>> aclEntryMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableGroupMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>>
       aclTableGroupMemberMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgePortMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMemberMap_;
 
   std::map<
       sai_object_type_t,
@@ -118,14 +125,20 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_ACL_TABLE, aclTableMap_},
           {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, aclTableGroupMap_},
           {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, aclTableGroupMemberMap_},
-          {SAI_OBJECT_TYPE_SWITCH, switchMap_}};
+          {SAI_OBJECT_TYPE_BRIDGE_PORT, bridgePortMap_},
+          {SAI_OBJECT_TYPE_SWITCH, switchMap_},
+          {SAI_OBJECT_TYPE_VLAN, vlanMap_},
+          {SAI_OBJECT_TYPE_VLAN_MEMBER, vlanMemberMap_}};
 
   std::map<sai_object_type_t, std::string> fnPrefix_{
       {SAI_OBJECT_TYPE_ACL_ENTRY, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
-      {SAI_OBJECT_TYPE_SWITCH, "switch_api->"}};
+      {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
+      {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
+      {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
+      {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"}};
 };
 
 } // namespace facebook::fboss
