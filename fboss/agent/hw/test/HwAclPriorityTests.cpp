@@ -7,21 +7,17 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <string>
-
-DECLARE_int32(acl_gid);
 
 namespace {
 
@@ -40,14 +36,14 @@ void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
 
 namespace facebook::fboss {
 
-class BcmAclPriorityTest : public BcmTest {
+class HwAclPriorityTest : public HwTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
   }
 };
 
-TEST_F(BcmAclPriorityTest, CheckAclPriorityOrder) {
+TEST_F(HwAclPriorityTest, CheckAclPriorityOrder) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     addDenyPortAcl(newCfg, "A");
@@ -66,7 +62,7 @@ TEST_F(BcmAclPriorityTest, CheckAclPriorityOrder) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
+TEST_F(HwAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     addDenyPortAcl(newCfg, "A");
@@ -96,7 +92,7 @@ TEST_F(BcmAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
  * This unit test case is to test we won't crash cause we're using aclName as
  * key of the aclMap in S/W while using priority as key of aclTable in H/W
  */
-TEST_F(BcmAclPriorityTest, AclNameChange) {
+TEST_F(HwAclPriorityTest, AclNameChange) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     addDenyPortAcl(newCfg, "A");

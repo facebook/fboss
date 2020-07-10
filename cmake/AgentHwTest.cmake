@@ -97,6 +97,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwL2ClassIDTests.cpp
   fboss/agent/hw/test/HwAclMatchActionsTests.cpp
+  fboss/agent/hw/test/HwAclPriorityTests.cpp
   fboss/agent/hw/test/HwAclQualifierTests.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
   fboss/agent/hw/test/HwPortUtils.cpp
