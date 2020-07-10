@@ -29,4 +29,5 @@ void setAclTableGroupMemberAttributes(
     const sai_attribute_t* attr_list,
     uint32_t attr_count,
     std::vector<std::string>& attrLines);
+
 } // namespace facebook::fboss

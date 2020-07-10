@@ -24,6 +24,15 @@ namespace facebook::fboss {
 std::string
 oidAttr(const sai_attribute_t* attr_list, int i, sai_object_type_t object_type);
 
+void oidListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listCount,
+    std::vector<std::string>& attrLines,
+    sai_object_type_t object_type);
+
+std::string boolAttr(const sai_attribute_t* attr_list, int i);
+
 std::string u8Attr(const sai_attribute_t* attr_list, int i);
 
 std::string s32Attr(const sai_attribute_t* attr_list, int i);

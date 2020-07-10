@@ -28,6 +28,41 @@ string oidAttr(
           attr_list[i].value.oid, object_type));
 }
 
+void oidListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    sai_object_type_t object_type) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_object_id_t), attr_list[i].value.objlist.count);
+
+  string prefix = to<string>("sai_attributes", "[", i, "].value.objlist.");
+  attrLines.push_back(
+      to<string>(prefix, "count = ", attr_list[i].value.objlist.count));
+  attrLines.push_back(
+      to<string>(prefix, "list = (sai_object_id_t*)(list_", listIndex, ")"));
+  for (int j = 0; j < std::min(attr_list[i].value.objlist.count, listLimit);
+       ++j) {
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "] = ",
+        SaiTracer::getInstance()->getVariable(
+            attr_list[i].value.objlist.list[j], object_type)));
+  }
+}
+
+std::string boolAttr(const sai_attribute_t* attr_list, int i) {
+  return to<string>(
+      "sai_attributes[",
+      i,
+      "].value.booldata = ",
+      attr_list[i].value.booldata ? "true" : "false");
+}
+
 string u8Attr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "sai_attributes[", i, "].value.u8 = ", attr_list[i].value.u8);
