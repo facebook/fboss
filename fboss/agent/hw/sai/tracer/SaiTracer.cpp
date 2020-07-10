@@ -12,6 +12,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
@@ -78,6 +79,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBridgeApi();
+      break;
+    case (SAI_API_PORT):
+      SaiTracer::getInstance()->portApi_ =
+          static_cast<sai_port_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapPortApi();
       break;
     case (SAI_API_VLAN):
       SaiTracer::getInstance()->vlanApi_ =
@@ -291,6 +297,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       setBridgePortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_PORT:
+      setPortAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_VLAN:
       setVlanAttributes(attr_list, attr_count, attrLines);
       break;
@@ -388,6 +397,8 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);

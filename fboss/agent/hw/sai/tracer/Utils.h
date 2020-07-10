@@ -72,4 +72,10 @@ void s32ListAttr(
     uint32_t listCount,
     std::vector<std::string>& attrLines);
 
+void u32ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listCount,
+    std::vector<std::string>& attrLines);
+
 } // namespace facebook::fboss

@@ -182,4 +182,25 @@ void s32ListAttr(
   }
 }
 
+void u32ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_uint32_t), attr_list[i].value.u32list.count);
+
+  string prefix = to<string>("sai_attributes", "[", i, "].value.u32list.");
+  attrLines.push_back(
+      to<string>(prefix, "count = ", attr_list[i].value.u32list.count));
+  attrLines.push_back(
+      to<string>(prefix, "list = (sai_uint32_t*)(list_", listIndex, ")"));
+  for (int j = 0; j < std::min(attr_list[i].value.u32list.count, listLimit);
+       ++j) {
+    attrLines.push_back(to<string>(
+        prefix, "list[", j, "] = ", attr_list[i].value.u32list.list[j]));
+  }
+}
+
 } // namespace facebook::fboss

@@ -63,6 +63,7 @@ class SaiTracer {
 
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
+  sai_port_api_t* portApi_;
   sai_vlan_api_t* vlanApi_;
 
  private:
@@ -106,6 +107,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
       {SAI_OBJECT_TYPE_PORT, "port_"},
+      {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
+      {SAI_OBJECT_TYPE_QUEUE, "queue_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"}};
@@ -118,6 +121,8 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgeMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgePortMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMemberMap_;
@@ -133,6 +138,8 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_BRIDGE, bridgeMap_},
           {SAI_OBJECT_TYPE_BRIDGE_PORT, bridgePortMap_},
           {SAI_OBJECT_TYPE_PORT, portMap_},
+          {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
+          {SAI_OBJECT_TYPE_QUEUE, queueMap_},
           {SAI_OBJECT_TYPE_SWITCH, switchMap_},
           {SAI_OBJECT_TYPE_VLAN, vlanMap_},
           {SAI_OBJECT_TYPE_VLAN_MEMBER, vlanMemberMap_}};
@@ -145,6 +152,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
+      {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_api->"},
+      {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"}};
