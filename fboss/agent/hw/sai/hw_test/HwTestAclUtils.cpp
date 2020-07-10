@@ -169,6 +169,31 @@ void checkSwHwAclMatch(
     EXPECT_EQ(ipFragMaskGot, SaiAclTableManager::kMaskDontCare);
   }
 
+  if (swAcl->getIcmpType()) {
+    if (swAcl->getProto() &&
+        swAcl->getProto().value() == AclEntryFields::kProtoIcmp) {
+      auto aclFieldIcmpV4TypeGot =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Type());
+      auto [icmpV4TypeDataGot, icmpV4TypeMaskGot] =
+          aclFieldIcmpV4TypeGot.getDataAndMask();
+
+      EXPECT_EQ(icmpV4TypeDataGot, swAcl->getIcmpType().value());
+      EXPECT_EQ(icmpV4TypeMaskGot, SaiAclTableManager::kIcmpTypeMask);
+
+      if (swAcl->getIcmpCode()) {
+        auto aclFieldIcmpV4CodeGot =
+            SaiApiTable::getInstance()->aclApi().getAttribute(
+                aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Code());
+        auto [icmpV4CodeDataGot, icmpV4CodeMaskGot] =
+            aclFieldIcmpV4CodeGot.getDataAndMask();
+
+        EXPECT_EQ(icmpV4CodeDataGot, swAcl->getIcmpCode().value());
+        EXPECT_EQ(icmpV4CodeMaskGot, SaiAclTableManager::kIcmpCodeMask);
+      }
+    }
+  }
+
   if (swAcl->getDscp()) {
     auto aclFieldDscpGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
