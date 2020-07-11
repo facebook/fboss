@@ -85,6 +85,43 @@ sai_status_t get_buffer_pool_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t get_buffer_pool_stats_fn(
+    sai_object_id_t /*queeue*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+/*
+ * In fake sai there isn't a dataplane, so all stats
+ * stay at 0. Leverage the corresponding non _ext
+ * stats fn to get the stats. If stats are always 0,
+ * modes (READ, READ_AND_CLEAR) don't matter
+ */
+sai_status_t get_buffer_pool_stats_ext_fn(
+    sai_object_id_t buffer_pool,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_buffer_pool_stats_fn(
+      buffer_pool, num_of_counters, counter_ids, counters);
+}
+/*
+ *  noop clear stats API. Since fake doesnt have a
+ *  dataplane stats are always set to 0, so
+ *  no need to clear them
+ */
+sai_status_t clear_buffer_pool_stats_fn(
+    sai_object_id_t buffer_pool_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids) {
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_buffer_api_t _buffer_api;
@@ -94,6 +131,9 @@ void populate_buffer_api(sai_buffer_api_t** buffer_api) {
   _buffer_api.remove_buffer_pool = &remove_buffer_pool_fn;
   _buffer_api.set_buffer_pool_attribute = &set_buffer_pool_attribute_fn;
   _buffer_api.get_buffer_pool_attribute = &get_buffer_pool_attribute_fn;
+  _buffer_api.get_buffer_pool_stats = &get_buffer_pool_stats_fn;
+  _buffer_api.get_buffer_pool_stats_ext = &get_buffer_pool_stats_ext_fn;
+  _buffer_api.clear_buffer_pool_stats = &clear_buffer_pool_stats_fn;
   *buffer_api = &_buffer_api;
 }
 
