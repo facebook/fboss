@@ -31,7 +31,7 @@ FbFpgaI2c::FbFpgaI2c(FbDomFpga* fpga, uint32_t rtcId, uint32_t pimId)
 
 bool FbFpgaI2c::waitForResponse(size_t len) {
   I2cRtcStatus rtcStatus;
-  uint32_t retries = 10;
+  uint32_t retries = 20;
 
   // Make the initial wait according to the length of read/write.
   usleep(100 * len);
