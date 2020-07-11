@@ -263,6 +263,18 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_BUFFER_POOL: {
+      for (const auto& b : fs->bufferPoolManager.map()) {
+        object_list[i++].key.object_id = b.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_BUFFER_PROFILE: {
+      for (const auto& b : fs->bufferProfileManager.map()) {
+        object_list[i++].key.object_id = b.second.id;
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_QOS_MAP: {
       for (const auto& qm : fs->qosMapManager.map()) {
         object_list[i++].key.object_id = qm.second.id;
