@@ -32,6 +32,30 @@ class FakeBufferPool {
 
 using FakeBufferPoolManager = FakeManager<sai_object_id_t, FakeBufferPool>;
 
+class FakeBufferProfile {
+ public:
+  FakeBufferProfile(
+      sai_object_id_t poolId,
+      sai_uint64_t reservedBytes,
+      sai_buffer_profile_threshold_mode_t threshMode,
+      sai_int8_t dynamicThreshold,
+      sai_int8_t staticThreshold)
+      : poolId(poolId),
+        reservedBytes(reservedBytes),
+        threshMode(threshMode),
+        dynamicThreshold(dynamicThreshold),
+        staticThreshold(staticThreshold) {}
+  sai_object_id_t id;
+  sai_object_id_t poolId;
+  sai_uint64_t reservedBytes;
+  sai_buffer_profile_threshold_mode_t threshMode;
+  sai_int8_t dynamicThreshold;
+  sai_int8_t staticThreshold;
+};
+
+using FakeBufferProfileManager =
+    FakeManager<sai_object_id_t, FakeBufferProfile>;
+
 void populate_buffer_api(sai_buffer_api_t** buffer_api);
 
 } // namespace facebook::fboss

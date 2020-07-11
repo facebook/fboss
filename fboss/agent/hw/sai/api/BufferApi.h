@@ -98,6 +98,12 @@ struct SaiBufferProfileTraits {
   using AdapterHostKey = CreateAttributes;
 };
 
+SAI_ATTRIBUTE_NAME(BufferProfile, PoolId);
+SAI_ATTRIBUTE_NAME(BufferProfile, ReservedBytes);
+SAI_ATTRIBUTE_NAME(BufferProfile, ThresholdMode);
+SAI_ATTRIBUTE_NAME(BufferProfile, SharedDynamicThreshold);
+SAI_ATTRIBUTE_NAME(BufferProfile, SharedStaticThreshold);
+
 class BufferApi : public SaiApi<BufferApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

@@ -122,6 +122,113 @@ sai_status_t clear_buffer_pool_stats_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_buffer_profile_fn(
+    sai_object_id_t* buffer_profile_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  std::optional<sai_object_id_t> poolId;
+  std::optional<sai_uint64_t> reservedBytes;
+  std::optional<sai_buffer_profile_threshold_mode_t> threshMode;
+  std::optional<sai_int8_t> dynamicThreshold;
+  std::optional<sai_int8_t> staticThreshold;
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_BUFFER_PROFILE_ATTR_POOL_ID:
+        poolId = attr_list[i].value.oid;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
+        reservedBytes = attr_list[i].value.u64;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE:
+        threshMode = static_cast<sai_buffer_profile_threshold_mode_t>(
+            attr_list[i].value.s32);
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
+        dynamicThreshold = attr_list[i].value.s8;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
+        staticThreshold = attr_list[i].value.s8;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  if (!poolId || !reservedBytes || !threshMode || !dynamicThreshold ||
+      !staticThreshold) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *buffer_profile_id = fs->bufferProfileManager.create(
+      poolId.value(),
+      reservedBytes.value(),
+      threshMode.value(),
+      dynamicThreshold.value(),
+      staticThreshold.value());
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_buffer_profile_attribute_fn(
+    sai_object_id_t profile_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& profile = fs->bufferProfileManager.get(profile_id);
+  switch (attr->id) {
+    case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
+      profile.reservedBytes = attr->value.u64;
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE:
+      profile.threshMode =
+          static_cast<sai_buffer_profile_threshold_mode_t>(attr->value.s32);
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
+      profile.dynamicThreshold = attr->value.s8;
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
+      profile.staticThreshold = attr->value.s8;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_buffer_profile_fn(sai_object_id_t profile_id) {
+  auto fs = FakeSai::getInstance();
+  fs->bufferProfileManager.remove(profile_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_buffer_profile_attribute_fn(
+    sai_object_id_t profile_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto profile = fs->bufferProfileManager.get(profile_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_BUFFER_PROFILE_ATTR_POOL_ID:
+        attr[i].value.oid = profile.poolId;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
+        attr[i].value.u64 = profile.reservedBytes;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE:
+        attr[i].value.s32 = profile.threshMode;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
+        attr[i].value.s8 = profile.dynamicThreshold;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
+        attr[i].value.s8 = profile.staticThreshold;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_buffer_api_t _buffer_api;
@@ -134,6 +241,10 @@ void populate_buffer_api(sai_buffer_api_t** buffer_api) {
   _buffer_api.get_buffer_pool_stats = &get_buffer_pool_stats_fn;
   _buffer_api.get_buffer_pool_stats_ext = &get_buffer_pool_stats_ext_fn;
   _buffer_api.clear_buffer_pool_stats = &clear_buffer_pool_stats_fn;
+  _buffer_api.create_buffer_profile = &create_buffer_profile_fn;
+  _buffer_api.remove_buffer_profile = &remove_buffer_profile_fn;
+  _buffer_api.set_buffer_profile_attribute = &set_buffer_profile_attribute_fn;
+  _buffer_api.get_buffer_profile_attribute = &get_buffer_profile_attribute_fn;
   *buffer_api = &_buffer_api;
 }
 
