@@ -51,16 +51,22 @@ void WedgeManager::initTransceiverMap() {
                 << " Transceiver " << idx << " may not be present: ";
     }
 
+    int portsPerTransceiver =
+        (portGroupMap_.size() == 0
+        ? numPortsPerTransceiver()
+        : portGroupMap_[idx].size());
     if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
     {
       XLOG(INFO) << "making CMIS QSFP for " << idx;
       std::unique_ptr<QsfpModule> qsfp = std::make_unique<CmisModule>(
-          std::move(qsfpImpl), numPortsPerTransceiver());
+          std::move(qsfpImpl),
+          portsPerTransceiver);
       transceivers_.push_back(move(qsfp));
     } else {
       XLOG(INFO) << "making Sff QSFP for " << idx;
       std::unique_ptr<QsfpModule> qsfp = std::make_unique<SffModule>(
-          std::move(qsfpImpl), numPortsPerTransceiver());
+          std::move(qsfpImpl),
+          portsPerTransceiver);
       transceivers_.push_back(move(qsfp));
     }
   }
