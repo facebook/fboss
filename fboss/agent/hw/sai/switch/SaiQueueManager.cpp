@@ -153,7 +153,6 @@ SaiQueueHandles SaiQueueManager::loadQueues(
     const std::vector<QueueSaiId>& queueSaiIds) {
   SaiQueueHandles queueHandles;
   auto& store = SaiStore::getInstance()->get<SaiQueueTraits>();
-  std::vector<std::shared_ptr<SaiQueue>> loadedQueues;
   for (auto queueSaiId : queueSaiIds) {
     auto queueHandle = std::make_unique<SaiQueueHandle>(queueSaiId);
     store.loadObjectOwnedByAdapter(SaiQueueTraits::AdapterKey{queueSaiId});
