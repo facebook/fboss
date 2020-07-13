@@ -53,10 +53,10 @@ void SaiManagerTable::createSaiTableManagers(
   bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
   fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
   hashManager_ = std::make_unique<SaiHashManager>(this);
+  queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
   portManager_ =
       std::make_unique<SaiPortManager>(this, platform, concurrentIndices);
-  queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(this, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(this, platform);
