@@ -25,6 +25,9 @@ SaiBufferManager::SaiBufferManager(
     : managerTable_(managerTable), platform_(platform) {}
 
 void SaiBufferManager::setupEgressBufferPool() {
+  if (egressBufferPoolHandle_) {
+    return;
+  }
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = SaiStore::getInstance()->get<SaiBufferPoolTraits>();
   auto mmuSize = platform_->getAsic()->getMMUSizeBytes();
@@ -32,6 +35,14 @@ void SaiBufferManager::setupEgressBufferPool() {
       SAI_BUFFER_POOL_TYPE_EGRESS,
       mmuSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
-  store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
+  egressBufferPoolHandle_->bufferPool =
+      store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
+
+std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
+    const PortQueue& /*queue*/) {
+  setupEgressBufferPool();
+  return nullptr;
+}
+
 } // namespace facebook::fboss

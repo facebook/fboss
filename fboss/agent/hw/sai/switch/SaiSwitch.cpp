@@ -622,7 +622,6 @@ HwInitResult SaiSwitch::initLocked(
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
 
-  managerTable_->bufferManager().setupEgressBufferPool();
   callback_ = callback;
   __gSaiSwitch = this;
   if (FLAGS_enable_sai_debug_log) {
