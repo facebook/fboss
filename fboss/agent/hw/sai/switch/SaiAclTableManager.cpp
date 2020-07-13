@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -372,6 +373,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldOutPort> fieldOutPort{
+      std::nullopt};
+  if (addedAclEntry->getDstPort()) {
+    auto portHandle = managerTable_->portManager().getPortHandle(
+        PortID(addedAclEntry->getDstPort().value()));
+    if (!portHandle) {
+      throw FbossError(
+          "attempted to configure dstPort: ",
+          addedAclEntry->getDstPort().value(),
+          " ACL:",
+          addedAclEntry->getID());
+    }
+    fieldOutPort =
+        SaiAclEntryTraits::Attributes::FieldOutPort{AclEntryFieldSaiObjectIdT(
+            std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldL4SrcPort> fieldL4SrcPort{
       std::nullopt};
   if (addedAclEntry->getL4SrcPort()) {
@@ -548,13 +566,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // honored.
   if (!((fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
          fieldSrcIpV4.has_value() || fieldDstIpV6.has_value() ||
-         fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-         fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-         fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-         fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
-         fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-         fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-         fieldRouteDstUserMeta.has_value() ||
+         fieldOutPort.has_value() || fieldL4SrcPort.has_value() ||
+         fieldL4DstPort.has_value() || fieldIpProtocol.has_value() ||
+         fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
+         fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
+         fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
+         fieldDscp.has_value() || fieldTtl.has_value() ||
+         fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionSetTC.has_value() ||
          aclActionSetDSCP.has_value()))) {
@@ -570,7 +588,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldSrcIpV4,
       fieldDstIpV4,
-      std::nullopt, // outPort
+      fieldOutPort,
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
@@ -596,7 +614,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldSrcIpV4,
       fieldDstIpV4,
-      std::nullopt, // outPort
+      fieldOutPort,
       fieldL4SrcPort,
       fieldL4DstPort,
       fieldIpProtocol,
