@@ -33,7 +33,7 @@ QsfpClient::createClient(folly::EventBase* eb) {
     auto socket = folly::AsyncSocket::newSocket(
         eb, addr, kQsfpConnTimeoutMs);
     socket->setSendTimeout(kQsfpSendTimeoutMs);
-    auto channel = apache::thrift::HeaderClientChannel::newChannel(socket);
+    auto channel = apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
     return std::make_unique<QsfpServiceAsyncClient>(std::move(channel));
   };
   return folly::via(eb, createClient);
