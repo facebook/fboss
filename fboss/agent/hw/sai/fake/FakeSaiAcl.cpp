@@ -33,7 +33,7 @@ sai_status_t create_acl_table_fn(
   bool fieldL4DstPort = 0;
   bool fieldIpProtocol = 0;
   bool fieldTcpFlags = 0;
-  bool fieldInPort = 0;
+  bool fieldSrcPort = 0;
   bool fieldOutPort = 0;
   bool fieldIpFrag = 0;
   bool fieldIcmpV4Type = 0;
@@ -88,8 +88,8 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS:
         fieldTcpFlags = attr_list[i].value.booldata;
         break;
-      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT:
-        fieldInPort = attr_list[i].value.booldata;
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT:
+        fieldSrcPort = attr_list[i].value.booldata;
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT:
         fieldOutPort = attr_list[i].value.booldata;
@@ -152,7 +152,7 @@ sai_status_t create_acl_table_fn(
       fieldL4DstPort,
       fieldIpProtocol,
       fieldTcpFlags,
-      fieldInPort,
+      fieldSrcPort,
       fieldOutPort,
       fieldIpFrag,
       fieldIcmpV4Type,
@@ -271,9 +271,9 @@ sai_status_t get_acl_table_attribute_fn(
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldTcpFlags;
       } break;
-      case SAI_ACL_TABLE_ATTR_FIELD_IN_PORT: {
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
-        attr[i].value.booldata = aclTable.fieldInPort;
+        attr[i].value.booldata = aclTable.fieldSrcPort;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);

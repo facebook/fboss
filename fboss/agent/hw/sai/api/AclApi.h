@@ -139,8 +139,8 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL, bool>;
     using FieldTcpFlags =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS, bool>;
-    using FieldInPort =
-        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IN_PORT, bool>;
+    using FieldSrcPort =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT, bool>;
     using FieldOutPort =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT, bool>;
     using FieldIpFrag =
@@ -187,7 +187,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldL4DstPort>,
       std::optional<Attributes::FieldIpProtocol>,
       std::optional<Attributes::FieldTcpFlags>,
-      std::optional<Attributes::FieldInPort>,
+      std::optional<Attributes::FieldSrcPort>,
       std::optional<Attributes::FieldOutPort>,
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
@@ -214,7 +214,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldL4DstPort>,
       std::optional<Attributes::FieldIpProtocol>,
       std::optional<Attributes::FieldTcpFlags>,
-      std::optional<Attributes::FieldInPort>,
+      std::optional<Attributes::FieldSrcPort>,
       std::optional<Attributes::FieldOutPort>,
       std::optional<Attributes::FieldIpFrag>,
       std::optional<Attributes::FieldIcmpV4Type>,
@@ -242,7 +242,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldL4SrcPort);
 SAI_ATTRIBUTE_NAME(AclTable, FieldL4DstPort);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpProtocol);
 SAI_ATTRIBUTE_NAME(AclTable, FieldTcpFlags);
-SAI_ATTRIBUTE_NAME(AclTable, FieldInPort);
+SAI_ATTRIBUTE_NAME(AclTable, FieldSrcPort);
 SAI_ATTRIBUTE_NAME(AclTable, FieldOutPort);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpFrag);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIcmpV4Type);

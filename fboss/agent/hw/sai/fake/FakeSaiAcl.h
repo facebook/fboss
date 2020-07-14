@@ -178,7 +178,7 @@ class FakeAclTable {
       bool fieldL4DstPort,
       bool fieldIpProtocol,
       bool fieldTcpFlags,
-      bool fieldInPort,
+      bool fieldSrcPort,
       bool fieldOutPort,
       bool fieldIpFrag,
       bool fieldIcmpV4Type,
@@ -203,7 +203,7 @@ class FakeAclTable {
         fieldL4DstPort(fieldL4DstPort),
         fieldIpProtocol(fieldIpProtocol),
         fieldTcpFlags(fieldTcpFlags),
-        fieldInPort(fieldInPort),
+        fieldSrcPort(fieldSrcPort),
         fieldOutPort(fieldOutPort),
         fieldIpFrag(fieldIpFrag),
         fieldIcmpV4Type(fieldIcmpV4Type),
@@ -233,7 +233,7 @@ class FakeAclTable {
   bool fieldL4DstPort;
   bool fieldIpProtocol;
   bool fieldTcpFlags;
-  bool fieldInPort;
+  bool fieldSrcPort;
   bool fieldOutPort;
   bool fieldIpFrag;
   bool fieldIcmpV4Type;

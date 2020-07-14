@@ -133,7 +133,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // l4DstPort
       true, // ipProtocol
       true, // tcpFlags
-      true, // inPort
+      true, // srcPort
       true, // outPort
       true, // ipFrag
       fieldIcmpV4Type,
@@ -160,7 +160,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // l4DstPort
       true, // ipProtocol
       true, // tcpFlags
-      true, // inPort
+      true, // srcPort
       true, // outPort
       true, // ipFrag
       fieldIcmpV4Type,

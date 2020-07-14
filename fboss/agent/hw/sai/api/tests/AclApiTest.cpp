@@ -257,7 +257,7 @@ class AclApiTest : public ::testing::Test {
             true, // l4DstPort
             true, // ipProtocol
             true, // tcpFlags
-            true, // inPort
+            true, // srcPort
             true, // outPort
             true, // ipFrag
             true, // icmpV4Type
@@ -603,8 +603,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldIpProtocol());
   auto aclTableFieldTcpFlagsGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldTcpFlags());
-  auto aclTableFieldInPortGot = aclApi->getAttribute(
-      aclTableId, SaiAclTableTraits::Attributes::FieldInPort());
+  auto aclTableFieldSrcPortGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldSrcPort());
   auto aclTableFieldOutPortGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldOutPort());
   auto aclTableFieldIpFragGot = aclApi->getAttribute(
@@ -648,7 +648,7 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableFieldL4DstPortGot, true);
   EXPECT_EQ(aclTableFieldIpProtocolGot, true);
   EXPECT_EQ(aclTableFieldTcpFlagsGot, true);
-  EXPECT_EQ(aclTableFieldInPortGot, true);
+  EXPECT_EQ(aclTableFieldSrcPortGot, true);
   EXPECT_EQ(aclTableFieldOutPortGot, true);
   EXPECT_EQ(aclTableFieldIpFragGot, true);
   EXPECT_EQ(aclTableFieldIcmpV4TypeGot, true);
@@ -720,7 +720,7 @@ TEST_F(AclApiTest, setAclTableAttribute) {
   SaiAclTableTraits::Attributes::FieldL4DstPort fieldL4DstPort{false};
   SaiAclTableTraits::Attributes::FieldIpProtocol fieldIpProtocol{false};
   SaiAclTableTraits::Attributes::FieldTcpFlags fieldTcpFlags{false};
-  SaiAclTableTraits::Attributes::FieldInPort fieldInPort{false};
+  SaiAclTableTraits::Attributes::FieldSrcPort fieldSrcPort{false};
   SaiAclTableTraits::Attributes::FieldOutPort fieldOutPort{false};
   SaiAclTableTraits::Attributes::FieldIpFrag fieldIpFrag{false};
   SaiAclTableTraits::Attributes::FieldIcmpV4Type fieldIcmpV4Type{false};
@@ -751,7 +751,7 @@ TEST_F(AclApiTest, setAclTableAttribute) {
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldL4DstPort), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpProtocol), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldTcpFlags), SaiApiError);
-  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldInPort), SaiApiError);
+  EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldSrcPort), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldOutPort), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIpFrag), SaiApiError);
   EXPECT_THROW(aclApi->setAttribute(aclTableId, fieldIcmpV4Type), SaiApiError);
