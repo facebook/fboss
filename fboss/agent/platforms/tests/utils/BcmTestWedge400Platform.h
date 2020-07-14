@@ -24,6 +24,14 @@ class BcmTestWedge400Platform : public BcmTestWedgeTomahawk3Platform {
     return true;
   }
 
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    return {FlexPortMode::FOURX10G,
+            FlexPortMode::FOURX25G,
+            FlexPortMode::ONEX40G,
+            FlexPortMode::TWOX50G,
+            FlexPortMode::ONEX100G};
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge400Platform(BcmTestWedge400Platform const&) = delete;

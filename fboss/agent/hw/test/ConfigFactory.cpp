@@ -24,28 +24,15 @@ namespace {
 cfg::PortSpeed maxPortSpeed(const HwSwitch* hwSwitch, PortID port) {
   // If Hardware can't decide the max speed, we use Platform(PlatformMapping) to
   // decide the max speed.
-  if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
-      maxSpeed != cfg::PortSpeed::DEFAULT) {
-    return maxSpeed;
+  try {
+    if (auto maxSpeed = hwSwitch->getPortMaxSpeed(port);
+        maxSpeed != cfg::PortSpeed::DEFAULT) {
+      return maxSpeed;
+    }
+  } catch (const FbossError& e) {
+    XLOG(DBG5) << "cannot access port in hwSwitch " << folly::exceptionStr(e);
   }
   return hwSwitch->getPlatform()->getPortMaxSpeed(port);
-}
-
-std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
-  auto platform = hwSwitch->getPlatform();
-  std::string chip;
-  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry()) {
-    auto pins = entry->mapping_ref()->pins_ref();
-    if (!pins->empty()) {
-      chip = pins->front().a.chip;
-    } else {
-      XLOG(DBG5) << "No pins for port " << id << ", return empty chip name";
-    }
-  } else {
-    XLOG(DBG5) << "No platformPortEntry for port " << id
-               << ", return empty chip name";
-  }
-  return chip;
 }
 
 // Return the ID for a profile that doesn't subsume any other ports.
@@ -476,6 +463,23 @@ void configurePortGroup(
     cfgPort->state_ref() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
+}
+
+std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
+  auto platform = hwSwitch->getPlatform();
+  std::string chip;
+  if (auto entry = platform->getPlatformPort(id)->getPlatformPortEntry()) {
+    auto pins = entry->mapping_ref()->pins_ref();
+    if (!pins->empty()) {
+      chip = *(pins->front().a_ref()->chip_ref());
+    } else {
+      XLOG(DBG5) << "No pins for port " << id << ", return empty chip name";
+    }
+  } else {
+    XLOG(DBG5) << "No platformPortEntry for port " << id
+               << ", return empty chip name";
+  }
+  return chip;
 }
 
 } // namespace facebook::fboss::utility

@@ -148,6 +148,18 @@ void enableOneLane(
         firstLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
     portCfg->speed_ref() = firstLane ? enabledLaneSpeed : disabledLaneSpeed;
     updatePortProfileIDAndName(config, portID, platform);
+    if (platform->supportsAddRemovePort() && !firstLane) {
+      config->ports_ref()->erase(portCfg);
+      auto vlanMemberPort = std::find_if(
+          config->vlanPorts_ref()->begin(),
+          config->vlanPorts_ref()->end(),
+          [portID](auto vlanPort) {
+            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
+          });
+      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
+        config->vlanPorts_ref()->erase(vlanMemberPort);
+      }
+    }
     firstLane = false;
   }
 }
@@ -179,6 +191,18 @@ void enableTwoLanes(
         oddLane ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
     portCfg->speed_ref() = oddLane ? enabledLaneSpeed : disabledLaneSpeed;
     updatePortProfileIDAndName(config, portID, platform);
+    if (platform->supportsAddRemovePort() && !oddLane) {
+      config->ports_ref()->erase(portCfg);
+      auto vlanMemberPort = std::find_if(
+          config->vlanPorts_ref()->begin(),
+          config->vlanPorts_ref()->end(),
+          [portID](auto vlanPort) {
+            return static_cast<PortID>(*vlanPort.logicalPort_ref()) == portID;
+          });
+      if (vlanMemberPort != config->vlanPorts_ref()->end()) {
+        config->vlanPorts_ref()->erase(vlanMemberPort);
+      }
+    }
   }
 }
 
@@ -203,7 +227,9 @@ void assertDUALMode(
     odd_lane = (*portItr - allPortsinGroup.front()) % 2 == 0 ? true : false;
     bool enabled = odd_lane ? true : false;
     auto speed = odd_lane ? enabledLaneSpeed : disabledLaneSpeed;
-    utility::assertPort(hw, *portItr, enabled, speed);
+    if (enabled || !hw->getPlatform()->supportsAddRemovePort()) {
+      utility::assertPort(hw, *portItr, enabled, speed);
+    }
   }
 }
 
@@ -216,7 +242,9 @@ void assertSINGLEMode(
   for (; portItr != allPortsinGroup.end(); portItr++) {
     bool enabled = *portItr == allPortsinGroup.front() ? true : false;
     auto speed = enabled ? enabledLaneSpeed : disabledLaneSpeed;
-    utility::assertPort(hw, *portItr, enabled, speed);
+    if (enabled || !hw->getPlatform()->supportsAddRemovePort()) {
+      utility::assertPort(hw, *portItr, enabled, speed);
+    }
   }
 }
 

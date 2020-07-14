@@ -76,8 +76,23 @@ class HwFlexPortTest : public HwTest {
 
       cfg = utility::oneL3IntfNPortConfig(getHwSwitch(), allPortsinGroup);
       facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
-      utility::updateFlexConfig(
-          &cfg, flexMode, allPortsinGroup, getHwSwitch()->getPlatform());
+
+      auto chip = utility::getAsicChipFromPortID(
+          getHwSwitch(), masterLogicalPortIds()[0]);
+      for (auto portId : masterLogicalPortIds()) {
+        if (utility::findCfgPortIf(cfg, portId) != cfg.ports_ref()->end() &&
+            utility::getAsicChipFromPortID(getHwSwitch(), portId) == chip) {
+          utility::updateFlexConfig(
+              &cfg,
+              flexMode,
+              getAllPortsInGroup(portId),
+              getHwSwitch()->getPlatform());
+          if (portId != masterLogicalPortIds()[0]) {
+            utility::findCfgPortIf(cfg, portId)->state_ref() =
+                cfg::PortState::DISABLED;
+          }
+        }
+      }
       applyNewConfig(cfg);
     };
 

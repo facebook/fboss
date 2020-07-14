@@ -87,6 +87,7 @@ void configurePortGroup(
     cfg::SwitchConfig& config,
     cfg::PortSpeed speed,
     std::vector<PortID> allPortsInGroup);
+std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id);
 
 void addMatcher(
     cfg::SwitchConfig* config,
