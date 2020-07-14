@@ -120,6 +120,20 @@ void checkSwHwAclMatch(
     }
   }
 
+  if (swAcl->getSrcPort()) {
+    const auto& portManager =
+        static_cast<const SaiSwitch*>(hw)->managerTable()->portManager();
+    auto portHandle =
+        portManager.getPortHandle(PortID(swAcl->getSrcPort().value()));
+    EXPECT_TRUE(portHandle);
+
+    auto srcPortDataExpected = portHandle->port->adapterKey();
+    auto aclFieldSrcPortGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcPort());
+    auto srcPortDataGot = aclFieldSrcPortGot.getDataAndMask().first;
+    EXPECT_EQ(srcPortDataGot, srcPortDataExpected);
+  }
+
   if (swAcl->getDstPort()) {
     const auto& portManager =
         static_cast<const SaiSwitch*>(hw)->managerTable()->portManager();
