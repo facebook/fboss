@@ -10,11 +10,13 @@
 
 #pragma once
 
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+
 #include <memory>
+#include <set>
 
 namespace facebook::fboss {
 
-class HwSwitchEnsemble;
 /*
  * API to create appropriate HW ensemble based on the platform
  * This provides a runtime hook to dynamically plug in various
@@ -23,6 +25,7 @@ class HwSwitchEnsemble;
  * members - HwSwitch, Platform) interfaces.
  */
 
-std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(uint32_t featuresDesired);
+std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
+    const HwSwitchEnsemble::Features& featuresDesired);
 
 } // namespace facebook::fboss

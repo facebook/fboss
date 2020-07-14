@@ -33,7 +33,7 @@ namespace facebook::fboss {
  */
 BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble(HwSwitch::FeaturesDesired::LINKSCAN_DESIRED);
+  auto ensemble = createHwEnsemble({HwSwitchEnsemble::LINKSCAN});
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());

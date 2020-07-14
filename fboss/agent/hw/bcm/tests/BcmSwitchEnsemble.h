@@ -24,8 +24,9 @@ namespace facebook::fboss {
 class BcmSwitchEnsemble : public HwSwitchEnsemble {
  public:
   explicit BcmSwitchEnsemble(
-      uint32_t featuresDesired =
-          (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
+      const HwSwitchEnsemble::Features& features = {
+          HwSwitchEnsemble::PACKET_RX,
+          HwSwitchEnsemble::LINKSCAN});
   BcmTestPlatform* getPlatform() override {
     return static_cast<BcmTestPlatform*>(HwSwitchEnsemble::getPlatform());
   }

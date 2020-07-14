@@ -43,7 +43,8 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
 
 namespace facebook::fboss {
 
-SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
+SaiSwitchEnsemble::SaiSwitchEnsemble(
+    const HwSwitchEnsemble::Features& featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   std::unique_ptr<AgentConfig> agentConfig;
   if (!FLAGS_config.empty()) {
@@ -52,9 +53,10 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
     agentConfig = AgentConfig::fromDefaultFile();
   }
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs_ref());
-  auto platform = initSaiPlatform(std::move(agentConfig), featuresDesired);
+  auto platform =
+      initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
   std::unique_ptr<HwLinkStateToggler> linkToggler;
-  if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
+  if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = std::make_unique<SaiLinkStateToggler>(
         static_cast<SaiSwitch*>(platform->getHwSwitch()),
         [this](const std::shared_ptr<SwitchState>& toApply) {

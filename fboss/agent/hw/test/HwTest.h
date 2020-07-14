@@ -89,8 +89,8 @@ class HwTest : public ::testing::Test,
    * a default setting for features desired and let individual tests override
    * it.
    */
-  virtual uint32_t featuresDesired() const {
-    return 0;
+  virtual HwSwitchEnsemble::Features featuresDesired() const {
+    return {};
   }
   template <
       typename SETUP_FN,

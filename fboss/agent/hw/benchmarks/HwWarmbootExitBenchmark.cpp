@@ -51,8 +51,7 @@ namespace facebook::fboss {
 
 void runBenchmark() {
   auto ensemble = createHwEnsemble(
-      HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
-      HwSwitch::FeaturesDesired::PACKET_RX_DESIRED);
+      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());

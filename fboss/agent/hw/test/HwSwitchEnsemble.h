@@ -20,6 +20,7 @@
 #include <folly/Synchronized.h>
 
 #include <memory>
+#include <set>
 #include <thread>
 
 namespace facebook::fboss {
@@ -39,7 +40,14 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
   };
-  explicit HwSwitchEnsemble(uint32_t featuresDesired);
+  enum Feature : uint32_t {
+    PACKET_RX,
+    LINKSCAN,
+    STATS_COLLECTION,
+  };
+  using Features = std::set<Feature>;
+
+  explicit HwSwitchEnsemble(const Features& featuresDesired);
   ~HwSwitchEnsemble() override;
   void setAllowPartialStateApplication(bool allow) {
     allowPartialStateApplication_ = allow;
@@ -129,6 +137,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::unique_ptr<Platform> platform,
       std::unique_ptr<HwLinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread);
+  uint32_t getHwSwitchFeatures() const;
+  bool haveFeature(Feature feature) {
+    return featuresDesired_.find(feature) != featuresDesired_.end();
+  }
 
  private:
   bool waitForAnyPorAndQueutOutBytesIncrement(
@@ -138,7 +150,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<rib::RoutingInformationBase> routingInformationBase_;
   std::unique_ptr<HwLinkStateToggler> linkToggler_;
   std::unique_ptr<Platform> platform_;
-  uint32_t featuresDesired_{0};
+  const Features featuresDesired_;
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};

@@ -37,7 +37,7 @@ using namespace std::chrono_literals;
 
 namespace facebook::fboss {
 
-HwSwitchEnsemble::HwSwitchEnsemble(uint32_t featuresDesired)
+HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
     : featuresDesired_(featuresDesired) {}
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {
@@ -82,6 +82,25 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   }
 }
 
+uint32_t HwSwitchEnsemble::getHwSwitchFeatures() const {
+  uint32_t features{0};
+  for (auto feature : featuresDesired_) {
+    switch (feature) {
+      case LINKSCAN:
+        features |= HwSwitch::LINKSCAN_DESIRED;
+        break;
+      case PACKET_RX:
+        features |= HwSwitch::PACKET_RX_DESIRED;
+        break;
+      case STATS_COLLECTION:
+        // No HwSwitch feture need to turned on.
+        // Handled by HwSwitchEnsemble
+        break;
+    }
+  }
+  return features;
+}
+
 HwSwitch* HwSwitchEnsemble::getHwSwitch() {
   return platform_->getHwSwitch();
 }
@@ -108,7 +127,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
 }
 
 void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
-  CHECK(featuresDesired_ & HwSwitch::LINKSCAN_DESIRED)
+  CHECK(haveFeature(HwSwitchEnsemble::LINKSCAN))
       << "Link scan feature must be enabled for exercising "
       << "applyInitialConfig";
   linkToggler_->applyInitialConfig(

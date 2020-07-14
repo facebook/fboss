@@ -22,8 +22,9 @@ namespace facebook::fboss {
 class SaiSwitchEnsemble : public HwSwitchEnsemble {
  public:
   explicit SaiSwitchEnsemble(
-      uint32_t featuresDesired =
-          (HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED));
+      const HwSwitchEnsemble::Features& features = {
+          HwSwitchEnsemble::PACKET_RX,
+          HwSwitchEnsemble::LINKSCAN});
   SaiPlatform* getPlatform() override {
     return static_cast<SaiPlatform*>(HwSwitchEnsemble::getPlatform());
   }

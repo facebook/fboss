@@ -56,8 +56,8 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
   }
 
-  uint32_t featuresDesired() const override {
-    return (HwSwitch::LINKSCAN_DESIRED | HwSwitch::PACKET_RX_DESIRED);
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
 
   void

@@ -27,7 +27,7 @@ template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   auto ensemble = createHwEnsemble(
-      HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
+      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);

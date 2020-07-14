@@ -16,7 +16,8 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(uint32_t featuresDesired) {
+std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
+    const HwSwitchEnsemble::Features& featuresDesired) {
   return std::make_unique<SaiSwitchEnsemble>(featuresDesired);
 }
 

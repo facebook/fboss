@@ -43,8 +43,8 @@ class HwLinkStateDependentTest : public HwTest {
    */
   virtual cfg::SwitchConfig initialConfig() const = 0;
   HwLinkStateToggler* getLinkToggler();
-  uint32_t featuresDesired() const override {
-    return HwSwitch::LINKSCAN_DESIRED;
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN};
   }
 };
 

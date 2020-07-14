@@ -31,16 +31,15 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
   }
 
  public:
-  explicit TestHwSwitchEnsemble(uint32_t features)
+  explicit TestHwSwitchEnsemble(const HwSwitchEnsemble::Features& features = {})
       : HwSwitchEnsemble(features) {}
 };
 
 void call_ctor_dtor() {
-  uint32_t features = 0;
   // just trigger the ctor and dtor back-to-back
   // early versions of the dtor assumed that intermediary
   // calls setup state which were not always true
-  TestHwSwitchEnsemble foo(features);
+  TestHwSwitchEnsemble foo;
 }
 
 TEST(TestHwSwitchEnsemble, Unprogrammed) {

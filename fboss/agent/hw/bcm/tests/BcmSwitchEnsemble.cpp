@@ -73,7 +73,8 @@ void modifyCfgForQcmTests(facebook::fboss::BcmConfig::ConfigMap& cfg) {
 
 namespace facebook::fboss {
 
-BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
+BcmSwitchEnsemble::BcmSwitchEnsemble(
+    const HwSwitchEnsemble::Features& featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {
   auto platform = createTestPlatform();
   std::unique_ptr<AgentConfig> agentConfig;
@@ -113,10 +114,10 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
   }
   BcmAPI::init(cfg);
   // TODO pass agent config to platform init
-  platform->init(std::move(agentConfig), featuresDesired);
+  platform->init(std::move(agentConfig), getHwSwitchFeatures());
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<HwLinkStateToggler> linkToggler;
-  if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
+  if (haveFeature(HwSwitchEnsemble::LINKSCAN)) {
     linkToggler = createLinkToggler(
         static_cast<BcmSwitch*>(platform->getHwSwitch()),
         bcmTestPlatform->getAsic()->desiredLoopbackMode());

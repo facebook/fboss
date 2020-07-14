@@ -28,7 +28,7 @@ BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
   auto ensemble = createHwEnsemble(
-      HwSwitch::PACKET_RX_DESIRED | HwSwitch::LINKSCAN_DESIRED);
+      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
