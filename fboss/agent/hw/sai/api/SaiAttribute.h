@@ -161,6 +161,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdT, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
+DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
 
 // TODO:
 DEFINE_extract(sai_u32_range_t, u32range);
@@ -352,6 +353,28 @@ inline void _fill(
     sai_acl_action_data_t& dst) {
   dst.enable = true;
   dst.parameter.u32 = src.getData();
+}
+
+inline void _fill(
+    const sai_acl_action_data_t& src,
+    facebook::fboss::AclEntryActionSaiObjectIdList& dst) {
+  std::vector<sai_object_id_t> dstData(src.parameter.objlist.count);
+  dstData.resize(src.parameter.objlist.count);
+  std::copy(
+      src.parameter.objlist.list,
+      src.parameter.objlist.list + src.parameter.objlist.count,
+      std::begin(dstData));
+
+  dst.setData(dstData);
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryActionSaiObjectIdList& src,
+    sai_acl_action_data_t& dst) {
+  dst.enable = true;
+  dst.parameter.objlist.count = src.getData().size();
+  dst.parameter.objlist.list = const_cast<sai_object_id_t*>(
+      reinterpret_cast<const sai_object_id_t*>(src.getData().data()));
 }
 
 template <typename SrcT, typename DstT>

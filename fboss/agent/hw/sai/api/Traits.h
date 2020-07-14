@@ -170,7 +170,7 @@ class AclEntryAction {
  public:
   AclEntryAction(){};
   AclEntryAction(T data) : data_(data) {}
-  T getData() const {
+  const T& getData() const {
     return data_;
   }
 
@@ -179,7 +179,21 @@ class AclEntryAction {
   }
 
   std::string str() const {
-    return folly::to<std::string>("data: ", data_);
+    if constexpr (std::is_same_v<T, std::vector<sai_object_id_t>>) {
+      std::ostringstream retStr;
+
+      if (!data_.empty()) {
+        std::copy(
+            data_.begin(),
+            data_.end() - 1,
+            std::ostream_iterator<int>(retStr, ","));
+        retStr << data_.back();
+      }
+
+      return retStr.str();
+    } else {
+      return folly::to<std::string>("data: ", data_);
+    }
   }
 
  private:
@@ -205,6 +219,8 @@ std::size_t hash_value(const AclEntryAction<T>& key) {
 
 using AclEntryActionU8 = AclEntryAction<sai_uint8_t>;
 using AclEntryActionU32 = AclEntryAction<sai_uint32_t>;
+using AclEntryActionSaiObjectIdList =
+    AclEntryAction<std::vector<sai_object_id_t>>;
 
 template <typename T>
 struct IsSaiTypeWrapper

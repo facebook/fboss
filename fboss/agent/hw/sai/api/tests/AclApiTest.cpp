@@ -235,6 +235,18 @@ class AclApiTest : public ::testing::Test {
     return 20;
   }
 
+  const std::vector<sai_object_id_t>& kMirrorIngress() const {
+    static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
+
+    return mirrorIngress;
+  }
+
+  const std::vector<sai_object_id_t>& kMirrorIngress2() const {
+    static const std::vector<sai_object_id_t> mirrorIngress{20, 21};
+
+    return mirrorIngress;
+  }
+
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -337,6 +349,9 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP{
         AclEntryActionU8(kSetDSCP())};
 
+    SaiAclEntryTraits::Attributes::ActionMirrorIngress aclActionMirrorIngress{
+        AclEntryActionSaiObjectIdList(kMirrorIngress())};
+
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
          aclPriorityAttribute,
@@ -362,7 +377,8 @@ class AclApiTest : public ::testing::Test {
          aclFieldNeighborDstUserMetaAttribute,
          aclActionPacketAction,
          aclActionSetTC,
-         aclActionSetDSCP},
+         aclActionSetDSCP,
+         aclActionMirrorIngress},
         kSwitchID());
   }
 
@@ -448,7 +464,8 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
       sai_uint32_t packetAction,
       sai_uint8_t setTC,
-      sai_uint8_t setDSCP) const {
+      sai_uint8_t setDSCP,
+      const std::vector<sai_object_id_t>& mirrorIngress) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
 
@@ -499,6 +516,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
     auto aclActionSetDSCPGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetDSCP());
+    auto aclActionMirrorIngress = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionMirrorIngress());
 
     EXPECT_EQ(aclPriorityGot, priority);
 
@@ -527,6 +546,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionSetTCGot.getData(), setTC);
     EXPECT_EQ(aclActionSetDSCPGot.getData(), setDSCP);
+    EXPECT_EQ(aclActionMirrorIngress.getData(), mirrorIngress);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -712,7 +732,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kNeighborDstUserMeta(),
       kPacketAction(),
       kSetTC(),
-      kSetDSCP());
+      kSetDSCP(),
+      kMirrorIngress());
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -853,6 +874,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryActionU8(kSetTC2())};
   SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP2{
       AclEntryActionU8(kSetDSCP2())};
+  SaiAclEntryTraits::Attributes::ActionMirrorIngress aclActionMirrorIngress2{
+      AclEntryActionSaiObjectIdList(kMirrorIngress2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -879,6 +902,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
   aclApi->setAttribute(aclEntryId, aclActionSetDSCP2);
+  aclApi->setAttribute(aclEntryId, aclActionMirrorIngress2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -905,7 +929,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kNeighborDstUserMeta2(),
       kPacketAction2(),
       kSetTC2(),
-      kSetDSCP2());
+      kSetDSCP2(),
+      kMirrorIngress2());
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {

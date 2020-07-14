@@ -135,6 +135,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return 10;
   }
 
+  std::vector<sai_object_id_t> kMirrorIngress() const {
+    return {10, 11};
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
@@ -194,6 +198,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionU8(this->kSetTC()),
             AclEntryActionU8(this->kSetDSCP()),
+            AclEntryActionSaiObjectIdList(this->kMirrorIngress()),
         },
         0);
   }
@@ -308,7 +313,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
                                       this->kSetTC(),
-                                      this->kSetDSCP()};
+                                      this->kSetDSCP(),
+                                      this->kMirrorIngress()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -412,7 +418,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kNeighborDstUserMeta(),
                                         this->kPacketAction(),
                                         this->kSetTC(),
-                                        this->kSetDSCP()};
+                                        this->kSetDSCP(),
+                                        this->kMirrorIngress()};
   SaiAclEntryTraits::AdapterHostKey k{aclTableId,
                                       this->kPriority(),
                                       this->kSrcIpV6(),
@@ -437,7 +444,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
                                       this->kSetTC(),
-                                      this->kSetDSCP()};
+                                      this->kSetDSCP(),
+                                      this->kMirrorIngress()};
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
 }

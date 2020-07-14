@@ -626,6 +626,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionPacketAction,
       aclActionSetTC,
       aclActionSetDSCP,
+      std::nullopt, // mirrorIngress
   };
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
@@ -653,6 +654,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionPacketAction,
       aclActionSetTC,
       aclActionSetDSCP,
+      std::nullopt, // mirrorIngress
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

@@ -501,6 +501,17 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionSetDSCPData = attr->value.aclaction.parameter.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
+      aclEntry.actionMirrorIngressEnable = attr->value.aclaction.enable;
+      aclEntry.actionMirrorIngressData.resize(
+          attr->value.aclaction.parameter.objlist.count);
+      std::copy(
+          attr->value.aclaction.parameter.objlist.list,
+          attr->value.aclaction.parameter.objlist.list +
+              attr->value.aclaction.parameter.objlist.count,
+          std::begin(aclEntry.actionMirrorIngressData));
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -657,6 +668,14 @@ sai_status_t get_acl_entry_attribute_fn(
       case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
         attr_list[i].value.aclaction.enable = aclEntry.actionSetDSCPEnable;
         attr_list[i].value.aclaction.parameter.u8 = aclEntry.actionSetDSCPData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
+        attr_list[i].value.aclaction.enable =
+            aclEntry.actionMirrorIngressEnable;
+        attr_list[i].value.aclaction.parameter.objlist.count =
+            aclEntry.actionMirrorIngressData.size();
+        attr_list[i].value.aclaction.parameter.objlist.list =
+            aclEntry.actionMirrorIngressData.data();
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

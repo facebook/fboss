@@ -166,6 +166,9 @@ class FakeAclEntry {
   bool actionSetDSCPEnable{false};
   sai_uint8_t actionSetDSCPData;
 
+  bool actionMirrorIngressEnable{false};
+  std::vector<sai_object_id_t> actionMirrorIngressData;
+
   sai_object_id_t id;
 };
 
