@@ -42,10 +42,6 @@ class BcmTestPlatform : public BcmPlatform {
   folly::MacAddress getLocalMac() const override;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
 
-  virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
-    return cfg::PortLoopbackMode::MAC;
-  }
-
   void onUnitCreate(int unit) override;
   void onUnitAttach(int unit) override;
   void initPorts() override;

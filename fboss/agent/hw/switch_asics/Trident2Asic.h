@@ -39,6 +39,14 @@ class Trident2Asic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override {
     return 16 * 1024 * 1024;
   }
+  cfg::PortLoopbackMode desiredLoopbackMode() const override {
+    // Changing loopback mode to MAC on a 40G port on trident2 changes
+    // the speed to 10G unexpectedly.
+    //
+    // Broadcom case: CS8832244
+    //
+    return cfg::PortLoopbackMode::PHY;
+  }
 };
 
 } // namespace facebook::fboss

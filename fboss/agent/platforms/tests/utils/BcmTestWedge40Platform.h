@@ -52,15 +52,6 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
     return false;
   }
 
-  cfg::PortLoopbackMode desiredLoopbackMode() const override {
-    // Changing loopback mode to MAC on a 40G port on trident2 changes
-    // the speed to 10G unexpectedly.
-    //
-    // Broadcom case: CS8832244
-    //
-    return cfg::PortLoopbackMode::PHY;
-  }
-
   HwAsic* getAsic() const override;
 
  private:

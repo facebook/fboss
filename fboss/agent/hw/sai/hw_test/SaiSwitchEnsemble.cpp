@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
 
@@ -59,7 +60,7 @@ SaiSwitchEnsemble::SaiSwitchEnsemble(uint32_t featuresDesired)
         [this](const std::shared_ptr<SwitchState>& toApply) {
           applyNewState(toApply);
         },
-        cfg::PortLoopbackMode::MAC);
+        platform->getAsic()->desiredLoopbackMode());
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {

@@ -119,7 +119,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(uint32_t featuresDesired)
   if (featuresDesired & HwSwitch::LINKSCAN_DESIRED) {
     linkToggler = createLinkToggler(
         static_cast<BcmSwitch*>(platform->getHwSwitch()),
-        bcmTestPlatform->desiredLoopbackMode());
+        bcmTestPlatform->getAsic()->desiredLoopbackMode());
   }
   std::unique_ptr<std::thread> thriftThread;
   if (FLAGS_setup_thrift) {
