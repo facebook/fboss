@@ -512,6 +512,17 @@ sai_status_t set_acl_entry_attribute_fn(
           std::begin(aclEntry.actionMirrorIngressData));
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
+      aclEntry.actionMirrorEgressEnable = attr->value.aclaction.enable;
+      aclEntry.actionMirrorEgressData.resize(
+          attr->value.aclaction.parameter.objlist.count);
+      std::copy(
+          attr->value.aclaction.parameter.objlist.list,
+          attr->value.aclaction.parameter.objlist.list +
+              attr->value.aclaction.parameter.objlist.count,
+          std::begin(aclEntry.actionMirrorEgressData));
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -676,6 +687,13 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.actionMirrorIngressData.size();
         attr_list[i].value.aclaction.parameter.objlist.list =
             aclEntry.actionMirrorIngressData.data();
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
+        attr_list[i].value.aclaction.enable = aclEntry.actionMirrorEgressEnable;
+        attr_list[i].value.aclaction.parameter.objlist.count =
+            aclEntry.actionMirrorEgressData.size();
+        attr_list[i].value.aclaction.parameter.objlist.list =
+            aclEntry.actionMirrorEgressData.data();
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

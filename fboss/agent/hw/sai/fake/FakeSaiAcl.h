@@ -169,6 +169,9 @@ class FakeAclEntry {
   bool actionMirrorIngressEnable{false};
   std::vector<sai_object_id_t> actionMirrorIngressData;
 
+  bool actionMirrorEgressEnable{false};
+  std::vector<sai_object_id_t> actionMirrorEgressData;
+
   sai_object_id_t id;
 };
 
