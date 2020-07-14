@@ -34,7 +34,6 @@ class BcmTestPort : public BcmPlatformPort {
   bool isMediaPresent() override;
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState) override;
-  void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   std::optional<TransceiverID> getTransceiverID() const override;

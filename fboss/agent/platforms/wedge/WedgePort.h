@@ -64,7 +64,6 @@ class WedgePort : public BcmPlatformPort {
       bool egress,
       bool discards,
       bool errors) override;
-  void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState) override;
 
@@ -103,8 +102,6 @@ class WedgePort : public BcmPlatformPort {
  protected:
   bool isControllingPort() const;
 
-  // TODO(aeckert): deprecate cached speed
-  cfg::PortSpeed speed_{cfg::PortSpeed::DEFAULT};
   // TODO(joseph5wu): deprecate front panel resource
   std::optional<FrontPanelResources> frontPanel_;
 

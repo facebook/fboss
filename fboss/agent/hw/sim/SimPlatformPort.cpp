@@ -24,7 +24,6 @@ bool SimPlatformPort::isMediaPresent() {
   return true;
 }
 void SimPlatformPort::linkStatusChanged(bool /* up */, bool /* adminUp */) {}
-void SimPlatformPort::linkSpeedChanged(const cfg::PortSpeed& /* speed */) {}
 bool SimPlatformPort::supportsTransceiver() const {
   return false;
 }

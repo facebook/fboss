@@ -255,8 +255,7 @@ void BcmPort::init(bool warmBoot) {
   }
   initCustomStats();
 
-  // Notify platform port of initial state/speed
-  getPlatformPort()->linkSpeedChanged(getSpeed());
+  // Notify platform port of initial state
   getPlatformPort()->linkStatusChanged(isUp(), isEnabled());
   getPlatformPort()->externalState(PortLedExternalState::NONE);
 
@@ -624,7 +623,6 @@ void BcmPort::setSpeed(const shared_ptr<Port>& swPort) {
         curSpeed,
         ", on port ",
         swPort->getID());
-    getPlatformPort()->linkSpeedChanged(desiredPortSpeed);
   }
 }
 
@@ -1819,11 +1817,6 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
 
   auto rv = bcm_port_resource_speed_set(unit_, gport_, &desiredPortResource);
   bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
-
-  if (curPortResource.speed != desiredPortResource.speed) {
-    getPlatformPort()->linkSpeedChanged(
-        cfg::PortSpeed(desiredPortResource.speed));
-  }
 }
 
 } // namespace facebook::fboss

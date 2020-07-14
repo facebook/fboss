@@ -30,7 +30,6 @@ class MockPlatformPort : public PlatformPort {
   MOCK_METHOD0(postEnable, void());
   MOCK_METHOD0(isMediaPresent, bool());
   MOCK_METHOD2(linkStatusChanged, void(bool up, bool adminUp));
-  MOCK_METHOD1(linkSpeedChanged, void(const cfg::PortSpeed& speed));
   MOCK_CONST_METHOD0(supportsTransceiver, bool());
   MOCK_CONST_METHOD0(getTransceiverID, std::optional<TransceiverID>());
   MOCK_METHOD6(

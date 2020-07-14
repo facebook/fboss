@@ -29,7 +29,6 @@ class SaiPlatformPort : public PlatformPort {
   void postEnable() override;
   bool isMediaPresent() override;
   void linkStatusChanged(bool up, bool adminUp) override;
-  void linkSpeedChanged(const cfg::PortSpeed& speed) override;
   std::optional<TransceiverID> getTransceiverID() const override {
     return transceiverID_;
   }

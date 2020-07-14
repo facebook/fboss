@@ -107,14 +107,6 @@ class PlatformPort {
   virtual void linkStatusChanged(bool up, bool adminUp) = 0;
 
   /*
-   * Will be called by the hardware code whenever the port speed
-   * changes.
-   *
-   * speed indicates the new speed that the port is running at
-   */
-  virtual void linkSpeedChanged(const cfg::PortSpeed& speed) = 0;
-
-  /*
    * Returns true if the port supports/expects to use a transceiver
    * and false if there is a direct electrical connection
    */

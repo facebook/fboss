@@ -56,7 +56,6 @@ bool SaiPlatformPort::isMediaPresent() {
   return true;
 }
 void SaiPlatformPort::linkStatusChanged(bool /* up */, bool /* adminUp */) {}
-void SaiPlatformPort::linkSpeedChanged(const cfg::PortSpeed& /* speed */) {}
 
 void SaiPlatformPort::statusIndication(
     bool /* enabled */,

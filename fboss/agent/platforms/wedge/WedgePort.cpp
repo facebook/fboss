@@ -137,11 +137,6 @@ void WedgePort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 
 void WedgePort::externalState(PortLedExternalState) {}
 
-void WedgePort::linkSpeedChanged(const cfg::PortSpeed& speed) {
-  // Cache the current set speed
-  speed_ = speed;
-}
-
 bool WedgePort::isControllingPort() const {
   if (!bcmPort_ || !bcmPort_->getPortGroup()) {
     return false;

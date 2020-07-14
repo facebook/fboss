@@ -254,15 +254,6 @@ void BcmPortGroup::reconfigureIfNeeded(
   if (desiredLaneMode != laneMode_) {
     reconfigureLaneMode(oldPorts, newPorts, desiredLaneMode);
   }
-
-  for (const auto& port : allPorts_) {
-    auto oldPort = getSwPortIf(oldPorts, port->getPortID());
-    auto newPort = getSwPortIf(newPorts, port->getPortID());
-
-    if (oldPort && newPort && (oldPort->getSpeed() != newPort->getSpeed())) {
-      port->getPlatformPort()->linkSpeedChanged(newPort->getSpeed());
-    }
-  }
 }
 
 // Some *_switch_control_set operations are performed on a port-by-port basis
