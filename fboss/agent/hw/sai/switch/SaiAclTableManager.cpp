@@ -58,6 +58,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   auto& aclTableStore = s->get<SaiAclTableTraits>();
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+                                          SAI_ACL_ACTION_TYPE_COUNTER,
                                           SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
                                           SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
                                           SAI_ACL_ACTION_TYPE_SET_TC,

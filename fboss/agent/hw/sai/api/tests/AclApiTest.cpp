@@ -238,6 +238,7 @@ class AclApiTest : public ::testing::Test {
   const std::vector<sai_int32_t>& kActionTypeList() const {
     static const std::vector<sai_int32_t> actionTypeList = {
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+        SAI_ACL_ACTION_TYPE_COUNTER,
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
         SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
         SAI_ACL_ACTION_TYPE_SET_TC,
