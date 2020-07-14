@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -117,6 +118,20 @@ void checkSwHwAclMatch(
       EXPECT_EQ(dstIpV4DataGot, swAcl->getDstIp().first.asV4());
       EXPECT_EQ(dstIpV4MaskGot, dstIpV4MaskExpected);
     }
+  }
+
+  if (swAcl->getDstPort()) {
+    const auto& portManager =
+        static_cast<const SaiSwitch*>(hw)->managerTable()->portManager();
+    auto portHandle =
+        portManager.getPortHandle(PortID(swAcl->getDstPort().value()));
+    EXPECT_TRUE(portHandle);
+
+    auto dstPortDataExpected = portHandle->port->adapterKey();
+    auto aclFieldDstPortGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldOutPort());
+    auto dstPortDataGot = aclFieldDstPortGot.getDataAndMask().first;
+    EXPECT_EQ(dstPortDataGot, dstPortDataExpected);
   }
 
   if (swAcl->getL4SrcPort()) {
