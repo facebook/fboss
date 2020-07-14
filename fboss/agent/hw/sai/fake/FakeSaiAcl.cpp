@@ -382,16 +382,24 @@ sai_status_t set_acl_entry_attribute_fn(
           facebook::fboss::fromSaiIpAddress(attr->value.aclfield.mask.ip4);
       res = SAI_STATUS_SUCCESS;
       break;
+
+    /*
+     * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT
+     * or SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT.
+     * Thus, there is no oid field in sai_acl_field_data_mask_t.
+     * oid is u64, but unfortunately, u64 was not added to
+     * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
+     * This will be ignored by the implementation anyway.
+     */
+    case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
+      aclEntry.fieldSrcPortEnable = attr->value.aclfield.enable;
+      aclEntry.fieldSrcPortData = attr->value.aclfield.data.oid;
+      aclEntry.fieldSrcPortMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
       aclEntry.fieldOutPortEnable = attr->value.aclfield.enable;
       aclEntry.fieldOutPortData = attr->value.aclfield.data.oid;
-      /*
-       * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT
-       * Thus, there is no oid field in sai_acl_field_data_mask_t.
-       * oid is u64, but unfortunately, u64 was not added to
-       * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
-       * This will be ignored by the implementation anyway.
-       */
       aclEntry.fieldOutPortMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
@@ -542,16 +550,23 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.mask.ip4 =
             facebook::fboss::toSaiIpAddress(aclEntry.fieldDstIpV4Mask).addr.ip4;
         break;
+
+      /*
+       * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT
+       * or SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT.
+       * Thus, there is no oid field in sai_acl_field_data_mask_t.
+       * oid is u64, but unfortunately, u64 was not added to
+       * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
+       * This will be ignored by the implementation anyway.
+       */
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldSrcPortEnable;
+        attr_list[i].value.aclfield.data.oid = aclEntry.fieldSrcPortData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldSrcPortMask;
+        break;
       case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
         attr_list[i].value.aclfield.enable = aclEntry.fieldOutPortEnable;
         attr_list[i].value.aclfield.data.oid = aclEntry.fieldOutPortData;
-        /*
-         * Mask is not needed for SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT
-         * Thus, there is no oid field in sai_acl_field_data_mask_t.
-         * oid is u64, but unfortunately, u64 was not added to
-         * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
-         * This will be ignored by the implementation anyway.
-         */
         attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldOutPortMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:

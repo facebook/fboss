@@ -588,6 +588,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldSrcIpV4,
       fieldDstIpV4,
+      std::nullopt, // srcPort
       fieldOutPort,
       fieldL4SrcPort,
       fieldL4DstPort,
@@ -614,6 +615,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstIpV6,
       fieldSrcIpV4,
       fieldDstIpV4,
+      std::nullopt, // srcPort
       fieldOutPort,
       fieldL4SrcPort,
       fieldL4DstPort,

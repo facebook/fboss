@@ -85,8 +85,6 @@ class FakeAclEntry {
   folly::IPAddressV4 fieldDstIpV4Data;
   folly::IPAddressV4 fieldDstIpV4Mask;
 
-  bool fieldOutPortEnable{false};
-  sai_object_id_t fieldOutPortData;
   /*
    * Mask is not needed for sai_object_id_t Acl Entry field.
    * Thus, there is no oid field in sai_acl_field_data_mask_t.
@@ -94,6 +92,13 @@ class FakeAclEntry {
    * sai_acl_field_data_mask_t till SAI 1.6, so use u32.
    * This will be ignored by the implementation anyway.
    */
+
+  bool fieldSrcPortEnable{false};
+  sai_object_id_t fieldSrcPortData;
+  sai_uint32_t fieldSrcPortMask;
+
+  bool fieldOutPortEnable{false};
+  sai_object_id_t fieldOutPortData;
   sai_uint32_t fieldOutPortMask;
 
   bool fieldL4SrcPortEnable{false};

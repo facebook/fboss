@@ -83,6 +83,14 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV4("20.0.0.2"), folly::IPAddressV4("255.255.255.0"));
   }
 
+  std::pair<sai_object_id_t, sai_uint32_t> kSrcPort() const {
+    return std::make_pair(41, 0);
+  }
+
+  std::pair<sai_object_id_t, sai_uint32_t> kSrcPort2() const {
+    return std::make_pair(410, 0);
+  }
+
   std::pair<sai_object_id_t, sai_uint32_t> kOutPort() const {
     return std::make_pair(42, 0);
   }
@@ -286,6 +294,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldIpV4(kSrcIpV4())};
     SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4{
         AclEntryFieldIpV4(kDstIpV4())};
+    SaiAclEntryTraits::Attributes::FieldSrcPort aclFieldSrcPort{
+        AclEntryFieldSaiObjectIdT(kSrcPort())};
     SaiAclEntryTraits::Attributes::FieldOutPort aclFieldOutPort{
         AclEntryFieldSaiObjectIdT(kOutPort())};
     SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute{
@@ -333,6 +343,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldDstIpV6,
          aclFieldSrcIpV4,
          aclFieldDstIpV4,
+         aclFieldSrcPort,
          aclFieldOutPort,
          aclFieldL4SrcPortAttribute,
          aclFieldL4DstPortAttribute,
@@ -418,6 +429,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6,
       const std::pair<folly::IPAddressV4, folly::IPAddressV4>& srcIpV4,
       const std::pair<folly::IPAddressV4, folly::IPAddressV4>& dstIpV4,
+      const std::pair<sai_object_id_t, sai_uint32_t>& srcPort,
       const std::pair<sai_object_id_t, sai_uint32_t>& outPort,
       const std::pair<sai_uint16_t, sai_uint16_t>& l4SrcPort,
       const std::pair<sai_uint16_t, sai_uint16_t>& L4DstPort,
@@ -447,6 +459,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV4());
     auto aclFieldDstIpV4Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV4());
+    auto aclFieldSrcPortGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcPort());
     auto aclFieldOutPortGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldOutPort());
     auto aclFieldL4SrcPortGot = aclApi->getAttribute(
@@ -491,6 +505,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldDstIpV6Got.getDataAndMask(), dstIpV6);
     EXPECT_EQ(aclFieldSrcIpV4Got.getDataAndMask(), srcIpV4);
     EXPECT_EQ(aclFieldDstIpV4Got.getDataAndMask(), dstIpV4);
+    EXPECT_EQ(aclFieldSrcPortGot.getDataAndMask(), srcPort);
     EXPECT_EQ(aclFieldOutPortGot.getDataAndMask(), outPort);
     EXPECT_EQ(aclFieldL4SrcPortGot.getDataAndMask(), l4SrcPort);
     EXPECT_EQ(aclFieldL4DstPortGot.getDataAndMask(), L4DstPort);
@@ -678,6 +693,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kDstIpV6(),
       kSrcIpV4(),
       kDstIpV4(),
+      kSrcPort(),
       kOutPort(),
       kL4SrcPort(),
       kL4DstPort(),
@@ -795,6 +811,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldIpV4(kSrcIpV4_2())};
   SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4Attribute2{
       AclEntryFieldIpV4(kDstIpV4_2())};
+  SaiAclEntryTraits::Attributes::FieldSrcPort aclFieldSrcPortAttribute2{
+      AclEntryFieldSaiObjectIdT(kSrcPort2())};
   SaiAclEntryTraits::Attributes::FieldOutPort aclFieldOutPortAttribute2{
       AclEntryFieldSaiObjectIdT(kOutPort2())};
   SaiAclEntryTraits::Attributes::FieldL4SrcPort aclFieldL4SrcPortAttribute2{
@@ -841,6 +859,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldSrcIpV4Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDstIpV4Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldSrcPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldOutPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldL4SrcPortAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldL4DstPortAttribute2);
@@ -867,6 +886,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kDstIpV6_2(),
       kSrcIpV4_2(),
       kDstIpV4_2(),
+      kSrcPort2(),
       kOutPort2(),
       kL4SrcPort2(),
       kL4DstPort2(),
