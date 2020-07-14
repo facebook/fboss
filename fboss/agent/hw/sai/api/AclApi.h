@@ -447,6 +447,46 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);
 
+struct SaiAclCounterTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_COUNTER;
+  using SaiApiT = AclApi;
+  struct Attributes {
+    using EnumType = sai_acl_counter_attr_t;
+
+    using TableId =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_TABLE_ID, sai_object_id_t>;
+
+    using EnablePacketCount =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT, bool>;
+    using EnableByteCount =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_ENABLE_BYTE_COUNT, bool>;
+
+    using CounterPackets =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_PACKETS, sai_uint64_t>;
+    using CounterBytes =
+        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_BYTES, sai_uint64_t>;
+  };
+
+  using AdapterKey = AclCounterSaiId;
+  using AdapterHostKey = std::tuple<
+      Attributes::TableId,
+      std::optional<Attributes::EnablePacketCount>,
+      std::optional<Attributes::EnableByteCount>>;
+
+  using CreateAttributes = std::tuple<
+      Attributes::TableId,
+      std::optional<Attributes::EnablePacketCount>,
+      std::optional<Attributes::EnableByteCount>,
+      std::optional<Attributes::CounterPackets>,
+      std::optional<Attributes::CounterBytes>>;
+};
+
+SAI_ATTRIBUTE_NAME(AclCounter, TableId);
+SAI_ATTRIBUTE_NAME(AclCounter, EnablePacketCount);
+SAI_ATTRIBUTE_NAME(AclCounter, EnableByteCount);
+SAI_ATTRIBUTE_NAME(AclCounter, CounterPackets);
+SAI_ATTRIBUTE_NAME(AclCounter, CounterBytes);
+
 class AclApi : public SaiApi<AclApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_ACL;
@@ -492,6 +532,14 @@ class AclApi : public SaiApi<AclApi> {
     return api_->create_acl_entry(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      AclCounterSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_acl_counter(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(AclTableGroupSaiId id) {
     return api_->remove_acl_table_group(id);
   }
@@ -506,6 +554,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _remove(AclEntrySaiId id) {
     return api_->remove_acl_entry(id);
+  }
+
+  sai_status_t _remove(AclCounterSaiId id) {
+    return api_->remove_acl_counter(id);
   }
 
   sai_status_t _getAttribute(AclTableGroupSaiId id, sai_attribute_t* attr)
@@ -524,6 +576,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _getAttribute(AclEntrySaiId id, sai_attribute_t* attr) const {
     return api_->get_acl_entry_attribute(id, 1, attr);
+  }
+
+  sai_status_t _getAttribute(AclCounterSaiId id, sai_attribute_t* attr) const {
+    return api_->get_acl_counter_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(AclTableGroupSaiId id, const sai_attribute_t* attr)
@@ -545,6 +601,11 @@ class AclApi : public SaiApi<AclApi> {
   sai_status_t _setAttribute(AclEntrySaiId id, const sai_attribute_t* attr)
       const {
     return api_->set_acl_entry_attribute(id, attr);
+  }
+
+  sai_status_t _setAttribute(AclCounterSaiId id, const sai_attribute_t* attr)
+      const {
+    return api_->set_acl_counter_attribute(id, attr);
   }
 
   sai_acl_api_t* api_;

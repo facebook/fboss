@@ -178,6 +178,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "acl-table";
     case SAI_OBJECT_TYPE_ACL_ENTRY:
       return "acl-entry";
+    case SAI_OBJECT_TYPE_ACL_COUNTER:
+      return "acl-counter";
     default:
       throw FbossError("object type invalid: ", objectType);
   }
