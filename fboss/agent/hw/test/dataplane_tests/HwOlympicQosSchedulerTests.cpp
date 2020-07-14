@@ -125,7 +125,9 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(&cfg);
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(&cfg, streamType);
       utility::addOlympicQosMaps(cfg);
     }
     return cfg;

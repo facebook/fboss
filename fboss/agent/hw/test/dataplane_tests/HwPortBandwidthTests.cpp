@@ -27,7 +27,9 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addOlympicQueueConfig(&cfg);
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(&cfg, streamType);
       utility::addOlympicQosMaps(cfg);
       _configureBandwidth(&cfg);
     }
