@@ -127,6 +127,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return SAI_PACKET_ACTION_DROP;
   }
 
+  sai_object_id_t kCounter() const {
+    return 42;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -200,6 +204,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kRouteDstUserMeta()),
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
             AclEntryActionU32(this->kPacketAction()),
+            AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
             AclEntryActionU8(this->kSetDSCP()),
             AclEntryActionSaiObjectIdList(this->kMirrorIngress()),
@@ -317,6 +322,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
+                                      this->kCounter(),
                                       this->kSetTC(),
                                       this->kSetDSCP(),
                                       this->kMirrorIngress(),
@@ -423,6 +429,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kRouteDstUserMeta(),
                                         this->kNeighborDstUserMeta(),
                                         this->kPacketAction(),
+                                        this->kCounter(),
                                         this->kSetTC(),
                                         this->kSetDSCP(),
                                         this->kMirrorIngress(),
@@ -450,6 +457,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kRouteDstUserMeta(),
                                       this->kNeighborDstUserMeta(),
                                       this->kPacketAction(),
+                                      this->kCounter(),
                                       this->kSetTC(),
                                       this->kSetDSCP(),
                                       this->kMirrorIngress(),

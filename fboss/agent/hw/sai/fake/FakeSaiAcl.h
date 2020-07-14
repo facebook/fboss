@@ -160,6 +160,9 @@ class FakeAclEntry {
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
 
+  bool actionCounterEnable{false};
+  sai_object_id_t actionCounterData;
+
   bool actionSetTCEnable{false};
   sai_uint8_t actionSetTCData;
 

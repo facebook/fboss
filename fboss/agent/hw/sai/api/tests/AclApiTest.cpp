@@ -219,6 +219,14 @@ class AclApiTest : public ::testing::Test {
     return SAI_PACKET_ACTION_TRAP;
   }
 
+  sai_object_id_t kCounter() const {
+    return 42;
+  }
+
+  sai_object_id_t kCounter2() const {
+    return 43;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -356,6 +364,8 @@ class AclApiTest : public ::testing::Test {
 
     SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
         AclEntryActionU32(kPacketAction())};
+    SaiAclEntryTraits::Attributes::ActionCounter aclActionCounter{
+        AclEntryActionSaiObjectIdT(kCounter())};
     SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC{
         AclEntryActionU8(kSetTC())};
     SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP{
@@ -390,6 +400,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldRouteDstUserMetaAttribute,
          aclFieldNeighborDstUserMetaAttribute,
          aclActionPacketAction,
+         aclActionCounter,
          aclActionSetTC,
          aclActionSetDSCP,
          aclActionMirrorIngress,
@@ -478,6 +489,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
       sai_uint32_t packetAction,
+      sai_object_id_t counter,
       sai_uint8_t setTC,
       sai_uint8_t setDSCP,
       const std::vector<sai_object_id_t>& mirrorIngress,
@@ -528,6 +540,8 @@ class AclApiTest : public ::testing::Test {
 
     auto aclActionPacketActionGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
+    auto aclActionCounterGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::ActionCounter());
     auto aclActionSetTCGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
     auto aclActionSetDSCPGot = aclApi->getAttribute(
@@ -562,6 +576,7 @@ class AclApiTest : public ::testing::Test {
         aclFieldNeighborDstUserMetaGot.getDataAndMask(), neighborDstUserMeta);
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
+    EXPECT_EQ(aclActionCounterGot.getData(), counter);
     EXPECT_EQ(aclActionSetTCGot.getData(), setTC);
     EXPECT_EQ(aclActionSetDSCPGot.getData(), setDSCP);
     EXPECT_EQ(aclActionMirrorIngress.getData(), mirrorIngress);
@@ -750,6 +765,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kRouteDstUserMeta(),
       kNeighborDstUserMeta(),
       kPacketAction(),
+      kCounter(),
       kSetTC(),
       kSetDSCP(),
       kMirrorIngress(),
@@ -890,6 +906,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
       AclEntryActionU32(kPacketAction2())};
+  SaiAclEntryTraits::Attributes::ActionCounter aclActionCounter2{
+      AclEntryActionSaiObjectIdT(kCounter2())};
   SaiAclEntryTraits::Attributes::ActionSetTC aclActionSetTC2{
       AclEntryActionU8(kSetTC2())};
   SaiAclEntryTraits::Attributes::ActionSetDSCP aclActionSetDSCP2{
@@ -922,6 +940,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
+  aclApi->setAttribute(aclEntryId, aclActionCounter2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
   aclApi->setAttribute(aclEntryId, aclActionSetDSCP2);
   aclApi->setAttribute(aclEntryId, aclActionMirrorIngress2);
@@ -951,6 +970,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kRouteDstUserMeta2(),
       kNeighborDstUserMeta2(),
       kPacketAction2(),
+      kCounter2(),
       kSetTC2(),
       kSetDSCP2(),
       kMirrorIngress2(),

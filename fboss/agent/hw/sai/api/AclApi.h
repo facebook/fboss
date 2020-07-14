@@ -356,6 +356,10 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
         AclEntryActionU32>;
+    using ActionCounter = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_COUNTER,
+        AclEntryActionSaiObjectIdT>;
     using ActionSetTC = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_TC,
@@ -399,6 +403,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::ActionPacketAction>,
+      std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
       std::optional<Attributes::ActionSetDSCP>,
       std::optional<Attributes::ActionMirrorIngress>,
@@ -428,6 +433,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::ActionPacketAction>,
+      std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
       std::optional<Attributes::ActionSetDSCP>,
       std::optional<Attributes::ActionMirrorIngress>,
@@ -457,6 +463,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetDSCP);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorIngress);

@@ -624,6 +624,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
+      std::nullopt, // counter
       aclActionSetTC,
       aclActionSetDSCP,
       std::nullopt, // mirrorIngress
@@ -653,6 +654,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
+      std::nullopt, // counter
       aclActionSetTC,
       aclActionSetDSCP,
       std::nullopt, // mirrorIngress
