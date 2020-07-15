@@ -16,6 +16,8 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/types.h"
 
+#include <folly/MacAddress.h>
+
 #include <memory>
 
 namespace facebook::fboss {
@@ -62,6 +64,12 @@ class SaiAclTableManager {
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kIcmpTypeMask = 0xFF;
   static auto constexpr kIcmpCodeMask = 0xFF;
+
+  static const folly::MacAddress& kMacMask() {
+    static const folly::MacAddress macMask{"FF:FF:FF:FF:FF:FF"};
+
+    return macMask;
+  }
 
   /*
    * TODO(skhare)
