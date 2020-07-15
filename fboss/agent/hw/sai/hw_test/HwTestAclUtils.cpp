@@ -252,6 +252,14 @@ void checkSwHwAclMatch(
     EXPECT_EQ(dscpMask, SaiAclTableManager::kDscpMask);
   }
 
+  if (swAcl->getDstMac()) {
+    auto aclFieldDstMacGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstMac());
+    auto [dstMacData, dstMacMask] = aclFieldDstMacGot.getDataAndMask();
+    EXPECT_EQ(dstMacData, swAcl->getDstMac().value());
+    EXPECT_EQ(dstMacMask, SaiAclTableManager::kMacMask());
+  }
+
   if (swAcl->getIpType()) {
     auto aclFieldIpTypeDataExpected =
         aclTableManager.cfgIpTypeToSaiIpType(swAcl->getIpType().value());
