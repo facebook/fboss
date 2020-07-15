@@ -98,6 +98,7 @@ namespace facebook::fboss {
 class HwAclQualifierTest : public HwTest {
  public:
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
+    configureQualifier(acl->dstMac_ref(), true, "00:11:22:33:44:55");
     /*
      * lookupClassL2 is not configured for Trident2 or else we run out of
      * resources.
