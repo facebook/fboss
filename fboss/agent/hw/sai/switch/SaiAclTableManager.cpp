@@ -288,6 +288,22 @@ sai_acl_ip_frag_t SaiAclTableManager::cfgIpFragToSaiIpFrag(
   throw FbossError("Unsupported IP fragment option");
 }
 
+sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
+    cfg::IpType cfgIpType) const {
+  switch (cfgIpType) {
+    case cfg::IpType::ANY:
+      return SAI_ACL_IP_TYPE_ANY;
+    case cfg::IpType::IP:
+      return SAI_ACL_IP_TYPE_IP;
+    case cfg::IpType::IP4:
+      return SAI_ACL_IP_TYPE_IPV4ANY;
+    case cfg::IpType::IP6:
+      return SAI_ACL_IP_TYPE_IPV6ANY;
+  }
+  // should return in one of the cases
+  throw FbossError("Unsupported IP Type option");
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
@@ -496,6 +512,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldIpType> fieldIpType{
+      std::nullopt};
+  if (addedAclEntry->getIpType()) {
+    auto ipTypeData = cfgIpTypeToSaiIpType(addedAclEntry->getIpType().value());
+    fieldIpType = SaiAclEntryTraits::Attributes::FieldIpType{
+        AclEntryFieldU32(std::make_pair(ipTypeData, kMaskDontCare))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldTtl> fieldTtl{std::nullopt};
   if (addedAclEntry->getTtl()) {
     fieldTtl =
@@ -590,8 +614,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
          fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
          fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-         fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-         fieldRouteDstUserMeta.has_value() ||
+         fieldIpType.has_value() || fieldTtl.has_value() ||
+         fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
         (aclActionPacketAction.has_value() || aclActionSetTC.has_value() ||
          aclActionSetDSCP.has_value()))) {
@@ -619,7 +643,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
-      std::nullopt, // ipType
+      fieldIpType,
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
@@ -650,7 +674,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
-      std::nullopt, // ipType
+      fieldIpType,
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,

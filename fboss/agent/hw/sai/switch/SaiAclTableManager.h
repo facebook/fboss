@@ -96,6 +96,7 @@ class SaiAclTableManager {
   sai_uint32_t swPriorityToSaiPriority(int priority) const;
 
   sai_acl_ip_frag_t cfgIpFragToSaiIpFrag(cfg::IpFragMatch cfgType) const;
+  sai_acl_ip_type_t cfgIpTypeToSaiIpType(cfg::IpType cfgIpType) const;
 
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
