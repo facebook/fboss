@@ -181,6 +181,14 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(20, 0x3F);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kIpType() const {
+    return std::make_pair(SAI_ACL_IP_TYPE_IPV4ANY, 0);
+  }
+
+  std::pair<sai_uint32_t, sai_uint32_t> kIpType2() const {
+    return std::make_pair(SAI_ACL_IP_TYPE_IPV6ANY, 0);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kTtl() const {
     return std::make_pair(128, 128);
   }
@@ -351,6 +359,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kIcmpV6Code())};
     SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute{
         AclEntryFieldU8(kDscp())};
+    SaiAclEntryTraits::Attributes::FieldIpType aclFieldIpTypeAttribute{
+        AclEntryFieldU32(kIpType())};
     SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute{
         AclEntryFieldU8(kTtl())};
     SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
@@ -395,6 +405,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldIcmpV6TypeAttribute,
          aclFieldIcmpV6CodeAttribute,
          aclFieldDscpAttribute,
+         aclFieldIpTypeAttribute,
          aclFieldTtlAttribute,
          aclFieldFdbDstUserMetaAttribute,
          aclFieldRouteDstUserMetaAttribute,
@@ -484,6 +495,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Type,
       const std::pair<sai_uint8_t, sai_uint8_t>& icmpV6Code,
       const std::pair<sai_uint8_t, sai_uint8_t>& dscp,
+      const std::pair<sai_uint32_t, sai_uint32_t>& ipType,
       const std::pair<sai_uint8_t, sai_uint8_t>& ttl,
       const std::pair<sai_uint32_t, sai_uint32_t>& fdbDstUserMeta,
       const std::pair<sai_uint32_t, sai_uint32_t>& routeDstUserMeta,
@@ -529,6 +541,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Code());
     auto aclFieldDscpGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDscp());
+    auto aclFieldIpTypeGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldIpType());
     auto aclFieldTtlGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldTtl());
     auto aclFieldFdbDstUserMetaGot = aclApi->getAttribute(
@@ -569,6 +583,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldIcmpV6TypeGot.getDataAndMask(), icmpV6Type);
     EXPECT_EQ(aclFieldIcmpV6CodeGot.getDataAndMask(), icmpV6Code);
     EXPECT_EQ(aclFieldDscpGot.getDataAndMask(), dscp);
+    EXPECT_EQ(aclFieldIpTypeGot.getDataAndMask(), ipType);
     EXPECT_EQ(aclFieldTtlGot.getDataAndMask(), ttl);
     EXPECT_EQ(aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbDstUserMeta);
     EXPECT_EQ(aclFieldRouteDstUserMetaGot.getDataAndMask(), routeDstUserMeta);
@@ -760,6 +775,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kIcmpV6Type(),
       kIcmpV6Code(),
       kDscp(),
+      kIpType(),
       kTtl(),
       kFdbDstUserMeta(),
       kRouteDstUserMeta(),
@@ -893,6 +909,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kIcmpV6Code2())};
   SaiAclEntryTraits::Attributes::FieldDscp aclFieldDscpAttribute2{
       AclEntryFieldU8(kDscp2())};
+  SaiAclEntryTraits::Attributes::FieldIpType aclFieldIpTypeAttribute2{
+      AclEntryFieldU32(kIpType2())};
   SaiAclEntryTraits::Attributes::FieldTtl aclFieldTtlAttribute2{
       AclEntryFieldU8(kTtl2())};
   SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta
@@ -935,6 +953,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV6TypeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldIcmpV6CodeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDscpAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldIpTypeAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldTtlAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
@@ -965,6 +984,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kIcmpV6Type2(),
       kIcmpV6Code2(),
       kDscp2(),
+      kIpType2(),
       kTtl2(),
       kFdbDstUserMeta2(),
       kRouteDstUserMeta2(),

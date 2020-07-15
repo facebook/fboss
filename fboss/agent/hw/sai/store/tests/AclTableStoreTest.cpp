@@ -107,6 +107,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kIpType() const {
+    return std::make_pair(SAI_ACL_IP_TYPE_IPV4ANY, 0);
+  }
+
   std::pair<sai_uint8_t, sai_uint8_t> kTtl() const {
     return std::make_pair(128, 128);
   }
@@ -199,6 +203,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIcmpV6Type()),
             AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldU32(this->kIpType()),
             AclEntryFieldU8(this->kTtl()),
             AclEntryFieldU32(this->kFdbDstUserMeta()),
             AclEntryFieldU32(this->kRouteDstUserMeta()),
@@ -317,6 +322,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kIcmpV6Type(),
                                       this->kIcmpV6Code(),
                                       this->kDscp(),
+                                      this->kIpType(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),
@@ -424,6 +430,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kIcmpV6Type(),
                                         this->kIcmpV6Code(),
                                         this->kDscp(),
+                                        this->kIpType(),
                                         this->kTtl(),
                                         this->kFdbDstUserMeta(),
                                         this->kRouteDstUserMeta(),
@@ -452,6 +459,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kIcmpV6Type(),
                                       this->kIcmpV6Code(),
                                       this->kDscp(),
+                                      this->kIpType(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
                                       this->kRouteDstUserMeta(),

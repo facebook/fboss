@@ -463,6 +463,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
+      aclEntry.fieldIpTypeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIpTypeData = attr->value.aclfield.data.u32;
+      aclEntry.fieldIpTypeMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
       aclEntry.fieldTtlEnable = attr->value.aclfield.enable;
       aclEntry.fieldTtlData = attr->value.aclfield.data.u8;
@@ -646,6 +652,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIpTypeEnable;
+        attr_list[i].value.aclfield.data.u32 = aclEntry.fieldIpTypeData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldIpTypeMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
         attr_list[i].value.aclfield.enable = aclEntry.fieldTtlEnable;

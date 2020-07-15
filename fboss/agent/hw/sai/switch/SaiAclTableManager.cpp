@@ -619,6 +619,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      std::nullopt, // ipType
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
@@ -649,6 +650,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      std::nullopt, // ipType
       fieldTtl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
