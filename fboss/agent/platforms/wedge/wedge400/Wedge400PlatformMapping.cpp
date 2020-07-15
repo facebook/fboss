@@ -75,7 +75,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -411,7 +411,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -494,7 +494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -647,7 +647,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -730,7 +730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1066,7 +1066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1149,7 +1149,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1302,7 +1302,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1385,7 +1385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1721,7 +1721,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1804,7 +1804,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -1957,7 +1957,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -2040,7 +2040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -2376,7 +2376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -2459,7 +2459,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -2612,7 +2612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -3413,7 +3413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -3749,7 +3749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -3832,7 +3832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -3985,7 +3985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -4068,7 +4068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -4404,7 +4404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -4487,7 +4487,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -4640,7 +4640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -4723,7 +4723,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5059,7 +5059,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5142,7 +5142,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5295,7 +5295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5378,7 +5378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5714,7 +5714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5797,7 +5797,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -5950,7 +5950,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -6751,7 +6751,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7087,7 +7087,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7170,7 +7170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7323,7 +7323,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7406,7 +7406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7742,7 +7742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7825,7 +7825,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -7978,7 +7978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -8061,7 +8061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -8397,7 +8397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -8480,7 +8480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -8633,7 +8633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -8716,7 +8716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -9052,7 +9052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -9135,7 +9135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -9288,7 +9288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -10089,7 +10089,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -10425,7 +10425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -10508,7 +10508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -10661,7 +10661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -10744,7 +10744,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11080,7 +11080,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11163,7 +11163,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11316,7 +11316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11399,7 +11399,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11735,7 +11735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11818,7 +11818,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -11971,7 +11971,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -12054,7 +12054,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -12390,7 +12390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -12473,7 +12473,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -12626,7 +12626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -13427,7 +13427,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -13763,7 +13763,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -13846,7 +13846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -13999,7 +13999,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -14082,7 +14082,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -14418,7 +14418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -14501,7 +14501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -14654,7 +14654,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -14737,7 +14737,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15073,7 +15073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15156,7 +15156,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15309,7 +15309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15392,7 +15392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15728,7 +15728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15811,7 +15811,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -15964,7 +15964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -16765,7 +16765,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17101,7 +17101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17184,7 +17184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17337,7 +17337,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17420,7 +17420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17756,7 +17756,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17839,7 +17839,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -17992,7 +17992,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -18075,7 +18075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -18411,7 +18411,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -18494,7 +18494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -18647,7 +18647,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -18730,7 +18730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -19066,7 +19066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -19149,7 +19149,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -19302,7 +19302,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -20103,7 +20103,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -20439,7 +20439,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -20522,7 +20522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -20675,7 +20675,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -20758,7 +20758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21094,7 +21094,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21177,7 +21177,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21330,7 +21330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21413,7 +21413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21749,7 +21749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21832,7 +21832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -21985,7 +21985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -22068,7 +22068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -22404,7 +22404,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -22487,7 +22487,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -22640,7 +22640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -23441,7 +23441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -23777,7 +23777,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -23860,7 +23860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24013,7 +24013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24096,7 +24096,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24432,7 +24432,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24515,7 +24515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24668,7 +24668,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -24751,7 +24751,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25087,7 +25087,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25170,7 +25170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25323,7 +25323,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25406,7 +25406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25742,7 +25742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25825,7 +25825,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -25978,7 +25978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "16": {
+          "15": {
               "pins": {
                 "iphy": [
                   {
@@ -26740,12 +26740,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "interfaceMode": 10
         }
     },
-    "16": {
+    "15": {
         "speed": 25000,
         "iphy": {
           "numLanes": 1,
           "modulation": 1,
-          "fec": 528,
+          "fec": 74,
           "medium": 1,
           "interfaceMode": 10
         }
@@ -27369,7 +27369,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "profiles": [
           11,
           14,
-          16
+          15
         ]
       },
       "pins": {

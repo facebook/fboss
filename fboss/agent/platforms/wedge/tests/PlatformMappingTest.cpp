@@ -37,7 +37,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PlatformMapping) {
       cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER,
       cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
       cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
-      cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_COPPER,
+      cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER};
 
   // Wedge400 has 16 uplinks + 4 * 32 downlink ports = 144
