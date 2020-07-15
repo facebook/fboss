@@ -18,6 +18,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <folly/MacAddress.h>
+
 namespace facebook::fboss {
 
 SaiAclTableManager::SaiAclTableManager(
@@ -643,6 +645,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      std::nullopt, // dstMac
       fieldIpType,
       fieldTtl,
       fieldFdbDstUserMeta,
@@ -674,6 +677,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIcmpV6Type,
       fieldIcmpV6Code,
       fieldDscp,
+      std::nullopt, // dstMac
       fieldIpType,
       fieldTtl,
       fieldFdbDstUserMeta,

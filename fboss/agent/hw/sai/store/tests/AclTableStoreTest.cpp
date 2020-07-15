@@ -107,6 +107,12 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(10, 0x3F);
   }
 
+  std::pair<folly::MacAddress, folly::MacAddress> kDstMac() const {
+    return std::make_pair(
+        folly::MacAddress{"00:11:22:33:44:55"},
+        folly::MacAddress{"ff:ff:ff:ff:ff:ff"});
+  }
+
   std::pair<sai_uint32_t, sai_uint32_t> kIpType() const {
     return std::make_pair(SAI_ACL_IP_TYPE_IPV4ANY, 0);
   }
@@ -203,6 +209,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU8(this->kIcmpV6Type()),
             AclEntryFieldU8(this->kIcmpV6Code()),
             AclEntryFieldU8(this->kDscp()),
+            AclEntryFieldMac(this->kDstMac()),
             AclEntryFieldU32(this->kIpType()),
             AclEntryFieldU8(this->kTtl()),
             AclEntryFieldU32(this->kFdbDstUserMeta()),
@@ -322,6 +329,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
                                       this->kIcmpV6Type(),
                                       this->kIcmpV6Code(),
                                       this->kDscp(),
+                                      this->kDstMac(),
                                       this->kIpType(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),
@@ -430,6 +438,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kIcmpV6Type(),
                                         this->kIcmpV6Code(),
                                         this->kDscp(),
+                                        this->kDstMac(),
                                         this->kIpType(),
                                         this->kTtl(),
                                         this->kFdbDstUserMeta(),
@@ -459,6 +468,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                       this->kIcmpV6Type(),
                                       this->kIcmpV6Code(),
                                       this->kDscp(),
+                                      this->kDstMac(),
                                       this->kIpType(),
                                       this->kTtl(),
                                       this->kFdbDstUserMeta(),

@@ -463,6 +463,14 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldDscpMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
+      aclEntry.fieldDstMacEnable = attr->value.aclfield.enable;
+      aclEntry.fieldDstMacData =
+          facebook::fboss::fromSaiMacAddress(attr->value.aclfield.data.mac);
+      aclEntry.fieldDstMacMask =
+          facebook::fboss::fromSaiMacAddress(attr->value.aclfield.mask.mac);
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
       aclEntry.fieldIpTypeEnable = attr->value.aclfield.enable;
       aclEntry.fieldIpTypeData = attr->value.aclfield.data.u32;
@@ -652,6 +660,13 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldDscpEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldDscpData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldDscpMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldDstMacEnable;
+        facebook::fboss::toSaiMacAddress(
+            aclEntry.fieldDstMacData, attr_list[i].value.aclfield.data.mac);
+        facebook::fboss::toSaiMacAddress(
+            aclEntry.fieldDstMacMask, attr_list[i].value.aclfield.mask.mac);
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
         attr_list[i].value.aclfield.enable = aclEntry.fieldIpTypeEnable;

@@ -13,6 +13,7 @@
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 
 extern "C" {
 #include <sai.h>
@@ -140,6 +141,10 @@ class FakeAclEntry {
   bool fieldDscpEnable{false};
   sai_uint8_t fieldDscpData;
   sai_uint8_t fieldDscpMask;
+
+  bool fieldDstMacEnable{false};
+  folly::MacAddress fieldDstMacData;
+  folly::MacAddress fieldDstMacMask;
 
   bool fieldIpTypeEnable{false};
   sai_uint8_t fieldIpTypeData;

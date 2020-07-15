@@ -137,7 +137,16 @@ bool operator==(const AclEntryField<T>& lhs, const AclEntryField<T>& rhs) {
 template <typename T>
 std::size_t hash_value(const AclEntryField<T>& key) {
   std::size_t seed = 0;
-  boost::hash_combine(seed, boost::hash_value(key.getDataAndMask()));
+
+  if constexpr (std::is_same_v<
+                    T,
+                    std::pair<folly::MacAddress, folly::MacAddress>>) {
+    boost::hash_combine(
+        seed, std::hash<folly::MacAddress>()(key.getDataAndMask().first));
+  } else {
+    boost::hash_combine(seed, boost::hash_value(key.getDataAndMask()));
+  }
+
   return seed;
 }
 
@@ -154,6 +163,8 @@ using AclEntryFieldIpV6 =
     AclEntryField<std::pair<folly::IPAddressV6, folly::IPAddressV6>>;
 using AclEntryFieldIpV4 =
     AclEntryField<std::pair<folly::IPAddressV4, folly::IPAddressV4>>;
+using AclEntryFieldMac =
+    AclEntryField<std::pair<folly::MacAddress, folly::MacAddress>>;
 
 /*
  * Mask is not needed for sai_object_id_t Acl Entry field.
