@@ -36,30 +36,60 @@ SaiAclTableManager::SaiAclTableManager(
               managerTable_->switchManager().getSwitchSaiId(),
               SaiSwitchTraits::Attributes::AclEntryMaximumPriority())) {}
 
-AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
+std::
+    pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
+    SaiAclTableManager::createAclTableV4AndV6Helper(bool isV4) {
   CHECK(
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
-  /*
-   * TODO(skhare)
-   * Add single ACL Table for now (called during SaiSwitch::init()).
-   * Later, extend SwitchState to carry AclTable, and then process it to
-   * addAclTable.
-   *
-   * After ACL table is added, add it to appropriate ACL group:
-   * managerTable_->switchManager().addTableGroupMember(SAI_ACL_STAGE_INGRESS,
-   * aclTableSaiId);
-   */
+  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
+  std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
+                                          SAI_ACL_ACTION_TYPE_COUNTER,
+                                          SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
+                                          SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
+                                          SAI_ACL_ACTION_TYPE_SET_TC,
+                                          SAI_ACL_ACTION_TYPE_SET_DSCP};
 
-  // If we already store a handle for this this Acl Table, fail to add a new one
-  auto handle = getAclTableHandle(aclTableName);
-  if (handle) {
-    throw FbossError("attempted to add a duplicate aclTable: ", aclTableName);
-  }
+  SaiAclTableTraits::AdapterHostKey adapterHostKey{
+      SAI_ACL_STAGE_INGRESS,
+      bindPointList,
+      actionTypeList,
+      !isV4, // srcIpv6
+      !isV4, // dstIpv6
+      isV4, // srcIp4
+      isV4, // dstIp4
+      false, // l4SrcPort
+      false, // l4DstPort
+      true, // ipProtocol
+      false, // tcpFlags
+      false, // srcPort
+      false, // outPort
+      false, // ipFrag
+      false, // icmpv4Type
+      false, // icmpv4Code
+      false, // icmpv6Type
+      false, // icmpv6Code
+      true, // dscp
+      false, // dstMac
+      true, // ipType
+      true, // ttl
+      false, // fdb meta
+      false, // route meta
+      false // neighbor meta
+  };
 
-  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
-  auto& aclTableStore = s->get<SaiAclTableTraits>();
+  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
+  return std::make_pair(adapterHostKey, attributes);
+}
+
+std::
+    pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
+    SaiAclTableManager::createAclTableHelper() {
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
+
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
                                           SAI_ACL_ACTION_TYPE_COUNTER,
@@ -155,6 +185,48 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   };
 
   SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
+
+  return std::make_pair(adapterHostKey, attributes);
+}
+
+AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
+
+  /*
+   * TODO(skhare)
+   * Add single ACL Table for now (called during SaiSwitch::init()).
+   * Later, extend SwitchState to carry AclTable, and then process it to
+   * addAclTable.
+   *
+   * After ACL table is added, add it to appropriate ACL group:
+   * managerTable_->switchManager().addTableGroupMember(SAI_ACL_STAGE_INGRESS,
+   * aclTableSaiId);
+   */
+
+  // If we already store a handle for this this Acl Table, fail to add a new one
+  auto handle = getAclTableHandle(aclTableName);
+  if (handle) {
+    throw FbossError("attempted to add a duplicate aclTable: ", aclTableName);
+  }
+
+  SaiAclTableTraits::AdapterHostKey adapterHostKey;
+  SaiAclTableTraits::CreateAttributes attributes;
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
+    std::tie(adapterHostKey, attributes) = createAclTableHelper();
+  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4)) {
+    std::tie(adapterHostKey, attributes) =
+        createAclTableV4AndV6Helper(true /* isV4 */);
+  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
+    std::tie(adapterHostKey, attributes) =
+        createAclTableV4AndV6Helper(false /* isV4 */);
+  }
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& aclTableStore = s->get<SaiAclTableTraits>();
 
   auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
   auto aclTableHandle = std::make_unique<SaiAclTableHandle>();

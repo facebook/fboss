@@ -110,6 +110,16 @@ class SaiAclTableManager {
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;
 
+  std::pair<
+      SaiAclTableTraits::AdapterHostKey,
+      SaiAclTableTraits::CreateAttributes>
+  createAclTableV4AndV6Helper(bool isV4);
+
+  std::pair<
+      SaiAclTableTraits::AdapterHostKey,
+      SaiAclTableTraits::CreateAttributes>
+  createAclTableHelper();
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 
