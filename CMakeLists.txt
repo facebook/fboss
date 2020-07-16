@@ -432,7 +432,6 @@ add_library(fboss_agent STATIC
     fboss/agent/ResolvedNexthopProbeScheduler.cpp
     fboss/agent/ndp/IPv6RouteAdvertiser.cpp
     fboss/agent/NdpCache.cpp
-    fboss/agent/NeighborListenerClient.cpp
     fboss/agent/NeighborUpdater.cpp
     fboss/agent/NeighborUpdaterImpl.cpp
     fboss/agent/oss/AggregatePortStats.cpp
