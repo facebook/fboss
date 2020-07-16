@@ -202,32 +202,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>>;
 
-  using CreateAttributes = std::tuple<
-      Attributes::Stage,
-      std::optional<Attributes::BindPointTypeList>,
-      std::optional<Attributes::ActionTypeList>,
-      std::optional<Attributes::FieldSrcIpV6>,
-      std::optional<Attributes::FieldDstIpV6>,
-      std::optional<Attributes::FieldSrcIpV4>,
-      std::optional<Attributes::FieldDstIpV4>,
-      std::optional<Attributes::FieldL4SrcPort>,
-      std::optional<Attributes::FieldL4DstPort>,
-      std::optional<Attributes::FieldIpProtocol>,
-      std::optional<Attributes::FieldTcpFlags>,
-      std::optional<Attributes::FieldSrcPort>,
-      std::optional<Attributes::FieldOutPort>,
-      std::optional<Attributes::FieldIpFrag>,
-      std::optional<Attributes::FieldIcmpV4Type>,
-      std::optional<Attributes::FieldIcmpV4Code>,
-      std::optional<Attributes::FieldIcmpV6Type>,
-      std::optional<Attributes::FieldIcmpV6Code>,
-      std::optional<Attributes::FieldDscp>,
-      std::optional<Attributes::FieldDstMac>,
-      std::optional<Attributes::FieldIpType>,
-      std::optional<Attributes::FieldTtl>,
-      std::optional<Attributes::FieldFdbDstUserMeta>,
-      std::optional<Attributes::FieldRouteDstUserMeta>,
-      std::optional<Attributes::FieldNeighborDstUserMeta>>;
+  using CreateAttributes = AdapterHostKey;
 };
 
 SAI_ATTRIBUTE_NAME(AclTable, Stage);

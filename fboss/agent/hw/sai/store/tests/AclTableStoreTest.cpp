@@ -387,31 +387,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true // neighbor meta
   };
 
-  SaiAclTableTraits::AdapterHostKey k{
-      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(),
-      true, // srcIpv6
-      true, // dstIpv6
-      true, // srcIpv4
-      true, // dstIpv4
-      true, // l4SrcPort
-      true, // l4DstPort
-      true, // ipProtocol
-      true, // tcpFlags
-      true, // srcPort
-      true, // outPort
-      true, // ipFrag
-      true, // icmpv4Type
-      true, // icmpv4Code
-      true, // icmpv6Type
-      true, // icmpv6Code
-      true, // dscp
-      true, // dstMac
-      true, // ipType
-      true, // ttl
-      true, // fdb meta
-      true, // route meta
-      true // neighbor meta
-  };
+  SaiAclTableTraits::AdapterHostKey k{c};
 
   SaiObject<SaiAclTableTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());

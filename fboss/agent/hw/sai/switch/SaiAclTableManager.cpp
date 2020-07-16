@@ -151,33 +151,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
       true, // route meta
       true // neighbor meta
   };
-  SaiAclTableTraits::CreateAttributes attributes{
-      SAI_ACL_STAGE_INGRESS,
-      bindPointList,
-      actionTypeList,
-      true, // srcIpv6
-      true, // dstIpv6
-      fieldSrcIpV4,
-      fieldDstIpV4,
-      true, // l4SrcPort
-      true, // l4DstPort
-      true, // ipProtocol
-      true, // tcpFlags
-      true, // srcPort
-      true, // outPort
-      true, // ipFrag
-      fieldIcmpV4Type,
-      fieldIcmpV4Code,
-      fieldIcmpV6Type,
-      fieldIcmpV6Code,
-      true, // dscp
-      true, // dstMac
-      true, // ipType
-      true, // ttl
-      fieldFdbDstUserMeta, // fdb meta
-      true, // route meta
-      true // neighbor meta
-  };
+
+  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
 
   auto saiAclTable = aclTableStore.setObject(adapterHostKey, attributes);
   auto aclTableHandle = std::make_unique<SaiAclTableHandle>();
