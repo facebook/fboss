@@ -394,37 +394,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionMirrorIngress>,
       std::optional<Attributes::ActionMirrorEgress>>;
 
-  using CreateAttributes = std::tuple<
-      Attributes::TableId,
-      std::optional<Attributes::Priority>,
-      std::optional<Attributes::FieldSrcIpV6>,
-      std::optional<Attributes::FieldDstIpV6>,
-      std::optional<Attributes::FieldSrcIpV4>,
-      std::optional<Attributes::FieldDstIpV4>,
-      std::optional<Attributes::FieldSrcPort>,
-      std::optional<Attributes::FieldOutPort>,
-      std::optional<Attributes::FieldL4SrcPort>,
-      std::optional<Attributes::FieldL4DstPort>,
-      std::optional<Attributes::FieldIpProtocol>,
-      std::optional<Attributes::FieldTcpFlags>,
-      std::optional<Attributes::FieldIpFrag>,
-      std::optional<Attributes::FieldIcmpV4Type>,
-      std::optional<Attributes::FieldIcmpV4Code>,
-      std::optional<Attributes::FieldIcmpV6Type>,
-      std::optional<Attributes::FieldIcmpV6Code>,
-      std::optional<Attributes::FieldDscp>,
-      std::optional<Attributes::FieldDstMac>,
-      std::optional<Attributes::FieldIpType>,
-      std::optional<Attributes::FieldTtl>,
-      std::optional<Attributes::FieldFdbDstUserMeta>,
-      std::optional<Attributes::FieldRouteDstUserMeta>,
-      std::optional<Attributes::FieldNeighborDstUserMeta>,
-      std::optional<Attributes::ActionPacketAction>,
-      std::optional<Attributes::ActionCounter>,
-      std::optional<Attributes::ActionSetTC>,
-      std::optional<Attributes::ActionSetDSCP>,
-      std::optional<Attributes::ActionMirrorIngress>,
-      std::optional<Attributes::ActionMirrorEgress>>;
+  using CreateAttributes = AdapterHostKey;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);

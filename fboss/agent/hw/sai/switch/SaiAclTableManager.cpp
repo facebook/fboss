@@ -721,38 +721,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt, // mirrorIngress
       std::nullopt, // mirrorEgress
   };
-  SaiAclEntryTraits::CreateAttributes attributes{
-      aclTableId,
-      priority,
-      fieldSrcIpV6,
-      fieldDstIpV6,
-      fieldSrcIpV4,
-      fieldDstIpV4,
-      fieldSrcPort,
-      fieldOutPort,
-      fieldL4SrcPort,
-      fieldL4DstPort,
-      fieldIpProtocol,
-      fieldTcpFlags,
-      fieldIpFrag,
-      fieldIcmpV4Type,
-      fieldIcmpV4Code,
-      fieldIcmpV6Type,
-      fieldIcmpV6Code,
-      fieldDscp,
-      fieldDstMac,
-      fieldIpType,
-      fieldTtl,
-      fieldFdbDstUserMeta,
-      fieldRouteDstUserMeta,
-      fieldNeighborDstUserMeta,
-      aclActionPacketAction,
-      std::nullopt, // counter
-      aclActionSetTC,
-      aclActionSetDSCP,
-      std::nullopt, // mirrorIngress
-      std::nullopt, // mirrorEgress
-  };
+
+  SaiAclEntryTraits::CreateAttributes attributes{adapterHostKey};
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
