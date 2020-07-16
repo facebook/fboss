@@ -89,7 +89,7 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
   }
 
   removeNeighborFromLocalCacheForEntry(removedEntry, vlan);
-  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: "
+  XLOG(DBG2) << "Updating Qos Policy for Removed Neighbor: port: "
              << removedEntry->str() << " classID: None";
 
   if constexpr (std::is_same_v<RemovedEntryT, MacEntry>) {
@@ -162,8 +162,8 @@ void LookupClassUpdater::updateNeighborClassID(
     refCnt++;
   }
 
-  XLOG(DBG2) << "Updating Qos Policy for Neighbor:: port: " << newEntry->str()
-             << " classID: " << static_cast<int>(classID);
+  XLOG(DBG2) << "Updating Qos Policy for Updated Neighbor: port: "
+             << newEntry->str() << " classID: " << static_cast<int>(classID);
 
   if constexpr (std::is_same_v<NewEntryT, MacEntry>) {
     auto updateMacClassIDFn =
@@ -227,22 +227,47 @@ void LookupClassUpdater::processNeighborChanged(
     if (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID()) {
       removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
       updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+    } else {
+      /* When a MAC address with class ID is aged out and relearned in a
+       * quick succession, the state changes can collapse and lose the
+       * class ID. This makes sure that class ID is not lost. (T64576277)
+       */
+      auto portID = newEntry->getPort().phyPortID();
+      auto port = stateDelta.newState()->getPorts()->getPortIf(portID);
+      // Only downlink ports of MH-NIC RSW setups will have lookupClasses
+      // Thus size of getLookupClassesToDistributeTrafficOn would be > 0
+      // For other MH-NIC, this block should not be applied.
+      if (oldEntry->getClassID().has_value() &&
+          !newEntry->getClassID().has_value() && port &&
+          port->getLookupClassesToDistributeTrafficOn().size() != 0) {
+        auto classID = oldEntry->getClassID().value();
+        auto updateMacClassIDFn =
+            [vlan, newEntry, classID](
+                const std::shared_ptr<SwitchState>& state) {
+              return MacTableUtils::updateOrAddEntryWithClassID(
+                  state, vlan, newEntry, classID);
+            };
+
+        sw_->updateState(
+            folly::to<std::string>("Reconfigure lookup classID: ", classID),
+            std::move(updateMacClassIDFn));
+      } else {
+        updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
+      }
     }
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
     if (!oldEntry->isReachable() && newEntry->isReachable()) {
       updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
-    }
-
-    if (oldEntry->isReachable() && !newEntry->isReachable()) {
+    } else if (oldEntry->isReachable() && !newEntry->isReachable()) {
       removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
     }
-
     /*
      * If the neighbor remains reachable as before but resolves to different
      * MAC/port, remove the classID for oldEntry and add classID for newEntry.
      */
-    if ((oldEntry->isReachable() && newEntry->isReachable()) &&
+    else if (
+        (oldEntry->isReachable() && newEntry->isReachable()) &&
         (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID() ||
          oldEntry->getMac() != newEntry->getMac())) {
       removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
