@@ -20,37 +20,6 @@
 
 #include <folly/IPAddress.h>
 
-namespace {
-// Only trafficQueueId should have traffic
-bool verifySPHelper(
-    facebook::fboss::HwSwitchEnsemble* hwEnsemble,
-    facebook::fboss::PortID portId,
-    int trafficQueueId) {
-  XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
-  auto retries = 5;
-  while (retries--) {
-    auto distributionOk = true;
-    auto queueStats = hwEnsemble->getLatestPortStats(portId).queueOutPackets_;
-    for (const auto& queueStat : queueStats) {
-      auto queueId = queueStat.first;
-      auto statVal = queueStat.second;
-      XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
-      distributionOk =
-          (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
-      if (!distributionOk) {
-        break;
-      }
-    }
-    if (distributionOk) {
-      return true;
-    }
-    XLOG(INFO) << " Retrying ...";
-    sleep(1);
-  }
-  return false;
-}
-} // namespace
-
 namespace facebook::fboss {
 
 class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
@@ -178,18 +147,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
     auto verify = [=]() {
       sendUdpPktsForAllQueues(queueIds);
-      clearPortStats();
-      EXPECT_TRUE(verifySPHelper(
-          getHwSwitchEnsemble(), masterLogicalPortIds()[0], trafficQueueId));
+      EXPECT_TRUE(verifySPHelper(trafficQueueId));
     };
 
     verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void clearPortStats() {
-    auto ports = std::make_unique<std::vector<int32_t>>();
-    ports->emplace_back((masterLogicalPortIds()[0]));
-    getHwSwitch()->clearPortStats(ports);
   }
 
  protected:
@@ -199,9 +160,15 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void verifyWRRAndNC();
 
  private:
+  void clearPortStats() {
+    auto ports = std::make_unique<std::vector<int32_t>>();
+    ports->emplace_back((masterLogicalPortIds()[0]));
+    getHwSwitch()->clearPortStats(ports);
+  }
   bool verifyWRRHelper(
       int maxWeightQueueId,
       const std::map<int, uint8_t>& wrrQueueToWeight);
+  bool verifySPHelper(int trafficQueueId);
 };
 
 // Packets processed by WRR queues should be in proportion to their weights
@@ -270,6 +237,36 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
   }
   return false;
 }
+
+// Only trafficQueueId should have traffic
+bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
+  XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
+  auto portId = masterLogicalPortIds()[0];
+  getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
+  ;
+  clearPortStats();
+  auto retries = 5;
+  while (retries--) {
+    auto distributionOk = true;
+    auto queueStats = *getLatestPortStats(portId).queueOutPackets__ref();
+    for (const auto& queueStat : queueStats) {
+      auto queueId = queueStat.first;
+      auto statVal = queueStat.second;
+      XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
+      distributionOk =
+          (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
+      if (!distributionOk) {
+        break;
+      }
+    }
+    if (distributionOk) {
+      return true;
+    }
+    XLOG(INFO) << " Retrying ...";
+    sleep(1);
+  }
+  return false;
+}
 void HwOlympicQosSchedulerTest::verifyWRR() {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -300,10 +297,7 @@ void HwOlympicQosSchedulerTest::verifySP() {
 
   auto verify = [=]() {
     sendUdpPktsForAllQueues(utility::kOlympicSPQueueIds());
-    clearPortStats();
     EXPECT_TRUE(verifySPHelper(
-        getHwSwitchEnsemble(),
-        masterLogicalPortIds()[0],
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
