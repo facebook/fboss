@@ -41,6 +41,12 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
+  void logRouteEntryCreateFn(
+      const sai_route_entry_t* route_entry,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
+
   void logCreateFn(
       const std::string& fn_name,
       sai_object_id_t* create_object_id,
@@ -50,10 +56,19 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logRouteEntryRemoveFn(
+      const sai_route_entry_t* route_entry,
+      sai_status_t rv);
+
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
       sai_object_type_t object_type,
+      sai_status_t rv);
+
+  void logRouteEntrySetAttrFn(
+      const sai_route_entry_t* route_entry,
+      const sai_attribute_t* attr,
       sai_status_t rv);
 
   void logSetAttrFn(
@@ -73,6 +88,7 @@ class SaiTracer {
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
   sai_port_api_t* portApi_;
+  sai_route_api_t* routeApi_;
   sai_switch_api_t* switchApi_;
   sai_vlan_api_t* vlanApi_;
 
@@ -95,6 +111,10 @@ class SaiTracer {
       const std::string& var2,
       uint32_t attr_count,
       sai_object_type_t object_type);
+
+  void setRouteEntry(
+      const sai_route_entry_t* route_entry,
+      std::vector<std::string>& lines);
 
   std::string rvCheck(sai_status_t rv);
 
@@ -120,6 +140,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
+      {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
       {SAI_OBJECT_TYPE_PORT, "port_"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
@@ -136,6 +157,7 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgeMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgePortMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
@@ -155,6 +177,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_BRIDGE, bridgeMap_},
           {SAI_OBJECT_TYPE_BRIDGE_PORT, bridgePortMap_},
           {SAI_OBJECT_TYPE_HASH, hashMap_},
+          {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
           {SAI_OBJECT_TYPE_PORT, portMap_},
           {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
           {SAI_OBJECT_TYPE_QUEUE, queueMap_},
@@ -171,7 +194,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
+      {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
+      {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},

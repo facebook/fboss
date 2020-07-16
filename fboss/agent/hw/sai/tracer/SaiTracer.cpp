@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
@@ -86,6 +87,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->portApi_ =
           static_cast<sai_port_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapPortApi();
+      break;
+    case (SAI_API_ROUTE):
+      SaiTracer::getInstance()->routeApi_ =
+          static_cast<sai_route_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapRouteApi();
       break;
     case (SAI_API_SWITCH):
       SaiTracer::getInstance()->switchApi_ =
@@ -189,6 +195,39 @@ void SaiTracer::logSwitchCreateFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logRouteEntryCreateFn(
+    const sai_route_entry_t* route_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_ROUTE_ENTRY);
+
+  // Then setup route entry (switch, virtual router and destination)
+  setRouteEntry(route_entry, lines);
+
+  // Make the function call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_ROUTE_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "create_route_entry(&route_entry, ",
+      attr_count,
+      ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
@@ -224,6 +263,30 @@ void SaiTracer::logCreateFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logRouteEntryRemoveFn(
+    const sai_route_entry_t* route_entry,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  setRouteEntry(route_entry, lines);
+
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_ROUTE_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "remove_route_entry(&route_entry)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logRemoveFn(
     const string& fn_name,
     sai_object_id_t remove_object_id,
@@ -244,6 +307,34 @@ void SaiTracer::logRemoveFn(
                    getVariable(remove_object_id, object_type),
                    ")"),
                rvCheck(rv)});
+}
+
+void SaiTracer::logRouteEntrySetAttrFn(
+    const sai_route_entry_t* route_entry,
+    const sai_attribute_t* attr,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup one attribute
+  vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_ROUTE_ENTRY);
+
+  setRouteEntry(route_entry, lines);
+
+  // Make setAttribute call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_ROUTE_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "set_route_entry_attribute(&route_entry, sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::logSetAttrFn(
@@ -361,6 +452,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_ROUTE_ENTRY:
+      setRouteEntryAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_SWITCH:
       setSwitchAttributes(attr_list, attr_count, attrLines);
       break;
@@ -399,6 +493,46 @@ string SaiTracer::createFnCall(
       ", ",
       attr_count,
       ", sai_attributes)");
+}
+
+void SaiTracer::setRouteEntry(
+    const sai_route_entry_t* route_entry,
+    vector<string>& lines) {
+  lines.push_back(to<string>(
+      "route_entry.switch_id = ",
+      getVariable(route_entry->switch_id, SAI_OBJECT_TYPE_SWITCH)));
+  lines.push_back(to<string>(
+      "route_entry.vr_id = ",
+      getVariable(route_entry->vr_id, SAI_OBJECT_TYPE_VIRTUAL_ROUTER)));
+
+  if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
+    lines.push_back(
+        "route_entry.destination.addr_family = SAI_IP_ADDR_FAMILY_IPV4");
+    lines.push_back(to<string>(
+        "route_entry.destination.addr.ip4 = ",
+        route_entry->destination.addr.ip4));
+    lines.push_back(to<string>(
+        "route_entry.destination.mask.ip4 = ",
+        route_entry->destination.mask.ip4));
+  } else if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
+    lines.push_back(
+        "route_entry.destination.addr_family = SAI_IP_ADDR_FAMILY_IPV6");
+    // Underlying type of sai_ip6_t is uint8_t[16]
+    for (int i = 0; i < 16; ++i) {
+      lines.push_back(to<string>(
+          "route_entry.destination.addr.ip6[",
+          i,
+          "] = ",
+          route_entry->destination.addr.ip6[i]));
+    }
+    for (int i = 0; i < 16; ++i) {
+      lines.push_back(to<string>(
+          "route_entry.destination.mask.ip6[",
+          i,
+          "] = ",
+          route_entry->destination.mask.ip6[i]));
+    }
+  }
 }
 
 string SaiTracer::rvCheck(sai_status_t rv) {
@@ -460,6 +594,7 @@ void SaiTracer::setupGlobals() {
 
   globalVar.push_back("uint8_t* mac");
   globalVar.push_back("sai_status_t status");
+  globalVar.push_back("sai_route_entry_t route_entry");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
@@ -475,6 +610,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
