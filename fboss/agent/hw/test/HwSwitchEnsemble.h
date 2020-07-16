@@ -128,6 +128,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   SwitchRunState getRunState() const {
     return runState_;
   }
+  void waitForLineRateOnPort(PortID port);
 
  protected:
   /*

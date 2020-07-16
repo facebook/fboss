@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
 DEFINE_bool(
@@ -293,4 +294,19 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->gracefulExit(switchState);
 }
 
+void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
+  auto portSpeedBps =
+      static_cast<uint64_t>(programmedState_->getPort(port)->getSpeed()) *
+      1000 * 1000;
+  auto retries = 5;
+  while (retries--) {
+    auto prevPortBytes = *getLatestPortStats(port).outBytes__ref();
+    sleep(1);
+    auto curPortBytes = *getLatestPortStats(port).outBytes__ref();
+    if (((curPortBytes - prevPortBytes) * 8) >= portSpeedBps) {
+      return;
+    }
+  }
+  throw FbossError("Line rate was never reached");
+}
 } // namespace facebook::fboss
