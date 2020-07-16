@@ -269,6 +269,11 @@ EcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
   }
 
   auto tables2 = u2.updateDone();
+  if (!tables2) {
+    // Route updater returns null when nothing changed, indicating
+    // that route was already programmed as desired. So just return
+    return outputState;
+  }
   tables2->publish();
 
   outputState->resetRouteTables(tables2);
