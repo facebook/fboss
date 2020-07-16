@@ -29,7 +29,8 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
       return true;
 
-    case HwAsic::Feature::ACL:
+    case HwAsic::Feature::ACLv4:
+    case HwAsic::Feature::ACLv6:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::WARM_BOOT:

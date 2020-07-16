@@ -37,7 +37,9 @@ SaiAclTableManager::SaiAclTableManager(
               SaiSwitchTraits::Attributes::AclEntryMaximumPriority())) {}
 
 AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
    * TODO(skhare)
@@ -171,7 +173,9 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
 }
 
 void SaiAclTableManager::removeAclTable() {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
    * TODO(skhare)
@@ -186,7 +190,9 @@ void SaiAclTableManager::removeAclTable() {
 }
 
 void SaiAclTableManager::changedAclTable() {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
    * TODO(skhare)
@@ -284,7 +290,9 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   // If we attempt to add entry to a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
@@ -688,7 +696,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
     const std::string& aclTableName) {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   // If we attempt to remove entry for a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
@@ -714,7 +724,9 @@ void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry,
     const std::string& aclTableName) {
-  CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL));
+  CHECK(
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.

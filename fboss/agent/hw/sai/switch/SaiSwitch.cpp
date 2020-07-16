@@ -143,7 +143,8 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
    *       corresponding Acl Table group member.
    *     - statechanged() would continue to carry AclEntry delta processing.
    */
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
     managerTable_->aclTableGroupManager().addAclTableGroup(
         SAI_ACL_STAGE_INGRESS);
     managerTable_->aclTableManager().addAclTable(kAclTable1);
@@ -295,7 +296,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
     processDelta(
         delta.getAclsDelta(),
         managerTable_->aclTableManager(),
