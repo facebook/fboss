@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
 
   SocketAddress addr(FLAGS_host, FLAGS_port, true);
   auto socket = AsyncSocket::newSocket(&base, addr);
-  auto chan =
-      std::make_shared<DuplexChannel>(DuplexChannel::Who::CLIENT, socket);
+  auto chan = std::make_shared<DuplexChannel>(
+      DuplexChannel::Who::CLIENT, std::move(socket));
   ThriftServer clients_server(chan->getServerChannel());
   clients_server.setIdleTimeout(std::chrono::milliseconds(0));
   clients_server.setInterface(
