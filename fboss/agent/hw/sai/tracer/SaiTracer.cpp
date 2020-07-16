@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
@@ -87,6 +88,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->portApi_ =
           static_cast<sai_port_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapPortApi();
+      break;
+    case (SAI_API_QUEUE):
+      SaiTracer::getInstance()->queueApi_ =
+          static_cast<sai_queue_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapQueueApi();
       break;
     case (SAI_API_ROUTE):
       SaiTracer::getInstance()->routeApi_ =
@@ -452,6 +458,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_QUEUE:
+      setQueueAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_ROUTE_ENTRY:
       setRouteEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -609,15 +618,18 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_WRED, 0);
 }
 
 } // namespace facebook::fboss
