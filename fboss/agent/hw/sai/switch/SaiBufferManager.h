@@ -34,10 +34,14 @@ struct SaiBufferPoolHandle {
 class SaiBufferManager {
  public:
   SaiBufferManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
 
  private:
   void setupEgressBufferPool();
+  SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
+      const PortQueue& queue) const;
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;

@@ -14,8 +14,10 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/state/PortQueue.h"
 
 namespace facebook::fboss {
 
@@ -39,10 +41,34 @@ void SaiBufferManager::setupEgressBufferPool() {
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
 
+SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
+    const PortQueue& queue) const {
+  SaiBufferProfileTraits::Attributes::PoolId pool{
+      egressBufferPoolHandle_->bufferPool->adapterKey()};
+  uint64_t resBytes =
+      queue.getReservedBytes() ? queue.getReservedBytes().value() : 0;
+  SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes{resBytes};
+  SaiBufferProfileTraits::Attributes::ThresholdMode mode{
+      SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
+  // TODO convert scaling factor to sai values
+  int8_t dynThresh = queue.getScalingFactor()
+      ? static_cast<int>(queue.getScalingFactor().value())
+      : 0;
+  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynamicThresh{
+      static_cast<int8_t>(dynThresh)};
+  // TODO: handle static threshold
+  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  return SaiBufferProfileTraits::CreateAttributes{
+      pool, reservedBytes, mode, dynamicThresh, staticThresh};
+}
+
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
-    const PortQueue& /*queue*/) {
+    const PortQueue& queue) {
   setupEgressBufferPool();
-  return nullptr;
+  auto c = profileCreateAttrs(queue);
+  return bufferProfiles_
+      .refOrEmplace(c, c, c, managerTable_->switchManager().getSwitchSaiId())
+      .first;
 }
 
 } // namespace facebook::fboss
