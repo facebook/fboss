@@ -298,4 +298,57 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
+
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
+    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
+    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
+    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
+    configureQualifier(
+        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
