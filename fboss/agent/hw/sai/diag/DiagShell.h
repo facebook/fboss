@@ -65,6 +65,7 @@ class DiagShell {
 
   void setPublisher(
       apache::thrift::ServerStreamPublisher<std::string>&& publisher);
+  void markResetPublisher();
   void resetPublisher();
   bool hasPublisher() const;
 
@@ -99,6 +100,7 @@ class DiagShell {
 
   std::unique_ptr<Repl> repl_;
   const SaiSwitch* hw_;
+  bool shouldResetPublisher_ = false;
 };
 
 } // namespace facebook::fboss

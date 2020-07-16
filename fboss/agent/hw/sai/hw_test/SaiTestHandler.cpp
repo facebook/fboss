@@ -34,7 +34,7 @@ SaiTestHandler::startDiagShell() {
   auto streamAndPublisher =
       apache::thrift::ServerStream<std::string>::createPublisher([this]() {
         XLOG(INFO) << "Diag shell session disconnected";
-        diagShell_.resetPublisher();
+        diagShell_.markResetPublisher();
       });
 
   std::string firstPrompt =

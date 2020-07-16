@@ -129,7 +129,7 @@ DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
 void DiagShell::setPublisher(
     apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
   if (!repl_) {
-    // Set up REPL on first thrift connect
+    // Set up REPL on connect
     repl_ = makeRepl();
     ts_ =
         std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
@@ -162,19 +162,29 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
   return nullptr;
 }
 
-void DiagShell::resetPublisher() {
-  {
-    auto locked = publisher_.lock();
-    std::move(**locked).complete();
-    locked->reset();
+void DiagShell::markResetPublisher() {
+  if (hasPublisher()) {
+    shouldResetPublisher_ = true;
   }
 }
 
-bool DiagShell::hasPublisher() const {
-  {
-    auto locked = publisher_.lock();
-    return static_cast<bool>(*locked);
+void DiagShell::resetPublisher() {
+  auto locked = publisher_.lock();
+  if (!shouldResetPublisher_) {
+    return;
   }
+  std::move(**locked).complete();
+  locked->reset();
+  // Reset repl and terminal session.
+  ts_.reset();
+  repl_.reset();
+  shouldResetPublisher_ = false;
+  XLOG(INFO) << "Ready to accept new clients";
+}
+
+bool DiagShell::hasPublisher() const {
+  auto locked = publisher_.lock();
+  return static_cast<bool>(*locked);
 }
 
 // TODO: Customize
@@ -215,22 +225,45 @@ void DiagShell::consumeInput(
 
 // TODO: Log command output to Scuba
 void DiagShell::produceOutput() {
-  std::size_t nread;
+  std::size_t nread = 0;
   while (true) {
-    nread = ::read(
-        ptym_->file.fd(), producerBuffer_.data(), producerBuffer_.size());
-    folly::checkUnixError(nread, "Failed to read from the pty master");
-    if (nread == 0) {
-      XLOG(INFO) << "read 0 bytes from PTY slave; shutting off diag shell";
-      break;
-    } else {
-      // publish string on stream
-      if (hasPublisher()) {
-        auto locked = publisher_.lock();
-        std::string toPublish(producerBuffer_.data(), nread);
-        (*locked)->next(toPublish);
+    auto fd = ptym_->file.fd();
+    int maxfd = fd + 1;
+    fd_set readSet;
+    FD_ZERO(&readSet);
+    FD_SET(fd, &readSet);
+    /* Set the timeout as 5 sec for each read.
+     * This is to check that a client has disconnected in the meantime.
+     * If the client is still connected, will continue to wait.
+     * If the client has disconnected, will clean up the client states.
+     */
+    struct timeval timeout = {5, 0};
+    if (select(maxfd, &readSet, nullptr, nullptr, &timeout) > 0) {
+      if (!FD_ISSET(fd, &readSet)) {
+        std::string msg = "Invalid file descriptor for the PTY";
+        XLOG(WARNING) << msg;
+        throw FbossError(msg);
+      }
+      nread = ::read(fd, producerBuffer_.data(), producerBuffer_.size());
+      folly::checkUnixError(nread, "Failed to read from the pty master");
+      if (nread == 0) {
+        XLOG(INFO) << "read 0 bytes from PTY slave; shutting off diag shell";
+        break;
       } else {
-        XLOG(WARNING) << "Received diag shell output with no user connected";
+        // publish string on stream
+        std::string toPublish(producerBuffer_.data(), nread);
+        if (hasPublisher()) {
+          auto locked = publisher_.lock();
+          (*locked)->next(toPublish);
+        } else if (!shouldResetPublisher_) {
+          // Warn if there has not been a client but output was produced
+          XLOG(WARNING)
+              << "Received diag shell output when no client is connected";
+        }
+      }
+    } else {
+      if (shouldResetPublisher_) {
+        resetPublisher();
       }
     }
   }
