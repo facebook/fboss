@@ -19,8 +19,8 @@ namespace util {
 NextHop fromThrift(const NextHopThrift& nht) {
   std::optional<LabelForwardingAction> action = std::nullopt;
   if (nht.mplsAction_ref()) {
-    action = LabelForwardingAction::fromThrift(
-        nht.mplsAction_ref().value_unchecked());
+    action =
+        LabelForwardingAction::fromThrift(nht.mplsAction_ref().value_or({}));
   }
   auto address = network::toIPAddress(*nht.address_ref());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight_ref());
