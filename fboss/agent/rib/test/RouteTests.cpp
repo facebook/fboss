@@ -1406,8 +1406,8 @@ TEST(RouteTypes, toFromRouteNextHops) {
         if (intf.has_value()) {
           EXPECT_TRUE(entry.address_ref()->ifName_ref());
           EXPECT_EQ(
-              bAddr.ifName_ref().value_unchecked(),
-              entry.address_ref()->ifName_ref().value_unchecked());
+              bAddr.ifName_ref().value_or({}),
+              entry.address_ref()->ifName_ref().value_or({}));
         }
         found = true;
         break;
