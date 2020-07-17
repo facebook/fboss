@@ -204,9 +204,6 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
 TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
@@ -225,12 +222,6 @@ TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
 TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
@@ -257,11 +248,6 @@ TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
 TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
@@ -287,11 +273,6 @@ TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
 TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
@@ -382,12 +363,6 @@ static const std::array<uint8_t, 28> kWedge100PortGroupMapping = {{
 
 TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
   std::unordered_set<cfg::PortProfileID> downlinkProfiles({
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER,

@@ -18,44 +18,74 @@ static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
     kPortProfilesInGroup = {
         {0,
          {
-             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
-             cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
          }},
         {1,
          {
-             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
          }},
         {2,
          {
-             cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+             cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
          }},
         {3,
          {
-             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
+             cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+             cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
          }},
 };
 
 static const std::unordered_map<
     cfg::PortProfileID,
-    std::tuple<cfg::PortSpeed, int, phy::FecMode>>
+    std::tuple<
+        cfg::PortSpeed,
+        int,
+        phy::FecMode,
+        TransmitterTechnology,
+        phy::InterfaceMode>>
     kProfiles = {
-        {cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91,
-         std::make_tuple(cfg::PortSpeed::HUNDREDG, 4, phy::FecMode::CL91)},
-        {cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC,
-         std::make_tuple(cfg::PortSpeed::FIFTYG, 2, phy::FecMode::NONE)},
-        {cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
-         std::make_tuple(cfg::PortSpeed::FORTYG, 4, phy::FecMode::NONE)},
-        {cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC,
-         std::make_tuple(cfg::PortSpeed::TWENTYFIVEG, 1, phy::FecMode::NONE)},
-        {cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC,
-         std::make_tuple(cfg::PortSpeed::XG, 1, phy::FecMode::NONE)},
+        {cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::HUNDREDG,
+             4,
+             phy::FecMode::CL91,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::CAUI)},
+        {cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER,
+         std::make_tuple(
+             cfg::PortSpeed::FIFTYG,
+             2,
+             phy::FecMode::CL74,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::CR2)},
+        {cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::FORTYG,
+             4,
+             phy::FecMode::NONE,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::XLAUI)},
+        {cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::TWENTYFIVEG,
+             1,
+             phy::FecMode::NONE,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::CAUI)},
+        {cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+         std::make_tuple(
+             cfg::PortSpeed::XG,
+             1,
+             phy::FecMode::NONE,
+             TransmitterTechnology::OPTICAL,
+             phy::InterfaceMode::SFI)},
 };
 } // namespace
 
