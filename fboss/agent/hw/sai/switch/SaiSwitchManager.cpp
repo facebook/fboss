@@ -238,4 +238,9 @@ void SaiSwitchManager::gracefulExit() {
   // forwarding during warm boot
   switch_.reset();
 }
+
+void SaiSwitchManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
+  l2LearningMode_ = l2LearningMode;
+}
+
 } // namespace facebook::fboss
