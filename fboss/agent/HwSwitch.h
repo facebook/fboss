@@ -226,7 +226,15 @@ class HwSwitch {
    * example, clearing the warm boot cache on FIB_SYNCED, or
    * turning on callbacks on INITIALIZED.
    */
-  virtual void switchRunStateChanged(SwitchRunState newState) = 0;
+  void switchRunStateChanged(SwitchRunState newState) {
+    if (runState_ != newState) {
+      switchRunStateChangedImpl(newState);
+      runState_ = newState;
+    }
+  }
+  SwitchRunState getRunState() const {
+    return runState_;
+  }
 
   /*
    * Defines the exit behavior when there is a crash. Allows implementations
@@ -287,7 +295,10 @@ class HwSwitch {
   virtual void dumpDebugState(const std::string& path) const = 0;
 
  private:
+  virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
+
   uint32_t featuresDesired_;
+  SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
 
   // Forbidden copy constructor and assignment operator
   HwSwitch(HwSwitch const&) = delete;

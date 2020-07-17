@@ -562,7 +562,7 @@ int BcmSwitch::deleteL2TableCb(
   return 0;
 }
 
-void BcmSwitch::switchRunStateChanged(SwitchRunState newState) {
+void BcmSwitch::switchRunStateChangedImpl(SwitchRunState newState) {
   std::lock_guard<std::mutex> g(lock_);
   switch (newState) {
     case SwitchRunState::INITIALIZED:

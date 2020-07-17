@@ -72,8 +72,6 @@ class SaiSwitch : public HwSwitch {
 
   folly::dynamic toFollyDynamic() const override;
 
-  void switchRunStateChanged(SwitchRunState newState) override;
-
   void exitFatal() const override;
 
   bool isPortUp(PortID port) const override;
@@ -128,6 +126,7 @@ class SaiSwitch : public HwSwitch {
   void dumpDebugState(const std::string& /*path*/) const override;
 
  private:
+  void switchRunStateChangedImpl(SwitchRunState newState) override;
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
    * private functions with the same name followed by Locked.
@@ -188,7 +187,7 @@ class SaiSwitch : public HwSwitch {
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
-  void switchRunStateChangedLocked(
+  void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,
       SwitchRunState newState);
 

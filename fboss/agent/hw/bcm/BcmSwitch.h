@@ -357,11 +357,6 @@ class BcmSwitch : public BcmSwitchIf {
   folly::dynamic toFollyDynamic() const override;
 
   /*
-   * Handle SwitchRunState changes in SwSwitch
-   */
-  void switchRunStateChanged(SwitchRunState newState) override;
-
-  /*
    * Update all statistics.
    */
   void updateStats(SwitchStats* switchStats) override;
@@ -530,6 +525,11 @@ class BcmSwitch : public BcmSwitchIf {
   // Forbidden copy constructor and assignment operator
   BcmSwitch(BcmSwitch const&) = delete;
   BcmSwitch& operator=(BcmSwitch const&) = delete;
+
+  /*
+   * Handle SwitchRunState changes
+   */
+  void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   /*
    * Get default state switch is in on a cold boot

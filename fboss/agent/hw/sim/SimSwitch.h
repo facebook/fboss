@@ -40,7 +40,6 @@ class SimSwitch : public HwSwitch {
   folly::dynamic toFollyDynamic() const override;
 
   void injectPacket(std::unique_ptr<RxPacket> pkt);
-  void switchRunStateChanged(SwitchRunState newState) override {}
 
   // TODO
   void updateStats(SwitchStats* /*switchStats*/) override {}
@@ -96,6 +95,7 @@ class SimSwitch : public HwSwitch {
   void dumpDebugState(const std::string& /*path*/) const override {}
 
  private:
+  void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
   SimSwitch& operator=(SimSwitch const&) = delete;
