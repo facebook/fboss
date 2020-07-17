@@ -41,7 +41,8 @@ class BcmQcmManager {
   static bool isQcmSupported(BcmSwitch* hw);
 
   // utility routines used by tests
-  uint64_t getIfpStatCounter(const int portId);
+  uint64_t getIfpHitStatCounter(const int portId);
+  uint64_t getIfpRedPktStatCounter(const int portId);
   uint32_t getLearnedFlowCount();
   static int getQcmFlowGroupId();
   bool isFlowTrackerDisabled();
@@ -50,6 +51,9 @@ class BcmQcmManager {
   }
   int getAvailableGPorts() {
     return gPortsAvailable_.load();
+  }
+  int getPolicerId() {
+    return policerId_;
   }
 
  private:
@@ -66,7 +70,7 @@ class BcmQcmManager {
   void setFlowViewCfg();
   void setFlowGroupTrigger();
   void setAgingInterval(const int agingIntervalInMsecs);
-  int createIfpEntry(int port, bool usePolicer, bool attachStats);
+  int createIfpEntry(int port, bool attachStats);
   void setTrackingParams();
 
   // port monitoring
@@ -87,11 +91,14 @@ class BcmQcmManager {
   void destroyExactMatchGroup();
   void resetBurstMonitor();
   void stopQcmFirmware();
+  void destroyPolicer();
 
   // helper routines
   void updateQcmMonitoredPorts(const Port2QosQueueIdMap& portMap);
   void getPortsForQcmMonitoring(std::set<bcm_port_t>& upPortSet);
   void createAndAttachStats(const int ifpEntry);
+  void createPolicer(const int policerRate);
+  uint64_t getIfpStatCounter(const int portId, bcm_field_stat_t statType);
 
   BcmSwitch* hw_;
   // pipe to field group
@@ -108,6 +115,7 @@ class BcmQcmManager {
   std::shared_ptr<QcmCfg> qcmCfg_;
   std::unique_ptr<BcmQcmCollector> qcmCollector_;
   std::atomic<int> gPortsAvailable_{0};
+  bcm_policer_t policerId_{0};
 };
 
 } // namespace facebook::fboss

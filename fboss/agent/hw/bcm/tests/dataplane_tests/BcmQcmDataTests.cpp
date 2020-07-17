@@ -107,9 +107,12 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     return qcmCfg;
   }
 
-  void setupHelper() {
+  void setupHelper(bool setupPolicer = false) {
     auto newCfg{initialConfig()};
     auto qcmCfg = getQcmConfig();
+    if (setupPolicer) {
+      qcmCfg.ppsToQcm_ref() = 0;
+    }
     newCfg.switchSettings.qcmEnable = true;
     newCfg.qcmConfig_ref() = qcmCfg;
     applyNewConfig(newCfg);
@@ -157,9 +160,9 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
             kIPv6FlowSrcAddress[j]);
       }
     }
-    port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
+    port1Counter = getHwSwitch()->getBcmQcmMgr()->getIfpHitStatCounter(
         masterLogicalPortIds()[1]);
-    port0Counter = getHwSwitch()->getBcmQcmMgr()->getIfpStatCounter(
+    port0Counter = getHwSwitch()->getBcmQcmMgr()->getIfpHitStatCounter(
         masterLogicalPortIds()[0]);
     return {port0Counter, port1Counter};
   }
@@ -375,6 +378,39 @@ TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Intent of test is to attach policer and verify
+// that it works as expected. We attach a polcier with allowed rate of 0 kbps
+// We expect only 1 pkt to be sent to R5 (since first pkt always goes through)
+// and rest all pkts should be marked as red and not sent to the R5 cpu
+TEST_F(BcmQcmDataTest, FlowLearningPolicer) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    return;
+  }
+  auto setup = [&]() { setupHelper(true); };
+
+  auto verify = [&]() {
+    // send 2 flows
+    auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
+        createQcmFlows(2, kPktTxCount);
+    std::ignore = nonFlowLearnPortCounter;
+    // First pkt from first flow results in flow learn,
+    // other 9 pkts of first flow doesn't hit the acl as a result
+    // (would have been dropped anyways because of policer!)
+    // Second flow, drops all pkts because of policer and
+    // hence hit the acl 10 times
+    EXPECT_EQ(flowLearnPortCounter, kPktTxCount + 1);
+    // expect only 1 flow to be learned
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
+    // all pkts except the first one should be marked as RED
+    EXPECT_EQ(
+        getHwSwitch()->getBcmQcmMgr()->getIfpRedPktStatCounter(
+            masterLogicalPortIds()[0]),
+        2 * kPktTxCount - 1);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Intent of this test is to setup QCM tables
 // send a flow and verify if the flow learning happens
 // Only first pkt should hit the ifp entry, all subsequent pkts should
@@ -453,7 +489,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
   if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
-  auto setup = [=]() { setupHelper(); };
+  auto setup = [=]() { setupHelper(true /* enable policer */); };
   auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
   auto verify = [&]() {
     // send 1 flow
@@ -462,9 +498,11 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
     std::ignore = nonFlowLearnPortCounter;
     EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
+    EXPECT_NE(0, getHwSwitch()->getBcmQcmMgr()->getPolicerId());
   };
   auto verifyStop = [&]() {
     EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->isFlowTrackerDisabled());
+    EXPECT_EQ(0, getHwSwitch()->getBcmQcmMgr()->getPolicerId());
   };
 
   // run with qcm enabled

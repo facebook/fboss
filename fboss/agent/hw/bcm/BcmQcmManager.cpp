@@ -146,9 +146,20 @@ void BcmQcmManager::initExactMatchGroupCreate() {
   }
 }
 
+uint64_t BcmQcmManager::getIfpHitStatCounter(const int portId) {
+  return getIfpStatCounter(portId, bcmFieldStatPackets);
+}
+
+uint64_t BcmQcmManager::getIfpRedPktStatCounter(const int portId) {
+  // return count of pkts marked red
+  return getIfpStatCounter(portId, bcmFieldStatRedPackets);
+}
+
 // TOOD: This goes away once, we use commom ACL infra to create
 // acls in other groups. Used for tests
-uint64_t BcmQcmManager::getIfpStatCounter(const int portId) {
+uint64_t BcmQcmManager::getIfpStatCounter(
+    const int portId,
+    bcm_field_stat_t statType) {
   std::lock_guard<std::mutex> g(monitoredPortsLock_);
   uint64_t value = 0;
   auto iter = portToIfpEntryMap_.find(portId);
@@ -162,22 +173,27 @@ uint64_t BcmQcmManager::getIfpStatCounter(const int portId) {
   if (statIdIter == ifpEntryToStatMap_.end()) {
     XLOG(ERR) << "Unable to find the stat counter attached to ifp entry : "
               << ifpEntry;
+    return 0;
   }
 
-  bcm_field_stat_t type = bcmFieldStatPackets;
   auto rv =
-      bcm_field_stat_get(hw_->getUnit(), statIdIter->second, type, &value);
-  bcmCheckError(rv, "Stat get failed");
+      bcm_field_stat_get(hw_->getUnit(), statIdIter->second, statType, &value);
+  bcmCheckError(rv, "Stat get failed for stat=", statType);
   return value;
 }
 
 // TODO: This routine goes away once we use common ACL infra to create
 // acls
 void BcmQcmManager::createAndAttachStats(const int ifpEntry) {
-  bcm_field_stat_t type = bcmFieldStatPackets;
+  std::vector<bcm_field_stat_t> statTypes{bcmFieldStatPackets,
+                                          bcmFieldStatRedPackets};
   int stat_id = 0;
   auto rv = bcm_field_stat_create(
-      hw_->getUnit(), FLAGS_qcm_ifp_gid, 1, &type, &stat_id);
+      hw_->getUnit(),
+      FLAGS_qcm_ifp_gid,
+      statTypes.size(),
+      statTypes.data(),
+      &stat_id);
   bcmCheckError(rv, "Failed to install stats");
 
   rv = bcm_field_entry_stat_attach(hw_->getUnit(), ifpEntry, stat_id);
@@ -193,10 +209,7 @@ void BcmQcmManager::setupPortsForMonitoring(const Port2QosQueueIdMap& portMap) {
   for (const auto& port : portMap) {
     if (qcmMonitoredPorts_.find(port.first) == qcmMonitoredPorts_.end()) {
       XLOG(DBG3) << "Create IFP entry for: " << port.first;
-      ifpEntry = createIfpEntry(
-          port.first,
-          false /* create policer */,
-          FLAGS_enable_qcm_ifp_statistics);
+      ifpEntry = createIfpEntry(port.first, FLAGS_enable_qcm_ifp_statistics);
       portToIfpEntryMap_[port.first] = ifpEntry;
       qcmMonitoredPorts_[port.first] = port.second;
     }
@@ -241,13 +254,26 @@ void BcmQcmManager::destroyExactMatchGroup() {
 }
 
 void BcmQcmManager::deleteIfpEntries() {
+  int rv = 0;
   for (const auto& ifpEntry : portToIfpEntryMap_) {
-    auto rv = bcm_field_entry_destroy(hw_->getUnit(), ifpEntry.second);
+    if (policerId_) {
+      rv = bcm_field_entry_policer_detach(hw_->getUnit(), ifpEntry.second, 0);
+      bcmCheckError(rv, "bcm_field_entry_policer_detach failed");
+    }
+    rv = bcm_field_entry_destroy(hw_->getUnit(), ifpEntry.second);
     bcmCheckError(rv, "bcm_field_entry_destroy failed");
   }
   portToIfpEntryMap_.clear();
   ifpEntryToStatMap_.clear();
   qcmMonitoredPorts_.clear();
+}
+
+void BcmQcmManager::destroyPolicer() {
+  if (policerId_) {
+    auto rv = bcm_policer_destroy(hw_->getUnit(), policerId_);
+    bcmCheckError(rv, "bcm_policer_destroy failed");
+    policerId_ = 0; // reset
+  }
 }
 
 void BcmQcmManager::stop() {
@@ -262,6 +288,7 @@ void BcmQcmManager::stop() {
   destroyFlowGroup(); // step 3
   destroyExactMatchGroup(); // step 4
   resetBurstMonitor();
+  destroyPolicer();
 
   // stop firmware
   stopQcmFirmware();
@@ -299,7 +326,7 @@ void BcmQcmManager::flowLimitSet(int flowLimit) {
   XLOG(INFO, "bcmFlowLimitSet done");
 }
 
-int BcmQcmManager::createIfpEntry(int port, bool usePolicer, bool createStats) {
+int BcmQcmManager::createIfpEntry(int port, bool createStats) {
   int rv = 0;
 
   bcm_field_entry_t entry;
@@ -314,16 +341,16 @@ int BcmQcmManager::createIfpEntry(int port, bool usePolicer, bool createStats) {
       hw_->getUnit(), entry, FLAGS_qcm_ifp_pri, 0, 0xFF);
   bcmCheckError(rv, "failed to create qualifier for ExactMatchHitStatus");
 
-  if (usePolicer) {
-    rv = bcm_field_entry_policer_attach(hw_->getUnit(), entry, 0, 0);
+  if (policerId_) {
+    rv = bcm_field_entry_policer_attach(hw_->getUnit(), entry, 0, policerId_);
     bcmCheckError(rv, "bcm_field_entry_policer_attach failed");
 
     rv = bcm_field_action_add(
-        hw_->getUnit(), entry, bcmFieldActionGpCopyToCpu, 1, 1);
+        hw_->getUnit(), entry, bcmFieldActionGpCopyToCpu, 1, kQcmFlowGroupId);
     bcmCheckError(rv, "bcm_field_action_add failed");
   } else {
     rv = bcm_field_action_add(
-        hw_->getUnit(), entry, bcmFieldActionCopyToCpu, 1, 1 /*flowGroupId*/);
+        hw_->getUnit(), entry, bcmFieldActionCopyToCpu, 1, kQcmFlowGroupId);
     bcmCheckError(rv, "failed to create action");
   }
 
@@ -496,6 +523,20 @@ void BcmQcmManager::setupConfiguredPortsForMonitoring(
   updateQcmMonitoredPortsIfNeeded(candidatePortMap);
 }
 
+void BcmQcmManager::createPolicer(const int policerRate) {
+  bcm_policer_config_t policer_config;
+  bcm_policer_config_t_init(&policer_config);
+  policer_config.flags = BCM_POLICER_MODE_PACKETS;
+  policer_config.mode = bcmPolicerModeCommitted;
+  policer_config.ckbits_sec = policerRate;
+  policer_config.ckbits_burst = 1;
+
+  policerId_ = 0;
+  auto rv = bcm_policer_create(hw_->getUnit(), &policer_config, &policerId_);
+  bcmCheckError(rv, "bcm_policer_create failed");
+  XLOG(DBG3) << "Policer configured with id" << policerId_;
+}
+
 void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   if (!isQcmSupported(hw_)) {
     return;
@@ -516,6 +557,10 @@ void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   }
 
   initExactMatchGroupCreate();
+  if (qcmCfg_->getPpsToQcm().has_value()) {
+    createPolicer(qcmCfg_->getPpsToQcm().value());
+  }
+
   createIfpGroup();
 
   /* program flow tracker specific tables */
