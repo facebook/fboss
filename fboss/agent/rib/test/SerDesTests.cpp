@@ -31,21 +31,18 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   config.interfaces[0].intfID = 1;
   config.interfaces[0].vlanID = 1;
   config.interfaces[0].routerID = 0;
-  config.interfaces[0].__isset.mac = true;
-  config.interfaces[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces[0].ipAddresses.resize(2);
   config.interfaces[0].ipAddresses[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses[1] = "1::1/48";
   config.interfaces[1].intfID = 2;
   config.interfaces[1].vlanID = 2;
   config.interfaces[1].routerID = 0;
-  config.interfaces[1].__isset.mac = true;
-  config.interfaces[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces[1].mac_ref() = "00:00:00:00:00:22";
   config.interfaces[1].ipAddresses.resize(2);
   config.interfaces[1].ipAddresses[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses[1] = "2::1/48";
 
-  config.__isset.staticRoutesWithNhops = true;
   config.staticRoutesWithNhops.resize(2);
   config.staticRoutesWithNhops[0].nexthops.resize(1);
   config.staticRoutesWithNhops[0].prefix = "2001::/64";
