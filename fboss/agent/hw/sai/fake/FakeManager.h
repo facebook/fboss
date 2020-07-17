@@ -18,6 +18,8 @@ extern "C" {
 #include <sai.h>
 }
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
 namespace facebook::fboss {
 
 template <typename K, typename T>

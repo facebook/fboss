@@ -91,6 +91,13 @@ struct SaiPortTraits {
         bool,
         SaiBoolDefault>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    using InterfaceType = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INTERFACE_TYPE,
+        sai_int32_t,
+        SaiPortInterfaceTypeDefault>;
+#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -148,6 +155,10 @@ SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+SAI_ATTRIBUTE_NAME(Port, InterfaceType)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

@@ -36,6 +36,9 @@ sai_status_t create_port_fn(
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
+#endif
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -87,6 +90,12 @@ sai_status_t create_port_fn(
 #endif
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_PORT_ATTR_INTERFACE_TYPE:
+        interface_type =
+            static_cast<sai_port_interface_type_t>(attr_list[i].value.s32);
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -133,6 +142,9 @@ sai_status_t create_port_fn(
       port.queueIdList.push_back(saiQueueId);
     }
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  port.interface_type = interface_type;
+#endif
 
   return SAI_STATUS_SUCCESS;
 }
@@ -214,6 +226,12 @@ sai_status_t set_port_attribute_fn(
 #endif
       port.disableTtlDecrement = attr->value.booldata;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    case SAI_PORT_ATTR_INTERFACE_TYPE:
+      port.interface_type =
+          static_cast<sai_port_interface_type_t>(attr->value.s32);
+      break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -301,6 +319,11 @@ sai_status_t get_port_attribute_fn(
 #endif
         attr->value.booldata = port.disableTtlDecrement;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_PORT_ATTR_INTERFACE_TYPE:
+        attr->value.s32 = port.interface_type;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

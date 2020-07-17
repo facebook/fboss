@@ -268,3 +268,15 @@ TEST_F(PortApiTest, getSome) {
       SAI_STATS_MODE_READ);
   EXPECT_EQ(stats.size(), 2);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+TEST_F(PortApiTest, setInterfaceType) {
+  auto id = createPort(100000, {42}, true);
+  SaiPortTraits::Attributes::InterfaceType interface_type{
+      SAI_PORT_INTERFACE_TYPE_CAUI};
+  portApi->setAttribute(id, interface_type);
+  EXPECT_EQ(
+      portApi->getAttribute(id, SaiPortTraits::Attributes::InterfaceType{}),
+      SAI_PORT_INTERFACE_TYPE_CAUI);
+}
+#endif
