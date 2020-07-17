@@ -15,6 +15,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
@@ -22,6 +23,8 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+
+#include <folly/experimental/FunctionScheduler.h>
 
 DEFINE_bool(
     setup_thrift,
@@ -44,6 +47,9 @@ HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
 HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (thriftThread_) {
     thriftThread_->join();
+  }
+  if (fs_) {
+    fs_->shutdown();
   }
   if (runState_ >= SwitchRunState::INITIALIZED) {
     // don't touch programmedState_ unless init is done
@@ -282,12 +288,28 @@ void HwSwitchEnsemble::setupEnsemble(
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
   getHwSwitch()->switchRunStateChanged(switchState);
   runState_ = switchState;
+  if (runState_ == SwitchRunState::CONFIGURED &&
+      haveFeature(STATS_COLLECTION)) {
+    fs_ = std::make_unique<folly::FunctionScheduler>();
+    fs_->setThreadName("UpdateStatsThread");
+    auto statsCollect = [this] {
+      SwitchStats dummy;
+      getHwSwitch()->updateStats(&dummy);
+    };
+    auto timeInterval = std::chrono::seconds(1);
+    fs_->addFunction(statsCollect, timeInterval, "updateStats");
+    fs_->start();
+  }
 }
+
 void HwSwitchEnsemble::gracefulExit() {
   if (thriftThread_) {
     // Join thrif thread. Thrift calls will fail post
     // warm boot exit sequence initiated below
     thriftThread_->join();
+  }
+  if (fs_) {
+    fs_->shutdown();
   }
   // Initiate warm boot
   folly::dynamic switchState = folly::dynamic::object;

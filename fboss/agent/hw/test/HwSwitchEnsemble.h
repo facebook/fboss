@@ -23,6 +23,10 @@
 #include <set>
 #include <thread>
 
+namespace folly {
+class FunctionScheduler;
+}
+
 namespace facebook::fboss {
 
 class Platform;
@@ -157,6 +161,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
+  std::unique_ptr<folly::FunctionScheduler> fs_;
 };
 
 } // namespace facebook::fboss
