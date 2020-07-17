@@ -415,10 +415,8 @@ class SaiObject {
   template <typename AttrT>
   void setNewAttributeHelper(const std::optional<AttrT>& newAttrOpt) {
     if (newAttrOpt) {
+      // set only if optional attribute is provided
       setNewAttributeHelper(newAttrOpt.value());
-    } else {
-      // TODO(borisb): handle un-setting optional attributes to default
-      // properly
     }
   }
   bool live_{false};

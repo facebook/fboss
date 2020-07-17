@@ -115,7 +115,12 @@ struct SaiPortTraits {
       std::optional<Attributes::Mtu>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
-      std::optional<Attributes::DisableTtlDecrement>>;
+      std::optional<Attributes::DisableTtlDecrement>
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      ,
+      std::optional<Attributes::InterfaceType>
+#endif
+      >;
 
   static constexpr std::array<sai_stat_id_t, 15> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,

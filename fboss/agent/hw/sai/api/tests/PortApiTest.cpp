@@ -31,6 +31,22 @@ class PortApiTest : public ::testing::Test {
       uint32_t speed,
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    SaiPortTraits::CreateAttributes a{lanes,
+                                      speed,
+                                      adminState,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt,
+                                      std::nullopt};
+#else
     SaiPortTraits::CreateAttributes a{lanes,
                                       speed,
                                       adminState,
@@ -44,6 +60,7 @@ class PortApiTest : public ::testing::Test {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt};
+#endif
     return portApi->create<SaiPortTraits>(a, 0);
   }
 

@@ -330,6 +330,27 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     fecMode = utility::getSaiPortFecMode(phyFecMode);
   }
   uint16_t vlanId = swPort->getIngressVlan();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+    // TODO: query and set port interface type.
+  }
+  return SaiPortTraits::CreateAttributes{hwLaneList,
+                                         static_cast<uint32_t>(speed),
+                                         adminState,
+                                         fecMode,
+                                         internalLoopbackMode,
+                                         mediaType,
+                                         globalFlowControlMode,
+                                         vlanId,
+                                         std::nullopt,
+                                         swPort->getMaxFrameSize(),
+                                         std::nullopt,
+                                         std::nullopt,
+                                         std::nullopt,
+                                         interfaceType};
+#else
   return SaiPortTraits::CreateAttributes{hwLaneList,
                                          static_cast<uint32_t>(speed),
                                          adminState,
@@ -343,6 +364,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          std::nullopt,
                                          std::nullopt};
+#endif
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(

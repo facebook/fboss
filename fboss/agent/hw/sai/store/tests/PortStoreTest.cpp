@@ -25,6 +25,24 @@ class PortStoreTest : public SaiStoreTest {
       std::optional<bool> adminStateOpt = true) {
     std::vector<uint32_t> lanes;
     lanes.push_back(lane);
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+    return SaiPortTraits::CreateAttributes{
+        lanes,
+        speed,
+        adminStateOpt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+    };
+#else
     return SaiPortTraits::CreateAttributes{
         lanes,
         speed,
@@ -40,6 +58,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt,
         std::nullopt,
     };
+#endif
   }
 
   PortSaiId createPort(uint32_t lane) {
