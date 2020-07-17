@@ -396,69 +396,6 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmPortTest, FECStatus100GPort) {
-  // For 100G ports FEC is enabled by default, unless the platform port
-  // explicitly disabled it.
-  if (!isFlexModeSupported(getPlatform(), FlexPortMode::ONEX100G)) {
-    return;
-  }
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-    auto platformPort = static_cast<BcmTestPort*>(
-        getHwSwitch()
-            ->getPortTable()
-            ->getBcmPort(PortID(masterLogicalPortIds()[1]))
-            ->getPlatformPort());
-    platformPort->setShouldDisableFec();
-    for (auto portId : initialConfiguredPorts()) {
-      auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::HUNDREDG);
-    }
-    applyNewConfig(newCfg);
-  };
-  auto verify = [this]() {
-    EXPECT_TRUE(
-        getHwSwitch()->getPortFECEnabled(PortID(masterLogicalPortIds()[0])));
-    EXPECT_FALSE(
-        getHwSwitch()->getPortFECEnabled(PortID(masterLogicalPortIds()[1])));
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(BcmPortTest, FECStatusNon100GPort) {
-  // For non 100G ports enabling FEC is controlled via config.  However
-  // platform port explicitly disables it.
-  if (!isFlexModeSupported(getPlatform(), FlexPortMode::ONEX40G)) {
-    return;
-  }
-  auto setup = [this]() {
-    auto newCfg = initialConfig();
-    auto platformPort = static_cast<BcmTestPort*>(
-        getHwSwitch()
-            ->getPortTable()
-            ->getBcmPort(PortID(masterLogicalPortIds()[1]))
-            ->getPlatformPort());
-    platformPort->setShouldDisableFec();
-    for (auto portId : initialConfiguredPorts()) {
-      auto portCfg = utility::findCfgPort(newCfg, portId);
-      portCfg->loopbackMode_ref() = cfg::PortLoopbackMode::MAC;
-      utility::updatePortSpeed(
-          *getHwSwitch(), newCfg, portId, cfg::PortSpeed::FORTYG);
-      portCfg->fec_ref() = cfg::PortFEC::ON;
-    }
-    applyNewConfig(newCfg);
-  };
-  auto verify = [this]() {
-    EXPECT_TRUE(
-        getHwSwitch()->getPortFECEnabled(PortID(masterLogicalPortIds()[0])));
-    EXPECT_FALSE(
-        getHwSwitch()->getPortFECEnabled(PortID(masterLogicalPortIds()[1])));
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(BcmPortTest, AssertMode) {
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {

@@ -1263,34 +1263,18 @@ void BcmPort::prepareForGracefulExit() {
   platformPort_->prepareForGracefulExit();
 }
 
-bool BcmPort::getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort) {
-  // Ideally FEC should only be enabled for 100G optical ports.
-  // But there are NICs which always turn these on regardless
-  // of whether they are using optics or not. So to work around
-  // that and also to avoid the (very small) latency incurred by
-  // FEC where we can, base the decision on both speed and what
-  // the platform port tells us
-
-  // Any speed less than 100G should use the OFF option
-  auto at_least_100g = swPort->getSpeed() >= cfg::PortSpeed::HUNDREDG;
-  return (at_least_100g || swPort->getFEC() != cfg::PortFEC::OFF) &&
-      !platformPort_->shouldDisableFEC();
-}
-
 uint32_t BcmPort::getCL91FECStatus() const {
   uint32_t cl91Status{0};
-  if (SocUtils::isTomahawk(unit_)) {
-    auto rv = bcm_port_phy_control_get(
-        unit_,
-        port_,
-        BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
-        &cl91Status);
-    if (rv == BCM_E_UNAVAIL) {
-      XLOG(INFO) << "Failed to read if CL91 FEC is enabled: " << bcm_errmsg(rv);
-      return 0;
-    }
-    bcmCheckError(rv, "failed to read if CL91 FEC is enabled");
+  auto rv = bcm_port_phy_control_get(
+      unit_,
+      port_,
+      BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
+      &cl91Status);
+  if (rv == BCM_E_UNAVAIL) {
+    XLOG(INFO) << "Failed to read if CL91 FEC is enabled: " << bcm_errmsg(rv);
+    return 0;
   }
+  bcmCheckError(rv, "failed to read if CL91 FEC is enabled");
   return cl91Status;
 }
 
@@ -1311,7 +1295,11 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
-  auto shouldEnableFec = getDesiredFECEnabledStatus(swPort);
+  auto profileID = swPort->getProfileID();
+  const auto desiredFecMode = hw_->getPlatform()->getPhyFecMode(profileID);
+
+  bool shouldEnableFec = !platformPort_->shouldDisableFEC() &&
+      desiredFecMode != phy::FecMode::NONE;
   auto desiredFecStatus = shouldEnableFec ? BCM_PORT_PHY_CONTROL_FEC_ON
                                           : BCM_PORT_PHY_CONTROL_FEC_OFF;
 
@@ -1338,29 +1326,23 @@ void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
     bcmCheckError(rv, "failed to enable/disable fec");
   }
 
-  if (SocUtils::isTomahawk(unit_)) {
-    // HACK: assume CL91 fec if 100g port, CL74 otherwise.
-    //
-    // We also make sure cl91 is disabled if we don't want fec to be
-    // enabled at all.
-    int desiredCl91Status =
-        shouldEnableFec && swPort->getSpeed() == cfg::PortSpeed::HUNDREDG;
+  int desiredCl91Status =
+      (shouldEnableFec && desiredFecMode == phy::FecMode::CL91) ? 1 : 0;
 
-    auto cl91Status = getCL91FECStatus();
-    if (desiredCl91Status != cl91Status) {
-      XLOG(DBG1) << "Turning CL91 " << (desiredCl91Status ? "on" : "off")
-                 << " for port " << swPort->getID();
-      rv = bcm_port_phy_control_set(
-          unit_,
-          port_,
-          BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
-          desiredCl91Status);
-      if (rv == BCM_E_UNAVAIL) {
-        XLOG(INFO) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
-        return;
-      }
-      bcmCheckError(rv, "failed to set cl91 fec setting");
+  auto cl91Status = getCL91FECStatus();
+  if (desiredCl91Status != cl91Status) {
+    XLOG(DBG1) << "Turning CL91 " << (desiredCl91Status ? "on" : "off")
+               << " for port " << swPort->getID();
+    rv = bcm_port_phy_control_set(
+        unit_,
+        port_,
+        BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
+        desiredCl91Status);
+    if (rv == BCM_E_UNAVAIL) {
+      XLOG(INFO) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
+      return;
     }
+    bcmCheckError(rv, "failed to set cl91 fec setting");
   }
 }
 
@@ -1774,8 +1756,9 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   XLOG(DBG1) << "Program port resource based on speed profile: "
              << apache::thrift::util::enumNameSafe(profileID);
   desiredPortResource.speed = static_cast<int>((*profileConf).get_speed());
-  desiredPortResource.fec_type =
-      utility::phyFecModeToBcmPortPhyFec((*profileConf).get_iphy().get_fec());
+  desiredPortResource.fec_type = utility::phyFecModeToBcmPortPhyFec(
+      platformPort_->shouldDisableFEC() ? phy::FecMode::NONE
+                                        : profileConf->get_iphy().get_fec());
   desiredPortResource.phy_lane_config =
       utility::getDesiredPhyLaneConfig(*profileConf);
 

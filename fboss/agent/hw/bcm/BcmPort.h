@@ -238,7 +238,6 @@ class BcmPort {
       cfg::PortSpeed speed,
       PortID id,
       const std::string& name);
-  bool getDesiredFECEnabledStatus(const std::shared_ptr<Port>& swPort);
   TransmitterTechnology getTransmitterTechnology(const std::string& name);
   void updateMirror(
       const std::optional<std::string>& swMirrorName,
