@@ -327,8 +327,7 @@ TEST(Rib, Update) {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:02:00:00:00:01";
+  config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
   config.interfaces[0].ipAddresses_ref()[0] = "0.0.0.0/0";
   config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.19/24";
@@ -538,8 +537,7 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = vrfZero;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
   config.interfaces[0].ipAddresses_ref()[0] = "10.120.70.44/31";
   config.interfaces[0].ipAddresses_ref()[1] =
