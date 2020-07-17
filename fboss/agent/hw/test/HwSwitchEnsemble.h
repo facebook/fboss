@@ -84,6 +84,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void exitFatal() const noexcept override {}
   void addHwEventObserver(HwSwitchEventObserverIf* observer);
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
+  void switchRunStateChanged(SwitchRunState switchState);
 
   /*
    * Depending on the implementation of the underlying forwarding plane, it is

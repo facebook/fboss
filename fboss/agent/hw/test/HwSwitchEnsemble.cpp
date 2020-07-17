@@ -133,7 +133,7 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
       << "applyInitialConfig";
   linkToggler_->applyInitialConfig(
       getProgrammedState(), getPlatform(), initCfg);
-  runState_ = SwitchRunState::CONFIGURED;
+  switchRunStateChanged(SwitchRunState::CONFIGURED);
 }
 
 void HwSwitchEnsemble::linkStateChanged(PortID port, bool up) {
@@ -276,11 +276,13 @@ void HwSwitchEnsemble::setupEnsemble(
   }
 
   thriftThread_ = std::move(thriftThread);
-
-  getHwSwitch()->switchRunStateChanged(SwitchRunState::INITIALIZED);
-  runState_ = SwitchRunState::INITIALIZED;
+  switchRunStateChanged(SwitchRunState::INITIALIZED);
 }
 
+void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
+  getHwSwitch()->switchRunStateChanged(switchState);
+  runState_ = switchState;
+}
 void HwSwitchEnsemble::gracefulExit() {
   if (thriftThread_) {
     // Join thrif thread. Thrift calls will fail post

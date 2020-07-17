@@ -88,7 +88,7 @@ void HwTest::SetUp() {
     // and since the warm boot expectation is that switch came
     // back in a identical state. Mark the switch state is as
     // CONFIGURED
-    getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
+    hwSwitchEnsemble_->switchRunStateChanged(SwitchRunState::CONFIGURED);
   }
 }
 
