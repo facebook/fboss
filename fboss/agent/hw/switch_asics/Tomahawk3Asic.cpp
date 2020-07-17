@@ -33,6 +33,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
+    case HwAsic::Feature::PORT_INTERFACE_TYPE:
       return false;
   }
   return false;

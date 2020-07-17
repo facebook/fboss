@@ -18,6 +18,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
+    case HwAsic::Feature::PORT_INTERFACE_TYPE:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
