@@ -51,7 +51,8 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (fs_) {
     fs_->shutdown();
   }
-  if (runState_ >= SwitchRunState::INITIALIZED) {
+  if (platform_ && getHwSwitch() &&
+      getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
     // don't touch programmedState_ unless init is done
     // ALPM requires that the default routes (always required to be
     // present for ALPM) be deleted last. When we destroy the HwSwitch
@@ -287,8 +288,7 @@ void HwSwitchEnsemble::setupEnsemble(
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
   getHwSwitch()->switchRunStateChanged(switchState);
-  runState_ = switchState;
-  if (runState_ == SwitchRunState::CONFIGURED &&
+  if (switchState == SwitchRunState::CONFIGURED &&
       haveFeature(STATS_COLLECTION)) {
     fs_ = std::make_unique<folly::FunctionScheduler>();
     fs_->setThreadName("UpdateStatsThread");

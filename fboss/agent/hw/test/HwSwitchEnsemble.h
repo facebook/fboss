@@ -132,9 +132,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    * Initiate graceful exit
    */
   void gracefulExit();
-  SwitchRunState getRunState() const {
-    return runState_;
-  }
   void waitForLineRateOnPort(PortID port);
 
  protected:
@@ -162,7 +159,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   folly::Synchronized<std::set<HwSwitchEventObserverIf*>> hwEventObservers_;
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
-  SwitchRunState runState_{SwitchRunState::UNINITIALIZED};
   std::unique_ptr<folly::FunctionScheduler> fs_;
 };
 
