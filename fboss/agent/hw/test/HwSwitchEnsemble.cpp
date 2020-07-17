@@ -333,4 +333,10 @@ void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
   }
   throw FbossError("Line rate was never reached");
 }
+
+HwSwitchEnsemble::Features HwSwitchEnsemble::getAllFeatures() {
+  return {HwSwitchEnsemble::LINKSCAN,
+          HwSwitchEnsemble::PACKET_RX,
+          HwSwitchEnsemble::STATS_COLLECTION};
+}
 } // namespace facebook::fboss

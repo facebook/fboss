@@ -50,8 +50,7 @@ class StopWatch {
 namespace facebook::fboss {
 
 void runBenchmark() {
-  auto ensemble = createHwEnsemble(
-      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
+  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());

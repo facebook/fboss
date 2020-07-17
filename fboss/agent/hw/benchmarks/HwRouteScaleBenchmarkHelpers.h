@@ -26,8 +26,7 @@ namespace facebook::fboss {
 template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble(
-      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
+  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);

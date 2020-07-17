@@ -62,7 +62,7 @@ std::pair<uint64_t, uint64_t> getCpuQueueStats(
 
 void runRxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
-  BcmSwitchEnsemble ensemble;
+  BcmSwitchEnsemble ensemble(HwSwitchEnsemble::getAllFeatures());
   auto bcmSwitch = ensemble.getHwSwitch();
   auto config = utility::oneL3IntfConfig(
       bcmSwitch, ensemble.getPlatform()->masterLogicalPortIds()[0]);

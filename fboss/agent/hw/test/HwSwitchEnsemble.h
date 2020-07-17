@@ -90,6 +90,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void removeHwEventObserver(HwSwitchEventObserverIf* observer);
   void switchRunStateChanged(SwitchRunState switchState);
 
+  static Features getAllFeatures();
+
   /*
    * Depending on the implementation of the underlying forwarding plane, it is
    * possible that HwSwitch::sendPacketSwitchedSync and

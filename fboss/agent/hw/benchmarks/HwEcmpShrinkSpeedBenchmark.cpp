@@ -27,8 +27,7 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  auto ensemble = createHwEnsemble(
-      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
+  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto config =
       utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
