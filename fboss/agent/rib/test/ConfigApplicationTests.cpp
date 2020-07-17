@@ -34,8 +34,7 @@ cfg::SwitchConfig interfaceRoutesConfig() {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
   config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
@@ -53,21 +52,18 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
   config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
   *config.interfaces[1].intfID_ref() = 2;
   *config.interfaces[1].vlanID_ref() = 2;
   *config.interfaces[1].routerID_ref() = 0;
-  config.interfaces_ref()[1].__isset.mac = true;
-  config.interfaces_ref()[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
   config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
   config.interfaces[1].ipAddresses_ref()[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses_ref()[1] = "2::1/48";
 
-  config.__isset.staticRoutesWithNhops = true;
   config.staticRoutesWithNhops_ref()->resize(2);
   config.staticRoutesWithNhops_ref()[0].nexthops_ref()->resize(1);
   *config.staticRoutesWithNhops[0].prefix_ref() = "2001::/64";
@@ -88,20 +84,17 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithoutNextHopsConfig() {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
   config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
 
-  config.__isset.staticRoutesToCPU = true;
   config.staticRoutesToCPU_ref()->resize(2);
   *config.staticRoutesToCPU[0].routerID_ref() = 0;
   *config.staticRoutesToCPU[0].prefix_ref() = "2001::/64";
   *config.staticRoutesToCPU[1].routerID_ref() = 0;
   *config.staticRoutesToCPU[1].prefix_ref() = "2.1.2.2/16";
 
-  config.__isset.staticRoutesToNull = true;
   config.staticRoutesToNull_ref()->resize(2);
   *config.staticRoutesToNull[0].routerID_ref() = 0;
   *config.staticRoutesToNull[0].prefix_ref() = "2002::/64";
@@ -121,16 +114,14 @@ cfg::SwitchConfig dualVrfConfig() {
   *config.interfaces[0].intfID_ref() = 1;
   *config.interfaces[0].vlanID_ref() = 1;
   *config.interfaces[0].routerID_ref() = 0;
-  config.interfaces_ref()[0].__isset.mac = true;
-  config.interfaces_ref()[0].mac_ref().value_unchecked() = "00:00:00:00:00:11";
+  config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
   config.interfaces[0].ipAddresses_ref()[0] = "1.1.1.1/24";
   config.interfaces[0].ipAddresses_ref()[1] = "1::1/48";
   *config.interfaces[1].intfID_ref() = 2;
   *config.interfaces[1].vlanID_ref() = 2;
   *config.interfaces[1].routerID_ref() = 1;
-  config.interfaces_ref()[1].__isset.mac = true;
-  config.interfaces_ref()[1].mac_ref().value_unchecked() = "00:00:00:00:00:22";
+  config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:22";
   config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
   config.interfaces[1].ipAddresses_ref()[0] = "2.2.2.2/24";
   config.interfaces[1].ipAddresses_ref()[1] = "2::1/48";
