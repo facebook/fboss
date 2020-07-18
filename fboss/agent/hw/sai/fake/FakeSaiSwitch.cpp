@@ -82,6 +82,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_RESTART_WARM:
       sw.setRestartWarm(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_FDB_AGING_TIME:
+      sw.setMacAgingTime(attr->value.u32);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -201,6 +204,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY:
         attr[i].value.oid = kDefaultAclEntryMaximumPriority;
+        break;
+      case SAI_SWITCH_ATTR_FDB_AGING_TIME:
+        attr[i].value.u32 = sw.getMacAgingTime();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

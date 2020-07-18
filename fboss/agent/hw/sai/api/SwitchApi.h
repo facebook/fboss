@@ -128,6 +128,8 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_ACL_ENTRY_MAXIMUM_PRIORITY,
         sai_uint32_t>;
+    using MacAgingTime =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_FDB_AGING_TIME, sai_uint32_t>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -144,7 +146,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::LagDefaultHashAlgorithm>,
       std::optional<Attributes::SwitchRestartWarm>,
       std::optional<Attributes::QosDscpToTcMap>,
-      std::optional<Attributes::QosTcToQueueMap>>;
+      std::optional<Attributes::QosTcToQueueMap>,
+      std::optional<Attributes::MacAgingTime>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -173,6 +176,8 @@ SAI_ATTRIBUTE_NAME(Switch, QosTcToQueueMap)
 
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)
+
+SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

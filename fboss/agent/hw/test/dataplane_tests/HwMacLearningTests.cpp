@@ -104,7 +104,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       return newOut == expectedOut;
     };
     auto generator = utility::MacAddressGenerator();
-    // start with fixed address and increment detrministically
+    // start with fixed address and increment deterministically
     // evaluate total learnt l2 entries
     generator.startOver(0x200000005);
     for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {

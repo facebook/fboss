@@ -28,6 +28,15 @@
 extern "C" {
 #include <sai.h>
 }
+
+/**
+ * Set L2 Aging to 5 mins by default
+ */
+DEFINE_int32(
+    l2AgeTimerSeconds,
+    300,
+    "Time to transition L2 from hit -> miss -> removed");
+
 namespace {
 using namespace facebook::fboss;
 
@@ -47,6 +56,9 @@ SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
 SaiSwitchTraits::Attributes::SrcMac getSrcMac(const SaiPlatform* platform) {
   return platform->getLocalMac();
 }
+SaiSwitchTraits::Attributes::MacAgingTime getMacAgingTime() {
+  return FLAGS_l2AgeTimerSeconds;
+}
 
 // (TODO: srikrishnagopu) Move this to SaiPlatform ?
 SaiSwitchTraits::CreateAttributes getSwitchAttributes(
@@ -55,9 +67,11 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo;
   std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
+  std::optional<SaiSwitchTraits::Attributes::MacAgingTime> macAgingTime;
   if (!mandatoryOnly) {
     hwInfo = getHwInfo(platform);
     srcMac = getSrcMac(platform);
+    macAgingTime = getMacAgingTime();
   }
   return {
       initSwitch,
@@ -73,6 +87,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // restart warm
       std::nullopt, // qos dscp to tc map
       std::nullopt, // qos tc to queue map
+      macAgingTime,
   };
 }
 
@@ -113,6 +128,7 @@ SaiSwitchManager::SaiSwitchManager(
     switch_ = std::make_unique<SaiSwitchObj>(*switchId);
     switch_->setOptionalAttribute(getHwInfo(platform));
     switch_->setOptionalAttribute(getSrcMac(platform));
+    switch_->setOptionalAttribute(getMacAgingTime());
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),

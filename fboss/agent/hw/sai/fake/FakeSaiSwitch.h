@@ -102,6 +102,12 @@ class FakeSwitch {
   sai_object_id_t tcToQueue() const {
     return qosMapTcToQueue_;
   }
+  sai_uint32_t getMacAgingTime() const {
+    return macAgingTime_;
+  }
+  void setMacAgingTime(sai_uint32_t time) {
+    macAgingTime_ = time;
+  }
   sai_object_id_t id;
 
  private:
@@ -118,6 +124,7 @@ class FakeSwitch {
   sai_object_id_t qosMapTcToQueue_{SAI_NULL_OBJECT_ID};
   std::vector<int8_t> hwInfo_;
   bool restartWarm_{false};
+  sai_uint32_t macAgingTime_{0};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
