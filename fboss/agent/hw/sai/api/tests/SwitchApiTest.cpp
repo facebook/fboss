@@ -240,3 +240,12 @@ TEST_F(SwitchApiTest, setAclEntryMaximumPriority) {
           switchId, SaiSwitchTraits::Attributes::AclEntryMaximumPriority(42)),
       SaiApiError);
 }
+
+TEST_F(SwitchApiTest, setGetMacAgingTime) {
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::MacAgingTime{42});
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::MacAgingTime{}),
+      42);
+}
