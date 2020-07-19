@@ -510,7 +510,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
 
-    getHwSwitch()->sendPacketOutOfPortSync(
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), PortID(masterLogicalPortIds()[1]));
   }
 
