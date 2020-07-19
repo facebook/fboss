@@ -17,5 +17,5 @@ namespace facebook::fboss {
  * This must be called before using any other Broadcom SDK functions.
  */
 void BcmAPI::initImpl() {}
-
+void BcmAPI::bdeCreateSim() {}
 } // namespace facebook::fboss

@@ -230,8 +230,15 @@ BcmUnit::~BcmUnit() {
     // Clean up SDK state, without touching the hardware
     int rv = _bcm_shutdown(unit_);
     bcmCheckError(rv, "failed to clean up BCM state during warm boot shutdown");
-    rv = soc_shutdown(unit_);
-    bcmCheckError(rv, "failed to clean up SDK state during warm boot shutdown");
+    if (!BcmAPI::isHwInSimMode()) {
+      // Generally its good practice to invoke same APIs for both SIM/HW
+      // but since SIM doesn't support warm-boot, invoking this function is not
+      // needed Further, when this func is called for SIM, it hangs More
+      // details CS00010405125
+      rv = soc_shutdown(unit_);
+      bcmCheckError(
+          rv, "failed to clean up SDK state during warm boot shutdown");
+    }
     steady_clock::time_point bcmShutdownDone = steady_clock::now();
     XLOG(INFO)
         << "[Exit] Bcm shut down time "

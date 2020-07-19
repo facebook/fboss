@@ -126,6 +126,7 @@ class BcmAPI {
    */
   typedef folly::StringKeyedUnorderedMap<std::string> HwConfigMap;
   static HwConfigMap getHwConfig();
+  static bool isHwInSimMode();
 
  private:
   /*
@@ -143,6 +144,8 @@ class BcmAPI {
 
   static std::unique_ptr<BcmAPI> singleton_;
   HwConfigMap bcmConfig_;
+  static void bdeCreate();
+  static void bdeCreateSim();
 };
 
 } // namespace facebook::fboss

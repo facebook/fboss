@@ -177,6 +177,24 @@ void BcmAPI::initUnit(int unit, BcmPlatform* platform) {
   platform->onUnitAttach(unit);
 }
 
+void BcmAPI::bdeCreate() {
+  int rv = 0;
+
+  if (!isHwInSimMode()) {
+    // Initialize the BDE singleton (Broadcom Device Enumerator)
+    linux_bde_bus_t bus;
+    bus.be_pio = (folly::Endian::order == folly::Endian::Order::BIG) ? 1 : 0;
+    bus.be_packet =
+        SYS_BE_PACKET; // Always false, regardless of host byte order
+    bus.be_other = (folly::Endian::order == folly::Endian::Order::BIG) ? 1 : 0;
+    rv = linux_bde_create(&bus, &bde);
+    bcmCheckError(rv, "failed to initialize BDE");
+  } else {
+    XLOG(INFO) << "Bcm running in SIM mode";
+    bdeCreateSim();
+  }
+}
+
 void BcmAPI::init(const std::map<std::string, std::string>& config) {
   if (bcmInitialized.load(std::memory_order_acquire)) {
     return;
@@ -196,15 +214,14 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
 
   BcmAPI::initImpl();
 
-  // Initialize the BDE singleton (Broadcom Device Enumerator)
-  linux_bde_bus_t bus;
-  bus.be_pio = (folly::Endian::order == folly::Endian::Order::BIG);
-  bus.be_packet = SYS_BE_PACKET; // Always false, regardless of host byte order
-  bus.be_other = (folly::Endian::order == folly::Endian::Order::BIG);
-  rv = linux_bde_create(&bus, &bde);
-  bcmCheckError(rv, "failed to initialize BDE");
+  bdeCreate();
 
   bcmInitialized.store(true, std::memory_order_release);
+}
+
+bool BcmAPI::isHwInSimMode() {
+  static const bool isSimMode_ = std::getenv("BCM_SIM_PATH");
+  return isSimMode_;
 }
 
 std::unique_ptr<BcmUnit> BcmAPI::createOnlyUnit(BcmPlatform* platform) {
