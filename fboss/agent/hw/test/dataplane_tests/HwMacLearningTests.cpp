@@ -154,10 +154,10 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
     int retries = 10;
     while (retries--) {
-      if (((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
-            wasMacLearntInSwitchState(shouldExist)) ||
-           (l2LearningMode == cfg::L2LearningMode::HARDWARE)) &&
-          wasMacLearntInHw(portDescr, shouldExist)) {
+      if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
+           wasMacLearntInSwitchState(shouldExist)) ||
+          (l2LearningMode == cfg::L2LearningMode::HARDWARE &&
+           wasMacLearntInHw(portDescr, shouldExist))) {
         return true;
       }
 
