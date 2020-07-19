@@ -80,8 +80,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    return utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    return utility::oneL3IntfTwoPortConfig(
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+        cfg::PortLoopbackMode::MAC);
   }
 
   MacAddress kSourceMac() const {
@@ -213,6 +216,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     } else {
       applyNewConfig(newCfg);
     }
+    bringDownPort(masterLogicalPortIds()[1]);
   }
 
   PortDescriptor physPortDescr() const {
