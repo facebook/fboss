@@ -185,7 +185,17 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
   }
-
+  void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
+    if (getProgrammedState()->getSwitchSettings()->getL2LearningMode() ==
+        l2LearningMode) {
+      return;
+    }
+    auto newState = getProgrammedState()->clone();
+    auto newSwitchSettings = newState->getSwitchSettings()->clone();
+    newSwitchSettings->setL2LearningMode(l2LearningMode);
+    newState->resetSwitchSettings(newSwitchSettings);
+    applyNewState(newState);
+  }
   void setupHelper(
       cfg::L2LearningMode l2LearningMode,
       PortDescriptor portDescr) {
@@ -334,7 +344,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
     auto setupPostWarmboot = [this, portDescr]() {
       l2LearningObserver_.reset();
-      setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+      setL2LearningMode(cfg::L2LearningMode::SOFTWARE);
     };
 
     auto verifyPostWarmboot = [this, portDescr]() {
