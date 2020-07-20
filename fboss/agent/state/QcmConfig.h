@@ -39,6 +39,8 @@ struct QcmCfgFields {
       cfg::switch_config_constants::DEFAULT_QCM_SCAN_INTERVAL_USECS()};
   uint32_t exportThreshold{
       cfg::switch_config_constants::DEFAULT_QCM_EXPORT_THRESHOLD()};
+  bool monitorQcmCfgPortsOnly{false};
+
   WeightMap flowWeights;
   folly::CIDRNetwork collectorDstIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork collectorSrcIp{std::make_pair(folly::IPAddress(), 0)};
@@ -81,6 +83,8 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
         getFields()->collectorDstPort == qcm.getCollectorDstPort() &&
         getFields()->collectorDscp == qcm.getCollectorDscp() &&
         getFields()->ppsToQcm == qcm.getPpsToQcm() &&
+        getFields()->monitorQcmCfgPortsOnly ==
+        qcm.getMonitorQcmCfgPortsOnly() &&
         getFields()->flowWeights == qcm.getFlowWeightMap() &&
         getFields()->port2QosQueueIds == qcm.getPort2QosQueueIdMap() &&
         qcmMonitoredPortsChanged;
@@ -203,6 +207,13 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
   }
   void setMonitorQcmPortList(const std::vector<int32_t>& qcmPortList) {
     writableFields()->monitorQcmPortList = qcmPortList;
+  }
+
+  bool getMonitorQcmCfgPortsOnly() const {
+    return getFields()->monitorQcmCfgPortsOnly;
+  }
+  void setMonitorQcmCfgPortsOnly(bool monitorQcmPortsOnly) {
+    writableFields()->monitorQcmCfgPortsOnly = monitorQcmPortsOnly;
   }
 
  private:

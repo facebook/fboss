@@ -2074,6 +2074,7 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   newQcmCfg->setAgingInterval(config.agingIntervalInMsecs);
   newQcmCfg->setCollectorDstIp(IPAddress::createNetwork(config.collectorDstIp));
   newQcmCfg->setCollectorDstPort(config.collectorDstPort);
+  newQcmCfg->setMonitorQcmCfgPortsOnly(*config.monitorQcmCfgPortsOnly_ref());
   if (auto dscp = config.collectorDscp_ref()) {
     newQcmCfg->setCollectorDscp(*dscp);
   }

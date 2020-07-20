@@ -496,6 +496,10 @@ bool BcmQcmManager::updateQcmMonitoredPortsIfNeeded(
 // invoked during normal cfg reload processing
 void BcmQcmManager::processPortsForQcm(
     const std::shared_ptr<SwitchState>& swState) {
+  if (qcmCfg_->getMonitorQcmCfgPortsOnly()) {
+    XLOG(DBG3) << "Skip programming ports which are not in monitorQcmPortList";
+    return;
+  }
   Port2QosQueueIdMap candidatePortMap{};
   for (const auto& portIDAndBcmPort : *hw_->getPortTable()) {
     PortID portId = portIDAndBcmPort.first;

@@ -28,6 +28,7 @@ constexpr auto kPpsToQcm = "ppsToQcm";
 constexpr auto kCollectorSrcIp = "collectorSrcIp";
 constexpr auto kMonitorQcmPortList = "monitorQcmPortList";
 constexpr auto kPort2QosQueueIds = "port2QosQueueIds";
+constexpr auto kMonitorQcmCfgPortsOnly = "monitorQcmCfgPortsOnly";
 } // namespace
 
 namespace facebook::fboss {
@@ -40,6 +41,7 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   qcmCfg[kNumFlowsClear] = static_cast<uint32_t>(numFlowsClear);
   qcmCfg[kScanIntervalInUsecs] = static_cast<uint32_t>(scanIntervalInUsecs);
   qcmCfg[kExportThreshold] = static_cast<uint32_t>(exportThreshold);
+  qcmCfg[kMonitorQcmCfgPortsOnly] = static_cast<bool>(monitorQcmCfgPortsOnly);
 
   folly::dynamic flowWeightMap = folly::dynamic::object;
   for (const auto& weight : flowWeights) {
@@ -94,6 +96,11 @@ QcmCfgFields QcmCfgFields::fromFollyDynamic(const folly::dynamic& json) {
   if (json.find(kExportThreshold) != json.items().end()) {
     qcmCfgFields.exportThreshold = json[kExportThreshold].asInt();
   }
+  if (json.find(kMonitorQcmCfgPortsOnly) != json.items().end()) {
+    qcmCfgFields.monitorQcmCfgPortsOnly =
+        json[kMonitorQcmCfgPortsOnly].asBool();
+  }
+
   for (const auto& weight : json[kFlowWeights].items()) {
     qcmCfgFields.flowWeights[weight.first.asInt()] = weight.second.asInt();
   }
