@@ -195,8 +195,7 @@ double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
   auto portSpeed = static_cast<int>((*portProfileConfig).get_speed());
   auto fecType = utility::phyFecModeToBcmPortPhyFec(
       (*portProfileConfig).get_iphy().get_fec());
-  auto numLanes =
-      utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy).size();
+  auto numLanes = platformPortConfig->second.pins_ref()->iphy_ref()->size();
 
   double laneRateGb;
   auto laneRateGbIter =
@@ -362,11 +361,10 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
               newPort->getName());
         }
 
-        const auto& iphyLaneConfigs =
-            utility::getIphyLaneConfigs(platformPortConfig->second.pins.iphy);
-
         auto lanePrbsStatsTable = LanePrbsStatsTable();
-        for (int lane = 0; lane < iphyLaneConfigs.size(); lane++) {
+        for (int lane = 0;
+             lane < platformPortConfig->second.pins_ref()->iphy_ref()->size();
+             lane++) {
           bcm_gport_t gport;
           BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, newPort->getID());
           lanePrbsStatsTable.push_back(
