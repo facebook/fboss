@@ -286,7 +286,8 @@ TEST_F(PortApiTest, getSome) {
   EXPECT_EQ(stats.size(), 2);
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0) && !defined(IS_OSS)
+// interface modes used by fb, not available in OSS yet
 TEST_F(PortApiTest, setInterfaceType) {
   auto id = createPort(100000, {42}, true);
   SaiPortTraits::Attributes::InterfaceType interface_type{
