@@ -174,4 +174,17 @@ folly::dynamic PhyPortConfig::toDynamic() const {
   return obj;
 }
 
+float_t ExternalPhy::getLaneSpeed(const PhyPortConfig& config, Side side) {
+  // config profile speed is MB, expected returning unit is GB.
+  if (side == Side::SYSTEM) {
+    return static_cast<int>(config.profile.speed) / 1000 /
+        *config.profile.system.numLanes_ref();
+  } else if (side == Side::LINE) {
+    return static_cast<int>(config.profile.speed) / 1000 /
+        *config.profile.line.numLanes_ref();
+  } else {
+    return 0.;
+  }
+}
+
 } // namespace facebook::fboss::phy

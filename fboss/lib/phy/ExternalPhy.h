@@ -161,11 +161,7 @@ class ExternalPhy {
     return ExternalPhyPortStats();
   }
 
-  virtual float_t getLaneSpeed(
-      const PhyPortConfig& /* config */,
-      Side /* side */) {
-    return 0.;
-  }
+  virtual float_t getLaneSpeed(const PhyPortConfig& config, Side side);
 
   virtual void reset() = 0;
 
