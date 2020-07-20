@@ -58,6 +58,7 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_EQ(
       qcmConfig1->getCollectorSrcIp(),
       folly::CIDRNetwork(folly::IPAddress("11.11.11.0"), 24));
+  EXPECT_FALSE(qcmConfig1->getMonitorQcmCfgPortsOnly());
   auto portList = qcmConfig1->getMonitorQcmPortList();
   EXPECT_EQ(portList.size(), 0);
   // verify port2QosQueueIds field
@@ -85,6 +86,7 @@ TEST(QcmConfigTest, applyConfig) {
   qcmCfg.collectorDscp_ref() = collectorDscp;
   int ppsToQcm = 1000;
   qcmCfg.ppsToQcm_ref() = ppsToQcm;
+  qcmCfg.monitorQcmCfgPortsOnly_ref() = true;
 
   config.qcmConfig_ref() = qcmCfg;
   auto state2 = publishAndApplyConfig(state1, &config, platform.get());
@@ -98,6 +100,7 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_EQ(qcmConfig2->getAgingInterval(), 21);
   EXPECT_EQ(qcmConfig2->getCollectorDscp(), 20);
   EXPECT_EQ(qcmConfig2->getPpsToQcm(), 1000);
+  EXPECT_TRUE(qcmConfig2->getMonitorQcmCfgPortsOnly());
   portList = qcmConfig2->getMonitorQcmPortList();
   EXPECT_EQ(4, portList.size());
 
@@ -153,7 +156,8 @@ TEST(QcmConfigTest, ToFromJSON) {
               6,
               7
             ]
-           }
+           },
+           "monitorQcmCfgPortsOnly": true
         }
   )";
 
@@ -164,6 +168,7 @@ TEST(QcmConfigTest, ToFromJSON) {
   EXPECT_EQ(10, qcmCfg->getNumFlowsClear());
   EXPECT_EQ(10, qcmCfg->getScanIntervalInUsecs());
   EXPECT_EQ(10, qcmCfg->getExportThreshold());
+  EXPECT_TRUE(qcmCfg->getMonitorQcmCfgPortsOnly());
 
   int initPortId = 10;
   int initQosQueueId = 0;

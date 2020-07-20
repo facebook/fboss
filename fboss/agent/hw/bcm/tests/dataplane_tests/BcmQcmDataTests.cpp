@@ -121,7 +121,9 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
-  void setupHelperWithPorts(const std::vector<int32_t>& monitorPortList) {
+  void setupHelperWithPorts(
+      const std::vector<int32_t>& monitorPortList,
+      bool monitorQcmCfgPortOnly = false) {
     auto newCfg{initialConfig()};
     auto qcmCfg = getQcmConfig();
     Port2QosQueueIdMap map = {};
@@ -132,6 +134,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
         qcmCfg.port2QosQueueIds[port].push_back(queueId);
       }
     }
+    qcmCfg.monitorQcmCfgPortsOnly_ref() = monitorQcmCfgPortOnly;
     newCfg.qcmConfig_ref() = qcmCfg;
     newCfg.switchSettings.qcmEnable = true;
 
@@ -244,6 +247,31 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
   cfg::SwitchConfig cfg_;
 };
 
+TEST_F(BcmQcmDataTest, VerifyMonitorQcmCfgPortOnly) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    // This test only applies to ceratin ASIC e.g. TH
+    // and to specific sdk versions
+    return;
+  }
+  auto setup = [&]() {
+    // empty monitorPortList
+    setupHelperWithPorts({}, true);
+  };
+  auto verify = [&]() {
+    Port2QosQueueIdMap portMap;
+    // none of the initial ports  should be configured, as only
+    // monitorQcmCfgPorts are allowed to be monitored and they are set to empty
+    // here
+    EXPECT_EQ(
+        getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(),
+        FLAGS_init_gport_available_count);
+    createQcmFlows(1, kPktTxCount);
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 0);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Intent of this test is to add thrift configuration for some
 // ports and ensure that they are programmed and get priority
 // over the other cfged ports
@@ -269,6 +297,8 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
     portMap[masterLogicalPortIds()[1]] = queueIdSet;
     // Expect that we are not able to update QCM monitored ports here with
     // these 2 ports {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}
+    // this is because FLAGS_init_gport_available_count is configured to fit
+    // only 2 ports
     EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
         portMap));
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
