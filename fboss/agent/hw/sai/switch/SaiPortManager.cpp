@@ -612,4 +612,22 @@ void SaiPortManager::clearQosPolicy() {
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
 }
+
+void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
+  sai_bridge_port_fdb_learning_mode_t fdbLearningMode;
+  switch (l2LearningMode) {
+    case cfg::L2LearningMode::HARDWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
+      break;
+    case cfg::L2LearningMode::SOFTWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
+      break;
+  }
+  for (auto& portIdAndHandle : managerTable_->portManager()) {
+    auto& portHandle = portIdAndHandle.second;
+    portHandle->bridgePort->setOptionalAttribute(
+        SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
+  }
+  l2LearningMode_ = l2LearningMode;
+}
 } // namespace facebook::fboss

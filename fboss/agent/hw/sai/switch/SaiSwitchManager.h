@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -53,12 +52,6 @@ class SaiSwitchManager {
       const std::shared_ptr<LoadBalancer>& newLb);
   void removeLoadBalancer(const std::shared_ptr<LoadBalancer>& oldLb);
 
-  std::optional<cfg::L2LearningMode> getL2LearningMode() const {
-    return l2LearningMode_;
-  }
-
-  void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
-
   void resetHashes();
   void resetQosMaps();
   void gracefulExit();
@@ -76,7 +69,6 @@ class SaiSwitchManager {
   std::shared_ptr<SaiHash> ecmpV6Hash_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
-  std::optional<cfg::L2LearningMode> l2LearningMode_{std::nullopt};
 };
 
 } // namespace facebook::fboss

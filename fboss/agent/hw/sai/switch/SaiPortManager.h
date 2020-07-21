@@ -95,6 +95,11 @@ class SaiPortManager {
 
   void clearStats(PortID portID);
 
+  std::optional<cfg::L2LearningMode> getL2LearningMode() const {
+    return l2LearningMode_;
+  }
+  void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
+
  private:
   void setQosMaps(
       QosMapSaiId dscpToTc,
@@ -115,6 +120,7 @@ class SaiPortManager {
   Stats portStats_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
+  std::optional<cfg::L2LearningMode> l2LearningMode_{std::nullopt};
 };
 
 } // namespace facebook::fboss

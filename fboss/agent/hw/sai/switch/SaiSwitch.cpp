@@ -307,7 +307,37 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
         kAclTable1);
   }
 
+  processSwitchSettingsChanged(delta);
   return delta.newState();
+}
+
+void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
+  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
+  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
+  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+
+  /*
+   * SwitchSettings are mandatory and can thus only be modified.
+   * Every field in SwitchSettings must always be set in new SwitchState.
+   */
+  CHECK(oldSwitchSettings);
+  CHECK(newSwitchSettings);
+
+  if (oldSwitchSettings != newSwitchSettings) {
+    if (oldSwitchSettings->getL2LearningMode() !=
+        newSwitchSettings->getL2LearningMode()) {
+      auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+      XLOG(DBG3) << "Configuring L2LearningMode old: "
+                 << static_cast<int>(oldSwitchSettings->getL2LearningMode())
+                 << " new: "
+                 << static_cast<int>(newSwitchSettings->getL2LearningMode());
+      managerTable_->portManager().setL2LearningMode(
+          newSwitchSettings->getL2LearningMode());
+    }
+    if (newSwitchSettings->isQcmEnable()) {
+      throw FbossError("QCM is not supported on SAI");
+    }
+  }
 }
 
 bool SaiSwitch::isValidStateUpdate(const StateDelta& delta) const {

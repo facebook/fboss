@@ -288,6 +288,8 @@ class SaiSwitch : public HwSwitch {
       RemovedFunc removedFunc,
       Args... args);
 
+  void processSwitchSettingsChanged(const StateDelta& delta);
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
