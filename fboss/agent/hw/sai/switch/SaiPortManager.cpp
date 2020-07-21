@@ -96,6 +96,20 @@ void fillHwPortStats(
     }
   }
 }
+
+sai_bridge_port_fdb_learning_mode_t getFdbLearningMode(
+    cfg::L2LearningMode l2LearningMode) {
+  sai_bridge_port_fdb_learning_mode_t fdbLearningMode;
+  switch (l2LearningMode) {
+    case cfg::L2LearningMode::HARDWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
+      break;
+    case cfg::L2LearningMode::SOFTWARE:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
+      break;
+  }
+  return fdbLearningMode;
+}
 } // namespace
 
 SaiPortManager::SaiPortManager(
@@ -157,6 +171,11 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   }
   managerTable_->queueManager().ensurePortQueueConfig(
       saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
+  if (l2LearningMode_) {
+    handle->bridgePort->setOptionalAttribute(
+        SaiBridgePortTraits::Attributes::FdbLearningMode{
+            getFdbLearningMode(l2LearningMode_.value())});
+  }
   handles_.emplace(swPort->getID(), std::move(handle));
   if (swPort->isEnabled()) {
     portStats_.emplace(
@@ -194,6 +213,8 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
   handles_.erase(itr);
   portStats_.erase(swId);
+  // TODO: do FDB entries associated with this port need to be removed
+  // now?
   XLOG(INFO) << "removed port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan();
 }
@@ -614,15 +635,7 @@ void SaiPortManager::clearQosPolicy() {
 }
 
 void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-  sai_bridge_port_fdb_learning_mode_t fdbLearningMode;
-  switch (l2LearningMode) {
-    case cfg::L2LearningMode::HARDWARE:
-      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
-      break;
-    case cfg::L2LearningMode::SOFTWARE:
-      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
-      break;
-  }
+  auto fdbLearningMode = getFdbLearningMode(l2LearningMode);
   for (auto& portIdAndHandle : managerTable_->portManager()) {
     auto& portHandle = portIdAndHandle.second;
     portHandle->bridgePort->setOptionalAttribute(
