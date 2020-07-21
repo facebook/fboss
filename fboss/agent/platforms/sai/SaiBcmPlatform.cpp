@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <cstdio>
@@ -38,5 +39,72 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
   }
   return allPortsinGroup;
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+std::optional<sai_port_interface_type_t> SaiBcmPlatform::getInterfaceType(
+    TransmitterTechnology transmitterTech,
+    cfg::PortSpeed speed) const {
+  if (!getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+    return std::nullopt;
+  }
+#if defined(IS_OSS)
+  return std::nullopt;
+#else
+  static std::map<
+      cfg::PortSpeed,
+      std::map<TransmitterTechnology, sai_port_interface_type_t>>
+      kSpeedAndMediaType2InterfaceType = {
+          {cfg::PortSpeed::HUNDREDG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR4},
+            {TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_CAUI},
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_CAUI}}},
+          {cfg::PortSpeed::FIFTYG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR2},
+            {TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_CAUI},
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_CR2}}},
+          {cfg::PortSpeed::FORTYG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR4},
+            {TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_XLAUI},
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_XLAUI}}},
+          {cfg::PortSpeed::TWENTYFIVEG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR},
+            {TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_CAUI},
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_CR}}},
+          {cfg::PortSpeed::TWENTYG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR},
+            // We don't expect 20G optics
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_CR}}},
+          {cfg::PortSpeed::XG,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_CR},
+            {TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_SFI},
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_CR}}},
+          {cfg::PortSpeed::GIGE,
+           {{TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_GMII},
+            // We don't expect 1G optics
+            // What to default to
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_GMII}}}};
+  auto mediaType2InterfaceTypeIter =
+      kSpeedAndMediaType2InterfaceType.find(speed);
+  if (mediaType2InterfaceTypeIter == kSpeedAndMediaType2InterfaceType.end()) {
+    throw FbossError(
+        "unsupported speed for interface type retrieval : ", speed);
+  }
+  auto interfaceTypeIter =
+      mediaType2InterfaceTypeIter->second.find(transmitterTech);
+  if (interfaceTypeIter == mediaType2InterfaceTypeIter->second.end()) {
+    throw FbossError(
+        "unsupported media type for interface type retrieval : ",
+        transmitterTech);
+  }
+  return interfaceTypeIter->second;
+#endif
+}
+#endif
 
 } // namespace facebook::fboss

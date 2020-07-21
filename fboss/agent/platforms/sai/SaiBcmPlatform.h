@@ -25,6 +25,11 @@ class SaiBcmPlatform : public SaiHwPlatform {
     // TODO: implement this
     return {};
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  std::optional<sai_port_interface_type_t> getInterfaceType(
+      TransmitterTechnology transmitterTech,
+      cfg::PortSpeed speed) const override;
+#endif
 };
 
 } // namespace facebook::fboss

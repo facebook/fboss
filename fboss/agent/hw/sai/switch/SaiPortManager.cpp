@@ -333,8 +333,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
-    // TODO: query and set port interface type.
+  if (auto saiInterfaceType = platform_->getInterfaceType(
+          platformPort->getTransmitterTech(), speed)) {
+    interfaceType = saiInterfaceType.value();
   }
   return SaiPortTraits::CreateAttributes{hwLaneList,
                                          static_cast<uint32_t>(speed),

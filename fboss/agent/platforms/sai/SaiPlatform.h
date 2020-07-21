@@ -18,6 +18,8 @@
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
 #include <memory>
 #include <vector>
 
@@ -78,6 +80,12 @@ class SaiPlatform : public Platform, public StateObserver {
   bool supportsAddRemovePort() const override {
     return true;
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  virtual std::optional<sai_port_interface_type_t> getInterfaceType(
+      TransmitterTechnology transmitterTech,
+      cfg::PortSpeed speed) const = 0;
+#endif
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
