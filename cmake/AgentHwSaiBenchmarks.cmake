@@ -1,21 +1,24 @@
-# CMake to build libraries and binaries in fboss/agent/hw/sai/hw_test
+# CMake to build libraries and binaries in fboss/agent/hw/sai/benchmarks
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+# NOTE: All the benchmark executables need to link in ${SAI_IMPL_ARG}
+# using '--whole-archive' flag in order to ensure SAI_IMPL symbols are included
+
 function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
-  message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
+  message(STATUS "Building SAI benchmarks SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
   add_executable(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_fsw_scale_route_add_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_fsw_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -29,12 +32,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_fsw_scale_route_del_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_fsw_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
-    sai_switch_ensemble
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -48,11 +50,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_th_alpm_scale_route_add_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_th_alpm_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -66,11 +68,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_th_alpm_scale_route_del_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_th_alpm_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -84,11 +86,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_hgrid_du_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_hgrid_du_scale_route_add_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_hgrid_du_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_hgrid_du_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -102,12 +104,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_hgrid_du_scale_route_del_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_hgrid_du_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
-
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -121,11 +122,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_hgrid_uu_scale_route_add_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_hgrid_uu_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -139,11 +140,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_hgrid_uu_scale_route_del_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_hgrid_uu_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -157,10 +158,10 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_stats_collection_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_stats_collection_speed
-    -Wl,--no-whole-archive
     sai_switch_ensemble
+    hw_stats_collection_speed
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_stats_collection_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -173,11 +174,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_tx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_tx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
-    hw_tx_slow_path_rate
     -Wl,--whole-archive
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_tx_slow_path_rate
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_tx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -190,11 +191,11 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
-    hw_warm_boot_exit_speed
     -Wl,--whole-archive
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_warm_boot_exit_speed
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -208,12 +209,12 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_ecmp_shrink_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_ecmp_shrink_speed
     sai_ecmp_utils
     sai_port_utils
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -227,12 +228,12 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    hw_ecmp_shrink_with_competing_route_updates_speed
     sai_switch_ensemble
-    -Wl,--no-whole-archive
+    hw_ecmp_shrink_with_competing_route_updates_speed
     sai_ecmp_utils
     sai_port_utils
     ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
   )
 
   set_target_properties(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
