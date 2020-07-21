@@ -423,7 +423,9 @@ void LookupClassRouteUpdater::processNeighborRemoved(
 
   auto it = nextHopAndVlan2Prefixes_.find(
       std::make_pair(removedNeighbor->getIP(), vlanID));
-  CHECK(it != nextHopAndVlan2Prefixes_.end());
+  if (it == nextHopAndVlan2Prefixes_.end()) {
+    return;
+  }
 
   auto& [withClassIDPrefixes, withoutClassIDPrefixes] = it->second;
 
