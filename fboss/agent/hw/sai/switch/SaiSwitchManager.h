@@ -56,6 +56,9 @@ class SaiSwitchManager {
   void resetQosMaps();
   void gracefulExit();
 
+  void setMacAgingSeconds(sai_uint32_t agingSeconds);
+  sai_uint32_t getMacAgingSeconds() const;
+
  private:
   void programLoadBalancerParams(
       cfg::LoadBalancerID id,

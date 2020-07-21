@@ -254,4 +254,12 @@ void SaiSwitchManager::gracefulExit() {
   // forwarding during warm boot
   switch_.reset();
 }
+
+void SaiSwitchManager::setMacAgingSeconds(sai_uint32_t agingSeconds) {
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::MacAgingTime{agingSeconds});
+}
+sai_uint32_t SaiSwitchManager::getMacAgingSeconds() const {
+  return GET_OPT_ATTR(Switch, MacAgingTime, switch_->attributes());
+}
 } // namespace facebook::fboss

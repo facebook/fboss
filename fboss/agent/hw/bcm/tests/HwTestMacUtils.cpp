@@ -29,7 +29,7 @@ uint32_t getMacAgeTimerSeconds(const facebook::fboss::HwSwitch* hwSwitch) {
 }
 
 void setMacAgeTimerSeconds(
-    const facebook::fboss::HwSwitch* hwSwitch,
+    facebook::fboss::HwSwitch* hwSwitch,
     uint32_t seconds) {
   auto unit =
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
