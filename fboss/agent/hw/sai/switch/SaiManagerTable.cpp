@@ -30,6 +30,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
@@ -71,9 +72,12 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiNextHopGroupManager>(this, platform);
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
+  lagManager_ = std::make_unique<SaiUnsupportedFeatureManager>("LAG");
 }
 
 SaiManagerTable::~SaiManagerTable() {
+  // unsupported features reset first. Order does not matter for these
+  lagManager_.reset();
   // Need to destroy routes and label fib entries before destroying other
   // managers, as the route and label fib entry destructors will trigger calls
   // in those managers
@@ -257,6 +261,13 @@ SaiInSegEntryManager& SaiManagerTable::inSegEntryManager() {
 
 const SaiInSegEntryManager& SaiManagerTable::inSegEntryManager() const {
   return *inSegEntryManager_;
+}
+
+SaiUnsupportedFeatureManager& SaiManagerTable::lagManager() {
+  return *lagManager_;
+}
+const SaiUnsupportedFeatureManager& SaiManagerTable::lagManager() const {
+  return *lagManager_;
 }
 
 } // namespace facebook::fboss

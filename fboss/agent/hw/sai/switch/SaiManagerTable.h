@@ -42,6 +42,7 @@ class SaiSwitchManager;
 class SaiSchedulerManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
+class SaiUnsupportedFeatureManager;
 
 class SaiManagerTable {
  public:
@@ -113,6 +114,9 @@ class SaiManagerTable {
   SaiInSegEntryManager& inSegEntryManager();
   const SaiInSegEntryManager& inSegEntryManager() const;
 
+  SaiUnsupportedFeatureManager& lagManager();
+  const SaiUnsupportedFeatureManager& lagManager() const;
+
  private:
   std::unique_ptr<SaiAclTableGroupManager> aclTableGroupManager_;
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
@@ -134,6 +138,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;
   std::unique_ptr<SaiInSegEntryManager> inSegEntryManager_;
+  std::unique_ptr<SaiUnsupportedFeatureManager> lagManager_;
 };
 
 } // namespace facebook::fboss
