@@ -161,6 +161,11 @@ string u32Attr(const sai_attribute_t* attr_list, int i) {
       "sai_attributes[", i, "].value.u32 = ", attr_list[i].value.u32);
 }
 
+string u64Attr(const sai_attribute_t* attr_list, int i) {
+  return to<string>(
+      "sai_attributes[", i, "].value.u64 = ", attr_list[i].value.u64);
+}
+
 void s8ListAttr(
     const sai_attribute_t* attr_list,
     int i,

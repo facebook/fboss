@@ -90,6 +90,7 @@ class SaiTracer {
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_route_api_t* routeApi_;
+  sai_scheduler_api_t* schedulerApi_;
   sai_switch_api_t* switchApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;

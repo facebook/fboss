@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
@@ -99,6 +100,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->routeApi_ =
           static_cast<sai_route_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapRouteApi();
+      break;
+    case (SAI_API_SCHEDULER):
+      SaiTracer::getInstance()->schedulerApi_ =
+          static_cast<sai_scheduler_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapSchedulerApi();
       break;
     case (SAI_API_SWITCH):
       SaiTracer::getInstance()->switchApi_ =
@@ -469,6 +475,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_ROUTE_ENTRY:
       setRouteEntryAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_SCHEDULER:
+      setSchedulerAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_SWITCH:
       setSwitchAttributes(attr_list, attr_count, attrLines);

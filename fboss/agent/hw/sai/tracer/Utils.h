@@ -66,6 +66,8 @@ std::string s32Attr(const sai_attribute_t* attr_list, int i);
 
 std::string u32Attr(const sai_attribute_t* attr_list, int i);
 
+std::string u64Attr(const sai_attribute_t* attr_list, int i);
+
 void s8ListAttr(
     const sai_attribute_t* attr_list,
     int i,
