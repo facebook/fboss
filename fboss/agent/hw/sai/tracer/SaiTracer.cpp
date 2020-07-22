@@ -7,6 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <ostream>
 #include <tuple>
 
 #include "fboss/agent/SysError.h"
@@ -199,6 +203,9 @@ void SaiTracer::logSwitchCreateFn(
       declareVariable(switch_id, SAI_OBJECT_TYPE_SWITCH);
   lines.push_back(declaration);
 
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndId(*switch_id, rv));
+
   // Make the function call
   lines.push_back(to<string>(
       "status = ",
@@ -234,6 +241,8 @@ void SaiTracer::logRouteEntryCreateFn(
 
   // Then setup route entry (switch, virtual router and destination)
   setRouteEntry(route_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
 
   // Make the function call
   lines.push_back(to<string>(
@@ -273,6 +282,9 @@ void SaiTracer::logCreateFn(
   auto [declaration, varName] = declareVariable(create_object_id, object_type);
   lines.push_back(declaration);
 
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndId(*create_object_id, rv));
+
   // Make the function call & write to file
   lines.push_back(createFnCall(
       fn_name,
@@ -297,6 +309,8 @@ void SaiTracer::logRouteEntryRemoveFn(
   vector<string> lines{};
   setRouteEntry(route_entry, lines);
 
+  // TODO(zecheng): Log current timestamp, object id and return value
+
   lines.push_back(to<string>(
       "status = ",
       folly::get_or_throw(
@@ -320,17 +334,25 @@ void SaiTracer::logRemoveFn(
     return;
   }
 
-  writeToFile({to<string>(
-                   "status = ",
-                   folly::get_or_throw(
-                       fnPrefix_,
-                       object_type,
-                       "Unsupported Sai Object type in Sai Tracer"),
-                   fn_name,
-                   "(",
-                   getVariable(remove_object_id, object_type),
-                   ")"),
-               rvCheck(rv)});
+  vector<string> lines{};
+
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndId(remove_object_id, rv));
+
+  // Make the remove call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(remove_object_id, object_type),
+      ")"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::logRouteEntrySetAttrFn(
@@ -345,6 +367,8 @@ void SaiTracer::logRouteEntrySetAttrFn(
   vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_ROUTE_ENTRY);
 
   setRouteEntry(route_entry, lines);
+
+  // TODO(zecheg): Log current timestamp, object id and return value
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -373,6 +397,9 @@ void SaiTracer::logSetAttrFn(
 
   // Setup one attribute
   vector<string> lines = setAttrList(attr, 1, object_type);
+
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndId(set_object_id, rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -578,6 +605,25 @@ string SaiTracer::rvCheck(sai_status_t rv) {
       ") printf(\"Unexpected rv at ",
       numCalls_++,
       " with status %d \\n\", status)");
+}
+
+string SaiTracer::logTimeAndId(sai_object_id_t object_id, sai_status_t rv) {
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    now.time_since_epoch()) %
+      1000;
+  auto timer = std::chrono::system_clock::to_time_t(now);
+  std::tm tm;
+  localtime_r(&timer, &tm);
+
+  std::ostringstream oss;
+  oss << "// " << std::put_time(&tm, "%Y-%m-%d %T");
+  oss << "." << std::setfill('0') << std::setw(3) << now_ms.count();
+  oss << " object_id: " << object_id << " (0x";
+  oss << std::hex << object_id;
+  oss << ") rv: " << rv;
+
+  return oss.str();
 }
 
 void SaiTracer::checkAttrCount(uint32_t attr_count) {
