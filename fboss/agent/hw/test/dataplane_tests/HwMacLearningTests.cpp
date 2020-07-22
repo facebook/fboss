@@ -40,29 +40,13 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
+namespace {
 // Even when running the same test repeatedly could result in different
 // learning counts based on hash insertion  order.
 // Maximum theortical is 8k for TH ..but practically we hit numbers below it
 // Putting the value ot 7K should give enough buffer
 int constexpr L2_LEARN_MAX_MAC_COUNT = 7000;
-
-namespace {
-std::set<folly::MacAddress>
-getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
-  std::set<folly::MacAddress> macs;
-  std::vector<L2EntryThrift> l2Entries;
-  hw->fetchL2Table(&l2Entries);
-  for (auto& l2Entry : l2Entries) {
-    if ((isTrunk && l2Entry.trunk_ref().value_or({}) == port) ||
-        *l2Entry.port_ref() == port) {
-      macs.insert(folly::MacAddress(*l2Entry.mac_ref()));
-    }
-  }
-  return macs;
-}
-
 } // namespace
-
 namespace facebook::fboss {
 
 using utility::addAggPort;
@@ -93,14 +77,14 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
   void sendL2Pkts(
       int vlanId,
-      int port,
+      std::optional<PortID> outPort,
       const std::vector<folly::MacAddress>& srcMacs,
       const std::vector<folly::MacAddress>& dstMacs) {
     auto originalStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
-    auto allSent = [port, &originalStats](const auto& newStats) {
-      auto originalOut = getPortOutPkts(originalStats.at(PortID(port)));
-      auto newOut = getPortOutPkts(newStats.at(PortID(port)));
+    auto allSent = [&originalStats](const auto& newStats) {
+      auto originalOut = getPortOutPkts(originalStats);
+      auto newOut = getPortOutPkts(newStats);
       auto expectedOut = originalOut + L2_LEARN_MAX_MAC_COUNT;
       XLOGF(
           INFO,
@@ -118,8 +102,12 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
             srcMac,
             dstMac,
             facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
-        getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(txPacket), facebook::fboss::PortID(port));
+        if (outPort) {
+          getHwSwitch()->sendPacketOutOfPortSync(
+              std::move(txPacket), outPort.value());
+        } else {
+          getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+        }
       }
     }
     getHwSwitchEnsemble()->waitPortStatsCondition(allSent);
@@ -483,12 +471,23 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
         {folly::MacAddress::BROADCAST});
   };
 
-  auto verify = [this, portDescr]() {
-    auto isTrunk = portDescr.isAggregatePort();
-    int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
-    auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
-    XLOG(INFO) << "Number of l2 entries learnt: " << macs.size();
-    EXPECT_EQ(macs.size(), L2_LEARN_MAX_MAC_COUNT);
+  auto verify = [this, portDescr, &macs]() {
+    bringUpPort(masterLogicalPortIds()[1]);
+    auto origPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
+    // Send packets to macs which are expected to have been learned now
+    sendL2Pkts(
+        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        std::nullopt,
+        {kSourceMac()},
+        macs);
+    auto curPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
+    // All packets should have gone through masterLogicalPortIds()[0], port
+    // on which macs were learnt and none through any other port in the same
+    // VLAN. This lack of broadcast confirms MAC learning.
+    EXPECT_EQ(*curPortStats.outBytes__ref(), *origPortStats.outBytes__ref());
+    bringDownPort(masterLogicalPortIds()[1]);
   };
 
   // MACs learned should be preserved across warm boot
