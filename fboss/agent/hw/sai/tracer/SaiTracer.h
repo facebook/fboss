@@ -115,6 +115,7 @@ class SaiTracer {
 
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
+  sai_buffer_api_t* bufferApi_;
   sai_fdb_api_t* fdbApi_;
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
@@ -185,6 +186,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
+      {SAI_OBJECT_TYPE_BUFFER_POOL, "bufferPool_"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
@@ -209,6 +211,7 @@ class SaiTracer {
       aclTableGroupMemberMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgeMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgePortMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferPoolMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferProfileMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopMap_;
@@ -239,6 +242,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, aclTableGroupMemberMap_},
           {SAI_OBJECT_TYPE_BRIDGE, bridgeMap_},
           {SAI_OBJECT_TYPE_BRIDGE_PORT, bridgePortMap_},
+          {SAI_OBJECT_TYPE_BUFFER_POOL, bufferPoolMap_},
           {SAI_OBJECT_TYPE_BUFFER_PROFILE, bufferProfileMap_},
           {SAI_OBJECT_TYPE_HASH, hashMap_},
           {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
@@ -263,6 +267,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
+      {SAI_OBJECT_TYPE_BUFFER_POOL, "buffer_api->"},
+      {SAI_OBJECT_TYPE_BUFFER_PROFILE, "buffer_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},

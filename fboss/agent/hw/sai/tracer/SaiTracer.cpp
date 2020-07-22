@@ -16,6 +16,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
@@ -94,6 +95,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBridgeApi();
+      break;
+    case (SAI_API_BUFFER):
+      SaiTracer::getInstance()->bufferApi_ =
+          static_cast<sai_buffer_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapBufferApi();
       break;
     case (SAI_API_FDB):
       SaiTracer::getInstance()->fdbApi_ =
@@ -713,6 +719,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       setBridgePortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_BUFFER_POOL:
+      setBufferPoolAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_BUFFER_PROFILE:
+      setBufferProfileAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_FDB_ENTRY:
       setFdbEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -972,6 +984,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_POOL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);

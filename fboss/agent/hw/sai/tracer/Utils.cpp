@@ -141,6 +141,11 @@ std::string boolAttr(const sai_attribute_t* attr_list, int i) {
       attr_list[i].value.booldata ? "true" : "false");
 }
 
+string s8Attr(const sai_attribute_t* attr_list, int i) {
+  return to<string>(
+      "sai_attributes[", i, "].value.s8 = ", attr_list[i].value.s8);
+}
+
 string u8Attr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "sai_attributes[", i, "].value.u8 = ", attr_list[i].value.u8);
