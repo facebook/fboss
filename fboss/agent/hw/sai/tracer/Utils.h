@@ -94,4 +94,9 @@ void macAddressAttr(
     int i,
     std::vector<std::string>& attrLines);
 
+void ipAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 } // namespace facebook::fboss

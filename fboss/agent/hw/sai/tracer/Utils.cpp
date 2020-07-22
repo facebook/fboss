@@ -254,4 +254,31 @@ void macAddressAttr(
   }
 }
 
+void ipAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("sai_attributes", "[", i, "].value.ipaddr.");
+
+  if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
+    attrLines.push_back(
+        to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV4"));
+    attrLines.push_back(
+        to<string>(prefix, "addr.ip4 = ", attr_list[i].value.ipaddr.addr.ip4));
+  } else if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
+    attrLines.push_back(
+        to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV6"));
+
+    // Underlying type of sai_ip6_t is uint8_t[16]
+    for (int j = 0; j < 16; ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "addr.ip6[",
+          j,
+          "] = ",
+          attr_list[i].value.ipaddr.addr.ip6[j]));
+    }
+  }
+}
+
 } // namespace facebook::fboss

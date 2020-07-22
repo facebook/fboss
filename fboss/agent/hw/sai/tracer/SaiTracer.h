@@ -117,6 +117,7 @@ class SaiTracer {
   sai_bridge_api_t* bridgeApi_;
   sai_fdb_api_t* fdbApi_;
   sai_neighbor_api_t* neighborApi_;
+  sai_next_hop_api_t* nextHopApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_route_api_t* routeApi_;
