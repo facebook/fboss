@@ -15,6 +15,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
+
 namespace facebook::fboss {
 
 void updateHwSwitchStats(HwSwitch* hw) {
@@ -22,9 +24,19 @@ void updateHwSwitchStats(HwSwitch* hw) {
   hw->updateStats(&dummy);
 }
 
-uint64_t getPortOutPkts(HwPortStats portStats) {
+uint64_t getPortOutPkts(const HwPortStats& portStats) {
   return *portStats.outUnicastPkts__ref() + *portStats.outMulticastPkts__ref() +
       *portStats.outBroadcastPkts__ref();
+}
+
+uint64_t getPortOutPkts(const std::map<PortID, HwPortStats>& port2Stats) {
+  return std::accumulate(
+      port2Stats.begin(),
+      port2Stats.end(),
+      0UL,
+      [](auto sum, const auto& portIdAndStats) {
+        return sum + getPortOutPkts(portIdAndStats.second);
+      });
 }
 
 } // namespace facebook::fboss

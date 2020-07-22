@@ -11,11 +11,16 @@
 
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
+#include "fboss/agent/types.h"
+
+#include <map>
+
 namespace facebook::fboss {
 
 class HwSwitch;
 
 void updateHwSwitchStats(HwSwitch* hw);
-uint64_t getPortOutPkts(HwPortStats portStats);
+uint64_t getPortOutPkts(const HwPortStats& portStats);
+uint64_t getPortOutPkts(const std::map<PortID, HwPortStats>& port2Stats);
 
 } // namespace facebook::fboss
