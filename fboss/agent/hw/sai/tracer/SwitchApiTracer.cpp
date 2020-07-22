@@ -102,23 +102,24 @@ void setSwitchAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_SWITCH_ATTR_CPU_PORT:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_PORT));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_PORT}));
         break;
       case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
         attrLines.push_back(
-            oidAttr(attr_list, i, SAI_OBJECT_TYPE_VIRTUAL_ROUTER));
+            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_VIRTUAL_ROUTER}));
         break;
       case SAI_SWITCH_ATTR_DEFAULT_VLAN_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_VLAN));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_VLAN}));
         break;
       case SAI_SWITCH_ATTR_PORT_LIST:
-        oidListAttr(attr_list, i, listCount++, attrLines, SAI_OBJECT_TYPE_PORT);
+        oidListAttr(
+            attr_list, i, listCount++, attrLines, {SAI_OBJECT_TYPE_PORT});
         break;
       case SAI_SWITCH_ATTR_SRC_MAC_ADDRESS:
         macAddressAttr(attr_list, i, attrLines);
         break;
       case SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_BRIDGE));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BRIDGE}));
         break;
       case SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO:
         s8ListAttr(attr_list, i, listCount++, attrLines, true);
@@ -142,7 +143,7 @@ void setSwitchAttributes(
       case SAI_SWITCH_ATTR_LAG_HASH:
       case SAI_SWITCH_ATTR_ECMP_HASH_IPV4:
       case SAI_SWITCH_ATTR_ECMP_HASH_IPV6:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_HASH));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_HASH}));
         break;
       case SAI_SWITCH_ATTR_ECMP_DEFAULT_HASH_ALGORITHM:
       case SAI_SWITCH_ATTR_LAG_DEFAULT_HASH_ALGORITHM:
@@ -150,7 +151,7 @@ void setSwitchAttributes(
         break;
       case SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP:
       case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_QOS_MAP));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_QOS_MAP}));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

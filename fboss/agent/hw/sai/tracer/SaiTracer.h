@@ -95,7 +95,7 @@ class SaiTracer {
 
   std::string getVariable(
       sai_object_id_t object_id,
-      sai_object_type_t object_type);
+      std::vector<sai_object_type_t> object_types);
 
   uint32_t
   checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
@@ -168,11 +168,13 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
+      {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "nextHopGroup_"},
       {SAI_OBJECT_TYPE_PORT, "port_"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "routerInterface_"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_"},
+      {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "schedulerGroup_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
@@ -189,6 +191,7 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferProfileMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopGroupMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
@@ -196,6 +199,8 @@ class SaiTracer {
       routerInterfaceMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> schedulerMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>>
+      schedulerGroupMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> virtualRouterMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMemberMap_;
@@ -214,11 +219,13 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_BUFFER_PROFILE, bufferProfileMap_},
           {SAI_OBJECT_TYPE_HASH, hashMap_},
           {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
+          {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, nextHopGroupMap_},
           {SAI_OBJECT_TYPE_PORT, portMap_},
           {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
           {SAI_OBJECT_TYPE_QUEUE, queueMap_},
           {SAI_OBJECT_TYPE_ROUTER_INTERFACE, routerInterfaceMap_},
           {SAI_OBJECT_TYPE_SCHEDULER, schedulerMap_},
+          {SAI_OBJECT_TYPE_SCHEDULER_GROUP, schedulerGroupMap_},
           {SAI_OBJECT_TYPE_SWITCH, switchMap_},
           {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, virtualRouterMap_},
           {SAI_OBJECT_TYPE_VLAN, vlanMap_},
@@ -235,12 +242,14 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
+      {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "next_hop_group_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
+      {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},

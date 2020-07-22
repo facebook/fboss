@@ -21,15 +21,17 @@ namespace facebook::fboss {
 
 // OidAttr not only serializes oid, but also look into the variable mappings
 // to check if the oid matches any previously declared variables
-std::string
-oidAttr(const sai_attribute_t* attr_list, int i, sai_object_type_t object_type);
+std::string oidAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<sai_object_type_t> object_types);
 
 void oidListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listCount,
     std::vector<std::string>& attrLines,
-    sai_object_type_t object_type);
+    std::vector<sai_object_type_t> object_types);
 
 void aclEntryActionU8Attr(
     const sai_attribute_t* attr_list,

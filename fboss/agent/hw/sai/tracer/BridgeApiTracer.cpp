@@ -190,10 +190,10 @@ void setBridgePortAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BRIDGE_PORT_ATTR_BRIDGE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_BRIDGE));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BRIDGE}));
         break;
       case SAI_BRIDGE_PORT_ATTR_PORT_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_PORT));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_PORT}));
         break;
       case SAI_BRIDGE_PORT_ATTR_TYPE:
       case SAI_BRIDGE_PORT_ATTR_FDB_LEARNING_MODE:
@@ -219,7 +219,11 @@ void setBridgeAttributes(
     switch (attr_list[i].id) {
       case SAI_BRIDGE_ATTR_PORT_LIST:
         oidListAttr(
-            attr_list, i, listCount++, attrLines, SAI_OBJECT_TYPE_BRIDGE_PORT);
+            attr_list,
+            i,
+            listCount++,
+            attrLines,
+            {SAI_OBJECT_TYPE_BRIDGE_PORT});
         break;
       case SAI_BRIDGE_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));

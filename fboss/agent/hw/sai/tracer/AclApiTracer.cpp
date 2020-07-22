@@ -330,7 +330,7 @@ void setAclEntryAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ACL_ENTRY_ATTR_TABLE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_ACL_TABLE));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_ACL_TABLE}));
         break;
       case SAI_ACL_ENTRY_ATTR_PRIORITY:
         attrLines.push_back(u32Attr(attr_list, i));
@@ -381,7 +381,7 @@ void setAclTableAttributes(
         break;
       case SAI_ACL_TABLE_ATTR_ENTRY_LIST:
         oidListAttr(
-            attr_list, i, listCount++, attrLines, SAI_OBJECT_TYPE_ACL_ENTRY);
+            attr_list, i, listCount++, attrLines, {SAI_OBJECT_TYPE_ACL_ENTRY});
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6:
       case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6:
@@ -433,7 +433,7 @@ void setAclTableGroupAttributes(
             i,
             listCount++,
             attrLines,
-            SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
+            {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER});
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
@@ -449,11 +449,11 @@ void setAclTableGroupMemberAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_ACL_TABLE));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_ACL_TABLE}));
         break;
       case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_GROUP_ID:
         attrLines.push_back(
-            oidAttr(attr_list, i, SAI_OBJECT_TYPE_ACL_TABLE_GROUP));
+            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_ACL_TABLE_GROUP}));
         break;
       case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
         attrLines.push_back(u32Attr(attr_list, i));

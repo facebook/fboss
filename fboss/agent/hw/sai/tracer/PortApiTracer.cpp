@@ -181,7 +181,7 @@ void setPortAttributes(
         break;
       case SAI_PORT_ATTR_QOS_QUEUE_LIST:
         oidListAttr(
-            attr_list, i, listCount++, attrLines, SAI_OBJECT_TYPE_QUEUE);
+            attr_list, i, listCount++, attrLines, {SAI_OBJECT_TYPE_QUEUE});
         break;
       case SAI_PORT_ATTR_TYPE:
       case SAI_PORT_ATTR_FEC_MODE:
@@ -196,7 +196,7 @@ void setPortAttributes(
         break;
       case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
       case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
-        attrLines.push_back(oidAttr(attr_list, i, SAI_OBJECT_TYPE_QOS_MAP));
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_QOS_MAP}));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
