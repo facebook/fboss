@@ -47,6 +47,12 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
+  void logNeighborEntryCreateFn(
+      const sai_neighbor_entry_t* neighbor_entry,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
+
   void logCreateFn(
       const std::string& fn_name,
       sai_object_id_t* create_object_id,
@@ -60,6 +66,10 @@ class SaiTracer {
       const sai_route_entry_t* route_entry,
       sai_status_t rv);
 
+  void logNeighborEntryRemoveFn(
+      const sai_neighbor_entry_t* neighbor_entry,
+      sai_status_t rv);
+
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
@@ -68,6 +78,11 @@ class SaiTracer {
 
   void logRouteEntrySetAttrFn(
       const sai_route_entry_t* route_entry,
+      const sai_attribute_t* attr,
+      sai_status_t rv);
+
+  void logNeighborEntrySetAttrFn(
+      const sai_neighbor_entry_t* neighbor_entry,
       const sai_attribute_t* attr,
       sai_status_t rv);
 
@@ -87,6 +102,7 @@ class SaiTracer {
 
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
+  sai_neighbor_api_t* neighborApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_route_api_t* routeApi_;
@@ -115,6 +131,10 @@ class SaiTracer {
       const std::string& var2,
       uint32_t attr_count,
       sai_object_type_t object_type);
+
+  void setNeighborEntry(
+      const sai_neighbor_entry_t* neighbor_entry,
+      std::vector<std::string>& lines);
 
   void setRouteEntry(
       const sai_route_entry_t* route_entry,
@@ -213,6 +233,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
+      {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},

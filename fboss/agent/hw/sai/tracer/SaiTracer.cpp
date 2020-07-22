@@ -16,6 +16,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
@@ -90,6 +91,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBridgeApi();
+      break;
+    case (SAI_API_NEIGHBOR):
+      SaiTracer::getInstance()->neighborApi_ =
+          static_cast<sai_neighbor_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapNeighborApi();
       break;
     case (SAI_API_PORT):
       SaiTracer::getInstance()->portApi_ =
@@ -261,6 +267,41 @@ void SaiTracer::logRouteEntryCreateFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logNeighborEntryCreateFn(
+    const sai_neighbor_entry_t* neighbor_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_NEIGHBOR_ENTRY);
+
+  // Then setup neighbor entry (switch, router interface and ip address)
+  setNeighborEntry(neighbor_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  // Make the function call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "create_neighbor_entry(&neighbor_entry, ",
+      attr_count,
+      ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
@@ -325,6 +366,32 @@ void SaiTracer::logRouteEntryRemoveFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logNeighborEntryRemoveFn(
+    const sai_neighbor_entry_t* neighbor_entry,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  setNeighborEntry(neighbor_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "remove_neighbor_entry(&neighbor_entry)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logRemoveFn(
     const string& fn_name,
     sai_object_id_t remove_object_id,
@@ -378,6 +445,36 @@ void SaiTracer::logRouteEntrySetAttrFn(
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "set_route_entry_attribute(&route_entry, sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logNeighborEntrySetAttrFn(
+    const sai_neighbor_entry_t* neighbor_entry,
+    const sai_attribute_t* attr,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup one attribute
+  vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_NEIGHBOR_ENTRY);
+
+  setNeighborEntry(neighbor_entry, lines);
+
+  // TODO(zecheg): Log current timestamp, object id and return value
+
+  // Make setAttribute call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "set_neighbor_entry_attribute(&neighbor_entry, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -500,6 +597,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       setBridgePortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
+      setNeighborEntryAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
       break;
@@ -556,6 +656,39 @@ string SaiTracer::createFnCall(
       ", ",
       attr_count,
       ", sai_attributes)");
+}
+
+void SaiTracer::setNeighborEntry(
+    const sai_neighbor_entry_t* neighbor_entry,
+    vector<string>& lines) {
+  lines.push_back(to<string>(
+      "neighbor_entry.switch_id = ",
+      getVariable(neighbor_entry->switch_id, SAI_OBJECT_TYPE_SWITCH)));
+  lines.push_back(to<string>(
+      "neighbor_entry.rif_id = ",
+      getVariable(neighbor_entry->rif_id, SAI_OBJECT_TYPE_ROUTER_INTERFACE)));
+
+  if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
+    lines.push_back(
+        "neighbor_entry.ip_address.addr_family = SAI_IP_ADDR_FAMILY_IPV4");
+    lines.push_back(to<string>(
+        "neighbor_entry.ip_address.addr.ip4 = ",
+        neighbor_entry->ip_address.addr.ip4));
+
+  } else if (
+      neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
+    lines.push_back(
+        "neighbor_entry.ip_address.addr_family = SAI_IP_ADDR_FAMILY_IPV6");
+
+    // Underlying type of sai_ip6_t is uint8_t[16]
+    for (int i = 0; i < 16; ++i) {
+      lines.push_back(to<string>(
+          "neighbor_entry.ip_address.addr.ip6[",
+          i,
+          "] = ",
+          neighbor_entry->ip_address.addr.ip6[i]));
+    }
+  }
 }
 
 void SaiTracer::setRouteEntry(
@@ -677,6 +810,7 @@ void SaiTracer::setupGlobals() {
   globalVar.push_back("uint8_t* mac");
   globalVar.push_back("sai_status_t status");
   globalVar.push_back("sai_route_entry_t route_entry");
+  globalVar.push_back("sai_neighbor_entry_t neighbor_entry");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
@@ -693,6 +827,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BRIDGE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
