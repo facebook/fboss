@@ -135,7 +135,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         std::move(txPacket), PortID(masterLogicalPortIds()[0]));
   }
 
-  bool wasMacLearnt(PortDescriptor portDescr, bool shouldExist = true) const {
+  bool wasMacLearnt(PortDescriptor portDescr, bool shouldExist = true) {
     /***
      * shouldExist - if set to true (default), retry until mac is found.
      *             - if set to false, retry until mac is no longer learned
@@ -160,7 +160,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
            wasMacLearntInSwitchState(shouldExist)) ||
           (l2LearningMode == cfg::L2LearningMode::HARDWARE &&
-           wasMacLearntInHw(portDescr, shouldExist))) {
+           wasMacLearntInHw(shouldExist))) {
         return true;
       }
 
@@ -416,12 +416,28 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   HwTestLearningUpdateObserver l2LearningObserver_;
 
  private:
-  bool wasMacLearntInHw(PortDescriptor portDescr, bool shouldExist) const {
-    auto isTrunk = portDescr.isAggregatePort();
-    int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
-    auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
+  bool wasMacLearntInHw(bool shouldExist) {
+    bringUpPort(masterLogicalPortIds()[1]);
+    auto origPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
+    auto txPacket = utility::makeEthTxPacket(
+        getHwSwitch(),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
+        kSourceMac(),
+        kSourceMac(),
+        ETHERTYPE::ETHERTYPE_LLDP);
 
-    return (shouldExist == (macs.find(kSourceMac()) != macs.end()));
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    auto newPortStats =
+        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
+
+    bringDownPort(masterLogicalPortIds()[1]);
+    auto newPortBytes =
+        *newPortStats.outBytes__ref() - *origPortStats.outBytes__ref();
+    // If MAC should have been learnt then we should get no traffic on
+    // masterLogicalPortIds[1], otherwise we should see flooding and
+    // non zero bytes on masterLogicalPortIds[1]
+    return (shouldExist == (newPortBytes == 0));
   }
 
   bool wasMacLearntInSwitchState(bool shouldExist) const {
