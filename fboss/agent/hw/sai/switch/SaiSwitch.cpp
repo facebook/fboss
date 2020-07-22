@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
@@ -57,6 +58,25 @@ extern "C" {
 
 DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
 DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
+
+namespace {
+
+/*
+ * For the devices/SDK we use, the only events we should get (and process)
+ * are LEARN and AGED.
+ * Learning generates LEARN, aging generates AGED, while Mac move results in
+ * DELETE followed by ADD.
+ * We ASSERT this explicitly via HW tests.
+ */
+const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
+    kL2AddrUpdateOperationsOfInterest = {
+        {SAI_FDB_EVENT_LEARNED,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD},
+        {SAI_FDB_EVENT_AGED,
+         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
+};
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -1081,9 +1101,14 @@ void SaiSwitch::fdbEventCallback(
 }
 
 void SaiSwitch::fdbEventCallbackLocked(
-    uint32_t /*count*/,
-    const sai_fdb_event_notification_data_t* /*data*/) {
-  // TODO  - program macs from learn events to FDB
+    uint32_t count,
+    const sai_fdb_event_notification_data_t* data) {
+  for (auto i = 0; i < count; ++i) {
+    auto ditr = kL2AddrUpdateOperationsOfInterest.find(data[i].event_type);
+    if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
+      // TODO pass event up to callback
+    }
+  }
 }
 
 template <

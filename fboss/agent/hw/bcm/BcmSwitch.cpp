@@ -234,9 +234,9 @@ bool bothStandAloneRibOrRouteTableRibUsed(
 /*
  * For the devices/SDK we use, the only events we should get (and process)
  * are ADD and DELETE.
- * Learning generates ADD, aging generaets DELETE, while Mac move results in
+ * Learning generates ADD, aging generates DELETE, while Mac move results in
  * DELETE followed by ADD.
- * We ASSERT this explicitly via BCM tests.
+ * We ASSERT this explicitly via HW tests.
  */
 const std::map<int, facebook::fboss::L2EntryUpdateType>
     kL2AddrUpdateOperationsOfInterest = {
