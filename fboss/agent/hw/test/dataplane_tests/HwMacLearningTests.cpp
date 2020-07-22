@@ -91,7 +91,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     return MacAddress("02:00:00:00:00:05");
   }
 
-  void sendL2Pkts(int vlanId, int port) {
+  void sendL2Pkts(
+      int vlanId,
+      int port,
+      const std::vector<folly::MacAddress>& srcMacs,
+      const std::vector<folly::MacAddress>& dstMacs) {
     auto originalStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto allSent = [port, &originalStats](const auto& newStats) {
@@ -106,19 +110,17 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
           expectedOut);
       return newOut == expectedOut;
     };
-    auto generator = utility::MacAddressGenerator();
-    // start with fixed address and increment deterministically
-    // evaluate total learnt l2 entries
-    generator.startOver(kSourceMac().u64HBO());
-    for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {
-      auto txPacket = utility::makeEthTxPacket(
-          getHwSwitch(),
-          facebook::fboss::VlanID(vlanId),
-          generator.getNext(),
-          folly::MacAddress::BROADCAST,
-          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
-      getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(txPacket), facebook::fboss::PortID(port));
+    for (auto srcMac : srcMacs) {
+      for (auto dstMac : dstMacs) {
+        auto txPacket = utility::makeEthTxPacket(
+            getHwSwitch(),
+            facebook::fboss::VlanID(vlanId),
+            srcMac,
+            dstMac,
+            facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), facebook::fboss::PortID(port));
+      }
     }
     getHwSwitchEnsemble()->waitPortStatsCondition(allSent);
   }
@@ -460,14 +462,25 @@ TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
     XLOG(INFO) << "Skip the test for TH3 platform";
     return;
   }
+  std::vector<folly::MacAddress> macs;
+  auto generator = utility::MacAddressGenerator();
+  // start with fixed address and increment deterministically
+  // evaluate total learnt l2 entries
+  generator.startOver(kSourceMac().u64HBO());
+  for (auto i = 0; i < L2_LEARN_MAX_MAC_COUNT; ++i) {
+    macs.emplace_back(generator.getNext());
+  }
 
   auto portDescr = physPortDescr();
-  auto setup = [this, portDescr]() {
+  auto setup = [this, portDescr, &macs]() {
     setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
     sendL2Pkts(
-        *initialConfig().vlanPorts[0].vlanID_ref(), masterLogicalPortIds()[0]);
+        *initialConfig().vlanPorts_ref()[0].vlanID_ref(),
+        masterLogicalPortIds()[0],
+        macs,
+        {folly::MacAddress::BROADCAST});
   };
 
   auto verify = [this, portDescr]() {
