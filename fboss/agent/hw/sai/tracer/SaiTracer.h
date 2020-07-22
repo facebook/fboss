@@ -117,6 +117,7 @@ class SaiTracer {
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
   sai_fdb_api_t* fdbApi_;
+  sai_hash_api_t* hashApi_;
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
   sai_next_hop_group_api_t* nextHopGroupApi_;
@@ -199,6 +200,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "schedulerGroup_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
+      {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
@@ -227,6 +229,7 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> schedulerMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>>
       schedulerGroupMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> udfGroupMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> virtualRouterMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMemberMap_;
@@ -255,6 +258,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_SCHEDULER, schedulerMap_},
           {SAI_OBJECT_TYPE_SCHEDULER_GROUP, schedulerGroupMap_},
           {SAI_OBJECT_TYPE_SWITCH, switchMap_},
+          {SAI_OBJECT_TYPE_UDF_GROUP, udfGroupMap_},
           {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, virtualRouterMap_},
           {SAI_OBJECT_TYPE_VLAN, vlanMap_},
           {SAI_OBJECT_TYPE_VLAN_MEMBER, vlanMemberMap_},

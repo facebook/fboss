@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
@@ -105,6 +106,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->fdbApi_ =
           static_cast<sai_fdb_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapFdbApi();
+      break;
+    case (SAI_API_HASH):
+      SaiTracer::getInstance()->hashApi_ =
+          static_cast<sai_hash_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapHashApi();
       break;
     case (SAI_API_NEIGHBOR):
       SaiTracer::getInstance()->neighborApi_ =
@@ -728,6 +734,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_FDB_ENTRY:
       setFdbEntryAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_HASH:
+      setHashAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
       setNeighborEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -998,6 +1007,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
