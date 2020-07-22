@@ -90,6 +90,7 @@ class SaiTracer {
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_route_api_t* routeApi_;
+  sai_router_interface_api_t* routerInterfaceApi_;
   sai_scheduler_api_t* schedulerApi_;
   sai_switch_api_t* switchApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
@@ -148,6 +149,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_PORT, "port_"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
+      {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "routerInterface_"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
@@ -168,6 +170,8 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>>
+      routerInterfaceMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> schedulerMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> virtualRouterMap_;
@@ -191,6 +195,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_PORT, portMap_},
           {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
           {SAI_OBJECT_TYPE_QUEUE, queueMap_},
+          {SAI_OBJECT_TYPE_ROUTER_INTERFACE, routerInterfaceMap_},
           {SAI_OBJECT_TYPE_SCHEDULER, schedulerMap_},
           {SAI_OBJECT_TYPE_SWITCH, switchMap_},
           {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, virtualRouterMap_},
@@ -209,6 +214,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
+      {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
