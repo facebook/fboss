@@ -118,6 +118,7 @@ class SaiTracer {
   sai_fdb_api_t* fdbApi_;
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
+  sai_next_hop_group_api_t* nextHopGroupApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_route_api_t* routeApi_;
@@ -188,6 +189,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_HASH, "hash_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "nextHopGroup_"},
+      {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, "nextHopGroupMember_"},
       {SAI_OBJECT_TYPE_PORT, "port_"},
       {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_"},
@@ -211,6 +213,8 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopGroupMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>>
+      nextHopGroupMemberMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
@@ -239,6 +243,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_HASH, hashMap_},
           {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
           {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, nextHopGroupMap_},
+          {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, nextHopGroupMemberMap_},
           {SAI_OBJECT_TYPE_PORT, portMap_},
           {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
           {SAI_OBJECT_TYPE_QUEUE, queueMap_},
@@ -263,6 +268,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "next_hop_group_api->"},
+      {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, "next_hop_group_api->"},
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},

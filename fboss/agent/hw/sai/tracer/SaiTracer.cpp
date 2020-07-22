@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
@@ -108,6 +109,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->nextHopApi_ =
           static_cast<sai_next_hop_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapNextHopApi();
+      break;
+    case (SAI_API_NEXT_HOP_GROUP):
+      SaiTracer::getInstance()->nextHopGroupApi_ =
+          static_cast<sai_next_hop_group_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapNextHopGroupApi();
       break;
     case (SAI_API_PORT):
       SaiTracer::getInstance()->portApi_ =
@@ -716,6 +722,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_NEXT_HOP:
       setNextHopAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_NEXT_HOP_GROUP:
+      setNextHopGroupAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER:
+      setNextHopGroupMemberAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
       break;
@@ -965,6 +977,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP_GROUP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
