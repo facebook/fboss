@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
 #include <folly/FileUtil.h>
@@ -103,6 +104,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->switchApi_ =
           static_cast<sai_switch_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapSwitchApi();
+      break;
+    case (SAI_API_VIRTUAL_ROUTER):
+      SaiTracer::getInstance()->virtualRouterApi_ =
+          static_cast<sai_virtual_router_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapVirtualRouterApi();
       break;
     case (SAI_API_VLAN):
       SaiTracer::getInstance()->vlanApi_ =
@@ -466,6 +472,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_SWITCH:
       setSwitchAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
+      setVirtualRouterAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_VLAN:
       setVlanAttributes(attr_list, attr_count, attrLines);
