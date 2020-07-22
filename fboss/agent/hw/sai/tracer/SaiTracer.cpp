@@ -16,6 +16,7 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/sai/tracer/AclApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/BridgeApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
@@ -91,6 +92,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBridgeApi();
+      break;
+    case (SAI_API_FDB):
+      SaiTracer::getInstance()->fdbApi_ =
+          static_cast<sai_fdb_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapFdbApi();
       break;
     case (SAI_API_NEIGHBOR):
       SaiTracer::getInstance()->neighborApi_ =
@@ -302,6 +308,41 @@ void SaiTracer::logNeighborEntryCreateFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logFdbEntryCreateFn(
+    const sai_fdb_entry_t* fdb_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_FDB_ENTRY);
+
+  // Then setup fdb entry (switch, router interface and ip address)
+  setFdbEntry(fdb_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  // Make the function call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_FDB_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "create_fdb_entry(&fdb_entry, ",
+      attr_count,
+      ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
@@ -392,6 +433,32 @@ void SaiTracer::logNeighborEntryRemoveFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logFdbEntryRemoveFn(
+    const sai_fdb_entry_t* fdb_entry,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  setFdbEntry(fdb_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_FDB_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "remove_fdb_entry(&fdb_entry)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logRemoveFn(
     const string& fn_name,
     sai_object_id_t remove_object_id,
@@ -475,6 +542,36 @@ void SaiTracer::logNeighborEntrySetAttrFn(
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "set_neighbor_entry_attribute(&neighbor_entry, sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logFdbEntrySetAttrFn(
+    const sai_fdb_entry_t* fdb_entry,
+    const sai_attribute_t* attr,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup one attribute
+  vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_FDB_ENTRY);
+
+  setFdbEntry(fdb_entry, lines);
+
+  // TODO(zecheg): Log current timestamp, object id and return value
+
+  // Make setAttribute call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_FDB_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "set_fdb_entry_attribute(&fdb_entry, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -604,6 +701,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_BRIDGE_PORT:
       setBridgePortAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_FDB_ENTRY:
+      setFdbEntryAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
       setNeighborEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -663,6 +763,24 @@ string SaiTracer::createFnCall(
       ", ",
       attr_count,
       ", sai_attributes)");
+}
+
+void SaiTracer::setFdbEntry(
+    const sai_fdb_entry_t* fdb_entry,
+    std::vector<std::string>& lines) {
+  lines.push_back(to<string>(
+      "fdb_entry.switch_id = ",
+      getVariable(fdb_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
+  lines.push_back(to<string>(
+      "fdb_entry.bv_id = ",
+      getVariable(
+          fdb_entry->bv_id, {SAI_OBJECT_TYPE_BRIDGE, SAI_OBJECT_TYPE_VLAN})));
+
+  // The underlying type of sai_mac_t is uint8_t[6]
+  for (int i = 0; i < 6; ++i) {
+    lines.push_back(to<string>(
+        "fdb_entry.mac_address[", i, "] = ", fdb_entry->mac_address[i]));
+  }
 }
 
 void SaiTracer::setNeighborEntry(
@@ -818,6 +936,7 @@ void SaiTracer::setupGlobals() {
   globalVar.push_back("sai_status_t status");
   globalVar.push_back("sai_route_entry_t route_entry");
   globalVar.push_back("sai_neighbor_entry_t neighbor_entry");
+  globalVar.push_back("sai_fdb_entry_t fdb_entry");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
