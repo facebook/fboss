@@ -35,6 +35,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -225,6 +226,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiVlanManager::changeVlan,
       &SaiVlanManager::addVlan,
       &SaiVlanManager::removeVlan);
+
+  // LAGs
+  processDelta(
+      delta.getAggregatePortsDelta(),
+      managerTable_->lagManager(),
+      &SaiUnsupportedFeatureManager::processChanged,
+      &SaiUnsupportedFeatureManager::processAdded,
+      &SaiUnsupportedFeatureManager::processRemoved);
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
     processDefaultDataPlanePolicyDelta(delta, managerTable_->switchManager());
