@@ -197,7 +197,7 @@ struct MirrorTunnel {
 }
 
 union MirrorEgressPort {
-  1: string name
+  1: string name (py3.name = "name_")
   2: i32 logicalID
 }
 
