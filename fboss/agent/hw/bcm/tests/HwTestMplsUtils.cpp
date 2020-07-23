@@ -189,8 +189,10 @@ long getTunnelRefCount(
       ->getLabeledTunnelRefCount(stack);
 }
 
-void verifyProgrammedStackOnInterface(
+template <typename AddrT>
+void verifyProgrammedStack(
     const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix /* unused */,
     const InterfaceID& intfID,
     const LabelForwardingAction::LabelStack& stack,
     long refCount) {
@@ -205,6 +207,18 @@ void verifyProgrammedStackOnInterface(
             LabelForwardingAction::LabelStack{stack.begin() + 1, stack.end()}));
   }
 }
+template void verifyProgrammedStack<folly::IPAddressV6>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV6>::Prefix prefix,
+    const InterfaceID& intfID,
+    const LabelForwardingAction::LabelStack& stack,
+    long refCount);
+template void verifyProgrammedStack<folly::IPAddressV4>(
+    const HwSwitch* hwSwitch,
+    typename Route<folly::IPAddressV4>::Prefix prefix,
+    const InterfaceID& intfID,
+    const LabelForwardingAction::LabelStack& stack,
+    long refCount);
 
 template <typename AddrT>
 void verifyLabelSwitchAction(

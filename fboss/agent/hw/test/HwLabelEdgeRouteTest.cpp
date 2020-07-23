@@ -179,7 +179,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     auto emplaced = ecmpHelpers_.emplace(std::make_pair(
         prefix,
         std::make_unique<EcmpSetupTargetedPorts>(
-            getProgrammedState(), RouterID(0))));
+            getProgrammedState(), kRouter0)));
 
     EXPECT_TRUE(emplaced.second);
     const auto& ecmpHelper = emplaced.first->second;
@@ -232,12 +232,13 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
   }
 
   void verifyProgrammedStackOnPort(
-      const AddrT& network,
+      const AddrT& nexthopAddr,
+      const AddrT& dstAddr,
       uint8_t mask,
       const PortDescriptor& port,
       const LabelForwardingAction::LabelStack& stack,
       long refCount) {
-    PrefixT prefix{network, mask};
+    PrefixT prefix{nexthopAddr, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
     auto vlanID = ecmpHelper->getVlan(port);
     EXPECT_TRUE(vlanID.has_value());
@@ -245,8 +246,9 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
                       ->getVlans()
                       ->getVlan(vlanID.value())
                       ->getInterfaceID();
-    utility::verifyProgrammedStackOnInterface(
-        getHwSwitch(), intfID, stack, refCount);
+    PrefixT dstPrefx{dstAddr, mask};
+    utility::verifyProgrammedStack<AddrT>(
+        getHwSwitch(), dstPrefx, intfID, stack, refCount);
   }
 
  protected:
@@ -314,6 +316,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyProgrammedStackOnPort(
           params.nexthop,
+          params.prefix.network,
           params.prefix.mask,
           port,
           LabelForwardingAction::LabelStack{},
@@ -361,7 +364,12 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
 
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyProgrammedStackOnPort(
-          params.nexthop, params.prefix.mask, port, stack, 1);
+          params.nexthop,
+          params.prefix.network,
+          params.prefix.mask,
+          port,
+          stack,
+          1);
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -420,6 +428,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
       itr.first->second.push_back(params.label);
       this->verifyProgrammedStackOnPort(
           params.nexthop,
+          params.prefix.network,
           params.prefix.mask,
           labeledPort,
           LabelForwardingAction::LabelStack{},
@@ -460,7 +469,12 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
       stacks.emplace(labeledPort, stack);
 
       this->verifyProgrammedStackOnPort(
-          params.nexthop, params.prefix.mask, labeledPort, stack, 1);
+          params.nexthop,
+          params.prefix.network,
+          params.prefix.mask,
+          labeledPort,
+          stack,
+          1);
     }
     this->verifyMultiPathNextHop(params.prefix, stacks);
   };
@@ -561,6 +575,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
         pushStack.push_back(params[i].label + j);
         this->verifyProgrammedStackOnPort(
             params[i].nexthop,
+            params[i].prefix.network,
             params[i].prefix.mask,
             labeledPort,
             pushStack,
@@ -804,7 +819,12 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1};
         stack.push_back(params[i].label + j);
         this->verifyProgrammedStackOnPort(
-            params[i].nexthop, params[i].prefix.mask, labeledPort, stack, 1);
+            params[i].nexthop,
+            params[i].prefix.network,
+            params[i].prefix.mask,
+            labeledPort,
+            stack,
+            1);
         stacks.emplace(labeledPort, stack);
         j++;
       }
@@ -907,6 +927,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
       stack.push_back(params[1].label + j);
       this->verifyProgrammedStackOnPort(
           params[1].nexthop,
+          params[1].prefix.network,
           params[1].nexthop.bitCount(),
           labeledPort,
           stack,
@@ -965,6 +986,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
 
         this->verifyProgrammedStackOnPort(
             params[i].nexthop,
+            params[i].prefix.network,
             params[i].nexthop.bitCount(),
             labeledPort,
             stack,
