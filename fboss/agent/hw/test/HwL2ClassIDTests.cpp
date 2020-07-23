@@ -35,7 +35,7 @@ class HwL2ClassIDTest : public HwTest {
   }
 
   VlanID kVlanID() {
-    return VlanID(1);
+    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
   }
 
   void associateClassID() {
@@ -76,6 +76,7 @@ class HwL2ClassIDTest : public HwTest {
 
 TEST_F(HwL2ClassIDTest, VerifyClassID) {
   auto setup = [=]() {
+    applyNewConfig(initialConfig());
     associateClassID();
     EXPECT_TRUE(l2EntryHasClassID(kClassID()));
 
