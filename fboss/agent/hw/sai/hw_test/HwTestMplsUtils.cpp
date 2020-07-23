@@ -90,10 +90,17 @@ template void verifyLabeledNextHop<folly::IPAddressV4>(
 
 template <typename AddrT>
 void verifyLabeledNextHopWithStack(
-    const HwSwitch* /* unused */,
-    typename Route<AddrT>::Prefix /* unused */,
-    const LabelForwardingAction::LabelStack& /* unused */) {
-  throw FbossError("Unimplemented Test Case for SAI");
+    const HwSwitch* hwSwitch,
+    typename Route<AddrT>::Prefix prefix,
+    const LabelForwardingAction::LabelStack& stack) {
+  auto nextHopId = getNextHopId<AddrT>(hwSwitch, prefix);
+  auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
+  auto labelStack = nextHopApi.getAttribute(
+      NextHopSaiId(nextHopId), SaiMplsNextHopTraits::Attributes::LabelStack{});
+  EXPECT_EQ(labelStack.size(), stack.size());
+  for (auto i = 0; i < stack.size(); i++) {
+    EXPECT_EQ(labelStack[i], stack[i]);
+  }
 }
 template void verifyLabeledNextHopWithStack<folly::IPAddressV6>(
     const HwSwitch* hwSwitch,
