@@ -27,7 +27,7 @@ add_library(sai_version
 
 set_target_properties(sai_version PROPERTIES LINKER_LANGUAGE CXX)
 
-add_library(sai_api
+set(SAI_API_SRC
   fboss/agent/hw/sai/api/FdbApi.cpp
   fboss/agent/hw/sai/api/HashApi.cpp
   fboss/agent/hw/sai/api/MplsApi.cpp
@@ -64,7 +64,7 @@ add_library(sai_api
   fboss/agent/hw/sai/api/VlanApi.h
 )
 
-target_link_libraries(sai_api
+set(SAI_API_DEPS
   fake_sai
   address_util
   logging_util
@@ -74,7 +74,30 @@ target_link_libraries(sai_api
   Folly::folly
 )
 
+add_library(sai_api
+  "${SAI_API_SRC}"
+)
+
+target_link_libraries(sai_api
+  "${SAI_API_DEPS}"
+)
+
 set_target_properties(sai_api PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
+add_library(sai_traced_api
+  "${SAI_API_SRC}"
+)
+
+target_link_libraries(sai_traced_api
+  sai_tracer
+  "${SAI_API_DEPS}"
+)
+
+set_target_properties(sai_traced_api PROPERTIES COMPILE_FLAGS
   "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
   -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"

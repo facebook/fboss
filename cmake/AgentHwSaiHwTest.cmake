@@ -32,6 +32,7 @@ target_link_libraries(sai_switch_ensemble
   hw_switch_ensemble
   sai_platform
   sai_test_ctrl_cpp2
+  sai_traced_api
 )
 
 set_target_properties(sai_switch_ensemble PROPERTIES COMPILE_FLAGS
