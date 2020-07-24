@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
@@ -39,6 +40,11 @@ struct SaiFdbTraits {
     using Type = SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_TYPE, sai_int32_t>;
     using BridgePortId =
         SaiAttribute<EnumType, SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID, SaiObjectIdT>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_FDB_ENTRY_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
   };
 
   class FdbEntry {
@@ -81,14 +87,17 @@ struct SaiFdbTraits {
     sai_fdb_entry_t fdb_entry{};
   };
 
-  using CreateAttributes =
-      std::tuple<Attributes::Type, Attributes::BridgePortId>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::BridgePortId,
+      std::optional<Attributes::Metadata>>;
   using AdapterKey = FdbEntry;
   using AdapterHostKey = FdbEntry;
 };
 
 SAI_ATTRIBUTE_NAME(Fdb, Type)
 SAI_ATTRIBUTE_NAME(Fdb, BridgePortId)
+SAI_ATTRIBUTE_NAME(Fdb, Metadata)
 
 template <>
 struct IsSaiEntryStruct<SaiFdbTraits::FdbEntry> : public std::true_type {};

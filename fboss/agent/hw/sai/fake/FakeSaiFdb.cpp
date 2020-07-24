@@ -32,6 +32,9 @@ sai_status_t create_fdb_entry_fn(
         break;
       case SAI_FDB_ENTRY_ATTR_TYPE:
         break;
+      case SAI_FDB_ENTRY_ATTR_META_DATA:
+        // TODO
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -61,6 +64,9 @@ sai_status_t set_fdb_entry_attribute_fn(
     case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
       fdbEntry.bridgePortId = attr->value.oid;
       break;
+    case SAI_FDB_ENTRY_ATTR_META_DATA:
+      // TODO
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -83,6 +89,10 @@ sai_status_t get_fdb_entry_attribute_fn(
       case SAI_FDB_ENTRY_ATTR_TYPE:
         // Only static fdb entries for now
         attr_list[i].value.s32 = SAI_FDB_ENTRY_TYPE_STATIC;
+        break;
+      case SAI_FDB_ENTRY_ATTR_META_DATA:
+        // TODO
+        attr_list[i].value.u32 = 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

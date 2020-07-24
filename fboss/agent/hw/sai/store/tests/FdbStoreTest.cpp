@@ -21,7 +21,7 @@ TEST_F(SaiStoreTest, loadFdb) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42});
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, std::nullopt});
 
   SaiStore s(0);
   s.reload();
@@ -39,7 +39,7 @@ TEST_F(SaiStoreTest, fdbLoadCtor) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42});
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, std::nullopt});
 
   SaiObject<SaiFdbTraits> obj(f);
   EXPECT_EQ(obj.adapterKey(), f);
@@ -53,7 +53,8 @@ TEST_F(SaiStoreTest, fdbLoadCtor) {
 TEST_F(SaiStoreTest, fdbCreateCtor) {
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  SaiObject<SaiFdbTraits> obj(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42}, 0);
+  SaiObject<SaiFdbTraits> obj(
+      f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, std::nullopt}, 0);
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj.attributes()), 42);
 }
 
@@ -61,7 +62,7 @@ TEST_F(SaiStoreTest, fdbSetBridgePort) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42});
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, std::nullopt});
 
   SaiStore s(0);
   s.reload();
@@ -70,7 +71,9 @@ TEST_F(SaiStoreTest, fdbSetBridgePort) {
   auto obj = store.get(f);
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj->attributes()), 42);
   store.setObject(
-      f, {SAI_FDB_ENTRY_TYPE_STATIC, 43}, PublisherKey<SaiFdbTraits>::type{});
+      f,
+      {SAI_FDB_ENTRY_TYPE_STATIC, 43, std::nullopt},
+      PublisherKey<SaiFdbTraits>::type{});
   EXPECT_EQ(GET_ATTR(Fdb, BridgePortId, obj->attributes()), 43);
 }
 
@@ -78,6 +81,6 @@ TEST_F(SaiStoreTest, fdbSerDeser) {
   auto& fdbApi = saiApiTable->fdbApi();
   folly::MacAddress mac{"42:42:42:42:42:42"};
   SaiFdbTraits::FdbEntry f(0, 10, mac);
-  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42});
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, std::nullopt});
   verifyAdapterKeySerDeser<SaiFdbTraits>({f});
 }

@@ -36,8 +36,8 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
 
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   auto bridgePortId = bridgePort->adapterKey();
-  SaiFdbTraits::CreateAttributes attributes{SAI_FDB_ENTRY_TYPE_STATIC,
-                                            bridgePortId};
+  SaiFdbTraits::CreateAttributes attributes{
+      SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId, std::nullopt};
 
   auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
   auto fdbEntry =
