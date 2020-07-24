@@ -957,7 +957,7 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     std::vector<L2EntryThrift>* l2Table) const {
-  auto fdbEntries = getObjectKeys<SaiFdbTraits>(switchId_);
+  auto fdbEntries = managerTable_->fdbManager().getFdbEntries();
   l2Table->resize(fdbEntries.size());
   for (const auto& fdbEntry : fdbEntries) {
     L2EntryThrift entry;
@@ -968,6 +968,7 @@ void SaiSwitch::fetchL2TableLocked(
         VlanSaiId{fdbEntry.bridgeVlanId()},
         SaiVlanTraits::Attributes::VlanId{})};
     *entry.vlanID_ref() = swVlanId;
+    *entry.mac_ref() = fdbEntry.mac().toString();
 
     // To get the PortID, we get the bridgePortId from the fdb entry,
     // then get that Bridge Port's PortId attribute. We can lookup the
@@ -988,8 +989,9 @@ void SaiSwitch::fetchL2TableLocked(
     auto metadata =
         fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
     if (metadata) {
-      *entry.classID_ref() = metadata;
+      entry.classID_ref() = metadata;
     }
+
     // entry is filled out; push it onto the L2 table
     l2Table->push_back(entry);
   }

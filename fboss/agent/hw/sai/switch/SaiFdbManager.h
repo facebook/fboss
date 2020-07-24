@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -68,6 +69,8 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
   void createObject(PublisherObjects);
   void removeObject(size_t, PublisherObjects);
+  SaiFdbTraits::FdbEntry makeFdbEntry(
+      const SaiManagerTable* managerTable) const;
 
   PortID getPortId() const;
 
@@ -105,6 +108,7 @@ class SaiFdbManager {
     addMac(newEntry);
   }
   void handleLinkDown(PortID portId);
+  std::vector<SaiFdbTraits::FdbEntry> getFdbEntries() const;
 
  private:
   InterfaceID getInterfaceId(const std::shared_ptr<MacEntry>& macEntry) const;

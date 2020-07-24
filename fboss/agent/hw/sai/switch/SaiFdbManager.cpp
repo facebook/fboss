@@ -59,6 +59,16 @@ PortID ManagedFdbEntry::getPortId() const {
   return portId_;
 }
 
+SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
+    const SaiManagerTable* managerTable) const {
+  auto rifHandle =
+      managerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          interfaceId_);
+  auto vlan = GET_ATTR(
+      RouterInterface, VlanId, rifHandle->routerInterface->attributes());
+  return SaiFdbTraits::FdbEntry{switchId_, vlan, mac_};
+}
+
 void SaiFdbManager::addFdbEntry(
     PortID port,
     InterfaceID interfaceId,
@@ -160,4 +170,12 @@ void SaiFdbManager::handleLinkDown(PortID portId) {
   }
 }
 
+std::vector<SaiFdbTraits::FdbEntry> SaiFdbManager::getFdbEntries() const {
+  std::vector<SaiFdbTraits::FdbEntry> entries;
+  for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
+    entries.emplace_back(
+        publisherAndFdbEntry.second->makeFdbEntry(managerTable_));
+  }
+  return entries;
+}
 } // namespace facebook::fboss
