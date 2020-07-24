@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/Constants.h"
-#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
@@ -1102,13 +1101,60 @@ void SaiSwitch::fdbEventCallback(
   fdbEventCallbackLocked(count, data);
 }
 
+L2Entry SaiSwitch::getL2Entry(
+    const sai_fdb_event_notification_data_t& fdbEvent) const {
+  std::optional<PortSaiId> portSaiId;
+  for (int i = 0; i < fdbEvent.attr_count && !portSaiId; ++i) {
+    const auto attr = fdbEvent.attr;
+    switch (fdbEvent.attr[i].id) {
+      case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
+        portSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+            BridgePortSaiId{attr[i].value.oid},
+            SaiBridgePortTraits::Attributes::PortId{});
+        break;
+      default:
+        break;
+    }
+  }
+  if (!portSaiId) {
+    throw FbossError("Missing port attribute in FDB event");
+  }
+  L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
+  switch (fdbEvent.event_type) {
+    // For learning events consider entry type as pending (else the
+    // fdb event should not have been punted to us)
+    // For Aging events, consider the entry as already validated (programmed)
+    case SAI_FDB_EVENT_LEARNED:
+      entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING;
+      break;
+    case SAI_FDB_EVENT_AGED:
+      entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
+      break;
+    default:
+      throw FbossError("Unexpected event type: ", fdbEvent.event_type);
+      break;
+  }
+  return L2Entry{
+      fromSaiMacAddress(fdbEvent.fdb_entry.mac_address),
+      concurrentIndices_->vlanIds.find(portSaiId.value())->second,
+      PortDescriptor(
+          concurrentIndices_->portIds.find(portSaiId.value())->second),
+      entryType};
+}
+
 void SaiSwitch::fdbEventCallbackLocked(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
+  if (managerTable_->portManager().getL2LearningMode() !=
+      cfg::L2LearningMode::SOFTWARE) {
+    // Some platforms call fdb callback even when mode is set to HW. In keeping
+    // with our native SDK approach, don't send these events up.
+    return;
+  }
   for (auto i = 0; i < count; ++i) {
     auto ditr = kL2AddrUpdateOperationsOfInterest.find(data[i].event_type);
     if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
-      // TODO pass event up to callback
+      callback_->l2LearningUpdateReceived(getL2Entry(data[i]), ditr->second);
     }
   }
 }

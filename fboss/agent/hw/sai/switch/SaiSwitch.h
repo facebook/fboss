@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -322,6 +323,8 @@ class SaiSwitch : public HwSwitch {
   void stopNonCallbackThreads();
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
+
+  L2Entry getL2Entry(const sai_fdb_event_notification_data_t& fdbEvent) const;
 
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};
