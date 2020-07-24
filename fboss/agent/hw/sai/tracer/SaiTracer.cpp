@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
@@ -113,6 +114,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->hashApi_ =
           static_cast<sai_hash_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapHashApi();
+      break;
+    case (SAI_API_HOSTIF):
+      SaiTracer::getInstance()->hostifApi_ =
+          static_cast<sai_hostif_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapHostifApi();
       break;
     case (SAI_API_MPLS):
       SaiTracer::getInstance()->mplsApi_ =
@@ -840,6 +846,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_HASH:
       setHashAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_HOSTIF_TRAP:
+      setHostifTrapAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP:
+      setHostifTrapGroupAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       setInsegEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -1115,10 +1127,13 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_POOL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_POLICER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
