@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/tracer/BufferApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/FdbApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/MplsApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
@@ -112,6 +113,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->hashApi_ =
           static_cast<sai_hash_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapHashApi();
+      break;
+    case (SAI_API_MPLS):
+      SaiTracer::getInstance()->mplsApi_ =
+          static_cast<sai_mpls_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapMplsApi();
       break;
     case (SAI_API_NEIGHBOR):
       SaiTracer::getInstance()->neighborApi_ =
@@ -373,6 +379,41 @@ void SaiTracer::logFdbEntryCreateFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logInsegEntryCreateFn(
+    const sai_inseg_entry_t* inseg_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // First fill in attribute list
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_INSEG_ENTRY);
+
+  // Then setup inseg entry (switch and label)
+  setInsegEntry(inseg_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  // Make the function call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_INSEG_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "create_inseg_entry(&inseg_entry, ",
+      attr_count,
+      ", sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
 void SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
@@ -482,6 +523,32 @@ void SaiTracer::logFdbEntryRemoveFn(
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "remove_fdb_entry(&fdb_entry)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logInsegEntryRemoveFn(
+    const sai_inseg_entry_t* inseg_entry,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  setInsegEntry(inseg_entry, lines);
+
+  // TODO(zecheng): Log current timestamp, object id and return value
+
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_INSEG_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "remove_inseg_entry(&inseg_entry)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -602,6 +669,36 @@ void SaiTracer::logFdbEntrySetAttrFn(
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "set_fdb_entry_attribute(&fdb_entry, sai_attributes)"));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logInsegEntrySetAttrFn(
+    const sai_inseg_entry_t* inseg_entry,
+    const sai_attribute_t* attr,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Setup one attribute
+  vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_INSEG_ENTRY);
+
+  setInsegEntry(inseg_entry, lines);
+
+  // TODO(zecheg): Log current timestamp, object id and return value
+
+  // Make setAttribute call
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_INSEG_ENTRY,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "set_inseg_entry_attribute(&inseg_entry, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -743,6 +840,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_HASH:
       setHashAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_INSEG_ENTRY:
+      setInsegEntryAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_NEIGHBOR_ENTRY:
       setNeighborEntryAttributes(attr_list, attr_count, attrLines);
       break;
@@ -832,6 +932,15 @@ void SaiTracer::setFdbEntry(
     lines.push_back(to<string>(
         "fdb_entry.mac_address[", i, "] = ", fdb_entry->mac_address[i]));
   }
+}
+
+void SaiTracer::setInsegEntry(
+    const sai_inseg_entry_t* inseg_entry,
+    std::vector<std::string>& lines) {
+  lines.push_back(to<string>(
+      "inseg_entry.switch_id = ",
+      getVariable(inseg_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
+  lines.push_back(to<string>("inseg_entry.label = ", inseg_entry->label));
 }
 
 void SaiTracer::setNeighborEntry(
@@ -988,6 +1097,7 @@ void SaiTracer::setupGlobals() {
   globalVar.push_back("sai_route_entry_t route_entry");
   globalVar.push_back("sai_neighbor_entry_t neighbor_entry");
   globalVar.push_back("sai_fdb_entry_t fdb_entry");
+  globalVar.push_back("sai_inseg_entry_t inseg_entry");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;

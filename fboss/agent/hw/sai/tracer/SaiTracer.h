@@ -59,6 +59,12 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
+  void logInsegEntryCreateFn(
+      const sai_inseg_entry_t* inseg_entry,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
+
   void logCreateFn(
       const std::string& fn_name,
       sai_object_id_t* create_object_id,
@@ -78,6 +84,10 @@ class SaiTracer {
 
   void logFdbEntryRemoveFn(const sai_fdb_entry_t* fdb_entry, sai_status_t rv);
 
+  void logInsegEntryRemoveFn(
+      const sai_inseg_entry_t* inseg_entry,
+      sai_status_t rv);
+
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
@@ -96,6 +106,11 @@ class SaiTracer {
 
   void logFdbEntrySetAttrFn(
       const sai_fdb_entry_t* fdb_entry,
+      const sai_attribute_t* attr,
+      sai_status_t rv);
+
+  void logInsegEntrySetAttrFn(
+      const sai_inseg_entry_t* inseg_entry,
       const sai_attribute_t* attr,
       sai_status_t rv);
 
@@ -121,6 +136,7 @@ class SaiTracer {
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
   sai_next_hop_group_api_t* nextHopGroupApi_;
+  sai_mpls_api_t* mplsApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
   sai_qos_map_api_t* qosMapApi_;
@@ -153,6 +169,10 @@ class SaiTracer {
 
   void setFdbEntry(
       const sai_fdb_entry_t* fdb_entry,
+      std::vector<std::string>& lines);
+
+  void setInsegEntry(
+      const sai_inseg_entry_t* inseg_entry,
       std::vector<std::string>& lines);
 
   void setNeighborEntry(
@@ -276,6 +296,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "buffer_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
+      {SAI_OBJECT_TYPE_INSEG_ENTRY, "mpls_api->"},
       {SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, "neighbor_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "next_hop_api->"},
       {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, "next_hop_group_api->"},
