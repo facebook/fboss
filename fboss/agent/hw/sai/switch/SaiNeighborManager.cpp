@@ -90,8 +90,13 @@ void SaiNeighborManager::addNeighbor(
 
   // TODO(AGGPORT): support aggregate port ID
   auto portID = swEntry->getPort().phyPortID();
+  // Add a static FDB entry for neighbor MACs so its not subject to l2
+  // mac table aging algorithm
   managerTable_->fdbManager().addFdbEntry(
-      portID, swEntry->getIntfID(), swEntry->getMac());
+      portID,
+      swEntry->getIntfID(),
+      swEntry->getMac(),
+      SAI_FDB_ENTRY_TYPE_STATIC);
 
   auto subscriber = std::make_shared<ManagedNeighbor>(
       portID, swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());

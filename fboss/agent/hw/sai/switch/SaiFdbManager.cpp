@@ -37,13 +37,14 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   auto bridgePort = std::get<BridgePortWeakPtr>(objects).lock();
   auto bridgePortId = bridgePort->adapterKey();
   SaiFdbTraits::CreateAttributes attributes{
-      SAI_FDB_ENTRY_TYPE_STATIC, bridgePortId, std::nullopt};
+      static_cast<sai_uint32_t>(type_), bridgePortId, std::nullopt};
 
   auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
   auto fdbEntry =
       store.setObject(entry, attributes, std::make_tuple(interfaceId_, mac_));
   setObject(fdbEntry);
 }
+
 void ManagedFdbEntry::removeObject(size_t, PublisherObjects) {
   /* either interface is removed or bridge port is removed, delete fdb entry */
   this->resetObject();
@@ -56,12 +57,13 @@ PortID ManagedFdbEntry::getPortId() const {
 void SaiFdbManager::addFdbEntry(
     PortID port,
     InterfaceID interfaceId,
-    folly::MacAddress mac) {
+    folly::MacAddress mac,
+    sai_fdb_entry_type_t type) {
   XLOGF(INFO, "Add fdb entry {}, {}, {}", port, interfaceId, mac);
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
   auto managedFdbEntry =
-      std::make_shared<ManagedFdbEntry>(switchId, port, interfaceId, mac);
+      std::make_shared<ManagedFdbEntry>(switchId, port, interfaceId, mac, type);
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);

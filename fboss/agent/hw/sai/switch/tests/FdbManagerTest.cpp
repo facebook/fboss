@@ -51,6 +51,7 @@ TEST_F(FdbManagerTest, addFdbEntry) {
   folly::MacAddress mac1{"00:11:11:11:11:11"};
   InterfaceID intfId = InterfaceID(intf0.id);
   auto portId = PortID(intf0.id);
-  saiManagerTable->fdbManager().addFdbEntry(portId, intfId, mac1);
+  saiManagerTable->fdbManager().addFdbEntry(
+      portId, intfId, mac1, SAI_FDB_ENTRY_TYPE_STATIC);
   checkFdbEntry(intfId, mac1, portId);
 }

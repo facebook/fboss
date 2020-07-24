@@ -53,12 +53,14 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       SwitchSaiId switchId,
       PortID portId,
       InterfaceID interfaceId,
-      const folly::MacAddress& mac)
+      const folly::MacAddress& mac,
+      sai_fdb_entry_type_t type)
       : Base(portId, interfaceId),
         switchId_(switchId),
         portId_(portId),
         interfaceId_(interfaceId),
-        mac_(mac) {}
+        mac_(mac),
+        type_(type) {}
 
   void createObject(PublisherObjects);
   void removeObject(size_t, PublisherObjects);
@@ -70,13 +72,18 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   PortID portId_;
   InterfaceID interfaceId_;
   folly::MacAddress mac_;
+  sai_fdb_entry_type_t type_;
 };
 
 class SaiFdbManager {
  public:
   SaiFdbManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
 
-  void addFdbEntry(PortID, InterfaceID, folly::MacAddress);
+  void addFdbEntry(
+      PortID,
+      InterfaceID,
+      folly::MacAddress,
+      sai_fdb_entry_type_t type);
   void removeFdbEntry(InterfaceID, folly::MacAddress);
 
   void handleLinkDown(PortID portId);
