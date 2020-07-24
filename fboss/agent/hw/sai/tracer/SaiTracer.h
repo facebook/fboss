@@ -123,6 +123,7 @@ class SaiTracer {
   sai_next_hop_group_api_t* nextHopGroupApi_;
   sai_port_api_t* portApi_;
   sai_queue_api_t* queueApi_;
+  sai_qos_map_api_t* qosMapApi_;
   sai_route_api_t* routeApi_;
   sai_router_interface_api_t* routerInterfaceApi_;
   sai_scheduler_api_t* schedulerApi_;
@@ -282,7 +283,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_PORT, "port_api->"},
       {SAI_OBJECT_TYPE_ROUTE_ENTRY, "route_api->"},
       {SAI_OBJECT_TYPE_ROUTER_INTERFACE, "router_interface_api->"},
-      {SAI_OBJECT_TYPE_QOS_MAP, "qosMap_api->"},
+      {SAI_OBJECT_TYPE_QOS_MAP, "qos_map_api->"},
       {SAI_OBJECT_TYPE_QUEUE, "queue_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},

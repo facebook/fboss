@@ -29,7 +29,7 @@ std::string oidAttr(
 void oidListAttr(
     const sai_attribute_t* attr_list,
     int i,
-    uint32_t listCount,
+    uint32_t listIndex,
     std::vector<std::string>& attrLines,
     std::vector<sai_object_type_t> object_types);
 
@@ -75,20 +75,26 @@ std::string u64Attr(const sai_attribute_t* attr_list, int i);
 void s8ListAttr(
     const sai_attribute_t* attr_list,
     int i,
-    uint32_t listCount,
+    uint32_t listIndex,
     std::vector<std::string>& attrLines,
     bool nullable = false);
 
 void s32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
-    uint32_t listCount,
+    uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
 void u32ListAttr(
     const sai_attribute_t* attr_list,
     int i,
-    uint32_t listCount,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines);
+
+void qosMapListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
 void macAddressAttr(

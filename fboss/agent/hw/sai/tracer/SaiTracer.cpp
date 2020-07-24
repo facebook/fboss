@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/PortApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/QosMapApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/QueueApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouteApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/RouterInterfaceApiTracer.h"
@@ -131,6 +132,11 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->portApi_ =
           static_cast<sai_port_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapPortApi();
+      break;
+    case (SAI_API_QOS_MAP):
+      SaiTracer::getInstance()->qosMapApi_ =
+          static_cast<sai_qos_map_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrapQosMapApi();
       break;
     case (SAI_API_QUEUE):
       SaiTracer::getInstance()->queueApi_ =
@@ -751,6 +757,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_PORT:
       setPortAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_QOS_MAP:
+      setQosMapAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_QUEUE:
       setQueueAttributes(attr_list, attr_count, attrLines);

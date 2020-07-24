@@ -243,6 +243,115 @@ void u32ListAttr(
   }
 }
 
+void qosMapListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_qos_map_t), attr_list[i].value.qosmap.count);
+
+  string prefix = to<string>("sai_attributes", "[", i, "].value.qosmap.");
+  attrLines.push_back(
+      to<string>(prefix, "count = ", attr_list[i].value.qosmap.count));
+  attrLines.push_back(
+      to<string>(prefix, "list = (sai_qos_map_t*)(list_", listIndex, ")"));
+
+  // TODO(zecheng): Find a way to know the type of key and value.
+  // For now we can only set every single field
+  for (int j = 0; j < std::min(attr_list[i].value.qosmap.count, listLimit);
+       ++j) {
+    // Key
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.tc = ",
+        attr_list[i].value.qosmap.list[j].key.tc));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.dscp = ",
+        attr_list[i].value.qosmap.list[j].key.dscp));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.dot1p = ",
+        attr_list[i].value.qosmap.list[j].key.dot1p));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.prio = ",
+        attr_list[i].value.qosmap.list[j].key.prio));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.pg = ",
+        attr_list[i].value.qosmap.list[j].key.pg));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.queue_index = ",
+        attr_list[i].value.qosmap.list[j].key.queue_index));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].key.color = ",
+        attr_list[i].value.qosmap.list[j].key.color));
+
+    // Value
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.tc = ",
+        attr_list[i].value.qosmap.list[j].value.tc));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.dscp = ",
+        attr_list[i].value.qosmap.list[j].value.dscp));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.dot1p = ",
+        attr_list[i].value.qosmap.list[j].value.dot1p));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.prio = ",
+        attr_list[i].value.qosmap.list[j].value.prio));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.pg = ",
+        attr_list[i].value.qosmap.list[j].value.pg));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.queue_index = ",
+        attr_list[i].value.qosmap.list[j].value.queue_index));
+    attrLines.push_back(to<string>(
+        prefix,
+        "list[",
+        j,
+        "].value.color = ",
+        attr_list[i].value.qosmap.list[j].value.color));
+  }
+}
+
 void macAddressAttr(
     const sai_attribute_t* attr_list,
     int i,

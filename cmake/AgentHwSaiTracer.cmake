@@ -13,6 +13,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/NextHopApiTracer.cpp
   fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.cpp
   fboss/agent/hw/sai/tracer/PortApiTracer.cpp
+  fboss/agent/hw/sai/tracer/QosMapApiTracer.cpp
   fboss/agent/hw/sai/tracer/QueueApiTracer.cpp
   fboss/agent/hw/sai/tracer/RouteApiTracer.cpp
   fboss/agent/hw/sai/tracer/RouterInterfaceApiTracer.cpp
