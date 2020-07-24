@@ -24,8 +24,11 @@ namespace facebook::fboss {
 
 SaiFdbManager::SaiFdbManager(
     SaiManagerTable* managerTable,
-    const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {}
+    const SaiPlatform* platform,
+    const ConcurrentIndices* concurrentIndices)
+    : managerTable_(managerTable),
+      platform_(platform),
+      concurrentIndices_(concurrentIndices) {}
 
 void ManagedFdbEntry::createObject(PublisherObjects objects) {
   /* both interface and  bridge port exist, create fdb entry */

@@ -26,6 +26,7 @@
 
 namespace facebook::fboss {
 
+class ConcurrentIndices;
 class SaiManagerTable;
 class SaiPlatform;
 class MacEntry;
@@ -80,7 +81,10 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
 class SaiFdbManager {
  public:
-  SaiFdbManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
+  SaiFdbManager(
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform,
+      const ConcurrentIndices* concurrentIndices);
 
   void addFdbEntry(
       PortID,
@@ -106,8 +110,10 @@ class SaiFdbManager {
   void handleLinkDown(PortID portId);
 
  private:
+  VlanID getVlanId(const std::shared_ptr<MacEntry>& macEntry) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
+  const ConcurrentIndices* concurrentIndices_;
   folly::F14FastMap<
       PublisherKey<SaiFdbTraits>::custom_type,
       std::shared_ptr<ManagedFdbEntry>>

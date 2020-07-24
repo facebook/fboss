@@ -52,7 +52,8 @@ void SaiManagerTable::createSaiTableManagers(
   aclTableManager_ = std::make_unique<SaiAclTableManager>(this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
-  fdbManager_ = std::make_unique<SaiFdbManager>(this, platform);
+  fdbManager_ =
+      std::make_unique<SaiFdbManager>(this, platform, concurrentIndices);
   hashManager_ = std::make_unique<SaiHashManager>(this);
   queueManager_ = std::make_unique<SaiQueueManager>(this, platform);
   hostifManager_ = std::make_unique<SaiHostifManager>(this, platform);
