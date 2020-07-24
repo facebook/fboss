@@ -985,7 +985,11 @@ void SaiSwitch::fetchL2TableLocked(
       continue;
     }
     *entry.port_ref() = portItr->second;
-
+    auto metadata =
+        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
+    if (metadata) {
+      *entry.classID_ref() = metadata;
+    }
     // entry is filled out; push it onto the L2 table
     l2Table->push_back(entry);
   }
