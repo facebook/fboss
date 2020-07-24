@@ -6,18 +6,34 @@
 add_library(sai_tracer
   fboss/agent/hw/sai/tracer/AclApiTracer.cpp
   fboss/agent/hw/sai/tracer/BridgeApiTracer.cpp
+  fboss/agent/hw/sai/tracer/BufferApiTracer.cpp
+  fboss/agent/hw/sai/tracer/FdbApiTracer.cpp
+  fboss/agent/hw/sai/tracer/HashApiTracer.cpp
+  fboss/agent/hw/sai/tracer/NeighborApiTracer.cpp
+  fboss/agent/hw/sai/tracer/NextHopApiTracer.cpp
+  fboss/agent/hw/sai/tracer/NextHopGroupApiTracer.cpp
   fboss/agent/hw/sai/tracer/PortApiTracer.cpp
   fboss/agent/hw/sai/tracer/QueueApiTracer.cpp
   fboss/agent/hw/sai/tracer/RouteApiTracer.cpp
+  fboss/agent/hw/sai/tracer/RouterInterfaceApiTracer.cpp
   fboss/agent/hw/sai/tracer/SaiTracer.cpp
+  fboss/agent/hw/sai/tracer/SchedulerApiTracer.cpp
   fboss/agent/hw/sai/tracer/SwitchApiTracer.cpp
   fboss/agent/hw/sai/tracer/Utils.cpp
+  fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.cpp
   fboss/agent/hw/sai/tracer/VlanApiTracer.cpp
 )
 
 target_link_libraries(sai_tracer
   fboss_error
+  sai_version
   Folly::folly
+)
+
+set_target_properties(sai_tracer PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
 target_link_options(sai_tracer
