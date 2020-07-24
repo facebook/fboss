@@ -28,6 +28,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class MacEntry;
 
 using SaiFdbEntry = SaiObject<SaiFdbTraits>;
 
@@ -88,7 +89,20 @@ class SaiFdbManager {
       sai_fdb_entry_type_t type,
       std::optional<sai_uint32_t> metadata = std::nullopt);
   void removeFdbEntry(InterfaceID, folly::MacAddress);
-
+  // Process mac Table changes
+  void addMac(const std::shared_ptr<MacEntry>& addedEntry) {
+    // TODO
+  }
+  void removeMac(const std::shared_ptr<MacEntry>& removedEntry) {
+    // TODO
+  }
+  void changeMac(
+      const std::shared_ptr<MacEntry>& oldEntry,
+      const std::shared_ptr<MacEntry>& newEntry) {
+    // TODO - optimize this
+    removeMac(oldEntry);
+    addMac(newEntry);
+  }
   void handleLinkDown(PortID portId);
 
  private:

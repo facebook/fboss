@@ -283,6 +283,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
         &SaiNeighborManager::changeNeighbor<NdpEntry>,
         &SaiNeighborManager::addNeighbor<NdpEntry>,
         &SaiNeighborManager::removeNeighbor<NdpEntry>);
+
+    processDelta(
+        vlanDelta.getMacDelta(),
+        managerTable_->fdbManager(),
+        &SaiFdbManager::changeMac,
+        &SaiFdbManager::addMac,
+        &SaiFdbManager::removeMac);
   }
 
   for (const auto& routeDelta : delta.getRouteTablesDelta()) {
