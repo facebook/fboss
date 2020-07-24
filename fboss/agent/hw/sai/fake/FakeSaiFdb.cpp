@@ -25,6 +25,7 @@ sai_status_t create_fdb_entry_fn(
   auto fs = FakeSai::getInstance();
   auto mac = facebook::fboss::fromSaiMacAddress(fdb_entry->mac_address);
   sai_object_id_t bridgePortId = 0;
+  sai_uint32_t metadata{0};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
@@ -33,7 +34,7 @@ sai_status_t create_fdb_entry_fn(
       case SAI_FDB_ENTRY_ATTR_TYPE:
         break;
       case SAI_FDB_ENTRY_ATTR_META_DATA:
-        // TODO
+        metadata = attr_list[i].value.u32;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -41,7 +42,8 @@ sai_status_t create_fdb_entry_fn(
   }
   fs->fdbManager.create(
       std::make_tuple(fdb_entry->switch_id, fdb_entry->bv_id, mac),
-      bridgePortId);
+      bridgePortId,
+      metadata);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -65,7 +67,7 @@ sai_status_t set_fdb_entry_attribute_fn(
       fdbEntry.bridgePortId = attr->value.oid;
       break;
     case SAI_FDB_ENTRY_ATTR_META_DATA:
-      // TODO
+      fdbEntry.metadata = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -91,8 +93,7 @@ sai_status_t get_fdb_entry_attribute_fn(
         attr_list[i].value.s32 = SAI_FDB_ENTRY_TYPE_STATIC;
         break;
       case SAI_FDB_ENTRY_ATTR_META_DATA:
-        // TODO
-        attr_list[i].value.u32 = 0;
+        attr_list[i].value.u32 = fdbEntry.metadata;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
