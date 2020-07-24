@@ -63,7 +63,8 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
         portId_(portId),
         interfaceId_(interfaceId),
         mac_(mac),
-        type_(type) {}
+        type_(type),
+        metadata_(metadata) {}
 
   void createObject(PublisherObjects);
   void removeObject(size_t, PublisherObjects);
@@ -94,12 +95,8 @@ class SaiFdbManager {
       std::optional<sai_uint32_t> metadata = std::nullopt);
   void removeFdbEntry(InterfaceID, folly::MacAddress);
   // Process mac Table changes
-  void addMac(const std::shared_ptr<MacEntry>& addedEntry) {
-    // TODO
-  }
-  void removeMac(const std::shared_ptr<MacEntry>& removedEntry) {
-    // TODO
-  }
+  void addMac(const std::shared_ptr<MacEntry>& addedEntry);
+  void removeMac(const std::shared_ptr<MacEntry>& removedEntry);
   void changeMac(
       const std::shared_ptr<MacEntry>& oldEntry,
       const std::shared_ptr<MacEntry>& newEntry) {
@@ -110,7 +107,7 @@ class SaiFdbManager {
   void handleLinkDown(PortID portId);
 
  private:
-  VlanID getVlanId(const std::shared_ptr<MacEntry>& macEntry) const;
+  InterfaceID getInterfaceId(const std::shared_ptr<MacEntry>& macEntry) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   const ConcurrentIndices* concurrentIndices_;

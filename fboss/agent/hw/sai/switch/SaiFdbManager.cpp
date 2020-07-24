@@ -9,13 +9,16 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/state/MacEntry.h"
 
 #include <memory>
 #include <tuple>
@@ -62,7 +65,14 @@ void SaiFdbManager::addFdbEntry(
     folly::MacAddress mac,
     sai_fdb_entry_type_t type,
     std::optional<sai_uint32_t> metadata) {
-  XLOGF(INFO, "Add fdb entry {}, {}, {}", port, interfaceId, mac);
+  XLOGF(
+      INFO,
+      "Add fdb entry {}, {}, {}, metadata: {}",
+      port,
+      interfaceId,
+      mac,
+      metadata ? metadata.value() : 0);
+
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   auto key = PublisherKey<SaiFdbTraits>::custom_type{interfaceId, mac};
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
@@ -94,6 +104,35 @@ void SaiFdbManager::removeFdbEntry(
   if (portToKeys_[portId].empty()) {
     portToKeys_.erase(portId);
   }
+}
+
+void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
+  std::optional<sai_uint32_t> metadata{std::nullopt};
+  if (macEntry->getClassID()) {
+    metadata = static_cast<sai_uint32_t>(macEntry->getClassID().value());
+  }
+  addFdbEntry(
+      macEntry->getPort().phyPortID(),
+      getInterfaceId(macEntry),
+      macEntry->getMac(),
+      SAI_FDB_ENTRY_TYPE_DYNAMIC,
+      metadata);
+}
+
+void SaiFdbManager::removeMac(const std::shared_ptr<MacEntry>& macEntry) {
+  removeFdbEntry(getInterfaceId(macEntry), macEntry->getMac());
+}
+
+InterfaceID SaiFdbManager::getInterfaceId(
+    const std::shared_ptr<MacEntry>& macEntry) const {
+  if (macEntry->getPort().isAggregatePort()) {
+    throw FbossError("Aggregate ports not yet supported in SAI");
+  }
+  auto const portHandle = managerTable_->portManager().getPortHandle(
+      macEntry->getPort().phyPortID());
+  // FBOSS assumes a 1:1 correpondance b/w Vlan and interfae IDs
+  return InterfaceID(
+      concurrentIndices_->vlanIds.find(portHandle->port->adapterKey())->second);
 }
 
 void SaiFdbManager::handleLinkDown(PortID portId) {
