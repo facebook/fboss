@@ -204,15 +204,16 @@ bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
 }
 
 bool HwSwitchEnsemble::waitPortStatsCondition(
-    std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn) {
-  ssize_t tries = 10;
+    std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
   auto newPortStats = getLatestPortStats(masterLogicalPortIds());
-  while (tries--) {
+  while (retries--) {
     // TODO(borisb): exponential backoff!
     if (conditionFn(newPortStats)) {
       return true;
     }
-    std::this_thread::sleep_for(20ms);
+    std::this_thread::sleep_for(msBetweenRetry);
     newPortStats = getLatestPortStats(masterLogicalPortIds());
   }
   XLOG(DBG3) << "Awaited port stats condition was never satisfied";
