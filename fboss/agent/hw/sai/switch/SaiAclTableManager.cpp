@@ -98,11 +98,6 @@ std::
                                           SAI_ACL_ACTION_TYPE_SET_TC,
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
-  auto fieldDstIpV4 = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldDstIpV4{true})
-      : std::nullopt;
-
   /*
    * TODO(skhare)
    * Trident2 supports fewer ACL qualifiers than other hardwares, and enabling
@@ -149,7 +144,7 @@ std::
       true, // srcIpv6
       true, // dstIpv6
       true, // srcIpV4
-      fieldDstIpV4,
+      true, // dstIpV4
       true, // l4SrcPort
       true, // l4DstPort
       true, // ipProtocol
@@ -409,14 +404,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           AclEntryFieldIpV6(std::make_pair(
               addedAclEntry->getDstIp().first.asV6(), dstIpV6Mask))};
     } else if (addedAclEntry->getDstIp().first.isV4()) {
-      if (platform_->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-        // TODO(skhare) See TODO about Trident2 in addAclTable
-        throw FbossError(
-            "attempted to configure DstIP IPv4 on Trident2, TODO: add support",
-            addedAclEntry->getID());
-      }
-
       auto dstIpV4Mask = folly::IPAddressV4(
           folly::IPAddressV4::fetchMask(addedAclEntry->getDstIp().second));
       fieldDstIpV4 = SaiAclEntryTraits::Attributes::FieldDstIpV4{
