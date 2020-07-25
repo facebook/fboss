@@ -193,6 +193,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       cfg::L2LearningMode l2LearningMode,
       PortDescriptor portDescr) {
     auto newCfg{initialConfig()};
+    bringDownPort(masterLogicalPortIds()[1]);
     *newCfg.switchSettings_ref()->l2LearningMode_ref() = l2LearningMode;
 
     if (portDescr.isAggregatePort()) {
@@ -204,9 +205,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       auto state = applyNewConfig(newCfg);
       applyNewState(enableTrunkPorts(state));
     } else {
-      applyNewConfig(newCfg);
+      setL2LearningMode(l2LearningMode);
     }
-    bringDownPort(masterLogicalPortIds()[1]);
   }
 
   PortDescriptor physPortDescr() const {
