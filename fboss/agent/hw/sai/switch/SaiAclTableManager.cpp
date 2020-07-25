@@ -99,31 +99,6 @@ std::
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
   /*
-   * TODO(skhare)
-   * Trident2 supports fewer ACL qualifiers than other hardwares, and enabling
-   * below causes it to run out of resources.
-   * One possible alternative is to implement Trident2 (or rather BRCM)-specific
-   * solution/optimization:  BRCM uses L4SrcPort for icmp, so configure
-   * L4SrcPort ACL with ICMP value.
-   */
-  auto fieldIcmpV4Type = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV4Type{true})
-      : std::nullopt;
-  auto fieldIcmpV4Code = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV4Code{true})
-      : std::nullopt;
-  auto fieldIcmpV6Type = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV6Type{true})
-      : std::nullopt;
-  auto fieldIcmpV6Code = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldIcmpV6Code{true})
-      : std::nullopt;
-
-  /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
    * However, the solution is not applicable for Trident2 as FBOSS does not
    * implement queues on Trident2.
@@ -152,10 +127,10 @@ std::
       true, // srcPort
       true, // outPort
       true, // ipFrag
-      fieldIcmpV4Type,
-      fieldIcmpV4Code,
-      fieldIcmpV6Type,
-      fieldIcmpV6Code,
+      true, // icmpV4Type,
+      true, // icmpV4Code,
+      true, // icmpV6Type,
+      true, // icmpV6Code,
       true, // dscp
       true, // dstMac
       true, // ipType
@@ -495,14 +470,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV6Code> fieldIcmpV6Code{
       std::nullopt};
   if (addedAclEntry->getIcmpType()) {
-    if (platform_->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-      // TODO(skhare) See TODO about Trident2 in addAclTable
-      throw FbossError(
-          "attempted to configure ICMPv4 Type ACL Trident2, TODO: add support ",
-          addedAclEntry->getID());
-    }
-
     if (addedAclEntry->getProto()) {
       if (addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmp) {
         fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
