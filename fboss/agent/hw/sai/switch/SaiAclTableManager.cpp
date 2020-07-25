@@ -98,20 +98,6 @@ std::
                                           SAI_ACL_ACTION_TYPE_SET_TC,
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
-  /*
-   * TODO(skhare)
-   * Trident2 supports fewer ACL qualifiers than other hardwares, and enabling
-   * below causes it to run out of resources.
-   * One possible alternative is to implement Trident2-specific solution viz.:
-   * Trident2 uses same fields for both V4 and V6.
-   * For a V4 packet, the lower 32-bit is the V4 address, with all other
-   * (128-32) bits set to 0. Thus, we could use srcIPv6/dstIPv6 ACL for src/dst
-   * IPv4.
-   */
-  auto fieldSrcIpV4 = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(SaiAclTableTraits::Attributes::FieldSrcIpV4{true})
-      : std::nullopt;
   auto fieldDstIpV4 = platform_->getAsic()->getAsicType() !=
           HwAsic::AsicType::ASIC_TYPE_TRIDENT2
       ? std::make_optional(SaiAclTableTraits::Attributes::FieldDstIpV4{true})
@@ -162,7 +148,7 @@ std::
       actionTypeList,
       true, // srcIpv6
       true, // dstIpv6
-      fieldSrcIpV4,
+      true, // srcIpV4
       fieldDstIpV4,
       true, // l4SrcPort
       true, // l4DstPort
@@ -403,14 +389,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           AclEntryFieldIpV6(std::make_pair(
               addedAclEntry->getSrcIp().first.asV6(), srcIpV6Mask))};
     } else if (addedAclEntry->getSrcIp().first.isV4()) {
-      if (platform_->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-        // TODO(skhare) See TODO about Trident2 in addAclTable
-        throw FbossError(
-            "attempted to configure SrcIP IPv4 on Trident2, TODO: add support",
-            addedAclEntry->getID());
-      }
-
       auto srcIpV4Mask = folly::IPAddressV4(
           folly::IPAddressV4::fetchMask(addedAclEntry->getSrcIp().second));
       fieldSrcIpV4 = SaiAclEntryTraits::Attributes::FieldSrcIpV4{
