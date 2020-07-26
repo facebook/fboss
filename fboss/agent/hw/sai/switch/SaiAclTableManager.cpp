@@ -108,9 +108,8 @@ std::
    */
   auto fieldFdbDstUserMeta = platform_->getAsic()->getAsicType() !=
           HwAsic::AsicType::ASIC_TYPE_TRIDENT2
-      ? std::make_optional(
-            SaiAclTableTraits::Attributes::FieldFdbDstUserMeta{true})
-      : std::nullopt;
+      ? true
+      : false;
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{
       SAI_ACL_STAGE_INGRESS,
