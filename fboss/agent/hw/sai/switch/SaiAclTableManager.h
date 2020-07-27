@@ -58,7 +58,7 @@ class SaiAclTableManager {
   static auto constexpr kL4PortMask = 0xFFFF;
 
   static auto constexpr kIpProtocolMask = 0xFF;
-  static auto constexpr kTcpFlagsMask = 0xFF;
+  static auto constexpr kTcpFlagsMask = 0x3F;
   static auto constexpr kLookupClassMask = 0xFFFFFFFF;
   // Mask is not applicable for given field
   static auto constexpr kMaskDontCare = 0;
