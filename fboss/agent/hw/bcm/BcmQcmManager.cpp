@@ -281,13 +281,13 @@ void BcmQcmManager::stop() {
     return;
   }
   XLOG(INFO) << "Stopping QCM ..";
+  resetBurstMonitor();
   if (qcmCollector_) {
     qcmCollector_->stop();
   }
   deleteIfpEntries(); // step 2
   destroyFlowGroup(); // step 3
   destroyExactMatchGroup(); // step 4
-  resetBurstMonitor();
   destroyPolicer();
 
   // stop firmware

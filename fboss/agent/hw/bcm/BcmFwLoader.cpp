@@ -23,7 +23,7 @@
 // the firmware.
 DEFINE_string(
     qcm_fw_path,
-    "/var/facebook/fboss/BCM56960_1_qcm.srec",
+    "/var/facebook/fboss/BCM56960_2_qcm.srec",
     "Location of qcm firmware");
 DEFINE_bool(load_qcm_fw, false, "Enable load of qcm fimrware");
 DEFINE_bool(
