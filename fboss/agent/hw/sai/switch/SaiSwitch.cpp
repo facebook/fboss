@@ -361,6 +361,47 @@ void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   if (oldSwitchSettings != newSwitchSettings) {
     if (oldSwitchSettings->getL2LearningMode() !=
         newSwitchSettings->getL2LearningMode()) {
+      if (bootType_ == BootType::WARM_BOOT ||
+          getSwitchRunState() >= SwitchRunState::CONFIGURED) {
+        /*
+         * Changing L2 learning mode on SAI is quite complex and I am
+         *     inclined to not support it at all here (see prod plan below).
+         * Consider,
+         *
+         * - On transition from SW to HW learning, we need to clear out
+         * SwitchState MAC table and our FDB table of dynamic entries (to get
+         * back to a state where we would be had we had HW learning mode).
+         * Clearing out MAC table in SwitchState is easy enough. However we just
+         * can't prune out the FDB entries in FDB manager, since that would
+         * clear hw causing MACs to be unprogrammed. There are bunch of tricks
+         * we can adopt to work around
+         *                                  - Keep around the FDB entries but
+         * mark them dead. This now complicates what we do when new FDB entries
+         * get programmed with the same MAC (which we won;t know about since we
+         * are now in HW learning mode) or when links go down, do we reset the
+         * dead entries or not?
+         *                                                      - Blow away the
+         * FDB entries but blackhole writes to HW. For this we will have to
+         * create a SAI blackholer since to one we have for native and block HW
+         * writes. In addition we would have to block observers to FDB entry
+         * reset, since we don't want ARP,NDP entries to observe this and start
+         * shrinking ECMP groups. This is getting to be quite complex
+         *                                                                                   -
+         * On transition from HW to SW learning We need to traverse the hw FDB
+         * entries and populate our MAC table. This is doable but needs a SAI
+         * extension to either observe or iterate SAI FDB table updates in HW
+         * learning mode. On the observer side things look clearer since we
+         * would just observe what's already in HW.
+         *
+         * Considering all this, just prohibit transitions. For prod,
+         * we will just deploy withSW L2 learning  everywhere. SW l2 learning
+         * is a superset of HW l2 learning in terms of functionality, so for SAI
+         * we will just standardize on that.
+         */
+        throw FbossError(
+            "Chaging L2 learning mode after initial config "
+            "application is not permitted");
+      }
       auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
       XLOG(DBG3) << "Configuring L2LearningMode old: "
                  << static_cast<int>(oldSwitchSettings->getL2LearningMode())
@@ -1114,6 +1155,13 @@ void SaiSwitch::fdbEventCallback(
 
 std::optional<L2Entry> SaiSwitch::getL2Entry(
     const sai_fdb_event_notification_data_t& fdbEvent) const {
+  /*
+   * Idea behind returning a optional here on spurious FDB event
+   * (say with bogus port or vlan ID) vs throwing a exception
+   * is to protect the application from crashes in face of
+   * spurious events. This is similar to the philosophy we follow
+   * for spurious linkstate change or packet RX callbacks.
+   */
   std::optional<PortSaiId> portSaiId;
   for (int i = 0; i < fdbEvent.attr_count && !portSaiId; ++i) {
     const auto attr = fdbEvent.attr;
