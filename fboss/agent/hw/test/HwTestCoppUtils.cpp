@@ -142,6 +142,21 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     return action;
   };
 
+  // multicast link local dst ip
+  auto createNoOpAcl = [&](const folly::CIDRNetwork& dstNetwork) {
+    cfg::AclEntry acl;
+    auto dstIp =
+        folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+    *acl.name_ref() =
+        folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
+
+    acl.dstIp_ref() = dstIp;
+    acl.srcPort_ref() = kCPUPort;
+
+    acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+  };
+  createNoOpAcl(kIPv6LinkLocalMcastNetwork);
+
   // slow-protocols dst mac
   {
     cfg::AclEntry acl;

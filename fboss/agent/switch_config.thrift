@@ -9,6 +9,8 @@ namespace cpp2 facebook.fboss.cfg
 
 include "fboss/agent/if/mpls.thrift"
 
+typedef i64 (cpp.type = "uint64_t") u64
+
 /**
  * Administrative port state. ie "should the port be enabled?"
  */
@@ -633,6 +635,8 @@ enum SampleDestination {
   CPU     = 0,
   MIRROR  = 1
 }
+
+const u64 CPU_PORT_LOGICALID = 0
 
 typedef string PortQueueConfigName
 

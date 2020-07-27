@@ -269,11 +269,15 @@ void BcmAclEntry::createAclActions() {
   auto action = acl_->getAclAction();
   if (action) {
     if (action.value().getSendToQueue()) {
-      auto sendToQueue = action.value().getSendToQueue().value();
+      auto [queueMatchAction, sendToCPU] =
+          action.value().getSendToQueue().value();
       bcm_field_action_t actionToTake = bcmFieldActionCosQNew;
       auto errorMsg =
-          folly::to<std::string>("cos q ", *sendToQueue.first.queueId_ref());
-      if (sendToQueue.second) {
+          folly::to<std::string>("cos q ", *queueMatchAction.queueId_ref());
+      if (sendToCPU) {
+        rv = bcm_field_action_add(
+            hw_->getUnit(), handle_, bcmFieldActionCopyToCpu, 0, 0);
+        bcmCheckError(rv, "failed to add send to CPU action");
         actionToTake = bcmFieldActionCosQCpuNew;
         errorMsg = "CPU Q";
       }
@@ -281,7 +285,7 @@ void BcmAclEntry::createAclActions() {
           hw_->getUnit(),
           handle_,
           actionToTake,
-          *sendToQueue.first.queueId_ref(),
+          *queueMatchAction.queueId_ref(),
           0);
       bcmCheckError(rv, "failed to add set ", errorMsg, " field action");
     }

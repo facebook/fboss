@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -388,7 +389,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
       std::nullopt};
-  if (addedAclEntry->getSrcPort()) {
+  // TODO(skhare) support cpu source port (SaiCpuPortHandle)
+  if (addedAclEntry->getSrcPort() &&
+      addedAclEntry->getSrcPort().value() !=
+          cfg::switch_config_constants::CPU_PORT_LOGICALID()) {
     auto portHandle = managerTable_->portManager().getPortHandle(
         PortID(addedAclEntry->getSrcPort().value()));
     if (!portHandle) {
