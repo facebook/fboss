@@ -289,38 +289,6 @@ L2EntryUpdateType getL2EntryUpdateType(int operation) {
  */
 const unsigned int kMaxSflowSnapLen = 128;
 
-/*
- * Set warm boot flag in case its not already set
- * so. On exit restore warm boot flag to original.
- * This is useful as a wrapper around bcm api calls
- * which should always be called as if we were in
- * warm boot mode. An example of this is when we call
- * bcm_linkscan_enable_set to disable linkscan on
- * exit. Without warm boot flag set disabling linkscan
- * tries to re-enable all ports which were configured
- * as enabled. This should be a noop but in reality
- * causes a small number of packets to be dropped during
- * controller shutdown.
- */
-class WarmBootRAII {
- public:
-  explicit WarmBootRAII(int unit) : unit_(unit) {
-    warmBootSet_ = SOC_WARM_BOOT(unit);
-    if (!warmBootSet_) {
-      SOC_WARM_BOOT_START(unit_);
-    }
-  }
-  ~WarmBootRAII() {
-    if (!warmBootSet_) {
-      SOC_WARM_BOOT_DONE(unit_);
-    }
-  }
-
- private:
-  int unit_;
-  bool warmBootSet_;
-};
-
 bool isValidLabeledNextHopSet(
     facebook::fboss::BcmPlatform* platform,
     const facebook::fboss::LabelNextHopSet& nexthops) {
@@ -2657,7 +2625,6 @@ bool BcmSwitch::isRxThreadRunning() const {
 }
 
 void BcmSwitch::stopLinkscanThread() {
-  WarmBootRAII wb(unit_);
   // Disable the linkscan thread
   auto rv = bcm_linkscan_enable_set(unit_, 0);
   CHECK(BCM_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "
