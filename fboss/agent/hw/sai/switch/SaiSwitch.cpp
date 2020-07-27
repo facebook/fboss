@@ -163,9 +163,7 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
    *       corresponding Acl Table group member.
    *     - statechanged() would continue to carry AclEntry delta processing.
    */
-  if (getPlatform()->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2 &&
-      (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+  if ((getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
        getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
     managerTable_->aclTableGroupManager().addAclTableGroup(
         SAI_ACL_STAGE_INGRESS);
