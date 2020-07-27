@@ -24,13 +24,9 @@ extern "C" {
 #endif
 }
 
-DECLARE_int32(ll_mcast_gid);
-DECLARE_int32(acl_gid);
-
 using namespace facebook::fboss::utility;
 
 DECLARE_int32(acl_gid);
-DECLARE_int32(ll_mcast_gid);
 
 namespace facebook::fboss {
 
@@ -50,7 +46,6 @@ TEST_F(BcmTest, fpGroupExists) {
 
 TEST_F(BcmTest, fpOnlyDesiredGrpsConfigured) {
   std::vector<bcm_field_group_t> expectedGids = {
-      static_cast<bcm_field_group_t>(FLAGS_ll_mcast_gid),
       static_cast<bcm_field_group_t>(FLAGS_acl_gid)};
   std::sort(expectedGids.begin(), expectedGids.end());
   auto configuredGids = fpGroupsConfigured(getUnit());
@@ -61,7 +56,6 @@ TEST_F(BcmTest, fpOnlyDesiredGrpsConfigured) {
 TEST_F(BcmTest, fpDesiredGrpsExist) {
   // Create the BcmSwitch
   ASSERT_TRUE(fpGroupExists(getUnit(), FLAGS_acl_gid));
-  ASSERT_TRUE(fpGroupExists(getUnit(), FLAGS_ll_mcast_gid));
 }
 
 TEST_F(BcmTest, fpNoMissingOrQsetChangedGrpsPostInit) {

@@ -174,12 +174,6 @@ DEFINE_int32(cosq_default, 1, "The default cos queue number");
 
 DEFINE_int32(cosq_lopri, 0, "The low priority cos queue number");
 
-DEFINE_int32(
-    ll_mcast_gid,
-    201,
-    "Content aware processor group ID for copying link-local multicast "
-    "packets to CPU.");
-
 DEFINE_int32(acl_gid, 128, "Content aware processor group ID for ACLs");
 DEFINE_int32(
     copp_acl_entry_priority_start,
@@ -187,13 +181,11 @@ DEFINE_int32(
     "Starting ACL entry priority for CoPP");
 
 DEFINE_int32(acl_g_pri, 0, "Group priority for ACL field group");
-DEFINE_int32(ll_mcast_g_pri, 2, "Group pri for link local mcast field group");
 DEFINE_int32(
     qcm_ifp_gid,
     5,
     "Content aware processor group ID for ACLs specific to qcm");
-// Put lowest priority for this group among all i.e. lower than acl_g_pri,
-// ll_mcast_g_pri,
+// Put lowest priority for this group among all i.e. lower than acl_g_pri.
 DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
 enum : uint8_t {
@@ -296,11 +288,6 @@ L2EntryUpdateType getL2EntryUpdateType(int operation) {
  * How many bytes we copy for sFlow sampling
  */
 const unsigned int kMaxSflowSnapLen = 128;
-
-/**
- * Link-local multicast network
- */
-const auto kIPv6LinkLocalMcastNetwork = IPAddress::createNetwork("ff02::/16");
 
 /*
  * Set warm boot flag in case its not already set
@@ -2724,13 +2711,11 @@ void BcmSwitch::initMplsModule() const {
 }
 
 void BcmSwitch::setupFPGroups() {
-  for (auto grpId : {FLAGS_acl_gid, FLAGS_ll_mcast_gid}) {
+  for (auto grpId : {FLAGS_acl_gid}) {
     auto gid = static_cast<bcm_field_group_t>(grpId);
     XLOG(DBG1) << "Setting up FP group : " << gid;
     if (gid == FLAGS_acl_gid) {
       createAclGroup();
-    } else if (gid == FLAGS_ll_mcast_gid) {
-      copyIPv6LinkLocalMcastPackets();
     } else {
       throw FbossError("Unknown group id : ", gid);
     }
@@ -2741,7 +2726,7 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   std::map<std::pair<int32_t, int32_t>, bcm_field_qset_t> grp2Qset = {
       {{FLAGS_acl_gid, FLAGS_acl_g_pri},
        getAclQset(getPlatform()->getAsic()->getAsicType())},
-      {{FLAGS_ll_mcast_gid, FLAGS_ll_mcast_g_pri}, getLLMcastQset()}};
+  };
   for (const auto& grpAndQset : grp2Qset) {
     auto gid = static_cast<bcm_field_group_t>(grpAndQset.first.first);
     auto qset = grpAndQset.second;
@@ -2755,59 +2740,6 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   }
   XLOG(DBG1) << " All FP groups have desired QSETs ";
   return false;
-}
-
-void BcmSwitch::copyIPv6LinkLocalMcastPackets() {
-  // We will add a special field processor rule to capture IPv6 the link local
-  // multicast packets.
-
-  // create the group
-  const bcm_field_group_t gid = FLAGS_ll_mcast_gid;
-  const int g_pri = FLAGS_ll_mcast_g_pri;
-  createFPGroup(unit_, getLLMcastQset(), gid, g_pri);
-
-  // Get destination ipv6 addr with mask in bcm format
-  bcm_ip6_t ip;
-  bcm_ip6_t mask;
-  const auto& network = kIPv6LinkLocalMcastNetwork;
-  auto bytes = network.first.asV6().toByteArray();
-  memcpy(&ip, &bytes, bytes.size());
-  auto maskBytes = IPAddressV6::fetchMask(network.second);
-  memcpy(&mask, &maskBytes, maskBytes.size());
-
-  bcm_pbmp_t fpPorts, maskFpPorts;
-  bcm_port_config_t pcfg;
-  bcm_port_config_t_init(&pcfg);
-  auto rv = bcm_port_config_get(unit_, &pcfg);
-  bcmCheckError(rv, "failed to get port configuration");
-
-  BCM_PBMP_CLEAR(fpPorts);
-  BCM_PBMP_CLEAR(maskFpPorts);
-  BCM_PBMP_ASSIGN(fpPorts, pcfg.port);
-  BCM_PBMP_OR(maskFpPorts, pcfg.port);
-  BCM_PBMP_OR(maskFpPorts, pcfg.cpu);
-
-  bcm_field_entry_t entry;
-  rv = bcm_field_entry_create(unit_, gid, &entry);
-  bcmCheckError(rv, "failed to create fp entry");
-
-  // Qualify the destination address
-  rv = bcm_field_qualify_DstIp6(unit_, entry, ip, mask);
-  bcmCheckError(rv, "failed to add Dst IP field: ", network.first);
-
-  // Qualify the Inports
-  // Ensure that only front panel ports follow this acl (and cpu generated
-  // ff02 pkts are not looped back)
-  rv = bcm_field_qualify_InPorts(unit_, entry, fpPorts, maskFpPorts);
-  bcmCheckError(rv, "failed to add InPorts");
-
-  // Setup CopyToCpu action on FP rule
-  rv = bcm_field_action_add(unit_, entry, bcmFieldActionCopyToCpu, 0, 0);
-  bcmCheckError(rv, "failed to add set CPU Q field action");
-
-  // Install field processor entry
-  bcm_field_entry_install(unit_, entry);
-  bcmCheckError(rv, "Failed to install link-local mcast field processor rule");
 }
 
 void BcmSwitch::configureRxRateLimiting() {

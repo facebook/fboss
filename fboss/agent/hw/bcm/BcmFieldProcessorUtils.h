@@ -329,12 +329,6 @@ bool aclStatExists(
 
 bcm_field_qset_t getAclQset(HwAsic::AsicType asicType);
 
-/*
- * Group used to trap link local mcast packets to CPU
- * TODO: Roll this into ACLs once T26255806 is done
- */
-bcm_field_qset_t getLLMcastQset();
-
 bcm_field_qset_t getGroupQset(int unit, bcm_field_group_t groupId);
 
 void clearFPGroup(int unit, bcm_field_group_t gid);
