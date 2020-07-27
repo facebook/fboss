@@ -83,16 +83,16 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto originalStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto allSent = [&originalStats](const auto& newStats) {
-      auto originalOut = getPortOutPkts(originalStats);
-      auto newOut = getPortOutPkts(newStats);
-      auto expectedOut = originalOut + L2_LEARN_MAX_MAC_COUNT;
+      auto originalPkts = getPortInPkts(originalStats);
+      auto newPkts = getPortInPkts(newStats);
+      auto expectedPkts = originalPkts + L2_LEARN_MAX_MAC_COUNT;
       XLOGF(
           INFO,
           "Checking packets sent. Old: {}, New: {}, Expected: {}",
-          originalOut,
-          newOut,
-          expectedOut);
-      return newOut == expectedOut;
+          originalPkts,
+          newPkts,
+          expectedPkts);
+      return newPkts == expectedPkts;
     };
     for (auto srcMac : srcMacs) {
       for (auto dstMac : dstMacs) {
