@@ -324,7 +324,8 @@ class SaiSwitch : public HwSwitch {
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
-  L2Entry getL2Entry(const sai_fdb_event_notification_data_t& fdbEvent) const;
+  std::optional<L2Entry> getL2Entry(
+      const sai_fdb_event_notification_data_t& fdbEvent) const;
 
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};

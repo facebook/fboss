@@ -1112,7 +1112,7 @@ void SaiSwitch::fdbEventCallback(
   fdbEventCallbackLocked(count, data);
 }
 
-L2Entry SaiSwitch::getL2Entry(
+std::optional<L2Entry> SaiSwitch::getL2Entry(
     const sai_fdb_event_notification_data_t& fdbEvent) const {
   std::optional<PortSaiId> portSaiId;
   for (int i = 0; i < fdbEvent.attr_count && !portSaiId; ++i) {
@@ -1128,9 +1128,11 @@ L2Entry SaiSwitch::getL2Entry(
     }
   }
   if (!portSaiId) {
-    throw FbossError("Missing port attribute in FDB event");
+    XLOG(ERR) << "Missing port attribute in FDB event";
+    return std::nullopt;
   }
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
+  auto mac = fromSaiMacAddress(fdbEvent.fdb_entry.mac_address);
   switch (fdbEvent.event_type) {
     // For learning events consider entry type as pending (else the
     // fdb event should not have been punted to us)
@@ -1142,15 +1144,27 @@ L2Entry SaiSwitch::getL2Entry(
       entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
       break;
     default:
-      throw FbossError("Unexpected event type: ", fdbEvent.event_type);
-      break;
+      XLOG(ERR) << "Unexpected fdb event type: " << fdbEvent.event_type
+                << " for " << mac;
+      return std::nullopt;
   }
-  return L2Entry{
-      fromSaiMacAddress(fdbEvent.fdb_entry.mac_address),
-      concurrentIndices_->vlanIds.find(portSaiId.value())->second,
-      PortDescriptor(
-          concurrentIndices_->portIds.find(portSaiId.value())->second),
-      entryType};
+  auto portItr = concurrentIndices_->portIds.find(portSaiId.value());
+  if (portItr == concurrentIndices_->portIds.end()) {
+    XLOG(ERR) << " FDB event for " << mac
+              << ", got non existent port id : " << portSaiId.value();
+    return std::nullopt;
+  }
+  auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId.value());
+  if (vlanItr == concurrentIndices_->vlanIds.end()) {
+    XLOG(ERR) << " FDB event for " << mac
+              << " could not look up VLAN for : " << portItr->second;
+    return std::nullopt;
+  }
+
+  return L2Entry{fromSaiMacAddress(fdbEvent.fdb_entry.mac_address),
+                 vlanItr->second,
+                 PortDescriptor(portItr->second),
+                 entryType};
 }
 
 void SaiSwitch::fdbEventCallbackLocked(
@@ -1158,14 +1172,17 @@ void SaiSwitch::fdbEventCallbackLocked(
     const sai_fdb_event_notification_data_t* data) {
   if (managerTable_->portManager().getL2LearningMode() !=
       cfg::L2LearningMode::SOFTWARE) {
-    // Some platforms call fdb callback even when mode is set to HW. In keeping
-    // with our native SDK approach, don't send these events up.
+    // Some platforms call fdb callback even when mode is set to HW. In
+    // keeping with our native SDK approach, don't send these events up.
     return;
   }
   for (auto i = 0; i < count; ++i) {
     auto ditr = kL2AddrUpdateOperationsOfInterest.find(data[i].event_type);
     if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
-      callback_->l2LearningUpdateReceived(getL2Entry(data[i]), ditr->second);
+      auto l2Entry = getL2Entry(data[i]);
+      if (l2Entry) {
+        callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
+      }
     }
   }
 }
