@@ -198,3 +198,36 @@ TEST(QcmConfigTest, ToFromJSON) {
   auto portList = qcmCfg->getMonitorQcmPortList();
   EXPECT_EQ(portList.size(), 3);
 }
+
+// Intent of this test is to enable QCM, modify an
+// unrelated switch setting such as l2 learn mode and
+// ensure that QCM setings are preserved
+TEST(QcmConfigTest, verifyQcmWithSwitchSettingsChange) {
+  WeightMap map;
+
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+
+  // apply QCM config
+  cfg::SwitchConfig config;
+  cfg::QcmConfig qcmCfg;
+  qcmCfg.numFlowsClear_ref() = 22;
+  qcmCfg.collectorDstIp_ref() = "10.10.10.10/32";
+  qcmCfg.collectorSrcIp_ref() = "11.11.11.11/24";
+  config.qcmConfig_ref() = qcmCfg;
+  auto state0 = publishAndApplyConfig(state, &config, platform.get());
+
+  // verify state is valid
+  EXPECT_NE(nullptr, state0);
+
+  // Toggle switch setting for l2 learn
+  config.switchSettings_ref()->l2LearningMode_ref() =
+      cfg::L2LearningMode::SOFTWARE;
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
+  EXPECT_NE(nullptr, state1);
+
+  // verify that QCM configs are preserved
+  auto qcmConfig1 = state1->getQcmCfg();
+  EXPECT_NE(nullptr, qcmConfig1);
+  EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
+}

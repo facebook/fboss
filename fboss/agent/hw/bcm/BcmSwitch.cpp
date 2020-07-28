@@ -984,6 +984,10 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   // QCM logic determines eligibility if there are any new ports
   // and update internally
   if (newSwitchSettings->isQcmEnable()) {
+    if (oldSwitchSettings->isQcmEnable()) {
+      // check whether config params changed on the fly
+      qcmManager_->processQcmConfigChanged(delta.newState(), delta.oldState());
+    }
     XLOG(DBG3) << "Qcm enabled. Evaluate the monitored ports";
     qcmManager_->processPortsForQcm(delta.newState());
   }

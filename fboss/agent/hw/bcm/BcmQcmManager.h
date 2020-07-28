@@ -36,6 +36,9 @@ class BcmQcmManager {
       const Port2QosQueueIdMap& candidatePortMap);
   void flowLimitSet(int flowLimit);
   void processPortsForQcm(const std::shared_ptr<SwitchState>& swState);
+  void processQcmConfigChanged(
+      const std::shared_ptr<SwitchState> newSwState,
+      const std::shared_ptr<SwitchState> oldSwState);
 
   // utility routines
   static bool isQcmSupported(BcmSwitch* hw);

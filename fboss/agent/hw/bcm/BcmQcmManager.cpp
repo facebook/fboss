@@ -518,6 +518,16 @@ void BcmQcmManager::processPortsForQcm(
   updateQcmMonitoredPortsIfNeeded(candidatePortMap);
 }
 
+void BcmQcmManager::processQcmConfigChanged(
+    const std::shared_ptr<SwitchState> newSwState,
+    const std::shared_ptr<SwitchState> oldSwState) {
+  if (*newSwState->getQcmCfg() != *oldSwState->getQcmCfg()) {
+    // TODO reconfigure the QCM parameters in hardware
+    XLOG(WARN) << "QCM on the fly config changes are not supported yet";
+    return;
+  }
+}
+
 // Invoked during qcm init, so these ports get priority
 // in programming (as qcm ports are limited)
 void BcmQcmManager::setupConfiguredPortsForMonitoring(

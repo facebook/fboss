@@ -69,14 +69,14 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
     auto newQcmMonitoredPorts{qcm.getMonitorQcmPortList()};
     sort(origQcmMonitoredPorts.begin(), origQcmMonitoredPorts.end());
     sort(newQcmMonitoredPorts.begin(), newQcmMonitoredPorts.end());
-    bool qcmMonitoredPortsChanged =
+    bool qcmMonitoredPortsNotChanged =
         (origQcmMonitoredPorts == newQcmMonitoredPorts);
 
     return getFields()->agingIntervalInMsecs == qcm.getAgingInterval() &&
         getFields()->numFlowSamplesPerView == qcm.getNumFlowSamplesPerView() &&
         getFields()->flowLimit == qcm.getFlowLimit() &&
         getFields()->numFlowsClear == qcm.getNumFlowsClear() &&
-        getFields()->scanIntervalInUsecs == qcm.getNumFlowsClear() &&
+        getFields()->scanIntervalInUsecs == qcm.getScanIntervalInUsecs() &&
         getFields()->exportThreshold == qcm.getExportThreshold() &&
         getFields()->collectorDstIp == qcm.getCollectorDstIp() &&
         getFields()->collectorSrcIp == qcm.getCollectorSrcIp() &&
@@ -87,9 +87,12 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
         qcm.getMonitorQcmCfgPortsOnly() &&
         getFields()->flowWeights == qcm.getFlowWeightMap() &&
         getFields()->port2QosQueueIds == qcm.getPort2QosQueueIdMap() &&
-        qcmMonitoredPortsChanged;
+        qcmMonitoredPortsNotChanged;
   }
 
+  bool operator!=(const QcmCfg& qcm) const {
+    return !operator==(qcm);
+  }
   uint32_t getAgingInterval() const {
     return getFields()->agingIntervalInMsecs;
   }

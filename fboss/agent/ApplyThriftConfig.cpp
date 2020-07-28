@@ -306,9 +306,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto newQcmConfig = updateQcmCfg(&changed);
-    if (changed) {
+    bool qcmChanged = false;
+    auto newQcmConfig = updateQcmCfg(&qcmChanged);
+    if (qcmChanged) {
       new_->resetQcmCfg(newQcmConfig);
+      changed = true;
     }
   }
 
