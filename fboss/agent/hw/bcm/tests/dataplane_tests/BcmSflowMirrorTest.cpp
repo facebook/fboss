@@ -180,7 +180,8 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
     uint64_t expectedSampleCount = 0;
     uint64_t allPortRx = 0;
-    for (auto port : masterLogicalPortIds()) {
+    for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
+      auto port = masterLogicalPortIds()[i];
       auto portStats = stats.at(port);
       allPortRx += portStats.inUnicastPkts_;
       expectedSampleCount += (portStats.inUnicastPkts_ / FLAGS_sflow_test_rate);
@@ -208,7 +209,8 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     auto verify = [=]() {
       generateTraffic(payloadSize);
       std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
-      bringDownPorts(masterLogicalPortIds());
+      auto ports = masterLogicalPortIds();
+      bringDownPorts(std::vector<PortID>(ports.begin() + 1, ports.end()));
       auto stats = getLatestPortStats(masterLogicalPortIds());
       auto actualSampleCount = getSampleCount(stats);
       auto expectedSampleCount = getExpectedSampleCount(stats);
