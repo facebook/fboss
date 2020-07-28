@@ -1798,6 +1798,7 @@ TYPED_TEST(BcmMirrorTest, SampleAllPortsMirrorUnresolved) {
     std::vector<bcm_gport_t> destinations;
     this->getAllMirrorDestinations(destinations);
     ASSERT_EQ(destinations.size(), 0); // no mirror found
+    EXPECT_TRUE(mirror->getTunnelUdpPorts().has_value());
     for (auto port : this->masterLogicalPortIds()) {
       this->verifyPortNoMirrorDestination(
           port,

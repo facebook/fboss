@@ -76,6 +76,11 @@ folly::dynamic MirrorFields::toFollyDynamic() const {
   mirrorFields[kConfigHasEgressPort] = configHasEgressPort;
   mirrorFields[kDscp] = dscp;
   mirrorFields[kTruncate] = truncate;
+  if (udpPorts.has_value()) {
+    mirrorFields[kUdpSrcPort] = udpPorts.value().udpSrcPort;
+    mirrorFields[kUdpDstPort] = udpPorts.value().udpDstPort;
+  }
+
   return mirrorFields;
 }
 
@@ -146,7 +151,16 @@ folly::dynamic Mirror::toFollyDynamic() const {
   mirror[kTunnel] = fields[kTunnel];
   mirror[kDscp] = fields[kDscp];
   mirror[kTruncate] = fields[kTruncate];
-  mirror[kTruncate] = fields[kTruncate];
+  // store kUdpSrcPort, kUdpDstPort in the mirror fields as well
+  // as tunnel is not stored if unresolved
+  // we can eventually remove storing it in tunnel struct
+  // but need to keep both from warmboot perspective
+  if (fields.find(kUdpSrcPort) != fields.items().end()) {
+    mirror[kUdpSrcPort] = fields[kUdpSrcPort];
+  }
+  if (fields.find(kUdpDstPort) != fields.items().end()) {
+    mirror[kUdpDstPort] = fields[kUdpDstPort];
+  }
   return mirror;
 }
 
@@ -178,8 +192,18 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
     tunnel = MirrorTunnel::fromFollyDynamic(json[kTunnel]);
   }
 
-  std::optional<TunnelUdpPorts> udpPorts =
-      tunnel.has_value() ? tunnel.value().udpPorts : std::nullopt;
+  std::optional<TunnelUdpPorts> udpPorts = std::nullopt;
+  if (tunnel.has_value()) {
+    udpPorts = tunnel.value().udpPorts;
+  } else if (
+      (json.find(kUdpSrcPort) != json.items().end()) &&
+      (json.find(kUdpDstPort) != json.items().end())) {
+    // if the tunnel is not resolved and we warm-boot,
+    // src/dst udp ports are needed, which are also stored directly
+    // under the mirror config
+    udpPorts =
+        TunnelUdpPorts(json[kUdpSrcPort].asInt(), json[kUdpDstPort].asInt());
+  }
 
   std::shared_ptr<Mirror> mirror = nullptr;
   if (configHasEgressPort) {
@@ -195,6 +219,7 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamic(const folly::dynamic& json) {
   if (tunnel) {
     mirror->setMirrorTunnel(tunnel.value());
   }
+
   return mirror;
 }
 
