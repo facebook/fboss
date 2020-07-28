@@ -46,7 +46,21 @@ namespace {
 // Maximum theortical is 8k for TH ..but practically we hit numbers below it
 // Putting the value ot 7K should give enough buffer
 int constexpr L2_LEARN_MAX_MAC_COUNT = 7000;
+std::set<folly::MacAddress>
+getMacsForPort(const facebook::fboss::HwSwitch* hw, int port, bool isTrunk) {
+  std::set<folly::MacAddress> macs;
+  std::vector<L2EntryThrift> l2Entries;
+  hw->fetchL2Table(&l2Entries);
+  for (auto& l2Entry : l2Entries) {
+    if ((isTrunk && l2Entry.trunk_ref().value_or({}) == port) ||
+        *l2Entry.port_ref() == port) {
+      macs.insert(folly::MacAddress(*l2Entry.mac_ref()));
+    }
+  }
+  return macs;
+}
 } // namespace
+
 namespace facebook::fboss {
 
 using utility::addAggPort;
@@ -148,7 +162,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     int retries = 10;
     while (retries--) {
       if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
-           wasMacLearntInSwitchState(shouldExist)) ||
+           wasMacLearntInSwitchState(shouldExist) &&
+           isInL2Table(shouldExist, portDescr)) ||
           (l2LearningMode == cfg::L2LearningMode::HARDWARE &&
            wasMacLearntInHw(shouldExist))) {
         return true;
@@ -376,6 +391,12 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto* macTable = vlan->getMacTable().get();
 
     return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
+  }
+  bool isInL2Table(bool shouldExist, const PortDescriptor& portDescr) const {
+    auto isTrunk = portDescr.isAggregatePort();
+    int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
+    auto macs = getMacsForPort(getHwSwitch(), portId, isTrunk);
+    return (shouldExist == (macs.find(kSourceMac()) != macs.end()));
   }
 };
 

@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
@@ -108,9 +110,10 @@ class SaiFdbManager {
     addMac(newEntry);
   }
   void handleLinkDown(PortID portId);
-  std::vector<SaiFdbTraits::FdbEntry> getFdbEntries() const;
+  std::vector<L2EntryThrift> getL2Entries() const;
 
  private:
+  L2EntryThrift fdbToL2Entry(const SaiFdbTraits::FdbEntry& fdbEntry) const;
   InterfaceID getInterfaceId(const std::shared_ptr<MacEntry>& macEntry) const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

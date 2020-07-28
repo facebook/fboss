@@ -18,6 +18,8 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/MacEntry.h"
 
 #include <memory>
@@ -170,11 +172,48 @@ void SaiFdbManager::handleLinkDown(PortID portId) {
   }
 }
 
-std::vector<SaiFdbTraits::FdbEntry> SaiFdbManager::getFdbEntries() const {
-  std::vector<SaiFdbTraits::FdbEntry> entries;
+L2EntryThrift SaiFdbManager::fdbToL2Entry(
+    const SaiFdbTraits::FdbEntry& fdbEntry) const {
+  L2EntryThrift entry;
+  // SwitchState's VlanID is an attribute we store in the vlan, so
+  // we can get it via SaiApi
+  auto& vlanApi = SaiApiTable::getInstance()->vlanApi();
+  VlanID swVlanId{vlanApi.getAttribute(
+      VlanSaiId{fdbEntry.bridgeVlanId()}, SaiVlanTraits::Attributes::VlanId{})};
+  entry.vlanID_ref() = swVlanId;
+  entry.mac_ref() = fdbEntry.mac().toString();
+
+  // To get the PortID, we get the bridgePortId from the fdb entry,
+  // then get that Bridge Port's PortId attribute. We can lookup the
+  // PortID for a sai port id in ConcurrentIndices
+  auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
+  auto bridgePortSaiId =
+      fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
+  auto& bridgeApi = SaiApiTable::getInstance()->bridgeApi();
+  auto portSaiId = bridgeApi.getAttribute(
+      BridgePortSaiId{bridgePortSaiId},
+      SaiBridgePortTraits::Attributes::PortId{});
+  const auto portItr = concurrentIndices_->portIds.find(PortSaiId{portSaiId});
+  if (portItr == concurrentIndices_->portIds.cend()) {
+    throw FbossError("l2 table entry had unknown port sai id: ", portSaiId);
+  }
+  entry.port_ref() = portItr->second;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::L2ENTRY_METADATA)) {
+    auto metadata =
+        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
+    if (metadata) {
+      entry.classID_ref() = metadata;
+    }
+  }
+  return entry;
+}
+
+std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
+  std::vector<L2EntryThrift> entries;
+  entries.resize(managedFdbEntries_.size());
   for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
     entries.emplace_back(
-        publisherAndFdbEntry.second->makeFdbEntry(managerTable_));
+        fdbToL2Entry(publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
   }
   return entries;
 }

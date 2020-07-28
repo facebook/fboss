@@ -996,44 +996,7 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
     std::vector<L2EntryThrift>* l2Table) const {
-  auto fdbEntries = managerTable_->fdbManager().getFdbEntries();
-  l2Table->resize(fdbEntries.size());
-  for (const auto& fdbEntry : fdbEntries) {
-    L2EntryThrift entry;
-    // SwitchState's VlanID is an attribute we store in the vlan, so
-    // we can get it via SaiApi
-    auto& vlanApi = SaiApiTable::getInstance()->vlanApi();
-    VlanID swVlanId{vlanApi.getAttribute(
-        VlanSaiId{fdbEntry.bridgeVlanId()},
-        SaiVlanTraits::Attributes::VlanId{})};
-    *entry.vlanID_ref() = swVlanId;
-    *entry.mac_ref() = fdbEntry.mac().toString();
-
-    // To get the PortID, we get the bridgePortId from the fdb entry,
-    // then get that Bridge Port's PortId attribute. We can lookup the
-    // PortID for a sai port id in ConcurrentIndices
-    auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
-    auto bridgePortSaiId =
-        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::BridgePortId());
-    auto& bridgeApi = SaiApiTable::getInstance()->bridgeApi();
-    auto portSaiId = bridgeApi.getAttribute(
-        BridgePortSaiId{bridgePortSaiId},
-        SaiBridgePortTraits::Attributes::PortId{});
-    const auto portItr = concurrentIndices_->portIds.find(PortSaiId{portSaiId});
-    if (portItr == concurrentIndices_->portIds.cend()) {
-      XLOG(WARNING) << "l2 table entry had unknown port sai id: " << portSaiId;
-      continue;
-    }
-    *entry.port_ref() = portItr->second;
-    auto metadata =
-        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
-    if (metadata) {
-      entry.classID_ref() = metadata;
-    }
-
-    // entry is filled out; push it onto the L2 table
-    l2Table->push_back(entry);
-  }
+  *l2Table = managerTable_->fdbManager().getL2Entries();
 }
 
 void SaiSwitch::stopNonCallbackThreads() {
