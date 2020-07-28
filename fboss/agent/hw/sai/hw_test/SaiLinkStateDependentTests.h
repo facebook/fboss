@@ -14,9 +14,6 @@ class SaiLinkStateDependentTests : public HwLinkStateDependentTest {
  public:
   SaiLinkStateDependentTests() {}
   ~SaiLinkStateDependentTests() {}
-  void SetUp() override {
-    HwLinkStateDependentTest::SetUp();
-  }
 
   SaiSwitch* getSaiSwitch() {
     return static_cast<SaiSwitch*>(HwTest::getHwSwitch());
