@@ -26,6 +26,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace {
+constexpr int kLoopCount = 10;
 constexpr int kPktTxCount = 10;
 constexpr int kAclPktTxCount = 100;
 const folly::IPAddressV6 kIPv6Route = folly::IPAddressV6("2401::201:ab00");
@@ -105,6 +106,23 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     qcmCfg.agingIntervalInMsecs = 1000;
     qcmCfg.numFlowSamplesPerView = 1;
     return qcmCfg;
+  }
+
+  void setupHelperInPddcMode(bool bestEffortScan = false) {
+    auto newCfg{initialConfig()};
+    auto qcmCfg = getQcmConfig();
+    newCfg.switchSettings_ref()->qcmEnable_ref() = true;
+    newCfg.qcmConfig_ref() = qcmCfg;
+    // pddc mode is defined by flowlimit being zero
+    newCfg.qcmConfig_ref()->flowLimit_ref() = 0;
+    if (bestEffortScan) {
+      // in this mode, QCM try to scan at best effort
+      newCfg.qcmConfig_ref()->scanIntervalInUsecs_ref() = 0;
+    }
+    applyNewConfig(newCfg);
+    cfg_ = newCfg;
+
+    addRoute(kIPv6Route, kMaskV6, PortDescriptor(masterLogicalPortIds()[0]));
   }
 
   void setupHelper(bool setupPolicer = false) {
@@ -515,7 +533,7 @@ TEST_F(BcmQcmDataTest, RestrictFlowLearning) {
 // Intent of this test is to enable QCM, do flow learning
 // Stop qcm and ensure that flow tracker is disabled,
 // Enable QCM again and ensure flow learning happens as desired
-TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
+TEST_F(BcmQcmDataTest, VerifyQcmStartStop) {
   if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
     return;
   }
@@ -535,19 +553,76 @@ TEST_F(BcmQcmDataTest, VerifyQcmStopStart) {
     EXPECT_EQ(0, getHwSwitch()->getBcmQcmMgr()->getPolicerId());
   };
 
+  // run with qcm enabled, one time setup
+  setup();
+  verify();
+
+  for (int i = 0; i < kLoopCount; ++i) {
+    // run setup with qcm disabled
+    bool qcmEnable = false;
+    setupQcm(qcmEnable);
+    verifyStop();
+
+    // enable qcm again
+    qcmEnable = true;
+    setupQcm(qcmEnable);
+    verify();
+  }
+}
+
+// Intent of this test is to test Qcm Start/Stop using PDDC mode
+// In pddc mode, learned flow count = 0
+// Stop qcm and ensure that flow tracker is disabled,
+// Enable QCM again.
+TEST_F(BcmQcmDataTest, VerifyQcmStartStopPddcMode) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    return;
+  }
+  auto setup = [=]() { setupHelperInPddcMode(); };
+  auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
+  auto verify = [&]() {
+    // send 1 flow
+    createQcmFlows(1, kPktTxCount);
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 0);
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->isFlowTrackerDisabled());
+  };
+  auto verifyStop = [&]() {
+    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->isFlowTrackerDisabled());
+  };
+
   // run with qcm enabled
   setup();
   verify();
 
-  // run setup with qcm disabled
-  bool qcmEnable = false;
-  setupQcm(qcmEnable);
-  verifyStop();
+  for (int i = 0; i < kLoopCount; ++i) {
+    // run setup with qcm disabled
+    bool qcmEnable = false;
+    setupQcm(qcmEnable);
+    verifyStop();
 
-  // enable qcm again
-  qcmEnable = true;
-  setupQcm(qcmEnable);
-  verify();
+    // enable qcm again
+    qcmEnable = true;
+    setupQcm(qcmEnable);
+    verify();
+  }
+}
+
+// Intent of this test is to test Qcm in PDDC mode
+// with scan interval  = 0
+// In pddc mode, learned flow count = 0
+TEST_F(BcmQcmDataTest, VerifyQcmPddcModeScanIntervalZero) {
+  if (!BcmQcmManager::isQcmSupported(getHwSwitch())) {
+    return;
+  }
+  auto setup = [=]() { setupHelperInPddcMode(true /* bestEffortScan */); };
+  auto verify = [&]() {
+    // send 1 flow
+    createQcmFlows(1, kPktTxCount);
+    EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 0);
+    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->isFlowTrackerDisabled());
+    EXPECT_GT(getHwSwitch()->getBcmQcmMgr()->readScanIntervalInUsecs(), 0);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class BcmQcmDataCollectorParamTest : public BcmQcmDataTest,

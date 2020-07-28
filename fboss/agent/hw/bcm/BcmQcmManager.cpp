@@ -544,6 +544,14 @@ void BcmQcmManager::createPolicer(const int policerRate) {
   XLOG(DBG3) << "Policer configured with id" << policerId_;
 }
 
+int BcmQcmManager::readScanIntervalInUsecs() {
+  bcm_cosq_burst_monitor_flow_view_info_t viewCfg;
+  auto rv =
+      bcm_cosq_burst_monitor_flow_view_config_get(hw_->getUnit(), &viewCfg);
+  bcmCheckError(rv, "bcm_cosq_burst_monitor_flow_view_config_get failed");
+  return viewCfg.scan_interval_usecs;
+}
+
 void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
   if (!isQcmSupported(hw_)) {
     return;

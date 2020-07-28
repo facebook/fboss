@@ -55,6 +55,7 @@ class BcmQcmManager {
   int getPolicerId() {
     return policerId_;
   }
+  int readScanIntervalInUsecs();
 
  private:
   // setup communications between QCM, Switch CPU
