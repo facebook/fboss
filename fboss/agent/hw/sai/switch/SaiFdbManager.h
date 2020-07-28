@@ -75,6 +75,7 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       const SaiManagerTable* managerTable) const;
 
   PortID getPortId() const;
+  L2Entry toL2Entry() const;
 
  private:
   SwitchSaiId switchId_;

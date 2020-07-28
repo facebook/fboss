@@ -61,6 +61,22 @@ PortID ManagedFdbEntry::getPortId() const {
   return portId_;
 }
 
+L2Entry ManagedFdbEntry::toL2Entry() const {
+  std::optional<cfg::AclLookupClass> classId;
+  if (metadata_) {
+    classId = static_cast<cfg::AclLookupClass>(metadata_.value());
+  }
+  return L2Entry(mac_,
+      // For FBOSS Vlan and interface ids are always 1:1
+      VlanID(interfaceId_),
+      PortDescriptor(portId_),
+      // Since this entry is already programmed, its validated.
+      // In vlan traffic to this MAC will be unicast and not
+      // flooded.
+      L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED,
+      classId);
+}
+
 SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
     const SaiManagerTable* managerTable) const {
   auto rifHandle =
