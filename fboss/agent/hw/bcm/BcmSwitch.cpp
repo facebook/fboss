@@ -3011,7 +3011,7 @@ void BcmSwitch::disableHotSwap() const {
 }
 
 bool BcmSwitch::isL2EntryPending(const bcm_l2_addr_t* l2Addr) {
-  return reinterpret_cast<const bcm_l2_addr_t*>(l2Addr)->flags & BCM_L2_PENDING;
+  return l2Addr->flags & BCM_L2_PENDING;
 }
 
 bool BcmSwitch::isValidPortQueueUpdate(
