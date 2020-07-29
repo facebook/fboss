@@ -66,7 +66,8 @@ L2Entry ManagedFdbEntry::toL2Entry() const {
   if (metadata_) {
     classId = static_cast<cfg::AclLookupClass>(metadata_.value());
   }
-  return L2Entry(mac_,
+  return L2Entry(
+      mac_,
       // For FBOSS Vlan and interface ids are always 1:1
       VlanID(interfaceId_),
       PortDescriptor(portId_),
