@@ -572,11 +572,14 @@ TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
 class HwMacLearningMacMoveTest : public HwMacLearningTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::oneL3IntfTwoPortConfig(
+    auto cfg = utility::oneL3IntfTwoPortConfig(
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
         cfg::PortLoopbackMode::MAC);
+    cfg.switchSettings_ref()->l2LearningMode_ref() =
+        cfg::L2LearningMode::SOFTWARE;
+    return cfg;
   }
 
   void sendPkt2() {
@@ -596,9 +599,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
   }
 
   void testMacMoveHelper() {
-    auto setup = [this]() {
-      setupHelper(cfg::L2LearningMode::SOFTWARE, physPortDescr());
-    };
+    auto setup = []() {};
 
     auto verify = [this]() {
       auto portDescr = physPortDescr();
