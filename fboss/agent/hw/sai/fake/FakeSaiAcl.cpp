@@ -791,29 +791,112 @@ sai_status_t remove_acl_entry_fn(sai_object_id_t acl_entry_id) {
   return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t create_acl_counter_fn(
-    sai_object_id_t* /*acl_counter_id*/,
-    sai_object_id_t /*switch_id*/,
-    uint32_t /*attr_count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
-}
-
-sai_status_t remove_acl_counter_fn(sai_object_id_t acl_counter_id) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
-}
-
 sai_status_t set_acl_counter_attribute_fn(
     sai_object_id_t acl_counter_id,
     const sai_attribute_t* attr) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  auto fs = FakeSai::getInstance();
+  auto& aclCounter = fs->aclCounterManager.get(acl_counter_id);
+  sai_status_t res;
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  switch (attr->id) {
+    case SAI_ACL_COUNTER_ATTR_PACKETS:
+      aclCounter.counterPackets = attr->value.u64;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_COUNTER_ATTR_BYTES:
+      aclCounter.counterBytes = attr->value.u64;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    default:
+      res = SAI_STATUS_NOT_SUPPORTED;
+      break;
+  }
+  return res;
 }
 
 sai_status_t get_acl_counter_attribute_fn(
     sai_object_id_t acl_counter_id,
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  auto fs = FakeSai::getInstance();
+  auto& aclCounter = fs->aclCounterManager.get(acl_counter_id);
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
+        attr_list[i].value.booldata = aclCounter.enablePacketCount;
+        break;
+      case SAI_ACL_COUNTER_ATTR_ENABLE_BYTE_COUNT:
+        attr_list[i].value.booldata = aclCounter.enableByteCount;
+        break;
+      case SAI_ACL_COUNTER_ATTR_PACKETS:
+        attr_list[i].value.u64 = aclCounter.counterPackets;
+        break;
+      case SAI_ACL_COUNTER_ATTR_BYTES:
+        attr_list[i].value.u64 = aclCounter.counterBytes;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t create_acl_counter_fn(
+    sai_object_id_t* acl_counter_id,
+    sai_object_id_t /*switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_object_id_t> tableId;
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_COUNTER_ATTR_TABLE_ID:
+        tableId = attr_list[i].value.oid;
+        break;
+    }
+  }
+
+  if (!tableId) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *acl_counter_id = fs->aclCounterManager.create(tableId.value());
+  auto& aclCounter = fs->aclCounterManager.get(*acl_counter_id);
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_COUNTER_ATTR_TABLE_ID:
+        aclCounter.tableId = attr_list[i].value.oid;
+        break;
+      case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
+        aclCounter.enablePacketCount = attr_list[i].value.booldata;
+        break;
+      case SAI_ACL_COUNTER_ATTR_ENABLE_BYTE_COUNT:
+        aclCounter.enableByteCount = attr_list[i].value.booldata;
+        break;
+      default: {
+        sai_status_t res =
+            set_acl_counter_attribute_fn(*acl_counter_id, &attr_list[i]);
+        if (res != SAI_STATUS_SUCCESS) {
+          fs->aclCounterManager.remove(*acl_counter_id);
+          return res;
+        }
+      }
+    }
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_acl_counter_fn(sai_object_id_t acl_counter_id) {
+  auto fs = FakeSai::getInstance();
+  fs->aclCounterManager.remove(acl_counter_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t create_acl_range_fn(
