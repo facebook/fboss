@@ -115,13 +115,16 @@ void HwEcmpTest::verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs) {
   // need to map ips to egresses, somehow.
   auto expectedCountIter = hwWs.begin();
   for (const auto& path : uniquePaths) {
-    auto count = pathsInHw.count(path);
-    EXPECT_EQ(count, *expectedCountIter);
+    auto pathWeight =
+        utility::getEcmpMemberWeight(getHwSwitch(), pathsInHw, path);
+    EXPECT_EQ(pathWeight, *expectedCountIter);
     expectedCountIter++;
   }
   auto totalHwWeight =
       std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
-  EXPECT_EQ(totalHwWeight, pathsInHwCount);
+  auto totalWeightInHw =
+      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw);
+  EXPECT_EQ(totalHwWeight, totalWeightInHw);
 }
 
 void HwEcmpTest::runSimpleUcmpTest(
