@@ -42,6 +42,7 @@ struct FakeSai {
   static void clear();
 
   FakeAclTableGroupManager aclTableGroupManager;
+  FakeAclEntryManager aclEntryManager;
   FakeAclTableManager aclTableManager;
   FakeBridgeManager bridgeManager;
   FakeBufferPoolManager bufferPoolManager;

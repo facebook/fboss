@@ -270,19 +270,10 @@ class FakeAclTable {
   bool fieldFdbDstUserMeta;
   bool fieldRouteDstUserMeta;
   bool fieldNeighborDstUserMeta;
-
-  FakeManager<sai_object_id_t, FakeAclEntry>& fm() {
-    return fm_;
-  }
-  const FakeManager<sai_object_id_t, FakeAclEntry>& fm() const {
-    return fm_;
-  }
-
- private:
-  FakeManager<sai_object_id_t, FakeAclEntry> fm_;
 };
 
-using FakeAclTableManager = FakeManagerWithMembers<FakeAclTable, FakeAclEntry>;
+using FakeAclEntryManager = FakeManager<sai_object_id_t, FakeAclEntry>;
+using FakeAclTableManager = FakeManager<sai_object_id_t, FakeAclTable>;
 
 void populate_acl_api(sai_acl_api_t** acl_api);
 

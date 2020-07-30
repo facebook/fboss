@@ -113,9 +113,7 @@ sai_status_t sai_get_object_count(
       *count = fs->aclTableManager.map().size();
       break;
     case SAI_OBJECT_TYPE_ACL_ENTRY: {
-      for (const auto& aclEntry : fs->aclTableManager.map()) {
-        *count += aclEntry.second.fm().map().size();
-      }
+      *count = fs->aclEntryManager.map().size();
       break;
     }
     default:
@@ -321,10 +319,8 @@ sai_status_t sai_get_object_key(
       break;
     }
     case SAI_OBJECT_TYPE_ACL_ENTRY: {
-      for (const auto& aclTable : fs->aclTableManager.map()) {
-        for (const auto& aclEntry : aclTable.second.fm().map()) {
-          object_list[i++].key.object_id = aclEntry.second.id;
-        }
+      for (const auto& aclEntry : fs->aclEntryManager.map()) {
+        object_list[i++].key.object_id = aclEntry.second.id;
       }
       break;
     }

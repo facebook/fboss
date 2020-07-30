@@ -439,8 +439,8 @@ class AclApiTest : public ::testing::Test {
   }
 
   void checkAclEntry(AclTableSaiId aclTableId, AclEntrySaiId aclEntryId) const {
-    EXPECT_EQ(aclEntryId, fs->aclTableManager.getMember(aclEntryId).id);
-    EXPECT_EQ(aclTableId, fs->aclTableManager.getMember(aclEntryId).tableId);
+    EXPECT_EQ(aclEntryId, fs->aclEntryManager.get(aclEntryId).id);
+    EXPECT_EQ(aclTableId, fs->aclEntryManager.get(aclEntryId).tableId);
   }
 
   AclTableGroupSaiId createAclTableGroup(

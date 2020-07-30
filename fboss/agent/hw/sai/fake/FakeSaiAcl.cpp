@@ -226,19 +226,27 @@ sai_status_t get_acl_table_attribute_fn(
         }
       } break;
       case SAI_ACL_TABLE_ATTR_ENTRY_LIST: {
-        const auto& aclEntryMap =
-            fs->aclTableManager.get(acl_table_id).fm().map();
-        if (aclEntryMap.size() > attr[i].value.objlist.count) {
-          attr[i].value.objlist.count = aclEntryMap.size();
+        int cnt = 0;
+        for (const auto& [oid, aclEntry] : fs->aclEntryManager.map()) {
+          std::ignore = oid;
+          if (aclEntry.tableId == acl_table_id) {
+            cnt++;
+          }
+        }
+
+        if (cnt > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = cnt;
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        attr[i].value.objlist.count = aclEntryMap.size();
-        int j = 0;
-        for (const auto& m : aclEntryMap) {
-          attr[i].value.objlist.list[j++] = m.first;
-        }
-      } break;
 
+        int j = 0;
+        for (const auto& [oid, aclEntry] : fs->aclEntryManager.map()) {
+          if (aclEntry.tableId == acl_table_id) {
+            attr[i].value.objlist.list[j++] = oid;
+          }
+        }
+        attr[i].value.objlist.count = j;
+      } break;
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldSrcIpV6;
@@ -339,7 +347,7 @@ sai_status_t set_acl_entry_attribute_fn(
     sai_object_id_t acl_entry_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto& aclEntry = fs->aclTableManager.getMember(acl_entry_id);
+  auto& aclEntry = fs->aclEntryManager.get(acl_entry_id);
   sai_status_t res;
   if (!attr) {
     return SAI_STATUS_INVALID_PARAMETER;
@@ -555,7 +563,7 @@ sai_status_t get_acl_entry_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  auto& aclEntry = fs->aclTableManager.getMember(acl_entry_id);
+  auto& aclEntry = fs->aclEntryManager.get(acl_entry_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ACL_ENTRY_ATTR_TABLE_ID:
@@ -758,18 +766,17 @@ sai_status_t create_acl_entry_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
 
-  *acl_entry_id =
-      fs->aclTableManager.createMember(tableId.value(), tableId.value());
+  *acl_entry_id = fs->aclEntryManager.create(tableId.value());
+  auto& aclEntry = fs->aclEntryManager.get(*acl_entry_id);
 
   for (int i = 0; i < attr_count; ++i) {
     if (attr_list[i].id == SAI_ACL_ENTRY_ATTR_TABLE_ID) {
-      auto& aclEntry = fs->aclTableManager.getMember(*acl_entry_id);
       aclEntry.tableId = attr_list[i].value.oid;
     } else {
       sai_status_t res =
           set_acl_entry_attribute_fn(*acl_entry_id, &attr_list[i]);
       if (res != SAI_STATUS_SUCCESS) {
-        fs->aclTableManager.removeMember(*acl_entry_id);
+        fs->aclEntryManager.remove(*acl_entry_id);
         return res;
       }
     }
@@ -780,7 +787,7 @@ sai_status_t create_acl_entry_fn(
 
 sai_status_t remove_acl_entry_fn(sai_object_id_t acl_entry_id) {
   auto fs = FakeSai::getInstance();
-  fs->aclTableManager.removeMember(acl_entry_id);
+  fs->aclEntryManager.remove(acl_entry_id);
   return SAI_STATUS_SUCCESS;
 }
 
