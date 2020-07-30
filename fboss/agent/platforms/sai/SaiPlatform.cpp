@@ -114,8 +114,10 @@ std::unique_ptr<ThriftHandler> SaiPlatform::createHandler(SwSwitch* sw) {
   return std::make_unique<SaiHandler>(sw, saiSwitch_.get());
 }
 
-TransceiverIdxThrift SaiPlatform::getPortMapping(PortID /* portId */) const {
-  return TransceiverIdxThrift();
+TransceiverIdxThrift SaiPlatform::getPortMapping(
+    PortID portId,
+    cfg::PortSpeed speed) const {
+  return getPort(portId)->getTransceiverMapping(speed);
 }
 
 std::string SaiPlatform::getHwConfigDumpFile() {

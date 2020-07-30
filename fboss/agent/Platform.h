@@ -226,7 +226,8 @@ class Platform {
    * For a specific logical port, return the transceiver and channel
    * it represents if available
    */
-  virtual TransceiverIdxThrift getPortMapping(PortID port) const = 0;
+  virtual TransceiverIdxThrift getPortMapping(PortID port, cfg::PortSpeed speed)
+      const = 0;
 
   virtual PlatformPort* getPlatformPort(PortID port) const = 0;
 

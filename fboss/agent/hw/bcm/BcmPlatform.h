@@ -78,7 +78,8 @@ class BcmPlatform : public Platform {
    * use the host table for host routes (/128 or /32).
    */
   virtual bool canUseHostTableForHostRoutes() const = 0;
-  TransceiverIdxThrift getPortMapping(PortID portId) const override = 0;
+  TransceiverIdxThrift getPortMapping(PortID portId, cfg::PortSpeed speed)
+      const override = 0;
 
   /*
    * Get total device buffer in bytes

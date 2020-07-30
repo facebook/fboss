@@ -51,7 +51,9 @@ class BcmTestPlatform : public BcmPlatform {
     return true;
   }
   virtual bool hasLinkScanCapability() const = 0;
-  TransceiverIdxThrift getPortMapping(PortID /* unused */) const override {
+  TransceiverIdxThrift getPortMapping(
+      PortID /* unused */,
+      cfg::PortSpeed /* speed */) const override {
     return TransceiverIdxThrift();
   }
   bool isBcmShellSupported() const override {

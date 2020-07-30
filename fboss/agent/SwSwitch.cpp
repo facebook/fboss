@@ -139,7 +139,7 @@ facebook::fboss::PortStatus fillInPortStatus(
 
   try {
     status.transceiverIdx_ref() =
-        sw->getPlatform()->getPortMapping(port.getID());
+        sw->getPlatform()->getPortMapping(port.getID(), port.getSpeed());
   } catch (const facebook::fboss::FbossError& err) {
     // No problem, we just don't set the other info
   }

@@ -44,7 +44,9 @@ class MockPlatform : public Platform {
 
   MOCK_METHOD1(createHandler, std::unique_ptr<ThriftHandler>(SwSwitch* sw));
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
-  MOCK_CONST_METHOD1(getPortMapping, TransceiverIdxThrift(PortID port));
+  MOCK_CONST_METHOD2(
+      getPortMapping,
+      TransceiverIdxThrift(PortID port, cfg::PortSpeed speed));
   MOCK_CONST_METHOD1(getPlatformPort, PlatformPort*(PortID port));
   MOCK_CONST_METHOD0(getLocalMac, folly::MacAddress());
   MOCK_METHOD0(stop, void());
