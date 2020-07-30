@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
@@ -42,6 +43,11 @@ struct SaiNeighborTraits {
         EnumType,
         SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS,
         folly::MacAddress>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_NEIGHBOR_ENTRY_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
   };
   class NeighborEntry {
    public:
@@ -90,6 +96,7 @@ struct SaiNeighborTraits {
 };
 
 SAI_ATTRIBUTE_NAME(Neighbor, DstMac)
+SAI_ATTRIBUTE_NAME(Neighbor, Metadata)
 
 template <>
 struct IsSaiEntryStruct<SaiNeighborTraits::NeighborEntry>
