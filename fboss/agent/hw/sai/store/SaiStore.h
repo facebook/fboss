@@ -333,6 +333,7 @@ class SaiStore {
       detail::SaiObjectStore<SaiAclTableGroupMemberTraits>,
       detail::SaiObjectStore<SaiAclTableTraits>,
       detail::SaiObjectStore<SaiAclEntryTraits>,
+      detail::SaiObjectStore<SaiAclCounterTraits>,
       detail::SaiObjectStore<SaiBridgeTraits>,
       detail::SaiObjectStore<SaiBridgePortTraits>,
       detail::SaiObjectStore<SaiBufferPoolTraits>,

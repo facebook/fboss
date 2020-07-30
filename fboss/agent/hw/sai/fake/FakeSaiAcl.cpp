@@ -826,6 +826,9 @@ sai_status_t get_acl_counter_attribute_fn(
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
+      case SAI_ACL_COUNTER_ATTR_TABLE_ID:
+        attr_list[i].value.oid = aclCounter.tableId;
+        break;
       case SAI_ACL_COUNTER_ATTR_ENABLE_PACKET_COUNT:
         attr_list[i].value.booldata = aclCounter.enablePacketCount;
         break;
