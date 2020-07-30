@@ -123,4 +123,6 @@ TEST_F(NeighborApiTest, v6NeighborSerDeser) {
 TEST_F(NeighborApiTest, formatNeighborAttributes) {
   SaiNeighborTraits::Attributes::DstMac dm(dstMac);
   EXPECT_EQ(fmt::format("DstMac: {}", strMac), fmt::format("{}", dm));
+  SaiNeighborTraits::Attributes::Metadata m(42);
+  EXPECT_EQ(fmt::format("Metadata: 42"), fmt::format("{}", m));
 }
