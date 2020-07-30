@@ -121,28 +121,6 @@ class HwAclQualifierTest : public HwTest {
   }
 };
 
-TEST_F(HwAclQualifierTest, AclNoQualifier) {
-  // While comparing a Acl's h/w and s/w state, we make certain
-  // assumptions about what the SDK will return for unset fields.
-  // These assumptions have been arrived at experimentally and could
-  // possibly change in newer SDK versions. This test makes sure that
-  // if that happens we get a test failure as a means of knowing that
-  // we need to update our code.
-  auto setup = [=]() {
-    auto newCfg = initialConfig();
-    utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
