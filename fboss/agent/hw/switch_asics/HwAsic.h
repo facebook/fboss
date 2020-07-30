@@ -35,6 +35,7 @@ class HwAsic {
     PORT_TTL_DECREMENT_DISABLE,
     PORT_INTERFACE_TYPE,
     L2ENTRY_METADATA,
+    WEIGHTED_NEXTHOPGROUP_MEMBER,
   };
 
   enum class AsicType {
