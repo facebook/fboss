@@ -29,6 +29,7 @@ void FakeSai::clear() {
 
   fs->aclTableGroupManager.clearWithMembers();
   fs->aclEntryManager.clear();
+  fs->aclCounterManager.clear();
   fs->aclTableManager.clear();
   fs->bridgeManager.clearWithMembers();
   fs->fdbManager.clear();

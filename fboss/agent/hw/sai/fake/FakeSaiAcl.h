@@ -272,7 +272,23 @@ class FakeAclTable {
   bool fieldNeighborDstUserMeta;
 };
 
+class FakeAclCounter {
+ public:
+  explicit FakeAclCounter(sai_object_id_t tableId) : tableId(tableId) {}
+
+  sai_object_id_t tableId;
+
+  bool enablePacketCount{false};
+  bool enableByteCount{false};
+
+  sai_uint64_t counterPackets{0};
+  sai_uint64_t counterBytes{0};
+
+  sai_object_id_t id;
+};
+
 using FakeAclEntryManager = FakeManager<sai_object_id_t, FakeAclEntry>;
+using FakeAclCounterManager = FakeManager<sai_object_id_t, FakeAclCounter>;
 using FakeAclTableManager = FakeManager<sai_object_id_t, FakeAclTable>;
 
 void populate_acl_api(sai_acl_api_t** acl_api);

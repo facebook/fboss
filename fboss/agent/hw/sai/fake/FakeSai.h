@@ -43,6 +43,7 @@ struct FakeSai {
 
   FakeAclTableGroupManager aclTableGroupManager;
   FakeAclEntryManager aclEntryManager;
+  FakeAclCounterManager aclCounterManager;
   FakeAclTableManager aclTableManager;
   FakeBridgeManager bridgeManager;
   FakeBufferPoolManager bufferPoolManager;

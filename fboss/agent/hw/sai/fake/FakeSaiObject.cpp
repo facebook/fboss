@@ -116,6 +116,9 @@ sai_status_t sai_get_object_count(
       *count = fs->aclEntryManager.map().size();
       break;
     }
+    case SAI_OBJECT_TYPE_ACL_COUNTER:
+      *count = fs->aclCounterManager.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -321,6 +324,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_ACL_ENTRY: {
       for (const auto& aclEntry : fs->aclEntryManager.map()) {
         object_list[i++].key.object_id = aclEntry.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_COUNTER: {
+      for (const auto& aclCounter : fs->aclCounterManager.map()) {
+        object_list[i++].key.object_id = aclCounter.second.id;
       }
       break;
     }
