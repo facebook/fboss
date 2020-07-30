@@ -336,6 +336,22 @@ class AclApiTest : public ::testing::Test {
         kSwitchID());
   }
 
+  bool kEnablePacketCount() const {
+    return true;
+  }
+
+  bool kEnableByteCount() const {
+    return true;
+  }
+
+  sai_uint64_t kCounterPackets() const {
+    return 0;
+  }
+
+  sai_uint64_t kCounterBytes() const {
+    return 0;
+  }
+
   AclEntrySaiId createAclEntry(AclTableSaiId aclTableId) const {
     SaiAclEntryTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
     SaiAclEntryTraits::Attributes::Priority aclPriorityAttribute{kPriority()};
@@ -434,6 +450,28 @@ class AclApiTest : public ::testing::Test {
         kSwitchID());
   }
 
+  AclCounterSaiId createAclCounter(AclTableSaiId aclTableId) const {
+    SaiAclCounterTraits::Attributes::TableId aclTableIdAttribute{aclTableId};
+
+    SaiAclCounterTraits::Attributes::EnablePacketCount
+        enablePacketCountAttribute{kEnablePacketCount()};
+    SaiAclCounterTraits::Attributes::EnableByteCount enableByteCountAttribute{
+        kEnableByteCount()};
+
+    SaiAclCounterTraits::Attributes::CounterPackets counterPacketsAttribute{
+        kCounterPackets()};
+    SaiAclCounterTraits::Attributes::CounterBytes counterBytesAttribute{
+        kCounterBytes()};
+
+    return aclApi->create<SaiAclCounterTraits>(
+        {aclTableIdAttribute,
+         enablePacketCountAttribute,
+         enableByteCountAttribute,
+         counterPacketsAttribute,
+         counterBytesAttribute},
+        kSwitchID());
+  }
+
   void checkAclTable(AclTableSaiId aclTableId) const {
     EXPECT_EQ(aclTableId, fs->aclTableManager.get(aclTableId).id);
   }
@@ -441,6 +479,11 @@ class AclApiTest : public ::testing::Test {
   void checkAclEntry(AclTableSaiId aclTableId, AclEntrySaiId aclEntryId) const {
     EXPECT_EQ(aclEntryId, fs->aclEntryManager.get(aclEntryId).id);
     EXPECT_EQ(aclTableId, fs->aclEntryManager.get(aclEntryId).tableId);
+  }
+
+  void checkAclCounter(AclTableSaiId aclTableId, AclCounterSaiId aclCounterId) {
+    EXPECT_EQ(aclCounterId, fs->aclCounterManager.get(aclCounterId).id);
+    EXPECT_EQ(aclTableId, fs->aclCounterManager.get(aclCounterId).tableId);
   }
 
   AclTableGroupSaiId createAclTableGroup(
@@ -675,6 +718,14 @@ TEST_F(AclApiTest, multipleAclEntries) {
   EXPECT_NE(aclEntryId1, aclEntryId2);
 }
 
+TEST_F(AclApiTest, createAclCounter) {
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclCounterId = createAclCounter(aclTableId);
+  checkAclCounter(aclTableId, aclCounterId);
+}
+
 TEST_F(AclApiTest, getAclTableAttribute) {
   auto aclTableId = createAclTable();
   checkAclTable(aclTableId);
@@ -806,6 +857,29 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kSetDSCP(),
       kMirrorIngress(),
       kMirrorEgress());
+}
+
+TEST_F(AclApiTest, getAclCounterAttribute) {
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclCounterId = createAclCounter(aclTableId);
+  checkAclCounter(aclTableId, aclCounterId);
+
+  auto aclEnablePacketCount = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::EnablePacketCount());
+  auto aclEnableByteCount = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::EnableByteCount());
+
+  auto aclCounterPackets = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::CounterPackets());
+  auto aclCounterBytes = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::CounterBytes());
+
+  EXPECT_EQ(aclEnablePacketCount, kEnablePacketCount());
+  EXPECT_EQ(aclEnableByteCount, kEnableByteCount());
+  EXPECT_EQ(aclCounterPackets, kCounterPackets());
+  EXPECT_EQ(aclCounterBytes, kCounterBytes());
 }
 
 TEST_F(AclApiTest, setAclTableAttribute) {
@@ -1021,6 +1095,40 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kMirrorEgress2());
 }
 
+TEST_F(AclApiTest, setAclCounterAttribute) {
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclCounterId = createAclCounter(aclTableId);
+  checkAclCounter(aclTableId, aclCounterId);
+
+  SaiAclCounterTraits::Attributes::TableId aclTableIdAttribute{2};
+  EXPECT_THROW(
+      aclApi->setAttribute(aclCounterId, aclTableIdAttribute), SaiApiError);
+
+  SaiAclCounterTraits::Attributes::EnablePacketCount aclEnablePacketCount{
+      false};
+  EXPECT_THROW(
+      aclApi->setAttribute(aclCounterId, aclEnablePacketCount), SaiApiError);
+  SaiAclCounterTraits::Attributes::EnableByteCount aclEnableByteCount{false};
+  EXPECT_THROW(
+      aclApi->setAttribute(aclCounterId, aclEnableByteCount), SaiApiError);
+
+  SaiAclCounterTraits::Attributes::CounterPackets aclCounterPackets{10};
+  SaiAclCounterTraits::Attributes::CounterBytes aclCounterBytes{20};
+
+  aclApi->setAttribute(aclCounterId, aclCounterPackets);
+  aclApi->setAttribute(aclCounterId, aclCounterBytes);
+
+  auto aclCounterPacketsGot = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::CounterPackets());
+  auto aclCounterBytesGot = aclApi->getAttribute(
+      aclCounterId, SaiAclCounterTraits::Attributes::CounterBytes());
+
+  EXPECT_EQ(aclCounterPacketsGot, 10);
+  EXPECT_EQ(aclCounterBytesGot, 20);
+}
+
 TEST_F(AclApiTest, formatAclTableStageAttribute) {
   SaiAclTableTraits::Attributes::Stage stage{0};
   std::string expected("Stage: 0");
@@ -1029,6 +1137,12 @@ TEST_F(AclApiTest, formatAclTableStageAttribute) {
 
 TEST_F(AclApiTest, formatAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::TableId tableId{0};
+  std::string expected("TableId: 0");
+  EXPECT_EQ(expected, fmt::format("{}", tableId));
+}
+
+TEST_F(AclApiTest, formatAclCounterAttribute) {
+  SaiAclCounterTraits::Attributes::TableId tableId{0};
   std::string expected("TableId: 0");
   EXPECT_EQ(expected, fmt::format("{}", tableId));
 }
