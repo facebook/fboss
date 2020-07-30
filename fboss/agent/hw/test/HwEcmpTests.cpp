@@ -106,6 +106,9 @@ void HwEcmpTest::programResolvedUcmp(
 void HwEcmpTest::verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs) {
   auto pathsInHw = utility::getEcmpMembersInHw(
       getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
+  auto pathsInHwCount = pathsInHw.size();
+  EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
+
   std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
   // This check assumes that egress ids grow as you add more egresses
   // That assumption could prove incorrect, in which case we would
@@ -118,9 +121,7 @@ void HwEcmpTest::verifyResolvedUcmp(const std::vector<NextHopWeight>& hwWs) {
   }
   auto totalHwWeight =
       std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
-  auto pathsInHwCount = pathsInHw.size();
   EXPECT_EQ(totalHwWeight, pathsInHwCount);
-  EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
 }
 
 void HwEcmpTest::runSimpleUcmpTest(

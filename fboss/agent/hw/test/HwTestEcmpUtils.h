@@ -33,5 +33,12 @@ inline int getEcmpSizeInHw(
     int sizeInSw) {
   return getEcmpMembersInHw(hw, prefix, rid, sizeInSw).size();
 }
+uint64_t getEcmpMemberWeight(
+    const facebook::fboss::HwSwitch* hw,
+    const std::multiset<uint64_t>& pathsInHw,
+    uint64_t pathInHw);
+uint64_t getTotalEcmpMemberWeight(
+    const facebook::fboss::HwSwitch* hw,
+    const std::multiset<uint64_t>& pathsInHw);
 } // namespace utility
 } // namespace facebook::fboss

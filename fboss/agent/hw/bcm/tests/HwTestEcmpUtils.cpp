@@ -25,4 +25,25 @@ std::multiset<uint64_t> getEcmpMembersInHw(
   auto members = utility::getEcmpGroupInHw(bcmSw->getUnit(), ecmp, sizeInSw);
   return std::multiset<uint64_t>(members.begin(), members.end());
 }
+
+uint64_t getEcmpMemberWeight(
+    const facebook::fboss::HwSwitch* /*hw*/,
+    const std::multiset<uint64_t>& pathsInHw,
+    uint64_t pathInHw) {
+  std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
+  // This check assumes that egress ids grow as you add more egresses
+  // That assumption could prove incorrect, in which case we would
+  // need to map ips to egresses, somehow.
+  auto iter = uniquePaths.find(pathInHw);
+  if (iter == uniquePaths.end()) {
+    throw FbossError("path not found");
+  }
+  return pathsInHw.count(pathInHw);
+}
+
+uint64_t getTotalEcmpMemberWeight(
+    const facebook::fboss::HwSwitch* /*hw*/,
+    const std::multiset<uint64_t>& pathsInHw) {
+  return pathsInHw.size();
+}
 } // namespace facebook::fboss::utility
