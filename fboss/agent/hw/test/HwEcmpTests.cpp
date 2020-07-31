@@ -204,17 +204,37 @@ TEST_F(HwEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Test what happens when totalWeight > 64 in UCMP and some of the
-// weights are too low, resulting in them going to zero when
-// multiplied by 64/W (where W is the total weight of the nexthops).
-// TODO(borisb): Think of a better algorithm for this case than wi*(64/W)
 TEST_F(HwEcmpTest, UcmpOverflowZero) {
-  EXPECT_EQ(64, FLAGS_ecmp_width);
-  runSimpleUcmpTest({50, 50, 1, 1}, {31, 31, 1, 1});
+  std::vector<NextHopWeight> swWs, hwWs;
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1};
+    hwWs = {31, 31, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1};
+    hwWs = {63, 63, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+  runSimpleUcmpTest(swWs, hwWs);
 }
 TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
-  EXPECT_EQ(64, FLAGS_ecmp_width);
-  runSimpleUcmpTest({50, 50, 1, 1, 1, 1, 1, 1}, {29, 29, 1, 1, 1, 1, 1, 1});
+  std::vector<NextHopWeight> swWs, hwWs;
+  if (FLAGS_ecmp_width == 64) {
+    // default ecmp_width for td2 and tomahawk
+    swWs = {50, 50, 1, 1, 1, 1, 1, 1};
+    hwWs = {29, 29, 1, 1, 1, 1, 1, 1};
+  } else if (FLAGS_ecmp_width == 128) {
+    // for tomahawk3
+    swWs = {100, 100, 1, 1, 1, 1, 1, 1};
+    hwWs = {61, 61, 1, 1, 1, 1, 1, 1};
+  } else {
+    FAIL()
+        << "Do not support ecmp_width other than 64 or 128, please extend the test";
+  }
+  runSimpleUcmpTest(swWs, hwWs);
 }
 
 TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {

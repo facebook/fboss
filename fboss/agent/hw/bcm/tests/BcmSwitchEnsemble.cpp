@@ -106,6 +106,10 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     } else {
       throw FbossError("No config file to load!");
     }
+    for (auto item : *agentConfig->thrift.defaultCommandLineArgs_ref()) {
+      gflags::SetCommandLineOptionWithMode(
+          item.first.c_str(), item.second.c_str(), gflags::SET_FLAG_IF_DEFAULT);
+    }
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
