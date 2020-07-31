@@ -168,8 +168,8 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
 
   auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
       port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
-  auto createAttributes =
-      SaiNeighborTraits::CreateAttributes{fdbEntry->adapterHostKey().mac()};
+  auto createAttributes = SaiNeighborTraits::CreateAttributes{
+      fdbEntry->adapterHostKey().mac(), std::nullopt};
   // notify next hop subscriber only if port link status is up
   // this is to prevent creation of next hop and next hop group members
   // for links which are down.

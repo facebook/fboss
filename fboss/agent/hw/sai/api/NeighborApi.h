@@ -90,7 +90,8 @@ struct SaiNeighborTraits {
    private:
     sai_neighbor_entry_t neighbor_entry{};
   };
-  using CreateAttributes = std::tuple<Attributes::DstMac>;
+  using CreateAttributes =
+      std::tuple<Attributes::DstMac, std::optional<Attributes::Metadata>>;
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
 };

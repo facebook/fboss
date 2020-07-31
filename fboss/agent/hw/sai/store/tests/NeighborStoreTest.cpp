@@ -18,13 +18,18 @@
 
 using namespace facebook::fboss;
 
+SaiNeighborTraits::CreateAttributes createAttrs(
+    folly::MacAddress dstMac,
+    std::optional<sai_uint32_t> metadata = std::nullopt) {
+  return {dstMac, metadata};
+}
+
 TEST_F(SaiStoreTest, loadNeighbor) {
   auto& neighborApi = saiApiTable->neighborApi();
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
 
   SaiStore s(0);
   s.reload();
@@ -43,8 +48,8 @@ TEST_F(SaiStoreTest, neighborLoadCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
 
   SaiObject<SaiNeighborTraits> obj(n);
   EXPECT_EQ(obj.adapterKey(), n);
@@ -55,7 +60,7 @@ TEST_F(SaiStoreTest, neighborCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, {dstMac}, 0);
+  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
@@ -65,12 +70,12 @@ TEST_F(SaiStoreTest, setDstMac) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, {dstMac}, 0);
+  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   folly::MacAddress dstMac2{"43:43:43:43:43:43"};
-  obj.setAttributes({dstMac2});
+  obj.setAttributes({dstMac2, std::nullopt});
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac2);
   // Check that dst mac really changed according to SAI
   auto& neighborApi = saiApiTable->neighborApi();
@@ -83,11 +88,11 @@ TEST_F(SaiStoreTest, neighborFormatTest) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiObject<SaiNeighborTraits> obj(n, {dstMac}, 0);
+  SaiObject<SaiNeighborTraits> obj(n, createAttrs(dstMac), 0);
 
   auto expected =
       "NeighborEntry(switch:0, rif: 0, ip: 10.10.10.1): "
-      "(DstMac: 42:42:42:42:42:42)";
+      "(DstMac: 42:42:42:42:42:42, nullopt)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
 
@@ -96,8 +101,8 @@ TEST_F(SaiStoreTest, neighbor4SerDeser) {
   folly::IPAddress ip{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
   verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
 }
 
@@ -106,8 +111,8 @@ TEST_F(SaiStoreTest, neighbor6SerDeser) {
   folly::IPAddress ip{"42::1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  SaiNeighborTraits::Attributes::DstMac daAttr{dstMac};
-  neighborApi.create<SaiNeighborTraits>(n, {daAttr});
+  SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
   verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
 }
 
