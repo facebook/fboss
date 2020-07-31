@@ -96,7 +96,8 @@ void SaiNeighborManager::addNeighbor(
       portID,
       swEntry->getIntfID(),
       swEntry->getMac(),
-      SAI_FDB_ENTRY_TYPE_STATIC);
+      SAI_FDB_ENTRY_TYPE_STATIC,
+      std::nullopt);
 
   auto subscriber = std::make_shared<ManagedNeighbor>(
       portID, swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());

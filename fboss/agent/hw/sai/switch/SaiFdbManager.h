@@ -98,7 +98,7 @@ class SaiFdbManager {
       InterfaceID,
       folly::MacAddress,
       sai_fdb_entry_type_t type,
-      std::optional<sai_uint32_t> metadata = std::nullopt);
+      std::optional<sai_uint32_t> metadata);
   void removeFdbEntry(InterfaceID, folly::MacAddress);
   // Process mac Table changes
   void addMac(const std::shared_ptr<MacEntry>& addedEntry);

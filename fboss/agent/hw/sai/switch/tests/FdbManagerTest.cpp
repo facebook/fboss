@@ -34,7 +34,8 @@ class FdbManagerTest : public ManagerTestBase {
   void checkFdbEntry(
       const InterfaceID& intfId,
       const folly::MacAddress& mac,
-      PortID portId) {
+      PortID portId,
+      sai_uint32_t metadata) {
     auto vlanId = VlanID(intfId);
     SaiFdbTraits::FdbEntry entry{1, vlanId, mac};
     auto portHandle = saiManagerTable->portManager().getPortHandle(portId);
@@ -42,6 +43,10 @@ class FdbManagerTest : public ManagerTestBase {
     auto bridgePortId = saiApiTable->fdbApi().getAttribute(
         entry, SaiFdbTraits::Attributes::BridgePortId{});
     EXPECT_EQ(bridgePortId, expectedBridgePortId);
+    EXPECT_EQ(
+        saiApiTable->fdbApi().getAttribute(
+            entry, SaiFdbTraits::Attributes::Metadata{}),
+        metadata);
   }
 
   TestInterface intf0;
@@ -52,6 +57,6 @@ TEST_F(FdbManagerTest, addFdbEntry) {
   InterfaceID intfId = InterfaceID(intf0.id);
   auto portId = PortID(intf0.id);
   saiManagerTable->fdbManager().addFdbEntry(
-      portId, intfId, mac1, SAI_FDB_ENTRY_TYPE_STATIC);
-  checkFdbEntry(intfId, mac1, portId);
+      portId, intfId, mac1, SAI_FDB_ENTRY_TYPE_STATIC, 42);
+  checkFdbEntry(intfId, mac1, portId, 42);
 }
