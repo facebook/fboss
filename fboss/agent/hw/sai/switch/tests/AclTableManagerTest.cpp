@@ -113,6 +113,39 @@ TEST_F(AclTableManagerTest, addAclEntry) {
   EXPECT_EQ(tableIdGot, aclTableId);
 }
 
+TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
+  auto aclTableId = saiManagerTable->aclTableManager()
+                        .getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+
+  auto counter = cfg::TrafficCounter();
+  *counter.name_ref() = "stat0.c";
+  MatchAction action = MatchAction();
+  action.setTrafficCounter(counter);
+
+  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  aclEntry->setDscp(kDscp());
+  aclEntry->setAclAction(action);
+
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, SaiSwitch::kAclTable1);
+
+  auto tableIdGot = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::TableId());
+  EXPECT_EQ(tableIdGot, aclTableId);
+
+  auto aclCounterIdGot =
+      saiApiTable->aclApi()
+          .getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::ActionCounter())
+          .getData();
+
+  auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
+      AclCounterSaiId(aclCounterIdGot),
+      SaiAclCounterTraits::Attributes::TableId());
+  EXPECT_EQ(tableIdGot2, aclTableId);
+}
+
 TEST_F(AclTableManagerTest, addTwoAclEntry) {
   auto aclTableId = saiManagerTable->aclTableManager()
                         .getAclTableHandle(SaiSwitch::kAclTable1)
