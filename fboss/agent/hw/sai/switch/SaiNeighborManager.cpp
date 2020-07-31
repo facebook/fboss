@@ -99,8 +99,17 @@ void SaiNeighborManager::addNeighbor(
       SAI_FDB_ENTRY_TYPE_STATIC,
       std::nullopt);
 
+  std::optional<sai_uint32_t> metadata;
+  if (swEntry->getClassID()) {
+    metadata = static_cast<sai_uint32_t>(swEntry->getClassID().value());
+  }
+
   auto subscriber = std::make_shared<ManagedNeighbor>(
-      portID, swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac());
+      portID,
+      swEntry->getIntfID(),
+      swEntry->getIP(),
+      swEntry->getMac(),
+      metadata);
 
   SaiObjectEventPublisher::getInstance()->get<SaiPortTraits>().subscribe(
       subscriber);
