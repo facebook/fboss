@@ -185,3 +185,34 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
   // 0 neighbor entries expected, i.e. entries must be purged
   verifyReachableCnt(0);
 }
+
+TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  // ACL with a qualifier should succeed validation
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+
+  auto stateV1 = stateV0->clone();
+  auto aclMap1 = stateV1->getAcls()->modify(&stateV1);
+
+  auto aclEntry0 = std::make_shared<AclEntry>(0, "acl0");
+  aclEntry0->setDscp(0x24);
+  aclMap1->addNode(aclEntry0);
+
+  stateV1->publish();
+
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV1)));
+
+  // ACL without any qualifier should fail validation
+  auto stateV2 = stateV0->clone();
+  auto aclMap2 = stateV2->getAcls()->modify(&stateV2);
+
+  auto aclEntry1 = std::make_shared<AclEntry>(0, "acl1");
+  aclMap2->addNode(aclEntry1);
+
+  stateV2->publish();
+
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+}
