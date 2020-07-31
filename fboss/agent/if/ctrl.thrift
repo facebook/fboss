@@ -329,6 +329,7 @@ struct PortInfoThrift {
   11: PortCounters input,
   12: string name,
   13: string description,
+  // TODO(pgardideh): remove this in favor of fecMode
   14: bool fecEnabled, // Forward Error Correction port setting
   15: bool txPause = false,
   16: bool rxPause = false,

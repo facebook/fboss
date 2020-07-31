@@ -87,15 +87,7 @@ class PortDetailsCmd(cmds.FbossCmd):
         speed, suffix = self._convert_bps(port_info.speedMbps * (10 ** 6))
         vlans = " ".join(str(vlan) for vlan in (port_info.vlans or []))
 
-        if hasattr(port_info, "fecMode"):
-            fec_status = port_info.fecMode
-        else:
-            if not hasattr(port_info, "fecEnabled"):
-                fec_status = "N/A"  # many ports don't implement FEC
-            elif port_info.fecEnabled:
-                fec_status = "ENABLED"
-            else:
-                fec_status = "DISABLED"
+        fec_status = port_info.fecMode
 
         pause = ""
         if port_info.txPause:
