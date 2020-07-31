@@ -48,11 +48,28 @@ TEST_F(NeighborApiTest, createV4Neighbor) {
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
 }
 
+TEST_F(NeighborApiTest, createV4NeighborWithMetadata) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(42));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
+}
+
 TEST_F(NeighborApiTest, createV6Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
   EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+}
+
+TEST_F(NeighborApiTest, createV6NeighborWithMetdata) {
+  SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs(42));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_EQ(fs->neighborManager.get(fn).metadata, 42);
 }
 
 TEST_F(NeighborApiTest, removeV4Neighbor) {
@@ -90,6 +107,19 @@ TEST_F(NeighborApiTest, setV4DstMac) {
   EXPECT_EQ(gotMac, dstMac2);
 }
 
+TEST_F(NeighborApiTest, setV4Metadata) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::Metadata()),
+      0);
+  SaiNeighborTraits::Attributes::Metadata metadata(42);
+  neighborApi->setAttribute(n, metadata);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::Metadata()),
+      42);
+}
+
 TEST_F(NeighborApiTest, setV6DstMac) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
@@ -99,6 +129,19 @@ TEST_F(NeighborApiTest, setV6DstMac) {
   auto gotMac =
       neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::DstMac());
   EXPECT_EQ(gotMac, dstMac2);
+}
+
+TEST_F(NeighborApiTest, setV6DstMetadata) {
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(n, createAttrs());
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::Metadata()),
+      0);
+  SaiNeighborTraits::Attributes::Metadata metadata(42);
+  neighborApi->setAttribute(n, metadata);
+  EXPECT_EQ(
+      neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::Metadata()),
+      42);
 }
 
 TEST_F(NeighborApiTest, v4NeighborSerDeser) {
