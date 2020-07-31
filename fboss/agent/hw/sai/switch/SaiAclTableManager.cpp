@@ -315,6 +315,53 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
   throw FbossError("Unsupported IP Type option");
 }
 
+std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
+    const SaiAclTableHandle* aclTableHandle,
+    const cfg::TrafficCounter& trafficCount) {
+  SaiAclCounterTraits::Attributes::TableId aclTableId{
+      aclTableHandle->aclTable->adapterKey()};
+  std::optional<SaiAclCounterTraits::Attributes::EnablePacketCount>
+      enablePacketCount{false};
+  std::optional<SaiAclCounterTraits::Attributes::EnableByteCount>
+      enableByteCount{false};
+
+  for (const auto& counterType : *trafficCount.types_ref()) {
+    switch (counterType) {
+      case cfg::CounterType::PACKETS:
+        enablePacketCount =
+            SaiAclCounterTraits::Attributes::EnablePacketCount{true};
+        break;
+      case cfg::CounterType::BYTES:
+        enableByteCount =
+            SaiAclCounterTraits::Attributes::EnableByteCount{true};
+        break;
+      default:
+        throw FbossError("Unsupported CounterType for ACL");
+    }
+  }
+
+  SaiAclCounterTraits::AdapterHostKey adapterHostKey{
+      aclTableId,
+      enablePacketCount,
+      enableByteCount,
+  };
+
+  SaiAclCounterTraits::CreateAttributes attributes{
+      aclTableId,
+      enablePacketCount,
+      enableByteCount,
+      std::nullopt, // counterPackets
+      std::nullopt, // counterBytes
+  };
+
+  std::shared_ptr<SaiStore> s = SaiStore::getInstance();
+  auto& aclCounterStore = s->get<SaiAclCounterTraits>();
+
+  auto saiAclCounter = aclCounterStore.setObject(adapterHostKey, attributes);
+
+  return saiAclCounter;
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
@@ -574,6 +621,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         SAI_PACKET_ACTION_DROP};
   }
 
+  std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
+  std::optional<SaiAclEntryTraits::Attributes::ActionCounter> aclActionCounter{
+      std::nullopt};
+
   std::optional<SaiAclEntryTraits::Attributes::ActionSetTC> aclActionSetTC{
       std::nullopt};
 
@@ -582,6 +633,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   auto action = addedAclEntry->getAclAction();
   if (action) {
+    if (action.value().getTrafficCounter()) {
+      saiAclCounter = addAclCounter(
+          aclTableHandle, action.value().getTrafficCounter().value());
+      aclActionCounter = SaiAclEntryTraits::Attributes::ActionCounter{
+          AclEntryActionSaiObjectIdT(
+              AclCounterSaiId{saiAclCounter->adapterKey()})};
+    }
+
     if (action.value().getSendToQueue()) {
       auto sendToQueue = action.value().getSendToQueue().value();
       bool sendToCpu = sendToQueue.second;
@@ -617,8 +676,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
          fieldRouteDstUserMeta.has_value() ||
          fieldNeighborDstUserMeta.has_value()) &&
-        (aclActionPacketAction.has_value() || aclActionSetTC.has_value() ||
-         aclActionSetDSCP.has_value()))) {
+        (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
+         aclActionSetTC.has_value() || aclActionSetDSCP.has_value()))) {
     XLOG(DBG)
         << "Unsupported field/action for aclEntry: addedAclEntry->getID())";
     return AclEntrySaiId{0};
@@ -650,7 +709,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       aclActionPacketAction,
-      std::nullopt, // counter
+      aclActionCounter,
       aclActionSetTC,
       aclActionSetDSCP,
       std::nullopt, // mirrorIngress
@@ -662,6 +721,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
   entryHandle->aclEntry = saiAclEntry;
+  entryHandle->aclCounter = saiAclCounter;
 
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
       addedAclEntry->getPriority(), std::move(entryHandle));

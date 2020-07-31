@@ -27,9 +27,13 @@ class SaiPlatform;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
+using SaiAclCounter = SaiObject<SaiAclCounterTraits>;
 
 struct SaiAclEntryHandle {
   std::shared_ptr<SaiAclEntry> aclEntry;
+  // In FBOSS implementation, an ACL counter is always associated with single
+  // ACL Entry.
+  std::shared_ptr<SaiAclCounter> aclCounter;
 };
 
 struct SaiAclTableHandle {
@@ -100,6 +104,10 @@ class SaiAclTableManager {
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
       int priority) const;
+
+  std::shared_ptr<SaiAclCounter> addAclCounter(
+      const SaiAclTableHandle* aclTableHandle,
+      const cfg::TrafficCounter& trafficCount);
 
   sai_uint32_t swPriorityToSaiPriority(int priority) const;
 
