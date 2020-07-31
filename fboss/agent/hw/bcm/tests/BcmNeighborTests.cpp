@@ -5,9 +5,7 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/hw/test/HwNeighborTests.h"
 
 using namespace ::testing;
 
@@ -15,151 +13,18 @@ extern "C" {
 #include <bcm/l3.h>
 }
 
-namespace {
-
-template <typename AddrType, bool trunk = false>
-struct NeighborT {
-  using IPAddrT = AddrType;
-  static constexpr auto isTrunk = trunk;
-  using LinkT = std::conditional_t<isTrunk, bcm_trunk_t, bcm_port_t>;
-  static facebook::fboss::cfg::SwitchConfig initialConfig(
-      facebook::fboss::cfg::SwitchConfig config);
-
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      folly::IPAddressV4> static getNeighborAddress() {
-    return folly::IPAddressV4("129.0.0.1");
-  }
-
-  template <typename AddrT = IPAddrT>
-  std::enable_if_t<
-      std::is_same<AddrT, folly::IPAddressV6>::value,
-      folly::IPAddressV6> static getNeighborAddress() {
-    return folly::IPAddressV6("2401::123");
-  }
-};
-
-using PortNeighborV4 = NeighborT<folly::IPAddressV4, false>;
-using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true>;
-using PortNeighborV6 = NeighborT<folly::IPAddressV6, false>;
-using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true>;
-
-const facebook::fboss::AggregatePortID kAggID{1};
-
-template <>
-facebook::fboss::cfg::SwitchConfig PortNeighborV4::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  return config;
-}
-
-void setTrunk(facebook::fboss::cfg::SwitchConfig* config) {
-  std::vector<int> ports;
-  for (auto port : *config->ports_ref()) {
-    ports.push_back(*port.logicalID_ref());
-  }
-  facebook::fboss::utility::addAggPort(kAggID, ports, config);
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig TrunkNeighborV4::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  setTrunk(&config);
-  return config;
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig PortNeighborV6::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  return config;
-}
-
-template <>
-facebook::fboss::cfg::SwitchConfig TrunkNeighborV6::initialConfig(
-    facebook::fboss::cfg::SwitchConfig config) {
-  setTrunk(&config);
-  return config;
-}
-
-using NeighborTypes = ::testing::
-    Types<PortNeighborV4, TrunkNeighborV4, PortNeighborV6, TrunkNeighborV6>;
-
-} // namespace
 namespace facebook::fboss {
 
 template <typename NeighborT>
-class BcmNeighborTests : public BcmLinkStateDependentTests {
-  using IPAddrT = typename NeighborT::IPAddrT;
-  static auto constexpr programToTrunk = NeighborT::isTrunk;
-  using NTable = typename std::conditional_t<
-      std::is_same<IPAddrT, folly::IPAddressV4>::value,
-      ArpTable,
-      NdpTable>;
-
+class BcmNeighborTest : public HwNeighborTest<NeighborT> {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
-    return NeighborT::initialConfig(utility::oneL3IntfTwoPortConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC));
-  }
-
-  PortDescriptor portDescriptor() {
-    if (programToTrunk)
-      return PortDescriptor(kAggID);
-    return PortDescriptor(masterLogicalPortIds()[0]);
-  }
-
-  std::shared_ptr<SwitchState> addNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto ip = NeighborT::getNeighborAddress();
-    auto outState{inState->clone()};
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-    neighborTable->addPendingEntry(ip, kIntfID);
-    return outState;
-  }
-
-  std::shared_ptr<SwitchState> removeNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto ip = NeighborT::getNeighborAddress();
-    auto outState{inState->clone()};
-
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-
-    neighborTable->removeEntry(ip);
-    return outState;
-  }
-
-  std::shared_ptr<SwitchState> resolveNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto ip = NeighborT::getNeighborAddress();
-    auto outState{inState->clone()};
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-
-    neighborTable->updateEntry(
-        ip, kNeighborMac, portDescriptor(), kIntfID, kLookupClass);
-    return outState;
-  }
-
-  std::shared_ptr<SwitchState> unresolveNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    return addNeighbor(removeNeighbor(inState));
-  }
+  using BaseT = HwNeighborTest<NeighborT>;
+  using IPAddrT = typename BaseT::IPAddrT;
 
   BcmHost* getNeighborHost() {
     auto ip = NeighborT::getNeighborAddress();
     return this->getHwSwitch()->getNeighborTable()->getNeighborIf(
-        BcmHostKey(0, ip, kIntfID));
+        BcmHostKey(0, ip, BaseT::kIntfID));
   }
 
   bool isProgrammedToCPU(bcm_if_t egressId) {
@@ -200,20 +65,13 @@ class BcmNeighborTests : public BcmLinkStateDependentTests {
      * Pending entry should not have a classID (0) associated with it.
      * Resolved entry should have a classID associated with it.
      */
-    EXPECT_TRUE(programToTrunk || host.l3a_lookup_class == classID);
+    EXPECT_TRUE(BaseT::programToTrunk || host.l3a_lookup_class == classID);
   }
+};
 
-  const VlanID kVlanID{utility::kBaseVlanId};
-  const InterfaceID kIntfID{utility::kBaseVlanId};
+TYPED_TEST_SUITE(BcmNeighborTest, NeighborTypes);
 
-  const folly::MacAddress kNeighborMac{"1:2:3:4:5:6"};
-  const cfg::AclLookupClass kLookupClass{
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
-}; // namespace fboss
-
-TYPED_TEST_SUITE(BcmNeighborTests, NeighborTypes);
-
-TYPED_TEST(BcmNeighborTests, AddPendingEntry) {
+TYPED_TEST(BcmNeighborTest, AddPendingEntry) {
   auto setup = [this]() {
     auto newState = this->addNeighbor(this->getProgrammedState());
     this->applyNewState(newState);
@@ -233,7 +91,7 @@ TYPED_TEST(BcmNeighborTests, AddPendingEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, ResolvePendingEntry) {
+TYPED_TEST(BcmNeighborTest, ResolvePendingEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -254,7 +112,7 @@ TYPED_TEST(BcmNeighborTests, ResolvePendingEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, UnresolveResolvedEntry) {
+TYPED_TEST(BcmNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -276,7 +134,7 @@ TYPED_TEST(BcmNeighborTests, UnresolveResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, ResolveThenUnresolveEntry) {
+TYPED_TEST(BcmNeighborTest, ResolveThenUnresolveEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -298,7 +156,7 @@ TYPED_TEST(BcmNeighborTests, ResolveThenUnresolveEntry) {
     this->verifyAcrossWarmBoots(setup, verify);
   }
 }
-TYPED_TEST(BcmNeighborTests, RemoveResolvedEntry) {
+TYPED_TEST(BcmNeighborTest, RemoveResolvedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -318,7 +176,7 @@ TYPED_TEST(BcmNeighborTests, RemoveResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, AddPendingRemovedEntry) {
+TYPED_TEST(BcmNeighborTest, AddPendingRemovedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -340,7 +198,7 @@ TYPED_TEST(BcmNeighborTests, AddPendingRemovedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, LinkDownOnResolvedEntry) {
+TYPED_TEST(BcmNeighborTest, LinkDownOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -364,7 +222,7 @@ TYPED_TEST(BcmNeighborTests, LinkDownOnResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, BothLinkDownOnResolvedEntry) {
+TYPED_TEST(BcmNeighborTest, BothLinkDownOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -391,7 +249,7 @@ TYPED_TEST(BcmNeighborTests, BothLinkDownOnResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTests, LinkDownAndUpOnResolvedEntry) {
+TYPED_TEST(BcmNeighborTest, LinkDownAndUpOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
