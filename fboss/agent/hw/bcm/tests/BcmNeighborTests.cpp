@@ -21,12 +21,6 @@ class BcmNeighborTest : public HwNeighborTest<NeighborT> {
   using BaseT = HwNeighborTest<NeighborT>;
   using IPAddrT = typename BaseT::IPAddrT;
 
-  BcmHost* getNeighborHost() {
-    auto ip = NeighborT::getNeighborAddress();
-    return this->getHwSwitch()->getNeighborTable()->getNeighborIf(
-        BcmHostKey(0, ip, BaseT::kIntfID));
-  }
-
   bool isProgrammedToCPU(bcm_if_t egressId) {
     bcm_l3_egress_t egress;
     auto cpuFlags = (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU);
