@@ -322,6 +322,15 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->lookupClass = lookupClass;
   }
 
+  bool hasMatcher() const {
+    // at least one qualifier must be specified
+    return getSrcIp().first || getDstIp().first || getProto() ||
+        getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
+        getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
+        getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
+        getLookupClass();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using NodeBaseT::NodeBaseT;

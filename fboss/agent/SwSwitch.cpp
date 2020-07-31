@@ -48,6 +48,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -87,6 +88,8 @@ using std::set;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
+
+using facebook::fboss::DeltaFunctions::forEachChanged;
 
 using namespace std::chrono;
 using namespace apache::thrift;
@@ -1486,7 +1489,22 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  return hw_->isValidStateUpdate(delta);
+  bool isValid = true;
+
+  forEachChanged(
+      delta.getAclsDelta(),
+      [&](const shared_ptr<AclEntry>& /* oldAcl */,
+          const shared_ptr<AclEntry>& newAcl) {
+        isValid = isValid && newAcl->hasMatcher();
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<AclEntry>& addAcl) {
+        isValid = isValid && addAcl->hasMatcher();
+        return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
+      },
+      [&](const shared_ptr<AclEntry>& /* delAcl */) {});
+
+  return isValid && hw_->isValidStateUpdate(delta);
 }
 
 std::string SwSwitch::switchRunStateStr(
