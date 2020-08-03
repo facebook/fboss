@@ -101,96 +101,115 @@ sai_status_t __wrap_sai_api_query(
       SaiTracer::getInstance()->aclApi_ =
           static_cast<sai_acl_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapAclApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "acl_api");
       break;
     case SAI_API_BRIDGE:
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBridgeApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "bridge_api");
       break;
     case SAI_API_BUFFER:
       SaiTracer::getInstance()->bufferApi_ =
           static_cast<sai_buffer_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapBufferApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "buffer_api");
       break;
     case SAI_API_FDB:
       SaiTracer::getInstance()->fdbApi_ =
           static_cast<sai_fdb_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapFdbApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "fdb_api");
       break;
     case SAI_API_HASH:
       SaiTracer::getInstance()->hashApi_ =
           static_cast<sai_hash_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapHashApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "hash_api");
       break;
     case SAI_API_HOSTIF:
       SaiTracer::getInstance()->hostifApi_ =
           static_cast<sai_hostif_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapHostifApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "hostif_api");
       break;
     case SAI_API_MPLS:
       SaiTracer::getInstance()->mplsApi_ =
           static_cast<sai_mpls_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapMplsApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "mpls_api");
       break;
     case SAI_API_NEIGHBOR:
       SaiTracer::getInstance()->neighborApi_ =
           static_cast<sai_neighbor_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapNeighborApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "neighbor_api");
       break;
     case SAI_API_NEXT_HOP:
       SaiTracer::getInstance()->nextHopApi_ =
           static_cast<sai_next_hop_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapNextHopApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "next_hop_api");
       break;
     case SAI_API_NEXT_HOP_GROUP:
       SaiTracer::getInstance()->nextHopGroupApi_ =
           static_cast<sai_next_hop_group_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapNextHopGroupApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "next_hop_group_api");
       break;
     case SAI_API_PORT:
       SaiTracer::getInstance()->portApi_ =
           static_cast<sai_port_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapPortApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "port_api");
       break;
     case SAI_API_QOS_MAP:
       SaiTracer::getInstance()->qosMapApi_ =
           static_cast<sai_qos_map_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapQosMapApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "qos_map_api");
       break;
     case SAI_API_QUEUE:
       SaiTracer::getInstance()->queueApi_ =
           static_cast<sai_queue_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapQueueApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "queue_api");
       break;
     case SAI_API_ROUTE:
       SaiTracer::getInstance()->routeApi_ =
           static_cast<sai_route_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapRouteApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "route_api");
       break;
     case SAI_API_ROUTER_INTERFACE:
       SaiTracer::getInstance()->routerInterfaceApi_ =
           static_cast<sai_router_interface_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapRouterInterfaceApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "router_interface_api");
       break;
     case SAI_API_SCHEDULER:
       SaiTracer::getInstance()->schedulerApi_ =
           static_cast<sai_scheduler_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapSchedulerApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "scheduler_api");
       break;
     case SAI_API_SWITCH:
       SaiTracer::getInstance()->switchApi_ =
           static_cast<sai_switch_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapSwitchApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "switch_api");
       break;
     case SAI_API_VIRTUAL_ROUTER:
       SaiTracer::getInstance()->virtualRouterApi_ =
           static_cast<sai_virtual_router_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapVirtualRouterApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "virtual_router_api");
       break;
     case SAI_API_VLAN:
       SaiTracer::getInstance()->vlanApi_ =
           static_cast<sai_vlan_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrapVlanApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "vlan_api");
       break;
     default:
       // TODO: For other APIs, create new API wrappers and invoke wrapApi()
@@ -211,18 +230,42 @@ inline void printHex(std::ostringstream& outStringStream, uint8_t u8) {
                   << static_cast<int>(u8);
 }
 
+inline int flushToFile(
+    folly::Synchronized<folly::File>& logFile,
+    const char* content,
+    size_t length) {
+  return logFile.withWLock([&](auto& lockedFile) {
+    return folly::writeFull(lockedFile.fd(), content, length);
+  });
+}
+
 } // namespace
 
 namespace facebook::fboss {
 
 SaiTracer::SaiTracer() {
-  saiLogFile_ = folly::File(FLAGS_sai_log.c_str(), O_RDWR | O_CREAT | O_TRUNC);
-  setupGlobals();
-  initVarCounts();
+  if (FLAGS_enable_replayer) {
+    saiLogFile_ =
+        folly::File(FLAGS_sai_log.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+
+    if (flushToFile(saiLogFile_, cpp_header_, strlen(cpp_header_)) < 0) {
+      throw SysError(
+          errno,
+          "error writing ",
+          strlen(cpp_header_),
+          " bytes to SAI Replayer log file");
+    }
+
+    setupGlobals();
+    initVarCounts();
+  }
 }
 
 SaiTracer::~SaiTracer() {
-  fsync(saiLogFile_.wlock()->fd());
+  if (FLAGS_enable_replayer) {
+    writeFooter();
+    fsync(saiLogFile_.wlock()->fd());
+  }
 }
 
 std::shared_ptr<SaiTracer> SaiTracer::getInstance() {
@@ -237,16 +280,27 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
   auto constexpr lineEnd = ";\n";
   auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
 
-  auto bytesWritten = saiLogFile_.withWLock([&](auto& lockedFile) {
-    return folly::writeFull(lockedFile.fd(), lines.c_str(), lines.size());
-  });
-  if (bytesWritten < 0) {
+  if (flushToFile(saiLogFile_, lines.c_str(), lines.size()) < 0) {
     throw SysError(
         errno,
         "error writing ",
         lines.size(),
         " bytes to SAI Replayer log file");
   }
+}
+
+void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
+  // If replayer is not enabled or api is already initialized
+  if (!FLAGS_enable_replayer || init_api_.find(api_id) != init_api_.end()) {
+    return;
+  }
+
+  init_api_.emplace(api_id, api_var);
+
+  writeToFile(
+      {to<string>("sai_", api_var, "_t* ", api_var),
+       to<string>(
+           "sai_api_query((sai_api_t)", api_id, ", (void**)&", api_var, ")")});
 }
 
 void SaiTracer::logSwitchCreateFn(
@@ -873,6 +927,11 @@ vector<string> SaiTracer::setAttrList(
   auto constexpr sai_attribute = "sai_attributes";
   vector<string> attrLines;
 
+  attrLines.push_back(to<string>(
+      "memset(sai_attributes, 0, sizeof(sai_attribute_t) * ",
+      maxAttrCount_,
+      ")"));
+
   // Setup ids
   for (int i = 0; i < attr_count; ++i) {
     attrLines.push_back(
@@ -1164,7 +1223,7 @@ uint32_t SaiTracer::checkListCount(
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
-      "sai_attribute_t *sai_attributes = malloc(sizeof(sai_attribute_t) * ",
+      "sai_attribute_t *sai_attributes = (sai_attribute_t*)malloc(sizeof(sai_attribute_t) * ",
       FLAGS_default_list_size,
       ")")};
 
@@ -1184,6 +1243,18 @@ void SaiTracer::setupGlobals() {
   maxAttrCount_ = FLAGS_default_list_size;
   maxListCount_ = FLAGS_default_list_count;
   numCalls_ = 0;
+}
+
+void SaiTracer::writeFooter() {
+  string footer = "free(sai_attributes);\n}\n} // namespace facebook::fboss";
+
+  if (flushToFile(saiLogFile_, footer.c_str(), footer.size()) < 0) {
+    throw SysError(
+        errno,
+        "error writing ",
+        footer.size(),
+        " bytes to SAI Replayer log file");
+  }
 }
 
 void SaiTracer::initVarCounts() {

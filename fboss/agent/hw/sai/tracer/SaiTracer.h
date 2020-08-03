@@ -36,6 +36,8 @@ class SaiTracer {
 
   static std::shared_ptr<SaiTracer> getInstance();
 
+  void logApiQuery(sai_api_t api_id, const std::string& api_var);
+
   void logSwitchCreateFn(
       sai_object_id_t* switch_id,
       uint32_t attr_count,
@@ -157,6 +159,8 @@ class SaiTracer {
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
 
+  std::map<sai_api_t, std::string> init_api_;
+
  private:
   void writeToFile(const std::vector<std::string>& strVec);
 
@@ -202,6 +206,8 @@ class SaiTracer {
   // Init functions
   void setupGlobals();
   void initVarCounts();
+
+  void writeFooter();
 
   uint32_t maxAttrCount_;
   uint32_t maxListCount_;
@@ -338,6 +344,23 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"}};
+
+  const char* cpp_header_ =
+      "/*\n"
+      " *  Copyright (c) 2004-present, Facebook, Inc.\n"
+      " *  All rights reserved.\n"
+      " *\n"
+      " *  This source code is licensed under the BSD-style license found in the\n"
+      " *  LICENSE file in the root directory of this source tree. An additional grant\n"
+      " *  of patent rights can be found in the PATENTS file in the same directory.\n"
+      " *\n"
+      " */\n"
+      "\n"
+      "#include \"fboss/agent/hw/sai/tracer/run/saiLog.h\"\n"
+      "\n"
+      "namespace facebook::fboss {\n"
+      "\n"
+      "void run_trace() {\n";
 };
 
 } // namespace facebook::fboss
