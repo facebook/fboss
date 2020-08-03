@@ -33,9 +33,11 @@ class HwPortFb303Stats;
 class QosPolicy;
 
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
+using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
 
 struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
+  std::shared_ptr<SaiPortSerdes> serdes;
   std::shared_ptr<SaiBridgePort> bridgePort;
   std::vector<SaiQueueHandle*> configuredQueues;
   SaiQueueHandles queues;

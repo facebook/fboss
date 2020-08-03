@@ -226,4 +226,21 @@ PortID SaiPlatform::findPortID(
   throw FbossError("platform port not found");
 }
 
+std::vector<phy::TxSettings> SaiPlatform::getPlatformPortTxSettings(
+    PortID port,
+    cfg::PortProfileID profile) {
+  auto platformPort = getPlatformPort(port);
+  CHECK(platformPort);
+  const auto& iphyPinConfigs = platformPort->getIphyPinConfigs(profile);
+  std::vector<phy::TxSettings> txSettings;
+  for (auto& pinConfig : iphyPinConfigs) {
+    auto tx = pinConfig.tx_ref();
+    if (!tx) {
+      continue;
+    }
+    txSettings.push_back(tx.value());
+  }
+  return txSettings;
+}
+
 } // namespace facebook::fboss

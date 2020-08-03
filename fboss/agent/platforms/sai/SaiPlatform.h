@@ -90,6 +90,10 @@ class SaiPlatform : public Platform, public StateObserver {
 
   virtual bool isSerdesApiSupported() = 0;
 
+  std::vector<phy::TxSettings> getPlatformPortTxSettings(
+      PortID port,
+      cfg::PortProfileID profile);
+
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
