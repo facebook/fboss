@@ -29,6 +29,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, NextHopSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, NextHopGroupMemberSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, PortSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, PortSerdesSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, QosMapSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, QueueSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, RouterInterfaceSaiId);

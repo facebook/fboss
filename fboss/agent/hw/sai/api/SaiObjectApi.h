@@ -59,6 +59,9 @@ template <typename SaiObjectTraits>
 std::vector<typename SaiObjectTraits::AdapterKey> getObjectKeys(
     sai_object_id_t switch_id) {
   std::vector<typename SaiObjectTraits::AdapterKey> ret;
+  if constexpr (!GetObjectKeySupported<SaiObjectTraits>::value) {
+    return ret;
+  }
   std::vector<sai_object_key_t> keys;
   uint32_t c = getObjectCount<SaiObjectTraits>(switch_id);
   keys.resize(c);

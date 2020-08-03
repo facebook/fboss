@@ -355,4 +355,7 @@ struct ConditionObjectTraits {
       typename ConditionAdapterKeyTraits<AdapterKeyType, ObjectTraits...>::
           AdapterKey;
 };
+
+template <typename ObjectTraits>
+struct GetObjectKeySupported : std::true_type {};
 } // namespace facebook::fboss

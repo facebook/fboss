@@ -168,6 +168,67 @@ SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
 
+struct SaiPortSerdesTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_PORT_SERDES;
+  using SaiApiT = PortApi;
+  struct Attributes {
+    using EnumType = sai_port_serdes_attr_t;
+    using PortId =
+        SaiAttribute<EnumType, SAI_PORT_SERDES_ATTR_PORT_ID, SaiObjectIdT>;
+    using IDriver = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_IDRIVER,
+        std::vector<sai_uint32_t>>;
+    using TxFirPre1 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_PRE1,
+        std::vector<sai_uint32_t>>;
+    using TxFirPre2 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_PRE2,
+        std::vector<sai_uint32_t>>;
+    using TxFirMain = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_MAIN,
+        std::vector<sai_uint32_t>>;
+    using TxFirPost1 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_POST1,
+        std::vector<sai_uint32_t>>;
+    using TxFirPost2 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_POST2,
+        std::vector<sai_uint32_t>>;
+    using TxFirPost3 = SaiAttribute<
+        EnumType,
+        SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
+        std::vector<sai_uint32_t>>;
+  };
+  using AdapterKey = PortSerdesSaiId;
+  using AdapterHostKey = Attributes::PortId;
+  using CreateAttributes = std::tuple<
+      Attributes::PortId,
+      std::optional<Attributes::IDriver>,
+      std::optional<Attributes::TxFirPre1>,
+      std::optional<Attributes::TxFirPre2>,
+      std::optional<Attributes::TxFirMain>,
+      std::optional<Attributes::TxFirPost1>,
+      std::optional<Attributes::TxFirPost2>,
+      std::optional<Attributes::TxFirPost3>>;
+};
+
+template <>
+struct GetObjectKeySupported<SaiPortSerdesTraits> : std::false_type {};
+
+SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
+SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre2);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost3);
+
 class PortApi : public SaiApi<PortApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_PORT;
@@ -193,6 +254,26 @@ class PortApi : public SaiApi<PortApi> {
   }
   sai_status_t _setAttribute(PortSaiId key, const sai_attribute_t* attr) {
     return api_->set_port_attribute(key, attr);
+  }
+
+  sai_status_t _create(
+      PortSerdesSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_port_serdes(rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(PortSerdesSaiId id) {
+    return api_->remove_port_serdes(id);
+  }
+
+  sai_status_t _getAttribute(PortSerdesSaiId key, sai_attribute_t* attr) const {
+    return api_->get_port_serdes_attribute(key, 1, attr);
+  }
+
+  sai_status_t _setAttribute(PortSerdesSaiId key, const sai_attribute_t* attr) {
+    return api_->set_port_serdes_attribute(key, attr);
   }
 
   sai_status_t _getStats(

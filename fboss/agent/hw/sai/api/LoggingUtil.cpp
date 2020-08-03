@@ -180,6 +180,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "acl-entry";
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       return "acl-counter";
+    case SAI_OBJECT_TYPE_PORT_SERDES:
+      return "port-serdes";
     default:
       throw FbossError("object type invalid: ", objectType);
   }
