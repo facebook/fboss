@@ -49048,19 +49048,22 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 3,
-          "interfaceMode": 2
+          "interfaceMode": 2,
+          "interfaceType": 2
         },
         "xphyLine": {
           "numLanes": 4,
           "modulation": 1,
           "fec": 1,
-          "interfaceMode": 1
+          "interfaceMode": 1,
+          "interfaceType": 1
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 1,
           "fec": 1,
-          "interfaceMode": 10
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
     },
     "8": {
@@ -49070,19 +49073,22 @@ constexpr auto kJsonMiln42PlatformMappingStr = R"(
           "modulation": 2,
           "fec": 544,
           "medium": 3,
-          "interfaceMode": 2
+          "interfaceMode": 2,
+          "interfaceType": 2
         },
         "xphyLine": {
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "interfaceMode": 1
+          "interfaceMode": 1,
+          "interfaceType": 1
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 2,
           "fec": 544,
-          "interfaceMode": 10
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
     }
   },
@@ -96783,19 +96789,22 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 3,
-          "interfaceMode": 2
+          "interfaceMode": 2,
+          "interfaceType": 2
         },
         "xphyLine": {
           "numLanes": 4,
           "modulation": 1,
           "fec": 1,
-          "interfaceMode": 44
+          "interfaceMode": 44,
+          "interfaceType": 44
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 1,
           "fec": 1,
-          "interfaceMode": 46
+          "interfaceMode": 46,
+          "interfaceType": 46
         }
     },
     "8": {
@@ -96805,19 +96814,22 @@ constexpr auto kJsonMiln52PlatformMappingStr = R"(
           "modulation": 2,
           "fec": 544,
           "medium": 3,
-          "interfaceMode": 2
+          "interfaceMode": 2,
+          "interfaceType": 2
         },
         "xphyLine": {
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "interfaceMode": 47
+          "interfaceMode": 47,
+          "interfaceType": 47
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 2,
           "fec": 544,
-          "interfaceMode": 46
+          "interfaceMode": 46,
+          "interfaceType": 46
         }
     }
   },

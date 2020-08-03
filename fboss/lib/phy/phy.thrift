@@ -22,7 +22,37 @@ enum FecMode {
   RS544_2N = 11,
 }
 
+// [DEPRECATED] Unfortunately this should be InterfaceType instead of
+// InterfaceMode, as interface mode means something else. Otherwise this will
+// be very confusing for xphy programming.
 enum InterfaceMode {
+  // Backplane
+  KR = 1
+  KR2 = 2
+  KR4 = 3
+  KR8 = 4
+  // Copper
+  CR = 10
+  CR2 = 11
+  CR4 = 12
+  // Optics
+  SR = 20
+  SR4 = 21
+  // CAUI
+  CAUI = 30
+  CAUI4 = 31
+  CAUI4_C2C = 32
+  CAUI4_C2M = 33
+  // Other
+  XLAUI = 40
+  SFI = 41
+  GMII = 42
+  XLPPI = 44
+  AUI_C2C = 46
+  AUI_C2M = 47
+}
+
+enum InterfaceType {
   // Backplane
   KR = 1
   KR2 = 2
@@ -104,7 +134,9 @@ struct ProfileSideConfig {
   2: IpModulation modulation
   3: FecMode fec
   4: optional transceiver.TransmitterTechnology medium
+  // [DEPRECATED] Replace interfaceMode with interfaceType
   5: optional InterfaceMode interfaceMode
+  6: optional InterfaceType interfaceType
 }
 
 struct PortProfileConfig {

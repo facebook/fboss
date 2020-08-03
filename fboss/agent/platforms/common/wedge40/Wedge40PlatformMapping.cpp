@@ -8247,7 +8247,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 10
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
     },
     "12": {
@@ -8257,7 +8258,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 41
+          "interfaceMode": 41,
+          "interfaceType": 41
         }
     },
     "13": {
@@ -8267,7 +8269,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 11
+          "interfaceMode": 11,
+          "interfaceType": 11
         }
     },
     "17": {
@@ -8277,7 +8280,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 12
+          "interfaceMode": 12,
+          "interfaceType": 12
         }
     },
     "18": {
@@ -8287,7 +8291,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 40
+          "interfaceMode": 40,
+          "interfaceType": 40
         }
     },
     "29": {
@@ -8297,7 +8302,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 40
+          "interfaceMode": 40,
+          "interfaceType": 40
         }
     }
   },

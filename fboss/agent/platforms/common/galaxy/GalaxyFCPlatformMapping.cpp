@@ -6204,7 +6204,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 41
+          "interfaceMode": 41,
+          "interfaceType": 41
         }
     },
     "14": {
@@ -6214,7 +6215,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 10
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
     },
     "18": {
@@ -6224,7 +6226,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 40
+          "interfaceMode": 40,
+          "interfaceType": 40
         }
     },
     "19": {
@@ -6234,7 +6237,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 11
+          "interfaceMode": 11,
+          "interfaceType": 11
         }
     },
     "28": {
@@ -6244,7 +6248,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 91,
           "medium": 2,
-          "interfaceMode": 30
+          "interfaceMode": 30,
+          "interfaceType": 30
         }
     },
     "30": {
@@ -6254,7 +6259,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 30
+          "interfaceMode": 30,
+          "interfaceType": 30
         }
     },
     "31": {
@@ -6264,7 +6270,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 2,
-          "interfaceMode": 30
+          "interfaceMode": 30,
+          "interfaceType": 30
         }
     },
     "32": {
@@ -6274,7 +6281,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 1,
           "medium": 1,
-          "interfaceMode": 12
+          "interfaceMode": 12,
+          "interfaceType": 12
         }
     }
   },
