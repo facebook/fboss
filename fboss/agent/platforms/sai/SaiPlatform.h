@@ -88,6 +88,8 @@ class SaiPlatform : public Platform, public StateObserver {
       cfg::PortSpeed speed) const = 0;
 #endif
 
+  virtual bool isSerdesApiSupported() = 0;
+
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();

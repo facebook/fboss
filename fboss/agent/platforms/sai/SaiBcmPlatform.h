@@ -30,6 +30,9 @@ class SaiBcmPlatform : public SaiHwPlatform {
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
 #endif
+  bool isSerdesApiSupported() override {
+    return false;
+  }
 };
 
 } // namespace facebook::fboss

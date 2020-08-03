@@ -49,6 +49,11 @@ class SaiFakePlatform : public SaiPlatform {
   }
 #endif
 
+  bool isSerdesApiSupported() override {
+    // TODO: add support in fake
+    return false;
+  }
+
  private:
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;

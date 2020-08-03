@@ -42,6 +42,10 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
     return std::nullopt;
   }
 #endif
+  bool isSerdesApiSupported() override {
+    return false;
+  }
+
  private:
   std::unique_ptr<TajoAsic> asic_;
 };
