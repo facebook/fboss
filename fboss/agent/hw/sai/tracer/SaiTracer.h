@@ -25,6 +25,7 @@ extern "C" {
 }
 
 DECLARE_bool(enable_replayer);
+DECLARE_bool(enable_packet_log);
 
 namespace facebook::fboss {
 
@@ -121,6 +122,14 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logSendHostifPacketFn(
+      sai_object_id_t hostif_id,
+      sai_size_t buffer_size,
+      const uint8_t* buffer,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
+
   std::string getVariable(
       sai_object_id_t object_id,
       std::vector<sai_object_type_t> object_types);
@@ -212,6 +221,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BUFFER_POOL, "bufferPool_"},
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "bufferProfile_"},
       {SAI_OBJECT_TYPE_HASH, "hash_"},
+      {SAI_OBJECT_TYPE_HOSTIF, "hostif_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostifTrap_"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostifTrapGroup_"},
       {SAI_OBJECT_TYPE_NEXT_HOP, "nextHop_"},
@@ -241,6 +251,7 @@ class SaiTracer {
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferPoolMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferProfileMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> hostifMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>> hostifTrapMap_;
   folly::Synchronized<std::map<sai_object_id_t, std::string>>
       hostifTrapGroupMap_;
@@ -277,6 +288,7 @@ class SaiTracer {
           {SAI_OBJECT_TYPE_BUFFER_POOL, bufferPoolMap_},
           {SAI_OBJECT_TYPE_BUFFER_PROFILE, bufferProfileMap_},
           {SAI_OBJECT_TYPE_HASH, hashMap_},
+          {SAI_OBJECT_TYPE_HOSTIF, hostifMap_},
           {SAI_OBJECT_TYPE_HOSTIF_TRAP, hostifTrapMap_},
           {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostifTrapGroupMap_},
           {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
@@ -307,6 +319,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_BUFFER_PROFILE, "buffer_api->"},
       {SAI_OBJECT_TYPE_FDB_ENTRY, "fdb_api->"},
       {SAI_OBJECT_TYPE_HASH, "hash_api->"},
+      {SAI_OBJECT_TYPE_HOSTIF, "hostif_api->"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP, "hostif_api->"},
       {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, "hostif_api->"},
       {SAI_OBJECT_TYPE_INSEG_ENTRY, "mpls_api->"},

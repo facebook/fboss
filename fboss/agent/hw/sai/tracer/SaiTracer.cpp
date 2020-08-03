@@ -50,6 +50,13 @@ DEFINE_bool(
     false,
     "Flag to indicate whether function wrapper and logger is enabled.");
 
+DEFINE_bool(
+    enable_packet_log,
+    false,
+    "Flag to indicate whether to log the send_hostif_packet function."
+    "At runtime, it should be disabled to reduce logging overhead."
+    "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
+
 DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
 
 DEFINE_int32(
@@ -199,7 +206,12 @@ namespace {
 
 folly::Singleton<facebook::fboss::SaiTracer> _saiTracer;
 
+inline void printHex(std::ostringstream& outStringStream, uint8_t u8) {
+  outStringStream << "0x" << std::setfill('0') << std::setw(2) << std::hex
+                  << static_cast<int>(u8);
 }
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -744,6 +756,60 @@ void SaiTracer::logSetAttrFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logSendHostifPacketFn(
+    sai_object_id_t hostif_id,
+    sai_size_t buffer_size,
+    const uint8_t* buffer,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer || !FLAGS_enable_packet_log) {
+    return;
+  }
+
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_HOSTIF_PACKET);
+
+  // packet_buffer is declared in local space for each send packet call
+  // Therefore, we open the bracket here and then declare the buffer
+  lines.push_back({"{"});
+
+  std::ostringstream outStringStream;
+  outStringStream << "uint8_t packet_buffer[" << buffer_size << "] = {";
+  for (int i = 0; i < buffer_size - 1; i += 32) {
+    outStringStream << "\n";
+    uint64_t j_end = i + 32;
+
+    for (int j = i; j < std::min(j_end, buffer_size - 1); ++j) {
+      printHex(outStringStream, buffer[j]);
+      outStringStream << ", ";
+    }
+  }
+  printHex(outStringStream, buffer[buffer_size - 1]);
+  outStringStream << "}";
+  lines.push_back(outStringStream.str());
+
+  lines.push_back(to<string>(
+      "status = ",
+      folly::get_or_throw(
+          fnPrefix_,
+          SAI_OBJECT_TYPE_HOSTIF,
+          "Unsupported Sai Object type in Sai Tracer"),
+      "send_hostif_packet(",
+      getVariable(hostif_id, {SAI_OBJECT_TYPE_HOSTIF, SAI_OBJECT_TYPE_SWITCH}),
+      ", ",
+      buffer_size,
+      ", packet_buffer, ",
+      attr_count,
+      ", sai_attributes)"));
+
+  // Close bracket for local scope
+  lines.push_back({"}"});
+
+  lines.push_back(rvCheck(rv));
+  writeToFile(lines);
+}
+
 std::tuple<string, string> SaiTracer::declareVariable(
     sai_object_id_t* object_id,
     sai_object_type_t object_type) {
@@ -845,6 +911,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_HASH:
       setHashAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_HOSTIF_PACKET:
+      setHostifPacketAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_HOSTIF_TRAP:
       setHostifTrapAttributes(attr_list, attr_count, attrLines);
@@ -1046,14 +1115,14 @@ string SaiTracer::logTimeAndId(sai_object_id_t object_id, sai_status_t rv) {
   std::tm tm;
   localtime_r(&timer, &tm);
 
-  std::ostringstream oss;
-  oss << "// " << std::put_time(&tm, "%Y-%m-%d %T");
-  oss << "." << std::setfill('0') << std::setw(3) << now_ms.count();
-  oss << " object_id: " << object_id << " (0x";
-  oss << std::hex << object_id;
-  oss << ") rv: " << rv;
+  std::ostringstream outStringStream;
+  outStringStream << "// " << std::put_time(&tm, "%Y-%m-%d %T");
+  outStringStream << "." << std::setfill('0') << std::setw(3) << now_ms.count();
+  outStringStream << " object_id: " << object_id << " (0x";
+  outStringStream << std::hex << object_id;
+  outStringStream << ") rv: " << rv;
 
-  return oss.str();
+  return outStringStream.str();
 }
 
 void SaiTracer::checkAttrCount(uint32_t attr_count) {
@@ -1127,6 +1196,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_POOL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_BUFFER_PROFILE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HASH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY, 0);

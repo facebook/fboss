@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 namespace facebook::fboss {
@@ -128,8 +129,17 @@ sai_status_t wrap_send_hostif_packet(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->hostifApi_->send_hostif_packet(
+  auto rv = SaiTracer::getInstance()->hostifApi_->send_hostif_packet(
       hostif_id, buffer_size, buffer, attr_count, attr_list);
+
+  SaiTracer::getInstance()->logSendHostifPacketFn(
+      hostif_id,
+      buffer_size,
+      static_cast<const uint8_t*>(buffer),
+      attr_count,
+      attr_list,
+      rv);
+  return rv;
 }
 
 sai_hostif_api_t* wrapHostifApi() {
@@ -186,6 +196,30 @@ void setHostifTrapGroupAttributes(
       case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
         attrLines.push_back(u32Attr(attr_list, i));
         break;
+      default:
+        // TODO(zecheng): Better check for newly added attributes (T69350100)
+        break;
+    }
+  }
+}
+
+void setHostifPacketAttributes(
+    const sai_attribute_t* attr_list,
+    uint32_t attr_count,
+    std::vector<std::string>& attrLines) {
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE:
+        attrLines.push_back(s32Attr(attr_list, i));
+        break;
+      case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
+        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_PORT}));
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+      case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
+        attrLines.push_back(u8Attr(attr_list, i));
+        break;
+#endif
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
