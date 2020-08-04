@@ -30,10 +30,18 @@ using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
 using SaiAclCounter = SaiObject<SaiAclCounterTraits>;
 
 struct SaiAclEntryHandle {
-  std::shared_ptr<SaiAclEntry> aclEntry;
-  // In FBOSS implementation, an ACL counter is always associated with single
-  // ACL Entry.
+  /*
+   * In FBOSS implementation, an ACL counter is always associated with single
+   * ACL Entry. Thus, it is part of SaiAclEntryHandle.
+   * ACL Counter is created first and then associated with an ACL Entry.
+   * Thus, an ACL counter must be disassociated from ACL Entry before deleting
+   * else the deletion fails with SAI_STATUS_OBJECT_IN_USE.
+   *
+   * Declare SaiAclCounter before SaiAclEntry as class members are destructed
+   * in the reverse order of declaration.
+   */
   std::shared_ptr<SaiAclCounter> aclCounter;
+  std::shared_ptr<SaiAclEntry> aclEntry;
 };
 
 struct SaiAclTableHandle {
