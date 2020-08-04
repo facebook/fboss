@@ -81,7 +81,7 @@ TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, kQueueId);
   };
@@ -99,7 +99,7 @@ TEST_F(HwAclMatchActionsTest, SetDscpMatchAction) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwActionDscpValue(getProgrammedState(), "acl1", kDscp2);
   };
@@ -118,7 +118,7 @@ TEST_F(HwAclMatchActionsTest, AddSameMatcherTwice) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 2));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 2);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl2");
@@ -139,7 +139,7 @@ TEST_F(HwAclMatchActionsTest, AddMultipleActions) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 3));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 3);
     for (const auto& matcher : {"acl1", "acl2"}) {
       utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), matcher);
       checkSwAclSendToQueue(getProgrammedState(), matcher, false, 0);
@@ -165,7 +165,7 @@ TEST_F(HwAclMatchActionsTest, AddRemoveActions) {
   };
 
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 0));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -183,7 +183,7 @@ TEST_F(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
     applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_TRUE(utility::numAclTableNumAclEntriesMatch(getHwSwitch(), 1));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
     checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
   };

@@ -43,12 +43,6 @@ int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
   return size;
 }
 
-bool numAclTableNumAclEntriesMatch(
-    const HwSwitch* hwSwitch,
-    int expectedNumAclEntries) {
-  return utility::getAclTableNumAclEntries(hwSwitch) == expectedNumAclEntries;
-}
-
 void checkSwHwAclMatch(
     const HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> state,

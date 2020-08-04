@@ -18,10 +18,6 @@ namespace facebook::fboss::utility {
 // getAclTableNumAclEntries.
 int getAclTableNumAclEntries(const HwSwitch* hwSwitch);
 
-bool numAclTableNumAclEntriesMatch(
-    const HwSwitch* hwSwitch,
-    int expectedNumAclEntries);
-
 void checkSwHwAclMatch(
     const HwSwitch* hw,
     std::shared_ptr<SwitchState> state,
