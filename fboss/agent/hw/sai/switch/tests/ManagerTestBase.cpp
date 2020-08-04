@@ -22,6 +22,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/QosPolicy.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 #include <folly/Singleton.h>
@@ -43,6 +44,8 @@ facebook::fboss::cfg::AgentConfig getDummyConfig() {
 } // namespace
 
 namespace facebook::fboss {
+
+ManagerTestBase::~ManagerTestBase() {}
 
 void ManagerTestBase::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
@@ -67,6 +70,7 @@ void ManagerTestBase::setupSaiPlatform() {
   saiManagerTable = saiSwitch->managerTable();
   SwitchSaiId switchId = saiManagerTable->switchManager().getSwitchSaiId();
 
+  auto setupState = std::make_shared<SwitchState>();
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
       testInterfaces[i] = TestInterface{i, 4};
@@ -79,36 +83,45 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
-        auto portSaiId = saiManagerTable->portManager().addPort(swPort);
+        setupState->getPorts()->addPort(swPort);
       }
     }
   }
   if (setupStage & SetupStage::VLAN) {
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
-      saiManagerTable->vlanManager().addVlan(swVlan);
+      setupState->getVlans()->addVlan(swVlan);
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+      setupState->getInterfaces()->addInterface(swInterface);
     }
   }
   if (setupStage & SetupStage::NEIGHBOR) {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        saiManagerTable->neighborManager().addNeighbor(swNeighbor);
+        auto arpTable = setupState->getVlans()
+                            ->getVlan(VlanID(testInterface.id))
+                            ->getArpTable();
+        arpTable->addEntry(
+            remoteHost.ip.asV4(),
+            remoteHost.mac,
+            PortDescriptor(PortID(remoteHost.port.id)),
+            InterfaceID(testInterface.id));
       }
     }
   }
+  stateChanged(std::make_shared<SwitchState>(), setupState);
 }
 
 void ManagerTestBase::TearDown() {
   saiPlatform.reset();
   SaiStore::getInstance()->release();
   FakeSai::clear();
+  programmedState.reset();
 }
 
 void ManagerTestBase::pseudoWarmBootExitAndStoreReload() {
@@ -315,6 +328,7 @@ void ManagerTestBase::stateChanged(
   StateDelta delta(oldState, newState);
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
   saiPlatform->getHwSwitch()->stateChanged(delta);
+  programmedState = newState;
 }
 
 } // namespace facebook::fboss

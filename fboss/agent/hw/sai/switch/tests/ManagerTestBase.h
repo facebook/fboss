@@ -37,6 +37,7 @@ class Interface;
 class Port;
 class ResolvedNextHop;
 class Vlan;
+class SwitchState;
 
 class ManagerTestBase : public ::testing::Test {
  public:
@@ -50,6 +51,7 @@ class ManagerTestBase : public ::testing::Test {
     NEIGHBOR = 8,
     QUEUE = 16,
   };
+  ~ManagerTestBase() override;
   void setupSaiPlatform();
 
   /*
@@ -185,6 +187,8 @@ class ManagerTestBase : public ::testing::Test {
   void stateChanged(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState);
+
+  std::shared_ptr<SwitchState> programmedState;
 
  private:
   static constexpr uint8_t kPortQueueMax = 8;
