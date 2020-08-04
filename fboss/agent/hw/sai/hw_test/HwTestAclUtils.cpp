@@ -383,20 +383,111 @@ bool isQualifierPresent(
 }
 
 void checkAclEntryAndStatCount(
-    const HwSwitch* /*hwSwitch*/,
-    int /*aclCount*/,
-    int /*aclStatCount*/,
-    int /*counterCount*/) {
-  throw FbossError("Not implemented");
+    const HwSwitch* hwSwitch,
+    int aclCount,
+    int aclStatCount,
+    int counterCount) {
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableId = aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1)
+                        ->aclTable->adapterKey();
+
+  auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::EntryList());
+
+  EXPECT_EQ(aclCount, aclTableEntryListGot.size());
+
+  int aclStatCountGot = 0;
+  int counterCountGot = 0;
+  for (const auto& aclEntryId : aclTableEntryListGot) {
+    auto aclCounterIdGot =
+        SaiApiTable::getInstance()
+            ->aclApi()
+            .getAttribute(
+                AclEntrySaiId(aclEntryId),
+                SaiAclEntryTraits::Attributes::ActionCounter())
+            .getData();
+
+    if (aclCounterIdGot != SAI_NULL_OBJECT_ID) {
+      aclStatCountGot++;
+
+      auto enablePacketCount =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              AclCounterSaiId(aclCounterIdGot),
+              SaiAclCounterTraits::Attributes::EnablePacketCount());
+
+      if (enablePacketCount) {
+        counterCountGot++;
+      }
+
+      auto enableByteCount = SaiApiTable::getInstance()->aclApi().getAttribute(
+          AclCounterSaiId(aclCounterIdGot),
+          SaiAclCounterTraits::Attributes::EnableByteCount());
+
+      if (enableByteCount) {
+        counterCountGot++;
+      }
+    }
+  }
+
+  EXPECT_EQ(aclStatCount, aclStatCountGot);
+  EXPECT_EQ(counterCount, counterCountGot);
 }
 
 void checkAclStat(
-    const HwSwitch* /*hw*/,
-    std::shared_ptr<SwitchState> /*state*/,
-    std::vector<std::string> /*acls*/,
-    const std::string& /*statName*/,
-    std::vector<cfg::CounterType> /*counterTypes*/) {
-  throw FbossError("Not implemented");
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    std::vector<std::string> acls,
+    const std::string& statName,
+    std::vector<cfg::CounterType> counterTypes) {
+  for (const auto& aclName : acls) {
+    auto swAcl = state->getAcl(aclName);
+    auto swTrafficCounter = getAclTrafficCounter(state, aclName);
+    ASSERT_TRUE(swTrafficCounter);
+    ASSERT_EQ(statName, *swTrafficCounter->name_ref());
+
+    const auto& aclTableManager =
+        static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
+    auto aclTableHandle =
+        aclTableManager.getAclTableHandle(SaiSwitch::kAclTable1);
+    auto aclEntryHandle =
+        aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+    auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+
+    auto aclCounterIdGot =
+        SaiApiTable::getInstance()
+            ->aclApi()
+            .getAttribute(
+                AclEntrySaiId(aclEntryId),
+                SaiAclEntryTraits::Attributes::ActionCounter())
+            .getData();
+
+    bool packetCountEnabledGot = false;
+    bool byteCountEnabledGot = false;
+
+    if (aclCounterIdGot != SAI_NULL_OBJECT_ID) {
+      packetCountEnabledGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+          AclCounterSaiId(aclCounterIdGot),
+          SaiAclCounterTraits::Attributes::EnablePacketCount());
+      byteCountEnabledGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+          AclCounterSaiId(aclCounterIdGot),
+          SaiAclCounterTraits::Attributes::EnableByteCount());
+    }
+
+    for (auto counterType : counterTypes) {
+      switch (counterType) {
+        case cfg::CounterType::PACKETS:
+          EXPECT_TRUE(packetCountEnabledGot);
+          break;
+        case cfg::CounterType::BYTES:
+          EXPECT_TRUE(byteCountEnabledGot);
+          break;
+        default:
+          EXPECT_FALSE(true);
+      }
+    }
+  }
 }
 
 void checkAclStatDeleted(
