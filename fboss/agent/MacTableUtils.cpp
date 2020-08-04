@@ -81,14 +81,25 @@ std::shared_ptr<SwitchState> MacTableUtils::updateMacTable(
     macTable->removeEntry(mac);
   }
 
-  // Add if the entry to add does not exist, otherwise do nothing.
-  if (!node &&
-      l2EntryUpdateType == L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD) {
-    auto macEntry = std::make_shared<MacEntry>(mac, portDescr);
-    macTable = macTable->modify(&vlan, &newState);
-    macTable->addEntry(macEntry);
+  if (l2EntryUpdateType == L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD) {
+    if (!node || node->getPort() != portDescr) {
+      // If the node deos not exist we need to add it. OTOH if node does
+      // exist we update it only if the port association changed. The latter
+      // happens in the following scenario
+      // - We get a learn event and are programming it down to HW
+      // - Before we are fully done, the MAC moves and we get another
+      // learn event on a different port.
+      macTable = macTable->modify(&vlan, &newState);
+      if (!node) {
+        auto macEntry = std::make_shared<MacEntry>(mac, portDescr);
+        macTable->addEntry(macEntry);
+      } else {
+        // Note that in the second scenario we don't get inherit the classid
+        // since that should not get recomputed for the the new port
+        macTable->updateEntry(mac, portDescr, std::nullopt);
+      }
+    }
   }
-
   return newState;
 }
 
