@@ -638,18 +638,29 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
 
       // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
       // port2
-      auto l2EntryAndUpdateTypeList =
-          l2LearningObserver_.waitForLearningUpdates(2);
-      verifyL2TableCallback(
-          l2EntryAndUpdateTypeList.at(0),
-          portDescr,
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
-      verifyL2TableCallback(
-          l2EntryAndUpdateTypeList.at(1),
-          portDescr2,
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      if (getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_TAJO) {
+        // TODO: Remove this once TajoAsic properly generates a
+        // MAC move event.
+        verifyL2TableCallback(
+            l2LearningObserver_.waitForLearningUpdates().front(),
+            portDescr2,
+            L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+            expectedL2EntryTypeOnAdd());
+      } else {
+        auto l2EntryAndUpdateTypeList =
+            l2LearningObserver_.waitForLearningUpdates(2);
+        verifyL2TableCallback(
+            l2EntryAndUpdateTypeList.at(0),
+            portDescr,
+            L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+            L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+        verifyL2TableCallback(
+            l2EntryAndUpdateTypeList.at(1),
+            portDescr2,
+            L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+            L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      }
 
       EXPECT_TRUE(wasMacLearnt(portDescr2));
 
