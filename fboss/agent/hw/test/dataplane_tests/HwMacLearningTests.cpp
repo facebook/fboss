@@ -75,6 +75,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
   void TearDown() override {
     l2LearningObserver_.stopObserving();
+    HwLinkStateDependentTest::TearDown();
   }
 
   cfg::SwitchConfig initialConfig() const override {

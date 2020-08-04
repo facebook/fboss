@@ -70,14 +70,11 @@ std::array<folly::IPAddressV4, 4> kNextHopIps{
 
 class BcmLabeledEgressTest : public BcmTest {
  public:
-  void SetUp() override {
-    BcmTest::SetUp();
-  }
-
   void TearDown() override {
     ecmpEgresses_.clear();
     labeledEgresses_.clear();
     unlabeledEgresses_.clear();
+    BcmTest::TearDown();
   }
 
   static int bcm_l3_egress_traverse_cb(
