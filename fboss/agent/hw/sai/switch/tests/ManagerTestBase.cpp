@@ -114,7 +114,7 @@ void ManagerTestBase::setupSaiPlatform() {
       }
     }
   }
-  stateChanged(std::make_shared<SwitchState>(), setupState);
+  applyNewState(setupState);
 }
 
 void ManagerTestBase::TearDown() {
@@ -322,13 +322,15 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
   return std::make_shared<QosPolicy>(name, dscpMap, expMap, tc2q);
 }
 
-void ManagerTestBase::stateChanged(
-    const std::shared_ptr<SwitchState>& oldState,
+void ManagerTestBase::applyNewState(
     const std::shared_ptr<SwitchState>& newState) {
+  auto oldState =
+      programmedState ? programmedState : std::make_shared<SwitchState>();
   StateDelta delta(oldState, newState);
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
   saiPlatform->getHwSwitch()->stateChanged(delta);
   programmedState = newState;
+  programmedState->publish();
 }
 
 } // namespace facebook::fboss

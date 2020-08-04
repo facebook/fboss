@@ -20,11 +20,9 @@
 using namespace facebook::fboss;
 
 TEST_F(ManagerTestBase, checkQcmSupport) {
-  auto oldState = std::make_shared<SwitchState>();
-  oldState->publish();
-  auto newState = oldState->clone();
+  auto newState = std::make_shared<SwitchState>();
   auto newSwitchSettings = newState->getSwitchSettings()->clone();
   newSwitchSettings->setQcmEnable(true);
   newState->resetSwitchSettings(newSwitchSettings);
-  EXPECT_THROW(stateChanged(oldState, newState), FbossError);
+  EXPECT_THROW(applyNewState(newState), FbossError);
 }
