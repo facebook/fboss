@@ -36,15 +36,6 @@ int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
 bool numAclTableNumAclEntriesMatch(
     const HwSwitch* hwSwitch,
     int expectedNumAclEntries) {
-  auto asicType = hwSwitch->getPlatform()->getAsic()->getAsicType();
-  if (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    // TODO(skhare)
-    // Fix after CSP CS00010652266 is fixed.
-    return true;
-  }
-
   return utility::getAclTableNumAclEntries(hwSwitch) == expectedNumAclEntries;
 }
 
