@@ -15,6 +15,10 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+#include "fboss/agent/state/MacEntry.h"
+#include "fboss/agent/state/MacTable.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -31,14 +35,11 @@ class FdbManagerTest : public ManagerTestBase {
     intf0 = testInterfaces[1];
   }
 
-  void checkFdbEntry(
-      const InterfaceID& intfId,
-      const folly::MacAddress& mac,
-      PortID portId,
-      sai_uint32_t metadata) {
-    auto vlanId = VlanID(intfId);
+  void checkFdbEntry(const folly::MacAddress& mac, sai_uint32_t metadata = 0) {
+    auto vlanId = VlanID(0);
     SaiFdbTraits::FdbEntry entry{1, vlanId, mac};
-    auto portHandle = saiManagerTable->portManager().getPortHandle(portId);
+    auto portHandle = saiManagerTable->portManager().getPortHandle(
+        PortID(intf0.remoteHosts[0].id));
     auto expectedBridgePortId = portHandle->bridgePort->adapterKey();
     auto bridgePortId = saiApiTable->fdbApi().getAttribute(
         entry, SaiFdbTraits::Attributes::BridgePortId{});
@@ -49,14 +50,42 @@ class FdbManagerTest : public ManagerTestBase {
         metadata);
   }
 
+  static folly::MacAddress kMac() {
+    return folly::MacAddress{"00:11:11:11:11:11"};
+  }
+
+  std::shared_ptr<MacEntry> makeMacEntry(
+      folly::MacAddress mac,
+      std::optional<sai_uint32_t> classId) {
+    std::optional<cfg::AclLookupClass> metadata;
+    if (classId) {
+      metadata = static_cast<cfg::AclLookupClass>(classId.value());
+    }
+    return std::make_shared<MacEntry>(
+        mac, PortDescriptor(PortID(intf0.remoteHosts[0].id)), metadata);
+  }
+  void addMacEntry(
+      folly::MacAddress mac = kMac(),
+      std::optional<sai_uint32_t> classId = std::nullopt) {
+    auto macEntry = makeMacEntry(mac, classId);
+    auto newState = programmedState->clone();
+    auto newMacTable = newState->getVlans()
+                           ->getVlan(VlanID(intf0.id))
+                           ->getMacTable()
+                           ->modify(VlanID(intf0.id), &newState);
+    newMacTable->addEntry(macEntry);
+    applyNewState(newState);
+  }
+
   TestInterface intf0;
 };
 
 TEST_F(FdbManagerTest, addFdbEntry) {
-  folly::MacAddress mac1{"00:11:11:11:11:11"};
-  InterfaceID intfId = InterfaceID(intf0.id);
-  auto portId = PortID(intf0.id);
-  saiManagerTable->fdbManager().addFdbEntry(
-      portId, intfId, mac1, SAI_FDB_ENTRY_TYPE_STATIC, 42);
-  checkFdbEntry(intfId, mac1, portId, 42);
+  addMacEntry();
+  checkFdbEntry(kMac());
+}
+
+TEST_F(FdbManagerTest, addFdbEntryWithClassId) {
+  addMacEntry(kMac(), 42);
+  checkFdbEntry(kMac(), 42);
 }
