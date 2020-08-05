@@ -7,6 +7,8 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
+#pragma once
+
 using namespace ::testing;
 
 namespace facebook::fboss {
@@ -15,7 +17,6 @@ template <typename AddrType, bool trunk = false>
 struct NeighborT {
   using IPAddrT = AddrType;
   static constexpr auto isTrunk = trunk;
-  using LinkT = std::conditional_t<isTrunk, bcm_trunk_t, bcm_port_t>;
   static facebook::fboss::cfg::SwitchConfig initialConfig(
       facebook::fboss::cfg::SwitchConfig config);
 
