@@ -130,7 +130,8 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   }
 
   std::shared_ptr<SwitchState> resolveNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
+      const std::shared_ptr<SwitchState>& inState,
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
     auto neighborTable = outState->getVlans()
@@ -138,8 +139,9 @@ class HwNeighborTest : public HwLinkStateDependentTest {
                              ->template getNeighborTable<NTable>()
                              ->modify(kVlanID, &outState);
 
+    auto lookupClassValue = lookupClass ? lookupClass.value() : kLookupClass;
     neighborTable->updateEntry(
-        ip, kNeighborMac, portDescriptor(), kIntfID, kLookupClass);
+        ip, kNeighborMac, portDescriptor(), kIntfID, lookupClassValue);
     return outState;
   }
 
@@ -178,6 +180,8 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
   const cfg::AclLookupClass kLookupClass{
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
+  const cfg::AclLookupClass kLookupClass2{
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3};
 };
 
 TYPED_TEST_SUITE(HwNeighborTest, NeighborTypes);
@@ -214,15 +218,17 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
   }
 }
 
-TYPED_TEST(HwNeighborTest, ResolvePendingEntryAndChangeLookupClass) {
+TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
     this->applyNewState(newState);
+    newState = this->resolveNeighbor(state, this->kLookupClass2);
+    this->applyNewState(newState);
   };
   auto verify = [this]() {
     EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
+    this->verifyClassId(static_cast<int>(this->kLookupClass2));
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -231,7 +237,6 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntryAndChangeLookupClass) {
     this->verifyAcrossWarmBoots(setup, verify);
   }
 }
-
 
 TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
@@ -273,9 +278,7 @@ TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
     auto newState = this->removeNeighbor(state);
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    EXPECT_FALSE(this->nbrExists());
-  };
+  auto verify = [this]() { EXPECT_FALSE(this->nbrExists()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
