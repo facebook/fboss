@@ -5,6 +5,7 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 #pragma once
@@ -147,6 +148,24 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   std::shared_ptr<SwitchState> unresolveNeighbor(
       const std::shared_ptr<SwitchState>& inState) {
     return addNeighbor(removeNeighbor(inState));
+  }
+
+  void verifyClassId(int classID) {
+    /*
+     * Queue-per-host classIDs are only supported for physical ports.
+     * Pending entry should not have a classID (0) associated with it.
+     * Resolved entry should have a classID associated with it.
+     */
+    auto gotClassid = utility::getNbrClassId(
+        this->getHwSwitch(), NeighborT::getNeighborAddress());
+    EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
+  }
+  folly::IPAddress getNeighborAddress() const {
+    return NeighborT::getNeighborAddress();
+  }
+  bool isProgrammedToCPU() const {
+    return utility::nbrProgrammedToCpu(
+        this->getHwSwitch(), this->getNeighborAddress());
   }
 
   const VlanID kVlanID{utility::kBaseVlanId};

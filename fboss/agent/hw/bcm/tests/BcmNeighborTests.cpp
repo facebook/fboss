@@ -1,37 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/test/HwNeighborTests.h"
-#include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 
 namespace facebook::fboss {
 
-template <typename NeighborT>
-class BcmNeighborTest : public HwNeighborTest<NeighborT> {
- protected:
-  using BaseT = HwNeighborTest<NeighborT>;
+TYPED_TEST_SUITE(HwNeighborTest, NeighborTypes);
 
-  void verifyClassId(int classID) {
-    /*
-     * Queue-per-host classIDs are only supported for physical ports.
-     * Pending entry should not have a classID (0) associated with it.
-     * Resolved entry should have a classID associated with it.
-     */
-    auto gotClassid = utility::getNbrClassId(
-        this->getHwSwitch(), NeighborT::getNeighborAddress());
-    EXPECT_TRUE(BaseT::programToTrunk || classID == gotClassid.value());
-  }
-  folly::IPAddress getNeighborAddress() const {
-    return NeighborT::getNeighborAddress();
-  }
-  bool isProgrammedToCPU() const {
-    return utility::nbrProgrammedToCpu(
-        this->getHwSwitch(), this->getNeighborAddress());
-  }
-};
-
-TYPED_TEST_SUITE(BcmNeighborTest, NeighborTypes);
-
-TYPED_TEST(BcmNeighborTest, AddPendingEntry) {
+TYPED_TEST(HwNeighborTest, AddPendingEntry) {
   auto setup = [this]() {
     auto newState = this->addNeighbor(this->getProgrammedState());
     this->applyNewState(newState);
@@ -48,7 +23,7 @@ TYPED_TEST(BcmNeighborTest, AddPendingEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, ResolvePendingEntry) {
+TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -66,7 +41,7 @@ TYPED_TEST(BcmNeighborTest, ResolvePendingEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, UnresolveResolvedEntry) {
+TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -85,7 +60,7 @@ TYPED_TEST(BcmNeighborTest, UnresolveResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, ResolveThenUnresolveEntry) {
+TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -104,7 +79,7 @@ TYPED_TEST(BcmNeighborTest, ResolveThenUnresolveEntry) {
     this->verifyAcrossWarmBoots(setup, verify);
   }
 }
-TYPED_TEST(BcmNeighborTest, RemoveResolvedEntry) {
+TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -120,7 +95,7 @@ TYPED_TEST(BcmNeighborTest, RemoveResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, AddPendingRemovedEntry) {
+TYPED_TEST(HwNeighborTest, AddPendingRemovedEntry) {
   auto setup = [this]() {
     auto state =
         this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
@@ -139,7 +114,7 @@ TYPED_TEST(BcmNeighborTest, AddPendingRemovedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, LinkDownOnResolvedEntry) {
+TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -160,7 +135,7 @@ TYPED_TEST(BcmNeighborTest, LinkDownOnResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, BothLinkDownOnResolvedEntry) {
+TYPED_TEST(HwNeighborTest, BothLinkDownOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
@@ -184,7 +159,7 @@ TYPED_TEST(BcmNeighborTest, BothLinkDownOnResolvedEntry) {
   }
 }
 
-TYPED_TEST(BcmNeighborTest, LinkDownAndUpOnResolvedEntry) {
+TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
