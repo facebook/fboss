@@ -14,13 +14,17 @@
 
 namespace facebook::fboss::utility {
 
-bool nbrProgrammedToCpu(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
+bool nbrProgrammedToCpu(
+    const HwSwitch* /*hwSwitch*/,
+    InterfaceID /*intf*/,
+    const folly::IPAddress& /*ip*/) {
   throw facebook::fboss::FbossError("Not imiplemented");
 }
 
 std::optional<uint32_t> getNbrClassId(
-    const HwSwitch* hwSwitch,
-    const folly::IPAddress& ip) {
+    const HwSwitch* /*hwSwitch*/,
+    InterfaceID /*intf*/,
+    const folly::IPAddress& /*ip*/) {
   throw facebook::fboss::FbossError("Not imiplemented");
 }
 } // namespace facebook::fboss::utility

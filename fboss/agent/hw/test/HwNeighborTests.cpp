@@ -155,7 +155,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
      * Resolved entry should have a classID associated with it.
      */
     auto gotClassid = utility::getNbrClassId(
-        this->getHwSwitch(), NeighborT::getNeighborAddress());
+        this->getHwSwitch(), kIntfID, NeighborT::getNeighborAddress());
     EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
   }
   folly::IPAddress getNeighborAddress() const {
@@ -163,7 +163,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   }
   bool isProgrammedToCPU() const {
     return utility::nbrProgrammedToCpu(
-        this->getHwSwitch(), this->getNeighborAddress());
+        this->getHwSwitch(), kIntfID, this->getNeighborAddress());
   }
 
   const VlanID kVlanID{utility::kBaseVlanId};

@@ -36,7 +36,10 @@ bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip) {
 }
 } // namespace
 
-bool nbrProgrammedToCpu(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
+bool nbrProgrammedToCpu(
+    const HwSwitch* hwSwitch,
+    InterfaceID /*intf*/,
+    const folly::IPAddress& ip) {
   auto host = getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
   bcm_l3_egress_t egress;
   auto cpuFlags = (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU);
@@ -47,6 +50,7 @@ bool nbrProgrammedToCpu(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
 
 std::optional<uint32_t> getNbrClassId(
     const HwSwitch* hwSwitch,
+    InterfaceID /*intf*/,
     const folly::IPAddress& ip) {
   auto host = getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
   return host.l3a_lookup_class;

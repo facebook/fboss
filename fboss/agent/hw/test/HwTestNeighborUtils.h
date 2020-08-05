@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "fboss/agent/types.h"
+
 #include <folly/IPAddress.h>
 #include <string>
 
@@ -17,9 +19,13 @@ namespace facebook::fboss {
 class HwSwitch;
 namespace utility {
 
-bool nbrProgrammedToCpu(const HwSwitch* hwSwitch, const folly::IPAddress& ip);
+bool nbrProgrammedToCpu(
+    const HwSwitch* hwSwitch,
+    InterfaceID intf,
+    const folly::IPAddress& ip);
 std::optional<uint32_t> getNbrClassId(
     const HwSwitch* hwSwitch,
+    InterfaceID intf,
     const folly::IPAddress& ip);
 } // namespace utility
 } // namespace facebook::fboss
