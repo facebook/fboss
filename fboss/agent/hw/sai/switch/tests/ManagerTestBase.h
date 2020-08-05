@@ -133,7 +133,8 @@ class ManagerTestBase : public ::testing::Test {
 
   std::shared_ptr<ArpEntry> makeArpEntry(
       int id,
-      const TestRemoteHost& testRemoteHost) const;
+      const TestRemoteHost& testRemoteHost,
+      std::optional<sai_uint32_t> metadata = std::nullopt) const;
 
   std::shared_ptr<Interface> makeInterface(
       const TestInterface& testInterface) const;

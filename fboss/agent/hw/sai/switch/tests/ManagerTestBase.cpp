@@ -219,12 +219,17 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makePendingArpEntry(
 
 std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
     int id,
-    const TestRemoteHost& testRemoteHost) const {
-  return std::make_shared<ArpEntry>(
+    const TestRemoteHost& testRemoteHost,
+    std::optional<sai_uint32_t> metadata) const {
+  auto arpEntry = std::make_shared<ArpEntry>(
       testRemoteHost.ip.asV4(),
       testRemoteHost.mac,
       PortDescriptor(PortID(testRemoteHost.port.id)),
       InterfaceID(id));
+  if (metadata) {
+    arpEntry->setClassID(static_cast<cfg::AclLookupClass>(metadata.value()));
+  }
+  return arpEntry;
 }
 
 ResolvedNextHop ManagerTestBase::makeNextHop(

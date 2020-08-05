@@ -30,12 +30,16 @@ class NeighborManagerTest : public ManagerTestBase {
   template <typename NeighborEntryT>
   void checkEntry(
       const NeighborEntryT& neighborEntry,
-      const folly::MacAddress& expectedDstMac) {
+      const folly::MacAddress& expectedDstMac,
+      sai_uint32_t expectedMetadata = 0) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto gotMac = saiApiTable->neighborApi().getAttribute(
         saiEntry, SaiNeighborTraits::Attributes::DstMac{});
     EXPECT_EQ(gotMac, expectedDstMac);
+    auto gotMetadata = saiApiTable->neighborApi().getAttribute(
+        saiEntry, SaiNeighborTraits::Attributes::Metadata{});
+    EXPECT_EQ(gotMetadata, expectedMetadata);
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
@@ -73,6 +77,12 @@ TEST_F(NeighborManagerTest, addResolvedNeighbor) {
   checkEntry(arpEntry, h0.mac);
 }
 
+TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
+  auto arpEntry = makeArpEntry(intf0.id, h0, 42);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac, 42);
+}
+
 TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
   auto arpEntry = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
@@ -88,6 +98,16 @@ TEST_F(NeighborManagerTest, changeResolvedNeighbor) {
   auto arpEntryNew = makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0]);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
   checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac);
+}
+
+TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
+  auto arpEntry = makeArpEntry(intf0.id, h0);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  checkEntry(arpEntry, h0.mac);
+  auto arpEntryNew =
+      makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0], 42);
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
+  checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac, 42);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {
