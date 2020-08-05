@@ -158,9 +158,15 @@ class HwNeighborTest : public HwLinkStateDependentTest {
         this->getHwSwitch(), kIntfID, NeighborT::getNeighborAddress());
     EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
   }
+
+  bool nbrExists() const {
+    return utility::nbrExists(
+        this->getHwSwitch(), this->kIntfID, this->getNeighborAddress());
+  }
   folly::IPAddress getNeighborAddress() const {
     return NeighborT::getNeighborAddress();
   }
+
   bool isProgrammedToCPU() const {
     return utility::nbrProgrammedToCpu(
         this->getHwSwitch(), kIntfID, this->getNeighborAddress());
@@ -208,6 +214,25 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
   }
 }
 
+TYPED_TEST(HwNeighborTest, ResolvePendingEntryAndChangeLookupClass) {
+  auto setup = [this]() {
+    auto state = this->addNeighbor(this->getProgrammedState());
+    auto newState = this->resolveNeighbor(state);
+    this->applyNewState(newState);
+  };
+  auto verify = [this]() {
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
+  };
+  if (TypeParam::isTrunk) {
+    setup();
+    verify();
+  } else {
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+}
+
+
 TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
     auto state =
@@ -249,8 +274,7 @@ TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() {
-    EXPECT_FALSE(utility::nbrExists(
-        this->getHwSwitch(), this->kIntfID, this->getNeighborAddress()));
+    EXPECT_FALSE(this->nbrExists());
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -284,10 +308,16 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
     this->bringDownPort(this->masterLogicalPortIds()[0]);
   };
   auto verify = [this]() {
-    // egress to neighbor entry is not updated on link down
-    // if it is not part of ecmp group
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
+    // There is a behavior differnce b/w SAI and BcmSwitch on link down
+    // w.r.t. to neighbor entries. In BcmSwitch, we leave the nbr entries
+    // intact and rely on SwSwitch to prune them. In SaiSwitch we prune
+    // the fdb and neighbor entries on in SaiSwitch itself
+    if (this->nbrExists()) {
+      // egress to neighbor entry is not updated on link down
+      // if it is not part of ecmp group
+      EXPECT_FALSE(this->isProgrammedToCPU());
+      this->verifyClassId(static_cast<int>(this->kLookupClass));
+    }
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -305,17 +335,24 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
     this->bringDownPort(this->masterLogicalPortIds()[0]);
     this->bringUpPort(this->masterLogicalPortIds()[0]);
   };
-  auto verifyForPort = [this]() {
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
+  auto verify = [this]() {
+    // There is a behavior differnce b/w SAI and BcmSwitch on link down
+    // w.r.t. to neighbor entries. In BcmSwitch, we leave the nbr entries
+    // intact and rely on SwSwitch to prune them. In SaiSwitch we prune
+    // the fdb and neighbor entries on in SaiSwitch itself
+    if (this->nbrExists()) {
+      // egress to neighbor entry is not updated on link down
+      // if it is not part of ecmp group
+      EXPECT_FALSE(this->isProgrammedToCPU());
+      this->verifyClassId(static_cast<int>(this->kLookupClass));
+    }
   };
-  auto verifyForTrunk = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
 
   if (TypeParam::isTrunk) {
     setup();
-    verifyForTrunk();
+    verify();
   } else {
-    this->verifyAcrossWarmBoots(setup, verifyForPort);
+    this->verifyAcrossWarmBoots(setup, verify);
   }
 }
 

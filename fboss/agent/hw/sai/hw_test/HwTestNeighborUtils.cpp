@@ -59,7 +59,9 @@ bool nbrExists(
     InterfaceID intf,
     const folly::IPAddress& ip) {
   auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
-  return getNbrHandle(managerTable, intf, ip) != nullptr;
+  auto nbrHandle = getNbrHandle(managerTable, intf, ip);
+
+  return nbrHandle && nbrHandle->neighbor;
 }
 
 std::optional<uint32_t> getNbrClassId(
@@ -72,5 +74,6 @@ std::optional<uint32_t> getNbrClassId(
       nbrHandle->neighbor->adapterKey(),
       SaiNeighborTraits::Attributes::Metadata{});
 }
+
 } // namespace utility
 } // namespace facebook::fboss
