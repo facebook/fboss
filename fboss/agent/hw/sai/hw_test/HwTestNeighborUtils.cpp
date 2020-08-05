@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -54,10 +55,14 @@ bool nbrProgrammedToCpu(
 }
 
 std::optional<uint32_t> getNbrClassId(
-    const HwSwitch* /*hwSwitch*/,
-    InterfaceID /*intf*/,
-    const folly::IPAddress& /*ip*/) {
-  return 0;
+    const HwSwitch* hwSwitch,
+    InterfaceID intf,
+    const folly::IPAddress& ip) {
+  auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
+  auto nbrHandle = getNbrHandle(managerTable, intf, ip);
+  return SaiApiTable::getInstance()->neighborApi().getAttribute(
+      nbrHandle->neighbor->adapterKey(),
+      SaiNeighborTraits::Attributes::Metadata{});
 }
 } // namespace utility
 } // namespace facebook::fboss
