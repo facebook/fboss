@@ -169,7 +169,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
 
-  const folly::MacAddress kNeighborMac{"1:2:3:4:5:6"};
+  const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
   const cfg::AclLookupClass kLookupClass{
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
 };
