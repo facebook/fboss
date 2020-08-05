@@ -308,30 +308,6 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
   }
 }
 
-TYPED_TEST(HwNeighborTest, BothLinkDownOnResolvedEntry) {
-  auto setup = [this]() {
-    auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state);
-    newState = this->applyNewState(newState);
-
-    this->bringDownPorts(
-        {this->masterLogicalPortIds()[0], this->masterLogicalPortIds()[1]});
-  };
-  auto verify = [this]() {
-    // egress to neighbor entry is not updated on link down
-    // if it is not part of ecmp group
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
-  };
-
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
-}
-
 TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
