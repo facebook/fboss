@@ -340,4 +340,10 @@ HwSwitchEnsemble::Features HwSwitchEnsemble::getAllFeatures() {
           HwSwitchEnsemble::PACKET_RX,
           HwSwitchEnsemble::STATS_COLLECTION};
 }
+
+void HwSwitchEnsemble::ensureThrift() {
+  if (!thriftThread_) {
+    thriftThread_ = setupThrift();
+  }
+}
 } // namespace facebook::fboss

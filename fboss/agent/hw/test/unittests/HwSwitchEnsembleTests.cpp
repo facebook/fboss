@@ -31,6 +31,9 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
   }
 
  public:
+  std::unique_ptr<std::thread> setupThrift() override {
+    return nullptr;
+  }
   explicit TestHwSwitchEnsemble(const HwSwitchEnsemble::Features& features = {})
       : HwSwitchEnsemble(features) {}
 };

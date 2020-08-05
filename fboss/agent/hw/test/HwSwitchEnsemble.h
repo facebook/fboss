@@ -136,6 +136,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
    */
   void gracefulExit();
   void waitForLineRateOnPort(PortID port);
+  void ensureThrift();
 
  protected:
   /*
@@ -151,6 +152,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   }
 
  private:
+  virtual std::unique_ptr<std::thread> setupThrift() = 0;
+
   bool waitForAnyPorAndQueutOutBytesIncrement(
       const std::map<PortID, HwPortStats>& originalPortStats);
 

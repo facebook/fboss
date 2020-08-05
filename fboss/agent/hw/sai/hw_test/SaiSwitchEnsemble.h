@@ -55,6 +55,9 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
       const std::vector<PortID>& ports) override;
 
  private:
+  std::unique_ptr<std::thread> setupThrift() override {
+    return createThriftThread(getHwSwitch());
+  }
   std::unique_ptr<HwLinkStateToggler> createLinkToggler(
       HwSwitch* hwSwitch,
       cfg::PortLoopbackMode desiredLoopbackMode);

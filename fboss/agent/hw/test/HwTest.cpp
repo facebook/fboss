@@ -34,6 +34,11 @@ DEFINE_bool(
     "Set up test for SDK warmboot. Useful for testing individual "
     "tests doing a full process warmboot and verifying expectations");
 
+DEFINE_bool(
+    setup_thrift_on_failure,
+    false,
+    "Set up thrift on demand upon encountering test failure");
+
 namespace {
 
 auto kStageLogPrefix = "RUNNING STAGE: ";
@@ -109,6 +114,9 @@ void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
   }
   if (::testing::Test::HasFailure()) {
     collectTestFailureInfo();
+    if (FLAGS_setup_thrift_on_failure) {
+      hwSwitchEnsemble_->ensureThrift();
+    }
   }
   hwSwitchEnsemble_->removeHwEventObserver(this);
   if (doWarmboot) {
