@@ -1,17 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include <gtest/gtest.h>
-
-#include "fboss/agent/GtestDefs.h"
-#include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
-#include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/test/HwNeighborTests.h"
-
-using namespace ::testing;
-
-extern "C" {
-#include <bcm/l3.h>
-}
+#include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 
 namespace facebook::fboss {
 
@@ -19,47 +9,23 @@ template <typename NeighborT>
 class BcmNeighborTest : public HwNeighborTest<NeighborT> {
  protected:
   using BaseT = HwNeighborTest<NeighborT>;
-  using IPAddrT = typename BaseT::IPAddrT;
 
-  bool isProgrammedToCPU(bcm_if_t egressId) {
-    bcm_l3_egress_t egress;
-    auto cpuFlags = (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU);
-    bcm_l3_egress_t_init(&egress);
-    bcm_l3_egress_get(0, egressId, &egress);
-    return (egress.flags & cpuFlags) == cpuFlags;
-  }
-
-  template <typename AddrT = IPAddrT>
-  void initHost(std::enable_if_t<
-                std::is_same<AddrT, folly::IPAddressV4>::value,
-                bcm_l3_host_t>* host) {
-    auto ip = NeighborT::getNeighborAddress();
-    bcm_l3_host_t_init(host);
-    host->l3a_ip_addr = ip.toLongHBO();
-  }
-
-  template <typename AddrT = IPAddrT>
-  void initHost(std::enable_if_t<
-                std::is_same<AddrT, folly::IPAddressV6>::value,
-                bcm_l3_host_t>* host) {
-    auto ip = NeighborT::getNeighborAddress();
-    bcm_l3_host_t_init(host);
-    host->l3a_flags |= BCM_L3_IP6;
-    ipToBcmIp6(ip, &(host->l3a_ip6_addr));
-  }
-
-  int getHost(bcm_l3_host_t* host) {
-    initHost(host);
-    return bcm_l3_host_find(0, host);
-  }
-
-  void verifyLookupClassL3(bcm_l3_host_t host, int classID) {
+  void verifyClassId(int classID) {
     /*
      * Queue-per-host classIDs are only supported for physical ports.
      * Pending entry should not have a classID (0) associated with it.
      * Resolved entry should have a classID associated with it.
      */
-    EXPECT_TRUE(BaseT::programToTrunk || host.l3a_lookup_class == classID);
+    auto gotClassid = utility::getNbrClassId(
+        this->getHwSwitch(), NeighborT::getNeighborAddress());
+    EXPECT_TRUE(BaseT::programToTrunk || classID == gotClassid.value());
+  }
+  folly::IPAddress getNeighborAddress() const {
+    return NeighborT::getNeighborAddress();
+  }
+  bool isProgrammedToCPU() const {
+    return utility::nbrProgrammedToCpu(
+        this->getHwSwitch(), this->getNeighborAddress());
   }
 };
 
@@ -71,11 +37,8 @@ TYPED_TEST(BcmNeighborTest, AddPendingEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_TRUE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, 0);
+    EXPECT_TRUE(this->isProgrammedToCPU());
+    this->verifyClassId(0);
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -92,11 +55,8 @@ TYPED_TEST(BcmNeighborTest, ResolvePendingEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_FALSE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, static_cast<int>(this->kLookupClass));
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -114,11 +74,8 @@ TYPED_TEST(BcmNeighborTest, UnresolveResolvedEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_TRUE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, 0);
+    EXPECT_TRUE(this->isProgrammedToCPU());
+    this->verifyClassId(0);
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -137,11 +94,8 @@ TYPED_TEST(BcmNeighborTest, ResolveThenUnresolveEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_TRUE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, 0);
+    EXPECT_TRUE(this->isProgrammedToCPU());
+    this->verifyClassId(0);
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -157,11 +111,7 @@ TYPED_TEST(BcmNeighborTest, RemoveResolvedEntry) {
     auto newState = this->removeNeighbor(state);
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, BCM_E_NOT_FOUND);
-  };
+  auto verify = [this]() { EXPECT_ANY_THROW(this->isProgrammedToCPU()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
@@ -178,11 +128,8 @@ TYPED_TEST(BcmNeighborTest, AddPendingRemovedEntry) {
     this->applyNewState(this->addNeighbor(this->getProgrammedState()));
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_TRUE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, 0);
+    EXPECT_TRUE(this->isProgrammedToCPU());
+    this->verifyClassId(0);
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -200,13 +147,10 @@ TYPED_TEST(BcmNeighborTest, LinkDownOnResolvedEntry) {
     this->bringDownPort(this->masterLogicalPortIds()[0]);
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
     // egress to neighbor entry is not updated on link down
     // if it is not part of ecmp group
-    EXPECT_FALSE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, static_cast<int>(this->kLookupClass));
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
   };
   if (TypeParam::isTrunk) {
     setup();
@@ -226,13 +170,10 @@ TYPED_TEST(BcmNeighborTest, BothLinkDownOnResolvedEntry) {
         {this->masterLogicalPortIds()[0], this->masterLogicalPortIds()[1]});
   };
   auto verify = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
     // egress to neighbor entry is not updated on link down
     // if it is not part of ecmp group
-    EXPECT_FALSE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, static_cast<int>(this->kLookupClass));
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
   };
 
   if (TypeParam::isTrunk) {
@@ -252,18 +193,10 @@ TYPED_TEST(BcmNeighborTest, LinkDownAndUpOnResolvedEntry) {
     this->bringUpPort(this->masterLogicalPortIds()[0]);
   };
   auto verifyForPort = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_FALSE(this->isProgrammedToCPU(host.l3a_intf));
-    this->verifyLookupClassL3(host, static_cast<int>(this->kLookupClass));
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
   };
-  auto verifyForTrunk = [this]() {
-    bcm_l3_host_t host;
-    auto rv = this->getHost(&host);
-    EXPECT_EQ(rv, 0);
-    EXPECT_FALSE(this->isProgrammedToCPU(host.l3a_intf));
-  };
+  auto verifyForTrunk = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
 
   if (TypeParam::isTrunk) {
     setup();
