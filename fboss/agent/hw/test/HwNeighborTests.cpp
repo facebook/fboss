@@ -23,14 +23,14 @@ struct NeighborT {
   std::enable_if_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       folly::IPAddressV4> static getNeighborAddress() {
-    return folly::IPAddressV4("129.0.0.1");
+    return folly::IPAddressV4("1.1.1.2");
   }
 
   template <typename AddrT = IPAddrT>
   std::enable_if_t<
       std::is_same<AddrT, folly::IPAddressV6>::value,
       folly::IPAddressV6> static getNeighborAddress() {
-    return folly::IPAddressV6("2401::123");
+    return folly::IPAddressV6("1::2");
   }
 };
 
