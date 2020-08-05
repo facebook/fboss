@@ -181,10 +181,7 @@ TYPED_TEST(HwNeighborTest, AddPendingEntry) {
     auto newState = this->addNeighbor(this->getProgrammedState());
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    EXPECT_TRUE(this->isProgrammedToCPU());
-    this->verifyClassId(0);
-  };
+  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
@@ -218,10 +215,7 @@ TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
     auto newState = this->unresolveNeighbor(state);
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    EXPECT_TRUE(this->isProgrammedToCPU());
-    this->verifyClassId(0);
-  };
+  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
@@ -238,10 +232,7 @@ TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
     auto newState = this->unresolveNeighbor(this->getProgrammedState());
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    EXPECT_TRUE(this->isProgrammedToCPU());
-    this->verifyClassId(0);
-  };
+  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
@@ -249,6 +240,7 @@ TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
     this->verifyAcrossWarmBoots(setup, verify);
   }
 }
+
 TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
   auto setup = [this]() {
     auto state =
@@ -275,10 +267,7 @@ TYPED_TEST(HwNeighborTest, AddPendingRemovedEntry) {
     this->applyNewState(this->removeNeighbor(state));
     this->applyNewState(this->addNeighbor(this->getProgrammedState()));
   };
-  auto verify = [this]() {
-    EXPECT_TRUE(this->isProgrammedToCPU());
-    this->verifyClassId(0);
-  };
+  auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   if (TypeParam::isTrunk) {
     setup();
     verify();
