@@ -23,6 +23,10 @@ bool nbrProgrammedToCpu(
     const HwSwitch* hwSwitch,
     InterfaceID intf,
     const folly::IPAddress& ip);
+bool nbrExists(
+    const HwSwitch* hwSwitch,
+    InterfaceID intf,
+    const folly::IPAddress& ip);
 std::optional<uint32_t> getNbrClassId(
     const HwSwitch* hwSwitch,
     InterfaceID intf,

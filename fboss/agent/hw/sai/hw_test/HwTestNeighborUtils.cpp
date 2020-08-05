@@ -54,6 +54,14 @@ bool nbrProgrammedToCpu(
   return nbrHandle == nullptr;
 }
 
+bool nbrExists(
+    const HwSwitch* hwSwitch,
+    InterfaceID intf,
+    const folly::IPAddress& ip) {
+  auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
+  return getNbrHandle(managerTable, intf, ip) != nullptr;
+}
+
 std::optional<uint32_t> getNbrClassId(
     const HwSwitch* hwSwitch,
     InterfaceID intf,

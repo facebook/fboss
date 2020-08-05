@@ -256,7 +256,10 @@ TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
     auto newState = this->removeNeighbor(state);
     this->applyNewState(newState);
   };
-  auto verify = [this]() { EXPECT_ANY_THROW(this->isProgrammedToCPU()); };
+  auto verify = [this]() {
+    EXPECT_FALSE(utility::nbrExists(
+        this->getHwSwitch(), this->kIntfID, this->getNeighborAddress()));
+  };
   if (TypeParam::isTrunk) {
     setup();
     verify();

@@ -36,6 +36,23 @@ bcm_l3_host_t getHost(int unit, const folly::IPAddress& ip) {
 }
 } // namespace
 
+bool nbrExists(
+    const HwSwitch* hwSwitch,
+    InterfaceID intf,
+    const folly::IPAddress& ip) {
+  try {
+    getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip);
+
+  } catch (const BcmError& e) {
+    if (e.getBcmError() == BCM_E_NOT_FOUND) {
+      return false;
+    } else {
+      throw;
+    }
+  }
+  return true;
+}
+
 bool nbrProgrammedToCpu(
     const HwSwitch* hwSwitch,
     InterfaceID /*intf*/,
