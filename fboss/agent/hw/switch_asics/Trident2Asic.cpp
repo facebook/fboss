@@ -20,6 +20,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
     case HwAsic::Feature::L2ENTRY_METADATA:
+    case HwAsic::Feature::NEIGHBOR_METADATA:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:

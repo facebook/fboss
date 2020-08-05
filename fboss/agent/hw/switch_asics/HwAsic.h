@@ -36,6 +36,7 @@ class HwAsic {
     PORT_INTERFACE_TYPE,
     L2ENTRY_METADATA,
     WEIGHTED_NEXTHOPGROUP_MEMBER,
+    NEIGHBOR_METADATA,
   };
 
   enum class AsicType {
