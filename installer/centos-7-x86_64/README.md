@@ -119,10 +119,17 @@ cd fboss.git
 
 </a>
 
+Set up the build environment
 ```
 export CPLUS_INCLUDE_PATH=/opt/rh/rh-python36/root/usr/include/python3.6m/
 export PATH=/opt/rh/devtoolset-8/root/usr/bin/:/opt/rh/rh-python36/root/usr/bin:$PATH
-
+```
+Optionally enable building with address sanitizer options turned on
+```
+export WITH_ASAN=1
+```
+Build
+```
 cd fboss.git
 ./build/fbcode_builder/getdeps.py build fboss
 ```

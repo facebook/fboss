@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 
+option(WITH_ASAN "Turn on address sanitizer build options" OFF)
+if ($ENV{WITH_ASAN})
+  message(STATUS "ENV WITH_ASAN is set")
+  set (WITH_ASAN ON)
+endif()
+
+if (WITH_ASAN)
+  message(STATUS "Building WITH_ASAN")
+endif()
+
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})
@@ -20,6 +30,19 @@ set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+if (WITH_ASAN)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -static-libasan")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize-recover=all")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-common")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize=alignment")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize=null")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize=vptr")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libasan")
+endif()
 
 # TODO (skhare) Once CMakeLists.txt is modified to follow buck hierarchy in
 # cmake/*, set BCM-specific flags for BCM libs only
