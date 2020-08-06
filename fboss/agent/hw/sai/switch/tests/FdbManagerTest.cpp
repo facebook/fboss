@@ -67,17 +67,35 @@ class FdbManagerTest : public ManagerTestBase {
   void addMacEntry(
       folly::MacAddress mac = kMac(),
       std::optional<sai_uint32_t> classId = std::nullopt) {
+    updateOraAddMacEntry(mac, classId, false);
+  }
+  void updateMacEntry(
+      folly::MacAddress mac = kMac(),
+      std::optional<sai_uint32_t> classId = std::nullopt) {
+    updateOraAddMacEntry(mac, classId, true);
+  }
+
+  TestInterface intf0;
+
+ private:
+  void updateOraAddMacEntry(
+      folly::MacAddress mac,
+      std::optional<sai_uint32_t> classId,
+      bool update) {
     auto macEntry = makeMacEntry(mac, classId);
     auto newState = programmedState->clone();
     auto newMacTable = newState->getVlans()
                            ->getVlan(VlanID(intf0.id))
                            ->getMacTable()
                            ->modify(VlanID(intf0.id), &newState);
-    newMacTable->addEntry(macEntry);
+    if (update) {
+      newMacTable->updateEntry(
+          macEntry->getMac(), macEntry->getPort(), macEntry->getClassID());
+    } else {
+      newMacTable->addEntry(macEntry);
+    }
     applyNewState(newState);
   }
-
-  TestInterface intf0;
 };
 
 TEST_F(FdbManagerTest, addFdbEntry) {
@@ -85,7 +103,16 @@ TEST_F(FdbManagerTest, addFdbEntry) {
   checkFdbEntry(kMac());
 }
 
-TEST_F(FdbManagerTest, addFdbEntryWithClassId) {
+TEST_F(FdbManagerTest, addFdbEntryWithMetdata) {
   addMacEntry(kMac(), 42);
   checkFdbEntry(kMac(), 42);
+}
+
+TEST_F(FdbManagerTest, addRemoveMetadata) {
+  addMacEntry();
+  checkFdbEntry(kMac());
+  updateMacEntry(kMac(), 42);
+  checkFdbEntry(kMac(), 42);
+  updateMacEntry(kMac(), std::nullopt);
+  checkFdbEntry(kMac());
 }
