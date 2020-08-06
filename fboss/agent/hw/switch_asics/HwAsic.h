@@ -53,6 +53,7 @@ class HwAsic {
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
+  virtual std::string getVendor() const = 0;
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;
   virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;

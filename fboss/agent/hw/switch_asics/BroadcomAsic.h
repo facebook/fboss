@@ -11,5 +11,8 @@ class BroadcomAsic : public HwAsic {
   bool needsObjectKeyCache() const override {
     return true;
   }
+  std::string getVendor() const override {
+    return "bcm";
+  }
 };
 } // namespace facebook::fboss

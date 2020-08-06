@@ -14,6 +14,9 @@ class MockAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_MOCK;
   }
+  std::string getVendor() const override {
+    return "mock";
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }

@@ -12,6 +12,9 @@ class TajoAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TAJO;
   }
+  std::string getVendor() const override {
+    return "tajo";
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }

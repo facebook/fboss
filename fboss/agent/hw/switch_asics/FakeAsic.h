@@ -14,6 +14,9 @@ class FakeAsic : public HwAsic {
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_FAKE;
   }
+  std::string getVendor() const override {
+    return "fake";
+  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }
