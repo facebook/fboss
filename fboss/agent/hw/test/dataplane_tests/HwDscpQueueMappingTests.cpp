@@ -7,23 +7,22 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.h"
+
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-
 #include <folly/IPAddress.h>
+
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
 
-class BcmDscpQueueMappingTest : public BcmLinkStateDependentTests {
+class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
@@ -35,7 +34,7 @@ class BcmDscpQueueMappingTest : public BcmLinkStateDependentTests {
     return 1;
   }
 
-  int16 kDscp() const {
+  int16_t kDscp() const {
     return 48;
   }
 
@@ -84,7 +83,7 @@ class BcmDscpQueueMappingTest : public BcmLinkStateDependentTests {
   const RouterID kRid{0};
 };
 
-TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMapping) {
+TEST_F(HwDscpQueueMappingTest, CheckDscpQueueMapping) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -113,7 +112,7 @@ TEST_F(BcmDscpQueueMappingTest, CheckDscpQueueMapping) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
+TEST_F(HwDscpQueueMappingTest, AclAndQosMap) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -150,7 +149,7 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
+TEST_F(HwDscpQueueMappingTest, AclAndQosMapConflict) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -185,8 +184,10 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
     auto afterQueueOutPktsQosMap = getLatestPortStats(masterLogicalPortIds()[0])
                                        .get_queueOutPackets_()
                                        .at(kQueueIdQosMap);
+
     auto afterAclInOutPkts = utility::getAclInOutPackets(
         getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
+
     // The ACL overrides the decision of the QoS map
     EXPECT_EQ(0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
     EXPECT_EQ(1, afterQueueOutPktsAcl - beforeQueueOutPktsAcl);
