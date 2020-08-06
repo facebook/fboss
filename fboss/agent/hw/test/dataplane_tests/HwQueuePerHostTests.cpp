@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -18,7 +18,7 @@
 namespace facebook::fboss {
 
 template <typename AddrT>
-class BcmQueuePerHostTest : public BcmLinkStateDependentTests {
+class HwQueuePerHostTest : public HwLinkStateDependentTest {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
@@ -221,9 +221,9 @@ class BcmQueuePerHostTest : public BcmLinkStateDependentTests {
 
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-TYPED_TEST_SUITE(BcmQueuePerHostTest, TestTypes);
+TYPED_TEST_SUITE(HwQueuePerHostTest, TestTypes);
 
-TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
+TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -250,7 +250,7 @@ TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(BcmQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
+TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
   if (!this->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
