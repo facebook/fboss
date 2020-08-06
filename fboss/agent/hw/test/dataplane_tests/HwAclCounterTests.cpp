@@ -7,27 +7,26 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestStatUtils.h"
-#include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-
-#include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddressV6.h>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+
 using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
-class BcmAclCounterTest : public BcmLinkStateDependentTests {
+class HwAclCounterTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerVlanConfig(
@@ -87,7 +86,7 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> ecmpHelper_;
 };
 
-TEST_F(BcmAclCounterTest, TestCounterBumpOnHit) {
+TEST_F(HwAclCounterTest, TestCounterBumpOnHit) {
   auto setup = [this]() { setupAclStat(); };
   auto verify = [this]() {
     auto statBefore = utility::getAclInOutPackets(
@@ -101,7 +100,7 @@ TEST_F(BcmAclCounterTest, TestCounterBumpOnHit) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmAclCounterTest, TestCounterNoHitNoBump) {
+TEST_F(HwAclCounterTest, TestCounterNoHitNoBump) {
   auto setup = [this]() { setupAclStat(); };
   auto verify = [=]() {
     auto statBefore = utility::getAclInOutPackets(
