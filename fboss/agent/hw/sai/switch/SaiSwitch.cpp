@@ -79,12 +79,6 @@ const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
 
 namespace facebook::fboss {
 
-HwSwitchStats* getSwitchStats() {
-  static HwSwitchStats saiStats(
-      fb303::ThreadCachedServiceData::get()->getThreadStats(), "sai");
-  return &saiStats;
-}
-
 // We need this global SaiSwitch* to support registering SAI callbacks
 // which can then use SaiSwitch to do their work. The current callback
 // facility in SAI does not support passing user data to come back

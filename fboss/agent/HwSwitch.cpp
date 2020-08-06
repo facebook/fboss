@@ -8,11 +8,15 @@
  *
  */
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/FbossError.h"
 
 #include <folly/FileUtil.h>
 #include <folly/experimental/TestUtil.h>
+
+#include <fb303/ThreadCachedServiceData.h>
 
 namespace facebook::fboss {
 
@@ -26,4 +30,12 @@ std::string HwSwitch::getDebugDump() const {
   }
   return out;
 }
+
+HwSwitchStats* HwSwitch::getSwitchStats() const {
+  static HwSwitchStats hwSwitchStats(
+      fb303::ThreadCachedServiceData::get()->getThreadStats(),
+      getPlatform()->getAsic()->getVendor());
+  return &hwSwitchStats;
+}
+
 } // namespace facebook::fboss

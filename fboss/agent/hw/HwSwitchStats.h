@@ -20,7 +20,7 @@ class HwSwitchStats {
   using ThreadLocalStatsMap =
       fb303::ThreadCachedServiceData::ThreadLocalStatsMap;
 
-  HwSwitchStats(ThreadLocalStatsMap* map, const std::string& platform);
+  HwSwitchStats(ThreadLocalStatsMap* map, const std::string& vendor);
 
   void txPktAlloc() {
     txPktAlloc_.addValue(1);

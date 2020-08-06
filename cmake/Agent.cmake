@@ -198,4 +198,5 @@ target_link_libraries(hw_switch
   fboss_cpp2
   Folly::folly
   platform_base
+  hw_switch_stats
 )

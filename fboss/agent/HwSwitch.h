@@ -32,6 +32,7 @@ class StateDelta;
 class RxPacket;
 class TxPacket;
 class L2Entry;
+class HwSwitchStats;
 enum class L2EntryUpdateType : uint8_t;
 
 struct HwInitResult {
@@ -293,6 +294,8 @@ class HwSwitch {
 
   std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
+
+  HwSwitchStats* getSwitchStats() const;
 
  private:
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;

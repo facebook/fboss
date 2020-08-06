@@ -25,8 +25,6 @@
 
 namespace facebook::fboss {
 
-HwSwitchStats* getSwitchStats();
-
 class ConcurrentIndices;
 
 class SaiSwitch : public HwSwitch {
