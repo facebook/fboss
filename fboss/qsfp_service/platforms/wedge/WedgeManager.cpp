@@ -92,8 +92,8 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
+      info[i] = trans;
     }
-    info[i] = trans;
   }
 }
 
@@ -115,8 +115,31 @@ void WedgeManager::getTransceiversRawDOMData(
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getRawDOMData(): " << ex.what();
       }
+      info[i] = data;
     }
-    info[i] = data;
+  }
+}
+
+void WedgeManager::getTransceiversDOMDataUnion(
+    std::map<int32_t, DOMDataUnion>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  XLOG(INFO) << "Received request for getTransceiversDOMDataUnion, with ids: "
+             << (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) |
+      folly::gen::appendTo(*ids);
+  }
+  for (const auto& i : *ids) {
+    DOMDataUnion data;
+    if (isValidTransceiver(i)) {
+      try {
+        data = transceivers_[TransceiverID(i)]->getDOMDataUnion();
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Transceiver " << i
+                  << ": Error calling getDOMDataUnion(): " << ex.what();
+      }
+      info[i] = data;
+    }
   }
 }
 

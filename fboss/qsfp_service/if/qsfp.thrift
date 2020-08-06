@@ -32,6 +32,14 @@ service QsfpService extends fb303.FacebookService {
     throws (1: fboss.FbossBaseError error)
 
   /*
+   * Read on the raw DOM data for a specific transceiver as a union.
+   */
+  map<i32, transceiver.DOMDataUnion> getTransceiverDOMDataUnion(
+    1: list<i32> idx
+    ) throws (
+      1: fboss.FbossBaseError error)
+
+  /*
    * Tell the qsfp service about the status of ports, retrieve transceiver information
    * for each of these ports.
    */

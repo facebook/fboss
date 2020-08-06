@@ -18,6 +18,8 @@ class TransceiverManager {
     std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual void getTransceiversRawDOMData(std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) = 0;
+  virtual void getTransceiversDOMDataUnion(std::map<int32_t, DOMDataUnion>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) = 0;
   virtual void syncPorts(
     std::map<int32_t, TransceiverInfo>& info,

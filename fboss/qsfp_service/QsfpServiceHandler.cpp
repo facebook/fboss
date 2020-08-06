@@ -46,6 +46,13 @@ void QsfpServiceHandler::getTransceiverRawDOMData(
   manager_->getTransceiversRawDOMData(info, std::move(ids));
 }
 
+void QsfpServiceHandler::getTransceiverDOMDataUnion(
+    std::map<int32_t, DOMDataUnion>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getTransceiversDOMDataUnion(info, std::move(ids));
+}
+
 void QsfpServiceHandler::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {

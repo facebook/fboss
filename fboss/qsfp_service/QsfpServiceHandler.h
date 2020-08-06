@@ -33,6 +33,14 @@ class QsfpServiceHandler : public facebook::fboss::QsfpServiceSvIf,
     std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns a union of the two raw DOM data format for each passed in transceiver.
+   */
+  void getTransceiverDOMDataUnion(
+    std::map<int32_t, DOMDataUnion>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) override;
+
+
+  /*
    * Store port status information and return relevant transceiver map.
    */
   void syncPorts(
