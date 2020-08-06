@@ -70,7 +70,7 @@ bool SaiPlatformPort::shouldDisableFEC() const {
   return !transceiverID_.has_value();
 }
 
-bool SaiPlatformPort::checkSupportsTransceiver() {
+bool SaiPlatformPort::checkSupportsTransceiver() const {
   return supportsTransceiver() && !FLAGS_skip_transceiver_programming &&
       transceiverID_.has_value();
 }
@@ -174,6 +174,31 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
   xcvr.channels_ref() = lanes;
   return xcvr;
+}
+
+folly::Future<std::optional<Cable>> SaiPlatformPort::getCableInfoInternal(
+    folly::EventBase* evb) const {
+  CHECK(checkSupportsTransceiver());
+  int32_t transID = static_cast<int32_t>(getTransceiverID().value());
+  auto getCable = [](TransceiverInfo info) -> std::optional<Cable> {
+    return info.cable_ref().to_optional();
+  };
+  auto handleError =
+      [transID](const folly::exception_wrapper& e) -> std::optional<Cable> {
+    XLOG(ERR) << "Error retrieving cable info for transceiver " << transID
+              << " Exception: " << folly::exceptionStr(e);
+    return std::nullopt;
+  };
+  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
+  folly::Future<TransceiverInfo> transceiverInfo =
+      qsfpCache->futureGet(getTransceiverID().value());
+  return transceiverInfo.via(evb).thenValueInline(getCable).thenError(
+      std::move(handleError));
+}
+
+std::optional<Cable> SaiPlatformPort::getCableInfo() const {
+  folly::EventBase evb;
+  return getCableInfoInternal(&evb).getVia(&evb);
 }
 
 } // namespace facebook::fboss

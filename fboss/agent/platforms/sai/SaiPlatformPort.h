@@ -47,13 +47,17 @@ class SaiPlatformPort : public PlatformPort {
   virtual TransmitterTechnology getTransmitterTech();
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const = 0;
-  bool checkSupportsTransceiver();
+  bool checkSupportsTransceiver() const;
   TransceiverIdxThrift getTransceiverMapping(cfg::PortSpeed speed);
+
+  std::optional<Cable> getCableInfo() const;
 
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;
   folly::Future<TransmitterTechnology> getTransmitterTechInternal(
       folly::EventBase* evb);
+  folly::Future<std::optional<Cable>> getCableInfoInternal(
+      folly::EventBase* evb) const;
   std::optional<TransceiverID> transceiverID_;
 };
 
