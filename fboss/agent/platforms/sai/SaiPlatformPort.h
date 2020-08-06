@@ -51,6 +51,8 @@ class SaiPlatformPort : public PlatformPort {
   TransceiverIdxThrift getTransceiverMapping(cfg::PortSpeed speed);
 
   std::optional<Cable> getCableInfo() const;
+  std::vector<phy::PinConfig> getIphyPinConfigs(
+      cfg::PortProfileID profileID) const override;
 
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;
