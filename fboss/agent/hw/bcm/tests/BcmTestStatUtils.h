@@ -20,7 +20,6 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-uint64_t getAclInOutPackets(int unit, BcmAclStatHandle handle);
 uint64_t
 getQueueOutPackets(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq = 0);
 uint64_t getQueueOutPackets(

@@ -641,11 +641,11 @@ TEST_P(BcmQcmDataCollectorParamTest, VerifyFlowCollector) {
     std::ignore = nonFlowLearnPortCounter;
     EXPECT_EQ(flowLearnPortCounter, 1);
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getLearnedFlowCount(), 1);
-    auto statHandle = getHwSwitch()
-                          ->getAclTable()
-                          ->getAclStat(kCollectorAclCounter)
-                          ->getHandle();
-    auto aclCounter = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto aclCounter = utility::getAclInOutPackets(
+        getHwSwitch(),
+        getProgrammedState(),
+        kCollectorAcl,
+        kCollectorAclCounter);
     EXPECT_GT(aclCounter, 0);
   };
   verifyAcrossWarmBoots(setup, verify);

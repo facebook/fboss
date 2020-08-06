@@ -51,7 +51,10 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
         ttl);
     getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
   }
+
+  static constexpr auto kAclName = "ttld-acl";
   static constexpr auto kCounterName = "ttld-stat";
+
   void setupAclStat() {
     auto initialCfg = initialConfig();
     addTtlAclStat(&initialCfg);
@@ -63,7 +66,6 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
 
  private:
   void addTtlAclStat(cfg::SwitchConfig* config) const {
-    constexpr auto kAclName = "ttld-acl";
     auto acl = utility::addAcl(config, kAclName);
     acl->srcIp_ref() = "2001::/64";
     acl->proto_ref() = 0x11;
@@ -88,11 +90,11 @@ class BcmAclCounterTest : public BcmLinkStateDependentTests {
 TEST_F(BcmAclCounterTest, TestCounterBumpOnHit) {
   auto setup = [this]() { setupAclStat(); };
   auto verify = [this]() {
-    auto statHandle =
-        getHwSwitch()->getAclTable()->getAclStat(kCounterName)->getHandle();
-    auto statBefore = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
     sendPkt(200);
-    auto statAfter = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
     // Bump by 2, once on the way out and once when it loops back in
     EXPECT_EQ(statBefore + 2, statAfter);
   };
@@ -102,11 +104,11 @@ TEST_F(BcmAclCounterTest, TestCounterBumpOnHit) {
 TEST_F(BcmAclCounterTest, TestCounterNoHitNoBump) {
   auto setup = [this]() { setupAclStat(); };
   auto verify = [=]() {
-    auto statHandle =
-        getHwSwitch()->getAclTable()->getAclStat(kCounterName)->getHandle();
-    auto statBefore = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto statBefore = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
     sendPkt(10);
-    auto statAfter = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto statAfter = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
     EXPECT_EQ(statBefore, statAfter);
   };
   verifyAcrossWarmBoots(setup, verify);

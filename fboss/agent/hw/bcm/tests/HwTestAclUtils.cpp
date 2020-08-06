@@ -178,4 +178,20 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
   ASSERT_EQ(expectedNumCounters, numCounters);
 }
 
+uint64_t getAclInOutPackets(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> /*state*/,
+    const std::string& /*aclName*/,
+    const std::string& statName) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  auto statHandle = bcmSwitch->getAclTable()->getAclStat(statName)->getHandle();
+
+  uint64_t value;
+  bcm_field_stat_t type = bcmFieldStatPackets;
+  auto rv =
+      bcm_field_stat_sync_get(bcmSwitch->getUnit(), statHandle, type, &value);
+  bcmCheckError(rv, "Failed to update stat=", statHandle);
+  return value;
+}
+
 } // namespace facebook::fboss::utility

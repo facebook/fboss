@@ -26,14 +26,6 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-uint64_t getAclInOutPackets(int unit, BcmAclStatHandle handle) {
-  uint64_t value;
-  bcm_field_stat_t type = bcmFieldStatPackets;
-  auto rv = bcm_field_stat_sync_get(unit, handle, type, &value);
-  bcmCheckError(rv, "Failed to update stat=", handle);
-  return value;
-}
-
 uint64_t getQueueOutPackets(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq) {
   uint64_t value;
   auto rv =

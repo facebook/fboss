@@ -502,4 +502,12 @@ void checkAclStatSize(
   throw FbossError("Not implemented");
 }
 
+uint64_t getAclInOutPackets(
+    const HwSwitch* /*hw*/,
+    std::shared_ptr<SwitchState> /*state*/,
+    const std::string& /*aclName*/,
+    const std::string& /*statName*/) {
+  throw FbossError("Not implemented");
+}
+
 } // namespace facebook::fboss::utility

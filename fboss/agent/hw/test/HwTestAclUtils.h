@@ -76,4 +76,10 @@ void renameAclStat(
     const std::string& oldCounterName,
     const std::string& newCounterName);
 
+uint64_t getAclInOutPackets(
+    const HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    const std::string& statName);
+
 } // namespace facebook::fboss::utility

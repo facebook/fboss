@@ -132,18 +132,17 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMap) {
   };
 
   auto verify = [=]() {
-    auto statHandle =
-        getHwSwitch()->getAclTable()->getAclStat(kCounterName())->getHandle();
     auto beforeQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
                                   .get_queueOutPackets_()
                                   .at(kQueueId());
-    auto beforeAclInOutPkts =
-        utility::getAclInOutPackets(getUnit(), statHandle);
+    auto beforeAclInOutPkts = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
     sendUdpPkt(255);
     auto afterQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
                                  .get_queueOutPackets_()
                                  .at(kQueueId());
-    auto afterAclInOutPkts = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto afterAclInOutPkts = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
     EXPECT_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
     EXPECT_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
   };
@@ -170,8 +169,6 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
   };
 
   auto verify = [=]() {
-    auto statHandle =
-        getHwSwitch()->getAclTable()->getAclStat(kCounterName())->getHandle();
     auto beforeQueueOutPktsAcl = getLatestPortStats(masterLogicalPortIds()[0])
                                      .get_queueOutPackets_()
                                      .at(kQueueIdAcl);
@@ -179,8 +176,8 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
         getLatestPortStats(masterLogicalPortIds()[0])
             .get_queueOutPackets_()
             .at(kQueueIdQosMap);
-    auto beforeAclInOutPkts =
-        utility::getAclInOutPackets(getUnit(), statHandle);
+    auto beforeAclInOutPkts = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
     sendUdpPkt();
     auto afterQueueOutPktsAcl = getLatestPortStats(masterLogicalPortIds()[0])
                                     .get_queueOutPackets_()
@@ -188,7 +185,8 @@ TEST_F(BcmDscpQueueMappingTest, AclAndQosMapConflict) {
     auto afterQueueOutPktsQosMap = getLatestPortStats(masterLogicalPortIds()[0])
                                        .get_queueOutPackets_()
                                        .at(kQueueIdQosMap);
-    auto afterAclInOutPkts = utility::getAclInOutPackets(getUnit(), statHandle);
+    auto afterAclInOutPkts = utility::getAclInOutPackets(
+        getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
     // The ACL overrides the decision of the QoS map
     EXPECT_EQ(0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
     EXPECT_EQ(1, afterQueueOutPktsAcl - beforeQueueOutPktsAcl);
