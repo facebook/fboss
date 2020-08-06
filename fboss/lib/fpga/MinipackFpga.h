@@ -54,6 +54,9 @@ class MinipackFpga {
    */
   void triggerQsfpHardReset(uint8_t pim, int qsfp);
 
+  // This function will bring all the transceivers out of reset.
+  void clearAllTransceiverReset();
+
   void
   setFrontPanelLedColor(uint8_t pim, int qsfp, FbDomFpga::LedColor ledColor);
 

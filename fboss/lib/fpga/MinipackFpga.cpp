@@ -117,6 +117,12 @@ void MinipackFpga::triggerQsfpHardReset(uint8_t pim, int qsfp) {
   pimFpgas_[pim - 1]->triggerQsfpHardReset(qsfp);
 }
 
+void MinipackFpga::clearAllTransceiverReset() {
+  for (auto& pim : pimFpgas_) {
+    pim->clearAllTransceiverReset();
+  }
+}
+
 void MinipackFpga::setFrontPanelLedColor(
     uint8_t pim,
     int qsfp,

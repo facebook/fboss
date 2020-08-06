@@ -32,6 +32,13 @@ class TransceiverPlatformApi {
    * etc.
    */
   virtual void triggerQsfpHardReset(unsigned int module) = 0;
+
+  /* This function will bring all the transceivers out of reset. This is a
+   * virtual function at this level and it will be overridden by appropriate
+   * platform class. Some platforms clear transceiver from reset by default.
+   * So function we will stay no op for those platforms.
+   */
+  virtual void clearAllTransceiverReset() = 0;
 };
 
 } // namespace facebook::fboss

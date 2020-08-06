@@ -51,6 +51,9 @@ class FbDomFpga {
    */
   void triggerQsfpHardReset(int qsfp);
 
+  // This function will bring all the transceivers out of reset on this pim.
+  void clearAllTransceiverReset();
+
   void setFrontPanelLedColor(int qsfp, LedColor ledColor);
 
   virtual ~FbDomFpga() {}

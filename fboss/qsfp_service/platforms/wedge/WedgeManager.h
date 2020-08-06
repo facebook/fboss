@@ -62,6 +62,11 @@ class WedgeManager : public TransceiverManager {
    */
   void publishI2cTransactionStats() override;
 
+  // This function will bring all the transceivers out of reset, making use
+  // of the specific implementation from each platform. Platforms that bring
+  // transceiver out of reset by default will stay no op.
+  void clearAllTransceiverReset();
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   std::unique_ptr<TransceiverI2CApi>

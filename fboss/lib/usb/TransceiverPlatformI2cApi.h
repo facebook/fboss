@@ -41,6 +41,13 @@ class TransceiverPlatformI2cApi : public TransceiverPlatformApi {
     i2cBus_->triggerQsfpHardReset(module);
   }
 
+  // This function will bring all the transceivers out of reset, making use
+  // of the specific implementation from each platform. Platforms that bring
+  // transceiver out of reset by default will stay no op.
+  void clearAllTransceiverReset() override {
+    i2cBus_->clearAllTransceiverReset();
+  }
+
   // For platforms having Qsfp control through I2C, the i2c object is referred
   // by this class. This is a raw pointer and its value is populated by this
   // class constructor

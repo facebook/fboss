@@ -133,6 +133,13 @@ void FbDomFpga::triggerQsfpHardReset(int qsfp) {
   write(kFacebookFpgaQsfpResetReg, newResetReg);
 }
 
+// This function will bring all the transceivers out of reset.
+void FbDomFpga::clearAllTransceiverReset() {
+  XLOG(DBG5) << "Clearing all transceiver out of reset.";
+  // For each bit, 1 to hold QSFP reset active. 0 to release QSFP reset.
+  write(kFacebookFpgaQsfpResetReg, 0x0);
+}
+
 void FbDomFpga::setFrontPanelLedColor(int qsfp, FbDomFpga::LedColor ledColor) {
   uint32_t qsfpLedAddress = getPortLedAddress(qsfp);
   write(qsfpLedAddress, static_cast<uint32_t>(ledColor));

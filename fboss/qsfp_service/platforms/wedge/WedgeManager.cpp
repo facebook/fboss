@@ -9,6 +9,12 @@
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 
+namespace {
+
+constexpr int kSecAfterModuleOutOfReset = 2;
+
+}
+
 namespace facebook { namespace fboss {
 
 WedgeManager::WedgeManager(std::unique_ptr<TransceiverPlatformApi> api) :
@@ -36,6 +42,8 @@ void WedgeManager::initTransceiverMap() {
   // Also try to load the config file here so that we have transceiver to port
   // mapping and port name recognization.
   loadConfig();
+
+  clearAllTransceiverReset();
 
   // Wedge port 0 is the CPU port, so the first port associated with
   // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
@@ -184,6 +192,8 @@ void WedgeManager::refreshTransceivers() {
     return;
   }
 
+  clearAllTransceiverReset();
+
   std::vector<folly::Future<folly::Unit>> futs;
   XLOG(INFO) << "Start refreshing all transceivers...";
 
@@ -218,6 +228,13 @@ int WedgeManager::scanTransceiverPresence(
     }
   }
   return numTransceiversUp;
+}
+
+void WedgeManager::clearAllTransceiverReset() {
+  qsfpPlatApi_->clearAllTransceiverReset();
+  // Required delay time between a transceiver getting out of reset and fully
+  // functional.
+  sleep(kSecAfterModuleOutOfReset);
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {

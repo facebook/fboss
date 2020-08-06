@@ -25,6 +25,11 @@ class Minipack16QTransceiverApi : public TransceiverPlatformApi {
    * and then call FPGA function to do QSFP reset
    */
   void triggerQsfpHardReset(unsigned int module) override;
+
+  /* This function will bring all the transceivers out of reset. Just clear the
+   * reset bits of all the transceivers through FPGA.
+   */
+  void clearAllTransceiverReset() override;
 };
 
 } // namespace facebook::fboss

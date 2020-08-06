@@ -37,4 +37,11 @@ void Minipack16QTransceiverApi::triggerQsfpHardReset(unsigned int module) {
   MinipackFpga::getInstance()->triggerQsfpHardReset(pim, port);
 }
 
+/* This function will bring all the transceivers out of reset. Just clear the
+ * reset bits of all the transceivers through FPGA.
+ */
+void Minipack16QTransceiverApi::clearAllTransceiverReset() {
+  MinipackFpga::getInstance()->clearAllTransceiverReset();
+}
+
 } // namespace facebook::fboss
