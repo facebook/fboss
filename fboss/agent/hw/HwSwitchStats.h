@@ -57,6 +57,34 @@ class HwSwitchStats {
     asicErrors_.addValue(1);
   }
 
+  int64_t getTxPktAllocCount() {
+    return txPktAlloc_.count();
+  }
+  int64_t getTxPktFreeCount() {
+    return txPktFree_.count();
+  }
+  int64_t getTxSentCount() {
+    return txSent_.count();
+  }
+  int64_t getTxSentDoneCount() {
+    return txSentDone_.count();
+  }
+  int64_t getTxErrorCount() {
+    return txErrors_.count();
+  }
+  int64_t getTxPktAllocErrorsCount() {
+    return txPktAllocErrors_.count();
+  }
+  int64_t getCorrParityErrorCount() {
+    return corrParityErrors_.count();
+  }
+  int64_t getUncorrParityErrorCount() {
+    return uncorrParityErrors_.count();
+  }
+  int64_t getAsicErrorCount() {
+    return asicErrors_.count();
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   HwSwitchStats(HwSwitchStats const&) = delete;
