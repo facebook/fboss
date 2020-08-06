@@ -53,8 +53,19 @@ class FdbManagerTest : public ManagerTestBase {
   void addMacEntry(std::optional<sai_uint32_t> classId = std::nullopt) {
     updateOraAddMacEntry(kMac(), classId, false);
   }
+
   void updateMacEntry(std::optional<sai_uint32_t> classId = std::nullopt) {
     updateOraAddMacEntry(kMac(), classId, true);
+  }
+
+  void removeMacEntry() {
+    auto newState = programmedState->clone();
+    auto newMacTable = newState->getVlans()
+                           ->getVlan(VlanID(intf0.id))
+                           ->getMacTable()
+                           ->modify(VlanID(intf0.id), &newState);
+    newMacTable->removeEntry(kMac());
+    applyNewState(newState);
   }
 
   TestInterface intf0;
@@ -116,4 +127,10 @@ TEST_F(FdbManagerTest, addRemoveMetadata) {
 TEST_F(FdbManagerTest, doubleAddFdbEntry) {
   addMacEntry();
   EXPECT_THROW(addMacEntry(), FbossError);
+}
+
+TEST_F(FdbManagerTest, doubleRemoveFdbEntry) {
+  addMacEntry();
+  removeMacEntry();
+  EXPECT_THROW(removeMacEntry(), FbossError);
 }
