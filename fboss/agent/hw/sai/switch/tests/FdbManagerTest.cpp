@@ -35,9 +35,9 @@ class FdbManagerTest : public ManagerTestBase {
     intf0 = testInterfaces[1];
   }
 
-  void checkFdbEntry(const folly::MacAddress& mac, sai_uint32_t metadata = 0) {
+  void checkFdbEntry(sai_uint32_t metadata = 0) {
     auto vlanId = VlanID(0);
-    SaiFdbTraits::FdbEntry entry{1, vlanId, mac};
+    SaiFdbTraits::FdbEntry entry{1, vlanId, kMac()};
     auto portHandle = saiManagerTable->portManager().getPortHandle(
         PortID(intf0.remoteHosts[0].id));
     auto expectedBridgePortId = portHandle->bridgePort->adapterKey();
@@ -50,6 +50,16 @@ class FdbManagerTest : public ManagerTestBase {
         metadata);
   }
 
+  void addMacEntry(std::optional<sai_uint32_t> classId = std::nullopt) {
+    updateOraAddMacEntry(kMac(), classId, false);
+  }
+  void updateMacEntry(std::optional<sai_uint32_t> classId = std::nullopt) {
+    updateOraAddMacEntry(kMac(), classId, true);
+  }
+
+  TestInterface intf0;
+
+ private:
   static folly::MacAddress kMac() {
     return folly::MacAddress{"00:11:11:11:11:11"};
   }
@@ -64,20 +74,6 @@ class FdbManagerTest : public ManagerTestBase {
     return std::make_shared<MacEntry>(
         mac, PortDescriptor(PortID(intf0.remoteHosts[0].id)), metadata);
   }
-  void addMacEntry(
-      folly::MacAddress mac = kMac(),
-      std::optional<sai_uint32_t> classId = std::nullopt) {
-    updateOraAddMacEntry(mac, classId, false);
-  }
-  void updateMacEntry(
-      folly::MacAddress mac = kMac(),
-      std::optional<sai_uint32_t> classId = std::nullopt) {
-    updateOraAddMacEntry(mac, classId, true);
-  }
-
-  TestInterface intf0;
-
- private:
   void updateOraAddMacEntry(
       folly::MacAddress mac,
       std::optional<sai_uint32_t> classId,
@@ -100,19 +96,24 @@ class FdbManagerTest : public ManagerTestBase {
 
 TEST_F(FdbManagerTest, addFdbEntry) {
   addMacEntry();
-  checkFdbEntry(kMac());
+  checkFdbEntry();
 }
 
 TEST_F(FdbManagerTest, addFdbEntryWithMetdata) {
-  addMacEntry(kMac(), 42);
-  checkFdbEntry(kMac(), 42);
+  addMacEntry(42);
+  checkFdbEntry(42);
 }
 
 TEST_F(FdbManagerTest, addRemoveMetadata) {
   addMacEntry();
-  checkFdbEntry(kMac());
-  updateMacEntry(kMac(), 42);
-  checkFdbEntry(kMac(), 42);
-  updateMacEntry(kMac(), std::nullopt);
-  checkFdbEntry(kMac());
+  checkFdbEntry();
+  updateMacEntry(42);
+  checkFdbEntry(42);
+  updateMacEntry(std::nullopt);
+  checkFdbEntry();
+}
+
+TEST_F(FdbManagerTest, doubleAddFdbEntry) {
+  addMacEntry();
+  EXPECT_THROW(addMacEntry(), FbossError);
 }
