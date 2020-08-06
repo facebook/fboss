@@ -5,6 +5,7 @@
 
 add_executable(api_test
     fboss/agent/test/oss/Main.cpp
+    fboss/agent/hw/sai/api/tests/AclApiTest.cpp
     fboss/agent/hw/sai/api/tests/AttributeTest.cpp
     fboss/agent/hw/sai/api/tests/AttributeDataTypesTest.cpp
     fboss/agent/hw/sai/api/tests/BridgeApiTest.cpp
