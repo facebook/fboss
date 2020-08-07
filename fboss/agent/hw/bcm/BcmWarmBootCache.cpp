@@ -18,6 +18,7 @@
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
@@ -25,6 +26,7 @@
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
+#include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
@@ -508,6 +510,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   populateQosMaps();
   populateLabelSwitchActions();
   populateSwitchSettings();
+  populateRxReasonToQueue();
 }
 
 bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
@@ -851,6 +854,18 @@ void BcmWarmBootCache::clear() {
     removeBcmAcl(aclItr.second);
   }
   priority2BcmAclEntryHandle_.clear();
+
+  for (auto reasonToQueueEntry : index2ReasonToQueue_) {
+    const auto index = reasonToQueueEntry.first;
+    XLOG(DBG1) << "Deleting rx reason to queue entry: index=" << index
+               << "reason="
+               << apache::thrift::util::enumNameSafe(
+                      *reasonToQueueEntry.second.rxReason_ref())
+               << ", queue=" << *reasonToQueueEntry.second.queueId_ref();
+    rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+    bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
+  }
+  index2ReasonToQueue_.clear();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();
@@ -1263,6 +1278,15 @@ void BcmWarmBootCache::detachBcmAclStat(
 void BcmWarmBootCache::removeBcmAclStat(BcmAclStatHandle handle) {
   auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle);
   bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
+}
+
+void BcmWarmBootCache::populateRxReasonToQueue() {
+  const int maxCPUMappings = hw_->getControlPlane()->getMaxRxReasonMappings();
+  for (int i = 0; i < maxCPUMappings; i++) {
+    if (const auto entry = hw_->getControlPlane()->getReasonToQueueEntry(i)) {
+      index2ReasonToQueue_[i] = *entry;
+    }
+  }
 }
 
 void BcmWarmBootCache::populateMirrors() {

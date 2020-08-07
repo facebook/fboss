@@ -8,12 +8,14 @@
  *
  */
 #pragma once
+
 extern "C" {
 #include <bcm/l2.h>
 #include <bcm/l3.h>
 #include <bcm/port.h>
 #include <bcm/vlan.h>
 }
+
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 #include <folly/Conv.h>
@@ -22,12 +24,14 @@ extern "C" {
 #include <folly/container/F14Map.h>
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <list>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
+
 #include "fboss/agent/hw/bcm/BcmMirror.h"
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
@@ -142,6 +146,8 @@ class BcmWarmBootCache {
   // current h/w acls: key = priority, value = BcmAclEntryHandle
   using Priority2BcmAclEntryHandle =
       boost::container::flat_map<int, BcmAclEntryHandle>;
+  using Index2ReasonToQueue =
+      boost::container::flat_map<int, cfg::PacketRxReasonToQueue>;
   using MirrorEgressPath2Handle = boost::container::flat_map<
       std::pair<bcm_gport_t, std::optional<MirrorTunnel>>,
       BcmMirrorHandle>;
@@ -232,6 +238,8 @@ class BcmWarmBootCache {
   void checkUnclaimedQosMaps();
 
   void populateSwitchSettings();
+
+  void populateRxReasonToQueue();
 
  public:
   /*
@@ -455,6 +463,24 @@ class BcmWarmBootCache {
     priority2BcmAclEntryHandle_.erase(itr);
   }
 
+  typedef Index2ReasonToQueue::const_iterator Index2ReasonToQueueCItr;
+  Index2ReasonToQueueCItr index2ReasonToQueue_begin() const {
+    return index2ReasonToQueue_.begin();
+  }
+  Index2ReasonToQueueCItr index2ReasonToQueue_end() const {
+    return index2ReasonToQueue_.end();
+  }
+  Index2ReasonToQueueCItr findReasonToQueue(const int index) const {
+    return index2ReasonToQueue_.find(index);
+  }
+  void programmed(Index2ReasonToQueueCItr itr) {
+    XLOG(DBG1) << "Programmed reason to queue at index: " << itr->first << " "
+               << "rxReason: "
+               << apache::thrift::util::enumName(*itr->second.rxReason_ref())
+               << " queueId: " << *itr->second.queueId_ref();
+    index2ReasonToQueue_.erase(itr);
+  }
+
   bool unitControlMatches(
       char module,
       bcm_switch_control_t switchControl,
@@ -643,6 +669,8 @@ class BcmWarmBootCache {
 
   // acls
   Priority2BcmAclEntryHandle priority2BcmAclEntryHandle_;
+
+  Index2ReasonToQueue index2ReasonToQueue_;
 
   // trunks
   Trunks trunks_;

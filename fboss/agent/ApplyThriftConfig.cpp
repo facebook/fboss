@@ -2149,10 +2149,8 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
       // Remove
       // this read when it is safe to do so.
       for (auto rxEntry : *rxReasonToQueue) {
-        cfg::PacketRxReasonToQueue newEntry;
-        newEntry.rxReason = rxEntry.first;
-        newEntry.queueId = rxEntry.second;
-        newRxReasonToQueue.push_back(newEntry);
+        newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
+            rxEntry.first, rxEntry.second));
       }
       if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
         rxReasonToQueueUnchanged = false;

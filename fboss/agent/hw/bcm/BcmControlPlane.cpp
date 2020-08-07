@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/PortQueue.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -96,11 +97,10 @@ BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
       gport_(BCM_GPORT_LOCAL_CPU),
       queueManager_(new BcmControlPlaneQueueManager(hw_, kCPUName, gport_)) {
   int rv;
-
   rv = bcm_rx_queue_max_get(hw_->getUnit(), &maxCPUQueue_);
   bcmCheckError(rv, "failed to get max CPU cos queue number");
 
-  rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxCPUMappings_);
+  rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxRxReasonMappings_);
   bcmCheckError(rv, "failed to get max CPU cos queue mappings");
 }
 
@@ -108,18 +108,10 @@ void BcmControlPlane::setupQueue(const PortQueue& queue) {
   queueManager_->program(queue);
 }
 
-void BcmControlPlane::setupRxReasonToQueue(
-    const ControlPlane::RxReasonToQueue& reasonToQueue) {
-  for (int index = 0; index < reasonToQueue.size(); index++) {
-    const auto newEntry = reasonToQueue[index];
-    writeReasonToQueueEntry(index, newEntry);
-  }
-}
-
 ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
   ControlPlane::RxReasonToQueue reasonToQueue;
-  for (int index = 0; index < maxCPUMappings_; ++index) {
-    if (const auto entry = readReasonToQueueEntry(index)) {
+  for (int index = 0; index < maxRxReasonMappings_; ++index) {
+    if (const auto entry = getReasonToQueueEntry(index)) {
       reasonToQueue.push_back(*entry);
     } else {
       break;
@@ -128,32 +120,51 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
   return reasonToQueue;
 }
 
-void BcmControlPlane::writeReasonToQueueEntry(
+void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
   if (entry.queueId < 0 || entry.queueId > maxCPUQueue_) {
     throw FbossError(
         "Invalud cosq number ", entry.queueId, "; max is ", maxCPUQueue_);
   }
-  const auto bcmReason = configRxReasonToBcmReasons(entry.rxReason);
-  const int rv = bcm_rx_cosq_mapping_set(
-      hw_->getUnit(),
-      index,
-      bcmReason,
-      bcmReason,
-      0,
-      0, // internal priority match & mask
-      0,
-      0, // packet type match & mask
-      entry.queueId);
-  bcmCheckError(
-      rv,
-      "failed to set set CPU cosq mapping for reasons ",
-      RxUtils::describeReasons(bcmReason));
+
+  auto warmBootCache = hw_->getWarmBootCache();
+  const auto cacheEntryItr = warmBootCache->findReasonToQueue(index);
+  if (cacheEntryItr == warmBootCache->index2ReasonToQueue_end() ||
+      cacheEntryItr->second != entry) {
+    const auto bcmReason = configRxReasonToBcmReasons(*entry.rxReason_ref());
+    const int rv = bcm_rx_cosq_mapping_set(
+        hw_->getUnit(),
+        index,
+        bcmReason,
+        bcmReason,
+        0,
+        0, // internal priority match & mask
+        0,
+        0, // packet type match & mask
+        *entry.queueId_ref());
+    bcmCheckError(
+        rv,
+        "failed to set CPU cosq mapping for reasons ",
+        RxUtils::describeReasons(bcmReason));
+  }
+  if (cacheEntryItr != warmBootCache->index2ReasonToQueue_end()) {
+    warmBootCache->programmed(cacheEntryItr);
+  }
+}
+
+void BcmControlPlane::deleteReasonToQueueEntry(int index) {
+  auto warmBootCache = hw_->getWarmBootCache();
+  const auto cacheEntryItr = warmBootCache->findReasonToQueue(index);
+  if (cacheEntryItr != warmBootCache->index2ReasonToQueue_end()) {
+    warmBootCache->programmed(cacheEntryItr);
+  }
+  const int rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
+  bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
 }
 
 std::optional<cfg::PacketRxReasonToQueue>
-BcmControlPlane::readReasonToQueueEntry(int index) const {
+BcmControlPlane::getReasonToQueueEntry(int index) const {
   uint8_t prio, prioMask;
   uint32_t packetType, packetTypeMask;
   bcm_rx_reasons_t bcmReasons, reasonsMask;
@@ -173,11 +184,6 @@ BcmControlPlane::readReasonToQueueEntry(int index) const {
   }
   return ControlPlane::makeRxReasonToQueueEntry(
       bcmReasonsToConfigReason(bcmReasons), queue);
-}
-
-void BcmControlPlane::deleteReasonToQueueEntry(int index) {
-  const int rv = bcm_rx_cosq_mapping_delete(hw_->getUnit(), index);
-  bcmCheckError(rv, "failed to delete CPU cosq mapping for index", index);
 }
 
 void BcmControlPlane::setupIngressQosPolicy(

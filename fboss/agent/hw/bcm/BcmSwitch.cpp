@@ -601,7 +601,9 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
   auto cpuQueues = controlPlane_->getMulticastQueueSettings();
+  auto rxReasonToQueue = controlPlane_->getRxReasonToQueue();
   cpu->resetQueues(cpuQueues);
+  cpu->resetRxReasonToQueue(rxReasonToQueue);
   bootState->resetControlPlane(cpu);
 
   // On cold boot all ports are in Vlan 1
@@ -842,6 +844,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // verify the drop egress ID is really dropping
   BcmEgress::verifyDropEgress(unit_);
 
+  setupCos();
+
   if (warmBoot) {
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
@@ -850,9 +854,6 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
-
-  setupCos();
-  configureRxRateLimiting();
 
   bstStatsMgr_->startBufferStatCollection();
 
@@ -2459,6 +2460,24 @@ void BcmSwitch::processChangedControlPlaneQueues(
   }
 }
 
+void BcmSwitch::processChangedRxReasonToQueueEntries(
+    const shared_ptr<ControlPlane>& oldCPU,
+    const shared_ptr<ControlPlane>& newCPU) {
+  const auto& oldReasonToQueue = oldCPU->getRxReasonToQueue();
+  const auto& newReasonToQueue = newCPU->getRxReasonToQueue();
+  for (int index = 0;
+       index < std::max(newReasonToQueue.size(), oldReasonToQueue.size());
+       ++index) {
+    if (index >= oldReasonToQueue.size()) { // added
+      controlPlane_->setReasonToQueueEntry(index, newReasonToQueue[index]);
+    } else if (index >= newReasonToQueue.size()) { // deleted
+      controlPlane_->deleteReasonToQueueEntry(index);
+    } else if (oldReasonToQueue[index] != newReasonToQueue[index]) { // changed
+      controlPlane_->setReasonToQueueEntry(index, newReasonToQueue[index]);
+    }
+  }
+}
+
 void BcmSwitch::processMirrorChanges(const StateDelta& delta) {
   forEachChanged(
       delta.getMirrorsDelta(),
@@ -2713,61 +2732,6 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   return false;
 }
 
-void BcmSwitch::configureRxRateLimiting() {
-  // Configure several cos queues
-  CHECK_GE(controlPlane_->getMaxCPUQueues(), 10);
-  controlPlane_->setupRxReasonToQueue(
-      {// Protocol packets.
-       // Note that these packets generally seem to have bcmRxReasonProtocol
-       // set,
-       // but the T2 doesn't support mapping based on this reason.
-       // (bcm_rx_cosq_mapping_reasons_get() shows which reasons are supported
-       // for use in mapping.)
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::ARP, FLAGS_cosq_midpri),
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::DHCP, FLAGS_cosq_midpri),
-       // We don't support BPDU, and should never really be
-       // getting these in our (non spanning tree enabled) n/w
-       // However BRCM traps LLDP packets with reason Bpdu, since
-       // we do care about LLDP, punt these to mid-pri queue
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::BPDU, FLAGS_cosq_midpri),
-       // Adding trap for packets that exceed the L3 MTU for the interface.
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::L3_MTU_ERROR, FLAGS_cosq_lopri),
-       // TTL expired packets seem to show up with bcmRxReasonL3Slowpath.
-       // (We perhaps don't register for TTL expired packets to come to the CPU
-       // explicitly.)
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::L3_SLOW_PATH, FLAGS_cosq_lopri),
-       // Trap dest miss packets to low-pri queue on CPU. This would catch
-       // packets for which we did not have a matching route in h/w route
-       // tables
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::L3_DEST_MISS, FLAGS_cosq_lopri),
-       // Add bcmRxReasonTtl1 too.
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::TTL_1, FLAGS_cosq_lopri),
-       // Packets to one of our IP addresses as well as any IP Address
-       // in our subnet show up with bcmRxReasonNhop.
-       // (The CPU port is the next-hop in the routing table.)
-       // We want the packets
-       // to our IP Addresses to go to hi-pri queue, but not the ones to
-       // our subnet. Packets to our IP directed to hi-pri queue via
-       // a FP rule (see configureCosQMappingForLocalInterfaces), so
-       // for other packets with a reason next hop, send it to low-pri queue
-       // so we don't get DOS when a bunch of traffic shows up for a destination
-       // in our subnet
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::CPU_IS_NHOP, FLAGS_cosq_lopri),
-       // Add a catch-all match to put anything else in the default queue.
-       // Note that the mappings are checked in the order in which we define
-       // them. auto emptyReasons = RxUtils::genReasons();
-       ControlPlane::makeRxReasonToQueueEntry(
-           cfg::PacketRxReason::UNMATCHED, FLAGS_cosq_default)});
-}
-
 bcm_gport_t BcmSwitch::getCpuGPort() const {
   return BCM_GPORT_LOCAL_CPU;
 }
@@ -2986,7 +2950,7 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
   if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
     controlPlane_->setupIngressQosPolicy(newCPU->getQosPolicy());
   }
-  // TODO(joseph5wu) Add reason-port mapping
+  processChangedRxReasonToQueueEntries(oldCPU, newCPU);
 
   // COPP ACL will be handled just as regular ACL in processAclChanges()
 }

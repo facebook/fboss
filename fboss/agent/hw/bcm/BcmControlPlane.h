@@ -49,14 +49,13 @@ class BcmControlPlane {
   void setupQueue(const PortQueue& queue);
 
   /**
-   * Set up the rx packet reason to queue mapping
+   * Reads reason to queue mapping from the chip
    */
-  void setupRxReasonToQueue(const ControlPlane::RxReasonToQueue& reasonToQueue);
-
   ControlPlane::RxReasonToQueue getRxReasonToQueue() const;
 
-  int getMaxCPUQueues() const {
-    return maxCPUMappings_;
+  // Maximum allowed rx reason to queue mappings allowed by the chip
+  int getMaxRxReasonMappings() const {
+    return maxRxReasonMappings_;
   }
 
   void setupIngressQosPolicy(const std::optional<std::string>& qosPolicyName);
@@ -67,22 +66,27 @@ class BcmControlPlane {
     return queueManager_->getCurrentQueueSettings().multicast;
   }
 
+  // writes entry to the chip
+  void setReasonToQueueEntry(int index, cfg::PacketRxReasonToQueue entry);
+
+  // deletes entry from the chip
+  void deleteReasonToQueueEntry(int index);
+
+  // reads entry from the chip
+  std::optional<cfg::PacketRxReasonToQueue> getReasonToQueueEntry(
+      int index) const;
+
  private:
   // no copy or assignment
   BcmControlPlane(BcmControlPlane const&) = delete;
   BcmControlPlane& operator=(BcmControlPlane const&) = delete;
-
-  void writeReasonToQueueEntry(int index, cfg::PacketRxReasonToQueue entry);
-  std::optional<cfg::PacketRxReasonToQueue> readReasonToQueueEntry(
-      int index) const;
-  void deleteReasonToQueueEntry(int index);
 
   BcmSwitch* hw_{nullptr};
   // Broadcom global port number
   const bcm_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
   bcm_cos_queue_t maxCPUQueue_;
-  int maxCPUMappings_{0};
+  int maxRxReasonMappings_{0};
 };
 
 } // namespace facebook::fboss

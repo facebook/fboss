@@ -73,7 +73,13 @@ namespace facebook::fboss {
 class BcmControlPlaneTest : public BcmCosQueueManagerTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    auto cfg =
+        utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    // init cputTrafficPolicy here since some tests will use it
+    if (!cfg.cpuTrafficPolicy_ref()) {
+      cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+    }
+    return cfg;
   }
 
   std::optional<cfg::PortQueue> getCfgQueue(int queueID) override {
@@ -264,29 +270,81 @@ TEST_F(BcmControlPlaneTest, TestBcmAndCfgReasonConversions) {
 }
 
 TEST_F(BcmControlPlaneTest, VerifyReasonToQueueMapping) {
-  auto setup = [&]() { applyNewConfig(initialConfig()); };
-  auto verify = [&]() {
-    const ControlPlane::RxReasonToQueue expected = {
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::ARP, utility::kCoppMidPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::BPDU, utility::kCoppMidPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::L3_MTU_ERROR, utility::kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::L3_SLOW_PATH, utility::kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::L3_DEST_MISS, utility::kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::TTL_1, utility::kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::UNMATCHED, utility::kCoppDefaultPriQueueId)};
+  const ControlPlane::RxReasonToQueue cfgReasonToQueue = {
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP, utility::kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BPDU, utility::kCoppDefaultPriQueueId)};
+  auto setup = [&]() {
+    auto cfg = initialConfig();
+    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+        cfgReasonToQueue;
+    applyNewConfig(cfg);
+  };
 
-    EXPECT_EQ(getHwSwitch()->getControlPlane()->getRxReasonToQueue(), expected);
+  auto verify = [&]() {
+    checkConfSwHwMatch();
+    const auto hwReasonToQueue =
+        getHwSwitch()->getControlPlane()->getRxReasonToQueue();
+    const auto swReasonToQueue =
+        getProgrammedState()->getControlPlane()->getRxReasonToQueue();
+    EXPECT_EQ(hwReasonToQueue, cfgReasonToQueue);
+    EXPECT_EQ(swReasonToQueue, cfgReasonToQueue);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(BcmControlPlaneTest, WriteOverReasonToQueue) {
+  ControlPlane::RxReasonToQueue cfgReasonToQueue1 = {
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP, utility::kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BPDU, utility::kCoppDefaultPriQueueId)};
+
+  ControlPlane::RxReasonToQueue cfgReasonToQueue2 = {
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BPDU, utility::kCoppDefaultPriQueueId)};
+
+  auto setup = [&]() {
+    auto cfg = initialConfig();
+    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+        cfgReasonToQueue1;
+    applyNewConfig(cfg);
+
+    auto hwReasonToQueue =
+        getHwSwitch()->getControlPlane()->getRxReasonToQueue();
+    EXPECT_EQ(hwReasonToQueue, cfgReasonToQueue1);
+
+    cfg = initialConfig();
+    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+        cfgReasonToQueue2;
+    applyNewConfig(cfg);
+
+    hwReasonToQueue = getHwSwitch()->getControlPlane()->getRxReasonToQueue();
+    EXPECT_EQ(hwReasonToQueue, cfgReasonToQueue2);
+
+    // 3rd entry should be empty since the second list only has 2 entries
+    EXPECT_EQ(
+        getHwSwitch()->getControlPlane()->getReasonToQueueEntry(2),
+        std::nullopt);
+  };
+
+  auto verify = [&]() {
+    EXPECT_EQ(
+        getHwSwitch()->getControlPlane()->getRxReasonToQueue(),
+        cfgReasonToQueue2);
+
+    // 3rd entry should be empty since the second list only has 2 entries
+    EXPECT_EQ(
+        getHwSwitch()->getControlPlane()->getReasonToQueueEntry(2),
+        std::nullopt);
   };
 
   verifyAcrossWarmBoots(setup, verify);

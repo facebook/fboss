@@ -21,8 +21,19 @@ namespace facebook::fboss {
 class BcmSflowTest : public BcmLinkStateDependentTests {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::oneL3IntfConfig(
+    auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+    // add a default reason to queue mapping if there are none in the config
+    if (!cfg.cpuTrafficPolicy_ref()) {
+      cfg.cpuTrafficPolicy_ref() = cfg::CPUTrafficPolicyConfig();
+    }
+    if (!cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref()) {
+      cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() = {};
+    }
+    cfg.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref()->push_back(
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::UNMATCHED, utility::kCoppDefaultPriQueueId));
+    return cfg;
   }
 
   void sendUdpPkts(int numPktsToSend) {
@@ -47,7 +58,7 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
         getPlatform()->useQueueGportForCos(),
         getUnit(),
         utility::kCPUPort,
-        1,
+        utility::kCoppDefaultPriQueueId,
         true /* multicast queue */);
   }
 
@@ -97,7 +108,7 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
-};
+}; // namespace facebook::fboss
 
 TEST_F(BcmSflowTest, SflowSamplingEnabled) {
   runTest(true);

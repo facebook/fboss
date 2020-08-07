@@ -862,6 +862,10 @@ class BcmSwitch : public BcmSwitchIf {
   void processChangedControlPlaneQueues(
       const std::shared_ptr<ControlPlane>& oldCPU,
       const std::shared_ptr<ControlPlane>& newCPU);
+
+  void processChangedRxReasonToQueueEntries(
+      const std::shared_ptr<ControlPlane>& oldCPU,
+      const std::shared_ptr<ControlPlane>& newCPU);
   /*
    * Disable hotswap setting
    */
