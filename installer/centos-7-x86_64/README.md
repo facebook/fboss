@@ -128,6 +128,10 @@ Optionally enable building with address sanitizer options turned on
 ```
 export WITH_ASAN=1
 ```
+Optionally enable building SAI binaries only
+```
+export SAI_ONLY=1
+```
 Build
 ```
 cd fboss.git
