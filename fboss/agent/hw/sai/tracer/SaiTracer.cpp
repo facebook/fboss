@@ -656,6 +656,11 @@ void SaiTracer::logRemoveFn(
   lines.push_back(rvCheck(rv));
 
   writeToFile(lines);
+
+  // Remove object from variables_
+  folly::get_or_throw(
+      variables_, object_type, "Unsupported Sai Object type in Sai Tracer")
+      .withWLock([&](auto& vars) { return vars.erase(remove_object_id); });
 }
 
 void SaiTracer::logRouteEntrySetAttrFn(
