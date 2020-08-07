@@ -194,8 +194,7 @@ void setBufferProfileAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BUFFER_PROFILE_ATTR_POOL_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BUFFER_POOL}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
         attrLines.push_back(u64Attr(attr_list, i));

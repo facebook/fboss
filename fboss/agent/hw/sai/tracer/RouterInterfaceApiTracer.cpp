@@ -130,11 +130,8 @@ void setRouterInterfaceAttributes(
         attrLines.push_back(u32Attr(attr_list, i));
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VIRTUAL_ROUTER_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_VIRTUAL_ROUTER}));
-        break;
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_VLAN}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

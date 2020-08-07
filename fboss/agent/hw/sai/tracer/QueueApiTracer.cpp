@@ -110,27 +110,15 @@ void setQueueAttributes(
       case SAI_QUEUE_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
-      case SAI_QUEUE_ATTR_PORT:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_PORT}));
-        break;
       case SAI_QUEUE_ATTR_INDEX:
         attrLines.push_back(u8Attr(attr_list, i));
         break;
+      case SAI_QUEUE_ATTR_PORT:
       case SAI_QUEUE_ATTR_PARENT_SCHEDULER_NODE:
-        attrLines.push_back(oidAttr(
-            attr_list,
-            i,
-            {SAI_OBJECT_TYPE_SCHEDULER_GROUP, SAI_OBJECT_TYPE_PORT}));
-        break;
       case SAI_QUEUE_ATTR_WRED_PROFILE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_WRED}));
-        break;
       case SAI_QUEUE_ATTR_BUFFER_PROFILE_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BUFFER_PROFILE}));
-        break;
       case SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_SCHEDULER}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

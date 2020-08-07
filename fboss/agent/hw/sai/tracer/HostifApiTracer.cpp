@@ -167,8 +167,7 @@ void setHostifTrapAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_TRAP_ATTR_TRAP_GROUP:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_HOSTIF_TRAP_ATTR_PACKET_ACTION:
       case SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE:
@@ -191,7 +190,7 @@ void setHostifTrapGroupAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_TRAP_GROUP_ATTR_POLICER:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_POLICER}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_HOSTIF_TRAP_GROUP_ATTR_QUEUE:
         attrLines.push_back(u32Attr(attr_list, i));
@@ -213,7 +212,7 @@ void setHostifPacketAttributes(
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_PORT}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:

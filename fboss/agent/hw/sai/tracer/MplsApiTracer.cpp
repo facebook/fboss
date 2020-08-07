@@ -69,12 +69,7 @@ void setInsegEntryAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_INSEG_ENTRY_ATTR_NEXT_HOP_ID:
-        attrLines.push_back(oidAttr(
-            attr_list,
-            i,
-            {SAI_OBJECT_TYPE_NEXT_HOP,
-             SAI_OBJECT_TYPE_NEXT_HOP_GROUP,
-             SAI_OBJECT_TYPE_ROUTER_INTERFACE}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_INSEG_ENTRY_ATTR_PACKET_ACTION:
         attrLines.push_back(s32Attr(attr_list, i));

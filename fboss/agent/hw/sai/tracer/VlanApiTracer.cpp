@@ -137,12 +137,7 @@ void setVlanAttributes(
         attrLines.push_back(u16Attr(attr_list, i));
         break;
       case SAI_VLAN_ATTR_MEMBER_LIST:
-        oidListAttr(
-            attr_list,
-            i,
-            listCount++,
-            attrLines,
-            {SAI_OBJECT_TYPE_VLAN_MEMBER});
+        oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
@@ -158,11 +153,8 @@ void setVlanMemberAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_VLAN_MEMBER_ATTR_BRIDGE_PORT_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BRIDGE_PORT}));
-        break;
       case SAI_VLAN_MEMBER_ATTR_VLAN_ID:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_VLAN}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

@@ -87,8 +87,7 @@ void setNextHopAttributes(
         ipAttr(attr_list, i, attrLines);
         break;
       case SAI_NEXT_HOP_ATTR_ROUTER_INTERFACE_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_ROUTER_INTERFACE}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_NEXT_HOP_ATTR_LABELSTACK:
         u32ListAttr(attr_list, i, listCount++, attrLines);

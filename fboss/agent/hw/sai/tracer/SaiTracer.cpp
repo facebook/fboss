@@ -512,11 +512,7 @@ void SaiTracer::logCreateFn(
 
   // Make the function call & write to file
   lines.push_back(createFnCall(
-      fn_name,
-      varName,
-      getVariable(switch_id, {SAI_OBJECT_TYPE_SWITCH}),
-      attr_count,
-      object_type));
+      fn_name, varName, getVariable(switch_id), attr_count, object_type));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -649,7 +645,7 @@ void SaiTracer::logRemoveFn(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
       "(",
-      getVariable(remove_object_id, {object_type}),
+      getVariable(remove_object_id),
       ")"));
 
   // Check return value to be the same as the original run
@@ -658,9 +654,7 @@ void SaiTracer::logRemoveFn(
   writeToFile(lines);
 
   // Remove object from variables_
-  folly::get_or_throw(
-      variables_, object_type, "Unsupported Sai Object type in Sai Tracer")
-      .withWLock([&](auto& vars) { return vars.erase(remove_object_id); });
+  variables_.withWLock([&](auto& vars) { vars.erase(remove_object_id); });
 }
 
 void SaiTracer::logRouteEntrySetAttrFn(
@@ -806,7 +800,7 @@ void SaiTracer::logSetAttrFn(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
       "(",
-      getVariable(set_object_id, {object_type}),
+      getVariable(set_object_id),
       ", sai_attributes)"));
 
   // Check return value to be the same as the original run
@@ -855,7 +849,7 @@ void SaiTracer::logSendHostifPacketFn(
           SAI_OBJECT_TYPE_HOSTIF,
           "Unsupported Sai Object type in Sai Tracer"),
       "send_hostif_packet(",
-      getVariable(hostif_id, {SAI_OBJECT_TYPE_HOSTIF, SAI_OBJECT_TYPE_SWITCH}),
+      getVariable(hostif_id),
       ", ",
       buffer_size,
       ", packet_buffer, ",
@@ -888,35 +882,18 @@ std::tuple<string, string> SaiTracer::declareVariable(
   string varName = to<string>(varPrefix, num);
 
   // Add this variable to the variable map
-  folly::get_or_throw(
-      variables_, object_type, "Unsupported Sai Object type in Sai Tracer")
-      .wlock()
-      ->emplace(*object_id, varName);
+  variables_.withWLock([&](auto& vars) { vars.emplace(*object_id, varName); });
   return std::make_tuple(to<string>(varType, varName), varName);
 }
 
-string SaiTracer::getVariable(
-    sai_object_id_t object_id,
-    vector<sai_object_type_t> object_types) {
+string SaiTracer::getVariable(sai_object_id_t object_id) {
   if (!FLAGS_enable_replayer) {
     return "";
   }
 
-  // Check variable map to get object_id -> variable name mapping
-  for (auto object_type : object_types) {
-    auto varName = folly::get_or_throw(
-                       variables_,
-                       object_type,
-                       "Unsupported Sai Object type in Sai Tracer")
-                       .withRLock([&](auto& vars) {
-                         return folly::get_optional(vars, object_id);
-                       });
-    if (varName) {
-      return *varName;
-    }
-  }
-
-  return to<string>(object_id);
+  return variables_.withRLock([&](auto& vars) {
+    return folly::get_default(vars, object_id, to<string>(object_id));
+  });
 }
 
 vector<string> SaiTracer::setAttrList(
@@ -1064,13 +1041,10 @@ string SaiTracer::createFnCall(
 void SaiTracer::setFdbEntry(
     const sai_fdb_entry_t* fdb_entry,
     std::vector<std::string>& lines) {
-  lines.push_back(to<string>(
-      "fdb_entry.switch_id = ",
-      getVariable(fdb_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
-  lines.push_back(to<string>(
-      "fdb_entry.bv_id = ",
-      getVariable(
-          fdb_entry->bv_id, {SAI_OBJECT_TYPE_BRIDGE, SAI_OBJECT_TYPE_VLAN})));
+  lines.push_back(
+      to<string>("fdb_entry.switch_id = ", getVariable(fdb_entry->switch_id)));
+  lines.push_back(
+      to<string>("fdb_entry.bv_id = ", getVariable(fdb_entry->bv_id)));
 
   // The underlying type of sai_mac_t is uint8_t[6]
   for (int i = 0; i < 6; ++i) {
@@ -1083,8 +1057,7 @@ void SaiTracer::setInsegEntry(
     const sai_inseg_entry_t* inseg_entry,
     std::vector<std::string>& lines) {
   lines.push_back(to<string>(
-      "inseg_entry.switch_id = ",
-      getVariable(inseg_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
+      "inseg_entry.switch_id = ", getVariable(inseg_entry->switch_id)));
   lines.push_back(to<string>("inseg_entry.label = ", inseg_entry->label));
 }
 
@@ -1092,11 +1065,9 @@ void SaiTracer::setNeighborEntry(
     const sai_neighbor_entry_t* neighbor_entry,
     vector<string>& lines) {
   lines.push_back(to<string>(
-      "neighbor_entry.switch_id = ",
-      getVariable(neighbor_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
+      "neighbor_entry.switch_id = ", getVariable(neighbor_entry->switch_id)));
   lines.push_back(to<string>(
-      "neighbor_entry.rif_id = ",
-      getVariable(neighbor_entry->rif_id, {SAI_OBJECT_TYPE_ROUTER_INTERFACE})));
+      "neighbor_entry.rif_id = ", getVariable(neighbor_entry->rif_id)));
 
   if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.push_back(
@@ -1125,11 +1096,9 @@ void SaiTracer::setRouteEntry(
     const sai_route_entry_t* route_entry,
     vector<string>& lines) {
   lines.push_back(to<string>(
-      "route_entry.switch_id = ",
-      getVariable(route_entry->switch_id, {SAI_OBJECT_TYPE_SWITCH})));
-  lines.push_back(to<string>(
-      "route_entry.vr_id = ",
-      getVariable(route_entry->vr_id, {SAI_OBJECT_TYPE_VIRTUAL_ROUTER})));
+      "route_entry.switch_id = ", getVariable(route_entry->switch_id)));
+  lines.push_back(
+      to<string>("route_entry.vr_id = ", getVariable(route_entry->vr_id)));
 
   if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.push_back(

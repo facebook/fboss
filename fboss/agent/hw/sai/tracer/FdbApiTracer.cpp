@@ -72,8 +72,7 @@ void setFdbEntryAttributes(
         attrLines.push_back(s32Attr(attr_list, i));
         break;
       case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_BRIDGE_PORT}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

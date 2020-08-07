@@ -83,8 +83,7 @@ void setHashAttributes(
         s32ListAttr(attr_list, i, listCount++, attrLines);
         break;
       case SAI_HASH_ATTR_UDF_GROUP_LIST:
-        oidListAttr(
-            attr_list, i, listCount++, attrLines, {SAI_OBJECT_TYPE_UDF_GROUP});
+        oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)

@@ -16,24 +16,19 @@ using std::vector;
 
 namespace facebook::fboss {
 
-string oidAttr(
-    const sai_attribute_t* attr_list,
-    int i,
-    std::vector<sai_object_type_t> object_types) {
+string oidAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "sai_attributes[",
       i,
       "].value.oid = ",
-      SaiTracer::getInstance()->getVariable(
-          attr_list[i].value.oid, object_types));
+      SaiTracer::getInstance()->getVariable(attr_list[i].value.oid));
 }
 
 void oidListAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,
-    std::vector<std::string>& attrLines,
-    std::vector<sai_object_type_t> object_types) {
+    std::vector<std::string>& attrLines) {
   // First make sure we have enough lists for use
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_object_id_t), attr_list[i].value.objlist.count);
@@ -51,7 +46,7 @@ void oidListAttr(
         j,
         "] = ",
         SaiTracer::getInstance()->getVariable(
-            attr_list[i].value.objlist.list[j], object_types)));
+            attr_list[i].value.objlist.list[j])));
   }
 }
 

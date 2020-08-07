@@ -132,9 +132,7 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
-  std::string getVariable(
-      sai_object_id_t object_id,
-      std::vector<sai_object_type_t> object_types);
+  std::string getVariable(sai_object_id_t object_id);
 
   uint32_t
   checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
@@ -215,7 +213,10 @@ class SaiTracer {
   folly::Synchronized<folly::File> saiLogFile_;
 
   // Variables mappings in generated C code
+  // varCounts map from object type to the current counter
   std::map<sai_object_type_t, std::atomic<uint32_t>> varCounts_;
+  // variables_ map from object id to its variable name
+  folly::Synchronized<std::map<sai_object_id_t, std::string>> variables_;
 
   std::map<sai_object_type_t, std::string> varNames_{
       {SAI_OBJECT_TYPE_ACL_ENTRY, "aclEntry_"},
@@ -246,73 +247,6 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
       {SAI_OBJECT_TYPE_WRED, "wred_"}};
-
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclEntryMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> aclTableGroupMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>>
-      aclTableGroupMemberMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgeMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> bridgePortMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferPoolMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> bufferProfileMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> hashMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> hostifMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> hostifTrapMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>>
-      hostifTrapGroupMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> nextHopGroupMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>>
-      nextHopGroupMemberMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> policierMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> portMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> qosMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> queueMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>>
-      routerInterfaceMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> switchMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> schedulerMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>>
-      schedulerGroupMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> udfGroupMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> virtualRouterMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> vlanMemberMap_;
-  folly::Synchronized<std::map<sai_object_id_t, std::string>> wredMap_;
-
-  std::map<
-      sai_object_type_t,
-      folly::Synchronized<std::map<sai_object_id_t, std::string>>>
-      variables_{
-          {SAI_OBJECT_TYPE_ACL_ENTRY, aclEntryMap_},
-          {SAI_OBJECT_TYPE_ACL_TABLE, aclTableMap_},
-          {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, aclTableGroupMap_},
-          {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, aclTableGroupMemberMap_},
-          {SAI_OBJECT_TYPE_BRIDGE, bridgeMap_},
-          {SAI_OBJECT_TYPE_BRIDGE_PORT, bridgePortMap_},
-          {SAI_OBJECT_TYPE_BUFFER_POOL, bufferPoolMap_},
-          {SAI_OBJECT_TYPE_BUFFER_PROFILE, bufferProfileMap_},
-          {SAI_OBJECT_TYPE_HASH, hashMap_},
-          {SAI_OBJECT_TYPE_HOSTIF, hostifMap_},
-          {SAI_OBJECT_TYPE_HOSTIF_TRAP, hostifTrapMap_},
-          {SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, hostifTrapGroupMap_},
-          {SAI_OBJECT_TYPE_NEXT_HOP, nextHopMap_},
-          {SAI_OBJECT_TYPE_NEXT_HOP_GROUP, nextHopGroupMap_},
-          {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER, nextHopGroupMemberMap_},
-          {SAI_OBJECT_TYPE_POLICER, policierMap_},
-          {SAI_OBJECT_TYPE_PORT, portMap_},
-          {SAI_OBJECT_TYPE_QOS_MAP, qosMap_},
-          {SAI_OBJECT_TYPE_QUEUE, queueMap_},
-          {SAI_OBJECT_TYPE_ROUTER_INTERFACE, routerInterfaceMap_},
-          {SAI_OBJECT_TYPE_SCHEDULER, schedulerMap_},
-          {SAI_OBJECT_TYPE_SCHEDULER_GROUP, schedulerGroupMap_},
-          {SAI_OBJECT_TYPE_SWITCH, switchMap_},
-          {SAI_OBJECT_TYPE_UDF_GROUP, udfGroupMap_},
-          {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, virtualRouterMap_},
-          {SAI_OBJECT_TYPE_VLAN, vlanMap_},
-          {SAI_OBJECT_TYPE_VLAN_MEMBER, vlanMemberMap_},
-          {SAI_OBJECT_TYPE_WRED, wredMap_}};
 
   std::map<sai_object_type_t, std::string> fnPrefix_{
       {SAI_OBJECT_TYPE_ACL_ENTRY, "acl_api->"},

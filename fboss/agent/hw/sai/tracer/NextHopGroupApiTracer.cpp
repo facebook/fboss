@@ -160,12 +160,7 @@ void setNextHopGroupAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST:
-        oidListAttr(
-            attr_list,
-            i,
-            listCount++,
-            attrLines,
-            {SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER});
+        oidListAttr(attr_list, i, listCount++, attrLines);
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
@@ -184,11 +179,8 @@ void setNextHopGroupMemberAttributes(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_ID:
-        attrLines.push_back(oidAttr(attr_list, i, {SAI_OBJECT_TYPE_NEXT_HOP}));
-        break;
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:
-        attrLines.push_back(
-            oidAttr(attr_list, i, {SAI_OBJECT_TYPE_NEXT_HOP_GROUP}));
+        attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
         attrLines.push_back(u32Attr(attr_list, i));
