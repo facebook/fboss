@@ -4,6 +4,8 @@
 
 #include "fboss/agent/MacTableUtils.h"
 
+#include <chrono>
+
 namespace facebook::fboss {
 
 void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
@@ -69,9 +71,18 @@ void HwTestLearningUpdateObserver::applyStateUpdateHelper(
 }
 
 std::vector<std::pair<L2Entry, L2EntryUpdateType>>
-HwTestLearningUpdateObserver::waitForLearningUpdates(int numUpdates) {
+HwTestLearningUpdateObserver::waitForLearningUpdates(
+    int numUpdates,
+    std::optional<int> secondsToWait) {
   std::unique_lock<std::mutex> lock(mtx_);
-  cv_.wait(lock, [this, numUpdates] { return data_.size() == numUpdates; });
+  if (secondsToWait) {
+    cv_.wait_for(
+        lock, std::chrono::seconds(secondsToWait.value()), [this, numUpdates] {
+          return data_.size() == numUpdates;
+        });
+  } else {
+    cv_.wait(lock, [this, numUpdates] { return data_.size() == numUpdates; });
+  }
   return data_;
 }
 

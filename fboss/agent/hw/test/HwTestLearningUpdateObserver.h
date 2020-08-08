@@ -8,6 +8,7 @@
 
 #include <folly/Optional.h>
 #include <condition_variable>
+#include <optional>
 #include <vector>
 
 namespace facebook::fboss {
@@ -26,7 +27,8 @@ class HwTestLearningUpdateObserver
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;
   std::vector<std::pair<L2Entry, L2EntryUpdateType>> waitForLearningUpdates(
-      int numUpdates = 1);
+      int numUpdates = 1,
+      std::optional<int> secondsToWait = std::nullopt);
 
  private:
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
