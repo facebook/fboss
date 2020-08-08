@@ -71,10 +71,7 @@ void HwTestLearningUpdateObserver::applyStateUpdateHelper(
 std::vector<std::pair<L2Entry, L2EntryUpdateType>>
 HwTestLearningUpdateObserver::waitForLearningUpdates(int numUpdates) {
   std::unique_lock<std::mutex> lock(mtx_);
-  while (data_.size() != numUpdates) {
-    cv_.wait(lock);
-  }
-
+  cv_.wait(lock, [this, numUpdates] { return data_.size() == numUpdates; });
   return data_;
 }
 
