@@ -415,20 +415,22 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
   }
 
  protected:
+  void induceMacLearning(PortDescriptor portDescr) {
+    l2LearningObserver_.reset();
+    sendPkt();
+
+    verifyL2TableCallback(
+        l2LearningObserver_.waitForLearningUpdates().front(),
+        portDescr,
+        L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+        expectedL2EntryTypeOnAdd());
+  }
   void testSwLearningHelper(PortDescriptor portDescr) {
     auto setup = [this, portDescr]() {
       setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
       // Disable aging, so entry stays in L2 table when we verify.
       utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
-
-      l2LearningObserver_.reset();
-      sendPkt();
-
-      verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdates().front(),
-          portDescr,
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          expectedL2EntryTypeOnAdd());
+      induceMacLearning(portDescr);
     };
 
     auto verify = [this, portDescr]() { EXPECT_TRUE(wasMacLearnt(portDescr)); };
@@ -445,19 +447,8 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
     auto verify = [this, portDescr]() {
       // Disable aging, so entry stays in L2 table when we verify.
       utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+      induceMacLearning(portDescr);
 
-      l2LearningObserver_.reset();
-      sendPkt();
-
-      /*
-       * Verify if we get ADD (learn) callback for PENDING entry for TD2, TH
-       * and VALIDATED entry for TH3.
-       */
-      verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdates().front(),
-          portDescr,
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          expectedL2EntryTypeOnAdd());
       EXPECT_TRUE(wasMacLearnt(portDescr));
 
       // Force MAC aging to as fast a possible but min is still 1 second
