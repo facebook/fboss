@@ -160,41 +160,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
-
-  if (platform_->isSerdesApiSupported()) {
-    auto txSettings = platform_->getPlatformPortTxSettings(
-        swPort->getID(), swPort->getProfileID());
-    CHECK_EQ(txSettings.size(), portKey.value().size())
-        << "some lanes are missing for tx-settings";
-    // pass tx settings for each lane
-    std::optional<SaiPortSerdesTraits::Attributes::IDriver::ValueType> iDriver;
-    SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType pre1;
-    SaiPortSerdesTraits::Attributes::TxFirMain::ValueType main;
-    SaiPortSerdesTraits::Attributes::TxFirPost2::ValueType post1;
-    for (auto& tx : txSettings) {
-      pre1.push_back(*tx.pre_ref());
-      main.push_back(*tx.main_ref());
-      post1.push_back(*tx.post_ref());
-      if (auto driveCurrent = tx.driveCurrent_ref()) {
-        if (!iDriver) {
-          iDriver.emplace(
-              SaiPortSerdesTraits::Attributes::IDriver::ValueType{});
-        }
-        iDriver.value().push_back(driveCurrent.value());
-      }
-    }
-    auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
-    SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
-    SaiPortSerdesTraits::CreateAttributes serdesAttributes{serdesKey,
-                                                           iDriver,
-                                                           pre1,
-                                                           std::nullopt,
-                                                           main,
-                                                           post1,
-                                                           std::nullopt,
-                                                           std::nullopt};
-    handle->serdes = store.setObject(serdesKey, serdesAttributes);
-  }
+  handle->serdes = programSerdes(saiPort, swPort);
 
   handle->bridgePort = managerTable_->bridgeManager().addBridgePort(
       swPort->getID(), saiPort->adapterKey());
@@ -678,5 +644,48 @@ void SaiPortManager::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
         SaiBridgePortTraits::Attributes::FdbLearningMode{fdbLearningMode});
   }
   l2LearningMode_ = l2LearningMode;
+}
+
+std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
+    std::shared_ptr<SaiPort> saiPort,
+    std::shared_ptr<Port> swPort) {
+  if (!platform_->isSerdesApiSupported()) {
+    return nullptr;
+  }
+  auto txSettings = platform_->getPlatformPortTxSettings(
+      swPort->getID(), swPort->getProfileID());
+  if (txSettings.empty()) {
+    return nullptr;
+  }
+  auto& portKey = saiPort->adapterHostKey();
+  CHECK_EQ(txSettings.size(), portKey.value().size())
+      << "some lanes are missing for tx-settings";
+  // pass tx settings for each lane
+  std::optional<SaiPortSerdesTraits::Attributes::IDriver::ValueType> iDriver;
+  SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType pre1;
+  SaiPortSerdesTraits::Attributes::TxFirMain::ValueType main;
+  SaiPortSerdesTraits::Attributes::TxFirPost2::ValueType post1;
+  for (auto& tx : txSettings) {
+    pre1.push_back(*tx.pre_ref());
+    main.push_back(*tx.main_ref());
+    post1.push_back(*tx.post_ref());
+    if (auto driveCurrent = tx.driveCurrent_ref()) {
+      if (!iDriver) {
+        iDriver.emplace(SaiPortSerdesTraits::Attributes::IDriver::ValueType{});
+      }
+      iDriver.value().push_back(driveCurrent.value());
+    }
+  }
+  auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
+  SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
+  SaiPortSerdesTraits::CreateAttributes serdesAttributes{serdesKey,
+                                                         iDriver,
+                                                         pre1,
+                                                         std::nullopt,
+                                                         main,
+                                                         post1,
+                                                         std::nullopt,
+                                                         std::nullopt};
+  return store.setObject(serdesKey, serdesAttributes);
 }
 } // namespace facebook::fboss

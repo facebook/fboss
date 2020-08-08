@@ -115,6 +115,9 @@ class SaiPortManager {
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
   void loadPortQueues(SaiPortHandle* portHandle);
+  std::shared_ptr<SaiPortSerdes> programSerdes(
+      std::shared_ptr<SaiPort> saiPort,
+      std::shared_ptr<Port> swPort);
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
