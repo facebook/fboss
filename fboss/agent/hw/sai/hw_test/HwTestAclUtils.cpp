@@ -264,69 +264,38 @@ void checkSwHwAclMatch(
   }
 
   if (swAcl->getLookupClassL2()) {
-    auto lookupClassL2Expected =
-        static_cast<int>(swAcl->getLookupClassL2().value());
+    auto fdbMetaDataAndMaskExpected =
+        aclTableManager.cfgLookupClassToSaiFdbMetaDataAndMask(
+            swAcl->getLookupClassL2().value());
+
     auto aclFieldFdbDstUserMetaGot =
         SaiApiTable::getInstance()->aclApi().getAttribute(
             aclEntryId, SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta());
-    auto [fdbDstUserMetaDataGot, fdbDstUserMetaMaskGot] =
-        aclFieldFdbDstUserMetaGot.getDataAndMask();
-    EXPECT_EQ(fdbDstUserMetaDataGot, lookupClassL2Expected);
-
-    /*
-     * TODO(skhare)
-     * CSP: CS00010615865
-     * kLookupClassMask = 0xffffffff, but fdbDstUserMetaMaskGot is 0x000003ff.
-     * Note, however, the following still holds true:
-     * fdbDstUserMetaDataGot & fdbDstUserMetaMaskGot = lookupClassL2Expected
-     * But SAI implementation should still return the correct mask 0xffffffff.
-     */
-    // EXPECT_EQ(fdbDstUserMetaMaskGot, SaiAclTableManager::kLookupClassMask);
-    std::ignore = fdbDstUserMetaMaskGot;
+    EXPECT_EQ(
+        aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbMetaDataAndMaskExpected);
   }
 
   if (swAcl->getLookupClass()) {
-    auto lookupClassExpected =
-        static_cast<int>(swAcl->getLookupClass().value());
+    auto routeMetaDataAndMaskExpected =
+        aclTableManager.cfgLookupClassToSaiRouteMetaDataAndMask(
+            swAcl->getLookupClass().value());
     auto aclFieldRouteDstUserMetaGot =
         SaiApiTable::getInstance()->aclApi().getAttribute(
             aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta());
-    auto [routeDstUserMetaDataGot, routeDstUserMetaMaskGot] =
-        aclFieldRouteDstUserMetaGot.getDataAndMask();
-    EXPECT_EQ(routeDstUserMetaDataGot, lookupClassExpected);
+    EXPECT_EQ(
+        aclFieldRouteDstUserMetaGot.getDataAndMask(),
+        routeMetaDataAndMaskExpected);
 
-    /*
-     * TODO(skhare)
-     * CSP: CS00010615865
-     * kLookupClassMask = 0xffffffff, but roueDstUserMetaMaskGot is 0x000003ff.
-     * Note, however, the following still holds true:
-     * routeDstUserMetaDataGot & routeDstUserMetaMaskGot = lookupClassExpected
-     * But SAI implementation should still return the correct mask 0xffffffff.
-     */
-    // EXPECT_EQ(routeDstUserMetaMaskGot, SaiAclTableManager::kLookupClassMask);
-    std::ignore = routeDstUserMetaMaskGot;
-
+    auto neighborMetaDataAndMaskExpected =
+        aclTableManager.cfgLookupClassToSaiNeighborMetaDataAndMask(
+            swAcl->getLookupClass().value());
     auto aclFieldNeighborDstUserMetaGot =
         SaiApiTable::getInstance()->aclApi().getAttribute(
             aclEntryId,
             SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta());
-    auto [neighborDstUserMetaDataGot, neighborDstUserMetaMaskGot] =
-        aclFieldNeighborDstUserMetaGot.getDataAndMask();
-    EXPECT_EQ(neighborDstUserMetaDataGot, lookupClassExpected);
-
-    /*
-     * TODO(skhare)
-     * CSP: CS00010615865
-     * kLookupClassMask = 0xffffffff, but neighborDstUserMetaMaskGot is
-     * 0x000003ff. Note, however, the following still holds true:
-     * neighborDstUserMetaDataGot & neighborDstUserMetaMaskGot =
-     * lookupClassExpected
-     *
-     * But SAI implementation should still return the * correct mask 0xffffffff.
-     */
-    // EXPECT_EQ(neighborDstUserMetaMaskGot,
-    // SaiAclTableManager::kLookupClassMask);
-    std::ignore = neighborDstUserMetaMaskGot;
+    EXPECT_EQ(
+        aclFieldNeighborDstUserMetaGot.getDataAndMask(),
+        neighborMetaDataAndMaskExpected);
   }
 
   auto action = swAcl->getAclAction();
