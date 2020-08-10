@@ -111,18 +111,29 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
     sai_uint32_t metaDataMax) const {
   /*
    * Round up to the next highest power of 2
+   *
+   * The idea is to set all the bits on the right hand side of the most
+   * significant set bit to 1 and then increment the value by 1 so it 'rolls
+   * over' to the nearest power of 2.
+   *
+   * Note, right shifting to power of 2 and OR'ing is enough - we don't need to
+   * shift and OR by 3, 5, 6 etc. as shift + OR by (1, 2), (1, 4), (2, 4) etc.
+   * already achieves that effect.
+   *
    * Reference:
    * https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
    */
+
+  // to handle the case when metaDataMax is already power of 2.
   metaDataMax--;
-  metaDataMax |= metaDataMax >> 1;
-  metaDataMax |= metaDataMax >> 2;
-  metaDataMax |= metaDataMax >> 4;
-  metaDataMax |= metaDataMax >> 8;
-  metaDataMax |= metaDataMax >> 16;
+  std::array<int, 5> kNumBitsToShift = {1, 2, 4, 8, 16};
+  for (auto numBitsToShift : kNumBitsToShift) {
+    metaDataMax |= metaDataMax >> numBitsToShift;
+  }
   metaDataMax++;
 
-  metaDataMax += (metaDataMax == 0);
+  // to handle the case when the passed metaDataMax is 0
+  metaDataMax += (((metaDataMax == 0)) ? 1 : 0);
 
   return metaDataMax - 1;
 }
