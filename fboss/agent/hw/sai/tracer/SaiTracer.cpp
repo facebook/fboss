@@ -100,119 +100,119 @@ sai_status_t __wrap_sai_api_query(
     case SAI_API_ACL:
       SaiTracer::getInstance()->aclApi_ =
           static_cast<sai_acl_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapAclApi();
+      *api_method_table = facebook::fboss::wrappedAclApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "acl_api");
       break;
     case SAI_API_BRIDGE:
       SaiTracer::getInstance()->bridgeApi_ =
           static_cast<sai_bridge_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapBridgeApi();
+      *api_method_table = facebook::fboss::wrappedBridgeApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "bridge_api");
       break;
     case SAI_API_BUFFER:
       SaiTracer::getInstance()->bufferApi_ =
           static_cast<sai_buffer_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapBufferApi();
+      *api_method_table = facebook::fboss::wrappedBufferApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "buffer_api");
       break;
     case SAI_API_FDB:
       SaiTracer::getInstance()->fdbApi_ =
           static_cast<sai_fdb_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapFdbApi();
+      *api_method_table = facebook::fboss::wrappedFdbApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "fdb_api");
       break;
     case SAI_API_HASH:
       SaiTracer::getInstance()->hashApi_ =
           static_cast<sai_hash_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapHashApi();
+      *api_method_table = facebook::fboss::wrappedHashApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "hash_api");
       break;
     case SAI_API_HOSTIF:
       SaiTracer::getInstance()->hostifApi_ =
           static_cast<sai_hostif_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapHostifApi();
+      *api_method_table = facebook::fboss::wrappedHostifApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "hostif_api");
       break;
     case SAI_API_MPLS:
       SaiTracer::getInstance()->mplsApi_ =
           static_cast<sai_mpls_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapMplsApi();
+      *api_method_table = facebook::fboss::wrappedMplsApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "mpls_api");
       break;
     case SAI_API_NEIGHBOR:
       SaiTracer::getInstance()->neighborApi_ =
           static_cast<sai_neighbor_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapNeighborApi();
+      *api_method_table = facebook::fboss::wrappedNeighborApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "neighbor_api");
       break;
     case SAI_API_NEXT_HOP:
       SaiTracer::getInstance()->nextHopApi_ =
           static_cast<sai_next_hop_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapNextHopApi();
+      *api_method_table = facebook::fboss::wrappedNextHopApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "next_hop_api");
       break;
     case SAI_API_NEXT_HOP_GROUP:
       SaiTracer::getInstance()->nextHopGroupApi_ =
           static_cast<sai_next_hop_group_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapNextHopGroupApi();
+      *api_method_table = facebook::fboss::wrappedNextHopGroupApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "next_hop_group_api");
       break;
     case SAI_API_PORT:
       SaiTracer::getInstance()->portApi_ =
           static_cast<sai_port_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapPortApi();
+      *api_method_table = facebook::fboss::wrappedPortApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "port_api");
       break;
     case SAI_API_QOS_MAP:
       SaiTracer::getInstance()->qosMapApi_ =
           static_cast<sai_qos_map_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapQosMapApi();
+      *api_method_table = facebook::fboss::wrappedQosMapApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "qos_map_api");
       break;
     case SAI_API_QUEUE:
       SaiTracer::getInstance()->queueApi_ =
           static_cast<sai_queue_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapQueueApi();
+      *api_method_table = facebook::fboss::wrappedQueueApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "queue_api");
       break;
     case SAI_API_ROUTE:
       SaiTracer::getInstance()->routeApi_ =
           static_cast<sai_route_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapRouteApi();
+      *api_method_table = facebook::fboss::wrappedRouteApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "route_api");
       break;
     case SAI_API_ROUTER_INTERFACE:
       SaiTracer::getInstance()->routerInterfaceApi_ =
           static_cast<sai_router_interface_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapRouterInterfaceApi();
+      *api_method_table = facebook::fboss::wrappedRouterInterfaceApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "router_interface_api");
       break;
     case SAI_API_SCHEDULER:
       SaiTracer::getInstance()->schedulerApi_ =
           static_cast<sai_scheduler_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapSchedulerApi();
+      *api_method_table = facebook::fboss::wrappedSchedulerApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "scheduler_api");
       break;
     case SAI_API_SWITCH:
       SaiTracer::getInstance()->switchApi_ =
           static_cast<sai_switch_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapSwitchApi();
+      *api_method_table = facebook::fboss::wrappedSwitchApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "switch_api");
       break;
     case SAI_API_VIRTUAL_ROUTER:
       SaiTracer::getInstance()->virtualRouterApi_ =
           static_cast<sai_virtual_router_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapVirtualRouterApi();
+      *api_method_table = facebook::fboss::wrappedVirtualRouterApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "virtual_router_api");
       break;
     case SAI_API_VLAN:
       SaiTracer::getInstance()->vlanApi_ =
           static_cast<sai_vlan_api_t*>(*api_method_table);
-      *api_method_table = facebook::fboss::wrapVlanApi();
+      *api_method_table = facebook::fboss::wrappedVlanApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "vlan_api");
       break;
     default:
-      // TODO: For other APIs, create new API wrappers and invoke wrapApi()
+      // TODO: For other APIs, create new API wrappers and invoke wrappedApi()
       // funtion here
       break;
   }

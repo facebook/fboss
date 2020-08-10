@@ -101,15 +101,23 @@ sai_status_t wrap_clear_router_interface_stats(
           router_interface_id, number_of_counters, counter_ids);
 }
 
-sai_router_interface_api_t* wrapRouterInterfaceApi() {
-  static sai_router_interface_api_t routerInterfaceWrappers = {
-      &wrap_create_router_interface,
-      &wrap_remove_router_interface,
-      &wrap_set_router_interface_attribute,
-      &wrap_get_router_interface_attribute,
-      &wrap_get_router_interface_stats,
-      &wrap_get_router_interface_stats_ext,
-      &wrap_clear_router_interface_stats};
+sai_router_interface_api_t* wrappedRouterInterfaceApi() {
+  static sai_router_interface_api_t routerInterfaceWrappers;
+
+  routerInterfaceWrappers.create_router_interface =
+      &wrap_create_router_interface;
+  routerInterfaceWrappers.remove_router_interface =
+      &wrap_remove_router_interface;
+  routerInterfaceWrappers.set_router_interface_attribute =
+      &wrap_set_router_interface_attribute;
+  routerInterfaceWrappers.get_router_interface_attribute =
+      &wrap_get_router_interface_attribute;
+  routerInterfaceWrappers.get_router_interface_stats =
+      &wrap_get_router_interface_stats;
+  routerInterfaceWrappers.get_router_interface_stats_ext =
+      &wrap_get_router_interface_stats_ext;
+  routerInterfaceWrappers.clear_router_interface_stats =
+      &wrap_clear_router_interface_stats;
 
   return &routerInterfaceWrappers;
 }

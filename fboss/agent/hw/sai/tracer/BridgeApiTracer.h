@@ -12,7 +12,7 @@
 
 namespace facebook::fboss {
 
-sai_bridge_api_t* wrapBridgeApi();
+sai_bridge_api_t* wrappedBridgeApi();
 
 void setBridgePortAttributes(
     const sai_attribute_t* attr_list,

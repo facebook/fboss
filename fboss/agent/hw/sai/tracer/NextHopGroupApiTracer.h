@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_next_hop_group_api_t* wrapNextHopGroupApi();
+sai_next_hop_group_api_t* wrappedNextHopGroupApi();
 
 void setNextHopGroupAttributes(
     const sai_attribute_t* attr_list,

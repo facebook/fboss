@@ -51,9 +51,9 @@ sai_status_t wrap_get_fdb_entry_attribute(
       fdb_entry, attr_count, attr_list);
 }
 
-static sai_fdb_api_t fdbWrappers;
+sai_fdb_api_t* wrappedFdbApi() {
+  static sai_fdb_api_t fdbWrappers;
 
-sai_fdb_api_t* wrapFdbApi() {
   fdbWrappers.create_fdb_entry = &wrap_create_fdb_entry;
   fdbWrappers.remove_fdb_entry = &wrap_remove_fdb_entry;
   fdbWrappers.set_fdb_entry_attribute = &wrap_set_fdb_entry_attribute;

@@ -130,7 +130,7 @@ sai_status_t wrap_get_next_hop_group_member_attribute(
           next_hop_group_member_id, attr_count, attr_list);
 }
 
-sai_next_hop_group_api_t* wrapNextHopGroupApi() {
+sai_next_hop_group_api_t* wrappedNextHopGroupApi() {
   static sai_next_hop_group_api_t nextHopGroupWrappers;
 
   nextHopGroupWrappers.create_next_hop_group = &wrap_create_next_hop_group;

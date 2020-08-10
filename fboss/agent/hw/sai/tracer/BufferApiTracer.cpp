@@ -147,7 +147,7 @@ sai_status_t wrap_get_buffer_profile_attribute(
       buffer_profile_id, attr_count, attr_list);
 }
 
-sai_buffer_api_t* wrapBufferApi() {
+sai_buffer_api_t* wrappedBufferApi() {
   static sai_buffer_api_t bufferWrappers;
 
   bufferWrappers.create_buffer_pool = &wrap_create_buffer_pool;

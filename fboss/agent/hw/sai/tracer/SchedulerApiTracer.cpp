@@ -64,12 +64,13 @@ sai_status_t wrap_get_scheduler_attribute(
       scheduler_id, attr_count, attr_list);
 }
 
-sai_scheduler_api_t* wrapSchedulerApi() {
-  static sai_scheduler_api_t schedulerWrappers = {
-      &wrap_create_scheduler,
-      &wrap_remove_scheduler,
-      &wrap_set_scheduler_attribute,
-      &wrap_get_scheduler_attribute};
+sai_scheduler_api_t* wrappedSchedulerApi() {
+  static sai_scheduler_api_t schedulerWrappers;
+
+  schedulerWrappers.create_scheduler = &wrap_create_scheduler;
+  schedulerWrappers.remove_scheduler = &wrap_remove_scheduler;
+  schedulerWrappers.set_scheduler_attribute = &wrap_set_scheduler_attribute;
+  schedulerWrappers.get_scheduler_attribute = &wrap_get_scheduler_attribute;
 
   return &schedulerWrappers;
 }

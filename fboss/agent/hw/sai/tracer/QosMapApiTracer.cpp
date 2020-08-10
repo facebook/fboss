@@ -60,7 +60,7 @@ sai_status_t wrap_get_qos_map_attribute(
       qos_map_id, attr_count, attr_list);
 }
 
-sai_qos_map_api_t* wrapQosMapApi() {
+sai_qos_map_api_t* wrappedQosMapApi() {
   static sai_qos_map_api_t qosMapWrappers;
 
   qosMapWrappers.create_qos_map = &wrap_create_qos_map;

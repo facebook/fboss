@@ -65,8 +65,9 @@ sai_status_t wrap_get_next_hop_attribute(
       next_hop_id, attr_count, attr_list);
 }
 
-sai_next_hop_api_t* wrapNextHopApi() {
+sai_next_hop_api_t* wrappedNextHopApi() {
   static sai_next_hop_api_t nextHopWrappers;
+
   nextHopWrappers.create_next_hop = &wrap_create_next_hop;
   nextHopWrappers.remove_next_hop = &wrap_remove_next_hop;
   nextHopWrappers.set_next_hop_attribute = &wrap_set_next_hop_attribute;

@@ -110,9 +110,9 @@ sai_status_t wrap_get_vlan_member_attribute(
       vlan_member_id, attr_count, attr_list);
 }
 
-static sai_vlan_api_t vlanWrappers;
+sai_vlan_api_t* wrappedVlanApi() {
+  static sai_vlan_api_t vlanWrappers;
 
-sai_vlan_api_t* wrapVlanApi() {
   vlanWrappers.create_vlan = &wrap_create_vlan;
   vlanWrappers.remove_vlan = &wrap_remove_vlan;
   vlanWrappers.set_vlan_attribute = &wrap_set_vlan_attribute;

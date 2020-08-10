@@ -87,7 +87,7 @@ sai_status_t wrap_clear_queue_stats(
       queue_id, number_of_counters, counter_ids);
 }
 
-sai_queue_api_t* wrapQueueApi() {
+sai_queue_api_t* wrappedQueueApi() {
   static sai_queue_api_t queueWrappers;
 
   queueWrappers.create_queue = &wrap_create_queue;

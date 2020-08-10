@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_buffer_api_t* wrapBufferApi();
+sai_buffer_api_t* wrappedBufferApi();
 
 void setBufferPoolAttributes(
     const sai_attribute_t* attr_list,

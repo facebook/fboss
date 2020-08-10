@@ -52,7 +52,7 @@ sai_status_t wrap_get_route_entry_attribute(
       route_entry, attr_count, attr_list);
 }
 
-sai_route_api_t* wrapRouteApi() {
+sai_route_api_t* wrappedRouteApi() {
   static sai_route_api_t routeWrappers;
 
   routeWrappers.create_route_entry = &wrap_create_route_entry;

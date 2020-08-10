@@ -164,21 +164,23 @@ sai_status_t wrap_clear_bridge_port_stats(
       bridge_port_id, number_of_counters, counter_ids);
 }
 
-sai_bridge_api_t* wrapBridgeApi() {
-  static sai_bridge_api_t bridgeWrappers = {&wrap_create_bridge,
-                                            &wrap_remove_bridge,
-                                            &wrap_set_bridge_attribute,
-                                            &wrap_get_bridge_attribute,
-                                            &wrap_get_bridge_stats,
-                                            &wrap_get_bridge_stats_ext,
-                                            &wrap_clear_bridge_stats,
-                                            &wrap_create_bridge_port,
-                                            &wrap_remove_bridge_port,
-                                            &wrap_set_bridge_port_attribute,
-                                            &wrap_get_bridge_port_attribute,
-                                            &wrap_get_bridge_port_stats,
-                                            &wrap_get_bridge_port_stats_ext,
-                                            &wrap_clear_bridge_port_stats};
+sai_bridge_api_t* wrappedBridgeApi() {
+  static sai_bridge_api_t bridgeWrappers;
+
+  bridgeWrappers.create_bridge = &wrap_create_bridge;
+  bridgeWrappers.remove_bridge = &wrap_remove_bridge;
+  bridgeWrappers.set_bridge_attribute = &wrap_set_bridge_attribute;
+  bridgeWrappers.get_bridge_attribute = &wrap_get_bridge_attribute;
+  bridgeWrappers.get_bridge_stats = &wrap_get_bridge_stats;
+  bridgeWrappers.get_bridge_stats_ext = &wrap_get_bridge_stats_ext;
+  bridgeWrappers.clear_bridge_stats = &wrap_clear_bridge_stats;
+  bridgeWrappers.create_bridge_port = &wrap_create_bridge_port;
+  bridgeWrappers.remove_bridge_port = &wrap_remove_bridge_port;
+  bridgeWrappers.set_bridge_port_attribute = &wrap_set_bridge_port_attribute;
+  bridgeWrappers.get_bridge_port_attribute = &wrap_get_bridge_port_attribute;
+  bridgeWrappers.get_bridge_port_stats = &wrap_get_bridge_port_stats;
+  bridgeWrappers.get_bridge_port_stats_ext = &wrap_get_bridge_port_stats_ext;
+  bridgeWrappers.clear_bridge_port_stats = &wrap_clear_bridge_port_stats;
 
   return &bridgeWrappers;
 }

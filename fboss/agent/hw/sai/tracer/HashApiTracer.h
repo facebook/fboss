@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-sai_hash_api_t* wrapHashApi();
+sai_hash_api_t* wrappedHashApi();
 
 void setHashAttributes(
     const sai_attribute_t* attr_list,

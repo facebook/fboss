@@ -60,7 +60,7 @@ sai_status_t wrap_get_hash_attribute(
       hash_id, attr_count, attr_list);
 }
 
-sai_hash_api_t* wrapHashApi() {
+sai_hash_api_t* wrappedHashApi() {
   static sai_hash_api_t hashWrappers;
 
   hashWrappers.create_hash = &wrap_create_hash,

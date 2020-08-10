@@ -59,9 +59,9 @@ sai_status_t wrap_remove_all_neighbor_entries(sai_object_id_t switch_id) {
       switch_id);
 }
 
-static sai_neighbor_api_t neighborWrappers;
+sai_neighbor_api_t* wrappedNeighborApi() {
+  static sai_neighbor_api_t neighborWrappers;
 
-sai_neighbor_api_t* wrapNeighborApi() {
   neighborWrappers.create_neighbor_entry = &wrap_create_neighbor_entry;
   neighborWrappers.remove_neighbor_entry = &wrap_remove_neighbor_entry;
   neighborWrappers.set_neighbor_entry_attribute =

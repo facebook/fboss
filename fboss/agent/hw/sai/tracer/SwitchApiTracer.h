@@ -12,7 +12,7 @@
 
 namespace facebook::fboss {
 
-sai_switch_api_t* wrapSwitchApi();
+sai_switch_api_t* wrappedSwitchApi();
 
 void setSwitchAttributes(
     const sai_attribute_t* attr_list,

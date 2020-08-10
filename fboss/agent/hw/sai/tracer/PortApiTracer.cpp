@@ -145,9 +145,9 @@ sai_status_t wrap_clear_port_pool_stats(
       port_pool_id, number_of_counters, counter_ids);
 }
 
-static sai_port_api_t portWrappers;
+sai_port_api_t* wrappedPortApi() {
+  static sai_port_api_t portWrappers;
 
-sai_port_api_t* wrapPortApi() {
   portWrappers.create_port = &wrap_create_port;
   portWrappers.remove_port = &wrap_remove_port;
   portWrappers.set_port_attribute = &wrap_set_port_attribute;

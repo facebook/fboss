@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_mpls_api_t* wrapMplsApi();
+sai_mpls_api_t* wrappedMplsApi();
 
 void setInsegEntryAttributes(
     const sai_attribute_t* attr_list,

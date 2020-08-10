@@ -51,7 +51,7 @@ sai_status_t wrap_get_inseg_entry_attribute(
       inseg_entry, attr_count, attr_list);
 }
 
-sai_mpls_api_t* wrapMplsApi() {
+sai_mpls_api_t* wrappedMplsApi() {
   static sai_mpls_api_t mplsWrappers;
 
   mplsWrappers.create_inseg_entry = &wrap_create_inseg_entry;

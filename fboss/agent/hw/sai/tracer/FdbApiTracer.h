@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_fdb_api_t* wrapFdbApi();
+sai_fdb_api_t* wrappedFdbApi();
 
 void setFdbEntryAttributes(
     const sai_attribute_t* attr_list,

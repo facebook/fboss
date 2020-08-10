@@ -12,7 +12,7 @@
 
 namespace facebook::fboss {
 
-sai_vlan_api_t* wrapVlanApi();
+sai_vlan_api_t* wrappedVlanApi();
 
 void setVlanAttributes(
     const sai_attribute_t* attr_list,

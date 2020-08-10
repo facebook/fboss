@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-sai_acl_api_t* wrapAclApi();
+sai_acl_api_t* wrappedAclApi();
 
 void setAclEntryAttributes(
     const sai_attribute_t* attr_list,

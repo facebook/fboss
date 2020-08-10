@@ -142,7 +142,7 @@ sai_status_t wrap_send_hostif_packet(
   return rv;
 }
 
-sai_hostif_api_t* wrapHostifApi() {
+sai_hostif_api_t* wrappedHostifApi() {
   static sai_hostif_api_t hostifWrappers;
 
   hostifWrappers.create_hostif_trap = &wrap_create_hostif_trap;

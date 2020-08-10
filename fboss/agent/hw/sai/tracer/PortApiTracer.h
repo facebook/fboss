@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-sai_port_api_t* wrapPortApi();
+sai_port_api_t* wrappedPortApi();
 
 void setPortAttributes(
     const sai_attribute_t* attr_list,

@@ -79,9 +79,9 @@ sai_status_t wrap_clear_switch_stats(
       switch_id, number_of_counters, counter_ids);
 }
 
-static sai_switch_api_t switchWrappers;
+sai_switch_api_t* wrappedSwitchApi() {
+  static sai_switch_api_t switchWrappers;
 
-sai_switch_api_t* wrapSwitchApi() {
   switchWrappers.create_switch = &wrap_create_switch;
   switchWrappers.remove_switch = &wrap_remove_switch;
   switchWrappers.set_switch_attribute = &wrap_set_switch_attribute;

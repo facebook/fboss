@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_scheduler_api_t* wrapSchedulerApi();
+sai_scheduler_api_t* wrappedSchedulerApi();
 
 void setSchedulerAttributes(
     const sai_attribute_t* attr_list,

@@ -70,12 +70,15 @@ sai_status_t wrap_get_virtual_router_attribute(
           virtual_router_id, attr_count, attr_list);
 }
 
-sai_virtual_router_api_t* wrapVirtualRouterApi() {
-  static sai_virtual_router_api_t virtualRouterWrappers = {
-      &wrap_create_virtual_router,
-      &wrap_remove_virtual_router,
-      &wrap_set_virtual_router_attribute,
-      &wrap_get_virtual_router_attribute};
+sai_virtual_router_api_t* wrappedVirtualRouterApi() {
+  static sai_virtual_router_api_t virtualRouterWrappers;
+
+  virtualRouterWrappers.create_virtual_router = &wrap_create_virtual_router;
+  virtualRouterWrappers.remove_virtual_router = &wrap_remove_virtual_router;
+  virtualRouterWrappers.set_virtual_router_attribute =
+      &wrap_set_virtual_router_attribute;
+  virtualRouterWrappers.get_virtual_router_attribute =
+      &wrap_get_virtual_router_attribute;
 
   return &virtualRouterWrappers;
 }

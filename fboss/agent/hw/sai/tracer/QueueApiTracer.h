@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_queue_api_t* wrapQueueApi();
+sai_queue_api_t* wrappedQueueApi();
 
 void setQueueAttributes(
     const sai_attribute_t* attr_list,

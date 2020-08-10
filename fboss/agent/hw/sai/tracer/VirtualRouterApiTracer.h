@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-sai_virtual_router_api_t* wrapVirtualRouterApi();
+sai_virtual_router_api_t* wrappedVirtualRouterApi();
 
 void setVirtualRouterAttributes(
     const sai_attribute_t* attr_list,

@@ -293,32 +293,39 @@ sai_status_t wrap_get_acl_table_group_member_attribute(
           acl_table_group_member_id, attr_count, attr_list);
 }
 
-sai_acl_api_t* wrapAclApi() {
-  static sai_acl_api_t aclWrappers = {
-      &wrap_create_acl_table,
-      &wrap_remove_acl_table,
-      &wrap_set_acl_table_attribute,
-      &wrap_get_acl_table_attribute,
-      &wrap_create_acl_entry,
-      &wrap_remove_acl_entry,
-      &wrap_set_acl_entry_attribute,
-      &wrap_get_acl_entry_attribute,
-      &wrap_create_acl_counter,
-      &wrap_remove_acl_counter,
-      &wrap_set_acl_counter_attribute,
-      &wrap_get_acl_counter_attribute,
-      &wrap_create_acl_range,
-      &wrap_remove_acl_range,
-      &wrap_set_acl_range_attribute,
-      &wrap_get_acl_range_attribute,
-      &wrap_create_acl_table_group,
-      &wrap_remove_acl_table_group,
-      &wrap_set_acl_table_group_attribute,
-      &wrap_get_acl_table_group_attribute,
-      &wrap_create_acl_table_group_member,
-      &wrap_remove_acl_table_group_member,
-      &wrap_set_acl_table_group_member_attribute,
-      &wrap_get_acl_table_group_member_attribute};
+sai_acl_api_t* wrappedAclApi() {
+  static sai_acl_api_t aclWrappers;
+
+  aclWrappers.create_acl_table = &wrap_create_acl_table;
+  aclWrappers.remove_acl_table = &wrap_remove_acl_table;
+  aclWrappers.set_acl_table_attribute = &wrap_set_acl_table_attribute;
+  aclWrappers.get_acl_table_attribute = &wrap_get_acl_table_attribute;
+  aclWrappers.create_acl_entry = &wrap_create_acl_entry;
+  aclWrappers.remove_acl_entry = &wrap_remove_acl_entry;
+  aclWrappers.set_acl_entry_attribute = &wrap_set_acl_entry_attribute;
+  aclWrappers.get_acl_entry_attribute = &wrap_get_acl_entry_attribute;
+  aclWrappers.create_acl_counter = &wrap_create_acl_counter;
+  aclWrappers.remove_acl_counter = &wrap_remove_acl_counter;
+  aclWrappers.set_acl_counter_attribute = &wrap_set_acl_counter_attribute;
+  aclWrappers.get_acl_counter_attribute = &wrap_get_acl_counter_attribute;
+  aclWrappers.create_acl_range = &wrap_create_acl_range;
+  aclWrappers.remove_acl_range = &wrap_remove_acl_range;
+  aclWrappers.set_acl_range_attribute = &wrap_set_acl_range_attribute;
+  aclWrappers.get_acl_range_attribute = &wrap_get_acl_range_attribute;
+  aclWrappers.create_acl_table_group = &wrap_create_acl_table_group;
+  aclWrappers.remove_acl_table_group = &wrap_remove_acl_table_group;
+  aclWrappers.set_acl_table_group_attribute =
+      &wrap_set_acl_table_group_attribute;
+  aclWrappers.get_acl_table_group_attribute =
+      &wrap_get_acl_table_group_attribute;
+  aclWrappers.create_acl_table_group_member =
+      &wrap_create_acl_table_group_member;
+  aclWrappers.remove_acl_table_group_member =
+      &wrap_remove_acl_table_group_member;
+  aclWrappers.set_acl_table_group_member_attribute =
+      &wrap_set_acl_table_group_member_attribute;
+  aclWrappers.get_acl_table_group_member_attribute =
+      &wrap_get_acl_table_group_member_attribute;
 
   return &aclWrappers;
 }

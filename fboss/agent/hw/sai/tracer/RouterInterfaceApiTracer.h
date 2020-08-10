@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-sai_router_interface_api_t* wrapRouterInterfaceApi();
+sai_router_interface_api_t* wrappedRouterInterfaceApi();
 
 void setRouterInterfaceAttributes(
     const sai_attribute_t* attr_list,
