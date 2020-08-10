@@ -249,3 +249,48 @@ TEST_F(SwitchApiTest, setGetMacAgingTime) {
           switchId, SaiSwitchTraits::Attributes::MacAgingTime{}),
       42);
 }
+
+TEST_F(SwitchApiTest, getDstUserMetaDataRange) {
+  EXPECT_EQ(
+      switchApi
+          ->getAttribute(
+              switchId, SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange())
+          .min,
+      0);
+  EXPECT_EQ(
+      switchApi
+          ->getAttribute(
+              switchId,
+              SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange())
+          .min,
+      0);
+  EXPECT_EQ(
+      switchApi
+          ->getAttribute(
+              switchId,
+              SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange())
+          .min,
+      0);
+}
+
+TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
+  sai_u32_range_t u32Range;
+  u32Range.min = 0;
+  u32Range.max = 42;
+
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange(u32Range)),
+      SaiApiError);
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange(u32Range)),
+      SaiApiError);
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange(u32Range)),
+      SaiApiError);
+}
