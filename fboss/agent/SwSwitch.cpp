@@ -1507,11 +1507,6 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
   return isValid && hw_->isValidStateUpdate(delta);
 }
 
-std::string SwSwitch::switchRunStateStr(
-    facebook::fboss::SwitchRunState runState) const {
-  return apache::thrift::util::enumNameSafe(runState);
-}
-
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
   auto distance = curConfig_.clientIdToAdminDistance.find(clientId);
   if (distance == curConfig_.clientIdToAdminDistance.end()) {

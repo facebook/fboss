@@ -119,4 +119,6 @@ class MapFilter {
   Predicate pred_;
 };
 
+std::string switchRunStateStr(SwitchRunState runState);
+
 } // namespace facebook::fboss

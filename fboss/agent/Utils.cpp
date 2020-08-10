@@ -24,6 +24,7 @@
 #include <folly/logging/xlog.h>
 
 #include <boost/filesystem/operations.hpp>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -114,6 +115,10 @@ std::vector<ClientID> AllClientIDs() {
       ClientID::STATIC_INTERNAL,
       ClientID::OPENR,
   };
+}
+
+std::string switchRunStateStr(SwitchRunState runState) {
+  return apache::thrift::util::enumNameSafe(runState);
 }
 
 } // namespace facebook::fboss
