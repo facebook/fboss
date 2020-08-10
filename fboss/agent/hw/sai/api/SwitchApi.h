@@ -130,6 +130,18 @@ struct SaiSwitchTraits {
         sai_uint32_t>;
     using MacAgingTime =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_FDB_AGING_TIME, sai_uint32_t>;
+    using FdbDstUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FDB_DST_USER_META_DATA_RANGE,
+        sai_u32_range_t>;
+    using RouteDstUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ROUTE_DST_USER_META_DATA_RANGE,
+        sai_u32_range_t>;
+    using NeighborDstUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
+        sai_u32_range_t>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -178,6 +190,10 @@ SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)
 
 SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
+
+SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
+SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
+SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
