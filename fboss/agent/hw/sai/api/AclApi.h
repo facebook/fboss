@@ -362,7 +362,9 @@ struct SaiAclEntryTraits {
   };
 
   using AdapterKey = AclEntrySaiId;
-  using AdapterHostKey = std::tuple<
+  using AdapterHostKey =
+      std::tuple<Attributes::TableId, std::optional<Attributes::Priority>>;
+  using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
       std::optional<Attributes::FieldSrcIpV6>,
@@ -393,8 +395,6 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionSetDSCP>,
       std::optional<Attributes::ActionMirrorIngress>,
       std::optional<Attributes::ActionMirrorEgress>>;
-
-  using CreateAttributes = AdapterHostKey;
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);

@@ -823,7 +823,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     return AclEntrySaiId{0};
   }
 
-  SaiAclEntryTraits::AdapterHostKey adapterHostKey{
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
+
+  SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
       priority,
       fieldSrcIpV6,
@@ -855,8 +857,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt, // mirrorIngress
       std::nullopt, // mirrorEgress
   };
-
-  SaiAclEntryTraits::CreateAttributes attributes{adapterHostKey};
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();

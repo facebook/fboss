@@ -340,36 +340,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
   s.reload();
   auto& store = s.get<SaiAclEntryTraits>();
 
-  SaiAclEntryTraits::AdapterHostKey k{aclTableId,
-                                      this->kPriority(),
-                                      this->kSrcIpV6(),
-                                      this->kDstIpV6(),
-                                      this->kSrcIpV4(),
-                                      this->kDstIpV4(),
-                                      this->kSrcPort(),
-                                      this->kOutPort(),
-                                      this->kL4SrcPort(),
-                                      this->kL4DstPort(),
-                                      this->kIpProtocol(),
-                                      this->kTcpFlags(),
-                                      this->kIpFrag(),
-                                      this->kIcmpV4Type(),
-                                      this->kIcmpV4Code(),
-                                      this->kIcmpV6Type(),
-                                      this->kIcmpV6Code(),
-                                      this->kDscp(),
-                                      this->kDstMac(),
-                                      this->kIpType(),
-                                      this->kTtl(),
-                                      this->kFdbDstUserMeta(),
-                                      this->kRouteDstUserMeta(),
-                                      this->kNeighborDstUserMeta(),
-                                      this->kPacketAction(),
-                                      this->kCounter(),
-                                      this->kSetTC(),
-                                      this->kSetDSCP(),
-                                      this->kMirrorIngress(),
-                                      this->kMirrorEgress()};
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -449,6 +420,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
+
   SaiAclEntryTraits::CreateAttributes c{aclTableId,
                                         this->kPriority(),
                                         this->kSrcIpV6(),
@@ -479,8 +452,6 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
                                         this->kSetDSCP(),
                                         this->kMirrorIngress(),
                                         this->kMirrorEgress()};
-
-  SaiAclEntryTraits::AdapterHostKey k{c};
 
   SaiObject<SaiAclEntryTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
