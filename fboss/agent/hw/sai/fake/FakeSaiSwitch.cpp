@@ -28,6 +28,17 @@ static constexpr sai_object_id_t kLagHashId = 1234;
 static constexpr uint32_t kDefaultAclEntryMinimumPriority = 0;
 static constexpr uint32_t kDefaultAclEntryMaximumPriority =
     std::numeric_limits<uint32_t>::max();
+
+static constexpr uint32_t kDefaultFdbDstUserMetaDataRangeMin = 0;
+static constexpr uint32_t kDefaultFdbDstUserMetaDataRangeMax =
+    std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t kDefaultRouteDstUserMetaDataRangeMin = 0;
+static constexpr uint32_t kDefaultRouteDstUserMetaDataRangeMax =
+    std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMin = 0;
+static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMax =
+    std::numeric_limits<uint32_t>::max();
+
 } // namespace
 
 sai_status_t set_switch_attribute_fn(
@@ -207,6 +218,18 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_FDB_AGING_TIME:
         attr[i].value.u32 = sw.getMacAgingTime();
+        break;
+      case SAI_SWITCH_ATTR_FDB_DST_USER_META_DATA_RANGE:
+        attr[i].value.u32range.min = kDefaultFdbDstUserMetaDataRangeMin;
+        attr[i].value.u32range.max = kDefaultFdbDstUserMetaDataRangeMax;
+        break;
+      case SAI_SWITCH_ATTR_ROUTE_DST_USER_META_DATA_RANGE:
+        attr[i].value.u32range.min = kDefaultRouteDstUserMetaDataRangeMin;
+        attr[i].value.u32range.max = kDefaultRouteDstUserMetaDataRangeMax;
+        break;
+      case SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE:
+        attr[i].value.u32range.min = kDefaultNeighborDstUserMetaDataRangeMin;
+        attr[i].value.u32range.max = kDefaultNeighborDstUserMetaDataRangeMax;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
