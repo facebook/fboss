@@ -229,4 +229,36 @@ struct formatter<facebook::fboss::AclEntryAction<T>> {
   }
 };
 
+// Formatting for sai_u32_range_t
+template <>
+struct formatter<sai_u32_range_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+
+  auto format(const sai_u32_range_t& u32Range, FormatContext& ctx) {
+    return format_to(
+        ctx.out(), "u32 range: min: {}, max: {}", u32Range.min, u32Range.max);
+  }
+};
+
+// Formatting for sai_s32_range_t
+template <>
+struct formatter<sai_s32_range_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+
+  auto format(const sai_s32_range_t& s32Range, FormatContext& ctx) {
+    return format_to(
+        ctx.out(), "s32 range: min: {}, max: {}", s32Range.min, s32Range.max);
+  }
+};
+
 } // namespace fmt

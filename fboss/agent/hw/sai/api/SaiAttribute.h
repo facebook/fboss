@@ -139,6 +139,8 @@ DEFINE_extract(sai_int8_t, s8);
 DEFINE_extract(sai_int16_t, s16);
 DEFINE_extract(sai_int32_t, s32);
 DEFINE_extract(sai_int64_t, s64);
+DEFINE_extract(sai_u32_range_t, u32range);
+DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(folly::MacAddress, mac);
 DEFINE_extract(folly::IPAddressV4, ip4);
 DEFINE_extract(folly::IPAddressV6, ip6);
@@ -166,8 +168,6 @@ DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
 
 // TODO:
-DEFINE_extract(sai_u32_range_t, u32range);
-DEFINE_extract(sai_s32_range_t, s32range);
 DEFINE_extract(sai_vlan_list_t, vlanlist);
 DEFINE_extract(sai_map_list_t, maplist);
 DEFINE_extract(sai_acl_capability_t, aclcapability);
