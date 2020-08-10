@@ -227,12 +227,8 @@ class HwSwitch {
    * example, clearing the warm boot cache on FIB_SYNCED, or
    * turning on callbacks on INITIALIZED.
    */
-  void switchRunStateChanged(SwitchRunState newState) {
-    if (runState_ != newState) {
-      switchRunStateChangedImpl(newState);
-      runState_ = newState;
-    }
-  }
+  void switchRunStateChanged(SwitchRunState newState);
+
   SwitchRunState getRunState() const {
     return runState_;
   }
