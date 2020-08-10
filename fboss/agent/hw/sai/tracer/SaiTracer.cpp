@@ -324,7 +324,7 @@ void SaiTracer::logSwitchCreateFn(
   lines.push_back(declaration);
 
   // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndId(*switch_id, rv));
+  lines.push_back(logTimeAndRv(rv, *switch_id));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -362,7 +362,8 @@ void SaiTracer::logRouteEntryCreateFn(
   // Then setup route entry (switch, virtual router and destination)
   setRouteEntry(route_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -397,7 +398,8 @@ void SaiTracer::logNeighborEntryCreateFn(
   // Then setup neighbor entry (switch, router interface and ip address)
   setNeighborEntry(neighbor_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -432,7 +434,8 @@ void SaiTracer::logFdbEntryCreateFn(
   // Then setup fdb entry (switch, router interface and ip address)
   setFdbEntry(fdb_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -467,7 +470,8 @@ void SaiTracer::logInsegEntryCreateFn(
   // Then setup inseg entry (switch and label)
   setInsegEntry(inseg_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -508,7 +512,7 @@ void SaiTracer::logCreateFn(
   lines.push_back(declaration);
 
   // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndId(*create_object_id, rv));
+  lines.push_back(logTimeAndRv(rv, *create_object_id));
 
   // Make the function call & write to file
   lines.push_back(createFnCall(
@@ -530,7 +534,8 @@ void SaiTracer::logRouteEntryRemoveFn(
   vector<string> lines{};
   setRouteEntry(route_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
       "status = ",
@@ -556,7 +561,8 @@ void SaiTracer::logNeighborEntryRemoveFn(
   vector<string> lines{};
   setNeighborEntry(neighbor_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
       "status = ",
@@ -582,7 +588,8 @@ void SaiTracer::logFdbEntryRemoveFn(
   vector<string> lines{};
   setFdbEntry(fdb_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
       "status = ",
@@ -608,7 +615,8 @@ void SaiTracer::logInsegEntryRemoveFn(
   vector<string> lines{};
   setInsegEntry(inseg_entry, lines);
 
-  // TODO(zecheng): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
       "status = ",
@@ -636,7 +644,7 @@ void SaiTracer::logRemoveFn(
   vector<string> lines{};
 
   // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndId(remove_object_id, rv));
+  lines.push_back(logTimeAndRv(rv, remove_object_id));
 
   // Make the remove call
   lines.push_back(to<string>(
@@ -670,7 +678,8 @@ void SaiTracer::logRouteEntrySetAttrFn(
 
   setRouteEntry(route_entry, lines);
 
-  // TODO(zecheg): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -700,7 +709,8 @@ void SaiTracer::logNeighborEntrySetAttrFn(
 
   setNeighborEntry(neighbor_entry, lines);
 
-  // TODO(zecheg): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -730,7 +740,8 @@ void SaiTracer::logFdbEntrySetAttrFn(
 
   setFdbEntry(fdb_entry, lines);
 
-  // TODO(zecheg): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -760,7 +771,8 @@ void SaiTracer::logInsegEntrySetAttrFn(
 
   setInsegEntry(inseg_entry, lines);
 
-  // TODO(zecheg): Log current timestamp, object id and return value
+  // Log timestamp and return value
+  lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -791,7 +803,7 @@ void SaiTracer::logSetAttrFn(
   vector<string> lines = setAttrList(attr, 1, object_type);
 
   // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndId(set_object_id, rv));
+  lines.push_back(logTimeAndRv(rv, set_object_id));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -1139,7 +1151,7 @@ string SaiTracer::rvCheck(sai_status_t rv) {
       " with status %d \\n\", status)");
 }
 
-string SaiTracer::logTimeAndId(sai_object_id_t object_id, sai_status_t rv) {
+string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
   auto now = std::chrono::system_clock::now();
   auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                     now.time_since_epoch()) %
@@ -1151,9 +1163,15 @@ string SaiTracer::logTimeAndId(sai_object_id_t object_id, sai_status_t rv) {
   std::ostringstream outStringStream;
   outStringStream << "// " << std::put_time(&tm, "%Y-%m-%d %T");
   outStringStream << "." << std::setfill('0') << std::setw(3) << now_ms.count();
-  outStringStream << " object_id: " << object_id << " (0x";
-  outStringStream << std::hex << object_id;
-  outStringStream << ") rv: " << rv;
+
+  // Log object id if it's provided
+  if (object_id != SAI_NULL_OBJECT_ID) {
+    outStringStream << " object_id: " << object_id << " (0x";
+    outStringStream << std::hex << object_id;
+    outStringStream << ")";
+  }
+
+  outStringStream << " rv: " << rv;
 
   return outStringStream.str();
 }

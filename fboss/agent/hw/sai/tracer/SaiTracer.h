@@ -197,7 +197,9 @@ class SaiTracer {
 
   std::string rvCheck(sai_status_t rv);
 
-  std::string logTimeAndId(sai_object_id_t object_id, sai_status_t rv);
+  std::string logTimeAndRv(
+      sai_status_t rv,
+      sai_object_id_t object_id = SAI_NULL_OBJECT_ID);
 
   void checkAttrCount(uint32_t attr_count);
 
