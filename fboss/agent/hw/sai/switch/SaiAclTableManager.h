@@ -71,7 +71,6 @@ class SaiAclTableManager {
 
   static auto constexpr kIpProtocolMask = 0xFF;
   static auto constexpr kTcpFlagsMask = 0x3F;
-  static auto constexpr kLookupClassMask = 0xFFFFFFFF;
   // Mask is not applicable for given field
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kIcmpTypeMask = 0xFF;
@@ -122,6 +121,14 @@ class SaiAclTableManager {
   sai_acl_ip_frag_t cfgIpFragToSaiIpFrag(cfg::IpFragMatch cfgType) const;
   sai_acl_ip_type_t cfgIpTypeToSaiIpType(cfg::IpType cfgIpType) const;
 
+  std::pair<sai_uint32_t, sai_uint32_t> cfgLookupClassToSaiFdbMetaDataAndMask(
+      cfg::AclLookupClass lookupClass) const;
+  std::pair<sai_uint32_t, sai_uint32_t> cfgLookupClassToSaiRouteMetaDataAndMask(
+      cfg::AclLookupClass lookupClass) const;
+  std::pair<sai_uint32_t, sai_uint32_t>
+  cfgLookupClassToSaiNeighborMetaDataAndMask(
+      cfg::AclLookupClass lookupClass) const;
+
  private:
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandleImpl(const std::string& aclTableName) const;
@@ -135,6 +142,17 @@ class SaiAclTableManager {
       SaiAclTableTraits::AdapterHostKey,
       SaiAclTableTraits::CreateAttributes>
   createAclTableHelper();
+
+  sai_u32_range_t getFdbDstUserMetaDataRange() const;
+  sai_u32_range_t getRouteDstUserMetaDataRange() const;
+  sai_u32_range_t getNeighborDstUserMetaDataRange() const;
+
+  sai_uint32_t getMetaDataMask(sai_uint32_t metaDataMax) const;
+
+  sai_uint32_t cfgLookupClassToSaiMetaDataAndMaskHelper(
+      cfg::AclLookupClass lookupClass,
+      sai_uint32_t dstUserMetaDataRangeMin,
+      sai_uint32_t dstUserMetaDataRangeMax) const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
@@ -150,6 +168,18 @@ class SaiAclTableManager {
 
   const sai_uint32_t aclEntryMinimumPriority_;
   const sai_uint32_t aclEntryMaximumPriority_;
+
+  const sai_uint32_t fdbDstUserMetaDataRangeMin_;
+  const sai_uint32_t fdbDstUserMetaDataRangeMax_;
+  const sai_uint32_t fdbDstUserMetaDataMask_;
+
+  const sai_uint32_t routeDstUserMetaDataRangeMin_;
+  const sai_uint32_t routeDstUserMetaDataRangeMax_;
+  const sai_uint32_t routeDstUserMetaDataMask_;
+
+  const sai_uint32_t neighborDstUserMetaDataRangeMin_;
+  const sai_uint32_t neighborDstUserMetaDataRangeMax_;
+  const sai_uint32_t neighborDstUserMetaDataMask_;
 };
 
 } // namespace facebook::fboss

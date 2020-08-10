@@ -35,7 +35,97 @@ SaiAclTableManager::SaiAclTableManager(
       aclEntryMaximumPriority_(
           SaiApiTable::getInstance()->switchApi().getAttribute(
               managerTable_->switchManager().getSwitchSaiId(),
-              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())) {}
+              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())),
+      fdbDstUserMetaDataRangeMin_(getFdbDstUserMetaDataRange().min),
+      fdbDstUserMetaDataRangeMax_(getFdbDstUserMetaDataRange().max),
+      fdbDstUserMetaDataMask_(getMetaDataMask(fdbDstUserMetaDataRangeMax_)),
+      routeDstUserMetaDataRangeMin_(getRouteDstUserMetaDataRange().min),
+      routeDstUserMetaDataRangeMax_(getRouteDstUserMetaDataRange().max),
+      routeDstUserMetaDataMask_(getMetaDataMask(routeDstUserMetaDataRangeMax_)),
+      neighborDstUserMetaDataRangeMin_(getNeighborDstUserMetaDataRange().min),
+      neighborDstUserMetaDataRangeMax_(getNeighborDstUserMetaDataRange().max),
+      neighborDstUserMetaDataMask_(
+          getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
+
+sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
+  /*
+   * If an ASIC supports AClv4 or ACLv6, it should also support querying
+   * the meta data range.
+   * AclTableManager object is created by the code path is not exercised if
+   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
+   */
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+    sai_u32_range_t u32Range;
+    u32Range.min = 0;
+    u32Range.max = 0;
+    return u32Range;
+  }
+
+  return SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(),
+      SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange());
+}
+
+sai_u32_range_t SaiAclTableManager::getRouteDstUserMetaDataRange() const {
+  /*
+   * If an ASIC supports AClv4 or ACLv6, it should also support querying
+   * the meta data range.
+   * AclTableManager object is created by the code path is not exercised if
+   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
+   */
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+    sai_u32_range_t u32Range;
+    u32Range.min = 0;
+    u32Range.max = 0;
+    return u32Range;
+  }
+
+  return SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(),
+      SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange());
+}
+
+sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
+  /*
+   * If an ASIC supports AClv4 or ACLv6, it should also support querying
+   * the meta data range.
+   * AclTableManager object is created by the code path is not exercised if
+   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
+   */
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+    sai_u32_range_t u32Range;
+    u32Range.min = 0;
+    u32Range.max = 0;
+    return u32Range;
+  }
+
+  return SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(),
+      SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange());
+}
+
+sai_uint32_t SaiAclTableManager::getMetaDataMask(
+    sai_uint32_t metaDataMax) const {
+  /*
+   * Round up to the next highest power of 2
+   * Reference:
+   * https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+   */
+  metaDataMax--;
+  metaDataMax |= metaDataMax >> 1;
+  metaDataMax |= metaDataMax >> 2;
+  metaDataMax |= metaDataMax >> 4;
+  metaDataMax |= metaDataMax >> 8;
+  metaDataMax |= metaDataMax >> 16;
+  metaDataMax++;
+
+  metaDataMax += (metaDataMax == 0);
+
+  return metaDataMax - 1;
+}
 
 std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
@@ -315,6 +405,70 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
   throw FbossError("Unsupported IP Type option");
 }
 
+sai_uint32_t SaiAclTableManager::cfgLookupClassToSaiMetaDataAndMaskHelper(
+    cfg::AclLookupClass lookupClass,
+    sai_uint32_t dstUserMetaDataRangeMin,
+    sai_uint32_t dstUserMetaDataRangeMax) const {
+  auto dstUserMetaData = static_cast<int>(lookupClass);
+  if (dstUserMetaData < dstUserMetaDataRangeMin ||
+      dstUserMetaData > dstUserMetaDataRangeMax) {
+    throw FbossError(
+        "attempted to configure dstUserMeta larger than supported by this ASIC",
+        dstUserMetaData,
+        " supported min: ",
+        dstUserMetaDataRangeMin,
+        " max: ",
+        dstUserMetaDataRangeMax);
+  }
+
+  return dstUserMetaData;
+}
+
+std::pair<sai_uint32_t, sai_uint32_t>
+SaiAclTableManager::cfgLookupClassToSaiFdbMetaDataAndMask(
+    cfg::AclLookupClass lookupClass) const {
+  if (platform_->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+    /*
+     * lookupClassL2 is not configured on Trident2 or else the ASIC runs out
+     * of resources. lookupClassL2 is needed for MH-NIC queue-per-host
+     * solution. However, the solution is not applicable for Trident2 as we
+     * don't implement queues on Trident2.
+     */
+    throw FbossError(
+        "attempted to configure lookupClassL2 on Trident2, not needed/supported");
+  }
+
+  return std::make_pair(
+      cfgLookupClassToSaiMetaDataAndMaskHelper(
+          lookupClass,
+          fdbDstUserMetaDataRangeMin_,
+          fdbDstUserMetaDataRangeMax_),
+      fdbDstUserMetaDataMask_);
+}
+
+std::pair<sai_uint32_t, sai_uint32_t>
+SaiAclTableManager::cfgLookupClassToSaiRouteMetaDataAndMask(
+    cfg::AclLookupClass lookupClass) const {
+  return std::make_pair(
+      cfgLookupClassToSaiMetaDataAndMaskHelper(
+          lookupClass,
+          routeDstUserMetaDataRangeMin_,
+          routeDstUserMetaDataRangeMax_),
+      routeDstUserMetaDataMask_);
+}
+
+std::pair<sai_uint32_t, sai_uint32_t>
+SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
+    cfg::AclLookupClass lookupClass) const {
+  return std::make_pair(
+      cfgLookupClassToSaiMetaDataAndMaskHelper(
+          lookupClass,
+          neighborDstUserMetaDataRangeMin_,
+          neighborDstUserMetaDataRangeMax_),
+      neighborDstUserMetaDataMask_);
+}
+
 std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
     const SaiAclTableHandle* aclTableHandle,
     const cfg::TrafficCounter& trafficCount) {
@@ -580,36 +734,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta{std::nullopt};
 
   if (addedAclEntry->getLookupClass()) {
-    auto lookupClass =
-        static_cast<int>(addedAclEntry->getLookupClass().value());
     fieldRouteDstUserMeta =
         SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta{
-            AclEntryFieldU32(std::make_pair(lookupClass, kLookupClassMask))};
+            AclEntryFieldU32(cfgLookupClassToSaiRouteMetaDataAndMask(
+                addedAclEntry->getLookupClass().value()))};
     fieldNeighborDstUserMeta =
         SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta{
-            AclEntryFieldU32(std::make_pair(lookupClass, kLookupClassMask))};
+            AclEntryFieldU32(cfgLookupClassToSaiNeighborMetaDataAndMask(
+                addedAclEntry->getLookupClass().value()))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
-
   if (addedAclEntry->getLookupClassL2()) {
-    if (platform_->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-      /*
-       * lookupClassL2 is not configured on Trident2 or else the ASIC runs out
-       * of resources. lookupClassL2 is needed for MH-NIC queue-per-host
-       * solution. However, the solution is not applicable for Trident2 as we
-       * don't implement queues on Trident2.
-       */
-      throw FbossError(
-          "attempted to configure lookupClassL2 on Trident2, not needed/supported",
-          addedAclEntry->getID());
-    }
-    auto lookupClassL2 =
-        static_cast<int>(addedAclEntry->getLookupClassL2().value());
     fieldFdbDstUserMeta = SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta{
-        AclEntryFieldU32(std::make_pair(lookupClassL2, kLookupClassMask))};
+        AclEntryFieldU32(cfgLookupClassToSaiFdbMetaDataAndMask(
+            addedAclEntry->getLookupClassL2().value()))};
   }
 
   // TODO(skhare) Support all other ACL actions
