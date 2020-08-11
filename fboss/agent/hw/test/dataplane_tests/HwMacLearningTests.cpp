@@ -483,7 +483,6 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
     applyNewState(newState);
   }
 
- private:
   cfg::AclLookupClass kClassID() {
     return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
   }
@@ -625,6 +624,15 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
           numExpectedUpdates = 1;
           break;
       }
+      auto assertClassID =
+          [this](std::optional<cfg::AclLookupClass> lookupClass) {
+            auto macTable = getProgrammedState()
+                                ->getVlans()
+                                ->getVlanIf(kVlanID())
+                                ->getMacTable();
+            auto macEntry = macTable->getNodeIf(kSourceMac());
+            EXPECT_EQ(macEntry->getClassID(), lookupClass);
+          };
       // Wait for arbitrarily large (100) extra updates or 5 seconds
       // whichever is sooner
       auto updates = l2LearningObserver_.waitForLearningUpdates(
@@ -633,9 +641,11 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
       switch (op) {
         case MacOp::ASSOCIATE:
           EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          assertClassID(kClassID());
           break;
         case MacOp::DISSOASSOCIATE:
           EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          assertClassID(std::nullopt);
           break;
         case MacOp::DELETE:
           EXPECT_TRUE(wasMacLearnt(physPortDescr(), false));
