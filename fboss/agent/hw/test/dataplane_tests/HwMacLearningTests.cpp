@@ -18,6 +18,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
+#include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -466,6 +467,30 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+  void associateClassID() {
+    auto macEntry = std::make_shared<MacEntry>(kSourceMac(), physPortDescr());
+    auto state = getProgrammedState();
+    auto newState = MacTableUtils::updateOrAddEntryWithClassID(
+        state, kVlanID(), macEntry, kClassID());
+    applyNewState(newState);
+  }
+
+  void disassociateClassID() {
+    auto macEntry = std::make_shared<MacEntry>(kSourceMac(), physPortDescr());
+    auto state = getProgrammedState();
+    auto newState =
+        MacTableUtils::removeClassIDForEntry(state, kVlanID(), macEntry);
+    applyNewState(newState);
+  }
+
+ private:
+  cfg::AclLookupClass kClassID() {
+    return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
+  }
+
+  VlanID kVlanID() {
+    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  }
 };
 // Intent of this test is to attempt to learn large number of macs
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
@@ -559,6 +584,71 @@ TEST_F(HwMacLearningTest, VerifyHwToSwLearningForPort) {
 
 TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
   testSwToHwLearningHelper(physPortDescr());
+}
+
+TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
+  if (getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    // TODO - TH3 sends a lot of spurious l2 updates on MAC updates
+    // Harden our code and follow up with BRCM on this.
+    return;
+  }
+  auto setup = [this]() {
+    bringDownPort(masterLogicalPortIds()[1]);
+  };
+  auto verify = [this]() {
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
+    induceMacLearning(physPortDescr());
+    auto doMacOp = [this](MacOp op) {
+      l2LearningObserver_.reset();
+      auto numExpectedUpdates = 0;
+      switch (op) {
+        case MacOp::ASSOCIATE:
+          XLOG(INFO) << " Adding classs id to mac";
+          associateClassID();
+          break;
+        case MacOp::DISSOASSOCIATE:
+          XLOG(INFO) << " Removing classs id from mac";
+          disassociateClassID();
+          break;
+        case MacOp::DELETE:
+          XLOG(INFO) << " Removing mac";
+          // Force MAC aging to as fast a possible but min is still 1 second
+          utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+
+          // Verify if we get DELETE (aging) callback for VALIDATED entry
+          verifyL2TableCallback(
+              l2LearningObserver_.waitForLearningUpdates().front(),
+              physPortDescr(),
+              L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+              L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+          numExpectedUpdates = 1;
+          break;
+      }
+      // Wait for arbitrarily large (100) extra updates or 5 seconds
+      // whichever is sooner
+      auto updates = l2LearningObserver_.waitForLearningUpdates(
+          numExpectedUpdates + 100, 5);
+      EXPECT_EQ(updates.size(), numExpectedUpdates);
+      switch (op) {
+        case MacOp::ASSOCIATE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          break;
+        case MacOp::DISSOASSOCIATE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+          break;
+        case MacOp::DELETE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), false));
+          break;
+      }
+    };
+    doMacOp(MacOp::ASSOCIATE);
+    doMacOp(MacOp::DISSOASSOCIATE);
+    doMacOp(MacOp::DELETE);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class HwMacLearningMacMoveTest : public HwMacLearningTest {
