@@ -587,31 +587,29 @@ TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
 }
 
 TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
-  if (getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
-    // TODO - TH3 sends a lot of spurious l2 updates on MAC updates
-    // Harden our code and follow up with BRCM on this.
-    return;
-  }
-  auto setup = [this]() {
-    bringDownPort(masterLogicalPortIds()[1]);
-  };
+  auto setup = [this]() { bringDownPort(masterLogicalPortIds()[1]); };
   auto verify = [this]() {
+    bool isTH3 = getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
     enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
     induceMacLearning(physPortDescr());
-    auto doMacOp = [this](MacOp op) {
+    auto doMacOp = [this, isTH3](MacOp op) {
       l2LearningObserver_.reset();
       auto numExpectedUpdates = 0;
       switch (op) {
         case MacOp::ASSOCIATE:
           XLOG(INFO) << " Adding classs id to mac";
           associateClassID();
+          // TH3 generates a delete and add on class ID update
+          numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DISSOASSOCIATE:
           XLOG(INFO) << " Removing classs id from mac";
           disassociateClassID();
+          // TH3 generates a delete and add on class ID update
+          numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DELETE:
           XLOG(INFO) << " Removing mac";
