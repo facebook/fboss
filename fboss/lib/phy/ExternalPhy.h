@@ -134,6 +134,14 @@ class ExternalPhy {
     // optionally overridable by subclasses
     return true;
   }
+
+  virtual PhyPortConfig getConfigOnePort(
+      const std::vector<uint32_t>& /* sysLanes */,
+      const std::vector<uint32_t>& /* lineLanes */) {
+    // optionally overridable by subclasses
+    PhyPortConfig config;
+    return config;
+  }
   // loopback
   virtual Loopback getLoopback(Side side) = 0;
   virtual void setLoopback(Side side, Loopback loopback) = 0;
