@@ -43,6 +43,14 @@ std::pair<std::string, cfg::PortProfileID> getMappingNameAndProfileID(
   }
 }
 
+std::vector<sai_uint32_t> getTxSetting(
+    const std::vector<phy::TxSettings>& tx,
+    std::function<sai_uint32_t(phy::TxSettings)> func) {
+  std::vector<sai_uint32_t> result{};
+  std::transform(tx.begin(), tx.end(), std::back_inserter(result), func);
+  return result;
+}
+
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -287,5 +295,56 @@ void verifyInterfaceMode(
       SaiPortTraits::Attributes::InterfaceType{});
   EXPECT_EQ(expectedInterfaceType, programmedInterfaceType);
 #endif
+}
+
+void verifyTxSettting(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* saiPlatform = static_cast<SaiPlatform*>(platform);
+  if (!saiPlatform->isSerdesApiSupported()) {
+    return;
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto* saiPortHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+  auto serdes = saiPortHandle->serdes;
+
+  auto txSettings = saiPlatform->getPlatformPortTxSettings(portID, profileID);
+
+  if (!serdes) {
+    EXPECT_TRUE(txSettings.empty());
+    return;
+  }
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  auto pre = portApi.getAttribute(
+      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre1{});
+  auto main = portApi.getAttribute(
+      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirMain{});
+  auto post = portApi.getAttribute(
+      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
+  auto driverCurrent = portApi.getAttribute(
+      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::IDriver{});
+
+  auto expectedPre = getTxSetting(txSettings, [](phy::TxSettings tx) {
+    return static_cast<sai_uint32_t>(*tx.pre_ref());
+  });
+  auto expectedMain = getTxSetting(txSettings, [](phy::TxSettings tx) {
+    return static_cast<sai_uint32_t>(*tx.main_ref());
+  });
+  auto expectedPost = getTxSetting(txSettings, [](phy::TxSettings tx) {
+    return static_cast<sai_uint32_t>(*tx.post_ref());
+  });
+  auto expectedDriverCurrent =
+      getTxSetting(txSettings, [](phy::TxSettings tx) -> sai_uint32_t {
+        if (auto driveCurrent = tx.driveCurrent_ref()) {
+          return driveCurrent.value();
+        }
+        return 0;
+      });
+  EXPECT_EQ(pre, expectedPre);
+  EXPECT_EQ(main, expectedMain);
+  EXPECT_EQ(post, expectedPost);
+  EXPECT_EQ(driverCurrent, expectedDriverCurrent);
 }
 } // namespace facebook::fboss::utility

@@ -295,4 +295,36 @@ void verifyInterfaceMode(
   }
 }
 
+void verifyTxSettting(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
+  auto platformPort = platform->getPlatformPort(portID);
+  const auto& iphyConfigs = platformPort->getIphyPinConfigs(profileID);
+  int minLane = -1;
+  for (const auto& iphy : iphyConfigs) {
+    if (minLane < 0 || iphy.get_id().get_lane() < minLane) {
+      minLane = iphy.get_id().get_lane();
+    }
+  }
+  for (const auto& iphy : iphyConfigs) {
+    auto expectedTx = iphy.tx_ref();
+    if (!expectedTx.has_value()) {
+      continue;
+    }
+
+    auto lane = iphy.get_id().get_lane() - minLane;
+    auto* bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
+    auto programmedTx = bcmPort->getTxSettingsForLane(lane);
+    EXPECT_EQ(*programmedTx.pre_ref(), *expectedTx->pre_ref());
+    EXPECT_EQ(*programmedTx.main_ref(), *expectedTx->main_ref());
+    EXPECT_EQ(*programmedTx.post_ref(), *expectedTx->post_ref());
+    EXPECT_EQ(*programmedTx.pre2_ref(), *expectedTx->pre2_ref());
+    if (auto programmedDC = expectedTx->driveCurrent_ref()) {
+      EXPECT_EQ(*programmedDC, *expectedTx->driveCurrent_ref());
+    }
+  }
+}
+
 } // namespace facebook::fboss::utility

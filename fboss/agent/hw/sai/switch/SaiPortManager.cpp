@@ -664,7 +664,7 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
   std::optional<SaiPortSerdesTraits::Attributes::IDriver::ValueType> iDriver;
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType pre1;
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType main;
-  SaiPortSerdesTraits::Attributes::TxFirPost2::ValueType post1;
+  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType post1;
   for (auto& tx : txSettings) {
     pre1.push_back(*tx.pre_ref());
     main.push_back(*tx.main_ref());

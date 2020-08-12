@@ -98,5 +98,10 @@ void verifyInterfaceMode(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform);
+
+void verifyTxSettting(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform);
 } // namespace utility
 } // namespace facebook::fboss
