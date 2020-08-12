@@ -142,6 +142,8 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
         sai_u32_range_t>;
+    using EcnEctThresholdEnable =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE, bool>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -190,6 +192,7 @@ SAI_ATTRIBUTE_NAME(Switch, AclEntryMinimumPriority)
 SAI_ATTRIBUTE_NAME(Switch, AclEntryMaximumPriority)
 
 SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
+SAI_ATTRIBUTE_NAME(Switch, EcnEctThresholdEnable)
 
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
