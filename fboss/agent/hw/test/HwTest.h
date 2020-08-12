@@ -94,9 +94,7 @@ class HwTest : public ::testing::Test,
   }
 
   virtual std::optional<std::map<PortID, TransceiverInfo>>
-  port2transceiverInfoMap() const {
-    return std::nullopt;
-  }
+  port2transceiverInfoMap() const;
 
   template <
       typename SETUP_FN,

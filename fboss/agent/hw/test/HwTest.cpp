@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
@@ -162,6 +163,15 @@ HwPortStats HwTest::getLatestPortStats(PortID port) {
 std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   return hwSwitchEnsemble_->getLatestPortStats(ports);
+}
+
+std::optional<std::map<PortID, TransceiverInfo>>
+HwTest::port2transceiverInfoMap() const {
+  std::map<PortID, TransceiverInfo> result{};
+  for (auto port : masterLogicalPortIds()) {
+    result.emplace(port, utility::getTransceiverInfo(port));
+  }
+  return result;
 }
 
 } // namespace facebook::fboss
