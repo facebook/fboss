@@ -42,6 +42,26 @@ MacTable* MacTable::modify(VlanID vlanID, std::shared_ptr<SwitchState>* state) {
   return modify(&vlanPtr, state);
 }
 
+void MacTable::updateEntry(
+    folly::MacAddress mac,
+    PortDescriptor portDescr,
+    std::optional<cfg::AclLookupClass> classID,
+    MacEntryType type) {
+  CHECK(!this->isPublished());
+  auto& nodes = this->writableNodes();
+  auto it = nodes.find(mac);
+  if (it == nodes.end()) {
+    throw FbossError("Mac entry for ", mac.toString(), " does not exist");
+  }
+  auto entry = it->second->clone();
+
+  entry->setMac(mac);
+  entry->setPort(portDescr);
+  entry->setClassID(classID);
+  entry->setType(type);
+  it->second = entry;
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(MacTable, MacTableTraits);
 
 } // namespace facebook::fboss

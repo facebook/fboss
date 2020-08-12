@@ -115,6 +115,10 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
     return getFields()->type_;
   }
 
+  void setType(MacEntryType type) {
+    writableFields()->type_ = type;
+  }
+
   std::string str() const;
 
  private:

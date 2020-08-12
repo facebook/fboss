@@ -58,7 +58,9 @@ std::string MacEntry::str() const {
       : "None";
 
   os << "MacEntry:: MAC: " << getMac().toString() << " " << getPort().str()
-     << " classID: " << classIDStr;
+     << " classID: " << classIDStr << " "
+     << " type: "
+     << (getType() == MacEntryType::STATIC_ENTRY ? "static" : "dynamic");
 
   return os.str();
 }
