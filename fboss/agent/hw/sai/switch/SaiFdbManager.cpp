@@ -140,11 +140,20 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
   if (macEntry->getClassID()) {
     metadata = static_cast<sai_uint32_t>(macEntry->getClassID().value());
   }
+  auto type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
+  switch (macEntry->getType()) {
+    case MacEntryType::STATIC_ENTRY:
+      type = SAI_FDB_ENTRY_TYPE_STATIC;
+      break;
+    case MacEntryType::DYNAMIC_ENTRY:
+      type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
+      break;
+  };
   addFdbEntry(
       macEntry->getPort().phyPortID(),
       getInterfaceId(macEntry),
       macEntry->getMac(),
-      SAI_FDB_ENTRY_TYPE_DYNAMIC,
+      type,
       metadata);
 }
 
