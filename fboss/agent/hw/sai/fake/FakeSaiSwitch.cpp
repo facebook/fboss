@@ -96,6 +96,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_FDB_AGING_TIME:
       sw.setMacAgingTime(attr->value.u32);
       break;
+    case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
+      sw.setEcnEctThresholdEnable(attr->value.booldata);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -230,6 +233,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE:
         attr[i].value.u32range.min = kDefaultNeighborDstUserMetaDataRangeMin;
         attr[i].value.u32range.max = kDefaultNeighborDstUserMetaDataRangeMax;
+        break;
+      case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
+        attr[i].value.booldata = sw.getEcnEctThresholdEnable();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
