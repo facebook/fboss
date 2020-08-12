@@ -248,6 +248,11 @@ class Platform {
     return platformMapping_.get();
   }
 
+  void setPort2OverrideTransceiverInfo(
+      const std::map<PortID, TransceiverInfo>& port2TransceiverInfo);
+  std::optional<std::map<PortID, TransceiverInfo>>
+  getPort2OverrideTransceiverInfo() const;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is
@@ -266,6 +271,11 @@ class Platform {
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;
   const std::unique_ptr<PlatformMapping> platformMapping_;
+  // the map to transceiver info for ports, this is to be used only for HwTests
+  // under test environment, qsfp may be unavailable and this map is to mock
+  // possible transceiver info data qsfp may returns
+  std::optional<std::map<PortID, TransceiverInfo>>
+      port2OverrideTransceiverInfo_;
 };
 
 } // namespace facebook::fboss

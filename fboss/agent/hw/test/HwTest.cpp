@@ -85,6 +85,10 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired());
+  if (auto map = port2transceiverInfoMap()) {
+    hwSwitchEnsemble_->getPlatform()->setPort2OverrideTransceiverInfo(
+        map.value());
+  }
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
     // For warm boots, in wedge_agent at this point we would

@@ -92,6 +92,12 @@ class HwTest : public ::testing::Test,
   virtual HwSwitchEnsemble::Features featuresDesired() const {
     return {};
   }
+
+  virtual std::optional<std::map<PortID, TransceiverInfo>>
+  port2transceiverInfoMap() const {
+    return std::nullopt;
+  }
+
   template <
       typename SETUP_FN,
       typename VERIFY_FN,

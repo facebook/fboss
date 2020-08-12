@@ -166,4 +166,13 @@ phy::FecMode Platform::getPhyFecMode(cfg::PortProfileID profileID) const {
   return profile->iphy.fec;
 }
 
+void Platform::setPort2OverrideTransceiverInfo(
+    const std::map<PortID, TransceiverInfo>& port2TransceiverInfo) {
+  port2OverrideTransceiverInfo_.emplace(port2TransceiverInfo);
+}
+
+std::optional<std::map<PortID, TransceiverInfo>>
+Platform::getPort2OverrideTransceiverInfo() const {
+  return port2OverrideTransceiverInfo_;
+}
 } // namespace facebook::fboss
