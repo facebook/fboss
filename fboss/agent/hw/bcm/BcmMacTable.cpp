@@ -62,6 +62,9 @@ void BcmMacTable::programMacEntry(const MacEntry* macEntry, VlanID vlan) {
 
   bcm_l2_addr_t_init(&l2Addr, macBytes, vlan);
   l2Addr.flags = BCM_L2_NATIVE;
+  if (macEntry->getType() == MacEntryType::STATIC_ENTRY) {
+    l2Addr.flags |= BCM_L2_STATIC;
+  }
   l2Addr.group = classID;
 
   if (macEntry->getPort().isPhysicalPort()) {
