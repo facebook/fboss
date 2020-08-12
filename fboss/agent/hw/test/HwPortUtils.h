@@ -93,5 +93,10 @@ void updateFlexConfig(
     FlexPortMode flexMode,
     std::vector<PortID> allPortsinGroup,
     const Platform* platform);
+
+void verifyInterfaceMode(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform);
 } // namespace utility
 } // namespace facebook::fboss

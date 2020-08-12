@@ -54,6 +54,11 @@ class SaiFakePlatform : public SaiPlatform {
     return false;
   }
 
+  bool supportInterfaceType() const override {
+    // TODO: add support in fake
+    return false;
+  }
+
  private:
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;

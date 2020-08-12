@@ -82,6 +82,8 @@ class SaiPlatform : public Platform, public StateObserver {
     return true;
   }
 
+  virtual bool supportInterfaceType() const = 0;
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   virtual std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,

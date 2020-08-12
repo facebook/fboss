@@ -33,6 +33,9 @@ class SaiBcmPlatform : public SaiHwPlatform {
   bool isSerdesApiSupported() override {
     return false;
   }
+  bool supportInterfaceType() const override {
+    return true;
+  }
 };
 
 } // namespace facebook::fboss

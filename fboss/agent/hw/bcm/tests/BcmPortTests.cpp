@@ -396,62 +396,6 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmPortTest, AssertMode) {
-  auto setup = [this]() { applyNewConfig(initialConfig()); };
-  auto verify = [this]() {
-    for (const auto& port : *getProgrammedState()->getPorts()) {
-      if (!port->isEnabled()) {
-        continue;
-      }
-      auto platformPort = getHwSwitch()
-                              ->getPortTable()
-                              ->getBcmPort(port->getID())
-                              ->getPlatformPort();
-
-      int speed;
-      auto rv = bcm_port_speed_get(getUnit(), port->getID(), &speed);
-      bcmCheckError(
-          rv, "Failed to get current speed for port ", port->getName());
-      if (!platformPort->shouldUsePortResourceAPIs()) {
-        bcm_port_if_t curMode = bcm_port_if_t(0);
-        auto ret = bcm_port_interface_get(getUnit(), port->getID(), &curMode);
-        bcmCheckError(
-            ret,
-            "Failed to get current interface setting for port ",
-            port->getName());
-        // TODO - Feed other transmitter technology, speed and build a
-        // exhaustive set of speed, transmitter tech to test for
-        auto expectedMode = getSpeedToTransmitterTechAndMode()
-                                .at(cfg::PortSpeed(speed))
-                                .at(platformPort->getTransmitterTech().value());
-        EXPECT_EQ(expectedMode, curMode);
-      } else {
-        // On platforms that use port resource APIs, phy lane config determines
-        // the interface mode.
-        bcm_port_resource_t portResource;
-        auto ret =
-            bcm_port_resource_get(getUnit(), port->getID(), &portResource);
-        bcmCheckError(
-            ret,
-            "Failed to get current port resource settings for: ",
-            port->getName());
-
-        const auto profileConf =
-            getPlatform()->getPortProfileConfig(port->getProfileID());
-        if (!profileConf) {
-          throw FbossError(
-              "Platform doesn't support speed profile: ",
-              apache::thrift::util::enumNameSafe(port->getProfileID()));
-        }
-        auto expectedPhyLaneConfig =
-            utility::getDesiredPhyLaneConfig(*profileConf);
-        EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
-      }
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(BcmPortTest, AssertL3Enabled) {
   // Enable all master ports
   auto setup = [this]() {

@@ -10,7 +10,12 @@
 #include "fboss/agent/hw/test/HwPortUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+
+#include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
 #include <bcm/port.h>
@@ -245,6 +250,48 @@ void assertSINGLEMode(
     if (enabled || !hw->getPlatform()->supportsAddRemovePort()) {
       utility::assertPort(hw, *portItr, enabled, speed);
     }
+  }
+}
+
+void verifyInterfaceMode(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
+  auto platformPort =
+      bcmSwitch->getPortTable()->getBcmPort(portID)->getPlatformPort();
+
+  int speed;
+  auto rv = bcm_port_speed_get(bcmSwitch->getUnit(), portID, &speed);
+  bcmCheckError(rv, "Failed to get current speed for port ", portID);
+  if (!platformPort->shouldUsePortResourceAPIs()) {
+    bcm_port_if_t curMode = bcm_port_if_t(0);
+    auto ret = bcm_port_interface_get(bcmSwitch->getUnit(), portID, &curMode);
+    bcmCheckError(
+        ret, "Failed to get current interface setting for port ", portID);
+    // TODO - Feed other transmitter technology, speed and build a
+    // exhaustive set of speed, transmitter tech to test for
+    auto expectedMode = getSpeedToTransmitterTechAndMode()
+                            .at(cfg::PortSpeed(speed))
+                            .at(platformPort->getTransmitterTech().value());
+    EXPECT_EQ(expectedMode, curMode);
+  } else {
+    // On platforms that use port resource APIs, phy lane config determines
+    // the interface mode.
+    bcm_port_resource_t portResource;
+    auto ret =
+        bcm_port_resource_get(bcmSwitch->getUnit(), portID, &portResource);
+    bcmCheckError(
+        ret, "Failed to get current port resource settings for: ", portID);
+
+    const auto profileConf = platform->getPortProfileConfig(profileID);
+    if (!profileConf) {
+      throw FbossError(
+          "Platform doesn't support speed profile: ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
+    auto expectedPhyLaneConfig = utility::getDesiredPhyLaneConfig(*profileConf);
+    EXPECT_EQ(expectedPhyLaneConfig, portResource.phy_lane_config);
   }
 }
 

@@ -17,6 +17,8 @@
 
 #include "fboss/agent/FbossError.h"
 
+#include <gtest/gtest.h>
+
 namespace facebook::fboss::utility {
 
 namespace {
@@ -258,4 +260,32 @@ void assertSINGLEMode(
   utility::assertPort(hw, allPortsinGroup[0], true, enabledLaneSpeed);
 }
 
+void verifyInterfaceMode(
+    PortID portID,
+    cfg::PortProfileID /*profileID*/,
+    Platform* platform) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
+  auto* saiPlatform = static_cast<SaiPlatform*>(platform);
+  if (!saiPlatform->supportInterfaceType()) {
+    return;
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto* saiPlatformPort =
+      static_cast<SaiPlatformPort*>(saiPlatform->getPlatformPort(portID));
+  auto* saiPortHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  auto speed = portApi.getAttribute(
+      saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::Speed{});
+
+  auto expectedInterfaceType = saiPlatform->getInterfaceType(
+      saiPlatformPort->getTransmitterTech(),
+      static_cast<cfg::PortSpeed>(speed));
+  auto programmedInterfaceType = portApi.getAttribute(
+      saiPortHandle->port->adapterKey(),
+      SaiPortTraits::Attributes::InterfaceType{});
+  EXPECT_EQ(expectedInterfaceType, programmedInterfaceType);
+#endif
+}
 } // namespace facebook::fboss::utility
