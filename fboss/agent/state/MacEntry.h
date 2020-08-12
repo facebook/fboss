@@ -23,12 +23,15 @@
 
 namespace facebook::fboss {
 
+enum class MacEntryType : uint8_t { DYNAMIC_ENTRY, STATIC_ENTRY };
+
 struct MacEntryFields {
   MacEntryFields(
       folly::MacAddress mac,
       PortDescriptor portDescr,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt)
-      : mac_(mac), portDescr_(portDescr), classID_(classID) {}
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      MacEntryType type = MacEntryType::DYNAMIC_ENTRY)
+      : mac_(mac), portDescr_(portDescr), classID_(classID), type_(type) {}
 
   template <typename Fn>
   void forEachChild(Fn) {}
@@ -39,12 +42,17 @@ struct MacEntryFields {
   folly::MacAddress mac_;
   PortDescriptor portDescr_;
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
+  MacEntryType type_{MacEntryType::DYNAMIC_ENTRY};
 };
 
 class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
  public:
-  explicit MacEntry(folly::MacAddress mac, PortDescriptor portDescr)
-      : NodeBaseT(mac, portDescr) {}
+  MacEntry(
+      folly::MacAddress mac,
+      PortDescriptor portDescr,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      MacEntryType type = MacEntryType::DYNAMIC_ENTRY)
+      : NodeBaseT(mac, portDescr, classID, type) {}
 
   static std::shared_ptr<MacEntry> fromFollyDynamic(
       const folly::dynamic& json) {
@@ -60,10 +68,15 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
     return getFields()->toFollyDynamic();
   }
 
-  bool operator==(const MacEntry& macEntry) {
+  bool operator==(const MacEntry& macEntry) const {
     return getFields()->mac_ == macEntry.getMac() &&
         getFields()->portDescr_ == macEntry.getPort() &&
-        getFields()->classID_ == macEntry.getClassID();
+        getFields()->classID_ == macEntry.getClassID() &&
+        getFields()->type_ == macEntry.getType();
+  }
+
+  bool operator!=(const MacEntry& other) const {
+    return !(*this == other);
   }
 
   folly::MacAddress getMac() const {
@@ -96,6 +109,10 @@ class MacEntry : public NodeBaseT<MacEntry, MacEntryFields> {
 
   void setPortDescriptor(PortDescriptor portDescr) {
     writableFields()->portDescr_ = portDescr;
+  }
+
+  MacEntryType getType() const {
+    return getFields()->type_;
   }
 
   std::string str() const;
