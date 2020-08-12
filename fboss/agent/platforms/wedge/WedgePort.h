@@ -99,6 +99,8 @@ class WedgePort : public BcmPlatformPort {
 
   BcmPortGroup::LaneMode getLaneMode() const;
 
+  folly::Future<TransceiverInfo> getTransceiverInfo() const override;
+
  protected:
   bool isControllingPort() const;
 
@@ -112,8 +114,6 @@ class WedgePort : public BcmPlatformPort {
   // Forbidden copy constructor and assignment operator
   WedgePort(WedgePort const&) = delete;
   WedgePort& operator=(WedgePort const&) = delete;
-
-  folly::Future<TransceiverInfo> getTransceiverInfo() const;
 
   // Get Transceiver lanes from config
   // Return std::nullopt if there's no platform config

@@ -171,6 +171,8 @@ class PlatformPort {
    */
   virtual void externalState(PortLedExternalState) = 0;
 
+  virtual folly::Future<TransceiverInfo> getTransceiverInfo() const = 0;
+
  private:
   PortID id_{0};
   Platform* platform_{nullptr};

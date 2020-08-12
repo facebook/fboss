@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sim/SimPlatformPort.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sim/SimPlatform.h"
 
 namespace facebook::fboss {
@@ -42,5 +43,13 @@ bool SimPlatformPort::shouldDisableFEC() const {
 
 std::optional<TransceiverID> SimPlatformPort::getTransceiverID() const {
   return std::nullopt;
+}
+
+folly::Future<TransceiverInfo> SimPlatformPort::getTransceiverInfo() const {
+  if (auto transceiver =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    return transceiver.value();
+  }
+  throw FbossError("failed to get transceiver info for ", getPortID());
 }
 } // namespace facebook::fboss

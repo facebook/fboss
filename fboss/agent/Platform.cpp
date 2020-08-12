@@ -175,4 +175,18 @@ std::optional<std::map<PortID, TransceiverInfo>>
 Platform::getPort2OverrideTransceiverInfo() const {
   return port2OverrideTransceiverInfo_;
 }
+
+std::optional<TransceiverInfo> Platform::getOverrideTransceiverInfo(
+    PortID port) const {
+  if (!port2OverrideTransceiverInfo_) {
+    return std::nullopt;
+  }
+  // only for test environments this will be set, to avoid querying QSFP in
+  // HwTest
+  auto iter = port2OverrideTransceiverInfo_->find(port);
+  if (iter == port2OverrideTransceiverInfo_->end()) {
+    return std::nullopt;
+  }
+  return iter->second;
+}
 } // namespace facebook::fboss

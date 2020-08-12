@@ -253,6 +253,8 @@ class Platform {
   std::optional<std::map<PortID, TransceiverInfo>>
   getPort2OverrideTransceiverInfo() const;
 
+  std::optional<TransceiverInfo> getOverrideTransceiverInfo(PortID port) const;
+
  private:
   /*
    * Subclasses can override this to do custom initialization. This is

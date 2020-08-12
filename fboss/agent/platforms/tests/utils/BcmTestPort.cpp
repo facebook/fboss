@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestPort.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 namespace facebook::fboss {
@@ -64,5 +65,13 @@ void BcmTestPort::statusIndication(
     bool /*errors*/) {}
 
 void BcmTestPort::prepareForGracefulExit() {}
+
+folly::Future<TransceiverInfo> BcmTestPort::getTransceiverInfo() const {
+  if (auto transceiver =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    return transceiver.value();
+  }
+  throw FbossError("failed to get transceiver info for ", getPortID());
+}
 
 } // namespace facebook::fboss

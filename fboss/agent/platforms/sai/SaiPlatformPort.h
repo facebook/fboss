@@ -54,6 +54,8 @@ class SaiPlatformPort : public PlatformPort {
   std::vector<phy::PinConfig> getIphyPinConfigs(
       cfg::PortProfileID profileID) const override;
 
+  folly::Future<TransceiverInfo> getTransceiverInfo() const override;
+
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;
   folly::Future<TransmitterTechnology> getTransmitterTechInternal(

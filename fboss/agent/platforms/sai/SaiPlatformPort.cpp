@@ -141,9 +141,7 @@ SaiPlatformPort::getTransmitterTechInternal(folly::EventBase* evb) {
               << " Exception: " << folly::exceptionStr(e);
     return TransmitterTechnology::UNKNOWN;
   };
-  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
-  folly::Future<TransceiverInfo> transceiverInfo =
-      qsfpCache->futureGet(getTransceiverID().value());
+  folly::Future<TransceiverInfo> transceiverInfo = getTransceiverInfo();
   return transceiverInfo.via(evb).thenValueInline(getTech).thenError(
       std::move(handleError));
 }
@@ -210,9 +208,7 @@ folly::Future<std::optional<Cable>> SaiPlatformPort::getCableInfoInternal(
               << " Exception: " << folly::exceptionStr(e);
     return std::nullopt;
   };
-  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
-  folly::Future<TransceiverInfo> transceiverInfo =
-      qsfpCache->futureGet(getTransceiverID().value());
+  folly::Future<TransceiverInfo> transceiverInfo = getTransceiverInfo();
   return transceiverInfo.via(evb).thenValueInline(getCable).thenError(
       std::move(handleError));
 }
@@ -220,6 +216,18 @@ folly::Future<std::optional<Cable>> SaiPlatformPort::getCableInfoInternal(
 std::optional<Cable> SaiPlatformPort::getCableInfo() const {
   folly::EventBase evb;
   return getCableInfoInternal(&evb).getVia(&evb);
+}
+
+folly::Future<TransceiverInfo> SaiPlatformPort::getTransceiverInfo() const {
+  // use this method to query transceiver info
+  // for hw test, it uses a map populated by switch ensemble to return
+  // transceiver information
+  if (auto transceiver =
+          getPlatform()->getOverrideTransceiverInfo(getPortID())) {
+    return transceiver.value();
+  }
+  auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
+  return qsfpCache->futureGet(getTransceiverID().value());
 }
 
 } // namespace facebook::fboss
