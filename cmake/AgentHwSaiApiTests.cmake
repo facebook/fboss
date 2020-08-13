@@ -1,4 +1,4 @@
-# CMake to build libraries and binaries in fboss/agent/hw/bcm
+# CMake to build libraries and binaries in fboss/agent/hw/sai/api/tests
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
