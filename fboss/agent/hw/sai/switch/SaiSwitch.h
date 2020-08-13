@@ -98,11 +98,8 @@ class SaiSwitch : public HwSwitch {
   /*
    * This method is not thread safe, it should only be used
    * from the SAI adapter's rx callback caller thread.
-   *
-   * It immediately runs packetRxCallbackBottomHalf with the
-   * same arguments on rxBottomHalfEventBase_
    */
-  void packetRxCallbackTopHalf(
+  void packetRxCallback(
       SwitchSaiId switch_id,
       sai_size_t buffer_size,
       const void* buffer,
@@ -198,11 +195,6 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
 
-  void packetRxCallbackBottomHalf(
-      SwitchSaiId switch_id,
-      std::unique_ptr<folly::IOBuf> ioBuf,
-      std::vector<sai_attribute_t> attrList);
-
   template <typename ManagerT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,
@@ -284,6 +276,12 @@ class SaiSwitch : public HwSwitch {
    * of date indices stored in folly::ConcurrentHashMaps in ConcurrentIndices
    * e.g., rx can look up the PortID from the sai_object_id_t on the
    * packet without blocking normal hardware programming.
+   *
+   * By using the concurent hashmap, Rx and Tx path is lock free. Running Tx/Rx
+   * in a separate eventbase thread severely affects the slow path performance.
+   * Handling Rx in single thread improved the performance to be on-par with
+   * native bcm. Handling Tx without eventbase thread improved the
+   * performance by 2000 pps.
    */
   mutable std::mutex saiSwitchMutex_;
   std::unique_ptr<ConcurrentIndices> concurrentIndices_;
@@ -302,9 +300,6 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
   folly::EventBase linkStateBottomHalfEventBase_;
-
-  std::unique_ptr<std::thread> rxBottomHalfThread_;
-  folly::EventBase rxBottomHalfEventBase_;
 
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 };

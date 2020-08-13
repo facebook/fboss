@@ -95,7 +95,7 @@ void __gPacketRxCallback(
     const void* buffer,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  __gSaiSwitch->packetRxCallbackTopHalf(
+  __gSaiSwitch->packetRxCallback(
       SwitchSaiId{switch_id}, buffer_size, buffer, attr_count, attr_list);
 }
 
@@ -183,13 +183,6 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     linkStateBottomHalfEventBase_.terminateLoopSoon();
     linkStateBottomHalfThread_->join();
     // link scan is completely shut-off
-  }
-  // rx is turned off and the evb loop is set to break
-  // just need to block until the last packet is processed
-  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-    rxBottomHalfEventBase_.terminateLoopSoon();
-    rxBottomHalfThread_->join();
-    // rx is completely shut-off
   }
 }
 
@@ -510,26 +503,6 @@ cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
   return getPortMaxSpeedLocked(lock, port);
 }
 
-void SaiSwitch::packetRxCallbackTopHalf(
-    SwitchSaiId switch_id,
-    sai_size_t buffer_size,
-    const void* buffer,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  std::vector<sai_attribute_t> attrList;
-  attrList.resize(attr_count);
-  std::copy(attr_list, attr_list + attr_count, attrList.data());
-  std::unique_ptr<folly::IOBuf> ioBuf =
-      folly::IOBuf::copyBuffer(buffer, buffer_size);
-  rxBottomHalfEventBase_.runInEventBaseThread(
-      [this,
-       switch_id,
-       ioBufTmp = std::move(ioBuf),
-       attrListTmp = std::move(attrList)]() mutable {
-        packetRxCallbackBottomHalf(switch_id, std::move(ioBufTmp), attrListTmp);
-      });
-}
-
 void SaiSwitch::linkStateChangedCallbackTopHalf(
     uint32_t count,
     const sai_port_oper_status_notification_t* operStatus) {
@@ -713,24 +686,17 @@ void SaiSwitch::initLinkScanLocked(
       switchId_, __glinkStateChangedNotification);
 }
 
-void SaiSwitch::initRxLocked(const std::lock_guard<std::mutex>& /* lock */) {
-  rxBottomHalfThread_ = std::make_unique<std::thread>([this]() {
-    initThread("fbossSaiRxBH");
-    rxBottomHalfEventBase_.loopForever();
-  });
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
-}
-
-void SaiSwitch::packetRxCallbackBottomHalf(
-    SwitchSaiId /* unused */,
-    std::unique_ptr<folly::IOBuf> ioBuf,
-    std::vector<sai_attribute_t> attrList) {
+void SaiSwitch::packetRxCallback(
+    SwitchSaiId /* switch_id */,
+    sai_size_t buffer_size,
+    const void* buffer,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
   std::optional<PortSaiId> portSaiIdOpt;
-  for (auto attr : attrList) {
-    switch (attr.id) {
+  for (uint32_t index = 0; index < attr_count; index++) {
+    switch (attr_list[index].id) {
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_PORT:
-        portSaiIdOpt = attr.value.oid;
+        portSaiIdOpt = attr_list[index].value.oid;
         break;
       case SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG:
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TRAP_ID:
@@ -739,7 +705,6 @@ void SaiSwitch::packetRxCallbackBottomHalf(
         XLOG(INFO) << "invalid attribute received";
     }
   }
-  folly::io::Cursor c0(ioBuf.get());
   CHECK(portSaiIdOpt);
   PortSaiId portSaiId{portSaiIdOpt.value()};
 
@@ -748,7 +713,6 @@ void SaiSwitch::packetRxCallbackBottomHalf(
     // TODO: add counter to keep track of spurious rx packet
     XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
               << portSaiId;
-    XLOG(DBG6) << PktUtil::hexDump(c0);
     return;
   }
   PortID swPortId = portItr->second;
@@ -757,14 +721,15 @@ void SaiSwitch::packetRxCallbackBottomHalf(
   if (vlanItr == concurrentIndices_->vlanIds.cend()) {
     XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
               << portSaiId;
-    XLOG(DBG6) << PktUtil::hexDump(c0);
     return;
   }
   VlanID swVlanId = vlanItr->second;
 
   XLOG(DBG6) << "Rx packet on port: " << swPortId << " and vlan: " << swVlanId;
-  auto rxPacket = std::make_unique<SaiRxPacket>(
-      ioBuf->length(), ioBuf->writableData(), swPortId, swVlanId);
+  auto rxPacket =
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
+  folly::io::Cursor c0(rxPacket->buf());
+  XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
 }
 
@@ -985,7 +950,8 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         initLinkScanLocked(lock);
       }
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-        initRxLocked(lock);
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
       }
     } break;
     default:
