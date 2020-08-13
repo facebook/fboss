@@ -3,5 +3,6 @@ namespace py.asyncio neteng.fboss.asyncio.bcm_config
 namespace cpp2 facebook.fboss.bcm
 
 struct BcmConfig {
-  1: map<string, string> config
+  1: map<string, string> config,
+  2: optional string yamlConfig,
 }
