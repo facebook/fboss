@@ -117,9 +117,7 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
   utilCreateDir(platform_->getPersistentStateDir());
 }
 
-SaiSwitch::~SaiSwitch() {
-  stopNonCallbackThreads();
-}
+SaiSwitch::~SaiSwitch() {}
 
 HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   HwInitResult ret;
@@ -457,22 +455,6 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
     XLOG(ERR) << " Asic does not support warm boot, skipping graceful exit";
     return;
   }
-  /*
-   Callback threads need to be stopped without holding the lock.
-   Reason being that these threads themselves acquire the mutex while
-   doing their work. So an example deadlock scenario would be
-    (T0 = main event base,T1 = asyncTxEventBase)
-    T0: SaiSwitch::sendPacketSwitchedAsync()
-    T0: enqueue a lambda on asyncTxEventBase_;
-    T0: receive shutdown signal, take mutex, call gracefulExitLocked
-    T1: lambda runs, blocks trying to lock the mutex
-    T0: in stopThreadsLocked, call asyncTxEventBase_.terminateLoopSoon
-    T1: (still blocked on the mutex, can't make progress)
-    T0: call asyncTxThread_->join, block on T1
-    T1: (still blocked on the mutex)
-    which is a deadlock.
-  */
-  stopNonCallbackThreads();
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   gracefulExitLocked(switchState, lock);
 }
@@ -740,14 +722,6 @@ void SaiSwitch::initRxLocked(const std::lock_guard<std::mutex>& /* lock */) {
   switchApi.registerRxCallback(switchId_, __gPacketRxCallback);
 }
 
-void SaiSwitch::initAsyncTxLocked(
-    const std::lock_guard<std::mutex>& /* lock */) {
-  asyncTxThread_ = std::make_unique<std::thread>([this]() {
-    initThread("fbossSaiAsyncTx");
-    asyncTxEventBase_.loopForever();
-  });
-}
-
 void SaiSwitch::packetRxCallbackBottomHalf(
     SwitchSaiId /* unused */,
     std::unique_ptr<folly::IOBuf> ioBuf,
@@ -949,13 +923,6 @@ void SaiSwitch::fetchL2TableLocked(
   *l2Table = managerTable_->fdbManager().getL2Entries();
 }
 
-void SaiSwitch::stopNonCallbackThreads() {
-  asyncTxEventBase_.terminateLoopSoon();
-  if (asyncTxThread_) {
-    asyncTxThread_->join();
-  }
-}
-
 folly::dynamic SaiSwitch::toFollyDynamicLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
   auto adapterKeys = SaiStore::getInstance()->adapterKeysFollyDynamic();
@@ -1017,8 +984,6 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         }
         initLinkScanLocked(lock);
       }
-      // TODO: T56772674: Optimize Rx and Tx init
-      initAsyncTxLocked(lock);
       if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
         initRxLocked(lock);
       }

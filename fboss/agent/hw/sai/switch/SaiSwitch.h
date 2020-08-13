@@ -194,7 +194,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock);
   void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
   void initRxLocked(const std::lock_guard<std::mutex>& lock);
-  void initAsyncTxLocked(const std::lock_guard<std::mutex>& lock);
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
@@ -289,17 +288,6 @@ class SaiSwitch : public HwSwitch {
   mutable std::mutex saiSwitchMutex_;
   std::unique_ptr<ConcurrentIndices> concurrentIndices_;
 
-  /*
-   * Threads which may in turn acquire switch mutex, must be stopped w/o
-   * holding the lock. Else you could have a scenario, where
-   * i) Thread T0  in quest of doing some work tries to acquire switch mutex
-   * ii) Thread T1, gets a call to stop thread T0, acquires switch mutex
-   * iii) T1 call terminateLoopSoon
-   * iv) T1 is waiting on T0 to finish, while T0 is waiting on switch mutex
-   * that T1 holds. Deadlock ensues.
-   */
-  void stopNonCallbackThreads();
-
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
   std::optional<L2Entry> getL2Entry(
@@ -318,8 +306,6 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> rxBottomHalfThread_;
   folly::EventBase rxBottomHalfEventBase_;
 
-  std::unique_ptr<std::thread> asyncTxThread_;
-  folly::EventBase asyncTxEventBase_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 };
 
