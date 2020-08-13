@@ -155,26 +155,6 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta) const;
 
-  bool sendPacketSwitchedAsyncLocked(
-      const std::lock_guard<std::mutex>& lock,
-      std::unique_ptr<TxPacket> pkt) noexcept;
-
-  bool sendPacketOutOfPortAsyncLocked(
-      const std::lock_guard<std::mutex>& lock,
-      std::unique_ptr<TxPacket> pkt,
-      PortID portID,
-      std::optional<uint8_t> queueId) noexcept;
-
-  bool sendPacketSwitchedSyncLocked(
-      const std::lock_guard<std::mutex>& lock,
-      std::unique_ptr<TxPacket> pkt) noexcept;
-
-  bool sendPacketOutOfPortSyncLocked(
-      const std::lock_guard<std::mutex>& lock,
-      std::unique_ptr<TxPacket> pkt,
-      PortID portID,
-      std::optional<uint8_t> queueId) noexcept;
-
   void fetchL2TableLocked(
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;

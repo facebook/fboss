@@ -422,29 +422,14 @@ std::unique_ptr<TxPacket> SaiSwitch::allocatePacket(uint32_t size) const {
 
 bool SaiSwitch::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketSwitchedAsyncLocked(lock, std::move(pkt));
+  return sendPacketSwitchedSync(std::move(pkt));
 }
 
 bool SaiSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queueId) noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketOutOfPortAsyncLocked(lock, std::move(pkt), portID, queueId);
-}
-
-bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketSwitchedSyncLocked(lock, std::move(pkt));
-}
-
-bool SaiSwitch::sendPacketOutOfPortSync(
-    std::unique_ptr<TxPacket> pkt,
-    PortID portID,
-    std::optional<uint8_t> queueId) noexcept {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID, queueId);
+  return sendPacketOutOfPortSync(std::move(pkt), portID, queueId);
 }
 
 void SaiSwitch::updateStats(SwitchStats* switchStats) {
@@ -851,33 +836,7 @@ bool SaiSwitch::isValidStateUpdateLocked(
   return true;
 }
 
-bool SaiSwitch::sendPacketSwitchedAsyncLocked(
-    const std::lock_guard<std::mutex>& lock,
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  asyncTxEventBase_.runInEventBaseThread(
-      [this, pkt = std::move(pkt)]() mutable {
-        std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-        sendPacketSwitchedSyncLocked(lock, std::move(pkt));
-      });
-  return true;
-}
-
-bool SaiSwitch::sendPacketOutOfPortAsyncLocked(
-    const std::lock_guard<std::mutex>& lock,
-    std::unique_ptr<TxPacket> pkt,
-    PortID portID,
-    std::optional<uint8_t> queueId) noexcept {
-  asyncTxEventBase_.runInEventBaseThread(
-      [this, pkt = std::move(pkt), portID, queueId]() mutable {
-        std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-        sendPacketOutOfPortSyncLocked(lock, std::move(pkt), portID, queueId);
-      });
-  return true;
-}
-
-bool SaiSwitch::sendPacketSwitchedSyncLocked(
-    const std::lock_guard<std::mutex>& lock,
-    std::unique_ptr<TxPacket> pkt) noexcept {
+bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   folly::io::Cursor cursor(pkt->buf());
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED)) {
@@ -916,14 +875,12 @@ bool SaiSwitch::sendPacketSwitchedSyncLocked(
   return rv == SAI_STATUS_SUCCESS;
 }
 
-bool SaiSwitch::sendPacketOutOfPortSyncLocked(
-    const std::lock_guard<std::mutex>& lock,
+bool SaiSwitch::sendPacketOutOfPortSync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queueId) noexcept {
-  auto portHandle =
-      managerTableLocked(lock)->portManager().getPortHandle(portID);
-  if (!portHandle) {
+  auto portItr = concurrentIndices_->portSaiIds.find(portID);
+  if (portItr == concurrentIndices_->portSaiIds.end()) {
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
@@ -969,8 +926,7 @@ bool SaiSwitch::sendPacketOutOfPortSyncLocked(
 
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(
-      portHandle->port->adapterKey());
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portItr->second);
 #if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
       queueId.value_or(0));
