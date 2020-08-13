@@ -31,6 +31,11 @@ struct ConcurrentIndices {
   // callback supports punt with vlan id in either an attribute
   // or the frame itself
   folly::ConcurrentHashMap<PortSaiId, VlanID> vlanIds;
+  /*
+   * Indexed by PortID, used by TX to translate port ID
+   * to sai port id.
+   */
+  folly::ConcurrentHashMap<PortID, PortSaiId> portSaiIds;
 };
 
 } // namespace facebook::fboss

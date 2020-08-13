@@ -192,6 +192,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         {swPort->getID()});
   }
   concurrentIndices_->portIds.emplace(saiPort->adapterKey(), swPort->getID());
+  concurrentIndices_->portSaiIds.emplace(
+      swPort->getID(), saiPort->adapterKey());
   concurrentIndices_->vlanIds.emplace(
       saiPort->adapterKey(), swPort->getIngressVlan());
   XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
@@ -212,6 +214,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
         {swPort->getID()});
   }
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
+  concurrentIndices_->portSaiIds.erase(swId);
   concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
   handles_.erase(itr);
   portStats_.erase(swId);
