@@ -20,7 +20,7 @@ string oidAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "s_a[",
       i,
-      "].value.oid = ",
+      "].value.oid=",
       SaiTracer::getInstance()->getVariable(attr_list[i].value.oid));
 }
 
@@ -35,16 +35,16 @@ void oidListAttr(
 
   string prefix = to<string>("s_a", "[", i, "].value.objlist.");
   attrLines.push_back(
-      to<string>(prefix, "count = ", attr_list[i].value.objlist.count));
+      to<string>(prefix, "count=", attr_list[i].value.objlist.count));
   attrLines.push_back(
-      to<string>(prefix, "list = (sai_object_id_t*)(list_", listIndex, ")"));
+      to<string>(prefix, "list=(sai_object_id_t*)(list_", listIndex, ")"));
   for (int j = 0; j < std::min(attr_list[i].value.objlist.count, listLimit);
        ++j) {
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "] = ",
+        "]=",
         SaiTracer::getInstance()->getVariable(
             attr_list[i].value.objlist.list[j])));
   }
@@ -56,9 +56,9 @@ void aclEntryActionU8Attr(
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
-      to<string>(prefix, "enable = ", attr_list[i].value.aclaction.enable));
+      to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
   attrLines.push_back(to<string>(
-      prefix, "parameter.u8 = ", attr_list[i].value.aclaction.parameter.u8));
+      prefix, "parameter.u8=", attr_list[i].value.aclaction.parameter.u8));
 }
 
 void aclEntryFieldIpV6Attr(
@@ -73,7 +73,7 @@ void aclEntryFieldIpV6Attr(
         i,
         "].value.aclfield.data.ip6[",
         j,
-        "] = ",
+        "]=",
         attr_list[i].value.aclfield.data.ip6[j]));
   }
 
@@ -84,7 +84,7 @@ void aclEntryFieldIpV6Attr(
         i,
         "].value.aclfield.mask.ip6[",
         j,
-        "] = ",
+        "]=",
         attr_list[i].value.aclfield.mask.ip6[j]));
   }
 }
@@ -95,11 +95,11 @@ void aclEntryFieldU8Attr(
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
-      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
-      to<string>(prefix, "data.u8 = ", attr_list[i].value.aclfield.data.u8));
+      to<string>(prefix, "data.u8=", attr_list[i].value.aclfield.data.u8));
   attrLines.push_back(
-      to<string>(prefix, "mask.u8 = ", attr_list[i].value.aclfield.mask.u8));
+      to<string>(prefix, "mask.u8=", attr_list[i].value.aclfield.mask.u8));
 }
 
 void aclEntryFieldU16Attr(
@@ -108,11 +108,11 @@ void aclEntryFieldU16Attr(
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
-      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
-      to<string>(prefix, "data.u16 = ", attr_list[i].value.aclfield.data.u16));
+      to<string>(prefix, "data.u16=", attr_list[i].value.aclfield.data.u16));
   attrLines.push_back(
-      to<string>(prefix, "mask.u16 = ", attr_list[i].value.aclfield.mask.u16));
+      to<string>(prefix, "mask.u16=", attr_list[i].value.aclfield.mask.u16));
 }
 
 void aclEntryFieldU32Attr(
@@ -121,43 +121,43 @@ void aclEntryFieldU32Attr(
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
-      to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
-      to<string>(prefix, "data.u32 = ", attr_list[i].value.aclfield.data.u32));
+      to<string>(prefix, "data.u32=", attr_list[i].value.aclfield.data.u32));
   attrLines.push_back(
-      to<string>(prefix, "mask.u32 = ", attr_list[i].value.aclfield.mask.u32));
+      to<string>(prefix, "mask.u32=", attr_list[i].value.aclfield.mask.u32));
 }
 
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "s_a[",
       i,
-      "].value.booldata = ",
+      "].value.booldata=",
       attr_list[i].value.booldata ? "true" : "false");
 }
 
 string s8Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.s8 = ", attr_list[i].value.s8);
+  return to<string>("s_a[", i, "].value.s8=", attr_list[i].value.s8);
 }
 
 string u8Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.u8 = ", attr_list[i].value.u8);
+  return to<string>("s_a[", i, "].value.u8=", attr_list[i].value.u8);
 }
 
 string u16Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.u16 = ", attr_list[i].value.u16);
+  return to<string>("s_a[", i, "].value.u16=", attr_list[i].value.u16);
 }
 
 string s32Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.s32 = ", attr_list[i].value.s32);
+  return to<string>("s_a[", i, "].value.s32=", attr_list[i].value.s32);
 }
 
 string u32Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.u32 = ", attr_list[i].value.u32);
+  return to<string>("s_a[", i, "].value.u32=", attr_list[i].value.u32);
 }
 
 string u64Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>("s_a[", i, "].value.u64 = ", attr_list[i].value.u64);
+  return to<string>("s_a[", i, "].value.u64=", attr_list[i].value.u64);
 }
 
 void s8ListAttr(
@@ -172,21 +172,21 @@ void s8ListAttr(
 
   string prefix = to<string>("s_a", "[", i, "].value.s8list.");
   attrLines.push_back(
-      to<string>(prefix, "count = ", attr_list[i].value.s8list.count));
+      to<string>(prefix, "count=", attr_list[i].value.s8list.count));
 
   // Attribute SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO uses s8list as a char array.
   // If the list count is 0, we'll replace it with NULL.
   if (nullable && attr_list[i].value.s8list.count == 0) {
-    attrLines.push_back(to<string>(prefix, "list = NULL"));
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
   } else {
     attrLines.push_back(
-        to<string>(prefix, "list = (sai_int8_t*)(list_", listIndex, ")"));
+        to<string>(prefix, "list=(sai_int8_t*)(list_", listIndex, ")"));
   }
 
   for (int j = 0; j < std::min(attr_list[i].value.s8list.count, listLimit);
        ++j) {
     attrLines.push_back(to<string>(
-        prefix, "list[", j, "] = ", attr_list[i].value.s8list.list[j]));
+        prefix, "list[", j, "]=", attr_list[i].value.s8list.list[j]));
   }
 }
 
@@ -201,13 +201,13 @@ void s32ListAttr(
 
   string prefix = to<string>("s_a", "[", i, "].value.s32list.");
   attrLines.push_back(
-      to<string>(prefix, "count = ", attr_list[i].value.s32list.count));
+      to<string>(prefix, "count=", attr_list[i].value.s32list.count));
   attrLines.push_back(
-      to<string>(prefix, "list = (sai_int32_t*)(list_", listIndex, ")"));
+      to<string>(prefix, "list=(sai_int32_t*)(list_", listIndex, ")"));
   for (int j = 0; j < std::min(attr_list[i].value.s32list.count, listLimit);
        ++j) {
     attrLines.push_back(to<string>(
-        prefix, "list[", j, "] = ", attr_list[i].value.s32list.list[j]));
+        prefix, "list[", j, "]=", attr_list[i].value.s32list.list[j]));
   }
 }
 
@@ -222,13 +222,13 @@ void u32ListAttr(
 
   string prefix = to<string>("s_a", "[", i, "].value.u32list.");
   attrLines.push_back(
-      to<string>(prefix, "count = ", attr_list[i].value.u32list.count));
+      to<string>(prefix, "count=", attr_list[i].value.u32list.count));
   attrLines.push_back(
-      to<string>(prefix, "list = (sai_uint32_t*)(list_", listIndex, ")"));
+      to<string>(prefix, "list=(sai_uint32_t*)(list_", listIndex, ")"));
   for (int j = 0; j < std::min(attr_list[i].value.u32list.count, listLimit);
        ++j) {
     attrLines.push_back(to<string>(
-        prefix, "list[", j, "] = ", attr_list[i].value.u32list.list[j]));
+        prefix, "list[", j, "]=", attr_list[i].value.u32list.list[j]));
   }
 }
 
@@ -243,9 +243,9 @@ void qosMapListAttr(
 
   string prefix = to<string>("s_a", "[", i, "].value.qosmap.");
   attrLines.push_back(
-      to<string>(prefix, "count = ", attr_list[i].value.qosmap.count));
+      to<string>(prefix, "count=", attr_list[i].value.qosmap.count));
   attrLines.push_back(
-      to<string>(prefix, "list = (sai_qos_map_t*)(list_", listIndex, ")"));
+      to<string>(prefix, "list=(sai_qos_map_t*)(list_", listIndex, ")"));
 
   // TODO(zecheng): Find a way to know the type of key and value.
   // For now we can only set every single field
@@ -256,43 +256,43 @@ void qosMapListAttr(
         prefix,
         "list[",
         j,
-        "].key.tc = ",
+        "].key.tc=",
         attr_list[i].value.qosmap.list[j].key.tc));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.dscp = ",
+        "].key.dscp=",
         attr_list[i].value.qosmap.list[j].key.dscp));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.dot1p = ",
+        "].key.dot1p=",
         attr_list[i].value.qosmap.list[j].key.dot1p));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.prio = ",
+        "].key.prio=",
         attr_list[i].value.qosmap.list[j].key.prio));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.pg = ",
+        "].key.pg=",
         attr_list[i].value.qosmap.list[j].key.pg));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.queue_index = ",
+        "].key.queue_index=",
         attr_list[i].value.qosmap.list[j].key.queue_index));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].key.color = ",
+        "].key.color=",
         attr_list[i].value.qosmap.list[j].key.color));
 
     // Value
@@ -300,43 +300,43 @@ void qosMapListAttr(
         prefix,
         "list[",
         j,
-        "].value.tc = ",
+        "].value.tc=",
         attr_list[i].value.qosmap.list[j].value.tc));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.dscp = ",
+        "].value.dscp=",
         attr_list[i].value.qosmap.list[j].value.dscp));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.dot1p = ",
+        "].value.dot1p=",
         attr_list[i].value.qosmap.list[j].value.dot1p));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.prio = ",
+        "].value.prio=",
         attr_list[i].value.qosmap.list[j].value.prio));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.pg = ",
+        "].value.pg=",
         attr_list[i].value.qosmap.list[j].value.pg));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.queue_index = ",
+        "].value.queue_index=",
         attr_list[i].value.qosmap.list[j].value.queue_index));
     attrLines.push_back(to<string>(
         prefix,
         "list[",
         j,
-        "].value.color = ",
+        "].value.color=",
         attr_list[i].value.qosmap.list[j].value.color));
   }
 }
@@ -352,7 +352,7 @@ void macAddressAttr(
     attrLines.push_back(to<string>(
         "mac[",
         j,
-        "] = ",
+        "]=",
         static_cast<const uint8_t*>(attr_list[i].value.mac)[j]));
   }
 }
@@ -367,7 +367,7 @@ void ipAttr(
     attrLines.push_back(
         to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV4"));
     attrLines.push_back(
-        to<string>(prefix, "addr.ip4 = ", attr_list[i].value.ipaddr.addr.ip4));
+        to<string>(prefix, "addr.ip4=", attr_list[i].value.ipaddr.addr.ip4));
   } else if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
     attrLines.push_back(
         to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV6"));
@@ -375,11 +375,7 @@ void ipAttr(
     // Underlying type of sai_ip6_t is uint8_t[16]
     for (int j = 0; j < 16; ++j) {
       attrLines.push_back(to<string>(
-          prefix,
-          "addr.ip6[",
-          j,
-          "] = ",
-          attr_list[i].value.ipaddr.addr.ip6[j]));
+          prefix, "addr.ip6[", j, "]=", attr_list[i].value.ipaddr.addr.ip6[j]));
     }
   }
 }

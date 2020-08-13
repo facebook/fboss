@@ -304,7 +304,7 @@ void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
   writeToFile(
       {to<string>("sai_", api_var, "_t* ", api_var),
        to<string>(
-           "sai_api_query((sai_api_t)", api_id, ", (void**)&", api_var, ")")});
+           "sai_api_query((sai_api_t)", api_id, ",(void**)&", api_var, ")")});
 }
 
 void SaiTracer::logSwitchCreateFn(
@@ -337,12 +337,11 @@ void SaiTracer::logSwitchCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_SWITCH,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_switch",
-      "(&",
+      "create_switch(&",
       varName,
-      ", ",
+      ",",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -376,9 +375,9 @@ void SaiTracer::logRouteEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_route_entry(&r_e, ",
+      "create_route_entry(&r_e,",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -412,9 +411,9 @@ void SaiTracer::logNeighborEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_neighbor_entry(&n_e, ",
+      "create_neighbor_entry(&n_e,",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -448,9 +447,9 @@ void SaiTracer::logFdbEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_fdb_entry(&f_e, ",
+      "create_fdb_entry(&f_e,",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -484,9 +483,9 @@ void SaiTracer::logInsegEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_inseg_entry(&i_e, ",
+      "create_inseg_entry(&i_e,",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -723,7 +722,7 @@ void SaiTracer::logNeighborEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_neighbor_entry_attribute(&n_e, s_a)"));
+      "set_neighbor_entry_attribute(&n_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -754,7 +753,7 @@ void SaiTracer::logFdbEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_fdb_entry_attribute(&f_e, s_a)"));
+      "set_fdb_entry_attribute(&f_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -785,7 +784,7 @@ void SaiTracer::logInsegEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_inseg_entry_attribute(&i_e, s_a)"));
+      "set_inseg_entry_attribute(&i_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -817,7 +816,7 @@ void SaiTracer::logSetAttrFn(
       fn_name,
       "(",
       getVariable(set_object_id),
-      ", s_a)"));
+      ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -866,11 +865,11 @@ void SaiTracer::logSendHostifPacketFn(
           "Unsupported Sai Object type in Sai Tracer"),
       "send_hostif_packet(",
       getVariable(hostif_id),
-      ", ",
+      ",",
       buffer_size,
-      ", packet_buffer, ",
+      ",packet_buffer, ",
       attr_count,
-      ", s_a)"));
+      ",s_a)"));
 
   // Close bracket for local scope
   lines.push_back({"}"});
@@ -926,12 +925,12 @@ vector<string> SaiTracer::setAttrList(
   vector<string> attrLines;
 
   attrLines.push_back(
-      to<string>("memset(s_a, 0, ATTR_SIZE * ", maxAttrCount_, ")"));
+      to<string>("memset(s_a,0,ATTR_SIZE*", maxAttrCount_, ")"));
 
   // Setup ids
   for (int i = 0; i < attr_count; ++i) {
     attrLines.push_back(
-        to<string>(sai_attribute, "[", i, "].id = ", attr_list[i].id));
+        to<string>(sai_attribute, "[", i, "].id=", attr_list[i].id));
   }
 
   // Call functions defined in *ApiTracer.h to serialize attributes
@@ -1045,11 +1044,11 @@ string SaiTracer::createFnCall(
       fn_name,
       "(&",
       var1,
-      ", ",
+      ",",
       var2,
-      ", ",
+      ",",
       attr_count,
-      ", s_a)");
+      ",s_a)");
 }
 
 void SaiTracer::setFdbEntry(
@@ -1150,7 +1149,7 @@ void SaiTracer::setRouteEntry(
 }
 
 string SaiTracer::rvCheck(sai_status_t rv) {
-  return to<string>("rvCheck(rv, ", rv, ", ", numCalls_++, ")");
+  return to<string>("rvCheck(rv,", rv, ",", numCalls_++, ")");
 }
 
 string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
@@ -1217,7 +1216,7 @@ uint32_t SaiTracer::checkListCount(
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
-      "sai_attribute_t *s_a = (sai_attribute_t*)malloc(ATTR_SIZE * ",
+      "sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
 
