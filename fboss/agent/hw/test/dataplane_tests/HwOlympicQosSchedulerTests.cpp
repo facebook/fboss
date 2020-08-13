@@ -182,7 +182,7 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
    * We compare normalized stats for every queue against normalized stats for
    * queue with max weight (or better precesion).
    */
-  const double kVariance = 0.05; // i.e. + or -5%
+  const double kVariance = 0.10; // i.e. + or -10%
   auto portId = masterLogicalPortIds()[0];
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
   clearPortStats();
