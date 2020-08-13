@@ -332,7 +332,7 @@ void SaiTracer::logSwitchCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_SWITCH,
@@ -342,7 +342,7 @@ void SaiTracer::logSwitchCreateFn(
       varName,
       ", ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -371,14 +371,14 @@ void SaiTracer::logRouteEntryCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "create_route_entry(&r_e, ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -407,14 +407,14 @@ void SaiTracer::logNeighborEntryCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "create_neighbor_entry(&n_e, ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -443,14 +443,14 @@ void SaiTracer::logFdbEntryCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "create_fdb_entry(&f_e, ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -479,14 +479,14 @@ void SaiTracer::logInsegEntryCreateFn(
 
   // Make the function call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
       "create_inseg_entry(&i_e, ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -542,7 +542,7 @@ void SaiTracer::logRouteEntryRemoveFn(
   lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
@@ -569,7 +569,7 @@ void SaiTracer::logNeighborEntryRemoveFn(
   lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
@@ -596,7 +596,7 @@ void SaiTracer::logFdbEntryRemoveFn(
   lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
@@ -623,7 +623,7 @@ void SaiTracer::logInsegEntryRemoveFn(
   lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
@@ -652,7 +652,7 @@ void SaiTracer::logRemoveFn(
 
   // Make the remove call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
@@ -687,12 +687,12 @@ void SaiTracer::logRouteEntrySetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_route_entry_attribute(&r_e, sai_attributes)"));
+      "set_route_entry_attribute(&r_e, s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -718,12 +718,12 @@ void SaiTracer::logNeighborEntrySetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_neighbor_entry_attribute(&n_e, sai_attributes)"));
+      "set_neighbor_entry_attribute(&n_e, s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -749,12 +749,12 @@ void SaiTracer::logFdbEntrySetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_fdb_entry_attribute(&f_e, sai_attributes)"));
+      "set_fdb_entry_attribute(&f_e, s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -780,12 +780,12 @@ void SaiTracer::logInsegEntrySetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_inseg_entry_attribute(&i_e, sai_attributes)"));
+      "set_inseg_entry_attribute(&i_e, s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -811,13 +811,13 @@ void SaiTracer::logSetAttrFn(
 
   // Make setAttribute call
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
       "(",
       getVariable(set_object_id),
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -859,7 +859,7 @@ void SaiTracer::logSendHostifPacketFn(
   lines.push_back(outStringStream.str());
 
   lines.push_back(to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_,
           SAI_OBJECT_TYPE_HOSTIF,
@@ -870,7 +870,7 @@ void SaiTracer::logSendHostifPacketFn(
       buffer_size,
       ", packet_buffer, ",
       attr_count,
-      ", sai_attributes)"));
+      ", s_a)"));
 
   // Close bracket for local scope
   lines.push_back({"}"});
@@ -922,13 +922,11 @@ vector<string> SaiTracer::setAttrList(
 
   checkAttrCount(attr_count);
 
-  auto constexpr sai_attribute = "sai_attributes";
+  auto constexpr sai_attribute = "s_a";
   vector<string> attrLines;
 
-  attrLines.push_back(to<string>(
-      "memset(sai_attributes, 0, sizeof(sai_attribute_t) * ",
-      maxAttrCount_,
-      ")"));
+  attrLines.push_back(
+      to<string>("memset(s_a, 0, ATTR_SIZE * ", maxAttrCount_, ")"));
 
   // Setup ids
   for (int i = 0; i < attr_count; ++i) {
@@ -1039,9 +1037,9 @@ string SaiTracer::createFnCall(
     uint32_t attr_count,
     sai_object_type_t object_type) {
   // This helper method produces the create call. For example -
-  // bridge_api->create_bridge_port(&bridgePort_1, switch_0, 4, sai_attributes);
+  // bridge_api->create_bridge_port(&bridgePort_1, switch_0, 4, s_a);
   return to<string>(
-      "status = ",
+      "rv=",
       folly::get_or_throw(
           fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
       fn_name,
@@ -1051,7 +1049,7 @@ string SaiTracer::createFnCall(
       var2,
       ", ",
       attr_count,
-      ", sai_attributes)");
+      ", s_a)");
 }
 
 void SaiTracer::setFdbEntry(
@@ -1152,12 +1150,7 @@ void SaiTracer::setRouteEntry(
 }
 
 string SaiTracer::rvCheck(sai_status_t rv) {
-  return to<string>(
-      "if (status != ",
-      rv,
-      ") printf(\"Unexpected rv at ",
-      numCalls_++,
-      " with status %d \\n\", status)");
+  return to<string>("rvCheck(rv, ", rv, ", ", numCalls_++, ")");
 }
 
 string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
@@ -1187,12 +1180,12 @@ string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
 
 void SaiTracer::checkAttrCount(uint32_t attr_count) {
   // If any object has more than the current sai_attribute list has (128 by
-  // default), sai_attributes will be reallocated to have enough space for all
+  // default), s_a will be reallocated to have enough space for all
   // attributes
   if (attr_count > maxAttrCount_) {
     maxAttrCount_ = attr_count;
     writeToFile({to<string>(
-        "sai_attributes = (sai_attribute_t*)realloc(sai_attributes, sizeof(sai_attribute_t) * ",
+        "s_a = (sai_attribute_t*)realloc(s_a, ATTR_SIZE * ",
         maxAttrCount_,
         ")")});
   }
@@ -1224,7 +1217,7 @@ uint32_t SaiTracer::checkListCount(
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
-      "sai_attribute_t *sai_attributes = (sai_attribute_t*)malloc(sizeof(sai_attribute_t) * ",
+      "sai_attribute_t *s_a = (sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
 
@@ -1235,7 +1228,7 @@ void SaiTracer::setupGlobals() {
 
   globalVar.push_back("uint8_t* mac");
   globalVar.push_back("uint8_t* u");
-  globalVar.push_back("sai_status_t status");
+  globalVar.push_back("sai_status_t rv");
   globalVar.push_back("sai_route_entry_t r_e");
   globalVar.push_back("sai_neighbor_entry_t n_e");
   globalVar.push_back("sai_fdb_entry_t f_e");
@@ -1248,7 +1241,7 @@ void SaiTracer::setupGlobals() {
 }
 
 void SaiTracer::writeFooter() {
-  string footer = "free(sai_attributes);\n}\n} // namespace facebook::fboss";
+  string footer = "free(s_a);\n}\n} // namespace facebook::fboss";
 
   asyncLogger_->appendLog(footer.c_str(), footer.size());
 }

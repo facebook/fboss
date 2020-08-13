@@ -18,7 +18,7 @@ namespace facebook::fboss {
 
 string oidAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
-      "sai_attributes[",
+      "s_a[",
       i,
       "].value.oid = ",
       SaiTracer::getInstance()->getVariable(attr_list[i].value.oid));
@@ -33,7 +33,7 @@ void oidListAttr(
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_object_id_t), attr_list[i].value.objlist.count);
 
-  string prefix = to<string>("sai_attributes", "[", i, "].value.objlist.");
+  string prefix = to<string>("s_a", "[", i, "].value.objlist.");
   attrLines.push_back(
       to<string>(prefix, "count = ", attr_list[i].value.objlist.count));
   attrLines.push_back(
@@ -54,7 +54,7 @@ void aclEntryActionU8Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
-  string prefix = to<string>("sai_attributes", "[", i, "].value.aclaction.");
+  string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
       to<string>(prefix, "enable = ", attr_list[i].value.aclaction.enable));
   attrLines.push_back(to<string>(
@@ -68,7 +68,7 @@ void aclEntryFieldIpV6Attr(
   // The underlying implementation of sai_ip6_t is uint8_t[16]
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(to<string>(
-        "sai_attributes",
+        "s_a",
         "[",
         i,
         "].value.aclfield.data.ip6[",
@@ -79,7 +79,7 @@ void aclEntryFieldIpV6Attr(
 
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(to<string>(
-        "sai_attributes",
+        "s_a",
         "[",
         i,
         "].value.aclfield.mask.ip6[",
@@ -93,7 +93,7 @@ void aclEntryFieldU8Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
-  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
       to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
@@ -106,7 +106,7 @@ void aclEntryFieldU16Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
-  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
       to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
@@ -119,7 +119,7 @@ void aclEntryFieldU32Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
-  string prefix = to<string>("sai_attributes", "[", i, "].value.aclfield.");
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
       to<string>(prefix, "enable = ", attr_list[i].value.aclfield.enable));
   attrLines.push_back(
@@ -130,40 +130,34 @@ void aclEntryFieldU32Attr(
 
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
-      "sai_attributes[",
+      "s_a[",
       i,
       "].value.booldata = ",
       attr_list[i].value.booldata ? "true" : "false");
 }
 
 string s8Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.s8 = ", attr_list[i].value.s8);
+  return to<string>("s_a[", i, "].value.s8 = ", attr_list[i].value.s8);
 }
 
 string u8Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.u8 = ", attr_list[i].value.u8);
+  return to<string>("s_a[", i, "].value.u8 = ", attr_list[i].value.u8);
 }
 
 string u16Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.u16 = ", attr_list[i].value.u16);
+  return to<string>("s_a[", i, "].value.u16 = ", attr_list[i].value.u16);
 }
 
 string s32Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.s32 = ", attr_list[i].value.s32);
+  return to<string>("s_a[", i, "].value.s32 = ", attr_list[i].value.s32);
 }
 
 string u32Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.u32 = ", attr_list[i].value.u32);
+  return to<string>("s_a[", i, "].value.u32 = ", attr_list[i].value.u32);
 }
 
 string u64Attr(const sai_attribute_t* attr_list, int i) {
-  return to<string>(
-      "sai_attributes[", i, "].value.u64 = ", attr_list[i].value.u64);
+  return to<string>("s_a[", i, "].value.u64 = ", attr_list[i].value.u64);
 }
 
 void s8ListAttr(
@@ -176,7 +170,7 @@ void s8ListAttr(
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_int8_t), attr_list[i].value.s8list.count);
 
-  string prefix = to<string>("sai_attributes", "[", i, "].value.s8list.");
+  string prefix = to<string>("s_a", "[", i, "].value.s8list.");
   attrLines.push_back(
       to<string>(prefix, "count = ", attr_list[i].value.s8list.count));
 
@@ -205,7 +199,7 @@ void s32ListAttr(
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_int32_t), attr_list[i].value.s32list.count);
 
-  string prefix = to<string>("sai_attributes", "[", i, "].value.s32list.");
+  string prefix = to<string>("s_a", "[", i, "].value.s32list.");
   attrLines.push_back(
       to<string>(prefix, "count = ", attr_list[i].value.s32list.count));
   attrLines.push_back(
@@ -226,7 +220,7 @@ void u32ListAttr(
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_uint32_t), attr_list[i].value.u32list.count);
 
-  string prefix = to<string>("sai_attributes", "[", i, "].value.u32list.");
+  string prefix = to<string>("s_a", "[", i, "].value.u32list.");
   attrLines.push_back(
       to<string>(prefix, "count = ", attr_list[i].value.u32list.count));
   attrLines.push_back(
@@ -247,7 +241,7 @@ void qosMapListAttr(
   uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
       listIndex + 1, sizeof(sai_qos_map_t), attr_list[i].value.qosmap.count);
 
-  string prefix = to<string>("sai_attributes", "[", i, "].value.qosmap.");
+  string prefix = to<string>("s_a", "[", i, "].value.qosmap.");
   attrLines.push_back(
       to<string>(prefix, "count = ", attr_list[i].value.qosmap.count));
   attrLines.push_back(
@@ -353,7 +347,7 @@ void macAddressAttr(
     vector<string>& attrLines) {
   // The underlying type of sai_mac_t is uint8_t[6]
   // TODO(zecheng): Create helper function to handle this
-  attrLines.push_back(to<string>("mac = sai_attributes[", i, "].value.mac"));
+  attrLines.push_back(to<string>("mac = s_a[", i, "].value.mac"));
   for (int j = 0; j < 6; ++j) {
     attrLines.push_back(to<string>(
         "mac[",
@@ -367,7 +361,7 @@ void ipAttr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
-  string prefix = to<string>("sai_attributes", "[", i, "].value.ipaddr.");
+  string prefix = to<string>("s_a", "[", i, "].value.ipaddr.");
 
   if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     attrLines.push_back(
