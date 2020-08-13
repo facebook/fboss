@@ -376,7 +376,7 @@ void SaiTracer::logRouteEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_route_entry(&route_entry, ",
+      "create_route_entry(&r_e, ",
       attr_count,
       ", sai_attributes)"));
 
@@ -412,7 +412,7 @@ void SaiTracer::logNeighborEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_neighbor_entry(&neighbor_entry, ",
+      "create_neighbor_entry(&n_e, ",
       attr_count,
       ", sai_attributes)"));
 
@@ -448,7 +448,7 @@ void SaiTracer::logFdbEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_fdb_entry(&fdb_entry, ",
+      "create_fdb_entry(&f_e, ",
       attr_count,
       ", sai_attributes)"));
 
@@ -484,7 +484,7 @@ void SaiTracer::logInsegEntryCreateFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "create_inseg_entry(&inseg_entry, ",
+      "create_inseg_entry(&i_e, ",
       attr_count,
       ", sai_attributes)"));
 
@@ -547,7 +547,7 @@ void SaiTracer::logRouteEntryRemoveFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "remove_route_entry(&route_entry)"));
+      "remove_route_entry(&r_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -574,7 +574,7 @@ void SaiTracer::logNeighborEntryRemoveFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "remove_neighbor_entry(&neighbor_entry)"));
+      "remove_neighbor_entry(&n_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -601,7 +601,7 @@ void SaiTracer::logFdbEntryRemoveFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "remove_fdb_entry(&fdb_entry)"));
+      "remove_fdb_entry(&f_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -628,7 +628,7 @@ void SaiTracer::logInsegEntryRemoveFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "remove_inseg_entry(&inseg_entry)"));
+      "remove_inseg_entry(&i_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -692,7 +692,7 @@ void SaiTracer::logRouteEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_ROUTE_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_route_entry_attribute(&route_entry, sai_attributes)"));
+      "set_route_entry_attribute(&r_e, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -723,7 +723,7 @@ void SaiTracer::logNeighborEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_neighbor_entry_attribute(&neighbor_entry, sai_attributes)"));
+      "set_neighbor_entry_attribute(&n_e, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -754,7 +754,7 @@ void SaiTracer::logFdbEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_FDB_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_fdb_entry_attribute(&fdb_entry, sai_attributes)"));
+      "set_fdb_entry_attribute(&f_e, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -785,7 +785,7 @@ void SaiTracer::logInsegEntrySetAttrFn(
           fnPrefix_,
           SAI_OBJECT_TYPE_INSEG_ENTRY,
           "Unsupported Sai Object type in Sai Tracer"),
-      "set_inseg_entry_attribute(&inseg_entry, sai_attributes)"));
+      "set_inseg_entry_attribute(&i_e, sai_attributes)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -1058,91 +1058,96 @@ void SaiTracer::setFdbEntry(
     const sai_fdb_entry_t* fdb_entry,
     std::vector<std::string>& lines) {
   lines.push_back(
-      to<string>("fdb_entry.switch_id = ", getVariable(fdb_entry->switch_id)));
-  lines.push_back(
-      to<string>("fdb_entry.bv_id = ", getVariable(fdb_entry->bv_id)));
+      to<string>("f_e.switch_id=", getVariable(fdb_entry->switch_id)));
+  lines.push_back(to<string>("f_e.bv_id=", getVariable(fdb_entry->bv_id)));
 
   // The underlying type of sai_mac_t is uint8_t[6]
+  lines.push_back("mac=f_e.mac_address");
   for (int i = 0; i < 6; ++i) {
-    lines.push_back(to<string>(
-        "fdb_entry.mac_address[", i, "] = ", fdb_entry->mac_address[i]));
+    lines.push_back(to<string>("mac[", i, "]=", fdb_entry->mac_address[i]));
   }
 }
 
 void SaiTracer::setInsegEntry(
     const sai_inseg_entry_t* inseg_entry,
     std::vector<std::string>& lines) {
-  lines.push_back(to<string>(
-      "inseg_entry.switch_id = ", getVariable(inseg_entry->switch_id)));
-  lines.push_back(to<string>("inseg_entry.label = ", inseg_entry->label));
+  lines.push_back(
+      to<string>("i_e.switch_id=", getVariable(inseg_entry->switch_id)));
+  lines.push_back(to<string>("i_e.label=", inseg_entry->label));
 }
 
 void SaiTracer::setNeighborEntry(
     const sai_neighbor_entry_t* neighbor_entry,
     vector<string>& lines) {
-  lines.push_back(to<string>(
-      "neighbor_entry.switch_id = ", getVariable(neighbor_entry->switch_id)));
-  lines.push_back(to<string>(
-      "neighbor_entry.rif_id = ", getVariable(neighbor_entry->rif_id)));
+  lines.push_back(
+      to<string>("n_e.switch_id=", getVariable(neighbor_entry->switch_id)));
+  lines.push_back(
+      to<string>("n_e.rif_id=", getVariable(neighbor_entry->rif_id)));
 
   if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
-    lines.push_back(
-        "neighbor_entry.ip_address.addr_family = SAI_IP_ADDR_FAMILY_IPV4");
+    lines.push_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
-        "neighbor_entry.ip_address.addr.ip4 = ",
-        neighbor_entry->ip_address.addr.ip4));
+        "n_e.ip_address.addr.ip4=", neighbor_entry->ip_address.addr.ip4));
 
   } else if (
       neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
-    lines.push_back(
-        "neighbor_entry.ip_address.addr_family = SAI_IP_ADDR_FAMILY_IPV6");
+    lines.push_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
 
     // Underlying type of sai_ip6_t is uint8_t[16]
+    lines.push_back("u=n_e.ip_address.addr.ip6");
+    lines.push_back("memset(u,0,16)");
+    std::ostringstream addrOutStringStream;
     for (int i = 0; i < 16; ++i) {
-      lines.push_back(to<string>(
-          "neighbor_entry.ip_address.addr.ip6[",
-          i,
-          "] = ",
-          neighbor_entry->ip_address.addr.ip6[i]));
+      if (neighbor_entry->ip_address.addr.ip6[i] != 0) {
+        addrOutStringStream
+            << to<string>("u[", i, "]=", neighbor_entry->ip_address.addr.ip6[i])
+            << ";";
+      }
     }
+    lines.push_back(addrOutStringStream.str());
   }
 }
 
 void SaiTracer::setRouteEntry(
     const sai_route_entry_t* route_entry,
     vector<string>& lines) {
-  lines.push_back(to<string>(
-      "route_entry.switch_id = ", getVariable(route_entry->switch_id)));
   lines.push_back(
-      to<string>("route_entry.vr_id = ", getVariable(route_entry->vr_id)));
+      to<string>("r_e.switch_id=", getVariable(route_entry->switch_id)));
+  lines.push_back(to<string>("r_e.vr_id=", getVariable(route_entry->vr_id)));
 
   if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
-    lines.push_back(
-        "route_entry.destination.addr_family = SAI_IP_ADDR_FAMILY_IPV4");
+    lines.push_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
-        "route_entry.destination.addr.ip4 = ",
-        route_entry->destination.addr.ip4));
+        "r_e.destination.addr.ip4=", route_entry->destination.addr.ip4));
     lines.push_back(to<string>(
-        "route_entry.destination.mask.ip4 = ",
-        route_entry->destination.mask.ip4));
+        "r_e.destination.mask.ip4=", route_entry->destination.mask.ip4));
   } else if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
-    lines.push_back(
-        "route_entry.destination.addr_family = SAI_IP_ADDR_FAMILY_IPV6");
+    lines.push_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
+
     // Underlying type of sai_ip6_t is uint8_t[16]
+    lines.push_back("u=r_e.destination.addr.ip6");
+    lines.push_back("memset(u,0,16)");
+    std::ostringstream addrOutStringStream;
     for (int i = 0; i < 16; ++i) {
-      lines.push_back(to<string>(
-          "route_entry.destination.addr.ip6[",
-          i,
-          "] = ",
-          route_entry->destination.addr.ip6[i]));
+      if (route_entry->destination.addr.ip6[i] != 0) {
+        addrOutStringStream
+            << to<string>("u[", i, "]=", route_entry->destination.addr.ip6[i])
+            << ";";
+      }
     }
+    lines.push_back(addrOutStringStream.str());
+
+    lines.push_back("u=r_e.destination.mask.ip6");
+    lines.push_back("memset(u,0,16)");
+    std::ostringstream maskOutStringStream;
     for (int i = 0; i < 16; ++i) {
-      lines.push_back(to<string>(
-          "route_entry.destination.mask.ip6[",
-          i,
-          "] = ",
-          route_entry->destination.mask.ip6[i]));
+      if (route_entry->destination.mask.ip6[i] != 0) {
+        maskOutStringStream
+            << to<string>("u[", i, "]=", route_entry->destination.mask.ip6[i])
+            << ";";
+      }
     }
+    lines.push_back(maskOutStringStream.str());
   }
 }
 
@@ -1229,11 +1234,12 @@ void SaiTracer::setupGlobals() {
   }
 
   globalVar.push_back("uint8_t* mac");
+  globalVar.push_back("uint8_t* u");
   globalVar.push_back("sai_status_t status");
-  globalVar.push_back("sai_route_entry_t route_entry");
-  globalVar.push_back("sai_neighbor_entry_t neighbor_entry");
-  globalVar.push_back("sai_fdb_entry_t fdb_entry");
-  globalVar.push_back("sai_inseg_entry_t inseg_entry");
+  globalVar.push_back("sai_route_entry_t r_e");
+  globalVar.push_back("sai_neighbor_entry_t n_e");
+  globalVar.push_back("sai_fdb_entry_t f_e");
+  globalVar.push_back("sai_inseg_entry_t i_e");
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
