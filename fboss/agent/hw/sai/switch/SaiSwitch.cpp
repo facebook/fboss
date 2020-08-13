@@ -55,11 +55,22 @@ extern "C" {
 #include <sai.h>
 }
 
-DEFINE_bool(enable_sai_debug_log, false, "Turn on SAI debugging logging");
 DEFINE_bool(flexports, true, "Load the agent with flexport support enabled");
+/*
+ * Setting the default sai sdk logging level to CRITICAL for several reasons:
+ * 1) These are synchronous writes to the syslog so that agent
+ * is not blocked by this.
+ * 2) Route, Port and Neighbor change frequently and so to limit the writes to
+ * the syslog .
+ * 3) Agent might miss some of the control packets (eg: LACP heartbeats)
+ * which can cause port-channel flaps
+ */
+DEFINE_string(
+    enable_sai_log,
+    "CRITICAL",
+    "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
 namespace {
-
 /*
  * For the devices/SDK we use, the only events we should get (and process)
  * are LEARN and AGED.
@@ -666,9 +677,7 @@ HwInitResult SaiSwitch::initLocked(
 
   callback_ = callback;
   __gSaiSwitch = this;
-  if (FLAGS_enable_sai_debug_log) {
-    SaiApiTable::getInstance()->enableDebugLogging();
-  }
+  SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ != BootType::WARM_BOOT) {
     ret.switchState = getColdBootSwitchState();
   }

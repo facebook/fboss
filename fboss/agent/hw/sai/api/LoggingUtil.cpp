@@ -272,4 +272,22 @@ folly::StringPiece saiStatusToString(sai_status_t status) {
   }
 }
 
+sai_log_level_t saiLogLevelFromString(const std::string& logLevel) {
+  if (logLevel == "CRITICAL") {
+    return SAI_LOG_LEVEL_CRITICAL;
+  } else if (logLevel == "ERROR") {
+    return SAI_LOG_LEVEL_ERROR;
+  } else if (logLevel == "WARN") {
+    return SAI_LOG_LEVEL_WARN;
+  } else if (logLevel == "NOTICE") {
+    return SAI_LOG_LEVEL_NOTICE;
+  } else if (logLevel == "INFO") {
+    return SAI_LOG_LEVEL_INFO;
+  } else if (logLevel == "DEBUG") {
+    return SAI_LOG_LEVEL_DEBUG;
+  } else {
+    throw FbossError("invalid log level set", logLevel);
+  }
+}
+
 } // namespace facebook::fboss
