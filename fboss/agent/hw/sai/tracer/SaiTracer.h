@@ -9,16 +9,16 @@
  */
 #pragma once
 
-#include <memory>
-
-#include <gflags/gflags.h>
-
 #include <map>
+#include <memory>
 #include <tuple>
+
+#include "fboss/agent/hw/sai/tracer/AsyncLogger.h"
 
 #include <folly/File.h>
 #include <folly/String.h>
 #include <folly/Synchronized.h>
+#include <gflags/gflags.h>
 
 extern "C" {
 #include <sai.h>
@@ -212,7 +212,7 @@ class SaiTracer {
   uint32_t maxAttrCount_;
   uint32_t maxListCount_;
   uint32_t numCalls_;
-  folly::Synchronized<folly::File> saiLogFile_;
+  std::unique_ptr<AsyncLogger> asyncLogger_;
 
   // Variables mappings in generated C code
   // varCounts map from object type to the current counter

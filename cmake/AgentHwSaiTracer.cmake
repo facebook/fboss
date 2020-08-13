@@ -3,6 +3,15 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(async_logger
+  fboss/agent/hw/sai/tracer/AsyncLogger.cpp
+)
+
+target_link_libraries(async_logger
+  fboss_error
+  Folly::folly
+)
+
 add_library(sai_tracer
   fboss/agent/hw/sai/tracer/AclApiTracer.cpp
   fboss/agent/hw/sai/tracer/BridgeApiTracer.cpp
@@ -29,6 +38,7 @@ add_library(sai_tracer
 
 target_link_libraries(sai_tracer
   fboss_error
+  async_logger
   sai_version
   Folly::folly
 )

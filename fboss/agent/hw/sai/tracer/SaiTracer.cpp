@@ -69,6 +69,20 @@ DEFINE_int32(
     6,
     "Default number of the lists initialzied by SAI replayer");
 
+DEFINE_int32(
+    buffer_size,
+    409600,
+    "Buffer size in bytes. Note that there're two buffers"
+    "in AsyncLogger implementation");
+
+DEFINE_int32(
+    log_timeout,
+    100,
+    "Log timeout value in milliseconds. Logger will periodically"
+    "flush logs even if the buffer is not full");
+
+constexpr uint32_t MIN_BUFFER_SIZE = 8192;
+
 using facebook::fboss::SaiTracer;
 using folly::to;
 using std::string;
@@ -230,31 +244,26 @@ inline void printHex(std::ostringstream& outStringStream, uint8_t u8) {
                   << static_cast<int>(u8);
 }
 
-inline int flushToFile(
-    folly::Synchronized<folly::File>& logFile,
-    const char* content,
-    size_t length) {
-  return logFile.withWLock([&](auto& lockedFile) {
-    return folly::writeFull(lockedFile.fd(), content, length);
-  });
-}
-
 } // namespace
 
 namespace facebook::fboss {
 
 SaiTracer::SaiTracer() {
   if (FLAGS_enable_replayer) {
-    saiLogFile_ =
-        folly::File(FLAGS_sai_log.c_str(), O_RDWR | O_CREAT | O_TRUNC);
-
-    if (flushToFile(saiLogFile_, cpp_header_, strlen(cpp_header_)) < 0) {
-      throw SysError(
-          errno,
-          "error writing ",
-          strlen(cpp_header_),
-          " bytes to SAI Replayer log file");
+    if (FLAGS_buffer_size < MIN_BUFFER_SIZE) {
+      asyncLogger_ = std::make_unique<AsyncLogger>(
+          FLAGS_sai_log, MIN_BUFFER_SIZE, FLAGS_log_timeout);
+      XLOG(WARN)
+          << "Buffer size for Sai Replayer is smaller than min buffer size "
+          << MIN_BUFFER_SIZE << ". Initializing Sai Replayer with buffer size "
+          << MIN_BUFFER_SIZE << " instead.";
+    } else {
+      asyncLogger_ = std::make_unique<AsyncLogger>(
+          FLAGS_sai_log, FLAGS_buffer_size, FLAGS_log_timeout);
     }
+
+    asyncLogger_->startFlushThread();
+    asyncLogger_->appendLog(cpp_header_, strlen(cpp_header_));
 
     setupGlobals();
     initVarCounts();
@@ -264,7 +273,8 @@ SaiTracer::SaiTracer() {
 SaiTracer::~SaiTracer() {
   if (FLAGS_enable_replayer) {
     writeFooter();
-    fsync(saiLogFile_.wlock()->fd());
+    asyncLogger_->forceFlush();
+    asyncLogger_->stopFlushThread();
   }
 }
 
@@ -280,13 +290,7 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
   auto constexpr lineEnd = ";\n";
   auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
 
-  if (flushToFile(saiLogFile_, lines.c_str(), lines.size()) < 0) {
-    throw SysError(
-        errno,
-        "error writing ",
-        lines.size(),
-        " bytes to SAI Replayer log file");
-  }
+  asyncLogger_->appendLog(lines.c_str(), lines.size());
 }
 
 void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
@@ -1240,13 +1244,7 @@ void SaiTracer::setupGlobals() {
 void SaiTracer::writeFooter() {
   string footer = "free(sai_attributes);\n}\n} // namespace facebook::fboss";
 
-  if (flushToFile(saiLogFile_, footer.c_str(), footer.size()) < 0) {
-    throw SysError(
-        errno,
-        "error writing ",
-        footer.size(),
-        " bytes to SAI Replayer log file");
-  }
+  asyncLogger_->appendLog(footer.c_str(), footer.size());
 }
 
 void SaiTracer::initVarCounts() {
