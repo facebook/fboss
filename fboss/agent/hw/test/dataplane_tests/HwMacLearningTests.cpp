@@ -522,6 +522,29 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
+  auto setup = [this] {
+    setupHelper(cfg::L2LearningMode::HARDWARE, physPortDescr());
+    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+    addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
+    addOrUpdateMacEntry(MacEntryType::DYNAMIC_ENTRY);
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
+    // Dynamic entries should get aged out
+    EXPECT_TRUE(wasMacLearnt(physPortDescr(), false /*aged in hw*/));
+    // Transform back to STATIC entry (we still have entry in switch state).
+    // Its important to test that we can update or add a static entry regardless
+    // of the HW state. Since for dynamic entries, they might get aged out in
+    // parallel to us transforming them to STATIC.
+    addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
+  };
+  auto verify = [this] {
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
+    // Static entries shouldn't age
+    EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 // Intent of this test is to attempt to learn large number of macs
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
 TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
