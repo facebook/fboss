@@ -350,6 +350,9 @@ class SaiObject {
   static typename SaiObjectTraits::AdapterHostKey follyDynamicToAdapterHostKey(
       folly::dynamic);
 
+  void setIgnoreMissingInHwOnDelete(bool ignore) {
+    ignoreMissingInHwOnDelete_ = ignore;
+  }
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
@@ -373,7 +376,28 @@ class SaiObject {
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
-      api.remove(adapterKey_);
+      try {
+        api.remove(adapterKey_);
+      } catch (const SaiApiError& e) {
+        if (ignoreMissingInHwOnDelete_ &&
+            e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+          // Ignore error if entry was already removed from HW. One scenario
+          // where this can occur is the following
+          // - We learn a MAC and install it in HW
+          // - Later we get a state update to transform this into a STATIC FDB
+          // entry
+          // - Meanwhile the dynamic MAC ages out and gets deleted
+          // - While processing the state delta for changed MAC entry, we try to
+          // delete the dynamic entry before adding static entry
+          XLOGF(
+              INFO,
+              "Ignoring not found error on {} remove, entry already "
+              "removed from hardware",
+              adapterKey_);
+        } else {
+          throw;
+        }
+      }
     }
   }
 
@@ -404,7 +428,6 @@ class SaiObject {
     api.template create<T>(k, attributes);
     return k;
   }
-
  private:
   template <typename AttrT>
   void setNewAttributeHelper(const AttrT& newAttr) {
@@ -420,6 +443,9 @@ class SaiObject {
     }
   }
   bool live_{false};
+  // For some object types we can ignore missing in HW errors
+  // on when deleting.
+  bool ignoreMissingInHwOnDelete_{false};
   typename SaiObjectTraits::AdapterKey adapterKey_;
   typename SaiObjectTraits::AdapterHostKey adapterHostKey_;
   typename SaiObjectTraits::CreateAttributes attributes_;

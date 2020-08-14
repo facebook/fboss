@@ -186,6 +186,10 @@ class SaiObjectEventAggregateSubscriber
     }
     return object_.get();
   }
+  SaiObject<SubscriberTraits>* getSaiObject() {
+    return const_cast<SaiObject<SubscriberTraits>*>(
+        const_cast<const Class*>(this)->getSaiObject());
+  }
 
   void resetObject();
 
