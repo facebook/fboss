@@ -366,13 +366,17 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
  private:
   bool wasMacLearntInHw(bool shouldExist) {
+    auto generator = utility::MacAddressGenerator();
+    generator.startOver(kSourceMac().u64HBO());
+    auto nonSrcMac = generator.getNext();
+    EXPECT_NE(nonSrcMac, kSourceMac());
     bringUpPort(masterLogicalPortIds()[1]);
     auto origPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
-        kSourceMac(),
+        nonSrcMac,
         kSourceMac(),
         ETHERTYPE::ETHERTYPE_LLDP);
 
