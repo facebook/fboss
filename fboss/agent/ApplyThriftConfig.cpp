@@ -2396,10 +2396,26 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
             "Both UDP source and UDP destination ports must be provided for \
             sFlow tunneling.");
       }
+      if (destinationIp->isV6() &&
+          !platform_->getAsic()->isSupported(HwAsic::Feature::SFLOWv6)) {
+        throw FbossError("SFLOWv6 is not supported on this platform");
+      }
+      if (destinationIp->isV4() &&
+          !platform_->getAsic()->isSupported(HwAsic::Feature::SFLOWv4)) {
+        throw FbossError("SFLOWv4 is not supported on this platform");
+      }
       udpPorts = TunnelUdpPorts(
           *sflowTunnel->udpSrcPort_ref(), *sflowTunnel->udpDstPort_ref());
     } else if (auto greTunnel = tunnel->greTunnel_ref()) {
       destinationIp = folly::IPAddress(greTunnel->ip);
+      if (destinationIp->isV6() &&
+          !platform_->getAsic()->isSupported(HwAsic::Feature::ERSPANv6)) {
+        throw FbossError("ERSPANv6 is not supported on this platform");
+      }
+      if (destinationIp->isV4() &&
+          !platform_->getAsic()->isSupported(HwAsic::Feature::ERSPANv4)) {
+        throw FbossError("ERSPANv4 is not supported on this platform");
+      }
     }
 
     if (auto srcIpRef = tunnel->srcIp_ref()) {
