@@ -359,6 +359,9 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
 
+  VlanID kVlanID() {
+    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+  }
   HwTestLearningUpdateObserver l2LearningObserver_;
 
  private:
@@ -486,11 +489,39 @@ class HwMacSwLearningModeTest : public HwMacLearningTest {
   cfg::AclLookupClass kClassID() {
     return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
   }
-
-  VlanID kVlanID() {
-    return VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
-  }
 };
+
+class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
+ protected:
+  void addOrUpdateMacEntry(MacEntryType type) {
+    auto newState = getProgrammedState()->clone();
+    auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
+    auto macTable = vlan->getMacTable().get();
+    macTable = macTable->modify(&vlan, &newState);
+    if (macTable->getNodeIf(kSourceMac())) {
+      macTable->updateEntry(kSourceMac(), physPortDescr(), std::nullopt, type);
+    } else {
+      auto macEntry = std::make_shared<MacEntry>(
+          kSourceMac(), physPortDescr(), std::nullopt, type);
+      macTable->addEntry(macEntry);
+    }
+    applyNewState(newState);
+  };
+};
+
+TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
+  auto setup = [this] {
+    setupHelper(cfg::L2LearningMode::HARDWARE, physPortDescr());
+    utility::setMacAgeTimerSeconds(getHwSwitch(), kMinAgeInSecs());
+    addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
+  };
+  auto verify = [this] {
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
+    // Static entries shouldn't age
+    EXPECT_TRUE(wasMacLearnt(physPortDescr()));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 // Intent of this test is to attempt to learn large number of macs
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
 TEST_F(HwMacLearningTest, VerifyMacLearningScale) {
