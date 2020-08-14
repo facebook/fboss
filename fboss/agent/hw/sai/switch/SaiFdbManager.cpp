@@ -49,6 +49,14 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   auto& store = SaiStore::getInstance()->get<SaiFdbTraits>();
   auto fdbEntry =
       store.setObject(entry, attributes, std::make_tuple(interfaceId_, mac_));
+  // For FDB entry, on delete, Ignore error if entry was already removed from
+  // HW. One scenario where this can occur is the following
+  // - We learn a MAC and install it in HW
+  // - Later we get a state update to transform this into a STATIC FDB entry
+  // - Meanwhile the dynamic MAC ages out and gets deleted
+  // - While processing the state delta for changed MAC entry, we try to
+  // delete the dynamic entry before adding static entry
+  fdbEntry->setIgnoreMissingInHwOnDelete(true);
   setObject(fdbEntry);
 }
 
@@ -126,19 +134,6 @@ void SaiFdbManager::removeFdbEntry(
   if (fdbEntryItr == managedFdbEntries_.end()) {
     XLOG(WARN) << "Attempted to remove non-existent FDB entry";
     return;
-  }
-  // Ignore error if entry was already removed from HW. One scenario
-  // where this can occur is the following
-  // - We learn a MAC and install it in HW
-  // - Later we get a state update to transform this into a STATIC FDB entry
-  // - Meanwhile the dynamic MAC ages out and gets deleted
-  // - While processing the state delta for changed MAC entry, we try to
-  // delete the dynamic entry before adding static entry
-  if (fdbEntryItr->second->getSaiObject()) {
-    // We check for SaiObjects existence, since FDB entries can get reset
-    // on link down events too. So before accessing the object check for
-    // its existence
-    fdbEntryItr->second->getSaiObject()->setIgnoreMissingInHwOnDelete(true);
   }
   managedFdbEntries_.erase(fdbEntryItr);
   auto portId = fdbEntryItr->second->getPortId();
