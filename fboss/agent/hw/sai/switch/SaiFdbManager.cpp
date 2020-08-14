@@ -127,8 +127,21 @@ void SaiFdbManager::removeFdbEntry(
     XLOG(WARN) << "Attempted to remove non-existent FDB entry";
     return;
   }
-  auto portId = fdbEntryItr->second->getPortId();
+  // Ignore error if entry was already removed from HW. One scenario
+  // where this can occur is the following
+  // - We learn a MAC and install it in HW
+  // - Later we get a state update to transform this into a STATIC FDB entry
+  // - Meanwhile the dynamic MAC ages out and gets deleted
+  // - While processing the state delta for changed MAC entry, we try to
+  // delete the dynamic entry before adding static entry
+  if (fdbEntryItr->second->getSaiObject()) {
+    // We check for SaiObjects existence, since FDB entries can get reset
+    // on link down events too. So before accessing the object check for
+    // its existence
+    fdbEntryItr->second->getSaiObject()->setIgnoreMissingInHwOnDelete(true);
+  }
   managedFdbEntries_.erase(fdbEntryItr);
+  auto portId = fdbEntryItr->second->getPortId();
   portToKeys_[portId].erase(key);
   if (portToKeys_[portId].empty()) {
     portToKeys_.erase(portId);
