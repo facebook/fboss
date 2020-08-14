@@ -22135,24 +22135,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC21",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 72,
+                      "post": 38,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC21",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 72,
+                      "post": 38,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC21",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 72,
+                      "post": 38,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC21",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 72,
+                      "post": 38,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -23221,24 +23261,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC20",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 66,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC20",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 66,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC20",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 66,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC20",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 66,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -24307,24 +24387,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC23",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 40,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC23",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 40,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC23",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 40,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC23",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 40,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -25393,24 +25513,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC22",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 42,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC22",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 42,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC22",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 42,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC22",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 68,
+                      "post": 42,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -26479,24 +26639,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC25",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC25",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC25",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC25",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 44,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -27565,24 +27765,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC24",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 46,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC24",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 46,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC24",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 46,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC24",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 64,
+                      "post": 46,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -28651,24 +28891,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC27",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC27",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC27",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC27",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],
@@ -29737,24 +30017,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "FC26",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC26",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC26",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   },
                   {
                     "id": {
                       "chip": "FC26",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 2,
+                      "pre2": 0,
+                      "main": 62,
+                      "post": 48,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0,
+                      "driveCurrent": 8
                     }
                   }
                 ],

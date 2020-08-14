@@ -52,7 +52,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   // All the downlink ports should be using the same tx_settings: nrz:-8:89:0
   auto mapping = std::make_unique<Wedge400PlatformMapping>();
   for (auto port : mapping->getPlatformPorts()) {
-    const auto& profiles = port.second.supportedProfiles;
+    const auto& profiles = *port.second.supportedProfiles_ref();
     // Only downlink ports has 10G profile
     if (profiles.find(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER) ==
         profiles.end()) {
@@ -71,12 +71,12 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         // Only NRZ mode has override tx
         if (itProfileCfg->second.iphy.modulation == phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
-          EXPECT_EQ(tx->pre2, 0);
-          EXPECT_EQ(tx->pre, -8);
-          EXPECT_EQ(tx->main, 89);
-          EXPECT_EQ(tx->post, 0);
-          EXPECT_EQ(tx->post2, 0);
-          EXPECT_EQ(tx->post3, 0);
+          EXPECT_EQ(*tx->pre2_ref(), 0);
+          EXPECT_EQ(*tx->pre_ref(), -8);
+          EXPECT_EQ(*tx->main_ref(), 89);
+          EXPECT_EQ(*tx->post_ref(), 0);
+          EXPECT_EQ(*tx->post2_ref(), 0);
+          EXPECT_EQ(*tx->post3_ref(), 0);
         } else {
           EXPECT_FALSE(tx.has_value());
         }
@@ -110,12 +110,12 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
     EXPECT_EQ(pinCfgs.size(), 4);
     for (auto pinCfg : pinCfgs) {
       if (auto tx = pinCfg.tx_ref()) {
-        EXPECT_EQ(tx->pre2, uplinkTx.second[0]);
-        EXPECT_EQ(tx->pre, uplinkTx.second[1]);
-        EXPECT_EQ(tx->main, uplinkTx.second[2]);
-        EXPECT_EQ(tx->post, uplinkTx.second[3]);
-        EXPECT_EQ(tx->post2, uplinkTx.second[4]);
-        EXPECT_EQ(tx->post3, uplinkTx.second[5]);
+        EXPECT_EQ(*tx->pre2_ref(), uplinkTx.second[0]);
+        EXPECT_EQ(*tx->pre_ref(), uplinkTx.second[1]);
+        EXPECT_EQ(*tx->main_ref(), uplinkTx.second[2]);
+        EXPECT_EQ(*tx->post_ref(), uplinkTx.second[3]);
+        EXPECT_EQ(*tx->post2_ref(), uplinkTx.second[4]);
+        EXPECT_EQ(*tx->post3_ref(), uplinkTx.second[5]);
       }
     }
   }
@@ -190,12 +190,12 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
         EXPECT_TRUE(tx.has_value());
-        EXPECT_EQ(tx->pre2, 0);
-        EXPECT_EQ(tx->pre, 0);
-        EXPECT_EQ(tx->main, 128);
-        EXPECT_EQ(tx->post, 0);
-        EXPECT_EQ(tx->post2, 0);
-        EXPECT_EQ(tx->post3, 0);
+        EXPECT_EQ(*tx->pre2_ref(), 0);
+        EXPECT_EQ(*tx->pre_ref(), 0);
+        EXPECT_EQ(*tx->main_ref(), 128);
+        EXPECT_EQ(*tx->post_ref(), 0);
+        EXPECT_EQ(*tx->post2_ref(), 0);
+        EXPECT_EQ(*tx->post3_ref(), 0);
       }
     }
   }
@@ -301,7 +301,7 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
 // Each group is a mapping of cableLength => {driveCurrent_ref().value(), pre,
 // main, post}
 static const std::vector<std::map<double, std::array<int, 4>>>
-    kWedge100TxGroups = {
+    kWedge100DownlinkTxGroups = {
         {
             {1.0, {0xa, 0x4, 0x3c, 0x30}},
             {1.5, {0xa, 0x4, 0x3c, 0x30}},
@@ -355,13 +355,13 @@ static const std::vector<std::map<double, std::array<int, 4>>>
 
 // Each front panel port maps to one trace group in the above
 // vector. The index is the TransceiverID, the value is the index
-// for which set of overrides to use from kWedge100TxGroups.
-static const std::array<uint8_t, 28> kWedge100PortGroupMapping = {{
+// for which set of overrides to use from kWedge100DownlinkTxGroups.
+static const std::array<uint8_t, 28> kWedge100DownlinkPortGroupMapping = {{
     1, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5,
     6, 6, 6, 5, 5, 5, 4, 4, 3, 3, 3, 3, 2, 2,
 }};
 
-TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
+TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
   std::unordered_set<cfg::PortProfileID> downlinkProfiles({
       cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
@@ -378,12 +378,12 @@ TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
         port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = chip.get_physicalID();
-    // Skip uplinks since we don't have tx settings for them yet
-    if (transID >= kWedge100PortGroupMapping.size()) {
+    // Skip uplinks
+    if (transID >= kWedge100DownlinkPortGroupMapping.size()) {
       continue;
     }
 
-    const auto& profiles = port.second.supportedProfiles;
+    const auto& profiles = *port.second.supportedProfiles_ref();
     for (auto profile : profiles) {
       // skip uplink profiles
       if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
@@ -393,7 +393,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
       EXPECT_TRUE(itProfileCfg != mapping->getSupportedProfiles().end());
 
       const auto& txSettingsGroup =
-          kWedge100TxGroups[kWedge100PortGroupMapping[transID]];
+          kWedge100DownlinkTxGroups[kWedge100DownlinkPortGroupMapping[transID]];
       for (auto& setting : txSettingsGroup) {
         auto cableLength = setting.first;
         auto expectedTx = setting.second;
@@ -403,17 +403,68 @@ TEST_F(PlatformMappingTest, VerifyWedge100PortIphyPinConfigs) {
         auto tx = pinCfg.tx_ref();
 
         EXPECT_TRUE(tx.has_value());
-        EXPECT_EQ(tx->pre2, 0);
-        EXPECT_EQ(tx->pre, expectedTx[1]);
-        EXPECT_EQ(tx->main, expectedTx[2]);
-        EXPECT_EQ(tx->post, expectedTx[3]);
-        EXPECT_EQ(tx->post2, 0);
-        EXPECT_EQ(tx->post3, 0);
+        EXPECT_EQ(*tx->pre2_ref(), 0);
+        EXPECT_EQ(*tx->pre_ref(), expectedTx[1]);
+        EXPECT_EQ(*tx->main_ref(), expectedTx[2]);
+        EXPECT_EQ(*tx->post_ref(), expectedTx[3]);
+        EXPECT_EQ(*tx->post2_ref(), 0);
+        EXPECT_EQ(*tx->post3_ref(), 0);
         EXPECT_EQ(*tx->driveCurrent_ref(), expectedTx[0]);
       }
     }
   }
 }
+
+// Array of expected tx settings for wedge100 uplinks for 100G Optical
+// Index is transciever Id - 24 (i.e first element is tcvr 24, the first uplink)
+// value is {driveCurrent, pre, main, post}
+static const std::vector<std::array<int, 4>> kWedge100UplinkTxSettings = {
+    {0x8, 2, 72, 38},
+    {0x8, 2, 66, 44},
+    {0x8, 4, 68, 40},
+    {0x8, 2, 68, 42},
+    {0x8, 4, 64, 44},
+    {0x8, 2, 64, 46},
+    {0x8, 2, 62, 48},
+    {0x8, 2, 62, 48}};
+
+TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
+  auto mapping = std::make_unique<Wedge100PlatformMapping>();
+  for (auto& port : mapping->getPlatformPorts()) {
+    const auto& chipName =
+        port.second.get_mapping().get_pins()[0].get_z()->get_end().get_chip();
+    const auto& chip = mapping->getChips().at(chipName);
+    auto transID = chip.get_physicalID();
+    // skip downlinks
+    if (transID < 24) {
+      continue;
+    }
+    const auto& profiles = *port.second.supportedProfiles_ref();
+    for (auto profile : profiles) {
+      auto pinCfgs =
+          mapping->getPortIphyPinConfigs(PortID(port.first), profile.first);
+      for (auto pinCfg : pinCfgs) {
+        auto tx = pinCfg.tx_ref();
+        // Only the this profile should have tx settings
+        if (profile.first ==
+            cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL) {
+          auto expectedTx = kWedge100UplinkTxSettings[transID - 24];
+          EXPECT_TRUE(tx.has_value());
+          EXPECT_EQ(*tx->pre2_ref(), 0);
+          EXPECT_EQ(*tx->pre_ref(), expectedTx[1]);
+          EXPECT_EQ(*tx->main_ref(), expectedTx[2]);
+          EXPECT_EQ(*tx->post_ref(), expectedTx[3]);
+          EXPECT_EQ(*tx->post2_ref(), 0);
+          EXPECT_EQ(*tx->post3_ref(), 0);
+          EXPECT_EQ(*tx->driveCurrent_ref(), expectedTx[0]);
+        } else {
+          EXPECT_FALSE(tx.has_value());
+        }
+      }
+    }
+  }
+}
+
 } // namespace test
 } // namespace fboss
 } // namespace facebook
