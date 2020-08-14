@@ -353,6 +353,7 @@ class SaiObject {
   void setIgnoreMissingInHwOnDelete(bool ignore) {
     ignoreMissingInHwOnDelete_ = ignore;
   }
+
  protected:
   template <typename AttrT>
   void checkAndSetAttribute(AttrT&& newAttr) {
@@ -428,6 +429,7 @@ class SaiObject {
     api.template create<T>(k, attributes);
     return k;
   }
+
  private:
   template <typename AttrT>
   void setNewAttributeHelper(const AttrT& newAttr) {
