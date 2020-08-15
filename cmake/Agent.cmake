@@ -97,6 +97,7 @@ add_library(core
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/StandaloneRibConversions.cpp
+  fboss/agent/StaticL2ForNeighborObserver.cpp
   fboss/agent/SwSwitch.cpp
   fboss/agent/ThreadHeartbeat.cpp
   fboss/agent/TunIntf.cpp
