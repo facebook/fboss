@@ -15,6 +15,7 @@
 namespace facebook::fboss {
 class SwitchState;
 class StateDelta;
+
 class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
  public:
   explicit StaticL2ForNeighborObserver(SwSwitch* sw)
@@ -47,6 +48,7 @@ class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
       const std::shared_ptr<ChangedEntryT>& oldEntry,
       const std::shared_ptr<ChangedEntryT>& newEntry);
 
+  friend class VlanTableDeltaCallbackGenerator;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss
