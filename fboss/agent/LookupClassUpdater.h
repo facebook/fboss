@@ -34,22 +34,22 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   void processNeighborUpdates(const StateDelta& stateDelta);
 
-  template <typename AddedEntryT>
-  void processNeighborAdded(
+  template <typename AddedNeighborEntryT>
+  void processAdded(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const std::shared_ptr<AddedEntryT>& addedEntry);
-  template <typename RemovedEntryT>
-  void processNeighborRemoved(
+      const std::shared_ptr<AddedNeighborEntryT>& addedEntry);
+  template <typename RemovedNeighborEntryT>
+  void processRemoved(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const std::shared_ptr<RemovedEntryT>& removedEntry);
-  template <typename ChangedEntryT>
-  void processNeighborChanged(
+      const std::shared_ptr<RemovedNeighborEntryT>& removedEntry);
+  template <typename ChangedNeighborEntryT>
+  void processChanged(
       const StateDelta& stateDelta,
       VlanID vlan,
-      const std::shared_ptr<ChangedEntryT>& oldEntry,
-      const std::shared_ptr<ChangedEntryT>& newEntry);
+      const std::shared_ptr<ChangedNeighborEntryT>& oldEntry,
+      const std::shared_ptr<ChangedNeighborEntryT>& newEntry);
 
   bool isInited(PortID portID);
   void initPort(

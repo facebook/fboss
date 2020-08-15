@@ -181,15 +181,15 @@ void LookupClassUpdater::updateNeighborClassID(
   }
 }
 
-template <typename AddedEntryT>
-void LookupClassUpdater::processNeighborAdded(
+template <typename AddedNeighborEntryT>
+void LookupClassUpdater::processAdded(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const std::shared_ptr<AddedEntryT>& addedEntry) {
+    const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
   CHECK(addedEntry);
   CHECK(addedEntry->getPort().isPhysicalPort());
 
-  if constexpr (std::is_same_v<AddedEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<AddedNeighborEntryT, MacEntry>) {
     updateNeighborClassID(switchState, vlan, addedEntry);
   } else {
     if (addedEntry->isReachable()) {
@@ -198,29 +198,29 @@ void LookupClassUpdater::processNeighborAdded(
   }
 }
 
-template <typename RemovedEntryT>
-void LookupClassUpdater::processNeighborRemoved(
+template <typename RemovedNeighborEntryT>
+void LookupClassUpdater::processRemoved(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlan,
-    const std::shared_ptr<RemovedEntryT>& removedEntry) {
+    const std::shared_ptr<RemovedNeighborEntryT>& removedEntry) {
   CHECK(removedEntry);
   CHECK(removedEntry->getPort().isPhysicalPort());
 
   removeClassIDForPortAndMac(switchState, vlan, removedEntry);
 }
 
-template <typename ChangedEntryT>
-void LookupClassUpdater::processNeighborChanged(
+template <typename ChangedNeighborEntryT>
+void LookupClassUpdater::processChanged(
     const StateDelta& stateDelta,
     VlanID vlan,
-    const std::shared_ptr<ChangedEntryT>& oldEntry,
-    const std::shared_ptr<ChangedEntryT>& newEntry) {
+    const std::shared_ptr<ChangedNeighborEntryT>& oldEntry,
+    const std::shared_ptr<ChangedNeighborEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
   CHECK(oldEntry->getPort().isPhysicalPort());
   CHECK(newEntry->getPort().isPhysicalPort());
 
-  if constexpr (std::is_same_v<ChangedEntryT, MacEntry>) {
+  if constexpr (std::is_same_v<ChangedNeighborEntryT, MacEntry>) {
     /*
      * MAC Move
      */
@@ -315,11 +315,11 @@ void LookupClassUpdater::processNeighborUpdates(const StateDelta& stateDelta) {
       }
 
       if (!oldEntry) {
-        processNeighborAdded(stateDelta.newState(), vlan, newEntry);
+        processAdded(stateDelta.newState(), vlan, newEntry);
       } else if (!newEntry) {
-        processNeighborRemoved(stateDelta.oldState(), vlan, oldEntry);
+        processRemoved(stateDelta.oldState(), vlan, oldEntry);
       } else {
-        processNeighborChanged(stateDelta, vlan, oldEntry, newEntry);
+        processChanged(stateDelta, vlan, oldEntry, newEntry);
       }
     }
   }
@@ -473,12 +473,12 @@ void LookupClassUpdater::processPortChanged(
 
   /*
    * We don't need to handle port down here: on port down,
-   *  - ARP/NDP neighbors go to pending and processNeighborChanged()
+   *  - ARP/NDP neighbors go to pending and processChanged()
    *    disassociates classID from the neighbor entry.
    *  - L2 entries remain in hardware L2 table and thus we retain classID
    *    assocaited with L2 entries even when port is down. However, L2
    *    entries on down ports could be aged out. This will be processed by
-   *    processNeighborRemoved() and the classID would be freed up.
+   *    processRemoved() and the classID would be freed up.
    */
   if (oldLookupClasses == newLookupClasses) {
     return;
