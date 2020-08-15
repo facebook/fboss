@@ -530,6 +530,9 @@ TYPED_TEST(BcmMirrorTest, UnresolvedErspanMirror) {
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
     this->verifyUnResolvedBcmMirror(mirror);
   };
+  if (this->skipMirrorTest()) {
+    return;
+  }
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -552,6 +555,9 @@ TYPED_TEST(BcmMirrorTest, MirrorRemoved) {
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
     this->verifyUnResolvedBcmMirror(erspan);
   };
+  if (this->skipMirrorTest()) {
+    return;
+  }
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -580,6 +586,9 @@ TYPED_TEST(BcmMirrorTest, UnresolvedToUnresolvedUpdate) {
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
     this->verifyUnResolvedBcmMirror(erspan);
   };
+  if (this->skipMirrorTest()) {
+    return;
+  }
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -667,6 +676,9 @@ TYPED_TEST(BcmMirrorTest, ResolvedToUnresolvedUpdate) {
         this->getProgrammedState()->getMirrors()->getMirrorIf(kErspan);
     this->verifyUnResolvedBcmMirror(mirror);
   };
+  if (this->skipMirrorTest()) {
+    return;
+  }
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -688,6 +700,9 @@ TYPED_TEST(BcmMirrorTest, NoPortMirroringIfUnResolved) {
     this->verifyPortNoMirrorDestination(
         PortID(this->masterLogicalPortIds()[0]), BCM_MIRROR_PORT_EGRESS);
   };
+  if (this->skipMirrorTest()) {
+    return;
+  }
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -1307,6 +1322,9 @@ TYPED_TEST(BcmMirrorTest, RemoveAclMirror) {
 }
 
 TYPED_TEST(BcmMirrorTest, BcmMirrorLimitExceeded) {
+  if (this->skipMirrorTest()) {
+    return;
+  }
   auto cfg = this->initialConfig();
   auto oldState = this->applyNewConfig(cfg);
 
@@ -1489,8 +1507,8 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirror) {
     std::vector<bcm_gport_t> destinations;
     this->getAllMirrorDestinations(destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t sflow;
-    bcm_gport_t erspan;
+    bcm_gport_t sflow = 0;
+    bcm_gport_t erspan = 0;
     for (auto destination : destinations) {
       bcm_mirror_destination_t mirror_dest;
       bcm_mirror_destination_t_init(&mirror_dest);
@@ -1584,8 +1602,8 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     std::vector<bcm_gport_t> destinations;
     this->getAllMirrorDestinations(destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t sflow;
-    bcm_gport_t erspan;
+    bcm_gport_t sflow = 0;
+    bcm_gport_t erspan = 0;
     for (auto destination : destinations) {
       bcm_mirror_destination_t mirror_dest;
       bcm_mirror_destination_t_init(&mirror_dest);
@@ -1716,7 +1734,7 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     std::vector<bcm_gport_t> destinations;
     this->getAllMirrorDestinations(destinations);
     ASSERT_EQ(destinations.size(), 2);
-    bcm_gport_t erspan;
+    bcm_gport_t erspan = 0;
     for (auto destination : destinations) {
       bcm_mirror_destination_t mirror_dest;
       bcm_mirror_destination_t_init(&mirror_dest);
