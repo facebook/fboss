@@ -31,9 +31,9 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
  private:
   using ClassID2Count = boost::container::flat_map<cfg::AclLookupClass, int>;
 
-  template <typename AddrT>
-  void processNeighborUpdates(const StateDelta& stateDelta);
-
+  template <typename NeighborEntryT>
+  bool shouldProcessNewNeighborEntry(
+      const std::shared_ptr<NeighborEntryT>& newEntry) const;
   template <typename AddedNeighborEntryT>
   void processAdded(
       const std::shared_ptr<SwitchState>& switchState,
@@ -158,6 +158,7 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   boost::container::flat_map<PortID, MacAndVlan2ClassIDAndRefCnt>
       port2MacAndVlanEntries_;
 
+  friend class VlanTableDeltaCallbackGenerator;
   bool inited_{false};
 };
 
