@@ -79,29 +79,9 @@ class LogThriftCall {
       std::string paramsStr);
   ~LogThriftCall();
 
-  // inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.
-  //
-  // TODO: add versions for SemiFuture and Coro
-  template <typename RT>
-  folly::Future<RT> wrapFuture(folly::Future<RT>&& f) {
-    executedFuture_ = true;
-    return std::move(f).thenTry([logger = logger_,
-                                 level = level_,
-                                 func = func_,
-                                 file = file_,
-                                 line = line_,
-                                 start = start_](folly::Try<RT>&& ret) {
-      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - start);
-
-      auto result = (ret.hasException()) ? "failed" : "succeeded";
-
-      FB_LOG_RAW_WITH_CONTEXT(logger, level, file, line, "")
-          << func << " thrift request " << result << " in " << ms.count()
-          << "ms";
-
-      return std::forward<folly::Try<RT>>(ret);
-    });
+  // useful for wrap(Semi)?Future
+  void markFailed() {
+    failed_ = true;
   }
 
  private:
@@ -114,7 +94,36 @@ class LogThriftCall {
   folly::StringPiece file_;
   uint32_t line_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
-  bool executedFuture_{false};
+  bool failed_{false};
 };
+
+// inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.
+//
+// TODO: add version for Coro once coro based thrift server is standardized
+template <typename RT>
+folly::Future<RT> wrapFuture(
+    std::unique_ptr<LogThriftCall> logObject,
+    folly::Future<RT>&& f) {
+  return std::move(f).thenTry(
+      [logger = std::move(logObject)](folly::Try<RT>&& ret) mutable {
+        if (logger && ret.hasException()) {
+          logger->markFailed();
+        }
+        return std::forward<folly::Try<RT>>(ret);
+      });
+}
+
+template <typename RT>
+folly::SemiFuture<RT> wrapSemiFuture(
+    std::unique_ptr<LogThriftCall> logObject,
+    folly::SemiFuture<RT>&& f) {
+  return std::move(f).defer(
+      [logger = std::move(logObject)](folly::Try<RT>&& ret) mutable {
+        if (logger && ret.hasException()) {
+          logger->markFailed();
+        }
+        return std::forward<folly::Try<RT>>(ret);
+      });
+}
 
 } // namespace facebook::fboss
