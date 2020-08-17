@@ -24,7 +24,7 @@ namespace facebook::fboss {
  * entries in Vlan. We need to do this in a few places,
  * so having a single abstraction doing this saves on
  * code dup.
-*/
+ */
 
 class VlanTableDeltaCallbackGenerator {
  public:
