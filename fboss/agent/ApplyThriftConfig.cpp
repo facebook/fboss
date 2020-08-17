@@ -2304,6 +2304,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   bool changed = false;
 
   size_t numExistingProcessed = 0;
+  int sflowMirrorCount = 0;
   for (const auto& mirrorCfg : cfg_->mirrors) {
     auto origMirror = origMirrors->getMirrorIf(mirrorCfg.name);
     std::shared_ptr<Mirror> newMirror;
@@ -2312,6 +2313,14 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       ++numExistingProcessed;
     } else {
       newMirror = createMirror(&mirrorCfg);
+    }
+    if (newMirror) {
+      sflowMirrorCount += newMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
+    } else {
+      sflowMirrorCount += origMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
+    }
+    if (sflowMirrorCount > 1) {
+      throw FbossError("More than one sflow mirrors configured");
     }
     changed |= updateMap(&newMirrors, origMirror, newMirror);
   }
@@ -2325,10 +2334,23 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   for (auto& port : *(new_->getPorts())) {
     auto portInMirror = port->getIngressMirror();
     auto portEgMirror = port->getEgressMirror();
-    if (portInMirror.has_value() &&
-        newMirrors.find(portInMirror.value()) == newMirrors.end()) {
-      throw FbossError(
-          "Mirror ", portInMirror.value(), " for port is not found");
+    if (portInMirror.has_value()) {
+      auto inMirrorMapEntry = newMirrors.find(portInMirror.value());
+      if (inMirrorMapEntry == newMirrors.end()) {
+        throw FbossError(
+            "Mirror ", portInMirror.value(), " for port is not found");
+      }
+      if (port->getSampleDestination() &&
+          port->getSampleDestination().value() ==
+              cfg::SampleDestination::MIRROR &&
+          inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
+        throw FbossError(
+            "Ingress mirror ",
+            portInMirror.value(),
+            " for sampled port ",
+            port->getID(),
+            " not sflow");
+      }
     }
     if (portEgMirror.has_value() &&
         newMirrors.find(portEgMirror.value()) == newMirrors.end()) {
