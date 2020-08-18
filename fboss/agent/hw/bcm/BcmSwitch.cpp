@@ -760,7 +760,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
 
   // Add callbacks for unit and parity errors as early as possible to handle
   // critical events
-  BcmSwitchEventUtils::initUnit(unit_);
+  BcmSwitchEventUtils::initUnit(unit_, this);
   auto fatalCob = make_shared<BcmSwitchEventUnitFatalErrorCallback>();
   auto nonFatalCob = make_shared<BcmSwitchEventUnitNonFatalErrorCallback>();
   BcmSwitchEventUtils::registerSwitchEventCallback(

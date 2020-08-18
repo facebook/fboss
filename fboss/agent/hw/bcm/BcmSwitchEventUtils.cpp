@@ -35,7 +35,7 @@ using CallbackMap = std::unordered_map<int, PerUnitCallbackMap>;
 folly::Synchronized<CallbackMap> callbacks;
 
 // Registers a callback with the BCM library to start callbacks
-void initUnit(const int unit) {
+void initUnit(const int unit, BcmSwitch* bcmSwitch) {
   SYNCHRONIZED(callbacks) {
     if (callbacks.count(unit) > 0) {
       auto rv = bcm_switch_event_unregister(unit, callbackDispatch, nullptr);
@@ -44,7 +44,7 @@ void initUnit(const int unit) {
 
     // Add a new CallbackMap
     callbacks[unit].clear();
-    auto rv = bcm_switch_event_register(unit, callbackDispatch, nullptr);
+    auto rv = bcm_switch_event_register(unit, callbackDispatch, bcmSwitch);
     bcmCheckError(rv, "failed to register switch event");
   }
 }
@@ -107,7 +107,7 @@ void callbackDispatch(
     uint32_t arg1,
     uint32_t arg2,
     uint32_t arg3,
-    void* /*userdata*/) {
+    void* data) {
   std::shared_ptr<BcmSwitchEventCallback> callbackObj;
   SYNCHRONIZED_CONST(callbacks) {
     auto unitCallbacks = callbacks.find(unit);
@@ -121,7 +121,7 @@ void callbackDispatch(
 
   // perform user-specified callback if it exists
   if (callbackObj) {
-    callbackObj->callback(unit, eventID, arg1, arg2, arg3);
+    callbackObj->callback(unit, eventID, arg1, arg2, arg3, data);
     // no callback found -- use default callback
   } else {
     defaultCallback(unit, eventID, arg1, arg2, arg3);
@@ -161,7 +161,10 @@ void defaultCallback(
             << arg2 << ", " << arg3 << ")";
 }
 
-void exportEventCounters(const bcm_switch_event_t eventID, bool fatal) {
+void exportEventCounters(
+    const bcm_switch_event_t eventID,
+    bool fatal,
+    void* data) {
   if (eventID != BCM_SWITCH_EVENT_PARITY_ERROR) {
     getSwitchStats()->asicError();
   } else {

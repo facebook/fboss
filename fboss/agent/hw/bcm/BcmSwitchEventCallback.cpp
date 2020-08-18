@@ -65,11 +65,12 @@ void BcmSwitchEventUnitNonFatalErrorCallback::callback(
     const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
-    const uint32_t arg3) {
+    const uint32_t arg3,
+    void* data) {
   auto alarm = BcmSwitchEventUtils::getAlarmName(eventID);
 
   if (eventID != BCM_SWITCH_EVENT_PARITY_ERROR) {
-    BcmSwitchEventUtils::exportEventCounters(eventID, 1);
+    BcmSwitchEventUtils::exportEventCounters(eventID, 1, data);
   } else {
     // Parity errors can be fatal or nonfatal
     auto errName = switch_event_helpers::getParityDataErrName(
@@ -79,14 +80,14 @@ void BcmSwitchEventUnitNonFatalErrorCallback::callback(
       case SOC_SWITCH_EVENT_DATA_ERROR_FATAL:
       case SOC_SWITCH_EVENT_DATA_ERROR_UNCORRECTABLE:
       case SOC_SWITCH_EVENT_DATA_ERROR_FAILEDTOCORRECT:
-        BcmSwitchEventUtils::exportEventCounters(eventID, 1);
+        BcmSwitchEventUtils::exportEventCounters(eventID, 1, data);
 
         XLOG(ERR) << "BCM Uncorrectable error on unit " << unit << ": " << alarm
                   << " (" << eventID << "), " << errName << " (" << arg1
                   << "), " << arg2 << ", " << arg3;
         return;
       default:
-        BcmSwitchEventUtils::exportEventCounters(eventID, 0);
+        BcmSwitchEventUtils::exportEventCounters(eventID, 0, data);
     }
   }
 
@@ -110,7 +111,8 @@ void BcmSwitchEventUnitFatalErrorCallback::callback(
     const bcm_switch_event_t eventID,
     const uint32_t arg1,
     const uint32_t arg2,
-    const uint32_t arg3) {
+    const uint32_t arg3,
+    void* /* data */) {
   auto alarm = BcmSwitchEventUtils::getAlarmName(eventID);
   XLOG(ERR) << "BCM uncorrected error on unit " << unit << ": " << alarm << " ("
             << eventID << ") with params " << arg1 << ", " << arg2 << ", "

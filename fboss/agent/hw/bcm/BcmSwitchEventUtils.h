@@ -22,6 +22,8 @@ extern "C" {
 #include <bcm/switch.h>
 }
 
+class BcmSwitch;
+
 namespace facebook::fboss {
 
 /**
@@ -32,7 +34,7 @@ namespace BcmSwitchEventUtils {
 // Initializes/resets event handling for a unit.  This will register or
 // unregister a callback with the Bcm SDK and allocate/deallocate our
 // local state.
-void initUnit(const int unit);
+void initUnit(const int unit, BcmSwitch* bcmSwitch);
 void resetUnit(const int unit);
 
 // Callback registration.
@@ -70,7 +72,10 @@ void defaultCallback(
     const uint32_t arg3);
 
 // Export counters
-void exportEventCounters(const bcm_switch_event_t eventID, bool fatal);
+void exportEventCounters(
+    const bcm_switch_event_t eventID,
+    bool fatal,
+    void* data);
 
 } // namespace BcmSwitchEventUtils
 

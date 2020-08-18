@@ -34,7 +34,8 @@ class BcmSwitchEventCallback {
       const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
-      const uint32_t arg3) = 0;
+      const uint32_t arg3,
+      void* data) = 0;
 
  private:
   // disable copy constructor and assignment operator
@@ -55,7 +56,8 @@ class BcmSwitchEventUnitFatalErrorCallback : public BcmSwitchEventCallback {
       const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
-      const uint32_t arg3) override;
+      const uint32_t arg3,
+      void* data) override;
 };
 
 /**
@@ -72,7 +74,8 @@ class BcmSwitchEventUnitNonFatalErrorCallback : public BcmSwitchEventCallback {
       const bcm_switch_event_t eventID,
       const uint32_t arg1,
       const uint32_t arg2,
-      const uint32_t arg3) override;
+      const uint32_t arg3,
+      void* data) override;
 
  private:
   void logNonFatalError(
