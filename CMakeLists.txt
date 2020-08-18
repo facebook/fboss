@@ -402,7 +402,6 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmRtag7Module.cpp
       fboss/agent/hw/bcm/BcmRxPacket.cpp
       fboss/agent/hw/bcm/BcmSflowExporter.cpp
-      fboss/agent/hw/bcm/BcmStats.cpp
       fboss/agent/hw/bcm/BcmStatUpdater.cpp
       fboss/agent/hw/bcm/BcmSwitch.cpp
       fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp

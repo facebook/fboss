@@ -9,8 +9,8 @@
  */
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 
+#include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmStats.h"
 
 extern "C" {
 #include <bcm/tx.h>

@@ -15,7 +15,6 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/bcm/BcmStats.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 
 extern "C" {

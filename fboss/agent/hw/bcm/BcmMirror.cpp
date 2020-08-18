@@ -4,7 +4,6 @@
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/hw/bcm/BcmStats.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
