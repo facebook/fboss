@@ -30,7 +30,7 @@ void freeTxBuf(void* /*ptr*/, void* arg) {
   bcm_pkt_t* pkt = freeTxBufUserData->pkt;
   int rv = bcm_pkt_free(pkt->unit, pkt);
   bcmLogError(rv, "Failed to free packet");
-  getSwitchStats()->txPktFree();
+  freeTxBufUserData->bcmSwitch->getSwitchStats()->txPktFree();
 }
 
 inline void txCallbackImpl(int /*unit*/, bcm_pkt_t* pkt, void* cookie) {
@@ -46,7 +46,7 @@ inline void txCallbackImpl(int /*unit*/, bcm_pkt_t* pkt, void* cookie) {
   auto end = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
       end - bcmTxCbUserData->txPacket->getQueueTime());
-  getSwitchStats()->txSentDone(duration.count());
+  bcmTxCbUserData->bcmSwitch->getSwitchStats()->txSentDone(duration.count());
 }
 } // namespace
 
@@ -71,7 +71,7 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
     : queued_(std::chrono::time_point<std::chrono::steady_clock>::min()) {
   int rv = bcm_pkt_alloc(unit, size, BCM_TX_CRC_APPEND | BCM_TX_ETHER, &pkt_);
   if (BCM_FAILURE(rv)) {
-    getSwitchStats()->txPktAllocErrors();
+    bcmSwitch->getSwitchStats()->txPktAllocErrors();
     bcmCheckError(rv, "Failed to allocate packet.");
   } else {
     auto freeTxBufUserData =
@@ -81,7 +81,7 @@ BcmTxPacket::BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch)
         size,
         freeTxBuf,
         reinterpret_cast<void*>(freeTxBufUserData.get()));
-    getSwitchStats()->txPktAlloc();
+    bcmSwitch->getSwitchStats()->txPktAlloc();
     /*
      * Release the unique pointer without destroying the free buffer user
      * data. The unique pointer will be reconstructed when the IOBuf is
@@ -117,13 +117,13 @@ inline int BcmTxPacket::sendImpl(
      * reset the packet and to increment the switch stats.
      */
     txCbUserData.release();
-    getSwitchStats()->txSent();
+    bcmSwitch->getSwitchStats()->txSent();
   } else {
     bcmLogError(rv, "failed to send packet");
     if (rv == BCM_E_MEMORY) {
-      getSwitchStats()->txPktAllocErrors();
+      bcmSwitch->getSwitchStats()->txPktAllocErrors();
     } else if (rv) {
-      getSwitchStats()->txError();
+      bcmSwitch->getSwitchStats()->txError();
     }
   }
   return rv;

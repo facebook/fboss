@@ -165,13 +165,14 @@ void exportEventCounters(
     const bcm_switch_event_t eventID,
     bool fatal,
     void* data) {
+  BcmSwitch* bcmSwitch = reinterpret_cast<BcmSwitch*>(data);
   if (eventID != BCM_SWITCH_EVENT_PARITY_ERROR) {
-    getSwitchStats()->asicError();
+    bcmSwitch->getSwitchStats()->asicError();
   } else {
     if (fatal) {
-      getSwitchStats()->uncorrParityError();
+      bcmSwitch->getSwitchStats()->uncorrParityError();
     } else {
-      getSwitchStats()->corrParityError();
+      bcmSwitch->getSwitchStats()->corrParityError();
     }
   }
 }
