@@ -16,9 +16,14 @@
 
 #include <type_traits>
 
+DECLARE_bool(create_l2_entry_for_nbr);
+
 namespace facebook::fboss {
 
 void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
+  if (!FLAGS_create_l2_entry_for_nbr) {
+    return;
+  }
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
 }
 
