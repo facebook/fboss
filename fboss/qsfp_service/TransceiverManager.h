@@ -36,6 +36,7 @@ class TransceiverManager {
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual int numPortsPerTransceiver() = 0;
+  virtual void resetTransceiver(unsigned int module) = 0;
 
   /* Virtual function to return the i2c transactions stats in a platform.
    * This will be overridden by derived classes which are platform specific

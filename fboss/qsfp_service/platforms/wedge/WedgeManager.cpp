@@ -265,6 +265,10 @@ void WedgeManager::clearAllTransceiverReset() {
   sleep(kSecAfterModuleOutOfReset);
 }
 
+void WedgeManager::resetTransceiver(unsigned int module) {
+  qsfpPlatApi_->triggerQsfpHardReset(module);
+}
+
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
 }

@@ -210,6 +210,13 @@ class CmisModule : public QsfpModule {
    */
   virtual void updateQsfpData(bool allPages = true) override;
 
+  /*
+   * Put logic here that should only be run on ports that have been
+   * down for a long time. These are actions that are potentially more
+   * disruptive, but have worked in the past to recover a transceiver.
+   */
+  void remediateFlakyTransceiver() override;
+
  private:
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*

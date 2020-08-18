@@ -330,6 +330,7 @@ class QsfpModule : public Transceiver {
 
   std::map<uint32_t, PortStatus> ports_;
   unsigned int portsPerTransceiver_{0};
+  unsigned int moduleResetCounter_{0};
 };
 
 }} //namespace facebook::fboss

@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
@@ -29,6 +30,7 @@ DECLARE_int32(remediate_interval);
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
+constexpr int kResetCounterLimit = 5;
 
 }
 
@@ -833,6 +835,25 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
              << " set application to " << capabilityIter->first;
 }
 
+/*
+ * Put logic here that should only be run on ports that have been
+ * down for a long time. These are actions that are potentially more
+ * disruptive, but have worked in the past to recover a transceiver.
+ */
+void CmisModule::remediateFlakyTransceiver() {
+  XLOG(INFO) << "Performing potentially disruptive remediations on "
+             << qsfpImpl_->getName();
+
+  if (moduleResetCounter_ < kResetCounterLimit) {
+    transceiverManager_->resetTransceiver(static_cast<unsigned int>(getID()));
+    moduleResetCounter_++;
+  } else {
+    XLOG(DBG2) << "Reached reset limit for module " << qsfpImpl_->getName();
+  }
+
+  lastRemediateTime_ = std::time(nullptr);
+}
+
 void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
   /* Wedge forces Low Power mode via a pin;  we have to reset this
    * to force High Power mode on all transceivers except SR4-40G.
@@ -847,8 +868,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   auto portStr = folly::to<std::string>(qsfpImpl_->getName());
 
-  if (currentState == PowerControlState::HIGH_POWER_OVERRIDE &&
-      std::time(nullptr) - lastRemediateTime_ < FLAGS_remediate_interval) {
+  if (currentState == PowerControlState::HIGH_POWER_OVERRIDE) {
     XLOG(INFO) << "Port: " << folly::to<std::string>(qsfpImpl_->getName())
                << " Power override already correctly set, doing nothing";
     return;
@@ -876,9 +896,6 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   qsfpImpl_->writeTransceiver(
       TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
-
-  // update last time we reset the power class
-  lastRemediateTime_ = std::time(nullptr);
 
   XLOG(INFO) << "Port " << portStr << ": QSFP module control field set to "
              << currentModuleControl;

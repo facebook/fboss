@@ -67,6 +67,8 @@ class WedgeManager : public TransceiverManager {
   // transceiver out of reset by default will stay no op.
   void clearAllTransceiverReset();
 
+  void resetTransceiver(unsigned int module) override;
+
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
