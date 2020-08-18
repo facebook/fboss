@@ -927,9 +927,9 @@ class PortStatusDetailCmd(object):
     def _print_transceiver_details(self, tid):  # noqa
         """ Print details about transceiver """
 
-        info = self._info_resp[tid]
+        info = self._info_resp.get(tid)
         ch_to_port = self._t_to_p[tid]
-        if info.present is False:
+        if not info or info.present is False:
             self._print_transceiver_ports(ch_to_port.values(), info)
             return
 

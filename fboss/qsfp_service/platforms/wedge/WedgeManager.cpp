@@ -57,6 +57,7 @@ void WedgeManager::initTransceiverMap() {
     } catch (const I2cError& ex) {
       XLOG(ERR) << "failed detecting transceiver type: " << ex.what()
                 << " Transceiver " << idx << " may not be present: ";
+      continue;
     }
 
     int portsPerTransceiver =
@@ -66,16 +67,18 @@ void WedgeManager::initTransceiverMap() {
     if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
     {
       XLOG(INFO) << "making CMIS QSFP for " << idx;
-      std::unique_ptr<QsfpModule> qsfp = std::make_unique<CmisModule>(
-          std::move(qsfpImpl),
-          portsPerTransceiver);
-      transceivers_.push_back(move(qsfp));
+      transceivers_.wlock()->emplace(
+          TransceiverID(idx),
+          std::make_unique<CmisModule>(
+              std::move(qsfpImpl),
+              portsPerTransceiver));
     } else {
       XLOG(INFO) << "making Sff QSFP for " << idx;
-      std::unique_ptr<QsfpModule> qsfp = std::make_unique<SffModule>(
-          std::move(qsfpImpl),
-          portsPerTransceiver);
-      transceivers_.push_back(move(qsfp));
+      transceivers_.wlock()->emplace(
+          TransceiverID(idx),
+          std::make_unique<SffModule>(
+              std::move(qsfpImpl),
+              portsPerTransceiver));
     }
   }
 
@@ -91,11 +94,18 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
       folly::gen::appendTo(*ids);
   }
 
+  auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
     TransceiverInfo trans;
-    if (isValidTransceiver(i)) {
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+         it != lockedTransceivers->end()) {
       try {
-        trans = transceivers_[TransceiverID(i)]->getTransceiverInfo();
+        trans = it->second->getTransceiverInfo();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getTransceiverInfo(): " << ex.what();
@@ -114,11 +124,18 @@ void WedgeManager::getTransceiversRawDOMData(
     folly::gen::range(0, getNumQsfpModules()) |
       folly::gen::appendTo(*ids);
   }
+  auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
     RawDOMData data;
-    if (isValidTransceiver(i)) {
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
       try {
-        data = transceivers_[TransceiverID(i)]->getRawDOMData();
+        data = it->second->getRawDOMData();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getRawDOMData(): " << ex.what();
@@ -137,11 +154,18 @@ void WedgeManager::getTransceiversDOMDataUnion(
     folly::gen::range(0, getNumQsfpModules()) |
       folly::gen::appendTo(*ids);
   }
+  auto lockedTransceivers = transceivers_.rlock();
   for (const auto& i : *ids) {
+    if (!isValidTransceiver(i)) {
+      // If the transceiver idx is not valid,
+      // just skip and continue to the next.
+      continue;
+    }
     DOMDataUnion data;
-    if (isValidTransceiver(i)) {
+    if (auto it = lockedTransceivers->find(TransceiverID(i));
+        it != lockedTransceivers->end()) {
       try {
-        data = transceivers_[TransceiverID(i)]->getDOMDataUnion();
+        data = it->second->getDOMDataUnion();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getDOMDataUnion(): " << ex.what();
@@ -152,7 +176,19 @@ void WedgeManager::getTransceiversDOMDataUnion(
 }
 
 void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
-  transceivers_.at(idx)->customizeTransceiver(speed);
+  if (!isValidTransceiver(idx)) {
+    return;
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(TransceiverID(idx));
+      it != lockedTransceivers->end()) {
+    try {
+      it->second->customizeTransceiver(speed);
+    } catch (const std::exception& ex) {
+        XLOG(ERR) << "Transceiver " << idx
+                  << ": Error calling customizeTransceiver(): " << ex.what();
+    }
+  }
 }
 
 void WedgeManager::syncPorts(
@@ -169,17 +205,26 @@ void WedgeManager::syncPorts(
                 }) |
       folly::gen::as<std::vector>();
 
+  auto lockedTransceivers = transceivers_.rlock();
   for (auto& group : groups) {
     int32_t transceiverIdx = group.key();
     XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
+    if (!isValidTransceiver(transceiverIdx)) {
+      continue;
+    }
 
-    try {
-      auto transceiver = transceivers_.at(transceiverIdx).get();
-      transceiver->transceiverPortsChanged(group.values());
-      info[transceiverIdx] = transceiver->getTransceiverInfo();
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Transceiver " << transceiverIdx
-                << ": Error calling syncPorts(): " << ex.what();
+    if (auto it = lockedTransceivers->find(TransceiverID(transceiverIdx));
+        it != lockedTransceivers->end()) {
+      try {
+        auto transceiver = it->second.get();
+        transceiver->transceiverPortsChanged(group.values());
+        info[transceiverIdx] = transceiver->getTransceiverInfo();
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Transceiver " << transceiverIdx
+                  << ": Error calling syncPorts(): " << ex.what();
+      }
+    } else {
+      XLOG(ERR) << "Syncing ports to a transceiver that is not preset.";
     }
   }
 }
@@ -197,9 +242,11 @@ void WedgeManager::refreshTransceivers() {
   std::vector<folly::Future<folly::Unit>> futs;
   XLOG(INFO) << "Start refreshing all transceivers...";
 
-  for (const auto& transceiver : transceivers_) {
-    XLOG(DBG3) << "Fired to refresh transceiver " << transceiver->getID();
-    futs.push_back(transceiver->futureRefresh());
+  auto lockedTransceivers = transceivers_.rlock();
+
+  for (const auto& transceiver : *lockedTransceivers) {
+    XLOG(DBG3) << "Fired to refresh transceiver " << transceiver.second->getID();
+    futs.push_back(transceiver.second->futureRefresh());
   }
 
   folly::collectAllUnsafe(futs.begin(), futs.end()).wait();

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <map>
+
+#include <folly/Synchronized.h>
 
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
@@ -26,7 +29,7 @@ class TransceiverManager {
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) = 0;
 
   bool isValidTransceiver(int32_t id) {
-    return id < transceivers_.size() && id >= 0;
+    return id < getNumQsfpModules() && id >= 0;
   }
   virtual int getNumQsfpModules() = 0;
   virtual void refreshTransceivers() = 0;
@@ -54,6 +57,6 @@ class TransceiverManager {
   TransceiverManager(TransceiverManager const &) = delete;
   TransceiverManager& operator=(TransceiverManager const &) = delete;
  protected:
-  std::vector<std::unique_ptr<Transceiver>> transceivers_;
+  folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>> transceivers_;
 };
 }} // facebook::fboss

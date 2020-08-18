@@ -29,12 +29,12 @@ class MockWedgeManager : public WedgeManager {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       std::unique_ptr<MockSffModule> qsfp =
           std::make_unique<MockSffModule>(nullptr, numPortsPerTransceiver());
-      mockTransceivers_.push_back(qsfp.get());
-      transceivers_.push_back(move(qsfp));
+      mockTransceivers_.emplace(TransceiverID(idx), qsfp.get());
+      transceivers_.wlock()->emplace(TransceiverID(idx), move(qsfp));
     }
   }
 
-  std::vector<MockSffModule*> mockTransceivers_;
+  std::map<TransceiverID, MockSffModule*> mockTransceivers_;
 };
 
 class WedgeManagerTest : public ::testing::Test {
@@ -49,7 +49,7 @@ class WedgeManagerTest : public ::testing::Test {
 TEST_F(WedgeManagerTest, getTransceiverInfo) {
   // If no ids are passed in, info for all should be returned
   for (const auto& trans : wedgeManager_->mockTransceivers_) {
-    EXPECT_CALL(*trans, getTransceiverInfo()).Times(1);
+    EXPECT_CALL(*trans.second, getTransceiverInfo()).Times(1);
   }
   std::map<int32_t, TransceiverInfo> transInfo;
   wedgeManager_->getTransceiversInfo(transInfo,
@@ -58,7 +58,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfo) {
   // Otherwise, just return the ids requested
   std::vector<int32_t> data = {1, 3, 7};
   for (const auto& i : data) {
-    MockSffModule* qsfp = wedgeManager_->mockTransceivers_[i];
+    MockSffModule* qsfp = wedgeManager_->mockTransceivers_[TransceiverID(i)];
     EXPECT_CALL(*qsfp, getTransceiverInfo()).Times(1);
   }
   wedgeManager_->getTransceiversInfo(transInfo,
