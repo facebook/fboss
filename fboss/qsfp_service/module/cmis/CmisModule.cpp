@@ -822,7 +822,7 @@ void CmisModule::setApplicationCode(cfg::PortSpeed speed) {
         &newApSelCode);
   }
 
-  uint8_t applySet0 = 0xff;
+  uint8_t applySet0 = 0x0f;
 
   getQsfpFieldAddress(CmisField::STAGE_CTRL_SET_0, dataAddress, offset, length);
   qsfpImpl_->writeTransceiver(
