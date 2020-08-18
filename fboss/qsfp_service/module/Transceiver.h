@@ -76,7 +76,7 @@ class Transceiver {
    * Register that a logical port that is part of this transceiver has changed.
    */
   virtual void transceiverPortsChanged(
-    const std::vector<std::pair<const int, PortStatus>>& ports) = 0;
+    const std::map<uint32_t, PortStatus>& ports) = 0;
 
  private:
   // no copy or assignment

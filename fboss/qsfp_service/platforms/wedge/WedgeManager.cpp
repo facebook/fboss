@@ -39,6 +39,11 @@ void WedgeManager::initTransceiverMap() {
     return;
   }
 
+  // Initialize port status map for transceivers.
+  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+    ports_.wlock()->emplace(TransceiverID(idx), std::map<uint32_t, PortStatus>());
+  }
+
   // Also try to load the config file here so that we have transceiver to port
   // mapping and port name recognization.
   loadConfig();
@@ -171,18 +176,25 @@ void WedgeManager::syncPorts(
       folly::gen::as<std::vector>();
 
   auto lockedTransceivers = transceivers_.rlock();
+  auto lockedPorts = ports_.wlock();
   for (auto& group : groups) {
     int32_t transceiverIdx = group.key();
+    auto tcvrID = TransceiverID(transceiverIdx);
     XLOG(INFO) << "Syncing ports of transceiver " << transceiverIdx;
     if (!isValidTransceiver(transceiverIdx)) {
       continue;
     }
 
-    if (auto it = lockedTransceivers->find(TransceiverID(transceiverIdx));
+    // Update the PortStatus map in WedgeManager.
+    for (auto portStatus : group.values()) {
+      lockedPorts->at(tcvrID)[portStatus.first] = portStatus.second;
+    }
+
+    if (auto it = lockedTransceivers->find(tcvrID);
         it != lockedTransceivers->end()) {
       try {
         auto transceiver = it->second.get();
-        transceiver->transceiverPortsChanged(group.values());
+        transceiver->transceiverPortsChanged(lockedPorts->at(tcvrID));
         info[transceiverIdx] = transceiver->getTransceiverInfo();
       } catch (const std::exception& ex) {
         XLOG(ERR) << "Transceiver " << transceiverIdx
@@ -258,6 +270,8 @@ std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
 }
 
 void WedgeManager::updateTransceiverMap() {
+  auto lockedTransceivers = transceivers_.wlock();
+  auto lockedPorts = ports_.rlock();
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
     TransceiverManagementInterface transceiverManagementInterface;
@@ -269,8 +283,6 @@ void WedgeManager::updateTransceiverMap() {
                 << " Transceiver " << idx << " may not be present: ";
       continue;
     }
-
-    auto lockedTransceivers = transceivers_.wlock();
 
     auto it = lockedTransceivers->find(TransceiverID(idx));
     if (it != lockedTransceivers->end()) {
@@ -311,6 +323,18 @@ void WedgeManager::updateTransceiverMap() {
     } else {
       XLOG(DBG3) << "Unknown Transceiver interface. Skipping idx " << idx;
       continue;
+    }
+
+    // Feed its port status to the newly constructed transceiver.
+    if (auto iter = lockedPorts->find(TransceiverID(idx));
+        iter != lockedPorts->end()) {
+      try {
+        lockedTransceivers->at(TransceiverID(idx))
+                          ->transceiverPortsChanged(iter->second);
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Transceiver " << idx
+                  << ": Error calling transceiverPortsChanged: " << ex.what();
+      }
     }
   }
 }

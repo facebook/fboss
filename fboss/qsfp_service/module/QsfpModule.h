@@ -89,7 +89,7 @@ class QsfpModule : public Transceiver {
   TransceiverInfo getTransceiverInfo() override;
 
   void transceiverPortsChanged(
-    const std::vector<std::pair<const int, PortStatus>>& ports) override;
+    const std::map<uint32_t, PortStatus>& ports) override;
 
   /*
    * The size of the pages used by QSFP.  See below for an explanation of

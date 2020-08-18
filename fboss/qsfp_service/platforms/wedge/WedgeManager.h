@@ -82,6 +82,9 @@ class WedgeManager : public TransceiverManager {
   PortNameMap portName2Module_;
   PortGroups portGroupMap_;
 
+  folly::Synchronized<std::map<TransceiverID, std::map<uint32_t, PortStatus>>>
+      ports_;
+
  private:
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;

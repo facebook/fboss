@@ -235,7 +235,7 @@ cfg::PortSpeed QsfpModule::getPortSpeed() const {
 }
 
 void QsfpModule::transceiverPortsChanged(
-    const std::vector<std::pair<const int, PortStatus>>& ports) {
+    const std::map<uint32_t, PortStatus>& ports) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
 
   for (auto& it : ports) {
