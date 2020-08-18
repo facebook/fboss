@@ -327,7 +327,30 @@ void WedgeManager::updateTransceiverMap() {
               std::move(qsfpImpls[idx]),
               portsPerTransceiver));
     } else {
-      XLOG(DBG3) << "Unknown Transceiver interface. Skipping idx " << idx;
+      XLOG(DBG3) << "Unknown Transceiver interface: "
+                 << static_cast<int>(futInterfaces[idx].value())
+                 << " at idx " << idx;
+
+      if (!qsfpImpls[idx]->detectTransceiver()) {
+        XLOG(DBG3) << "Transceiver is not present at idx " << idx;
+        continue;
+      }
+      // There are times when a module cannot be read however it's present.
+        // Try to reset here since that may be able to bring it back.
+      bool safeToReset = false;
+      if (auto iter = lockedPorts->find(TransceiverID(idx));
+          iter != lockedPorts->end()) {
+        safeToReset = std::all_of(iter->second.begin(), iter->second.end(), [](const auto& port) {
+              return !(*port.second.up_ref());
+            });
+      }
+      if (safeToReset) {
+        XLOG(INFO) << "A present transceiver with unknown interface at "
+                   << idx << " Try reset.";
+        qsfpImpls[idx]->triggerQsfpHardReset();
+      } else {
+        XLOG(ERR) << "Unknown interface of transceiver with ports up at " << idx;
+      }
       continue;
     }
 
