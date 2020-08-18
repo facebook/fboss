@@ -395,7 +395,7 @@ void CmisModule::getApplicationCapabilities() {
       break;
     }
 
-    XLOG(DBG2) << "Adding module capability: " << data[1] << " at position " << (i + 1);
+    XLOG(DBG3) << "Adding module capability: " << data[1] << " at position " << (i + 1);
 
     moduleCapabilities_[data[1]] = (i + 1);
   }

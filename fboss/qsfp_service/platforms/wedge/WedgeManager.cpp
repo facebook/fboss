@@ -276,23 +276,23 @@ std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
 void WedgeManager::updateTransceiverMap() {
   auto lockedTransceivers = transceivers_.wlock();
   auto lockedPorts = ports_.rlock();
+  std::vector<folly::Future<TransceiverManagementInterface>> futInterfaces;
+  std::vector<std::unique_ptr<WedgeQsfp>> qsfpImpls;
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
-    TransceiverManagementInterface transceiverManagementInterface;
-    try {
-      transceiverManagementInterface =
-        qsfpImpl->getTransceiverManagementInterface();
-    } catch (const I2cError& ex) {
-      XLOG(DBG3) << "failed detecting transceiver type: " << ex.what()
-                << " Transceiver " << idx << " may not be present: ";
+    qsfpImpls.push_back(std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get()));
+    futInterfaces.push_back(qsfpImpls[idx]->futureGetTransceiverManagementInterface());
+  }
+  folly::collectAllUnsafe(futInterfaces.begin(), futInterfaces.end()).wait();
+  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+    if (!futInterfaces[idx].isReady()) {
+      XLOG(ERR) << "failed getting TransceiverManagementInterface at " << idx;
       continue;
     }
-
     auto it = lockedTransceivers->find(TransceiverID(idx));
     if (it != lockedTransceivers->end()) {
       // In the case where we already have a transceiver recorded, try to check
       // whether they match the transceiver type.
-      if (it->second->managementInterface() == transceiverManagementInterface) {
+      if (it->second->managementInterface() == futInterfaces[idx].value()) {
         // The management interface matches. Nothing needs to be done.
         continue;
       } else {
@@ -308,23 +308,23 @@ void WedgeManager::updateTransceiverMap() {
         (portGroupMap_.size() == 0
         ? numPortsPerTransceiver()
         : portGroupMap_[idx].size());
-    if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
+    if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS)
     {
       XLOG(INFO) << "making CMIS QSFP for " << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<CmisModule>(
               this,
-              std::move(qsfpImpl),
+              std::move(qsfpImpls[idx]),
               portsPerTransceiver));
-    } else if (transceiverManagementInterface ==
-               TransceiverManagementInterface::SFF) {
+    } else if (futInterfaces[idx].value() == TransceiverManagementInterface::SFF)
+    {
       XLOG(INFO) << "making Sff QSFP for " << idx;
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<SffModule>(
               this,
-              std::move(qsfpImpl),
+              std::move(qsfpImpls[idx]),
               portsPerTransceiver));
     } else {
       XLOG(DBG3) << "Unknown Transceiver interface. Skipping idx " << idx;
