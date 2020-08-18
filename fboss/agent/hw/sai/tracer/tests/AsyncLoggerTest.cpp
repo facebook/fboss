@@ -113,6 +113,12 @@ TEST_F(AsyncLoggerTest, concurrentWaitTest) {
 
   t.join();
 
+  // When the third append finished, the logger should have swapped the buffer
+  // and potentially still writing into the buffer. Therefore, we wait for a bit
+  // here to let the flush happen and increase the flush count.
+  std::unique_lock<std::mutex> lock(latch);
+  cv.wait_for(lock, std::chrono::milliseconds(5));
+
   // Without triggering a timeout for 50ms, logger should flush str0, and one of
   // str1 or str2. The other unflushed string should be in the current buffer.
   // Therefore, the flush count is two.
