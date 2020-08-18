@@ -15,6 +15,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
@@ -40,6 +41,8 @@ using facebook::fboss::L2EntryThrift;
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+
+DECLARE_bool(create_l2_entry_for_nbr);
 
 namespace {
 // Even when running the same test repeatedly could result in different
@@ -619,6 +622,14 @@ TEST_F(HwMacLearningTest, VerifyHwAgingForTrunk) {
   testHwAgingHelper(aggPortDescr());
 }
 
+TEST_F(HwMacLearningTest, VerifyHwToSwLearningForPort) {
+  testHwToSwLearningHelper(physPortDescr());
+}
+
+TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
+  testSwToHwLearningHelper(physPortDescr());
+}
+
 TEST_F(HwMacSwLearningModeTest, VerifySwLearningForPort) {
   testSwLearningHelper(physPortDescr());
 }
@@ -635,12 +646,18 @@ TEST_F(HwMacSwLearningModeTest, VerifySwAgingForTrunk) {
   testSwAgingHelper(aggPortDescr());
 }
 
-TEST_F(HwMacLearningTest, VerifyHwToSwLearningForPort) {
-  testHwToSwLearningHelper(physPortDescr());
-}
-
-TEST_F(HwMacLearningTest, VerifySwToHwLearningForPort) {
-  testSwToHwLearningHelper(physPortDescr());
+TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
+  if (!FLAGS_create_l2_entry_for_nbr) {
+    return;
+  }
+  auto setup = [this] {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(),
+                                                 kSourceMac()};
+    applyNewState(
+        ecmpHelper6.resolveNextHops(getProgrammedState(), {physPortDescr()}));
+  };
+  auto verify = [this] { wasMacLearnt(physPortDescr()); };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
