@@ -138,18 +138,9 @@ enum class CmisField {
   // Page 1Dh
   DIAG_SEL,
   HOST_LANE_CHECKER_LOL,
-  HOST_BER_LANE_1,
-  HOST_BER_LANE_2,
-  HOST_BER_LANE_3,
-  HOST_BER_LANE_4,
-  MEDIA_BER_HOST_SNR_LANE_1,
-  MEDIA_BER_HOST_SNR_LANE_2,
-  MEDIA_BER_HOST_SNR_LANE_3,
-  MEDIA_BER_HOST_SNR_LANE_4,
-  MEDIA_SNR_LANE_1,
-  MEDIA_SNR_LANE_2,
-  MEDIA_SNR_LANE_3,
-  MEDIA_SNR_LANE_4,
+  HOST_BER,
+  MEDIA_BER_HOST_SNR,
+  MEDIA_SNR,
 };
 
 enum FieldMasks : uint8_t {
@@ -187,6 +178,9 @@ class CmisFieldInfo {
 
   // Render power in mW from fixed-point value
   static double getPwr(uint16_t temp);
+
+  // Render SNR from 16 bits fixed-point value
+  static double getSnr(const uint16_t data);
 
   // Render result as a member of FeatureState enum
   static FeatureState getFeatureState(uint8_t support, uint8_t enabled = 1);

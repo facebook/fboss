@@ -57,6 +57,8 @@ struct ChannelSensors {
   1: Sensor rxPwr,
   2: Sensor txBias,
   3: Sensor txPwr,
+  4: optional Sensor txSnr,
+  5: optional Sensor rxSnr,
 }
 
 struct SignalFlags {

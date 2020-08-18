@@ -48,6 +48,13 @@ enum CmisPages {
   PAGE14
 };
 
+enum DiagnosticFeatureEncoding {
+  NONE = 0x0,
+  BER = 0x1,
+  SNR = 0x6,
+  LATCHED_BER = 0x11,
+};
+
 // As per CMIS4.0
 static CmisFieldInfo::CmisFieldMap cmisFields = {
     // Lower Page
@@ -171,18 +178,9 @@ static CmisFieldInfo::CmisFieldMap cmisFields = {
     // Page 14h
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
     {CmisField::HOST_LANE_CHECKER_LOL, {CmisPages::PAGE14, 138, 1}},
-    {CmisField::HOST_BER_LANE_1, {CmisPages::PAGE14, 192, 2}},
-    {CmisField::HOST_BER_LANE_2, {CmisPages::PAGE14, 194, 2}},
-    {CmisField::HOST_BER_LANE_3, {CmisPages::PAGE14, 196, 2}},
-    {CmisField::HOST_BER_LANE_4, {CmisPages::PAGE14, 198, 2}},
-    {CmisField::MEDIA_BER_HOST_SNR_LANE_1, {CmisPages::PAGE14, 208, 2}},
-    {CmisField::MEDIA_BER_HOST_SNR_LANE_2, {CmisPages::PAGE14, 210, 2}},
-    {CmisField::MEDIA_BER_HOST_SNR_LANE_3, {CmisPages::PAGE14, 212, 2}},
-    {CmisField::MEDIA_BER_HOST_SNR_LANE_4, {CmisPages::PAGE14, 214, 2}},
-    {CmisField::MEDIA_SNR_LANE_1, {CmisPages::PAGE14, 240, 2}},
-    {CmisField::MEDIA_SNR_LANE_2, {CmisPages::PAGE14, 242, 2}},
-    {CmisField::MEDIA_SNR_LANE_3, {CmisPages::PAGE14, 244, 2}},
-    {CmisField::MEDIA_SNR_LANE_4, {CmisPages::PAGE14, 246, 2}},
+    {CmisField::HOST_BER, {CmisPages::PAGE14, 192, 16}},
+    {CmisField::MEDIA_BER_HOST_SNR, {CmisPages::PAGE14, 208, 16}},
+    {CmisField::MEDIA_SNR, {CmisPages::PAGE14, 240, 16}},
 };
 
 static CmisFieldMultiplier qsfpMultiplier = {
@@ -493,6 +491,30 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   }
   CHECK_GE(length, 0);
 
+  getQsfpFieldAddress(CmisField::MEDIA_BER_HOST_SNR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (auto& channel : channels) {
+    // SNR value are LSB.
+    uint16_t value = data[1] << 8 | data[0];
+    channel.sensors_ref()->txSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
+    data += 2;
+    length--;
+  }
+  CHECK_GE(length, 0);
+
+  getQsfpFieldAddress(CmisField::MEDIA_SNR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+
+  for (auto& channel : channels) {
+    // SNR value are LSB.
+    uint16_t value = data[1] << 8 | data[0];
+    channel.sensors_ref()->rxSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
+    data += 2;
+    length--;
+  }
+  CHECK_GE(length, 0);
+
   return true;
 }
 
@@ -704,8 +726,11 @@ void CmisModule::updateQsfpData(bool allPages) {
           TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page11_), page11_);
 
       page = 0x14;
+      auto diagFeature = (uint8_t)DiagnosticFeatureEncoding::SNR;
       qsfpImpl_->writeTransceiver(
           TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+      qsfpImpl_->writeTransceiver(
+          TransceiverI2CApi::ADDR_QSFP, 128, sizeof(diagFeature), &diagFeature);
       qsfpImpl_->readTransceiver(
           TransceiverI2CApi::ADDR_QSFP, 128, sizeof(page14_), page14_);
     }

@@ -46,6 +46,12 @@ double CmisFieldInfo::getPwr(const uint16_t temp) {
   return data;
 }
 
+double CmisFieldInfo::getSnr(const uint16_t data) {
+  double snr;
+  snr = data / 256.0;
+  return snr;
+}
+
 FeatureState CmisFieldInfo::getFeatureState(
     const uint8_t support,
     const uint8_t enabled) {
