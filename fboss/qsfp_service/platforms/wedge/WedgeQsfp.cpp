@@ -126,4 +126,32 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   return buf[0] == kCMISIdentifier ? TransceiverManagementInterface::CMIS
                                    : TransceiverManagementInterface::SFF;
 }
+
+folly::Future<TransceiverManagementInterface>
+    WedgeQsfp::futureGetTransceiverManagementInterface() {
+  auto i2cEvb = getI2cEventBase();
+  TransceiverManagementInterface managementInterface;
+  if (!i2cEvb) {
+    try {
+      managementInterface = getTransceiverManagementInterface();
+    } catch (const std::exception& ex) {
+      XLOG(DBG3) << "WedgeQsfp " << getNum()
+                 << ": Error calling getTransceiverManagementInterface(): "
+                 << ex.what();
+    }
+    return managementInterface;
+  }
+
+  return via(i2cEvb).thenValue([&](auto&&) mutable {
+    TransceiverManagementInterface mgmtInterface;
+    try {
+      mgmtInterface = this->getTransceiverManagementInterface();
+    } catch (const std::exception& ex) {
+      XLOG(DBG3) << "WedgeQsfp " << this->getNum()
+                 << ": Error calling getTransceiverManagementInterface(): "
+                 << ex.what();
+    }
+    return mgmtInterface;
+  });
+}
 }}
