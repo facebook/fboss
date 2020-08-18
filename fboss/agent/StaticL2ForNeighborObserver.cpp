@@ -11,10 +11,10 @@
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
-#include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/VlanMapDelta.h"
+#include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/state/NdpEntry.h"
 
-using facebook::fboss::DeltaFunctions::forEachChanged;
+#include <type_traits>
 
 namespace facebook::fboss {
 
@@ -22,29 +22,57 @@ void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
 }
 
-template <typename AddedEntryT>
+template <typename NeighborEntryT>
+void StaticL2ForNeighborObserver::assertNeighborEntry(
+    const NeighborEntryT& /*neighbor*/) {
+  static_assert(
+      std::is_same_v<ArpEntry, NeighborEntryT> ||
+      std::is_same_v<NdpEntry, NeighborEntryT>);
+}
+template <typename NeighborEntryT>
 void StaticL2ForNeighborObserver::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID /*vlan*/,
-    const std::shared_ptr<AddedEntryT>& /*addedEntry*/) {
-  // TODO
+    const std::shared_ptr<NeighborEntryT>& addedEntry) {
+  assertNeighborEntry(*addedEntry);
 }
 
-template <typename RemovedEntryT>
+template <typename NeighborEntryT>
 void StaticL2ForNeighborObserver::processRemoved(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID /*vlan*/,
-    const std::shared_ptr<RemovedEntryT>& /*removedEntry*/) {
+    const std::shared_ptr<NeighborEntryT>& removedEntry) {
+  assertNeighborEntry(*removedEntry);
   // TODO
 }
 
-template <typename ChangedEntryT>
+template <typename NeighborEntryT>
 void StaticL2ForNeighborObserver::processChanged(
     const StateDelta& /*stateDelta*/,
     VlanID /*vlan*/,
-    const std::shared_ptr<ChangedEntryT>& /*oldEntry*/,
-    const std::shared_ptr<ChangedEntryT>& /*newEntry*/) {
-  // TODO
+    const std::shared_ptr<NeighborEntryT>& oldEntry,
+    const std::shared_ptr<NeighborEntryT>& newEntry) {
+  assertNeighborEntry(*oldEntry);
+  assertNeighborEntry(*newEntry);
 }
 
+void StaticL2ForNeighborObserver::processAdded(
+    const std::shared_ptr<SwitchState>& /*switchState*/,
+    VlanID /*vlan*/,
+    const std::shared_ptr<MacEntry>& /*macEntry*/) {
+  // TODO
+}
+void StaticL2ForNeighborObserver::processRemoved(
+    const std::shared_ptr<SwitchState>& /*switchState*/,
+    VlanID /*vlan*/,
+    const std::shared_ptr<MacEntry>& /*macEntry*/) {
+  // TODO
+}
+void StaticL2ForNeighborObserver::processChanged(
+    const StateDelta& /*stateDelta*/,
+    VlanID /*vlan*/,
+    const std::shared_ptr<MacEntry>& /*oldEntry*/,
+    const std::shared_ptr<MacEntry>& /*newEntry*/) {
+  // TODO
+}
 } // namespace facebook::fboss

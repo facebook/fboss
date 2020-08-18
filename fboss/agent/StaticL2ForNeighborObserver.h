@@ -12,9 +12,12 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/types.h"
 
+#include <memory>
+
 namespace facebook::fboss {
 class SwitchState;
 class StateDelta;
+class MacEntry;
 
 class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
  public:
@@ -25,29 +28,38 @@ class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
   void stateUpdated(const StateDelta& stateDelta) override;
 
  private:
-  template <typename AddrT>
-  auto getTableDelta(const VlanDelta& vlanDelta);
-
-  template <typename AddrT>
-  void processUpdates(const StateDelta& stateDelta);
-
-  template <typename AddedEntryT>
   void processAdded(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const std::shared_ptr<AddedEntryT>& addedEntry);
-  template <typename RemovedEntryT>
+      const std::shared_ptr<MacEntry>& macEntry);
   void processRemoved(
       const std::shared_ptr<SwitchState>& switchState,
       VlanID vlan,
-      const std::shared_ptr<RemovedEntryT>& removedEntry);
-  template <typename ChangedEntryT>
+      const std::shared_ptr<MacEntry>& macEntry);
   void processChanged(
       const StateDelta& stateDelta,
       VlanID vlan,
-      const std::shared_ptr<ChangedEntryT>& oldEntry,
-      const std::shared_ptr<ChangedEntryT>& newEntry);
+      const std::shared_ptr<MacEntry>& oldEntry,
+      const std::shared_ptr<MacEntry>& newEntry);
+  template <typename NeighborEntryT>
+  void processAdded(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlan,
+      const std::shared_ptr<NeighborEntryT>& addedEntry);
+  template <typename NeighborEntryT>
+  void processRemoved(
+      const std::shared_ptr<SwitchState>& switchState,
+      VlanID vlan,
+      const std::shared_ptr<NeighborEntryT>& removedEntry);
+  template <typename NeighborEntryT>
+  void processChanged(
+      const StateDelta& stateDelta,
+      VlanID vlan,
+      const std::shared_ptr<NeighborEntryT>& oldEntry,
+      const std::shared_ptr<NeighborEntryT>& newEntry);
 
+  template <typename NeighborEntryT>
+  void assertNeighborEntry(const NeighborEntryT& neighbor);
   friend class VlanTableDeltaCallbackGenerator;
   SwSwitch* sw_;
 };
