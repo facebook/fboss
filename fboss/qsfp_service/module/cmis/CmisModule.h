@@ -15,6 +15,7 @@ enum class CmisField;
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
+      TransceiverManager* transceiverManager,
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver);
   virtual ~CmisModule() override;

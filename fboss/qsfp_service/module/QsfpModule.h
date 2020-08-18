@@ -21,6 +21,7 @@
 namespace facebook { namespace fboss {
 
 class TransceiverImpl;
+class TransceiverManager;
 
 /**
  * This is the QSFP module error which should be throw only if it's module
@@ -50,6 +51,7 @@ private:
 class QsfpModule : public Transceiver {
  public:
   explicit QsfpModule(
+      TransceiverManager* transceiverManager,
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver);
   virtual ~QsfpModule() override;
@@ -116,6 +118,8 @@ class QsfpModule : public Transceiver {
     DECIMAL_BASE = 10,
     HEX_BASE = 16,
   };
+
+  TransceiverManager* transceiverManager_{nullptr};
 
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

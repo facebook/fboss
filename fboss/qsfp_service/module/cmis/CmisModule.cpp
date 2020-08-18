@@ -209,9 +209,10 @@ void getQsfpFieldAddress(
 }
 
 CmisModule::CmisModule(
+    TransceiverManager* transceiverManager,
     std::unique_ptr<TransceiverImpl> qsfpImpl,
     unsigned int portsPerTransceiver)
-    : QsfpModule(std::move(qsfpImpl), portsPerTransceiver) {
+    : QsfpModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
   CHECK_GT(portsPerTransceiver, 0);
 }
 

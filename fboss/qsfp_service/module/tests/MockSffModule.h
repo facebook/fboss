@@ -26,9 +26,10 @@ namespace facebook { namespace fboss {
 class MockSffModule : public SffModule {
  public:
   explicit MockSffModule(
+      TransceiverManager* transceiverManager,
       std::unique_ptr<TransceiverImpl> qsfpImpl,
       unsigned int portsPerTransceiver)
-      : SffModule(std::move(qsfpImpl), portsPerTransceiver) {
+      : SffModule(transceiverManager, std::move(qsfpImpl), portsPerTransceiver) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
   }

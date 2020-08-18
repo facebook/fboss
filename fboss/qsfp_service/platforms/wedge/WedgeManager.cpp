@@ -310,6 +310,7 @@ void WedgeManager::updateTransceiverMap() {
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<CmisModule>(
+              this,
               std::move(qsfpImpl),
               portsPerTransceiver));
     } else if (transceiverManagementInterface ==
@@ -318,6 +319,7 @@ void WedgeManager::updateTransceiverMap() {
       lockedTransceivers->emplace(
           TransceiverID(idx),
           std::make_unique<SffModule>(
+              this,
               std::move(qsfpImpl),
               portsPerTransceiver));
     } else {

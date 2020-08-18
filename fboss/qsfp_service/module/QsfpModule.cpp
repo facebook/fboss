@@ -67,9 +67,11 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t *data,
 }
 
 QsfpModule::QsfpModule(
+    TransceiverManager* transceiverManager,
     std::unique_ptr<TransceiverImpl> qsfpImpl,
     unsigned int portsPerTransceiver)
-    : qsfpImpl_(std::move(qsfpImpl)),
+    : transceiverManager_(transceiverManager),
+      qsfpImpl_(std::move(qsfpImpl)),
       portsPerTransceiver_(portsPerTransceiver) {
   CHECK_GT(portsPerTransceiver_, 0);
 

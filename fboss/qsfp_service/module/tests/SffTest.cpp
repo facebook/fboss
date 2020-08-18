@@ -208,7 +208,7 @@ TEST(SffTest, simpleRead) {
   std::unique_ptr<SffTransceiver> qsfpImpl =
     std::make_unique<SffTransceiver>(idx);
   std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(std::move(qsfpImpl), 4);
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
   qsfp->refresh();
 
   TransceiverInfo info = qsfp->getTransceiverInfo();
@@ -247,7 +247,7 @@ TEST(BadSffTest, simpleRead) {
   std::unique_ptr<BadSffTransceiver> qsfpImpl =
     std::make_unique<BadSffTransceiver>(idx);
   std::unique_ptr<SffModule> qsfp =
-      std::make_unique<SffModule>(std::move(qsfpImpl), 4);
+      std::make_unique<SffModule>(nullptr, std::move(qsfpImpl), 4);
 
   EXPECT_THROW(qsfp->refresh(), QsfpModuleError);
 }

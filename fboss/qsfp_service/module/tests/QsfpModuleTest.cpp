@@ -42,7 +42,7 @@ class QsfpModuleTest : public ::testing::Test {
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
     qsfp_ = std::make_unique<MockSffModule>(
-        std::move(transceiverImpl), portsPerTransceiver);
+        nullptr, std::move(transceiverImpl), portsPerTransceiver);
 
     gflags::SetCommandLineOptionWithMode(
       "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
