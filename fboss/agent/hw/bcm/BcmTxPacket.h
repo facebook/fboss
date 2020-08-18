@@ -22,9 +22,28 @@ extern "C" {
 
 namespace facebook::fboss {
 
+class BcmTxPacket;
+class BcmSwitch;
+
+struct BcmFreeTxBufUserData {
+  BcmFreeTxBufUserData(bcm_pkt_t* pkt, const BcmSwitch* bcmSwitch)
+      : pkt(pkt), bcmSwitch(bcmSwitch) {}
+  bcm_pkt_t* pkt;
+  const BcmSwitch* bcmSwitch;
+};
+
+struct BcmTxCallbackUserData {
+  BcmTxCallbackUserData(
+      std::unique_ptr<BcmTxPacket> txPacket,
+      const BcmSwitch* bcmSwitch)
+      : txPacket(std::move(txPacket)), bcmSwitch(bcmSwitch) {}
+  std::unique_ptr<BcmTxPacket> txPacket;
+  const BcmSwitch* bcmSwitch;
+};
+
 class BcmTxPacket : public TxPacket {
  public:
-  BcmTxPacket(int unit, uint32_t size);
+  BcmTxPacket(int unit, uint32_t size, const BcmSwitch* bcmSwitch);
 
   bcm_pkt_t* getPkt() {
     return pkt_;
@@ -62,7 +81,9 @@ class BcmTxPacket : public TxPacket {
    *
    * Returns an Bcm error code.
    */
-  static int sendAsync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
+  static int sendAsync(
+      std::unique_ptr<BcmTxPacket> pkt,
+      const BcmSwitch* bcmSwitch) noexcept;
   /*
    * Send a BcmTxPacket synchronously.
    *
@@ -73,10 +94,14 @@ class BcmTxPacket : public TxPacket {
    *
    * Returns an Bcm error code.
    */
-  static int sendSync(std::unique_ptr<BcmTxPacket> pkt) noexcept;
+  static int sendSync(
+      std::unique_ptr<BcmTxPacket> pkt,
+      const BcmSwitch* bcmSwitch) noexcept;
 
  private:
-  inline static int sendImpl(std::unique_ptr<BcmTxPacket> pkt) noexcept;
+  inline static int sendImpl(
+      std::unique_ptr<BcmTxPacket> pkt,
+      const BcmSwitch* bcmSwitch) noexcept;
   static void txCallbackAsync(int unit, bcm_pkt_t* pkt, void* cookie);
   static void txCallbackSync(int unit, bcm_pkt_t* pkt, void* cookie);
 

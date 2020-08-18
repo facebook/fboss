@@ -1171,7 +1171,7 @@ unique_ptr<TxPacket> BcmSwitch::allocatePacket(uint32_t size) const {
   // that supports multiple units.  Fortunately, the linux userspace
   // implemetation uses the same DMA pool for all local units, so it wouldn't
   // really matter which unit we specified when allocating the buffer.
-  return make_unique<BcmTxPacket>(unit_, size);
+  return make_unique<BcmTxPacket>(unit_, size, this);
 }
 
 void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
@@ -2277,7 +2277,7 @@ bcm_rx_t BcmSwitch::packetReceived(bcm_pkt_t* pkt) noexcept {
 bool BcmSwitch::sendPacketSwitchedAsync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt), this));
 }
 
 bool BcmSwitch::sendPacketOutOfPortAsync(
@@ -2290,13 +2290,13 @@ bool BcmSwitch::sendPacketOutOfPortAsync(
   if (queue) {
     bcmPkt->setCos(*queue);
   }
-  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendAsync(std::move(bcmPkt), this));
 }
 
 bool BcmSwitch::sendPacketSwitchedSync(unique_ptr<TxPacket> pkt) noexcept {
   unique_ptr<BcmTxPacket> bcmPkt(
       boost::polymorphic_downcast<BcmTxPacket*>(pkt.release()));
-  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt), this));
 }
 
 bool BcmSwitch::sendPacketOutOfPortSync(
@@ -2309,7 +2309,7 @@ bool BcmSwitch::sendPacketOutOfPortSync(
     bcmPkt->setCos(cos.value());
   }
   bcmPkt->setDestModPort(getPortTable()->getBcmPortId(portID));
-  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt)));
+  return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt), this));
 }
 
 void BcmSwitch::updateStats(SwitchStats* switchStats) {
