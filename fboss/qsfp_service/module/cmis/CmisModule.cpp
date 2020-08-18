@@ -335,13 +335,15 @@ std::optional<AlarmThreshold> CmisModule::getThresholdInfo() {
     return {};
   }
   AlarmThreshold threshold = AlarmThreshold();
-  threshold.temp =
+  threshold.temp_ref() =
       getThresholdValues(CmisField::TEMPERATURE_THRESH, CmisFieldInfo::getTemp);
-  threshold.vcc =
+  threshold.vcc_ref() =
       getThresholdValues(CmisField::VCC_THRESH, CmisFieldInfo::getVcc);
-  threshold.rxPwr =
+  threshold.rxPwr_ref() =
       getThresholdValues(CmisField::RX_PWR_THRESH, CmisFieldInfo::getPwr);
-  threshold.txBias =
+  threshold.txPwr_ref() =
+      getThresholdValues(CmisField::TX_PWR_THRESH, CmisFieldInfo::getPwr);
+  threshold.txBias_ref() =
       getThresholdValues(CmisField::TX_BIAS_THRESH, CmisFieldInfo::getTxBias);
   return threshold;
 }
