@@ -13,12 +13,8 @@
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-
-using facebook::fboss::DeltaFunctions::forEachChanged;
-using facebook::fboss::DeltaFunctions::isEmpty;
 
 namespace facebook::fboss {
 
@@ -30,17 +26,6 @@ auto LookupClassUpdater::getTable(const std::shared_ptr<Vlan>& vlan) {
     return vlan->getArpTable();
   } else {
     return vlan->getNdpTable();
-  }
-}
-
-template <typename AddrT>
-auto LookupClassUpdater::getTableDelta(const VlanDelta& vlanDelta) {
-  if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-    return vlanDelta.getMacDelta();
-  } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-    return vlanDelta.getArpDelta();
-  } else {
-    return vlanDelta.getNdpDelta();
   }
 }
 

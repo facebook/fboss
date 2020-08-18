@@ -122,9 +122,6 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   template <typename AddrT>
   auto getTable(const std::shared_ptr<Vlan>& vlan);
 
-  template <typename AddrT>
-  auto getTableDelta(const VlanDelta& vlanDelta);
-
   SwSwitch* sw_;
 
   /*
