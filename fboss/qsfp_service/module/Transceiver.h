@@ -37,6 +37,11 @@ class Transceiver {
   virtual TransceiverID getID() const = 0;
 
   /*
+   * Return the spec this transceiver follows.
+   */
+  virtual TransceiverManagementInterface managementInterface() const = 0;
+
+  /*
    * Returns if the SFP is present or not
    */
   virtual bool detectPresence() = 0;

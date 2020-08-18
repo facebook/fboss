@@ -43,45 +43,6 @@ void WedgeManager::initTransceiverMap() {
   // mapping and port name recognization.
   loadConfig();
 
-  clearAllTransceiverReset();
-
-  // Wedge port 0 is the CPU port, so the first port associated with
-  // a QSFP+ is port 1.  We start the transceiver IDs with 0, though.
-  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
-    TransceiverManagementInterface
-        transceiverManagementInterface = TransceiverManagementInterface::SFF;
-    try {
-      transceiverManagementInterface =
-        qsfpImpl->getTransceiverManagementInterface();
-    } catch (const I2cError& ex) {
-      XLOG(ERR) << "failed detecting transceiver type: " << ex.what()
-                << " Transceiver " << idx << " may not be present: ";
-      continue;
-    }
-
-    int portsPerTransceiver =
-        (portGroupMap_.size() == 0
-        ? numPortsPerTransceiver()
-        : portGroupMap_[idx].size());
-    if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
-    {
-      XLOG(INFO) << "making CMIS QSFP for " << idx;
-      transceivers_.wlock()->emplace(
-          TransceiverID(idx),
-          std::make_unique<CmisModule>(
-              std::move(qsfpImpl),
-              portsPerTransceiver));
-    } else {
-      XLOG(INFO) << "making Sff QSFP for " << idx;
-      transceivers_.wlock()->emplace(
-          TransceiverID(idx),
-          std::make_unique<SffModule>(
-              std::move(qsfpImpl),
-              portsPerTransceiver));
-    }
-  }
-
   refreshTransceivers();
 }
 
@@ -110,8 +71,12 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
         XLOG(ERR) << "Transceiver " << i
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
-      info[i] = trans;
+    } else {
+      trans.present_ref() = WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
+      trans.transceiver_ref() = TransceiverType::QSFP;
+      trans.port_ref() = i;
     }
+    info[i] = trans;
   }
 }
 
@@ -239,6 +204,10 @@ void WedgeManager::refreshTransceivers() {
 
   clearAllTransceiverReset();
 
+  // Since transceivers may appear or disappear, we need to update our
+  // transceiver mapping and type here.
+  updateTransceiverMap();
+
   std::vector<folly::Future<folly::Unit>> futs;
   XLOG(INFO) << "Start refreshing all transceivers...";
 
@@ -286,6 +255,64 @@ void WedgeManager::clearAllTransceiverReset() {
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
+}
+
+void WedgeManager::updateTransceiverMap() {
+  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get());
+    TransceiverManagementInterface transceiverManagementInterface;
+    try {
+      transceiverManagementInterface =
+        qsfpImpl->getTransceiverManagementInterface();
+    } catch (const I2cError& ex) {
+      XLOG(DBG3) << "failed detecting transceiver type: " << ex.what()
+                << " Transceiver " << idx << " may not be present: ";
+      continue;
+    }
+
+    auto lockedTransceivers = transceivers_.wlock();
+
+    auto it = lockedTransceivers->find(TransceiverID(idx));
+    if (it != lockedTransceivers->end()) {
+      // In the case where we already have a transceiver recorded, try to check
+      // whether they match the transceiver type.
+      if (it->second->managementInterface() == transceiverManagementInterface) {
+        // The management interface matches. Nothing needs to be done.
+        continue;
+      } else {
+        // The management changes. Need to Delete the old module to make place
+        // for the new one.
+        lockedTransceivers->erase(it);
+      }
+    }
+
+    // Either we don't have a transceiver here before or we had a new one since
+    // the management interface changed, we want to create a new module here.
+    int portsPerTransceiver =
+        (portGroupMap_.size() == 0
+        ? numPortsPerTransceiver()
+        : portGroupMap_[idx].size());
+    if (transceiverManagementInterface == TransceiverManagementInterface::CMIS)
+    {
+      XLOG(INFO) << "making CMIS QSFP for " << idx;
+      lockedTransceivers->emplace(
+          TransceiverID(idx),
+          std::make_unique<CmisModule>(
+              std::move(qsfpImpl),
+              portsPerTransceiver));
+    } else if (transceiverManagementInterface ==
+               TransceiverManagementInterface::SFF) {
+      XLOG(INFO) << "making Sff QSFP for " << idx;
+      lockedTransceivers->emplace(
+          TransceiverID(idx),
+          std::make_unique<SffModule>(
+              std::move(qsfpImpl),
+              portsPerTransceiver));
+    } else {
+      XLOG(DBG3) << "Unknown Transceiver interface. Skipping idx " << idx;
+      continue;
+    }
+  }
 }
 
 /* Get the i2c transaction counters from TranscieverManager base class

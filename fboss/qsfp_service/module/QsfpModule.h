@@ -66,11 +66,6 @@ class QsfpModule : public Transceiver {
     return TransceiverType::QSFP;
   }
 
-  /*
-   * Return the spec this transceiver follows.
-   */
-  virtual TransceiverManagementInterface managementInterface() const = 0;
-
   TransceiverID getID() const override;
 
   bool detectPresenceLocked();
