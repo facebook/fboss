@@ -78,6 +78,13 @@ class MockHwSwitch : public HwSwitch {
     return platform_;
   }
   MOCK_CONST_METHOD1(dumpDebugState, void(const std::string& path));
+  /*
+   * Return true to allow testing for static l2 entry creation
+   * code paths in unit tests
+   */
+  bool needL2EntryForNeighbor() const override {
+    return true;
+  }
 
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));

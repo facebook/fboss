@@ -647,7 +647,7 @@ TEST_F(HwMacSwLearningModeTest, VerifySwAgingForTrunk) {
 }
 
 TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
-  if (!FLAGS_create_l2_entry_for_nbr) {
+  if (!getHwSwitch()->needL2EntryForNeighbor()) {
     return;
   }
   auto setup = [this] {

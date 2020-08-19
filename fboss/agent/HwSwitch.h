@@ -222,6 +222,17 @@ class HwSwitch {
   virtual folly::dynamic toFollyDynamic() const = 0;
 
   /*
+   * Some HwSwitch (SAI most prominently) implementations require a
+   * l2 entry to be created for each resolved neighbor. So provide
+   * a boolean knob to control this. Longer term we should just
+   * default to doing this for all HwSwitch impls. A l2 entry
+   * anyways get created as a result of packet exchange for
+   * neighbhor resolution, so being explicit does not hurt
+   */
+  virtual bool needL2EntryForNeighbor() const {
+    return false;
+  }
+  /*
    * When SwSwitch changes its SwitchRunState, such as when it transitions
    * to INITIALIZED or CONFIGURED, HwSwitch may need to react. For
    * example, clearing the warm boot cache on FIB_SYNCED, or

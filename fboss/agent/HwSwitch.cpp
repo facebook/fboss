@@ -19,11 +19,6 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 
-DEFINE_bool(
-    create_l2_entry_for_nbr,
-    false,
-    "Create static L2 entries for neigbors resolved via ARP/NDP");
-
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {

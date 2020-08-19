@@ -10,18 +10,18 @@
 
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
 
 #include <type_traits>
 
-DECLARE_bool(create_l2_entry_for_nbr);
-
 namespace facebook::fboss {
 
 void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
-  if (!FLAGS_create_l2_entry_for_nbr) {
+  if (!sw_->getHw()->needL2EntryForNeighbor()) {
     return;
   }
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
