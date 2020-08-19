@@ -28,7 +28,7 @@ void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
   auto acl = cfg::AclEntry();
   *acl.name_ref() = aclName;
   *acl.actionType_ref() = cfg::AclActionType::DENY;
-  acl.dstPort_ref() = 1;
+  acl.dscp_ref() = 0x24;
   cfg.acls_ref()->push_back(acl);
 }
 
