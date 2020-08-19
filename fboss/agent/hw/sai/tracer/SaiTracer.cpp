@@ -61,7 +61,7 @@ DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
 
 DEFINE_int32(
     default_list_size,
-    128,
+    1024,
     "Default size of the lists initialzied by SAI replayer");
 
 DEFINE_int32(
@@ -1178,9 +1178,9 @@ string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
 }
 
 void SaiTracer::checkAttrCount(uint32_t attr_count) {
-  // If any object has more than the current sai_attribute list has (128 by
-  // default), s_a will be reallocated to have enough space for all
-  // attributes
+  // If any object has more than the current sai_attribute list has
+  // (FLAGS_default_list_size by default), s_a will be reallocated to have
+  // enough space for all attributes
   if (attr_count > maxAttrCount_) {
     maxAttrCount_ = attr_count;
     writeToFile({to<string>(
@@ -1197,14 +1197,18 @@ uint32_t SaiTracer::checkListCount(
   // If any object uses more than the current number of lists (6 by default),
   // sai replayer will initialize more lists on stack
   if (list_count > maxListCount_) {
-    writeToFile({to<string>("int list_", maxListCount_, "[128]")});
+    writeToFile({to<string>(
+        "int list_", maxListCount_, "[", FLAGS_default_list_size, "]")});
     maxListCount_ = list_count;
   }
 
-  // TODO(zecheng): Handle list size that's larger than 512 bytes.
+  // TODO(zecheng): Handle list size that's larger than
+  // FLAGS_default_list_size * 4 bytes.
   if (elem_size * elem_count > FLAGS_default_list_size * sizeof(int)) {
     writeToFile({to<string>(
-        "printf(\"[ERROR] The replayed program is using more than ",
+        "printf(\"[ERROR] The replayed program is using",
+        elem_size * elem_count,
+        " bytes, which is more than ",
         FLAGS_default_list_size * sizeof(int),
         " bytes in a list attribute. Excess bytes will not be included.\")")});
   }

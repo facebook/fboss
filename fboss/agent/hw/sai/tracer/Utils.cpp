@@ -292,7 +292,7 @@ void qosMapListAttr(
         prefix,
         "list[",
         j,
-        "].key.color=",
+        "].key.color=(sai_packet_color_t)",
         attr_list[i].value.qosmap.list[j].key.color));
 
     // Value
@@ -336,7 +336,7 @@ void qosMapListAttr(
         prefix,
         "list[",
         j,
-        "].value.color=",
+        "].value.color=(sai_packet_color_t)",
         attr_list[i].value.qosmap.list[j].value.color));
   }
 }
