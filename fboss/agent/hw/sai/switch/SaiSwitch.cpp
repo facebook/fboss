@@ -195,6 +195,9 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     linkStateBottomHalfThread_->join();
     // link scan is completely shut-off
   }
+
+  fdbEventBottomHalfEventBase_.terminateLoopSoon();
+  fdbEventBottomHalfThread_->join();
 }
 
 template <typename ManagerT>
@@ -927,6 +930,10 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     SwitchRunState newState) {
   switch (newState) {
     case SwitchRunState::INITIALIZED: {
+      fdbEventBottomHalfThread_ = std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiFdbBH");
+        fdbEventBottomHalfEventBase_.loopForever();
+      });
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
       switchApi.registerFdbEventCallback(switchId_, __gFdbEventCallback);
     } break;
@@ -1003,8 +1010,35 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
-  fdbEventCallbackLocked(lock, count, data);
+  std::vector<sai_fdb_event_notification_data_t> fdbNotificationsTmp;
+  fdbNotificationsTmp.resize(count);
+  std::copy(data, data + count, fdbNotificationsTmp.data());
+  fdbEventBottomHalfEventBase_.runInEventBaseThread(
+      [this, fdbNotifications = std::move(fdbNotificationsTmp)]() mutable {
+        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+        fdbEventCallbackLockedBottomHalf(lock, std::move(fdbNotifications));
+      });
+}
+
+void SaiSwitch::fdbEventCallbackLockedBottomHalf(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    std::vector<sai_fdb_event_notification_data_t> fdbNotifications) {
+  if (managerTable_->portManager().getL2LearningMode() !=
+      cfg::L2LearningMode::SOFTWARE) {
+    // Some platforms call fdb callback even when mode is set to HW. In
+    // keeping with our native SDK approach, don't send these events up.
+    return;
+  }
+  for (const auto& fdbNotification : fdbNotifications) {
+    auto ditr =
+        kL2AddrUpdateOperationsOfInterest.find(fdbNotification.event_type);
+    if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
+      auto l2Entry = getL2Entry(fdbNotification);
+      if (l2Entry) {
+        callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
+      }
+    }
+  }
 }
 
 std::optional<L2Entry> SaiSwitch::getL2Entry(
@@ -1067,27 +1101,6 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
                  vlanItr->second,
                  PortDescriptor(portItr->second),
                  entryType};
-}
-
-void SaiSwitch::fdbEventCallbackLocked(
-    const std::lock_guard<std::mutex>& lock,
-    uint32_t count,
-    const sai_fdb_event_notification_data_t* data) {
-  if (managerTable_->portManager().getL2LearningMode() !=
-      cfg::L2LearningMode::SOFTWARE) {
-    // Some platforms call fdb callback even when mode is set to HW. In
-    // keeping with our native SDK approach, don't send these events up.
-    return;
-  }
-  for (auto i = 0; i < count; ++i) {
-    auto ditr = kL2AddrUpdateOperationsOfInterest.find(data[i].event_type);
-    if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
-      auto l2Entry = getL2Entry(data[i]);
-      if (l2Entry) {
-        callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
-      }
-    }
-  }
 }
 
 template <

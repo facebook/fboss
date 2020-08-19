@@ -176,10 +176,9 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       PortID port) const;
 
-  void fdbEventCallbackLocked(
+  void fdbEventCallbackLockedBottomHalf(
       const std::lock_guard<std::mutex>& lock,
-      uint32_t count,
-      const sai_fdb_event_notification_data_t* data);
+      std::vector<sai_fdb_event_notification_data_t> data);
 
   BootType getBootTypeLocked(const std::lock_guard<std::mutex>& lock) const;
 
@@ -301,6 +300,8 @@ class SaiSwitch : public HwSwitch {
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
   folly::EventBase linkStateBottomHalfEventBase_;
+  std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
+  folly::EventBase fdbEventBottomHalfEventBase_;
 
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 };
