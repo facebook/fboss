@@ -1003,7 +1003,8 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  fdbEventCallbackLocked(count, data);
+  auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+  fdbEventCallbackLocked(lock, count, data);
 }
 
 std::optional<L2Entry> SaiSwitch::getL2Entry(
@@ -1069,6 +1070,7 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
 }
 
 void SaiSwitch::fdbEventCallbackLocked(
+    const std::lock_guard<std::mutex>& lock,
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
   if (managerTable_->portManager().getL2LearningMode() !=

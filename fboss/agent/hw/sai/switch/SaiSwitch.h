@@ -177,6 +177,7 @@ class SaiSwitch : public HwSwitch {
       PortID port) const;
 
   void fdbEventCallbackLocked(
+      const std::lock_guard<std::mutex>& lock,
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
 
