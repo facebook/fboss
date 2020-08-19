@@ -173,6 +173,8 @@ class PlatformPort {
 
   virtual folly::Future<TransceiverInfo> getTransceiverInfo() const = 0;
 
+  std::optional<int32_t> getExternalPhyID();
+
  private:
   PortID id_{0};
   Platform* platform_{nullptr};

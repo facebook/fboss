@@ -13,6 +13,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -91,6 +92,30 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
     }
   }
   return std::nullopt;
+}
+
+// This should only be called by platforms that actually have
+// an external phy
+std::optional<int32_t> PlatformPort::getExternalPhyID() {
+  auto platformPortEntry = getPlatformPortEntry();
+  if (!platformPortEntry) {
+    throw FbossError(
+        "No PlatformPortEntry found for port with ID ", getPortID());
+  }
+  const auto& chips = getPlatform()->getDataPlanePhyChips();
+  if (chips.empty()) {
+    throw FbossError("Not platform data plane phy chips");
+  }
+
+  const auto& xphy = utility::getDataPlanePhyChips(
+      *platformPortEntry, chips, phy::DataPlanePhyChipType::XPHY);
+  if (xphy.empty()) {
+    return std::nullopt;
+  } else {
+    // One port should only has one xphy id
+    CHECK_EQ(xphy.size(), 1);
+    return *xphy.begin()->second.physicalID_ref();
+  }
 }
 
 } // namespace facebook::fboss

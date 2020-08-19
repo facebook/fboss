@@ -48,6 +48,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
       return 9;
     case HwAsic::AsicType::ASIC_TYPE_TAJO:
       return 7;
