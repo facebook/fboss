@@ -123,6 +123,25 @@ folly::Future<std::optional<Cable>> WedgePort::getCableInfo(
       .thenError<std::exception>(std::move(handleErr));
 }
 
+folly::Future<std::optional<ExtendedSpecComplianceCode>>
+WedgePort::getTransceiverExtendedSpecCompliance(folly::EventBase* evb) const {
+  auto getTxcvExtendedSpecCompliance =
+      [](TransceiverInfo info) -> std::optional<ExtendedSpecComplianceCode> {
+    return info.extendedSpecificationComplianceCode_ref().to_optional();
+  };
+  auto transID = getTransceiverID();
+  auto handleErr = [transID](const std::exception& e)
+      -> std::optional<ExtendedSpecComplianceCode> {
+    XLOG(ERR) << "Error retrieving ExtendedSpecCompliance info for transceiver "
+              << *transID << " Exception: " << folly::exceptionStr(e);
+    return std::nullopt;
+  };
+  return getTransceiverInfo()
+      .via(evb)
+      .thenValueInline(getTxcvExtendedSpecCompliance)
+      .thenError<std::exception>(std::move(handleErr));
+}
+
 void WedgePort::statusIndication(
     bool enabled,
     bool link,

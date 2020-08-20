@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss {
 
@@ -85,6 +86,8 @@ class WedgePort : public BcmPlatformPort {
   folly::Future<TransmitterTechnology> getTransmitterTech(
       folly::EventBase* evb) const override;
   folly::Future<std::optional<Cable>> getCableInfo(folly::EventBase* evb) const;
+  folly::Future<std::optional<ExtendedSpecComplianceCode>>
+  getTransceiverExtendedSpecCompliance(folly::EventBase* evb) const;
 
   bool shouldUsePortResourceAPIs() const override {
     return false;
