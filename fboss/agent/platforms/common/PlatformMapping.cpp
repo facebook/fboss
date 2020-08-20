@@ -15,40 +15,6 @@
 
 #include "fboss/agent/FbossError.h"
 
-namespace {
-bool matchPlatformPortConfigOverrideFactor(
-    const facebook::fboss::cfg::PlatformPortConfigOverrideFactor& factor,
-    facebook::fboss::PortID portID,
-    facebook::fboss::cfg::PortProfileID profileID,
-    std::optional<double> cableLength) {
-  if (auto overridePorts = factor.ports_ref()) {
-    if (std::find(
-            overridePorts->begin(),
-            overridePorts->end(),
-            static_cast<int>(portID)) == overridePorts->end()) {
-      return false;
-    }
-  }
-  if (auto overrideProfiles = factor.profiles_ref()) {
-    if (std::find(
-            overrideProfiles->begin(), overrideProfiles->end(), profileID) ==
-        overrideProfiles->end()) {
-      return false;
-    }
-  }
-  if (auto overrideCableLength = factor.cableLengths_ref()) {
-    if (!cableLength.has_value() ||
-        std::find(
-            overrideCableLength->begin(),
-            overrideCableLength->end(),
-            cableLength.value()) == overrideCableLength->end()) {
-      return false;
-    }
-  }
-  return true;
-}
-} // namespace
-
 namespace facebook {
 namespace fboss {
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
@@ -136,9 +102,15 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   const auto& iphyCfg = platformPortConfig->second.pins.iphy;
   // Check whether there's an override
   for (const auto portConfigOverride : portConfigOverrides_) {
-    if (matchPlatformPortConfigOverrideFactor(
-            portConfigOverride.factor, id, profileID, cableLength)) {
-      auto overrideIphy = portConfigOverride.pins.iphy;
+    if (!portConfigOverride.pins_ref().has_value()) {
+      // The override is not about Iphy pin configs. Skip
+      continue;
+    }
+    auto platformPortConfigOverrideFactorMatcher =
+        PlatformPortConfigOverrideFactorMatcher(id, profileID, cableLength);
+    if (platformPortConfigOverrideFactorMatcher.matchWithFactor(
+            *portConfigOverride.factor_ref())) {
+      auto overrideIphy = *portConfigOverride.pins_ref()->iphy_ref();
       if (!overrideIphy.empty()) {
         // make sure the override iphy config size == iphyCfg or override
         // size == 1, in which case we use the same override for all lanes
@@ -176,6 +148,41 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
   return iphyCfg;
 }
 
+const std::optional<phy::PortProfileConfig>
+PlatformMapping::getPortProfileConfig(
+    cfg::PortProfileID profileID,
+    std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode)
+    const {
+  // For now, the PortProfileConfig override will only happen when we have
+  // a valid ExtendedSpecComplianceCode. Thus skip looping through the
+  // overrides if we don't get a valid value. If new use cases were to come
+  // up later, we can extend the logic and the matcher.
+  if (transceiverSpecComplianceCode.has_value()) {
+    for (const auto portConfigOverride : portConfigOverrides_) {
+      if (!portConfigOverride.portProfileConfig_ref().has_value()) {
+        // The override is not about portProfileConfig. Skip
+        continue;
+      }
+      auto platformPortConfigOverrideFactorMatcher =
+          PlatformPortConfigOverrideFactorMatcher(
+              profileID, transceiverSpecComplianceCode.value());
+      if (platformPortConfigOverrideFactorMatcher.matchWithFactor(
+              *portConfigOverride.factor_ref())) {
+        if (auto overridePortProfileConfig =
+                portConfigOverride.portProfileConfig_ref()) {
+          return *overridePortProfileConfig;
+        }
+      }
+    }
+  }
+  const auto& supportedProfiles = getSupportedProfiles();
+  auto itProfileConfig = supportedProfiles.find(profileID);
+  if (itProfileConfig != supportedProfiles.end()) {
+    return itProfileConfig->second;
+  }
+  return std::nullopt;
+}
+
 std::vector<cfg::PlatformPortConfigOverride>
 PlatformMapping::getPortConfigOverrides(int32_t port) const {
   std::vector<cfg::PlatformPortConfigOverride> overrides;
@@ -199,11 +206,13 @@ void PlatformMapping::mergePortConfigOverrides(
   for (auto& portOverrides : overrides) {
     int numMismatch = 0;
     for (auto& curOverride : portConfigOverrides_) {
-      if (portOverrides.pins != curOverride.pins ||
-          portOverrides.factor.profiles_ref() !=
-              curOverride.factor.profiles_ref() ||
-          portOverrides.factor.cableLengths_ref() !=
-              curOverride.factor.cableLengths_ref()) {
+      if (portOverrides.pins_ref() != curOverride.pins_ref() ||
+          portOverrides.factor_ref()->profiles_ref() !=
+              curOverride.factor_ref()->profiles_ref() ||
+          portOverrides.factor_ref()->cableLengths_ref() !=
+              curOverride.factor_ref()->cableLengths_ref() ||
+          portOverrides.factor_ref()->transceiverSpecComplianceCode_ref() !=
+              curOverride.factor_ref()->transceiverSpecComplianceCode_ref()) {
         numMismatch++;
         continue;
       }
@@ -220,7 +229,7 @@ void PlatformMapping::mergePortConfigOverrides(
         cfg::PlatformPortConfigOverride newOverride;
         newOverride.factor = portOverrides.factor;
         newOverride.factor.ports_ref() = {port};
-        newOverride.pins = portOverrides.pins;
+        newOverride.pins_ref().copy_from(portOverrides.pins_ref());
         portConfigOverrides_.push_back(newOverride);
       } else {
         portConfigOverrides_.push_back(portOverrides);

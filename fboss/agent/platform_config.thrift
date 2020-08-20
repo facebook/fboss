@@ -9,6 +9,8 @@ include "fboss/agent/hw/bcm/bcm_config.thrift"
 include "fboss/agent/hw/sai/config/asic_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
+include "fboss/qsfp_service/if/transceiver.thrift"
+
 
 enum PlatformAttributes {
   CONNECTION_HANDLE = 1
@@ -73,11 +75,13 @@ struct PlatformPortConfigOverrideFactor {
   1: optional list<i32> ports
   2: optional list<switch_config.PortProfileID> profiles
   3: optional list<double> cableLengths
+  4: optional transceiver.ExtendedSpecComplianceCode transceiverSpecComplianceCode
 }
 
 struct PlatformPortConfigOverride {
   1: PlatformPortConfigOverrideFactor factor
-  2: phy.PortPinConfig pins
+  2: optional phy.PortPinConfig pins
+  3: optional phy.PortProfileConfig portProfileConfig
 }
 
 // TODO: Will deprecate the optional fields in PlatformConfig and start using
