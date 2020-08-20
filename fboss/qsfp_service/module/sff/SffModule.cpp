@@ -85,6 +85,7 @@ static SffFieldInfo::SffFieldMap qsfpFields = {
     {SffField::VENDOR_OUI, {SffPages::PAGE0, 165, 3}},
     {SffField::PART_NUMBER, {SffPages::PAGE0, 168, 16}},
     {SffField::REVISION_NUMBER, {SffPages::PAGE0, 184, 2}},
+    {SffField::EXTENDED_SPECIFICATION_COMPLIANCE, {SffPages::PAGE0, 192, 1}},
     {SffField::OPTIONS, {SffPages::PAGE0, 195, 1}},
     {SffField::VENDOR_SERIAL_NUMBER, {SffPages::PAGE0, 196, 16}},
     {SffField::MFG_DATE, {SffPages::PAGE0, 212, 8}},
@@ -562,6 +563,12 @@ SignalFlags SffModule::getSignalFlagInfo() {
   *signalFlags.rxLol_ref() = getSettingsValue(SffField::LOL, RX_MASK);
 
   return signalFlags;
+}
+
+ExtendedSpecComplianceCode
+SffModule::getExtendedSpecificationComplianceCode() {
+  return (ExtendedSpecComplianceCode)getSettingsValue(
+      SffField::EXTENDED_SPECIFICATION_COMPLIANCE);
 }
 
 void SffModule::setQsfpFlatMem() {

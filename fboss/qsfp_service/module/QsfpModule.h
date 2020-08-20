@@ -253,6 +253,13 @@ class QsfpModule : public Transceiver {
    */
   virtual SignalFlags getSignalFlagInfo() = 0;
   /*
+   * Return the extended specification compliance code of the module.
+   * This is the field of Byte 192 on page00 and following table 4-4
+   * of SFF-8024.
+   */
+  virtual
+      ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() = 0;
+  /*
    * This function returns true if both the sfp is present and the
    * cache data is not stale. This should be checked before any
    * function that reads cache data is called

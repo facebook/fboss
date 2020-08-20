@@ -162,6 +162,8 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     info.stats_ref() = *transceiverStats;
   }
   info.signalFlag_ref() = getSignalFlagInfo();
+  info.extendedSpecificationComplianceCode_ref() =
+     getExtendedSpecificationComplianceCode();
 
   return info;
 }

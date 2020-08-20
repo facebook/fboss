@@ -147,6 +147,15 @@ enum RateSelectSetting {
   UNKNOWN = 8,
 }
 
+// The extended specification compliance code of the transceiver module.
+// This is the field of Byte 192 on page00 and following table 4-4
+// Extended Specification Compliance Codes of SFF-8024.
+enum ExtendedSpecComplianceCode {
+  UNKNOWN = 0,
+  CWDM4_100G = 6,
+  FR1_100G = 38,
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx,
   2: FeatureState cdrRx,
@@ -176,6 +185,7 @@ struct TransceiverInfo {
   13: optional TransceiverSettings settings,
   14: optional TransceiverStats stats,
   15: optional SignalFlags signalFlag,
+  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode,
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

@@ -201,6 +201,12 @@ class CmisModule : public QsfpModule {
    */
   virtual SignalFlags getSignalFlagInfo() override;
   /*
+   * Return the extended specification compliance code of the module.
+   * This is the field of Byte 192 on page00 and following table 4-4
+   * of SFF-8024.
+   */
+  ExtendedSpecComplianceCode getExtendedSpecificationComplianceCode() override;
+  /*
    * Update the cached data with the information from the physical QSFP.
    *
    * The 'allPages' parameter determines which pages we refresh. Data

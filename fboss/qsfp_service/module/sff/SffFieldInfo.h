@@ -68,6 +68,7 @@ enum class SffField {
   TX_EQUALIZATION,
   RX_EMPHASIS,
   RX_AMPLITUDE,
+  EXTENDED_SPECIFICATION_COMPLIANCE,
 
   // SFP-specific Fields
   /* 0xA0 Address Fields */
