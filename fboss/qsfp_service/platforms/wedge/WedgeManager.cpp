@@ -353,8 +353,13 @@ void WedgeManager::updateTransceiverMap() {
     }
 
     // Feed its port status to the newly constructed transceiver.
+    // However skip if ports have not been synced initially.
+    // transceiverPortsChanged will call refreshLocked which takes close to a
+    // second for a transceiver. Calling it for every transceiver at
+    // initialization is time consuming. Leaving that for refreshTransceivers
+    // which runs concurrently for each transceiver.
     if (auto iter = lockedPorts->find(TransceiverID(idx));
-        iter != lockedPorts->end()) {
+        iter != lockedPorts->end() && !iter->second.empty()) {
       try {
         lockedTransceivers->at(TransceiverID(idx))
                           ->transceiverPortsChanged(iter->second);
