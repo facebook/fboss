@@ -18,6 +18,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/NextHopApiTest.cpp
     fboss/agent/hw/sai/api/tests/NextHopGroupApiTest.cpp
     fboss/agent/hw/sai/api/tests/PortApiTest.cpp
+    fboss/agent/hw/sai/api/tests/QosMapApiTest.cpp
     fboss/agent/hw/sai/api/tests/QueueApiTest.cpp
     fboss/agent/hw/sai/api/tests/RouteApiTest.cpp
     fboss/agent/hw/sai/api/tests/RouterInterfaceApiTest.cpp

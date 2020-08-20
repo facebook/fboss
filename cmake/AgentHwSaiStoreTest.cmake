@@ -9,6 +9,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/AclTableGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/AclTableStoreTest.cpp
     fboss/agent/hw/sai/store/tests/BridgeStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/BufferStoreTest.cpp
     fboss/agent/hw/sai/store/tests/FdbStoreTest.cpp
     fboss/agent/hw/sai/store/tests/HashStoreTest.cpp
     fboss/agent/hw/sai/store/tests/HostifTrapStoreTest.cpp
@@ -17,6 +18,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/NextHopStoreTest.cpp
     fboss/agent/hw/sai/store/tests/NextHopGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/PortStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/QosMapStoreTest.cpp
     fboss/agent/hw/sai/store/tests/QueueStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouteStoreTest.cpp
     fboss/agent/hw/sai/store/tests/RouterInterfaceStoreTest.cpp
