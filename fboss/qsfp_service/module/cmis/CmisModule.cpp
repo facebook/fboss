@@ -498,6 +498,7 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
+    channel.sensors_ref()->txSnr_ref() = Sensor();
     channel.sensors_ref()->txSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
@@ -510,6 +511,7 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   for (auto& channel : channels) {
     // SNR value are LSB.
     uint16_t value = data[1] << 8 | data[0];
+    channel.sensors_ref()->rxSnr_ref() = Sensor();
     channel.sensors_ref()->rxSnr_ref()->value_ref() = CmisFieldInfo::getSnr(value);
     data += 2;
     length--;
