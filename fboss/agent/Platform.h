@@ -84,11 +84,14 @@ class Platform {
   const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts() const;
 
   /*
-   * Get supported port speed profile config based on profile id.
+   * Get supported port speed profile config based on profile id and the
+   * transceiver specification compliance code.
    * Return std::nullopt if the platform doesn't support such speed profile.
    */
   const std::optional<phy::PortProfileConfig> getPortProfileConfig(
-      cfg::PortProfileID PortProfileID) const;
+      cfg::PortProfileID PortProfileID,
+      std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode =
+          std::nullopt) const;
 
   /*
    * Get list of supported profiles from platform config. Returns empty map if

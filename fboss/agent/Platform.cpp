@@ -96,13 +96,11 @@ const std::map<int32_t, cfg::PlatformPortEntry>& Platform::getPlatformPorts()
 }
 
 const std::optional<phy::PortProfileConfig> Platform::getPortProfileConfig(
-    cfg::PortProfileID profileID) const {
-  const auto& supportedProfiles = platformMapping_->getSupportedProfiles();
-  auto itProfileConfig = supportedProfiles.find(profileID);
-  if (itProfileConfig != supportedProfiles.end()) {
-    return itProfileConfig->second;
-  }
-  return std::nullopt;
+    cfg::PortProfileID profileID,
+    std::optional<ExtendedSpecComplianceCode> transceiverSpecComplianceCode)
+    const {
+  return getPlatformMapping()->getPortProfileConfig(
+      profileID, transceiverSpecComplianceCode);
 }
 
 const std::map<cfg::PortProfileID, phy::PortProfileConfig>&
