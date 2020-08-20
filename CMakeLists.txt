@@ -750,8 +750,8 @@ if (NOT SAI_ONLY)
 endif()
 
 set(SAI_VER_MAJOR "1")
-set(SAI_VER_MINOR "5")
-set(SAI_VER_RELEASE "2")
+set(SAI_VER_MINOR "6")
+set(SAI_VER_RELEASE "3")
 set(SAI_VER_SUFFIX "${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
 # Build all cmake files under cmake/*cmake
