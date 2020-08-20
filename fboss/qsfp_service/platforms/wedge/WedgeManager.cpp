@@ -18,7 +18,7 @@ constexpr int kSecAfterModuleOutOfReset = 2;
 namespace facebook { namespace fboss {
 
 WedgeManager::WedgeManager(std::unique_ptr<TransceiverPlatformApi> api) :
-  qsfpPlatApi_(std::move(api)) {
+  TransceiverManager(std::move(api)) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
    * this object will be used for controlling the QSFP devices on board.
@@ -265,10 +265,6 @@ void WedgeManager::clearAllTransceiverReset() {
   sleep(kSecAfterModuleOutOfReset);
 }
 
-void WedgeManager::resetTransceiver(unsigned int module) {
-  qsfpPlatApi_->triggerQsfpHardReset(module);
-}
-
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
 }
@@ -347,7 +343,9 @@ void WedgeManager::updateTransceiverMap() {
       if (safeToReset) {
         XLOG(INFO) << "A present transceiver with unknown interface at "
                    << idx << " Try reset.";
-        qsfpImpls[idx]->triggerQsfpHardReset();
+        // This api accept 1 based module id however the module id in WedgeManager
+        // is 0 based.
+        qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
       } else {
         XLOG(ERR) << "Unknown interface of transceiver with ports up at " << idx;
       }

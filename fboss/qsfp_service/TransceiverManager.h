@@ -9,11 +9,13 @@
 #include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
+#include "fboss/lib/usb/TransceiverPlatformApi.h"
 
 namespace facebook { namespace fboss {
 class TransceiverManager {
  public:
-  TransceiverManager() {};
+  TransceiverManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr) :
+    qsfpPlatApi_(std::move(api)) {};
   virtual ~TransceiverManager() {};
   virtual void loadConfig() = 0;
   virtual void initTransceiverMap() = 0;
@@ -36,7 +38,6 @@ class TransceiverManager {
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
   virtual int numPortsPerTransceiver() = 0;
-  virtual void resetTransceiver(unsigned int module) = 0;
 
   /* Virtual function to return the i2c transactions stats in a platform.
    * This will be overridden by derived classes which are platform specific
@@ -53,11 +54,20 @@ class TransceiverManager {
    */
   virtual void publishI2cTransactionStats() = 0;
 
+  TransceiverPlatformApi* getQsfpPlatformApi() {
+    return qsfpPlatApi_.get();
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const &) = delete;
   TransceiverManager& operator=(TransceiverManager const &) = delete;
  protected:
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>> transceivers_;
+  /* This variable stores the TransceiverPlatformApi object for controlling
+   * the QSFP devies on board. This handle is populated from this class
+   * constructor
+   */
+  std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
 };
 }} // facebook::fboss

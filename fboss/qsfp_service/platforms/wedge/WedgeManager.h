@@ -7,7 +7,6 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
-#include "fboss/lib/usb/TransceiverPlatformApi.h"
 
 namespace facebook { namespace fboss {
 class WedgeManager : public TransceiverManager {
@@ -67,19 +66,12 @@ class WedgeManager : public TransceiverManager {
   // transceiver out of reset by default will stay no op.
   void clearAllTransceiverReset();
 
-  void resetTransceiver(unsigned int module) override;
-
  protected:
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus();
   void updateTransceiverMap();
   std::unique_ptr<TransceiverI2CApi>
       wedgeI2cBus_; /* thread safe handle to access bus */
 
-  /* This variable stores the TransceiverPlatformApi object for controlling
-   * the QSFP devies on board. This handle is populated from this class
-   * constructor
-   */
-  std::unique_ptr<TransceiverPlatformApi>  qsfpPlatApi_;
   std::unique_ptr<AgentConfig> config_;
   PortNameMap portName2Module_;
   PortGroups portGroupMap_;

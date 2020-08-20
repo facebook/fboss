@@ -881,7 +881,10 @@ void CmisModule::remediateFlakyTransceiver() {
              << qsfpImpl_->getName();
 
   if (moduleResetCounter_ < kResetCounterLimit) {
-    transceiverManager_->resetTransceiver(static_cast<unsigned int>(getID()));
+    // This api accept 1 based module id however the module id in WedgeManager
+    // is 0 based.
+    transceiverManager_->getQsfpPlatformApi()->triggerQsfpHardReset(
+        static_cast<unsigned int>(getID()) + 1);
     moduleResetCounter_++;
   } else {
     XLOG(DBG2) << "Reached reset limit for module " << qsfpImpl_->getName();
