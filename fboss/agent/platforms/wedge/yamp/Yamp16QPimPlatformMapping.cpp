@@ -66801,6 +66801,37 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "type": 3,
       "physicalID": 127
     }
+  ],
+  "portConfigOverrides": [
+    {
+      "factor": {
+        "profiles": [
+          8
+        ],
+        "transceiverSpecComplianceCode": 38
+      },
+      "portProfileConfig": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 1,
+          "interfaceMode": 11,
+          "interfaceType": 11
+        },
+        "xphyLine": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 1
+        },
+        "xphySystem": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544
+        }
+      }
+    }
   ]
 }
 )";
