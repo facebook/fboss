@@ -129,6 +129,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwPortBandwidthTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwSendPacketToQueueTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwSwitchStatsTxCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.cpp
   fboss/agent/hw/test/dataplane_tests/Hw2QueueToOlympicQoSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
