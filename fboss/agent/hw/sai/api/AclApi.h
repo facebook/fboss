@@ -242,10 +242,7 @@ struct SaiAclEntryTraits {
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_TABLE_ID, sai_object_id_t>;
     using Priority =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_PRIORITY, sai_uint32_t>;
-    /*
-     * TODO (skhare) Add all the FIELD_* FBOSS needs.
-     * Find a way to express at least one FIELD_* is mandatory.
-     */
+
     using FieldSrcIpV6 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6,
@@ -330,10 +327,6 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         AclEntryFieldU32>;
-
-    /*
-     * TODO (skhare) Add all the ACTIONS_* FBOSS needs.
-     */
 
     using ActionPacketAction = SaiAttribute<
         EnumType,
