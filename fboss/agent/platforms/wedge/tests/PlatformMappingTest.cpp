@@ -121,6 +121,32 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   }
 }
 
+TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
+  auto mapping = std::make_unique<YampPlatformMapping>();
+  for (auto port : mapping->getPlatformPorts()) {
+    auto portProfileConfig = mapping->getPortProfileConfig(
+        cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC, std::nullopt);
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+
+    portProfileConfig = mapping->getPortProfileConfig(
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528, std::nullopt);
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS528);
+
+    portProfileConfig = mapping->getPortProfileConfig(
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+        ExtendedSpecComplianceCode::FR1_100G);
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::NONE);
+
+    portProfileConfig = mapping->getPortProfileConfig(
+        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N, std::nullopt);
+    EXPECT_TRUE(
+        *portProfileConfig->xphyLine_ref()->fec_ref() == phy::FecMode::RS544);
+  }
+}
+
 TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
