@@ -138,6 +138,21 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
     waitForStateUpdates(this->sw_);
   }
 
+  void unresolveMac(MacAddress macAddress) {
+    auto l2Entry = L2Entry(
+        macAddress,
+        this->kVlan(),
+        PortDescriptor(this->kPortID()),
+        L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+
+    this->sw_->l2LearningUpdateReceived(
+        l2Entry, L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
+
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
   IPAddress getIpAddress() {
     IPAddress ipAddress;
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -278,5 +293,21 @@ TYPED_TEST(
   // Unresolve second neighbor, now static MAC should go away
   this->unresolveNeighbor(secondAddr);
   this->verifyMacEntryDoesNotExist();
+}
+
+TYPED_TEST(StaticL2ForNeighorObserverTest, learnMacPostNeighborResolution) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolveMac(this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+}
+
+TYPED_TEST(StaticL2ForNeighorObserverTest, ageMacWhileNeighborResolved) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolveMac(this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  this->unresolveMac(this->kMacAddress());
+  // MAC entry still exists due to the fact that a neigbor still
+  // refers to it.
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }
 } // namespace facebook::fboss
