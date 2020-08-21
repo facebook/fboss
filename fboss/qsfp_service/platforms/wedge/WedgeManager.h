@@ -16,7 +16,7 @@ class WedgeManager : public TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
   using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
 
-  WedgeManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr);
+  explicit WedgeManager(std::unique_ptr<TransceiverPlatformApi> api);
   ~WedgeManager() override {}
 
   void loadConfig() override {}

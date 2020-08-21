@@ -14,7 +14,7 @@
 namespace facebook { namespace fboss {
 class TransceiverManager {
  public:
-  TransceiverManager(std::unique_ptr<TransceiverPlatformApi> api = nullptr) :
+  TransceiverManager(std::unique_ptr<TransceiverPlatformApi> api) :
     qsfpPlatApi_(std::move(api)) {};
   virtual ~TransceiverManager() {};
   virtual void loadConfig() = 0;

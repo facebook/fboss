@@ -24,7 +24,7 @@ namespace {
 
 class MockWedgeManager : public WedgeManager {
  public:
-  explicit MockWedgeManager() : WedgeManager() {}
+  explicit MockWedgeManager() : WedgeManager(nullptr) {}
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       std::unique_ptr<MockSffModule> qsfp =
