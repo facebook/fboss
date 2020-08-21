@@ -47,7 +47,7 @@ class MacTable : public NodeMapT<MacTable, MacTableTraits> {
       folly::MacAddress mac,
       PortDescriptor portDescr,
       std::optional<cfg::AclLookupClass> classID,
-      MacEntryType type = MacEntryType::DYNAMIC_ENTRY);
+      std::optional<MacEntryType> type = std::nullopt);
 
  private:
   // Inherit the constructors required for clone()
