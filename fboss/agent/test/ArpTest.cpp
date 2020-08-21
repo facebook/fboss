@@ -882,7 +882,6 @@ TEST(ArpTest, PendingArp) {
 
   // Receiving this packet should trigger an ARP request out,
   // and the state should now include a pending arp entry.
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
   EXPECT_SWITCHED_PKT(
       sw,
       "ARP request",
@@ -915,8 +914,6 @@ TEST(ArpTest, PendingArp) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
 
   // Receiving this duplicate packet should NOT trigger an ARP request out,
-  // and no state update for now.
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -940,7 +937,6 @@ TEST(ArpTest, PendingArp) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 1);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   // Receive an arp reply for our pending entry
   sendArpReply(handle.get(), "10.0.0.10", "02:10:20:30:40:22", 1);
 
@@ -951,9 +947,7 @@ TEST(ArpTest, PendingArp) {
   EXPECT_EQ(entry->isPending(), false);
 
   // Verify that we don't ever overwrite a valid entry with a pending one.
-  // Receive the same packet again, no state update and the entry should still
-  // be valid
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  // Receive the same packet again, entry should still be valid
 
   handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();

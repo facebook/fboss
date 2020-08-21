@@ -945,11 +945,8 @@ TEST(NdpTest, PendingNdp) {
       handle.get(), "2401:db00:2110:3004::1:0", "02:10:20:30:40:22", 1, vlanID);
 
   // The entry should now be valid instead of pending
-  // NDP resolution should trigger a static MAC entry update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   EXPECT_TRUE(neighborEntryReachable.wait());
   waitForStateUpdates(sw);
-  waitForBackgroundThread(sw);
   entry =
       sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));
@@ -957,8 +954,7 @@ TEST(NdpTest, PendingNdp) {
   EXPECT_EQ(entry->isPending(), false);
 
   // Verify that we don't ever overwrite a valid entry with a pending one.
-  // Receive the same packet again, no state update and the entry should still
-  // be valid
+  // Receive the same packet again, entry should still be valid
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
   // Send the packet to the SwSwitch
