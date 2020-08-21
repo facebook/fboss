@@ -58,6 +58,7 @@ class LookupClassRouteUpdater;
 class MacTableManager;
 class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
+class StaticL2ForNeighborObserver;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -887,6 +888,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::unique_ptr<LookupClassUpdater> lookupClassUpdater_;
   std::unique_ptr<LookupClassRouteUpdater> lookupClassRouteUpdater_;
+  std::unique_ptr<StaticL2ForNeighborObserver> staticL2ForNeighborObserver_;
   std::unique_ptr<MacTableManager> macTableManager_;
 };
 

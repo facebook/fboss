@@ -35,6 +35,7 @@
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
+#include "fboss/agent/StaticL2ForNeighborObserver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
@@ -168,6 +169,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
+      staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
