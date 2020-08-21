@@ -44,7 +44,9 @@ void StaticL2ForNeighborObserver::ensureMacEntry(
   auto port = neighbor->getPort();
   auto staticMacEntryFn =
       [vlan, mac, port](const std::shared_ptr<SwitchState>& state) {
-        return MacTableUtils::updateOrAddStaticEntry(state, port, vlan, mac);
+        auto newState =
+            MacTableUtils::updateOrAddStaticEntry(state, port, vlan, mac);
+        return newState != state ? newState : nullptr;
       };
 
   sw_->updateState("updateOrAdd static MAC: ", std::move(staticMacEntryFn));
@@ -77,7 +79,8 @@ void StaticL2ForNeighborObserver::processRemoved(
   auto mac = removedEntry->getMac();
   auto removeMacEntryFn = [vlan,
                            mac](const std::shared_ptr<SwitchState>& state) {
-    return MacTableUtils::removeEntry(state, vlan, mac);
+    auto newState = MacTableUtils::removeEntry(state, vlan, mac);
+    return newState != state ? newState : nullptr;
   };
 
   sw_->updateState("remove MAC: ", std::move(removeMacEntryFn));
