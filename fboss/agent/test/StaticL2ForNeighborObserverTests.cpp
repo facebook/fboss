@@ -61,12 +61,18 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
     return PortID(2);
   }
 
-  IPAddressV4 kIp4Addr() const {
+  IPAddress kIp4Addr() const {
     return IPAddressV4("10.0.0.2");
   }
+  IPAddress kIp4Addr2() const {
+    return IPAddressV4("10.0.0.3");
+  }
 
-  IPAddressV6 kIp6Addr() const {
+  IPAddress kIp6Addr() const {
     return IPAddressV6("2401:db00:2110:3001::0002");
+  }
+  IPAddress kIp6Addr2() const {
+    return IPAddressV6("2401:db00:2110:3001::0003");
   }
   MacAddress kMacAddress() const {
     return MacAddress("01:02:03:04:05:06");
@@ -77,7 +83,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
      * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
      * assert if valid CLASSID is associated with the newly resolved neighbor.
      */
-    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+    if (ipAddress.isV4()) {
       sw_->getNeighborUpdater()->receivedArpMine(
           kVlan(),
           ipAddress.asV4(),
@@ -142,6 +148,16 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
 
     return ipAddress;
   }
+  IPAddress getIpAddress2() {
+    IPAddress ipAddress;
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      ipAddress = IPAddress(this->kIp4Addr2());
+    } else {
+      ipAddress = IPAddress(this->kIp6Addr2());
+    }
+
+    return ipAddress;
+  }
 
   void bringPortDown(PortID portID) {
     this->sw_->linkStateChanged(portID, false);
@@ -190,36 +206,24 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using TestTypes =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6, folly::MacAddress>;
-using TestTypesNeighbor =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
-/*
- * Tests that are valid for arp/ndp neighbors only and not for Mac addresses
- */
-template <typename AddrT>
-class StaticL2ForNeighorObserverNeighborTest
-    : public StaticL2ForNeighorObserverTest<AddrT> {};
-
-TYPED_TEST_SUITE(StaticL2ForNeighorObserverNeighborTest, TestTypesNeighbor);
+TYPED_TEST_SUITE(StaticL2ForNeighorObserverTest, TestTypes);
 
 TYPED_TEST(
-    StaticL2ForNeighorObserverNeighborTest,
+    StaticL2ForNeighorObserverTest,
     noStaticL2EntriesForUnResolvedNeighbor) {
   this->verifyMacEntryDoesNotExist();
 }
 
-TYPED_TEST(
-    StaticL2ForNeighorObserverNeighborTest,
-    staticL2EntriesForResolvedNeighbor) {
+TYPED_TEST(StaticL2ForNeighorObserverTest, staticL2EntriesForResolvedNeighbor) {
   this->verifyMacEntryDoesNotExist();
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }
 
 TYPED_TEST(
-    StaticL2ForNeighorObserverNeighborTest,
+    StaticL2ForNeighorObserverTest,
     staticL2EntriesForUnresolvedToResolvedNeighbor) {
   this->verifyMacEntryDoesNotExist();
   this->resolve(this->getIpAddress(), this->kMacAddress());
@@ -230,4 +234,49 @@ TYPED_TEST(
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }
 
+TYPED_TEST(StaticL2ForNeighorObserverTest, dynamicMacEntryIfNoNeighbor) {
+  this->resolveMac(this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::DYNAMIC_ENTRY);
+}
+
+TYPED_TEST(
+    StaticL2ForNeighorObserverTest,
+    dynamicToStaticL2MacEntryOnNeighborResolution) {
+  this->resolveMac(this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::DYNAMIC_ENTRY);
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+}
+
+TYPED_TEST(
+    StaticL2ForNeighorObserverTest,
+    staticL2MacEntryForMultipleNeighbors) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->resolve(this->getIpAddress2(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  // Unresolve one neighbor Static mac entry should continue to
+  // exist
+  this->unresolveNeighbor(this->getIpAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  // Unresolve second neighbor, now static MAC should go away
+  this->unresolveNeighbor(this->getIpAddress2());
+  this->verifyMacEntryDoesNotExist();
+}
+
+TYPED_TEST(
+    StaticL2ForNeighorObserverTest,
+    staticL2MacEntryForMultipleAddrFamilyNeighbors) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  auto secondAddr =
+      this->getIpAddress().isV6() ? this->kIp4Addr() : this->kIp6Addr();
+  this->resolve(secondAddr, this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  // Unresolve one neighbor Static mac entry should continue to
+  // exist
+  this->unresolveNeighbor(this->getIpAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  // Unresolve second neighbor, now static MAC should go away
+  this->unresolveNeighbor(secondAddr);
+  this->verifyMacEntryDoesNotExist();
+}
 } // namespace facebook::fboss
