@@ -76,6 +76,9 @@ enum LoopbackMode {
   opticalLoopback
 };
 
+// CMIS module Identifier (from module register 0)
+constexpr uint8_t kCMISIdentifier = 0x1e;
+
 bool overrideLowPower(
     TransceiverI2CApi* bus,
     unsigned int port,
@@ -169,14 +172,70 @@ bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
-bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
-  uint8_t buf[1] = {value};
+/*
+ * This function returns the module type whether it is CMIS or SFF type
+ * by reading the register 0 from module
+ */
+TransceiverManagementInterface getModuleType(
+  TransceiverI2CApi* bus, unsigned int port) {
+  uint8_t moduleId;
+
+  // Get the module id to differentiate between CMIS (0x1e) and SFF
   try {
-    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, buf);
+    bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 0, 1, &moduleId);
   } catch (const I2cError& ex) {
-    fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
-    return false;
+    fprintf(stderr, "QSFP %d: not present or read error\n", port);
   }
+
+  if (moduleId == kCMISIdentifier) {
+    return TransceiverManagementInterface::CMIS;
+  } else {
+    return TransceiverManagementInterface::SFF;
+  }
+}
+
+/*
+ * This function disables the optics lane TX which brings down the port. The
+ * TX Disable will cause LOS at the link partner and Remote Fault at this end.
+ */
+bool setTxDisable(TransceiverI2CApi* bus, unsigned int port, bool disable) {
+  std::array<uint8_t, 1> buf;
+
+  // Get module type CMIS or SFF
+  auto moduleType = getModuleType(bus, port);
+
+  if (moduleType != TransceiverManagementInterface::CMIS) {
+    // For SFF the value 0xf disables all 4 lanes and 0x0 enables it back
+    buf[0] = disable ? 0xf : 0x0;
+
+    // For SFF module, the page 0 reg 86 controls TX_DISABLE for 4 lanes
+    try {
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 86, 1, &buf[0]);
+    } catch (const I2cError& ex) {
+      fprintf(stderr, "QSFP %d: unwritable or write error\n", port);
+      return false;
+    }
+  } else {
+    // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
+    uint8_t savedPage, moduleControlPage=0x10;
+
+    // For CMIS the value 0xff disables all 8 lanes and 0x0 enables it back
+    buf[0] = disable ? 0xff : 0x0;
+
+    try {
+      // Save current page
+      bus->moduleRead(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
+      // Write page 10 reg 130
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &moduleControlPage);
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 130, 1, &buf[0]);
+      // Restore current page
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &savedPage);
+    } catch (const I2cError& ex) {
+      fprintf(stderr, "QSFP %d: read/write error\n", port);
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -706,10 +765,10 @@ int main(int argc, char* argv[]) {
     if (FLAGS_set_low_power && overrideLowPower(bus.get(), portNum, 0x3)) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
-    if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, 0x0f)) {
+    if (FLAGS_tx_disable && setTxDisable(bus.get(), portNum, true)) {
       printf("QSFP %d: disabled TX on all channels\n", portNum);
     }
-    if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, 0x00)) {
+    if (FLAGS_tx_enable && setTxDisable(bus.get(), portNum, false)) {
       printf("QSFP %d: enabled TX on all channels\n", portNum);
     }
 
