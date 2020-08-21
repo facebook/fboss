@@ -502,7 +502,8 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
           neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
     }
 
-    // Verify that refCnt is 1 = 1 for ipAddress2 as ipAddress is unersolved
+    // Verify that refCnt is 2 =
+    // 1 for ipAddress2 as ipAddress is unersolved + 1 for Static MAC
     auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
     EXPECT_EQ(
         lookupClassUpdater->getRefCnt(
@@ -510,7 +511,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
             this->kMacAddress(),
             this->kVlan(),
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        1);
+        2);
   });
 
   // Resolve the IP with same MAC, gets same classID as other IP with same MAC

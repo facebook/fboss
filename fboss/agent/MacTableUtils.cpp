@@ -174,8 +174,7 @@ std::shared_ptr<SwitchState> MacTableUtils::removeEntry(
   return newState;
 }
 
-std::shared_ptr<SwitchState>
-MacTableUtils::updateOrAddStaticMacEntryIfNbrExists(
+std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlanId,
     folly::MacAddress mac) {
@@ -195,7 +194,7 @@ MacTableUtils::updateOrAddStaticMacEntryIfNbrExists(
     auto port =
         arpItr != arpTable.end() ? (*arpItr)->getPort() : (*ndpItr)->getPort();
     auto macTable = getMacTable(state, vlanId).get();
-    auto existingMacEntry = macTable->getNode(mac);
+    auto existingMacEntry = macTable->getNodeIf(mac);
     if (existingMacEntry) {
       if (existingMacEntry->getType() == MacEntryType::STATIC_ENTRY &&
           existingMacEntry->getPort() == port) {

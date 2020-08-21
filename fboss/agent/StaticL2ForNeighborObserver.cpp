@@ -66,6 +66,7 @@ void StaticL2ForNeighborObserver::processAdded(
     const std::shared_ptr<NeighborEntryT>& addedEntry) {
   assertNeighborEntry(*addedEntry);
   if (addedEntry->isReachable()) {
+    XLOG(INFO) << " Neighbor entry added: " << addedEntry->str();
     ensureMacEntry(vlan, addedEntry);
   }
 }
@@ -76,14 +77,22 @@ void StaticL2ForNeighborObserver::processRemoved(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   assertNeighborEntry(*removedEntry);
+  XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
   auto removeMacEntryFn = [vlan,
                            mac](const std::shared_ptr<SwitchState>& state) {
+    // Note that its possible that other neighbors still refer to this MAC.
+    // Handle this in 2 steps
+    // - Remove MAC
+    // - Run ensureMacEntryIfNeighborExists
+    // State passed down to HW is the composition of these 2 steps
     auto newState = MacTableUtils::removeEntry(state, vlan, mac);
+    newState =
+        MacTableUtils::updateOrAddStaticEntryIfNbrExists(newState, vlan, mac);
     return newState != state ? newState : nullptr;
   };
 
-  sw_->updateState("remove MAC: ", std::move(removeMacEntryFn));
+  sw_->updateState("Prune MAC if unreferenced: ", std::move(removeMacEntryFn));
 }
 
 template <typename NeighborEntryT>
@@ -96,28 +105,45 @@ void StaticL2ForNeighborObserver::processChanged(
   assertNeighborEntry(*newEntry);
   if ((oldEntry->isReachable() != newEntry->isReachable()) ||
       (oldEntry->getMac() != newEntry->getMac())) {
+    XLOG(INFO) << " Neighbor entry changed, old: " << oldEntry->str()
+               << " new: " << newEntry->str();
     processRemoved<NeighborEntryT>(stateDelta.oldState(), vlan, oldEntry);
     processAdded<NeighborEntryT>(stateDelta.newState(), vlan, newEntry);
   }
 }
 
+void StaticL2ForNeighborObserver::ensureMacEntryIfNeighborExists(
+    VlanID vlan,
+    const std::shared_ptr<MacEntry>& macEntry) {
+  auto mac = macEntry->getMac();
+  auto ensureMac = [mac, vlan](const std::shared_ptr<SwitchState>& state) {
+    return MacTableUtils::updateOrAddStaticEntryIfNbrExists(state, vlan, mac);
+  };
+  sw_->updateState("ensure static MAC for nbr", std::move(ensureMac));
+}
+
 void StaticL2ForNeighborObserver::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,
-    VlanID /*vlan*/,
-    const std::shared_ptr<MacEntry>& /*macEntry*/) {
-  // TODO
+    VlanID vlan,
+    const std::shared_ptr<MacEntry>& macEntry) {
+  XLOG(DBG4) << " Mac added: " << macEntry->str();
+  ensureMacEntryIfNeighborExists(vlan, macEntry);
 }
+
 void StaticL2ForNeighborObserver::processRemoved(
     const std::shared_ptr<SwitchState>& /*switchState*/,
-    VlanID /*vlan*/,
-    const std::shared_ptr<MacEntry>& /*macEntry*/) {
-  // TODO
+    VlanID vlan,
+    const std::shared_ptr<MacEntry>& macEntry) {
+  XLOG(DBG4) << " Mac removed: " << macEntry->str();
+  ensureMacEntryIfNeighborExists(vlan, macEntry);
 }
+
 void StaticL2ForNeighborObserver::processChanged(
     const StateDelta& /*stateDelta*/,
-    VlanID /*vlan*/,
+    VlanID vlan,
     const std::shared_ptr<MacEntry>& /*oldEntry*/,
-    const std::shared_ptr<MacEntry>& /*newEntry*/) {
-  // TODO
+    const std::shared_ptr<MacEntry>& newEntry) {
+  XLOG(DBG4) << " Mac changed: " << newEntry->str();
+  ensureMacEntryIfNeighborExists(vlan, newEntry);
 }
 } // namespace facebook::fboss

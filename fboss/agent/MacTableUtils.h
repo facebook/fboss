@@ -46,7 +46,7 @@ class MacTableUtils {
       VlanID vlan,
       folly::MacAddress mac);
 
-  static std::shared_ptr<SwitchState> updateOrAddStaticMacEntryIfNbrExists(
+  static std::shared_ptr<SwitchState> updateOrAddStaticEntryIfNbrExists(
       const std::shared_ptr<SwitchState>& state,
       VlanID vlan,
       folly::MacAddress mac);
