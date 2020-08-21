@@ -173,4 +173,52 @@ std::shared_ptr<SwitchState> MacTableUtils::removeEntry(
   macTable->removeNode(mac);
   return newState;
 }
+
+std::shared_ptr<SwitchState>
+MacTableUtils::updateOrAddStaticMacEntryIfNbrExists(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanId,
+    folly::MacAddress mac) {
+  auto findNeighbor = [mac](const auto& nbrTable) {
+    return std::find_if(
+        nbrTable.begin(), nbrTable.end(), [mac](const auto& nbrEntry) {
+          return nbrEntry->isReachable() && nbrEntry->getMac() == mac;
+        });
+  };
+  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  const auto& arpTable = *vlan->getArpTable();
+  const auto& ndpTable = *vlan->getNdpTable();
+  auto arpItr = findNeighbor(arpTable);
+  auto ndpItr = findNeighbor(ndpTable);
+  if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {
+    // For Static MAC entry, we miror the port neighbor was resolved on
+    auto port =
+        arpItr != arpTable.end() ? (*arpItr)->getPort() : (*ndpItr)->getPort();
+    auto macTable = getMacTable(state, vlanId).get();
+    auto existingMacEntry = macTable->getNode(mac);
+    if (existingMacEntry) {
+      if (existingMacEntry->getType() == MacEntryType::STATIC_ENTRY &&
+          existingMacEntry->getPort() == port) {
+        // Already have a desired static entry nothing to do
+        return state;
+      }
+      auto newState = state->clone();
+      macTable = macTable->modify(&vlan, &newState);
+      macTable->updateEntry(
+          mac,
+          port,
+          existingMacEntry->getClassID(),
+          MacEntryType::STATIC_ENTRY);
+      return newState;
+    } else {
+      auto newState = state->clone();
+      macTable = macTable->modify(&vlan, &newState);
+      auto newEntry = std::make_shared<MacEntry>(
+          mac, port, std::nullopt, MacEntryType::STATIC_ENTRY);
+      macTable->addEntry(newEntry);
+      return newState;
+    }
+  }
+  return state;
+}
 } // namespace facebook::fboss
