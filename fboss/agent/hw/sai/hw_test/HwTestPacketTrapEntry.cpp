@@ -5,8 +5,8 @@
 namespace facebook::fboss {
 
 HwTestPacketTrapEntry::HwTestPacketTrapEntry(
-    const HwSwitch* hwSwitch,
-    PortID port) {}
+    const HwSwitch* /* hwSwitch */,
+    PortID /* port */) {}
 
 HwTestPacketTrapEntry::~HwTestPacketTrapEntry() {}
 

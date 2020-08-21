@@ -93,11 +93,10 @@ void runRxSlowPathBenchmark() {
       8001);
   bcmSwitch->sendPacketSwitchedSync(std::move(txPacket));
 
-  constexpr bcm_cos_queue_t kCpuQueue = 1;
   constexpr auto kBurnIntevalMs = 5000;
   // Let the packet flood warm up
   WallClockMs::Burn(kBurnIntevalMs);
-
+  constexpr uint8_t kCpuQueue = 0;
   auto [pktsBefore, bytesBefore] = getCpuQueueStats(bcmSwitch, kCpuQueue);
   auto timeBefore = WallClockMs::Now();
   CHECK_NE(pktsBefore, 0);
