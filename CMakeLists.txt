@@ -520,6 +520,7 @@ if (NOT SAI_ONLY)
       fboss/agent/PortUpdateHandler.cpp
       fboss/agent/RouteUpdateLogger.cpp
       fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
+      fboss/agent/StaticL2ForNeighborObserver.cpp
       fboss/agent/state/AclEntry.cpp
       fboss/agent/state/AclMap.cpp
       fboss/agent/state/AggregatePort.cpp
@@ -712,6 +713,7 @@ if (NOT SAI_ONLY)
          fboss/agent/test/ResourceLibUtilTest.cpp
          fboss/agent/test/RouteDistributionGeneratorTest.cpp
          fboss/agent/test/RouteScaleGeneratorsTest.cpp
+         fboss/agent/test/StaticL2ForNeighborObserverTests.cpp
          fboss/agent/test/StaticRoutes.cpp
          fboss/agent/test/TestPacketFactory.cpp
          fboss/agent/test/ThriftTest.cpp
