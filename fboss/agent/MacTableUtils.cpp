@@ -12,6 +12,7 @@
 namespace {
 
 using facebook::fboss::MacEntry;
+using facebook::fboss::MacTable;
 using facebook::fboss::SwitchState;
 using facebook::fboss::VlanID;
 using facebook::fboss::cfg::AclLookupClass;
@@ -47,6 +48,19 @@ std::shared_ptr<SwitchState> modifyClassIDForEntry(
   }
 
   return newState;
+}
+
+std::shared_ptr<MacTable> getMacTable(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanId) {
+  return state->getVlans()->getVlan(vlanId)->getMacTable();
+}
+std::shared_ptr<MacEntry> getMacEntry(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanId,
+    folly::MacAddress mac) {
+  auto macTable = getMacTable(state, vlanId);
+  return macTable->getNodeIf(mac);
 }
 } // namespace
 
@@ -118,4 +132,45 @@ std::shared_ptr<SwitchState> MacTableUtils::removeClassIDForEntry(
   return modifyClassIDForEntry(state, vlanID, macEntry);
 }
 
+std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
+    const std::shared_ptr<SwitchState>& state,
+    const PortDescriptor& port,
+    VlanID vlanId,
+    folly::MacAddress mac) {
+  auto existingMacEntry = getMacEntry(state, vlanId, mac);
+  if (existingMacEntry &&
+      existingMacEntry->getType() == MacEntryType::STATIC_ENTRY) {
+    return state;
+  }
+  auto newState = state->clone();
+  auto macTable = getMacTable(state, vlanId).get();
+  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  macTable = macTable->modify(&vlan, &newState);
+  if (existingMacEntry) {
+    macTable->updateEntry(
+        mac, port, existingMacEntry->getClassID(), MacEntryType::STATIC_ENTRY);
+  } else {
+    auto newEntry = std::make_shared<MacEntry>(
+        mac, port, std::nullopt, MacEntryType::STATIC_ENTRY);
+    macTable->addEntry(newEntry);
+  }
+
+  return newState;
+}
+
+std::shared_ptr<SwitchState> MacTableUtils::removeEntry(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlanId,
+    folly::MacAddress mac) {
+  auto existingMacEntry = getMacEntry(state, vlanId, mac);
+  if (!existingMacEntry) {
+    return state;
+  }
+  auto newState = state->clone();
+  auto macTable = getMacTable(state, vlanId).get();
+  auto vlan = state->getVlans()->getVlan(vlanId).get();
+  macTable = macTable->modify(&vlan, &newState);
+  macTable->removeNode(mac);
+  return newState;
+}
 } // namespace facebook::fboss

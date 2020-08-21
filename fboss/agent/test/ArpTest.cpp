@@ -379,7 +379,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Sending the ARP request to the switch should trigger an update to the
   // ArpTable for VLAN 1, and will then send a reply packet
-  EXPECT_HW_CALL(sw, stateChanged(_));
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -503,7 +503,9 @@ TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.50
       "0a 00 00 32"));
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  // Expect 2+ updates, one for the arp entry update (MAC changed)
+  // And then 1 (or 2 depends on coalescing) for Static mac updates
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(2));
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
   handle->rxPacket(std::move(buf), PortID(2), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
@@ -547,7 +549,9 @@ TEST(ArpTest, TableUpdates) {
       // Target IP: 10.0.0.1
       "0a 00 00 01"));
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  // Arp resolution also triggers a static
+  // MAC entry creation update
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -604,7 +608,9 @@ TEST(ArpTest, TableUpdates) {
       // Target IP: 192.168.0.1
       "c0 a8 00 01"));
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  // Arp resolution also triggers a static
+  // MAC entry creation update
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "ARP reply",
@@ -803,11 +809,13 @@ TEST(ArpTest, FlushEntry) {
   checkEntry(3, "10.0.0.22", "02:10:20:30:40:22", 4);
 
   // Via the thrift API, flush the ARP entry for 10.0.0.11
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  // This in turn will trigger static MAC entry pruning update
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(testing::AtLeast(2));
   auto binAddr = toBinaryAddress(IPAddressV4("10.0.0.11"));
   auto numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 1);
   EXPECT_EQ(numFlushed, 1);
+  waitForStateUpdates(sw);
 
   // Now check the table again
   arpTable.clear();
@@ -932,7 +940,7 @@ TEST(ArpTest, PendingArp) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 1);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   // Receive an arp reply for our pending entry
   sendArpReply(handle.get(), "10.0.0.10", "02:10:20:30:40:22", 1);
 

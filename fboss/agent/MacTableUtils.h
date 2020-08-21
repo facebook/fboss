@@ -34,6 +34,17 @@ class MacTableUtils {
       const std::shared_ptr<SwitchState>& state,
       VlanID vlanID,
       const std::shared_ptr<MacEntry>& macEntry);
+
+  static std::shared_ptr<SwitchState> updateOrAddStaticEntry(
+      const std::shared_ptr<SwitchState>& state,
+      const PortDescriptor& port,
+      VlanID vlan,
+      folly::MacAddress mac);
+
+  static std::shared_ptr<SwitchState> removeEntry(
+      const std::shared_ptr<SwitchState>& state,
+      VlanID vlan,
+      folly::MacAddress mac);
 };
 
 } // namespace facebook::fboss

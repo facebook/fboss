@@ -58,6 +58,12 @@ class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
       const std::shared_ptr<NeighborEntryT>& oldEntry,
       const std::shared_ptr<NeighborEntryT>& newEntry);
 
+  auto getMacEntry(VlanID vlan, folly::MacAddress mac) const;
+  template <typename NeighborEntryT>
+  void ensureMacEntry(
+      VlanID vlan,
+      const std::shared_ptr<NeighborEntryT>& neighbor);
+
   template <typename NeighborEntryT>
   void assertNeighborEntry(const NeighborEntryT& neighbor);
   friend class VlanTableDeltaCallbackGenerator;

@@ -211,7 +211,7 @@ TEST(CaptureTest, FullCapture) {
   // Receive an ARP reply for the desired IP. This should cause the
   // arp entry to change from pending to active. That in turn would
   // trigger a static l2 entry add update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(1);
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   sw->packetReceived(arpPkt.clone());
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);

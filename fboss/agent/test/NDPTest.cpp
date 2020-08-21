@@ -855,10 +855,13 @@ TEST(NdpTest, FlushEntry) {
   WaitForNdpEntryExpiration neighbor2Expire(
       sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
   binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+  // NDP removal should trigger a static MAC entry removal
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   numFlushed =
       thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 0);
   EXPECT_EQ(numFlushed, 1);
   EXPECT_TRUE(neighbor2Expire.wait());
+  waitForStateUpdates(sw);
 
   // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
@@ -942,7 +945,11 @@ TEST(NdpTest, PendingNdp) {
       handle.get(), "2401:db00:2110:3004::1:0", "02:10:20:30:40:22", 1, vlanID);
 
   // The entry should now be valid instead of pending
+  // NDP resolution should trigger a static MAC entry update
+  EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
   EXPECT_TRUE(neighborEntryReachable.wait());
+  waitForStateUpdates(sw);
+  waitForBackgroundThread(sw);
   entry =
       sw->getState()->getVlans()->getVlanIf(vlanID)->getNdpTable()->getEntryIf(
           IPAddressV6("2401:db00:2110:3004::1:0"));

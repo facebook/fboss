@@ -454,14 +454,15 @@ class LookupClassUpdaterNeighborTest : public LookupClassUpdaterTest<AddrT> {
         this->getIpAddress2(),
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
-    // Verify that refCnt is 2 = 1 for ipAddress + 1 for ipAddress2
+    // Verify that refCnt is 3
+    // 2 for ipAddress +  ipAddress2 and 1 for static MAC entry
     EXPECT_EQ(
         lookupClassUpdater->getRefCnt(
             this->kPortID(),
             this->kMacAddress(),
             this->kVlan(),
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-        2);
+        3);
   }
 };
 

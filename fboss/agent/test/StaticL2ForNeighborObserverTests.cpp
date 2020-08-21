@@ -154,11 +154,15 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
 
  protected:
   void verifyMacEntryExists(MacEntryType type) const {
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
     auto macEntry = getMacEntry();
     ASSERT_NE(macEntry, nullptr);
     EXPECT_EQ(macEntry->getType(), type);
   }
   void verifyMacEntryDoesNotExist() const {
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
     EXPECT_EQ(getMacEntry(), nullptr);
   }
 
@@ -204,9 +208,26 @@ TYPED_TEST(
     StaticL2ForNeighorObserverNeighborTest,
     noStaticL2EntriesForUnResolvedNeighbor) {
   this->verifyMacEntryDoesNotExist();
+}
+
+TYPED_TEST(
+    StaticL2ForNeighorObserverNeighborTest,
+    staticL2EntriesForResolvedNeighbor) {
+  this->verifyMacEntryDoesNotExist();
   this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+}
+
+TYPED_TEST(
+    StaticL2ForNeighorObserverNeighborTest,
+    staticL2EntriesForUnresolvedToResolvedNeighbor) {
+  this->verifyMacEntryDoesNotExist();
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
   this->unresolveNeighbor(this->getIpAddress());
   this->verifyMacEntryDoesNotExist();
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }
 
 } // namespace facebook::fboss
