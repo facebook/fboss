@@ -32,7 +32,7 @@ class LookupClassUpdater : public AutoRegisterStateObserver {
   using ClassID2Count = boost::container::flat_map<cfg::AclLookupClass, int>;
 
   template <typename NeighborEntryT>
-  bool shouldProcessNewNeighborEntry(
+  bool shouldProcessNeighborEntry(
       const std::shared_ptr<NeighborEntryT>& newEntry) const;
   template <typename AddedNeighborEntryT>
   void processAdded(

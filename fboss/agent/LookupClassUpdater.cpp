@@ -168,13 +168,13 @@ void LookupClassUpdater::updateNeighborClassID(
 }
 
 template <typename NeighborEntryT>
-bool LookupClassUpdater::shouldProcessNewNeighborEntry(
-    const std::shared_ptr<NeighborEntryT>& newEntry) const {
+bool LookupClassUpdater::shouldProcessNeighborEntry(
+    const std::shared_ptr<NeighborEntryT>& entry) const {
   /*
    * At this point in time, queue-per-host fix is needed (and thus
    * supported) for physical link only.
    */
-  if (!newEntry->getPort().isPhysicalPort()) {
+  if (!(entry && entry->getPort().isPhysicalPort())) {
     return false;
   }
   /*
@@ -190,7 +190,7 @@ bool LookupClassUpdater::shouldProcessNewNeighborEntry(
    *    entry. Since this will be side-effect of state update that
    *    LookupClassUpdater triggered, there is nothing to do here.
    */
-  if (newEntry && newEntry->getClassID().has_value()) {
+  if (entry->getClassID().has_value()) {
     return false;
   }
   return true;
@@ -202,7 +202,7 @@ void LookupClassUpdater::processAdded(
     VlanID vlan,
     const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
   CHECK(addedEntry);
-  if (!shouldProcessNewNeighborEntry(addedEntry)) {
+  if (!shouldProcessNeighborEntry(addedEntry)) {
     return;
   }
   CHECK(addedEntry->getPort().isPhysicalPort());
@@ -240,7 +240,12 @@ void LookupClassUpdater::processChanged(
     const std::shared_ptr<ChangedNeighborEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
-  if (!shouldProcessNewNeighborEntry(newEntry)) {
+  if (!(shouldProcessNeighborEntry(newEntry) &&
+        oldEntry->getPort().isPhysicalPort())) {
+    // TODO - ideally we shouldn't care about whether
+    // the old port was a non physical port (LAG) or not
+    // but unfortunately our logic below assumes that both
+    // previous and this new entry ports are physical ports.
     return;
   }
   CHECK(oldEntry->getPort().isPhysicalPort());
