@@ -13,8 +13,11 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
   )
 
   target_link_libraries(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    # This is needed for 'dlsym', 'dlopen' etc.
+    -Wl,--no-as-needed -ldl
+    -lz
     ${SAI_IMPL_ARG}
-    sai_switch_ensemble
+    ${CMAKE_THREAD_LIBS_INIT}
   )
 
   set_target_properties(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}

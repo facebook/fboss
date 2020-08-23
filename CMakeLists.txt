@@ -776,3 +776,7 @@ install(TARGETS fake_sai)
 install(
   TARGETS
   sai_test-fake-${SAI_VER_SUFFIX})
+
+install(
+  TARGETS
+  sai_replayer-fake-${SAI_VER_SUFFIX})
