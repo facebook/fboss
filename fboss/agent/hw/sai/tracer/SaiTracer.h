@@ -292,7 +292,7 @@ class SaiTracer {
       " *\n"
       " */\n"
       "\n"
-      "#include \"fboss/agent/hw/sai/tracer/run/saiLog.h\"\n"
+      "#include \"fboss/agent/hw/sai/tracer/run/SaiLog.h\"\n"
       "\n"
       "#define ATTR_SIZE sizeof(sai_attribute_t)\n"
       "\n"

@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "fboss/agent/hw/sai/tracer/run/saiLog.h"
+#include "fboss/agent/hw/sai/tracer/run/SaiLog.h"
 
 extern "C" {
 #include <sai.h>

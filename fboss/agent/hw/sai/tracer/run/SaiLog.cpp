@@ -7,22 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "fboss/agent/hw/sai/tracer/run/SaiLog.h"
 
-extern "C" {
-#include <sai.h>
-}
-
+// This file will be replaced by the generated code from SAI tracer.
+// It will contain API initialization steps as well as the SAI API calls.
+// Once replaced, we'll build the target and then copy it to switch
+// so that it can replay all SAI API calls.
 namespace facebook::fboss {
 
-// The run_tracer function in saiLog.cpp will be replaced by the generated
-// code captured by sai tracer. It will auto generate API calls and
-// initialization steps to be replayed.
-
-void run_trace();
+void run_trace() {}
 
 } // namespace facebook::fboss

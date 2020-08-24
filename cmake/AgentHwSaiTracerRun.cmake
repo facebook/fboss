@@ -9,7 +9,7 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
 
   add_executable(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     fboss/agent/hw/sai/tracer/run/Main.cpp
-    fboss/agent/hw/sai/tracer/run/saiLog.cpp
+    fboss/agent/hw/sai/tracer/run/SaiLog.cpp
   )
 
   target_link_libraries(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
