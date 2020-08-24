@@ -42,6 +42,15 @@ class SaiSwitch : public HwSwitch {
   HwInitResult init(Callback* callback) noexcept override;
 
   void unregisterCallbacks() noexcept override;
+  /*
+   * SaiSwitch requires L2/FDB entries to be created for resolved
+   * neighbors to be able to compute egress ports for nhops. A join
+   * b/w the FDB (mac, port), neighbor (ip, mac) is done to figure
+   * out the nhop ip-> mac, egress port information
+   */
+  bool needL2EntryForNeighbor() const override {
+    return true;
+  }
 
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
 
