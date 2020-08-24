@@ -19,6 +19,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
+#include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
@@ -131,6 +132,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
     CHECK_EQ(newState, programmedState_);
   }
   programmedState_->publish();
+  StaticL2ForNeighborHwSwitchUpdater updater(this);
+  updater.stateUpdated(delta);
   return programmedState_;
 }
 
@@ -271,6 +274,9 @@ void HwSwitchEnsemble::setupEnsemble(
   // This will catch errors if test cases accidentally try to modify this
   // programmedState_ without first cloning it.
   programmedState_->publish();
+  StaticL2ForNeighborHwSwitchUpdater updater(this);
+  updater.stateUpdated(
+      StateDelta(std::make_shared<SwitchState>(), programmedState_));
 
   routingInformationBase_ = std::make_unique<rib::RoutingInformationBase>();
 

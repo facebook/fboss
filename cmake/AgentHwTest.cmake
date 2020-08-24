@@ -48,6 +48,7 @@ target_link_libraries(hw_link_state_toggler
 
 add_library(hw_switch_ensemble
   fboss/agent/hw/test/HwSwitchEnsemble.cpp
+  fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.cpp
 )
 
 target_link_libraries(hw_switch_ensemble
@@ -68,15 +69,6 @@ target_link_libraries(load_balancer_utils
   packet_factory
   state
   Folly::folly
-)
-
-add_library(static_l2_for_neighbor
-  fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.cpp
-)
-
-target_link_libraries(static_l2_for_neighbor
-  hw_switch_ensemble
-  core
 )
 
 add_library(traffic_policy_utils
