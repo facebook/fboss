@@ -12,6 +12,7 @@
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
 #include <folly/IPAddressV4.h>

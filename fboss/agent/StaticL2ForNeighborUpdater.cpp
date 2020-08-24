@@ -8,96 +8,66 @@
  *
  */
 
-#include "fboss/agent/StaticL2ForNeighborObserver.h"
+#include "fboss/agent/StaticL2ForNeighborUpdater.h"
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/MacTableUtils.h"
-#include "fboss/agent/StaticL2ForNeighborUpdater.h"
 #include "fboss/agent/VlanTableDeltaCallbackGenerator.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <type_traits>
 
 namespace facebook::fboss {
 
-void StaticL2ForNeighborObserver::stateUpdated(const StateDelta& stateDelta) {
-  if (!sw_->getHw()->needL2EntryForNeighbor()) {
+void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
+  if (!hw_->needL2EntryForNeighbor()) {
     return;
   }
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
 }
 
-auto StaticL2ForNeighborObserver::getMacEntry(
+std::shared_ptr<MacEntry> StaticL2ForNeighborUpdater::getMacEntry(
     VlanID vlanId,
-    folly::MacAddress mac) const {
-  auto vlan = sw_->getState()->getVlans()->getVlan(vlanId);
+    folly::MacAddress mac,
+    const std::shared_ptr<SwitchState>& state) const {
+  auto vlan = state->getVlans()->getVlan(vlanId);
   return vlan->getMacTable()->getNodeIf(mac);
 }
 
 template <typename NeighborEntryT>
-void StaticL2ForNeighborObserver::ensureMacEntry(
-    VlanID vlan,
-    const std::shared_ptr<NeighborEntryT>& neighbor) {
-  CHECK(neighbor->isReachable());
-  auto mac = neighbor->getMac();
-  auto port = neighbor->getPort();
-  auto staticMacEntryFn =
-      [vlan, mac, port](const std::shared_ptr<SwitchState>& state) {
-        auto newState =
-            MacTableUtils::updateOrAddStaticEntry(state, port, vlan, mac);
-        return newState != state ? newState : nullptr;
-      };
-
-  sw_->updateState("updateOrAdd static MAC: ", std::move(staticMacEntryFn));
-}
-
-template <typename NeighborEntryT>
-void StaticL2ForNeighborObserver::assertNeighborEntry(
+void StaticL2ForNeighborUpdater::assertNeighborEntry(
     const NeighborEntryT& /*neighbor*/) {
   static_assert(
       std::is_same_v<ArpEntry, NeighborEntryT> ||
       std::is_same_v<NdpEntry, NeighborEntryT>);
 }
 template <typename NeighborEntryT>
-void StaticL2ForNeighborObserver::processAdded(
+void StaticL2ForNeighborUpdater::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& addedEntry) {
   assertNeighborEntry(*addedEntry);
   if (addedEntry->isReachable()) {
     XLOG(INFO) << " Neighbor entry added: " << addedEntry->str();
-    ensureMacEntry(vlan, addedEntry);
+    ensureMacEntryForNeighbor(vlan, addedEntry);
   }
 }
 
 template <typename NeighborEntryT>
-void StaticL2ForNeighborObserver::processRemoved(
+void StaticL2ForNeighborUpdater::processRemoved(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   assertNeighborEntry(*removedEntry);
   XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
-  auto mac = removedEntry->getMac();
-  auto removeMacEntryFn = [vlan,
-                           mac](const std::shared_ptr<SwitchState>& state) {
-    // Note that its possible that other neighbors still refer to this MAC.
-    // Handle this in 2 steps
-    // - Remove MAC
-    // - Run ensureMacEntryIfNeighborExists
-    // State passed down to HW is the composition of these 2 steps
-    auto newState = MacTableUtils::removeEntry(state, vlan, mac);
-    newState =
-        MacTableUtils::updateOrAddStaticEntryIfNbrExists(newState, vlan, mac);
-    return newState != state ? newState : nullptr;
-  };
-
-  sw_->updateState("Prune MAC if unreferenced: ", std::move(removeMacEntryFn));
+  pruneMacEntryForNeighbor(vlan, removedEntry);
 }
 
 template <typename NeighborEntryT>
-void StaticL2ForNeighborObserver::processChanged(
+void StaticL2ForNeighborUpdater::processChanged(
     const StateDelta& stateDelta,
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& oldEntry,
@@ -113,17 +83,7 @@ void StaticL2ForNeighborObserver::processChanged(
   }
 }
 
-void StaticL2ForNeighborObserver::ensureMacEntryIfNeighborExists(
-    VlanID vlan,
-    const std::shared_ptr<MacEntry>& macEntry) {
-  auto mac = macEntry->getMac();
-  auto ensureMac = [mac, vlan](const std::shared_ptr<SwitchState>& state) {
-    return MacTableUtils::updateOrAddStaticEntryIfNbrExists(state, vlan, mac);
-  };
-  sw_->updateState("ensure static MAC for nbr", std::move(ensureMac));
-}
-
-void StaticL2ForNeighborObserver::processAdded(
+void StaticL2ForNeighborUpdater::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<MacEntry>& macEntry) {
@@ -131,7 +91,7 @@ void StaticL2ForNeighborObserver::processAdded(
   ensureMacEntryIfNeighborExists(vlan, macEntry);
 }
 
-void StaticL2ForNeighborObserver::processRemoved(
+void StaticL2ForNeighborUpdater::processRemoved(
     const std::shared_ptr<SwitchState>& /*switchState*/,
     VlanID vlan,
     const std::shared_ptr<MacEntry>& macEntry) {
@@ -139,7 +99,7 @@ void StaticL2ForNeighborObserver::processRemoved(
   ensureMacEntryIfNeighborExists(vlan, macEntry);
 }
 
-void StaticL2ForNeighborObserver::processChanged(
+void StaticL2ForNeighborUpdater::processChanged(
     const StateDelta& /*stateDelta*/,
     VlanID vlan,
     const std::shared_ptr<MacEntry>& /*oldEntry*/,
