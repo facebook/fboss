@@ -56,3 +56,16 @@ target_link_libraries(trunk_utils
   switch_config_cpp2
   state
 )
+
+add_executable(async_logger_test
+  fboss/agent/test/oss/Main.cpp
+  fboss/agent/test/AsyncLoggerTest.cpp
+)
+
+target_link_libraries(async_logger_test
+  async_logger
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(async_logger_test)

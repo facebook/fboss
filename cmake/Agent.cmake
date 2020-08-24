@@ -203,3 +203,12 @@ target_link_libraries(hw_switch
   platform_base
   hw_switch_stats
 )
+
+add_library(async_logger
+  fboss/agent/AsyncLogger.cpp
+)
+
+target_link_libraries(async_logger
+  fboss_error
+  Folly::folly
+)

@@ -13,7 +13,7 @@
 #include <memory>
 #include <tuple>
 
-#include "fboss/agent/hw/sai/tracer/AsyncLogger.h"
+#include "fboss/agent/AsyncLogger.h"
 
 #include <folly/File.h>
 #include <folly/String.h>

@@ -8,7 +8,8 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/AsyncLogger.h"
+#include "fboss/agent/AsyncLogger.h"
+
 #include "fboss/agent/SysError.h"
 
 #include <folly/FileUtil.h>

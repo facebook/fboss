@@ -8,7 +8,8 @@
  *
  */
 
-#include "fboss/agent/hw/sai/tracer/AsyncLogger.h"
+#include "fboss/agent/AsyncLogger.h"
+
 #include <gtest/gtest.h>
 #include <stdio.h>
 
