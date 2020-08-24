@@ -90,14 +90,6 @@ void SaiNeighborManager::addNeighbor(
 
   // TODO(AGGPORT): support aggregate port ID
   auto portID = swEntry->getPort().phyPortID();
-  // Add a static FDB entry for neighbor MACs so its not subject to l2
-  // mac table aging algorithm
-  managerTable_->fdbManager().addFdbEntry(
-      portID,
-      swEntry->getIntfID(),
-      swEntry->getMac(),
-      SAI_FDB_ENTRY_TYPE_STATIC,
-      std::nullopt);
 
   std::optional<sai_uint32_t> metadata;
   if (swEntry->getClassID()) {
@@ -139,8 +131,6 @@ void SaiNeighborManager::removeNeighbor(
     throw FbossError(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP());
   }
-  managerTable_->fdbManager().removeFdbEntry(
-      swEntry->getIntfID(), swEntry->getMac());
   managedNeighbors_.erase(subscriberKey);
 }
 

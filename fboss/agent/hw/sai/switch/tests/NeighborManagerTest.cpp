@@ -72,28 +72,24 @@ class NeighborManagerTest : public ManagerTestBase {
 };
 
 TEST_F(NeighborManagerTest, addResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
-  auto arpEntry = makeArpEntry(intf0.id, h0, 42);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0, 42);
   checkEntry(arpEntry, h0.mac, 42);
 }
 
 TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
   checkMissing(arpEntry);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighbor) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   auto arpEntryNew = makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0]);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
@@ -101,8 +97,7 @@ TEST_F(NeighborManagerTest, changeResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   auto arpEntryNew =
       makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0], 42);
@@ -111,8 +106,7 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   auto arpEntryNew = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
@@ -140,14 +134,12 @@ TEST_F(NeighborManagerTest, resolveNeighbor) {
   auto pendingEntry = makePendingArpEntry(intf0.id, h0);
   EXPECT_TRUE(pendingEntry->isPending());
   saiManagerTable->neighborManager().addNeighbor(pendingEntry);
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().changeNeighbor(pendingEntry, arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
 }
 
 TEST_F(NeighborManagerTest, unresolveNeighbor) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   auto pendingEntry = makePendingArpEntry(intf0.id, h0);
   EXPECT_TRUE(pendingEntry->isPending());
@@ -178,20 +170,18 @@ TEST_F(NeighborManagerTest, addDuplicateUnresolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, linkDown) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
   checkUnresolved(arpEntry);
 }
 
 TEST_F(NeighborManagerTest, linkDownReResolve) {
-  auto arpEntry = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   saiManagerTable->fdbManager().handleLinkDown(PortID(h0.port.id));
   checkUnresolved(arpEntry);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
 }

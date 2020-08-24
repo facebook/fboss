@@ -127,10 +127,8 @@ TEST_F(NextHopGroupManagerTest, deleteNextHopGroup) {
 }
 
 TEST_F(NextHopGroupManagerTest, resolveNeighborBefore) {
-  auto arpEntry0 = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
-  auto arpEntry1 = makeArpEntry(intf1.id, h1);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  auto arpEntry0 = resolveArp(intf0.id, h0);
+  auto arpEntry1 = resolveArp(intf1.id, h1);
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
@@ -150,18 +148,14 @@ TEST_F(NextHopGroupManagerTest, resolveNeighborAfter) {
           swNextHops);
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
-  auto arpEntry0 = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
-  auto arpEntry1 = makeArpEntry(intf1.id, h1);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  auto arpEntry0 = resolveArp(intf0.id, h0);
+  auto arpEntry1 = resolveArp(intf1.id, h1);
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip, h1.ip});
 }
 
 TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {
-  auto arpEntry0 = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
-  auto arpEntry1 = makeArpEntry(intf1.id, h1);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry1);
+  auto arpEntry0 = resolveArp(intf0.id, h0);
+  auto arpEntry1 = resolveArp(intf1.id, h1);
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
@@ -196,8 +190,7 @@ TEST_F(NextHopGroupManagerTest, derefThenResolve) {
 }
 
 TEST_F(NextHopGroupManagerTest, testNextHopGroupMemberWeights) {
-  auto arpEntry0 = makeArpEntry(intf0.id, h0);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry0);
+  resolveArp(intf0.id, h0);
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), 42};
   RouteNextHopEntry::NextHopSet swNextHops{nh1};
   auto saiNextHopGroupHandle =

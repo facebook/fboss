@@ -37,12 +37,9 @@ void processInSegEntryDelta(
 class InSegEntryManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE |
+        SetupStage::NEIGHBOR;
     ManagerTestBase::SetUp();
-    for (auto& intf : testInterfaces) {
-      auto arpEntry = makeArpEntry(intf.id, intf.remoteHosts[0]);
-      saiManagerTable->neighborManager().addNeighbor(arpEntry);
-    }
   }
 
   LabelNextHopEntry getLabelNextHopEntryWithNextHops(

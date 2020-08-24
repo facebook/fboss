@@ -20,6 +20,8 @@
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/MacEntry.h"
+#include "fboss/agent/state/MacTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -103,14 +105,20 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        auto arpTable = setupState->getVlans()
-                            ->getVlan(VlanID(testInterface.id))
-                            ->getArpTable();
+        auto vlan = setupState->getVlans()->getVlan(VlanID(testInterface.id));
+        auto arpTable = vlan->getArpTable();
+        PortDescriptor portDesc(PortID(remoteHost.port.id));
         arpTable->addEntry(
             remoteHost.ip.asV4(),
             remoteHost.mac,
-            PortDescriptor(PortID(remoteHost.port.id)),
+            portDesc,
             InterfaceID(testInterface.id));
+        auto macTable = vlan->getMacTable();
+        macTable->addEntry(std::make_shared<MacEntry>(
+            remoteHost.mac,
+            portDesc,
+            std::nullopt,
+            MacEntryType::STATIC_ENTRY));
       }
     }
   }
@@ -142,7 +150,6 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   if (testPort.enabled) {
     swPort->setAdminState(cfg::PortState::ENABLED);
   }
-  swPort->setSpeed(testPort.portSpeed);
   // Ports are assigned in starting a (vlan/interfaceId * 10 + portIdx),
   // so compute the vlanID based on that.
   VlanID vlan(testPort.id / 10);
@@ -150,6 +157,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   PortFields::VlanMembership vlanMemberShip{
       {vlan, PortFields::VlanInfo{false}}};
   swPort->setVlans(vlanMemberShip);
+  swPort->setSpeed(testPort.portSpeed);
   switch (testPort.portSpeed) {
     case cfg::PortSpeed::DEFAULT:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
@@ -236,6 +244,21 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
   if (metadata) {
     arpEntry->setClassID(static_cast<cfg::AclLookupClass>(metadata.value()));
   }
+  return arpEntry;
+}
+
+std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
+    int id,
+    const TestRemoteHost& testRemoteHost,
+    std::optional<sai_uint32_t> metadata) {
+  auto arpEntry = makeArpEntry(id, testRemoteHost, metadata);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  saiManagerTable->fdbManager().addFdbEntry(
+      arpEntry->getPort().phyPortID(),
+      arpEntry->getIntfID(),
+      arpEntry->getMac(),
+      SAI_FDB_ENTRY_TYPE_STATIC,
+      metadata);
   return arpEntry;
 }
 
