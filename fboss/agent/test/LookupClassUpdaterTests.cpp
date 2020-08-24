@@ -164,7 +164,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
         // entries we add a Mac entry in sequence. And since Mac
         // entries round robin over the same sequence of classIDs
         // the paired MAC entry gets a identical classID.
-        this->verifyMacClassIDHelper(
+        verifyMacClassIDHelper(
             entry->getMac(), classID, MacEntryType::STATIC_ENTRY);
       }
     };
@@ -210,15 +210,16 @@ class LookupClassUpdaterTest : public ::testing::Test {
     }
   }
 
+  auto getMacEntry(folly::MacAddress mac) const {
+    auto vlan = sw_->getState()->getVlans()->getVlanIf(this->kVlan());
+    return vlan->getMacTable()->getNodeIf(mac);
+  }
+
   void verifyMacClassIDHelper(
       const folly::MacAddress& macAddress,
       std::optional<cfg::AclLookupClass> classID,
       MacEntryType type) {
-    auto state = this->sw_->getState();
-    auto vlan = state->getVlans()->getVlanIf(this->kVlan()).get();
-    auto* macTable = vlan->getMacTable().get();
-
-    auto entry = macTable->getNode(macAddress);
+    auto entry = getMacEntry(macAddress);
     XLOG(DBG) << entry->str();
     EXPECT_EQ(entry->getClassID(), classID);
     EXPECT_EQ(entry->getType(), type);
@@ -341,6 +342,8 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
 
     } else {
       this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
+      // Mac entry should get pruned with neighbor entry
+      EXPECT_EQ(this->getMacEntry(this->kMacAddress()), nullptr);
     }
   });
 }

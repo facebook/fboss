@@ -37,7 +37,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   using StateUpdateFn = SwSwitch::StateUpdateFn;
 
   void SetUp() override {
-    handle_ = createTestHandle(testStateA());
+    handle_ = createTestHandle(testStateAWithPortsUp());
     sw_ = handle_->getSw();
   }
 
@@ -302,9 +302,39 @@ TYPED_TEST(
   this->verifyMacEntryDoesNotExist();
 }
 
+TYPED_TEST(StaticL2ForNeighorObserverTest, bringPortDownSingleNeighbor) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  this->bringPortDown(this->kPortID());
+  // Neighbor would get unreolved as a result of port down
+  // taking down MAC entryy with it
+  this->verifyMacEntryDoesNotExist();
+}
+
+TYPED_TEST(StaticL2ForNeighorObserverTest, bringPortDownMultiplsNeighbors) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  auto secondAddr =
+      this->getIpAddress().isV6() ? this->kIp4Addr() : this->kIp6Addr();
+  this->resolve(secondAddr, this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  this->bringPortDown(this->kPortID());
+  // All neighbor would get unreolved as a result of port down
+  // taking down MAC entryy with it
+  this->verifyMacEntryDoesNotExist();
+}
+
 TYPED_TEST(StaticL2ForNeighorObserverTest, learnMacPostNeighborResolution) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolveMac(this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+}
+
+TYPED_TEST(StaticL2ForNeighorObserverTest, unrelatedPortDown) {
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  this->bringPortDown(this->kPortID2());
+  // MAC entryy is unaffected, since the port down above did
+  // not take away any neighbors
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }
 
@@ -329,6 +359,7 @@ TYPED_TEST(StaticL2ForNeighorObserverTest, macMovePostNeighborResolution) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
   this->resolveMac(this->kMacAddress(), this->kPortID2());
+  // Neighbor entry port ID trumps MAC learning event
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY, this->kPortID());
 }
 } // namespace facebook::fboss
