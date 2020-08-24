@@ -123,11 +123,13 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
     }
   }
 
-  void resolveMac(MacAddress macAddress) {
+  void resolveMac(
+      MacAddress macAddress,
+      std::optional<PortID> port = std::nullopt) {
     auto l2Entry = L2Entry(
         macAddress,
         this->kVlan(),
-        PortDescriptor(this->kPortID()),
+        PortDescriptor(port ? port.value() : this->kPortID()),
         L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
 
     this->sw_->l2LearningUpdateReceived(
@@ -184,12 +186,17 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   }
 
  protected:
-  void verifyMacEntryExists(MacEntryType type) const {
+  void verifyMacEntryExists(
+      MacEntryType type,
+      std::optional<PortID> port = std::nullopt) const {
     waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);
     auto macEntry = getMacEntry();
     ASSERT_NE(macEntry, nullptr);
     EXPECT_EQ(macEntry->getType(), type);
+    if (port) {
+      EXPECT_EQ(macEntry->getPort(), port);
+    }
   }
   void verifyMacEntryDoesNotExist() const {
     waitForBackgroundThread(sw_);
@@ -309,5 +316,19 @@ TYPED_TEST(StaticL2ForNeighorObserverTest, ageMacWhileNeighborResolved) {
   // MAC entry still exists due to the fact that a neigbor still
   // refers to it.
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+}
+
+TYPED_TEST(StaticL2ForNeighorObserverTest, macMovePostNeighborResolution) {
+  // Since we create static entries for resolved neighbor, from there on
+  // the mac entry is owned by the neighbor. So in the event MAC moves
+  // to a different port make sure that we still defer to the neighbor
+  // entry's port information. In practice, when a MAC moves a neighbor
+  // resolution over the new port will follow soon and get things
+  // to converge
+  this->resolveMac(this->kMacAddress());
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
+  this->resolveMac(this->kMacAddress(), this->kPortID2());
+  this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY, this->kPortID());
 }
 } // namespace facebook::fboss
