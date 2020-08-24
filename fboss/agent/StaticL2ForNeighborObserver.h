@@ -17,7 +17,6 @@
 namespace facebook::fboss {
 class SwitchState;
 class StateDelta;
-class MacEntry;
 
 class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
  public:
@@ -28,49 +27,6 @@ class StaticL2ForNeighborObserver : public AutoRegisterStateObserver {
   void stateUpdated(const StateDelta& stateDelta) override;
 
  private:
-  void processAdded(
-      const std::shared_ptr<SwitchState>& switchState,
-      VlanID vlan,
-      const std::shared_ptr<MacEntry>& macEntry);
-  void processRemoved(
-      const std::shared_ptr<SwitchState>& switchState,
-      VlanID vlan,
-      const std::shared_ptr<MacEntry>& macEntry);
-  void processChanged(
-      const StateDelta& stateDelta,
-      VlanID vlan,
-      const std::shared_ptr<MacEntry>& oldEntry,
-      const std::shared_ptr<MacEntry>& newEntry);
-  template <typename NeighborEntryT>
-  void processAdded(
-      const std::shared_ptr<SwitchState>& switchState,
-      VlanID vlan,
-      const std::shared_ptr<NeighborEntryT>& addedEntry);
-  template <typename NeighborEntryT>
-  void processRemoved(
-      const std::shared_ptr<SwitchState>& switchState,
-      VlanID vlan,
-      const std::shared_ptr<NeighborEntryT>& removedEntry);
-  template <typename NeighborEntryT>
-  void processChanged(
-      const StateDelta& stateDelta,
-      VlanID vlan,
-      const std::shared_ptr<NeighborEntryT>& oldEntry,
-      const std::shared_ptr<NeighborEntryT>& newEntry);
-
-  auto getMacEntry(VlanID vlan, folly::MacAddress mac) const;
-  template <typename NeighborEntryT>
-  void ensureMacEntry(
-      VlanID vlan,
-      const std::shared_ptr<NeighborEntryT>& neighbor);
-
-  void ensureMacEntryIfNeighborExists(
-      VlanID vlan,
-      const std::shared_ptr<MacEntry>& macEntry);
-
-  template <typename NeighborEntryT>
-  void assertNeighborEntry(const NeighborEntryT& neighbor);
-  friend class VlanTableDeltaCallbackGenerator;
   SwSwitch* sw_;
 };
 } // namespace facebook::fboss
