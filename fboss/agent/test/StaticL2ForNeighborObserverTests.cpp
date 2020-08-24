@@ -311,7 +311,7 @@ TYPED_TEST(StaticL2ForNeighorObserverTest, bringPortDownSingleNeighbor) {
   this->verifyMacEntryDoesNotExist();
 }
 
-TYPED_TEST(StaticL2ForNeighorObserverTest, bringPortDownMultiplsNeighbors) {
+TYPED_TEST(StaticL2ForNeighorObserverTest, bringPortDownMultipleNeighbors) {
   this->resolve(this->getIpAddress(), this->kMacAddress());
   auto secondAddr =
       this->getIpAddress().isV6() ? this->kIp4Addr() : this->kIp6Addr();

@@ -541,6 +541,20 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
   this->verifyStateUpdate([=]() { this->verifySameMacDifferentIpsHelper(); });
 }
 
+TYPED_TEST(LookupClassUpdaterNeighborTest, staticL2EntriesForResolvedNeighbor) {
+  this->resolveMac(this->kMacAddress());
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::DYNAMIC_ENTRY);
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  // Mac entry should transform to STATIC post neighbor resolution
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::STATIC_ENTRY);
+}
+
 template <typename AddrT>
 class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
  public:
