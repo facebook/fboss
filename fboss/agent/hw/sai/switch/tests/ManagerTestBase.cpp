@@ -143,6 +143,13 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setAdminState(cfg::PortState::ENABLED);
   }
   swPort->setSpeed(testPort.portSpeed);
+  // Ports are assigned in starting a (vlan/interfaceId * 10 + portIdx),
+  // so compute the vlanID based on that.
+  VlanID vlan(testPort.id / 10);
+  swPort->setIngressVlan(vlan);
+  PortFields::VlanMembership vlanMemberShip{
+      {vlan, PortFields::VlanInfo{false}}};
+  swPort->setVlans(vlanMemberShip);
   switch (testPort.portSpeed) {
     case cfg::PortSpeed::DEFAULT:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
