@@ -327,8 +327,14 @@ void WedgeManager::updateTransceiverMap() {
                  << static_cast<int>(futInterfaces[idx].value())
                  << " at idx " << idx;
 
-      if (!qsfpImpls[idx]->detectTransceiver()) {
-        XLOG(DBG3) << "Transceiver is not present at idx " << idx;
+      try {
+        if (!qsfpImpls[idx]->detectTransceiver()) {
+          XLOG(DBG3) << "Transceiver is not present at idx " << idx;
+          continue;
+        }
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "failed to detect transceiver at idx "
+                  << idx << ": " << ex.what();
         continue;
       }
       // There are times when a module cannot be read however it's present.
@@ -345,7 +351,13 @@ void WedgeManager::updateTransceiverMap() {
                    << idx << " Try reset.";
         // This api accept 1 based module id however the module id in WedgeManager
         // is 0 based.
-        qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+        try {
+          qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << "failed to triggerQsfpHardReset at idx "
+                    << idx << ": " << ex.what();
+          continue;
+        }
       } else {
         XLOG(ERR) << "Unknown interface of transceiver with ports up at " << idx;
       }
