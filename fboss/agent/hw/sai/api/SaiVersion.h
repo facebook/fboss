@@ -10,13 +10,15 @@
 
 #pragma once
 
+#define SAI_VERSION(major, minor, micro) \
+  (100000 * (major) + 1000 * (minor) + (micro))
+
+#if !defined(SAI_API_VERSION)
 #if (!defined(SAI_VER_MAJOR)) || (!defined(SAI_VER_MINOR)) || \
     (!defined(SAI_VER_RELEASE))
 #error "SAI version not defined"
 #endif
 
-#define SAI_VERSION(major, minor, micro) \
-  (100000 * (major) + 1000 * (minor) + (micro))
-
 #define SAI_API_VERSION \
   SAI_VERSION(SAI_VER_MAJOR, SAI_VER_MINOR, SAI_VER_RELEASE)
+#endif
