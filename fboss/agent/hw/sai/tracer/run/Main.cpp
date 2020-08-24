@@ -20,11 +20,11 @@ extern "C" {
 namespace {
 
 static std::unordered_map<std::string, std::string> kSaiProfileValues{
-    {"SAI_BOOT_TYPE", "0"},
-    {"SAI_INIT_CONFIG_FILE", "/dev/shm/fboss/hw_config"},
-    {"SAI_WARM_BOOT_WRITE_FILE",
+    {SAI_KEY_BOOT_TYPE, "0"},
+    {SAI_KEY_INIT_CONFIG_FILE, "/dev/shm/fboss/hw_config"},
+    {SAI_KEY_WARM_BOOT_WRITE_FILE,
      "/dev/shm/fboss/warm_boot/sai_replayer_adaptor_state_0"},
-    {"SAI_WARM_BOOT_READ_FILE",
+    {SAI_KEY_WARM_BOOT_READ_FILE,
      "/dev/shm/fboss/warm_boot/sai_replayer_adaptor_state_0"}};
 
 const char* saiProfileGetValue(
