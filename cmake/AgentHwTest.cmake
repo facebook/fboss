@@ -70,6 +70,15 @@ target_link_libraries(load_balancer_utils
   Folly::folly
 )
 
+add_library(static_l2_for_neighbor
+  fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.cpp
+)
+
+target_link_libraries(static_l2_for_neighbor
+  hw_switch_ensemble
+  core
+)
+
 add_library(traffic_policy_utils
   fboss/agent/hw/test/TrafficPolicyUtils.cpp
 )
