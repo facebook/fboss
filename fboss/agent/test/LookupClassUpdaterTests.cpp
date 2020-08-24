@@ -154,14 +154,24 @@ class LookupClassUpdaterTest : public ::testing::Test {
     auto vlan = state->getVlans()->getVlan(kVlan());
     auto neighborTable = vlan->template getNeighborTable<NeighborTableT>();
 
+    auto verifyNeighbor = [this, classID, neighborTable](auto ipAddr) {
+      auto entry = neighborTable->getEntry(ipAddr);
+      XLOG(DBG) << entry->str();
+      EXPECT_EQ(entry->getClassID(), classID);
+      if (entry->isReachable()) {
+        // We assume here that class ID of mac matches that of
+        // neighbor. That's true for our tests, since for neighbor
+        // entries we add a Mac entry in sequence. And since Mac
+        // entries round robin over the same sequence of classIDs
+        // the paired MAC entry gets a identical classID.
+        this->verifyMacClassIDHelper(
+            entry->getMac(), classID, MacEntryType::STATIC_ENTRY);
+      }
+    };
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      auto entry = neighborTable->getEntry(ipAddress.asV4());
-      XLOG(DBG) << entry->str();
-      EXPECT_EQ(entry->getClassID(), classID);
+      verifyNeighbor(ipAddress.asV4());
     } else {
-      auto entry = neighborTable->getEntry(ipAddress.asV6());
-      XLOG(DBG) << entry->str();
-      EXPECT_EQ(entry->getClassID(), classID);
+      verifyNeighbor(ipAddress.asV6());
     }
   }
 
@@ -193,7 +203,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
       const folly::MacAddress& macAddress,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-      verifyMacClassIDHelper(macAddress, classID);
+      // Learned Mac entries always get added as dynamic entries
+      verifyMacClassIDHelper(macAddress, classID, MacEntryType::DYNAMIC_ENTRY);
     } else {
       this->verifyNeighborClassIDHelper(ipAddress, classID);
     }
@@ -201,7 +212,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   void verifyMacClassIDHelper(
       const folly::MacAddress& macAddress,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+      std::optional<cfg::AclLookupClass> classID,
+      MacEntryType type) {
     auto state = this->sw_->getState();
     auto vlan = state->getVlans()->getVlanIf(this->kVlan()).get();
     auto* macTable = vlan->getMacTable().get();
@@ -209,6 +221,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     auto entry = macTable->getNode(macAddress);
     XLOG(DBG) << entry->str();
     EXPECT_EQ(entry->getClassID(), classID);
+    EXPECT_EQ(entry->getType(), type);
   }
 
   IPAddress getIpAddress() {
@@ -323,7 +336,8 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
     if constexpr (std::is_same_v<TypeParam, folly::MacAddress>) {
       this->verifyMacClassIDHelper(
           this->kMacAddress(),
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+          MacEntryType::DYNAMIC_ENTRY);
 
     } else {
       this->verifyClassIDHelper(this->getIpAddress(), this->kMacAddress());
@@ -348,9 +362,7 @@ TYPED_TEST(LookupClassUpdaterTest, LookupClassesChange) {
 }
 
 TYPED_TEST(LookupClassUpdaterTest, MacMove) {
-  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
-    return;
-  } else if constexpr (std::is_same<TypeParam, folly::IPAddressV6>::value) {
+  if constexpr (!std::is_same_v<TypeParam, folly::MacAddress>) {
     return;
   }
 
@@ -389,6 +401,10 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 
   EXPECT_NE(node, nullptr);
   EXPECT_EQ(node->getPort(), PortDescriptor(this->kPortID2()));
+  this->verifyMacClassIDHelper(
+      this->kMacAddress(),
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      MacEntryType::DYNAMIC_ENTRY);
 }
 
 /*
@@ -397,12 +413,9 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
  * that occur in quick succession and makes sure that class ID is not lost.
  */
 TYPED_TEST(LookupClassUpdaterTest, MacAgeAndRelearned) {
-  if constexpr (std::is_same<TypeParam, folly::IPAddressV4>::value) {
-    return;
-  } else if constexpr (std::is_same<TypeParam, folly::IPAddressV6>::value) {
+  if constexpr (!std::is_same_v<TypeParam, folly::MacAddress>) {
     return;
   }
-
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->updateLookupClasses(
       {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
@@ -432,10 +445,10 @@ TYPED_TEST(LookupClassUpdaterTest, MacAgeAndRelearned) {
   waitForStateUpdates(this->sw_);
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
-  this->verifyClassIDHelper(
-      this->getIpAddress(),
+  this->verifyMacClassIDHelper(
       this->kMacAddress(),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
+      MacEntryType::DYNAMIC_ENTRY);
 }
 
 /*
@@ -512,6 +525,12 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
             this->kVlan(),
             cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
         2);
+    // Assert that MAC entry still retains class ID and is of
+    // type static (since one neighbor is still resolved)
+    this->verifyMacClassIDHelper(
+        this->kMacAddress(),
+        cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+        MacEntryType::STATIC_ENTRY);
   });
 
   // Resolve the IP with same MAC, gets same classID as other IP with same MAC
