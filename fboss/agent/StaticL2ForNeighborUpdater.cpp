@@ -29,14 +29,6 @@ void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
 }
 
-std::shared_ptr<MacEntry> StaticL2ForNeighborUpdater::getMacEntry(
-    VlanID vlanId,
-    folly::MacAddress mac,
-    const std::shared_ptr<SwitchState>& state) const {
-  auto vlan = state->getVlans()->getVlan(vlanId);
-  return vlan->getMacTable()->getNodeIf(mac);
-}
-
 template <typename NeighborEntryT>
 void StaticL2ForNeighborUpdater::assertNeighborEntry(
     const NeighborEntryT& /*neighbor*/) {

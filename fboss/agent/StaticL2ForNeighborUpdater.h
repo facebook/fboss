@@ -61,10 +61,6 @@ class StaticL2ForNeighborUpdater {
       const std::shared_ptr<NeighborEntryT>& newEntry);
 
  private:
-  std::shared_ptr<MacEntry> getMacEntry(
-      VlanID vlan,
-      folly::MacAddress mac,
-      const std::shared_ptr<SwitchState>& state) const;
   virtual void ensureMacEntryForNeighbor(
       VlanID vlan,
       const std::shared_ptr<ArpEntry>& neighbor) = 0;

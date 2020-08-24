@@ -521,6 +521,8 @@ if (NOT SAI_ONLY)
       fboss/agent/RouteUpdateLogger.cpp
       fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
       fboss/agent/StaticL2ForNeighborObserver.cpp
+      fboss/agent/StaticL2ForNeighborUpdater.cpp
+      fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
       fboss/agent/state/AclEntry.cpp
       fboss/agent/state/AclMap.cpp
       fboss/agent/state/AggregatePort.cpp
