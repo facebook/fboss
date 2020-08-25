@@ -65,4 +65,40 @@ SAI_ATTRIBUTE_NAME(DebugCounter, Type)
 SAI_ATTRIBUTE_NAME(DebugCounter, BindMethod)
 SAI_ATTRIBUTE_NAME(DebugCounter, InDropReasons)
 SAI_ATTRIBUTE_NAME(DebugCounter, OutDropReasons)
+
+class DebugCounterApi : public SaiApi<DebugCounterApi> {
+ public:
+  static constexpr sai_api_t ApiType = SAI_API_DEBUG_COUNTER;
+  DebugCounterApi() {
+    sai_status_t status =
+        sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
+    saiApiCheckError(status, ApiType, "Failed to query for debug counter api");
+  }
+  sai_status_t _create(
+      DebugCounterSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) {
+    return api_->create_debug_counter(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(DebugCounterSaiId id) {
+    return api_->remove_debug_counter(id);
+  }
+
+  sai_status_t _getAttribute(DebugCounterSaiId id, sai_attribute_t* attr)
+      const {
+    return api_->get_debug_counter_attribute(id, 1, attr);
+  }
+
+  sai_status_t _setAttribute(
+      DebugCounterSaiId id,
+      const sai_attribute_t* attr) {
+    return api_->set_debug_counter_attribute(id, attr);
+  }
+
+  sai_debug_counter_api_t* api_;
+  friend class SaiApi<DebugCounterApi>;
+};
 } // namespace facebook::fboss
