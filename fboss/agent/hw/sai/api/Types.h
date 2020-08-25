@@ -22,6 +22,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, AclEntrySaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, AclCounterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgePortSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, DebugCounterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HashSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapSaiId);
