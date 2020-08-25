@@ -125,16 +125,23 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewState(
     return programmedState_;
   }
   newState->publish();
+  auto appliedState = newState;
   StateDelta delta(programmedState_, newState);
-  programmedState_ = getHwSwitch()->stateChanged(delta);
+  {
+    std::lock_guard<std::mutex> lk(updateStateMutex_);
+    programmedState_ = getHwSwitch()->stateChanged(delta);
+    programmedState_->publish();
+    // We are about to give up the lock, cache programmedState
+    // applied by this function invocation
+    appliedState = programmedState_;
+  }
   if (!allowPartialStateApplication_) {
     // Assert that our desired state was applied exactly
-    CHECK_EQ(newState, programmedState_);
+    CHECK_EQ(newState, appliedState);
   }
-  programmedState_->publish();
   StaticL2ForNeighborHwSwitchUpdater updater(this);
-  updater.stateUpdated(delta);
-  return programmedState_;
+  updater.stateUpdated(StateDelta(delta.oldState(), appliedState));
+  return appliedState;
 }
 
 void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {

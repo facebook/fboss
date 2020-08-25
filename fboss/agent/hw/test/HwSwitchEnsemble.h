@@ -166,6 +166,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   std::unique_ptr<std::thread> thriftThread_;
   bool allowPartialStateApplication_{false};
   std::unique_ptr<folly::FunctionScheduler> fs_;
+  // Test and observer threads can both apply state
+  // updadtes. So protect with a mutex
+  std::mutex updateStateMutex_;
 };
 
 } // namespace facebook::fboss
