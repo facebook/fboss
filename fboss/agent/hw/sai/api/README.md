@@ -380,7 +380,7 @@ provide:
 * `AdapterHostKey`: The key type used by the sai adapter host when
                     programming the object. The requirements on this type are
                     driven by the implementation of SaiStore (for full details,
-                    see fboss/agent/hw/sai/store/README.md). At a high level,
+                    see [fboss/agent/hw/sai/store/README.md](/fboss/agent/hw/sai/store/README.md)). At a high level,
                     AdapterHostKey must be immutable, uniquely identify the SAI
                     object, and be computable from a combination of the
                     AdapterKey and CreateAttributes of the SaiObject. Most
