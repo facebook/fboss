@@ -793,6 +793,17 @@ class SaiExtensionAttribute {
   ValueType value_{};
 };
 
+template <typename T>
+struct IsSaiExtensionAttribute<SaiExtensionAttribute<T>, void>
+    : std::true_type {};
+
+template <typename T>
+struct IsSaiExtensionAttribute<
+    T,
+    std::enable_if_t<std::is_base_of_v<
+        SaiExtensionAttribute<typename T::ValueType, typename T::AttributeId>,
+        T>>> : std::true_type {};
+
 // implement trait that detects SaiAttribute
 template <
     typename AttrEnumT,
