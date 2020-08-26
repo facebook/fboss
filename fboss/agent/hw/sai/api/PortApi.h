@@ -168,22 +168,6 @@ SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
 
-struct AttributeRxCtleCode {
-  std::optional<sai_attr_id_t> operator()();
-};
-
-struct AttributeRxDspMode {
-  std::optional<sai_attr_id_t> operator()();
-};
-
-struct AttributeRxAfeTrim {
-  std::optional<sai_attr_id_t> operator()();
-};
-
-struct AttributeRxAcCouplingBypass {
-  std::optional<sai_attr_id_t> operator()();
-};
-
 struct SaiPortSerdesTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_PORT_SERDES;
   using SaiApiT = PortApi;
@@ -219,6 +203,23 @@ struct SaiPortSerdesTraits {
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
         std::vector<sai_uint32_t>>;
+
+    /* extension attributes */
+    struct AttributeRxCtleCode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxDspMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxAfeTrim {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxAcCouplingBypass {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct RxCtleCode : public SaiExtensionAttribute<
                             std::vector<sai_int32_t>,
                             AttributeRxCtleCode> {

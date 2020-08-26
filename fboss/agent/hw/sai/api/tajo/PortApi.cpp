@@ -10,16 +10,20 @@ extern "C" {
 
 namespace facebook::fboss {
 
-std::optional<sai_attr_id_t> AttributeRxCtleCode::operator()() {
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxCtleCode::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_CTLE_CODE;
 }
-std::optional<sai_attr_id_t> AttributeRxDspMode::operator()() {
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxDspMode::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_DSP_MODE;
 }
-std::optional<sai_attr_id_t> AttributeRxAfeTrim::operator()() {
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxAfeTrim::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_AFE_TRIM;
 }
-std::optional<sai_attr_id_t> AttributeRxAcCouplingBypass::operator()() {
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxAcCouplingBypass::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_AC_COUPLING_BYPASS;
 }
 } // namespace facebook::fboss
