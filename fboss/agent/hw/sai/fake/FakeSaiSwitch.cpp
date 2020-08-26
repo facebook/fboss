@@ -237,6 +237,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
         attr[i].value.booldata = sw.getEcnEctThresholdEnable();
         break;
+      case SAI_SWITCH_ATTR_EXT_FAKE_LED:
+      case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
+        // TODO: implement this
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

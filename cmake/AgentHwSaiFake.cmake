@@ -32,6 +32,7 @@ target_link_libraries(fake_sai
   sai_api
   address_util
   sai_version
+  sai_fake_extensions
   Folly::folly
 )
 

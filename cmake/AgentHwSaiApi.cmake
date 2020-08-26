@@ -27,6 +27,12 @@ add_library(sai_version
 
 set_target_properties(sai_version PROPERTIES LINKER_LANGUAGE CXX)
 
+add_library(sai_fake_extensions
+  fboss/agent/hw/sai/api/fake/saifakeextensions.h
+)
+
+set_target_properties(sai_fake_extensions PROPERTIES LINKER_LANGUAGE C)
+
 set(SAI_API_SRC
   fboss/agent/hw/sai/api/DebugCounterApi.cpp
   fboss/agent/hw/sai/api/FdbApi.cpp
@@ -34,13 +40,11 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/MplsApi.cpp
   fboss/agent/hw/sai/api/NeighborApi.cpp
   fboss/agent/hw/sai/api/NextHopGroupApi.cpp
-  fboss/agent/hw/sai/api/oss/PortApi.cpp
   fboss/agent/hw/sai/api/QosMapApi.cpp
   fboss/agent/hw/sai/api/RouteApi.cpp
   fboss/agent/hw/sai/api/SaiApiLock.cpp
   fboss/agent/hw/sai/api/SaiApiTable.cpp
   fboss/agent/hw/sai/api/SwitchApi.cpp
-  fboss/agent/hw/sai/api/oss/SwitchApi.cpp
   fboss/agent/hw/sai/api/AclApi.h
   fboss/agent/hw/sai/api/BridgeApi.h
   fboss/agent/hw/sai/api/FdbApi.h
@@ -65,6 +69,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/Types.h
   fboss/agent/hw/sai/api/VirtualRouterApi.h
   fboss/agent/hw/sai/api/VlanApi.h
+  fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
 )
 
 set(SAI_API_DEPS
