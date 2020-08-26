@@ -120,6 +120,9 @@ class FakeSwitch {
   }
   sai_object_id_t id;
 
+  sai_status_t setLed(const sai_attribute_t* attr);
+  sai_status_t getLed(sai_attribute_t* attr) const;
+
  private:
   folly::MacAddress srcMac_;
   bool inited_{false};
