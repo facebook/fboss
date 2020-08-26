@@ -358,4 +358,8 @@ struct ConditionObjectTraits {
 
 template <typename ObjectTraits>
 struct GetObjectKeySupported : std::true_type {};
+
+template <typename T>
+struct IsSaiExtensionAttribute : std::false_type {};
+
 } // namespace facebook::fboss

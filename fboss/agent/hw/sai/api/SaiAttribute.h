@@ -664,6 +664,135 @@ class SaiAttribute<
   ValueType value_{};
 };
 
+template <typename T>
+struct SaiExtensionAttributeId {
+  std::optional<sai_attr_id_t> operator()() {
+    static_assert(
+        sizeof(T) == -1,
+        "In order to define extension attribute, you must also define an attribute id policy");
+    return std::nullopt;
+  }
+};
+
+template <
+    typename T,
+    typename SaiExtensionAttributeId = SaiExtensionAttributeId<T>>
+class SaiExtensionAttribute {
+ public:
+  using DataType = std::conditional_t<
+      IsSaiTypeWrapper<T>::value,
+      typename WrappedSaiType<T>::value,
+      T>;
+  using ValueType = T;
+  static constexpr bool HasDefaultGetter = false;
+  using AttributeId = SaiExtensionAttributeId;
+  using ExtractSelectionType = T;
+
+  SaiExtensionAttribute() {
+    saiAttr_.id = kExtensionAttributeId();
+  }
+
+  SaiExtensionAttribute(const SaiExtensionAttribute& other)
+      : SaiExtensionAttribute() {
+    *this = other;
+  }
+
+  SaiExtensionAttribute(SaiExtensionAttribute&& other)
+      : SaiExtensionAttribute() {
+    *this = std::move(other);
+  }
+
+  SaiExtensionAttribute& operator=(const SaiExtensionAttribute& other) {
+    CHECK_EQ(other.id(), kExtensionAttributeId());
+    saiAttr_.id = other.id();
+    setValue(other.value());
+    return *this;
+  }
+
+  SaiExtensionAttribute& operator=(SaiExtensionAttribute&& other) {
+    CHECK_EQ(other.id(), kExtensionAttributeId());
+    saiAttr_ = std::move(other.saiAttr_);
+    value_ = std::move(other.value_);
+    return *this;
+  }
+
+  bool operator==(const SaiExtensionAttribute& other) const {
+    return id() == other.id() && other.value() == value();
+  }
+
+  bool operator!=(const SaiExtensionAttribute& other) const {
+    return !(*this == other);
+  }
+
+  /* implicit */ SaiExtensionAttribute(const ValueType& value)
+      : SaiExtensionAttribute() {
+    saiAttr_.id = kExtensionAttributeId();
+    setValue(value);
+  }
+
+  /* implicit */ SaiExtensionAttribute(ValueType&& value)
+      : SaiExtensionAttribute() {
+    saiAttr_.id = kExtensionAttributeId();
+    setValue(std::move(value));
+  }
+
+  const ValueType& value() {
+    _fill(data(), value_);
+    return value_;
+  }
+
+  ValueType value() const {
+    ValueType v;
+    _fill(data(), v);
+    return v;
+  }
+
+  void realloc() {
+    _realloc(data(), value_);
+    _fill(value_, data());
+  }
+
+  sai_attribute_t* saiAttr() {
+    return &saiAttr_;
+  }
+
+  const sai_attribute_t* saiAttr() const {
+    return &saiAttr_;
+  }
+
+  sai_attr_id_t id() const {
+    return saiAttr_.id;
+  }
+
+ private:
+  void setValue(const ValueType& value) {
+    value_ = value;
+    _fill(value_, data());
+  }
+
+  void setValue(ValueType&& value) {
+    value_ = std::move(value);
+    _fill(value_, data());
+  }
+
+  DataType& data() {
+    return _extract<SaiExtensionAttribute>(saiAttr_);
+  }
+
+  const DataType& data() const {
+    return _extract<SaiExtensionAttribute>(saiAttr_);
+  }
+
+  static sai_attr_id_t kExtensionAttributeId() {
+    auto id = SaiExtensionAttributeId()();
+    CHECK(id.has_value()) << " unknown id";
+    return id.value();
+  }
+
+  sai_attribute_t saiAttr_{};
+  ValueType value_{};
+};
+
 // implement trait that detects SaiAttribute
 template <
     typename AttrEnumT,
@@ -673,6 +802,9 @@ template <
 struct IsSaiAttribute<
     SaiAttribute<AttrEnumT, AttrEnum, DataT, DefaultGetterT, void>>
     : public std::true_type {};
+
+template <typename T>
+struct IsSaiAttribute<SaiExtensionAttribute<T>> : public std::true_type {};
 
 template <typename AttrT>
 struct AttributeName {
