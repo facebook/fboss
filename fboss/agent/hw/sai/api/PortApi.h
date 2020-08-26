@@ -264,18 +264,6 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxAfeTrim>,
       std::optional<Attributes::RxAcCouplingByPass>>;
 };
-template <>
-struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxCtleCode>
-    : public std::true_type {};
-template <>
-struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxDspMode>
-    : public std::true_type {};
-template <>
-struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxAfeTrim>
-    : public std::true_type {};
-template <>
-struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass>
-    : public std::true_type {};
 } // namespace facebook::fboss
 
 // TODO: find out better way to do this.

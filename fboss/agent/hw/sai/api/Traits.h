@@ -269,7 +269,7 @@ template <typename T>
 struct IsDuplicateSaiType
     : std::negation<std::is_same<typename DuplicateTypeFixer<T>::value, T>> {};
 
-template <typename T>
+template <typename T, typename = void>
 struct IsSaiAttribute : public std::false_type {};
 
 template <typename AttrT>

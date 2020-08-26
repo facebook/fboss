@@ -817,6 +817,10 @@ struct IsSaiAttribute<
 template <typename T>
 struct IsSaiAttribute<SaiExtensionAttribute<T>> : public std::true_type {};
 
+template <typename T>
+struct IsSaiAttribute<T, std::enable_if_t<IsSaiExtensionAttribute<T>::value>>
+    : std::true_type {};
+
 template <typename AttrT>
 struct AttributeName {
   // N.B., we can't just use static_assert(false, msg) because the
