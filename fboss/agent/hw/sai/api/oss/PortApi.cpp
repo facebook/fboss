@@ -5,19 +5,20 @@
 namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxCtleCode::operator()() {
+SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
   return std::nullopt;
 }
 std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxDspMode::operator()() {
+SaiPortSerdesTraits::Attributes::AttributeRxDspModeIdWrapper::operator()() {
   return std::nullopt;
 }
 std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxAfeTrim::operator()() {
+SaiPortSerdesTraits::Attributes::AttributeRxAfeTrimIdWrapper::operator()() {
   return std::nullopt;
 }
 std::optional<sai_attr_id_t>
-SaiPortSerdesTraits::Attributes::AttributeRxAcCouplingBypass::operator()() {
+SaiPortSerdesTraits::Attributes::AttributeRxAcCouplingBypassIdWrapper::
+operator()() {
   return std::nullopt;
 }
 } // namespace facebook::fboss

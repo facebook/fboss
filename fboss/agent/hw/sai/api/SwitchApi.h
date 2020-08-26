@@ -145,25 +145,17 @@ struct SaiSwitchTraits {
     using EcnEctThresholdEnable =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE, bool>;
     /* extension attributes */
-    struct AttributeLed {
+    struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    struct AttributeLedReset {
+    struct AttributeLedResetIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    struct Led : public SaiExtensionAttribute<
-                     std::vector<sai_uint32_t>,
-                     AttributeLed> {
-      using SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeLed>::
-          SaiExtensionAttribute;
-    };
-    struct LedReset : public SaiExtensionAttribute<
-                          std::vector<sai_uint32_t>,
-                          AttributeLedReset> {
-      using SaiExtensionAttribute<
-          std::vector<sai_uint32_t>,
-          AttributeLedReset>::SaiExtensionAttribute;
-    };
+    using Led =
+        SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeLedIdWrapper>;
+    using LedReset = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeLedResetIdWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

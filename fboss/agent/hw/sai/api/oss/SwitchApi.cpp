@@ -4,12 +4,12 @@
 
 namespace facebook::fboss {
 
-std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::AttributeLed::
-operator()() {
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeLedIdWrapper::operator()() {
   return std::nullopt;
 }
-std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::AttributeLedReset::
-operator()() {
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeLedResetIdWrapper::operator()() {
   return std::nullopt;
 }
 

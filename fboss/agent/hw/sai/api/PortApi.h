@@ -205,49 +205,33 @@ struct SaiPortSerdesTraits {
         std::vector<sai_uint32_t>>;
 
     /* extension attributes */
-    struct AttributeRxCtleCode {
+    struct AttributeRxCtleCodeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
 
-    struct AttributeRxDspMode {
+    struct AttributeRxDspModeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
 
-    struct AttributeRxAfeTrim {
+    struct AttributeRxAfeTrimIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
 
-    struct AttributeRxAcCouplingBypass {
+    struct AttributeRxAcCouplingBypassIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    struct RxCtleCode : public SaiExtensionAttribute<
-                            std::vector<sai_int32_t>,
-                            AttributeRxCtleCode> {
-      using SaiExtensionAttribute<
-          std::vector<sai_int32_t>,
-          AttributeRxCtleCode>::SaiExtensionAttribute;
-    };
-    struct RxDspMode : public SaiExtensionAttribute<
-                           std::vector<sai_int32_t>,
-                           AttributeRxDspMode> {
-      using SaiExtensionAttribute<
-          std::vector<sai_int32_t>,
-          AttributeRxDspMode>::SaiExtensionAttribute;
-    };
-    struct RxAfeTrim : public SaiExtensionAttribute<
-                           std::vector<sai_int32_t>,
-                           AttributeRxAfeTrim> {
-      using SaiExtensionAttribute<
-          std::vector<sai_int32_t>,
-          AttributeRxAfeTrim>::SaiExtensionAttribute;
-    };
-    struct RxAcCouplingByPass : public SaiExtensionAttribute<
-                                    std::vector<sai_int32_t>,
-                                    AttributeRxAcCouplingBypass> {
-      using SaiExtensionAttribute<
-          std::vector<sai_int32_t>,
-          AttributeRxAcCouplingBypass>::SaiExtensionAttribute;
-    };
+    using RxCtleCode = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCtleCodeIdWrapper>;
+    using RxDspMode = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxDspModeIdWrapper>;
+    using RxAfeTrim = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxAfeTrimIdWrapper>;
+    using RxAcCouplingByPass = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxAcCouplingBypassIdWrapper>;
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;

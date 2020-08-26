@@ -9,12 +9,12 @@ extern "C" {
 }
 
 namespace facebook::fboss {
-std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::AttributeLed::
-operator()() {
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeLedIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_LED;
 }
-std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::AttributeLedReset::
-operator()() {
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeLedResetIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_LED_PROCESSOR_RESET;
 }
 
