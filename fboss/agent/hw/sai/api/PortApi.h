@@ -264,77 +264,7 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxAfeTrim>,
       std::optional<Attributes::RxAcCouplingByPass>>;
 };
-} // namespace facebook::fboss
 
-// TODO: find out better way to do this.
-namespace fmt {
-template <>
-struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxCtleCode> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(
-      const facebook::fboss::SaiPortSerdesTraits::Attributes::
-          RxCtleCode& /*attr*/,
-      FormatContext& ctx) {
-    return format_to(ctx.out(), "RxCtleCode");
-  }
-};
-
-template <>
-struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxDspMode> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(
-      const facebook::fboss::SaiPortSerdesTraits::Attributes::
-          RxDspMode& /*attr*/,
-      FormatContext& ctx) {
-    return format_to(ctx.out(), "RxDspMode");
-  }
-};
-
-template <>
-struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxAfeTrim> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(
-      const facebook::fboss::SaiPortSerdesTraits::Attributes::
-          RxAfeTrim& /*attr*/,
-      FormatContext& ctx) {
-    return format_to(ctx.out(), "RxAfeTrim");
-  }
-};
-
-template <>
-struct formatter<
-    facebook::fboss::SaiPortSerdesTraits::Attributes::RxAcCouplingByPass> {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext& ctx) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(
-      const facebook::fboss::SaiPortSerdesTraits::Attributes::
-          RxAcCouplingByPass& /*attr*/,
-      FormatContext& ctx) {
-    return format_to(ctx.out(), "RxAfeTrim");
-  }
-};
-} // namespace fmt
-
-namespace facebook::fboss {
 template <>
 struct GetObjectKeySupported<SaiPortSerdesTraits> : std::false_type {};
 
