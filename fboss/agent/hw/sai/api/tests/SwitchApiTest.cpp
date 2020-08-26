@@ -313,3 +313,67 @@ TEST_F(SwitchApiTest, setEcnEctThresholdEnable) {
   EXPECT_FALSE(switchApi->getAttribute(
       switchId, SaiSwitchTraits::Attributes::EcnEctThresholdEnable{}));
 }
+
+TEST_F(SwitchApiTest, ExtensionAttributes) {
+  /* Toggle LED */
+  SaiSwitchTraits::Attributes::LedReset reset0{std::vector<sai_uint32_t>{0, 0}};
+  SaiSwitchTraits::Attributes::LedReset reset1{std::vector<sai_uint32_t>{1, 0}};
+  switchApi->setAttribute(switchId, reset0);
+  switchApi->setAttribute(switchId, reset1);
+
+  SaiSwitchTraits::Attributes::LedReset gotReset0 =
+      switchApi->getAttribute(switchId, reset0);
+  SaiSwitchTraits::Attributes::LedReset gotReset1 =
+      switchApi->getAttribute(switchId, reset1);
+  EXPECT_EQ(gotReset0, reset0);
+  EXPECT_EQ(gotReset1, reset1);
+
+  SaiSwitchTraits::Attributes::LedReset set0{std::vector<sai_uint32_t>{0, 1}};
+  SaiSwitchTraits::Attributes::LedReset set1{std::vector<sai_uint32_t>{1, 1}};
+  switchApi->setAttribute(switchId, set0);
+  switchApi->setAttribute(switchId, set1);
+
+  SaiSwitchTraits::Attributes::LedReset gotSet0 =
+      switchApi->getAttribute(switchId, set0);
+  SaiSwitchTraits::Attributes::LedReset gotSet1 =
+      switchApi->getAttribute(switchId, set1);
+  EXPECT_EQ(gotSet0, set0);
+  EXPECT_EQ(gotSet1, set1);
+
+  /* Program LED state */
+  SaiSwitchTraits::Attributes::Led ledPgm0{
+      std::vector<sai_uint32_t>{0, 1, 100, 0xab}};
+  SaiSwitchTraits::Attributes::Led ledPgm1{
+      std::vector<sai_uint32_t>{1, 1, 100, 0xcd}};
+  switchApi->setAttribute(switchId, ledPgm0);
+  switchApi->setAttribute(switchId, ledPgm1);
+
+  SaiSwitchTraits::Attributes::Led gotledPgm0 = switchApi->getAttribute(
+      switchId,
+      SaiSwitchTraits::Attributes::Led{
+          std::vector<sai_uint32_t>{0, 1, 100, 0}});
+  SaiSwitchTraits::Attributes::Led gotledPgm1 = switchApi->getAttribute(
+      switchId,
+      SaiSwitchTraits::Attributes::Led{
+          std::vector<sai_uint32_t>{1, 1, 100, 0}});
+  EXPECT_EQ(ledPgm0, gotledPgm0);
+  EXPECT_EQ(ledPgm1, gotledPgm1);
+
+  SaiSwitchTraits::Attributes::Led ledDt0{
+      std::vector<sai_uint32_t>{0, 0, 118, 0xabcd}};
+  SaiSwitchTraits::Attributes::Led ledDt1{
+      std::vector<sai_uint32_t>{1, 0, 118, 0xdcba}};
+  switchApi->setAttribute(switchId, ledDt0);
+  switchApi->setAttribute(switchId, ledDt1);
+
+  SaiSwitchTraits::Attributes::Led gotledDt0 = switchApi->getAttribute(
+      switchId,
+      SaiSwitchTraits::Attributes::Led{
+          std::vector<sai_uint32_t>{0, 0, 118, 0}});
+  SaiSwitchTraits::Attributes::Led gotledDt1 = switchApi->getAttribute(
+      switchId,
+      SaiSwitchTraits::Attributes::Led{
+          std::vector<sai_uint32_t>{1, 0, 118, 0}});
+  EXPECT_EQ(ledDt0, gotledDt0);
+  EXPECT_EQ(ledDt1, gotledDt1);
+}

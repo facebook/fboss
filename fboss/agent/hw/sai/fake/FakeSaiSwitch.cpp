@@ -101,6 +101,11 @@ sai_status_t facebook::fboss::FakeSwitch::getLed(sai_attribute_t* attr) const {
           return SAI_STATUS_INVALID_ATTR_VALUE_0;
         }
         attr->value.u32list.list[3] = ledState->second.program[offset];
+      } else {
+        auto index = attr->value.u32list.list[2];
+        auto dataIter = ledState->second.data.find(index);
+        attr->value.u32list.list[3] =
+            (dataIter != ledState->second.data.end()) ? dataIter->second : 0;
       }
     } break;
     case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET: {
