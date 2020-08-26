@@ -144,6 +144,26 @@ struct SaiSwitchTraits {
         sai_u32_range_t>;
     using EcnEctThresholdEnable =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE, bool>;
+    /* extension attributes */
+    struct AttributeLed {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeLedReset {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct Led : public SaiExtensionAttribute<
+                     std::vector<sai_uint32_t>,
+                     AttributeLed> {
+      using SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeLed>::
+          SaiExtensionAttribute;
+    };
+    struct LedReset : public SaiExtensionAttribute<
+                          std::vector<sai_uint32_t>,
+                          AttributeLedReset> {
+      using SaiExtensionAttribute<
+          std::vector<sai_uint32_t>,
+          AttributeLedReset>::SaiExtensionAttribute;
+    };
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -197,6 +217,9 @@ SAI_ATTRIBUTE_NAME(Switch, EcnEctThresholdEnable)
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
+
+SAI_ATTRIBUTE_NAME(Switch, Led)
+SAI_ATTRIBUTE_NAME(Switch, LedReset)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
