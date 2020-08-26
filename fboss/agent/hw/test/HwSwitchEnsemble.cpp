@@ -116,6 +116,15 @@ HwSwitch* HwSwitchEnsemble::getHwSwitch() {
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
   CHECK(programmedState_->isPublished());
+  /*
+   * Acquire mutex to guard against picking up a stale programmed
+   * state. A state update maybe in progress. A common pattern in
+   * tests is to get the current programmedState, make changes to
+   * it and then call applyNewState. If a state update is in
+   * progress when you query programmedState_, you risk undoing
+   * the changes of ongoing state update.
+   */
+  std::lock_guard<std::mutex> lk(updateStateMutex_);
   return programmedState_;
 }
 
