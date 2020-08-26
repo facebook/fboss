@@ -168,6 +168,22 @@ SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
 
+struct AttributeRxCtleCode {
+  std::optional<sai_attr_id_t> operator()();
+};
+
+struct AttributeRxDspMode {
+  std::optional<sai_attr_id_t> operator()();
+};
+
+struct AttributeRxAfeTrim {
+  std::optional<sai_attr_id_t> operator()();
+};
+
+struct AttributeRxAcCouplingBypass {
+  std::optional<sai_attr_id_t> operator()();
+};
+
 struct SaiPortSerdesTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_PORT_SERDES;
   using SaiApiT = PortApi;
@@ -203,6 +219,34 @@ struct SaiPortSerdesTraits {
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
         std::vector<sai_uint32_t>>;
+    struct RxCtleCode : public SaiExtensionAttribute<
+                            std::vector<sai_int32_t>,
+                            AttributeRxCtleCode> {
+      using SaiExtensionAttribute<
+          std::vector<sai_int32_t>,
+          AttributeRxCtleCode>::SaiExtensionAttribute;
+    };
+    struct RxDspMode : public SaiExtensionAttribute<
+                           std::vector<sai_int32_t>,
+                           AttributeRxDspMode> {
+      using SaiExtensionAttribute<
+          std::vector<sai_int32_t>,
+          AttributeRxDspMode>::SaiExtensionAttribute;
+    };
+    struct RxAfeTrim : public SaiExtensionAttribute<
+                           std::vector<sai_int32_t>,
+                           AttributeRxAfeTrim> {
+      using SaiExtensionAttribute<
+          std::vector<sai_int32_t>,
+          AttributeRxAfeTrim>::SaiExtensionAttribute;
+    };
+    struct RxAcCouplingByPass : public SaiExtensionAttribute<
+                                    std::vector<sai_int32_t>,
+                                    AttributeRxAcCouplingBypass> {
+      using SaiExtensionAttribute<
+          std::vector<sai_int32_t>,
+          AttributeRxAcCouplingBypass>::SaiExtensionAttribute;
+    };
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;
@@ -214,9 +258,95 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
       std::optional<Attributes::TxFirPost2>,
-      std::optional<Attributes::TxFirPost3>>;
+      std::optional<Attributes::TxFirPost3>,
+      std::optional<Attributes::RxCtleCode>,
+      std::optional<Attributes::RxDspMode>,
+      std::optional<Attributes::RxAfeTrim>,
+      std::optional<Attributes::RxAcCouplingByPass>>;
+};
+template <>
+struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxCtleCode>
+    : public std::true_type {};
+template <>
+struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxDspMode>
+    : public std::true_type {};
+template <>
+struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxAfeTrim>
+    : public std::true_type {};
+template <>
+struct IsSaiAttribute<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass>
+    : public std::true_type {};
+} // namespace facebook::fboss
+
+// TODO: find out better way to do this.
+namespace fmt {
+template <>
+struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxCtleCode> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiPortSerdesTraits::Attributes::
+          RxCtleCode& /*attr*/,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "RxCtleCode");
+  }
 };
 
+template <>
+struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxDspMode> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiPortSerdesTraits::Attributes::
+          RxDspMode& /*attr*/,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "RxDspMode");
+  }
+};
+
+template <>
+struct formatter<facebook::fboss::SaiPortSerdesTraits::Attributes::RxAfeTrim> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiPortSerdesTraits::Attributes::
+          RxAfeTrim& /*attr*/,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "RxAfeTrim");
+  }
+};
+
+template <>
+struct formatter<
+    facebook::fboss::SaiPortSerdesTraits::Attributes::RxAcCouplingByPass> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiPortSerdesTraits::Attributes::
+          RxAcCouplingByPass& /*attr*/,
+      FormatContext& ctx) {
+    return format_to(ctx.out(), "RxAfeTrim");
+  }
+};
+} // namespace fmt
+
+namespace facebook::fboss {
 template <>
 struct GetObjectKeySupported<SaiPortSerdesTraits> : std::false_type {};
 
@@ -228,6 +358,10 @@ SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost3);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCtleCode);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
 
 class PortApi : public SaiApi<PortApi> {
  public:

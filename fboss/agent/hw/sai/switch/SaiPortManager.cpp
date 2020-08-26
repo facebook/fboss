@@ -679,6 +679,12 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
       iDriver.value().push_back(driveCurrent.value());
     }
   }
+  // TODO initialize rx settings if supported
+  std::optional<SaiPortSerdesTraits::Attributes::RxCtleCode> rx0{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxDspMode> rx1{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxAfeTrim> rx2{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass> rx3{};
+
   auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
   SaiPortSerdesTraits::CreateAttributes serdesAttributes{serdesKey,
@@ -688,7 +694,11 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
                                                          main,
                                                          post1,
                                                          std::nullopt,
-                                                         std::nullopt};
+                                                         std::nullopt,
+                                                         rx0,
+                                                         rx1,
+                                                         rx2,
+                                                         rx3};
   return store.setObject(serdesKey, serdesAttributes);
 }
 } // namespace facebook::fboss
