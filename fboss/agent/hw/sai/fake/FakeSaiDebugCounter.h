@@ -20,10 +20,7 @@ namespace facebook::fboss {
 
 class FakeDebugCounter {
  public:
-  FakeDebugCounter() {
-    static sai_uint32_t curIndex = 0;
-    index_ = ++curIndex;
-  }
+  FakeDebugCounter();
   using InDropReasons = std::vector<int32_t>;
   using OutDropReasons = std::vector<int32_t>;
 

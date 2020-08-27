@@ -119,3 +119,23 @@ sai_status_t remove_debug_counter_fn(sai_object_id_t debug_counter_id) {
   fs->debugCounterManager.remove(debug_counter_id);
   return SAI_STATUS_SUCCESS;
 }
+
+namespace facebook::fboss {
+
+FakeDebugCounter::FakeDebugCounter() {
+  static sai_uint32_t curIndex = 0;
+  index_ = ++curIndex;
+}
+
+static sai_debug_counter_api_t _debug_counter_api;
+
+void populate_debug_counter_api(sai_debug_counter_api_t** debug_counter_api) {
+  _debug_counter_api.create_debug_counter = &create_debug_counter_fn;
+  _debug_counter_api.remove_debug_counter = &remove_debug_counter_fn;
+  _debug_counter_api.set_debug_counter_attribute =
+      &set_debug_counter_attribute_fn;
+  _debug_counter_api.get_debug_counter_attribute =
+      &get_debug_counter_attribute_fn;
+  *debug_counter_api = &_debug_counter_api;
+}
+} // namespace facebook::fboss

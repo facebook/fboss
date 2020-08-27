@@ -32,6 +32,7 @@ void FakeSai::clear() {
   fs->aclCounterManager.clear();
   fs->aclTableManager.clear();
   fs->bridgeManager.clearWithMembers();
+  fs->debugCounterManager.clear();
   fs->fdbManager.clear();
   fs->hashManager.clear();
   fs->hostIfTrapManager.clear();
@@ -110,6 +111,11 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
     case SAI_API_BUFFER:
       facebook::fboss::populate_buffer_api(
           (sai_buffer_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_DEBUG_COUNTER:
+      facebook::fboss::populate_debug_counter_api(
+          (sai_debug_counter_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_FDB:

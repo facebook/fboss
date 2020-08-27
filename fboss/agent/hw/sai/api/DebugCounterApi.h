@@ -30,18 +30,15 @@ class DebugCounterApi;
 
 struct SaiDebugCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_DEBUG_COUNTER;
+  using SaiApiT = DebugCounterApi;
   struct Attributes {
     using EnumType = sai_debug_counter_attr_t;
     using Index =
         SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_INDEX, sai_uint32_t>;
-    using Type = SaiAttribute<
-        EnumType,
-        SAI_DEBUG_COUNTER_ATTR_TYPE,
-        sai_debug_counter_type_t>;
-    using BindMethod = SaiAttribute<
-        EnumType,
-        SAI_DEBUG_COUNTER_ATTR_BIND_METHOD,
-        sai_debug_counter_bind_method_t>;
+    using Type =
+        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_TYPE, sai_int32_t>;
+    using BindMethod =
+        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_BIND_METHOD, sai_int32_t>;
     using InDropReasons = SaiAttribute<
         EnumType,
         SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
