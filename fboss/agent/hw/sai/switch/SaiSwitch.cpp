@@ -809,11 +809,7 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   XLOG(DBG6) << PktUtil::hexDump(cursor);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::TxAttributes attributes{txType, 0, std::nullopt};
-#else
-  SaiTxPacketTraits::TxAttributes attributes{txType, 0};
-#endif
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -878,14 +874,10 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portItr->second);
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
       queueId.value_or(0));
   SaiTxPacketTraits::TxAttributes attributes{
       txType, egressPort, egressQueueIndex};
-#else
-  SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
-#endif
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   auto rv = hostifApi.send(attributes, switchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {

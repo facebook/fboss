@@ -357,7 +357,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   uint16_t vlanId = swPort->getIngressVlan();
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
   if (auto saiInterfaceType = platform_->getInterfaceType(
           platformPort->getTransmitterTech(), speed)) {
@@ -377,21 +376,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          std::nullopt,
                                          interfaceType};
-#else
-  return SaiPortTraits::CreateAttributes{hwLaneList,
-                                         static_cast<uint32_t>(speed),
-                                         adminState,
-                                         fecMode,
-                                         internalLoopbackMode,
-                                         mediaType,
-                                         globalFlowControlMode,
-                                         vlanId,
-                                         std::nullopt,
-                                         swPort->getMaxFrameSize(),
-                                         std::nullopt,
-                                         std::nullopt,
-                                         std::nullopt};
-#endif
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
