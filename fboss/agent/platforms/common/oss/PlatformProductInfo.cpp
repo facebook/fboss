@@ -15,4 +15,8 @@ void PlatformProductInfo::initFromFbWhoAmI() {}
 
 void PlatformProductInfo::setFBSerial() {}
 
+std::optional<PlatformMode> PlatformProductInfo::getDevPlatformMode() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

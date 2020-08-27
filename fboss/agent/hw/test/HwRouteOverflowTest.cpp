@@ -58,6 +58,9 @@ TEST_F(HwTest, overflowRoutes) {
     case PlatformMode::WEDGE400C_SIM:
       XLOG(WARNING) << " No overflow test for 400C yet";
       break;
+    case PlatformMode::FUJI:
+      // No overflow test for TH4 yet
+      break;
   }
   if (!desiredState) {
     return;

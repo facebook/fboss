@@ -150,6 +150,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
     case PlatformMode::WEDGE400:
+    case PlatformMode::FUJI:
       return std::make_unique<SaiRepl>(hw_->getSwitchId());
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:

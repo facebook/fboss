@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/Range.h>
+#include <optional>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 
@@ -39,6 +40,7 @@ class PlatformProductInfo {
   void setFBSerial();
   void initFromFbWhoAmI();
   void initMode();
+  std::optional<PlatformMode> getDevPlatformMode();
   void parse(std::string data);
 
   ProductInfo productInfo_;
