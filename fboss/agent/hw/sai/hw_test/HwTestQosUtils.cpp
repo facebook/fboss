@@ -28,7 +28,6 @@ void disableTTLDecrements(
     RouterID routerId,
     InterfaceID intf,
     const folly::IPAddress& nhopIp) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
   auto rintfHandle =
       managerTable->routerInterfaceManager().getRouterInterfaceHandle(intf);
@@ -38,9 +37,6 @@ void disableTTLDecrements(
   SaiIpNextHopTraits::Attributes::DisableTtlDecrement disableTtl{true};
   SaiApiTable::getInstance()->nextHopApi().setAttribute(
       nhop->getSaiObject()->adapterKey(), disableTtl);
-#else
-  throw FbossError("Disable TTL decrement for nhops is not supported");
-#endif
 }
 
 void disableTTLDecrements(HwSwitch* hw, const PortDescriptor& port) {
