@@ -35,11 +35,9 @@ sai_status_t send_hostif_fn(
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
         tx_port = attr_list[i].value.oid;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
         queueId = attr_list[i].value.u8;
         break;
-#endif
     }
   }
   XLOG(INFO) << "Sending packet on port : " << std::hex << tx_port

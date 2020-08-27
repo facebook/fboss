@@ -41,9 +41,7 @@ class FakePort {
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
-#endif
 };
 
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
