@@ -38,14 +38,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     auto& nextHopApi = saiApiTable->nextHopApi();
     return nextHopApi.create<SaiIpNextHopTraits>(
-        {
-          SAI_NEXT_HOP_TYPE_IP, 42, ip
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-              ,
-              std::nullopt
-#endif
-        },
-        0);
+        {SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt}, 0);
   }
 
   NextHopSaiId createMplsNextHop(
@@ -53,14 +46,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
       std::vector<sai_uint32_t> labels) {
     auto& nextHopApi = saiApiTable->nextHopApi();
     return nextHopApi.create<SaiMplsNextHopTraits>(
-        {
-          SAI_NEXT_HOP_TYPE_MPLS, 42, ip, labels
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-              ,
-              std::nullopt
-#endif
-        },
-        0);
+        {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, labels, std::nullopt}, 0);
   }
 };
 
