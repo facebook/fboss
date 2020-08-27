@@ -35,13 +35,11 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {};
   }
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology /*transmitterTech*/,
       cfg::PortSpeed /*speed*/) const override {
     return std::nullopt;
   }
-#endif
   bool isSerdesApiSupported() override {
     return false;
   }
