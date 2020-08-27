@@ -57,12 +57,8 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_MPLS> {
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
-      typename Attributes::LabelStack
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-      ,
-      std::optional<typename Attributes::DisableTtlDecrement>
-#endif
-      >;
+      typename Attributes::LabelStack,
+      std::optional<typename Attributes::DisableTtlDecrement>>;
 };
 
 template <typename Attributes>
@@ -72,12 +68,8 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_IP> {
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
-      typename Attributes::Ip
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-      ,
-      std::optional<typename Attributes::DisableTtlDecrement>
-#endif
-      >;
+      typename Attributes::Ip,
+      std::optional<typename Attributes::DisableTtlDecrement>>;
 };
 } // namespace detail
 
@@ -139,13 +131,11 @@ struct SaiNextHopTraitsT {
     using LabelStack =
         typename detail::NextHopAttributesTypes<type>::LabelStack;
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_ATTR_DECREMENT_TTL,
         bool,
         SaiBoolDefault>;
-#endif
   };
   using AdapterKey = NextHopSaiId;
   using AdapterHostKey = typename detail::
@@ -175,9 +165,7 @@ SAI_ATTRIBUTE_NAME(IpNextHop, Type)
 SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
 SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
 SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
 SAI_ATTRIBUTE_NAME(IpNextHop, DisableTtlDecrement);
-#endif
 
 class NextHopApi : public SaiApi<NextHopApi> {
  public:

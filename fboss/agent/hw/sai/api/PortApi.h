@@ -78,26 +78,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_DECREMENT_TTL,
         bool,
         SaiBoolDefault>;
-#else
-    using DisableTtlDecrement = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_CUSTOM_RANGE_START,
-        bool,
-        SaiBoolDefault>;
-#endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     using InterfaceType = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INTERFACE_TYPE,
         sai_int32_t,
         SaiPortInterfaceTypeDefault>;
-#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -115,12 +105,8 @@ struct SaiPortTraits {
       std::optional<Attributes::Mtu>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
-      std::optional<Attributes::DisableTtlDecrement>
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-      ,
-      std::optional<Attributes::InterfaceType>
-#endif
-      >;
+      std::optional<Attributes::DisableTtlDecrement>,
+      std::optional<Attributes::InterfaceType>>;
 
   static constexpr std::array<sai_stat_id_t, 15> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -160,10 +146,7 @@ SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
-#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
