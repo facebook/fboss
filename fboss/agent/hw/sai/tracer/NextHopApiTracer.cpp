@@ -96,11 +96,9 @@ void setNextHopAttributes(
       case SAI_NEXT_HOP_ATTR_TYPE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
         attrLines.push_back(boolAttr(attr_list, i));
         break;
-#endif
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;
