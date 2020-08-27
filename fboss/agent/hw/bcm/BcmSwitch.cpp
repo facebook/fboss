@@ -1066,6 +1066,10 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processRemovedRoutes(delta);
   processRemovedFibRoutes(delta);
 
+  // Any neighbor removals, and modify appliedState if some changes fail to
+  // apply
+  processNeighborDelta(delta, &appliedState, REMOVED);
+
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
   forEachRemoved(delta.getIntfsDelta(), &BcmSwitch::processRemovedIntf, this);
@@ -1106,8 +1110,10 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processControlPlaneChanges(delta);
 
-  // Any neighbor changes, and modify appliedState if some changes fail to apply
-  processNeighborChanges(delta, &appliedState);
+  // Any neighbor additions/changes, and modify appliedState if some changes
+  // fail to apply
+  processNeighborDelta(delta, &appliedState, ADDED);
+  processNeighborDelta(delta, &appliedState, CHANGED);
 
   // process label forwarding changes after neighbor entries are updated
   processChangedLabelForwardingInformationBase(delta);
@@ -1833,22 +1839,6 @@ void BcmSwitch::processSflowCollectorChanges(const StateDelta& delta) {
       this);
 }
 
-template <typename DELTA, typename ParentClassT>
-void BcmSwitch::processNeighborEntryDelta(
-    const DELTA& delta,
-    std::shared_ptr<SwitchState>* appliedState) {
-  const auto* oldEntry = delta.getOld().get();
-  const auto* newEntry = delta.getNew().get();
-
-  if (!oldEntry) {
-    processAddedNeighborEntry(newEntry);
-  } else if (!newEntry) {
-    processRemovedNeighborEntry(oldEntry);
-  } else {
-    processChangedNeighborEntry(oldEntry, newEntry);
-  }
-}
-
 template <typename NeighborEntryT>
 void BcmSwitch::processAddedAndChangedNeighbor(
     const BcmHostKey& neighborKey,
@@ -1971,17 +1961,19 @@ void BcmSwitch::processRemovedNeighborEntry(
       });
 }
 
-void BcmSwitch::processNeighborChanges(
+void BcmSwitch::processNeighborDelta(
     const StateDelta& delta,
-    std::shared_ptr<SwitchState>* appliedState) {
-  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState);
-  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState);
+    std::shared_ptr<SwitchState>* appliedState,
+    DeltaType optype) {
+  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState, optype);
+  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState, optype);
 }
 
 template <typename AddrT>
 void BcmSwitch::processNeighborTableDelta(
     const StateDelta& stateDelta,
-    std::shared_ptr<SwitchState>* appliedState) {
+    std::shared_ptr<SwitchState>* appliedState,
+    DeltaType optype) {
   using NeighborTableT = std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
@@ -1994,8 +1986,16 @@ void BcmSwitch::processNeighborTableDelta(
     for (const auto& delta :
          vlanDelta.template getNeighborDelta<NeighborTableT>()) {
       try {
-        processNeighborEntryDelta<NeighborEntryDeltaT, NeighborTableT>(
-            delta, appliedState);
+        const auto* oldEntry = delta.getOld().get();
+        const auto* newEntry = delta.getNew().get();
+
+        if (optype == ADDED && !oldEntry) {
+          processAddedNeighborEntry(newEntry);
+        } else if (optype == REMOVED && !newEntry) {
+          processRemovedNeighborEntry(oldEntry);
+        } else if (optype == CHANGED && oldEntry && newEntry) {
+          processChangedNeighborEntry(oldEntry, newEntry);
+        }
       } catch (const BcmError& error) {
         rethrowIfHwNotFull(error);
         discardedNeighborEntryDelta.push_back(delta);

@@ -522,6 +522,8 @@ class BcmSwitch : public BcmSwitchIf {
 
  private:
   enum Flags : uint32_t { RX_REGISTERED = 0x01, LINKSCAN_REGISTERED = 0x02 };
+  enum DeltaType { ADDED, REMOVED, CHANGED };
+
   // Forbidden copy constructor and assignment operator
   BcmSwitch(BcmSwitch const&) = delete;
   BcmSwitch& operator=(BcmSwitch const&) = delete;
@@ -555,17 +557,19 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedIntf(const std::shared_ptr<Interface>& intf);
   void processRemovedIntf(const std::shared_ptr<Interface>& intf);
 
+  void processNeighborDelta(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState,
+      DeltaType optype);
   template <typename AddrT>
   void processNeighborTableDelta(
       const StateDelta& stateDelta,
-      std::shared_ptr<SwitchState>* appliedState);
+      std::shared_ptr<SwitchState>* appliedState,
+      DeltaType optype);
 
   template <typename DELTA, typename ParentClassT>
   void processNeighborEntryDelta(
       const DELTA& delta,
-      std::shared_ptr<SwitchState>* appliedState);
-  void processNeighborChanges(
-      const StateDelta& delta,
       std::shared_ptr<SwitchState>* appliedState);
   template <typename NeighborEntryT>
   void processAddedNeighborEntry(const NeighborEntryT* addedEntry);
