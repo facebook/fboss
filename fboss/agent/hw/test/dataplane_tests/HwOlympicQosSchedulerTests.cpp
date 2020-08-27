@@ -60,7 +60,12 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
         8001,
-        static_cast<uint8_t>(dscpVal << 2)); // Trailing 2 bits are for ECN
+        // Trailing 2 bits are for ECN
+        static_cast<uint8_t>(dscpVal << 2),
+        // Hop limit
+        255,
+        // Payload
+        std::vector<uint8_t>(1200, 0xff));
   }
 
   void sendUdpPkt(uint8_t dscpVal) {
