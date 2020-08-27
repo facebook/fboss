@@ -8,6 +8,7 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiAcl.cpp
     fboss/agent/hw/sai/fake/FakeSaiBridge.cpp
     fboss/agent/hw/sai/fake/FakeSaiBuffer.cpp
+    fboss/agent/hw/sai/fake/FakeSaiDebugCounter.cpp
     fboss/agent/hw/sai/fake/FakeSaiFdb.cpp
     fboss/agent/hw/sai/fake/FakeSaiHash.cpp
     fboss/agent/hw/sai/fake/FakeSaiHostif.cpp
