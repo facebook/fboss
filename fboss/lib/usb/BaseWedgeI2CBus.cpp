@@ -35,6 +35,12 @@ void BaseWedgeI2CBus::close() {
 void BaseWedgeI2CBus::read(uint8_t address, int offset, int len, uint8_t* buf) {
   CHECK_LE(offset, 255);
 
+  // Before accessing the CP2112 device, check if the device is opened on USB
+  if (!dev_->isOpen()) {
+    VLOG(3) << "The Wedge CP2112 I2c bus not opened";
+    return;
+  }
+
   // CP2112 uses addresses in the on-the-wire format, while we generally
   // pass them around in Linux standard format.
   address <<= 1;
@@ -102,6 +108,12 @@ void BaseWedgeI2CBus::write(
     int len,
     const uint8_t* buf) {
   CHECK_LE(offset, 255);
+
+  // Before accessing the CP2112 device, check if the device is opened on USB
+  if (!dev_->isOpen()) {
+    VLOG(3) << "The Wedge CP2112 I2c bus not opened";
+    return;
+  }
 
   // CP2112 uses addresses in the on-the-wire format, while we generally
   // pass them around in Linux standard format.
