@@ -52,6 +52,21 @@ struct TerminalSession {
   std::vector<folly::File> oldStreams_;
 };
 
+// Separate sessions for each connection
+class DiagShellClientState {
+ public:
+  DiagShellClientState(
+      const std::string& clientAddrAndPort,
+      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
+
+  void publishOutput(const std::string& output);
+  void completeStream();
+
+ private:
+  const std::string clientAddrAndPort_;
+  apache::thrift::ServerStreamPublisher<std::string> publisher_;
+};
+
 } // namespace detail
 
 class DiagShell {

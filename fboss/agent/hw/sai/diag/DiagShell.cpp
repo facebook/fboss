@@ -114,6 +114,19 @@ TerminalSession::~TerminalSession() noexcept {
   }
 }
 
+DiagShellClientState::DiagShellClientState(
+    const std::string& clientAddrAndPort,
+    apache::thrift::ServerStreamPublisher<std::string>&& publisher)
+    : clientAddrAndPort_(clientAddrAndPort), publisher_(std::move(publisher)) {}
+
+void DiagShellClientState::publishOutput(const std::string& output) {
+  publisher_.next(output);
+}
+
+void DiagShellClientState::completeStream() {
+  std::move(publisher_).complete();
+  XLOG(INFO) << "Completed Stream on " << clientAddrAndPort_;
+}
 } // namespace detail
 
 DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
