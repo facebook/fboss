@@ -87,6 +87,13 @@ const BufferApi& SaiApiTable::bufferApi() const {
   return getApi<BufferApi>();
 }
 
+DebugCounterApi& SaiApiTable::debugCounterApi() {
+  return getApi<DebugCounterApi>();
+}
+const DebugCounterApi& SaiApiTable::debugCounterApi() const {
+  return getApi<DebugCounterApi>();
+}
+
 FdbApi& SaiApiTable::fdbApi() {
   return getApi<FdbApi>();
 }
