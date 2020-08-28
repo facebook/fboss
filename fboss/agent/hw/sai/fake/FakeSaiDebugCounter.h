@@ -28,7 +28,7 @@ class FakeDebugCounter {
     inDropReasons_ = inDrop;
   }
   const InDropReasons& getInDropReasons() const {
-    return outDropReasons_;
+    return inDropReasons_;
   }
   void setOutDropReasons(const OutDropReasons& outDrop) {
     outDropReasons_ = outDrop;

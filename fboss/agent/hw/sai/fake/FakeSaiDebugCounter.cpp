@@ -83,7 +83,7 @@ sai_status_t get_debug_counter_attribute_fn(
         }
       } break;
       case SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST: {
-        const auto& outDropReasons = debugCounter.getInDropReasons();
+        const auto& outDropReasons = debugCounter.getOutDropReasons();
         if (outDropReasons.size() > attr[i].value.s32list.count) {
           attr[i].value.s32list.count = outDropReasons.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
