@@ -25,6 +25,7 @@ class SaiAclTableGroupManager;
 class SaiAclTableManager;
 class SaiBridgeManager;
 class SaiBufferManager;
+class SaiDebugCounterManager;
 class SaiFdbManager;
 class SaiHashManager;
 class SaiHostifManager;
@@ -65,6 +66,9 @@ class SaiManagerTable {
 
   SaiBufferManager& bufferManager();
   const SaiBufferManager& bufferManager() const;
+
+  SaiDebugCounterManager& debugCounterManager();
+  const SaiDebugCounterManager& debugCounterManager() const;
 
   SaiFdbManager& fdbManager();
   const SaiFdbManager& fdbManager() const;
@@ -122,6 +126,8 @@ class SaiManagerTable {
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiBufferManager> bufferManager_;
+  std::unique_ptr<SaiDebugCounterManager> debugCounterManager_;
+
   std::unique_ptr<SaiFdbManager> fdbManager_;
   std::unique_ptr<SaiHashManager> hashManager_;
   std::unique_ptr<SaiHostifManager> hostifManager_;

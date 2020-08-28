@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -168,6 +169,9 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
       managerTable_->aclTableGroupManager().addAclTableGroup(
           SAI_ACL_STAGE_INGRESS);
       managerTable_->aclTableManager().addAclTable(kAclTable1);
+    }
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+      managerTable_->debugCounterManager().setupDebugCounters();
     }
   }
 

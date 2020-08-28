@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
@@ -52,6 +53,7 @@ void SaiManagerTable::createSaiTableManagers(
   aclTableManager_ = std::make_unique<SaiAclTableManager>(this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(this, platform);
+  debugCounterManager_ = std::make_unique<SaiDebugCounterManager>(this);
   fdbManager_ =
       std::make_unique<SaiFdbManager>(this, platform, concurrentIndices);
   hashManager_ = std::make_unique<SaiHashManager>(this);
@@ -102,6 +104,7 @@ SaiManagerTable::~SaiManagerTable() {
   virtualRouterManager_.reset();
   bridgeManager_.reset();
   vlanManager_.reset();
+  debugCounterManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
@@ -147,6 +150,13 @@ SaiBufferManager& SaiManagerTable::bufferManager() {
 }
 const SaiBufferManager& SaiManagerTable::bufferManager() const {
   return *bufferManager_;
+}
+
+SaiDebugCounterManager& SaiManagerTable::debugCounterManager() {
+  return *debugCounterManager_;
+}
+const SaiDebugCounterManager& SaiManagerTable::debugCounterManager() const {
+  return *debugCounterManager_;
 }
 
 SaiFdbManager& SaiManagerTable::fdbManager() {
