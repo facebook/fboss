@@ -135,44 +135,44 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
     ret = initLocked(lock, callback);
+    /*
+     * SwitchState does not have notion of AclTableGroup or AclTable today.
+     * Thus, stateChanged() can not process aclTableGroupChanges or
+     * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
+     * single AclTable at its member during init(). Every AclEntry from
+     * SwitchState is added to this AclTable by stateChanged() while processing
+     * AclEntryChanges.
+     *
+     * During cold boot, addAclTableGroup()/addAclTable() populate
+     * AclTableGroupManager/AclTableManager local data structures + program the
+     * ASIC by calling SAI AclApi.
+     *
+     * During warm boot, SaiStore reload() reloads SAI objects for
+     * AclTableGroup/AclTable in SaiStore. Thus,
+     * addAclTableGroup()/addAclTable() only populate
+     * AclTableGroupManager/AclTableManager local data structure.
+     *
+     * In future, SwitchState would be extended to carry AclTable, at that time,
+     * the implementation would be on the following lines:
+     *     - SwitchState AclTable configuration would include Stage
+     *       e.g. ingress or egress.
+     *     - For every stage supported for AclTable, SaiSwitch::init would
+     *       pre-create an AclTableGroup.
+     *     - statechanged() would contain AclTable delta processing which would
+     *       add/remove/change AclTable and using 'stage', also update the
+     *       corresponding Acl Table group member.
+     *     - statechanged() would continue to carry AclEntry delta processing.
+     */
+    if ((getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+         getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+      managerTable_->aclTableGroupManager().addAclTableGroup(
+          SAI_ACL_STAGE_INGRESS);
+      managerTable_->aclTableManager().addAclTable(kAclTable1);
+    }
   }
+
   // N.B., state changed will be locking/unlocking in a more fine grained manner
   // and expects the mutex to be unlocked
-
-  /*
-   * SwitchState does not have notion of AclTableGroup or AclTable today.
-   * Thus, stateChanged() can not process aclTableGroupChanges or
-   * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
-   * single AclTable at its member during init(). Every AclEntry from
-   * SwitchState is added to this AclTable by stateChanged() while processing
-   * AclEntryChanges.
-   *
-   * During cold boot, addAclTableGroup()/addAclTable() populate
-   * AclTableGroupManager/AclTableManager local data structures + program the
-   * ASIC by calling SAI AclApi.
-   *
-   * During warm boot, SaiStore reload() reloads SAI objects for
-   * AclTableGroup/AclTable in SaiStore. Thus, addAclTableGroup()/addAclTable()
-   * only populate AclTableGroupManager/AclTableManager local data structure.
-   *
-   * In future, SwitchState would be extended to carry AclTable, at that time,
-   * the implementation would be on the following lines:
-   *     - SwitchState AclTable configuration would include Stage
-   *       e.g. ingress or egress.
-   *     - For every stage supported for AclTable, SaiSwitch::init would
-   *       pre-create an AclTableGroup.
-   *     - statechanged() would contain AclTable delta processing which would
-   *       add/remove/change AclTable and using 'stage', also update the
-   *       corresponding Acl Table group member.
-   *     - statechanged() would continue to carry AclEntry delta processing.
-   */
-  if ((getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-       getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
-    managerTable_->aclTableGroupManager().addAclTableGroup(
-        SAI_ACL_STAGE_INGRESS);
-    managerTable_->aclTableManager().addAclTable(kAclTable1);
-  }
-
   stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   return ret;
 }
