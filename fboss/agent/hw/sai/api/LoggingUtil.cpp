@@ -182,6 +182,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "acl-counter";
     case SAI_OBJECT_TYPE_PORT_SERDES:
       return "port-serdes";
+    case SAI_OBJECT_TYPE_DEBUG_COUNTER:
+      return "debug-counter";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

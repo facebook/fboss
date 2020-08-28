@@ -338,6 +338,7 @@ class SaiStore {
       detail::SaiObjectStore<SaiBridgePortTraits>,
       detail::SaiObjectStore<SaiBufferPoolTraits>,
       detail::SaiObjectStore<SaiBufferProfileTraits>,
+      detail::SaiObjectStore<SaiDebugCounterTraits>,
       detail::SaiObjectStore<SaiPortTraits>,
       detail::SaiObjectStore<SaiVlanTraits>,
       detail::SaiObjectStore<SaiVlanMemberTraits>,
