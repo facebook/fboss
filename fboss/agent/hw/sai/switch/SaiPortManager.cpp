@@ -38,6 +38,7 @@ namespace facebook::fboss {
 namespace {
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    const SaiDebugCounterManager& debugCounterManager,
     HwPortStats& hwPortStats) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards__ref() = 0;
@@ -93,7 +94,12 @@ void fillHwPortStats(
         *hwPortStats.outEcnCounter__ref() = value;
         break;
       default:
-        // TODO: check for debug port stats
+        if (counterId ==
+            debugCounterManager.getPortL3BlackHoleCounterStatId()) {
+          hwPortStats.inDstNullDiscards__ref() = value;
+        } else {
+          throw FbossError("Got unexpected port counter id: ", counterId);
+        }
         break;
     }
   }
@@ -521,7 +527,7 @@ void SaiPortManager::updateStats(PortID portId) {
       : *curPortStats.inDiscards__ref();
   handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
   const auto& counters = handle->port->getStats();
-  fillHwPortStats(counters, curPortStats);
+  fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards__ref(),
        *curPortStats.inDstNullDiscards__ref()},
@@ -544,7 +550,8 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
     const auto& counters = handle->port->getStats();
     std::ignore = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats{};
-    fillHwPortStats(counters, hwPortStats);
+    fillHwPortStats(
+        counters, managerTable_->debugCounterManager(), hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);
   }
