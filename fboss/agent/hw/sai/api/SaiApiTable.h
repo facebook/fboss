@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
+#include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -58,6 +59,9 @@ class SaiApiTable {
 
   BufferApi& bufferApi();
   const BufferApi& bufferApi() const;
+
+  DebugCounterApi& debugCounterApi();
+  const DebugCounterApi& debugCounterApi() const;
 
   FdbApi& fdbApi();
   const FdbApi& fdbApi() const;
@@ -124,6 +128,7 @@ class SaiApiTable {
       std::unique_ptr<AclApi>,
       std::unique_ptr<BridgeApi>,
       std::unique_ptr<BufferApi>,
+      std::unique_ptr<DebugCounterApi>,
       std::unique_ptr<FdbApi>,
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
