@@ -76,6 +76,18 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
 
   PortID getPortId() const;
   L2Entry toL2Entry() const;
+  InterfaceID getInterfaceID() const {
+    return interfaceId_;
+  }
+  folly::MacAddress getMac() const {
+    return mac_;
+  }
+  sai_fdb_entry_type_t getType() const {
+    return type_;
+  }
+  sai_uint32_t getMetaData() const {
+    return metadata_.has_value() ? metadata_.value() : 0;
+  }
 
  private:
   SwitchSaiId switchId_;
