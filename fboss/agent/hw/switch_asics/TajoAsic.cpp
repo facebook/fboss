@@ -42,6 +42,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
     case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
+    case HwAsic::Feature::DEBUG_COUNTER:
       return false;
   }
   return false;

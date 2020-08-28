@@ -27,6 +27,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
+    case HwAsic::Feature::DEBUG_COUNTER:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
