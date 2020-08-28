@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 
+#include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
@@ -25,5 +27,9 @@ void SaiDebugCounterManager::setupDebugCounters() {
 
   portL3BlackHoleCounter_ = std::make_unique<SaiDebugCounter>(
       attrs, attrs, managerTable_->switchManager().getSwitchSaiId());
+  portL3BlackHoleCounterStatId_ = SAI_PORT_STAT_IN_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          portL3BlackHoleCounter_->adapterKey(),
+          SaiDebugCounterTraits::Attributes::Index{});
 }
 } // namespace facebook::fboss

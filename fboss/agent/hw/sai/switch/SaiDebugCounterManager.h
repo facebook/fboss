@@ -28,12 +28,14 @@ class SaiDebugCounterManager {
       : managerTable_(managerTable) {}
 
   void setupDebugCounters();
-  const SaiDebugCounter* getPortL3BlackHoleCounter() const {
-    return portL3BlackHoleCounter_.get();
+  sai_stat_id_t getPortL3BlackHoleCounterStatId() const {
+    CHECK(portL3BlackHoleCounter_);
+    return portL3BlackHoleCounterStatId_;
   }
 
  private:
   std::unique_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
+  sai_stat_id_t portL3BlackHoleCounterStatId_{0};
   SaiManagerTable* managerTable_;
 };
 

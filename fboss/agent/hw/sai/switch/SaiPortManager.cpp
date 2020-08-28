@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -92,7 +93,8 @@ void fillHwPortStats(
         *hwPortStats.outEcnCounter__ref() = value;
         break;
       default:
-        throw FbossError("Got unexpected port counter id: ", counterId);
+        // TODO: check for debug port stats
+        break;
     }
   }
 }
@@ -489,6 +491,10 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
       [ecnSupported](auto statId) {
         return ecnSupported || statId != SAI_PORT_STAT_ECN_MARKED_PACKETS;
       });
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    counterIds.emplace_back(
+        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId());
+  }
   return counterIds;
 }
 
