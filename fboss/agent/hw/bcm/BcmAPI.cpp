@@ -35,6 +35,7 @@ extern "C" {
 #define SYS_BE_PACKET 0
 #else
 #include <sal/core/thread.h>
+#include <soc/defs.h>
 #endif
 
 #include <soc/cmext.h>
