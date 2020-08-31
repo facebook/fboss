@@ -69,6 +69,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/Types.h
   fboss/agent/hw/sai/api/VirtualRouterApi.h
   fboss/agent/hw/sai/api/VlanApi.h
+  fboss/agent/hw/sai/api/WredApi.h
   fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
 )
 
