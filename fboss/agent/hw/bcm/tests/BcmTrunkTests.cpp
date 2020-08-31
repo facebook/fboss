@@ -149,7 +149,7 @@ TEST_F(BcmTrunkTest, TrunkMemberPortDownMinLinksViolated) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(BcmTrunkTest, OpennslTrunkApiChecks) {
+TEST_F(BcmTrunkTest, findTrunkApiChecks) {
   static const AggregatePortID aggID{42};
 
   auto setup = [=]() {
