@@ -27,6 +27,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEIGHBOR_METADATA:
       return true;
 
+    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
     case HwAsic::Feature::ERSPANv6:

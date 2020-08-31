@@ -9,6 +9,7 @@ class HwAsic {
  public:
   enum class Feature {
     ACL,
+    BUFFER_PROFILE,
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,
