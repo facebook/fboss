@@ -22,6 +22,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, AclEntrySaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, AclCounterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgeSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, BridgePortSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, BufferPoolSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, BufferProfileSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, DebugCounterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HashSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, HostifTrapGroupSaiId);
@@ -39,8 +41,6 @@ FBOSS_STRONG_TYPE(sai_object_id_t, SwitchSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);
-FBOSS_STRONG_TYPE(sai_object_id_t, BufferPoolSaiId);
-FBOSS_STRONG_TYPE(sai_object_id_t, BufferProfileSaiId);
 
 namespace facebook::fboss {
 
