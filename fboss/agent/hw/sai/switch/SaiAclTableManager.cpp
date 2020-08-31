@@ -54,7 +54,8 @@ sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
    * AclTableManager object is created by the code path is not exercised if
    * ACL are not supported, so ok to return 0.
    */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACL))) {
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACL)) ||
+      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
     sai_u32_range_t u32Range;
     u32Range.min = 0;
     u32Range.max = 0;
@@ -149,6 +150,23 @@ std::
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
   /*
+   * Tajo does not support srcPort, outPort, dstMac and
+   * {fdb, route, neighbor}DstUserMeta yet.
+   * Thus, disable those on Tajo for now.
+   */
+  auto fieldSrcPort =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldOutPort =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldDstMac =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
    * However, the solution is not applicable for Trident2 as FBOSS does not
    * implement queues on Trident2.
@@ -156,8 +174,19 @@ std::
    * hardwares. Thus, avoid programming unncessary qualifiers (or else we run
    * out resources).
    */
-  auto fieldFdbDstUserMeta = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+  auto fieldFdbDstUserMeta = ((platform_->getAsic()->getAsicType() !=
+                               HwAsic::AsicType::ASIC_TYPE_TRIDENT2) &&
+                              (platform_->getAsic()->getAsicType() !=
+                               HwAsic::AsicType::ASIC_TYPE_TAJO))
+      ? true
+      : false;
+
+  auto fieldRouteDstUserMeta =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldNeighborDstUserMeta =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
       ? true
       : false;
 
@@ -173,20 +202,20 @@ std::
       true, // l4DstPort
       true, // ipProtocol
       true, // tcpFlags
-      true, // srcPort
-      true, // outPort
+      fieldSrcPort, // srcPort
+      fieldOutPort, // outPort
       true, // ipFrag
       true, // icmpV4Type,
       true, // icmpV4Code,
       true, // icmpV6Type,
       true, // icmpV6Code,
       true, // dscp
-      true, // dstMac
+      fieldDstMac, // dstMac
       true, // ipType
       true, // ttl
       fieldFdbDstUserMeta, // fdb meta
-      true, // route meta
-      true // neighbor meta
+      fieldRouteDstUserMeta, // route meta
+      fieldNeighborDstUserMeta // neighbor meta
   };
 
   SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};

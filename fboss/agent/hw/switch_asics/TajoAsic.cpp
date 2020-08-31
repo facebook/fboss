@@ -11,6 +11,7 @@ bool TajoAsic::isSupported(Feature feature) const {
      * verified on the asic. Marking them as true for now but need to revisit
      * this as we verify the features.
      */
+    case HwAsic::Feature::ACL:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
@@ -30,7 +31,6 @@ bool TajoAsic::isSupported(Feature feature) const {
       return true;
 
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::ACL:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::WARM_BOOT:
