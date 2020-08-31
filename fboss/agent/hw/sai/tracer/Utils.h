@@ -29,7 +29,33 @@ void oidListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
+void aclEntryActionSaiObjectIdAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryActionSaiObjectIdListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines);
+
 void aclEntryActionU8Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryActionU32Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldSaiObjectIdAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldIpV4Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines);
@@ -50,6 +76,11 @@ void aclEntryFieldU16Attr(
     std::vector<std::string>& attrLines);
 
 void aclEntryFieldU32Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void aclEntryFieldMacAttr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines);
