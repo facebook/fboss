@@ -8,8 +8,7 @@ namespace facebook::fboss {
 class HwAsic {
  public:
   enum class Feature {
-    ACLv4,
-    ACLv6,
+    ACL,
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,

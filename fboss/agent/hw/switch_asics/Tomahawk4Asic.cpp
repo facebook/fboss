@@ -6,8 +6,7 @@ namespace facebook::fboss {
 
 bool Tomahawk4Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::ACLv4:
-    case HwAsic::Feature::ACLv6:
+    case HwAsic::Feature::ACL:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:

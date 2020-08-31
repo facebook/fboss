@@ -30,8 +30,7 @@ bool TajoAsic::isSupported(Feature feature) const {
       return true;
 
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::ACLv4:
-    case HwAsic::Feature::ACLv6:
+    case HwAsic::Feature::ACL:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::WARM_BOOT:
