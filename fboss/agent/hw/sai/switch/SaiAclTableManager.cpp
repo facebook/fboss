@@ -54,7 +54,7 @@ sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
    * AclTableManager object is created by the code path is not exercised if
    * either ACLv4 or ACLv6 are not supported, so ok to return 0.
    */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
         platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
     sai_u32_range_t u32Range;
     u32Range.min = 0;
@@ -74,7 +74,7 @@ sai_u32_range_t SaiAclTableManager::getRouteDstUserMetaDataRange() const {
    * AclTableManager object is created by the code path is not exercised if
    * either ACLv4 or ACLv6 are not supported, so ok to return 0.
    */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
         platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
     sai_u32_range_t u32Range;
     u32Range.min = 0;
@@ -94,7 +94,7 @@ sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
    * AclTableManager object is created by the code path is not exercised if
    * either ACLv4 or ACLv6 are not supported, so ok to return 0.
    */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
         platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
     sai_u32_range_t u32Range;
     u32Range.min = 0;
@@ -140,56 +140,9 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
 
 std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
-    SaiAclTableManager::createAclTableV4AndV6Helper(bool isV4) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
-  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
-  std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
-                                          SAI_ACL_ACTION_TYPE_COUNTER,
-                                          SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
-                                          SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
-                                          SAI_ACL_ACTION_TYPE_SET_TC,
-                                          SAI_ACL_ACTION_TYPE_SET_DSCP};
-
-  SaiAclTableTraits::AdapterHostKey adapterHostKey{
-      SAI_ACL_STAGE_INGRESS,
-      bindPointList,
-      actionTypeList,
-      !isV4, // srcIpv6
-      !isV4, // dstIpv6
-      isV4, // srcIp4
-      isV4, // dstIp4
-      false, // l4SrcPort
-      false, // l4DstPort
-      true, // ipProtocol
-      false, // tcpFlags
-      false, // srcPort
-      false, // outPort
-      false, // ipFrag
-      false, // icmpv4Type
-      false, // icmpv4Code
-      false, // icmpv6Type
-      false, // icmpv6Code
-      true, // dscp
-      false, // dstMac
-      true, // ipType
-      true, // ttl
-      false, // fdb meta
-      false, // route meta
-      false // neighbor meta
-  };
-
-  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
-  return std::make_pair(adapterHostKey, attributes);
-}
-
-std::
-    pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
     SaiAclTableManager::createAclTableHelper() {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
@@ -248,7 +201,7 @@ std::
 
 AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
@@ -271,16 +224,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   SaiAclTableTraits::AdapterHostKey adapterHostKey;
   SaiAclTableTraits::CreateAttributes attributes;
 
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
-    std::tie(adapterHostKey, attributes) = createAclTableHelper();
-  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4)) {
-    std::tie(adapterHostKey, attributes) =
-        createAclTableV4AndV6Helper(true /* isV4 */);
-  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
-    std::tie(adapterHostKey, attributes) =
-        createAclTableV4AndV6Helper(false /* isV4 */);
-  }
+  std::tie(adapterHostKey, attributes) = createAclTableHelper();
 
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   auto& aclTableStore = s->get<SaiAclTableTraits>();
@@ -303,7 +247,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
 
 void SaiAclTableManager::removeAclTable() {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
@@ -320,7 +264,7 @@ void SaiAclTableManager::removeAclTable() {
 
 void SaiAclTableManager::changedAclTable() {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
@@ -531,7 +475,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   // If we attempt to add entry to a table that does not exist, fail.
@@ -885,7 +829,7 @@ void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
     const std::string& aclTableName) {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   // If we attempt to remove entry for a table that does not exist, fail.
@@ -913,7 +857,7 @@ void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& newAclEntry,
     const std::string& aclTableName) {
   CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
 
   /*
