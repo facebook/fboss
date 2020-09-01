@@ -172,6 +172,9 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();
     }
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
+      managerTable_->bufferManager().setupEgressBufferPool();
+    }
   }
 
   // N.B., state changed will be locking/unlocking in a more fine grained manner

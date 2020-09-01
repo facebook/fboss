@@ -37,10 +37,10 @@ class SaiBufferManager {
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
 
+  void setupEgressBufferPool();
   void updateStats();
 
  private:
-  void setupEgressBufferPool();
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
 

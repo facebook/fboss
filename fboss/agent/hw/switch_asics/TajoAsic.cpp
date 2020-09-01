@@ -12,6 +12,7 @@ bool TajoAsic::isSupported(Feature feature) const {
      * this as we verify the features.
      */
     case HwAsic::Feature::ACL:
+    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
@@ -30,7 +31,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
       return true;
 
-    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

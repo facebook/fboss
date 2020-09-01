@@ -24,11 +24,7 @@ namespace facebook::fboss {
 SaiBufferManager::SaiBufferManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : managerTable_(managerTable), platform_(platform) {
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
-    setupEgressBufferPool();
-  }
-}
+    : managerTable_(managerTable), platform_(platform) {}
 
 void SaiBufferManager::setupEgressBufferPool() {
   if (egressBufferPoolHandle_) {
