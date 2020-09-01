@@ -206,6 +206,9 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
 
+  uint64_t getDeviceWatermarkBytesLocked(
+      const std::lock_guard<std::mutex>& lock) const;
+
   template <typename ManagerT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,

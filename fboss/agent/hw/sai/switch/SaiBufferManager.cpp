@@ -45,7 +45,8 @@ void SaiBufferManager::updateStats() {
   if (egressBufferPoolHandle_) {
     egressBufferPoolHandle_->bufferPool->updateStats();
     auto counters = egressBufferPoolHandle_->bufferPool->getStats();
-    publishDeviceWatermark(counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES]);
+    deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+    publishDeviceWatermark(deviceWatermarkBytes_);
   }
 }
 

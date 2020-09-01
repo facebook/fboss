@@ -39,6 +39,9 @@ class SaiBufferManager {
 
   void setupEgressBufferPool();
   void updateStats();
+  uint64_t getDeviceWatermarkBytes() const {
+    return deviceWatermarkBytes_;
+  }
 
  private:
   void publishDeviceWatermark(uint64_t peakBytes) const;
@@ -50,6 +53,7 @@ class SaiBufferManager {
   std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
       bufferProfiles_;
+  uint64_t deviceWatermarkBytes_{0};
 };
 
 } // namespace facebook::fboss
