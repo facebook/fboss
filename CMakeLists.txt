@@ -261,13 +261,22 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  hw_test_ctrl_cpp2
+  fboss/agent/hw/hw_test_ctrl.thrift
+  SERVICES
+    HwTestCtrl
+  DEPENDS
+    ctrl_cpp2
+)
+
+add_fbthrift_cpp_library(
   sai_test_ctrl_cpp2
   fboss/agent/hw/sai/hw_test/sai_test_ctrl.thrift
   SERVICES
     SaiTestCtrl
   DEPENDS
     ctrl_cpp2
-    sai_ctrl_cpp2
+    hw_test_ctrl_cpp2
 )
 
 find_library(USB usb-1.0)
