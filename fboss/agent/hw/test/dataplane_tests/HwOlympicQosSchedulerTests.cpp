@@ -16,6 +16,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
@@ -112,7 +113,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
    *  risk of test being flaky, we choose 2 * 50 number of packets for the
    *  test.
    */
-  void sendUdpPkts(uint8_t dscpVal, int cnt = 100) {
+  void sendUdpPkts(uint8_t dscpVal, int cnt) {
     for (int i = 0; i < cnt; i++) {
       sendUdpPkt(dscpVal);
     }
@@ -125,8 +126,11 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
    * value, packets go through appropriate Olympic queue.
    */
   void sendUdpPktsForAllQueues(const std::vector<int>& queueIds) {
+    // Higher speed ports need more packets to reach line rate
+    auto pktsToSend = getPortSpeed() > cfg::PortSpeed::HUNDREDG ? 1000 : 100;
     for (const auto& queueId : queueIds) {
-      sendUdpPkts(utility::kOlympicQueueToDscp().at(queueId).front());
+      sendUdpPkts(
+          utility::kOlympicQueueToDscp().at(queueId).front(), pktsToSend);
     }
   }
 
@@ -165,6 +169,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void verifyWRRAndNC();
 
  private:
+  cfg::PortSpeed getPortSpeed() const {
+    const auto& programmedState = getHwSwitchEnsemble()->getProgrammedState();
+    return programmedState->getPort(masterLogicalPortIds()[0])->getSpeed();
+  }
   void clearPortStats() {
     auto ports = std::make_unique<std::vector<int32_t>>();
     ports->emplace_back((masterLogicalPortIds()[0]));
@@ -248,7 +256,6 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
   auto portId = masterLogicalPortIds()[0];
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
-  ;
   clearPortStats();
   auto retries = 5;
   while (retries--) {
