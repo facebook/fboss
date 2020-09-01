@@ -12,7 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
@@ -24,7 +24,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class PortQueue;
 
-using SaiBufferPool = SaiObject<SaiBufferPoolTraits>;
+using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
 using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
 
 struct SaiBufferPoolHandle {
@@ -36,6 +36,8 @@ class SaiBufferManager {
   SaiBufferManager(SaiManagerTable* managerTable, const SaiPlatform* platform);
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
+
+  void updateStats();
 
  private:
   void setupEgressBufferPool();

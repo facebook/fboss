@@ -45,6 +45,16 @@ void SaiBufferManager::setupEgressBufferPool() {
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
 
+void SaiBufferManager::updateStats() {
+  if (egressBufferPoolHandle_) {
+    egressBufferPoolHandle_->bufferPool->updateStats();
+    auto counters = egressBufferPoolHandle_->bufferPool->getStats();
+    XLOG(INFO) << " Device watermark: "
+               << counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+    // TODO publish device watermarks
+  }
+}
+
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     const PortQueue& queue) const {
   SaiBufferProfileTraits::Attributes::PoolId pool{

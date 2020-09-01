@@ -449,9 +449,14 @@ void SaiSwitch::updateStats(SwitchStats* switchStats) {
     }
     ++iter;
   }
-
-  std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-  managerTable_->hostifManager().updateStats();
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->hostifManager().updateStats();
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->bufferManager().updateStats();
+  }
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
