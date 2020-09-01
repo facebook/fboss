@@ -41,6 +41,7 @@ class SaiBufferManager {
   void updateStats();
 
  private:
+  void publishDeviceWatermark(uint64_t peakBytes) const;
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
 
