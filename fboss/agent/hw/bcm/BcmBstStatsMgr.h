@@ -13,6 +13,8 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include <atomic>
+
 namespace facebook::fboss {
 
 /*
@@ -45,11 +47,15 @@ class BcmBstStatsMgr {
     return !fineGrainedBufferStatsEnabled_;
   }
 
+  uint64_t getDeviceWatermarkBytes() const {
+    return deviceWatermarkBytes_.load();
+  }
+
   void updateStats();
 
  private:
   void syncStats() const;
-  void getAndPublishDeviceWatermark() const;
+  void getAndPublishDeviceWatermark();
   void publishDeviceWatermark(uint64_t peakBytes) const;
   void publishQueueuWatermark(
       const std::string& portName,
@@ -64,6 +70,11 @@ class BcmBstStatsMgr {
   bool fineGrainedBufferStatsEnabled_{false};
   bool bufferStatsEnabled_{false};
   std::unique_ptr<BufferStatsLogger> bufferStatsLogger_;
+  /*
+   * Atomic as the stat is updated in stats thread but
+   * maybe read from other threads
+   */
+  std::atomic<uint64_t> deviceWatermarkBytes_{0};
 };
 
 } // namespace facebook::fboss

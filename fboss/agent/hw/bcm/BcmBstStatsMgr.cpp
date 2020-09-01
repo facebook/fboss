@@ -46,7 +46,7 @@ void BcmBstStatsMgr::syncStats() const {
   bcmCheckError(rv, "Failed to sync BST stat");
 }
 
-void BcmBstStatsMgr::getAndPublishDeviceWatermark() const {
+void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
   auto peakUsage = hw_->getCosMgr()->deviceStatGet(bcmBstStatIdDevice);
   auto peakBytes = peakUsage * hw_->getMMUCellBytes();
   if (peakBytes > hw_->getMMUBufferBytes()) {
@@ -59,6 +59,7 @@ void BcmBstStatsMgr::getAndPublishDeviceWatermark() const {
     return;
   }
 
+  deviceWatermarkBytes_.store(peakBytes);
   publishDeviceWatermark(peakBytes);
   if (isFineGrainedBufferStatLoggingEnabled()) {
     bufferStatsLogger_->logDeviceBufferStat(

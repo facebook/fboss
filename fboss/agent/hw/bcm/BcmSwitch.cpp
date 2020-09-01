@@ -2344,8 +2344,7 @@ void BcmSwitch::updateGlobalStats() {
 }
 
 uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
-  // TODO
-  return 0;
+  return bstStatsMgr_->getDeviceWatermarkBytes();
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
