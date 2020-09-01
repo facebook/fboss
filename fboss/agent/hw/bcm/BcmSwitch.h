@@ -361,6 +361,8 @@ class BcmSwitch : public BcmSwitchIf {
    */
   void updateStats(SwitchStats* switchStats) override;
 
+  uint64_t getDeviceWatermarkBytes() const override;
+
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.

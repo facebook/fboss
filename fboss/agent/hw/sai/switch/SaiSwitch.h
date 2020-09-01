@@ -74,6 +74,8 @@ class SaiSwitch : public HwSwitch {
 
   void updateStats(SwitchStats* switchStats) override;
 
+  uint64_t getDeviceWatermarkBytes() const override;
+
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
 
   void gracefulExit(folly::dynamic& switchState) override;

@@ -209,6 +209,10 @@ class HwSwitch {
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
   /*
+   * Get latest device watermark bytes
+   */
+  virtual uint64_t getDeviceWatermarkBytes() const = 0;
+  /*
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */

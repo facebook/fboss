@@ -127,6 +127,10 @@ class MockBcmSwitch : public BcmSwitchIf {
   MOCK_CONST_METHOD0(getBootType, BootType());
   MOCK_CONST_METHOD0(getSwitchSettings, const BcmSwitchSettings*());
 
+  uint64_t getDeviceWatermarkBytes() const override {
+    return 0;
+  }
+
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));
 };

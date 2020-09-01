@@ -2343,6 +2343,11 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
+uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
+  // TODO
+  return 0;
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return BcmEgress::getDropEgressId();
 }

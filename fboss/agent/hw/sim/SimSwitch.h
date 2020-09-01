@@ -94,6 +94,10 @@ class SimSwitch : public HwSwitch {
   }
   void dumpDebugState(const std::string& /*path*/) const override {}
 
+  uint64_t getDeviceWatermarkBytes() const override {
+    return 0;
+  }
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // Forbidden copy constructor and assignment operator

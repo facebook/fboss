@@ -86,6 +86,10 @@ class MockHwSwitch : public HwSwitch {
     return true;
   }
 
+  uint64_t getDeviceWatermarkBytes() const override {
+    return 0;
+  }
+
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));
 

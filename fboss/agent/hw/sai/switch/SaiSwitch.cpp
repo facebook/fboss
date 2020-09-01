@@ -462,6 +462,11 @@ void SaiSwitch::updateStats(SwitchStats* switchStats) {
   }
 }
 
+uint64_t SaiSwitch::getDeviceWatermarkBytes() const {
+  // TODO
+  return 0;
+}
+
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);
