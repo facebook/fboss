@@ -31,17 +31,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     return getPlatform()->getLocalMac();
   }
 
-  template <typename ECMP_HELPER>
-  std::shared_ptr<SwitchState> setupECMPForwarding(
-      const ECMP_HELPER& ecmpHelper) {
-    auto kEcmpWidthForTest = 1;
-    auto newState = ecmpHelper.setupECMPForwarding(
-        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
-        kEcmpWidthForTest);
-    applyNewState(newState);
-    return getProgrammedState();
-  }
-
   void sendUdpPkt(uint8_t dscpVal) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
@@ -60,17 +49,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         255,
         std::vector<uint8_t>(6000, 0xff));
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
-  }
-
-  /*
-   * In practice, sending single packet usually (but not always) returned BST
-   * value > 0 (usually 2, but  other times it was 0). Thus, send a large
-   * number of packets to try to avoid the risk of flakiness.
-   */
-  void sendUdpPkts(uint8_t dscpVal, int cnt = 100) {
-    for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal);
-    }
   }
 
   void
@@ -98,7 +76,49 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     return false;
   }
 
+  bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
+    do {
+      getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+      auto deviceWatermarkBytes =
+          getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
+      XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
+      auto watermarkAsExpected = (expectZero && !deviceWatermarkBytes) ||
+          (!expectZero && deviceWatermarkBytes);
+      if (watermarkAsExpected) {
+        return true;
+      }
+      XLOG(DBG0) << " Retry ...";
+      sleep(1);
+    } while (--retries > 0);
+
+    XLOG(INFO) << " Did not get expected device watermark value";
+    return false;
+  }
+
  protected:
+  /*
+   * In practice, sending single packet usually (but not always) returned BST
+   * value > 0 (usually 2, but  other times it was 0). Thus, send a large
+   * number of packets to try to avoid the risk of flakiness.
+   */
+  void sendUdpPkts(uint8_t dscpVal, int cnt = 100) {
+    for (int i = 0; i < cnt; i++) {
+      sendUdpPkt(dscpVal);
+    }
+  }
+  template <typename ECMP_HELPER>
+  std::shared_ptr<SwitchState> setupECMPForwarding(
+      const ECMP_HELPER& ecmpHelper) {
+    auto kEcmpWidthForTest = 1;
+    auto newState = ecmpHelper.setupECMPForwarding(
+        ecmpHelper.resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
+        kEcmpWidthForTest);
+    applyNewState(newState);
+    return getProgrammedState();
+  }
+  void assertDeviceWatermark(bool expectZero, int retries = 1) {
+    EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
+  }
   void runTest(int queueId) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
@@ -127,6 +147,23 @@ TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
 
 TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
   runTest(utility::kOlympicGoldQueueId);
+}
+
+// TODO - merge device watermark checking into the tests
+// above once all platforms support device watermarks
+TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
+  auto setup = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    setupECMPForwarding(ecmpHelper6);
+  };
+  auto verify = [this]() {
+    sendUdpPkts(0);
+    // Assert non zero watermark
+    assertDeviceWatermark(false);
+    // Assert zero watermark
+    assertDeviceWatermark(true, 5);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
