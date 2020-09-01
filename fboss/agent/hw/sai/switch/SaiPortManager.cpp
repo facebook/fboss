@@ -563,7 +563,24 @@ void SaiPortManager::clearStats(PortID port) {
   if (!portHandle) {
     return;
   }
-  portHandle->port->clearStats(supportedStats());
+  auto statsToClear = supportedStats();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    // Debug counters are implemented differently than regular port counters
+    // and not all implementations support clearing them. For our use case
+    // it doesn't particularly matter if we can't clear them. So prune the
+    // debug counter clear for now.
+    auto debugCounterId =
+        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId();
+    statsToClear.erase(
+        std::remove_if(
+            statsToClear.begin(),
+            statsToClear.end(),
+            [debugCounterId](auto counterId) {
+              return counterId == debugCounterId;
+            }),
+        statsToClear.end());
+  }
+  portHandle->port->clearStats(statsToClear);
   for (auto& queueAndHandle : portHandle->queues) {
     queueAndHandle.second->queue->clearStats();
   }
