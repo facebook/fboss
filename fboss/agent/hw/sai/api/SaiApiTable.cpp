@@ -63,6 +63,7 @@ void SaiApiTable::queryApis() {
   std::get<std::unique_ptr<VirtualRouterApi>>(apis_) =
       std::make_unique<VirtualRouterApi>();
   std::get<std::unique_ptr<VlanApi>>(apis_) = std::make_unique<VlanApi>();
+  std::get<std::unique_ptr<WredApi>>(apis_) = std::make_unique<WredApi>();
 }
 
 AclApi& SaiApiTable::aclApi() {
@@ -202,6 +203,13 @@ VlanApi& SaiApiTable::vlanApi() {
 }
 const VlanApi& SaiApiTable::vlanApi() const {
   return getApi<VlanApi>();
+}
+
+WredApi& SaiApiTable::wredApi() {
+  return getApi<WredApi>();
+}
+const WredApi& SaiApiTable::wredApi() const {
+  return getApi<WredApi>();
 }
 
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
