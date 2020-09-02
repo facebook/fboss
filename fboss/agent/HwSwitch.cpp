@@ -47,4 +47,9 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
                << switchRunStateStr(runState_);
   }
 }
+
+void HwSwitch::updateStats(SwitchStats* switchStats) {
+  updateStatsImpl(switchStats);
+  // TODO(next diff): send to normalizer
+}
 } // namespace facebook::fboss

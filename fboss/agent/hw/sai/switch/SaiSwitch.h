@@ -72,7 +72,7 @@ class SaiSwitch : public HwSwitch {
       PortID portID,
       std::optional<uint8_t> queueId) noexcept override;
 
-  void updateStats(SwitchStats* switchStats) override;
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 
@@ -134,6 +134,8 @@ class SaiSwitch : public HwSwitch {
 
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override;
+
+  void updateStatsImpl(SwitchStats* switchStats) override;
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
    * private functions with the same name followed by Locked.
@@ -202,6 +204,9 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock);
   void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
   void initRxLocked(const std::lock_guard<std::mutex>& lock);
+
+  folly::F14FastMap<std::string, HwPortStats> getPortStatsLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);

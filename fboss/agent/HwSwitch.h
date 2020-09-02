@@ -11,6 +11,7 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/types.h"
 
@@ -204,7 +205,9 @@ class HwSwitch {
   /*
    * Allows hardware-specific code to record switch statistics.
    */
-  virtual void updateStats(SwitchStats* switchStats) = 0;
+  void updateStats(SwitchStats* switchStats);
+
+  virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
 
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
@@ -310,6 +313,8 @@ class HwSwitch {
 
  private:
   virtual void switchRunStateChangedImpl(SwitchRunState newState) = 0;
+
+  virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
 
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};

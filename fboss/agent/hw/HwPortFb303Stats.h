@@ -38,6 +38,14 @@ class HwPortFb303Stats {
     return portStats_;
   }
 
+  const std::string& portName() const {
+    return portName_;
+  }
+
+  std::chrono::seconds timeRetrieved() const {
+    return timeRetrieved_;
+  }
+
   void portNameChanged(const std::string& newName) {
     auto oldPortName = portName_;
     portName_ = newName;

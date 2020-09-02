@@ -78,6 +78,10 @@ class SaiPortManager {
 
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
+  const Stats& getLastPortStats() const {
+    return portStats_;
+  }
+
   cfg::PortSpeed getMaxSpeed(PortID port) const;
   Handles::const_iterator begin() const {
     return handles_.begin();

@@ -60,6 +60,9 @@ class MockBcmSwitch : public BcmSwitchIf {
       std::unique_ptr<MockRxPacket> pkt) const override {
     return getPacketTraceImpl(pkt.get());
   }
+  MOCK_CONST_METHOD0(
+      getPortStats,
+      folly::F14FastMap<std::string, HwPortStats>());
   MOCK_CONST_METHOD1(
       getPacketTraceImpl,
       std::unique_ptr<PacketTraceInfo>(MockRxPacket* pkt));
@@ -103,7 +106,7 @@ class MockBcmSwitch : public BcmSwitchIf {
       std::shared_ptr<SwitchState>(const StateDelta& delta));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
-  MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
+  MOCK_METHOD1(updateStatsImpl, void(SwitchStats* switchStats));
   MOCK_CONST_METHOD0(getCosMgr, BcmCosManager*());
   MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_CONST_METHOD0(writableHostTable, BcmHostTable*());

@@ -41,8 +41,9 @@ class SimSwitch : public HwSwitch {
 
   void injectPacket(std::unique_ptr<RxPacket> pkt);
 
-  // TODO
-  void updateStats(SwitchStats* /*switchStats*/) override {}
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override {
+    return {};
+  }
 
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;
@@ -100,6 +101,9 @@ class SimSwitch : public HwSwitch {
 
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
+  // TODO
+  void updateStatsImpl(SwitchStats* /*switchStats*/) override {}
+
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
   SimSwitch& operator=(SimSwitch const&) = delete;

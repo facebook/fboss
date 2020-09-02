@@ -525,6 +525,7 @@ void SaiPortManager::updateStats(PortID portId) {
           hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
       : *curPortStats.inDiscards__ref();
+  curPortStats.timestamp__ref() = now.count();
   handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
   const auto& counters = handle->port->getStats();
   fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);

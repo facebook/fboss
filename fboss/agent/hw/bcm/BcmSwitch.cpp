@@ -2312,11 +2312,16 @@ bool BcmSwitch::sendPacketOutOfPortSync(
   return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt), this));
 }
 
-void BcmSwitch::updateStats(SwitchStats* switchStats) {
+void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
   controlPlane_->updateQueueCounters();
+}
+
+folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
+  // TODO
+  return {};
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(

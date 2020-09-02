@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -442,7 +443,7 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
   return sendPacketOutOfPortSync(std::move(pkt), portID, queueId);
 }
 
-void SaiSwitch::updateStats(SwitchStats* switchStats) {
+void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   auto& portManager = managerTable_->portManager();
   auto iter = concurrentIndices_->portIds.begin();
   while (iter != concurrentIndices_->portIds.end()) {
@@ -470,6 +471,21 @@ uint64_t SaiSwitch::getDeviceWatermarkBytes() const {
 uint64_t SaiSwitch::getDeviceWatermarkBytesLocked(
     const std::lock_guard<std::mutex>& /*lock*/) const {
   return managerTable_->bufferManager().getDeviceWatermarkBytes();
+}
+
+folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getPortStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  folly::F14FastMap<std::string, HwPortStats> portStatsMap;
+  auto& portIdStatsMap = managerTable_->portManager().getLastPortStats();
+  for (auto& entry : portIdStatsMap) {
+    portStatsMap.emplace(entry.second->portName(), entry.second->portStats());
+  }
+  return portStatsMap;
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {

@@ -356,10 +356,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   folly::dynamic toFollyDynamic() const override;
 
-  /*
-   * Update all statistics.
-   */
-  void updateStats(SwitchStats* switchStats) override;
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 
@@ -534,6 +531,11 @@ class BcmSwitch : public BcmSwitchIf {
    * Handle SwitchRunState changes
    */
   void switchRunStateChangedImpl(SwitchRunState newState) override;
+
+  /*
+   * Update all statistics.
+   */
+  void updateStatsImpl(SwitchStats* switchStats) override;
 
   /*
    * Get default state switch is in on a cold boot
