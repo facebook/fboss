@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
@@ -103,5 +104,10 @@ void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform);
+
+std::vector<cfg::PortProfileID> allPortProfiles();
+cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
+TransmitterTechnology getMediaType(cfg::PortProfileID profile);
+
 } // namespace utility
 } // namespace facebook::fboss
