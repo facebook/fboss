@@ -43,4 +43,5 @@ set_target_properties(sai_tracer PROPERTIES COMPILE_FLAGS
 target_link_options(sai_tracer
   PUBLIC
   "LINKER:-wrap,sai_api_query"
+  "LINKER:-wrap,sai_api_initialize"
 )

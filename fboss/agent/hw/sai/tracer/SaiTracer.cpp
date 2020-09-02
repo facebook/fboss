@@ -86,11 +86,37 @@ using std::vector;
 extern "C" {
 
 // Real functions for Sai APIs
+sai_status_t __real_sai_api_initialize(
+    uint64_t flags,
+    const sai_service_method_table_t* services);
+
 sai_status_t __real_sai_api_query(
     sai_api_t sai_api_id,
     void** api_method_table);
 
 // Wrap function for Sai APIs
+sai_status_t __wrap_sai_api_initialize(
+    uint64_t flags,
+    const sai_service_method_table_t* services) {
+  sai_status_t rv = __real_sai_api_initialize(flags, services);
+
+  // Reset service table iterator
+  services->profile_get_next_value(0, nullptr, nullptr);
+
+  std::array<const char*, 32> variables;
+  std::array<const char*, 32> values;
+  int size = 0;
+
+  while (services->profile_get_next_value(0, &variables[size], &values[size]) !=
+         -1) {
+    size++;
+  }
+
+  SaiTracer::getInstance()->logApiInitialize(
+      variables.data(), values.data(), size);
+  return rv;
+}
+
 sai_status_t __wrap_sai_api_query(
     sai_api_t sai_api_id,
     void** api_method_table) {
@@ -277,6 +303,37 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
   auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
 
   asyncLogger_->appendLog(lines.c_str(), lines.size());
+}
+
+void SaiTracer::logApiInitialize(
+    const char** variables,
+    const char** values,
+    int size) {
+  vector<string> lines;
+
+  for (int i = 0; i < size; ++i) {
+    if (!strcmp(variables[i], SAI_KEY_WARM_BOOT_WRITE_FILE) ||
+        !strcmp(variables[i], SAI_KEY_WARM_BOOT_READ_FILE)) {
+      // Append '_replayer' suffix to sai adapter state file
+      lines.push_back(to<string>(
+          "kSaiProfileValues.emplace(\"",
+          variables[i],
+          "\",\"",
+          values[i],
+          "_replayer",
+          "\")"));
+    } else {
+      lines.push_back(to<string>(
+          "kSaiProfileValues.emplace(\"",
+          variables[i],
+          "\",\"",
+          values[i],
+          "\")"));
+    }
+  }
+
+  lines.push_back("sai_api_initialize(0, &kSaiServiceMethodTable)");
+  writeToFile(lines);
 }
 
 void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
