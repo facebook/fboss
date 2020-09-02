@@ -28,6 +28,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/AddressUtilTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp
     fboss/agent/hw/sai/api/tests/VlanApiTest.cpp
+    fboss/agent/hw/sai/api/tests/WredApiTest.cpp
     fboss/agent/hw/sai/api/tests/AdapterKeySerializerTest.cpp
     fboss/agent/hw/sai/api/tests/LoggingUtilTest.cpp
 )
