@@ -465,6 +465,47 @@ void configurePortGroup(
   }
 }
 
+void configurePortProfile(
+    const HwSwitch& hwSwitch,
+    cfg::SwitchConfig& config,
+    cfg::PortProfileID profileID,
+    std::vector<PortID> allPortsInGroup) {
+  auto platform = hwSwitch.getPlatform();
+  auto supportsAddRemovePort = platform->supportsAddRemovePort();
+  auto speed = getPortSpeedFromProfile(platform, profileID);
+  for (auto portID : allPortsInGroup) {
+    // We might have removed a subsumed port already in a previous
+    // iteration of the loop.
+    auto cfgPort = findCfgPortIf(config, portID);
+    if (cfgPort == config.ports_ref()->end()) {
+      return;
+    }
+
+    auto platformPort = platform->getPlatformPort(portID);
+    auto platPortEntry = platformPort->getPlatformPortEntry();
+    if (platPortEntry == std::nullopt) {
+      throw std::runtime_error(folly::to<std::string>(
+          "No platform port entry found for port ", portID));
+    }
+    auto supportedProfiles = *platPortEntry->supportedProfiles_ref();
+    auto profile = supportedProfiles.find(profileID);
+    if (profile == supportedProfiles.end()) {
+      XLOG(WARNING) << "Port " << static_cast<int>(portID)
+                    << "Doesn't support profile " << static_cast<int>(profileID)
+                    << ", disabling it instead";
+      // Port doesn't support this speed, just disable it.
+      cfgPort->speed_ref() = cfg::PortSpeed::DEFAULT;
+      cfgPort->state_ref() = cfg::PortState::DISABLED;
+      continue;
+    }
+
+    cfgPort->profileID_ref() = profileID;
+    cfgPort->speed_ref() = speed;
+    cfgPort->state_ref() = cfg::PortState::ENABLED;
+    removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
+  }
+}
+
 std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
   auto platform = hwSwitch->getPlatform();
   std::string chip;
