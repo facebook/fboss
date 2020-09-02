@@ -162,7 +162,7 @@ class RouteIpCmd(cmds.FbossCmd):
 
 
 class RouteTableCmd(cmds.FbossCmd):
-    def run(self, client_id, ipv4, ipv6):
+    def run(self, client_id, ipv4, ipv6, prefixes: t.List[str]):
         with ExitStack() as stack:
             agent_client = stack.enter_context(self._create_agent_client())
             qsfp_client = stack.enter_context(self._create_qsfp_client())
@@ -181,15 +181,21 @@ class RouteTableCmd(cmds.FbossCmd):
             vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(agent_client)
 
             for entry in resp:
+                prefix_str = (
+                    f"{utils.ip_ntop(entry.dest.ip.addr)}/{entry.dest.prefixLength}"
+                )
+                ucmp_active = " (UCMP Active)" if is_ucmp_active(entry.nextHops) else ""
+
+                # Apply filters
                 if ipv6 and not ipv4 and len(entry.dest.ip.addr) == 4:
                     continue
                 if ipv4 and not ipv6 and len(entry.dest.ip.addr) == 16:
                     continue
+                if prefixes and prefix_str not in prefixes:
+                    continue
 
-                prefix = utils.ip_ntop(entry.dest.ip.addr)
-                prefix_mask_len = entry.dest.prefixLength
-                ucmp_active = " (UCMP Active)" if is_ucmp_active(entry.nextHops) else ""
-                print(f"Network Address: {prefix}/{prefix_mask_len}{ucmp_active}")
+                # Print header
+                print(f"Network Address: {prefix_str}{ucmp_active}")
 
                 # Need to check the nextHopAddresses
                 if entry.nextHops:
@@ -251,7 +257,7 @@ class RouteTableSummaryCmd(cmds.FbossCmd):
 
 
 class RouteTableDetailsCmd(cmds.FbossCmd):
-    def run(self, ipv4, ipv6):
+    def run(self, ipv4, ipv6, prefixes: t.List[str]):
         with ExitStack() as stack:
             client = stack.enter_context(self._create_agent_client())
             qsfp_client = stack.enter_context(self._create_qsfp_client())
@@ -264,8 +270,17 @@ class RouteTableDetailsCmd(cmds.FbossCmd):
                 print("No Route Table Details Found")
                 return
             for entry in resp:
+                prefix_str = (
+                    f"{utils.ip_ntop(entry.dest.ip.addr)}/{entry.dest.prefixLength}"
+                )
+
+                # Apply filter
                 if ipv6 and not ipv4 and len(entry.dest.ip.addr) == 4:
                     continue
                 if ipv4 and not ipv6 and len(entry.dest.ip.addr) == 16:
                     continue
+                if prefixes and prefix_str not in prefixes:
+                    continue
+
+                # Print route details
                 printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map)
