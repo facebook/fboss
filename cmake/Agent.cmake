@@ -133,6 +133,7 @@ target_link_libraries(core
   phy_cpp2
   transceiver_cpp2
   Folly::folly
+  normalizer
   ${IPROUTE2}
   ${NETLINK3}
   ${NETLINKROUTE3}

@@ -481,6 +481,7 @@ if (NOT SAI_ONLY)
       fboss/agent/NdpCache.cpp
       fboss/agent/NeighborUpdater.cpp
       fboss/agent/NeighborUpdaterImpl.cpp
+      fboss/agent/normalization/Normalizer.cpp
       fboss/agent/oss/AggregatePortStats.cpp
       fboss/agent/oss/FbossInit.cpp
       fboss/agent/oss/Main.cpp
