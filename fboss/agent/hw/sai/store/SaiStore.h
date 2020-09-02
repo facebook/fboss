@@ -358,7 +358,8 @@ class SaiStore {
       detail::SaiObjectStore<SaiHashTraits>,
       detail::SaiObjectStore<SaiInSegTraits>,
       detail::SaiObjectStore<SaiQosMapTraits>,
-      detail::SaiObjectStore<SaiPortSerdesTraits>>
+      detail::SaiObjectStore<SaiPortSerdesTraits>,
+      detail::SaiObjectStore<SaiWredTraits>>
       stores_;
 };
 

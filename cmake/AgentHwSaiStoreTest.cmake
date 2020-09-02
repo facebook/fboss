@@ -25,6 +25,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/RouterInterfaceStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SchedulerStoreTest.cpp
     fboss/agent/hw/sai/store/tests/VlanStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/WredStoreTest.cpp
 )
 
 target_link_libraries(store_test

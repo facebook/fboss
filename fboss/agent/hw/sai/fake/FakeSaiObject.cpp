@@ -122,6 +122,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_DEBUG_COUNTER:
       *count = fs->debugCounterManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_WRED:
+      *count = fs->wredManager.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -340,6 +343,12 @@ sai_status_t sai_get_object_key(
       *count = fs->debugCounterManager.map().size();
       for (const auto& debugCounter : fs->debugCounterManager.map()) {
         object_list[i++].key.object_id = debugCounter.first;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_WRED: {
+      for (const auto& wred : fs->wredManager.map()) {
+        object_list[i++].key.object_id = wred.second.id;
       }
       break;
     }
