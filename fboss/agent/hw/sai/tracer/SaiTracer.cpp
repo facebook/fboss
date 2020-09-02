@@ -73,18 +73,10 @@ DEFINE_int32(
     "Default number of the lists initialzied by SAI replayer");
 
 DEFINE_int32(
-    buffer_size,
-    409600,
-    "Buffer size in bytes. Note that there're two buffers"
-    "in AsyncLogger implementation");
-
-DEFINE_int32(
     log_timeout,
     100,
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
-
-constexpr uint32_t MIN_BUFFER_SIZE = 8192;
 
 using facebook::fboss::SaiTracer;
 using folly::to;
@@ -253,17 +245,8 @@ namespace facebook::fboss {
 
 SaiTracer::SaiTracer() {
   if (FLAGS_enable_replayer) {
-    if (FLAGS_buffer_size < MIN_BUFFER_SIZE) {
-      asyncLogger_ = std::make_unique<AsyncLogger>(
-          FLAGS_sai_log, MIN_BUFFER_SIZE, FLAGS_log_timeout);
-      XLOG(WARN)
-          << "Buffer size for Sai Replayer is smaller than min buffer size "
-          << MIN_BUFFER_SIZE << ". Initializing Sai Replayer with buffer size "
-          << MIN_BUFFER_SIZE << " instead.";
-    } else {
-      asyncLogger_ = std::make_unique<AsyncLogger>(
-          FLAGS_sai_log, FLAGS_buffer_size, FLAGS_log_timeout);
-    }
+    asyncLogger_ =
+        std::make_unique<AsyncLogger>(FLAGS_sai_log, FLAGS_log_timeout);
 
     asyncLogger_->startFlushThread();
     asyncLogger_->appendLog(cpp_header_, strlen(cpp_header_));
