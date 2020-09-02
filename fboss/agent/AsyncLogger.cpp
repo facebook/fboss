@@ -26,7 +26,7 @@ AsyncLogger::AsyncLogger(
     uint32_t bufferSize,
     uint32_t logTimeout)
     : bufferSize_(bufferSize) {
-  logFile_ = folly::File(file_path, O_RDWR | O_CREAT | O_TRUNC);
+  openLogFile(file_path);
 
   if (!FLAGS_disable_async_logger) {
     logBuffer_ = new char[bufferSize_];
@@ -162,6 +162,32 @@ void AsyncLogger::appendLog(const char* logRecord, size_t logSize) {
     offset_ += logSize;
 
     latch_.unlock();
+  }
+}
+
+void AsyncLogger::openLogFile(std::string& file_path) {
+  // By default, async logger opens log file under /var/facebook/logs/fboss/
+  // However, the directory /var/facebook/logs/fboss/ might not exist for test
+  // switches not running chef. When that happens, we fall back to /tmp/ and
+  // write generated code there.
+  try {
+    if (file_path.find("/var/facebook/logs/fboss/") == 0) {
+      // Writes to default log location - append to log
+      logFile_ = folly::File(file_path, O_RDWR | O_CREAT | O_APPEND);
+    } else {
+      // Testing purpose - override the old log
+      logFile_ = folly::File(file_path, O_RDWR | O_CREAT | O_TRUNC);
+    }
+  } catch (const std::system_error& e) {
+    auto last_slash = file_path.find_last_of("/");
+
+    std::string directory = file_path.substr(0, last_slash);
+    std::string file_name = file_path.substr(last_slash + 1);
+
+    XLOG(WARN) << "Failed to create " << file_name << " under " << directory
+               << ". Falling back to /tmp/" << file_name;
+
+    logFile_ = folly::File("/tmp/" + file_name, O_RDWR | O_CREAT | O_TRUNC);
   }
 }
 

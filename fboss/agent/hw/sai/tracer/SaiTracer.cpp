@@ -57,7 +57,10 @@ DEFINE_bool(
     "At runtime, it should be disabled to reduce logging overhead."
     "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
 
-DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
+DEFINE_string(
+    sai_log,
+    "/var/facebook/logs/fboss/sai_replayer.log",
+    "File path to the SAI Replayer logs");
 
 DEFINE_int32(
     default_list_size,

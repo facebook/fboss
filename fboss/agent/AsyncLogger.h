@@ -39,6 +39,7 @@ class AsyncLogger {
 
  private:
   void worker_thread();
+  void openLogFile(std::string& file_path);
 
   char* logBuffer_;
   char* flushBuffer_;
