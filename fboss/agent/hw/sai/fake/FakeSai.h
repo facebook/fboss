@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
 
 #include <memory>
 
@@ -67,6 +68,7 @@ struct FakeSai {
   FakeSwitchManager switchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
+  FakeWredManager wredManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
   sai_object_id_t getCpuPort();
