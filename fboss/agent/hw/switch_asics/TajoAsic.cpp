@@ -11,7 +11,6 @@ bool TajoAsic::isSupported(Feature feature) const {
      * verified on the asic. Marking them as true for now but need to revisit
      * this as we verify the features.
      */
-    case HwAsic::Feature::ACL:
     case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:

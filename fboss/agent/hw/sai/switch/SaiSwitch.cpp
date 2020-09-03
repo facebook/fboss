@@ -165,11 +165,10 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
      *       corresponding Acl Table group member.
      *     - statechanged() would continue to carry AclEntry delta processing.
      */
-    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
-      managerTable_->aclTableGroupManager().addAclTableGroup(
-          SAI_ACL_STAGE_INGRESS);
-      managerTable_->aclTableManager().addAclTable(kAclTable1);
-    }
+    managerTable_->aclTableGroupManager().addAclTableGroup(
+        SAI_ACL_STAGE_INGRESS);
+    managerTable_->aclTableManager().addAclTable(kAclTable1);
+
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();
     }
@@ -337,15 +336,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACL)) {
-    processDelta(
-        delta.getAclsDelta(),
-        managerTable_->aclTableManager(),
-        &SaiAclTableManager::changedAclEntry,
-        &SaiAclTableManager::addAclEntry,
-        &SaiAclTableManager::removeAclEntry,
-        kAclTable1);
-  }
+  processDelta(
+      delta.getAclsDelta(),
+      managerTable_->aclTableManager(),
+      &SaiAclTableManager::changedAclEntry,
+      &SaiAclTableManager::addAclEntry,
+      &SaiAclTableManager::removeAclEntry,
+      kAclTable1);
 
   processSwitchSettingsChanged(delta);
   return delta.newState();
