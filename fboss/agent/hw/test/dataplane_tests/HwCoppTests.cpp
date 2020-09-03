@@ -130,6 +130,34 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendArpPkts(
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeARPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          arpType == ARP_OPER::ARP_OPER_REQUEST
+              ? folly::MacAddress("ff:ff:ff:ff:ff:ff")
+              : intfMac,
+          folly::IPAddress("1.1.1.2"),
+          dstIpAddress,
+          arpType);
+      if (outOfPort) {
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+      } else {
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
+    }
+  }
+
   uint64_t getQueueOutPacketsWithRetry(
       int queueId,
       int retryTimes,
@@ -220,6 +248,24 @@ class HwCoppTest : public HwLinkStateDependentTest {
                << (dstMac ? (*dstMac).toString()
                           : getPlatform()->getLocalMac().toString())
                << ". Ethertype=" << std::hex << int(etherType)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyArpPacketsCpuQueue(
+      int queueId,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str() << ", dstMac="
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
