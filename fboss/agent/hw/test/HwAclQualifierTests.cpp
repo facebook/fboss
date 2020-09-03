@@ -335,4 +335,61 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwAclQualifierTest, AclIp4AndLookupClassQualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
+    configureIp4QualifiersHelper(acl);
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      configureQualifier(
+          acl->lookupClassL2_ref(),
+          true,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    }
+    configureQualifier(
+        acl->lookupClass_ref(),
+        true,
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
+
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6AndLookupClassQualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+    configureIp6QualifiersHelper(acl);
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      configureQualifier(
+          acl->lookupClassL2_ref(),
+          true,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    }
+    configureQualifier(
+        acl->lookupClass_ref(),
+        true,
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
