@@ -20,6 +20,7 @@
 #include <folly/io/Cursor.h>
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
 
@@ -151,5 +152,15 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
+
+std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    ARP_OPER type,
+    std::optional<folly::MacAddress> targetMac = std::nullopt);
 
 } // namespace facebook::fboss::utility
