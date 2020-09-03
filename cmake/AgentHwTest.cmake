@@ -87,6 +87,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
+  fboss/agent/hw/test/HwNeighborTests.cpp
   fboss/agent/hw/test/HwTest.cpp
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestConstants.cpp
