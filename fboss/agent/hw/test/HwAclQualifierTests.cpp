@@ -115,6 +115,31 @@ class HwAclQualifierTest : public HwTest {
     }
   }
 
+  void configureIp4QualifiersHelper(cfg::AclEntry* acl) {
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
+    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
+    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+  }
+
+  void configureIp6QualifiersHelper(cfg::AclEntry* acl) {
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
+    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
+    configureQualifier(
+        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
@@ -280,16 +305,7 @@ TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
-
-    cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
-
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
-    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
-    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+    configureIp4QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
@@ -306,17 +322,7 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
-
-    cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
-
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
-    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
-    configureQualifier(
-        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+    configureIp6QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
