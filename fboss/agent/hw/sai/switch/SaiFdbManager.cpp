@@ -104,10 +104,11 @@ void SaiFdbManager::addFdbEntry(
     std::optional<sai_uint32_t> metadata) {
   XLOGF(
       INFO,
-      "Add fdb entry {}, {}, {}, metadata: {}",
+      "Add fdb entry {}, {}, {}, type: {}, metadata: {}",
       port,
       interfaceId,
       mac,
+      (type == SAI_FDB_ENTRY_TYPE_STATIC ? "static" : "dynamic"),
       metadata ? metadata.value() : 0);
 
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
@@ -116,10 +117,13 @@ void SaiFdbManager::addFdbEntry(
   if (managedFdbEntryIter != managedFdbEntries_.end()) {
     XLOGF(
         INFO,
-        "fdb entry {}, {}, {}, metadata: {} already exists.",
+        "fdb entry {}, {}, {}, type: {}, metadata: {} already exists.",
         managedFdbEntryIter->second->getPortId(),
         managedFdbEntryIter->second->getInterfaceID(),
         managedFdbEntryIter->second->getMac(),
+        (managedFdbEntryIter->second->getType() == SAI_FDB_ENTRY_TYPE_STATIC
+             ? "static"
+             : "dynamic"),
         managedFdbEntryIter->second->getMetaData());
     return;
   }
@@ -180,6 +184,14 @@ void SaiFdbManager::removeMac(const std::shared_ptr<MacEntry>& macEntry) {
   removeFdbEntry(getInterfaceId(macEntry), macEntry->getMac());
 }
 
+void SaiFdbManager::changeMac(
+    const std::shared_ptr<MacEntry>& oldEntry,
+    const std::shared_ptr<MacEntry>& newEntry) {
+  if (*oldEntry != *newEntry) {
+    removeMac(oldEntry);
+    addMac(newEntry);
+  }
+}
 InterfaceID SaiFdbManager::getInterfaceId(
     const std::shared_ptr<MacEntry>& macEntry) const {
   if (macEntry->getPort().isAggregatePort()) {

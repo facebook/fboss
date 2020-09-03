@@ -117,11 +117,7 @@ class SaiFdbManager {
   void removeMac(const std::shared_ptr<MacEntry>& removedEntry);
   void changeMac(
       const std::shared_ptr<MacEntry>& oldEntry,
-      const std::shared_ptr<MacEntry>& newEntry) {
-    // TODO - optimize this
-    removeMac(oldEntry);
-    addMac(newEntry);
-  }
+      const std::shared_ptr<MacEntry>& newEntry);
   void handleLinkDown(PortID portId);
   std::vector<L2EntryThrift> getL2Entries() const;
 
