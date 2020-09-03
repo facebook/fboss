@@ -40,7 +40,7 @@ void Normalizer::processStats(
   if (XLOG_IS_ON(DBG6)) {
     print(hwStatsMap);
   }
-  XLOG(DBG2) << "normalizer processed stats";
+  XLOG(DBG5) << "normalizer processed stats";
 }
 
 } // namespace facebook::fboss
