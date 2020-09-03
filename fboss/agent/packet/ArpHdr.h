@@ -116,6 +116,13 @@ struct ArpHdr {
     return *this;
   }
 
+  /*
+   * ARP Header size
+   */
+  static uint32_t size() {
+    return 28;
+  }
+
  public:
   /*
    * Hardware Type
