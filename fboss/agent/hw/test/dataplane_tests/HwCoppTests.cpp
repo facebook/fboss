@@ -625,4 +625,20 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(getAsic()),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REQUEST);
+    sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(getAsic()),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REPLY);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
