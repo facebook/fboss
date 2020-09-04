@@ -511,8 +511,12 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
 
 cfg::PortSpeed BcmPort::getSpeed() const {
   int curSpeed{0};
-  auto rv = bcm_port_speed_get(unit_, port_, &curSpeed);
-  bcmCheckError(rv, "Failed to get current speed for port ", port_);
+  if (platformPort_->shouldUsePortResourceAPIs()) {
+    curSpeed = getCurrentPortResource(unit_, gport_).speed;
+  } else {
+    auto rv = bcm_port_speed_get(unit_, port_, &curSpeed);
+    bcmCheckError(rv, "Failed to get current speed for port ", port_);
+  }
   return cfg::PortSpeed(curSpeed);
 }
 
