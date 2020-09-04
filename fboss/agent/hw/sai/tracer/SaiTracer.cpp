@@ -100,20 +100,23 @@ sai_status_t __wrap_sai_api_initialize(
     const sai_service_method_table_t* services) {
   sai_status_t rv = __real_sai_api_initialize(flags, services);
 
-  // Reset service table iterator
-  services->profile_get_next_value(0, nullptr, nullptr);
+  if (services) {
+    // Reset service table iterator
+    services->profile_get_next_value(0, nullptr, nullptr);
 
-  std::array<const char*, 32> variables;
-  std::array<const char*, 32> values;
-  int size = 0;
+    std::array<const char*, 32> variables;
+    std::array<const char*, 32> values;
+    int size = 0;
 
-  while (services->profile_get_next_value(0, &variables[size], &values[size]) !=
-         -1) {
-    size++;
+    while (services->profile_get_next_value(
+               0, &variables[size], &values[size]) != -1) {
+      size++;
+    }
+
+    SaiTracer::getInstance()->logApiInitialize(
+        variables.data(), values.data(), size);
   }
 
-  SaiTracer::getInstance()->logApiInitialize(
-      variables.data(), values.data(), size);
   return rv;
 }
 
