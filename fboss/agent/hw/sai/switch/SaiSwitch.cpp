@@ -87,7 +87,6 @@ const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
         {SAI_FDB_EVENT_AGED,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
 };
-
 } // namespace
 
 namespace facebook::fboss {
@@ -122,6 +121,15 @@ void __gFdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
   __gSaiSwitch->fdbEventCallback(count, data);
+}
+
+PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
+  static std::optional<PortSaiId> kCpuPortId;
+  if (!kCpuPortId) {
+    kCpuPortId = SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId, SaiSwitchTraits::Attributes::CpuPort{});
+  }
+  return kCpuPortId.value();
 }
 
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
@@ -710,7 +718,6 @@ HwInitResult SaiSwitch::initLocked(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
-
   callback_ = callback;
   __gSaiSwitch = this;
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
@@ -864,9 +871,9 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
-  /* TODO: this hack is required, sending packet out of port with with pipeline
-  bypass, doesn't cause vlan tag stripping. fix this once a pipeline bypass with
-  vlan stripping is available. */
+  /* TODO: this hack is required, sending packet out of port with with
+  pipeline bypass, doesn't cause vlan tag stripping. fix this once a pipeline
+  bypass with vlan stripping is available. */
   getSwitchStats()->txSent();
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT)) {
@@ -965,8 +972,8 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
-         * Post warmboot synchronize hw link state with switch state maintained
-         * at callback (SwSwitch or HwTest). Since the
+         * Post warmboot synchronize hw link state with switch state
+         * maintained at callback (SwSwitch or HwTest). Since the
          * callback_->linkStateChanged is called asynchronously, its possible
          * that prior to going down for warm boot there was a link event which
          * did not get communicated to up via callback_ before we received the

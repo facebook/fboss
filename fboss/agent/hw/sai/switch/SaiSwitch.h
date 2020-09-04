@@ -279,6 +279,8 @@ class SaiSwitch : public HwSwitch {
 
   void processSwitchSettingsChanged(const StateDelta& delta);
 
+  static PortSaiId getCPUPortSaiId(SwitchSaiId switchId);
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
