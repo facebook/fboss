@@ -625,5 +625,4 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-
 } // namespace facebook::fboss
