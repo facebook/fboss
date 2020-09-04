@@ -53,21 +53,27 @@ void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntryForNeighbor(
 
 template <typename NeighborEntryT>
 void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
-    VlanID vlan,
+    VlanID vlanId,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
-  auto removeMacEntryFn = [vlan,
+  auto removeMacEntryFn = [vlanId,
                            mac](const std::shared_ptr<SwitchState>& state) {
     // Note that its possible that other neighbors still refer to this MAC.
     // Handle this in 2 steps
     // - Remove MAC
     // - Run ensureMacEntryIfNeighborExists
     // State passed down to HW is the composition of these 2 steps
-    auto newState = MacTableUtils::removeEntry(state, vlan, mac);
-    newState =
-        MacTableUtils::updateOrAddStaticEntryIfNbrExists(newState, vlan, mac);
-    return newState != state ? newState : nullptr;
+    bool macPruned = false;
+    auto newState = MacTableUtils::removeEntry(state, vlanId, mac);
+    if (newState != state) {
+      // Check if another neighbor still points to this MAC
+      newState = MacTableUtils::updateOrAddStaticEntryIfNbrExists(
+          newState, vlanId, mac);
+      auto vlan = newState->getVlans()->getVlanIf(vlanId);
+      macPruned = vlan->getMacTable()->getNodeIf(mac) == nullptr;
+    }
+    return macPruned ? newState : nullptr;
   };
 
   sw_->updateState("Prune MAC if unreferenced: ", std::move(removeMacEntryFn));
