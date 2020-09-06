@@ -24,7 +24,9 @@ class Wedge100LedUtils {
 
   int getPortIndex(std::optional<ChannelID> channel);
   LedColor getLEDColor(bool up, bool adminUp);
-  LedColor getLEDColor(PortLedExternalState externalState);
+  static LedColor getLEDColor(
+      PortLedExternalState externalState,
+      LedColor currentColor);
 };
 
 } // namespace facebook::fboss

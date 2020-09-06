@@ -20,9 +20,25 @@ Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
   return Wedge100LedUtils::LedColor::OFF;
 }
 
-Wedge100LedUtils::LedColor getLEDColor(PortLedExternalState /*externalState*/) {
-  throw FbossError("getLEDColor is unimplemented");
-  return Wedge100LedUtils::LedColor::OFF;
+Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
+    PortLedExternalState externalState,
+    Wedge100LedUtils::LedColor currentColor) {
+  Wedge100LedUtils::LedColor color = Wedge100LedUtils::LedColor::OFF;
+  switch (externalState) {
+    case PortLedExternalState::NONE:
+      color = currentColor;
+      break;
+    case PortLedExternalState::CABLING_ERROR:
+      color = Wedge100LedUtils::LedColor::YELLOW;
+      break;
+    case PortLedExternalState::EXTERNAL_FORCE_ON:
+      color = Wedge100LedUtils::LedColor::WHITE;
+      break;
+    case PortLedExternalState::EXTERNAL_FORCE_OFF:
+      color = Wedge100LedUtils::LedColor::OFF;
+      break;
+  }
+  return color;
 }
 
 } // namespace facebook::fboss
