@@ -15,7 +15,7 @@ class GalaxyLedUtils {
 
  public:
   static LedState getLEDState(bool up, bool adminUp);
-  static int getPortIndex(PortID port);
+  static int getPortIndex(PortID physicalPort);
   static size_t getPortOffset(int index);
   static folly::ByteRange defaultLed0Code();
   static folly::ByteRange defaultLed1Code();

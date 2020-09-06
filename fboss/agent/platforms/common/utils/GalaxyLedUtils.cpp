@@ -68,4 +68,21 @@ static const std::vector<uint8_t> kGalaxyLed1Code {
   return folly::ByteRange(kGalaxyLed1Code.data(), kGalaxyLed1Code.size());
 }
 
+int GalaxyLedUtils::getPortIndex(PortID physicalPort) {
+  int index = 0;
+  if (static_cast<int>(physicalPort) > 32 &&
+      static_cast<int>(physicalPort) < 97) {
+    // Ports 33 - 96, with port 33 is at offset 1.
+    index = physicalPort - 32;
+  } else {
+    // Ports 1 - 32 and 97 - 128 with port 97 is at offset 33
+    index = (physicalPort > 32 ? physicalPort - 64 : physicalPort);
+  }
+  return index;
+}
+
+size_t GalaxyLedUtils::getPortOffset(int index) {
+  return 0xa0 /* LS_LED_DATA_OFFSET_A0 */ + index - 1;
+}
+
 } // namespace facebook::fboss
