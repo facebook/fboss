@@ -54,4 +54,21 @@ Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
   return color;
 }
 
+int Wedge100LedUtils::getPipe(PortID port) {
+  return static_cast<int>(port) / 34;
+}
+
+int Wedge100LedUtils::getPortIndex(PortID port) {
+  int pipe = getPipe(port);
+  int offset = static_cast<int>(port) % 34;
+  if (pipe == 0) {
+    --offset;
+  }
+  int index = offset;
+  if (pipe == 3 || pipe == 2) {
+    index += 32;
+  }
+  return index;
+}
+
 } // namespace facebook::fboss
