@@ -30,6 +30,7 @@ class Wedge100LedUtils {
   static LedColor getLEDColor(
       PortLedExternalState externalState,
       LedColor currentColor);
+  static bool isTop(std::optional<TransceiverID> transciver);
 };
 
 } // namespace facebook::fboss

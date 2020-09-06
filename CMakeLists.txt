@@ -676,6 +676,7 @@ if (NOT SAI_ONLY)
       wedge40_platform_mapping
       wedge100_platform_mapping
       galaxy_platform_mapping
+      wedge_led_utils
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS

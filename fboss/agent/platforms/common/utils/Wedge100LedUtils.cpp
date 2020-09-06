@@ -71,4 +71,11 @@ int Wedge100LedUtils::getPortIndex(PortID port) {
   return index;
 }
 
+bool Wedge100LedUtils::isTop(std::optional<TransceiverID> tcvrID) {
+  if (tcvrID.has_value()) {
+    return !((*tcvrID) & 0x1);
+  }
+  return false;
+}
+
 } // namespace facebook::fboss
