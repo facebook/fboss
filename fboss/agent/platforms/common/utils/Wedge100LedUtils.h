@@ -24,7 +24,8 @@ class Wedge100LedUtils {
 
   static int getPipe(PortID port);
   static int getPortIndex(PortID port);
-  int getPortIndex(std::optional<ChannelID> channel);
+  static std::pair<int, int>
+  getCompactPortIndexes(PortID port, bool isTop, bool isQuad);
   static LedColor
   getLEDColor(PortID port, int numberOfLanes, bool up, bool adminUp);
   static LedColor getLEDColor(

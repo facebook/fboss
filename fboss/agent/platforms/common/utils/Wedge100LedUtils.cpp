@@ -6,12 +6,6 @@
 
 namespace facebook::fboss {
 
-int Wedge100LedUtils::getPortIndex(std::optional<ChannelID> /*channel*/) {
-  // TODO: implement this
-  throw FbossError("getLEDOffset is unimplemented");
-  return 0;
-}
-
 Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
     PortID port,
     int numberOfLanes,
@@ -76,6 +70,18 @@ bool Wedge100LedUtils::isTop(std::optional<TransceiverID> tcvrID) {
     return !((*tcvrID) & 0x1);
   }
   return false;
+}
+
+std::pair<int, int>
+Wedge100LedUtils::getCompactPortIndexes(PortID port, bool isTop, bool isQuad) {
+  if (isTop) {
+    return std::make_pair(
+        getPortIndex(port), getPortIndex(static_cast<PortID>(port + 4)));
+  }
+  auto target = isQuad ? port + 2 : port;
+  return std::make_pair(
+      getPortIndex(static_cast<PortID>(target + 1)),
+      getPortIndex(static_cast<PortID>(target - 3)));
 }
 
 } // namespace facebook::fboss
