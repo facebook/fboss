@@ -8,13 +8,7 @@ namespace facebook::fboss {
 
 class GalaxyLedUtils {
  public:
-  enum class LedState : uint32_t {
-    OFF = 0x0,
-    ON = 0x1,
-  };
-
- public:
-  static LedState getLEDState(bool up, bool adminUp);
+  static void setLEDState(uint32_t* state, bool up, bool adminUp);
   static int getPortIndex(PortID physicalPort);
   static size_t getPortOffset(int index);
   static folly::ByteRange defaultLed0Code();

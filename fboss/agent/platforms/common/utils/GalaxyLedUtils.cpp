@@ -85,4 +85,15 @@ size_t GalaxyLedUtils::getPortOffset(int index) {
   return 0xa0 /* LS_LED_DATA_OFFSET_A0 */ + index - 1;
 }
 
+void GalaxyLedUtils::setLEDState(uint32_t* state, bool up, bool /*adminUp*/) {
+  // Status is at bit 0
+  if (up) {
+    (*state) |= 0x1;
+  } else {
+    (*state) &= ~(0x1);
+  }
+  // Set bit 1, which causes Celestica to set LED to Blue if port is up
+  (*state) |= (0x1 << 1);
+  (*state) &= ~0x80;
+}
 } // namespace facebook::fboss
