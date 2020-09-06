@@ -26,6 +26,7 @@ target_link_libraries(platform_mapping
 )
 
 add_library(wedge_led_utils
+  fboss/agent/platforms/common/utils/GalaxyLedUtils.cpp
   fboss/agent/platforms/common/utils/Wedge100LedUtils.cpp
   fboss/agent/platforms/common/utils/Wedge40LedUtils.cpp
 )
