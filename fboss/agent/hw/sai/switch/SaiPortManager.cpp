@@ -206,6 +206,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
       saiPort->adapterKey(), swPort->getIngressVlan());
   XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan();
+
+  // set platform port's speed
+  auto platformPort = platform_->getPort(swPort->getID());
+  platformPort->setCurrentProfile(swPort->getProfileID());
   return saiPort->adapterKey();
 }
 
@@ -310,6 +314,10 @@ void SaiPortManager::changePort(
     XLOG(INFO) << "changed vlan on port " << newPort->getID()
                << ": old vlan: " << oldPort->getIngressVlan()
                << ", new vlan: " << newPort->getIngressVlan();
+  }
+  if (newPort->getProfileID() != oldPort->getProfileID()) {
+    auto platformPort = platform_->getPort(newPort->getID());
+    platformPort->setCurrentProfile(newPort->getProfileID());
   }
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {

@@ -23,4 +23,8 @@ bool SaiBcmPlatformPort::supportsTransceiver() const {
   return true;
 }
 
+uint32_t SaiBcmPlatformPort::getPhysicalPortId() const {
+  return getHwPortLanes(getCurrentProfile()).front();
+}
+
 } // namespace facebook::fboss

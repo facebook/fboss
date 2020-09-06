@@ -43,6 +43,8 @@ class SaiPlatformPort : public PlatformPort {
   bool shouldDisableFEC() const override;
   void externalState(PortLedExternalState) override {}
   virtual std::vector<uint32_t> getHwPortLanes(cfg::PortSpeed speed) const;
+  virtual std::vector<uint32_t> getHwPortLanes(
+      cfg::PortProfileID profileID) const;
   virtual std::vector<PortID> getSubsumedPorts(cfg::PortSpeed speed) const;
   virtual TransmitterTechnology getTransmitterTech();
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
@@ -56,6 +58,13 @@ class SaiPlatformPort : public PlatformPort {
 
   folly::Future<TransceiverInfo> getTransceiverInfo() const override;
 
+  void setCurrentProfile(cfg::PortProfileID profile) {
+    profile_ = profile;
+  }
+  cfg::PortProfileID getCurrentProfile() const {
+    return profile_;
+  }
+
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;
   folly::Future<TransmitterTechnology> getTransmitterTechInternal(
@@ -63,6 +72,7 @@ class SaiPlatformPort : public PlatformPort {
   folly::Future<std::optional<Cable>> getCableInfoInternal(
       folly::EventBase* evb) const;
   std::optional<TransceiverID> transceiverID_;
+  cfg::PortProfileID profile_{};
 };
 
 } // namespace facebook::fboss
