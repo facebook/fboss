@@ -23,7 +23,8 @@ class Wedge100LedUtils {
   };
 
   int getPortIndex(std::optional<ChannelID> channel);
-  LedColor getLEDColor(bool up, bool adminUp);
+  static LedColor
+  getLEDColor(PortID port, int numberOfLanes, bool up, bool adminUp);
   static LedColor getLEDColor(
       PortLedExternalState externalState,
       LedColor currentColor);

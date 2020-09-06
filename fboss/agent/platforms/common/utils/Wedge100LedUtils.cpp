@@ -13,11 +13,24 @@ int Wedge100LedUtils::getPortIndex(std::optional<ChannelID> /*channel*/) {
 }
 
 Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
-    bool /*up*/,
-    bool /*adminUp*/) {
-  throw FbossError("getLEDColor is unimplemented");
+    PortID port,
+    int numberOfLanes,
+    bool up,
+    bool adminUp) {
+  if (!up || !adminUp) {
+    return Wedge100LedUtils::LedColor::OFF;
+  }
 
-  return Wedge100LedUtils::LedColor::OFF;
+  switch (numberOfLanes) {
+    case 4: // Quaid
+      return LedColor::BLUE;
+    case 2: // DUAL
+      return LedColor::MAGENTA;
+    case 1: // Single
+      return LedColor::GREEN;
+  }
+
+  throw FbossError("Unable to determine LED color for port ", port);
 }
 
 Wedge100LedUtils::LedColor Wedge100LedUtils::getLEDColor(
