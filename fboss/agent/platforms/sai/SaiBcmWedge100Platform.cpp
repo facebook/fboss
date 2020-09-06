@@ -45,5 +45,7 @@ SaiBcmWedge100Platform::~SaiBcmWedge100Platform() {}
 
 void SaiBcmWedge100Platform::initLEDs() {
   // TODO(pshaikh): implement LED initialization
+  initWedgeLED(0, {});
+  initWedgeLED(1, {});
 }
 } // namespace facebook::fboss

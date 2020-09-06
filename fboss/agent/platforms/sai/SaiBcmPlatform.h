@@ -10,6 +10,9 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+
+#include <folly/Range.h>
+
 namespace facebook::fboss {
 
 class SaiBcmPlatform : public SaiHwPlatform {
@@ -34,6 +37,9 @@ class SaiBcmPlatform : public SaiHwPlatform {
   bool supportInterfaceType() const override {
     return true;
   }
+
+ protected:
+  void initWedgeLED(int led, folly::ByteRange range);
 };
 
 } // namespace facebook::fboss

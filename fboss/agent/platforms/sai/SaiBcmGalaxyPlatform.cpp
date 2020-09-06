@@ -48,5 +48,7 @@ std::string SaiBcmGalaxyPlatform::getLinecardName(bool isFabric) {
 
 void SaiBcmGalaxyPlatform::initLEDs() {
   // TODO(pshaikh): implement LED initialization
+  initWedgeLED(0, {});
+  initWedgeLED(1, {});
 }
 } // namespace facebook::fboss
