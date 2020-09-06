@@ -38,4 +38,27 @@ folly::ByteRange Wedge40LedUtils::defaultLedCode() {
   return folly::ByteRange(kWedge40LedCode.data(), kWedge40LedCode.size());
 }
 
+int Wedge40LedUtils::getPortIndex(PortID port) {
+  return (int)port - 1;
+}
+
+size_t Wedge40LedUtils::getPortOffset(int index) {
+  // The wedge hardware was originally set up to be used with the bottom-left
+  // QSFP as port 1, top-left as port 2, etc.  However, in practice our DC team
+  // preferred to have the top-left be port 1.
+  //
+  // Therefore, the software code uses the top-left port as port 1 everywhere.
+  // However, the LED microprocessors and FPGA are still set up with
+  // bottom-left as port 1.  As a result, we need to swap top and bottom port
+  // numbers before sending them to the LED microprocessor.
+  index ^= 0x04;
+
+  return (0xe0 + index);
+}
+
+Wedge40LedUtils::LedState Wedge40LedUtils::getLEDState(bool up, bool adminUp) {
+  return (up && adminUp) ? Wedge40LedUtils::LedState::ON
+                         : Wedge40LedUtils::LedState::OFF;
+}
+
 } // namespace facebook::fboss
