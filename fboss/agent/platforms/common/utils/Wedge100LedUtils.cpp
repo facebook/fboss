@@ -117,4 +117,8 @@ static const std::vector<uint8_t> kWedge100LedCode {
   return folly::ByteRange(kWedge100LedCode.data(), kWedge100LedCode.size());
 }
 
+size_t Wedge100LedUtils::getPortOffset(int index) {
+  constexpr uint16_t kPortWriteStart = 0xc0;
+  return kPortWriteStart + index;
+}
 } // namespace facebook::fboss
