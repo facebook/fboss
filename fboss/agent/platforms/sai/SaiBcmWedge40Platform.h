@@ -27,6 +27,7 @@ class SaiBcmWedge40Platform : public SaiBcmPlatform {
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX40G, FlexPortMode::FOURX10G};
   }
+  void initLEDs() override;
 
  private:
   std::unique_ptr<Trident2Asic> asic_;

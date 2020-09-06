@@ -80,6 +80,7 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
 }
 
 void SaiPlatform::onHwInitialized(SwSwitch* sw) {
+  initLEDs();
   sw->registerStateObserver(this, "SaiPlatform");
 }
 

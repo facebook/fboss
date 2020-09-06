@@ -57,6 +57,8 @@ class SaiFakePlatform : public SaiPlatform {
     return false;
   }
 
+  void initLEDs() override {}
+
  private:
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;

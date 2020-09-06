@@ -94,6 +94,8 @@ class SaiPlatform : public Platform, public StateObserver {
       PortID port,
       cfg::PortProfileID profile);
 
+  virtual void initLEDs() = 0;
+
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();

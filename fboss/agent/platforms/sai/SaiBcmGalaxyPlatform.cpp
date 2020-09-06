@@ -45,4 +45,8 @@ std::string SaiBcmGalaxyPlatform::getLinecardName(bool isFabric) {
   }
   return netwhoamiDynamic[kLCName].asString();
 }
+
+void SaiBcmGalaxyPlatform::initLEDs() {
+  // TODO(pshaikh): implement LED initialization
+}
 } // namespace facebook::fboss

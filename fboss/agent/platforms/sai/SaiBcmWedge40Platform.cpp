@@ -41,4 +41,9 @@ HwAsic* SaiBcmWedge40Platform::getAsic() const {
 }
 
 SaiBcmWedge40Platform::~SaiBcmWedge40Platform() {}
+
+void SaiBcmWedge40Platform::initLEDs() {
+  // TODO(pshaikh): implement LED initialization
+}
+
 } // namespace facebook::fboss

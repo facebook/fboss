@@ -47,6 +47,7 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
   bool supportInterfaceType() const override {
     return false;
   }
+  void initLEDs() override {}
 
  private:
   std::unique_ptr<TajoAsic> asic_;
