@@ -30,4 +30,5 @@ target_link_libraries(platform
   fboss_config_utils
   qsfp_cpp2
   Folly::folly
+  wedge_led_utils
 )
