@@ -32,6 +32,7 @@ class Wedge100LedUtils {
       PortLedExternalState externalState,
       LedColor currentColor);
   static bool isTop(std::optional<TransceiverID> transciver);
+  static folly::ByteRange defaultLedCode();
 };
 
 } // namespace facebook::fboss
