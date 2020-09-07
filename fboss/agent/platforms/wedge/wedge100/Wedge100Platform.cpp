@@ -20,7 +20,6 @@
 #include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-
 #include <folly/Memory.h>
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
