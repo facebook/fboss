@@ -39,6 +39,7 @@ target_link_libraries(sai_platform
   wedge400_platform_mapping
   wedge400c_platform_mapping
   qsfp_cache
+  wedge_led_utils
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS

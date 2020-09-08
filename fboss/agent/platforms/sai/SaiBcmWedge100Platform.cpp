@@ -9,7 +9,9 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
+
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 
 #include <cstdio>
@@ -44,8 +46,7 @@ HwAsic* SaiBcmWedge100Platform::getAsic() const {
 SaiBcmWedge100Platform::~SaiBcmWedge100Platform() {}
 
 void SaiBcmWedge100Platform::initLEDs() {
-  // TODO(pshaikh): implement LED initialization
-  initWedgeLED(0, {});
-  initWedgeLED(1, {});
+  initWedgeLED(0, Wedge100LedUtils::defaultLedCode());
+  initWedgeLED(1, Wedge100LedUtils::defaultLedCode());
 }
 } // namespace facebook::fboss
