@@ -116,6 +116,12 @@ class DiagShell {
   std::unique_ptr<Repl> repl_;
   const SaiSwitch* hw_;
   bool shouldResetPublisher_ = false;
+
+  // Condition variable for producer thread
+  std::condition_variable producerCV_;
+
+  // Mutex to control when producing should happen
+  std::mutex producerMutex_;
 };
 
 } // namespace facebook::fboss

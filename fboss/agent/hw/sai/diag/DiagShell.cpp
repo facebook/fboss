@@ -177,17 +177,19 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
 }
 
 void DiagShell::markResetPublisher() {
-  if (hasPublisher()) {
-    shouldResetPublisher_ = true;
-  }
+  XLOG(INFO) << "Marked to reset diag shell client states";
+  shouldResetPublisher_ = true;
 }
 
 void DiagShell::resetPublisher() {
+  XLOG(INFO) << "Resetting diag shell client state";
   auto locked = publisher_.lock();
   if (!shouldResetPublisher_) {
     return;
   }
-  std::move(**locked).complete();
+  if (*locked) {
+    std::move(**locked).complete();
+  }
   locked->reset();
   // Reset repl and terminal session.
   ts_.reset();
@@ -224,7 +226,8 @@ DiagShell::~DiagShell() noexcept {
 void DiagShell::consumeInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
-  if (!hasPublisher()) {
+  auto locked = publisher_.lock();
+  if (!*locked) {
     std::string msg = "No diag shell connected!";
     XLOG(WARNING) << msg;
     throw FbossError(msg);
@@ -240,19 +243,18 @@ void DiagShell::consumeInput(
 // TODO: Log command output to Scuba
 void DiagShell::produceOutput() {
   std::size_t nread = 0;
+  auto fd = ptym_->file.fd();
   while (true) {
-    auto fd = ptym_->file.fd();
-    int maxfd = fd + 1;
     fd_set readSet;
     FD_ZERO(&readSet);
     FD_SET(fd, &readSet);
-    /* Set the timeout as 5 sec for each read.
+    /* Set the timeout as 500 ms for each read.
      * This is to check that a client has disconnected in the meantime.
      * If the client is still connected, will continue to wait.
      * If the client has disconnected, will clean up the client states.
      */
-    struct timeval timeout = {5, 0};
-    if (select(maxfd, &readSet, nullptr, nullptr, &timeout) > 0) {
+    struct timeval timeout = {0, 500000};
+    if (select(fd + 1, &readSet, nullptr, nullptr, &timeout) > 0) {
       if (!FD_ISSET(fd, &readSet)) {
         std::string msg = "Invalid file descriptor for the PTY";
         XLOG(WARNING) << msg;
@@ -266,8 +268,8 @@ void DiagShell::produceOutput() {
       } else {
         // publish string on stream
         std::string toPublish(producerBuffer_.data(), nread);
-        if (hasPublisher()) {
-          auto locked = publisher_.lock();
+        auto locked = publisher_.lock();
+        if (*locked) {
           (*locked)->next(toPublish);
         } else if (!shouldResetPublisher_) {
           // Warn if there has not been a client but output was produced
@@ -275,10 +277,10 @@ void DiagShell::produceOutput() {
               << "Received diag shell output when no client is connected";
         }
       }
-    } else {
-      if (shouldResetPublisher_) {
-        resetPublisher();
-      }
+    }
+
+    if (shouldResetPublisher_) {
+      resetPublisher();
     }
   }
 }
