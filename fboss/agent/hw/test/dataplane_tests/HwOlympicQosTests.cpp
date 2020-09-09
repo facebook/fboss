@@ -63,7 +63,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(uint8_t dscp, bool frontPanel) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(

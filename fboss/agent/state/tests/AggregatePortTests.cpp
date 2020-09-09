@@ -113,33 +113,33 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   // This config has an aggregate port comprised of a single physical port
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
 
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1000;
-  *config.vlans[0].name_ref() = "vlan1000";
-  *config.vlans[0].routable_ref() = true;
+  *config.vlans_ref()[0].id_ref() = 1000;
+  *config.vlans_ref()[0].name_ref() = "vlan1000";
+  *config.vlans_ref()[0].routable_ref() = true;
 
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1000;
-  *config.interfaces[0].vlanID_ref() = 1000;
+  *config.interfaces_ref()[0].intfID_ref() = 1000;
+  *config.interfaces_ref()[0].vlanID_ref() = 1000;
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
-  config.interfaces[0].ipAddresses_ref()[1] =
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
 
   config.vlanPorts_ref()->resize(1);
-  *config.vlanPorts[0].logicalPort_ref() = 1;
-  *config.vlanPorts[0].vlanID_ref() = 1000;
-  *config.vlanPorts[0].emitTags_ref() = false;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 1000;
+  *config.vlanPorts_ref()[0].emitTags_ref() = false;
 
   config.aggregatePorts_ref()->resize(1);
-  *config.aggregatePorts[0].key_ref() = 1;
-  *config.aggregatePorts[0].name_ref() = "port-channel";
-  *config.aggregatePorts[0].description_ref() = "single bundle";
+  *config.aggregatePorts_ref()[0].key_ref() = 1;
+  *config.aggregatePorts_ref()[0].name_ref() = "port-channel";
+  *config.aggregatePorts_ref()[0].description_ref() = "single bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(1);
-  *config.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
+  *config.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -159,31 +159,31 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports[0].logicalID_ref() = 1;
-  *baseConfig.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports[1].logicalID_ref() = 2;
-  *baseConfig.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
+  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
+  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
 
   baseConfig.vlans_ref()->resize(1);
-  *baseConfig.vlans[0].id_ref() = 1000;
-  *baseConfig.vlans[0].name_ref() = "vlan1000";
-  *baseConfig.vlans[0].routable_ref() = true;
+  *baseConfig.vlans_ref()[0].id_ref() = 1000;
+  *baseConfig.vlans_ref()[0].name_ref() = "vlan1000";
+  *baseConfig.vlans_ref()[0].routable_ref() = true;
 
   baseConfig.interfaces_ref()->resize(1);
-  *baseConfig.interfaces[0].intfID_ref() = 1000;
-  *baseConfig.interfaces[0].vlanID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].intfID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].vlanID_ref() = 1000;
   baseConfig.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  baseConfig.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
-  baseConfig.interfaces[0].ipAddresses_ref()[1] =
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
 
   baseConfig.vlanPorts_ref()->resize(2);
-  *baseConfig.vlanPorts[0].logicalPort_ref() = 1;
-  *baseConfig.vlanPorts[0].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[0].emitTags_ref() = false;
-  *baseConfig.vlanPorts[1].logicalPort_ref() = 2;
-  *baseConfig.vlanPorts[1].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[1].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *baseConfig.vlanPorts_ref()[0].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[0].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  *baseConfig.vlanPorts_ref()[1].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[1].emitTags_ref() = false;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -191,12 +191,12 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   // This config has an aggregate port comprised of two physical ports
   auto config = baseConfig;
   config.aggregatePorts_ref()->resize(1);
-  *config.aggregatePorts[0].key_ref() = 1;
-  *config.aggregatePorts[0].name_ref() = "port-channel";
-  *config.aggregatePorts[0].description_ref() = "double bundle";
+  *config.aggregatePorts_ref()[0].key_ref() = 1;
+  *config.aggregatePorts_ref()[0].name_ref() = "port-channel";
+  *config.aggregatePorts_ref()[0].description_ref() = "double bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *config.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
-  *config.aggregatePorts[0].memberPorts[1].memberPortID_ref() = 2;
+  *config.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *config.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -216,39 +216,39 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports[0].logicalID_ref() = 1;
-  *baseConfig.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports[1].logicalID_ref() = 2;
-  *baseConfig.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
+  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
+  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
 
   baseConfig.vlans_ref()->resize(1);
-  *baseConfig.vlans[0].id_ref() = 1000;
-  *baseConfig.vlans[0].name_ref() = "vlan1000";
-  *baseConfig.vlans[0].routable_ref() = true;
+  *baseConfig.vlans_ref()[0].id_ref() = 1000;
+  *baseConfig.vlans_ref()[0].name_ref() = "vlan1000";
+  *baseConfig.vlans_ref()[0].routable_ref() = true;
 
   baseConfig.interfaces_ref()->resize(1);
-  *baseConfig.interfaces[0].intfID_ref() = 1000;
-  *baseConfig.interfaces[0].vlanID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].intfID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].vlanID_ref() = 1000;
   baseConfig.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  baseConfig.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
-  baseConfig.interfaces[0].ipAddresses_ref()[1] =
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
 
   baseConfig.vlanPorts_ref()->resize(2);
-  *baseConfig.vlanPorts[0].logicalPort_ref() = 1;
-  *baseConfig.vlanPorts[0].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[0].emitTags_ref() = false;
-  *baseConfig.vlanPorts[1].logicalPort_ref() = 2;
-  *baseConfig.vlanPorts[1].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[1].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *baseConfig.vlanPorts_ref()[0].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[0].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  *baseConfig.vlanPorts_ref()[1].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[1].emitTags_ref() = false;
 
   baseConfig.aggregatePorts_ref()->resize(1);
-  *baseConfig.aggregatePorts[0].key_ref() = 1;
-  *baseConfig.aggregatePorts[0].name_ref() = "port-channel";
-  *baseConfig.aggregatePorts[0].description_ref() = "double bundle";
+  *baseConfig.aggregatePorts_ref()[0].key_ref() = 1;
+  *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
+  *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -258,8 +258,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   // subports are sorted in ThriftConfigApplier.
   auto config = baseConfig;
   std::swap(
-      config.aggregatePorts[0].memberPorts_ref()[0],
-      config.aggregatePorts[0].memberPorts_ref()[1]);
+      config.aggregatePorts_ref()[0].memberPorts_ref()[0],
+      config.aggregatePorts_ref()[0].memberPorts_ref()[1]);
 
   EXPECT_EQ(nullptr, publishAndApplyConfig(startState, &config, &platform));
 }
@@ -273,39 +273,39 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports[0].logicalID_ref() = 1;
-  *baseConfig.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports[1].logicalID_ref() = 2;
-  *baseConfig.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
+  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
+  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
 
   baseConfig.vlans_ref()->resize(1);
-  *baseConfig.vlans[0].id_ref() = 1000;
-  *baseConfig.vlans[0].name_ref() = "vlan1000";
-  *baseConfig.vlans[0].routable_ref() = true;
+  *baseConfig.vlans_ref()[0].id_ref() = 1000;
+  *baseConfig.vlans_ref()[0].name_ref() = "vlan1000";
+  *baseConfig.vlans_ref()[0].routable_ref() = true;
 
   baseConfig.interfaces_ref()->resize(1);
-  *baseConfig.interfaces[0].intfID_ref() = 1000;
-  *baseConfig.interfaces[0].vlanID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].intfID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].vlanID_ref() = 1000;
   baseConfig.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  baseConfig.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
-  baseConfig.interfaces[0].ipAddresses_ref()[1] =
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
 
   baseConfig.vlanPorts_ref()->resize(2);
-  *baseConfig.vlanPorts[0].logicalPort_ref() = 1;
-  *baseConfig.vlanPorts[0].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[0].emitTags_ref() = false;
-  *baseConfig.vlanPorts[1].logicalPort_ref() = 2;
-  *baseConfig.vlanPorts[1].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[1].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *baseConfig.vlanPorts_ref()[0].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[0].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  *baseConfig.vlanPorts_ref()[1].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[1].emitTags_ref() = false;
 
   baseConfig.aggregatePorts_ref()->resize(1);
-  *baseConfig.aggregatePorts[0].key_ref() = 1;
-  *baseConfig.aggregatePorts[0].name_ref() = "port-channel";
-  *baseConfig.aggregatePorts[0].description_ref() = "double bundle";
+  *baseConfig.aggregatePorts_ref()[0].key_ref() = 1;
+  *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
+  *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -313,7 +313,7 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   // This config config has a single aggregate port without any constituent
   // physical ports.
   auto config = baseConfig;
-  *config.aggregatePorts[0].description_ref() = "empty bundle";
+  *config.aggregatePorts_ref()[0].description_ref() = "empty bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(0);
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
@@ -334,39 +334,39 @@ TEST(AggregatePort, noTrunk) {
   // This config has an aggregate port comprised of two physical ports
   cfg::SwitchConfig baseConfig;
   baseConfig.ports_ref()->resize(2);
-  *baseConfig.ports[0].logicalID_ref() = 1;
-  *baseConfig.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *baseConfig.ports[1].logicalID_ref() = 2;
-  *baseConfig.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[0].logicalID_ref() = 1;
+  *baseConfig.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *baseConfig.ports_ref()[1].logicalID_ref() = 2;
+  *baseConfig.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
 
   baseConfig.vlans_ref()->resize(1);
-  *baseConfig.vlans[0].id_ref() = 1000;
-  *baseConfig.vlans[0].name_ref() = "vlan1000";
-  *baseConfig.vlans[0].routable_ref() = true;
+  *baseConfig.vlans_ref()[0].id_ref() = 1000;
+  *baseConfig.vlans_ref()[0].name_ref() = "vlan1000";
+  *baseConfig.vlans_ref()[0].routable_ref() = true;
 
   baseConfig.interfaces_ref()->resize(1);
-  *baseConfig.interfaces[0].intfID_ref() = 1000;
-  *baseConfig.interfaces[0].vlanID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].intfID_ref() = 1000;
+  *baseConfig.interfaces_ref()[0].vlanID_ref() = 1000;
   baseConfig.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  baseConfig.interfaces[0].ipAddresses_ref()[0] = "1.2.3.4/24";
-  baseConfig.interfaces[0].ipAddresses_ref()[1] =
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[0] = "1.2.3.4/24";
+  baseConfig.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
 
   baseConfig.vlanPorts_ref()->resize(2);
-  *baseConfig.vlanPorts[0].logicalPort_ref() = 1;
-  *baseConfig.vlanPorts[0].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[0].emitTags_ref() = false;
-  *baseConfig.vlanPorts[1].logicalPort_ref() = 2;
-  *baseConfig.vlanPorts[1].vlanID_ref() = 1000;
-  *baseConfig.vlanPorts[1].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *baseConfig.vlanPorts_ref()[0].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[0].emitTags_ref() = false;
+  *baseConfig.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  *baseConfig.vlanPorts_ref()[1].vlanID_ref() = 1000;
+  *baseConfig.vlanPorts_ref()[1].emitTags_ref() = false;
 
   baseConfig.aggregatePorts_ref()->resize(1);
-  *baseConfig.aggregatePorts[0].key_ref() = 1;
-  *baseConfig.aggregatePorts[0].name_ref() = "port-channel";
-  *baseConfig.aggregatePorts[0].description_ref() = "double bundle";
+  *baseConfig.aggregatePorts_ref()[0].key_ref() = 1;
+  *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
+  *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -448,18 +448,20 @@ TEST(AggregatePort, multiTrunkAdd) {
   // a base config corresponding to startState.
   auto config = testConfigA();
   config.aggregatePorts_ref()->resize(2);
-  *config.aggregatePorts[0].key_ref() = 55;
-  *config.aggregatePorts[0].name_ref() = "lag55";
-  *config.aggregatePorts[0].description_ref() = "upwards facing link-bundle";
+  *config.aggregatePorts_ref()[0].key_ref() = 55;
+  *config.aggregatePorts_ref()[0].name_ref() = "lag55";
+  *config.aggregatePorts_ref()[0].description_ref() =
+      "upwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[0].memberPorts_ref(),
+      *config.aggregatePorts_ref()[0].memberPorts_ref(),
       {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
-  *config.aggregatePorts[1].key_ref() = 155;
-  *config.aggregatePorts[1].name_ref() = "lag155";
-  *config.aggregatePorts[1].description_ref() = "downwards facing link-bundle";
+  *config.aggregatePorts_ref()[1].key_ref() = 155;
+  *config.aggregatePorts_ref()[1].name_ref() = "lag155";
+  *config.aggregatePorts_ref()[1].description_ref() =
+      "downwards facing link-bundle";
   config.aggregatePorts_ref()[1].memberPorts_ref()->resize(10);
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[1].memberPorts_ref(),
+      *config.aggregatePorts_ref()[1].memberPorts_ref(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
@@ -503,18 +505,20 @@ TEST(AggregatePort, multiTrunkIdempotence) {
   // a base config corresponding to startState.
   auto config = testConfigA();
   config.aggregatePorts_ref()->resize(2);
-  *config.aggregatePorts[0].key_ref() = 55;
-  *config.aggregatePorts[0].name_ref() = "lag55";
-  *config.aggregatePorts[0].description_ref() = "upwards facing link-bundle";
+  *config.aggregatePorts_ref()[0].key_ref() = 55;
+  *config.aggregatePorts_ref()[0].name_ref() = "lag55";
+  *config.aggregatePorts_ref()[0].description_ref() =
+      "upwards facing link-bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(10);
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[0].memberPorts_ref(),
+      *config.aggregatePorts_ref()[0].memberPorts_ref(),
       {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
-  *config.aggregatePorts[1].key_ref() = 155;
-  *config.aggregatePorts[1].name_ref() = "lag155";
-  *config.aggregatePorts[1].description_ref() = "downwards facing link-bundle";
+  *config.aggregatePorts_ref()[1].key_ref() = 155;
+  *config.aggregatePorts_ref()[1].name_ref() = "lag155";
+  *config.aggregatePorts_ref()[1].description_ref() =
+      "downwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[1].memberPorts_ref(),
+      *config.aggregatePorts_ref()[1].memberPorts_ref(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
@@ -534,20 +538,20 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   // a base config corresponding to startingState.
   auto baseConfig = testConfigA();
   baseConfig.aggregatePorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].key_ref() = 55;
-  *baseConfig.aggregatePorts[0].name_ref() = "lag55";
-  *baseConfig.aggregatePorts[0].description_ref() =
+  *baseConfig.aggregatePorts_ref()[0].key_ref() = 55;
+  *baseConfig.aggregatePorts_ref()[0].name_ref() = "lag55";
+  *baseConfig.aggregatePorts_ref()[0].description_ref() =
       "upwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[0].memberPorts_ref(),
+      *baseConfig.aggregatePorts_ref()[0].memberPorts_ref(),
       {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
 
-  *baseConfig.aggregatePorts[1].key_ref() = 155;
-  *baseConfig.aggregatePorts[1].name_ref() = "lag155";
-  *baseConfig.aggregatePorts[1].description_ref() =
+  *baseConfig.aggregatePorts_ref()[1].key_ref() = 155;
+  *baseConfig.aggregatePorts_ref()[1].name_ref() = "lag155";
+  *baseConfig.aggregatePorts_ref()[1].description_ref() =
       "downwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[1].memberPorts_ref(),
+      *baseConfig.aggregatePorts_ref()[1].memberPorts_ref(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
@@ -559,30 +563,30 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   // "downwards facing link-bundle".
   auto config = baseConfig;
   config.aggregatePorts_ref()->resize(4);
-  *config.aggregatePorts[0].description_ref() =
+  *config.aggregatePorts_ref()[0].description_ref() =
       "up & leftwards facing link-bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(5);
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[0].memberPorts_ref(), {1, 2, 3, 4, 5});
+      *config.aggregatePorts_ref()[0].memberPorts_ref(), {1, 2, 3, 4, 5});
 
-  *config.aggregatePorts[1].description_ref() =
+  *config.aggregatePorts_ref()[1].description_ref() =
       "down & leftwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[1].memberPorts_ref(), {11, 12, 13, 14, 15});
+      *config.aggregatePorts_ref()[1].memberPorts_ref(), {11, 12, 13, 14, 15});
 
-  *config.aggregatePorts[2].key_ref() = 40;
-  *config.aggregatePorts[2].name_ref() = "lag40";
-  *config.aggregatePorts[2].description_ref() =
+  *config.aggregatePorts_ref()[2].key_ref() = 40;
+  *config.aggregatePorts_ref()[2].name_ref() = "lag40";
+  *config.aggregatePorts_ref()[2].description_ref() =
       "up & rightwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[2].memberPorts_ref(), {6, 7, 8, 9, 10});
+      *config.aggregatePorts_ref()[2].memberPorts_ref(), {6, 7, 8, 9, 10});
 
-  *config.aggregatePorts[3].key_ref() = 90;
-  *config.aggregatePorts[3].name_ref() = "lag90";
-  *config.aggregatePorts[3].description_ref() =
+  *config.aggregatePorts_ref()[3].key_ref() = 90;
+  *config.aggregatePorts_ref()[3].name_ref() = "lag90";
+  *config.aggregatePorts_ref()[3].description_ref() =
       "down & rightwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *config.aggregatePorts[3].memberPorts_ref(), {16, 17, 18, 19, 20});
+      *config.aggregatePorts_ref()[3].memberPorts_ref(), {16, 17, 18, 19, 20});
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -641,33 +645,35 @@ TEST(AggregatePort, multiTrunkRemove) {
   // a base config corresponding to state0.
   auto baseConfig = testConfigA();
   baseConfig.aggregatePorts_ref()->resize(4);
-  *baseConfig.aggregatePorts[0].key_ref() = 55;
-  *baseConfig.aggregatePorts[0].name_ref() = "lag55";
-  *baseConfig.aggregatePorts[0].description_ref() =
+  *baseConfig.aggregatePorts_ref()[0].key_ref() = 55;
+  *baseConfig.aggregatePorts_ref()[0].name_ref() = "lag55";
+  *baseConfig.aggregatePorts_ref()[0].description_ref() =
       "up & leftwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[0].memberPorts_ref(), {1, 2, 3, 4, 5});
+      *baseConfig.aggregatePorts_ref()[0].memberPorts_ref(), {1, 2, 3, 4, 5});
 
-  *baseConfig.aggregatePorts[1].key_ref() = 155;
-  *baseConfig.aggregatePorts[1].name_ref() = "lag155";
-  *baseConfig.aggregatePorts[1].description_ref() =
+  *baseConfig.aggregatePorts_ref()[1].key_ref() = 155;
+  *baseConfig.aggregatePorts_ref()[1].name_ref() = "lag155";
+  *baseConfig.aggregatePorts_ref()[1].description_ref() =
       "down & leftwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[1].memberPorts_ref(), {11, 12, 13, 14, 15});
+      *baseConfig.aggregatePorts_ref()[1].memberPorts_ref(),
+      {11, 12, 13, 14, 15});
 
-  *baseConfig.aggregatePorts[2].key_ref() = 40;
-  *baseConfig.aggregatePorts[2].name_ref() = "lag40";
-  *baseConfig.aggregatePorts[2].description_ref() =
+  *baseConfig.aggregatePorts_ref()[2].key_ref() = 40;
+  *baseConfig.aggregatePorts_ref()[2].name_ref() = "lag40";
+  *baseConfig.aggregatePorts_ref()[2].description_ref() =
       "up & rightwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[2].memberPorts_ref(), {6, 7, 8, 9, 10});
+      *baseConfig.aggregatePorts_ref()[2].memberPorts_ref(), {6, 7, 8, 9, 10});
 
-  *baseConfig.aggregatePorts[3].key_ref() = 90;
-  *baseConfig.aggregatePorts[3].name_ref() = "lag90";
-  *baseConfig.aggregatePorts[3].description_ref() =
+  *baseConfig.aggregatePorts_ref()[3].key_ref() = 90;
+  *baseConfig.aggregatePorts_ref()[3].name_ref() = "lag90";
+  *baseConfig.aggregatePorts_ref()[3].description_ref() =
       "down & rightwards facing link-bundle";
   setAggregatePortMemberIDs(
-      *baseConfig.aggregatePorts[3].memberPorts_ref(), {16, 17, 18, 19, 20});
+      *baseConfig.aggregatePorts_ref()[3].memberPorts_ref(),
+      {16, 17, 18, 19, 20});
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);

@@ -226,14 +226,14 @@ TEST(SffTest, simpleRead) {
   EXPECT_DOUBLE_EQ(
       -5.0,
       *info.thresholds_ref().value_or({}).temp_ref()->alarm_ref()->low_ref());
-  EXPECT_TRUE(*info.channels[0]
+  EXPECT_TRUE(*info.channels_ref()[0]
                    .sensors_ref()
                    ->txBias_ref()
                    ->flags_ref()
                    .value_or({})
                    .alarm_ref()
                    ->low_ref());
-  EXPECT_FALSE(*info.channels[1]
+  EXPECT_FALSE(*info.channels_ref()[1]
                     .sensors_ref()
                     ->txBias_ref()
                     ->flags_ref()

@@ -322,16 +322,16 @@ TEST(Rib, Update) {
 
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1;
+  *config.vlans_ref()[0].id_ref() = 1;
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].vlanID_ref() = 1;
-  *config.interfaces[0].routerID_ref() = 0;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].vlanID_ref() = 1;
+  *config.interfaces_ref()[0].routerID_ref() = 0;
   config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces[0].ipAddresses_ref()[0] = "0.0.0.0/0";
-  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.19/24";
-  config.interfaces[0].ipAddresses_ref()[2] = "::/0";
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "0.0.0.0/0";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.19/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[2] = "::/0";
 
   auto testHandle =
       createTestHandle(&config, SwitchFlags::ENABLE_STANDALONE_RIB);
@@ -532,15 +532,15 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
 
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1;
+  *config.vlans_ref()[0].id_ref() = 1;
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].vlanID_ref() = 1;
-  *config.interfaces[0].routerID_ref() = vrfZero;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].vlanID_ref() = 1;
+  *config.interfaces_ref()[0].routerID_ref() = vrfZero;
   config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:11";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces[0].ipAddresses_ref()[0] = "10.120.70.44/31";
-  config.interfaces[0].ipAddresses_ref()[1] =
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.120.70.44/31";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2401:db00:e003:9100:1006::2c/127";
 
   auto testHandle =

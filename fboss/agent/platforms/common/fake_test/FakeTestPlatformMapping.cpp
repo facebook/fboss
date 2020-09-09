@@ -105,20 +105,20 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
   for (int groupID = 0; groupID < controllingPortIds_.size(); groupID++) {
     auto portsInGroup = getPlatformPortEntriesByGroup(groupID);
     for (auto port : portsInGroup) {
-      setPlatformPort(port.mapping.id, port);
+      setPlatformPort(*port.mapping_ref()->id_ref(), port);
     }
 
     phy::DataPlanePhyChip iphy;
-    iphy.name = folly::sformat("core{}", groupID);
-    iphy.type = phy::DataPlanePhyChipType::IPHY;
-    iphy.physicalID = groupID;
-    setChip(iphy.name, iphy);
+    *iphy.name_ref() = folly::sformat("core{}", groupID);
+    *iphy.type_ref() = phy::DataPlanePhyChipType::IPHY;
+    *iphy.physicalID_ref() = groupID;
+    setChip(*iphy.name_ref(), iphy);
 
     phy::DataPlanePhyChip tcvr;
-    tcvr.name = folly::sformat("eth1/{}", groupID + 1);
-    tcvr.type = phy::DataPlanePhyChipType::TRANSCEIVER;
-    tcvr.physicalID = groupID;
-    setChip(tcvr.name, tcvr);
+    *tcvr.name_ref() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.type_ref() = phy::DataPlanePhyChipType::TRANSCEIVER;
+    *tcvr.physicalID_ref() = groupID;
+    setChip(*tcvr.name_ref(), tcvr);
   }
 
   CHECK(
@@ -140,17 +140,17 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
   }
 
   // right now, we can just use iphy<->tcvr mode in fake platform
-  platformPortConfig.pins.transceiver_ref() = {};
+  platformPortConfig.pins_ref()->transceiver_ref() = {};
   for (auto i = 0; i < lanes; i++) {
     phy::PinConfig iphy;
-    iphy.id.chip = folly::sformat("core{}", groupID);
-    iphy.id.lane = (startLane + i);
-    platformPortConfig.pins.iphy_ref()->push_back(iphy);
+    *iphy.id_ref()->chip_ref() = folly::sformat("core{}", groupID);
+    *iphy.id_ref()->lane_ref() = (startLane + i);
+    platformPortConfig.pins_ref()->iphy_ref()->push_back(iphy);
 
     phy::PinConfig tcvr;
-    tcvr.id.chip = folly::sformat("eth1/{}", groupID + 1);
-    tcvr.id.lane = (startLane + i);
-    platformPortConfig.pins.transceiver_ref()->push_back(tcvr);
+    *tcvr.id_ref()->chip_ref() = folly::sformat("eth1/{}", groupID + 1);
+    *tcvr.id_ref()->lane_ref() = (startLane + i);
+    platformPortConfig.pins_ref()->transceiver_ref()->push_back(tcvr);
   }
 
   return platformPortConfig;
@@ -162,21 +162,22 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
   for (auto& portProfiles : kPortProfilesInGroup) {
     int portID = controllingPortIds_.at(groupID) + portProfiles.first;
     cfg::PlatformPortEntry port;
-    port.mapping.id = PortID(portID);
-    port.mapping.name =
+    *port.mapping_ref()->id_ref() = PortID(portID);
+    *port.mapping_ref()->name_ref() =
         folly::sformat("eth1/{}/{}", groupID + 1, portProfiles.first + 1);
-    port.mapping.controllingPort = controllingPortIds_.at(groupID);
+    *port.mapping_ref()->controllingPort_ref() =
+        controllingPortIds_.at(groupID);
 
     phy::PinConnection pinConnection;
-    pinConnection.a.chip = folly::sformat("core{}", groupID);
-    pinConnection.a.lane = portProfiles.first;
+    *pinConnection.a_ref()->chip_ref() = folly::sformat("core{}", groupID);
+    *pinConnection.a_ref()->lane_ref() = portProfiles.first;
     phy::PinID pinEnd;
-    pinEnd.chip = folly::sformat("eth1/{}", groupID + 1);
-    pinEnd.lane = portProfiles.first;
+    *pinEnd.chip_ref() = folly::sformat("eth1/{}", groupID + 1);
+    *pinEnd.lane_ref() = portProfiles.first;
     phy::Pin zPin;
     zPin.set_end(pinEnd);
     pinConnection.z_ref() = zPin;
-    port.mapping.pins.push_back(pinConnection);
+    port.mapping_ref()->pins_ref()->push_back(pinConnection);
 
     for (auto profileID : portProfiles.second) {
       port.supportedProfiles_ref()->emplace(

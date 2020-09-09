@@ -21,10 +21,10 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
   auto mapping =
       apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
           jsonPlatformMappingStr);
-  platformPorts_ = std::move(mapping.ports);
-  supportedProfiles_ = std::move(mapping.supportedProfiles);
-  for (auto chip : mapping.chips) {
-    chips_[chip.name] = chip;
+  platformPorts_ = std::move(*mapping.ports_ref());
+  supportedProfiles_ = std::move(*mapping.supportedProfiles_ref());
+  for (auto chip : *mapping.chips_ref()) {
+    chips_[*chip.name_ref()] = chip;
   }
   if (auto portConfigOverrides = mapping.portConfigOverrides_ref()) {
     portConfigOverrides_ = std::move(*portConfigOverrides);
@@ -59,12 +59,12 @@ cfg::PortProfileID PlatformMapping::getPortMaxSpeedProfile(
 
   cfg::PortProfileID maxProfile{cfg::PortProfileID::PROFILE_DEFAULT};
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
-  for (auto profile : itPlatformPort->second.supportedProfiles) {
+  for (auto profile : *itPlatformPort->second.supportedProfiles_ref()) {
     if (auto itProfileCfg = supportedProfiles_.find(profile.first);
         itProfileCfg != supportedProfiles_.end() &&
         static_cast<int>(maxSpeed) <
-            static_cast<int>(itProfileCfg->second.speed)) {
-      maxSpeed = itProfileCfg->second.speed;
+            static_cast<int>(*itProfileCfg->second.speed_ref())) {
+      maxSpeed = *itProfileCfg->second.speed_ref();
       maxProfile = itProfileCfg->first;
     }
   }
@@ -75,7 +75,7 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   auto maxProfile = getPortMaxSpeedProfile(portID);
   if (auto itProfileCfg = supportedProfiles_.find(maxProfile);
       itProfileCfg != supportedProfiles_.end()) {
-    return itProfileCfg->second.speed;
+    return *itProfileCfg->second.speed_ref();
   }
   return cfg::PortSpeed::DEFAULT;
 }
@@ -89,7 +89,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     throw FbossError("No PlatformPortEntry found for port ", id);
   }
 
-  auto& supportedProfiles = itPlatformPort->second.supportedProfiles;
+  auto& supportedProfiles = *itPlatformPort->second.supportedProfiles_ref();
   auto platformPortConfig = supportedProfiles.find(profileID);
   if (platformPortConfig == supportedProfiles.end()) {
     throw FbossError(
@@ -99,7 +99,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
         id);
   }
 
-  const auto& iphyCfg = platformPortConfig->second.pins.iphy;
+  const auto& iphyCfg = *platformPortConfig->second.pins_ref()->iphy_ref();
   // Check whether there's an override
   for (const auto portConfigOverride : portConfigOverrides_) {
     if (!portConfigOverride.pins_ref().has_value()) {
@@ -131,7 +131,7 @@ std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
         std::vector<phy::PinConfig> newOverrideIphy;
         for (int i = 0; i < iphyCfg.size(); i++) {
           phy::PinConfig pinCfg;
-          pinCfg.id = iphyCfg.at(i).id;
+          *pinCfg.id_ref() = *iphyCfg.at(i).id_ref();
           // Default to the first entry if we run out
           const auto& override =
               overrideIphy.at(i < overrideIphy.size() ? i : 0);
@@ -187,7 +187,7 @@ std::vector<cfg::PlatformPortConfigOverride>
 PlatformMapping::getPortConfigOverrides(int32_t port) const {
   std::vector<cfg::PlatformPortConfigOverride> overrides;
   for (const auto& portConfigOverride : portConfigOverrides_) {
-    if (auto portList = portConfigOverride.factor.ports_ref()) {
+    if (auto portList = portConfigOverride.factor_ref()->ports_ref()) {
       if (std::find(portList->begin(), portList->end(), port) !=
           portList->end()) {
         overrides.push_back(portConfigOverride);
@@ -217,18 +217,18 @@ void PlatformMapping::mergePortConfigOverrides(
         continue;
       }
 
-      auto portList = portOverrides.factor.ports_ref();
-      auto curPortList = curOverride.factor.ports_ref();
+      auto portList = portOverrides.factor_ref()->ports_ref();
+      auto curPortList = curOverride.factor_ref()->ports_ref();
       if (portList && curPortList) {
         curPortList->push_back(port);
       }
     }
     // if none of the existing override matches, add this override directly
     if (numMismatch == portConfigOverrides_.size()) {
-      if (auto portList = portOverrides.factor.ports_ref()) {
+      if (auto portList = portOverrides.factor_ref()->ports_ref()) {
         cfg::PlatformPortConfigOverride newOverride;
-        newOverride.factor = portOverrides.factor;
-        newOverride.factor.ports_ref() = {port};
+        *newOverride.factor_ref() = *portOverrides.factor_ref();
+        newOverride.factor_ref()->ports_ref() = {port};
         newOverride.pins_ref().copy_from(portOverrides.pins_ref());
         portConfigOverrides_.push_back(newOverride);
       } else {

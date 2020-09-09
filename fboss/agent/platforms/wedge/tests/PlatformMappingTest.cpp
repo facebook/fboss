@@ -69,7 +69,8 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
         // Only NRZ mode has override tx
-        if (itProfileCfg->second.iphy.modulation == phy::IpModulation::NRZ) {
+        if (*itProfileCfg->second.iphy_ref()->modulation_ref() ==
+            phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
           EXPECT_EQ(*tx->pre2_ref(), 0);
           EXPECT_EQ(*tx->pre_ref(), -8);
@@ -193,7 +194,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
   // Now 4.2 should be exactly the same as 5.2
   EXPECT_EQ(miln4_2->getPortConfigOverrides().size(), 1);
   for (auto miln4_2Override : miln4_2->getPortConfigOverrides()) {
-    auto overrideProfileList = miln4_2Override.factor.profiles_ref();
+    auto overrideProfileList = miln4_2Override.factor_ref()->profiles_ref();
     EXPECT_TRUE(overrideProfileList);
     EXPECT_TRUE(
         std::find(
@@ -202,7 +203,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528) !=
         overrideProfileList->end());
 
-    auto overridePortList = miln4_2Override.factor.ports_ref();
+    auto overridePortList = miln4_2Override.factor_ref()->ports_ref();
     EXPECT_EQ(overridePortList->size(), miln4_2->getPlatformPorts().size());
     // Now all the port should use this override
     for (const auto& port : miln4_2->getPlatformPorts()) {
@@ -292,7 +293,7 @@ TEST_F(PlatformMappingTest, VerifyGalaxyFCPlatformMapping) {
 
   // also check all the port name should starts with fab3
   for (const auto& port : mapping->getPlatformPorts()) {
-    EXPECT_EQ(port.second.mapping.name.rfind("fab3", 0), 0);
+    EXPECT_EQ(port.second.mapping_ref()->name_ref()->rfind("fab3", 0), 0);
   }
 }
 
@@ -318,8 +319,8 @@ TEST_F(PlatformMappingTest, VerifyGalaxyLCPlatformMapping) {
   // also check all the port name should starts with fab3/eth301
   for (const auto& port : mapping->getPlatformPorts()) {
     EXPECT_TRUE(
-        port.second.mapping.name.rfind("fab301", 0) == 0 ||
-        port.second.mapping.name.rfind("eth301", 0) == 0);
+        port.second.mapping_ref()->name_ref()->rfind("fab301", 0) == 0 ||
+        port.second.mapping_ref()->name_ref()->rfind("eth301", 0) == 0);
   }
 }
 

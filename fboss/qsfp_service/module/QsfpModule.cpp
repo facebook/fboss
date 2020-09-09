@@ -155,7 +155,7 @@ TransceiverInfo QsfpModule::parseDataLocked() {
     *chan.channel_ref() = i;
     info.channels_ref()->push_back(chan);
   }
-  if (!getSensorsPerChanInfo(info.channels)) {
+  if (!getSensorsPerChanInfo(*info.channels_ref())) {
     info.channels_ref()->clear();
   }
   if (auto transceiverStats = getTransceiverStats()) {

@@ -18,7 +18,7 @@ void addDscpAclToCfg(
     uint32_t dscp) {
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls[numCfgAcls].name_ref() = aclName;
+  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
   config->acls_ref()[numCfgAcls].dscp_ref() = dscp;
 }
 
@@ -28,7 +28,7 @@ void addClassIDAclToCfg(
     cfg::AclLookupClass lookupClass) {
   auto numCfgAcls = config->acls_ref()->size();
   config->acls_ref()->resize(numCfgAcls + 1);
-  *config->acls[numCfgAcls].name_ref() = aclName;
+  *config->acls_ref()[numCfgAcls].name_ref() = aclName;
   config->acls_ref()[numCfgAcls].lookupClass_ref() = lookupClass;
 }
 

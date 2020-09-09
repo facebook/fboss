@@ -255,30 +255,30 @@ double CmisModule::getQsfpOMLength(CmisField field) const {
 
 GlobalSensors CmisModule::getSensorInfo() {
   GlobalSensors info = GlobalSensors();
-  info.temp.value =
+  *info.temp_ref()->value_ref() =
       getQsfpSensor(CmisField::TEMPERATURE, CmisFieldInfo::getTemp);
-  info.temp.flags_ref() =
+  info.temp_ref()->flags_ref() =
       getQsfpSensorFlags(CmisField::MODULE_ALARMS, 0);
-  info.vcc.value = getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
-  info.vcc.flags_ref() =
-      getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
+  *info.vcc_ref()->value_ref() =
+      getQsfpSensor(CmisField::VCC, CmisFieldInfo::getVcc);
+  info.vcc_ref()->flags_ref() = getQsfpSensorFlags(CmisField::MODULE_ALARMS, 4);
   return info;
 }
 
 Vendor CmisModule::getVendorInfo() {
   Vendor vendor = Vendor();
-  vendor.name = getQsfpString(CmisField::VENDOR_NAME);
-  vendor.oui = getQsfpString(CmisField::VENDOR_OUI);
-  vendor.partNumber = getQsfpString(CmisField::PART_NUMBER);
-  vendor.rev = getQsfpString(CmisField::REVISION_NUMBER);
-  vendor.serialNumber = getQsfpString(CmisField::VENDOR_SERIAL_NUMBER);
-  vendor.dateCode = getQsfpString(CmisField::MFG_DATE);
+  *vendor.name_ref() = getQsfpString(CmisField::VENDOR_NAME);
+  *vendor.oui_ref() = getQsfpString(CmisField::VENDOR_OUI);
+  *vendor.partNumber_ref() = getQsfpString(CmisField::PART_NUMBER);
+  *vendor.rev_ref() = getQsfpString(CmisField::REVISION_NUMBER);
+  *vendor.serialNumber_ref() = getQsfpString(CmisField::VENDOR_SERIAL_NUMBER);
+  *vendor.dateCode_ref() = getQsfpString(CmisField::MFG_DATE);
   return vendor;
 }
 
 Cable CmisModule::getCableInfo() {
   Cable cable = Cable();
-  cable.transmitterTech = getQsfpTransmitterTechnology();
+  *cable.transmitterTech_ref() = getQsfpTransmitterTechnology();
 
   if (auto length = getQsfpSMFLength(); length != 0) {
     cable.singleMode_ref() = length;
@@ -321,10 +321,10 @@ ThresholdLevels CmisModule::getThresholdValues(
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
   CHECK_GE(length, 8);
-  thresh.alarm.high = conversion(data[0] << 8 | data[1]);
-  thresh.alarm.low = conversion(data[2] << 8 | data[3]);
-  thresh.warn.high = conversion(data[4] << 8 | data[5]);
-  thresh.warn.low = conversion(data[6] << 8 | data[7]);
+  *thresh.alarm_ref()->high_ref() = conversion(data[0] << 8 | data[1]);
+  *thresh.alarm_ref()->low_ref() = conversion(data[2] << 8 | data[3]);
+  *thresh.warn_ref()->high_ref() = conversion(data[4] << 8 | data[5]);
+  *thresh.warn_ref()->low_ref() = conversion(data[6] << 8 | data[7]);
 
   return thresh;
 }
@@ -360,20 +360,21 @@ uint8_t CmisModule::getSettingsValue(CmisField field, uint8_t mask) {
 
 TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.cdrTx = CmisFieldInfo::getFeatureState(
+  *settings.cdrTx_ref() = CmisFieldInfo::getFeatureState(
       getSettingsValue(CmisField::TX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
       getSettingsValue(CmisField::TX_CDR_CONTROL));
-  settings.cdrRx = CmisFieldInfo::getFeatureState(
+  *settings.cdrRx_ref() = CmisFieldInfo::getFeatureState(
       getSettingsValue(CmisField::RX_SIG_INT_CONT_AD, CDR_IMPL_MASK),
       getSettingsValue(CmisField::RX_CDR_CONTROL));
 
-  settings.powerMeasurement =
+  *settings.powerMeasurement_ref() =
       flatMem_ ? FeatureState::UNSUPPORTED : FeatureState::ENABLED;
 
-  settings.powerControl = getPowerControlValue();
-  settings.rateSelect = flatMem_ ? RateSelectState::UNSUPPORTED
-                                 : RateSelectState::APPLICATION_RATE_SELECT;
-  settings.rateSelectSetting = RateSelectSetting::UNSUPPORTED;
+  *settings.powerControl_ref() = getPowerControlValue();
+  *settings.rateSelect_ref() = flatMem_
+      ? RateSelectState::UNSUPPORTED
+      : RateSelectState::APPLICATION_RATE_SELECT;
+  *settings.rateSelectSetting_ref() = RateSelectSetting::UNSUPPORTED;
 
   getApplicationCapabilities();
 
@@ -427,10 +428,10 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
   getQsfpFieldAddress(field, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
 
-  flags.warn.low = (data[3] & (1 << channel));
-  flags.warn.high = (data[2] & (1 << channel));
-  flags.alarm.low = (data[1] & (1 << channel));
-  flags.alarm.high = (data[0] & (1 << channel));
+  *flags.warn_ref()->low_ref() = (data[3] & (1 << channel));
+  *flags.warn_ref()->high_ref() = (data[2] & (1 << channel));
+  *flags.alarm_ref()->low_ref() = (data[1] & (1 << channel));
+  *flags.alarm_ref()->high_ref() = (data[0] & (1 << channel));
 
   return flags;
 }
@@ -446,17 +447,17 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   int dataAddress;
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.rxPwr.flags_ref() =
+    channels[channel].sensors_ref()->rxPwr_ref()->flags_ref() =
         getChannelFlags(CmisField::RX_PWR_FLAG, channel);
   }
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txBias.flags_ref() =
+    channels[channel].sensors_ref()->txBias_ref()->flags_ref() =
         getChannelFlags(CmisField::TX_BIAS_FLAG, channel);
   }
 
   for (int channel = 0; channel < CHANNEL_COUNT; channel++) {
-    channels[channel].sensors.txPwr.flags_ref() =
+    channels[channel].sensors_ref()->txPwr_ref()->flags_ref() =
         getChannelFlags(CmisField::TX_PWR_FLAG, channel);
   }
 
@@ -465,7 +466,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.rxPwr.value = CmisFieldInfo::getPwr(value);
+    *channel.sensors_ref()->rxPwr_ref()->value_ref() =
+        CmisFieldInfo::getPwr(value);
     data += 2;
     length--;
   }
@@ -475,7 +477,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
   data = getQsfpValuePtr(dataAddress, offset, length);
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.txBias.value = CmisFieldInfo::getTxBias(value);
+    *channel.sensors_ref()->txBias_ref()->value_ref() =
+        CmisFieldInfo::getTxBias(value);
     data += 2;
     length--;
   }
@@ -486,7 +489,8 @@ bool CmisModule::getSensorsPerChanInfo(std::vector<Channel>& channels) {
 
   for (auto& channel : channels) {
     uint16_t value = data[0] << 8 | data[1];
-    channel.sensors.txPwr.value = CmisFieldInfo::getPwr(value);
+    *channel.sensors_ref()->txPwr_ref()->value_ref() =
+        CmisFieldInfo::getPwr(value);
     data += 2;
     length--;
   }
@@ -653,8 +657,9 @@ RawDOMData CmisModule::getRawDOMData() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   RawDOMData data;
   if (present_) {
-    data.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    data.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *data.lower_ref() =
+        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *data.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
   }
   return data;
 }
@@ -663,8 +668,10 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   CmisData cmisData;
   if (present_) {
-    cmisData.lower = IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
-    cmisData.page0 = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    *cmisData.lower_ref() =
+        IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
+    *cmisData.page0_ref() =
+        IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
     if (!flatMem_) {
       cmisData.page01_ref() = IOBuf::wrapBufferAsValue(page01_, MAX_QSFP_PAGE_SIZE);
       cmisData.page02_ref() = IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
@@ -948,7 +955,7 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
     TransceiverSettings settings = getTransceiverSettingsInfo();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupported(settings.powerControl);
+    setPowerOverrideIfSupported(*settings.powerControl_ref());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCode(speed);

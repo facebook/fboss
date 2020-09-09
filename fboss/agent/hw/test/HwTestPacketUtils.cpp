@@ -63,7 +63,7 @@ folly::MacAddress getInterfaceMac(
 }
 
 VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
-  return VlanID(*cfg.vlanPorts[0].vlanID_ref());
+  return VlanID(*cfg.vlanPorts_ref()[0].vlanID_ref());
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(

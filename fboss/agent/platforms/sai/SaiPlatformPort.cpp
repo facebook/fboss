@@ -171,7 +171,7 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   auto transceiverLanes = utility::getTransceiverLanes(
       *platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
   for (auto entry : transceiverLanes) {
-    lanes.push_back(entry.lane);
+    lanes.push_back(*entry.lane_ref());
   }
   TransceiverIdxThrift xcvr;
   xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());

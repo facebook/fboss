@@ -727,12 +727,12 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
 
 void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
   auto prbsState = swPort->getAsicPrbs();
-  if (prbsState.enabled) {
+  if (*prbsState.enabled_ref()) {
     auto asicPrbsPolynominalIter =
-        asicPrbsPolynominalMap.find(prbsState.polynominal);
+        asicPrbsPolynominalMap.find(*prbsState.polynominal_ref());
     if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.end()) {
       throw FbossError(
-          "Polynominal value not supported: ", prbsState.polynominal);
+          "Polynominal value not supported: ", *prbsState.polynominal_ref());
     } else {
       auto rv = bcm_port_control_set(
           unit_,
@@ -745,7 +745,7 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
     }
   }
 
-  std::string enableStr = prbsState.enabled ? "enable" : "disable";
+  std::string enableStr = *prbsState.enabled_ref() ? "enable" : "disable";
 
   int currVal{0};
   auto rv =
@@ -757,12 +757,12 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
           port_,
           bcm_errmsg(rv)));
 
-  if (currVal != (prbsState.enabled ? 1 : 0)) {
+  if (currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
     rv = bcm_port_control_set(
         unit_,
         port_,
         bcmPortControlPrbsTxEnable,
-        ((prbsState.enabled) ? 1 : 0));
+        ((*prbsState.enabled_ref()) ? 1 : 0));
 
     bcmCheckError(
         rv,
@@ -781,12 +781,12 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
           port_,
           bcm_errmsg(rv)));
 
-  if (currVal != (prbsState.enabled ? 1 : 0)) {
+  if (currVal != (*prbsState.enabled_ref() ? 1 : 0)) {
     rv = bcm_port_control_set(
         unit_,
         port_,
         bcmPortControlPrbsRxEnable,
-        ((prbsState.enabled) ? 1 : 0));
+        ((*prbsState.enabled_ref()) ? 1 : 0));
 
     bcmCheckError(
         rv,
@@ -956,7 +956,7 @@ void BcmPort::updateStats() {
     // by subtracting the pause frames received from in_discards.
     // TODO: Test if this is true when rx pause is enabled
     toSubtractFromInDiscardsRaw.emplace_back(
-        lastPortStats.inPause_, curPortStats.inPause_);
+        *lastPortStats.inPause__ref(), *curPortStats.inPause__ref());
   }
   *curPortStats.inDiscards__ref() += utility::subtractIncrements(
       {*lastPortStats.inDiscardsRaw__ref(), *curPortStats.inDiscardsRaw__ref()},
@@ -1461,23 +1461,26 @@ void BcmPort::setTxSettingViaPhyControl(
                  << static_cast<uint32_t>(*correctDc) << " from " << dc;
     }
   }
-  if (preTap != correctTx.pre && correctTx.pre != 0) {
+  if (preTap != *correctTx.pre_ref() && *correctTx.pre_ref() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, correctTx.pre);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_PRE, *correctTx.pre_ref());
     XLOG(DBG1) << "Set pre-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.pre) << " from " << preTap;
+               << static_cast<uint32_t>(*correctTx.pre_ref()) << " from "
+               << preTap;
   }
-  if (mainTap != correctTx.main && correctTx.main != 0) {
+  if (mainTap != *correctTx.main_ref() && *correctTx.main_ref() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, correctTx.main);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_MAIN, *correctTx.main_ref());
     XLOG(DBG1) << "Set main-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.main) << " from " << mainTap;
+               << static_cast<uint32_t>(*correctTx.main_ref()) << " from "
+               << mainTap;
   }
-  if (postTap != correctTx.post && correctTx.post != 0) {
+  if (postTap != *correctTx.post_ref() && *correctTx.post_ref() != 0) {
     bcm_port_phy_control_set(
-        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, correctTx.post);
+        unit_, port_, BCM_PORT_PHY_CONTROL_TX_FIR_POST, *correctTx.post_ref());
     XLOG(DBG1) << "Set post-tap on port " << swPort->getID() << " to be "
-               << static_cast<uint32_t>(correctTx.post) << " from " << postTap;
+               << static_cast<uint32_t>(*correctTx.post_ref()) << " from "
+               << postTap;
   }
 }
 

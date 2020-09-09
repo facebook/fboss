@@ -60,7 +60,7 @@ void runTxSlowPathBenchmark() {
         // Send packet
         auto txPacket = utility::makeUDPTxPacket(
             hwSwitch,
-            VlanID(*config.vlanPorts[0].vlanID_ref()),
+            VlanID(*config.vlanPorts_ref()[0].vlanID_ref()),
             kSrcMac,
             cpuMac,
             kSrcIp,

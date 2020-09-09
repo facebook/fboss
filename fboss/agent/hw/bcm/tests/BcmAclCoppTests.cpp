@@ -47,14 +47,14 @@ void checkCoppAclMatch(
 void addInterface(cfg::SwitchConfig* config) {
   // add one interface, ipAddress
   config->interfaces_ref()->resize(2);
-  *config->interfaces[1].intfID_ref() = 2;
+  *config->interfaces_ref()[1].intfID_ref() = 2;
   config->vlans_ref()->resize(3);
-  *config->vlans[2].id_ref() = 2;
-  *config->interfaces[1].vlanID_ref() = 2;
-  *config->interfaces[1].routerID_ref() = 0;
+  *config->vlans_ref()[2].id_ref() = 2;
+  *config->interfaces_ref()[1].vlanID_ref() = 2;
+  *config->interfaces_ref()[1].routerID_ref() = 0;
   config->interfaces_ref()[1].mac_ref() = "00:01:00:11:22:33";
   config->interfaces_ref()[1].ipAddresses_ref()->resize(1);
-  config->interfaces[1].ipAddresses_ref()[0] = "::11:11:11/120";
+  config->interfaces_ref()[1].ipAddresses_ref()[0] = "::11:11:11/120";
 }
 
 void delInterface(cfg::SwitchConfig* config) {

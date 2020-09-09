@@ -351,7 +351,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         " not found for port ",
         swPort->getID());
   }
-  auto speed = portProfileConfig->speed;
+  auto speed = *portProfileConfig->speed_ref();
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(speed);
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());

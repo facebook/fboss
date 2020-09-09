@@ -49,8 +49,10 @@ void add2QueueConfig(cfg::SwitchConfig* config, PortID portID) {
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
   auto portCfg = std::find_if(
-      config->ports.begin(), config->ports.end(), [&portID](auto& port) {
-        return PortID(port.logicalID) == portID;
+      config->ports_ref()->begin(),
+      config->ports_ref()->end(),
+      [&portID](auto& port) {
+        return PortID(*port.logicalID_ref()) == portID;
       });
   portCfg->portQueueConfigName_ref() = "queue_config";
 }
@@ -70,7 +72,7 @@ void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
     auto [q, dscps] = q2dscps;
-    *qosMap.dscpMaps[qosMapIdx].internalTrafficClass_ref() = q;
+    *qosMap.dscpMaps_ref()[qosMapIdx].internalTrafficClass_ref() = q;
     for (auto dscp : dscps) {
       qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
           dscp);
@@ -79,7 +81,7 @@ void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
     ++qosMapIdx;
   }
   cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies[0].name_ref() = "qp";
+  *cfg.qosPolicies_ref()[0].name_ref() = "qp";
   cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;

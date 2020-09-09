@@ -20,9 +20,9 @@ void recurseGetPinsByChipType(
     const PinConnection& pinConn,
     const std::map<std::string, DataPlanePhyChip>& chipsMap,
     std::vector<Pin>& pins) {
-  if (chipsMap.find(pinConn.a_ref()->chip) != chipsMap.end()) {
+  if (chipsMap.find(*pinConn.a_ref()->chip_ref()) != chipsMap.end()) {
     Pin temp;
-    temp.set_end(pinConn.a);
+    temp.set_end(*pinConn.a_ref());
     pins.push_back(temp);
     return;
   }
@@ -33,7 +33,7 @@ void recurseGetPinsByChipType(
   }
   auto zPin = *zPinRef;
   if (zPin.getType() == Pin::Type::end) {
-    if (chipsMap.find(zPin.get_end().chip) != chipsMap.end()) {
+    if (chipsMap.find(*zPin.get_end().chip_ref()) != chipsMap.end()) {
       Pin temp;
       temp.set_end(zPin.get_end());
       pins.push_back(temp);
@@ -124,7 +124,7 @@ std::vector<phy::PinID> getTransceiverLanes(
     }
     if (auto tcvr = itPortCfg->second.pins_ref()->transceiver_ref()) {
       for (const auto& pinCfg : *tcvr) {
-        lanes.push_back(pinCfg.id);
+        lanes.push_back(*pinCfg.id_ref());
       }
     }
   } else {
@@ -150,7 +150,8 @@ std::map<int32_t, phy::PolaritySwap> getIphyPolaritySwapMap(
   for (const auto& pinConnection : pinConnections) {
     if (pinConnection.polaritySwap_ref()) {
       polaritySwapMap.emplace(
-          pinConnection.a_ref()->lane, *pinConnection.polaritySwap_ref());
+          *pinConnection.a_ref()->lane_ref(),
+          *pinConnection.polaritySwap_ref());
     }
   }
 
@@ -166,7 +167,7 @@ std::map<int32_t, phy::LaneConfig> getIphyLaneConfigs(
     }
     phy::LaneConfig laneConfig;
     laneConfig.tx = *pinConfig.tx_ref();
-    laneConfigs.emplace(pinConfig.id_ref()->lane, laneConfig);
+    laneConfigs.emplace(*pinConfig.id_ref()->lane_ref(), laneConfig);
   }
 
   return laneConfigs;
@@ -182,7 +183,7 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
     for (const auto& connection : *pin.get_junction().line_ref()) {
       if (auto pn = connection.polaritySwap_ref()) {
-        xphyPolaritySwapMap.emplace(connection.a_ref()->lane, *pn);
+        xphyPolaritySwapMap.emplace(*connection.a_ref()->lane_ref(), *pn);
       }
     }
   }
@@ -204,7 +205,7 @@ std::vector<phy::PinID> getOrderedIphyLanes(
           apache::thrift::util::enumNameSafe(*profileID));
     }
     for (const auto& pinCfg : *itrPortCfg->second.pins_ref()->iphy_ref()) {
-      lanes.push_back(pinCfg.id);
+      lanes.push_back(*pinCfg.id_ref());
     }
   } else {
     // If it's not looking for the lanes list based on profile, return the

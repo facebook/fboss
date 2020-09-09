@@ -30,16 +30,16 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     cfg.staticRoutesToNull_ref()->resize(2);
-    *cfg.staticRoutesToNull[0].routerID_ref() =
-        *cfg.staticRoutesToNull[1].routerID_ref() = 0;
-    *cfg.staticRoutesToNull[0].prefix_ref() = "0.0.0.0/0";
-    *cfg.staticRoutesToNull[1].prefix_ref() = "::/0";
+    *cfg.staticRoutesToNull_ref()[0].routerID_ref() =
+        *cfg.staticRoutesToNull_ref()[1].routerID_ref() = 0;
+    *cfg.staticRoutesToNull_ref()[0].prefix_ref() = "0.0.0.0/0";
+    *cfg.staticRoutesToNull_ref()[1].prefix_ref() = "::/0";
     return cfg;
   }
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcIp = IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");

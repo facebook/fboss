@@ -96,7 +96,7 @@ ExternalPhyConfig ExternalPhyConfig::fromConfigeratorTypes(
               it != polaritySwapMap.end()) {
             laneCfg.polaritySwap = it->second;
           }
-          laneConfigs.emplace(pinCfg.id_ref()->lane, laneCfg);
+          laneConfigs.emplace(*pinCfg.id_ref()->lane_ref(), laneCfg);
         }
       };
 

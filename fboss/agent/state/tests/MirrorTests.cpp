@@ -26,8 +26,9 @@ class MirrorTest : public ::testing::Test {
     cfg::AclEntry aclEntry;
     auto aclCount = config_.acls_ref()->size() + 1;
     config_.acls_ref()->resize(aclCount);
-    *config_.acls[aclCount - 1].name_ref() = name;
-    *config_.acls[aclCount - 1].actionType_ref() = cfg::AclActionType::PERMIT;
+    *config_.acls_ref()[aclCount - 1].name_ref() = name;
+    *config_.acls_ref()[aclCount - 1].actionType_ref() =
+        cfg::AclActionType::PERMIT;
     config_.acls_ref()[aclCount - 1].l4DstPort_ref() = dstL4Port;
   }
 
@@ -401,7 +402,7 @@ TEST_F(MirrorTest, WithStateChange) {
   config_.mirrors_ref()->push_back(
       utility::getGREMirror("mirror0", MirrorTest::tunnelDestination));
   publishWithStateUpdate();
-  *config_.mirrors[0]
+  *config_.mirrors_ref()[0]
        .destination_ref()
        ->tunnel_ref()
        .value()

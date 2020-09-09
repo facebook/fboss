@@ -56,7 +56,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
       int l4DstPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     // arbit
     const auto srcIp =
@@ -84,7 +84,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -115,7 +115,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(

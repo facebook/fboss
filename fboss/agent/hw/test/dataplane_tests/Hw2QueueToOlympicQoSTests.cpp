@@ -44,13 +44,13 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     return utility::makeUDPTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         srcMac,
         intfMac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

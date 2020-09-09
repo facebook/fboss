@@ -39,26 +39,26 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
   for (int i = 0; i < 2; ++i) {
     auto id = i + 1;
     // port
-    *cfg.ports[i].logicalID_ref() = id;
+    *cfg.ports_ref()[i].logicalID_ref() = id;
     cfg.ports_ref()[i].name_ref() = folly::to<string>("port", id);
     // vlans
-    *cfg.vlans[i].id_ref() = id;
-    *cfg.vlans[i].name_ref() = folly::to<string>("Vlan", id);
+    *cfg.vlans_ref()[i].id_ref() = id;
+    *cfg.vlans_ref()[i].name_ref() = folly::to<string>("Vlan", id);
     cfg.vlans_ref()[i].intfID_ref() = id;
     // vlan ports
-    *cfg.vlanPorts[i].logicalPort_ref() = id;
-    *cfg.vlanPorts[i].vlanID_ref() = id;
+    *cfg.vlanPorts_ref()[i].logicalPort_ref() = id;
+    *cfg.vlanPorts_ref()[i].vlanID_ref() = id;
     // interfaces
-    *cfg.interfaces[i].intfID_ref() = id;
-    *cfg.interfaces[i].routerID_ref() = 0;
-    *cfg.interfaces[i].vlanID_ref() = id;
+    *cfg.interfaces_ref()[i].intfID_ref() = id;
+    *cfg.interfaces_ref()[i].routerID_ref() = 0;
+    *cfg.interfaces_ref()[i].vlanID_ref() = id;
     cfg.interfaces_ref()[i].name_ref() = folly::to<string>("interface", id);
     cfg.interfaces_ref()[i].mac_ref() =
         folly::to<string>("00:02:00:00:00:", id);
     cfg.interfaces_ref()[i].mtu_ref() = 9000;
     cfg.interfaces_ref()[i].ipAddresses_ref()->resize(2);
-    cfg.interfaces[i].ipAddresses_ref()[0] = v4IntefacePrefixes[i];
-    cfg.interfaces[i].ipAddresses_ref()[1] = v6IntefacePrefixes[i];
+    cfg.interfaces_ref()[i].ipAddresses_ref()[0] = v4IntefacePrefixes[i];
+    cfg.interfaces_ref()[i].ipAddresses_ref()[1] = v6IntefacePrefixes[i];
   }
   return applyThriftConfig(std::make_shared<SwitchState>(), &cfg, platform);
 }

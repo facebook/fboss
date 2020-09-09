@@ -98,30 +98,30 @@ class BcmStatUpdater {
     PrbsLaneStats getPrbsLaneStats() const {
       PrbsLaneStats prbsLaneStats = PrbsLaneStats();
       steady_clock::time_point now = steady_clock::now();
-      prbsLaneStats.laneId = laneId_;
-      prbsLaneStats.locked = locked_;
+      *prbsLaneStats.laneId_ref() = laneId_;
+      *prbsLaneStats.locked_ref() = locked_;
       if (!locked_) {
-        prbsLaneStats.ber = 0.;
+        *prbsLaneStats.ber_ref() = 0.;
       } else {
         milliseconds duration =
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 timeLastCollect_ - timeLastLocked_);
         if (duration.count() == 0) {
-          prbsLaneStats.ber = 0.;
+          *prbsLaneStats.ber_ref() = 0.;
         } else {
-          prbsLaneStats.ber =
+          *prbsLaneStats.ber_ref() =
               (accuErrorCount_ * 1000) / (laneRate_ * duration.count());
         }
       }
-      prbsLaneStats.maxBer = maxBer_;
-      prbsLaneStats.numLossOfLock = numLossOfLock_;
-      prbsLaneStats.timeSinceLastLocked =
+      *prbsLaneStats.maxBer_ref() = maxBer_;
+      *prbsLaneStats.numLossOfLock_ref() = numLossOfLock_;
+      *prbsLaneStats.timeSinceLastLocked_ref() =
           (timeLastLocked_ == steady_clock::time_point())
           ? 0
           : std::chrono::duration_cast<std::chrono::seconds>(
                 now - timeLastLocked_)
                 .count();
-      prbsLaneStats.timeSinceLastClear =
+      *prbsLaneStats.timeSinceLastClear_ref() =
           std::chrono::duration_cast<std::chrono::seconds>(
               now - timeLastCleared_)
               .count();

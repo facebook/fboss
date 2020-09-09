@@ -139,7 +139,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   void sendPkt() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         kSourceMac(),
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
@@ -197,7 +197,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     EXPECT_EQ(l2Entry.getMac(), expectedMac);
     EXPECT_EQ(
         l2Entry.getVlanID(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()));
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()));
     EXPECT_EQ(l2Entry.getPort(), portDescr);
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
@@ -220,7 +220,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     *newCfg.switchSettings_ref()->l2LearningMode_ref() = l2LearningMode;
 
     if (portDescr.isAggregatePort()) {
-      *newCfg.ports[0].state_ref() = cfg::PortState::ENABLED;
+      *newCfg.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
       addAggPort(
           std::numeric_limits<AggregatePortID>::max(),
           {masterLogicalPortIds()[0]},
@@ -403,7 +403,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   bool wasMacLearntInSwitchState(bool shouldExist) const {
-    auto vlanID = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanID = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto state = getProgrammedState();
     auto vlan = state->getVlans()->getVlanIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
@@ -755,7 +755,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
   void sendPkt2() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         kSourceMac(),
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);

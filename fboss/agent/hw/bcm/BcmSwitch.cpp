@@ -2764,16 +2764,17 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto duration =
       duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch());
-  info.timestamp.seconds =
+  *info.timestamp_ref()->seconds_ref() =
       duration_cast<std::chrono::seconds>(duration).count();
-  info.timestamp.nanoseconds = duration_cast<std::chrono::nanoseconds>(
-                                   duration % std::chrono::seconds(1))
-                                   .count();
-  info.ingressSampled = ingressSample;
-  info.egressSampled = egressSample;
-  info.srcPort = pkt->src_port;
-  info.dstPort = pkt->dest_port;
-  info.vlan = pkt->vlan;
+  *info.timestamp_ref()->nanoseconds_ref() =
+      duration_cast<std::chrono::nanoseconds>(
+          duration % std::chrono::seconds(1))
+          .count();
+  *info.ingressSampled_ref() = ingressSample;
+  *info.egressSampled_ref() = egressSample;
+  *info.srcPort_ref() = pkt->src_port;
+  *info.dstPort_ref() = pkt->dest_port;
+  *info.vlan_ref() = pkt->vlan;
 
   auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt->pkt_data->len));
 
@@ -2783,14 +2784,16 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
 
   {
     std::string packetData(pkt->pkt_data->data, pkt->pkt_data->data + snapLen);
-    info.packetData = std::move(packetData);
+    *info.packetData_ref() = std::move(packetData);
   }
 
   // Print it for debugging
-  XLOG(DBG6) << "sFlowSample: (" << info.timestamp.seconds << ','
-             << info.timestamp.nanoseconds << ',' << info.ingressSampled << ','
-             << info.egressSampled << ',' << info.srcPort << ',' << info.dstPort
-             << ',' << info.vlan << ',' << info.packetData.length() << ")\n";
+  XLOG(DBG6) << "sFlowSample: (" << *info.timestamp_ref()->seconds_ref() << ','
+             << *info.timestamp_ref()->nanoseconds_ref() << ','
+             << *info.ingressSampled_ref() << ',' << *info.egressSampled_ref()
+             << ',' << *info.srcPort_ref() << ',' << *info.dstPort_ref() << ','
+             << *info.vlan_ref() << ',' << info.packetData_ref()->length()
+             << ")\n";
 
   sFlowExporterTable_->sendToAll(info);
 
@@ -2861,7 +2864,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
           user_data);
   auto [hw, l2Table] = *cookie;
-  entry.mac = folly::sformat(
+  *entry.mac_ref() = folly::sformat(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
       l2addr->mac[1],
@@ -2869,19 +2872,21 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       l2addr->mac[3],
       l2addr->mac[4],
       l2addr->mac[5]);
-  entry.vlanID = l2addr->vid;
-  entry.port = 0;
+  *entry.vlanID_ref() = l2addr->vid;
+  *entry.port_ref() = 0;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
     entry.trunk_ref() = hw->getTrunkTable()->getAggregatePortId(l2addr->tgid);
-    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
+               << " Vid:" << *entry.vlanID_ref()
                << " Trunk: " << entry.trunk_ref().value_or({});
   } else {
-    entry.port = l2addr->port;
-    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
-               << " Port: " << entry.port;
+    *entry.port_ref() = l2addr->port;
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
+               << " Vid:" << *entry.vlanID_ref()
+               << " Port: " << *entry.port_ref();
   }
 
-  entry.l2EntryType = (l2addr->flags & BCM_L2_PENDING)
+  *entry.l2EntryType_ref() = (l2addr->flags & BCM_L2_PENDING)
       ? L2EntryType::L2_ENTRY_TYPE_PENDING
       : L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 

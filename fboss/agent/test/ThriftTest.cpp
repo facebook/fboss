@@ -140,22 +140,23 @@ TEST(ThriftTest, LinkLocalRoutes) {
   stateV0->resetRouteTables(newRt);
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1;
+  *config.vlans_ref()[0].id_ref() = 1;
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].vlanID_ref() = 1;
-  *config.interfaces[0].routerID_ref() = 0;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].vlanID_ref() = 1;
+  *config.interfaces_ref()[0].routerID_ref() = 0;
   config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.1/24";
-  config.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[2] =
+      "2401:db00:2110:3001::0001/64";
   config.ports_ref()->resize(10);
   for (int i = 0; i < 10; i++) {
     auto port = i + 1;
-    config.ports[i].logicalID_ref() = port;
+    config.ports_ref()[i].logicalID_ref() = port;
     config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
-    config.ports[i].state_ref() = cfg::PortState::DISABLED;
+    config.ports_ref()[i].state_ref() = cfg::PortState::DISABLED;
   }
   // Call applyThriftConfig
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -196,16 +197,17 @@ TEST(ThriftTest, syncFib) {
   // Create a config
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1;
+  *config.vlans_ref()[0].id_ref() = 1;
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].vlanID_ref() = 1;
-  *config.interfaces[0].routerID_ref() = 0;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].vlanID_ref() = 1;
+  *config.interfaces_ref()[0].routerID_ref() = 0;
   config.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   config.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  config.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  config.interfaces[0].ipAddresses_ref()[1] = "192.168.0.19/24";
-  config.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.19/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[2] =
+      "2401:db00:2110:3001::0001/64";
 
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   auto handle = createTestHandle(&config);

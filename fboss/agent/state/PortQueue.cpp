@@ -55,8 +55,8 @@ namespace facebook::fboss {
 
 state::PortQueueFields PortQueueFields::toThrift() const {
   state::PortQueueFields queue;
-  queue.id = id;
-  queue.weight = weight;
+  *queue.id_ref() = id;
+  *queue.weight_ref() = weight;
   if (reservedBytes) {
     queue.reserved_ref() = reservedBytes.value();
   }
@@ -72,12 +72,12 @@ state::PortQueueFields PortQueueFields::toThrift() const {
   if (schedulingName == nullptr) {
     CHECK(false) << "Unexpected scheduling: " << static_cast<int>(scheduling);
   }
-  queue.scheduling = schedulingName;
+  *queue.scheduling_ref() = schedulingName;
   auto streamTypeName = apache::thrift::util::enumName(streamType);
   if (streamTypeName == nullptr) {
     CHECK(false) << "Unexpected streamType: " << static_cast<int>(streamType);
   }
-  queue.streamType = streamTypeName;
+  *queue.streamType_ref() = streamTypeName;
   if (name) {
     queue.name_ref() = name.value();
   }
@@ -115,23 +115,23 @@ state::PortQueueFields PortQueueFields::toThrift() const {
 PortQueueFields PortQueueFields::fromThrift(
     state::PortQueueFields const& queueThrift) {
   PortQueueFields queue;
-  queue.id = static_cast<uint8_t>(queueThrift.id);
+  queue.id = static_cast<uint8_t>(*queueThrift.id_ref());
 
   cfg::StreamType streamType;
   if (!TEnumTraits<cfg::StreamType>::findValue(
-          queueThrift.streamType.c_str(), &streamType)) {
-    CHECK(false) << "Invalid stream type: " << queueThrift.streamType;
+          queueThrift.streamType_ref()->c_str(), &streamType)) {
+    CHECK(false) << "Invalid stream type: " << *queueThrift.streamType_ref();
   }
   queue.streamType = streamType;
 
   cfg::QueueScheduling scheduling;
   if (!TEnumTraits<cfg::QueueScheduling>::findValue(
-          queueThrift.scheduling.c_str(), &scheduling)) {
-    CHECK(false) << "Invalid scheduling: " << queueThrift.scheduling;
+          queueThrift.scheduling_ref()->c_str(), &scheduling)) {
+    CHECK(false) << "Invalid scheduling: " << *queueThrift.scheduling_ref();
   }
   queue.scheduling = scheduling;
 
-  queue.weight = queueThrift.weight;
+  queue.weight = *queueThrift.weight_ref();
   if (queueThrift.reserved_ref()) {
     queue.reservedBytes = queueThrift.reserved_ref().value();
   }
@@ -217,13 +217,13 @@ std::string PortQueue::toString() const {
     switch (portQueueRate.getType()) {
       case cfg::PortQueueRate::Type::pktsPerSec:
         type = "pps";
-        rateMin = portQueueRate.get_pktsPerSec().minimum;
-        rateMax = portQueueRate.get_pktsPerSec().maximum;
+        rateMin = *portQueueRate.get_pktsPerSec().minimum_ref();
+        rateMax = *portQueueRate.get_pktsPerSec().maximum_ref();
         break;
       case cfg::PortQueueRate::Type::kbitsPerSec:
         type = "pps";
-        rateMin = portQueueRate.get_kbitsPerSec().minimum;
-        rateMax = portQueueRate.get_kbitsPerSec().maximum;
+        rateMin = *portQueueRate.get_kbitsPerSec().minimum_ref();
+        rateMax = *portQueueRate.get_kbitsPerSec().maximum_ref();
         break;
       case cfg::PortQueueRate::Type::__EMPTY__:
         // needed to handle error from -Werror=switch, fall through

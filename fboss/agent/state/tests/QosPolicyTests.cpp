@@ -83,7 +83,7 @@ void checkQosSwState(
   ASSERT_EQ(cfgQosPolicies.size(), state->getQosPolicies()->size());
 
   for (const auto& cfgQosPolicy : cfgQosPolicies) {
-    auto swQosPolicy = state->getQosPolicy(cfgQosPolicy.name);
+    auto swQosPolicy = state->getQosPolicy(*cfgQosPolicy.name_ref());
     checkQosPolicy(cfgQosPolicy, swQosPolicy);
   }
 }
@@ -221,7 +221,7 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   cfg::QosMap qosMap;
   qosMap.dscpMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    *qosMap.dscpMaps[i].internalTrafficClass_ref() = i;
+    *qosMap.dscpMaps_ref()[i].internalTrafficClass_ref() = i;
     for (auto j = 0; j < 8; j++) {
       qosMap.dscpMaps_ref()[i].fromDscpToTrafficClass_ref()->push_back(
           8 * i + j);
@@ -230,7 +230,7 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   }
   qosMap.expMaps_ref()->resize(8);
   for (auto i = 0; i < 8; i++) {
-    *qosMap.expMaps[i].internalTrafficClass_ref() = i;
+    *qosMap.expMaps_ref()[i].internalTrafficClass_ref() = i;
     qosMap.expMaps_ref()[i].fromExpToTrafficClass_ref()->push_back(i);
     qosMap.expMaps_ref()[i].fromTrafficClassToExp_ref() = i;
   }
@@ -312,13 +312,13 @@ TEST(QosPolicy, PortDefaultQosPolicy) {
   stateV0->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[1].logicalID_ref() = 2;
+  *config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
   config.qosPolicies_ref()->resize(1);
-  *config.qosPolicies[0].name_ref() = "qp1";
-  *config.qosPolicies[0].rules_ref() = dscpRules({{0, {44, 45, 46}}});
+  *config.qosPolicies_ref()[0].name_ref() = "qp1";
+  *config.qosPolicies_ref()[0].rules_ref() = dscpRules({{0, {44, 45, 46}}});
   cfg::TrafficPolicyConfig trafficPolicy;
   trafficPolicy.defaultQosPolicy_ref() = "qp1";
   config.dataPlaneTrafficPolicy_ref() = trafficPolicy;
@@ -338,15 +338,15 @@ TEST(QosPolicy, PortQosPolicyOverride) {
   stateV0->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[1].logicalID_ref() = 2;
+  *config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
   config.qosPolicies_ref()->resize(2);
-  *config.qosPolicies[0].name_ref() = "qp1";
-  *config.qosPolicies[0].rules_ref() = dscpRules({{0, {46}}});
-  *config.qosPolicies[1].name_ref() = "qp2";
-  *config.qosPolicies[1].rules_ref() = dscpRules({{1, {46}}});
+  *config.qosPolicies_ref()[0].name_ref() = "qp1";
+  *config.qosPolicies_ref()[0].rules_ref() = dscpRules({{0, {46}}});
+  *config.qosPolicies_ref()[1].name_ref() = "qp2";
+  *config.qosPolicies_ref()[1].rules_ref() = dscpRules({{1, {46}}});
   cfg::TrafficPolicyConfig trafficPolicy;
   trafficPolicy.defaultQosPolicy_ref() = "qp1";
   trafficPolicy.portIdToQosPolicy_ref() = {{1, "qp2"}};
@@ -453,9 +453,9 @@ TEST(QosPolicy, DefaultQosPolicyOnPorts) {
   state->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[1].logicalID_ref() = 2;
+  *config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
 
   config.qosPolicies_ref()->resize(1);
@@ -482,9 +482,9 @@ TEST(QosPolicy, QosPolicyPortOverride) {
   state->registerPort(PortID(2), "port2");
 
   config.ports_ref()->resize(2);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[1].logicalID_ref() = 2;
+  *config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
 
   config.qosPolicies_ref()->resize(2);
@@ -572,7 +572,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   stateV0->registerPort(PortID(1), "port1");
 
   config0.ports_ref()->resize(1);
-  *config0.ports[0].logicalID_ref() = 1;
+  *config0.ports_ref()[0].logicalID_ref() = 1;
   config0.ports_ref()[0].name_ref() = "port1";
   cfg::TrafficPolicyConfig trafficPolicy0;
   trafficPolicy0.portIdToQosPolicy_ref() = {{1, "qp3"}};
@@ -586,7 +586,7 @@ TEST(QosPolicy, InvalidPortQosPolicy) {
   stateV1->registerPort(PortID(1), "port1");
 
   config1.ports_ref()->resize(1);
-  *config1.ports[0].logicalID_ref() = 1;
+  *config1.ports_ref()[0].logicalID_ref() = 1;
   config1.ports_ref()[0].name_ref() = "port1";
   cfg::TrafficPolicyConfig trafficPolicy1;
   trafficPolicy1.defaultQosPolicy_ref() = "qp1";
