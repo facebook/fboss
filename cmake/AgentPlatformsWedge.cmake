@@ -32,3 +32,12 @@ target_link_libraries(platform
   Folly::folly
   wedge_led_utils
 )
+
+add_library(bcm_led_utils
+  fboss/agent/platforms/wedge/utils/oss/BcmLedUtils.cpp
+)
+
+target_link_libraries(bcm_led_utils
+  error
+  Folly::folly
+)
