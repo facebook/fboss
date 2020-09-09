@@ -144,6 +144,38 @@ struct SaiSwitchTraits {
         sai_u32_range_t>;
     using EcnEctThresholdEnable =
         SaiAttribute<EnumType, SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE, bool>;
+    using AvailableIpv4RouteEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY,
+        sai_uint32_t>;
+    using AvailableIpv6RouteEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY,
+        sai_uint32_t>;
+    using AvailableIpv4NextHopEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY,
+        sai_uint32_t>;
+    using AvailableIpv6NextHopEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEXTHOP_ENTRY,
+        sai_uint32_t>;
+    using AvailableNextHopGroupEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_ENTRY,
+        sai_uint32_t>;
+    using AvailableNextHopGroupMemberEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY,
+        sai_uint32_t>;
+    using AvailableIpv4NeighborEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY,
+        sai_uint32_t>;
+    using AvailableIpv6NeighborEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
+        sai_uint32_t>;
     /* extension attributes */
     struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -209,6 +241,15 @@ SAI_ATTRIBUTE_NAME(Switch, EcnEctThresholdEnable)
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
+
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4RouteEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6RouteEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4NextHopEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6NextHopEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupMemberEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4NeighborEntry)
+SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6NeighborEntry)
 
 SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
