@@ -335,6 +335,10 @@ sai_status_t get_acl_table_attribute_fn(
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldNeighborDstUserMeta;
       } break;
+      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
+      case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
+        attr[i].value.u32 = 1000;
+        break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }
