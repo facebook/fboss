@@ -119,7 +119,14 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_ENTRY_LIST,
         std::vector<sai_object_id_t>>;
-
+    using AvailableEntries = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY,
+        sai_uint32_t>;
+    using AvailableCounters = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER,
+        sai_uint32_t>;
     /*
      * At least one Field* must be set.
      */
@@ -231,6 +238,8 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, AvailableEntries);
+SAI_ATTRIBUTE_NAME(AclTable, AvailableCounters);
 
 struct SaiAclEntryTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
