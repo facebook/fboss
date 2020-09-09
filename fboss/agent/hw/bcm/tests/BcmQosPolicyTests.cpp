@@ -387,10 +387,10 @@ TEST_F(BcmQosPolicyTest, QosPolicyConfigMigrate) {
     *config.qosPolicies_ref()[0].name_ref() = "qp";
     config.qosPolicies_ref()[0].rules_ref()->resize(8);
     for (auto i = 0; i < 8; i++) {
-      *config.qosPolicies[0].rules_ref()[i].queueId_ref() = i;
+      *config.qosPolicies_ref()[0].rules_ref()[i].queueId_ref() = i;
       config.qosPolicies_ref()[0].rules_ref()[i].dscp_ref()->resize(8);
       for (auto j = 0; j < 8; j++) {
-        config.qosPolicies[0].rules_ref()[i].dscp_ref()[j] = 8 * i + j;
+        config.qosPolicies_ref()[0].rules_ref()[i].dscp_ref()[j] = 8 * i + j;
       }
     }
     cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;

@@ -59,8 +59,8 @@ cfg::SwitchConfig createConfig(AggregatePortID id, const std::string& name) {
   *config.aggregatePorts_ref()[0].name_ref() = name;
   *config.aggregatePorts_ref()[0].description_ref() = "double bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *config.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
-  *config.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
+  *config.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *config.aggregatePorts_ref()[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   return config;
 }

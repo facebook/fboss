@@ -139,7 +139,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   *config.aggregatePorts_ref()[0].name_ref() = "port-channel";
   *config.aggregatePorts_ref()[0].description_ref() = "single bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(1);
-  *config.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *config.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() = 1;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -195,8 +195,8 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   *config.aggregatePorts_ref()[0].name_ref() = "port-channel";
   *config.aggregatePorts_ref()[0].description_ref() = "double bundle";
   config.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *config.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
-  *config.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
+  *config.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() = 1;
+  *config.aggregatePorts_ref()[0].memberPorts_ref()[1].memberPortID_ref() = 2;
 
   auto endState = publishAndApplyConfig(startState, &config, &platform);
   ASSERT_NE(nullptr, endState);
@@ -247,8 +247,10 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
   *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() =
+      1;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[1].memberPortID_ref() =
+      2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -304,8 +306,10 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
   *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() =
+      1;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[1].memberPortID_ref() =
+      2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);
@@ -365,8 +369,10 @@ TEST(AggregatePort, noTrunk) {
   *baseConfig.aggregatePorts_ref()[0].name_ref() = "port-channel";
   *baseConfig.aggregatePorts_ref()[0].description_ref() = "double bundle";
   baseConfig.aggregatePorts_ref()[0].memberPorts_ref()->resize(2);
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[0].memberPortID_ref() = 1;
-  *baseConfig.aggregatePorts[0].memberPorts_ref()[1].memberPortID_ref() = 2;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[0].memberPortID_ref() =
+      1;
+  *baseConfig.aggregatePorts_ref()[0].memberPorts_ref()[1].memberPortID_ref() =
+      2;
 
   auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
   ASSERT_NE(nullptr, startState);

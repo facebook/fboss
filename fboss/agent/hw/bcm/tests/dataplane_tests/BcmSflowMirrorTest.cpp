@@ -74,9 +74,9 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     destination.tunnel_ref() = tunnel;
 
     config->mirrors_ref()->resize(1);
-    *config->mirrors[0].name_ref() = "mirror";
-    *config->mirrors[0].destination_ref() = destination;
-    *config->mirrors[0].truncate_ref() = truncate;
+    *config->mirrors_ref()[0].name_ref() = "mirror";
+    *config->mirrors_ref()[0].destination_ref() = destination;
+    *config->mirrors_ref()[0].truncate_ref() = truncate;
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {

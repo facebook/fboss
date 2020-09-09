@@ -1107,15 +1107,16 @@ std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
       cfg.memberPorts_ref()->begin(), cfg.memberPorts_ref()->end()));
 
   for (int i = 0; i < subports.size(); ++i) {
-    if (*cfg.memberPorts[i].priority_ref() < 0 ||
-        *cfg.memberPorts[i].priority_ref() >= 1 << 16) {
+    if (*cfg.memberPorts_ref()[i].priority_ref() < 0 ||
+        *cfg.memberPorts_ref()[i].priority_ref() >= 1 << 16) {
       throw FbossError("Member port ", i, " has priority outside of [0, 2^16)");
     }
 
-    auto id = PortID(*cfg.memberPorts[i].memberPortID_ref());
-    auto priority = static_cast<uint16_t>(*cfg.memberPorts[i].priority_ref());
-    auto rate = *cfg.memberPorts[i].rate_ref();
-    auto activity = *cfg.memberPorts[i].activity_ref();
+    auto id = PortID(*cfg.memberPorts_ref()[i].memberPortID_ref());
+    auto priority =
+        static_cast<uint16_t>(*cfg.memberPorts_ref()[i].priority_ref());
+    auto rate = *cfg.memberPorts_ref()[i].rate_ref();
+    auto activity = *cfg.memberPorts_ref()[i].activity_ref();
 
     subports[i] = AggregatePort::Subport(id, priority, rate, activity);
   }

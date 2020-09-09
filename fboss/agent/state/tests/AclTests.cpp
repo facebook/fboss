@@ -609,8 +609,8 @@ TEST(Acl, LookupClass) {
 
   cfg::SwitchConfig config;
   config.acls_ref()->resize(1);
-  *config.acls[0].name_ref() = "acl1";
-  *config.acls[0].actionType_ref() = cfg::AclActionType::DENY;
+  *config.acls_ref()[0].name_ref() = "acl1";
+  *config.acls_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
 
   // set lookupClass
   auto lookupClass = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
