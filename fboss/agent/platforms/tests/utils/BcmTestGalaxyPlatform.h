@@ -21,6 +21,8 @@ class BcmTestGalaxyPlatform : public BcmTestWedgeTomahawkPlatform {
     return {FlexPortMode::ONEX100G};
   }
 
+  void initLEDs(int unit) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestGalaxyPlatform(BcmTestGalaxyPlatform const&) = delete;

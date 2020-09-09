@@ -14,6 +14,8 @@
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.h"
 
+#include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
+
 namespace facebook::fboss {
 std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(PortID id) {
   return std::make_unique<BcmTestGalaxyPort>(id, this);
@@ -30,4 +32,11 @@ BcmTestGalaxyFCPlatform::BcmTestGalaxyFCPlatform(
     : BcmTestGalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyFCPlatformMapping>("fc001")) {}
+
+void BcmTestGalaxyPlatform::initLEDs(int unit) {
+  BcmTestPlatform::initLEDs(
+      unit,
+      GalaxyLedUtils::defaultLed0Code(),
+      GalaxyLedUtils::defaultLed1Code());
+}
 } // namespace facebook::fboss

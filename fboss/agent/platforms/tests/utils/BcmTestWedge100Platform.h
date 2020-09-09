@@ -27,6 +27,8 @@ class BcmTestWedge100Platform : public BcmTestWedgeTomahawkPlatform {
             FlexPortMode::FOURX10G};
   }
 
+  void initLEDs(int unit) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge100Platform(BcmTestWedge100Platform const&) = delete;

@@ -99,6 +99,7 @@ target_link_libraries(bcm_test
   trunk_utils
   sflow_cpp2
   packettrace_cpp2
+  wedge_led_utils
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
@@ -118,6 +119,7 @@ target_link_libraries(bcm_switch_ensemble
   hw_stat_utils
   hw_switch_ensemble
   bcm_test_platforms
+  wedge_led_utils
   Folly::folly
 )
 

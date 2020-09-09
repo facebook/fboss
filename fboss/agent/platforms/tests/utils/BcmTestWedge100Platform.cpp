@@ -13,6 +13,8 @@
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge100Port.h"
 
+#include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+
 namespace facebook::fboss {
 
 BcmTestWedge100Platform::BcmTestWedge100Platform(
@@ -26,4 +28,10 @@ std::unique_ptr<BcmTestPort> BcmTestWedge100Platform::createTestPort(
   return std::make_unique<BcmTestWedge100Port>(id, this);
 }
 
+void BcmTestWedge100Platform::initLEDs(int unit) {
+  BcmTestPlatform::initLEDs(
+      unit,
+      Wedge100LedUtils::defaultLedCode(),
+      Wedge100LedUtils::defaultLedCode());
+}
 } // namespace facebook::fboss
