@@ -333,30 +333,22 @@ void BcmMirror::applyAclMirrorAction(
 }
 
 void BcmMirror::applyPortMirrorActions(MirrorAction action) {
-  hw_->getPortTable()->forFilteredEach(
-      [=](const auto& portTableEntry) {
-        const auto* bcmPort = portTableEntry.second;
-        return bcmPort->getIngressPortMirror() == mirrorName_ ||
-            bcmPort->getEgressPortMirror() == mirrorName_;
-      },
-      [=](const auto& portTableEntry) {
-        const auto portID = portTableEntry.first;
-        const auto* bcmPort = portTableEntry.second;
-        if (bcmPort->getIngressPortMirror() == mirrorName_) {
-          applyPortMirrorAction(
-              portID,
-              action,
-              MirrorDirection::INGRESS,
-              bcmPort->getSampleDestination());
-        }
-        if (bcmPort->getEgressPortMirror() == mirrorName_) {
-          applyPortMirrorAction(
-              portID,
-              action,
-              MirrorDirection::EGRESS,
-              bcmPort->getSampleDestination());
-        }
-      });
+  for (const auto [portID, bcmPort] : *hw_->getPortTable()) {
+    if (bcmPort->getIngressPortMirror() == mirrorName_) {
+      applyPortMirrorAction(
+          portID,
+          action,
+          MirrorDirection::INGRESS,
+          bcmPort->getSampleDestination());
+    }
+    if (bcmPort->getEgressPortMirror() == mirrorName_) {
+      applyPortMirrorAction(
+          portID,
+          action,
+          MirrorDirection::EGRESS,
+          bcmPort->getSampleDestination());
+    }
+  }
 }
 
 void BcmMirror::applyAclMirrorActions(MirrorAction action) {

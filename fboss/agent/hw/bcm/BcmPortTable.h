@@ -14,11 +14,11 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/types.h"
 
-#include <boost/container/flat_map.hpp>
 #include <mutex>
 
 namespace facebook::fboss {
@@ -31,11 +31,8 @@ class BcmPortTable {
   explicit BcmPortTable(BcmSwitch* hw);
   ~BcmPortTable();
 
-  typedef boost::container::flat_map<PortID, BcmPort*> FbossPortMap;
-  using FilterIterator = MapFilter<PortID, BcmPort*>;
-  using Filter = MapFilter<PortID, BcmPort*>::Predicate;
-  using FilterEntry = MapFilter<PortID, BcmPort*>::Entry;
-  using FilterAction = std::function<void(const FilterEntry&)>;
+  using FbossPortMap = folly::ConcurrentHashMap<PortID, BcmPort*>;
+
   /*
    * Initialize the port table from the list of physical switch ports.
    *
@@ -70,6 +67,10 @@ class BcmPortTable {
     return fbossPhysicalPorts_.end();
   }
 
+  int size() const {
+    return fbossPhysicalPorts_.size();
+  }
+
   /*
    * Update all ports' statistics.
    */
@@ -86,10 +87,6 @@ class BcmPortTable {
       portIdAndBcmPort.second->prepareForGracefulExit();
     }
   }
-
-  /*
-   * for every map entry which meets given predicate, execute given action */
-  void forFilteredEach(Filter predicate, FilterAction action) const;
 
   /*
    * For some platform that supports add or remove port after bcm unit init.
@@ -112,8 +109,8 @@ class BcmPortTable {
       BcmPort* controllingPort,
       const std::map<PortID, std::vector<PortID>>& subsidiaryPortsMap);
 
-  typedef boost::container::flat_map<bcm_port_t, std::unique_ptr<BcmPort>>
-      BcmPortMap;
+  using BcmPortMap =
+      folly::ConcurrentHashMap<bcm_port_t, std::unique_ptr<BcmPort>>;
 
   typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
 
