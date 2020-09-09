@@ -9,11 +9,19 @@
  */
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.h"
 
+#include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPlatform.h"
+#include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
 
 namespace facebook::fboss {
 
 BcmTestGalaxyPort::BcmTestGalaxyPort(PortID id, BcmTestGalaxyPlatform* platform)
     : BcmTestPort(id, platform) {}
+
+void BcmTestGalaxyPort::linkStatusChanged(bool up, bool adminUp) {
+  uint32_t portData = BcmLedUtils::getGalaxyPortStatus(0, getPortID());
+  GalaxyLedUtils::setLEDState(&portData, up, adminUp);
+  BcmLedUtils::setGalaxyPortStatus(0, getPortID(), portData);
+}
 
 } // namespace facebook::fboss
