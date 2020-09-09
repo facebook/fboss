@@ -17,6 +17,9 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+
 extern "C" {
 #include <bcm/port.h>
 }
@@ -329,4 +332,9 @@ void verifyTxSettting(
   }
 }
 
+void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
+  BcmTestPlatform* platform =
+      static_cast<BcmTestPlatform*>(ensemble->getPlatform());
+  EXPECT_TRUE(platform->verifyLEDStatus(port, up));
+}
 } // namespace facebook::fboss::utility

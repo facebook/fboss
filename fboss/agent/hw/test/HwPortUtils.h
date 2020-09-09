@@ -18,6 +18,7 @@
 namespace facebook::fboss {
 class HwSwitch;
 class Platform;
+class HwSwitchEnsemble;
 namespace utility {
 bool portEnabled(const HwSwitch* hw, PortID port);
 cfg::PortSpeed currentPortSpeed(const HwSwitch* hw, PortID port);
@@ -109,5 +110,6 @@ std::vector<cfg::PortProfileID> allPortProfiles();
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
 TransmitterTechnology getMediaType(cfg::PortProfileID profile);
 
+void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up);
 } // namespace utility
 } // namespace facebook::fboss

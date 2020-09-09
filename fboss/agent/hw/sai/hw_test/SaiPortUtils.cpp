@@ -345,4 +345,11 @@ void verifyTxSettting(
   EXPECT_EQ(post, expectedPost);
   EXPECT_EQ(driverCurrent, expectedDriverCurrent);
 }
+
+void verifyLedStatus(
+    HwSwitchEnsemble* /*ensemble*/,
+    PortID /*port*/,
+    bool /*up*/) {
+  // TODO: implement this
+}
 } // namespace facebook::fboss::utility

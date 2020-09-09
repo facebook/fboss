@@ -78,6 +78,10 @@ class BcmTestPlatform : public BcmPlatform {
 
   virtual void initLEDs(int /*unit*/) {}
 
+  virtual bool verifyLEDStatus(PortID /*port*/, bool /*up*/) {
+    return true;
+  }
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<PortID> logicalPortIds_;
