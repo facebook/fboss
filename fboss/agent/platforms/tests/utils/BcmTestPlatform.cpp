@@ -20,6 +20,8 @@
 #include <folly/Memory.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
+
 using folly::MacAddress;
 using std::string;
 
@@ -113,6 +115,14 @@ PlatformPort* BcmTestPlatform::getPlatformPort(PortID portID) const {
   auto it = ports_.find(portID);
   CHECK(it != ports_.end());
   return it->second.get();
+}
+
+void BcmTestPlatform::initLEDs(
+    int unit,
+    folly::ByteRange led0,
+    folly::ByteRange led1) {
+  BcmLedUtils::initLED0(unit, led0);
+  BcmLedUtils::initLED1(unit, led1);
 }
 
 } // namespace facebook::fboss

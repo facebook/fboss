@@ -30,6 +30,7 @@ add_library(bcm_test_platforms
 
 target_link_libraries(bcm_test_platforms
   bcm
+  bcm_led_utils
   config_factory
   product_info
   fake_test_platform_mapping

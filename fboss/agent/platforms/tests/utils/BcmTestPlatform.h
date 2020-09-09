@@ -74,6 +74,10 @@ class BcmTestPlatform : public BcmPlatform {
 
   PlatformPort* getPlatformPort(PortID portID) const override;
 
+  void initLEDs(int unit, folly::ByteRange led0, folly::ByteRange led1);
+
+  virtual void initLEDs(int /*unit*/) {}
+
  protected:
   // Each platform should have their own logical ports list.
   std::vector<PortID> logicalPortIds_;
