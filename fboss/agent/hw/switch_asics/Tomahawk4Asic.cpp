@@ -26,6 +26,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
     case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
 
     case HwAsic::Feature::BUFFER_PROFILE:

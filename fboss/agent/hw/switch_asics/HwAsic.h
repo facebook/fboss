@@ -37,6 +37,7 @@ class HwAsic {
     WEIGHTED_NEXTHOPGROUP_MEMBER,
     NEIGHBOR_METADATA,
     DEBUG_COUNTER,
+    RESOURCE_USAGE_STATS,
   };
 
   enum class AsicType {
