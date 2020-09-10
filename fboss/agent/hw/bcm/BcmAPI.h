@@ -41,6 +41,13 @@ class BcmAPI {
   static void init(const std::map<std::string, std::string>& config);
 
   /*
+   * Initialize the Broadcom HSDK and create the BcmAPI singleton.
+   *
+   * This must be called before using any other Broadcom SDK functions.
+   */
+  static void initHSDK(const std::string& yamlConfig);
+
+  /*
    * Get the number of Broadcom switching devices in this system.
    */
   static size_t getNumSwitches();
@@ -146,6 +153,15 @@ class BcmAPI {
   HwConfigMap bcmConfig_;
   static void bdeCreate();
   static void bdeCreateSim();
+
+  static void initHSDKImpl(const std::string& yamlConfig);
+  /*
+   * Initialize the SDKLT CLI component and install the desired set of CLI
+   * commands.
+   */
+  static void initSDKLTCli() {
+    // TODO(joseph5wu) Will impelment it later
+  }
 };
 
 } // namespace facebook::fboss

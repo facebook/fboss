@@ -18,4 +18,5 @@ namespace facebook::fboss {
  */
 void BcmAPI::initImpl() {}
 void BcmAPI::bdeCreateSim() {}
+void BcmAPI::initHSDKImpl(const std::string& /* yamlConfig */) {}
 } // namespace facebook::fboss

@@ -444,6 +444,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/oss/BcmQcmManager.cpp
       fboss/agent/hw/bcm/oss/BcmSwitch.cpp
       fboss/agent/hw/bcm/oss/BcmBstStatsMgr.cpp
+      fboss/agent/hw/bcm/oss/BcmUnit.cpp
       fboss/agent/hw/bcm/BcmAddressFBConvertors.cpp
       fboss/agent/hw/mock/MockHwSwitch.cpp
       fboss/agent/hw/mock/MockPlatform.cpp

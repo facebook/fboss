@@ -38,6 +38,7 @@ class HwAsic {
     NEIGHBOR_METADATA,
     DEBUG_COUNTER,
     RESOURCE_USAGE_STATS,
+    HSDK,
   };
 
   enum class AsicType {

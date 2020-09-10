@@ -97,6 +97,45 @@ class BcmUnit {
   void registerCallbackVector();
   void bcmInit();
 
+  void attachSDK6(bool warmBoot);
+  void attachHSDK(bool warmBoot);
+
+  /*
+   * NGBDE is the BDE module for LTSW devices.
+   * In this function, we'll use NGBDE to probe the PCI bus and attach the
+   * HAL Vectors to the device
+   */
+  void attachHALVectors() {
+    // TODO(joseph5wu) Will implement later
+  }
+
+  /*
+   * HSDK uses a new architecture for warm boot that uses HA memory.
+   * In this function, we'll set up the HA memory.
+   */
+  void initializeHAMemory(bool /* warmBoot */) {
+    // TODO(joseph5wu) Will impelment it later
+  }
+
+  /*
+   * Initialize SDKLT core components.
+   */
+  void initSDKLTCoreComponents() {
+    // TODO(joseph5wu) Will implement it later
+  }
+
+  /*
+   * Attacg a NULL driver instance to physical device
+   */
+  void registerNullSOCVectors();
+
+  /*
+   * Perform low-level device initialization
+   */
+  void attachSystemManager(bool /* warmBoot */) {
+    // TODO(joseph5wu) Will implement it later
+  }
+
   int deviceIndex_{-1};
   BcmPlatform* platform_{nullptr};
   int unit_{-1};

@@ -220,6 +220,16 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
   bcmInitialized.store(true, std::memory_order_release);
 }
 
+void BcmAPI::initHSDK(const std::string& yamlConfig) {
+  if (bcmInitialized.load(std::memory_order_acquire)) {
+    return;
+  }
+
+  initHSDKImpl(yamlConfig);
+
+  bcmInitialized.store(true, std::memory_order_release);
+}
+
 bool BcmAPI::isHwInSimMode() {
   static const bool isSimMode_ = std::getenv("BCM_SIM_PATH");
   return isSimMode_;

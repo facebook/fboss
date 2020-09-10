@@ -8,8 +8,8 @@ namespace facebook::fboss {
 
 class MockAsic : public HwAsic {
  public:
-  bool isSupported(Feature) const override {
-    return true; // Mock supports all features
+  bool isSupported(Feature feature) const override {
+    return feature != Feature::HSDK; // Mock supports all features but HSDK
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_MOCK;
