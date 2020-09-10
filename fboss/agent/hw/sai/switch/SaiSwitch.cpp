@@ -363,7 +363,53 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
 
 void SaiSwitch::updateResourceUsageLocked(
     const std::lock_guard<std::mutex>& /*lock*/) {
-  // TODO
+  auto aclTableHandle =
+      managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
+  auto aclTableId = aclTableHandle->aclTable->adapterKey();
+  auto& aclApi = SaiApiTable::getInstance()->aclApi();
+  // TODO - store these counters into a thrift struct and publish
+  XLOG(DBG5) << " Available ACL entries for : " << kAclTable1 << " : "
+             << aclApi.getAttribute(
+                    aclTableId,
+                    SaiAclTableTraits::Attributes::AvailableEntry{});
+  XLOG(DBG5) << " Available ACL counters for : " << kAclTable1 << " : "
+             << aclApi.getAttribute(
+                    aclTableId,
+                    SaiAclTableTraits::Attributes::AvailableCounter{});
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  XLOG(DBG5) << " Available v4 routes : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
+  XLOG(DBG5) << " Available v6 routes : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
+  XLOG(DBG5) << " Available v4 next hops : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
+  XLOG(DBG5) << " Available v6 next hops : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
+  XLOG(DBG5) << " Available next hop groups : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
+  XLOG(DBG5)
+      << " Available next hop group members : "
+      << switchApi.getAttribute(
+             switchId_,
+             SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
+  XLOG(DBG5) << " Available v4 neighbors : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
+  XLOG(DBG5) << " Available v6 neighbors : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
 }
 
 void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
