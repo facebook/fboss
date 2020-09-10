@@ -155,13 +155,6 @@ class BcmAPI {
   static void bdeCreateSim();
 
   static void initHSDKImpl(const std::string& yamlConfig);
-  /*
-   * Initialize the SDKLT CLI component and install the desired set of CLI
-   * commands.
-   */
-  static void initSDKLTCli() {
-    // TODO(joseph5wu) Will impelment it later
-  }
 };
 
 } // namespace facebook::fboss
