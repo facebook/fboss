@@ -1095,12 +1095,16 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kMirrorEgress2());
 }
 
-TEST_F(AclApiTest, getAvailableResourceCounts) {
+TEST_F(AclApiTest, getAvailableEntries) {
   auto aclTableId = createAclTable();
   EXPECT_GT(
       aclApi->getAttribute(
           aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{}),
       0);
+}
+
+TEST_F(AclApiTest, getAvailableCounters) {
+  auto aclTableId = createAclTable();
   EXPECT_NE(
       aclApi->getAttribute(
           aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{}),

@@ -377,3 +377,48 @@ TEST_F(SwitchApiTest, ExtensionAttributes) {
   EXPECT_EQ(ledDt0, gotledDt0);
   EXPECT_EQ(ledDt1, gotledDt1);
 }
+
+TEST_F(SwitchApiTest, getAvailableRoutes) {
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{}),
+      0);
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{}),
+      0);
+}
+
+TEST_F(SwitchApiTest, getAvailableNexthops) {
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{}),
+      0);
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{}),
+      0);
+}
+
+TEST_F(SwitchApiTest, getAvailableNexthopGroups) {
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{}),
+      0);
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{}),
+      0);
+}
+
+TEST_F(SwitchApiTest, getAvailableNeighbor) {
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{}),
+      0);
+  EXPECT_GT(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{}),
+      0);
+}
