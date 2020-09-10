@@ -136,6 +136,7 @@ class SaiSwitch : public HwSwitch {
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   void updateStatsImpl(SwitchStats* switchStats) override;
+  void updateResourceUsageLocked(const std::lock_guard<std::mutex>& lock);
   /*
    * To make SaiSwitch thread-safe, we mirror the public interface with
    * private functions with the same name followed by Locked.

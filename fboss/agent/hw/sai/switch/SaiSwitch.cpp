@@ -353,7 +353,17 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       kAclTable1);
 
   processSwitchSettingsChanged(delta);
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::RESOURCE_USAGE_STATS)) {
+    auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+    updateResourceUsageLocked(lock);
+  }
   return delta.newState();
+}
+
+void SaiSwitch::updateResourceUsageLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) {
+  // TODO
 }
 
 void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
