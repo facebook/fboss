@@ -207,17 +207,6 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
                     .count();
 }
 
-int BcmUnit::createHwUnit() {
-  auto* dev = bde->get_dev(deviceIndex_);
-
-  // Make sure the device is supported.
-  int rv = soc_cm_device_supported(dev->device, dev->rev);
-  bcmCheckError(rv, "unsupported device ID ", dev->device, ":", dev->rev);
-
-  // Allocate a unit ID
-  return soc_cm_device_create(dev->device, dev->rev, this);
-}
-
 int BcmUnit::destroyHwUnit() {
   int rv = soc_cm_device_destroy(unit_);
   bcmCheckError(rv, "failed to destroy device unit ", unit_);

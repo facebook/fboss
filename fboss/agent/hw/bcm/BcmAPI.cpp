@@ -42,14 +42,6 @@ extern "C" {
 #include <systems/bde/linux/linux-bde.h>
 }
 
-extern "C" {
-/*
- * Define the bde global variable.
- * This is declared in <ibde.h>, but needs to be defined by our code.
- */
-ibde_t* bde;
-}
-
 using folly::StringPiece;
 using std::make_unique;
 using std::string;
@@ -114,25 +106,21 @@ const std::map<StringPiece, std::string> kBcmConfigsSafeAcrossWarmboot = {
 namespace facebook::fboss {
 
 std::atomic<BcmUnit*> bcmUnits[SOC_MAX_NUM_SWITCH_DEVICES];
-
-static std::atomic<bool> bcmInitialized{false};
-static BcmAPI::HwConfigMap bcmConfig;
-
 extern std::atomic<BcmUnit*> bcmUnits[];
 
-std::unique_ptr<BcmAPI> BcmAPI::singleton_;
+std::atomic<bool> BcmAPI::bcmInitialized_ = false;
 
 void BcmAPI::initConfig(const std::map<std::string, std::string>& config) {
   // Store the configuration settings
-  bcmConfig.clear();
+  getHwConfig().clear();
   for (const auto& entry : config) {
-    bcmConfig.emplace(entry.first, entry.second);
+    getHwConfig().emplace(entry.first, entry.second);
   }
 }
 
 const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
-  auto it = bcmConfig.find(name);
-  if (it != bcmConfig.end()) {
+  auto it = getHwConfig().find(name);
+  if (it != getHwConfig().end()) {
     return it->second.c_str();
   }
 
@@ -149,8 +137,11 @@ const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
   return nullptr;
 }
 
-BcmAPI::HwConfigMap BcmAPI::getHwConfig() {
-  return bcmConfig;
+BcmAPI::HwConfigMap& BcmAPI::getHwConfig() {
+  // Avoid static initialization disaster
+  // (https://isocpp.org/wiki/faq/ctors#static-init-order)
+  static BcmAPI::HwConfigMap bcmConfig_;
+  return bcmConfig_;
 }
 
 std::unique_ptr<BcmUnit> BcmAPI::createUnit(
@@ -197,7 +188,7 @@ void BcmAPI::bdeCreate() {
 }
 
 void BcmAPI::init(const std::map<std::string, std::string>& config) {
-  if (bcmInitialized.load(std::memory_order_acquire)) {
+  if (bcmInitialized_.load(std::memory_order_acquire)) {
     return;
   }
 
@@ -217,17 +208,17 @@ void BcmAPI::init(const std::map<std::string, std::string>& config) {
 
   bdeCreate();
 
-  bcmInitialized.store(true, std::memory_order_release);
+  bcmInitialized_.store(true, std::memory_order_release);
 }
 
 void BcmAPI::initHSDK(const std::string& yamlConfig) {
-  if (bcmInitialized.load(std::memory_order_acquire)) {
+  if (bcmInitialized_.load(std::memory_order_acquire)) {
     return;
   }
 
   initHSDKImpl(yamlConfig);
 
-  bcmInitialized.store(true, std::memory_order_release);
+  bcmInitialized_.store(true, std::memory_order_release);
 }
 
 bool BcmAPI::isHwInSimMode() {
@@ -254,7 +245,7 @@ void BcmAPI::unitDestroyed(BcmUnit* unit) {
                 << ": expected " << (void*)unit << " but found "
                 << (void*)expectedUnit;
   }
-  bcmInitialized.store(false, std::memory_order_release);
+  bcmInitialized_.store(false, std::memory_order_release);
 }
 
 BcmUnit* BcmAPI::getUnit(int unit) {
@@ -266,13 +257,6 @@ BcmUnit* BcmAPI::getUnit(int unit) {
     throw FbossError("no BcmUnit created for unit number ", unit);
   }
   return unitObj;
-}
-
-/*
- * Get the number of Broadcom switching devices in this system.
- */
-size_t BcmAPI::getNumSwitches() {
-  return bde->num_devices(BDE_SWITCH_DEVICES);
 }
 
 /*
@@ -294,5 +278,4 @@ std::string BcmAPI::getThreadName() {
   sal_thread_name(thread, threadName, sizeof(threadName));
   return threadName;
 }
-
 } // namespace facebook::fboss

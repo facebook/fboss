@@ -9,8 +9,30 @@
  */
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 
+#include "fboss/agent/hw/bcm/BcmError.h"
+
+extern "C" {
+#include <ibde.h>
+#include <soc/cmext.h>
+}
+
 namespace facebook {
 namespace fboss {
 void BcmUnit::attachHSDK(bool /*warmBoot*/) {}
+
+int BcmUnit::createHwUnit() {
+  auto* dev = bde->get_dev(deviceIndex_);
+
+  // Make sure the device is supported.
+  int rv = soc_cm_device_supported(dev->device, dev->rev);
+  bcmCheckError(rv, "unsupported device ID ", dev->device, ":", dev->rev);
+
+  // Allocate a unit ID
+  return soc_cm_device_create(dev->device, dev->rev, this);
+}
+
+std::pair<uint16_t, uint16_t> BcmUnit::createDRDDevice() {
+  throw FbossError("createDRDDevice is unsupported");
+}
 } // namespace fboss
 } // namespace facebook

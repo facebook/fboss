@@ -100,14 +100,8 @@ class BcmUnit {
   void attachSDK6(bool warmBoot);
   void attachHSDK(bool warmBoot);
 
-  /*
-   * NGBDE is the BDE module for LTSW devices.
-   * In this function, we'll use NGBDE to probe the PCI bus and attach the
-   * HAL Vectors to the device
-   */
-  void attachHALVectors() {
-    // TODO(joseph5wu) Will implement later
-  }
+  // Create DRD device and return <device_id, revision_id>
+  std::pair<uint16_t, uint16_t> createDRDDevice();
 
   /*
    * HSDK uses a new architecture for warm boot that uses HA memory.
