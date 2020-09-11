@@ -1544,7 +1544,7 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         }
       });
   isValid = isValid &&
-      (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
+      (newState->getMirrors()->size() <= platform_->getAsic()->getMaxMirrors());
 
   forEachChanged(
       delta.getMirrorsDelta(),

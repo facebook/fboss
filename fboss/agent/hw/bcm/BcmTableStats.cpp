@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
@@ -197,7 +198,7 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
           decrementBcmMirrorStat(removedMirror, stats);
         }
       });
-  *stats->mirrors_max_ref() = bcmswitch_constants::MAX_MIRRORS_;
+  *stats->mirrors_max_ref() = hw_->getPlatform()->getAsic()->getMaxMirrors();
   *stats->mirrors_used_ref() = *stats->mirrors_erspan_ref() +
       *stats->mirrors_span_ref() + *stats->mirrors_sflow_ref();
   *stats->mirrors_free_ref() =

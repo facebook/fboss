@@ -41,6 +41,9 @@ class FakeAsic : public HwAsic {
     // Fake MMU size
     return 64 * 1024 * 1024;
   }
+  uint32_t getMaxMirrors() const override {
+    return 4;
+  }
 };
 
 } // namespace facebook::fboss

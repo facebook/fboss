@@ -41,6 +41,10 @@ class TajoAsic : public HwAsic {
   uint64_t getMMUSizeBytes() const override {
     return 64 * 1024 * 1024;
   }
+  uint32_t getMaxMirrors() const override {
+    // TODO - verify this
+    return 4;
+  }
 };
 
 } // namespace facebook::fboss

@@ -63,6 +63,7 @@ class HwAsic {
   virtual bool needsObjectKeyCache() const = 0;
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
+  virtual uint32_t getMaxMirrors() const = 0;
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;
   }
