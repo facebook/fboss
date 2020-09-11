@@ -56,10 +56,12 @@ def _get_active_member_count(subports) -> int:
 
 
 def _print_subport_info(name, subport) -> None:
+    rate = "Fast" if subport.rate == 1 else "Slow"
     print(
         f"\tMember: {name}, "
         f"id: {subport.memberPortID}, "
-        f"Up: {subport.isForwarding}"
+        f"Up: {subport.isForwarding}, "
+        f"Rate: {rate}"
     )
 
 
