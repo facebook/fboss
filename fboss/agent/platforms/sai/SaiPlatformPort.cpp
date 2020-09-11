@@ -234,4 +234,13 @@ folly::Future<TransceiverInfo> SaiPlatformPort::getTransceiverInfo() const {
   return qsfpCache->futureGet(getTransceiverID().value());
 }
 
+std::optional<ChannelID> SaiPlatformPort::getChannel() const {
+  auto tcvrList = getTransceiverLanes();
+  if (!tcvrList.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    return ChannelID(*tcvrList[0].lane_ref());
+  }
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

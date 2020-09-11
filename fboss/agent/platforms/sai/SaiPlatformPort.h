@@ -64,6 +64,7 @@ class SaiPlatformPort : public PlatformPort {
   cfg::PortProfileID getCurrentProfile() const {
     return profile_;
   }
+  std::optional<ChannelID> getChannel() const;
 
  private:
   std::vector<phy::PinID> getTransceiverLanes() const;
