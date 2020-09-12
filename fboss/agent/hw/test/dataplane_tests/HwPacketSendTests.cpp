@@ -52,7 +52,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         randomIP,
         ARP_OPER::ARP_OPER_REQUEST,
         std::nullopt);
-    getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
     XLOG(INFO) << "ARP Packet:"
                << " before pkts:" << *portStatsBefore.outBroadcastPkts__ref()
