@@ -179,7 +179,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   void sendUdpPkt(AddrT dstIP) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    getHwSwitch()->sendPacketSwitchedSync(utility::makeUDPTxPacket(
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(utility::makeUDPTxPacket(
         getHwSwitch(), vlanId, intfMac, intfMac, kSrcIP(), dstIP, 8000, 8001));
   }
 
