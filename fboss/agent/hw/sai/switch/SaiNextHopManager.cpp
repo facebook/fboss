@@ -26,13 +26,8 @@ std::shared_ptr<SaiIpNextHop> SaiNextHopManager::addNextHop(
     RouterInterfaceSaiId routerInterfaceId,
     const folly::IPAddress& ip) {
   SaiIpNextHopTraits::AdapterHostKey k{routerInterfaceId, ip};
-  SaiIpNextHopTraits::CreateAttributes attributes {
-    SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-        ,
-        std::nullopt
-#endif
-  };
+  SaiIpNextHopTraits::CreateAttributes attributes{
+      SAI_NEXT_HOP_TYPE_IP, routerInterfaceId, ip, std::nullopt};
   auto& store = SaiStore::getInstance()->get<SaiIpNextHopTraits>();
   return store.setObject(k, attributes);
 }
@@ -49,27 +44,22 @@ SaiNextHop SaiNextHopManager::refOrEmplace(const ResolvedNextHop& swNextHop) {
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
     return SaiStore::getInstance()->get<SaiIpNextHopTraits>().setObject(
-        *ipNextHopKey, SaiIpNextHopTraits::CreateAttributes {
-          SAI_NEXT_HOP_TYPE_IP, std::get<0>(*ipNextHopKey),
-              std::get<1>(*ipNextHopKey)
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-                  ,
-              std::nullopt
-#endif
-        });
+        *ipNextHopKey,
+        SaiIpNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_IP,
+                                             std::get<0>(*ipNextHopKey),
+                                             std::get<1>(*ipNextHopKey),
+                                             std::nullopt});
   } else if (
       auto mplsNextHopKey =
           std::get_if<typename SaiMplsNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
     return SaiStore::getInstance()->get<SaiMplsNextHopTraits>().setObject(
-        *mplsNextHopKey, SaiMplsNextHopTraits::CreateAttributes {
-          SAI_NEXT_HOP_TYPE_MPLS, std::get<0>(*mplsNextHopKey),
-              std::get<1>(*mplsNextHopKey), std::get<2>(*mplsNextHopKey)
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-                                                ,
-              std::nullopt
-#endif
-        });
+        *mplsNextHopKey,
+        SaiMplsNextHopTraits::CreateAttributes{SAI_NEXT_HOP_TYPE_MPLS,
+                                               std::get<0>(*mplsNextHopKey),
+                                               std::get<1>(*mplsNextHopKey),
+                                               std::get<2>(*mplsNextHopKey),
+                                               std::nullopt});
   }
 
   throw FbossError("next hop key not found for a given next hop");

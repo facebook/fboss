@@ -32,6 +32,7 @@ class CP2112Intf : public I2cController {
   virtual void open(bool setSmbusConfig = true) = 0;
   virtual void close() = 0;
   virtual void resetDevice() = 0;
+  virtual bool isOpen() const = 0;
 
   virtual void read(
       uint8_t address,
@@ -261,7 +262,7 @@ class CP2112 : public CP2112Intf {
 
   void open(bool setSmbusConfig = true) override;
   void close() override;
-  bool isOpen() const {
+  bool isOpen() const override {
     return handle_.isOpen();
   }
 

@@ -8,8 +8,8 @@ namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
-  bool isSupported(Feature) const override {
-    return true; // fake supports all features
+  bool isSupported(Feature feature) const override {
+    return feature != Feature::HSDK; // fake supports all features but HSDK
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_FAKE;
@@ -40,6 +40,9 @@ class FakeAsic : public HwAsic {
   uint64_t getMMUSizeBytes() const override {
     // Fake MMU size
     return 64 * 1024 * 1024;
+  }
+  uint32_t getMaxMirrors() const override {
+    return 4;
   }
 };
 

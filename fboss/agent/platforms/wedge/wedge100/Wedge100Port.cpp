@@ -39,10 +39,7 @@ std::vector<phy::PinConfig> Wedge100Port::getIphyPinConfigs(
 }
 
 bool Wedge100Port::isTop() {
-  if (auto tcvrID = getTransceiverID(); tcvrID) {
-    return !((*tcvrID) & 0x1);
-  }
-  return false;
+  return Wedge100LedUtils::isTop(getTransceiverID());
 }
 
 } // namespace facebook::fboss

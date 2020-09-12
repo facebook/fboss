@@ -6,8 +6,6 @@ namespace facebook::fboss {
 
 bool TomahawkAsic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::ACLv4:
-    case HwAsic::Feature::ACLv6:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
@@ -26,8 +24,11 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
     case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
+    case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
 
+    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
     case HwAsic::Feature::ERSPANv6:
@@ -37,6 +38,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+    case HwAsic::Feature::HSDK:
       return false;
   }
   return false;

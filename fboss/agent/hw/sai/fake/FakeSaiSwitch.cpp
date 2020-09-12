@@ -41,6 +41,91 @@ static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMax =
 
 } // namespace
 
+sai_status_t facebook::fboss::FakeSwitch::setLed(const sai_attribute_t* attr) {
+  switch (attr->id) {
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED: {
+      if (attr->value.u32list.count != 4) {
+        return SAI_STATUS_INVALID_PARAMETER;
+      }
+      auto id = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(id);
+      if (ledState == ledState_.end()) {
+        return SAI_STATUS_INVALID_ATTR_VALUE_0;
+      }
+      auto pgm = attr->value.u32list.list[1];
+      if (pgm) {
+        auto offset = attr->value.u32list.list[2];
+        if (offset > 255) {
+          return SAI_STATUS_INVALID_ATTR_VALUE_0 + 2;
+        }
+        ledState->second.program[offset] =
+            static_cast<sai_uint8_t>(attr->value.u32list.list[3]);
+      } else {
+        auto index = attr->value.u32list.list[2];
+        ledState->second.data[index] = attr->value.u32list.list[3];
+      }
+    } break;
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET: {
+      if (attr->value.u32list.count != 2) {
+        return SAI_STATUS_INVALID_PARAMETER;
+      }
+      auto id = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(id);
+      if (ledState == ledState_.end()) {
+        return SAI_STATUS_INVALID_ATTR_VALUE_0;
+      }
+      ledState->second.reset = bool(attr->value.u32list.list[1]);
+    } break;
+    default:
+      return SAI_STATUS_UNKNOWN_ATTRIBUTE_0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t facebook::fboss::FakeSwitch::getLed(sai_attribute_t* attr) const {
+  switch (attr->id) {
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED: {
+      if (attr->value.u32list.count != 4) {
+        attr->value.u32list.count = 4;
+        return SAI_STATUS_BUFFER_OVERFLOW;
+      }
+      auto id = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(id);
+      if (ledState == ledState_.end()) {
+        return SAI_STATUS_INVALID_ATTR_VALUE_0;
+      }
+      auto pgm = attr->value.u32list.list[1];
+      if (pgm) {
+        auto offset = attr->value.u32list.list[2];
+        if (offset > 255) {
+          return SAI_STATUS_INVALID_ATTR_VALUE_0;
+        }
+        attr->value.u32list.list[3] = ledState->second.program[offset];
+      } else {
+        auto index = attr->value.u32list.list[2];
+        auto dataIter = ledState->second.data.find(index);
+        attr->value.u32list.list[3] =
+            (dataIter != ledState->second.data.end()) ? dataIter->second : 0;
+      }
+    } break;
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET: {
+      if (attr->value.u32list.count != 2) {
+        attr->value.u32list.count = 2;
+        return SAI_STATUS_BUFFER_OVERFLOW;
+      }
+      auto id = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(id);
+      if (ledState == ledState_.end()) {
+        return SAI_STATUS_INVALID_ATTR_VALUE_0;
+      }
+      attr->value.u32list.list[1] = ((ledState->second.reset) ? 1 : 0);
+    } break;
+    default:
+      return SAI_STATUS_UNKNOWN_ATTRIBUTE_0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
@@ -99,6 +184,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
       sw.setEcnEctThresholdEnable(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED:
+    case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
+      return sw.setLed(attr);
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -237,6 +325,21 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
         attr[i].value.booldata = sw.getEcnEctThresholdEnable();
         break;
+      case SAI_SWITCH_ATTR_EXT_FAKE_LED:
+      case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
+        return sw.getLed(attr);
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_ROUTE_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEXTHOP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEXTHOP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY:
+      case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY:
+        // Why not
+        attr[i].value.u32 = 1'000'000;
+        break;
+
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

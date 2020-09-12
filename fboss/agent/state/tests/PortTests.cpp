@@ -47,27 +47,27 @@ TEST(Port, applyConfig) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   config.ports_ref()[0].sampleDest_ref() = cfg::SampleDestination::MIRROR;
-  *config.ports[0].sFlowIngressRate_ref() = 10;
+  *config.ports_ref()[0].sFlowIngressRate_ref() = 10;
   config.vlans_ref()->resize(2);
-  *config.vlans[0].id_ref() = 2;
-  *config.vlans[1].id_ref() = 5;
+  *config.vlans_ref()[0].id_ref() = 2;
+  *config.vlans_ref()[1].id_ref() = 5;
   config.vlanPorts_ref()->resize(2);
-  *config.vlanPorts[0].logicalPort_ref() = 1;
-  *config.vlanPorts[0].vlanID_ref() = 2;
-  *config.vlanPorts[0].emitTags_ref() = false;
-  *config.vlanPorts[1].logicalPort_ref() = 1;
-  *config.vlanPorts[1].vlanID_ref() = 5;
-  *config.vlanPorts[1].emitTags_ref() = true;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 2;
+  *config.vlanPorts_ref()[0].emitTags_ref() = false;
+  *config.vlanPorts_ref()[1].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[1].vlanID_ref() = 5;
+  *config.vlanPorts_ref()[1].emitTags_ref() = true;
   config.interfaces_ref()->resize(2);
-  *config.interfaces[0].intfID_ref() = 2;
-  *config.interfaces[0].vlanID_ref() = 2;
+  *config.interfaces_ref()[0].intfID_ref() = 2;
+  *config.interfaces_ref()[0].vlanID_ref() = 2;
   config.interfaces_ref()[0].mac_ref() = "00:00:00:00:00:22";
-  *config.interfaces[1].intfID_ref() = 5;
-  *config.interfaces[1].vlanID_ref() = 5;
+  *config.interfaces_ref()[1].intfID_ref() = 5;
+  *config.interfaces_ref()[1].vlanID_ref() = 5;
   config.interfaces_ref()[1].mac_ref() = "00:00:00:00:00:55";
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -93,9 +93,9 @@ TEST(Port, applyConfig) {
 
   // Applying the same config with a new VLAN list should result in changes
   config.vlanPorts_ref()->resize(1);
-  *config.vlanPorts[0].logicalPort_ref() = 1;
-  *config.vlanPorts[0].vlanID_ref() = 2021;
-  *config.vlanPorts[0].emitTags_ref() = false;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 2021;
+  *config.vlanPorts_ref()[0].emitTags_ref() = false;
 
   Port::VlanMembership expectedVlansV2;
   expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));
@@ -115,7 +115,7 @@ TEST(Port, applyConfig) {
       cfg::SampleDestination::MIRROR, portV1->getSampleDestination().value());
 
   // Applying the same config with a different speed should result in changes
-  *config.ports[0].speed_ref() = cfg::PortSpeed::GIGE;
+  *config.ports_ref()[0].speed_ref() = cfg::PortSpeed::GIGE;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portV3 = stateV3->getPort(PortID(1));
@@ -468,9 +468,9 @@ TEST(Port, emptyConfig) {
   // Applying same config should result in no change.
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  config.ports[0].state_ref() = cfg::PortState::DISABLED;
+  config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
   EXPECT_EQ(nullptr, publishAndApplyConfig(state, &config, platform.get()));
 
   // If platform does not support addRemovePort (by default),
@@ -512,10 +512,10 @@ TEST(Port, pauseConfig) {
     auto oldPause = state->getPort(PortID(1))->getPause();
     cfg::SwitchConfig config;
     config.ports_ref()->resize(1);
-    *config.ports[0].logicalID_ref() = 1;
+    *config.ports_ref()[0].logicalID_ref() = 1;
     config.ports_ref()[0].name_ref() = "port1";
-    *config.ports[0].state_ref() = cfg::PortState::DISABLED;
-    *config.ports[0].pause_ref() = newPause;
+    *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+    *config.ports_ref()[0].pause_ref() = newPause;
     auto newState = publishAndApplyConfig(state, &config, platform.get());
 
     if (oldPause != newPause) {
@@ -562,10 +562,10 @@ TEST(Port, loopbackModeConfig) {
         auto oldLoopbackMode = state->getPort(PortID(1))->getLoopbackMode();
         cfg::SwitchConfig config;
         config.ports_ref()->resize(1);
-        *config.ports[0].logicalID_ref() = 1;
+        *config.ports_ref()[0].logicalID_ref() = 1;
         config.ports_ref()[0].name_ref() = "port1";
-        *config.ports[0].state_ref() = cfg::PortState::DISABLED;
-        *config.ports[0].loopbackMode_ref() = newLoopbackMode;
+        *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
+        *config.ports_ref()[0].loopbackMode_ref() = newLoopbackMode;
         auto newState = publishAndApplyConfig(state, &config, platform.get());
 
         if (oldLoopbackMode != newLoopbackMode) {
@@ -604,9 +604,9 @@ TEST(Port, sampleDestinationConfig) {
         auto oldDestination = state->getPort(PortID(1))->getSampleDestination();
         cfg::SwitchConfig config;
         config.ports_ref()->resize(1);
-        *config.ports[0].logicalID_ref() = 1;
+        *config.ports_ref()[0].logicalID_ref() = 1;
         config.ports_ref()[0].name_ref() = "port1";
-        *config.ports[0].state_ref() = cfg::PortState::DISABLED;
+        *config.ports_ref()[0].state_ref() = cfg::PortState::DISABLED;
         if (newDestination.has_value()) {
           config.ports_ref()[0].sampleDest_ref() = newDestination.value();
         }
@@ -745,18 +745,18 @@ TEST(PortMap, applyConfig) {
   // Applying an empty config shouldn't change a newly-constructed PortMap
   cfg::SwitchConfig config;
   config.ports_ref()->resize(4);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[1].logicalID_ref() = 2;
+  *config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
-  *config.ports[2].logicalID_ref() = 3;
+  *config.ports_ref()[2].logicalID_ref() = 3;
   config.ports_ref()[2].name_ref() = "port3";
-  *config.ports[3].logicalID_ref() = 4;
+  *config.ports_ref()[3].logicalID_ref() = 4;
   config.ports_ref()[3].name_ref() = "port4";
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV0, &config, platform.get()));
 
   // Enable port 2
-  *config.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto portsV1 = stateV1->getPorts();
   ASSERT_NE(nullptr, portsV1);
@@ -791,10 +791,10 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Now mark all ports up
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[1].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[2].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[3].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[2].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[3].state_ref() = cfg::PortState::ENABLED;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portsV2 = stateV2->getPorts();
@@ -827,18 +827,18 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(portsV2->getPort(PortID(4))->isPublished());
 
   // If we disable port3 from the config, it should be marked down
-  config.ports[0].logicalID_ref() = 1;
+  config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  config.ports[0].state_ref() = cfg::PortState::ENABLED;
-  config.ports[1].logicalID_ref() = 2;
+  config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[1].logicalID_ref() = 2;
   config.ports_ref()[1].name_ref() = "port2";
-  config.ports[1].state_ref() = cfg::PortState::ENABLED;
-  config.ports[2].logicalID_ref() = 3;
+  config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[2].logicalID_ref() = 3;
   config.ports_ref()[2].name_ref() = "port3";
-  config.ports[2].state_ref() = cfg::PortState::DISABLED;
-  config.ports[3].logicalID_ref() = 4;
+  config.ports_ref()[2].state_ref() = cfg::PortState::DISABLED;
+  config.ports_ref()[3].logicalID_ref() = 4;
   config.ports_ref()[3].name_ref() = "port4";
-  config.ports[3].state_ref() = cfg::PortState::ENABLED;
+  config.ports_ref()[3].state_ref() = cfg::PortState::ENABLED;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto portsV3 = stateV3->getPorts();
   ASSERT_NE(nullptr, portsV3);

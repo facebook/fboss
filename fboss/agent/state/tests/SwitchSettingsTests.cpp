@@ -19,7 +19,8 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.switchSettings.l2LearningMode = cfg::L2LearningMode::SOFTWARE;
+  *config.switchSettings_ref()->l2LearningMode_ref() =
+      cfg::L2LearningMode::SOFTWARE;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -30,7 +31,8 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
       cfg::L2LearningMode::SOFTWARE, switchSettingsV1->getL2LearningMode());
   EXPECT_FALSE(switchSettingsV1->isQcmEnable());
 
-  config.switchSettings.l2LearningMode = cfg::L2LearningMode::HARDWARE;
+  *config.switchSettings_ref()->l2LearningMode_ref() =
+      cfg::L2LearningMode::HARDWARE;
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -48,7 +50,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   auto stateV0 = make_shared<SwitchState>();
 
   cfg::SwitchConfig config;
-  config.switchSettings.qcmEnable = true;
+  *config.switchSettings_ref()->qcmEnable_ref() = true;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
@@ -58,7 +60,7 @@ TEST(SwitchSettingsTest, applyQcmConfig) {
   EXPECT_EQ(
       cfg::L2LearningMode::HARDWARE, switchSettingsV1->getL2LearningMode());
 
-  config.switchSettings.qcmEnable = false;
+  *config.switchSettings_ref()->qcmEnable_ref() = false;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto switchSettingsV2 = stateV2->getSwitchSettings();

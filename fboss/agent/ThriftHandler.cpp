@@ -1066,10 +1066,10 @@ void ThriftHandler::getPortPrbsStats(
 
   if (component == PrbsComponent::ASIC) {
     auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
-    prbsStats.portId = portId;
-    prbsStats.component = PrbsComponent::ASIC;
+    *prbsStats.portId_ref() = portId;
+    *prbsStats.component_ref() = PrbsComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {
-      prbsStats.laneStats.push_back(lane);
+      prbsStats.laneStats_ref()->push_back(lane);
     }
   } else if (
       component == PrbsComponent::GB_SYSTEM ||
@@ -1077,10 +1077,10 @@ void ThriftHandler::getPortPrbsStats(
     phy::Side side = (component == PrbsComponent::GB_SYSTEM) ? phy::Side::SYSTEM
                                                              : phy::Side::LINE;
     auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
-    prbsStats.portId = portId;
-    prbsStats.component = component;
+    *prbsStats.portId_ref() = portId;
+    *prbsStats.component_ref() = component;
     for (const auto& lane : gearboxPrbsStats) {
-      prbsStats.laneStats.push_back(lane);
+      prbsStats.laneStats_ref()->push_back(lane);
     }
   } else {
     XLOG(INFO) << "Unrecognized component to GetPortPrbsStats: "
@@ -1102,8 +1102,8 @@ void ThriftHandler::setPortPrbs(
   }
 
   PrbsState newPrbsState;
-  newPrbsState.enabled = enable;
-  newPrbsState.polynominal = polynominal;
+  *newPrbsState.enabled_ref() = enable;
+  *newPrbsState.polynominal_ref() = polynominal;
 
   if (component == PrbsComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
@@ -1219,7 +1219,7 @@ void ThriftHandler::getRouteTableByClient(
       *tempRoute.nextHops_ref() =
           util::fromRouteNextHopSet(entry->getNextHopSet());
       for (const auto& nh : *tempRoute.nextHops_ref()) {
-        tempRoute.nextHopAddrs_ref()->emplace_back(nh.address);
+        tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
       }
       routes.emplace_back(std::move(tempRoute));
     }
@@ -1236,7 +1236,7 @@ void ThriftHandler::getRouteTableByClient(
       *tempRoute.nextHops_ref() =
           util::fromRouteNextHopSet(entry->getNextHopSet());
       for (const auto& nh : *tempRoute.nextHops_ref()) {
-        tempRoute.nextHopAddrs_ref()->emplace_back(nh.address);
+        tempRoute.nextHopAddrs_ref()->emplace_back(*nh.address_ref());
       }
       routes.emplace_back(std::move(tempRoute));
     }

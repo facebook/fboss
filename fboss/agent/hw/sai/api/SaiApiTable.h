@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/BridgeApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
+#include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -28,6 +29,7 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
+#include "fboss/agent/hw/sai/api/WredApi.h"
 
 #include <memory>
 
@@ -58,6 +60,9 @@ class SaiApiTable {
 
   BufferApi& bufferApi();
   const BufferApi& bufferApi() const;
+
+  DebugCounterApi& debugCounterApi();
+  const DebugCounterApi& debugCounterApi() const;
 
   FdbApi& fdbApi();
   const FdbApi& fdbApi() const;
@@ -107,6 +112,9 @@ class SaiApiTable {
   VlanApi& vlanApi();
   const VlanApi& vlanApi() const;
 
+  WredApi& wredApi();
+  const WredApi& wredApi() const;
+
   template <typename SaiApiT>
   SaiApiT& getApi() {
     return *std::get<std::unique_ptr<SaiApiT>>(apis_);
@@ -124,6 +132,7 @@ class SaiApiTable {
       std::unique_ptr<AclApi>,
       std::unique_ptr<BridgeApi>,
       std::unique_ptr<BufferApi>,
+      std::unique_ptr<DebugCounterApi>,
       std::unique_ptr<FdbApi>,
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
@@ -139,7 +148,8 @@ class SaiApiTable {
       std::unique_ptr<SchedulerApi>,
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<VirtualRouterApi>,
-      std::unique_ptr<VlanApi>>
+      std::unique_ptr<VlanApi>,
+      std::unique_ptr<WredApi>>
       apis_;
   bool apisQueried_{false};
 };

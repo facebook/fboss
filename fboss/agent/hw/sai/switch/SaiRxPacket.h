@@ -22,6 +22,17 @@ class SaiRxPacket : public RxPacket {
       const void* buffer,
       PortID portID,
       VlanID vlanID);
+  /*
+   * Set the port on which this packet was received.
+   */
+  void setSrcPort(PortID srcPort) {
+    srcPort_ = srcPort;
+  }
+  /*
+   * Set the VLAN on which this packet was received.
+   */
+  void setSrcVlan(VlanID srcVlan) {
+    srcVlan_ = srcVlan;
+  }
 };
-
 } // namespace facebook::fboss

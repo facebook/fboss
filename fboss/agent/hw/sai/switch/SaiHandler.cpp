@@ -31,8 +31,8 @@ SaiHandler::startDiagShell() {
   }
   auto streamAndPublisher =
       apache::thrift::ServerStream<std::string>::createPublisher([this]() {
-        XLOG(INFO) << "Diag shell session disconnected";
         diagShell_.markResetPublisher();
+        XLOG(INFO) << "Diag shell session disconnected";
       });
 
   std::string firstPrompt =
@@ -44,6 +44,14 @@ void SaiHandler::produceDiagShellInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
   diagShell_.consumeInput(std::move(input), std::move(client));
+}
+
+void SaiHandler::diagCmd(
+    folly::fbstring& /* unused */,
+    std::unique_ptr<fbstring> /* unused */,
+    std::unique_ptr<ClientInformation> /* unused */) {
+  // TODO
+  throw FbossError("Unsupported");
 }
 
 } // namespace facebook::fboss

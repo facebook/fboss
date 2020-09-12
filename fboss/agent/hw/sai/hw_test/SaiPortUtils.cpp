@@ -272,7 +272,6 @@ void verifyInterfaceMode(
     PortID portID,
     cfg::PortProfileID /*profileID*/,
     Platform* platform) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
   if (!saiPlatform->supportInterfaceType()) {
     return;
@@ -294,7 +293,6 @@ void verifyInterfaceMode(
       saiPortHandle->port->adapterKey(),
       SaiPortTraits::Attributes::InterfaceType{});
   EXPECT_EQ(expectedInterfaceType, programmedInterfaceType);
-#endif
 }
 
 void verifyTxSettting(
@@ -346,5 +344,12 @@ void verifyTxSettting(
   EXPECT_EQ(main, expectedMain);
   EXPECT_EQ(post, expectedPost);
   EXPECT_EQ(driverCurrent, expectedDriverCurrent);
+}
+
+void verifyLedStatus(
+    HwSwitchEnsemble* /*ensemble*/,
+    PortID /*port*/,
+    bool /*up*/) {
+  // TODO: implement this
 }
 } // namespace facebook::fboss::utility

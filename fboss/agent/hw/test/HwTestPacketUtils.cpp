@@ -63,7 +63,7 @@ folly::MacAddress getInterfaceMac(
 }
 
 VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
-  return VlanID(*cfg.vlanPorts[0].vlanID_ref());
+  return VlanID(*cfg.vlanPorts_ref()[0].vlanID_ref());
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
@@ -377,4 +377,54 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
       payload);
 }
 
+std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
+    const HwSwitch* hw,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    ARP_OPER type,
+    std::optional<folly::MacAddress> targetMac) {
+  if (!targetMac) {
+    targetMac = type == ARP_OPER::ARP_OPER_REQUEST
+        ? folly::MacAddress("00:00:00:00:00:00")
+        : dstMac;
+  }
+  ArpHdr arpHdr(
+      static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET),
+      static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4),
+      static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET),
+      static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4),
+      static_cast<uint16_t>(type),
+      srcMac,
+      srcIp.asV4(),
+      *targetMac,
+      dstIp.asV4());
+  auto txPacket = hw->allocatePacket(
+      EthHdr::SIZE + ArpHdr::size() + kDefaultPayload.size());
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_ARP);
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getEtherType());
+
+  // write ARP header
+  rwCursor.writeBE<uint16_t>(arpHdr.htype);
+  rwCursor.writeBE<uint16_t>(arpHdr.ptype);
+  rwCursor.writeBE<uint8_t>(arpHdr.hlen);
+  rwCursor.writeBE<uint8_t>(arpHdr.plen);
+  rwCursor.writeBE<uint16_t>(arpHdr.oper);
+  rwCursor.push(arpHdr.sha.bytes(), folly::MacAddress::SIZE);
+  rwCursor.write<uint32_t>(arpHdr.spa.toLong());
+  rwCursor.push(arpHdr.tha.bytes(), folly::MacAddress::SIZE);
+  rwCursor.write<uint32_t>(arpHdr.tpa.toLong());
+  rwCursor.push(kDefaultPayload.data(), kDefaultPayload.size());
+  return txPacket;
+}
 } // namespace facebook::fboss::utility

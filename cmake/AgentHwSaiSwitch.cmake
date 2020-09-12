@@ -9,6 +9,7 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/SaiBridgeManager.cpp
   fboss/agent/hw/sai/switch/SaiBufferManager.cpp
+  fboss/agent/hw/sai/switch/SaiDebugCounterManager.cpp
   fboss/agent/hw/sai/switch/SaiFdbManager.cpp
   fboss/agent/hw/sai/switch/SaiHashManager.cpp
   fboss/agent/hw/sai/switch/SaiHostifManager.cpp
@@ -30,6 +31,7 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiTxPacket.cpp
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
+  fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
 )
 
 target_link_libraries(sai_switch

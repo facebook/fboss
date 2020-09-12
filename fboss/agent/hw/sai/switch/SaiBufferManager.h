@@ -12,7 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
@@ -24,7 +24,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class PortQueue;
 
-using SaiBufferPool = SaiObject<SaiBufferPoolTraits>;
+using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
 using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
 
 struct SaiBufferPoolHandle {
@@ -37,8 +37,14 @@ class SaiBufferManager {
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
 
- private:
   void setupEgressBufferPool();
+  void updateStats();
+  uint64_t getDeviceWatermarkBytes() const {
+    return deviceWatermarkBytes_;
+  }
+
+ private:
+  void publishDeviceWatermark(uint64_t peakBytes) const;
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
 
@@ -47,6 +53,7 @@ class SaiBufferManager {
   std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
       bufferProfiles_;
+  uint64_t deviceWatermarkBytes_{0};
 };
 
 } // namespace facebook::fboss

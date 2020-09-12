@@ -13,9 +13,13 @@
 
 #include <folly/MacAddress.h>
 
+#include <map>
+
 extern "C" {
 #include <sai.h>
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
 }
+
 namespace facebook::fboss {
 
 class FakeSwitch {
@@ -116,6 +120,9 @@ class FakeSwitch {
   }
   sai_object_id_t id;
 
+  sai_status_t setLed(const sai_attribute_t* attr);
+  sai_status_t getLed(sai_attribute_t* attr) const;
+
  private:
   folly::MacAddress srcMac_;
   bool inited_{false};
@@ -132,6 +139,12 @@ class FakeSwitch {
   bool restartWarm_{false};
   sai_uint32_t macAgingTime_{0};
   bool ecnEctThresholdEnable_{false};
+  struct FakeSwitchLedState {
+    bool reset{};
+    std::array<uint8_t, 256> program{};
+    std::map<sai_uint32_t, sai_uint32_t> data{};
+  };
+  std::map<int, FakeSwitchLedState> ledState_{{0, {}}, {1, {}}};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

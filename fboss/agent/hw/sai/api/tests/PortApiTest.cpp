@@ -31,7 +31,6 @@ class PortApiTest : public ::testing::Test {
       uint32_t speed,
       const std::vector<uint32_t>& lanes,
       bool adminState) const {
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     SaiPortTraits::CreateAttributes a{lanes,
                                       speed,
                                       adminState,
@@ -46,21 +45,6 @@ class PortApiTest : public ::testing::Test {
                                       std::nullopt,
                                       std::nullopt,
                                       std::nullopt};
-#else
-    SaiPortTraits::CreateAttributes a{lanes,
-                                      speed,
-                                      adminState,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt,
-                                      std::nullopt};
-#endif
     return portApi->create<SaiPortTraits>(a, 0);
   }
 
@@ -286,7 +270,7 @@ TEST_F(PortApiTest, getSome) {
   EXPECT_EQ(stats.size(), 2);
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0) && !defined(IS_OSS)
+#if !defined(IS_OSS)
 // interface modes used by fb, not available in OSS yet
 TEST_F(PortApiTest, setInterfaceType) {
   auto id = createPort(100000, {42}, true);

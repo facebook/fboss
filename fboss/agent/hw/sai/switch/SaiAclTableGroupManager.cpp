@@ -23,10 +23,6 @@ SaiAclTableGroupManager::SaiAclTableGroupManager(
 
 AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
     sai_acl_stage_t aclStage) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   // If we already store a handle for this this Acl Table group, fail to add a
   // new one.
   auto handle = getAclTableGroupHandle(aclStage);
@@ -83,10 +79,6 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
     sai_acl_stage_t aclStage,
     AclTableSaiId aclTableSaiId,
     const std::string& aclTableName) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   // If we attempt to add member to a group that does not exist, fail.
   auto aclTableGroupHandle = getAclTableGroupHandle(aclStage);
   if (!aclTableGroupHandle) {

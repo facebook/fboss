@@ -9,6 +9,18 @@
  */
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 
+extern "C" {
+#include <systems/bde/linux/linux-bde.h>
+}
+
+extern "C" {
+/*
+ * Define the bde global variable.
+ * This is declared in <ibde.h>, but needs to be defined by our code.
+ */
+ibde_t* bde;
+}
+
 namespace facebook::fboss {
 
 /*
@@ -18,4 +30,12 @@ namespace facebook::fboss {
  */
 void BcmAPI::initImpl() {}
 void BcmAPI::bdeCreateSim() {}
+void BcmAPI::initHSDKImpl(const std::string& /* yamlConfig */) {}
+
+/*
+ * Get the number of Broadcom switching devices in this system.
+ */
+size_t BcmAPI::getNumSwitches() {
+  return bde->num_devices(BDE_SWITCH_DEVICES);
+}
 } // namespace facebook::fboss

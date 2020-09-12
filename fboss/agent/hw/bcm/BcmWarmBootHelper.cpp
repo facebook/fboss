@@ -94,11 +94,11 @@ void BcmWarmBootHelper::setupSdkWarmBoot() {
   auto stableSize = (configStableSize)
       ? std::stoul(configStableSize, nullptr, 0)
       : SOC_DEFAULT_LVL2_STABLE_SIZE;
-// Remove this code once the new values for stable are propogated
-// to all switches
-#define STABLE_SIZE_MINIMUM 0x6000000
-  if (stableSize < STABLE_SIZE_MINIMUM) {
-    stableSize = STABLE_SIZE_MINIMUM;
+  // Remove this code once the new values for stable are propagated
+  // to all switches
+  constexpr uint64_t kStableSizeMinimum = 0x6000000;
+  if (stableSize < kStableSizeMinimum) {
+    stableSize = kStableSizeMinimum;
   }
   XLOG(DBG0) << "Initializing sdk stable storage with max size of "
              << stableSize << " bytes.";

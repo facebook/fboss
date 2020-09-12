@@ -16,7 +16,7 @@
 #include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
 #include <folly/init/Init.h>
-
+#include <folly/io/async/AsyncSignalHandler.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
 
@@ -27,6 +27,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <csignal>
 #include <iostream>
 #include <thread>
 
@@ -34,6 +35,7 @@ DEFINE_string(host, "::1", "The host to connect to");
 DEFINE_int32(port, 5909, "The port to connect to");
 
 namespace {
+using folly::AsyncSignalHandler;
 using folly::ByteRange;
 using folly::IPAddress;
 using folly::IPAddressV6;
@@ -116,32 +118,62 @@ void subscribeToDiagShell(folly::EventBase* evb, const IPAddress& ip) {
   evb->loop();
 }
 
-void handleStdin(folly::EventBase* evb, const IPAddress& ip) {
+void handleStdin(
+    folly::EventBase* evb,
+    const IPAddress& ip,
+    const bool* shouldStop) {
   auto client = getStreamingClient(evb, ip);
   ssize_t nread;
   constexpr ssize_t bufSize = 512;
   std::array<char, bufSize> buf;
   while (true) {
-    if ((nread = ::read(STDIN_FILENO, buf.data(), bufSize)) < 0) {
-      folly::throwSystemError("failed to read from stdin");
-    } else if (nread == 0) {
-      break;
-    } else {
-      std::string input(buf.data(), nread);
-      try {
-        // TODO: fill in ClientInformation, or get rid of it in the API
-        facebook::fboss::ClientInformation ci;
-        client->sync_produceDiagShellInput(input, ci);
-      } catch (const std::exception& e) {
-        LOG(ERROR) << "cli caught server exception " << e.what();
-      }
-      // When user enters quit, finish the stdin thread
-      if (input.find("quit") == 0) {
+    fd_set readSet;
+    FD_ZERO(&readSet);
+    FD_SET(STDIN_FILENO, &readSet);
+    // Checks every second if we should stop the process.
+    struct timeval timeout = {1, 0};
+    if (select(STDIN_FILENO + 1, &readSet, nullptr, nullptr, &timeout) > 0) {
+      if ((nread = ::read(STDIN_FILENO, buf.data(), bufSize)) < 0) {
+        folly::throwSystemError("failed to read from stdin");
+      } else if (nread == 0) {
         break;
+      } else {
+        std::string input(buf.data(), nread);
+        try {
+          // TODO: fill in ClientInformation, or get rid of it in the API
+          facebook::fboss::ClientInformation ci;
+          client->sync_produceDiagShellInput(input, ci);
+        } catch (const std::exception& e) {
+          LOG(ERROR) << "cli caught server exception " << e.what();
+        }
+        // When user enters quit, finish the stdin thread
+        if (input.find("quit") == 0 || *shouldStop) {
+          break;
+        }
       }
     }
+    if (*shouldStop) {
+      break;
+    }
   }
+  evb->terminateLoopSoon();
 }
+
+class SignalHandler : public AsyncSignalHandler {
+ public:
+  SignalHandler(folly::EventBase* eventBase, bool* shouldStop)
+      : AsyncSignalHandler(eventBase), shouldStop_(shouldStop) {
+    registerSignalHandler(SIGINT);
+    registerSignalHandler(SIGTERM);
+  }
+  void signalReceived(int /*signum*/) noexcept override {
+    getEventBase()->terminateLoopSoon();
+    *shouldStop_ = true;
+  }
+
+ private:
+  bool* shouldStop_;
+};
 
 } // namespace
 
@@ -159,6 +191,7 @@ int main(int argc, char* argv[]) {
   folly::EventBase streamEvb;
   folly::EventBase stdinEvb;
 
+  bool stopThread = false;
   // Converts the host to IP address if a hostname is given
   IPAddress hostIP = getIPFromHost(FLAGS_host);
   // No host given
@@ -171,8 +204,11 @@ int main(int argc, char* argv[]) {
   std::thread streamT(
       [&streamEvb, &hostIP]() { subscribeToDiagShell(&streamEvb, hostIP); });
 
-  std::thread readStdinT(
-      [&stdinEvb, &hostIP]() { handleStdin(&stdinEvb, hostIP); });
+  std::thread readStdinT([&stdinEvb, &hostIP, &stopThread]() {
+    handleStdin(&stdinEvb, hostIP, &stopThread);
+  });
+
+  SignalHandler signalHandler(&streamEvb, &stopThread);
 
   readStdinT.join();
   streamEvb.terminateLoopSoon();

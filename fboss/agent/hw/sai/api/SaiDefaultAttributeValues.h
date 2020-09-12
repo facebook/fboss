@@ -38,12 +38,10 @@ struct SaiBoolDefault {
   }
 };
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
 struct SaiPortInterfaceTypeDefault {
   sai_port_interface_type_t operator()() const {
     return SAI_PORT_INTERFACE_TYPE_NONE;
   }
 };
-#endif
 
 } // namespace facebook::fboss

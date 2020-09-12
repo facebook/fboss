@@ -56,7 +56,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
       int l4DstPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     // arbit
     const auto srcIp =
@@ -84,7 +84,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
@@ -115,7 +115,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
@@ -127,6 +127,34 @@ class HwCoppTest : public HwLinkStateDependentTest {
           payload);
       getHwSwitch()->sendPacketOutOfPortSync(
           std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    }
+  }
+
+  void sendArpPkts(
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeARPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          arpType == ARP_OPER::ARP_OPER_REQUEST
+              ? folly::MacAddress("ff:ff:ff:ff:ff:ff")
+              : intfMac,
+          folly::IPAddress("1.1.1.2"),
+          dstIpAddress,
+          arpType);
+      if (outOfPort) {
+        getHwSwitch()->sendPacketOutOfPortSync(
+            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+      } else {
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
     }
   }
 
@@ -220,6 +248,24 @@ class HwCoppTest : public HwLinkStateDependentTest {
                << (dstMac ? (*dstMac).toString()
                           : getPlatform()->getLocalMac().toString())
                << ". Ethertype=" << std::hex << int(etherType)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyArpPacketsCpuQueue(
+      int queueId,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str() << ", dstMac="
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -576,6 +622,21 @@ TEST_F(HwCoppTest, L3MTUErrorToLowPriQ) {
         1, /* num pkts to send */
         1, /* num pkts to excepted to be captured */
         std::vector<uint8_t>(9200, 0xff));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
+  auto setup = [=]() {};
+  auto verify = [=]() {
+    sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(getAsic()),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REQUEST);
+    sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(getAsic()),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REPLY);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

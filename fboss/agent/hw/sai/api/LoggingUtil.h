@@ -262,4 +262,21 @@ struct formatter<sai_s32_range_t> {
   }
 };
 
+template <typename T>
+struct formatter<
+    T,
+    char,
+    std::enable_if_t<facebook::fboss::IsSaiExtensionAttribute<T>::value>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const T&, FormatContext& ctx) {
+    // TODO: implement this
+    return format_to(ctx.out(), "extension attr");
+  }
+};
+
 } // namespace fmt

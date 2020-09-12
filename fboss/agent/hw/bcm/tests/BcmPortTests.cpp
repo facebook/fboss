@@ -259,7 +259,7 @@ TEST_F(BcmPortTest, SampleDestination) {
     sflowTunnel.udpDstPort_ref() = 5343;
     tunnel.sflowTunnel_ref() = sflowTunnel;
     newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors[0].name_ref() = "sflow";
+    *newCfg.mirrors_ref()[0].name_ref() = "sflow";
     newCfg.mirrors_ref()[0].destination_ref()->tunnel_ref() = tunnel;
     return applyNewConfig(newCfg);
   };
@@ -294,7 +294,7 @@ TEST_F(BcmPortTest, IngressMirror) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors[0].name_ref() = "mirror";
+    *newCfg.mirrors_ref()[0].name_ref() = "mirror";
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
     *greTunnel.ip_ref() = "1.1.1.10";
@@ -319,7 +319,7 @@ TEST_F(BcmPortTest, EgressMirror) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
     newCfg.mirrors_ref()->resize(1);
-    *newCfg.mirrors[0].name_ref() = "mirror";
+    *newCfg.mirrors_ref()[0].name_ref() = "mirror";
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
     *greTunnel.ip_ref() = "1.1.1.10";

@@ -60,7 +60,10 @@ class MockHwSwitch : public HwSwitch {
       facebook::fboss::PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
-  MOCK_METHOD1(updateStats, void(SwitchStats* switchStats));
+  MOCK_METHOD1(updateStatsImpl, void(SwitchStats* switchStats));
+  MOCK_CONST_METHOD0(
+      getPortStats,
+      folly::F14FastMap<std::string, HwPortStats>());
   MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
   MOCK_METHOD1(gracefulExit, void(folly::dynamic& switchState));
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
@@ -84,6 +87,10 @@ class MockHwSwitch : public HwSwitch {
    */
   bool needL2EntryForNeighbor() const override {
     return true;
+  }
+
+  uint64_t getDeviceWatermarkBytes() const override {
+    return 0;
   }
 
  private:

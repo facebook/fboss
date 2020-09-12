@@ -32,6 +32,8 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
             FlexPortMode::FOURX10G};
   }
 
+  void initLEDs() override;
+
  private:
   std::unique_ptr<TomahawkAsic> asic_;
 };

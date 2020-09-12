@@ -6,8 +6,6 @@ namespace facebook::fboss {
 
 bool Tomahawk4Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::ACLv4:
-    case HwAsic::Feature::ACLv6:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
@@ -27,8 +25,12 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
+    case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::HSDK:
       return true;
 
+    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::QOS_MAP_GLOBAL:

@@ -115,6 +115,31 @@ class HwAclQualifierTest : public HwTest {
     }
   }
 
+  void configureIp4QualifiersHelper(cfg::AclEntry* acl) {
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
+    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
+    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+  }
+
+  void configureIp6QualifiersHelper(cfg::AclEntry* acl) {
+    cfg::Ttl ttl;
+    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+
+    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
+    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
+    configureQualifier(
+        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
+    configureQualifier(acl->dscp_ref(), true, 0x24);
+    configureQualifier(acl->ttl_ref(), true, ttl);
+    configureQualifier(acl->proto_ref(), true, 6);
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
@@ -280,16 +305,7 @@ TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
-
-    cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
-
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP4);
-    configureQualifier(acl->srcIp_ref(), true, "192.168.0.1");
-    configureQualifier(acl->dstIp_ref(), true, "192.168.0.0/24");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+    configureIp4QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
@@ -306,17 +322,64 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+    configureIp6QualifiersHelper(acl);
+    applyNewConfig(newCfg);
+  };
 
-    cfg::Ttl ttl;
-    std::tie(*ttl.value_ref(), *ttl.mask_ref()) = std::make_tuple(0x80, 0x80);
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
+  };
 
-    configureQualifier(acl->ipType_ref(), true, cfg::IpType::IP6);
-    configureQualifier(acl->srcIp_ref(), true, "::ffff:c0a8:1");
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp4AndLookupClassQualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
+    configureIp4QualifiersHelper(acl);
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      configureQualifier(
+          acl->lookupClassL2_ref(),
+          true,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    }
     configureQualifier(
-        acl->dstIp_ref(), true, "2401:db00:3020:70e2:face:0:63:0/64");
-    configureQualifier(acl->dscp_ref(), true, 0x24);
-    configureQualifier(acl->ttl_ref(), true, ttl);
-    configureQualifier(acl->proto_ref(), true, 6);
+        acl->lookupClass_ref(),
+        true,
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
+
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6AndLookupClassQualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+    configureIp6QualifiersHelper(acl);
+    if (getPlatform()->getAsic()->getAsicType() !=
+        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      configureQualifier(
+          acl->lookupClassL2_ref(),
+          true,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+    }
+    configureQualifier(
+        acl->lookupClass_ref(),
+        true,
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
     applyNewConfig(newCfg);
   };
 

@@ -14,5 +14,8 @@ class BroadcomAsic : public HwAsic {
   std::string getVendor() const override {
     return "bcm";
   }
+  uint32_t getMaxMirrors() const override {
+    return 4;
+  }
 };
 } // namespace facebook::fboss

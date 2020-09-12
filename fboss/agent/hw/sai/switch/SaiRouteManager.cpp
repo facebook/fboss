@@ -242,8 +242,8 @@ void SaiRouteManager::addOrUpdateRoute(
         packetAction, std::move(cpuPortId), metadata};
   } else if (fwd.getAction() == DROP) {
     packetAction = SAI_PACKET_ACTION_DROP;
-    attributes =
-        SaiRouteTraits::CreateAttributes{packetAction, std::nullopt, metadata};
+    attributes = SaiRouteTraits::CreateAttributes{
+        packetAction, SAI_NULL_OBJECT_ID, metadata};
   }
   auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
   auto route = store.setObject(entry, attributes.value());

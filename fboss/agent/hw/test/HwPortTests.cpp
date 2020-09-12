@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"

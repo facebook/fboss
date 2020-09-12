@@ -27,7 +27,14 @@ add_library(sai_version
 
 set_target_properties(sai_version PROPERTIES LINKER_LANGUAGE CXX)
 
+add_library(sai_fake_extensions
+  fboss/agent/hw/sai/api/fake/saifakeextensions.h
+)
+
+set_target_properties(sai_fake_extensions PROPERTIES LINKER_LANGUAGE C)
+
 set(SAI_API_SRC
+  fboss/agent/hw/sai/api/DebugCounterApi.cpp
   fboss/agent/hw/sai/api/FdbApi.cpp
   fboss/agent/hw/sai/api/HashApi.cpp
   fboss/agent/hw/sai/api/MplsApi.cpp
@@ -62,6 +69,8 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/Types.h
   fboss/agent/hw/sai/api/VirtualRouterApi.h
   fboss/agent/hw/sai/api/VlanApi.h
+  fboss/agent/hw/sai/api/WredApi.h
+  fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
 )
 
 set(SAI_API_DEPS

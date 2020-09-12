@@ -179,6 +179,14 @@ class SaiApi {
   auto getAttribute(
       const AdapterKeyT& key,
       std::optional<AttrT>& attrOptional) {
+    if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
+      auto id = typename AttrT::AttributeId()();
+      if (!id.has_value()) {
+        // if attribute is not supported, do not query it
+        XLOGF(DBG5, "extension SAI attribute is not supported {}", key);
+        return std::optional<typename AttrT::ValueType>(std::nullopt);
+      }
+    }
     AttrT attr = attrOptional.value_or(AttrT{});
     try {
       return std::optional<typename AttrT::ValueType>{getAttribute(key, attr)};
@@ -211,6 +219,17 @@ class SaiApi {
 
   template <typename AdapterKeyT, typename AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) {
+    if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
+      auto id = typename AttrT::AttributeId()();
+      if (!id.has_value()) {
+        // if attribute is not supported, do not set it
+        XLOGF(
+            FATAL,
+            "attempting to set unsupported extension SAI attribute {} for key {}",
+            attr,
+            key);
+      }
+    }
     auto status = impl()._setAttribute(key, saiAttr(attr));
     saiApiCheckError(
         status,

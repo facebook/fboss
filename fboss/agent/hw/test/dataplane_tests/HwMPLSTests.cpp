@@ -67,7 +67,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       qosMap.expMaps_ref()->push_back(expMap);
     }
     config.qosPolicies_ref()->resize(1);
-    *config.qosPolicies[0].name_ref() = "qp";
+    *config.qosPolicies_ref()[0].name_ref() = "qp";
     config.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
     cfg::TrafficPolicyConfig policy;

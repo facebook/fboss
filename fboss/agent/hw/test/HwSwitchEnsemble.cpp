@@ -116,6 +116,15 @@ HwSwitch* HwSwitchEnsemble::getHwSwitch() {
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::getProgrammedState() const {
   CHECK(programmedState_->isPublished());
+  /*
+   * Acquire mutex to guard against picking up a stale programmed
+   * state. A state update maybe in progress. A common pattern in
+   * tests is to get the current programmedState, make changes to
+   * it and then call applyNewState. If a state update is in
+   * progress when you query programmedState_, you risk undoing
+   * the changes of ongoing state update.
+   */
+  std::lock_guard<std::mutex> lk(updateStateMutex_);
   return programmedState_;
 }
 
@@ -338,9 +347,22 @@ void HwSwitchEnsemble::waitForLineRateOnPort(PortID port) {
       1000 * 1000;
   auto retries = 5;
   while (retries--) {
-    auto prevPortBytes = *getLatestPortStats(port).outBytes__ref();
+    const auto prevPortStats = getLatestPortStats(port);
+    auto prevPortBytes = *prevPortStats.outBytes__ref();
+    auto prevPortPackets =
+        (*prevPortStats.outUnicastPkts__ref() +
+         *prevPortStats.outMulticastPkts__ref() +
+         *prevPortStats.outBroadcastPkts__ref());
     sleep(1);
-    auto curPortBytes = *getLatestPortStats(port).outBytes__ref();
+    const auto curPortStats = getLatestPortStats(port);
+    auto curPortPackets =
+        (*curPortStats.outUnicastPkts__ref() +
+         *curPortStats.outMulticastPkts__ref() +
+         *curPortStats.outBroadcastPkts__ref());
+    // 20 bytes are consumed by ethernet preamble, start of frame and
+    // interpacket gap. Account for that in linerate.
+    auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
+    auto curPortBytes = *curPortStats.outBytes__ref() + packetPaddingBytes;
     if (((curPortBytes - prevPortBytes) * 8) >= portSpeedBps) {
       return;
     }

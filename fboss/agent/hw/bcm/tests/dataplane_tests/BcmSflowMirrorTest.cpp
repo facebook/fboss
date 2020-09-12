@@ -63,7 +63,7 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
   void
   configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
     cfg::SflowTunnel sflowTunnel;
-    sflowTunnel.ip = isV4 ? "101.101.101.101" : "2401:101:101::101";
+    *sflowTunnel.ip_ref() = isV4 ? "101.101.101.101" : "2401:101:101::101";
     sflowTunnel.udpSrcPort_ref() = 6545;
     sflowTunnel.udpDstPort_ref() = 5343;
 
@@ -73,17 +73,17 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     cfg::MirrorDestination destination;
     destination.tunnel_ref() = tunnel;
 
-    config->mirrors.resize(1);
-    config->mirrors[0].name = "mirror";
-    config->mirrors[0].destination = destination;
-    config->mirrors[0].truncate = truncate;
+    config->mirrors_ref()->resize(1);
+    *config->mirrors_ref()[0].name_ref() = "mirror";
+    *config->mirrors_ref()[0].destination_ref() = destination;
+    *config->mirrors_ref()[0].truncate_ref() = truncate;
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
     for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
       auto portId = masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(*config, portId);
-      portCfg->sFlowIngressRate = sampleRate;
+      *portCfg->sFlowIngressRate_ref() = sampleRate;
       portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
       portCfg->ingressMirror_ref() = "mirror";
     }
@@ -93,10 +93,10 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
       auto portId = masterLogicalPortIds()[i];
       auto portCfg = utility::findCfgPort(*config, portId);
-      if (static_cast<PortID>(portCfg->logicalID) == port) {
+      if (static_cast<PortID>(*portCfg->logicalID_ref()) == port) {
         portCfg->ingressMirror_ref() = "mirror";
         portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
-        portCfg->sFlowIngressRate = 1;
+        *portCfg->sFlowIngressRate_ref() = 1;
         break;
       }
     }
@@ -174,7 +174,7 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
     auto portStats = stats.at(masterLogicalPortIds()[0]);
-    return portStats.outUnicastPkts_;
+    return *portStats.outUnicastPkts__ref();
   }
 
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
@@ -183,8 +183,9 @@ class BcmSflowMirrorTest : public BcmLinkStateDependentTests {
     for (auto i = 1; i < masterLogicalPortIds().size(); i++) {
       auto port = masterLogicalPortIds()[i];
       auto portStats = stats.at(port);
-      allPortRx += portStats.inUnicastPkts_;
-      expectedSampleCount += (portStats.inUnicastPkts_ / FLAGS_sflow_test_rate);
+      allPortRx += *portStats.inUnicastPkts__ref();
+      expectedSampleCount +=
+          (*portStats.inUnicastPkts__ref() / FLAGS_sflow_test_rate);
     }
     XLOG(INFO) << "total packets rx " << allPortRx;
     return expectedSampleCount;

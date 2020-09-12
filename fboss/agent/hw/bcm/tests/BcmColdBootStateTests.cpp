@@ -26,8 +26,7 @@ TEST_F(BcmTest, chipColdBootDefaults) {
     auto portTable = getHwSwitch()->getPortTable();
     // Minus 1 for CPU port, which is also in default VLAN
     EXPECT_EQ(
-        getVlanToNumPorts(getHwSwitch())[vlans[0]] - 1,
-        std::distance(portTable->begin(), portTable->end()));
+        getVlanToNumPorts(getHwSwitch())[vlans[0]] - 1, portTable->size());
 
     // All ports should be down, and in default VLAN
     for (auto portIdAndPort : *portTable) {

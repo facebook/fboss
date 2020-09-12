@@ -571,18 +571,20 @@ class RouteCli(object):
     )
     @click.option("-4", "--ipv4", is_flag=True, default=False, help="Show IPv4 routes")
     @click.option("-6", "--ipv6", is_flag=True, default=False, help="Show IPv6 routes")
+    @click.argument("prefix", nargs=-1, type=str)
     @click.pass_obj
-    def _table(cli_opts, client_id, ipv4, ipv6):
+    def _table(cli_opts, client_id, ipv4, ipv6, prefix):  # noqa: B902
         """ Show the route table """
-        route.RouteTableCmd(cli_opts).run(client_id, ipv4, ipv6)
+        route.RouteTableCmd(cli_opts).run(client_id, ipv4, ipv6, prefix)
 
     @click.command()
     @click.option("-4", "--ipv4", is_flag=True, default=False, help="Show IPv4 routes")
     @click.option("-6", "--ipv6", is_flag=True, default=False, help="Show IPv6 routes")
+    @click.argument("prefix", nargs=-1, type=str)
     @click.pass_obj
-    def _details(cli_opts, ipv4, ipv6):
+    def _details(cli_opts, ipv4, ipv6, prefix):  # noqa: B902
         """ Show details of the route table """
-        route.RouteTableDetailsCmd(cli_opts).run(ipv4, ipv6)
+        route.RouteTableDetailsCmd(cli_opts).run(ipv4, ipv6, prefix)
 
     @click.command()
     @click.argument("prefix", nargs=1, required=True)

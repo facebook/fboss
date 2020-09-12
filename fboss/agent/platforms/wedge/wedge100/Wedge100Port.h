@@ -13,20 +13,11 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
+#include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+
 namespace facebook::fboss {
 
 class Wedge100Platform;
-
-enum class LedColor : uint32_t {
-  OFF = 0b000,
-  BLUE = 0b001,
-  GREEN = 0b010,
-  CYAN = 0b011,
-  RED = 0b100,
-  MAGENTA = 0b101,
-  YELLOW = 0b110,
-  WHITE = 0b111,
-};
 
 class Wedge100Port : public WedgePort {
  public:
@@ -67,9 +58,9 @@ class Wedge100Port : public WedgePort {
   bool isTop();
 
   bool useCompactMode();
-  LedColor getLedColor(bool up, bool adminUp);
-  LedColor internalLedState_;
-  void setPortLedColorMode(LedColor);
+  Wedge100LedUtils::LedColor getLedColor(bool up, bool adminUp);
+  Wedge100LedUtils::LedColor internalLedState_;
+  void setPortLedColorMode(Wedge100LedUtils::LedColor);
 };
 
 } // namespace facebook::fboss

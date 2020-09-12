@@ -260,8 +260,8 @@ void LinkAggregationManager::populatePartnerPair(
     controller = it->second;
   }
 
-  controller->actorInfo().populate(partnerPair.localEndpoint);
-  controller->partnerInfo().populate(partnerPair.remoteEndpoint);
+  controller->actorInfo().populate(*partnerPair.localEndpoint_ref());
+  controller->partnerInfo().populate(*partnerPair.remoteEndpoint_ref());
 }
 
 void LinkAggregationManager::populatePartnerPairs(
@@ -280,8 +280,9 @@ void LinkAggregationManager::populatePartnerPairs(
 
     partnerPairs.emplace_back();
 
-    controller->actorInfo().populate(partnerPairs.back().localEndpoint);
-    controller->partnerInfo().populate(partnerPairs.back().remoteEndpoint);
+    controller->actorInfo().populate(*partnerPairs.back().localEndpoint_ref());
+    controller->partnerInfo().populate(
+        *partnerPairs.back().remoteEndpoint_ref());
   }
 }
 

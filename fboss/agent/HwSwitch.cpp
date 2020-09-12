@@ -10,6 +10,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/normalization/Normalizer.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
@@ -45,6 +46,15 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
     runState_ = newState;
     XLOG(INFO) << " HwSwitch run state changed to: "
                << switchRunStateStr(runState_);
+  }
+}
+
+void HwSwitch::updateStats(SwitchStats* switchStats) {
+  updateStatsImpl(switchStats);
+  // send to normalizer
+  auto normalizer = Normalizer::getInstance();
+  if (normalizer) {
+    normalizer->processStats(getPortStats());
   }
 }
 } // namespace facebook::fboss

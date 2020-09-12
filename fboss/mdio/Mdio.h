@@ -73,7 +73,7 @@ class MdioController {
 
   template <typename... Args>
   explicit MdioController(int id, Args&&... args)
-      : rawIO_(IO(id, std::forward<Args>(args)...)),
+      : rawIO_(IO(std::forward<Args>(args)...)),
         io_(rawIO_),
         lockFile_(std::make_shared<folly::File>(
             folly::to<std::string>(kMdioLockFilePath, id),

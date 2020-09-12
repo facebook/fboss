@@ -40,7 +40,6 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
   return allPortsinGroup;
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
 std::optional<sai_port_interface_type_t> SaiBcmPlatform::getInterfaceType(
     TransmitterTechnology transmitterTech,
     cfg::PortSpeed speed) const {
@@ -105,6 +104,5 @@ std::optional<sai_port_interface_type_t> SaiBcmPlatform::getInterfaceType(
   return interfaceTypeIter->second;
 #endif
 }
-#endif
 
 } // namespace facebook::fboss

@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiAcl.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBridge.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBuffer.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiDebugCounter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiFdb.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHash.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
@@ -28,6 +29,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
 
 #include <memory>
 
@@ -48,6 +50,7 @@ struct FakeSai {
   FakeBridgeManager bridgeManager;
   FakeBufferPoolManager bufferPoolManager;
   FakeBufferProfileManager bufferProfileManager;
+  FakeDebugCounterManager debugCounterManager;
   FakeFdbManager fdbManager;
   FakeHashManager hashManager;
   FakeHostifTrapManager hostIfTrapManager;
@@ -65,6 +68,7 @@ struct FakeSai {
   FakeSwitchManager switchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
+  FakeWredManager wredManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
   sai_object_id_t getCpuPort();

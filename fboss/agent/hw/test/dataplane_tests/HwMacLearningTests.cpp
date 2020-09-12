@@ -90,8 +90,12 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
         cfg::PortLoopbackMode::MAC);
   }
 
-  MacAddress kSourceMac() const {
+  static MacAddress kSourceMac() {
     return MacAddress("02:00:00:00:00:05");
+  }
+
+  static MacAddress kSourceMac2() {
+    return MacAddress("02:00:00:00:00:06");
   }
 
   void sendL2Pkts(
@@ -135,7 +139,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   void sendPkt() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         kSourceMac(),
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
@@ -163,7 +167,6 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
      *  we bump up the retries to 10 (for all tests using this util function,
      *  and all devices).
      */
-
     int retries = 10;
     while (retries--) {
       if ((l2LearningMode == cfg::L2LearningMode::SOFTWARE &&
@@ -187,13 +190,14 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
       std::pair<L2Entry, L2EntryUpdateType> l2EntryAndUpdateType,
       PortDescriptor portDescr,
       L2EntryUpdateType expectedL2EntryUpdateType,
-      L2Entry::L2EntryType expectedL2EntryType) {
+      L2Entry::L2EntryType expectedL2EntryType,
+      folly::MacAddress expectedMac = kSourceMac()) {
     auto [l2Entry, l2EntryUpdateType] = l2EntryAndUpdateType;
 
-    EXPECT_EQ(l2Entry.getMac(), kSourceMac());
+    EXPECT_EQ(l2Entry.getMac(), expectedMac);
     EXPECT_EQ(
         l2Entry.getVlanID(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()));
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()));
     EXPECT_EQ(l2Entry.getPort(), portDescr);
     EXPECT_EQ(l2Entry.getType(), expectedL2EntryType);
     EXPECT_EQ(l2EntryUpdateType, expectedL2EntryUpdateType);
@@ -216,7 +220,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     *newCfg.switchSettings_ref()->l2LearningMode_ref() = l2LearningMode;
 
     if (portDescr.isAggregatePort()) {
-      *newCfg.ports[0].state_ref() = cfg::PortState::ENABLED;
+      *newCfg.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
       addAggPort(
           std::numeric_limits<AggregatePortID>::max(),
           {masterLogicalPortIds()[0]},
@@ -301,11 +305,17 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     };
 
     auto verifyPostWarmboot = [this, portDescr]() {
-      verifyL2TableCallback(
-          l2LearningObserver_.waitForLearningUpdates().front(),
-          portDescr,
-          L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      auto updates = l2LearningObserver_.waitForLearningUpdates(2);
+      for (const auto& update : updates) {
+        auto gotMac = update.first.getMac();
+        EXPECT_TRUE(gotMac == kSourceMac() || gotMac == kSourceMac2());
+        verifyL2TableCallback(
+            update,
+            portDescr,
+            L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+            L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED,
+            gotMac);
+      }
       EXPECT_TRUE(wasMacLearnt(portDescr));
     };
 
@@ -369,17 +379,13 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
 
  private:
   bool wasMacLearntInHw(bool shouldExist) {
-    auto generator = utility::MacAddressGenerator();
-    generator.startOver(kSourceMac().u64HBO());
-    auto nonSrcMac = generator.getNext();
-    EXPECT_NE(nonSrcMac, kSourceMac());
     bringUpPort(masterLogicalPortIds()[1]);
     auto origPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
-        nonSrcMac,
+        kSourceMac2(),
         kSourceMac(),
         ETHERTYPE::ETHERTYPE_LLDP);
 
@@ -397,11 +403,10 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
   }
 
   bool wasMacLearntInSwitchState(bool shouldExist) const {
-    auto vlanID = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanID = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto state = getProgrammedState();
     auto vlan = state->getVlans()->getVlanIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
-
     return (shouldExist == (macTable->getNodeIf(kSourceMac()) != nullptr));
   }
   bool isInL2Table(bool shouldExist, const PortDescriptor& portDescr) const {
@@ -750,7 +755,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
   void sendPkt2() {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(*initialConfig().vlanPorts[0].vlanID_ref()),
+        VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref()),
         kSourceMac(),
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);

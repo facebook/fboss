@@ -3,8 +3,6 @@ namespace py neteng.fboss.bcmswitch
 
 
 const i32 STAT_UNINITIALIZED = -1
-const i32 MAX_MIRRORS = 4
-
 
 struct BcmHwTableStats {
   /**

@@ -50,6 +50,53 @@ void oidListAttr(
   }
 }
 
+void aclEntryActionSaiObjectIdAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
+  attrLines.push_back(to<string>(
+      prefix,
+      "parameter.oid=",
+      SaiTracer::getInstance()->getVariable(
+          attr_list[i].value.aclaction.parameter.oid)));
+}
+
+void aclEntryActionSaiObjectIdListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines) {
+  uint32_t objectListCount =
+      attr_list[i].value.aclaction.parameter.objlist.count;
+
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_object_id_t), objectListCount);
+  string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
+  attrLines.push_back(
+      to<string>(prefix, "parameter.objlist.count=", objectListCount));
+  attrLines.push_back(to<string>(
+      prefix,
+      "parameter.objlist.list=(sai_object_id_t*)(list_",
+      listIndex,
+      ")"));
+
+  for (int j = 0; j < std::min(objectListCount, listLimit); ++j) {
+    attrLines.push_back(to<string>(
+        prefix,
+        "parameter.objlist.list[",
+        j,
+        "]=",
+        SaiTracer::getInstance()->getVariable(
+            attr_list[i].value.aclaction.parameter.objlist.list[j])));
+  }
+}
+
 void aclEntryActionU8Attr(
     const sai_attribute_t* attr_list,
     int i,
@@ -61,31 +108,63 @@ void aclEntryActionU8Attr(
       prefix, "parameter.u8=", attr_list[i].value.aclaction.parameter.u8));
 }
 
+void aclEntryActionU32Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
+  attrLines.push_back(to<string>(
+      prefix, "parameter.u32=", attr_list[i].value.aclaction.parameter.u32));
+}
+
+void aclEntryFieldSaiObjectIdAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
+  attrLines.push_back(to<string>(
+      prefix,
+      "data.oid=",
+      SaiTracer::getInstance()->getVariable(
+          attr_list[i].value.aclfield.data.oid)));
+  attrLines.push_back(
+      to<string>(prefix, "mask.u32=", attr_list[i].value.aclfield.mask.u32));
+}
+
+void aclEntryFieldIpV4Attr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
+  attrLines.push_back(
+      to<string>(prefix, "data.ip4=", attr_list[i].value.aclfield.data.ip4));
+  attrLines.push_back(
+      to<string>(prefix, "mask.ip4=", attr_list[i].value.aclfield.mask.ip4));
+}
+
 void aclEntryFieldIpV6Attr(
     const sai_attribute_t* attr_list,
     int i,
     std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
+
   // The underlying implementation of sai_ip6_t is uint8_t[16]
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(to<string>(
-        "s_a",
-        "[",
-        i,
-        "].value.aclfield.data.ip6[",
-        j,
-        "]=",
-        attr_list[i].value.aclfield.data.ip6[j]));
+        prefix, "data.ip6[", j, "]=", attr_list[i].value.aclfield.data.ip6[j]));
   }
 
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(to<string>(
-        "s_a",
-        "[",
-        i,
-        "].value.aclfield.mask.ip6[",
-        j,
-        "]=",
-        attr_list[i].value.aclfield.mask.ip6[j]));
+        prefix, "mask.ip6[", j, "]=", attr_list[i].value.aclfield.mask.ip6[j]));
   }
 }
 
@@ -126,6 +205,33 @@ void aclEntryFieldU32Attr(
       to<string>(prefix, "data.u32=", attr_list[i].value.aclfield.data.u32));
   attrLines.push_back(
       to<string>(prefix, "mask.u32=", attr_list[i].value.aclfield.mask.u32));
+}
+
+void aclEntryFieldMacAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
+
+  attrLines.push_back(to<string>("mac=", prefix, "data.mac"));
+  for (int j = 0; j < 6; ++j) {
+    attrLines.push_back(to<string>(
+        "mac[",
+        j,
+        "]=",
+        static_cast<const uint8_t*>(attr_list[i].value.aclfield.data.mac)[j]));
+  }
+
+  attrLines.push_back(to<string>("mac=", prefix, "mask.mac"));
+  for (int j = 0; j < 6; ++j) {
+    attrLines.push_back(to<string>(
+        "mac[",
+        j,
+        "]=",
+        static_cast<const uint8_t*>(attr_list[i].value.aclfield.mask.mac)[j]));
+  }
 }
 
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
@@ -174,8 +280,8 @@ void s8ListAttr(
   attrLines.push_back(
       to<string>(prefix, "count=", attr_list[i].value.s8list.count));
 
-  // Attribute SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO uses s8list as a char array.
-  // If the list count is 0, we'll replace it with NULL.
+  // Attribute SAI_SWITCH_ATTR_SWITCH_HARDWARE_INFO uses s8list as a char
+  // array. If the list count is 0, we'll replace it with NULL.
   if (nullable && attr_list[i].value.s8list.count == 0) {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
   } else {
@@ -347,7 +453,7 @@ void macAddressAttr(
     vector<string>& attrLines) {
   // The underlying type of sai_mac_t is uint8_t[6]
   // TODO(zecheng): Create helper function to handle this
-  attrLines.push_back(to<string>("mac = s_a[", i, "].value.mac"));
+  attrLines.push_back(to<string>("mac=s_a[", i, "].value.mac"));
   for (int j = 0; j < 6; ++j) {
     attrLines.push_back(to<string>(
         "mac[",
@@ -365,12 +471,12 @@ void ipAttr(
 
   if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     attrLines.push_back(
-        to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV4"));
+        to<string>(prefix, "addr_family=SAI_IP_ADDR_FAMILY_IPV4"));
     attrLines.push_back(
         to<string>(prefix, "addr.ip4=", attr_list[i].value.ipaddr.addr.ip4));
   } else if (attr_list[i].value.ipaddr.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
     attrLines.push_back(
-        to<string>(prefix, "addr_family = SAI_IP_ADDR_FAMILY_IPV6"));
+        to<string>(prefix, "addr_family=SAI_IP_ADDR_FAMILY_IPV6"));
 
     // Underlying type of sai_ip6_t is uint8_t[16]
     for (int j = 0; j < 16; ++j) {

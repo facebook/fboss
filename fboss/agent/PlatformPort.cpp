@@ -77,10 +77,10 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
     return cfg::PortProfileID::PROFILE_DEFAULT;
   }
 
-  for (auto profile : platformPortEntry->supportedProfiles) {
+  for (auto profile : *platformPortEntry->supportedProfiles_ref()) {
     auto profileID = profile.first;
     if (auto profileCfg = platform_->getPortProfileConfig(profileID)) {
-      if (profileCfg->speed == speed) {
+      if (*profileCfg->speed_ref() == speed) {
         return profileID;
       }
     } else {

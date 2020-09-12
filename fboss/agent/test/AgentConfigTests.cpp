@@ -23,52 +23,53 @@ namespace {
 cfg::SwitchConfig createSwitchConfig() {
   cfg::SwitchConfig config;
   config.vlans_ref()->resize(2);
-  *config.vlans[0].name_ref() = "PrimaryVlan";
-  *config.vlans[0].id_ref() = 5;
-  *config.vlans[0].routable_ref() = true;
+  *config.vlans_ref()[0].name_ref() = "PrimaryVlan";
+  *config.vlans_ref()[0].id_ref() = 5;
+  *config.vlans_ref()[0].routable_ref() = true;
   config.vlans_ref()[0].intfID_ref() = 1234;
-  *config.vlans[1].name_ref() = "DefaultHWVlan";
-  *config.vlans[1].id_ref() = 1;
-  *config.vlans[1].routable_ref() = true;
+  *config.vlans_ref()[1].name_ref() = "DefaultHWVlan";
+  *config.vlans_ref()[1].id_ref() = 1;
+  *config.vlans_ref()[1].routable_ref() = true;
   config.vlans_ref()[1].intfID_ref() = 4321;
 
   config.vlanPorts_ref()->resize(10);
   config.ports_ref()->resize(10);
   for (int n = 0; n < 10; ++n) {
-    *config.ports[n].logicalID_ref() = n + 1;
-    *config.ports[n].state_ref() = cfg::PortState::ENABLED;
-    *config.ports[n].minFrameSize_ref() = 64;
-    *config.ports[n].maxFrameSize_ref() = 9000;
-    *config.ports[n].routable_ref() = true;
-    *config.ports[n].ingressVlan_ref() = 5;
+    *config.ports_ref()[n].logicalID_ref() = n + 1;
+    *config.ports_ref()[n].state_ref() = cfg::PortState::ENABLED;
+    *config.ports_ref()[n].minFrameSize_ref() = 64;
+    *config.ports_ref()[n].maxFrameSize_ref() = 9000;
+    *config.ports_ref()[n].routable_ref() = true;
+    *config.ports_ref()[n].ingressVlan_ref() = 5;
 
-    *config.vlanPorts[n].vlanID_ref() = 5;
-    *config.vlanPorts[n].logicalPort_ref() = n + 1;
-    *config.vlanPorts[n].spanningTreeState_ref() =
+    *config.vlanPorts_ref()[n].vlanID_ref() = 5;
+    *config.vlanPorts_ref()[n].logicalPort_ref() = n + 1;
+    *config.vlanPorts_ref()[n].spanningTreeState_ref() =
         cfg::SpanningTreeState::FORWARDING;
-    *config.vlanPorts[n].emitTags_ref() = 0;
+    *config.vlanPorts_ref()[n].emitTags_ref() = 0;
   }
 
   config.interfaces_ref()->resize(2);
-  *config.interfaces[0].intfID_ref() = 1234;
-  *config.interfaces[0].vlanID_ref() = 5;
+  *config.interfaces_ref()[0].intfID_ref() = 1234;
+  *config.interfaces_ref()[0].vlanID_ref() = 5;
   config.interfaces_ref()[0].name_ref() = "PrimaryInterface";
   config.interfaces_ref()[0].mtu_ref() = 9000;
   config.interfaces_ref()[0].ipAddresses_ref()->resize(5);
-  config.interfaces[0].ipAddresses_ref()[0] = "10.164.4.10/24";
-  config.interfaces[0].ipAddresses_ref()[1] = "10.164.4.1/24";
-  config.interfaces[0].ipAddresses_ref()[2] = "10.164.4.2/24";
-  config.interfaces[0].ipAddresses_ref()[3] = "2401:db00:2110:3004::/64";
-  config.interfaces[0].ipAddresses_ref()[4] = "2401:db00:2110:3004::000a/64";
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.164.4.10/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] = "10.164.4.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[2] = "10.164.4.2/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[3] = "2401:db00:2110:3004::/64";
+  config.interfaces_ref()[0].ipAddresses_ref()[4] =
+      "2401:db00:2110:3004::000a/64";
   config.interfaces_ref()[0].ndp_ref() = cfg::NdpConfig();
-  *config.interfaces[0].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
-  *config.interfaces[1].intfID_ref() = 4321;
-  *config.interfaces[1].vlanID_ref() = 1;
+  *config.interfaces_ref()[0].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
+  *config.interfaces_ref()[1].intfID_ref() = 4321;
+  *config.interfaces_ref()[1].vlanID_ref() = 1;
   config.interfaces_ref()[1].name_ref() = "DefaultHWInterface";
   config.interfaces_ref()[1].mtu_ref() = 9000;
   config.interfaces_ref()[1].ipAddresses_ref()->resize(0);
   config.interfaces_ref()[1].ndp_ref() = cfg::NdpConfig();
-  *config.interfaces[1].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
+  *config.interfaces_ref()[1].ndp_ref()->routerAdvertisementSeconds_ref() = 1;
   *config.arpTimeoutSeconds_ref() = 1;
   return config;
 }

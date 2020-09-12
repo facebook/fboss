@@ -24,3 +24,17 @@ target_link_libraries(platform_mapping
   platform_config_cpp2
   ${RE2}
 )
+
+add_library(wedge_led_utils
+  fboss/agent/platforms/common/utils/GalaxyLedUtils.cpp
+  fboss/agent/platforms/common/utils/Wedge100LedUtils.cpp
+  fboss/agent/platforms/common/utils/Wedge40LedUtils.cpp
+)
+
+
+target_link_libraries(wedge_led_utils
+  error
+  ctrl_cpp2
+  fboss_types
+  transceiver_cpp2
+)

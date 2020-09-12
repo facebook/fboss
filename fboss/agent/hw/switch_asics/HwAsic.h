@@ -8,8 +8,7 @@ namespace facebook::fboss {
 class HwAsic {
  public:
   enum class Feature {
-    ACLv4,
-    ACLv6,
+    BUFFER_PROFILE,
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,
@@ -37,6 +36,9 @@ class HwAsic {
     L2ENTRY_METADATA,
     WEIGHTED_NEXTHOPGROUP_MEMBER,
     NEIGHBOR_METADATA,
+    DEBUG_COUNTER,
+    RESOURCE_USAGE_STATS,
+    HSDK,
   };
 
   enum class AsicType {
@@ -61,6 +63,7 @@ class HwAsic {
   virtual bool needsObjectKeyCache() const = 0;
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
+  virtual uint32_t getMaxMirrors() const = 0;
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;
   }

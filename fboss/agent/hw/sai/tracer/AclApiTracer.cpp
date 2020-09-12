@@ -334,6 +334,8 @@ void setAclEntryAttributes(
     const sai_attribute_t* attr_list,
     uint32_t attr_count,
     std::vector<std::string>& attrLines) {
+  uint32_t listCount = 0;
+
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ACL_ENTRY_ATTR_TABLE_ID:
@@ -346,10 +348,30 @@ void setAclEntryAttributes(
       case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
         aclEntryFieldIpV6Attr(attr_list, i, attrLines);
         break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP:
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_IP:
+        aclEntryFieldIpV4Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_SRC_PORT:
+      case SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT:
+        aclEntryFieldSaiObjectIdAttr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
+        aclEntryActionSaiObjectIdAttr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_INGRESS:
+      case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
+        aclEntryActionSaiObjectIdListAttr(attr_list, i, listCount++, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_TYPE:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_IP_FRAG:
       case SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META:
       case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST_USER_META:
       case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
         aclEntryFieldU32Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
+        aclEntryActionU32Attr(attr_list, i, attrLines);
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT:
       case SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT:
@@ -357,12 +379,20 @@ void setAclEntryAttributes(
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL:
       case SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_TYPE:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMP_CODE:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_TYPE:
+      case SAI_ACL_ENTRY_ATTR_FIELD_ICMPV6_CODE:
       case SAI_ACL_ENTRY_ATTR_FIELD_DSCP:
       case SAI_ACL_ENTRY_ATTR_FIELD_TTL:
         aclEntryFieldU8Attr(attr_list, i, attrLines);
         break;
       case SAI_ACL_ENTRY_ATTR_ACTION_SET_TC:
+      case SAI_ACL_ENTRY_ATTR_ACTION_SET_DSCP:
         aclEntryActionU8Attr(attr_list, i, attrLines);
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_DST_MAC:
+        aclEntryFieldMacAttr(attr_list, i, attrLines);
         break;
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
@@ -391,6 +421,8 @@ void setAclTableAttributes(
         break;
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6:
       case SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6:
+      case SAI_ACL_TABLE_ATTR_FIELD_SRC_IP:
+      case SAI_ACL_TABLE_ATTR_FIELD_DST_IP:
       case SAI_ACL_TABLE_ATTR_FIELD_L4_SRC_PORT:
       case SAI_ACL_TABLE_ATTR_FIELD_L4_DST_PORT:
       case SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL:
@@ -398,6 +430,10 @@ void setAclTableAttributes(
       case SAI_ACL_TABLE_ATTR_FIELD_SRC_PORT:
       case SAI_ACL_TABLE_ATTR_FIELD_OUT_PORT:
       case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_FRAG:
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_TYPE:
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMP_CODE:
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_TYPE:
+      case SAI_ACL_TABLE_ATTR_FIELD_ICMPV6_CODE:
       case SAI_ACL_TABLE_ATTR_FIELD_DSCP:
       case SAI_ACL_TABLE_ATTR_FIELD_DST_MAC:
       case SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE:

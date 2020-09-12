@@ -49,11 +49,9 @@ sai_status_t create_next_hop_fn(
           labelStack[j] = attr_list[i].value.u32list.list[j];
         }
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
-#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -116,11 +114,9 @@ sai_status_t get_next_hop_attribute_fn(
           attr[i].value.u32list.list[j] = nextHop.labelStack[j];
         }
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_NEXT_HOP_ATTR_DECREMENT_TTL:
         attr[i].value.booldata = nextHop.disableTtlDecrement;
         break;
-#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

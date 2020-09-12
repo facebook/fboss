@@ -8,6 +8,7 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiAcl.cpp
     fboss/agent/hw/sai/fake/FakeSaiBridge.cpp
     fboss/agent/hw/sai/fake/FakeSaiBuffer.cpp
+    fboss/agent/hw/sai/fake/FakeSaiDebugCounter.cpp
     fboss/agent/hw/sai/fake/FakeSaiFdb.cpp
     fboss/agent/hw/sai/fake/FakeSaiHash.cpp
     fboss/agent/hw/sai/fake/FakeSaiHostif.cpp
@@ -26,12 +27,14 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiSwitch.cpp
     fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.cpp
     fboss/agent/hw/sai/fake/FakeSaiVlan.cpp
+    fboss/agent/hw/sai/fake/FakeSaiWred.cpp
  )
 
 target_link_libraries(fake_sai
   sai_api
   address_util
   sai_version
+  sai_fake_extensions
   Folly::folly
 )
 

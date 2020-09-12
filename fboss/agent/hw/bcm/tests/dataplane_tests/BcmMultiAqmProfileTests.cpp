@@ -118,8 +118,10 @@ class BcmMultiAqmProfileTest : public BcmLinkStateDependentTests {
 
     config->portQueueConfigs_ref()["queue_config"] = portQueues;
     auto portCfg = std::find_if(
-        config->ports.begin(), config->ports.end(), [&portID](auto& port) {
-          return PortID(port.logicalID) == portID;
+        config->ports_ref()->begin(),
+        config->ports_ref()->end(),
+        [&portID](auto& port) {
+          return PortID(*port.logicalID_ref()) == portID;
         });
     portCfg->portQueueConfigName_ref() = "queue_config";
   }

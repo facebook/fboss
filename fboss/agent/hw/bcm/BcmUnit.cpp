@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/FileUtil.h>
 #include <folly/ScopeGuard.h>
@@ -206,17 +207,6 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
                     .count();
 }
 
-int BcmUnit::createHwUnit() {
-  auto* dev = bde->get_dev(deviceIndex_);
-
-  // Make sure the device is supported.
-  int rv = soc_cm_device_supported(dev->device, dev->rev);
-  bcmCheckError(rv, "unsupported device ID ", dev->device, ":", dev->rev);
-
-  // Allocate a unit ID
-  return soc_cm_device_create(dev->device, dev->rev, this);
-}
-
 int BcmUnit::destroyHwUnit() {
   int rv = soc_cm_device_destroy(unit_);
   bcmCheckError(rv, "failed to destroy device unit ", unit_);
@@ -256,11 +246,7 @@ BcmUnit::~BcmUnit() {
   BcmAPI::unitDestroyed(this);
 }
 
-void BcmUnit::attach(bool warmBoot) {
-  if (attached_.load(std::memory_order_acquire)) {
-    throw FbossError("unit ", unit_, " already initialized");
-  }
-
+void BcmUnit::attachSDK6(bool warmBoot) {
   registerCallbackVector();
 
   int rv;
@@ -296,6 +282,18 @@ void BcmUnit::attach(bool warmBoot) {
   // bcmInit() will automatically complete warm boot--we don't need
   // to explicitly call SOC_WARM_BOOT_DONE().
   bcmInit();
+}
+
+void BcmUnit::attach(bool warmBoot) {
+  if (attached_.load(std::memory_order_acquire)) {
+    throw FbossError("unit ", unit_, " already attached");
+  }
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    attachHSDK(warmBoot);
+  } else {
+    attachSDK6(warmBoot);
+  }
 
   attached_.store(true, std::memory_order_release);
 }
@@ -353,6 +351,17 @@ void BcmUnit::rawRegisterWrite(uint16_t phyID, uint8_t reg, uint16_t data) {
   int rv = soc_miim_write(unit_, phyID, reg, data);
   facebook::fboss::bcmCheckError(
       rv, "Failed to write register ", reg, " on phy ", phyID);
+}
+
+void BcmUnit::registerNullSOCVectors() {
+  // All the HAL drivers are already attached to the device during
+  // attachHALVectors(). However soc_control structure for LTSW device still
+  // needs to be allocated. Hence attach NULL driver
+  soc_cm_device_vectors_t vectors;
+  memset(&vectors, 0, sizeof(vectors));
+  int rv = soc_cm_device_init(unit_, &vectors);
+  bcmCheckError(
+      rv, "failed to initialize unit ", unit_, " with NULL soc vectors");
 }
 
 } // namespace facebook::fboss

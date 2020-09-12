@@ -39,7 +39,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
   }
 
   void sendPkt(int payloadSize) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts[0].vlanID_ref());
+    auto vlanId = VlanID(*initialConfig().vlanPorts_ref()[0].vlanID_ref());
     auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),

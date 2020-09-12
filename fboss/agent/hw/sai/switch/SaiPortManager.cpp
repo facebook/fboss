@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -37,6 +38,7 @@ namespace facebook::fboss {
 namespace {
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    const SaiDebugCounterManager& debugCounterManager,
     HwPortStats& hwPortStats) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards__ref() = 0;
@@ -92,7 +94,13 @@ void fillHwPortStats(
         *hwPortStats.outEcnCounter__ref() = value;
         break;
       default:
-        throw FbossError("Got unexpected port counter id: ", counterId);
+        if (counterId ==
+            debugCounterManager.getPortL3BlackHoleCounterStatId()) {
+          hwPortStats.inDstNullDiscards__ref() = value;
+        } else {
+          throw FbossError("Got unexpected port counter id: ", counterId);
+        }
+        break;
     }
   }
 }
@@ -198,6 +206,10 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
       saiPort->adapterKey(), swPort->getIngressVlan());
   XLOG(INFO) << "added port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan();
+
+  // set platform port's speed
+  auto platformPort = platform_->getPort(swPort->getID());
+  platformPort->setCurrentProfile(swPort->getProfileID());
   return saiPort->adapterKey();
 }
 
@@ -303,6 +315,10 @@ void SaiPortManager::changePort(
                << ": old vlan: " << oldPort->getIngressVlan()
                << ", new vlan: " << newPort->getIngressVlan();
   }
+  if (newPort->getProfileID() != oldPort->getProfileID()) {
+    auto platformPort = platform_->getPort(newPort->getID());
+    platformPort->setCurrentProfile(newPort->getProfileID());
+  }
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
       // Port transitioned from disabled to enabled, setup port stats
@@ -335,7 +351,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         " not found for port ",
         swPort->getID());
   }
-  auto speed = portProfileConfig->speed;
+  auto speed = *portProfileConfig->speed_ref();
   auto platformPort = platform_->getPort(swPort->getID());
   auto hwLaneList = platformPort->getHwPortLanes(speed);
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
@@ -357,7 +373,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   uint16_t vlanId = swPort->getIngressVlan();
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   std::optional<SaiPortTraits::Attributes::InterfaceType> interfaceType{};
   if (auto saiInterfaceType = platform_->getInterfaceType(
           platformPort->getTransmitterTech(), speed)) {
@@ -377,21 +392,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                                          std::nullopt,
                                          std::nullopt,
                                          interfaceType};
-#else
-  return SaiPortTraits::CreateAttributes{hwLaneList,
-                                         static_cast<uint32_t>(speed),
-                                         adminState,
-                                         fecMode,
-                                         internalLoopbackMode,
-                                         mediaType,
-                                         globalFlowControlMode,
-                                         vlanId,
-                                         std::nullopt,
-                                         swPort->getMaxFrameSize(),
-                                         std::nullopt,
-                                         std::nullopt,
-                                         std::nullopt};
-#endif
 }
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
@@ -505,6 +505,10 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
       [ecnSupported](auto statId) {
         return ecnSupported || statId != SAI_PORT_STAT_ECN_MARKED_PACKETS;
       });
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    counterIds.emplace_back(
+        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId());
+  }
   return counterIds;
 }
 
@@ -529,9 +533,10 @@ void SaiPortManager::updateStats(PortID portId) {
           hardware_stats_constants::STAT_UNINITIALIZED()
       ? 0
       : *curPortStats.inDiscards__ref();
+  curPortStats.timestamp__ref() = now.count();
   handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
   const auto& counters = handle->port->getStats();
-  fillHwPortStats(counters, curPortStats);
+  fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards__ref(),
        *curPortStats.inDstNullDiscards__ref()},
@@ -554,7 +559,8 @@ std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
     const auto& counters = handle->port->getStats();
     std::ignore = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
     HwPortStats hwPortStats{};
-    fillHwPortStats(counters, hwPortStats);
+    fillHwPortStats(
+        counters, managerTable_->debugCounterManager(), hwPortStats);
     managerTable_->queueManager().getStats(handle->queues, hwPortStats);
     portStats.emplace(portId, hwPortStats);
   }
@@ -566,7 +572,24 @@ void SaiPortManager::clearStats(PortID port) {
   if (!portHandle) {
     return;
   }
-  portHandle->port->clearStats(supportedStats());
+  auto statsToClear = supportedStats();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    // Debug counters are implemented differently than regular port counters
+    // and not all implementations support clearing them. For our use case
+    // it doesn't particularly matter if we can't clear them. So prune the
+    // debug counter clear for now.
+    auto debugCounterId =
+        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId();
+    statsToClear.erase(
+        std::remove_if(
+            statsToClear.begin(),
+            statsToClear.end(),
+            [debugCounterId](auto counterId) {
+              return counterId == debugCounterId;
+            }),
+        statsToClear.end());
+  }
+  portHandle->port->clearStats(statsToClear);
   for (auto& queueAndHandle : portHandle->queues) {
     queueAndHandle.second->queue->clearStats();
   }
@@ -679,6 +702,12 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
       iDriver.value().push_back(driveCurrent.value());
     }
   }
+  // TODO initialize rx settings if supported
+  std::optional<SaiPortSerdesTraits::Attributes::RxCtleCode> rx0{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxDspMode> rx1{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxAfeTrim> rx2{};
+  std::optional<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass> rx3{};
+
   auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
   SaiPortSerdesTraits::CreateAttributes serdesAttributes{serdesKey,
@@ -688,7 +717,11 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
                                                          main,
                                                          post1,
                                                          std::nullopt,
-                                                         std::nullopt};
+                                                         std::nullopt,
+                                                         rx0,
+                                                         rx1,
+                                                         rx2,
+                                                         rx3};
   return store.setObject(serdesKey, serdesAttributes);
 }
 } // namespace facebook::fboss

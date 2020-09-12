@@ -49,27 +49,7 @@ class PackageFboss:
     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
     NAME_TO_EXECUTABLES = {
-        "fboss": (
-            BIN,
-            [
-                "wedge_agent",
-                "bcm_test",
-                "sai_test-fake-1.5.0",
-                "bcm_ecmp_shrink_speed",
-                "bcm_ecmp_shrink_with_competing_route_updates_speed",
-                "bcm_fsw_scale_route_add_speed",
-                "bcm_fsw_scale_route_del_speed",
-                "bcm_th_alpm_scale_route_add_speed",
-                "bcm_th_alpm_scale_route_del_speed",
-                "bcm_hgrid_du_scale_route_add_speed",
-                "bcm_hgrid_du_scale_route_del_speed",
-                "bcm_hgrid_uu_scale_route_add_speed",
-                "bcm_hgrid_uu_scale_route_del_speed",
-                "bcm_stats_collection_speed",
-                "bcm_tx_slow_path_rate",
-                "bcm_warm_boot_exit_speed",
-            ],
-        ),
+        "fboss": (BIN, []),
         "gflags": (LIB, ["libgflags.so.2.2"]),
         "glog": (LIB64, ["libglog.so.0"]),
         "zstd": (LIB64, ["libzstd.so.1"]),
@@ -174,11 +154,18 @@ class PackageFboss:
         for name, exec_type_and_execs in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
             executable_path = self._get_install_dir_for(name)
             executable_type, executables = exec_type_and_execs
+            bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
+            # If module does not have executables listed, then copy all
+            if not executables:
+                executables = os.listdir(os.path.join(executable_path, executable_type))
+
             for e in executables:
                 abs_path = os.path.join(executable_path, executable_type, e)
-                bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
                 print(f"Copying {abs_path} to {bin_pkg_path}")
-                shutil.copy(abs_path, bin_pkg_path)
+                try:
+                    shutil.copy(abs_path, bin_pkg_path)
+                except IOError:
+                    print("Skipping non-existent " + abs_path)
 
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)

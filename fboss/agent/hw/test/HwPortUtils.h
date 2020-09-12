@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/types.h"
@@ -17,6 +18,7 @@
 namespace facebook::fboss {
 class HwSwitch;
 class Platform;
+class HwSwitchEnsemble;
 namespace utility {
 bool portEnabled(const HwSwitch* hw, PortID port);
 cfg::PortSpeed currentPortSpeed(const HwSwitch* hw, PortID port);
@@ -103,5 +105,11 @@ void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform);
+
+std::vector<cfg::PortProfileID> allPortProfiles();
+cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
+TransmitterTechnology getMediaType(cfg::PortProfileID profile);
+
+void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up);
 } // namespace utility
 } // namespace facebook::fboss

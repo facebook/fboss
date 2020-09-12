@@ -36,6 +36,9 @@ struct HwPortStats {
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
   27: i64 fecUncorrectableErrors =
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
+
+  // seconds from epoch
+  50: i64 timestamp_ = STAT_UNINITIALIZED;
 }
 
 struct HwTrunkStats {
@@ -62,4 +65,68 @@ struct HwTrunkStats {
   19: i64 outPause_ = STAT_UNINITIALIZED
   20: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
   21: i64 outEcnCounter_ = STAT_UNINITIALIZED
+}
+
+struct HwResourceStats {
+  /**
+   * Stale flag is set when for whatever reason
+   * counter collection fails we log
+   * errors and set stale counter to 1 in such scenarios.
+   * This should never really happen in practice.
+   **/
+  1:  bool hw_table_stats_stale = true
+  /*
+   * Not all platforms will have all of these stats
+   * available. Post a platform stat populate,
+   * STAT_UNINITIALIZED can be read as the stat being
+   * unavailable at the particular hw/platform
+   */
+  2:   i32 l3_host_max = STAT_UNINITIALIZED
+  3:   i32 l3_host_used = STAT_UNINITIALIZED
+  4:   i32 l3_host_free = STAT_UNINITIALIZED
+  5:   i32 l3_ipv4_host_used = STAT_UNINITIALIZED
+  6:   i32 l3_ipv4_host_free = STAT_UNINITIALIZED
+  7:   i32 l3_ipv6_host_used = STAT_UNINITIALIZED
+  8:   i32 l3_ipv6_host_free = STAT_UNINITIALIZED
+  9:   i32 l3_nexthops_max = STAT_UNINITIALIZED
+  10:  i32 l3_nexthops_used = STAT_UNINITIALIZED
+  11:  i32 l3_nexthops_free = STAT_UNINITIALIZED
+  12:  i32 l3_ecmp_groups_max = STAT_UNINITIALIZED
+  13:  i32 l3_ecmp_groups_used = STAT_UNINITIALIZED
+  14:  i32 l3_ecmp_groups_free = STAT_UNINITIALIZED
+  15:  i32 l3_ecmp_groups_members_free = STAT_UNINITIALIZED
+
+  // LPM
+  16: i32 lpm_ipv4_max = STAT_UNINITIALIZED
+  17: i32 lpm_ipv4_used = STAT_UNINITIALIZED
+  18: i32 lpm_ipv4_free = STAT_UNINITIALIZED
+  19: i32 lpm_ipv6_free = STAT_UNINITIALIZED
+  20: i32 lpm_ipv6_mask_0_64_max = STAT_UNINITIALIZED
+  21: i32 lpm_ipv6_mask_0_64_used = STAT_UNINITIALIZED
+  22: i32 lpm_ipv6_mask_0_64_free = STAT_UNINITIALIZED
+  23: i32 lpm_ipv6_mask_65_127_max = STAT_UNINITIALIZED
+  24: i32 lpm_ipv6_mask_65_127_used = STAT_UNINITIALIZED
+  25: i32 lpm_ipv6_mask_65_127_free = STAT_UNINITIALIZED
+  26: i32 lpm_slots_max = STAT_UNINITIALIZED
+  27: i32 lpm_slots_used = STAT_UNINITIALIZED
+  28: i32 lpm_slots_free = STAT_UNINITIALIZED
+
+  // ACLs
+  29: i32 acl_entries_used
+  30: i32 acl_entries_free
+  31: i32 acl_entries_max
+  32: i32 acl_counters_used
+  33: i32 acl_counters_free
+  34: i32 acl_counters_max
+  35: i32 acl_meters_used
+  36: i32 acl_meters_free
+  37: i32 acl_meters_max
+
+  // Mirrors
+  38: i32 mirrors_used = STAT_UNINITIALIZED
+  39: i32 mirrors_free = STAT_UNINITIALIZED
+  40: i32 mirrors_max = STAT_UNINITIALIZED
+  41: i32 mirrors_span = STAT_UNINITIALIZED
+  42: i32 mirrors_erspan = STAT_UNINITIALIZED
+  43: i32 mirrors_sflow = STAT_UNINITIALIZED
 }

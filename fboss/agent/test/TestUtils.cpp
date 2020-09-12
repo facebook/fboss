@@ -229,46 +229,46 @@ cfg::SwitchConfig testConfigA() {
 
   cfg.ports_ref()->resize(kPortCount);
   for (int p = 0; p < kPortCount; ++p) {
-    *cfg.ports[p].logicalID_ref() = p + 1;
+    *cfg.ports_ref()[p].logicalID_ref() = p + 1;
     cfg.ports_ref()[p].name_ref() = folly::to<string>("port", p + 1);
   }
 
   cfg.vlans_ref()->resize(2);
-  *cfg.vlans[0].id_ref() = 1;
-  *cfg.vlans[0].name_ref() = "Vlan1";
+  *cfg.vlans_ref()[0].id_ref() = 1;
+  *cfg.vlans_ref()[0].name_ref() = "Vlan1";
   cfg.vlans_ref()[0].intfID_ref() = 1;
-  *cfg.vlans[1].id_ref() = 55;
-  *cfg.vlans[1].name_ref() = "Vlan55";
+  *cfg.vlans_ref()[1].id_ref() = 55;
+  *cfg.vlans_ref()[1].name_ref() = "Vlan55";
   cfg.vlans_ref()[1].intfID_ref() = 55;
 
   cfg.vlanPorts_ref()->resize(20);
   for (int p = 0; p < kPortCount; ++p) {
-    *cfg.vlanPorts[p].logicalPort_ref() = p + 1;
-    *cfg.vlanPorts[p].vlanID_ref() = p < 11 ? 1 : 55;
+    *cfg.vlanPorts_ref()[p].logicalPort_ref() = p + 1;
+    *cfg.vlanPorts_ref()[p].vlanID_ref() = p < 11 ? 1 : 55;
   }
 
   cfg.interfaces_ref()->resize(2);
-  *cfg.interfaces[0].intfID_ref() = 1;
-  *cfg.interfaces[0].routerID_ref() = 0;
-  *cfg.interfaces[0].vlanID_ref() = 1;
+  *cfg.interfaces_ref()[0].intfID_ref() = 1;
+  *cfg.interfaces_ref()[0].routerID_ref() = 0;
+  *cfg.interfaces_ref()[0].vlanID_ref() = 1;
   cfg.interfaces_ref()[0].name_ref() = "interface1";
   cfg.interfaces_ref()[0].mac_ref() = "00:02:00:00:00:01";
   cfg.interfaces_ref()[0].mtu_ref() = 9000;
   cfg.interfaces_ref()[0].ipAddresses_ref()->resize(3);
-  cfg.interfaces[0].ipAddresses_ref()[0] = "10.0.0.1/24";
-  cfg.interfaces[0].ipAddresses_ref()[1] = "192.168.0.1/24";
-  cfg.interfaces[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
+  cfg.interfaces_ref()[0].ipAddresses_ref()[0] = "10.0.0.1/24";
+  cfg.interfaces_ref()[0].ipAddresses_ref()[1] = "192.168.0.1/24";
+  cfg.interfaces_ref()[0].ipAddresses_ref()[2] = "2401:db00:2110:3001::0001/64";
 
-  *cfg.interfaces[1].intfID_ref() = 55;
-  *cfg.interfaces[1].routerID_ref() = 0;
-  *cfg.interfaces[1].vlanID_ref() = 55;
+  *cfg.interfaces_ref()[1].intfID_ref() = 55;
+  *cfg.interfaces_ref()[1].routerID_ref() = 0;
+  *cfg.interfaces_ref()[1].vlanID_ref() = 55;
   cfg.interfaces_ref()[1].name_ref() = "interface55";
   cfg.interfaces_ref()[1].mac_ref() = "00:02:00:00:00:55";
   cfg.interfaces_ref()[1].mtu_ref() = 9000;
   cfg.interfaces_ref()[1].ipAddresses_ref()->resize(3);
-  cfg.interfaces[1].ipAddresses_ref()[0] = "10.0.55.1/24";
-  cfg.interfaces[1].ipAddresses_ref()[1] = "192.168.55.1/24";
-  cfg.interfaces[1].ipAddresses_ref()[2] = "2401:db00:2110:3055::0001/64";
+  cfg.interfaces_ref()[1].ipAddresses_ref()[0] = "10.0.55.1/24";
+  cfg.interfaces_ref()[1].ipAddresses_ref()[1] = "192.168.55.1/24";
+  cfg.interfaces_ref()[1].ipAddresses_ref()[2] = "2401:db00:2110:3055::0001/64";
 
   return cfg;
 }

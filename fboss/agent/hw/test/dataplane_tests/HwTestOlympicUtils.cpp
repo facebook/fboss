@@ -167,7 +167,7 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
   ssize_t qosMapIdx = 0;
   for (const auto& q2dscps : queueToDscpMap) {
     auto [q, dscps] = q2dscps;
-    *qosMap.dscpMaps[qosMapIdx].internalTrafficClass_ref() = q;
+    *qosMap.dscpMaps_ref()[qosMapIdx].internalTrafficClass_ref() = q;
     for (auto dscp : dscps) {
       qosMap.dscpMaps_ref()[qosMapIdx].fromDscpToTrafficClass_ref()->push_back(
           dscp);
@@ -176,7 +176,7 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
     ++qosMapIdx;
   }
   cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies[0].name_ref() = "qp";
+  *cfg.qosPolicies_ref()[0].name_ref() = "qp";
   cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;

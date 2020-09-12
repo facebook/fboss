@@ -23,6 +23,7 @@ enum class PlatformMode : char {
   WEDGE400C,
   WEDGE400C_SIM,
   WEDGE400,
+  FUJI,
 };
 
 enum class ExternalPhyVersion : char {

@@ -518,6 +518,11 @@ struct AclEntryThrift {
   22: optional byte lookupClassL2
 }
 
+struct ClientInformation {
+  1: optional fbstring username,
+  2: optional fbstring hostname,
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -874,6 +879,12 @@ service FbossCtrl extends fb303.FacebookService {
   * Enable external control for port LED lights
   */
   void setExternalLedState(1: i32 portNum, 2: PortLedExternalState ledState)
+    throws (1: fboss.FbossBaseError error)
+
+  /*
+   * Enables submitting diag cmds to the switch
+   */
+  fbstring diagCmd(1: fbstring cmd, 2: ClientInformation client)
     throws (1: fboss.FbossBaseError error)
 }
 

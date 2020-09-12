@@ -23,6 +23,7 @@ class BcmTestGalaxyPort : public BcmTestPort {
   LaneSpeeds supportedLaneSpeeds() const override {
     return {cfg::PortSpeed::TWENTYFIVEG};
   }
+  void linkStatusChanged(bool up, bool adminUp) override;
 
  private:
   // Forbidden copy constructor and assignment operator

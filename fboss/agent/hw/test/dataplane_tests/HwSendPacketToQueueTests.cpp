@@ -85,7 +85,15 @@ void HwSendPacketToQueueTest::checkSendPacket(
     auto afterOutPkts =
         getLatestPortStats(port).get_queueOutPackets_().at(queueID);
 
-    EXPECT_EQ(1, afterOutPkts - beforeOutPkts);
+    /*
+     * Once the packet egresses out of the asic, the packet will be looped back
+     * with dmac as neighbor mac. This will certainly fail the my mac check.
+     * Some asic vendors drop the packet right away in the pipeline whereas some
+     * drop later in the pipeline after MMU once the packet is queueed. This
+     * will cause the queue counters to increment more than once. Always check
+     * if atleast 1 packet is received.
+     */
+    EXPECT_GE(afterOutPkts - beforeOutPkts, 1);
   };
 
   verifyAcrossWarmBoots(setup, verify);

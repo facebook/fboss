@@ -46,10 +46,7 @@ inline uint32_t getPortLedAddress(int port) {
 
 namespace facebook::fboss {
 FbDomFpga::FbDomFpga(uint32_t domBaseAddr, uint32_t domFpgaSize, uint8_t pim)
-    : phyMem32_(std::make_unique<FbFpgaPhysicalMemory32>(
-          domBaseAddr,
-          domFpgaSize,
-          false)),
+    : FpgaIoBase(domBaseAddr, domFpgaSize),
       pim_{pim},
       domBaseAddr_(domBaseAddr),
       domFpgaSize_(domFpgaSize) {
@@ -57,11 +54,6 @@ FbDomFpga::FbDomFpga(uint32_t domBaseAddr, uint32_t domFpgaSize, uint8_t pim)
       "Creating Fb DOM FPGA at address={:#x} size={:d}",
       domBaseAddr_,
       domFpgaSize_);
-}
-
-void FbDomFpga::initHW() {
-  // mmap the 32bit io physical memory
-  phyMem32_->mmap();
 }
 
 uint32_t FbDomFpga::read(uint32_t offset) const {

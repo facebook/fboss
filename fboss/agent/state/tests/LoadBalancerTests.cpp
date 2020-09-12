@@ -409,7 +409,8 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   cfg::SwitchConfig config;
   *config.loadBalancers_ref() = defaultLoadBalancers();
   // ECMP will now also use a half-hash
-  *config.loadBalancers[0].fieldSelection_ref()->transportFields_ref() = {};
+  *config.loadBalancers_ref()[0].fieldSelection_ref()->transportFields_ref() =
+      {};
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);

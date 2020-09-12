@@ -80,6 +80,7 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
 }
 
 void SaiPlatform::onHwInitialized(SwSwitch* sw) {
+  initLEDs();
   sw->registerStateObserver(this, "SaiPlatform");
 }
 
@@ -91,9 +92,9 @@ void SaiPlatform::updateQsfpCache(const StateDelta& delta) {
     if (port) {
       auto platformPort = getPort(port->getID());
       PortStatus portStatus;
-      portStatus.enabled = port->isEnabled();
-      portStatus.up = port->isUp();
-      portStatus.speedMbps = static_cast<int64_t>(port->getSpeed());
+      *portStatus.enabled_ref() = port->isEnabled();
+      *portStatus.up_ref() = port->isUp();
+      *portStatus.speedMbps_ref() = static_cast<int64_t>(port->getSpeed());
       portStatus.transceiverIdx_ref() =
           platformPort->getTransceiverMapping(port->getSpeed());
       changedPorts.insert(std::make_pair(port->getID(), portStatus));
@@ -183,7 +184,7 @@ PlatformPort* SaiPlatform::getPlatformPort(PortID port) const {
 
 std::optional<std::string> SaiPlatform::getPlatformAttribute(
     cfg::PlatformAttributes platformAttribute) {
-  auto& platform = config()->thrift.platform;
+  auto& platform = *config()->thrift.platform_ref();
 
   if (auto platformSettings = platform.platformSettings_ref()) {
     auto platformIter = platformSettings->find(platformAttribute);

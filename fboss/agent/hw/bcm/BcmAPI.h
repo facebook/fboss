@@ -41,6 +41,13 @@ class BcmAPI {
   static void init(const std::map<std::string, std::string>& config);
 
   /*
+   * Initialize the Broadcom HSDK and create the BcmAPI singleton.
+   *
+   * This must be called before using any other Broadcom SDK functions.
+   */
+  static void initHSDK(const std::string& yamlConfig);
+
+  /*
    * Get the number of Broadcom switching devices in this system.
    */
   static size_t getNumSwitches();
@@ -122,10 +129,11 @@ class BcmAPI {
    */
   static const char* FOLLY_NULLABLE getConfigValue(folly::StringPiece name);
   /*
-   * Get hw config
+   * SDK6 bcm config map.
    */
   typedef folly::StringKeyedUnorderedMap<std::string> HwConfigMap;
-  static HwConfigMap getHwConfig();
+  static HwConfigMap& getHwConfig();
+
   static bool isHwInSimMode();
 
  private:
@@ -142,10 +150,19 @@ class BcmAPI {
 
   static void initImpl();
 
-  static std::unique_ptr<BcmAPI> singleton_;
-  HwConfigMap bcmConfig_;
   static void bdeCreate();
   static void bdeCreateSim();
+
+  static void initHSDKImpl(const std::string& yamlConfig);
+
+  /*
+   * A flag indicates whether we finish bcm initialization.
+   */
+  static std::atomic<bool> bcmInitialized_;
+  /*
+   * A flag indicates whether we use ngbde
+   */
+  static bool isNgbde_;
 };
 
 } // namespace facebook::fboss

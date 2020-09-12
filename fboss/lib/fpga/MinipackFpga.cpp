@@ -12,9 +12,10 @@
 #include <folly/Format.h>
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
 
 namespace {
+constexpr uint32_t kPimStartNum = 1;
+
 constexpr uint32_t kFacebookFpgaBarAddr = 0xfbd00000;
 constexpr uint32_t kFacebookFpgaSmbSize = 0x40000;
 
@@ -28,21 +29,23 @@ std::shared_ptr<MinipackFpga> MinipackFpga::getInstance() {
   return _minipackFpga.try_get();
 }
 
-MinipackFpga::MinipackFpga()
-    : phyMem32_(std::make_unique<MinipackPhysicalMemory32>(
-          kFacebookFpgaBarAddr,
-          kFacebookFpgaSmbSize,
-          false)) {
+MinipackFpga::MinipackFpga() {
+  pimStartNum_ = kPimStartNum;
+  fpgaPimBase_ = kFacebookFpgaPimBase;
+  fpgaPimSize_ = kFacebookFpgaPimSize;
+
   XLOG(DBG2) << folly::format(
       "Creating Minipack FPGA at address={:#x} size={:d}",
       kFacebookFpgaBarAddr,
       kFacebookFpgaSmbSize);
 
+  phyMem32_ = std::make_unique<FbFpgaPhysicalMemory32>(
+      kFacebookFpgaBarAddr, kFacebookFpgaSmbSize, false);
   for (uint32_t pim = 0; pim < MinipackFpga::kNumberPim; ++pim) {
     auto domFpgaBaseAddr = kFacebookFpgaBarAddr + kFacebookFpgaPimBase +
         pim * kFacebookFpgaPimSize;
     pimFpgas_[pim] = std::make_unique<FbDomFpga>(
-        domFpgaBaseAddr, kFacebookFpgaPimSize, pim + 1);
+        domFpgaBaseAddr, kFacebookFpgaPimSize, pim + pimStartNum_);
 
     XLOG(DBG2) << folly::format(
         "Creating DOM FPGA at address={:#x} size={:d}",
@@ -51,50 +54,13 @@ MinipackFpga::MinipackFpga()
   }
 }
 
-void MinipackFpga::initHW() {
-  if (isHwInitialized_) {
-    return;
-  }
-  // mmap the 32bit io physical memory
-  phyMem32_->mmap();
-  for (uint32_t pim = 0; pim < MinipackFpga::kNumberPim; ++pim) {
-    pimFpgas_[pim]->initHW();
-  }
-  isHwInitialized_ = true;
-}
-
-uint32_t MinipackFpga::readSmb(uint32_t offset) {
-  CHECK(
-      offset >= 0 &&
-      offset <= kFacebookFpgaPimBase + kNumberPim * kFacebookFpgaPimSize);
-  uint32_t ret = phyMem32_->read(offset);
-  XLOG(DBG5) << folly::format("FPGA read {:#x}={:#x}", offset, ret);
-  return ret;
-}
-
-uint32_t MinipackFpga::readPim(uint8_t pim, uint32_t offset) {
-  return pimFpgas_[pim - 1]->read(offset);
-}
-
-void MinipackFpga::writeSmb(uint32_t offset, uint32_t value) {
-  CHECK(
-      offset >= 0 &&
-      offset <= kFacebookFpgaPimBase + kNumberPim * kFacebookFpgaPimSize);
-  XLOG(DBG5) << folly::format("FPGA write {:#x} to {:#x}", value, offset);
-  phyMem32_->write(offset, value);
-}
-
-void MinipackFpga::writePim(uint8_t pim, uint32_t offset, uint32_t value) {
-  return pimFpgas_[pim - 1]->write(offset, value);
-}
-
 bool MinipackFpga::isQsfpPresent(uint8_t pim, int qsfp) {
-  return pimFpgas_[pim - 1]->isQsfpPresent(qsfp);
+  return pimFpgas_[pim - pimStartNum_]->isQsfpPresent(qsfp);
 }
 
 std::array<bool, MinipackFpga::kNumPortsPerPim> MinipackFpga::scanQsfpPresence(
     uint8_t pim) {
-  uint32_t qsfpPresentReg = pimFpgas_[pim - 1]->getQsfpsPresence();
+  uint32_t qsfpPresentReg = pimFpgas_[pim - pimStartNum_]->getQsfpsPresence();
   // From the lower end, each bit of this register represent the presence of a
   // QSFP.
   XLOG(DBG5) << folly::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
@@ -106,7 +72,7 @@ std::array<bool, MinipackFpga::kNumPortsPerPim> MinipackFpga::scanQsfpPresence(
 }
 
 void MinipackFpga::ensureQsfpOutOfReset(uint8_t pim, int qsfp) {
-  pimFpgas_[pim - 1]->ensureQsfpOutOfReset(qsfp);
+  pimFpgas_[pim - pimStartNum_]->ensureQsfpOutOfReset(qsfp);
 }
 
 /* Trigger the QSFP hard reset of a given port on a given line card (PIM)
@@ -114,7 +80,7 @@ void MinipackFpga::ensureQsfpOutOfReset(uint8_t pim, int qsfp) {
  * 16q and 4dd
  */
 void MinipackFpga::triggerQsfpHardReset(uint8_t pim, int qsfp) {
-  pimFpgas_[pim - 1]->triggerQsfpHardReset(qsfp);
+  pimFpgas_[pim - pimStartNum_]->triggerQsfpHardReset(qsfp);
 }
 
 void MinipackFpga::clearAllTransceiverReset() {
@@ -123,18 +89,4 @@ void MinipackFpga::clearAllTransceiverReset() {
   }
 }
 
-void MinipackFpga::setFrontPanelLedColor(
-    uint8_t pim,
-    int qsfp,
-    FbDomFpga::LedColor ledColor) {
-  pimFpgas_[pim - 1]->setFrontPanelLedColor(qsfp, ledColor);
-}
-
-FbDomFpga* MinipackFpga::getDomFpga(uint8_t pim) {
-  return pimFpgas_[pim - 1].get();
-}
-
-FbDomFpga::PimType MinipackFpga::getPimType(uint8_t pim) {
-  return pimFpgas_[pim - 1]->getPimType();
-}
 } // namespace facebook::fboss

@@ -278,9 +278,9 @@ void setDefaultCpuTrafficPolicyConfig(
   cfg::TrafficPolicyConfig trafficConfig;
   trafficConfig.matchToAction_ref()->resize(cpuAcls.size());
   for (int i = 0; i < cpuAcls.size(); i++) {
-    *trafficConfig.matchToAction[i].matcher_ref() =
+    *trafficConfig.matchToAction_ref()[i].matcher_ref() =
         *cpuAcls[i].first.name_ref();
-    *trafficConfig.matchToAction[i].action_ref() = cpuAcls[i].second;
+    *trafficConfig.matchToAction_ref()[i].action_ref() = cpuAcls[i].second;
   }
   cpuConfig.trafficPolicy_ref() = trafficConfig;
   auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);

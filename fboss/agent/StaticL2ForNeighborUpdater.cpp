@@ -54,8 +54,10 @@ void StaticL2ForNeighborUpdater::processRemoved(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   assertNeighborEntry(*removedEntry);
-  XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
-  pruneMacEntryForNeighbor(vlan, removedEntry);
+  if (removedEntry->isReachable()) {
+    XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
+    pruneMacEntryForNeighbor(vlan, removedEntry);
+  }
 }
 
 template <typename NeighborEntryT>

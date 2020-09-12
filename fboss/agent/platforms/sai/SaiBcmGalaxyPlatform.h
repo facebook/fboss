@@ -22,6 +22,7 @@ class SaiBcmGalaxyPlatform : public SaiBcmPlatform {
   uint32_t numLanesPerCore() const override {
     return 4;
   }
+  void initLEDs() override;
 };
 
 } // namespace facebook::fboss

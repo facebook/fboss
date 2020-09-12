@@ -282,8 +282,10 @@ TEST_F(LacpTest, frameReceivedOnDownPort) {
   controllerPtr->stopMachines();
 }
 
-TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
-  LacpServiceInterceptor duEventInterceptor(lacpEvb());
+void DUColdBootReconvergenceWithESWHelper(
+    folly::EventBase* lacpEvb,
+    cfg::LacpPortRate rate) {
+  LacpServiceInterceptor duEventInterceptor(lacpEvb);
 
   // The following declares some attributes of the DU and the ESW derived from
   // configuration
@@ -307,19 +309,22 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
 
   // Some bits in LacpState are derived from configuration. To avoid having to
   // repreat them, they are factored out into the following variables
-  const LacpState eswActorStateBase =
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
-  const LacpState duActorStateBase =
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+  LacpState eswActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+  LacpState duActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+
+  if (rate == cfg::LacpPortRate::FAST) {
+    eswActorStateBase |= LacpState::SHORT_TIMEOUT;
+    duActorStateBase |= LacpState::SHORT_TIMEOUT;
+  }
 
   // duController contains the totality of the LACP logic we would like to test
   // Although its lifetime coincides with this stack frame, duController's
   // methods assume it is being managed by a shared_ptr
   auto duControllerPtr = std::make_shared<LacpController>(
       PortID(duInfo.port),
-      lacpEvb(),
+      lacpEvb,
       duInfo.portPriority,
-      cfg::LacpPortRate::FAST,
+      rate,
       cfg::LacpPortActivity::ACTIVE,
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
@@ -347,7 +352,9 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   // current_while_timer's, so it's DEFAULTED
   eswActorState = eswActorStateBase | LacpState::DEFAULTED;
   // The ESW knows nothing about its partner
-  eswPartnerState = LacpState::SHORT_TIMEOUT;
+  eswPartnerState = (rate == cfg::LacpPortRate::SLOW)
+      ? LacpState::NONE
+      : LacpState::SHORT_TIMEOUT;
 
   /* actorInfo=(SystemPriority 32768,
    *            SystemID 00:1c:73:5b:a8:47,
@@ -387,7 +394,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
    *            Key 609,
    *            PortPriority 32768,
    *            Port 499,
-   *            State 15)
+   *            State 13/15 (slow/fast))
    */
   eswActorInfo = eswInfo;
   eswActorInfo.state = eswActorState;
@@ -398,7 +405,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
    *              Key 903,
    *              PortPriority 32768,
    *              Port 42,
-   *              State 15)
+   *              State 13/15 (slow/fast))
    */
   eswPartnerInfo = duInfo;
   eswPartnerInfo.state = eswPartnerState;
@@ -427,7 +434,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
    *            Key 609,
    *            PortPriority 32768,
    *            Port 499,
-   *            State 63)
+   *            State 61/63 (slow/fast))
    */
   eswActorInfo = eswInfo;
   eswActorInfo.state = eswActorState;
@@ -438,7 +445,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
    *              Key 903,
    *              PortPriority 32768,
    *              Port 42,
-   *              State 63)
+   *              State 61/63(slow/fast))
    */
   eswPartnerInfo = duInfo;
   eswPartnerInfo.state = eswPartnerState;
@@ -448,7 +455,10 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   // TODO(samank): how would a PASSIVE LACP speaker handle this?
   // Waiting double the PeriodicTransmissionMachine's tranmission period
   // guarantees a new LACP frame has been transmitted
-  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  auto period = (rate == cfg::LacpPortRate::SLOW)
+      ? PeriodicTransmissionMachine::LONG_PERIOD * 2
+      : PeriodicTransmissionMachine::SHORT_PERIOD * 2;
+  std::this_thread::sleep_for(period);
 
   ASSERT_EQ(
       duEventInterceptor.lastActorStateTransmitted(duPort),
@@ -464,8 +474,18 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESW) {
   duControllerPtr->stopMachines();
 }
 
-TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
-  LacpServiceInterceptor uuEventInterceptor(lacpEvb());
+TEST_F(LacpTest, DUColdBootReconvergenceWithESWLacpSlow) {
+  DUColdBootReconvergenceWithESWHelper(lacpEvb(), cfg::LacpPortRate::SLOW);
+}
+
+TEST_F(LacpTest, DUColdBootReconvergenceWithESWLacpFast) {
+  DUColdBootReconvergenceWithESWHelper(lacpEvb(), cfg::LacpPortRate::FAST);
+}
+
+void UUColdBootReconvergenceWithDRHelper(
+    folly::EventBase* lacpEvb,
+    cfg::LacpPortRate rate) {
+  LacpServiceInterceptor uuEventInterceptor(lacpEvb);
 
   constexpr std::size_t portCount = 3;
 
@@ -501,9 +521,9 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
 
     controllerPtrs[portIdx] = std::make_shared<LacpController>(
         PortID(info.port),
-        lacpEvb(),
+        lacpEvb,
         info.portPriority,
-        cfg::LacpPortRate::FAST,
+        rate,
         cfg::LacpPortActivity::ACTIVE,
         AggregatePortID(info.key),
         info.systemPriority,
@@ -525,10 +545,12 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
 
   // Some bits in LacpState are derived from configuration. To avoid having to
   // repreat them, they are factored out into the following variables
-  const LacpState uuActorStateBase =
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
-  const LacpState drActorStateBase =
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT;
+  LacpState uuActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+  LacpState drActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+  if (rate == cfg::LacpPortRate::FAST) {
+    uuActorStateBase |= LacpState::SHORT_TIMEOUT;
+    drActorStateBase |= LacpState::SHORT_TIMEOUT;
+  }
 
   // We can't simply use {dr,uu}PortToParticipantInfo to fill in actor and
   // partner state in the first round-trip because the DR has yet to hear
@@ -557,22 +579,24 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
     initialPartnerInfo.port = initialActorInfo.port;
     // Junos guesses the partner has also timed out and is configured to be
     // aggregatable with a short timeout
-    initialPartnerInfo.state = LacpState::DEFAULTED | LacpState::SHORT_TIMEOUT |
-        LacpState::AGGREGATABLE;
+    initialPartnerInfo.state = LacpState::DEFAULTED | LacpState::AGGREGATABLE;
+    if (rate == cfg::LacpPortRate::FAST) {
+      initialPartnerInfo.state |= LacpState::SHORT_TIMEOUT;
+    }
 
     /* actorInfo=(SystemPriority 127,
      *            SystemID 84:b5:9c:d6:91:44,
      *            Key 23,
      *            PortPriority 127,
      *            Port {110,111,112},
-     *            State 199)
+     *            State 197/199 (slow/fast))
      *
      * partnerInfo=(SystemPriority 1,
      *              SystemID 00:00:00:00:00:00,
      *              Key 23,
      *              PortPriority 1,
      *              Port {110,111,112},
-     *              State 70)
+     *              State 68/70 (slow/fast))
      */
     controllerPtrs[portIdx]->received(
         LACPDU(initialActorInfo, initialPartnerInfo));
@@ -621,13 +645,13 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
        *            Key 23,
        *            PortPriority 127,
        *            Port 112,
-       *            State 7)
+       *            State 5/7 (slow/fast))
        * partnerInfo=(SystemPriority 65535,
        *              SystemID 02:90:fb:5e:1e:84,
        *              Key 21,
        *              PortPriority 32768,
        *              Port 126,
-       *              State 199)
+       *              State 197/199 (slow/fast))
        */
       drPortToParticipantInfo[portIdx].state = drActorStateBase;
       uuPortToParticipantInfo[portIdx].state =
@@ -640,13 +664,13 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
        *            Key 23,
        *            PortPriority 127,
        *            Port {110,111},
-       *            State 7)
+       *            State 5/7 (slow/fast))
        * partnerInfo=(SystemPriority 65535,
        *              SystemID 02:90:fb:5e:1e:84,
        *              Key 21,
        *              PortPriority 32768,
        *              Port {118,122},
-       *              State 7)
+       *              State 5/7 (slow/fast))
        */
       drPortToParticipantInfo[portIdx].state = drActorStateBase;
       uuPortToParticipantInfo[portIdx].state = uuActorStateBase;
@@ -664,13 +688,13 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
      *            Key 23,
      *            PortPriority 127,
      *            Port {110,111,112},
-     *            State 7)
+     *            State 5/7 (slow/fast))
      * partnerInfo=(SystemPriority 65535,
      *              SystemID 02:90:fb:5e:1e:84,
      *              Key 21,
      *              PortPriority 32768,
      *              Port {118,122,126},
-     *              State 15)
+     *              State 13/15 (slow/fast))
      */
     controllerPtrs[portIdx]->received(LACPDU(
         drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
@@ -687,13 +711,13 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
      *            Key 23,
      *            PortPriority 127,
      *            Port {110,111,112},
-     *            State 63)
+     *            State 61)
      * partnerInfo=(SystemPriority 65535,
      *              SystemID 02:90:fb:5e:1e:84,
      *              Key 21,
      *              PortPriority 32768,
      *              Port {118,122,126},
-     *              State 15)
+     *              State 13)
      */
     controllerPtrs[portIdx]->received(LACPDU(
         drPortToParticipantInfo[portIdx], uuPortToParticipantInfo[portIdx]));
@@ -702,8 +726,10 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
     // transitions to MuxState::COLLECTING_DISTRIBUTING.
     ASSERT_TRUE(uuEventInterceptor.isForwarding(uuPortIdxToPortID[portIdx]));
   }
-
-  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  auto period = (rate == cfg::LacpPortRate::SLOW)
+      ? PeriodicTransmissionMachine::LONG_PERIOD * 2
+      : PeriodicTransmissionMachine::SHORT_PERIOD * 2;
+  std::this_thread::sleep_for(period);
 
   for (std::size_t portIdx = 0; portIdx < portCount; ++portIdx) {
     ASSERT_EQ(
@@ -722,9 +748,19 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDR) {
   }
 }
 
-TEST_F(LacpTest, selfInteroperability) {
-  LacpServiceInterceptor uuEventInterceptor(lacpEvb());
-  LacpServiceInterceptor duEventInterceptor(lacpEvb());
+TEST_F(LacpTest, UUColdBootReconvergenceWithDRLacpSlow) {
+  UUColdBootReconvergenceWithDRHelper(lacpEvb(), cfg::LacpPortRate::SLOW);
+}
+
+TEST_F(LacpTest, UUColdBootReconvergenceWithDRLacpFast) {
+  UUColdBootReconvergenceWithDRHelper(lacpEvb(), cfg::LacpPortRate::FAST);
+}
+
+void selfInteroperabilityHelper(
+    folly::EventBase* lacpEvb,
+    cfg::LacpPortRate rate) {
+  LacpServiceInterceptor uuEventInterceptor(lacpEvb);
+  LacpServiceInterceptor duEventInterceptor(lacpEvb);
 
   PortID uuPort(static_cast<uint16_t>(0xA));
   PortID duPort(static_cast<uint16_t>(0xD));
@@ -746,9 +782,9 @@ TEST_F(LacpTest, selfInteroperability) {
 
   auto uuControllerPtr = std::make_shared<LacpController>(
       uuPort,
-      lacpEvb(),
+      lacpEvb,
       uuInfo.portPriority,
-      cfg::LacpPortRate::FAST,
+      rate,
       cfg::LacpPortActivity::ACTIVE,
       AggregatePortID(uuInfo.key),
       uuInfo.systemPriority,
@@ -759,9 +795,9 @@ TEST_F(LacpTest, selfInteroperability) {
   uuEventInterceptor.addController(uuControllerPtr);
   auto duControllerPtr = std::make_shared<LacpController>(
       duPort,
-      lacpEvb(),
+      lacpEvb,
       duInfo.portPriority,
-      cfg::LacpPortRate::FAST,
+      rate,
       cfg::LacpPortActivity::ACTIVE,
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
@@ -777,21 +813,24 @@ TEST_F(LacpTest, selfInteroperability) {
   uuControllerPtr->startMachines();
   uuControllerPtr->portUp();
 
-  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  auto period = (rate == cfg::LacpPortRate::SLOW)
+      ? PeriodicTransmissionMachine::LONG_PERIOD * 2
+      : PeriodicTransmissionMachine::SHORT_PERIOD * 2;
+  std::this_thread::sleep_for(period);
   /*
    *   actorInfo=(SystemPriority 65535,
    *              SystemID 02:90:fb:5e:1e:85,
    *              Key 10,
    *              PortPriority 32768,
    *              Port 10,
-   *              State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | DEFAULTED
+   *              State ACTIVE | SHORT_TIMEOUT(fast) |AGGREGATABLE | DEFAULTED
    *                    EXPIRED)
    * partnerInfo=(SystemPriority 0,
    *              SystemID 0,
    *              Key 0,
    *              PortPriority 0,
    *              Port 0,
-   *              State SHORT_TIMEOUT)
+   *              State SHORT_TIMEOUT(fast))
    */
   uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort);
 
@@ -807,13 +846,13 @@ TEST_F(LacpTest, selfInteroperability) {
    *            Key 13,
    *            PortPriority 32768,
    *            Port 13,
-   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | EXPIRED)
+   *            State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE | EXPIRED)
    * partnerInfo=(SystemPriority 65535,
    *              SystemID 02:90:fb:5e:1e:85,
    *              Key 10,
    *              PortPriority 32768,
    *              Port 10,
-   *              State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | DEFAULTED
+   *              State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE | DEFAULTED
    *                    EXPIRED)
    */
   duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
@@ -825,14 +864,14 @@ TEST_F(LacpTest, selfInteroperability) {
    *            Key 10,
    *            PortPriority 32768,
    *            Port 10,
-   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+   *            State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE | IN_SYNC
                     | COLLECTING | DISTRIBUTING)
    * parnterInfo=(SystemPriority 65535,
    *            SystemID 02:90:fb:5e:24:28,
    *            Key 13,
    *            PortPriority 32768,
    *            Port 13,
-   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE)
+   *            State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE)
    */
   uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort);
 
@@ -843,14 +882,14 @@ TEST_F(LacpTest, selfInteroperability) {
    *            Key 13,
    *            PortPriority 32768,
    *            Port 13,
-   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+   *            State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE | IN_SYNC
    *                | COLLECTING | DISTRIBUTING)
    * partnerInfo=(SystemPriority 65535,
    *            SystemID 02:90:fb:5e:1e:85,
    *            Key 10,
    *            PortPriority 32768,
    *            Port 10,
-   *            State ACTIVE | SHORT_TIMEOUT | AGGREGATABLE | IN_SYNC
+   *            State ACTIVE | SHORT_TIMEOUT(fast) | AGGREGATABLE | IN_SYNC
    *            | COLLECTING | DISTRIBUTING)
    */
   duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
@@ -858,12 +897,19 @@ TEST_F(LacpTest, selfInteroperability) {
   // TODO(samank): check this is a no-op on the UU endpoint
   uuControllerPtr->received(duTransmission);
 
-  ASSERT_EQ(
-      duEventInterceptor.lastActorStateTransmitted(duPort),
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT |
-          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING);
-  ASSERT_EQ(
-      uuEventInterceptor.lastActorStateTransmitted(uuPort),
-      LacpState::AGGREGATABLE | LacpState::ACTIVE | LacpState::SHORT_TIMEOUT |
-          LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING);
+  auto state = LacpState::AGGREGATABLE | LacpState::ACTIVE |
+      LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
+  if (rate == cfg::LacpPortRate::FAST) {
+    state |= LacpState::SHORT_TIMEOUT;
+  }
+  ASSERT_EQ(duEventInterceptor.lastActorStateTransmitted(duPort), state);
+  ASSERT_EQ(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
+}
+
+TEST_F(LacpTest, selfInteroperabilityLacpSlow) {
+  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::SLOW);
+}
+
+TEST_F(LacpTest, selfInteroperabilityLacpFast) {
+  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::FAST);
 }

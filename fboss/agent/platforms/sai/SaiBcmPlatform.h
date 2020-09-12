@@ -10,6 +10,9 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+
+#include <folly/Range.h>
+
 namespace facebook::fboss {
 
 class SaiBcmPlatform : public SaiHwPlatform {
@@ -25,17 +28,18 @@ class SaiBcmPlatform : public SaiHwPlatform {
     // TODO: implement this
     return {};
   }
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
-#endif
   bool isSerdesApiSupported() override {
     return false;
   }
   bool supportInterfaceType() const override {
     return true;
   }
+
+ protected:
+  void initWedgeLED(int led, folly::ByteRange range);
 };
 
 } // namespace facebook::fboss

@@ -78,6 +78,11 @@ bool SaiPlatformPort::checkSupportsTransceiver() const {
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortSpeed speed) const {
   auto profileID = getProfileIDBySpeed(speed);
+  return getHwPortLanes(profileID);
+}
+
+std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
+    cfg::PortProfileID profileID) const {
   auto platformPortEntry = getPlatformPortEntry();
   if (!platformPortEntry.has_value()) {
     throw FbossError(
@@ -166,7 +171,7 @@ TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
   auto transceiverLanes = utility::getTransceiverLanes(
       *platformPortEntry, getPlatform()->getDataPlanePhyChips(), profileID);
   for (auto entry : transceiverLanes) {
-    lanes.push_back(entry.lane);
+    lanes.push_back(*entry.lane_ref());
   }
   TransceiverIdxThrift xcvr;
   xcvr.transceiverId_ref() = static_cast<int32_t>(*getTransceiverID());
@@ -227,6 +232,15 @@ folly::Future<TransceiverInfo> SaiPlatformPort::getTransceiverInfo() const {
   }
   auto qsfpCache = static_cast<SaiPlatform*>(getPlatform())->getQsfpCache();
   return qsfpCache->futureGet(getTransceiverID().value());
+}
+
+std::optional<ChannelID> SaiPlatformPort::getChannel() const {
+  auto tcvrList = getTransceiverLanes();
+  if (!tcvrList.empty()) {
+    // All the transceiver lanes should use the same transceiver id
+    return ChannelID(*tcvrList[0].lane_ref());
+  }
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

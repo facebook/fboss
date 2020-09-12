@@ -78,26 +78,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_DECREMENT_TTL,
         bool,
         SaiBoolDefault>;
-#else
-    using DisableTtlDecrement = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_CUSTOM_RANGE_START,
-        bool,
-        SaiBoolDefault>;
-#endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
     using InterfaceType = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INTERFACE_TYPE,
         sai_int32_t,
         SaiPortInterfaceTypeDefault>;
-#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -115,12 +105,8 @@ struct SaiPortTraits {
       std::optional<Attributes::Mtu>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
-      std::optional<Attributes::DisableTtlDecrement>
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-      ,
-      std::optional<Attributes::InterfaceType>
-#endif
-      >;
+      std::optional<Attributes::DisableTtlDecrement>,
+      std::optional<Attributes::InterfaceType>>;
 
   static constexpr std::array<sai_stat_id_t, 15> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -160,10 +146,7 @@ SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 SAI_ATTRIBUTE_NAME(Port, QosNumberOfQueues)
 SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
-#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
@@ -203,6 +186,35 @@ struct SaiPortSerdesTraits {
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_FIR_POST3,
         std::vector<sai_uint32_t>>;
+
+    /* extension attributes */
+    struct AttributeRxCtleCodeIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxDspModeIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxAfeTrimIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    struct AttributeRxAcCouplingBypassIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using RxCtleCode = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCtleCodeIdWrapper>;
+    using RxDspMode = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxDspModeIdWrapper>;
+    using RxAfeTrim = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxAfeTrimIdWrapper>;
+    using RxAcCouplingByPass = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxAcCouplingBypassIdWrapper>;
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;
@@ -214,7 +226,11 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
       std::optional<Attributes::TxFirPost2>,
-      std::optional<Attributes::TxFirPost3>>;
+      std::optional<Attributes::TxFirPost3>,
+      std::optional<Attributes::RxCtleCode>,
+      std::optional<Attributes::RxDspMode>,
+      std::optional<Attributes::RxAfeTrim>,
+      std::optional<Attributes::RxAcCouplingByPass>>;
 };
 
 template <>
@@ -228,6 +244,10 @@ SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost3);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCtleCode);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
 
 class PortApi : public SaiApi<PortApi> {
  public:

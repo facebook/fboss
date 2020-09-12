@@ -136,10 +136,10 @@ facebook::fboss::PortStatus fillInPortStatus(
     const facebook::fboss::Port& port,
     const facebook::fboss::SwSwitch* sw) {
   facebook::fboss::PortStatus status;
-  status.enabled = port.isEnabled();
-  status.up = port.isUp();
-  status.speedMbps = static_cast<int>(port.getSpeed());
-  status.profileID = apache::thrift::util::enumName(port.getProfileID());
+  *status.enabled_ref() = port.isEnabled();
+  *status.up_ref() = port.isUp();
+  *status.speedMbps_ref() = static_cast<int>(port.getSpeed());
+  *status.profileID_ref() = apache::thrift::util::enumName(port.getProfileID());
 
   try {
     status.transceiverIdx_ref() =
@@ -1462,7 +1462,7 @@ void SwSwitch::applyConfig(const std::string& reason, bool reload) {
       [&](const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
         auto target = reload ? platform_->reloadConfig() : platform_->config();
 
-        const auto& newConfig = target->thrift.sw;
+        const auto& newConfig = *target->thrift.sw_ref();
         auto newState = applyThriftConfig(
             state,
             &newConfig,
@@ -1510,8 +1510,8 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
-  auto distance = curConfig_.clientIdToAdminDistance.find(clientId);
-  if (distance == curConfig_.clientIdToAdminDistance.end()) {
+  auto distance = curConfig_.clientIdToAdminDistance_ref()->find(clientId);
+  if (distance == curConfig_.clientIdToAdminDistance_ref()->end()) {
     // In case we get a client id we don't know about
     XLOG(ERR) << "No admin distance mapping available for client id "
               << clientId << ". Using default distance - MAX_ADMIN_DISTANCE";

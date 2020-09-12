@@ -175,8 +175,9 @@ double BcmStatUpdater::calculateLaneRate(std::shared_ptr<Port> swPort) {
   }
 
   auto platformPortConfig =
-      platformPortEntry.value().supportedProfiles.find(profileID);
-  if (platformPortConfig == platformPortEntry.value().supportedProfiles.end()) {
+      platformPortEntry.value().supportedProfiles_ref()->find(profileID);
+  if (platformPortConfig ==
+      platformPortEntry.value().supportedProfiles_ref()->end()) {
     throw FbossError(
         "No speed profile with id ",
         apache::thrift::util::enumNameSafe(profileID),
@@ -318,7 +319,7 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
         }
 
         auto lockedPortAsicPrbsStats = portAsicPrbsStats_.wlock();
-        if (!newPort->getAsicPrbs().enabled) {
+        if (!(*newPort->getAsicPrbs().enabled_ref())) {
           lockedPortAsicPrbsStats->erase(oldPort->getID());
           return;
         }
@@ -341,9 +342,9 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
         }
 
         const auto& platformPortConfig =
-            platformPortEntry.value().supportedProfiles.find(profileID);
+            platformPortEntry.value().supportedProfiles_ref()->find(profileID);
         if (platformPortConfig ==
-            platformPortEntry.value().supportedProfiles.end()) {
+            platformPortEntry.value().supportedProfiles_ref()->end()) {
           throw FbossError(
               "No speed profile with id ",
               apache::thrift::util::enumNameSafe(profileID),

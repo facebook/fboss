@@ -1066,6 +1066,10 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processRemovedRoutes(delta);
   processRemovedFibRoutes(delta);
 
+  // Any neighbor removals, and modify appliedState if some changes fail to
+  // apply
+  processNeighborDelta(delta, &appliedState, REMOVED);
+
   // delete all interface not existing anymore. that should stop
   // all traffic on that interface now
   forEachRemoved(delta.getIntfsDelta(), &BcmSwitch::processRemovedIntf, this);
@@ -1106,8 +1110,10 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processControlPlaneChanges(delta);
 
-  // Any neighbor changes, and modify appliedState if some changes fail to apply
-  processNeighborChanges(delta, &appliedState);
+  // Any neighbor additions/changes, and modify appliedState if some changes
+  // fail to apply
+  processNeighborDelta(delta, &appliedState, ADDED);
+  processNeighborDelta(delta, &appliedState, CHANGED);
 
   // process label forwarding changes after neighbor entries are updated
   processChangedLabelForwardingInformationBase(delta);
@@ -1538,7 +1544,7 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
         }
       });
   isValid = isValid &&
-      (newState->getMirrors()->size() <= bcmswitch_constants::MAX_MIRRORS_);
+      (newState->getMirrors()->size() <= platform_->getAsic()->getMaxMirrors());
 
   forEachChanged(
       delta.getMirrorsDelta(),
@@ -1833,22 +1839,6 @@ void BcmSwitch::processSflowCollectorChanges(const StateDelta& delta) {
       this);
 }
 
-template <typename DELTA, typename ParentClassT>
-void BcmSwitch::processNeighborEntryDelta(
-    const DELTA& delta,
-    std::shared_ptr<SwitchState>* appliedState) {
-  const auto* oldEntry = delta.getOld().get();
-  const auto* newEntry = delta.getNew().get();
-
-  if (!oldEntry) {
-    processAddedNeighborEntry(newEntry);
-  } else if (!newEntry) {
-    processRemovedNeighborEntry(oldEntry);
-  } else {
-    processChangedNeighborEntry(oldEntry, newEntry);
-  }
-}
-
 template <typename NeighborEntryT>
 void BcmSwitch::processAddedAndChangedNeighbor(
     const BcmHostKey& neighborKey,
@@ -1971,17 +1961,19 @@ void BcmSwitch::processRemovedNeighborEntry(
       });
 }
 
-void BcmSwitch::processNeighborChanges(
+void BcmSwitch::processNeighborDelta(
     const StateDelta& delta,
-    std::shared_ptr<SwitchState>* appliedState) {
-  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState);
-  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState);
+    std::shared_ptr<SwitchState>* appliedState,
+    DeltaType optype) {
+  processNeighborTableDelta<folly::IPAddressV4>(delta, appliedState, optype);
+  processNeighborTableDelta<folly::IPAddressV6>(delta, appliedState, optype);
 }
 
 template <typename AddrT>
 void BcmSwitch::processNeighborTableDelta(
     const StateDelta& stateDelta,
-    std::shared_ptr<SwitchState>* appliedState) {
+    std::shared_ptr<SwitchState>* appliedState,
+    DeltaType optype) {
   using NeighborTableT = std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
@@ -1994,8 +1986,16 @@ void BcmSwitch::processNeighborTableDelta(
     for (const auto& delta :
          vlanDelta.template getNeighborDelta<NeighborTableT>()) {
       try {
-        processNeighborEntryDelta<NeighborEntryDeltaT, NeighborTableT>(
-            delta, appliedState);
+        const auto* oldEntry = delta.getOld().get();
+        const auto* newEntry = delta.getNew().get();
+
+        if (optype == ADDED && !oldEntry) {
+          processAddedNeighborEntry(newEntry);
+        } else if (optype == REMOVED && !newEntry) {
+          processRemovedNeighborEntry(oldEntry);
+        } else if (optype == CHANGED && oldEntry && newEntry) {
+          processChangedNeighborEntry(oldEntry, newEntry);
+        }
       } catch (const BcmError& error) {
         rethrowIfHwNotFull(error);
         discardedNeighborEntryDelta.push_back(delta);
@@ -2312,11 +2312,16 @@ bool BcmSwitch::sendPacketOutOfPortSync(
   return BCM_SUCCESS(BcmTxPacket::sendSync(std::move(bcmPkt), this));
 }
 
-void BcmSwitch::updateStats(SwitchStats* switchStats) {
+void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   // Update global statistics.
   updateGlobalStats();
   // Update cpu or host bound packet stats
   controlPlane_->updateQueueCounters();
+}
+
+folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
+  // TODO
+  return {};
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
@@ -2341,6 +2346,10 @@ void BcmSwitch::updateGlobalStats() {
     bstStatsUpdateTime_ = now;
     bstStatsMgr_->updateStats();
   }
+}
+
+uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
+  return bstStatsMgr_->getDeviceWatermarkBytes();
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
@@ -2755,16 +2764,17 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto duration =
       duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch());
-  info.timestamp.seconds =
+  *info.timestamp_ref()->seconds_ref() =
       duration_cast<std::chrono::seconds>(duration).count();
-  info.timestamp.nanoseconds = duration_cast<std::chrono::nanoseconds>(
-                                   duration % std::chrono::seconds(1))
-                                   .count();
-  info.ingressSampled = ingressSample;
-  info.egressSampled = egressSample;
-  info.srcPort = pkt->src_port;
-  info.dstPort = pkt->dest_port;
-  info.vlan = pkt->vlan;
+  *info.timestamp_ref()->nanoseconds_ref() =
+      duration_cast<std::chrono::nanoseconds>(
+          duration % std::chrono::seconds(1))
+          .count();
+  *info.ingressSampled_ref() = ingressSample;
+  *info.egressSampled_ref() = egressSample;
+  *info.srcPort_ref() = pkt->src_port;
+  *info.dstPort_ref() = pkt->dest_port;
+  *info.vlan_ref() = pkt->vlan;
 
   auto snapLen = std::min(kMaxSflowSnapLen, (unsigned int)(pkt->pkt_data->len));
 
@@ -2774,14 +2784,16 @@ bool BcmSwitch::handleSflowPacket(bcm_pkt_t* pkt) noexcept {
 
   {
     std::string packetData(pkt->pkt_data->data, pkt->pkt_data->data + snapLen);
-    info.packetData = std::move(packetData);
+    *info.packetData_ref() = std::move(packetData);
   }
 
   // Print it for debugging
-  XLOG(DBG6) << "sFlowSample: (" << info.timestamp.seconds << ','
-             << info.timestamp.nanoseconds << ',' << info.ingressSampled << ','
-             << info.egressSampled << ',' << info.srcPort << ',' << info.dstPort
-             << ',' << info.vlan << ',' << info.packetData.length() << ")\n";
+  XLOG(DBG6) << "sFlowSample: (" << *info.timestamp_ref()->seconds_ref() << ','
+             << *info.timestamp_ref()->nanoseconds_ref() << ','
+             << *info.ingressSampled_ref() << ',' << *info.egressSampled_ref()
+             << ',' << *info.srcPort_ref() << ',' << *info.dstPort_ref() << ','
+             << *info.vlan_ref() << ',' << info.packetData_ref()->length()
+             << ")\n";
 
   sFlowExporterTable_->sendToAll(info);
 
@@ -2852,7 +2864,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
           user_data);
   auto [hw, l2Table] = *cookie;
-  entry.mac = folly::sformat(
+  *entry.mac_ref() = folly::sformat(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
       l2addr->mac[1],
@@ -2860,19 +2872,21 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       l2addr->mac[3],
       l2addr->mac[4],
       l2addr->mac[5]);
-  entry.vlanID = l2addr->vid;
-  entry.port = 0;
+  *entry.vlanID_ref() = l2addr->vid;
+  *entry.port_ref() = 0;
   if (l2addr->flags & BCM_L2_TRUNK_MEMBER) {
     entry.trunk_ref() = hw->getTrunkTable()->getAggregatePortId(l2addr->tgid);
-    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
+               << " Vid:" << *entry.vlanID_ref()
                << " Trunk: " << entry.trunk_ref().value_or({});
   } else {
-    entry.port = l2addr->port;
-    XLOG(DBG6) << "L2 entry: Mac:" << entry.mac << " Vid:" << entry.vlanID
-               << " Port: " << entry.port;
+    *entry.port_ref() = l2addr->port;
+    XLOG(DBG6) << "L2 entry: Mac:" << *entry.mac_ref()
+               << " Vid:" << *entry.vlanID_ref()
+               << " Port: " << *entry.port_ref();
   }
 
-  entry.l2EntryType = (l2addr->flags & BCM_L2_PENDING)
+  *entry.l2EntryType_ref() = (l2addr->flags & BCM_L2_PENDING)
       ? L2EntryType::L2_ENTRY_TYPE_PENDING
       : L2EntryType::L2_ENTRY_TYPE_VALIDATED;
 

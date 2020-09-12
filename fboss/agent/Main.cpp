@@ -258,7 +258,7 @@ int fbossMain(
 
   // Read the config and set default command line arguments
   auto config = parseConfig(argc, argv);
-  initFlagDefaults(config->thrift.defaultCommandLineArgs);
+  initFlagDefaults(*config->thrift.defaultCommandLineArgs_ref());
 
   fbossInit(argc, argv);
 

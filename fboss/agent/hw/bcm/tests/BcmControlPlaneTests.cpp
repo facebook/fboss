@@ -247,6 +247,7 @@ TEST_F(BcmControlPlaneTest, TestBcmAndCfgReasonConversions) {
       {bcmRxReasonArp, cfg::PacketRxReason::ARP},
       {bcmRxReasonDhcp, cfg::PacketRxReason::DHCP},
       {bcmRxReasonBpdu, cfg::PacketRxReason::BPDU},
+      {bcmRxReasonL3MtuFail, cfg::PacketRxReason::L3_MTU_ERROR},
       {bcmRxReasonL3Slowpath, cfg::PacketRxReason::L3_SLOW_PATH},
       {bcmRxReasonL3DestMiss, cfg::PacketRxReason::L3_DEST_MISS},
       {bcmRxReasonTtl1, cfg::PacketRxReason::TTL_1},

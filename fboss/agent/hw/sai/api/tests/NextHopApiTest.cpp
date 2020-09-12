@@ -33,13 +33,7 @@ class NextHopApiTest : public ::testing::Test {
         routerInterfaceIdAttribute(0);
     SaiIpNextHopTraits::Attributes::Ip ipAttribute(ip4);
     auto nextHopId = nextHopApi->create<SaiIpNextHopTraits>(
-        {
-          typeAttribute, routerInterfaceIdAttribute, ipAttribute
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-              ,
-              std::nullopt
-#endif
-        },
+        {typeAttribute, routerInterfaceIdAttribute, ipAttribute, std::nullopt},
         0);
     auto fnh = fs->nextHopManager.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_IP, fnh.type);
@@ -58,13 +52,11 @@ class NextHopApiTest : public ::testing::Test {
     SaiMplsNextHopTraits::Attributes::Ip ipAttribute(ip4);
     SaiMplsNextHopTraits::Attributes::LabelStack labelStack{stack};
     auto nextHopId = nextHopApi->create<SaiMplsNextHopTraits>(
-        {
-          typeAttribute, routerInterfaceIdAttribute, ipAttribute, labelStack
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-              ,
-              std::nullopt
-#endif
-        },
+        {typeAttribute,
+         routerInterfaceIdAttribute,
+         ipAttribute,
+         labelStack,
+         std::nullopt},
         0);
     auto fnh = fs->nextHopManager.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_MPLS, fnh.type);

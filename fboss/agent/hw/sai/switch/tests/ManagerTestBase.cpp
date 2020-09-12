@@ -37,8 +37,8 @@ namespace {
 facebook::fboss::cfg::AgentConfig getDummyConfig() {
   facebook::fboss::cfg::AgentConfig config;
 
-  config.platform.platformSettings_ref() = {};
-  config.platform.platformSettings_ref()->insert(std::make_pair(
+  config.platform_ref()->platformSettings_ref() = {};
+  config.platform_ref()->platformSettings_ref()->insert(std::make_pair(
       facebook::fboss::cfg::PlatformAttributes::CONNECTION_HANDLE,
       "test connection handle"));
   return config;

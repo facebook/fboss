@@ -87,24 +87,24 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     auto qcmCfg = cfg::QcmConfig();
     // some dummy address
     if (isIpv6) {
-      qcmCfg.collectorDstIp = kCollectorDstIpv6;
-      qcmCfg.collectorSrcIp = kCollectorSrcIpv6;
+      *qcmCfg.collectorDstIp_ref() = kCollectorDstIpv6;
+      *qcmCfg.collectorSrcIp_ref() = kCollectorSrcIpv6;
     } else {
-      qcmCfg.collectorDstIp = kCollectorDstIpv4;
-      qcmCfg.collectorSrcIp = kCollectorSrcIpv4;
+      *qcmCfg.collectorDstIp_ref() = kCollectorDstIpv4;
+      *qcmCfg.collectorSrcIp_ref() = kCollectorSrcIpv4;
     }
     // only configured ports from beginning, need the cos queues
     const auto& portList = {masterLogicalPortIds()[0],
                             masterLogicalPortIds()[1]};
     for (const auto& port : portList) {
       for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
-        qcmCfg.port2QosQueueIds[port].push_back(queueId);
+        qcmCfg.port2QosQueueIds_ref()[port].push_back(queueId);
       }
     }
 
-    qcmCfg.collectorSrcPort = kCollectorUDPSrcPort;
-    qcmCfg.agingIntervalInMsecs = 1000;
-    qcmCfg.numFlowSamplesPerView = 1;
+    *qcmCfg.collectorSrcPort_ref() = kCollectorUDPSrcPort;
+    *qcmCfg.agingIntervalInMsecs_ref() = 1000;
+    *qcmCfg.numFlowSamplesPerView_ref() = 1;
     return qcmCfg;
   }
 
@@ -131,7 +131,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     if (setupPolicer) {
       qcmCfg.ppsToQcm_ref() = 0;
     }
-    newCfg.switchSettings.qcmEnable = true;
+    *newCfg.switchSettings_ref()->qcmEnable_ref() = true;
     newCfg.qcmConfig_ref() = qcmCfg;
     applyNewConfig(newCfg);
     cfg_ = newCfg;
@@ -147,20 +147,20 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     Port2QosQueueIdMap map = {};
 
     for (const auto& port : monitorPortList) {
-      qcmCfg.monitorQcmPortList.emplace_back(port);
+      qcmCfg.monitorQcmPortList_ref()->emplace_back(port);
       for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
-        qcmCfg.port2QosQueueIds[port].push_back(queueId);
+        qcmCfg.port2QosQueueIds_ref()[port].push_back(queueId);
       }
     }
     qcmCfg.monitorQcmCfgPortsOnly_ref() = monitorQcmCfgPortOnly;
     newCfg.qcmConfig_ref() = qcmCfg;
-    newCfg.switchSettings.qcmEnable = true;
+    *newCfg.switchSettings_ref()->qcmEnable_ref() = true;
 
     applyNewConfig(newCfg);
   }
 
   void setupQcmOnly(const bool qcmEnable) {
-    cfg_.switchSettings.qcmEnable = qcmEnable;
+    *cfg_.switchSettings_ref()->qcmEnable_ref() = qcmEnable;
     applyNewConfig(cfg_);
   }
 
@@ -190,7 +190,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
   void setUpHelperWithAcls(bool isIpv6) {
     auto newCfg{initialConfig()};
-    newCfg.switchSettings.qcmEnable = true;
+    *newCfg.switchSettings_ref()->qcmEnable_ref() = true;
 
     auto qcmCfg = getQcmConfig(isIpv6);
     // add an acl
@@ -203,7 +203,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
       acl->dstIp_ref() = kCollectorDstIpv6;
       acl->srcIp_ref() = kCollectorSrcIpv6;
     }
-    acl->l4DstPort_ref() = qcmCfg.collectorDstPort; // pick the default
+    acl->l4DstPort_ref() = *qcmCfg.collectorDstPort_ref(); // pick the default
     utility::addAclStat(&newCfg, kCollectorAcl, kCollectorAclCounter);
 
     newCfg.qcmConfig_ref() = qcmCfg;

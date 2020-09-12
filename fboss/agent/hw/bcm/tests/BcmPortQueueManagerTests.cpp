@@ -462,7 +462,7 @@ TEST_F(BcmPortQueueManagerTest, InternalPriorityMappingsOverride) {
       qosMap.trafficClassToQueueId_ref()->emplace(7 - i, i);
     }
     cfg.qosPolicies_ref()->resize(1);
-    *cfg.qosPolicies[0].name_ref() = "policy";
+    *cfg.qosPolicies_ref()[0].name_ref() = "policy";
     cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
     cfg::TrafficPolicyConfig policy;
     policy.defaultQosPolicy_ref() = "policy";

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -24,6 +25,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -85,7 +87,6 @@ const std::map<sai_fdb_event_t, facebook::fboss::L2EntryUpdateType>
         {SAI_FDB_EVENT_AGED,
          facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE},
 };
-
 } // namespace
 
 namespace facebook::fboss {
@@ -122,6 +123,15 @@ void __gFdbEventCallback(
   __gSaiSwitch->fdbEventCallback(count, data);
 }
 
+PortSaiId SaiSwitch::getCPUPortSaiId(SwitchSaiId switchId) {
+  static std::optional<PortSaiId> kCpuPortId;
+  if (!kCpuPortId) {
+    kCpuPortId = SaiApiTable::getInstance()->switchApi().getAttribute(
+        switchId, SaiSwitchTraits::Attributes::CpuPort{});
+  }
+  return kCpuPortId.value();
+}
+
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired), platform_(platform) {
   utilCreateDir(platform_->getVolatileStateDir());
@@ -135,44 +145,48 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
   {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
     ret = initLocked(lock, callback);
-  }
-  // N.B., state changed will be locking/unlocking in a more fine grained manner
-  // and expects the mutex to be unlocked
-
-  /*
-   * SwitchState does not have notion of AclTableGroup or AclTable today.
-   * Thus, stateChanged() can not process aclTableGroupChanges or
-   * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
-   * single AclTable at its member during init(). Every AclEntry from
-   * SwitchState is added to this AclTable by stateChanged() while processing
-   * AclEntryChanges.
-   *
-   * During cold boot, addAclTableGroup()/addAclTable() populate
-   * AclTableGroupManager/AclTableManager local data structures + program the
-   * ASIC by calling SAI AclApi.
-   *
-   * During warm boot, SaiStore reload() reloads SAI objects for
-   * AclTableGroup/AclTable in SaiStore. Thus, addAclTableGroup()/addAclTable()
-   * only populate AclTableGroupManager/AclTableManager local data structure.
-   *
-   * In future, SwitchState would be extended to carry AclTable, at that time,
-   * the implementation would be on the following lines:
-   *     - SwitchState AclTable configuration would include Stage
-   *       e.g. ingress or egress.
-   *     - For every stage supported for AclTable, SaiSwitch::init would
-   *       pre-create an AclTableGroup.
-   *     - statechanged() would contain AclTable delta processing which would
-   *       add/remove/change AclTable and using 'stage', also update the
-   *       corresponding Acl Table group member.
-   *     - statechanged() would continue to carry AclEntry delta processing.
-   */
-  if ((getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-       getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+    /*
+     * SwitchState does not have notion of AclTableGroup or AclTable today.
+     * Thus, stateChanged() can not process aclTableGroupChanges or
+     * aclTableChanges. Thus, we create single AclTableGroup for Ingress and a
+     * single AclTable at its member during init(). Every AclEntry from
+     * SwitchState is added to this AclTable by stateChanged() while processing
+     * AclEntryChanges.
+     *
+     * During cold boot, addAclTableGroup()/addAclTable() populate
+     * AclTableGroupManager/AclTableManager local data structures + program the
+     * ASIC by calling SAI AclApi.
+     *
+     * During warm boot, SaiStore reload() reloads SAI objects for
+     * AclTableGroup/AclTable in SaiStore. Thus,
+     * addAclTableGroup()/addAclTable() only populate
+     * AclTableGroupManager/AclTableManager local data structure.
+     *
+     * In future, SwitchState would be extended to carry AclTable, at that time,
+     * the implementation would be on the following lines:
+     *     - SwitchState AclTable configuration would include Stage
+     *       e.g. ingress or egress.
+     *     - For every stage supported for AclTable, SaiSwitch::init would
+     *       pre-create an AclTableGroup.
+     *     - statechanged() would contain AclTable delta processing which would
+     *       add/remove/change AclTable and using 'stage', also update the
+     *       corresponding Acl Table group member.
+     *     - statechanged() would continue to carry AclEntry delta processing.
+     */
     managerTable_->aclTableGroupManager().addAclTableGroup(
         SAI_ACL_STAGE_INGRESS);
     managerTable_->aclTableManager().addAclTable(kAclTable1);
+
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+      managerTable_->debugCounterManager().setupDebugCounters();
+    }
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
+      managerTable_->bufferManager().setupEgressBufferPool();
+    }
   }
 
+  // N.B., state changed will be locking/unlocking in a more fine grained manner
+  // and expects the mutex to be unlocked
   stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   return ret;
 }
@@ -330,19 +344,72 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
       &SaiSwitchManager::addOrUpdateLoadBalancer,
       &SaiSwitchManager::removeLoadBalancer);
 
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      getPlatform()->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
-    processDelta(
-        delta.getAclsDelta(),
-        managerTable_->aclTableManager(),
-        &SaiAclTableManager::changedAclEntry,
-        &SaiAclTableManager::addAclEntry,
-        &SaiAclTableManager::removeAclEntry,
-        kAclTable1);
-  }
+  processDelta(
+      delta.getAclsDelta(),
+      managerTable_->aclTableManager(),
+      &SaiAclTableManager::changedAclEntry,
+      &SaiAclTableManager::addAclEntry,
+      &SaiAclTableManager::removeAclEntry,
+      kAclTable1);
 
   processSwitchSettingsChanged(delta);
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::RESOURCE_USAGE_STATS)) {
+    auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+    updateResourceUsageLocked(lock);
+  }
   return delta.newState();
+}
+
+void SaiSwitch::updateResourceUsageLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) {
+  auto aclTableHandle =
+      managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
+  auto aclTableId = aclTableHandle->aclTable->adapterKey();
+  auto& aclApi = SaiApiTable::getInstance()->aclApi();
+  // TODO - store these counters into a thrift struct and publish
+  XLOG(DBG5) << " Available ACL entries for : " << kAclTable1 << " : "
+             << aclApi.getAttribute(
+                    aclTableId,
+                    SaiAclTableTraits::Attributes::AvailableEntry{});
+  XLOG(DBG5) << " Available ACL counters for : " << kAclTable1 << " : "
+             << aclApi.getAttribute(
+                    aclTableId,
+                    SaiAclTableTraits::Attributes::AvailableCounter{});
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  XLOG(DBG5) << " Available v4 routes : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
+  XLOG(DBG5) << " Available v6 routes : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
+  XLOG(DBG5) << " Available v4 next hops : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
+  XLOG(DBG5) << " Available v6 next hops : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
+  XLOG(DBG5) << " Available next hop groups : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
+  XLOG(DBG5)
+      << " Available next hop group members : "
+      << switchApi.getAttribute(
+             switchId_,
+             SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
+  XLOG(DBG5) << " Available v4 neighbors : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
+  XLOG(DBG5) << " Available v6 neighbors : "
+             << switchApi.getAttribute(
+                    switchId_,
+                    SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
 }
 
 void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
@@ -437,7 +504,7 @@ bool SaiSwitch::sendPacketOutOfPortAsync(
   return sendPacketOutOfPortSync(std::move(pkt), portID, queueId);
 }
 
-void SaiSwitch::updateStats(SwitchStats* switchStats) {
+void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   auto& portManager = managerTable_->portManager();
   auto iter = concurrentIndices_->portIds.begin();
   while (iter != concurrentIndices_->portIds.end()) {
@@ -447,9 +514,39 @@ void SaiSwitch::updateStats(SwitchStats* switchStats) {
     }
     ++iter;
   }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->hostifManager().updateStats();
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->bufferManager().updateStats();
+  }
+}
 
+uint64_t SaiSwitch::getDeviceWatermarkBytes() const {
   std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-  managerTable_->hostifManager().updateStats();
+  return getDeviceWatermarkBytesLocked(locked);
+}
+
+uint64_t SaiSwitch::getDeviceWatermarkBytesLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  return managerTable_->bufferManager().getDeviceWatermarkBytes();
+}
+
+folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getPortStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  folly::F14FastMap<std::string, HwPortStats> portStatsMap;
+  auto& portIdStatsMap = managerTable_->portManager().getLastPortStats();
+  for (auto& entry : portIdStatsMap) {
+    portStatsMap.emplace(entry.second->portName(), entry.second->portStats());
+  }
+  return portStatsMap;
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
@@ -677,7 +774,6 @@ HwInitResult SaiSwitch::initLocked(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   }
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
-
   callback_ = callback;
   __gSaiSwitch = this;
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
@@ -719,27 +815,64 @@ void SaiSwitch::packetRxCallback(
   }
   CHECK(portSaiIdOpt);
   PortSaiId portSaiId{portSaiIdOpt.value()};
-
+  PortID swPortId(0);
+  VlanID swVlanId(0);
+  auto rxPacket =
+      std::make_unique<SaiRxPacket>(buffer_size, buffer, PortID(0), VlanID(0));
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
-  if (portItr == concurrentIndices_->portIds.cend()) {
+  /*
+   * When a packet is received with source port as cpu port, do the following:
+   * 1) Check if a packet has a vlan tag and only one tag. If the packet is
+   * not tagged or contains multiple vlan tags, log error and return.
+   * 2) If a valid vlan is found, send the packet to Sw switch for further
+   * processing.
+   * NOTE: The port id is set to 0 since the sw switch uses the vlan id for
+   * packet processing.
+   *
+   * For eg:, For LL V4, IP packets are sent to the asic first. Since the ARP
+   * is not resolved, the packet will be punted back to CPU with the ingress
+   * port set to CPU port. These packets are handled here by finding the
+   * vlan id in the packet and sending it to SwSwitch.
+   *
+   * We use the cached cpu port id to avoid holding manager table locks in
+   * the Rx path.
+   */
+  if (portSaiId == getCPUPortSaiId(switchId_)) {
+    folly::io::Cursor cursor(rxPacket->buf());
+    EthHdr ethHdr{cursor};
+    auto vlanTags = ethHdr.getVlanTags();
+    if (vlanTags.size() == 1) {
+      swVlanId = VlanID(vlanTags[0].vid());
+      XLOG(DBG6) << "Rx packet on cpu port. "
+                 << "Found vlan from packet: " << swVlanId;
+    } else {
+      XLOG(ERR) << "RX packet on cpu port has no vlan tag "
+                << "or multiple vlan tags: 0x" << std::hex << portSaiId;
+      return;
+    }
+  } else if (portItr == concurrentIndices_->portIds.cend()) {
     // TODO: add counter to keep track of spurious rx packet
     XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
               << portSaiId;
     return;
+  } else {
+    swPortId = portItr->second;
+    const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
+    if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+      XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
+                << portSaiId;
+      return;
+    }
+    swVlanId = vlanItr->second;
   }
-  PortID swPortId = portItr->second;
 
-  const auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId);
-  if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-    XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
-              << portSaiId;
-    return;
-  }
-  VlanID swVlanId = vlanItr->second;
+  /*
+   * Set the correct vlan and port ID for the rx packet
+   */
+  rxPacket->setSrcPort(swPortId);
+  rxPacket->setSrcVlan(swVlanId);
 
   XLOG(DBG6) << "Rx packet on port: " << swPortId << " and vlan: " << swVlanId;
-  auto rxPacket =
-      std::make_unique<SaiRxPacket>(buffer_size, buffer, swPortId, swVlanId);
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
@@ -809,11 +942,7 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   XLOG(DBG6) << PktUtil::hexDump(cursor);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::TxAttributes attributes{txType, 0, std::nullopt};
-#else
-  SaiTxPacketTraits::TxAttributes attributes{txType, 0};
-#endif
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -835,9 +964,9 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
-  /* TODO: this hack is required, sending packet out of port with with pipeline
-  bypass, doesn't cause vlan tag stripping. fix this once a pipeline bypass with
-  vlan stripping is available. */
+  /* TODO: this hack is required, sending packet out of port with with
+  pipeline bypass, doesn't cause vlan tag stripping. fix this once a pipeline
+  bypass with vlan stripping is available. */
   getSwitchStats()->txSent();
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT)) {
@@ -878,14 +1007,10 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
   SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portItr->second);
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
       queueId.value_or(0));
   SaiTxPacketTraits::TxAttributes attributes{
       txType, egressPort, egressQueueIndex};
-#else
-  SaiTxPacketTraits::TxAttributes attributes{txType, egressPort};
-#endif
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   auto rv = hostifApi.send(attributes, switchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {
@@ -940,8 +1065,8 @@ void SaiSwitch::switchRunStateChangedImplLocked(
     case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
-         * Post warmboot synchronize hw link state with switch state maintained
-         * at callback (SwSwitch or HwTest). Since the
+         * Post warmboot synchronize hw link state with switch state
+         * maintained at callback (SwSwitch or HwTest). Since the
          * callback_->linkStateChanged is called asynchronously, its possible
          * that prior to going down for warm boot there was a link event which
          * did not get communicated to up via callback_ before we received the

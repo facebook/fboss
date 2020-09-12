@@ -161,7 +161,7 @@ phy::FecMode Platform::getPhyFecMode(cfg::PortProfileID profileID) const {
   if (!profile) {
     throw FbossError("platform does not support profile : ", profileID);
   }
-  return profile->iphy.fec;
+  return *profile->iphy_ref()->fec_ref();
 }
 
 void Platform::setPort2OverrideTransceiverInfo(

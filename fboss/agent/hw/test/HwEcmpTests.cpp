@@ -173,6 +173,38 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
+  /*
+   * Mimic a scenario where all links flap and the routes (including
+   * default route) get withdrawn and then peerings comeback one by one
+   * and expand the ECMP group
+   */
+  auto constexpr kEcmpWidthForTest = 4;
+  // Program ECMP route
+  auto newState = ecmpHelper_->setupECMPForwarding(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest),
+      kEcmpWidthForTest);
+  applyNewState(newState);
+  EXPECT_EQ(kEcmpWidthForTest, getEcmpSizeInHw());
+  // Mimic neighbor entries going away and route getting removed. Since
+  // this is the default route, it actually does not go away but transitions
+  // to drop.
+  applyNewState(
+      ecmpHelper_->unresolveNextHops(getProgrammedState(), kEcmpWidthForTest));
+  EXPECT_EQ(0, getEcmpSizeInHw());
+  applyNewState(ecmpHelper_->pruneECMPRoutes(getProgrammedState()));
+  // Bring the route back, but mimic learning it from peers one by one first
+  applyNewState(
+      ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest));
+  for (auto i = 0; i < kEcmpWidthForTest; ++i) {
+    applyNewState(
+        ecmpHelper_->setupECMPForwarding(getProgrammedState(), i + 1));
+    if (i) {
+      EXPECT_EQ(i + 1, getEcmpSizeInHw());
+    }
+  }
+}
+
 TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
   auto setup = [=]() {
     programRouteWithUnresolvedNhops();

@@ -56,12 +56,8 @@ TEST_F(HostifApiTest, sendPacket) {
   SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(10);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(7);
   SaiTxPacketTraits::TxAttributes a{txType, egressPort, egressQueueIndex};
-#else
-  SaiTxPacketTraits::TxAttributes a{txType, egressPort};
-#endif
   folly::StringPiece testPacket = "TESTPACKET";
   SaiHostifApiPacket txPacket{(void*)(testPacket.toString().c_str()),
                               testPacket.toString().length()};

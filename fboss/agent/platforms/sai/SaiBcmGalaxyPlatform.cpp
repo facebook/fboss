@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatform.h"
 
+#include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
+
 #include <folly/FileUtil.h>
 #include <folly/container/Array.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -44,5 +46,10 @@ std::string SaiBcmGalaxyPlatform::getLinecardName(bool isFabric) {
     return getDefaultCardName(isFabric);
   }
   return netwhoamiDynamic[kLCName].asString();
+}
+
+void SaiBcmGalaxyPlatform::initLEDs() {
+  initWedgeLED(0, GalaxyLedUtils::defaultLed0Code());
+  initWedgeLED(1, GalaxyLedUtils::defaultLed1Code());
 }
 } // namespace facebook::fboss

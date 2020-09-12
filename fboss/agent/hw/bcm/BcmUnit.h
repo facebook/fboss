@@ -97,6 +97,39 @@ class BcmUnit {
   void registerCallbackVector();
   void bcmInit();
 
+  void attachSDK6(bool warmBoot);
+  void attachHSDK(bool warmBoot);
+
+  // Create DRD device and return <device_id, revision_id>
+  std::pair<uint16_t, uint16_t> createDRDDevice();
+
+  /*
+   * HSDK uses a new architecture for warm boot that uses HA memory.
+   * In this function, we'll set up the HA memory.
+   */
+  void initializeHAMemory(bool /* warmBoot */) {
+    // TODO(joseph5wu) Will impelment it later
+  }
+
+  /*
+   * Initialize SDKLT core components.
+   */
+  void initSDKLTCoreComponents() {
+    // TODO(joseph5wu) Will implement it later
+  }
+
+  /*
+   * Attacg a NULL driver instance to physical device
+   */
+  void registerNullSOCVectors();
+
+  /*
+   * Perform low-level device initialization
+   */
+  void attachSystemManager(bool /* warmBoot */) {
+    // TODO(joseph5wu) Will implement it later
+  }
+
   int deviceIndex_{-1};
   BcmPlatform* platform_{nullptr};
   int unit_{-1};

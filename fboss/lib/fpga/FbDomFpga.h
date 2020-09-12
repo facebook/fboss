@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "fboss/lib/PhysicalMemory.h"
+#include "fboss/lib/fpga/FpgaIoBase.h"
 
 namespace facebook::fboss {
-class FbDomFpga {
+class FbDomFpga : public FpgaIoBase {
  public:
   enum class LedColor : uint32_t {
     OFF = 0x0,
@@ -27,20 +27,11 @@ class FbDomFpga {
   FbDomFpga(uint32_t domBaseAddr, uint32_t domFpgaSize, uint8_t pim);
 
   /**
-   * This function should be called before any read/write() to call any hardware
-   * related functions to make FPGA ready.
-   * Right now, it doesn't require any input parameter, but if in the future
-   * we need to support different HW settings, like 4DD, we can leaverage more
-   * input parameters to set up FPGA.
-   */
-  void initHW();
-
-  /**
    * FPGA PCIe Register has been upgraded to 32bits data width on 32 bits
    * address.
    */
-  virtual uint32_t read(uint32_t offset) const;
-  virtual void write(uint32_t offset, uint32_t value);
+  virtual uint32_t read(uint32_t offset) const override;
+  virtual void write(uint32_t offset, uint32_t value) override;
 
   bool isQsfpPresent(int qsfp);
   uint32_t getQsfpsPresence();
@@ -62,10 +53,6 @@ class FbDomFpga {
 
  private:
   static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
-
-  using FbFpgaPhysicalMemory32 = PhysicalMemory32<PhysicalMemory>;
-
-  std::unique_ptr<FbFpgaPhysicalMemory32> phyMem32_;
 
   uint8_t pim_;
   uint32_t domBaseAddr_;

@@ -214,11 +214,9 @@ void setHostifPacketAttributes(
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_PORT_OR_LAG:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
         attrLines.push_back(u8Attr(attr_list, i));
         break;
-#endif
       default:
         // TODO(zecheng): Better check for newly added attributes (T69350100)
         break;

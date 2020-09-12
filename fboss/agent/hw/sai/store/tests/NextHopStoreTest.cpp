@@ -20,27 +20,13 @@ class NextHopStoreTest : public SaiStoreTest {
  public:
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
     return saiApiTable->nextHopApi().create<SaiIpNextHopTraits>(
-        {
-          SAI_NEXT_HOP_TYPE_IP, 42, ip
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-              ,
-              std::nullopt
-#endif
-        },
-        0);
+        {SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt}, 0);
   }
   NextHopSaiId createMplsNextHop(
       const folly::IPAddress& ip,
       std::vector<sai_uint32_t> stack) {
     return saiApiTable->nextHopApi().create<SaiMplsNextHopTraits>(
-        {
-          SAI_NEXT_HOP_TYPE_MPLS, 42, ip, std::move(stack)
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-                                              ,
-              std::nullopt
-#endif
-        },
-        0);
+        {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, std::move(stack), std::nullopt}, 0);
   }
 };
 
@@ -88,13 +74,8 @@ TEST_F(NextHopStoreTest, nextHopLoadCtor) {
 
 TEST_F(NextHopStoreTest, nextHopCreateCtor) {
   auto ip = folly::IPAddress("::");
-  SaiIpNextHopTraits::CreateAttributes c {
-    SAI_NEXT_HOP_TYPE_IP, 42, ip
-#if SAI_API_VERSION >= SAI_VERSION(1, 6, 0)
-        ,
-        std::nullopt
-#endif
-  };
+  SaiIpNextHopTraits::CreateAttributes c{
+      SAI_NEXT_HOP_TYPE_IP, 42, ip, std::nullopt};
   SaiIpNextHopTraits::AdapterHostKey k{42, ip};
   SaiObject<SaiIpNextHopTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(IpNextHop, Ip, obj.attributes()), ip);

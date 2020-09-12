@@ -14,6 +14,8 @@ class BcmTestWedge40Port : public BcmTestPort {
     return {cfg::PortSpeed::GIGE, cfg::PortSpeed::XG};
   }
 
+  void linkStatusChanged(bool up, bool adminUp) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Port(BcmTestWedge40Port const&) = delete;

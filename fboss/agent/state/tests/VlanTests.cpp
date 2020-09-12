@@ -58,13 +58,13 @@ TEST(Vlan, applyConfig) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(2);
-  *config.ports[0].logicalID_ref() = 1;
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
-  *config.ports[1].logicalID_ref() = 99;
-  *config.ports[1].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[1].logicalID_ref() = 99;
+  *config.ports_ref()[1].state_ref() = cfg::PortState::ENABLED;
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1234;
-  *config.vlans[0].name_ref() = kVlan1234;
+  *config.vlans_ref()[0].id_ref() = 1234;
+  *config.vlans_ref()[0].name_ref() = kVlan1234;
   config.vlans_ref()[0].dhcpRelayOverridesV4_ref() = {};
   (*config.vlans_ref()[0].dhcpRelayOverridesV4_ref())["02:00:00:00:00:02"] =
       "1.2.3.4";
@@ -73,12 +73,12 @@ TEST(Vlan, applyConfig) {
       "2a03:2880:10:1f07:face:b00c:0:0";
   config.vlans_ref()[0].intfID_ref() = 1;
   config.vlanPorts_ref()->resize(2);
-  *config.vlanPorts[0].logicalPort_ref() = 1;
-  *config.vlanPorts[0].vlanID_ref() = 1234;
-  *config.vlanPorts[0].emitTags_ref() = false;
-  *config.vlanPorts[1].logicalPort_ref() = 99;
-  *config.vlanPorts[1].vlanID_ref() = 1234;
-  *config.vlanPorts[1].emitTags_ref() = true;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[0].emitTags_ref() = false;
+  *config.vlanPorts_ref()[1].logicalPort_ref() = 99;
+  *config.vlanPorts_ref()[1].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[1].emitTags_ref() = true;
 
   Vlan::MemberPorts expectedPorts;
   expectedPorts.insert(make_pair(PortID(1), Vlan::PortInfo(false)));
@@ -112,12 +112,12 @@ TEST(Vlan, applyConfig) {
 
   // Add an interface
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].routerID_ref() = 0;
-  *config.interfaces[0].vlanID_ref() = 1234;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].routerID_ref() = 0;
+  *config.interfaces_ref()[0].vlanID_ref() = 1234;
   config.interfaces_ref()[0].ipAddresses_ref()->resize(2);
-  config.interfaces[0].ipAddresses_ref()[0] = "10.1.1.1/24";
-  config.interfaces[0].ipAddresses_ref()[1] =
+  config.interfaces_ref()[0].ipAddresses_ref()[0] = "10.1.1.1/24";
+  config.interfaces_ref()[0].ipAddresses_ref()[1] =
       "2a03:2880:10:1f07:face:b00c:0:0/96";
   MacAddress platformMac("82:02:00:ab:cd:ef");
   EXPECT_CALL(*platform, getLocalMac()).WillRepeatedly(Return(platformMac));
@@ -152,16 +152,16 @@ TEST(Vlan, applyConfig) {
 
   // Add another vlan and interface
   config.vlans_ref()->resize(2);
-  *config.vlans[1].id_ref() = 1299;
-  *config.vlans[1].name_ref() = kVlan1299;
+  *config.vlans_ref()[1].id_ref() = 1299;
+  *config.vlans_ref()[1].name_ref() = kVlan1299;
   config.vlans_ref()[1].intfID_ref() = 2;
   config.interfaces_ref()->resize(2);
-  *config.interfaces[1].intfID_ref() = 2;
-  *config.interfaces[1].routerID_ref() = 0;
-  *config.interfaces[1].vlanID_ref() = 1299;
+  *config.interfaces_ref()[1].intfID_ref() = 2;
+  *config.interfaces_ref()[1].routerID_ref() = 0;
+  *config.interfaces_ref()[1].vlanID_ref() = 1299;
   config.interfaces_ref()[1].ipAddresses_ref()->resize(2);
-  config.interfaces[1].ipAddresses_ref()[0] = "10.1.10.1/24";
-  config.interfaces[1].ipAddresses_ref()[1] = "192.168.0.1/31";
+  config.interfaces_ref()[1].ipAddresses_ref()[0] = "10.1.10.1/24";
+  config.interfaces_ref()[1].ipAddresses_ref()[1] = "192.168.0.1/31";
   MacAddress intf2Mac("02:01:02:ab:cd:78");
   config.interfaces_ref()[1].mac_ref() = intf2Mac.toString();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -189,16 +189,16 @@ TEST(Vlan, applyConfig) {
   // Add a new VLAN with an ArpResponseTable that needs to be set up
   // when the VLAN is first created
   config.vlans_ref()->resize(3);
-  *config.vlans[2].id_ref() = 99;
-  *config.vlans[2].name_ref() = kVlan99;
+  *config.vlans_ref()[2].id_ref() = 99;
+  *config.vlans_ref()[2].name_ref() = kVlan99;
   config.vlans_ref()[2].intfID_ref() = 3;
   config.interfaces_ref()->resize(3);
-  *config.interfaces[2].intfID_ref() = 3;
-  *config.interfaces[2].routerID_ref() = 1;
-  *config.interfaces[2].vlanID_ref() = 99;
+  *config.interfaces_ref()[2].intfID_ref() = 3;
+  *config.interfaces_ref()[2].routerID_ref() = 1;
+  *config.interfaces_ref()[2].vlanID_ref() = 99;
   config.interfaces_ref()[2].ipAddresses_ref()->resize(2);
-  config.interfaces[2].ipAddresses_ref()[0] = "1.2.3.4/24";
-  config.interfaces[2].ipAddresses_ref()[1] = "10.0.0.1/9";
+  config.interfaces_ref()[2].ipAddresses_ref()[0] = "1.2.3.4/24";
+  config.interfaces_ref()[2].ipAddresses_ref()[1] = "10.0.0.1/9";
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   // VLAN 1234 should be unchanged
@@ -219,15 +219,15 @@ TEST(Vlan, applyConfig) {
 
   // Check vlan congfig with no intfID set
   config.vlans_ref()->resize(4);
-  *config.vlans[3].id_ref() = 100;
+  *config.vlans_ref()[3].id_ref() = 100;
   config.vlans_ref()[3].intfID_ref().reset();
   config.interfaces_ref()->resize(4);
-  *config.interfaces[3].intfID_ref() = 4;
-  *config.interfaces[3].routerID_ref() = 0;
-  *config.interfaces[3].vlanID_ref() = 100;
+  *config.interfaces_ref()[3].intfID_ref() = 4;
+  *config.interfaces_ref()[3].routerID_ref() = 0;
+  *config.interfaces_ref()[3].vlanID_ref() = 100;
   config.interfaces_ref()[3].ipAddresses_ref()->resize(2);
-  config.interfaces[3].ipAddresses_ref()[0] = "10.50.3.7/24";
-  config.interfaces[3].ipAddresses_ref()[1] = "10.50.0.3/9";
+  config.interfaces_ref()[3].ipAddresses_ref()[0] = "10.50.3.7/24";
+  config.interfaces_ref()[3].ipAddresses_ref()[1] = "10.50.0.3/9";
   auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   ASSERT_NE(nullptr, stateV5);
   auto vlan100 = stateV5->getVlans()->getVlan(VlanID(100));
@@ -286,42 +286,42 @@ TEST(VlanMap, applyConfig) {
   for (int i = 0; i < ports.size(); i++) {
     int port = ports[i];
     stateV0->registerPort(PortID(port), folly::format("port{}", port).str());
-    config.ports[i].logicalID_ref() = port;
+    config.ports_ref()[i].logicalID_ref() = port;
     config.ports_ref()[i].name_ref() = folly::format("port{}", port).str();
-    config.ports[i].state_ref() = cfg::PortState::DISABLED;
+    config.ports_ref()[i].state_ref() = cfg::PortState::DISABLED;
   }
 
   auto vlansV0 = stateV0->getVlans();
 
   // Apply new config settings
   config.vlans_ref()->resize(2);
-  *config.vlans[0].id_ref() = 1234;
-  *config.vlans[0].name_ref() = kVlan1234;
-  *config.vlans[1].id_ref() = 99;
-  *config.vlans[1].name_ref() = kVlan99;
+  *config.vlans_ref()[0].id_ref() = 1234;
+  *config.vlans_ref()[0].name_ref() = kVlan1234;
+  *config.vlans_ref()[1].id_ref() = 99;
+  *config.vlans_ref()[1].name_ref() = kVlan99;
   config.vlanPorts_ref()->resize(7);
-  *config.vlanPorts[0].vlanID_ref() = 1234;
-  *config.vlanPorts[0].logicalPort_ref() = 1;
-  *config.vlanPorts[1].vlanID_ref() = 1234;
-  *config.vlanPorts[1].logicalPort_ref() = 2;
-  *config.vlanPorts[2].vlanID_ref() = 1234;
-  *config.vlanPorts[2].logicalPort_ref() = 3;
-  *config.vlanPorts[3].vlanID_ref() = 1234;
-  *config.vlanPorts[3].logicalPort_ref() = 4;
-  *config.vlanPorts[4].vlanID_ref() = 99;
-  *config.vlanPorts[4].logicalPort_ref() = 9;
-  *config.vlanPorts[5].vlanID_ref() = 99;
-  *config.vlanPorts[5].logicalPort_ref() = 19;
-  *config.vlanPorts[6].vlanID_ref() = 99;
-  *config.vlanPorts[6].logicalPort_ref() = 29;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 1;
+  *config.vlanPorts_ref()[1].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[1].logicalPort_ref() = 2;
+  *config.vlanPorts_ref()[2].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[2].logicalPort_ref() = 3;
+  *config.vlanPorts_ref()[3].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[3].logicalPort_ref() = 4;
+  *config.vlanPorts_ref()[4].vlanID_ref() = 99;
+  *config.vlanPorts_ref()[4].logicalPort_ref() = 9;
+  *config.vlanPorts_ref()[5].vlanID_ref() = 99;
+  *config.vlanPorts_ref()[5].logicalPort_ref() = 19;
+  *config.vlanPorts_ref()[6].vlanID_ref() = 99;
+  *config.vlanPorts_ref()[6].logicalPort_ref() = 29;
 
   config.interfaces_ref()->resize(2);
-  *config.interfaces[0].intfID_ref() = 1;
-  *config.interfaces[0].vlanID_ref() = 1234;
-  *config.interfaces[0].routerID_ref() = 0;
-  *config.interfaces[1].intfID_ref() = 2;
-  *config.interfaces[1].vlanID_ref() = 99;
-  *config.interfaces[1].routerID_ref() = 0;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].vlanID_ref() = 1234;
+  *config.interfaces_ref()[0].routerID_ref() = 0;
+  *config.interfaces_ref()[1].intfID_ref() = 2;
+  *config.interfaces_ref()[1].vlanID_ref() = 99;
+  *config.interfaces_ref()[1].routerID_ref() = 0;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlansV1 = stateV1->getVlans();
@@ -399,16 +399,16 @@ TEST(VlanMap, applyConfig) {
 
   // Remove VLAN 99
   config.vlans_ref()->resize(1);
-  *config.vlans[0].id_ref() = 1234;
+  *config.vlans_ref()[0].id_ref() = 1234;
   config.vlanPorts_ref()->resize(3);
-  *config.vlanPorts[0].vlanID_ref() = 1234;
-  *config.vlanPorts[0].logicalPort_ref() = 2;
-  *config.vlanPorts[1].vlanID_ref() = 1234;
-  *config.vlanPorts[1].logicalPort_ref() = 3;
-  *config.vlanPorts[2].vlanID_ref() = 1234;
-  *config.vlanPorts[2].logicalPort_ref() = 4;
+  *config.vlanPorts_ref()[0].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[0].logicalPort_ref() = 2;
+  *config.vlanPorts_ref()[1].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[1].logicalPort_ref() = 3;
+  *config.vlanPorts_ref()[2].vlanID_ref() = 1234;
+  *config.vlanPorts_ref()[2].logicalPort_ref() = 4;
   config.interfaces_ref()->resize(1);
-  *config.interfaces[0].intfID_ref() = 1;
+  *config.interfaces_ref()[0].intfID_ref() = 1;
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   auto vlansV3 = stateV3->getVlans();

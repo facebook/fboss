@@ -47,6 +47,10 @@ class MockCP2112 : public CP2112Intf {
   std::chrono::milliseconds getDefaultTimeout() const override {
     return std::chrono::milliseconds(500);
   }
+
+  bool isOpen() const override {
+    return true;
+  }
 };
 
 int constexpr pow(int base, int exponent) {

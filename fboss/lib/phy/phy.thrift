@@ -100,6 +100,13 @@ struct TxSettings {
   8: optional i16 driveCurrent
 }
 
+struct RxSettings {
+  1: optional i16 ctlCode
+  2: optional i16 dspMode
+  3: optional i16 afeTrim
+  4: optional i16 acCouplingBypass
+}
+
 struct PolaritySwap {
   1: bool rx = 0
   2: bool tx = 0
@@ -111,6 +118,7 @@ struct LaneSettings {
   // TODO: may need to extend this to be a mapping from speed to tx/rx
   // settings to support dynamically changing speed
   1: optional TxSettings tx
+  2: optional RxSettings rx
   3: PolaritySwap polaritySwap = NO_POLARITY_SWAP
 }
 
@@ -211,6 +219,7 @@ struct PinConnection {
 struct PinConfig {
   1: PinID id
   2: optional TxSettings tx
+  3: optional RxSettings rx
 }
 
 struct PortPinConfig {

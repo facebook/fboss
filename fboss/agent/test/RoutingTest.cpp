@@ -280,13 +280,13 @@ class RoutingFixture : public ::testing::Test {
 
     // Add two VLANs with ID 1 and 2
     config.vlans_ref()->resize(2);
-    *config.vlans[0].name_ref() = "Vlan-1";
-    *config.vlans[0].id_ref() = 1;
-    *config.vlans[0].routable_ref() = true;
+    *config.vlans_ref()[0].name_ref() = "Vlan-1";
+    *config.vlans_ref()[0].id_ref() = 1;
+    *config.vlans_ref()[0].routable_ref() = true;
     config.vlans_ref()[0].intfID_ref() = 1;
-    *config.vlans[1].name_ref() = "Vlan-2";
-    *config.vlans[1].id_ref() = 2;
-    *config.vlans[1].routable_ref() = true;
+    *config.vlans_ref()[1].name_ref() = "Vlan-2";
+    *config.vlans_ref()[1].id_ref() = 2;
+    *config.vlans_ref()[1].routable_ref() = true;
     config.vlans_ref()[1].intfID_ref() = 2;
 
     // Add two ports with ID 1 and 2 associated with VLAN 1 and 2 respectively

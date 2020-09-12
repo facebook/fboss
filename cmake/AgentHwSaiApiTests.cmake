@@ -9,6 +9,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/AttributeTest.cpp
     fboss/agent/hw/sai/api/tests/AttributeDataTypesTest.cpp
     fboss/agent/hw/sai/api/tests/BridgeApiTest.cpp
+    fboss/agent/hw/sai/api/tests/DebugCounterApiTest.cpp
     fboss/agent/hw/sai/api/tests/BufferApiTest.cpp
     fboss/agent/hw/sai/api/tests/FdbApiTest.cpp
     fboss/agent/hw/sai/api/tests/HashApiTest.cpp
@@ -27,6 +28,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/AddressUtilTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp
     fboss/agent/hw/sai/api/tests/VlanApiTest.cpp
+    fboss/agent/hw/sai/api/tests/WredApiTest.cpp
     fboss/agent/hw/sai/api/tests/AdapterKeySerializerTest.cpp
     fboss/agent/hw/sai/api/tests/LoggingUtilTest.cpp
 )

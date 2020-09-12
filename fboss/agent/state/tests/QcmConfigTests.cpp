@@ -31,11 +31,11 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_EQ(state0->getQcmCfg(), nullptr);
 
   cfg::QcmConfig qcmCfg;
-  qcmCfg.numFlowsClear = 22;
-  qcmCfg.collectorDstIp = "10.10.10.10/32";
-  qcmCfg.collectorSrcIp = "11.11.11.11/24";
-  qcmCfg.port2QosQueueIds[1] = {0, 1, 2};
-  qcmCfg.port2QosQueueIds[2] = {3, 4, 5};
+  *qcmCfg.numFlowsClear_ref() = 22;
+  *qcmCfg.collectorDstIp_ref() = "10.10.10.10/32";
+  *qcmCfg.collectorSrcIp_ref() = "11.11.11.11/24";
+  qcmCfg.port2QosQueueIds_ref()[1] = {0, 1, 2};
+  qcmCfg.port2QosQueueIds_ref()[2] = {3, 4, 5};
 
   config.qcmConfig_ref() = qcmCfg;
   auto state1 = publishAndApplyConfig(state0, &config, platform.get());
@@ -74,14 +74,14 @@ TEST(QcmConfigTest, applyConfig) {
 
   // re-program the map
   map.emplace(1, 9);
-  qcmCfg.flowWeights[cfg::BurstMonitorWeight::FLOW_SUM_RX_BYTES] = 9;
-  qcmCfg.numFlowSamplesPerView = 11;
-  qcmCfg.flowLimit = 13;
-  qcmCfg.exportThreshold = 20;
-  qcmCfg.agingIntervalInMsecs = 21;
-  qcmCfg.monitorQcmPortList = {102, 103, 104, 105};
-  qcmCfg.port2QosQueueIds = {};
-  qcmCfg.port2QosQueueIds[3] = {6, 7};
+  qcmCfg.flowWeights_ref()[cfg::BurstMonitorWeight::FLOW_SUM_RX_BYTES] = 9;
+  *qcmCfg.numFlowSamplesPerView_ref() = 11;
+  *qcmCfg.flowLimit_ref() = 13;
+  *qcmCfg.exportThreshold_ref() = 20;
+  *qcmCfg.agingIntervalInMsecs_ref() = 21;
+  *qcmCfg.monitorQcmPortList_ref() = {102, 103, 104, 105};
+  *qcmCfg.port2QosQueueIds_ref() = {};
+  qcmCfg.port2QosQueueIds_ref()[3] = {6, 7};
   int collectorDscp = 20;
   qcmCfg.collectorDscp_ref() = collectorDscp;
   int ppsToQcm = 1000;

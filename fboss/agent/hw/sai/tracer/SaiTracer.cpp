@@ -57,7 +57,10 @@ DEFINE_bool(
     "At runtime, it should be disabled to reduce logging overhead."
     "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
 
-DEFINE_string(sai_log, "/tmp/sai_log.c", "File path to the SAI Replayer logs");
+DEFINE_string(
+    sai_log,
+    "/var/facebook/logs/fboss/sai_replayer.log",
+    "File path to the SAI Replayer logs");
 
 DEFINE_int32(
     default_list_size,
@@ -70,18 +73,10 @@ DEFINE_int32(
     "Default number of the lists initialzied by SAI replayer");
 
 DEFINE_int32(
-    buffer_size,
-    409600,
-    "Buffer size in bytes. Note that there're two buffers"
-    "in AsyncLogger implementation");
-
-DEFINE_int32(
     log_timeout,
     100,
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
-
-constexpr uint32_t MIN_BUFFER_SIZE = 8192;
 
 using facebook::fboss::SaiTracer;
 using folly::to;
@@ -91,11 +86,40 @@ using std::vector;
 extern "C" {
 
 // Real functions for Sai APIs
+sai_status_t __real_sai_api_initialize(
+    uint64_t flags,
+    const sai_service_method_table_t* services);
+
 sai_status_t __real_sai_api_query(
     sai_api_t sai_api_id,
     void** api_method_table);
 
 // Wrap function for Sai APIs
+sai_status_t __wrap_sai_api_initialize(
+    uint64_t flags,
+    const sai_service_method_table_t* services) {
+  sai_status_t rv = __real_sai_api_initialize(flags, services);
+
+  if (services) {
+    // Reset service table iterator
+    services->profile_get_next_value(0, nullptr, nullptr);
+
+    std::array<const char*, 32> variables;
+    std::array<const char*, 32> values;
+    int size = 0;
+
+    while (services->profile_get_next_value(
+               0, &variables[size], &values[size]) != -1) {
+      size++;
+    }
+
+    SaiTracer::getInstance()->logApiInitialize(
+        variables.data(), values.data(), size);
+  }
+
+  return rv;
+}
+
 sai_status_t __wrap_sai_api_query(
     sai_api_t sai_api_id,
     void** api_method_table) {
@@ -250,17 +274,8 @@ namespace facebook::fboss {
 
 SaiTracer::SaiTracer() {
   if (FLAGS_enable_replayer) {
-    if (FLAGS_buffer_size < MIN_BUFFER_SIZE) {
-      asyncLogger_ = std::make_unique<AsyncLogger>(
-          FLAGS_sai_log, MIN_BUFFER_SIZE, FLAGS_log_timeout);
-      XLOG(WARN)
-          << "Buffer size for Sai Replayer is smaller than min buffer size "
-          << MIN_BUFFER_SIZE << ". Initializing Sai Replayer with buffer size "
-          << MIN_BUFFER_SIZE << " instead.";
-    } else {
-      asyncLogger_ = std::make_unique<AsyncLogger>(
-          FLAGS_sai_log, FLAGS_buffer_size, FLAGS_log_timeout);
-    }
+    asyncLogger_ =
+        std::make_unique<AsyncLogger>(FLAGS_sai_log, FLAGS_log_timeout);
 
     asyncLogger_->startFlushThread();
     asyncLogger_->appendLog(cpp_header_, strlen(cpp_header_));
@@ -291,6 +306,37 @@ void SaiTracer::writeToFile(const vector<string>& strVec) {
   auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
 
   asyncLogger_->appendLog(lines.c_str(), lines.size());
+}
+
+void SaiTracer::logApiInitialize(
+    const char** variables,
+    const char** values,
+    int size) {
+  vector<string> lines;
+
+  for (int i = 0; i < size; ++i) {
+    if (!strcmp(variables[i], SAI_KEY_WARM_BOOT_WRITE_FILE) ||
+        !strcmp(variables[i], SAI_KEY_WARM_BOOT_READ_FILE)) {
+      // Append '_replayer' suffix to sai adapter state file
+      lines.push_back(to<string>(
+          "kSaiProfileValues.emplace(\"",
+          variables[i],
+          "\",\"",
+          values[i],
+          "_replayer",
+          "\")"));
+    } else {
+      lines.push_back(to<string>(
+          "kSaiProfileValues.emplace(\"",
+          variables[i],
+          "\",\"",
+          values[i],
+          "\")"));
+    }
+  }
+
+  lines.push_back("sai_api_initialize(0, &kSaiServiceMethodTable)");
+  writeToFile(lines);
 }
 
 void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {

@@ -41,7 +41,7 @@ void BcmPortTable::addBcmPort(bcm_port_t logicalPort, bool warmBoot) {
   BcmPlatformPort* platformPort = dynamic_cast<BcmPlatformPort*>(
       hw_->getPlatform()->getPlatformPort(PortID(logicalPort)));
   if (platformPort == nullptr) {
-    throw FbossError("Can't find platform port for port:", logicalPort);
+    throw FbossError("Can't find platform port for port: ", logicalPort);
   }
 
   // Create a BcmPort object
@@ -50,8 +50,14 @@ void BcmPortTable::addBcmPort(bcm_port_t logicalPort, bool warmBoot) {
   platformPort->setBcmPort(bcmPort.get());
   bcmPort->init(warmBoot);
 
-  fbossPhysicalPorts_[fbossPortID] = bcmPort.get();
-  bcmPhysicalPorts_[logicalPort] = std::move(bcmPort);
+  auto it = bcmPhysicalPorts_.find(logicalPort);
+  if (it != bcmPhysicalPorts_.end()) {
+    throw FbossError(
+        "Cannot call addBcmPort on a port that already exists: ", logicalPort);
+  }
+
+  fbossPhysicalPorts_.insert(fbossPortID, bcmPort.get());
+  bcmPhysicalPorts_.insert(logicalPort, std::move(bcmPort));
 }
 
 void BcmPortTable::removeBcmPort(bcm_port_t logicalPort) {
@@ -60,6 +66,13 @@ void BcmPortTable::removeBcmPort(bcm_port_t logicalPort) {
       hw_->getPlatform()->getPlatformPort(PortID(logicalPort)));
   if (platformPort == nullptr) {
     throw FbossError("Can't find platform port for port:", logicalPort);
+  }
+
+  auto it = bcmPhysicalPorts_.find(logicalPort);
+  if (it == bcmPhysicalPorts_.end()) {
+    throw FbossError(
+        "Cannot call removeBcmPort for a port that doesn't exist: ",
+        logicalPort);
   }
 
   PortID fbossPortID = platformPort->getPortID();
@@ -138,12 +151,6 @@ void BcmPortTable::updatePortStats() {
     BcmPort* bcmPort = entry.second.get();
     bcmPort->updateStats();
   }
-}
-
-void BcmPortTable::forFilteredEach(Filter predicate, FilterAction action)
-    const {
-  auto iterator = FilterIterator(fbossPhysicalPorts_, predicate);
-  std::for_each(iterator.begin(), iterator.end(), action);
 }
 
 void BcmPortTable::initPortGroups() {

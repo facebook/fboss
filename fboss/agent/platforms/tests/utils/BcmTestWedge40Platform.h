@@ -54,6 +54,8 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
 
   HwAsic* getAsic() const override;
 
+  void initLEDs(int unit) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;

@@ -86,7 +86,10 @@ std::string PlatformProductInfo::getProductName() {
 void PlatformProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
-    if (modelName.find("Wedge100") == 0 || modelName.find("WEDGE100") == 0) {
+    if (auto platformMode = getDevPlatformMode()) {
+      mode_ = *platformMode;
+    } else if (
+        modelName.find("Wedge100") == 0 || modelName.find("WEDGE100") == 0) {
       // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
       mode_ = PlatformMode::WEDGE100;
     } else if (
@@ -134,6 +137,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::FAKE_WEDGE40;
     } else if (FLAGS_mode == "wedge400") {
       mode_ = PlatformMode::WEDGE400;
+    } else if (FLAGS_mode == "fuji") {
+      mode_ = PlatformMode::FUJI;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

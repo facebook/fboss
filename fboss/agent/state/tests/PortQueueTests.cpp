@@ -62,9 +62,9 @@ cfg::ActiveQueueManagement getECNAqmConfig() {
 cfg::SwitchConfig generateTestConfig() {
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   // we just need to test the any queue and set every setting
   cfg::PortQueue queue0;
   queue0.id = 0;
@@ -180,9 +180,9 @@ TEST(PortQueue, stateDelta) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
     cfg::PortQueue queue;
     queue.id = i;
@@ -242,9 +242,9 @@ TEST(PortQueue, aqmState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
   queue.id = 0;
   queue.weight_ref() = 1;
@@ -271,9 +271,9 @@ TEST(PortQueue, aqmBadState) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
   cfg::PortQueue queue;
   queue.id = 0;
   queue.weight_ref() = 1;
@@ -365,9 +365,9 @@ TEST(PortQueue, checkValidPortQueueConfigRef) {
 
   cfg::SwitchConfig config;
   config.ports_ref()->resize(1);
-  *config.ports[0].logicalID_ref() = 1;
+  *config.ports_ref()[0].logicalID_ref() = 1;
   config.ports_ref()[0].name_ref() = "port1";
-  *config.ports[0].state_ref() = cfg::PortState::ENABLED;
+  *config.ports_ref()[0].state_ref() = cfg::PortState::ENABLED;
 
   cfg::PortQueue queue0;
   queue0.id = 0;

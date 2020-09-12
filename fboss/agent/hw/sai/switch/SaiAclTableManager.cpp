@@ -48,14 +48,7 @@ SaiAclTableManager::SaiAclTableManager(
           getMetaDataMask(neighborDstUserMetaDataRangeMax_)) {}
 
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
-  /*
-   * If an ASIC supports AClv4 or ACLv6, it should also support querying
-   * the meta data range.
-   * AclTableManager object is created by the code path is not exercised if
-   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
-   */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
+  if (platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
     sai_u32_range_t u32Range;
     u32Range.min = 0;
     u32Range.max = 0;
@@ -68,40 +61,12 @@ sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
 }
 
 sai_u32_range_t SaiAclTableManager::getRouteDstUserMetaDataRange() const {
-  /*
-   * If an ASIC supports AClv4 or ACLv6, it should also support querying
-   * the meta data range.
-   * AclTableManager object is created by the code path is not exercised if
-   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
-   */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
-    sai_u32_range_t u32Range;
-    u32Range.min = 0;
-    u32Range.max = 0;
-    return u32Range;
-  }
-
   return SaiApiTable::getInstance()->switchApi().getAttribute(
       managerTable_->switchManager().getSwitchSaiId(),
       SaiSwitchTraits::Attributes::RouteDstUserMetaDataRange());
 }
 
 sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
-  /*
-   * If an ASIC supports AClv4 or ACLv6, it should also support querying
-   * the meta data range.
-   * AclTableManager object is created by the code path is not exercised if
-   * either ACLv4 or ACLv6 are not supported, so ok to return 0.
-   */
-  if (!(platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-        platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6))) {
-    sai_u32_range_t u32Range;
-    u32Range.min = 0;
-    u32Range.max = 0;
-    return u32Range;
-  }
-
   return SaiApiTable::getInstance()->switchApi().getAttribute(
       managerTable_->switchManager().getSwitchSaiId(),
       SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange());
@@ -140,58 +105,7 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
 
 std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
-    SaiAclTableManager::createAclTableV4AndV6Helper(bool isV4) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
-  std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
-  std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
-                                          SAI_ACL_ACTION_TYPE_COUNTER,
-                                          SAI_ACL_ACTION_TYPE_MIRROR_INGRESS,
-                                          SAI_ACL_ACTION_TYPE_MIRROR_EGRESS,
-                                          SAI_ACL_ACTION_TYPE_SET_TC,
-                                          SAI_ACL_ACTION_TYPE_SET_DSCP};
-
-  SaiAclTableTraits::AdapterHostKey adapterHostKey{
-      SAI_ACL_STAGE_INGRESS,
-      bindPointList,
-      actionTypeList,
-      !isV4, // srcIpv6
-      !isV4, // dstIpv6
-      isV4, // srcIp4
-      isV4, // dstIp4
-      false, // l4SrcPort
-      false, // l4DstPort
-      true, // ipProtocol
-      false, // tcpFlags
-      false, // srcPort
-      false, // outPort
-      false, // ipFrag
-      false, // icmpv4Type
-      false, // icmpv4Code
-      false, // icmpv6Type
-      false, // icmpv6Code
-      true, // dscp
-      false, // dstMac
-      true, // ipType
-      true, // ttl
-      false, // fdb meta
-      false, // route meta
-      false // neighbor meta
-  };
-
-  SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
-  return std::make_pair(adapterHostKey, attributes);
-}
-
-std::
-    pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
     SaiAclTableManager::createAclTableHelper() {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION,
                                           SAI_ACL_ACTION_TYPE_COUNTER,
@@ -201,6 +115,23 @@ std::
                                           SAI_ACL_ACTION_TYPE_SET_DSCP};
 
   /*
+   * Tajo does not support srcPort, outPort, dstMac and
+   * {fdb, route, neighbor}DstUserMeta yet.
+   * Thus, disable those on Tajo for now.
+   */
+  auto fieldSrcPort =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldOutPort =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldDstMac =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
    * However, the solution is not applicable for Trident2 as FBOSS does not
    * implement queues on Trident2.
@@ -208,8 +139,19 @@ std::
    * hardwares. Thus, avoid programming unncessary qualifiers (or else we run
    * out resources).
    */
-  auto fieldFdbDstUserMeta = platform_->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2
+  auto fieldFdbDstUserMeta = ((platform_->getAsic()->getAsicType() !=
+                               HwAsic::AsicType::ASIC_TYPE_TRIDENT2) &&
+                              (platform_->getAsic()->getAsicType() !=
+                               HwAsic::AsicType::ASIC_TYPE_TAJO))
+      ? true
+      : false;
+
+  auto fieldRouteDstUserMeta =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
+      ? true
+      : false;
+  auto fieldNeighborDstUserMeta =
+      platform_->getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_TAJO
       ? true
       : false;
 
@@ -225,20 +167,20 @@ std::
       true, // l4DstPort
       true, // ipProtocol
       true, // tcpFlags
-      true, // srcPort
-      true, // outPort
+      fieldSrcPort, // srcPort
+      fieldOutPort, // outPort
       true, // ipFrag
       true, // icmpV4Type,
       true, // icmpV4Code,
       true, // icmpV6Type,
       true, // icmpV6Code,
       true, // dscp
-      true, // dstMac
+      fieldDstMac, // dstMac
       true, // ipType
       true, // ttl
       fieldFdbDstUserMeta, // fdb meta
-      true, // route meta
-      true // neighbor meta
+      fieldRouteDstUserMeta, // route meta
+      fieldNeighborDstUserMeta // neighbor meta
   };
 
   SaiAclTableTraits::CreateAttributes attributes{adapterHostKey};
@@ -247,10 +189,6 @@ std::
 }
 
 AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   /*
    * TODO(skhare)
    * Add single ACL Table for now (called during SaiSwitch::init()).
@@ -271,16 +209,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
   SaiAclTableTraits::AdapterHostKey adapterHostKey;
   SaiAclTableTraits::CreateAttributes attributes;
 
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
-    std::tie(adapterHostKey, attributes) = createAclTableHelper();
-  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4)) {
-    std::tie(adapterHostKey, attributes) =
-        createAclTableV4AndV6Helper(true /* isV4 */);
-  } else if (platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6)) {
-    std::tie(adapterHostKey, attributes) =
-        createAclTableV4AndV6Helper(false /* isV4 */);
-  }
+  std::tie(adapterHostKey, attributes) = createAclTableHelper();
 
   std::shared_ptr<SaiStore> s = SaiStore::getInstance();
   auto& aclTableStore = s->get<SaiAclTableTraits>();
@@ -302,10 +231,6 @@ AclTableSaiId SaiAclTableManager::addAclTable(const std::string& aclTableName) {
 }
 
 void SaiAclTableManager::removeAclTable() {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to remove
@@ -319,10 +244,6 @@ void SaiAclTableManager::removeAclTable() {
 }
 
 void SaiAclTableManager::changedAclTable() {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   /*
    * TODO(skhare)
    * Extend SwitchState to carry AclTable, and then process it to change
@@ -530,10 +451,6 @@ std::shared_ptr<SaiAclCounter> SaiAclTableManager::addAclCounter(
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   // If we attempt to add entry to a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -884,10 +801,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 void SaiAclTableManager::removeAclEntry(
     const std::shared_ptr<AclEntry>& removedAclEntry,
     const std::string& aclTableName) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   // If we attempt to remove entry for a table that does not exist, fail.
   auto aclTableHandle = getAclTableHandle(aclTableName);
   if (!aclTableHandle) {
@@ -912,10 +825,6 @@ void SaiAclTableManager::changedAclEntry(
     const std::shared_ptr<AclEntry>& oldAclEntry,
     const std::shared_ptr<AclEntry>& newAclEntry,
     const std::string& aclTableName) {
-  CHECK(
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv4) ||
-      platform_->getAsic()->isSupported(HwAsic::Feature::ACLv6));
-
   /*
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.

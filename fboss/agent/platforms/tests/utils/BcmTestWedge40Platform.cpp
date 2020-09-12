@@ -15,6 +15,8 @@
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge40Port.h"
 
+#include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
+
 namespace facebook::fboss {
 
 BcmTestWedge40Platform::BcmTestWedge40Platform(
@@ -45,6 +47,13 @@ const PortQueue& BcmTestWedge40Platform::getDefaultControlPlaneQueueSettings(
     cfg::StreamType streamType) const {
   return utility::getDefaultControlPlaneQueueSettings(
       utility::BcmChip::TRIDENT2, streamType);
+}
+
+void BcmTestWedge40Platform::initLEDs(int unit) {
+  BcmTestPlatform::initLEDs(
+      unit,
+      Wedge40LedUtils::defaultLedCode(),
+      Wedge40LedUtils::defaultLedCode());
 }
 
 } // namespace facebook::fboss

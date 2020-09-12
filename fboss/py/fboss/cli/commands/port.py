@@ -597,7 +597,7 @@ class PortStatusDetailCmd(object):
 
     def _mw_to_dbm(self, mw):
         if mw == 0:
-            return 0.0
+            return -45.0
         else:
             return 10 * log10(mw)
 

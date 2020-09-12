@@ -136,6 +136,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
   // Set bst stats update interval to 0 so we always refresh BST stats
   // in each updateStats call
   FLAGS_update_bststats_interval_s = 0;
+  getPlatform()->initLEDs(getHwSwitch()->getUnit());
 }
 
 std::vector<PortID> BcmSwitchEnsemble::logicalPortIds() const {

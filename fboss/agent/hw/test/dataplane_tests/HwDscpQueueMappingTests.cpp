@@ -76,7 +76,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
   }
 
   void sendUdpPkt(int hopLimit = 64) {
-    getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(hopLimit));
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(createUdpPkt(hopLimit));
   }
 
  private:

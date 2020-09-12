@@ -17,6 +17,9 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+
 extern "C" {
 #include <bcm/port.h>
 }
@@ -35,8 +38,10 @@ std::vector<facebook::fboss::cfg::Port>::iterator findCfgPort(
     facebook::fboss::cfg::SwitchConfig* cfg,
     facebook::fboss::PortID portID) {
   return std::find_if(
-      cfg->ports.begin(), cfg->ports.end(), [&portID](auto& port) {
-        return facebook::fboss::PortID(port.logicalID) == portID;
+      cfg->ports_ref()->begin(),
+      cfg->ports_ref()->end(),
+      [&portID](auto& port) {
+        return facebook::fboss::PortID(*port.logicalID_ref()) == portID;
       });
 }
 
@@ -327,4 +332,9 @@ void verifyTxSettting(
   }
 }
 
+void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
+  BcmTestPlatform* platform =
+      static_cast<BcmTestPlatform*>(ensemble->getPlatform());
+  EXPECT_TRUE(platform->verifyLEDStatus(port, up));
+}
 } // namespace facebook::fboss::utility
