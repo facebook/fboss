@@ -187,4 +187,52 @@ std::optional<TransceiverInfo> Platform::getOverrideTransceiverInfo(
   }
   return iter->second;
 }
+
+int Platform::getLaneCount(cfg::PortProfileID profile) const {
+  switch (profile) {
+    case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL:
+      return 1;
+
+    case cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL:
+      return 2;
+
+    case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
+    case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER:
+      return 4;
+
+    case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N:
+    case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
+      return 8;
+
+    case cfg::PortProfileID::PROFILE_DEFAULT:
+      break;
+  }
+  return 1;
+}
 } // namespace facebook::fboss

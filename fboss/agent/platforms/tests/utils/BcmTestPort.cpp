@@ -10,6 +10,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestPort.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 namespace facebook::fboss {
@@ -72,6 +73,11 @@ folly::Future<TransceiverInfo> BcmTestPort::getTransceiverInfo() const {
     return transceiver.value();
   }
   throw FbossError("failed to get transceiver info for ", getPortID());
+}
+
+int BcmTestPort::numberOfLanes() const {
+  auto profile = getBcmPort()->getCurrentProfile();
+  return getPlatform()->getLaneCount(profile);
 }
 
 } // namespace facebook::fboss

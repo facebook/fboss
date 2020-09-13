@@ -34,8 +34,8 @@ void BcmTestWedge100Port::linkStatusChanged(bool up, bool adminUp) {
   // Using non-compact mode with single lane mode
   auto bcmPort = getBcmPort();
 
-  auto color =
-      Wedge100LedUtils::getLEDColor(bcmPort->getPortID(), 1, up, adminUp);
+  auto color = Wedge100LedUtils::getLEDColor(
+      bcmPort->getPortID(), BcmTestPort::numberOfLanes(), up, adminUp);
   facebook::fboss::BcmLedUtils::setWedge100PortStatus(
       0, bcmPort->getPortID(), static_cast<uint32_t>(color));
 }

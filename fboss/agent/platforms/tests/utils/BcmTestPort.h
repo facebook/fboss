@@ -67,6 +67,8 @@ class BcmTestPort : public BcmPlatformPort {
 
   folly::Future<TransceiverInfo> getTransceiverInfo() const override;
 
+  int numberOfLanes() const;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestPort(BcmTestPort const&) = delete;

@@ -257,6 +257,7 @@ class Platform {
   getPort2OverrideTransceiverInfo() const;
 
   std::optional<TransceiverInfo> getOverrideTransceiverInfo(PortID port) const;
+  int getLaneCount(cfg::PortProfileID profile) const;
 
  private:
   /*

@@ -26,5 +26,6 @@ void setPortLoopbackMode(
 TransceiverInfo getTransceiverInfo(
     PortID port,
     TransmitterTechnology tech = TransmitterTechnology::COPPER);
+
 } // namespace utility
 } // namespace facebook::fboss
