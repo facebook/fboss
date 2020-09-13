@@ -39,10 +39,8 @@
 
 namespace facebook::fboss {
 
-SaiManagerTable::SaiManagerTable(
-    SaiPlatform* platform,
-    const std::optional<SwitchSaiId>& switchId) {
-  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform, switchId);
+SaiManagerTable::SaiManagerTable(SaiPlatform* platform, BootType bootType) {
+  switchManager_ = std::make_unique<SaiSwitchManager>(this, platform, bootType);
 }
 
 void SaiManagerTable::createSaiTableManagers(

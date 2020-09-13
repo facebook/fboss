@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/Types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <memory>
 #include <optional>
@@ -47,9 +48,7 @@ class SaiUnsupportedFeatureManager;
 
 class SaiManagerTable {
  public:
-  SaiManagerTable(
-      SaiPlatform* platform,
-      const std::optional<SwitchSaiId>& switchId);
+  SaiManagerTable(SaiPlatform* platform, BootType bootType);
   void createSaiTableManagers(
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);

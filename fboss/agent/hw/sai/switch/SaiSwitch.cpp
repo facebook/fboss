@@ -733,8 +733,6 @@ HwInitResult SaiSwitch::initLocked(
   std::unique_ptr<folly::dynamic> adapterKeysJson;
   std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
 
-  std::optional<SwitchSaiId> existingSwitchId;
-
   sai_api_initialize(0, platform_->getServiceMethodTable());
   if (bootType_ == BootType::WARM_BOOT) {
     auto switchStateJson = wbHelper->getWarmBootState();
@@ -751,19 +749,11 @@ HwInitResult SaiSwitch::initLocked(
       const auto& switchKeysJson = (*adapterKeysJson)[saiObjectTypeToString(
           SaiSwitchTraits::ObjectType)];
       CHECK_EQ(1, switchKeysJson.size());
-      existingSwitchId =
-          fromFollyDynamic<SaiSwitchTraits>(*switchKeysJson.begin());
-    } else {
-      // TODO - check if we can call get_object_keys to retrieve
-      // switch object key before having called create_switch first.
-      //(get_object_keys takes a switch id parameter)
-      existingSwitchId = 0;
     }
   }
   SaiApiTable::getInstance()->queryApis();
   concurrentIndices_ = std::make_unique<ConcurrentIndices>();
-  managerTable_ =
-      std::make_unique<SaiManagerTable>(platform_, existingSwitchId);
+  managerTable_ = std::make_unique<SaiManagerTable>(platform_, bootType_);
   switchId_ = managerTable_->switchManager().getSwitchSaiId();
   // TODO(borisb): find a cleaner solution to this problem.
   // perhaps reload fixes it?

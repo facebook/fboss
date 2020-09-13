@@ -114,15 +114,14 @@ namespace facebook::fboss {
 SaiSwitchManager::SaiSwitchManager(
     SaiManagerTable* managerTable,
     SaiPlatform* platform,
-    const std::optional<SwitchSaiId>& switchId)
+    BootType bootType)
     : managerTable_(managerTable), platform_(platform) {
-  if (switchId) {
+  if (bootType == BootType::WARM_BOOT) {
     // Extract switch adapter key and create switch only with the mandatory
     // init attribute (warm boot path)
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
-        getSwitchAttributes(platform, true),
-        *switchId /* switch id; ignored */);
+        getSwitchAttributes(platform, true), 0 /* switch id; ignored */);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
     switch_->setOptionalAttribute(getSrcMac(platform));

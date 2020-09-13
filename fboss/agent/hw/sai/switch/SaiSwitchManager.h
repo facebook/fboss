@@ -41,7 +41,7 @@ class SaiSwitchManager {
   SaiSwitchManager(
       SaiManagerTable* managerTable,
       SaiPlatform* platform,
-      const std::optional<SwitchSaiId>& switchId);
+      BootType bootType);
   SwitchSaiId getSwitchSaiId() const;
 
   void setQosPolicy();
