@@ -65,11 +65,11 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
     SaiPlatform* platform,
     bool mandatoryOnly) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
-  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo;
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo{
+      getHwInfo(platform)};
   std::optional<SaiSwitchTraits::Attributes::SrcMac> srcMac;
   std::optional<SaiSwitchTraits::Attributes::MacAgingTime> macAgingTime;
   if (!mandatoryOnly) {
-    hwInfo = getHwInfo(platform);
     srcMac = getSrcMac(platform);
     macAgingTime = getMacAgingTime();
   }
@@ -126,7 +126,6 @@ SaiSwitchManager::SaiSwitchManager(
     CHECK_EQ(*switchId, newSwitchId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(*switchId);
-    switch_->setOptionalAttribute(getHwInfo(platform));
     switch_->setOptionalAttribute(getSrcMac(platform));
     switch_->setOptionalAttribute(getMacAgingTime());
   } else {
