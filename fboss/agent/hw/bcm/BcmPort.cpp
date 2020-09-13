@@ -1788,4 +1788,11 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
 }
 
+cfg::PortProfileID BcmPort::getCurrentProfile() const {
+  if (getHW()->getRunState() < SwitchRunState::CONFIGURED) {
+    // switch is not configured yet, in this case profile config may not be set.
+    return cfg::PortProfileID::PROFILE_DEFAULT;
+  }
+  return (*programmedSettings_.rlock())->getProfileID();
+}
 } // namespace facebook::fboss

@@ -188,6 +188,8 @@ class BcmPort {
    */
   void enableL3(bool enableV4, bool enableV6);
 
+  cfg::PortProfileID getCurrentProfile() const;
+
  private:
   class BcmPortStats {
     // All actions or instantiations of this class need to be done in a
