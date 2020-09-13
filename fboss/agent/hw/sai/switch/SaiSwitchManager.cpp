@@ -123,9 +123,8 @@ SaiSwitchManager::SaiSwitchManager(
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
         getSwitchAttributes(platform, true),
         *switchId /* switch id; ignored */);
-    CHECK_EQ(*switchId, newSwitchId);
     // Load all switch attributes
-    switch_ = std::make_unique<SaiSwitchObj>(*switchId);
+    switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
     switch_->setOptionalAttribute(getSrcMac(platform));
     switch_->setOptionalAttribute(getMacAgingTime());
   } else {
