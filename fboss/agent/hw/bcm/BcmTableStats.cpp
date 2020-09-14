@@ -33,7 +33,7 @@ namespace {
 constexpr auto kPerIpv6Mask65_127SlotUsage = 2;
 }
 
-bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) {
+bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   // HW status info
   bcm_l3_info_t l3HwStatus;
   auto ret = bcm_l3_info(hw_->getUnit(), &l3HwStatus);
@@ -63,7 +63,7 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) {
   return true;
 }
 
-bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) {
+bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
   // IPv6 LPM table info
   std::array<int, 6> routeSlots = {0, 0, 0, 0, 0, 0};
   std::array<bcm_switch_object_t, routeSlots.size()> bcmFreeEntryTypes = {
@@ -107,7 +107,7 @@ bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) {
   return true;
 }
 
-bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) {
+bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) const {
   // IPv6 LPM table info
   std::array<int, 3> routeSlots = {0, 0, 0};
   std::array<bcm_switch_object_t, routeSlots.size()> bcmFreeEntryTypes = {
@@ -139,7 +139,7 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) {
   return true;
 }
 
-bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) {
+bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
   bcm_field_group_status_t aclStatus;
   auto ret =
       bcm_field_group_status_get(hw_->getUnit(), FLAGS_acl_gid, &aclStatus);
@@ -166,7 +166,7 @@ bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) {
 
 void BcmHwTableStatManager::updateBcmStateChangeStats(
     const StateDelta& delta,
-    HwResourceStats* stats) {
+    HwResourceStats* stats) const {
   if (*stats->mirrors_erspan_ref() ==
       hardware_stats_constants::STAT_UNINITIALIZED()) {
     *stats->mirrors_erspan_ref() = 0;
@@ -209,7 +209,7 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
 
 void BcmHwTableStatManager::decrementBcmMirrorStat(
     const std::shared_ptr<Mirror>& removedMirror,
-    HwResourceStats* stats) {
+    HwResourceStats* stats) const {
   CHECK(removedMirror->isResolved());
   auto tunnel = removedMirror->getMirrorTunnel();
   if (!tunnel) {
@@ -223,7 +223,7 @@ void BcmHwTableStatManager::decrementBcmMirrorStat(
 
 void BcmHwTableStatManager::incrementBcmMirrorStat(
     const std::shared_ptr<Mirror>& addedMirror,
-    HwResourceStats* stats) {
+    HwResourceStats* stats) const {
   CHECK(addedMirror->isResolved());
   auto tunnel = addedMirror->getMirrorTunnel();
   if (!tunnel) {
@@ -300,7 +300,7 @@ void BcmHwTableStatManager::publish(HwResourceStats stats) const {
 
 void BcmHwTableStatManager::refresh(
     const StateDelta& delta,
-    HwResourceStats* stats) {
+    HwResourceStats* stats) const {
   *stats->hw_table_stats_stale_ref() =
       !(refreshHwStatusStats(stats) && refreshLPMStats(stats) &&
         refreshFPStats(stats));

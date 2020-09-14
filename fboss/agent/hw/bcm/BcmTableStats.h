@@ -23,33 +23,32 @@ class BcmHwTableStatManager {
       bool isAlpmEnabled = false)
       : hw_(hw), isAlpmEnabled_(isAlpmEnabled) {}
 
-  void refresh(const StateDelta& delta, HwResourceStats* stats);
+  void refresh(const StateDelta& delta, HwResourceStats* stats) const;
   void publish(HwResourceStats stats) const;
 
  private:
-  bool refreshHwStatusStats(HwResourceStats* stats);
+  bool refreshHwStatusStats(HwResourceStats* stats) const;
   // Stats for both LPM and ALPM mode
-  bool refreshLPMStats(HwResourceStats* stats);
+  bool refreshLPMStats(HwResourceStats* stats) const;
   // Stats only supported in LPM mode
-  bool refreshLPMOnlyStats(HwResourceStats* stats);
+  bool refreshLPMOnlyStats(HwResourceStats* stats) const;
   // Stats pertaining to FP
-  bool refreshFPStats(HwResourceStats* stats);
+  bool refreshFPStats(HwResourceStats* stats) const;
 
   void updateBcmStateChangeStats(
       const StateDelta& delta,
-      HwResourceStats* stats);
+      HwResourceStats* stats) const;
 
   void decrementBcmMirrorStat(
       const std::shared_ptr<Mirror>& removedMirror,
-      HwResourceStats* stats);
+      HwResourceStats* stats) const;
   void incrementBcmMirrorStat(
       const std::shared_ptr<Mirror>& addedMirror,
-      HwResourceStats* stats);
+      HwResourceStats* stats) const;
 
   const BcmSwitch* hw_{nullptr};
 
-  HwResourceStats stats_;
-  bool isAlpmEnabled_;
+  const bool isAlpmEnabled_;
 };
 
 } // namespace facebook::fboss
