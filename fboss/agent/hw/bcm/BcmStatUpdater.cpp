@@ -139,9 +139,8 @@ void BcmStatUpdater::updateAclStats() {
         entry.second.get());
   }
 }
-
 void BcmStatUpdater::updateHwTableStats() {
-  bcmTableStatsManager_->publish(*tableStats_.rlock());
+  bcmTableStatsManager_->publish(*resourceStats_.rlock());
 }
 
 void BcmStatUpdater::updatePrbsStats() {
@@ -266,7 +265,7 @@ void BcmStatUpdater::clearPortAsicPrbsStats(int32_t portId) {
 }
 
 void BcmStatUpdater::refreshHwTableStats(const StateDelta& delta) {
-  auto stats = tableStats_.wlock();
+  auto stats = resourceStats_.wlock();
   bcmTableStatsManager_->refresh(delta, &(*stats));
 }
 

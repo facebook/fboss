@@ -742,7 +742,7 @@ TEST_F(BcmRouteTest, AddV6HostRoute) {
 }
 
 TEST_F(BcmRouteTest, HostRouteStat) {
-  BcmHwTableStats preUpdateStat;
+  HwResourceStats preUpdateStat;
   auto setup = [&]() {
     applyNewConfig(initialConfig());
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
@@ -755,7 +755,7 @@ TEST_F(BcmRouteTest, HostRouteStat) {
   };
 
   auto verify = [&]() {
-    BcmHwTableStats postUpdateStat;
+    HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     auto expectedV4HostRouteIncrement =
         getPlatform()->canUseHostTableForHostRoutes() ? 2 /*host route + nhop*/
@@ -775,7 +775,7 @@ TEST_F(BcmRouteTest, HostRouteStat) {
 }
 
 TEST_F(BcmRouteTest, LpmRouteV4Stat) {
-  BcmHwTableStats preUpdateStat;
+  HwResourceStats preUpdateStat;
   auto setup = [&]() {
     applyNewConfig(initialConfig());
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
@@ -788,7 +788,7 @@ TEST_F(BcmRouteTest, LpmRouteV4Stat) {
   };
 
   auto verify = [&]() {
-    BcmHwTableStats postUpdateStat;
+    HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     EXPECT_EQ(
         *postUpdateStat.lpm_ipv4_used_ref(),
@@ -803,7 +803,7 @@ TEST_F(BcmRouteTest, LpmRouteV4Stat) {
 
 /* TODO (pshaikh) T36690958
 TEST_F(BcmRouteTest, LpmRouteV6Stat64b) {
-  BcmHwTableStats preUpdateStat;
+  HwResourceStats preUpdateStat;
   auto setup = [&]() {
     applyNewConfig(initialConfig());
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
@@ -817,7 +817,7 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat64b) {
   };
 
   auto verify = [&]() {
-    BcmHwTableStats postUpdateStat;
+    HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     EXPECT_EQ(postUpdateStat.lpm_ipv4_used, preUpdateStat.lpm_ipv4_used);
     EXPECT_EQ(
@@ -832,7 +832,7 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat64b) {
 }*/
 
 TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
-  BcmHwTableStats preUpdateStat;
+  HwResourceStats preUpdateStat;
   auto setup = [&]() {
     applyNewConfig(initialConfig());
     preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
@@ -845,7 +845,7 @@ TEST_F(BcmRouteTest, LpmRouteV6Stat128b) {
   };
 
   auto verify = [&]() {
-    BcmHwTableStats postUpdateStat;
+    HwResourceStats postUpdateStat;
     postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
     EXPECT_EQ(
         *postUpdateStat.lpm_ipv4_used_ref(),

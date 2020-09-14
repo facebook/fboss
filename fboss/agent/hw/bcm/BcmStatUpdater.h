@@ -191,8 +191,8 @@ class BcmStatUpdater {
   std::vector<PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);
   void clearPortAsicPrbsStats(int32_t portId);
 
-  BcmHwTableStats getHwTableStats() {
-    return *tableStats_.rlock();
+  HwResourceStats getHwTableStats() {
+    return *resourceStats_.rlock();
   }
 
  private:
@@ -227,7 +227,7 @@ class BcmStatUpdater {
     BcmAclStatHandle handle;
     cfg::CounterType counterType;
   };
-  folly::Synchronized<BcmHwTableStats> tableStats_;
+  folly::Synchronized<HwResourceStats> resourceStats_;
   std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
   std::queue<std::pair<std::string, AclCounterDescriptor>> toBeAddedAclStats_;
   folly::Synchronized<
