@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>
@@ -171,7 +170,8 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
   // We only programmed a packet counter, but TD2 programmed both bytes and
   // packets counters.
   int expectedNumCounters = 1;
-  if (SocUtils::isTrident2(bcmSwitch->getUnit()) &&
+  if (bcmSwitch->getPlatform()->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2 &&
       bcmSwitch->getBootType() == BootType::WARM_BOOT) {
     expectedNumCounters = 2;
   }

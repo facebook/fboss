@@ -436,7 +436,6 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmMacTable.cpp
       fboss/agent/hw/bcm/PacketTraceUtils.cpp
       fboss/agent/hw/bcm/RxUtils.cpp
-      fboss/agent/hw/bcm/SocUtils.cpp
       fboss/agent/hw/bcm/oss/BcmAPI.cpp
       fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp
       fboss/agent/hw/bcm/oss/BcmPort.cpp

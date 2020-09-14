@@ -37,7 +37,6 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
@@ -1282,7 +1281,8 @@ uint32_t BcmPort::getCL91FECStatus() const {
 }
 
 bool BcmPort::isCL91FECApplicable() const {
-  return SocUtils::isTomahawk(unit_);
+  return hw_->getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK;
 }
 
 void BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
@@ -1633,7 +1633,9 @@ bool BcmPort::isFECEnabled() {
 
 void BcmPort::initCustomStats() const {
   int rv = 0;
-  if (SocUtils::isTomahawk3(unit_)) {
+  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
+  if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
     rv = bcm_stat_custom_add(
         0, port_, snmpBcmCustomReceive3, bcmDbgCntRxL3DstDiscardDrop);
   } else {

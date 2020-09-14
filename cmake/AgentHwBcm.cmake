@@ -78,7 +78,6 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmMacTable.cpp
   fboss/agent/hw/bcm/PacketTraceUtils.cpp
   fboss/agent/hw/bcm/RxUtils.cpp
-  fboss/agent/hw/bcm/SocUtils.cpp
   fboss/agent/hw/bcm/oss/BcmSwitch.cpp
   fboss/agent/hw/bcm/oss/BcmAPI.cpp
   fboss/agent/hw/bcm/oss/BcmFacebookAPI.cpp

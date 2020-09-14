@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/state/AclEntry.h"
 
 #include <boost/container/flat_map.hpp>
@@ -88,7 +87,8 @@ bool BcmAclStat::isStateSame(
    * expected counters is a subset of the hw counters instead of just checking
    * for equality.
    */
-  if (SocUtils::isTrident2(hw->getUnit())) {
+  if (hw->getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
     return std::includes(
         counterTypes.begin(),
         counterTypes.end(),

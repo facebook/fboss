@@ -20,7 +20,6 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/bcm/SocUtils.h"
 #include "fboss/agent/state/AclEntry.h"
 
 #include <boost/container/flat_map.hpp>

@@ -11,7 +11,6 @@
 #include "BcmFieldProcessorUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
-#include "fboss/agent/hw/bcm/SocUtils.h"
 
 #include <boost/range/combine.hpp>
 #include <folly/logging/xlog.h>
