@@ -11,6 +11,7 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/String.h>
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/normalization/Normalizer.h"
 
 using facebook::fb303::SUM;
 
@@ -138,7 +139,7 @@ void PortStats::dhcpV6DropPkt() {
   switchStats_->dhcpV6DropPkt();
 }
 
-void PortStats::linkStateChange() {
+void PortStats::linkStateChange(bool isUp) {
   // We decided not to maintain the TLTimeseries in PortStats and use tcData()
   // to addStatValue based on the key name, because:
   // 1) each thread has its own SwitchStats and PortStats
@@ -151,6 +152,9 @@ void PortStats::linkStateChange() {
   // TLTimeseries and leave ThreadLocalStats do it for us.
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
+    if (auto normalizer = Normalizer::getInstance()) {
+      normalizer->processLinkStateChange(portName_, isUp);
+    }
   }
   switchStats_->linkStateChange();
 }

@@ -43,4 +43,11 @@ void Normalizer::processStats(
   XLOG(DBG5) << "normalizer processed stats";
 }
 
+void Normalizer::processLinkStateChange(
+    const std::string& portName,
+    bool isUp) {
+  XLOGF(
+      DBG6, "port {} link state changed to {}", portName, isUp ? "UP" : "DOWN");
+}
+
 } // namespace facebook::fboss

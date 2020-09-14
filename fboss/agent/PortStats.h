@@ -57,7 +57,7 @@ class PortStats {
   void dhcpV6BadPkt();
   void dhcpV6DropPkt();
 
-  void linkStateChange();
+  void linkStateChange(bool isUp);
 
   void ipv4DstLookupFailure();
   void ipv6DstLookupFailure();

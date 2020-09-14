@@ -21,6 +21,8 @@ class Normalizer {
 
   void processStats(
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
+
+  void processLinkStateChange(const std::string& portName, bool isUp);
 };
 
 } // namespace facebook::fboss

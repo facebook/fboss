@@ -1083,7 +1083,7 @@ void SwSwitch::linkStateChanged(PortID portId, bool up) {
         // Log event and update counters if there is a change
         logLinkStateEvent(portId, up);
         setPortStatusCounter(portId, up);
-        portStats(portId)->linkStateChange();
+        portStats(portId)->linkStateChange(up);
       }
     }
 
