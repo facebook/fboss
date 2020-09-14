@@ -220,6 +220,8 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       ManagerT& mgr);
 
+  void processLinkStateChangeDelta(const StateDelta& delta);
+
   template <
       typename Delta,
       typename Manager,

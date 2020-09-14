@@ -239,6 +239,37 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
   }
 }
 
+void SaiSwitch::processLinkStateChangeDelta(const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(),
+      [&](const std::shared_ptr<Port>& oldPort,
+          const std::shared_ptr<Port>& newPort) {
+        if (!oldPort->isEnabled() && !newPort->isEnabled()) {
+          return;
+        }
+        auto id = newPort->getID();
+        auto adminStateChanged =
+            oldPort->getAdminState() != newPort->getAdminState();
+        if (adminStateChanged) {
+          auto adminStr = (newPort->isEnabled()) ? "ENABLED" : "DISABLED";
+          XLOG(DBG1) << "Admin state changed on port " << id << ": "
+                     << adminStr;
+        }
+        auto operStateChanged =
+            oldPort->getOperState() != newPort->getOperState();
+        if (operStateChanged) {
+          auto operStr = (newPort->isUp()) ? "UP" : "DOWN";
+          XLOG(DBG1) << "Oper state changed on port " << id << ": " << operStr;
+        }
+
+        if (adminStateChanged || operStateChanged) {
+          auto platformPort = platform_->getPort(id);
+          platformPort->linkStatusChanged(
+              newPort->isEnabled(), newPort->isUp());
+        }
+      });
+}
+
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
   processRemovedDelta(
       delta.getPortsDelta(),
@@ -358,6 +389,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChanged(const StateDelta& delta) {
     auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
     updateResourceUsageLocked(lock);
   }
+
+  // Process link state change delta and update the LED status
+  processLinkStateChangeDelta(delta);
+
   return delta.newState();
 }
 
