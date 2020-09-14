@@ -17,7 +17,7 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <array>
-#include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 extern "C" {
 #include <bcm/field.h>
@@ -168,13 +168,15 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
     const StateDelta& delta,
     HwResourceStats* stats) {
   if (*stats->mirrors_erspan_ref() ==
-      bcmswitch_constants::STAT_UNINITIALIZED_) {
+      hardware_stats_constants::STAT_UNINITIALIZED()) {
     *stats->mirrors_erspan_ref() = 0;
   }
-  if (*stats->mirrors_span_ref() == bcmswitch_constants::STAT_UNINITIALIZED_) {
+  if (*stats->mirrors_span_ref() ==
+      hardware_stats_constants::STAT_UNINITIALIZED()) {
     *stats->mirrors_span_ref() = 0;
   }
-  if (*stats->mirrors_sflow_ref() == bcmswitch_constants::STAT_UNINITIALIZED_) {
+  if (*stats->mirrors_sflow_ref() ==
+      hardware_stats_constants::STAT_UNINITIALIZED()) {
     *stats->mirrors_sflow_ref() = 0;
   }
   DeltaFunctions::forEachChanged(

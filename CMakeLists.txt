@@ -226,10 +226,6 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/bcm/packettrace.thrift
 )
 add_fbthrift_cpp_library(
-  bcmswitch_cpp2
-  fboss/agent/hw/bcm/bcmswitch.thrift
-)
-add_fbthrift_cpp_library(
   hardware_stats_cpp2
   fboss/agent/hw/hardware_stats.thrift
 )
@@ -656,7 +652,6 @@ if (NOT SAI_ONLY)
       sflow_cpp2
       ctrl_cpp2
       packettrace_cpp2
-      bcmswitch_cpp2
       hardware_stats_cpp2
       i2c_controller_stats_cpp2
       mpls_cpp2

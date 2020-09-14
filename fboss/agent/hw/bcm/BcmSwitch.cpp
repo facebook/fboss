@@ -74,7 +74,6 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/PacketTraceUtils.h"
 #include "fboss/agent/hw/bcm/RxUtils.h"
-#include "fboss/agent/hw/bcm/gen-cpp2/bcmswitch_constants.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
