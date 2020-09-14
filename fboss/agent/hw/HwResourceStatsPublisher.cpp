@@ -19,65 +19,58 @@ namespace facebook::fboss {
 
 void HwResourceStatPublisher::publish(const HwResourceStats& stats) const {
   fb303::fbData->setCounter(
-      "hw_table_stats_stale", *stats.hw_table_stats_stale_ref() ? 1 : 0);
-  fb303::fbData->setCounter("l3_host_max", *stats.l3_host_max_ref());
-  fb303::fbData->setCounter("l3_host_used", *stats.l3_host_used_ref());
-  fb303::fbData->setCounter("l3_host_free", *stats.l3_host_free_ref());
-  fb303::fbData->setCounter("l3_nexthops_max", *stats.l3_nexthops_max_ref());
-  fb303::fbData->setCounter("l3_nexthops_used", *stats.l3_nexthops_used_ref());
-  fb303::fbData->setCounter("l3_nexthops_free", *stats.l3_nexthops_free_ref());
+      kHwTableStatsStale, *stats.hw_table_stats_stale_ref() ? 1 : 0);
+  fb303::fbData->setCounter(kL3HostMax, *stats.l3_host_max_ref());
+  fb303::fbData->setCounter(kL3HostUsed, *stats.l3_host_used_ref());
+  fb303::fbData->setCounter(kL3HostFree, *stats.l3_host_free_ref());
+  fb303::fbData->setCounter(kL3NextHopsMax, *stats.l3_nexthops_max_ref());
+  fb303::fbData->setCounter(kL3NextHopsUsed, *stats.l3_nexthops_used_ref());
+  fb303::fbData->setCounter(kL3NextHopsFree, *stats.l3_nexthops_free_ref());
+  fb303::fbData->setCounter(kL3EcmpGroupsMax, *stats.l3_ecmp_groups_max_ref());
   fb303::fbData->setCounter(
-      "l3_ecmp_groups_used", *stats.l3_ecmp_groups_used_ref());
+      kL3EcmpGroupsUsed, *stats.l3_ecmp_groups_used_ref());
+  fb303::fbData->setCounter(
+      kL3EcmpGroupsFree, *stats.l3_ecmp_groups_free_ref());
 
-  fb303::fbData->setCounter(
-      "l3_ipv4_host_used", *stats.l3_ipv4_host_used_ref());
-  fb303::fbData->setCounter(
-      "l3_ipv6_host_used", *stats.l3_ipv6_host_used_ref());
-  fb303::fbData->setCounter(
-      "l3_ecmp_groups_max", *stats.l3_ecmp_groups_max_ref());
-  fb303::fbData->setCounter(
-      "l3_ecmp_groups_free", *stats.l3_ecmp_groups_free_ref());
+  fb303::fbData->setCounter(kL3Ipv4HostUsed, *stats.l3_ipv4_host_used_ref());
+  fb303::fbData->setCounter(kL3Ipv6HostUsed, *stats.l3_ipv6_host_used_ref());
 
   // LPM
-  fb303::fbData->setCounter("lpm_ipv4_max", *stats.lpm_ipv4_max_ref());
-  fb303::fbData->setCounter("lpm_ipv4_free", *stats.lpm_ipv4_free_ref());
-  fb303::fbData->setCounter("lpm_ipv4_used", *stats.lpm_ipv4_used_ref());
+  fb303::fbData->setCounter(kLpmIpv4Max, *stats.lpm_ipv4_max_ref());
+  fb303::fbData->setCounter(kLpmIpv4Used, *stats.lpm_ipv4_used_ref());
+  fb303::fbData->setCounter(kLpmIpv4Free, *stats.lpm_ipv4_free_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_max", *stats.lpm_ipv6_mask_0_64_max_ref());
+      kLpmIpv6Mask_0_64_Max, *stats.lpm_ipv6_mask_0_64_max_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_free", *stats.lpm_ipv6_mask_0_64_free_ref());
+      kLpmIpv6Mask_0_64_Used, *stats.lpm_ipv6_mask_0_64_used_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_used", *stats.lpm_ipv6_mask_0_64_used_ref());
+      kLpmIpv6Mask_0_64_Free, *stats.lpm_ipv6_mask_0_64_free_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_max", *stats.lpm_ipv6_mask_65_127_max_ref());
+      kLpmIpv6Mask_65_127_Max, *stats.lpm_ipv6_mask_65_127_max_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_0_64_free", *stats.lpm_ipv6_mask_0_64_free_ref());
+      kLpmIpv6Mask_65_127_Used, *stats.lpm_ipv6_mask_65_127_used_ref());
   fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_free", *stats.lpm_ipv6_mask_65_127_free_ref());
-  fb303::fbData->setCounter(
-      "lpm_ipv6_mask_65_127_used", *stats.lpm_ipv6_mask_65_127_used_ref());
-  fb303::fbData->setCounter("lpm_table_max", *stats.lpm_slots_max_ref());
-  fb303::fbData->setCounter("lpm_table_used", *stats.lpm_slots_used_ref());
-  fb303::fbData->setCounter("lpm_table_free", *stats.lpm_slots_free_ref());
+      kLpmIpv6Mask_65_127_Free, *stats.lpm_ipv6_mask_65_127_free_ref());
+  fb303::fbData->setCounter(kLpmTableMax, *stats.lpm_slots_max_ref());
+  fb303::fbData->setCounter(kLpmTableUsed, *stats.lpm_slots_used_ref());
+  fb303::fbData->setCounter(kLpmTableFree, *stats.lpm_slots_free_ref());
   // Acl
-  fb303::fbData->setCounter("acl_entries_used", *stats.acl_entries_used_ref());
-  fb303::fbData->setCounter("acl_entries_free", *stats.acl_entries_free_ref());
-  fb303::fbData->setCounter("acl_entries_max", *stats.acl_entries_max_ref());
-  fb303::fbData->setCounter(
-      "acl_counters_used", *stats.acl_counters_used_ref());
-  fb303::fbData->setCounter(
-      "acl_counters_free", *stats.acl_counters_free_ref());
-  fb303::fbData->setCounter("acl_counters_max", *stats.acl_counters_max_ref());
-  fb303::fbData->setCounter("acl_meters_used", *stats.acl_meters_used_ref());
-  fb303::fbData->setCounter("acl_meters_free", *stats.acl_meters_free_ref());
-  fb303::fbData->setCounter("acl_meters_max", *stats.acl_meters_max_ref());
+  fb303::fbData->setCounter(kAclEntriesMax, *stats.acl_entries_max_ref());
+  fb303::fbData->setCounter(kAclEntriesUsed, *stats.acl_entries_used_ref());
+  fb303::fbData->setCounter(kAclEntriesFree, *stats.acl_entries_free_ref());
+  fb303::fbData->setCounter(kAclCountersMax, *stats.acl_counters_max_ref());
+  fb303::fbData->setCounter(kAclCountersUsed, *stats.acl_counters_used_ref());
+  fb303::fbData->setCounter(kAclCountersFree, *stats.acl_counters_free_ref());
+  fb303::fbData->setCounter(kAclMetersMax, *stats.acl_meters_max_ref());
+  fb303::fbData->setCounter(kAclMetersUsed, *stats.acl_meters_used_ref());
+  fb303::fbData->setCounter(kAclMetersFree, *stats.acl_meters_free_ref());
   // Mirrors
-  fb303::fbData->setCounter("mirrors_used", *stats.mirrors_used_ref());
-  fb303::fbData->setCounter("mirrors_free", *stats.mirrors_free_ref());
-  fb303::fbData->setCounter("mirrors_max", *stats.mirrors_max_ref());
-  fb303::fbData->setCounter("mirrors_span", *stats.mirrors_span_ref());
-  fb303::fbData->setCounter("mirrors_erspan", *stats.mirrors_erspan_ref());
-  fb303::fbData->setCounter("mirrors_sflow", *stats.mirrors_sflow_ref());
+  fb303::fbData->setCounter(kMirrorsMax, *stats.mirrors_max_ref());
+  fb303::fbData->setCounter(kMirrorsUsed, *stats.mirrors_used_ref());
+  fb303::fbData->setCounter(kMirrorsFree, *stats.mirrors_free_ref());
+  fb303::fbData->setCounter(kMirrorsSpan, *stats.mirrors_span_ref());
+  fb303::fbData->setCounter(kMirrorsErspan, *stats.mirrors_erspan_ref());
+  fb303::fbData->setCounter(kMirrorsSflow, *stats.mirrors_sflow_ref());
 }
 
 } // namespace facebook::fboss
