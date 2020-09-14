@@ -61,6 +61,9 @@ constexpr folly::StringPiece kMirrorsSflow{"mirrors_sflow"};
 class HwResourceStatPublisher {
  public:
   void publish(const HwResourceStats& stats) const;
+
+ private:
+  void publish(folly::StringPiece name, int64_t value) const;
 };
 
 } // namespace facebook::fboss
