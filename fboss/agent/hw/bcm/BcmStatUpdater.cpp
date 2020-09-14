@@ -15,8 +15,10 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/state/Port.h"
+
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <boost/container/flat_map.hpp>
@@ -140,7 +142,7 @@ void BcmStatUpdater::updateAclStats() {
   }
 }
 void BcmStatUpdater::updateHwTableStats() {
-  bcmTableStatsManager_->publish(*resourceStats_.rlock());
+  HwResourceStatPublisher().publish(*resourceStats_.rlock());
 }
 
 void BcmStatUpdater::updatePrbsStats() {

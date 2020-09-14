@@ -39,6 +39,10 @@ add_library(buffer_stats
   fboss/agent/hw/BufferStatsLogger.cpp
 )
 
+add_library(hw_resource_stats_publisher
+  fboss/agent/hw/HwResourceStatsPublisher.cpp
+)
+
 target_link_libraries(hw_switch_warmboot_helper
   utils
   Folly::folly
@@ -72,4 +76,9 @@ target_link_libraries(hw_cpu_fb303_stats
 
 target_link_libraries(buffer_stats
   Folly::folly
+)
+
+target_link_libraries(hw_resource_stats_publisher
+  fb303::fb303
+  hardware_stats_cpp2
 )

@@ -24,7 +24,6 @@ class BcmHwTableStatManager {
       : hw_(hw), isAlpmEnabled_(isAlpmEnabled) {}
 
   void refresh(const StateDelta& delta, HwResourceStats* stats) const;
-  void publish(HwResourceStats stats) const;
 
  private:
   bool refreshHwStatusStats(HwResourceStats* stats) const;
