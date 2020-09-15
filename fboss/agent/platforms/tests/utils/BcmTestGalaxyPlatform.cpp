@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPort.h"
 
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
+#include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
 
 namespace facebook::fboss {
 std::unique_ptr<BcmTestPort> BcmTestGalaxyPlatform::createTestPort(PortID id) {
@@ -39,4 +40,12 @@ void BcmTestGalaxyPlatform::initLEDs(int unit) {
       GalaxyLedUtils::defaultLed0Code(),
       GalaxyLedUtils::defaultLed1Code());
 }
+
+bool BcmTestGalaxyPlatform::verifyLEDStatus(PortID port, bool up) {
+  uint32_t value = BcmLedUtils::getGalaxyPortStatus(0, port);
+  uint32_t expectedValue{0};
+  GalaxyLedUtils::setLEDState(&expectedValue, up, up);
+  return (value == expectedValue) && ((value & 0x1) != 0) == (up == true);
+}
+
 } // namespace facebook::fboss

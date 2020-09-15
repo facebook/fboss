@@ -16,6 +16,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge40Port.h"
 
 #include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
+#include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
 
 namespace facebook::fboss {
 
@@ -54,6 +55,13 @@ void BcmTestWedge40Platform::initLEDs(int unit) {
       unit,
       Wedge40LedUtils::defaultLedCode(),
       Wedge40LedUtils::defaultLedCode());
+}
+
+bool BcmTestWedge40Platform::verifyLEDStatus(PortID port, bool up) {
+  uint32_t value = BcmLedUtils::getWedge40PortStatus(0, port);
+  uint32_t expectedValue =
+      static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, up));
+  return (value == expectedValue) && (value != 0) == (up == true);
 }
 
 } // namespace facebook::fboss

@@ -29,6 +29,8 @@ class BcmTestWedge100Platform : public BcmTestWedgeTomahawkPlatform {
 
   void initLEDs(int unit) override;
 
+  bool verifyLEDStatus(PortID port, bool up) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge100Platform(BcmTestWedge100Platform const&) = delete;

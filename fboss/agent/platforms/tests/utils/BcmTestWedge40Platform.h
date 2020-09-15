@@ -56,6 +56,8 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
 
   void initLEDs(int unit) override;
 
+  bool verifyLEDStatus(PortID port, bool up) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;

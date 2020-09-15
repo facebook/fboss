@@ -14,6 +14,7 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge100Port.h"
 
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+#include "fboss/agent/platforms/wedge/utils/BcmLedUtils.h"
 
 namespace facebook::fboss {
 
@@ -33,5 +34,15 @@ void BcmTestWedge100Platform::initLEDs(int unit) {
       unit,
       Wedge100LedUtils::defaultLedCode(),
       Wedge100LedUtils::defaultLedCode());
+}
+
+bool BcmTestWedge100Platform::verifyLEDStatus(PortID port, bool up) {
+  auto bcmPort = static_cast<BcmTestWedge100Port*>(getPlatformPort(port));
+  auto color = Wedge100LedUtils::getLEDColor(
+      bcmPort->getPortID(), bcmPort->numberOfLanes(), up, up);
+
+  auto value = BcmLedUtils::getWedge100PortStatus(0, port);
+  return (value == static_cast<uint32_t>(color)) &&
+      ((value != 0) == (up == true));
 }
 } // namespace facebook::fboss
