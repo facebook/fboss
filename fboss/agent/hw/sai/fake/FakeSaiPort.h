@@ -44,7 +44,24 @@ class FakePort {
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
 };
 
+struct FakePortSerdes {
+  explicit FakePortSerdes(sai_object_id_t _port) : port(_port) {}
+  sai_object_id_t port;
+  std::vector<uint32_t> iDriver;
+  std::vector<uint32_t> txFirPre1;
+  std::vector<uint32_t> txFirPre2;
+  std::vector<uint32_t> txFirMain;
+  std::vector<uint32_t> txFirPost1;
+  std::vector<uint32_t> txFirPost2;
+  std::vector<uint32_t> txFirPost3;
+  std::vector<int32_t> rxCtlCode;
+  std::vector<int32_t> rxDspMode;
+  std::vector<int32_t> rxAfeTrim;
+  std::vector<int32_t> rxCouplingByPass;
+};
+
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
+using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
 
 void populate_port_api(sai_port_api_t** port_api);
 
