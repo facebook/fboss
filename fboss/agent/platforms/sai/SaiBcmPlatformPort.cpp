@@ -49,6 +49,7 @@ void SaiBcmPlatformPort::setLEDState(
       switchID,
       SaiSwitchTraits::Attributes::Led{
           std::vector<sai_uint32_t>(data.begin(), data.end())});
+  currentLedState_ = status;
 }
 
 uint32_t SaiBcmPlatformPort::getLEDState(uint32_t led, uint32_t index) {

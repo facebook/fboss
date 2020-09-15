@@ -8,4 +8,10 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(
     bool /*up*/,
     bool /*adminUp*/) {}
 
+void SaiBcmWedge100PlatformPort::externalState(PortLedExternalState) {}
+
+std::optional<std::tuple<uint32_t, uint32_t>>
+SaiBcmWedge100PlatformPort::getLedAndIndex(uint32_t /*phyPortId*/) {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

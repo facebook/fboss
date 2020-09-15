@@ -23,6 +23,12 @@ class SaiBcmPlatformPort : public SaiPlatformPort {
   uint32_t getPhysicalPortId() const;
   void setLEDState(uint32_t led, uint32_t index, uint32_t status);
   uint32_t getLEDState(uint32_t led, uint32_t index);
+  uint32_t getCurrentLedState() {
+    return currentLedState_;
+  }
+
+ private:
+  uint32_t currentLedState_{0};
 };
 
 } // namespace facebook::fboss

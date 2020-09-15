@@ -34,6 +34,7 @@ class Wedge100LedUtils {
   static bool isTop(std::optional<TransceiverID> transciver);
   static folly::ByteRange defaultLedCode();
   static size_t getPortOffset(int index);
+  static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
 };
 
 } // namespace facebook::fboss

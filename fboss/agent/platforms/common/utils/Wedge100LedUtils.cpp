@@ -121,4 +121,15 @@ size_t Wedge100LedUtils::getPortOffset(int index) {
   constexpr uint16_t kPortWriteStart = 0xc0;
   return kPortWriteStart + index;
 }
+
+std::optional<uint32_t> Wedge100LedUtils::getLEDProcessorNumber(PortID port) {
+  int pipe = Wedge100LedUtils::getPipe(static_cast<PortID>(port));
+  if (pipe == 0 || pipe == 3) {
+    return 0;
+  } else if (pipe == 1 || pipe == 2) {
+    return 1;
+  }
+  // We only show link status for the main four pipes.
+  return std::nullopt;
+}
 } // namespace facebook::fboss
