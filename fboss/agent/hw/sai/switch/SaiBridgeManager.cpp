@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -28,7 +29,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
   if (UNLIKELY(!bridgeHandle_)) {
     auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
     bridgeHandle_ = std::make_unique<SaiBridgeHandle>();
-    if (!platform_->getObjectKeysSupported()) {
+    if (!platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
       /*
        * TODO: This is only a temporary solution till the hw supports
        * reload of the default 1Q bridge

@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/FbossError.h"
@@ -27,7 +28,7 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     : managerTable_(managerTable), platform_(platform) {
   auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();
   auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
-  if (!platform_->getObjectKeysSupported()) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
     /*
      * TODO: This is only a temporary solution till the hw supports
      * reload of the default Virtual Router.

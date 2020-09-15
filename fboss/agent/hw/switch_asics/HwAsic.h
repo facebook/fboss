@@ -40,6 +40,7 @@ class HwAsic {
     RESOURCE_USAGE_STATS,
     HSDK,
     OBJECT_KEY_CACHE,
+    GET_OBJECT_KEYS,
   };
 
   enum class AsicType {

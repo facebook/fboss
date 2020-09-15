@@ -45,6 +45,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
+    case HwAsic::Feature::GET_OBJECT_KEYS:
       return false;
   }
   return false;

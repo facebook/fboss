@@ -59,7 +59,6 @@ class SaiPlatform : public Platform, public StateObserver {
   void generateHwConfigFile();
   virtual sai_service_method_table_t* getServiceMethodTable() const;
   void stop() override;
-  virtual bool getObjectKeysSupported() const = 0;
   HwSwitchWarmBootHelper* getWarmBootHelper();
   virtual uint32_t numLanesPerCore() const = 0;
   void stateUpdated(const StateDelta& delta) override;

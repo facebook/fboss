@@ -19,9 +19,6 @@ class SaiBcmPlatform : public SaiHwPlatform {
  public:
   using SaiHwPlatform::SaiHwPlatform;
   std::string getHwConfig() override;
-  bool getObjectKeysSupported() const override {
-    return true;
-  }
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
 
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {

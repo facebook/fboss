@@ -22,9 +22,6 @@ class SaiFakePlatform : public SaiPlatform {
   std::string getPersistentStateDir() const override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
-  bool getObjectKeysSupported() const override {
-    return true;
-  }
   uint32_t numLanesPerCore() const override {
     return 4;
   }

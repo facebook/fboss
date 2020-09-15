@@ -794,7 +794,7 @@ HwInitResult SaiSwitch::initLocked(
   // perhaps reload fixes it?
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchId_);
-  if (platform_->getObjectKeysSupported()) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
     saiStore->reload(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   }
