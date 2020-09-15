@@ -10,6 +10,11 @@
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/SwitchApi.h"
+
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
 namespace facebook::fboss {
 
 uint32_t SaiBcmPlatformPort::getPhysicalLaneId(
@@ -25,6 +30,25 @@ bool SaiBcmPlatformPort::supportsTransceiver() const {
 
 uint32_t SaiBcmPlatformPort::getPhysicalPortId() const {
   return getHwPortLanes(getCurrentProfile()).front();
+}
+
+void SaiBcmPlatformPort::programLEDState(
+    uint32_t led,
+    uint32_t index,
+    uint32_t status) {
+  std::array<sai_uint32_t, 4> data{};
+  data[0] = led;
+  data[1] = 1; // data bank
+  data[2] = index;
+  data[3] = status;
+
+  SaiSwitch* saiSwitch = static_cast<SaiSwitch*>(getPlatform()->getHwSwitch());
+  auto switchID = saiSwitch->getSwitchId();
+
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      switchID,
+      SaiSwitchTraits::Attributes::Led{
+          std::vector<sai_uint32_t>(data.begin(), data.end())});
 }
 
 } // namespace facebook::fboss

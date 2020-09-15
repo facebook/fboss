@@ -17,6 +17,7 @@ class Wedge40LedUtils {
   static int getPortIndex(PortID port);
   static size_t getPortOffset(int index);
   static folly::ByteRange defaultLedCode();
+  static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
 };
 
 } // namespace facebook::fboss
