@@ -9,7 +9,8 @@ namespace facebook::fboss {
 class MockAsic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override {
-    return feature != Feature::HSDK; // Mock supports all features but HSDK
+    // mock supports all features but HSDK or object key cache
+    return !(feature == Feature::HSDK || feature == Feature::OBJECT_KEY_CACHE);
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_MOCK;
@@ -33,9 +34,6 @@ class MockAsic : public HwAsic {
   uint32_t getMaxLabelStackDepth() const override {
     // Copying TH3's max label stack depth
     return 9;
-  }
-  bool needsObjectKeyCache() const override {
-    return false;
   }
   uint64_t getMMUSizeBytes() const override {
     // Fake MMU size

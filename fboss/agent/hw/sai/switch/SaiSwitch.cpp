@@ -773,7 +773,7 @@ HwInitResult SaiSwitch::initLocked(
     auto switchStateJson = wbHelper->getWarmBootState();
     ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
     ret.switchState->publish();
-    if (platform_->getAsic()->needsObjectKeyCache()) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
       if (switchStateJson[kHwSwitch].find(kAdapterKey2AdapterHostKey) !=

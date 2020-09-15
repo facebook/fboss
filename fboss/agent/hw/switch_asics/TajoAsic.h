@@ -32,9 +32,6 @@ class TajoAsic : public HwAsic {
 
     throw FbossError("Unknown streamType", streamType);
   }
-  bool needsObjectKeyCache() const override {
-    return false;
-  }
   uint32_t getMaxLabelStackDepth() const override {
     return 3;
   }

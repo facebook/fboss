@@ -8,9 +8,6 @@ namespace facebook::fboss {
 
 class BroadcomAsic : public HwAsic {
  public:
-  bool needsObjectKeyCache() const override {
-    return true;
-  }
   std::string getVendor() const override {
     return "bcm";
   }

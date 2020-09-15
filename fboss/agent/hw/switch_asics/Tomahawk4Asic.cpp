@@ -28,6 +28,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::HSDK:
+    case HwAsic::Feature::OBJECT_KEY_CACHE:
       return true;
 
     case HwAsic::Feature::BUFFER_PROFILE:

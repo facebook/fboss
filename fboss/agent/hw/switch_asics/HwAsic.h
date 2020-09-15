@@ -39,6 +39,7 @@ class HwAsic {
     DEBUG_COUNTER,
     RESOURCE_USAGE_STATS,
     HSDK,
+    OBJECT_KEY_CACHE,
   };
 
   enum class AsicType {
@@ -60,7 +61,6 @@ class HwAsic {
   virtual cfg::PortSpeed getMaxPortSpeed() const = 0;
   virtual std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const = 0;
   virtual int getDefaultNumPortQueues(cfg::StreamType streamType) const = 0;
-  virtual bool needsObjectKeyCache() const = 0;
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;

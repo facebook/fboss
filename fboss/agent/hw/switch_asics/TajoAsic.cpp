@@ -44,6 +44,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::HSDK:
+    case HwAsic::Feature::OBJECT_KEY_CACHE:
       return false;
   }
   return false;
