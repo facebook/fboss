@@ -25,6 +25,7 @@ struct dynamic;
 namespace facebook::fboss {
 
 class BcmWarmBootHelper;
+class BcmHALVector;
 
 class BcmUnit {
  public:
@@ -130,11 +131,17 @@ class BcmUnit {
     // TODO(joseph5wu) Will implement it later
   }
 
+  void deleteBcmUnitImpl();
+
   int deviceIndex_{-1};
   BcmPlatform* platform_{nullptr};
   int unit_{-1};
   std::atomic<bool> attached_{false};
   void* cookie_{nullptr};
+
+#ifndef IS_OSS
+  std::unique_ptr<BcmHALVector> halVector_;
+#endif
 };
 
 } // namespace facebook::fboss

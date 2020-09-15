@@ -178,12 +178,6 @@ int bdeSpiWrite(soc_cm_dev_t* dev, uint32_t addr, uint8_t* buf, int len) {
 } // unnamed namespace
 
 namespace facebook::fboss {
-
-BcmUnit::BcmUnit(int deviceIndex, BcmPlatform* platform)
-    : deviceIndex_(deviceIndex), platform_(platform) {
-  unit_ = createHwUnit();
-}
-
 void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(INFO) << " [Exit] Syncing BRCM switch state to file";
@@ -213,7 +207,7 @@ int BcmUnit::destroyHwUnit() {
   return rv;
 }
 
-BcmUnit::~BcmUnit() {
+void BcmUnit::deleteBcmUnitImpl() {
   if (attached_.load(std::memory_order_acquire)) {
     steady_clock::time_point begin = steady_clock::now();
     XLOG(INFO) << " [Exit] Initiating BRCM ASIC shutdown";

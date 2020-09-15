@@ -18,6 +18,15 @@ extern "C" {
 
 namespace facebook {
 namespace fboss {
+BcmUnit::BcmUnit(int deviceIndex, BcmPlatform* platform)
+    : deviceIndex_(deviceIndex), platform_(platform) {
+  unit_ = createHwUnit();
+}
+
+BcmUnit::~BcmUnit() {
+  deleteBcmUnitImpl();
+}
+
 void BcmUnit::attachHSDK(bool /*warmBoot*/) {}
 
 int BcmUnit::createHwUnit() {
