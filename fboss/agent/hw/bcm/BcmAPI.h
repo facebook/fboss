@@ -136,7 +136,13 @@ class BcmAPI {
 
   static bool isHwInSimMode();
 
+  static std::string& getHwYamlConfig();
+
  private:
+  // Forbidden copy constructor and assignment operator
+  BcmAPI(BcmAPI const&) = delete;
+  BcmAPI& operator=(BcmAPI const&) = delete;
+
   /*
    * Initialize the BcmConfig to hold the config values passed in.
    * We use these values to keep an idea of the bcm configuration
@@ -144,9 +150,7 @@ class BcmAPI {
    */
   static void initConfig(const std::map<std::string, std::string>& config);
 
-  // Forbidden copy constructor and assignment operator
-  BcmAPI(BcmAPI const&) = delete;
-  BcmAPI& operator=(BcmAPI const&) = delete;
+  static void initYamlConfig(const std::string& yamlConfig);
 
   static void initImpl();
 

@@ -105,13 +105,6 @@ class BcmUnit {
   std::pair<uint16_t, uint16_t> createDRDDevice();
 
   /*
-   * Initialize SDKLT core components.
-   */
-  void initSDKLTCoreComponents() {
-    // TODO(joseph5wu) Will implement it later
-  }
-
-  /*
    * Attacg a NULL driver instance to physical device
    */
   void registerNullSOCVectors();

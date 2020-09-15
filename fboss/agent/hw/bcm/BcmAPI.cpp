@@ -140,8 +140,18 @@ const char* FOLLY_NULLABLE BcmAPI::getConfigValue(StringPiece name) {
 BcmAPI::HwConfigMap& BcmAPI::getHwConfig() {
   // Avoid static initialization disaster
   // (https://isocpp.org/wiki/faq/ctors#static-init-order)
-  static BcmAPI::HwConfigMap bcmConfig_;
-  return bcmConfig_;
+  static BcmAPI::HwConfigMap bcmConfig;
+  return bcmConfig;
+}
+
+void BcmAPI::initYamlConfig(const std::string& yamlConfig) {
+  getHwYamlConfig().assign(yamlConfig);
+  // TODO(joseph5wu) Need to support kBcmConfigsSafeAcrossWarmboot?
+}
+
+std::string& BcmAPI::getHwYamlConfig() {
+  static string bcmYamlConfig;
+  return bcmYamlConfig;
 }
 
 std::unique_ptr<BcmUnit> BcmAPI::createUnit(
