@@ -1792,8 +1792,10 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
 
 cfg::PortProfileID BcmPort::getCurrentProfile() const {
   if (getHW()->getRunState() < SwitchRunState::CONFIGURED) {
-    // switch is not configured yet, in this case profile config may not be set.
-    return cfg::PortProfileID::PROFILE_DEFAULT;
+    // switch is not configured yet, settings may not be programmed.
+    auto profile = getPlatformPort()->getProfileIDBySpeedIf(getSpeed());
+    CHECK(profile.has_value());
+    return profile.value();
   }
   return (*programmedSettings_.rlock())->getProfileID();
 }
