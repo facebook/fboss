@@ -62,6 +62,12 @@ void HwLinkStateToggler::portStateChangeImpl(
     invokeLinkScanIfNeeded(port, up);
     std::unique_lock<std::mutex> lock{linkEventMutex_};
     linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+
+    /* toggle the oper state */
+    newState = newState->clone();
+    newPort = newState->getPorts()->getPort(port)->modify(&newState);
+    newPort->setOperState(up);
+    stateUpdateFn_(newState);
   }
 }
 

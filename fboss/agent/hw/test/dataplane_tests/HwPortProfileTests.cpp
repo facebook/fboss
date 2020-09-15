@@ -37,11 +37,6 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
     return false;
   }
 
-  void linkStateChanged(PortID port, bool up) override {
-    getPlatform()->getPlatformPort(port)->linkStatusChanged(up, up);
-    utility::verifyLedStatus(getHwSwitchEnsemble(), port, up);
-  }
-
   void verifyPort(PortID portID) {
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
@@ -79,11 +74,14 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
       applyNewConfig(config);
     };
     auto verify = [=]() {
+      bool up = true;
       for (auto portID :
            {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
         verifyPort(portID);
         bringDownPort(portID);
+        utility::verifyLedStatus(getHwSwitchEnsemble(), portID, !up);
         bringUpPort(portID);
+        utility::verifyLedStatus(getHwSwitchEnsemble(), portID, up);
       }
     };
     auto setupPostWb = [=]() { setupPort2OverrideTransceiverInfo(profile); };

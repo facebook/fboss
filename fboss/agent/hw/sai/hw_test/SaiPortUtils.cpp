@@ -14,6 +14,12 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
+#include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
+#include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+#include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 
 #include "fboss/agent/FbossError.h"
 
@@ -51,6 +57,11 @@ std::vector<sai_uint32_t> getTxSetting(
   return result;
 }
 
+uint32_t getCurrentWedgeBcmLEDState(SaiPlatform* platform, PortID port) {
+  auto platformPort =
+      static_cast<SaiBcmPlatformPort*>(platform->getPlatformPort(port));
+  return platformPort->getCurrentLedState();
+}
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -346,10 +357,29 @@ void verifyTxSettting(
   EXPECT_EQ(driverCurrent, expectedDriverCurrent);
 }
 
-void verifyLedStatus(
-    HwSwitchEnsemble* /*ensemble*/,
-    PortID /*port*/,
-    bool /*up*/) {
-  // TODO: implement this
+void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
+  SaiPlatform* platform = static_cast<SaiPlatform*>(ensemble->getPlatform());
+  SaiPlatformPort* platformPort = platform->getPort(port);
+  uint32_t currentVal = getCurrentWedgeBcmLEDState(platform, port);
+  uint32_t expectedVal = 0;
+  switch (platform->getMode()) {
+    case PlatformMode::WEDGE: {
+      expectedVal = static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, up));
+    } break;
+    case PlatformMode::WEDGE100: {
+      expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getLEDColor(
+          port,
+          platform->getLaneCount(platformPort->getCurrentProfile()),
+          up,
+          up));
+    } break;
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::GALAXY_LC: {
+      GalaxyLedUtils::setLEDState(&expectedVal, up, up);
+    } break;
+    default:
+      return;
+  }
+  EXPECT_EQ(currentVal, expectedVal);
 }
 } // namespace facebook::fboss::utility
