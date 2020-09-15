@@ -34,6 +34,7 @@
 #include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
+#include "fboss/agent/hw/sai/switch/SaiWredManager.h"
 
 #include <optional>
 
@@ -74,6 +75,7 @@ void SaiManagerTable::createSaiTableManagers(
   neighborManager_ = std::make_unique<SaiNeighborManager>(this, platform);
   inSegEntryManager_ = std::make_unique<SaiInSegEntryManager>(this, platform);
   lagManager_ = std::make_unique<SaiUnsupportedFeatureManager>("LAG");
+  wredManager_ = std::make_unique<SaiWredManager>(this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -119,6 +121,7 @@ SaiManagerTable::~SaiManagerTable() {
   aclTableManager_.reset();
 
   bufferManager_.reset();
+  wredManager_.reset();
   switchManager_.reset();
 }
 
@@ -279,4 +282,10 @@ const SaiUnsupportedFeatureManager& SaiManagerTable::lagManager() const {
   return *lagManager_;
 }
 
+SaiWredManager& SaiManagerTable::wredManager() {
+  return *wredManager_;
+}
+const SaiWredManager& SaiManagerTable::wredManager() const {
+  return *wredManager_;
+}
 } // namespace facebook::fboss
