@@ -21,7 +21,8 @@ class SaiBcmPlatformPort : public SaiPlatformPort {
       const override;
   virtual bool supportsTransceiver() const override;
   uint32_t getPhysicalPortId() const;
-  void programLEDState(uint32_t led, uint32_t index, uint32_t status);
+  void setLEDState(uint32_t led, uint32_t index, uint32_t status);
+  uint32_t getLEDState(uint32_t led, uint32_t index);
 };
 
 } // namespace facebook::fboss

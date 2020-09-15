@@ -96,4 +96,19 @@ void GalaxyLedUtils::setLEDState(uint32_t* state, bool up, bool /*adminUp*/) {
   (*state) |= (0x1 << 1);
   (*state) &= ~0x80;
 }
+
+std::optional<uint32_t> GalaxyLedUtils::getLEDProcessorNumber(PortID port) {
+  /* Port 1-32 and 97-128 are managed by LED Proccessor 0
+   * Port 33-96 are managed by LED Processor 1
+   *  Port 129 & 131 are managed by LED Processor 2. We don't
+   *  care about these
+   */
+  if (port == 129 || port == 131) {
+    return std::nullopt;
+  }
+  if (port > 32 && port < 97) {
+    return 1;
+  }
+  return 0;
+}
 } // namespace facebook::fboss

@@ -13,6 +13,7 @@ class GalaxyLedUtils {
   static size_t getPortOffset(int index);
   static folly::ByteRange defaultLed0Code();
   static folly::ByteRange defaultLed1Code();
+  static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
 };
 
 } // namespace facebook::fboss

@@ -15,7 +15,7 @@ void SaiBcmWedge40PlatformPort::linkStatusChanged(bool up, bool adminUp) {
     led = 0;
   }
   // write to LED
-  programLEDState(
+  setLEDState(
       led.value(),
       index,
       static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, adminUp)));

@@ -32,7 +32,7 @@ uint32_t SaiBcmPlatformPort::getPhysicalPortId() const {
   return getHwPortLanes(getCurrentProfile()).front();
 }
 
-void SaiBcmPlatformPort::programLEDState(
+void SaiBcmPlatformPort::setLEDState(
     uint32_t led,
     uint32_t index,
     uint32_t status) {
@@ -49,6 +49,27 @@ void SaiBcmPlatformPort::programLEDState(
       switchID,
       SaiSwitchTraits::Attributes::Led{
           std::vector<sai_uint32_t>(data.begin(), data.end())});
+}
+
+uint32_t SaiBcmPlatformPort::getLEDState(uint32_t led, uint32_t index) {
+  std::array<sai_uint32_t, 4> data{};
+  data[0] = led;
+  data[1] = 1; // data bank
+  data[2] = index;
+  data[3] = 0;
+
+  SaiSwitch* saiSwitch = static_cast<SaiSwitch*>(getPlatform()->getHwSwitch());
+  auto switchID = saiSwitch->getSwitchId();
+
+  auto switchLedAttribute =
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          switchID,
+          SaiSwitchTraits::Attributes::Led{
+              std::vector<sai_uint32_t>(data.begin(), data.end())});
+  if (switchLedAttribute.size() != 4) {
+    throw FbossError("error retreiving LED state");
+  }
+  return switchLedAttribute[3];
 }
 
 } // namespace facebook::fboss
