@@ -104,13 +104,6 @@ class BcmUnit {
   // Create DRD device and return <device_id, revision_id>
   std::pair<uint16_t, uint16_t> createDRDDevice();
 
-  /*
-   * Perform low-level device initialization
-   */
-  void attachSystemManager(bool /* warmBoot */) {
-    // TODO(joseph5wu) Will implement it later
-  }
-
   void deleteBcmUnitImpl();
 
   int deviceIndex_{-1};
