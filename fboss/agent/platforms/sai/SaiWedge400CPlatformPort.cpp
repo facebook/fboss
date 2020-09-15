@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 
 namespace facebook::fboss {
 
@@ -19,6 +20,20 @@ uint32_t SaiWedge400CPlatformPort::getPhysicalLaneId(
 
 bool SaiWedge400CPlatformPort::supportsTransceiver() const {
   return true;
+}
+
+void SaiWedge400CPlatformPort::linkStatusChanged(bool up, bool adminUp) {
+  internalLedState_ = Wedge400LedUtils::getLedState(
+      getHwPortLanes(getCurrentProfile()).size(), up, adminUp);
+  setLedStatus(internalLedState_);
+}
+
+void SaiWedge400CPlatformPort::externalState(PortLedExternalState lfs) {
+  auto color =
+      (lfs == PortLedExternalState::NONE
+           ? internalLedState_
+           : Wedge400LedUtils::getLedExternalState(lfs));
+  setLedStatus(color);
 }
 
 } // namespace facebook::fboss

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/lib/fpga/FbDomFpga.h"
 
 namespace facebook::fboss {
 
@@ -20,6 +21,13 @@ class SaiWedge400CPlatformPort : public SaiPlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
   virtual bool supportsTransceiver() const override;
+  void linkStatusChanged(bool up, bool adminUp) override;
+  void externalState(PortLedExternalState lfs) override;
+
+ private:
+  FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;
+  void setLedStatus(FbDomFpga::LedColor state) const;
+  FbDomFpga::LedColor internalLedState_;
 };
 
 } // namespace facebook::fboss
