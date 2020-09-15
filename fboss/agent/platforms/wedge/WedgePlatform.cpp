@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/agent/platforms/wedge/WedgePort.h"
@@ -62,7 +63,11 @@ WedgePlatform::WedgePlatform(
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {}
 
 void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {
-  BcmAPI::init(loadConfig());
+  if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    BcmAPI::initHSDK(loadYamlConfig());
+  } else {
+    BcmAPI::init(loadConfig());
+  }
   hw_.reset(new BcmSwitch(this, hwFeaturesDesired));
 }
 
@@ -210,5 +215,19 @@ std::map<std::string, std::string> WedgePlatform::loadConfig() {
     return *cfg->thrift.platform_ref()->chip_ref()->get_bcm().config_ref();
   }
   return BcmConfig::loadDefaultConfig();
+}
+
+std::string WedgePlatform::loadYamlConfig() {
+  auto cfg = config();
+  if (!cfg) {
+    // TODO(josep5wu) Need to revisit whether we should generate a default
+    // yaml config just like WedgePlatform::loadConfig()
+    throw FbossError("Failed to get agent config");
+  }
+  if (auto yamlConfig =
+          cfg->thrift.platform_ref()->chip_ref()->get_bcm().yamlConfig_ref()) {
+    return *yamlConfig;
+  }
+  throw FbossError("Failed to get bcm yaml config from agent config");
 }
 } // namespace facebook::fboss
