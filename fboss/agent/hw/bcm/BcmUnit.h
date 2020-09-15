@@ -105,14 +105,6 @@ class BcmUnit {
   std::pair<uint16_t, uint16_t> createDRDDevice();
 
   /*
-   * HSDK uses a new architecture for warm boot that uses HA memory.
-   * In this function, we'll set up the HA memory.
-   */
-  void initializeHAMemory(bool /* warmBoot */) {
-    // TODO(joseph5wu) Will impelment it later
-  }
-
-  /*
    * Initialize SDKLT core components.
    */
   void initSDKLTCoreComponents() {
