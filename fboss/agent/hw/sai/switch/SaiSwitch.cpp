@@ -265,7 +265,7 @@ void SaiSwitch::processLinkStateChangeDelta(const StateDelta& delta) {
         if (adminStateChanged || operStateChanged) {
           auto platformPort = platform_->getPort(id);
           platformPort->linkStatusChanged(
-              newPort->isEnabled(), newPort->isUp());
+              newPort->isUp(), newPort->isEnabled());
         }
       });
 }
