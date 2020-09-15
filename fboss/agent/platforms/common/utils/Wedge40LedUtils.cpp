@@ -65,7 +65,7 @@ std::optional<uint32_t> Wedge40LedUtils::getLEDProcessorNumber(PortID port) {
   uint32_t index = Wedge40LedUtils::getPortIndex(port);
   if (index < 32) {
     return 0;
-  } else if (index > 32 && index < 64) {
+  } else if (index < 64) {
     return 1;
   }
   return std::nullopt;

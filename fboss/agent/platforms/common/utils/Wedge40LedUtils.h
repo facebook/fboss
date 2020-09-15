@@ -7,12 +7,11 @@
 namespace facebook::fboss {
 
 class Wedge40LedUtils {
+ public:
   enum class LedState : uint32_t {
     OFF = 0x0,
     ON = 0x1,
   };
-
- public:
   static LedState getLEDState(bool up, bool adminUp);
   static int getPortIndex(PortID port);
   static size_t getPortOffset(int index);

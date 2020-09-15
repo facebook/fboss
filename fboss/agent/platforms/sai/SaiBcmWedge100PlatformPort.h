@@ -8,6 +8,8 @@ namespace facebook::fboss {
 
 class SaiBcmWedge100PlatformPort : public SaiBcmPlatformPort {
  public:
+  SaiBcmWedge100PlatformPort(PortID id, SaiPlatform* platform)
+      : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState) override;
   static std::optional<std::tuple<uint32_t, uint32_t>> getLedAndIndex(

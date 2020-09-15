@@ -8,6 +8,8 @@ namespace facebook::fboss {
 
 class SaiBcmGalaxyPlatformPort : public SaiBcmPlatformPort {
  public:
+  SaiBcmGalaxyPlatformPort(PortID id, SaiPlatform* platform)
+      : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
 };
 

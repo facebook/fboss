@@ -14,7 +14,10 @@
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge40PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -157,12 +160,14 @@ void SaiPlatform::initPorts() {
     PortID portId(port.first);
     if (platformMode == PlatformMode::WEDGE400C) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::WEDGE) {
+      saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::WEDGE100) {
+      saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
     } else if (
-        platformMode == PlatformMode::WEDGE ||
-        platformMode == PlatformMode::WEDGE100 ||
         platformMode == PlatformMode::GALAXY_LC ||
         platformMode == PlatformMode::GALAXY_FC) {
-      saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
+      saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
