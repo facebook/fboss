@@ -24,8 +24,8 @@ extern "C" {
 namespace facebook::fboss {
 
 void BcmLinkStateToggler::invokeLinkScanIfNeeded(PortID port, bool isUp) {
-  if (!static_cast<BcmTestPlatform*>(hw_->getPlatform())
-           ->hasLinkScanCapability()) {
+  if (static_cast<BcmTestPlatform*>(hw_->getPlatform())
+          ->hasLinkScanCapability()) {
     bcm_port_info_t portInfo;
     portInfo.linkstatus =
         isUp ? BCM_PORT_LINK_STATUS_UP : BCM_PORT_LINK_STATUS_DOWN;

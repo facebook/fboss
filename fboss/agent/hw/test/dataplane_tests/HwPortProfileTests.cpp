@@ -37,6 +37,11 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
     return false;
   }
 
+  void linkStateChanged(PortID port, bool up) override {
+    getPlatform()->getPlatformPort(port)->linkStatusChanged(up, up);
+    utility::verifyLedStatus(getHwSwitchEnsemble(), port, up);
+  }
+
   void verifyPort(PortID portID) {
     auto port = getProgrammedState()->getPorts()->getPort(portID);
     // verify interface mode
@@ -78,9 +83,7 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
            {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
         verifyPort(portID);
         bringDownPort(portID);
-        // TODO: verify LED value
         bringUpPort(portID);
-        // TODO: verify LED value
       }
     };
     auto setupPostWb = [=]() { setupPort2OverrideTransceiverInfo(profile); };
