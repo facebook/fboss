@@ -105,11 +105,6 @@ class BcmUnit {
   std::pair<uint16_t, uint16_t> createDRDDevice();
 
   /*
-   * Attacg a NULL driver instance to physical device
-   */
-  void registerNullSOCVectors();
-
-  /*
    * Perform low-level device initialization
    */
   void attachSystemManager(bool /* warmBoot */) {

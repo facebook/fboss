@@ -346,16 +346,4 @@ void BcmUnit::rawRegisterWrite(uint16_t phyID, uint8_t reg, uint16_t data) {
   facebook::fboss::bcmCheckError(
       rv, "Failed to write register ", reg, " on phy ", phyID);
 }
-
-void BcmUnit::registerNullSOCVectors() {
-  // All the HAL drivers are already attached to the device during
-  // attachHALVectors(). However soc_control structure for LTSW device still
-  // needs to be allocated. Hence attach NULL driver
-  soc_cm_device_vectors_t vectors;
-  memset(&vectors, 0, sizeof(vectors));
-  int rv = soc_cm_device_init(unit_, &vectors);
-  bcmCheckError(
-      rv, "failed to initialize unit ", unit_, " with NULL soc vectors");
-}
-
 } // namespace facebook::fboss
