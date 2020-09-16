@@ -84,3 +84,63 @@ TEST(HwResourceStatsPublisherTest, StatsStale) {
   EXPECT_EQ(fbData->getCounter(kHwTableStatsStale), 1);
   checkMissing({});
 }
+
+TEST(HwResourceStatsPublisher, AclStats) {
+  HwResourceStats stats;
+  stats.acl_entries_max_ref() = 10;
+  stats.acl_entries_used_ref() = 1;
+  stats.acl_entries_free_ref() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kAclEntriesMax), 10);
+  EXPECT_EQ(fbData->getCounter(kAclEntriesUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kAclEntriesFree), 9);
+  checkMissing({kAclEntriesMax, kAclEntriesUsed, kAclEntriesFree});
+}
+
+TEST(HwResourceStatsPublisher, AclCounterStats) {
+  HwResourceStats stats;
+  stats.acl_counters_max_ref() = 10;
+  stats.acl_counters_used_ref() = 1;
+  stats.acl_counters_free_ref() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kAclCountersMax), 10);
+  EXPECT_EQ(fbData->getCounter(kAclCountersUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kAclCountersFree), 9);
+  checkMissing({kAclCountersMax, kAclCountersUsed, kAclCountersFree});
+}
+
+TEST(HwResourceStatsPublisher, AclMeterStats) {
+  HwResourceStats stats;
+  stats.acl_meters_max_ref() = 10;
+  stats.acl_meters_used_ref() = 1;
+  stats.acl_meters_free_ref() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kAclMetersMax), 10);
+  EXPECT_EQ(fbData->getCounter(kAclMetersUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kAclMetersFree), 9);
+  checkMissing({kAclMetersMax, kAclMetersUsed, kAclMetersFree});
+}
+
+TEST(HwResourceStatsPublisher, MirrorStats) {
+  HwResourceStats stats;
+  stats.mirrors_max_ref() = 10;
+  stats.mirrors_used_ref() = 6;
+  stats.mirrors_free_ref() = 4;
+  stats.mirrors_span_ref() = 1;
+  stats.mirrors_erspan_ref() = 2;
+  stats.mirrors_sflow_ref() = 3;
+
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kMirrorsMax), 10);
+  EXPECT_EQ(fbData->getCounter(kMirrorsUsed), 6);
+  EXPECT_EQ(fbData->getCounter(kMirrorsFree), 4);
+  EXPECT_EQ(fbData->getCounter(kMirrorsSpan), 1);
+  EXPECT_EQ(fbData->getCounter(kMirrorsErspan), 2);
+  EXPECT_EQ(fbData->getCounter(kMirrorsSflow), 3);
+  checkMissing({kMirrorsMax,
+                kMirrorsUsed,
+                kMirrorsFree,
+                kMirrorsSpan,
+                kMirrorsErspan,
+                kMirrorsSflow});
+}
