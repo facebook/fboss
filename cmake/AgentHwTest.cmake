@@ -12,6 +12,7 @@ target_link_libraries(config_factory
   hw_switch
   switch_config_cpp2
   Folly::folly
+  fboss_config_utils
 )
 
 add_library(hw_test_main

@@ -98,4 +98,5 @@ void addMatcher(
     cfg::SwitchConfig* config,
     const std::string& matcherName,
     const cfg::MatchAction& matchAction);
+std::vector<PortID> getAllPortsInGroup(const HwSwitch* hwSwitch, PortID portID);
 } // namespace facebook::fboss::utility

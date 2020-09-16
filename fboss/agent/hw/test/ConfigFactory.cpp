@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
@@ -529,4 +530,18 @@ std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id) {
   return chip;
 }
 
+std::vector<PortID> getAllPortsInGroup(
+    const HwSwitch* hwSwitch,
+    PortID portID) {
+  std::vector<PortID> allPortsinGroup;
+  if (const auto& platformPorts = hwSwitch->getPlatform()->getPlatformPorts();
+      !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.push_back(PortID(*port.mapping_ref()->id_ref()));
+    }
+  }
+  return allPortsinGroup;
+}
 } // namespace facebook::fboss::utility
