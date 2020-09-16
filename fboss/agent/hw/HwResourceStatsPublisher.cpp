@@ -33,6 +33,8 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kL3NextHopsMax, *stats.l3_nexthops_max_ref());
   publish(kL3NextHopsUsed, *stats.l3_nexthops_used_ref());
   publish(kL3NextHopsFree, *stats.l3_nexthops_free_ref());
+  publish(kL3Ipv4NextHopsFree, *stats.l3_ipv4_nexthops_free_ref());
+  publish(kL3Ipv6NextHopsFree, *stats.l3_ipv6_nexthops_free_ref());
   publish(kL3EcmpGroupsMax, *stats.l3_ecmp_groups_max_ref());
   publish(kL3EcmpGroupsUsed, *stats.l3_ecmp_groups_used_ref());
   publish(kL3EcmpGroupsFree, *stats.l3_ecmp_groups_free_ref());

@@ -22,6 +22,8 @@ constexpr folly::StringPiece kL3HostFree{"l3_host_free"};
 constexpr folly::StringPiece kL3NextHopsMax{"l3_nexthops_max"};
 constexpr folly::StringPiece kL3NextHopsUsed{"l3_nexthops_used"};
 constexpr folly::StringPiece kL3NextHopsFree{"l3_nexthops_free"};
+constexpr folly::StringPiece kL3Ipv4NextHopsFree{"l3_ipv4_nexthops_free"};
+constexpr folly::StringPiece kL3Ipv6NextHopsFree{"l3_ipv6_nexthops_free"};
 constexpr folly::StringPiece kL3EcmpGroupsMax{"l3_ecmp_groups_max"};
 constexpr folly::StringPiece kL3EcmpGroupsUsed{"l3_ecmp_groups_used"};
 constexpr folly::StringPiece kL3EcmpGroupsFree{"l3_ecmp_groups_free"};

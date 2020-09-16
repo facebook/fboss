@@ -144,3 +144,19 @@ TEST(HwResourceStatsPublisher, MirrorStats) {
                 kMirrorsErspan,
                 kMirrorsSflow});
 }
+
+TEST(HwResourceStatsPublisher, NextHopStats) {
+  HwResourceStats stats;
+  stats.l3_nexthops_max_ref() = 10;
+  stats.l3_nexthops_used_ref() = 1;
+  stats.l3_nexthops_free_ref() = 9;
+  stats.l3_ipv4_nexthops_free_ref() = 8;
+  stats.l3_ipv6_nexthops_free_ref() = 7;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kL3NextHopsMax), 10);
+  EXPECT_EQ(fbData->getCounter(kL3NextHopsUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kL3NextHopsFree), 9);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv4NextHopsFree), 8);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv6NextHopsFree), 7);
+  checkMissing({kL3NextHopsMax, kL3NextHopsUsed, kL3NextHopsFree});
+}
