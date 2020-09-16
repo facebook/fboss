@@ -11,7 +11,8 @@ Wedge400LedUtils::getLedState(uint8_t numLanes, bool up, bool adminUp) {
     return FbDomFpga::LedColor::OFF;
   }
   switch (numLanes) {
-    // TODO: Figure out the color for 8 lanes.
+    case 8:
+    // TODO: T70244223. Clarifying the right LED color for uplinks
     case 4:
       return FbDomFpga::LedColor::BLUE;
     case 2:
