@@ -438,7 +438,7 @@ void configurePortGroup(
     // iteration of the loop.
     auto cfgPort = findCfgPortIf(config, portID);
     if (cfgPort == config.ports_ref()->end()) {
-      return;
+      continue;
     }
 
     auto platformPort = platform->getPlatformPort(portID);
