@@ -54,6 +54,7 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kLpmIpv6Mask_65_127_Max, *stats.lpm_ipv6_mask_65_127_max_ref());
   publish(kLpmIpv6Mask_65_127_Used, *stats.lpm_ipv6_mask_65_127_used_ref());
   publish(kLpmIpv6Mask_65_127_Free, *stats.lpm_ipv6_mask_65_127_free_ref());
+  publish(kLpmIpv6Free, *stats.lpm_ipv6_free_ref());
   publish(kLpmTableMax, *stats.lpm_slots_max_ref());
   publish(kLpmTableUsed, *stats.lpm_slots_used_ref());
   publish(kLpmTableFree, *stats.lpm_slots_free_ref());

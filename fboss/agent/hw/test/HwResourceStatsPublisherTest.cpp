@@ -217,3 +217,41 @@ TEST(HwResourceStatsPublisher, Ipv4RouteStats) {
   EXPECT_EQ(fbData->getCounter(kLpmIpv4Free), 9);
   checkMissing({kLpmIpv4Max, kLpmIpv4Used, kLpmIpv4Free});
 }
+
+TEST(HwResourceStatsPublisher, Ipv6RouteStats) {
+  HwResourceStats stats;
+  stats.lpm_ipv6_mask_0_64_max_ref() = 10;
+  stats.lpm_ipv6_mask_0_64_used_ref() = 1;
+  stats.lpm_ipv6_mask_0_64_free_ref() = 9;
+  stats.lpm_ipv6_mask_65_127_max_ref() = 5;
+  stats.lpm_ipv6_mask_65_127_used_ref() = 2;
+  stats.lpm_ipv6_mask_65_127_free_ref() = 3;
+  stats.lpm_ipv6_free_ref() = 12;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_0_64_Max), 10);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_0_64_Used), 1);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_0_64_Free), 9);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_65_127_Max), 5);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_65_127_Used), 2);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Mask_65_127_Free), 3);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv6Free), 12);
+  checkMissing({kLpmIpv6Mask_0_64_Max,
+                kLpmIpv6Mask_0_64_Used,
+                kLpmIpv6Mask_0_64_Free,
+                kLpmIpv6Mask_65_127_Max,
+                kLpmIpv6Mask_65_127_Used,
+                kLpmIpv6Mask_65_127_Free,
+                kLpmIpv6Free});
+}
+
+TEST(HwResourceStatsPublisher, LpmSlotStats) {
+  HwResourceStats stats;
+  stats.lpm_slots_max_ref() = 10;
+  stats.lpm_slots_used_ref() = 1;
+  stats.lpm_slots_free_ref() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kLpmTableMax), 10);
+  EXPECT_EQ(fbData->getCounter(kLpmTableUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kLpmTableFree), 9);
+  checkMissing({kLpmTableMax, kLpmTableUsed, kLpmTableFree});
+}

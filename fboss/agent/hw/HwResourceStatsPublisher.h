@@ -45,6 +45,7 @@ constexpr folly::StringPiece kLpmIpv6Mask_65_127_Used{
     "lpm_ipv6_mask_65_127_used"};
 constexpr folly::StringPiece kLpmIpv6Mask_65_127_Free{
     "lpm_ipv6_mask_65_127_free"};
+constexpr folly::StringPiece kLpmIpv6Free{"lpm_ipv6_free"};
 constexpr folly::StringPiece kLpmTableMax{"lpm_table_max"};
 constexpr folly::StringPiece kLpmTableUsed{"lpm_table_used"};
 constexpr folly::StringPiece kLpmTableFree{"lpm_table_free"};
