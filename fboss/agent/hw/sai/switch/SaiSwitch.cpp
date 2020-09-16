@@ -13,6 +13,8 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/HwResourceStatsPublisher.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
@@ -402,49 +404,39 @@ void SaiSwitch::updateResourceUsageLocked(
       managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
   auto aclTableId = aclTableHandle->aclTable->adapterKey();
   auto& aclApi = SaiApiTable::getInstance()->aclApi();
-  // TODO - store these counters into a thrift struct and publish
-  XLOG(DBG5) << " Available ACL entries for : " << kAclTable1 << " : "
-             << aclApi.getAttribute(
-                    aclTableId,
-                    SaiAclTableTraits::Attributes::AvailableEntry{});
-  XLOG(DBG5) << " Available ACL counters for : " << kAclTable1 << " : "
-             << aclApi.getAttribute(
-                    aclTableId,
-                    SaiAclTableTraits::Attributes::AvailableCounter{});
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  XLOG(DBG5) << " Available v4 routes : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
-  XLOG(DBG5) << " Available v6 routes : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
-  XLOG(DBG5) << " Available v4 next hops : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
-  XLOG(DBG5) << " Available v6 next hops : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
-  XLOG(DBG5) << " Available next hop groups : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
-  XLOG(DBG5)
-      << " Available next hop group members : "
-      << switchApi.getAttribute(
-             switchId_,
-             SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
-  XLOG(DBG5) << " Available v4 neighbors : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
-  XLOG(DBG5) << " Available v6 neighbors : "
-             << switchApi.getAttribute(
-                    switchId_,
-                    SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+  HwResourceStats stats;
+  try {
+    // TODO - compute used stats from internal data structures and
+    // populate them here
+    stats.acl_entries_free_ref() = aclApi.getAttribute(
+        aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
+    stats.acl_counters_free_ref() = aclApi.getAttribute(
+        aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
+
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    stats.lpm_ipv4_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
+    stats.lpm_ipv6_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
+    stats.l3_ipv4_nexthops_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
+    stats.l3_ipv6_nexthops_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
+    stats.l3_ecmp_groups_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
+    stats.l3_ecmp_group_members_free_ref() = switchApi.getAttribute(
+        switchId_,
+        SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
+    stats.l3_ipv4_host_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
+    stats.l3_ipv6_host_free_ref() = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+    stats.hw_table_stats_stale_ref() = false;
+  } catch (const SaiApiError& e) {
+    XLOG(ERR) << " Failed to get resource usage stats: " << *e.message_ref();
+    stats.hw_table_stats_stale_ref() = true;
+  }
+  HwResourceStatsPublisher().publish(stats);
 }
 
 void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
