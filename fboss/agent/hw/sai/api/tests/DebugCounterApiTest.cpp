@@ -28,8 +28,7 @@ class DebugCounterApiTest : public ::testing::Test {
   void checkCounter(
       DebugCounterSaiId id,
       sai_debug_counter_type_t type,
-      size_t inSize,
-      size_t outSize) {
+      size_t inSize) {
     EXPECT_EQ(
         type,
         debugCounterApi->getAttribute(
@@ -40,10 +39,7 @@ class DebugCounterApiTest : public ::testing::Test {
             id, SaiDebugCounterTraits::Attributes::BindMethod{}));
     auto inDropReasons = debugCounterApi->getAttribute(
         id, SaiDebugCounterTraits::Attributes::InDropReasons{});
-    auto outDropReasons = debugCounterApi->getAttribute(
-        id, SaiDebugCounterTraits::Attributes::OutDropReasons{});
     EXPECT_EQ(inDropReasons.size(), inSize);
-    EXPECT_EQ(outDropReasons.size(), outSize);
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<DebugCounterApi> debugCounterApi;
@@ -54,11 +50,9 @@ TEST_F(DebugCounterApiTest, portInDebugCounterEmptyReasons) {
       SaiDebugCounterTraits::CreateAttributes{
           SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
           SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-          std::optional<SaiDebugCounterTraits::Attributes::InDropReasons>{},
-          std::nullopt},
+          std::optional<SaiDebugCounterTraits::Attributes::InDropReasons>{}},
       0);
-  checkCounter(
-      debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 0, 0);
+  checkCounter(debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 0);
 }
 
 TEST_F(DebugCounterApiTest, portInDebugCounter) {
@@ -67,34 +61,7 @@ TEST_F(DebugCounterApiTest, portInDebugCounter) {
           SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
           SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
           SaiDebugCounterTraits::Attributes::InDropReasons{
-              {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}},
-          std::nullopt},
+              {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}},
       0);
-  checkCounter(
-      debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 1, 0);
-}
-
-TEST_F(DebugCounterApiTest, portOutDebugCounterEmptyReasons) {
-  auto debugCounterId = debugCounterApi->create<SaiDebugCounterTraits>(
-      SaiDebugCounterTraits::CreateAttributes{
-          SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS,
-          SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-          std::nullopt,
-          SaiDebugCounterTraits::Attributes::OutDropReasons{}},
-      0);
-  checkCounter(
-      debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS, 0, 0);
-}
-
-TEST_F(DebugCounterApiTest, portOutDebugCounter) {
-  auto debugCounterId = debugCounterApi->create<SaiDebugCounterTraits>(
-      SaiDebugCounterTraits::CreateAttributes{
-          SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS,
-          SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-          std::nullopt,
-          SaiDebugCounterTraits::Attributes::OutDropReasons{
-              {SAI_OUT_DROP_REASON_EGRESS_VLAN_FILTER}}},
-      0);
-  checkCounter(
-      debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS, 0, 1);
+  checkCounter(debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 1);
 }

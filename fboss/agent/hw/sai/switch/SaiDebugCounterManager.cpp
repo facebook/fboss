@@ -22,8 +22,7 @@ void SaiDebugCounterManager::setupDebugCounters() {
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
       SaiDebugCounterTraits::Attributes::InDropReasons{
-          {SAI_IN_DROP_REASON_END + 1}},
-      std::nullopt};
+          {SAI_IN_DROP_REASON_END + 1}}};
 
   portL3BlackHoleCounter_ = std::make_unique<SaiDebugCounter>(
       attrs, attrs, managerTable_->switchManager().getSwitchSaiId());

@@ -23,23 +23,11 @@ class DebugCounterStoreTest : public SaiStoreTest {
     return {SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
             SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
             SaiDebugCounterTraits::Attributes::InDropReasons{
-                {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}},
-            SaiDebugCounterTraits::Attributes::OutDropReasons{}};
+                {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}};
   }
   DebugCounterSaiId createInDebugCounter() {
     return saiApiTable->debugCounterApi().create<SaiDebugCounterTraits>(
         inCounterCreateAtts(), 0);
-  }
-  SaiDebugCounterTraits::CreateAttributes outCounterCreateAtts() const {
-    return {SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS,
-            SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-            SaiDebugCounterTraits::Attributes::InDropReasons{},
-            SaiDebugCounterTraits::Attributes::OutDropReasons{
-                {SAI_OUT_DROP_REASON_EGRESS_VLAN_FILTER}}};
-  }
-  DebugCounterSaiId createOutDebugCounter() {
-    return saiApiTable->debugCounterApi().create<SaiDebugCounterTraits>(
-        outCounterCreateAtts(), 0);
   }
 };
 
@@ -51,19 +39,6 @@ TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
   auto& store = s.get<SaiDebugCounterTraits>();
 
   SaiDebugCounterTraits::AdapterHostKey k{inCounterCreateAtts()};
-  auto got = store.get(k);
-  EXPECT_NE(got, nullptr);
-  EXPECT_EQ(got->adapterKey(), id);
-}
-
-TEST_F(DebugCounterStoreTest, loadOutDebugCounter) {
-  auto id = createOutDebugCounter();
-
-  SaiStore s(0);
-  s.reload();
-  auto& store = s.get<SaiDebugCounterTraits>();
-
-  SaiDebugCounterTraits::AdapterHostKey k{outCounterCreateAtts()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
@@ -81,20 +56,19 @@ TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
 }
 
 TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
-  auto attrs = outCounterCreateAtts();
+  auto attrs = inCounterCreateAtts();
   SaiDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
   SaiObject<SaiDebugCounterTraits> obj(adapterHostKey, attrs, 0);
   auto outDropReasons = saiApiTable->debugCounterApi().getAttribute(
-      obj.adapterKey(), SaiDebugCounterTraits::Attributes::OutDropReasons{});
+      obj.adapterKey(), SaiDebugCounterTraits::Attributes::InDropReasons{});
   EXPECT_EQ(
       outDropReasons,
-      SaiDebugCounterTraits::Attributes::OutDropReasons{
-          {SAI_OUT_DROP_REASON_EGRESS_VLAN_FILTER}}
+      SaiDebugCounterTraits::Attributes::InDropReasons{
+          {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}
           .value());
 }
 
 TEST_F(DebugCounterStoreTest, serDeser) {
   auto id = createInDebugCounter();
-  auto id2 = createOutDebugCounter();
-  verifyAdapterKeySerDeser<SaiDebugCounterTraits>({id, id2});
+  verifyAdapterKeySerDeser<SaiDebugCounterTraits>({id});
 }

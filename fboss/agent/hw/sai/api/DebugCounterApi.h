@@ -43,17 +43,12 @@ struct SaiDebugCounterTraits {
         EnumType,
         SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
         std::vector<int32_t>>;
-    using OutDropReasons = SaiAttribute<
-        EnumType,
-        SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST,
-        std::vector<int32_t>>;
   };
   using AdapterKey = DebugCounterSaiId;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::BindMethod,
-      std::optional<Attributes::InDropReasons>,
-      std::optional<Attributes::OutDropReasons>>;
+      std::optional<Attributes::InDropReasons>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -61,7 +56,6 @@ SAI_ATTRIBUTE_NAME(DebugCounter, Index)
 SAI_ATTRIBUTE_NAME(DebugCounter, Type)
 SAI_ATTRIBUTE_NAME(DebugCounter, BindMethod)
 SAI_ATTRIBUTE_NAME(DebugCounter, InDropReasons)
-SAI_ATTRIBUTE_NAME(DebugCounter, OutDropReasons)
 
 class DebugCounterApi : public SaiApi<DebugCounterApi> {
  public:
