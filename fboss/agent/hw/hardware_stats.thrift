@@ -96,7 +96,7 @@ struct HwResourceStats {
   14:  i32 l3_ecmp_groups_max = STAT_UNINITIALIZED
   15:  i32 l3_ecmp_groups_used = STAT_UNINITIALIZED
   16:  i32 l3_ecmp_groups_free = STAT_UNINITIALIZED
-  17:  i32 l3_ecmp_groups_members_free = STAT_UNINITIALIZED
+  17:  i32 l3_ecmp_group_members_free = STAT_UNINITIALIZED
 
   // LPM
   18: i32 lpm_ipv4_max = STAT_UNINITIALIZED

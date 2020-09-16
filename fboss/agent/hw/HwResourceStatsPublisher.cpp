@@ -38,6 +38,7 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kL3EcmpGroupsMax, *stats.l3_ecmp_groups_max_ref());
   publish(kL3EcmpGroupsUsed, *stats.l3_ecmp_groups_used_ref());
   publish(kL3EcmpGroupsFree, *stats.l3_ecmp_groups_free_ref());
+  publish(kL3EcmpGroupMembersFree, *stats.l3_ecmp_group_members_free_ref());
 
   publish(kL3Ipv4HostUsed, *stats.l3_ipv4_host_used_ref());
   publish(kL3Ipv6HostUsed, *stats.l3_ipv6_host_used_ref());

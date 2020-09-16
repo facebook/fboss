@@ -160,3 +160,20 @@ TEST(HwResourceStatsPublisher, NextHopStats) {
   EXPECT_EQ(fbData->getCounter(kL3Ipv6NextHopsFree), 7);
   checkMissing({kL3NextHopsMax, kL3NextHopsUsed, kL3NextHopsFree});
 }
+
+TEST(HwResourceStatsPublisher, EcmpGroupStats) {
+  HwResourceStats stats;
+  stats.l3_ecmp_groups_max_ref() = 10;
+  stats.l3_ecmp_groups_used_ref() = 1;
+  stats.l3_ecmp_groups_free_ref() = 9;
+  stats.l3_ecmp_group_members_free_ref() = 42;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsMax), 10);
+  EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kL3EcmpGroupsFree), 9);
+  EXPECT_EQ(fbData->getCounter(kL3EcmpGroupMembersFree), 42);
+  checkMissing({kL3EcmpGroupsMax,
+                kL3EcmpGroupsUsed,
+                kL3EcmpGroupsFree,
+                kL3EcmpGroupMembersFree});
+}
