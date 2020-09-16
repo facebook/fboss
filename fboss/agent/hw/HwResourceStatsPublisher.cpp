@@ -30,6 +30,10 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kL3HostMax, *stats.l3_host_max_ref());
   publish(kL3HostUsed, *stats.l3_host_used_ref());
   publish(kL3HostFree, *stats.l3_host_free_ref());
+  publish(kL3Ipv4HostUsed, *stats.l3_ipv4_host_used_ref());
+  publish(kL3Ipv4HostFree, *stats.l3_ipv4_host_free_ref());
+  publish(kL3Ipv6HostUsed, *stats.l3_ipv6_host_used_ref());
+  publish(kL3Ipv6HostFree, *stats.l3_ipv6_host_free_ref());
   publish(kL3NextHopsMax, *stats.l3_nexthops_max_ref());
   publish(kL3NextHopsUsed, *stats.l3_nexthops_used_ref());
   publish(kL3NextHopsFree, *stats.l3_nexthops_free_ref());
@@ -39,9 +43,6 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kL3EcmpGroupsUsed, *stats.l3_ecmp_groups_used_ref());
   publish(kL3EcmpGroupsFree, *stats.l3_ecmp_groups_free_ref());
   publish(kL3EcmpGroupMembersFree, *stats.l3_ecmp_group_members_free_ref());
-
-  publish(kL3Ipv4HostUsed, *stats.l3_ipv4_host_used_ref());
-  publish(kL3Ipv6HostUsed, *stats.l3_ipv6_host_used_ref());
 
   // LPM
   publish(kLpmIpv4Max, *stats.lpm_ipv4_max_ref());

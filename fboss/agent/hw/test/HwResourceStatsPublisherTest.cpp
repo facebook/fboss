@@ -177,3 +177,43 @@ TEST(HwResourceStatsPublisher, EcmpGroupStats) {
                 kL3EcmpGroupsFree,
                 kL3EcmpGroupMembersFree});
 }
+
+TEST(HwResourceStatsPublisher, HostStats) {
+  HwResourceStats stats;
+  stats.l3_host_max_ref() = 10;
+  stats.l3_host_used_ref() = 4;
+  stats.l3_host_free_ref() = 6;
+  stats.l3_ipv4_host_used_ref() = 4;
+  stats.l3_ipv4_host_free_ref() = 2;
+  stats.l3_ipv6_host_used_ref() = 5;
+  stats.l3_ipv6_host_free_ref() = 3;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kL3HostMax), 10);
+  EXPECT_EQ(fbData->getCounter(kL3HostUsed), 4);
+  EXPECT_EQ(fbData->getCounter(kL3HostFree), 6);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv4HostUsed), 4);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv4HostFree), 2);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv6HostUsed), 5);
+  EXPECT_EQ(fbData->getCounter(kL3Ipv6HostFree), 3);
+  checkMissing({
+      kL3HostMax,
+      kL3HostUsed,
+      kL3HostFree,
+      kL3Ipv4HostUsed,
+      kL3Ipv4HostFree,
+      kL3Ipv6HostUsed,
+      kL3Ipv6HostFree,
+  });
+}
+
+TEST(HwResourceStatsPublisher, Ipv4RouteStats) {
+  HwResourceStats stats;
+  stats.lpm_ipv4_max_ref() = 10;
+  stats.lpm_ipv4_used_ref() = 1;
+  stats.lpm_ipv4_free_ref() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv4Max), 10);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv4Used), 1);
+  EXPECT_EQ(fbData->getCounter(kLpmIpv4Free), 9);
+  checkMissing({kLpmIpv4Max, kLpmIpv4Used, kLpmIpv4Free});
+}
