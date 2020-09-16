@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 
-#include "fboss/lib/RefMap.h"
+#include <memory>
 
 namespace facebook::fboss {
 
@@ -34,7 +34,7 @@ class SaiDebugCounterManager {
   }
 
  private:
-  std::unique_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
+  std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{0};
   SaiManagerTable* managerTable_;
 };
