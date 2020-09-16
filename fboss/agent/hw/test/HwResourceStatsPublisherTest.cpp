@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
-
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
@@ -21,8 +20,7 @@ using namespace facebook::fboss;
 using namespace facebook::fb303;
 
 namespace {
-constexpr std::array<folly::StringPiece, 39> kAllStatKeys = {
-    kHwTableStatsStale,
+constexpr std::array<folly::StringPiece, 38> kAllStatKeys = {
     kL3HostMax,
     kL3HostUsed,
     kL3HostFree,
@@ -76,5 +74,13 @@ void checkMissing(const std::set<folly::StringPiece>& present) {
 }
 
 TEST(HwResourceStatsPublisherTest, StatsNotInitialized) {
+  checkMissing({});
+}
+
+TEST(HwResourceStatsPublisherTest, StatsStale) {
+  HwResourceStats stats;
+  stats.hw_table_stats_stale_ref() = true;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kHwTableStatsStale), 1);
   checkMissing({});
 }

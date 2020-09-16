@@ -142,7 +142,7 @@ void BcmStatUpdater::updateAclStats() {
   }
 }
 void BcmStatUpdater::updateHwTableStats() {
-  HwResourceStatPublisher().publish(*resourceStats_.rlock());
+  HwResourceStatsPublisher().publish(*resourceStats_.rlock());
 }
 
 void BcmStatUpdater::updatePrbsStats() {

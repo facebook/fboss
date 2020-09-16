@@ -58,7 +58,7 @@ constexpr folly::StringPiece kMirrorsSpan{"mirrors_span"};
 constexpr folly::StringPiece kMirrorsErspan{"mirrors_erspan"};
 constexpr folly::StringPiece kMirrorsSflow{"mirrors_sflow"};
 
-class HwResourceStatPublisher {
+class HwResourceStatsPublisher {
  public:
   void publish(const HwResourceStats& stats) const;
 

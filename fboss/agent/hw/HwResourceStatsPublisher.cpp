@@ -17,7 +17,7 @@
 
 namespace facebook::fboss {
 
-void HwResourceStatPublisher::publish(folly::StringPiece name, int64_t value)
+void HwResourceStatsPublisher::publish(folly::StringPiece name, int64_t value)
     const {
   if (value == hardware_stats_constants::STAT_UNINITIALIZED()) {
     return;
@@ -25,7 +25,7 @@ void HwResourceStatPublisher::publish(folly::StringPiece name, int64_t value)
   fb303::fbData->setCounter(name, value);
 }
 
-void HwResourceStatPublisher::publish(const HwResourceStats& stats) const {
+void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kHwTableStatsStale, *stats.hw_table_stats_stale_ref() ? 1 : 0);
   publish(kL3HostMax, *stats.l3_host_max_ref());
   publish(kL3HostUsed, *stats.l3_host_used_ref());

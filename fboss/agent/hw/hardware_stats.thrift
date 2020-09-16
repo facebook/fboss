@@ -112,15 +112,15 @@ struct HwResourceStats {
   28: i32 lpm_slots_free = STAT_UNINITIALIZED
 
   // ACLs
-  29: i32 acl_entries_used
-  30: i32 acl_entries_free
-  31: i32 acl_entries_max
-  32: i32 acl_counters_used
-  33: i32 acl_counters_free
-  34: i32 acl_counters_max
-  35: i32 acl_meters_used
-  36: i32 acl_meters_free
-  37: i32 acl_meters_max
+  29: i32 acl_entries_used = STAT_UNINITIALIZED
+  30: i32 acl_entries_free = STAT_UNINITIALIZED
+  31: i32 acl_entries_max = STAT_UNINITIALIZED
+  32: i32 acl_counters_used = STAT_UNINITIALIZED
+  33: i32 acl_counters_free = STAT_UNINITIALIZED
+  34: i32 acl_counters_max = STAT_UNINITIALIZED
+  35: i32 acl_meters_used = STAT_UNINITIALIZED
+  36: i32 acl_meters_free = STAT_UNINITIALIZED
+  37: i32 acl_meters_max = STAT_UNINITIALIZED
 
   // Mirrors
   38: i32 mirrors_used = STAT_UNINITIALIZED
