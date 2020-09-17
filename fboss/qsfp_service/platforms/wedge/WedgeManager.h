@@ -3,6 +3,7 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
@@ -16,7 +17,9 @@ class WedgeManager : public TransceiverManager {
   using PortNameMap = std::map<std::string, int32_t>;
   using PortGroups = std::map<int32_t, std::set<cfg::Port>>;
 
-  explicit WedgeManager(std::unique_ptr<TransceiverPlatformApi> api);
+  explicit WedgeManager(
+      std::unique_ptr<TransceiverPlatformApi> api,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~WedgeManager() override {}
 
   void loadConfig() override {}
@@ -73,6 +76,7 @@ class WedgeManager : public TransceiverManager {
       wedgeI2cBus_; /* thread safe handle to access bus */
 
   std::unique_ptr<AgentConfig> config_;
+  const std::unique_ptr<const PlatformMapping> platformMapping_;
   PortNameMap portName2Module_;
   PortGroups portGroupMap_;
 

@@ -9,11 +9,13 @@
  */
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
-#include <folly/Memory.h>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
+
+#include <folly/Memory.h>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -24,7 +26,7 @@ namespace {
 
 class MockWedgeManager : public WedgeManager {
  public:
-  explicit MockWedgeManager() : WedgeManager(nullptr) {}
+  explicit MockWedgeManager() : WedgeManager(nullptr, nullptr) {}
   void makeTransceiverMap() {
     for (int idx = 0; idx < getNumQsfpModules(); idx++) {
       std::unique_ptr<MockSffModule> qsfp =

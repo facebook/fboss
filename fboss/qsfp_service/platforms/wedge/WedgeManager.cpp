@@ -1,13 +1,14 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
-#include <folly/gen/Base.h>
-
-#include <folly/logging/xlog.h>
-#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+
+#include <fb303/ThreadCachedServiceData.h>
+
+#include <folly/gen/Base.h>
+#include <folly/logging/xlog.h>
 
 namespace {
 
@@ -17,8 +18,12 @@ constexpr int kSecAfterModuleOutOfReset = 2;
 
 namespace facebook { namespace fboss {
 
-WedgeManager::WedgeManager(std::unique_ptr<TransceiverPlatformApi> api) :
-  TransceiverManager(std::move(api)) {
+WedgeManager::WedgeManager(
+    std::unique_ptr<TransceiverPlatformApi> api,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : TransceiverManager(std::move(api)),
+      platformMapping_(std::move(platformMapping))
+   {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
    * this object will be used for controlling the QSFP devices on board.
