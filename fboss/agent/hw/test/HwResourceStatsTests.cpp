@@ -21,6 +21,8 @@
 #include <folly/IPAddressV6.h>
 #include <folly/logging/xlog.h>
 
+#include <tuple>
+
 using namespace facebook::fb303;
 
 namespace facebook::fboss {
@@ -58,26 +60,38 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     auto constexpr kEcmpWidth = 2;
     utility::EcmpSetupAnyNPorts4 ecmp4(getProgrammedState());
     utility::EcmpSetupAnyNPorts6 ecmp6(getProgrammedState());
-    auto v6RouteFreeBefore = fbData->getCounter(kLpmIpv6Free);
-    auto v4RouteFreeBefore = fbData->getCounter(kLpmIpv4Free);
-    auto ecmpFreeBefore = fbData->getCounter(kL3EcmpGroupsFree);
-    auto v4NextHopsFreeBefore = fbData->getCounter(kL3Ipv4NextHopsFree);
-    auto v6NextHopsFreeBefore = fbData->getCounter(kL3Ipv6NextHopsFree);
-    auto v4HostFreeBefore = fbData->getCounter(kL3Ipv4HostFree);
-    auto v6HostFreeBefore = fbData->getCounter(kL3Ipv6HostFree);
+    auto getStatsFn = [] {
+      return std::make_tuple(
+          fbData->getCounter(kLpmIpv6Free),
+          fbData->getCounter(kLpmIpv4Free),
+          fbData->getCounter(kL3EcmpGroupsFree),
+          fbData->getCounter(kL3Ipv4NextHopsFree),
+          fbData->getCounter(kL3Ipv6NextHopsFree),
+          fbData->getCounter(kL3Ipv4HostFree),
+          fbData->getCounter(kL3Ipv6HostFree));
+    };
+    auto
+        [v6RouteFreeBefore,
+         v4RouteFreeBefore,
+         ecmpFreeBefore,
+         v4NextHopsFreeBefore,
+         v6NextHopsFreeBefore,
+         v4HostFreeBefore,
+         v6HostFreeBefore] = getStatsFn();
     applyNewState(ecmp4.setupECMPForwarding(
         getProgrammedState(), kEcmpWidth, {kPrefix4()}));
     applyNewState(ecmp6.setupECMPForwarding(
         getProgrammedState(), kEcmpWidth, {kPrefix6()}));
     applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
-    auto v6RouteFreeAfter = fbData->getCounter(kLpmIpv6Free);
-    auto v4RouteFreeAfter = fbData->getCounter(kLpmIpv4Free);
-    auto ecmpFreeAfter = fbData->getCounter(kL3EcmpGroupsFree);
-    auto v4NextHopsFreeAfter = fbData->getCounter(kL3Ipv4NextHopsFree);
-    auto v6NextHopsFreeAfter = fbData->getCounter(kL3Ipv6NextHopsFree);
-    auto v4HostFreeAfter = fbData->getCounter(kL3Ipv4HostFree);
-    auto v6HostFreeAfter = fbData->getCounter(kL3Ipv6HostFree);
+    auto
+        [v6RouteFreeAfter,
+         v4RouteFreeAfter,
+         ecmpFreeAfter,
+         v4NextHopsFreeAfter,
+         v6NextHopsFreeAfter,
+         v4HostFreeAfter,
+         v6HostFreeAfter] = getStatsFn();
     // Less than since v4, v6 routes, nhops, neighbors compete for the same
     // resources so free counts would not necessarily decrement by 1
     EXPECT_LT(v6RouteFreeAfter, v6RouteFreeBefore);
