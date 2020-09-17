@@ -64,6 +64,7 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     utility::EcmpSetupAnyNPorts4 ecmp4(getProgrammedState());
     utility::EcmpSetupAnyNPorts6 ecmp6(getProgrammedState());
     auto getStatsFn = [] {
+      EXPECT_EQ(0, fbData->getCounter(kHwTableStatsStale));
       return std::make_tuple(
           fbData->getCounter(kLpmIpv6Free),
           fbData->getCounter(kLpmIpv4Free),
@@ -127,6 +128,7 @@ TEST_F(HwResourceStatsTest, aclStats) {
     // Trigger a stats collection
     getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto getStatsFn = [] {
+      EXPECT_EQ(0, fbData->getCounter(kHwTableStatsStale));
       return std::make_pair(
           fbData->getCounter(kAclEntriesFree),
           fbData->getCounter(kAclCountersFree));
