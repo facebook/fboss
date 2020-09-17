@@ -11,12 +11,16 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+DECLARE_string(netwhoami);
+
 namespace facebook {
 namespace fboss {
 
 class GalaxyFCPlatformMapping : public PlatformMapping {
  public:
   GalaxyFCPlatformMapping(const std::string& linecardName);
+
+  static std::string getFabriccardName();
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -21,7 +21,7 @@ GalaxyLCPlatform::GalaxyLCPlatform(
     : GalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyLCPlatformMapping>(
-              GalaxyPlatform::getLinecardName(false))) {}
+              GalaxyLCPlatformMapping::getLinecardName())) {}
 
 std::unique_ptr<WedgePortMapping> GalaxyLCPlatform::createPortMapping() {
   return WedgePortMapping::createFromConfig<

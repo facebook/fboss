@@ -18,6 +18,8 @@ class GalaxyLCPlatformMapping : public PlatformMapping {
  public:
   GalaxyLCPlatformMapping(const std::string& linecardName);
 
+  static std::string getLinecardName();
+
  private:
   // Forbidden copy constructor and assignment operator
   GalaxyLCPlatformMapping(GalaxyLCPlatformMapping const&) = delete;

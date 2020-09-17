@@ -12,8 +12,16 @@
 
 #include "fboss/agent/FbossError.h"
 
+#include <folly/FileUtil.h>
+#include <folly/json.h>
+
 #include <boost/algorithm/string.hpp>
 #include <re2/re2.h>
+
+DEFINE_string(
+    netwhoami,
+    "/etc/netwhoami.json",
+    "The path to the local JSON file");
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
@@ -10548,6 +10556,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 
 constexpr auto kLineCardNameRegex = "lc(\\d+)";
+constexpr auto kDefaultLCName = "lc101";
+constexpr auto kLCName = "lc_name";
 
 std::string updatePlatformMappingStr(const std::string& lcName) {
   int cardID = 0;
@@ -10567,5 +10577,18 @@ namespace fboss {
 GalaxyLCPlatformMapping::GalaxyLCPlatformMapping(
     const std::string& linecardName)
     : PlatformMapping(updatePlatformMappingStr(linecardName)) {}
+
+std::string GalaxyLCPlatformMapping::getLinecardName() {
+  std::string netwhoamiStr;
+  if (!folly::readFile(FLAGS_netwhoami.data(), netwhoamiStr)) {
+    return kDefaultLCName;
+  }
+
+  auto netwhoamiDynamic = folly::parseJson(netwhoamiStr);
+  if (netwhoamiDynamic.find(kLCName) == netwhoamiDynamic.items().end()) {
+    return kDefaultLCName;
+  }
+  return netwhoamiDynamic[kLCName].asString();
+}
 } // namespace fboss
 } // namespace facebook

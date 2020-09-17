@@ -19,7 +19,7 @@ SaiBcmGalaxyFCPlatform::SaiBcmGalaxyFCPlatform(
     : SaiBcmGalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyFCPlatformMapping>(
-              SaiBcmGalaxyPlatform::getLinecardName(true))) {
+              GalaxyFCPlatformMapping::getFabriccardName())) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

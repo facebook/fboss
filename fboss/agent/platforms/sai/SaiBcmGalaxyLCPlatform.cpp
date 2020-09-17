@@ -19,7 +19,7 @@ SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
     : SaiBcmGalaxyPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyLCPlatformMapping>(
-              SaiBcmGalaxyPlatform::getLinecardName(false))) {
+              GalaxyLCPlatformMapping::getLinecardName())) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

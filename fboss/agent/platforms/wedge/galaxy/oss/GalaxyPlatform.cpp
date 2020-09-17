@@ -23,8 +23,4 @@ folly::ByteRange GalaxyPlatform::defaultLed0Code() {
 folly::ByteRange GalaxyPlatform::defaultLed1Code() {
   return defaultLed0Code();
 }
-
-std::string GalaxyPlatform::getLinecardName(bool isFabric) {
-  return isFabric ? kDefaultFCName : kDefaultLCName;
-}
 } // namespace facebook::fboss
