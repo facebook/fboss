@@ -147,6 +147,37 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
   return entry;
 }
 
+cfg::PlatformPortEntry getPlatformPortEntryWithoutTransceiver() {
+  cfg::PlatformPortEntry entry;
+
+  entry.mapping_ref()->id_ref() = 4;
+  entry.mapping_ref()->name_ref() = "eth2/2/1";
+  entry.mapping_ref()->controllingPort_ref() = 3;
+
+  for (int i = 0; i < 4; i++) {
+    phy::PinConnection pin;
+    phy::PinID iphy;
+    iphy.chip_ref() = kDefaultIphyChipName;
+    iphy.lane_ref() = kDefaultAsicLaneStart + i;
+    pin.a_ref() = iphy;
+
+    entry.mapping_ref()->pins_ref()->push_back(pin);
+  }
+
+  // prepare PortPinConfig for profiles
+  cfg::PlatformPortConfig portCfg;
+  for (int i = 0; i < 4; i++) {
+    phy::PinConfig iphyCfg;
+    iphyCfg.id_ref()->chip_ref() = kDefaultIphyChipName;
+    iphyCfg.id_ref()->lane_ref() = kDefaultAsicLaneStart + i;
+    portCfg.pins_ref()->iphy_ref()->push_back(iphyCfg);
+  }
+  entry.supportedProfiles_ref()
+      [cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER] = portCfg;
+
+  return entry;
+}
+
 std::map<std::string, phy::DataPlanePhyChip> getPlatformChips() {
   std::map<std::string, phy::DataPlanePhyChip> chips;
   phy::DataPlanePhyChip iphy;
@@ -356,6 +387,17 @@ TEST(PlatformConfigUtilsTests, GetDataPlanePhyChipsXphy) {
   EXPECT_EQ(
       *portChips.begin()->second.type_ref(), phy::DataPlanePhyChipType::XPHY);
   EXPECT_EQ(*portChips.begin()->second.physicalID_ref(), 8);
+}
+
+TEST(PlatformConfigUtilsTests, GetTransceiverId) {
+  auto transceiverId = utility::getTransceiverId(
+      getPlatformPortEntryWithXPHY(), getPlatformChips());
+  EXPECT_TRUE(transceiverId);
+  EXPECT_EQ(transceiverId.value(), 2);
+
+  transceiverId = utility::getTransceiverId(
+      getPlatformPortEntryWithoutTransceiver(), getPlatformChips());
+  EXPECT_FALSE(transceiverId);
 }
 
 } // namespace facebook::fboss::utility
