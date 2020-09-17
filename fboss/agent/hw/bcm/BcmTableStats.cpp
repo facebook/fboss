@@ -33,6 +33,9 @@ namespace {
 constexpr auto kPerIpv6Mask65_127SlotUsage = 2;
 }
 
+BcmHwTableStatManager::BcmHwTableStatManager(const BcmSwitch* hw)
+    : hw_(hw), isAlpmEnabled_(hw_->isAlpmEnabled()) {}
+
 bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   // HW status info
   bcm_l3_info_t l3HwStatus;

@@ -18,10 +18,7 @@ class BcmSwitch;
 
 class BcmHwTableStatManager {
  public:
-  explicit BcmHwTableStatManager(
-      const BcmSwitch* hw,
-      bool isAlpmEnabled = false)
-      : hw_(hw), isAlpmEnabled_(isAlpmEnabled) {}
+  explicit BcmHwTableStatManager(const BcmSwitch* hw);
 
   void refresh(const StateDelta& delta, HwResourceStats* stats) const;
 

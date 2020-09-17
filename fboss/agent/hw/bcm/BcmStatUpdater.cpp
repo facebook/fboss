@@ -88,10 +88,9 @@ using std::chrono::system_clock;
 
 using facebook::fboss::bcmCheckError;
 
-BcmStatUpdater::BcmStatUpdater(BcmSwitch* hw, bool isAlpmEnabled)
+BcmStatUpdater::BcmStatUpdater(BcmSwitch* hw)
     : hw_(hw),
-      bcmTableStatsManager_(
-          std::make_unique<BcmHwTableStatManager>(hw, isAlpmEnabled)) {}
+      bcmTableStatsManager_(std::make_unique<BcmHwTableStatManager>(hw)) {}
 
 std::string BcmStatUpdater::counterTypeToString(cfg::CounterType type) {
   switch (type) {

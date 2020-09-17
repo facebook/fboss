@@ -774,7 +774,7 @@ HwInitResult BcmSwitch::init(Callback* callback) {
       unit_, BCM_SWITCH_EVENT_PARITY_ERROR, nonFatalCob);
 
   // Create bcmStatUpdater to cache the stat ids
-  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this, isAlpmEnabled());
+  bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this);
 
   XLOG(INFO) << " Is ALPM enabled: " << isAlpmEnabled();
   // Additional switch configuration

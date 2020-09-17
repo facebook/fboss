@@ -150,7 +150,7 @@ class BcmStatUpdater {
   };
   using LanePrbsStatsTable = std::vector<LanePrbsStatsEntry>;
 
-  explicit BcmStatUpdater(BcmSwitch* hw, bool isAlpmEnabled);
+  explicit BcmStatUpdater(BcmSwitch* hw);
   ~BcmStatUpdater() {}
 
   /* Thread safety:
