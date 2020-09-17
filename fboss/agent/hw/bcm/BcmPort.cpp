@@ -429,8 +429,12 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setLoopbackMode(port);
 
   setupStatsIfNeeded(port);
-
-  setupPrbs(port);
+  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
+  if (asicType != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    // TODO(daiweix): remove if condition after next sdk release
+    // supports prbs setting
+    setupPrbs(port);
+  }
 
   {
     XLOG(DBG3) << "Saving port settings for " << port->getName();
