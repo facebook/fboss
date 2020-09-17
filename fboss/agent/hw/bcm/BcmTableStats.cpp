@@ -130,6 +130,7 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) const {
   *stats->lpm_ipv4_free_ref() = routeSlots[0];
   *stats->lpm_ipv6_mask_0_64_free_ref() = routeSlots[1];
   *stats->lpm_ipv6_mask_65_127_free_ref() = routeSlots[2];
+  *stats->lpm_ipv6_free_ref() = routeSlots[1] + routeSlots[2];
 
   *stats->lpm_slots_free_ref() = *stats->lpm_ipv6_mask_0_64_free_ref() +
       *stats->lpm_ipv6_mask_65_127_free_ref() * kPerIpv6Mask65_127SlotUsage;

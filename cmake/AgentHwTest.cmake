@@ -106,6 +106,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwAclStatTests.cpp
   fboss/agent/hw/test/HwPortUtils.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
+  fboss/agent/hw/test/HwResourceStatsTests.cpp
   fboss/agent/hw/test/FlexPortTests.cpp
 
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp

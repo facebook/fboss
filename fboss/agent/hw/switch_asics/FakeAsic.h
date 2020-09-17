@@ -4,13 +4,16 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+#include <set>
+
 namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override {
-    // fake supports all features but HSDK or object key cache
-    return !(feature == Feature::HSDK || feature == Feature::OBJECT_KEY_CACHE);
+    static const std::set<Feature> kUnsupportedFeatures{
+        Feature::HSDK, Feature::RESOURCE_USAGE_STATS, Feature::OBJECT_KEY_CACHE};
+    return kUnsupportedFeatures.find(feature) == kUnsupportedFeatures.end();
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_FAKE;

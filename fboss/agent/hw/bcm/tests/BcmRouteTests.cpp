@@ -774,33 +774,6 @@ TEST_F(BcmRouteTest, HostRouteStat) {
   verify();
 }
 
-TEST_F(BcmRouteTest, LpmRouteV4Stat) {
-  HwResourceStats preUpdateStat;
-  auto setup = [&]() {
-    applyNewConfig(initialConfig());
-    preUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    auto network = CIDRNetwork(IPAddress("10.1.1.10"), 24);
-    auto nexthop = IPAddress("1.1.1.10");
-    shared_ptr<RouteTableMap> routeTables =
-        getProgrammedState()->getRouteTables();
-    routeTables = utility::addRoute(routeTables, network, nexthop);
-    routeTables = publishRoutes(routeTables);
-  };
-
-  auto verify = [&]() {
-    HwResourceStats postUpdateStat;
-    postUpdateStat = getHwSwitch()->getStatUpdater()->getHwTableStats();
-    EXPECT_EQ(
-        *postUpdateStat.lpm_ipv4_used_ref(),
-        *preUpdateStat.lpm_ipv4_used_ref() + 1);
-    EXPECT_EQ(
-        *postUpdateStat.lpm_ipv6_mask_0_64_used_ref(),
-        *preUpdateStat.lpm_ipv6_mask_0_64_used_ref());
-  };
-  setup();
-  verify();
-}
-
 /* TODO (pshaikh) T36690958
 TEST_F(BcmRouteTest, LpmRouteV6Stat64b) {
   HwResourceStats preUpdateStat;
