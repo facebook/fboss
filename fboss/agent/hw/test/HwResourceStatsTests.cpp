@@ -55,25 +55,43 @@ TEST_F(HwResourceStatsTest, l3Stats) {
   }
   auto setup = [] {};
   auto verify = [this] {
+    auto constexpr kEcmpWidth = 2;
     utility::EcmpSetupAnyNPorts4 ecmp4(getProgrammedState());
     utility::EcmpSetupAnyNPorts6 ecmp6(getProgrammedState());
-    applyNewState(ecmp4.pruneECMPRoutes(getProgrammedState(), {kPrefix4()}));
-    applyNewState(ecmp6.pruneECMPRoutes(getProgrammedState(), {kPrefix6()}));
     auto v6RouteFreeBefore = fbData->getCounter(kLpmIpv6Free);
     auto v4RouteFreeBefore = fbData->getCounter(kLpmIpv4Free);
     auto ecmpFreeBefore = fbData->getCounter(kL3EcmpGroupsFree);
-    applyNewState(
-        ecmp4.setupECMPForwarding(getProgrammedState(), 2, {kPrefix4()}));
-    applyNewState(
-        ecmp6.setupECMPForwarding(getProgrammedState(), 2, {kPrefix6()}));
+    auto v4NextHopsFreeBefore = fbData->getCounter(kL3Ipv4NextHopsFree);
+    auto v6NextHopsFreeBefore = fbData->getCounter(kL3Ipv6NextHopsFree);
+    auto v4HostFreeBefore = fbData->getCounter(kL3Ipv4HostFree);
+    auto v6HostFreeBefore = fbData->getCounter(kL3Ipv6HostFree);
+    applyNewState(ecmp4.setupECMPForwarding(
+        getProgrammedState(), kEcmpWidth, {kPrefix4()}));
+    applyNewState(ecmp6.setupECMPForwarding(
+        getProgrammedState(), kEcmpWidth, {kPrefix6()}));
+    applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
+    applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
     auto v6RouteFreeAfter = fbData->getCounter(kLpmIpv6Free);
     auto v4RouteFreeAfter = fbData->getCounter(kLpmIpv4Free);
     auto ecmpFreeAfter = fbData->getCounter(kL3EcmpGroupsFree);
-    // Less than since v4, v6 routes compete for the same memory
-    // so free counts would not necessarily decrement by 1
+    auto v4NextHopsFreeAfter = fbData->getCounter(kL3Ipv4NextHopsFree);
+    auto v6NextHopsFreeAfter = fbData->getCounter(kL3Ipv6NextHopsFree);
+    auto v4HostFreeAfter = fbData->getCounter(kL3Ipv4HostFree);
+    auto v6HostFreeAfter = fbData->getCounter(kL3Ipv6HostFree);
+    // Less than since v4, v6 routes, nhops, neighbors compete for the same
+    // resources so free counts would not necessarily decrement by 1
     EXPECT_LT(v6RouteFreeAfter, v6RouteFreeBefore);
     EXPECT_LT(v4RouteFreeAfter, v4RouteFreeBefore);
+    EXPECT_LT(v6NextHopsFreeAfter, v6NextHopsFreeBefore);
+    EXPECT_LT(v4NextHopsFreeAfter, v4NextHopsFreeBefore);
+    EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
+    EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
+    // Unresolve so we can rerun verify for many (warmboot) iterations
+    applyNewState(ecmp4.pruneECMPRoutes(getProgrammedState(), {kPrefix4()}));
+    applyNewState(ecmp6.pruneECMPRoutes(getProgrammedState(), {kPrefix6()}));
+    applyNewState(ecmp4.unresolveNextHops(getProgrammedState(), kEcmpWidth));
+    applyNewState(ecmp6.unresolveNextHops(getProgrammedState(), kEcmpWidth));
   };
   verifyAcrossWarmBoots(setup, verify);
 };
