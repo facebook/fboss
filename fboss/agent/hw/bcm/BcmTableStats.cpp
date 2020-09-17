@@ -46,27 +46,25 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
                  " stats will be stale";
     return false;
   }
-  *stats->l3_host_max_ref() = std::max(0, l3HwStatus.l3info_max_host);
-  *stats->l3_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host);
-  *stats->l3_host_free_ref() =
+  stats->l3_host_max_ref() = std::max(0, l3HwStatus.l3info_max_host);
+  stats->l3_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host);
+  stats->l3_host_free_ref() =
       std::max(0, *stats->l3_host_max_ref() - *stats->l3_host_used_ref());
-  *stats->l3_nexthops_max_ref() = std::max(0, l3HwStatus.l3info_max_nexthop);
-  *stats->l3_nexthops_used_ref() = std::max(0, l3HwStatus.l3info_used_nexthop);
-  *stats->l3_nexthops_free_ref() = std::max(
+  stats->l3_nexthops_max_ref() = std::max(0, l3HwStatus.l3info_max_nexthop);
+  stats->l3_nexthops_used_ref() = std::max(0, l3HwStatus.l3info_used_nexthop);
+  stats->l3_nexthops_free_ref() = std::max(
       0, *stats->l3_nexthops_max_ref() - *stats->l3_nexthops_used_ref());
   // Nexthops correspond to egresses, which are shared (and thus same) for
   // v4 and v6
   stats->l3_ipv4_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
   stats->l3_ipv6_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
-  *stats->l3_ipv4_host_used_ref() =
-      std::max(0, l3HwStatus.l3info_used_host_ip4);
-  *stats->l3_ipv6_host_used_ref() =
-      std::max(0, l3HwStatus.l3info_used_host_ip6);
-  *stats->l3_ecmp_groups_max_ref() =
+  stats->l3_ipv4_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip4);
+  stats->l3_ipv6_host_used_ref() = std::max(0, l3HwStatus.l3info_used_host_ip6);
+  stats->l3_ecmp_groups_max_ref() =
       std::max(0, l3HwStatus.l3info_max_ecmp_groups);
-  *stats->l3_ecmp_groups_used_ref() =
+  stats->l3_ecmp_groups_used_ref() =
       hw_->getMultiPathNextHopTable()->getEcmpEgressCount();
-  *stats->l3_ecmp_groups_free_ref() = std::max(
+  stats->l3_ecmp_groups_free_ref() = std::max(
       0, *stats->l3_ecmp_groups_max_ref() - *stats->l3_ecmp_groups_used_ref());
   // Get v4, v6 host counts
   int v4Max;
@@ -110,13 +108,13 @@ bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
     return false;
   }
   // Max
-  *stats->lpm_ipv4_max_ref() = routeSlots[0];
-  *stats->lpm_ipv6_mask_0_64_max_ref() = routeSlots[1];
-  *stats->lpm_ipv6_mask_65_127_max_ref() = routeSlots[2];
+  stats->lpm_ipv4_max_ref() = routeSlots[0];
+  stats->lpm_ipv6_mask_0_64_max_ref() = routeSlots[1];
+  stats->lpm_ipv6_mask_65_127_max_ref() = routeSlots[2];
   // Used
-  *stats->lpm_ipv4_used_ref() = routeSlots[3];
-  *stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[4];
-  *stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[5];
+  stats->lpm_ipv4_used_ref() = routeSlots[3];
+  stats->lpm_ipv6_mask_0_64_used_ref() = routeSlots[4];
+  stats->lpm_ipv6_mask_65_127_used_ref() = routeSlots[5];
 
   // Ideally lpm slots max and used should come from SDK.
   // However SDK always has these set to 0 in bcm_l3_info_t.
@@ -125,7 +123,7 @@ bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
   // below.
   // Note that v4 and v6 /0-/64 share same TCAM area so we
   // only need to count them once.
-  *stats->lpm_slots_max_ref() = *stats->lpm_ipv6_mask_0_64_max_ref() +
+  stats->lpm_slots_max_ref() = *stats->lpm_ipv6_mask_0_64_max_ref() +
       *stats->lpm_ipv6_mask_65_127_max_ref() * kPerIpv6Mask65_127SlotUsage;
 
   return true;
@@ -151,15 +149,15 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) const {
     return false;
   }
   // Free
-  *stats->lpm_ipv4_free_ref() = routeSlots[0];
-  *stats->lpm_ipv6_mask_0_64_free_ref() = routeSlots[1];
-  *stats->lpm_ipv6_mask_65_127_free_ref() = routeSlots[2];
-  *stats->lpm_ipv6_free_ref() = routeSlots[1] + routeSlots[2];
+  stats->lpm_ipv4_free_ref() = routeSlots[0];
+  stats->lpm_ipv6_mask_0_64_free_ref() = routeSlots[1];
+  stats->lpm_ipv6_mask_65_127_free_ref() = routeSlots[2];
+  stats->lpm_ipv6_free_ref() = routeSlots[1] + routeSlots[2];
 
-  *stats->lpm_slots_free_ref() = *stats->lpm_ipv6_mask_0_64_free_ref() +
+  stats->lpm_slots_free_ref() = *stats->lpm_ipv6_mask_0_64_free_ref() +
       *stats->lpm_ipv6_mask_65_127_free_ref() * kPerIpv6Mask65_127SlotUsage;
   // refreshLPMStats must be called first
-  *stats->lpm_slots_used_ref() =
+  stats->lpm_slots_used_ref() =
       *stats->lpm_slots_max_ref() - *stats->lpm_slots_free_ref();
   return true;
 }
@@ -216,20 +214,20 @@ bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
     return false;
   }
   // Entries
-  *stats->acl_entries_used_ref() = aclStatus.entry_count;
-  *stats->acl_entries_max_ref() = aclStatus.entries_total;
-  *stats->acl_entries_free_ref() = aclStatus.entries_free;
+  stats->acl_entries_used_ref() = aclStatus.entry_count;
+  stats->acl_entries_max_ref() = aclStatus.entries_total;
+  stats->acl_entries_free_ref() = aclStatus.entries_free;
   // Counters
-  *stats->acl_counters_used_ref() = aclStatus.counter_count;
-  *stats->acl_counters_free_ref() = aclStatus.counters_free;
+  stats->acl_counters_used_ref() = aclStatus.counter_count;
+  stats->acl_counters_free_ref() = aclStatus.counters_free;
   // compute max via used + free rather than using counters total
   // The latter is higher than what is available to this group
-  *stats->acl_counters_max_ref() =
+  stats->acl_counters_max_ref() =
       *stats->acl_counters_used_ref() + *stats->acl_counters_free_ref();
   // Meters
-  *stats->acl_meters_used_ref() = aclStatus.meter_count;
-  *stats->acl_meters_free_ref() = aclStatus.meters_free;
-  *stats->acl_meters_max_ref() = aclStatus.meters_total;
+  stats->acl_meters_used_ref() = aclStatus.meter_count;
+  stats->acl_meters_free_ref() = aclStatus.meters_free;
+  stats->acl_meters_max_ref() = aclStatus.meters_total;
   return true;
 }
 
@@ -238,15 +236,15 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
     HwResourceStats* stats) const {
   if (*stats->mirrors_erspan_ref() ==
       hardware_stats_constants::STAT_UNINITIALIZED()) {
-    *stats->mirrors_erspan_ref() = 0;
+    stats->mirrors_erspan_ref() = 0;
   }
   if (*stats->mirrors_span_ref() ==
       hardware_stats_constants::STAT_UNINITIALIZED()) {
-    *stats->mirrors_span_ref() = 0;
+    stats->mirrors_span_ref() = 0;
   }
   if (*stats->mirrors_sflow_ref() ==
       hardware_stats_constants::STAT_UNINITIALIZED()) {
-    *stats->mirrors_sflow_ref() = 0;
+    stats->mirrors_sflow_ref() = 0;
   }
   DeltaFunctions::forEachChanged(
       delta.getMirrorsDelta(),
@@ -269,10 +267,10 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
           decrementBcmMirrorStat(removedMirror, stats);
         }
       });
-  *stats->mirrors_max_ref() = hw_->getPlatform()->getAsic()->getMaxMirrors();
-  *stats->mirrors_used_ref() = *stats->mirrors_erspan_ref() +
+  stats->mirrors_max_ref() = hw_->getPlatform()->getAsic()->getMaxMirrors();
+  stats->mirrors_used_ref() = *stats->mirrors_erspan_ref() +
       *stats->mirrors_span_ref() + *stats->mirrors_sflow_ref();
-  *stats->mirrors_free_ref() =
+  stats->mirrors_free_ref() =
       *stats->mirrors_max_ref() - *stats->mirrors_used_ref();
 }
 
