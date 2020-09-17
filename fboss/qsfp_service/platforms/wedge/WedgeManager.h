@@ -22,7 +22,6 @@ class WedgeManager : public TransceiverManager {
       std::unique_ptr<PlatformMapping> platformMapping);
   ~WedgeManager() override {}
 
-  void loadConfig() override {}
   void initTransceiverMap() override;
   void getTransceiversInfo(TransceiverMap& info,
     std::unique_ptr<std::vector<int32_t>> ids) override;
@@ -84,6 +83,7 @@ class WedgeManager : public TransceiverManager {
       ports_;
 
  private:
+  void loadConfig() override;
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const &) = delete;
   WedgeManager& operator=(WedgeManager const &) = delete;

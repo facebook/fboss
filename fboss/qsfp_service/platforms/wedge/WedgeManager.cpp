@@ -4,6 +4,7 @@
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 
@@ -31,6 +32,47 @@ WedgeManager::WedgeManager(
    * on FPGA managed platforms and the wedgeI2cBus_ will be used to control
    * the QSFP devices on I2C/CPLD managed platforms
    */
+}
+
+void WedgeManager::loadConfig() {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  try {
+    config_ = AgentConfig::fromDefaultFile();
+
+    // Process config info here.
+    for (const auto& port : *config_->thrift.sw_ref()->ports_ref()) {
+      // Get the transceiver id based on the port info from config.
+      auto portId = *port.logicalID_ref();
+
+      auto itPlatformPort = platformPorts.find(portId);
+      if (itPlatformPort == platformPorts.end()) {
+        XLOG(ERR) << "Did not found platform port for sw port " << portId;
+        continue;
+      }
+
+      auto transceiverId = utility::getTransceiverId(
+          itPlatformPort->second, platformMapping_->getChips());
+
+      if (!transceiverId) {
+        XLOG(ERR) << "Did not found transceiver id for port id " << portId;
+        continue;
+      }
+
+      // Add the port to the transceiver indexed port group.
+      auto portGroupIt = portGroupMap_.find(transceiverId.value());
+      if (portGroupIt == portGroupMap_.end()) {
+        portGroupMap_[transceiverId.value()] = std::set<cfg::Port>{port};
+      } else {
+        portGroupIt->second.insert(port);
+      }
+      XLOG(INFO) << "Added port " << portId
+                 << " to transceiver " << transceiverId.value();
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Fail to load config: " << ex.what()
+              << " Fall back to use default portsPerTransceiver"
+              << " for each platform.";
+  }
 }
 
 void WedgeManager::initTransceiverMap() {
@@ -206,7 +248,7 @@ void WedgeManager::syncPorts(
                   << ": Error calling syncPorts(): " << ex.what();
       }
     } else {
-      XLOG(ERR) << "Syncing ports to a transceiver that is not preset.";
+      XLOG(ERR) << "Syncing ports to a transceiver that is not present.";
     }
   }
 }

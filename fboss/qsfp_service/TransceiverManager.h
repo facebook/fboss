@@ -17,7 +17,6 @@ class TransceiverManager {
   TransceiverManager(std::unique_ptr<TransceiverPlatformApi> api) :
     qsfpPlatApi_(std::move(api)) {};
   virtual ~TransceiverManager() {};
-  virtual void loadConfig() = 0;
   virtual void initTransceiverMap() = 0;
   virtual void getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::vector<int32_t>> ids) = 0;
@@ -63,6 +62,7 @@ class TransceiverManager {
   TransceiverManager(TransceiverManager const &) = delete;
   TransceiverManager& operator=(TransceiverManager const &) = delete;
  protected:
+  virtual void loadConfig() = 0;
   folly::Synchronized<std::map<TransceiverID, std::unique_ptr<Transceiver>>> transceivers_;
   /* This variable stores the TransceiverPlatformApi object for controlling
    * the QSFP devies on board. This handle is populated from this class
