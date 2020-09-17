@@ -31,6 +31,9 @@ namespace facebook::fboss {
 void BcmAPI::initImpl() {}
 void BcmAPI::bdeCreateSim() {}
 void BcmAPI::initHSDKImpl(const std::string& /* yamlConfig */) {}
+bool BcmAPI::isHwUsingHSDK() {
+  return false;
+}
 
 /*
  * Get the number of Broadcom switching devices in this system.

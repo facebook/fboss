@@ -43,5 +43,15 @@ int BcmUnit::createHwUnit() {
 std::pair<uint16_t, uint16_t> BcmUnit::createDRDDevice() {
   throw FbossError("createDRDDevice is unsupported");
 }
+
+int BcmUnit::destroyHwUnit() {
+  int rv = soc_cm_device_destroy(unit_);
+  bcmCheckError(rv, "failed to destroy device unit ", unit_);
+  return rv;
+}
+
+void BcmUnit::detachHSDK() {
+  throw FbossError("detachHSDK is unsupported");
+}
 } // namespace fboss
 } // namespace facebook

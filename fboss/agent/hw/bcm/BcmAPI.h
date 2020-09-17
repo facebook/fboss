@@ -137,6 +137,7 @@ class BcmAPI {
   static bool isHwInSimMode();
 
   static std::string& getHwYamlConfig();
+  static bool isHwUsingHSDK();
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -167,6 +168,10 @@ class BcmAPI {
    * A flag indicates whether we use ngbde
    */
   static bool isNgbde_;
+  /*
+   * A flag indicates whether we use HSDK
+   */
+  static bool isHSDK_;
 };
 
 } // namespace facebook::fboss

@@ -100,6 +100,7 @@ class BcmUnit {
 
   void attachSDK6(bool warmBoot);
   void attachHSDK(bool warmBoot);
+  void detachHSDK();
 
   // Create DRD device and return <device_id, revision_id>
   std::pair<uint16_t, uint16_t> createDRDDevice();
