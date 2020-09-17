@@ -89,6 +89,8 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
     return metadata_.has_value() ? metadata_.value() : 0;
   }
 
+  void update(const std::shared_ptr<MacEntry>& updated);
+
  private:
   SwitchSaiId switchId_;
   PortID portId_;

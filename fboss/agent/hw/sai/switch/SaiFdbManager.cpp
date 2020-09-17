@@ -140,6 +140,23 @@ void SaiFdbManager::addFdbEntry(
   managedFdbEntries_.emplace(key, managedFdbEntry);
 }
 
+void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
+  CHECK_EQ(portId_, updated->getPort().phyPortID());
+  CHECK_EQ(mac_, updated->getMac());
+  auto fdbEntry = getSaiObject();
+  if (!fdbEntry) {
+    return;
+  }
+  fdbEntry->setAttribute(SaiFdbTraits::Attributes::Type(
+      updated->getType() == MacEntryType::STATIC_ENTRY
+          ? SAI_FDB_ENTRY_TYPE_STATIC
+          : SAI_FDB_ENTRY_TYPE_DYNAMIC));
+  sai_uint32_t metadata = updated->getClassID()
+      ? static_cast<sai_uint32_t>(updated->getClassID().value())
+      : 0;
+  fdbEntry->setOptionalAttribute(SaiFdbTraits::Attributes::Metadata{metadata});
+}
+
 void SaiFdbManager::removeFdbEntry(
     InterfaceID interfaceId,
     folly::MacAddress mac) {
@@ -188,10 +205,32 @@ void SaiFdbManager::changeMac(
     const std::shared_ptr<MacEntry>& oldEntry,
     const std::shared_ptr<MacEntry>& newEntry) {
   if (*oldEntry != *newEntry) {
-    removeMac(oldEntry);
-    addMac(newEntry);
+    CHECK_EQ(oldEntry->getMac(), newEntry->getMac());
+    if (oldEntry->getPort() != newEntry->getPort()) {
+      removeMac(oldEntry);
+      addMac(newEntry);
+    } else {
+      XLOGF(INFO, "Change fdb entry {}, {}", oldEntry->str(), newEntry->str());
+      auto newIntfId = getInterfaceId(newEntry);
+      auto key = PublisherKey<SaiFdbTraits>::custom_type{newIntfId,
+                                                         newEntry->getMac()};
+      try {
+        managedFdbEntries_.find(key)->second->update(newEntry);
+      } catch (const SaiApiError& e) {
+        // For change of MAC entry there is a possibility that the
+        // previous entry was dynamic and got aged out
+        if (oldEntry->getType() == MacEntryType::DYNAMIC_ENTRY &&
+            e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+          removeMac(oldEntry);
+          addMac(newEntry);
+        } else {
+          throw;
+        }
+      }
+    }
   }
 }
+
 InterfaceID SaiFdbManager::getInterfaceId(
     const std::shared_ptr<MacEntry>& macEntry) const {
   if (macEntry->getPort().isAggregatePort()) {
