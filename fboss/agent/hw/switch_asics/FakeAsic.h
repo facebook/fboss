@@ -12,7 +12,9 @@ class FakeAsic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override {
     static const std::set<Feature> kUnsupportedFeatures{
-        Feature::HSDK, Feature::RESOURCE_USAGE_STATS, Feature::OBJECT_KEY_CACHE};
+        Feature::HSDK,
+        Feature::RESOURCE_USAGE_STATS,
+        Feature::OBJECT_KEY_CACHE};
     return kUnsupportedFeatures.find(feature) == kUnsupportedFeatures.end();
   }
   AsicType getAsicType() const override {
