@@ -439,7 +439,9 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
     if (intfFound) {
       bcm_l2_station_t l2Station;
       bcm_l2_station_t_init(&l2Station);
-      rv = bcm_l2_station_get(hw_->getUnit(), l3Intf.l3a_vid, &l2Station);
+      auto stationId =
+          hw_->getPlatform()->getAsic()->getStationID(l3Intf.l3a_vid);
+      rv = bcm_l2_station_get(hw_->getUnit(), stationId, &l2Station);
       if (!BCM_FAILURE(rv)) {
         XLOG(DBG1) << " Found l2 station with id : " << l3Intf.l3a_vid;
         vlan2Station_[VlanID(vlanData.vlan_tag)] = l2Station;
@@ -793,7 +795,9 @@ void BcmWarmBootCache::clear() {
   // Delete stations
   for (auto vlanAndStation : vlan2Station_) {
     XLOG(DBG1) << "Deleting station for vlan : " << vlanAndStation.first;
-    auto rv = bcm_l2_station_delete(hw_->getUnit(), vlanAndStation.first);
+    auto stationId =
+        hw_->getPlatform()->getAsic()->getStationID(vlanAndStation.first);
+    auto rv = bcm_l2_station_delete(hw_->getUnit(), stationId);
     bcmLogFatal(
         rv, hw_, "failed to delete station for vlan : ", vlanAndStation.first);
   }

@@ -22,6 +22,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
 
 namespace facebook::fboss {
@@ -41,7 +42,7 @@ BcmStation::~BcmStation() {
   XLOG(DBG3) << "deleted station entry " << id_;
 }
 
-void BcmStation::program(MacAddress mac, int id) {
+void BcmStation::program(MacAddress mac, int intfId) {
   CHECK_EQ(INVALID, id_);
   bcm_l2_station_t params;
   bcm_l2_station_t_init(&params);
@@ -49,13 +50,16 @@ void BcmStation::program(MacAddress mac, int id) {
   memset(&params.dst_mac_mask, 0xFF, sizeof(params.dst_mac_mask));
   params.flags |= BCM_L2_STATION_IPV4 | BCM_L2_STATION_IPV6 |
       BCM_L2_STATION_ARP_RARP | BCM_L2_STATION_MPLS;
-  if (id != INVALID) {
+  if (intfId != INVALID) {
+    params.vlan = intfId;
+    params.vlan_mask = 0x0;
     params.flags |= BCM_L2_STATION_WITH_ID;
   }
   int rc;
   bool addStation = false;
   const auto warmBootCache = hw_->getWarmBootCache();
-  auto vlanStationItr = warmBootCache->findVlanStation(VlanID(id));
+  auto vlanStationItr = warmBootCache->findVlanStation(VlanID(intfId));
+  auto id = hw_->getPlatform()->getAsic()->getStationID(intfId);
   if (vlanStationItr != warmBootCache->vlan2Station_end()) {
     // Lambda to compare with existing entry to check if we need to reprogram
     auto equivalent = [=](const bcm_l2_station_t& newStation,

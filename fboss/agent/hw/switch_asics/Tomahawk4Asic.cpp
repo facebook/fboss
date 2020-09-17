@@ -69,4 +69,15 @@ int Tomahawk4Asic::getDefaultACLGroupID() const {
   }
 }
 
+int Tomahawk4Asic::getStationID(int intfId) const {
+  int stationId = intfId;
+  // station id should be smaller than 511 on tomahawk4
+  if (intfId >= 4000) {
+    stationId = intfId - 4000 + 400; // 400, 401, 402
+  } else if (intfId >= 2000) {
+    stationId = intfId - 2000 + 200; // 200, 201, 202, ...
+  }
+  return stationId;
+}
+
 } // namespace facebook::fboss

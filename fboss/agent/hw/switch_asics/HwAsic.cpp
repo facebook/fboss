@@ -26,4 +26,12 @@ int HwAsic::getDefaultACLGroupID() const {
     return kDefaultACLGroupID;
   }
 }
+
+/*
+ * station entry id for vlan interface
+ */
+int HwAsic::getStationID(int intfID) const {
+  return intfID;
+}
+
 } // namespace facebook::fboss

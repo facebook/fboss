@@ -74,6 +74,11 @@ class HwAsic {
    * Default Content Aware Processor group ID for ACLs
    */
   virtual int getDefaultACLGroupID() const;
+
+  /*
+   * station entry id for vlan interface
+   */
+  virtual int getStationID(int intfID) const;
 };
 
 } // namespace facebook::fboss

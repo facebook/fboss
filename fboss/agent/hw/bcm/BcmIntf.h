@@ -36,7 +36,7 @@ class BcmStation {
   // We only use it to filter based on the MAC to enable the L3 processing.
   explicit BcmStation(BcmSwitch* hw) : hw_(hw) {}
   ~BcmStation();
-  void program(folly::MacAddress mac, int id);
+  void program(folly::MacAddress mac, int intfId);
 
  private:
   // no copy or assignment
