@@ -158,7 +158,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
       auto entry = neighborTable->getEntry(ipAddr);
       XLOG(DBG) << entry->str();
       EXPECT_EQ(entry->getClassID(), classID);
-      if (entry->isReachable()) {
+      if (entry->isReachable() && !entry->getMac().isBroadcast()) {
         // We assume here that class ID of mac matches that of
         // neighbor. That's true for our tests, since for neighbor
         // entries we add a Mac entry in sequence. And since Mac
@@ -331,7 +331,7 @@ TYPED_TEST(LookupClassUpdaterTest, VerifyClassIDPortDown) {
   /*
    * On port down, ARP/NDP behavior differs from L2 entries:
    *  - ARP/NDP neighbors go to pending state, and classID is disassociated.
-   *  - L2 entries remain in L2 table with classID associated as before.
+   *  - L2 entries should get pruned with neighbor dereference
    */
   this->verifyStateUpdate([=]() {
     if constexpr (std::is_same_v<TypeParam, folly::MacAddress>) {

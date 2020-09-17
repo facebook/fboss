@@ -22,6 +22,12 @@
 
 namespace facebook::fboss {
 
+namespace {
+template <typename NeighborEntryT>
+bool isReachable(const std::shared_ptr<NeighborEntryT>& entry) {
+  return entry->isReachable() && !entry->getMac().isBroadcast();
+}
+} // namespace
 void StaticL2ForNeighborUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!hw_->needL2EntryForNeighbor()) {
     return;
@@ -42,7 +48,7 @@ void StaticL2ForNeighborUpdater::processAdded(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& addedEntry) {
   assertNeighborEntry(*addedEntry);
-  if (addedEntry->isReachable()) {
+  if (isReachable(addedEntry)) {
     XLOG(INFO) << " Neighbor entry added: " << addedEntry->str();
     ensureMacEntryForNeighbor(vlan, addedEntry);
   }
@@ -54,7 +60,7 @@ void StaticL2ForNeighborUpdater::processRemoved(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   assertNeighborEntry(*removedEntry);
-  if (removedEntry->isReachable()) {
+  if (isReachable(removedEntry)) {
     XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
     pruneMacEntryForNeighbor(vlan, removedEntry);
   }
@@ -68,7 +74,7 @@ void StaticL2ForNeighborUpdater::processChanged(
     const std::shared_ptr<NeighborEntryT>& newEntry) {
   assertNeighborEntry(*oldEntry);
   assertNeighborEntry(*newEntry);
-  if ((oldEntry->isReachable() != newEntry->isReachable()) ||
+  if ((isReachable(oldEntry) != isReachable(newEntry)) ||
       (oldEntry->getMac() != newEntry->getMac())) {
     XLOG(INFO) << " Neighbor entry changed, old: " << oldEntry->str()
                << " new: " << newEntry->str();
