@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -109,4 +110,34 @@ TEST_F(HwResourceStatsTest, l3Stats) {
   };
   verifyAcrossWarmBoots(setup, verify);
 };
+
+TEST_F(HwResourceStatsTest, aclStats) {
+  if (!isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto setup = [] {};
+  auto verify = [this] {
+    auto getStatsFn = [] {
+      return std::make_pair(
+          fbData->getCounter(kAclEntriesFree),
+          fbData->getCounter(kAclCountersFree));
+    };
+    auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
+    auto newCfg = config();
+    auto acl = utility::addAcl(&newCfg, "acl0");
+    acl->dscp_ref() = 0x10;
+    utility::addAclStat(&newCfg, "acl0", "stat0");
+    applyNewConfig(newCfg);
+    auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
+    EXPECT_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
+    // More than one h/w resource gets consumed on configuring
+    // a counter
+    EXPECT_LT(aclCountersFreeAfter, aclCountersFreeBefore);
+    applyNewConfig(config());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
