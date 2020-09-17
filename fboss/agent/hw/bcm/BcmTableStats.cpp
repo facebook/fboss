@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 
+#include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -32,7 +33,9 @@ constexpr auto kPerIpv6Mask65_127SlotUsage = 2;
 }
 
 BcmHwTableStatManager::BcmHwTableStatManager(const BcmSwitch* hw)
-    : hw_(hw), isAlpmEnabled_(hw_->isAlpmEnabled()) {}
+    : hw_(hw),
+      isAlpmEnabled_(hw_->isAlpmEnabled()),
+      is128ByteIpv6Enabled_(BcmAPI::getConfigValue("ipv6_lpm_128b_enable")) {}
 
 bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   // HW status info
@@ -51,6 +54,10 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
   *stats->l3_nexthops_used_ref() = std::max(0, l3HwStatus.l3info_used_nexthop);
   *stats->l3_nexthops_free_ref() = std::max(
       0, *stats->l3_nexthops_max_ref() - *stats->l3_nexthops_used_ref());
+  // Nexthops correspond to egresses, which are shared (and thus same) for
+  // v4 and v6
+  stats->l3_ipv4_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
+  stats->l3_ipv6_nexthops_free_ref() = *stats->l3_nexthops_free_ref();
   *stats->l3_ipv4_host_used_ref() =
       std::max(0, l3HwStatus.l3info_used_host_ip4);
   *stats->l3_ipv6_host_used_ref() =
@@ -61,7 +68,23 @@ bool BcmHwTableStatManager::refreshHwStatusStats(HwResourceStats* stats) const {
       hw_->getMultiPathNextHopTable()->getEcmpEgressCount();
   *stats->l3_ecmp_groups_free_ref() = std::max(
       0, *stats->l3_ecmp_groups_max_ref() - *stats->l3_ecmp_groups_used_ref());
-  return true;
+  // Get v4, v6 host counts
+  int v4Max;
+  auto v4Stale =
+      bcm_switch_object_count_get(0, bcmSwitchObjectL3HostV4Max, &v4Max);
+  if (!v4Stale) {
+    stats->l3_ipv4_host_free_ref() =
+        std::max(0, v4Max - *stats->l3_host_used_ref());
+  }
+  int v6Max;
+  auto v6Stale =
+      bcm_switch_object_count_get(0, bcmSwitchObjectL3HostV6Max, &v6Max);
+  if (!v6Stale) {
+    // v6 hosts take 2 slots each
+    stats->l3_ipv6_host_free_ref() =
+        std::max(0, (v6Max - *stats->l3_host_used_ref() / 2));
+  }
+  return !v4Stale && !v6Stale;
 }
 
 bool BcmHwTableStatManager::refreshLPMStats(HwResourceStats* stats) const {
@@ -139,6 +162,46 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) const {
   *stats->lpm_slots_used_ref() =
       *stats->lpm_slots_max_ref() - *stats->lpm_slots_free_ref();
   return true;
+}
+
+bool BcmHwTableStatManager::refreshAlpmFreeRouteCounts(
+    HwResourceStats* stats) const {
+  bool v4Stale{false}, v6Stale{false};
+  {
+    // v4
+    int v4Max, v4Used;
+    auto ret1 = bcm_switch_object_count_get(
+        0, bcmSwitchObjectL3RouteV4RoutesMax, &v4Max);
+    auto ret2 = bcm_switch_object_count_get(
+        0, bcmSwitchObjectL3RouteV4RoutesUsed, &v4Used);
+    if (!ret1 && !ret2) {
+      stats->lpm_ipv4_free_ref() = std::max(0, v4Max - v4Used);
+    } else {
+      v4Stale = true;
+    }
+  }
+  {
+    // v6
+    int v6Max, v6Used;
+    int ret1, ret2;
+    if (is128ByteIpv6Enabled_) {
+      ret1 = bcm_switch_object_count_get(
+          0, bcmSwitchObjectL3RouteV6Routes128bMax, &v6Max);
+      ret2 = bcm_switch_object_count_get(
+          0, bcmSwitchObjectL3RouteV6Routes128bUsed, &v6Used);
+    } else {
+      ret1 = bcm_switch_object_count_get(
+          0, bcmSwitchObjectL3RouteV6Routes64bMax, &v6Max);
+      ret2 = bcm_switch_object_count_get(
+          0, bcmSwitchObjectL3RouteV6Routes64bUsed, &v6Used);
+    }
+    if (!ret1 && !ret2) {
+      stats->lpm_ipv6_free_ref() = std::max(0, v6Max - v6Used);
+    } else {
+      v6Stale = true;
+    }
+  }
+  return !v4Stale && !v6Stale;
 }
 
 bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
@@ -250,6 +313,8 @@ void BcmHwTableStatManager::refresh(
   stats->hw_table_stats_stale_ref() = !(hwStatus && lpmStatus && fpStatus);
   if (!isAlpmEnabled_) {
     *stats->hw_table_stats_stale_ref() |= !(refreshLPMOnlyStats(stats));
+  } else {
+    *stats->hw_table_stats_stale_ref() |= !(refreshAlpmFreeRouteCounts(stats));
   }
   updateBcmStateChangeStats(delta, stats);
 }

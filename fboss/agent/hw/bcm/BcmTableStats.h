@@ -30,7 +30,8 @@ class BcmHwTableStatManager {
   bool refreshLPMOnlyStats(HwResourceStats* stats) const;
   // Stats pertaining to FP
   bool refreshFPStats(HwResourceStats* stats) const;
-
+  // Free route counts in ALPM mode
+  bool refreshAlpmFreeRouteCounts(HwResourceStats* stats) const;
   void updateBcmStateChangeStats(
       const StateDelta& delta,
       HwResourceStats* stats) const;
@@ -45,6 +46,7 @@ class BcmHwTableStatManager {
   const BcmSwitch* hw_{nullptr};
 
   const bool isAlpmEnabled_;
+  const bool is128ByteIpv6Enabled_;
 };
 
 } // namespace facebook::fboss
