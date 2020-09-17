@@ -244,9 +244,10 @@ void BcmHwTableStatManager::incrementBcmMirrorStat(
 void BcmHwTableStatManager::refresh(
     const StateDelta& delta,
     HwResourceStats* stats) const {
-  *stats->hw_table_stats_stale_ref() =
-      !(refreshHwStatusStats(stats) && refreshLPMStats(stats) &&
-        refreshFPStats(stats));
+  auto hwStatus = refreshHwStatusStats(stats);
+  auto lpmStatus = refreshLPMStats(stats);
+  auto fpStatus = refreshFPStats(stats);
+  stats->hw_table_stats_stale_ref() = !(hwStatus && lpmStatus && fpStatus);
   if (!isAlpmEnabled_) {
     *stats->hw_table_stats_stale_ref() |= !(refreshLPMOnlyStats(stats));
   }
