@@ -25,8 +25,6 @@ extern "C" {
 #include <bcm/switch.h>
 }
 
-DECLARE_int32(acl_gid);
-
 namespace facebook::fboss {
 
 namespace {
@@ -145,8 +143,10 @@ bool BcmHwTableStatManager::refreshLPMOnlyStats(HwResourceStats* stats) const {
 
 bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
   bcm_field_group_status_t aclStatus;
-  auto ret =
-      bcm_field_group_status_get(hw_->getUnit(), FLAGS_acl_gid, &aclStatus);
+  auto ret = bcm_field_group_status_get(
+      hw_->getUnit(),
+      hw_->getPlatform()->getAsic()->getDefaultACLGroupID(),
+      &aclStatus);
   if (ret) {
     XLOG(ERR) << "Unable to get ACL stats, these "
                  "will be stale";

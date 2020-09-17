@@ -20,8 +20,6 @@
 
 #include <gtest/gtest.h>
 
-DECLARE_int32(acl_gid);
-
 extern "C" {
 #include <bcm/field.h>
 }
@@ -30,7 +28,8 @@ namespace facebook::fboss::utility {
 int getAclTableNumAclEntries(const HwSwitch* hwSwitch) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_field_group_t gid = FLAGS_acl_gid;
+  bcm_field_group_t gid =
+      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
   int size;
 
   auto rv =
@@ -53,13 +52,17 @@ void checkSwHwAclMatch(
   auto hwAcl = bcmSwitch->getAclTable()->getAclIf(swAcl->getPriority());
   ASSERT_NE(nullptr, hwAcl);
   ASSERT_TRUE(BcmAclEntry::isStateSame(
-      bcmSwitch, FLAGS_acl_gid, hwAcl->getHandle(), swAcl));
+      bcmSwitch,
+      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
+      hwAcl->getHandle(),
+      swAcl));
 }
 
 bool isAclTableEnabled(const HwSwitch* hwSwitch) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 
-  bcm_field_group_t gid = FLAGS_acl_gid;
+  bcm_field_group_t gid =
+      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
   int enable = -1;
 
   auto rv = bcm_field_group_enable_get(bcmSwitch->getUnit(), gid, &enable);
@@ -96,15 +99,17 @@ void checkAclEntryAndStatCount(
     int aclStatCount,
     int counterCount) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+  auto defaultGroupID =
+      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
 
   const auto stats = bcmSwitch->getStatUpdater()->getHwTableStats();
   ASSERT_EQ(aclCount, *stats.acl_entries_used_ref());
   ASSERT_EQ(
-      aclCount, fpGroupNumAclEntries(bcmSwitch->getUnit(), FLAGS_acl_gid));
+      aclCount, fpGroupNumAclEntries(bcmSwitch->getUnit(), defaultGroupID));
 
   ASSERT_EQ(
       aclStatCount,
-      fpGroupNumAclStatEntries(bcmSwitch->getUnit(), FLAGS_acl_gid));
+      fpGroupNumAclStatEntries(bcmSwitch->getUnit(), defaultGroupID));
   ASSERT_EQ(counterCount, bcmSwitch->getStatUpdater()->getCounterCount());
 }
 

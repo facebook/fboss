@@ -22,8 +22,6 @@ extern "C" {
 #endif
 }
 
-DECLARE_int32(acl_gid);
-
 using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
@@ -33,8 +31,9 @@ TEST_F(BcmTest, QsetCmp) {
   ASSERT_TRUE(qsetsEqual(
       getAclQset(getAsic()->getAsicType()),
       getAclQset(getAsic()->getAsicType())));
-  auto aclEffectiveQset =
-      getGroupQset(getUnit(), static_cast<bcm_field_group_t>(FLAGS_acl_gid));
+  auto aclEffectiveQset = getGroupQset(
+      getUnit(),
+      static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()));
   ASSERT_TRUE(qsetsEqual(aclEffectiveQset, aclEffectiveQset));
 
   // Just doing a Qset cmp on qsets obtained from configured groups fails
@@ -43,11 +42,12 @@ TEST_F(BcmTest, QsetCmp) {
 
   // Comparing via FPGroupDesiredQsetCmp succeeds when comparing qsets
   // of the same group
-  ASSERT_TRUE(FPGroupDesiredQsetCmp(
-                  getUnit(),
-                  static_cast<bcm_field_group_t>(FLAGS_acl_gid),
-                  getAclQset(getAsic()->getAsicType()))
-                  .hasDesiredQset());
+  ASSERT_TRUE(
+      FPGroupDesiredQsetCmp(
+          getUnit(),
+          static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()),
+          getAclQset(getAsic()->getAsicType()))
+          .hasDesiredQset());
 }
 
 TEST_F(BcmTest, BcmAddsExtraQuals) {

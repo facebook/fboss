@@ -2,6 +2,20 @@
 
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 
+DECLARE_int32(acl_gid);
+
+namespace {
+// On TH4, LOGICAL_TABLE_ID is 4 bit which will give 16 groups per pipe.
+// From IFP point of view the device operate in 4 Pipes which will get
+// 4*16 = 64 groups.
+// However in older devices LOGICAL_TABLE_ID is 5 bit which will give you
+// 128 groups.
+// However SDK reserves Group 64, to update the group qset even when entries
+// already installed in the group.
+// So 63 is the largest group id we can get.
+constexpr auto kDefaultACLGroupID = 63;
+} // namespace
+
 namespace facebook::fboss {
 
 bool Tomahawk4Asic::isSupported(Feature feature) const {
@@ -45,6 +59,14 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
       return false;
   }
   return false;
+}
+
+int Tomahawk4Asic::getDefaultACLGroupID() const {
+  if (FLAGS_acl_gid > 0) {
+    return FLAGS_acl_gid;
+  } else {
+    return kDefaultACLGroupID;
+  }
 }
 
 } // namespace facebook::fboss

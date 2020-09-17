@@ -24,8 +24,6 @@
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;
 
-DECLARE_int32(acl_gid);
-
 namespace {
 
 void checkCoppAclMatch(
@@ -33,14 +31,18 @@ void checkCoppAclMatch(
     BcmSwitch* hw,
     int unit) {
   auto& swAcls = state->getAcls();
-  int coppAclsCount = fpGroupNumAclEntries(unit, FLAGS_acl_gid);
+  int coppAclsCount = fpGroupNumAclEntries(
+      unit, hw->getPlatform()->getAsic()->getDefaultACLGroupID());
   ASSERT_EQ(swAcls->size(), coppAclsCount);
   // check all coop acls are sync between h/w and s/w
   for (auto& swAcl : *swAcls) {
     auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
     ASSERT_NE(nullptr, hwAcl);
-    ASSERT_TRUE(
-        BcmAclEntry::isStateSame(hw, FLAGS_acl_gid, hwAcl->getHandle(), swAcl));
+    ASSERT_TRUE(BcmAclEntry::isStateSame(
+        hw,
+        hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
+        hwAcl->getHandle(),
+        swAcl));
   }
 }
 

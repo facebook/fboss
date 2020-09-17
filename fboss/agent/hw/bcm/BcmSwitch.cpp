@@ -173,7 +173,6 @@ DEFINE_int32(cosq_default, 1, "The default cos queue number");
 
 DEFINE_int32(cosq_lopri, 0, "The low priority cos queue number");
 
-DEFINE_int32(acl_gid, 128, "Content aware processor group ID for ACLs");
 DEFINE_int32(
     copp_acl_entry_priority_start,
     1,
@@ -2682,7 +2681,7 @@ void BcmSwitch::createAclGroup() {
   createFPGroup(
       unit_,
       getAclQset(getPlatform()->getAsic()->getAsicType()),
-      FLAGS_acl_gid,
+      platform_->getAsic()->getDefaultACLGroupID(),
       FLAGS_acl_g_pri);
 }
 
@@ -2726,10 +2725,10 @@ void BcmSwitch::initMplsModule() const {
 }
 
 void BcmSwitch::setupFPGroups() {
-  for (auto grpId : {FLAGS_acl_gid}) {
+  for (auto grpId : {platform_->getAsic()->getDefaultACLGroupID()}) {
     auto gid = static_cast<bcm_field_group_t>(grpId);
     XLOG(DBG1) << "Setting up FP group : " << gid;
-    if (gid == FLAGS_acl_gid) {
+    if (gid == platform_->getAsic()->getDefaultACLGroupID()) {
       createAclGroup();
     } else {
       throw FbossError("Unknown group id : ", gid);
@@ -2739,7 +2738,7 @@ void BcmSwitch::setupFPGroups() {
 
 bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   std::map<std::pair<int32_t, int32_t>, bcm_field_qset_t> grp2Qset = {
-      {{FLAGS_acl_gid, FLAGS_acl_g_pri},
+      {{platform_->getAsic()->getDefaultACLGroupID(), FLAGS_acl_g_pri},
        getAclQset(getPlatform()->getAsic()->getAsicType())},
   };
   for (const auto& grpAndQset : grp2Qset) {
@@ -2938,7 +2937,7 @@ void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {
 
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {
   XLOG(DBG3) << "processAddedAcl, ACL=" << acl->getID();
-  aclTable_->processAddedAcl(FLAGS_acl_gid, acl);
+  aclTable_->processAddedAcl(platform_->getAsic()->getDefaultACLGroupID(), acl);
 }
 
 void BcmSwitch::forceLinkscanOn(bcm_pbmp_t ports) {

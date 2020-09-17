@@ -258,6 +258,18 @@ void createFPGroup(
     bcm_field_group_t gid,
     int g_pri) {
   auto rv = bcm_field_group_create_id(unit, qset, g_pri, gid);
+  if (rv == BCM_E_UNAVAIL) {
+    // If we can't use create_id function, then fall to use config_create
+    bcm_field_group_config_t config;
+    bcm_field_group_config_t_init(&config);
+    config.flags = BCM_FIELD_GROUP_CREATE_WITH_ID;
+    config.qset = qset;
+    BCM_FIELD_ASET_INIT(config.aset);
+    config.priority = g_pri;
+    config.group = gid;
+    rv = bcm_field_group_config_create(unit, &config);
+  }
+
   bcmCheckError(rv, "failed to create fp group: ", gid);
   XLOG(DBG1) << " Created FP group: " << gid;
 }

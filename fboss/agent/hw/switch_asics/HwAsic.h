@@ -69,6 +69,11 @@ class HwAsic {
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;
   }
+
+  /*
+   * Default Content Aware Processor group ID for ACLs
+   */
+  virtual int getDefaultACLGroupID() const;
 };
 
 } // namespace facebook::fboss

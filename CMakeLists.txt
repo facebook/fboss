@@ -330,6 +330,7 @@ if (NOT SAI_ONLY)
   # TODO (skhare) refactor fboss_agent and remove this library
   add_library(switch_asics_old STATIC
       fboss/agent/hw/switch_asics/FakeAsic.h
+      fboss/agent/hw/switch_asics/HwAsic.cpp
       fboss/agent/hw/switch_asics/HwAsic.h
       fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
       fboss/agent/hw/switch_asics/TomahawkAsic.cpp

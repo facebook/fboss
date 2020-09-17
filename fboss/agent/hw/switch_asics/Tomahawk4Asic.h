@@ -41,6 +41,8 @@ class Tomahawk4Asic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override {
     return 2 * 234606 * 254;
   }
+
+  int getDefaultACLGroupID() const override;
 };
 
 } // namespace facebook::fboss

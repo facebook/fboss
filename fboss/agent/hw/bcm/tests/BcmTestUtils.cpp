@@ -17,8 +17,6 @@
 
 #include <gtest/gtest.h>
 
-DECLARE_int32(acl_gid);
-
 namespace facebook::fboss::utility {
 
 void checkSwHwAclMatch(
@@ -29,8 +27,11 @@ void checkSwHwAclMatch(
   ASSERT_NE(nullptr, swAcl);
   auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
   ASSERT_NE(nullptr, hwAcl);
-  ASSERT_TRUE(
-      BcmAclEntry::isStateSame(hw, FLAGS_acl_gid, hwAcl->getHandle(), swAcl));
+  ASSERT_TRUE(BcmAclEntry::isStateSame(
+      hw,
+      hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
+      hwAcl->getHandle(),
+      swAcl));
 }
 
 void assertSwitchControl(bcm_switch_control_t type, int expectedValue) {
