@@ -404,39 +404,38 @@ void SaiSwitch::updateResourceUsageLocked(
       managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
   auto aclTableId = aclTableHandle->aclTable->adapterKey();
   auto& aclApi = SaiApiTable::getInstance()->aclApi();
-  HwResourceStats stats;
   try {
-    // TODO - compute used stats from internal data structures and
+    // TODO - compute used resource stats from internal data structures and
     // populate them here
-    stats.acl_entries_free_ref() = aclApi.getAttribute(
+    hwResourceStats_.acl_entries_free_ref() = aclApi.getAttribute(
         aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
-    stats.acl_counters_free_ref() = aclApi.getAttribute(
+    hwResourceStats_.acl_counters_free_ref() = aclApi.getAttribute(
         aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
 
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    stats.lpm_ipv4_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.lpm_ipv4_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4RouteEntry{});
-    stats.lpm_ipv6_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.lpm_ipv6_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6RouteEntry{});
-    stats.l3_ipv4_nexthops_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv4_nexthops_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NextHopEntry{});
-    stats.l3_ipv6_nexthops_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv6_nexthops_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NextHopEntry{});
-    stats.l3_ecmp_groups_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ecmp_groups_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableNextHopGroupEntry{});
-    stats.l3_ecmp_group_members_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ecmp_group_members_free_ref() = switchApi.getAttribute(
         switchId_,
         SaiSwitchTraits::Attributes::AvailableNextHopGroupMemberEntry{});
-    stats.l3_ipv4_host_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv4_host_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv4NeighborEntry{});
-    stats.l3_ipv6_host_free_ref() = switchApi.getAttribute(
+    hwResourceStats_.l3_ipv6_host_free_ref() = switchApi.getAttribute(
         switchId_, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
-    stats.hw_table_stats_stale_ref() = false;
+    hwResourceStats_.hw_table_stats_stale_ref() = false;
   } catch (const SaiApiError& e) {
-    XLOG(ERR) << " Failed to get resource usage stats: " << *e.message_ref();
-    stats.hw_table_stats_stale_ref() = true;
+    XLOG(ERR) << " Failed to get resource usage hwResourceStats_: "
+              << *e.message_ref();
+    hwResourceStats_.hw_table_stats_stale_ref() = true;
   }
-  HwResourceStatsPublisher().publish(stats);
 }
 
 void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
@@ -548,6 +547,10 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->bufferManager().updateStats();
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    HwResourceStatsPublisher().publish(hwResourceStats_);
   }
 }
 

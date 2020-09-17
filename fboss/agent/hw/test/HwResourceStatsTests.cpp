@@ -58,6 +58,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
   }
   auto setup = [] {};
   auto verify = [this] {
+    // Trigger a stats collection
+    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto constexpr kEcmpWidth = 2;
     utility::EcmpSetupAnyNPorts4 ecmp4(getProgrammedState());
     utility::EcmpSetupAnyNPorts6 ecmp6(getProgrammedState());
@@ -85,6 +87,8 @@ TEST_F(HwResourceStatsTest, l3Stats) {
         getProgrammedState(), kEcmpWidth, {kPrefix6()}));
     applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
     applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
+    // Trigger a stats collection
+    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto
         [v6RouteFreeAfter,
          v4RouteFreeAfter,
@@ -120,6 +124,8 @@ TEST_F(HwResourceStatsTest, aclStats) {
   }
   auto setup = [] {};
   auto verify = [this] {
+    // Trigger a stats collection
+    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto getStatsFn = [] {
       return std::make_pair(
           fbData->getCounter(kAclEntriesFree),
@@ -131,6 +137,8 @@ TEST_F(HwResourceStatsTest, aclStats) {
     acl->dscp_ref() = 0x10;
     utility::addAclStat(&newCfg, "acl0", "stat0");
     applyNewConfig(newCfg);
+    // Trigger a stats collection
+    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
     EXPECT_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
     // More than one h/w resource gets consumed on configuring

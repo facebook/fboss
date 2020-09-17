@@ -12,6 +12,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
@@ -327,6 +328,7 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
   folly::EventBase fdbEventBottomHalfEventBase_;
 
+  HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 };
 
