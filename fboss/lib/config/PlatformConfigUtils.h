@@ -46,4 +46,8 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     const std::vector<phy::PinConnection>& pinConnections,
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
 
+std::optional<TransceiverID> getTransceiverId(
+    const cfg::PlatformPortEntry& port,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+
 } // namespace facebook::fboss::utility

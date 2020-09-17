@@ -303,4 +303,17 @@ std::map<std::string, phy::DataPlanePhyChip> getDataPlanePhyChips(
   }
   return chips;
 }
+
+std::optional<TransceiverID> getTransceiverId(
+    const cfg::PlatformPortEntry& port,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  auto transceiverChips = getDataPlanePhyChips(
+      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+  // There should be no more than one transceiver associated with a port.
+  CHECK_LE(transceiverChips.size(), 1);
+  if (!transceiverChips.empty()) {
+    return TransceiverID(*transceiverChips.begin()->second.physicalID_ref());
+  }
+  return std::nullopt;
+}
 } // namespace facebook::fboss::utility
