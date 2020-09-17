@@ -28,6 +28,8 @@
 DECLARE_bool(setup_thrift);
 DECLARE_int32(update_bststats_interval_s);
 
+using apache::thrift::can_throw;
+
 namespace {
 void addPort(
     facebook::fboss::BcmConfig::ConfigMap& cfg,
@@ -79,6 +81,7 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
   auto platform = createTestPlatform();
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
+  std::string yamlCfg;
   if (getPlatformMode() == PlatformMode::FAKE_WEDGE) {
     FLAGS_flexports = true;
     for (int n = 1; n <= 125; n += 4) {
@@ -98,11 +101,19 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     } else if (!FLAGS_config.empty()) {
       XLOG(INFO) << "Loading config from " << FLAGS_config;
       agentConfig = AgentConfig::fromFile(FLAGS_config);
-      cfg = *(platform->config()->thrift)
-                 .platform_ref()
-                 ->chip_ref()
-                 ->get_bcm()
-                 .config_ref();
+      if (FLAGS_mode == "fuji") {
+        yamlCfg = can_throw(*(platform->config()->thrift)
+                                 .platform_ref()
+                                 ->chip_ref()
+                                 ->get_bcm()
+                                 .yamlConfig_ref());
+      } else {
+        cfg = *(platform->config()->thrift)
+                   .platform_ref()
+                   ->chip_ref()
+                   ->get_bcm()
+                   .config_ref();
+      }
     } else {
       throw FbossError("No config file to load!");
     }
@@ -116,7 +127,11 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";
     modifyCfgForQcmTests(cfg);
   }
-  BcmAPI::init(cfg);
+  if (FLAGS_mode == "fuji") {
+    BcmAPI::initHSDK(yamlCfg);
+  } else {
+    BcmAPI::init(cfg);
+  }
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), getHwSwitchFeatures());
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
