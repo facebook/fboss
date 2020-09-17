@@ -41,6 +41,7 @@ class HwAsic {
     HSDK,
     OBJECT_KEY_CACHE,
     GET_OBJECT_KEYS,
+    L3_EGRESS_MODE_AUTO_ENABLED,
   };
 
   enum class AsicType {

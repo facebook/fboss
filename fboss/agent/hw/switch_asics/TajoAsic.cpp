@@ -46,6 +46,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::GET_OBJECT_KEYS:
+    case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
       return false;
   }
   return false;

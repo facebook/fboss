@@ -796,8 +796,13 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     dumpState(platform_->getWarmBootHelper()->startupSdkDumpFile());
   }
 
-  rv = bcm_switch_control_set(unit_, bcmSwitchL3EgressMode, 1);
-  bcmCheckError(rv, "failed to set L3 egress mode");
+  // If the platform doesn't support auto enabling l3 egress mode
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED)) {
+    rv = bcm_switch_control_set(unit_, bcmSwitchL3EgressMode, 1);
+    bcmCheckError(rv, "failed to set L3 egress mode");
+  }
+
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
   // TODO: We may want to trap ARP on a per-port or per-VLAN basis.
   rv = bcm_switch_control_set(unit_, bcmSwitchArpRequestToCpu, 1);
@@ -819,7 +824,12 @@ HwInitResult BcmSwitch::init(Callback* callback) {
   // TODO: We may want to trap NDP on a per-port or per-VLAN basis.
   rv = bcm_switch_control_set(unit_, bcmSwitchNdPktToCpu, 1);
   bcmCheckError(rv, "failed to set NDP trapping");
-  disableHotSwap();
+
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    // Always disable hot swap
+    // T75758668 Temporary hack before Broadcom release fix in next SDK
+    disableHotSwap();
+  }
 
   if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();
@@ -2695,6 +2705,13 @@ void BcmSwitch::initFieldProcessor() const {
 }
 
 void BcmSwitch::initMirrorModule() const {
+  // TODO T74698149 HSDK might need a new implementation for mirroring.
+  // For now, we just disable it for HSDK until we have a new solution.
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    XLOG(WARNING) << "Disable Mirroring feature for HSDK";
+    return;
+  }
+
   auto rv = bcm_switch_control_set(unit_, bcmSwitchDirectedMirroring, 1);
   bcmCheckError(rv, "Failed to set Switch Directed Mirroring");
   rv = bcm_mirror_init(unit_);
