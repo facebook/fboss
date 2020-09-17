@@ -48,6 +48,14 @@ class BcmAPI {
   static void initHSDK(const std::string& yamlConfig);
 
   /*
+   * Shut the Broadcom SDK.
+   *
+   * This must be called after stop using any Broadcom SDK functions.
+   * And it should only be called once we shut down BcmUnit
+   */
+  static void shutdown();
+
+  /*
    * Get the number of Broadcom switching devices in this system.
    */
   static size_t getNumSwitches();

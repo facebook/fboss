@@ -71,7 +71,9 @@ void WedgePlatform::initImpl(uint32_t hwFeaturesDesired) {
   hw_.reset(new BcmSwitch(this, hwFeaturesDesired));
 }
 
-WedgePlatform::~WedgePlatform() {}
+WedgePlatform::~WedgePlatform() {
+  BcmAPI::shutdown();
+}
 
 void WedgePlatform::initPorts() {
   portMapping_ = createPortMapping();

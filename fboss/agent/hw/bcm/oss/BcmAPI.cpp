@@ -41,4 +41,6 @@ bool BcmAPI::isHwUsingHSDK() {
 size_t BcmAPI::getNumSwitches() {
   return bde->num_devices(BDE_SWITCH_DEVICES);
 }
+
+void BcmAPI::shutdown() {}
 } // namespace facebook::fboss
