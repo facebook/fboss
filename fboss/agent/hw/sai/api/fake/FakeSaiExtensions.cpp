@@ -14,7 +14,7 @@ SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxDspModeIdWrapper::operator()() {
-  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_DSCP_MODE;
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_DSP_MODE;
 }
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxAfeTrimIdWrapper::operator()() {

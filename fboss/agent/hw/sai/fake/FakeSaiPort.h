@@ -16,6 +16,7 @@
 
 extern "C" {
 #include <sai.h>
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
 }
 
 namespace facebook::fboss {
@@ -46,6 +47,7 @@ class FakePort {
 
 struct FakePortSerdes {
   explicit FakePortSerdes(sai_object_id_t _port) : port(_port) {}
+  sai_object_id_t id;
   sai_object_id_t port;
   std::vector<uint32_t> iDriver;
   std::vector<uint32_t> txFirPre1;

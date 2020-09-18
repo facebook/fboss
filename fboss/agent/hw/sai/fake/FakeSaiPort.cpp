@@ -345,29 +345,281 @@ sai_status_t clear_port_stats_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_port_serdes_attribute_fn(
+    sai_object_id_t port_serdes_id,
+    const sai_attribute_t* attr);
+
 sai_status_t create_port_serdes_fn(
-    sai_object_id_t* /*port_serdes_id*/,
+    sai_object_id_t* port_serdes_id,
     sai_object_id_t /*switch_id*/,
-    uint32_t /*count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    uint32_t count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  bool created = false;
+  for (auto i = 0; i < count; i++) {
+    if (attr_list[i].id == SAI_PORT_SERDES_ATTR_PORT_ID) {
+      created = true;
+      *port_serdes_id = fs->portSerdesManager.create(attr_list[i].value.oid);
+      break;
+    }
+  }
+  if (!created) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  for (auto i = 0; i < count; i++) {
+    if (attr_list[i].id == SAI_PORT_SERDES_ATTR_PORT_ID) {
+      continue;
+    }
+    auto status = set_port_serdes_attribute_fn(*port_serdes_id, &attr_list[i]);
+    if (status != SAI_STATUS_SUCCESS) {
+      return status;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_port_serdes_fn(sai_object_id_t /*port_serdes_id*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+sai_status_t remove_port_serdes_fn(sai_object_id_t port_serdes_id) {
+  auto fs = FakeSai::getInstance();
+  fs->portSerdesManager.remove(port_serdes_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_port_serdes_attribute_fn(
-    sai_object_id_t /*port_serdes_id*/,
-    const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    sai_object_id_t port_serdes_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& portSerdes = fs->portSerdesManager.get(port_serdes_id);
+  auto& port = fs->portManager.get(portSerdes.port);
+  auto fillVec = [](auto& vec, auto* list, size_t count) {
+    std::copy(list, list + count, std::back_inserter(vec));
+  };
+  auto checkLanes = [&port](auto vec) {
+    return port.lanes.size() == vec.size();
+  };
+
+  switch (attr->id) {
+    case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
+      fillVec(
+          portSerdes.txFirPre1,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPre1)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
+      fillVec(
+          portSerdes.txFirPre2,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPre2)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_IDRIVER:
+      fillVec(
+          portSerdes.iDriver,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.iDriver)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
+      fillVec(
+          portSerdes.txFirMain,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirMain)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
+      fillVec(
+          portSerdes.txFirPost1,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPost1)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
+      fillVec(
+          portSerdes.txFirPost2,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPost2)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
+      fillVec(
+          portSerdes.txFirPost3,
+          attr->value.u32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txFirPost3)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
+      fillVec(
+          portSerdes.rxCtlCode,
+          attr->value.s32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.rxCtlCode)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_DSP_MODE:
+      fillVec(
+          portSerdes.rxDspMode,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxDspMode)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_TRIM:
+      fillVec(
+          portSerdes.rxAfeTrim,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxAfeTrim)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AC_COUPLING_BYPASS:
+      fillVec(
+          portSerdes.rxCouplingByPass,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxCouplingByPass)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_port_serdes_attribute_fn(
-    sai_object_id_t /*port_serdes_id*/,
-    uint32_t /*attr_count*/,
-    sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    sai_object_id_t port_serdes_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& portSerdes = fs->portSerdesManager.get(port_serdes_id);
+  auto checkListSize = [](auto& list, auto& vec) {
+    if (list.count < vec.size()) {
+      return false;
+    }
+    return true;
+  };
+  auto copyVecToList = [](auto& vec, auto& list) {
+    for (auto i = 0; i < vec.size(); i++) {
+      list.list[i] = vec[i];
+    }
+  };
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_PORT_SERDES_ATTR_PORT_ID:
+        attr_list[i].value.oid = portSerdes.port;
+        break;
+      case SAI_PORT_SERDES_ATTR_IDRIVER:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.iDriver)) {
+          attr_list[i].value.u32list.count = portSerdes.iDriver.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.iDriver, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPre1)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPre1.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPre1, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPre2)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPre2.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPre2, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirMain)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirMain.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirMain, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPost1)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPost1.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPost1, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPost2)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPost2.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPost2, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
+        if (!checkListSize(attr_list[i].value.u32list, portSerdes.txFirPost3)) {
+          attr_list[i].value.u32list.count = portSerdes.txFirPost3.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txFirPost3, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {
+          attr_list[i].value.s32list.count = portSerdes.rxCtlCode.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxCtlCode, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_DSP_MODE:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxDspMode)) {
+          attr_list[i].value.s32list.count = portSerdes.rxDspMode.size();
+
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxDspMode, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_TRIM:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxAfeTrim)) {
+          attr_list[i].value.s32list.count = portSerdes.rxAfeTrim.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxAfeTrim, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AC_COUPLING_BYPASS:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxCouplingByPass)) {
+          attr_list[i].value.s32list.count = portSerdes.rxCouplingByPass.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxCouplingByPass, attr_list[i].value.s32list);
+        break;
+      default:
+        return SAI_STATUS_NOT_IMPLEMENTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 namespace facebook::fboss {
