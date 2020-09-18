@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/PortQueue.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -129,6 +130,14 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
 void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
+  // TODO(xiangzhu): We need new PKTIO implementation for reason to cpu
+  // queue mapping logic
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PKTIO)) {
+    XLOG(DBG1) << "[HACK] bcm_rx_cosq_mapping_set is unavialble for PKTIO. "
+               << "Skip setting rx reason to cpu queue.";
+    return;
+  }
+
   auto maxCPUQueue = queueManager_->getNumQueues(cfg::StreamType::MULTICAST);
   auto queueID = *entry.queueId_ref();
   if (queueID < 0 || queueID > maxCPUQueue) {

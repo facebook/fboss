@@ -43,6 +43,7 @@ class HwAsic {
     GET_OBJECT_KEYS,
     L3_EGRESS_MODE_AUTO_ENABLED,
     SAI_ECN_WRED,
+    PKTIO,
   };
 
   enum class AsicType {

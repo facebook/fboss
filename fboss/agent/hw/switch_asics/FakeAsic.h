@@ -11,11 +11,16 @@ namespace facebook::fboss {
 class FakeAsic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override {
-    static const std::set<Feature> kUnsupportedFeatures{
-        Feature::HSDK,
-        Feature::RESOURCE_USAGE_STATS,
-        Feature::OBJECT_KEY_CACHE};
-    return kUnsupportedFeatures.find(feature) == kUnsupportedFeatures.end();
+    switch (feature) {
+      case Feature::HSDK:
+      case Feature::OBJECT_KEY_CACHE:
+      case Feature::RESOURCE_USAGE_STATS:
+      case Feature::PKTIO:
+        return false;
+
+      default:
+        return true;
+    }
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_FAKE;

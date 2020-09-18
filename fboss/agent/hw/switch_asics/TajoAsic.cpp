@@ -48,6 +48,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::GET_OBJECT_KEYS:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::PKTIO:
       return false;
   }
   return false;

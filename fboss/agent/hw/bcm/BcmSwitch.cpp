@@ -916,6 +916,12 @@ void BcmSwitch::setupToCpuEgress() {
 }
 
 void BcmSwitch::setupPacketRx() {
+  // TODO(xiangzhu): Need to implement pktio way to set up tx/rx
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PKTIO)) {
+    XLOG(DBG1) << "PKTIO is not ready. Skip setting up packet RX";
+    return;
+  }
+
   static bcm_rx_cfg_t rxCfg = {
       (16 * 1032), // packet alloc size (12K packets plus spare)
       16, // Packets per chain
