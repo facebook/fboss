@@ -24,7 +24,7 @@ BcmTestWedge40Port::BcmTestWedge40Port(
 void BcmTestWedge40Port::linkStatusChanged(bool up, bool adminUp) {
   auto bcmPort = getBcmPort();
   uint32_t value =
-      static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, adminUp));
+      static_cast<uint32_t>(Wedge40LedUtils::getDesiredLEDState(up, adminUp));
   BcmLedUtils::setWedge40PortStatus(0, bcmPort->getPortID(), value);
 }
 } // namespace facebook::fboss

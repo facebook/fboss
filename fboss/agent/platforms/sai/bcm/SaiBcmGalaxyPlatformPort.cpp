@@ -17,7 +17,7 @@ void SaiBcmGalaxyPlatformPort::linkStatusChanged(bool up, bool adminUp) {
     return;
   }
   uint32_t status = getLEDState(led.value(), index);
-  GalaxyLedUtils::setLEDState(&status, up, adminUp);
+  GalaxyLedUtils::getDesiredLEDState(&status, up, adminUp);
   setLEDState(led.value(), index, status);
 }
 

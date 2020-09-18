@@ -27,14 +27,18 @@ class Wedge100LedUtils {
   static std::pair<int, int>
   getCompactPortIndexes(PortID port, bool isTop, bool isQuad);
   static LedColor
-  getLEDColor(PortID port, int numberOfLanes, bool up, bool adminUp);
-  static LedColor getLEDColor(
+  getDesiredLEDState(PortID port, int numberOfLanes, bool up, bool adminUp);
+  static LedColor getDesiredLEDState(
       PortLedExternalState externalState,
       LedColor currentColor);
   static bool isTop(std::optional<TransceiverID> transciver);
   static folly::ByteRange defaultLedCode();
   static size_t getPortOffset(int index);
   static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
+  static LedColor
+  getExpectedLEDState(PortID port, int numberOfLanes, bool up, bool adminUp) {
+    return getDesiredLEDState(port, numberOfLanes, up, adminUp);
+  }
 };
 
 } // namespace facebook::fboss

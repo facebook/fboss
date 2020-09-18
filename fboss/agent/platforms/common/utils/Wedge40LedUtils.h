@@ -12,11 +12,17 @@ class Wedge40LedUtils {
     OFF = 0x0,
     ON = 0x1,
   };
-  static LedState getLEDState(bool up, bool adminUp);
+
+ public:
+  static LedState getDesiredLEDState(bool up, bool adminUp);
   static int getPortIndex(PortID port);
   static size_t getPortOffset(int index);
   static folly::ByteRange defaultLedCode();
   static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
+  static LedState getExpectedLEDState(bool up, bool adminUp) {
+    // TODO: implement this differently
+    return getDesiredLEDState(up, adminUp);
+  }
 };
 
 } // namespace facebook::fboss

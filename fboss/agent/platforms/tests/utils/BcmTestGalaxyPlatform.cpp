@@ -44,7 +44,7 @@ void BcmTestGalaxyPlatform::initLEDs(int unit) {
 bool BcmTestGalaxyPlatform::verifyLEDStatus(PortID port, bool up) {
   uint32_t value = BcmLedUtils::getGalaxyPortStatus(0, port);
   uint32_t expectedValue{0};
-  GalaxyLedUtils::setLEDState(&expectedValue, up, up);
+  GalaxyLedUtils::getExpectedLEDState(&expectedValue, up, up);
   return (value == expectedValue) && ((value & 0x1) != 0) == (up == true);
 }
 

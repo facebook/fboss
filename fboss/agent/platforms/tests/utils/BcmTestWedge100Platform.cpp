@@ -38,11 +38,11 @@ void BcmTestWedge100Platform::initLEDs(int unit) {
 
 bool BcmTestWedge100Platform::verifyLEDStatus(PortID port, bool up) {
   auto bcmPort = static_cast<BcmTestWedge100Port*>(getPlatformPort(port));
-  auto color = Wedge100LedUtils::getLEDColor(
+  auto expectedVal = Wedge100LedUtils::getExpectedLEDState(
       bcmPort->getPortID(), bcmPort->numberOfLanes(), up, up);
 
-  auto value = BcmLedUtils::getWedge100PortStatus(0, port);
-  return (value == static_cast<uint32_t>(color)) &&
-      ((value != 0) == (up == true));
+  auto currentValue = BcmLedUtils::getWedge100PortStatus(0, port);
+  return (currentValue == static_cast<uint32_t>(expectedVal)) &&
+      ((currentValue != 0) == (up == true));
 }
 } // namespace facebook::fboss

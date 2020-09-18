@@ -56,7 +56,9 @@ size_t Wedge40LedUtils::getPortOffset(int index) {
   return (0xe0 + index);
 }
 
-Wedge40LedUtils::LedState Wedge40LedUtils::getLEDState(bool up, bool adminUp) {
+Wedge40LedUtils::LedState Wedge40LedUtils::getDesiredLEDState(
+    bool up,
+    bool adminUp) {
   return (up && adminUp) ? Wedge40LedUtils::LedState::ON
                          : Wedge40LedUtils::LedState::OFF;
 }

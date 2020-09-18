@@ -85,7 +85,10 @@ size_t GalaxyLedUtils::getPortOffset(int index) {
   return 0xa0 /* LS_LED_DATA_OFFSET_A0 */ + index - 1;
 }
 
-void GalaxyLedUtils::setLEDState(uint32_t* state, bool up, bool /*adminUp*/) {
+void GalaxyLedUtils::getDesiredLEDState(
+    uint32_t* state,
+    bool up,
+    bool /*adminUp*/) {
   // Status is at bit 0
   if (up) {
     (*state) |= 0x1;

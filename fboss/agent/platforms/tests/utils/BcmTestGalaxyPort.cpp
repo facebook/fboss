@@ -20,7 +20,7 @@ BcmTestGalaxyPort::BcmTestGalaxyPort(PortID id, BcmTestGalaxyPlatform* platform)
 
 void BcmTestGalaxyPort::linkStatusChanged(bool up, bool adminUp) {
   uint32_t portData = BcmLedUtils::getGalaxyPortStatus(0, getPortID());
-  GalaxyLedUtils::setLEDState(&portData, up, adminUp);
+  GalaxyLedUtils::getDesiredLEDState(&portData, up, adminUp);
   BcmLedUtils::setGalaxyPortStatus(0, getPortID(), portData);
 }
 

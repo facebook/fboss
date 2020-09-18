@@ -364,10 +364,11 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
   uint32_t expectedVal = 0;
   switch (platform->getMode()) {
     case PlatformMode::WEDGE: {
-      expectedVal = static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, up));
+      expectedVal =
+          static_cast<uint32_t>(Wedge40LedUtils::getExpectedLEDState(up, up));
     } break;
     case PlatformMode::WEDGE100: {
-      expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getLEDColor(
+      expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getExpectedLEDState(
           port,
           platform->getLaneCount(platformPort->getCurrentProfile()),
           up,
@@ -375,7 +376,7 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
     } break;
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC: {
-      GalaxyLedUtils::setLEDState(&expectedVal, up, up);
+      GalaxyLedUtils::getExpectedLEDState(&expectedVal, up, up);
     } break;
     default:
       return;

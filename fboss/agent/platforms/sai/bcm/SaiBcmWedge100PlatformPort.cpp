@@ -19,7 +19,7 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
   auto [led, index] = ledAndIndex.value();
   auto lanes = getHwPortLanes(getCurrentProfile());
 
-  uint32_t status = static_cast<uint32_t>(Wedge100LedUtils::getLEDColor(
+  uint32_t status = static_cast<uint32_t>(Wedge100LedUtils::getDesiredLEDState(
       static_cast<PortID>(phyPortId),
       static_cast<int>(lanes.size()),
       up,
@@ -36,7 +36,7 @@ void SaiBcmWedge100PlatformPort::externalState(PortLedExternalState lfs) {
 
   auto [led, index] = ledAndIndex.value();
 
-  uint32_t status = static_cast<uint32_t>(Wedge100LedUtils::getLEDColor(
+  uint32_t status = static_cast<uint32_t>(Wedge100LedUtils::getDesiredLEDState(
       lfs, static_cast<Wedge100LedUtils::LedColor>(getCurrentLedState())));
   setLEDState(led, index, status);
 }

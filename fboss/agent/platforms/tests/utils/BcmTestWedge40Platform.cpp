@@ -60,7 +60,7 @@ void BcmTestWedge40Platform::initLEDs(int unit) {
 bool BcmTestWedge40Platform::verifyLEDStatus(PortID port, bool up) {
   uint32_t value = BcmLedUtils::getWedge40PortStatus(0, port);
   uint32_t expectedValue =
-      static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, up));
+      static_cast<uint32_t>(Wedge40LedUtils::getExpectedLEDState(up, up));
   return (value == expectedValue) && (value != 0) == (up == true);
 }
 

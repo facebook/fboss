@@ -18,7 +18,7 @@ void SaiBcmWedge40PlatformPort::linkStatusChanged(bool up, bool adminUp) {
   setLEDState(
       led.value(),
       index,
-      static_cast<uint32_t>(Wedge40LedUtils::getLEDState(up, adminUp)));
+      static_cast<uint32_t>(Wedge40LedUtils::getDesiredLEDState(up, adminUp)));
 }
 
 } // namespace facebook::fboss
