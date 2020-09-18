@@ -50,11 +50,9 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
 
   template <typename ECMP_HELPER>
   void setupECMPForwarding(const ECMP_HELPER& ecmpHelper, int ecmpWidth) {
-    getHwSwitch()->printDiagCmd("l3 alpm trace enable");
     auto newState = ecmpHelper.setupECMPForwarding(
         ecmpHelper.resolveNextHops(getProgrammedState(), ecmpWidth), ecmpWidth);
     applyNewState(newState);
-    getHwSwitch()->printDiagCmd("l3 alpm trace disable");
   }
 
   template <typename ECMP_HELPER>
