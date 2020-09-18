@@ -113,6 +113,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::MINIPACK;
     } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
       mode_ = PlatformMode::YAMP;
+    } else if (modelName.find("elbert") == 0 || modelName.find("ELBERT") == 0) {
+      mode_ = PlatformMode::ELBERT;
     } else if (modelName.find("fake_wedge40") == 0) {
       mode_ = PlatformMode::FAKE_WEDGE40;
     } else if (modelName.find("fake_wedge") == 0) {
@@ -139,6 +141,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::WEDGE400;
     } else if (FLAGS_mode == "fuji") {
       mode_ = PlatformMode::FUJI;
+    } else if (FLAGS_mode == "elbert") {
+      mode_ = PlatformMode::ELBERT;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

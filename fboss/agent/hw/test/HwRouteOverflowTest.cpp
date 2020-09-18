@@ -59,6 +59,7 @@ TEST_F(HwTest, overflowRoutes) {
       XLOG(WARNING) << " No overflow test for 400C yet";
       break;
     case PlatformMode::FUJI:
+    case PlatformMode::ELBERT:
       // No overflow test for TH4 yet
       break;
   }
