@@ -436,7 +436,7 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
 
-  bool getPortFECEnabled(PortID port) const override;
+  phy::FecMode getPortFECMode(PortID port) const override;
 
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 

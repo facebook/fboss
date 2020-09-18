@@ -322,14 +322,8 @@ bool isValidLabeledNextHopSet(
 
 namespace facebook::fboss {
 
-/*
- * Get current port speed from BCM SDK and convert to
- * cfg::PortSpeed
- */
-
-bool BcmSwitch::getPortFECEnabled(PortID port) const {
-  // relies on getBcmPort() to throw an if not found
-  return getPortTable()->getBcmPort(port)->isFECEnabled();
+phy::FecMode BcmSwitch::getPortFECMode(PortID port) const {
+  return getPortTable()->getBcmPort(port)->getFECMode();
 }
 
 cfg::PortSpeed BcmSwitch::getPortMaxSpeed(PortID port) const {

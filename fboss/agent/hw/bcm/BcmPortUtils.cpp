@@ -109,6 +109,23 @@ bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(phy::FecMode fec) {
       "Unsupported fec type: ", apache::thrift::util::enumNameSafe(fec));
 }
 
+phy::FecMode bcmPortPhyFecToPhyFecMode(bcm_port_phy_fec_t fec) {
+  switch (fec) {
+    case bcmPortPhyFecNone:
+      return phy::FecMode::NONE;
+    case bcmPortPhyFecBaseR:
+      return phy::FecMode::CL74;
+    case bcmPortPhyFecRsFec:
+      return phy::FecMode::RS528;
+    case bcmPortPhyFecRs544:
+      return phy::FecMode::RS544;
+    case bcmPortPhyFecRs544_2xN:
+      return phy::FecMode::RS544_2N;
+    default:
+      throw facebook::fboss::FbossError("Unsupported fec type: ", fec);
+  };
+}
+
 uint32_t getDesiredPhyLaneConfig(const phy::PortProfileConfig& profileCfg) {
   uint32_t laneConfig = 0;
 

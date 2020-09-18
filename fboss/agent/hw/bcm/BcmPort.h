@@ -155,10 +155,9 @@ class BcmPort {
   void prepareForGracefulExit();
 
   /**
-   * return true if the port has Forward Error Correction (FEC)
-   * enabled or if CL91 FEC is enabled
+   * return the FecMode (if any) that is currently enabled
    */
-  bool isFECEnabled();
+  phy::FecMode getFECMode();
 
   /*
    * Take the appropriate actions for reacting to the port's state changing.

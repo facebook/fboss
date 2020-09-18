@@ -1628,21 +1628,24 @@ void BcmPort::setLoopbackMode(const std::shared_ptr<Port>& swPort) {
   }
 }
 
-bool BcmPort::isFECEnabled() {
+phy::FecMode BcmPort::getFECMode() {
   if (platformPort_->shouldUsePortResourceAPIs()) {
     auto curPortResource = getCurrentPortResource(unit_, gport_);
-    return curPortResource.fec_type != bcmPortPhyFecNone;
+    return utility::bcmPortPhyFecToPhyFecMode(curPortResource.fec_type);
+  } else {
+    if (isCL91FECApplicable() && getCL91FECStatus()) {
+      return phy::FecMode::CL91;
+    } else {
+      uint32_t value = BCM_PORT_PHY_CONTROL_FEC_OFF;
+      auto rv = bcm_port_phy_control_get(
+          unit_, port_, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, &value);
+      bcmCheckError(rv, "failed to read if FEC is enabled");
+      // compare against 'OFF' because result could be 'ON'
+      // or 'AUTO'  - not clear how to verify AUTO has gone to yes
+      return value != BCM_PORT_PHY_CONTROL_FEC_OFF ? phy::FecMode::CL74
+                                                   : phy::FecMode::NONE;
+    }
   }
-
-  uint32_t value = BCM_PORT_PHY_CONTROL_FEC_OFF;
-  auto rv = bcm_port_phy_control_get(
-      unit_, port_, BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION, &value);
-  bcmCheckError(rv, "failed to read if FEC is enabled");
-  // compare against 'OFF' because result could be 'ON'
-  // or 'AUTO'  - not clear how to verify AUTO has gone to yes
-  return (
-      value != BCM_PORT_PHY_CONTROL_FEC_OFF ||
-      (isCL91FECApplicable() && getCL91FECStatus()));
 }
 
 void BcmPort::initCustomStats() const {

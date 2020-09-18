@@ -262,14 +262,8 @@ class HwSwitch {
    */
   virtual bool isPortUp(PortID port) const = 0;
 
-  /*
-   * Get whether the port has set FEC or not
-   * TODO(rsher) Consider refactoring this interface to expose
-   * ports as first class citizens (hwPort?) and then move all of these
-   * functions into the hwPort abstraction
-   */
-  virtual bool getPortFECEnabled(PortID /* unused */) const {
-    return false;
+  virtual phy::FecMode getPortFECMode(PortID /* unused */) const {
+    return phy::FecMode::NONE;
   }
 
   /*
