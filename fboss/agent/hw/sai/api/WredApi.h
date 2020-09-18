@@ -56,11 +56,11 @@ struct SaiWredTraits {
   using AdapterKey = WredSaiId;
   using CreateAttributes = std::tuple<
       Attributes::GreenEnable,
-      Attributes::GreenMinThreshold,
-      Attributes::GreenMaxThreshold,
+      std::optional<Attributes::GreenMinThreshold>,
+      std::optional<Attributes::GreenMaxThreshold>,
       Attributes::EcnMarkMode,
-      Attributes::EcnGreenMinThreshold,
-      Attributes::EcnGreenMaxThreshold>;
+      std::optional<Attributes::EcnGreenMinThreshold>,
+      std::optional<Attributes::EcnGreenMaxThreshold>>;
   using AdapterHostKey = CreateAttributes;
 };
 

@@ -41,13 +41,15 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
     switch (type) {
       case cfg::QueueCongestionBehavior::EARLY_DROP:
         std::get<Attributes::GreenEnable>(attrs) = true;
-        std::get<Attributes::GreenMinThreshold>(attrs) = minLen;
-        std::get<Attributes::GreenMaxThreshold>(attrs) = maxLen;
+        std::get<std::optional<Attributes::GreenMinThreshold>>(attrs) = minLen;
+        std::get<std::optional<Attributes::GreenMaxThreshold>>(attrs) = maxLen;
         break;
       case cfg::QueueCongestionBehavior::ECN:
         std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
-        std::get<Attributes::EcnGreenMinThreshold>(attrs) = minLen;
-        std::get<Attributes::EcnGreenMaxThreshold>(attrs) = maxLen;
+        std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs) =
+            minLen;
+        std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs) =
+            maxLen;
         break;
     }
   }

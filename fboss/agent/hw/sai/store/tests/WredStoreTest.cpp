@@ -118,11 +118,11 @@ TEST_F(WredStoreTest, wredProfileCreateCtor) {
       createWredProfileAdapterHostKey(true, 100, 200, 0, 0, 0);
   SaiObject<SaiWredTraits> obj(k, c, 0);
   EXPECT_TRUE(GET_ATTR(Wred, GreenEnable, obj.attributes()));
-  EXPECT_EQ(GET_ATTR(Wred, GreenMinThreshold, obj.attributes()), 100);
-  EXPECT_EQ(GET_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 200);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMinThreshold, obj.attributes()), 100);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 200);
   EXPECT_EQ(GET_ATTR(Wred, EcnMarkMode, obj.attributes()), 0);
-  EXPECT_EQ(GET_ATTR(Wred, EcnGreenMinThreshold, obj.attributes()), 0);
-  EXPECT_EQ(GET_ATTR(Wred, EcnGreenMaxThreshold, obj.attributes()), 0);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, EcnGreenMinThreshold, obj.attributes()), 0);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, EcnGreenMaxThreshold, obj.attributes()), 0);
 }
 
 TEST_F(WredStoreTest, ecnProfileCreateCtor) {
@@ -131,11 +131,11 @@ TEST_F(WredStoreTest, ecnProfileCreateCtor) {
       createWredProfileAdapterHostKey(false, 0, 0, 1, 300, 400);
   SaiObject<SaiWredTraits> obj(k, c, 0);
   EXPECT_FALSE(GET_ATTR(Wred, GreenEnable, obj.attributes()));
-  EXPECT_EQ(GET_ATTR(Wred, GreenMinThreshold, obj.attributes()), 0);
-  EXPECT_EQ(GET_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 0);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMinThreshold, obj.attributes()), 0);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, GreenMaxThreshold, obj.attributes()), 0);
   EXPECT_EQ(GET_ATTR(Wred, EcnMarkMode, obj.attributes()), 1);
-  EXPECT_EQ(GET_ATTR(Wred, EcnGreenMinThreshold, obj.attributes()), 300);
-  EXPECT_EQ(GET_ATTR(Wred, EcnGreenMaxThreshold, obj.attributes()), 400);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, EcnGreenMinThreshold, obj.attributes()), 300);
+  EXPECT_EQ(GET_OPT_ATTR(Wred, EcnGreenMaxThreshold, obj.attributes()), 400);
 }
 
 TEST_F(WredStoreTest, serDeserWredProfileStore) {
