@@ -2,8 +2,10 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 
+#include <folly/logging/xlog.h>
 #include <tuple>
 
 namespace facebook::fboss {
@@ -19,12 +21,16 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
   auto [led, index] = ledAndIndex.value();
   auto lanes = getHwPortLanes(getCurrentProfile());
 
-  uint32_t status = static_cast<uint32_t>(Wedge100LedUtils::getDesiredLEDState(
-      static_cast<PortID>(phyPortId),
-      static_cast<int>(lanes.size()),
-      up,
-      adminUp));
-  setLEDState(led, index, status);
+  try {
+    uint32_t status =
+        static_cast<uint32_t>(Wedge100LedUtils::getDesiredLEDState(
+            static_cast<int>(lanes.size()), up, adminUp));
+    setLEDState(led, index, status);
+  } catch (const FbossError& ex) {
+    XLOG(ERR) << "exception while getting LED state for port: "
+              << static_cast<PortID>(phyPortId) << ":" << ex.what();
+    throw;
+  }
 }
 
 void SaiBcmWedge100PlatformPort::externalState(PortLedExternalState lfs) {

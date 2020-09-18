@@ -26,8 +26,7 @@ class Wedge100LedUtils {
   static int getPortIndex(PortID port);
   static std::pair<int, int>
   getCompactPortIndexes(PortID port, bool isTop, bool isQuad);
-  static LedColor
-  getDesiredLEDState(PortID port, int numberOfLanes, bool up, bool adminUp);
+  static LedColor getDesiredLEDState(int numberOfLanes, bool up, bool adminUp);
   static LedColor getDesiredLEDState(
       PortLedExternalState externalState,
       LedColor currentColor);
@@ -35,11 +34,8 @@ class Wedge100LedUtils {
   static folly::ByteRange defaultLedCode();
   static size_t getPortOffset(int index);
   static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
-  static LedColor getExpectedLEDState(
-      PortID /*port*/,
-      int numberOfLanes,
-      bool up,
-      bool adminUp) {
+  static LedColor
+  getExpectedLEDState(int numberOfLanes, bool up, bool adminUp) {
     if (up && adminUp) {
       switch (numberOfLanes) {
         case 4: // Quaid

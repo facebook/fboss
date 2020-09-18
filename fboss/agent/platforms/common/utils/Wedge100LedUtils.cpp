@@ -8,11 +8,8 @@
 
 namespace facebook::fboss {
 
-Wedge100LedUtils::LedColor Wedge100LedUtils::getDesiredLEDState(
-    PortID port,
-    int numberOfLanes,
-    bool up,
-    bool adminUp) {
+Wedge100LedUtils::LedColor
+Wedge100LedUtils::getDesiredLEDState(int numberOfLanes, bool up, bool adminUp) {
   if (!up || !adminUp) {
     return Wedge100LedUtils::LedColor::OFF;
   }
@@ -25,8 +22,7 @@ Wedge100LedUtils::LedColor Wedge100LedUtils::getDesiredLEDState(
     case 1: // Single
       return LedColor::GREEN;
   }
-
-  throw FbossError("Unable to determine LED color for port ", port);
+  throw FbossError("Unable to determine LED color for port");
 }
 
 Wedge100LedUtils::LedColor Wedge100LedUtils::getDesiredLEDState(

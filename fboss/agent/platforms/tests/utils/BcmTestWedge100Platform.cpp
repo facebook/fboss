@@ -38,8 +38,8 @@ void BcmTestWedge100Platform::initLEDs(int unit) {
 
 bool BcmTestWedge100Platform::verifyLEDStatus(PortID port, bool up) {
   auto bcmPort = static_cast<BcmTestWedge100Port*>(getPlatformPort(port));
-  auto expectedVal = Wedge100LedUtils::getExpectedLEDState(
-      bcmPort->getPortID(), bcmPort->numberOfLanes(), up, up);
+  auto expectedVal =
+      Wedge100LedUtils::getExpectedLEDState(bcmPort->numberOfLanes(), up, up);
 
   auto currentValue = BcmLedUtils::getWedge100PortStatus(0, port);
   return (currentValue == static_cast<uint32_t>(expectedVal)) &&
