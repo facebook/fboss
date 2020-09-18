@@ -934,11 +934,18 @@ void BcmPort::updateStats() {
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
     // ECN stats not supported by TD2
+    bcm_stat_val_t snmpType = snmpBcmTxEcnErrors;
+    auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
+    if (asicType != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      // TODO(daiweix): remove this if block after SDK makes ecn type name the
+      // same
+      int snmpBcmTxEcnType = 289;
+      if (snmpBcmTxEcnType < snmpValCount) {
+        snmpType = (bcm_stat_val_t)snmpBcmTxEcnType;
+      }
+    }
     updateStat(
-        now,
-        kOutEcnCounter(),
-        snmpBcmTxEcnErrors,
-        &(*curPortStats.outEcnCounter__ref()));
+        now, kOutEcnCounter(), snmpType, &(*curPortStats.outEcnCounter__ref()));
   }
   updateStat(
       now,
@@ -1199,8 +1206,9 @@ void BcmPort::enableStatCollection(const std::shared_ptr<Port>& port) {
     //
     // Enable packet and byte counter statistic collection.
     auto rv = bcm_port_stat_enable_set(unit_, gport_, 1);
-    if (rv != BCM_E_EXISTS) {
+    if (rv != BCM_E_EXISTS && rv != BCM_E_UNAVAIL) {
       // Don't throw an error if counter collection is already enabled
+      // or this API is deprecated, e.g. on TH4
       bcmCheckError(
           rv, "Unexpected error enabling counter DMA on port ", port_);
     }
@@ -1216,7 +1224,9 @@ void BcmPort::disableStatCollection() {
 
   // Disable packet and byte counter statistic collection.
   auto rv = bcm_port_stat_enable_set(unit_, gport_, false);
-  bcmCheckError(rv, "Unexpected error disabling counter DMA on port ", port_);
+  if (rv != BCM_E_UNAVAIL) {
+    bcmCheckError(rv, "Unexpected error disabling counter DMA on port ", port_);
+  }
 
   statCollectionEnabled_.store(false);
 
