@@ -42,6 +42,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
+    case HwAsic::Feature::SAI_ECN_WRED:
       return false;
   }
   return false;
