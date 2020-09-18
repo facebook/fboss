@@ -27,7 +27,7 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
   } else if (
       mode == PlatformMode::GALAXY_LC ||
       mode == PlatformMode::GALAXY_FC) {
-    return std::make_unique<GalaxyManager>();
+    return std::make_unique<GalaxyManager>(mode);
   } else if (mode == PlatformMode::YAMP) {
     return createYampTransceiverManager();
   } else if (

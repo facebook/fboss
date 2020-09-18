@@ -1,13 +1,13 @@
 #pragma once
 
+#include "fboss/agent/platforms/common/PlatformProductInfo.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
-
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook { namespace fboss {
 class GalaxyManager : public WedgeManager {
  public:
-  GalaxyManager();
+  explicit GalaxyManager(PlatformMode mode);
   ~GalaxyManager() override {}
 
   // This is the front panel ports count
