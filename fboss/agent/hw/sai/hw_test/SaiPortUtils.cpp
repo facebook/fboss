@@ -376,7 +376,7 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
     } break;
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC: {
-      GalaxyLedUtils::getExpectedLEDState(&expectedVal, up, up);
+      expectedVal = GalaxyLedUtils::getExpectedLEDState(up, up);
     } break;
     default:
       return;

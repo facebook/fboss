@@ -35,9 +35,22 @@ class Wedge100LedUtils {
   static folly::ByteRange defaultLedCode();
   static size_t getPortOffset(int index);
   static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
-  static LedColor
-  getExpectedLEDState(PortID port, int numberOfLanes, bool up, bool adminUp) {
-    return getDesiredLEDState(port, numberOfLanes, up, adminUp);
+  static LedColor getExpectedLEDState(
+      PortID /*port*/,
+      int numberOfLanes,
+      bool up,
+      bool adminUp) {
+    if (up && adminUp) {
+      switch (numberOfLanes) {
+        case 4: // Quaid
+          return LedColor::BLUE;
+        case 2: // DUAL
+          return LedColor::MAGENTA;
+        case 1: // Single
+          return LedColor::GREEN;
+      }
+    }
+    return LedColor::OFF;
   }
 };
 

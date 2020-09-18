@@ -20,8 +20,10 @@ class Wedge40LedUtils {
   static folly::ByteRange defaultLedCode();
   static std::optional<uint32_t> getLEDProcessorNumber(PortID port);
   static LedState getExpectedLEDState(bool up, bool adminUp) {
-    // TODO: implement this differently
-    return getDesiredLEDState(up, adminUp);
+    if (up && adminUp) {
+      return LedState::ON;
+    }
+    return LedState::OFF;
   }
 };
 
