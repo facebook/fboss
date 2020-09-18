@@ -85,7 +85,6 @@ class BcmControlPlane {
   // Broadcom global port number
   const bcm_gport_t gport_;
   std::unique_ptr<BcmCosQueueManager> queueManager_;
-  bcm_cos_queue_t maxCPUQueue_;
   int maxRxReasonMappings_{0};
 };
 

@@ -85,7 +85,9 @@ int cosqGportTraverseCallback(
     info->scheduler = queueGport;
   } else if (flags & BCM_COSQ_GPORT_UCAST_QUEUE_GROUP) {
     bcm_cos_queue_t cosQ = BCM_GPORT_UCAST_QUEUE_GROUP_QID_GET(queueGport);
-    if (BCM_COSQ_QUEUE_VALID(unit, cosQ)) {
+    // T75758668 some platforms don't support NUM_COS any more.
+    // And we can just use queueGport from this callback directly
+    if (NUM_COS(unit) == 0 || BCM_COSQ_QUEUE_VALID(unit, cosQ)) {
       info->unicast[cosQ] = queueGport;
     }
   } else if (flags & BCM_COSQ_GPORT_MCAST_QUEUE_GROUP) {

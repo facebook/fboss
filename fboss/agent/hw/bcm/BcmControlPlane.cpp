@@ -28,7 +28,10 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
 
+namespace {
 constexpr auto kCPUName = "cpu";
+constexpr auto kDefaultMaxRxCosqMappingSize = 128;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -96,12 +99,15 @@ BcmControlPlane::BcmControlPlane(BcmSwitch* hw)
     : hw_(hw),
       gport_(BCM_GPORT_LOCAL_CPU),
       queueManager_(new BcmControlPlaneQueueManager(hw_, kCPUName, gport_)) {
-  int rv;
-  rv = bcm_rx_queue_max_get(hw_->getUnit(), &maxCPUQueue_);
-  bcmCheckError(rv, "failed to get max CPU cos queue number");
-
-  rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxRxReasonMappings_);
-  bcmCheckError(rv, "failed to get max CPU cos queue mappings");
+  int rv = bcm_rx_cosq_mapping_size_get(hw_->getUnit(), &maxRxReasonMappings_);
+  if (rv == BCM_E_UNAVAIL) {
+    // T75758668 Temporary hack before Broadcom release fix in next SDK
+    XLOG(INFO) << "[HACK] bcm_rx_cosq_mapping_size_get is unavailable, use "
+               << kDefaultMaxRxCosqMappingSize;
+    maxRxReasonMappings_ = kDefaultMaxRxCosqMappingSize;
+  } else {
+    bcmCheckError(rv, "failed to get max CPU cos queue mappings");
+  }
 }
 
 void BcmControlPlane::setupQueue(const PortQueue& queue) {
@@ -123,9 +129,10 @@ ControlPlane::RxReasonToQueue BcmControlPlane::getRxReasonToQueue() const {
 void BcmControlPlane::setReasonToQueueEntry(
     int index,
     cfg::PacketRxReasonToQueue entry) {
-  if (entry.queueId < 0 || entry.queueId > maxCPUQueue_) {
-    throw FbossError(
-        "Invalud cosq number ", entry.queueId, "; max is ", maxCPUQueue_);
+  auto maxCPUQueue = queueManager_->getNumQueues(cfg::StreamType::MULTICAST);
+  auto queueID = *entry.queueId_ref();
+  if (queueID < 0 || queueID > maxCPUQueue) {
+    throw FbossError("Invalud cosq number ", queueID, "; max is ", maxCPUQueue);
   }
 
   auto warmBootCache = hw_->getWarmBootCache();

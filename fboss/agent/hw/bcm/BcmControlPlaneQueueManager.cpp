@@ -23,6 +23,16 @@ extern "C" {
 #include <bcm/cosq.h>
 }
 
+namespace {
+// HACK: there seems to be some bugs in some queue apis related to
+// the number of queues. Specifically, if you use the cpu gport +
+// queue id to access cpu cosq, it rejects ids above 32. Also the
+// calls to get scheduling mode are inconsistent above queue id
+// 10. Since we don't use queues above 9, cap the number of
+// queues while we work through the issue + upgrade sdk.
+constexpr auto kMaxMCQueueSize = 10;
+} // namespace
+
 namespace facebook::fboss {
 
 const std::vector<BcmCosQueueCounterType>&
@@ -77,7 +87,14 @@ BcmControlPlaneQueueManager::BcmControlPlaneQueueManager(
     bcm_gport_t portGport)
     : BcmCosQueueManager(hw, portName, portGport) {
   auto rv = bcm_rx_queue_max_get(hw_->getUnit(), &maxCPUQueue_);
-  bcmCheckError(rv, "failed to get max CPU cos queue number");
+  if (rv == BCM_E_UNAVAIL) {
+    // T75758668 Temporary hack before Broadcom release fix in next SDK
+    XLOG(INFO) << "[HACK] bcm_rx_queue_max_get is unavailable, use "
+               << kMaxMCQueueSize;
+    maxCPUQueue_ = kMaxMCQueueSize;
+  } else {
+    bcmCheckError(rv, "failed to get max CPU cos queue number");
+  }
 }
 
 int BcmControlPlaneQueueManager::getNumQueues(
@@ -88,13 +105,8 @@ int BcmControlPlaneQueueManager::getNumQueues(
   }
   // cpu only has multicast
   if (streamType == cfg::StreamType::MULTICAST) {
-    // HACK: there seems to be some bugs in some queue apis related to
-    // the number of queues. Specifically, if you use the cpu gport +
-    // queue id to access cpu cosq, it rejects ids above 32. Also the
-    // calls to get scheduling mode are inconsistent above queue id
-    // 10. Since we don't use queues above 9, cap the number of
-    // queues while we work through the issue + upgrade sdk.
-    return std::min(static_cast<int>(cosQueueGports_.multicast.size()), 10);
+    return std::min(
+        static_cast<int>(cosQueueGports_.multicast.size()), kMaxMCQueueSize);
   }
   throw FbossError(
       "Failed to retrieve queue size because unsupported StreamType: ",
