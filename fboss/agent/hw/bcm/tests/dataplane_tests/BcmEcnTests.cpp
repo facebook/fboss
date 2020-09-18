@@ -8,12 +8,11 @@
  *
  */
 
-#include "fboss/agent/hw/bcm/BcmAclTable.h"
-#include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
-#include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -21,18 +20,17 @@
 
 namespace facebook::fboss {
 
-class BcmEcnTest : public BcmLinkStateDependentTests {
+class HwEcnTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      utility::addDscpAclToCfg(&cfg, kAclName(), kEcnDscp());
-      utility::addQueueMatcher(&cfg, kAclName(), kEcnQueueId());
-      _createEcnQueue(&cfg, masterLogicalPortIds()[0]);
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(&cfg, streamType);
+      utility::addOlympicQosMaps(cfg);
     }
-
     return cfg;
   }
 
@@ -42,10 +40,6 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
 
   int kEcnQueueId() const {
     return 2;
-  }
-
-  std::string kAclName() const {
-    return "acl1";
   }
 
   template <typename ECMP_HELPER>
@@ -61,40 +55,6 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
       utility::disableTTLDecrements(
           getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
     }
-  }
-
-  cfg::ActiveQueueManagement kGetEcnConfig() const {
-    cfg::ActiveQueueManagement ecnAQM;
-    cfg::LinearQueueCongestionDetection ecnLQCD;
-    ecnLQCD.minimumLength = 208;
-    ecnLQCD.maximumLength = 208;
-    ecnAQM.detection.set_linear(ecnLQCD);
-    ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
-    return ecnAQM;
-  }
-
-  void _createEcnQueue(cfg::SwitchConfig* config, PortID portID) const {
-    std::vector<cfg::PortQueue> portQueues;
-
-    cfg::PortQueue queue0;
-    queue0.id = 0;
-    queue0.name_ref() = "low-pri";
-    queue0.streamType = cfg::StreamType::UNICAST;
-    queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    portQueues.push_back(queue0);
-
-    cfg::PortQueue queue2;
-    queue2.id = kEcnQueueId();
-    queue2.name_ref() = "ecn1";
-    queue2.streamType = cfg::StreamType::UNICAST;
-    queue2.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-    queue2.aqms_ref() = {};
-    queue2.aqms_ref()->push_back(kGetEcnConfig());
-    portQueues.push_back(queue2);
-
-    config->portQueueConfigs_ref()["queue_config"] = portQueues;
-    auto portCfg = utility::findCfgPort(*config, portID);
-    portCfg->portQueueConfigName_ref() = "queue_config";
   }
 
   void sendEcnCapableUdpPkt(uint8_t dscpVal) {
@@ -128,7 +88,7 @@ class BcmEcnTest : public BcmLinkStateDependentTests {
   }
 };
 
-TEST_F(BcmEcnTest, verifyEcn) {
+TEST_F(HwEcnTest, verifyEcn) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
