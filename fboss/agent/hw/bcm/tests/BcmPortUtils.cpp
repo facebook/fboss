@@ -19,6 +19,7 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 
 extern "C" {
 #include <bcm/port.h>
@@ -304,6 +305,11 @@ void verifyTxSettting(
     PortID portID,
     cfg::PortProfileID profileID,
     Platform* platform) {
+  if (platform->getMode() == PlatformMode::FAKE_WEDGE ||
+      platform->getMode() == PlatformMode::FAKE_WEDGE40) {
+    // TODO: skip fake now, add support for TxSettings in fake SDK
+    return;
+  }
   auto* bcmSwitch = static_cast<BcmSwitch*>(platform->getHwSwitch());
   auto platformPort = platform->getPlatformPort(portID);
   const auto& iphyConfigs = platformPort->getIphyPinConfigs(profileID);

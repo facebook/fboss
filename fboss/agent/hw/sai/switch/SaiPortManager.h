@@ -62,6 +62,9 @@ class SaiPortManager {
   SaiPortTraits::CreateAttributes attributesFromSwPort(
       const std::shared_ptr<Port>& swPort) const;
 
+  SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPort(
+      const std::shared_ptr<Port>& swPort);
+
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
   const SaiQueueHandle* getQueueHandle(

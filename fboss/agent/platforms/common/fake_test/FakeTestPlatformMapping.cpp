@@ -12,6 +12,8 @@
 
 #include <folly/Format.h>
 
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
 namespace {
 using namespace facebook::fboss;
 static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
@@ -145,6 +147,10 @@ cfg::PlatformPortConfig FakeTestPlatformMapping::getPlatformPortConfig(
     phy::PinConfig iphy;
     *iphy.id_ref()->chip_ref() = folly::sformat("core{}", groupID);
     *iphy.id_ref()->lane_ref() = (startLane + i);
+    // tx config
+    iphy.tx_ref() = getFakeTxSetting();
+    // rx configs
+    iphy.rx_ref() = getFakeRxSetting();
     platformPortConfig.pins_ref()->iphy_ref()->push_back(iphy);
 
     phy::PinConfig tcvr;
@@ -190,5 +196,27 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(int groupID) {
   }
   return platformPortEntries;
 }
+
+phy::TxSettings FakeTestPlatformMapping::getFakeTxSetting() {
+  phy::TxSettings tx;
+  tx.pre_ref() = 101;
+  tx.pre2_ref() = 102;
+  tx.main_ref() = 103;
+  tx.post_ref() = -104;
+  tx.post2_ref() = 105;
+  tx.post3_ref() = 106;
+  tx.driveCurrent_ref() = 107;
+  return tx;
+}
+
+phy::RxSettings FakeTestPlatformMapping::getFakeRxSetting() {
+  phy::RxSettings rx;
+  rx.ctlCode_ref() = -108;
+  rx.dspMode_ref() = 109;
+  rx.afeTrim_ref() = 110;
+  rx.acCouplingBypass_ref() = -111;
+  return rx;
+}
+
 } // namespace fboss
 } // namespace facebook

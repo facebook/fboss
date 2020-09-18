@@ -34,6 +34,8 @@ class FakeTestPlatformMapping : public PlatformMapping {
 
   std::vector<cfg::PlatformPortEntry> getPlatformPortEntriesByGroup(
       int groupID);
+  static phy::TxSettings getFakeTxSetting();
+  static phy::RxSettings getFakeRxSetting();
 };
 } // namespace fboss
 } // namespace facebook

@@ -680,48 +680,97 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
   }
   auto txSettings = platform_->getPlatformPortTxSettings(
       swPort->getID(), swPort->getProfileID());
-  if (txSettings.empty()) {
+  auto rxSettings = platform_->getPlatformPortRxSettings(
+      swPort->getID(), swPort->getProfileID());
+  if (txSettings.empty() && rxSettings.empty()) {
     return nullptr;
   }
   auto& portKey = saiPort->adapterHostKey();
-  CHECK_EQ(txSettings.size(), portKey.value().size())
-      << "some lanes are missing for tx-settings";
-  // pass tx settings for each lane
-  std::optional<SaiPortSerdesTraits::Attributes::IDriver::ValueType> iDriver;
-  SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType pre1;
-  SaiPortSerdesTraits::Attributes::TxFirMain::ValueType main;
-  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType post1;
-  for (auto& tx : txSettings) {
-    pre1.push_back(*tx.pre_ref());
-    main.push_back(*tx.main_ref());
-    post1.push_back(*tx.post_ref());
-    if (auto driveCurrent = tx.driveCurrent_ref()) {
-      if (!iDriver) {
-        iDriver.emplace(SaiPortSerdesTraits::Attributes::IDriver::ValueType{});
-      }
-      iDriver.value().push_back(driveCurrent.value());
-    }
+  if (!txSettings.empty()) {
+    CHECK_EQ(txSettings.size(), portKey.value().size())
+        << "some lanes are missing for tx-settings";
   }
-  // TODO initialize rx settings if supported
-  std::optional<SaiPortSerdesTraits::Attributes::RxCtleCode> rx0{};
-  std::optional<SaiPortSerdesTraits::Attributes::RxDspMode> rx1{};
-  std::optional<SaiPortSerdesTraits::Attributes::RxAfeTrim> rx2{};
-  std::optional<SaiPortSerdesTraits::Attributes::RxAcCouplingByPass> rx3{};
-
+  if (!rxSettings.empty()) {
+    CHECK_EQ(rxSettings.size(), portKey.value().size())
+        << "some lanes are missing for rx-settings";
+  }
   auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
-  SaiPortSerdesTraits::CreateAttributes serdesAttributes{serdesKey,
-                                                         iDriver,
-                                                         pre1,
-                                                         std::nullopt,
-                                                         main,
-                                                         post1,
-                                                         std::nullopt,
-                                                         std::nullopt,
-                                                         rx0,
-                                                         rx1,
-                                                         rx2,
-                                                         rx3};
+  SaiPortSerdesTraits::CreateAttributes serdesAttributes =
+      serdesAttributesFromSwPort(swPort);
   return store.setObject(serdesKey, serdesAttributes);
+}
+
+SaiPortSerdesTraits::CreateAttributes
+SaiPortManager::serdesAttributesFromSwPort(
+    const std::shared_ptr<Port>& swPort) {
+  SaiPortSerdesTraits::CreateAttributes attrs;
+  auto* handle = getPortHandle(swPort->getID());
+  sai_object_id_t portid = handle->port->adapterKey();
+
+  auto txSettings = platform_->getPlatformPortTxSettings(
+      swPort->getID(), swPort->getProfileID());
+  auto rxSettings = platform_->getPlatformPortRxSettings(
+      swPort->getID(), swPort->getProfileID());
+
+  SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
+  SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
+  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost1;
+  SaiPortSerdesTraits::Attributes::IDriver::ValueType txIDriver;
+
+  SaiPortSerdesTraits::Attributes::RxCtleCode::ValueType rxCtleCode;
+  SaiPortSerdesTraits::Attributes::RxDspMode::ValueType rxDspMode;
+  SaiPortSerdesTraits::Attributes::RxAfeTrim::ValueType rxAfeTrim;
+  SaiPortSerdesTraits::Attributes::RxAcCouplingByPass::ValueType
+      rxAcCouplingByPass;
+
+  if (!txSettings.empty()) {
+    for (auto& tx : txSettings) {
+      txPre1.push_back(*tx.pre_ref());
+      txMain.push_back(*tx.main_ref());
+      txIDriver.push_back(*tx.post_ref());
+      if (auto driveCurrent = tx.driveCurrent_ref()) {
+        txIDriver.push_back(driveCurrent.value());
+      }
+    }
+  }
+
+  if (!rxSettings.empty()) {
+    for (auto& rx : rxSettings) {
+      if (auto ctlCode = rx.ctlCode_ref()) {
+        rxCtleCode.push_back(*ctlCode);
+      }
+      if (auto dscpMode = rx.dspMode_ref()) {
+        rxDspMode.push_back(*dscpMode);
+      }
+      if (auto afeTrim = rx.afeTrim_ref()) {
+        rxAfeTrim.push_back(*afeTrim);
+      }
+      if (auto acCouplingByPass = rx.acCouplingBypass_ref()) {
+        rxAcCouplingByPass.push_back(*acCouplingByPass);
+      }
+    }
+  }
+
+  auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+    if (!val.empty()) {
+      attr = val;
+    }
+  };
+
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) = portid;
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxDspMode{}, rxDspMode);
+  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxAfeTrim{}, rxAfeTrim);
+  setTxRxAttr(
+      attrs,
+      SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
+      rxAcCouplingByPass);
+  return attrs;
 }
 } // namespace facebook::fboss
