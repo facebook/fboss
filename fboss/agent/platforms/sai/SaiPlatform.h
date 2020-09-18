@@ -93,6 +93,10 @@ class SaiPlatform : public Platform, public StateObserver {
       PortID port,
       cfg::PortProfileID profile);
 
+  std::vector<phy::RxSettings> getPlatformPortRxSettings(
+      PortID port,
+      cfg::PortProfileID profile);
+
   virtual void initLEDs() = 0;
 
  private:

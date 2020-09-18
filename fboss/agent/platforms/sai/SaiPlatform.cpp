@@ -249,4 +249,21 @@ std::vector<phy::TxSettings> SaiPlatform::getPlatformPortTxSettings(
   return txSettings;
 }
 
+std::vector<phy::RxSettings> SaiPlatform::getPlatformPortRxSettings(
+    PortID port,
+    cfg::PortProfileID profile) {
+  auto platformPort = getPlatformPort(port);
+  CHECK(platformPort);
+  const auto& iphyPinConfigs = platformPort->getIphyPinConfigs(profile);
+  std::vector<phy::RxSettings> rxSettings;
+  for (auto& pinConfig : iphyPinConfigs) {
+    auto rx = pinConfig.rx_ref();
+    if (!rx) {
+      continue;
+    }
+    rxSettings.push_back(rx.value());
+  }
+  return rxSettings;
+}
+
 } // namespace facebook::fboss
