@@ -17,6 +17,7 @@
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 
@@ -120,5 +121,7 @@ class MapFilter {
 };
 
 std::string switchRunStateStr(SwitchRunState runState);
+
+folly::MacAddress getLocalMacAddress();
 
 } // namespace facebook::fboss

@@ -849,8 +849,8 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     XLOG(DBG2) << "Enabled IPv4/IPv6 on CPU port " << idx;
   }
 
-  // verify the drop egress ID is really dropping
-  BcmEgress::verifyDropEgress(unit_);
+  // Setup the default drop egress
+  BcmEgress::setupDefaultDropEgress(unit_, getDropEgressId());
 
   setupCos();
 
@@ -2361,7 +2361,7 @@ uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
-  return BcmEgress::getDropEgressId();
+  return platform_->getAsic()->getDefaultDropEgressID();
 }
 
 bcm_if_t BcmSwitch::getToCPUEgressId() const {

@@ -13,6 +13,7 @@ DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
 
 namespace {
 constexpr auto kDefaultACLGroupID = 128;
+constexpr auto kDefaultDropEgressID = 100000;
 } // namespace
 
 namespace facebook::fboss {
@@ -34,4 +35,7 @@ int HwAsic::getStationID(int intfID) const {
   return intfID;
 }
 
+int HwAsic::getDefaultDropEgressID() const {
+  return kDefaultDropEgressID;
+}
 } // namespace facebook::fboss

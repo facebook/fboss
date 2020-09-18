@@ -80,6 +80,7 @@ class HwAsic {
    * station entry id for vlan interface
    */
   virtual int getStationID(int intfID) const;
+  virtual int getDefaultDropEgressID() const;
 };
 
 } // namespace facebook::fboss

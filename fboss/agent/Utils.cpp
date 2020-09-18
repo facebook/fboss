@@ -19,6 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/FileUtil.h>
+#include <folly/Subprocess.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
@@ -28,6 +29,9 @@
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
+
+DEFINE_string(mac, "", "The local MAC address for this switch");
+DEFINE_string(mgmt_if, "eth0", "name of management interface");
 
 namespace facebook::fboss {
 
@@ -119,6 +123,28 @@ std::vector<ClientID> AllClientIDs() {
 
 std::string switchRunStateStr(SwitchRunState runState) {
   return apache::thrift::util::enumNameSafe(runState);
+}
+
+folly::MacAddress getLocalMacAddress() {
+  if (!FLAGS_mac.empty()) {
+    return folly::MacAddress(FLAGS_mac);
+  }
+
+  // TODO(t4543375): Get the base MAC address from the BMC.
+  //
+  // For now, we take the MAC address from eth0, and enable the
+  // "locally administered" bit.  This MAC should be unique, and it's fine for
+  // us to use a locally administered address for now.
+  std::vector<std::string> cmd{"/sbin/ip", "address", "ls", FLAGS_mgmt_if};
+  folly::Subprocess p(cmd, folly::Subprocess::Options().pipeStdout());
+  auto out = p.communicate();
+  p.waitChecked();
+  auto idx = out.first.find("link/ether ");
+  if (idx == std::string::npos) {
+    throw std::runtime_error("unable to determine local mac address");
+  }
+  folly::MacAddress eth0Mac(out.first.substr(idx + 11, 17));
+  return folly::MacAddress::fromHBO(eth0Mac.u64HBO() | 0x0000020000000000);
 }
 
 } // namespace facebook::fboss

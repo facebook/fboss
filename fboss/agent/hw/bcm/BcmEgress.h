@@ -94,21 +94,7 @@ class BcmEgress : public BcmEgressBase {
    */
   void programToCPU();
 
-  /*
-   * By default, BCM SDK create a drop egress object. It is always the
-   * first egress object ID created. If we create a new one, the warm
-   * reboot cache code will have trouble to find out which one is supposed
-   * to use. Therefore, just use the default one.
-   * verifyDropEgressId() is to verify this assumption is correct or not.
-   */
-  static bcm_if_t getDropEgressId() {
-    return 100000;
-  }
-  /**
-   * Verify if egress ID is programmed as drop or not.
-   *
-   */
-  static void verifyDropEgress(int unit);
+  static void setupDefaultDropEgress(int unit, bcm_if_t dropEgressID);
 
   // Returns if the egress object is programmed to drop
   static bool programmedToDrop(const bcm_l3_egress_t& egr) {

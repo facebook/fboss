@@ -43,7 +43,10 @@ class Tomahawk4Asic : public BroadcomAsic {
   }
 
   int getDefaultACLGroupID() const override;
+
   int getStationID(int intfId) const override;
+
+  int getDefaultDropEgressID() const override;
 };
 
 } // namespace facebook::fboss
