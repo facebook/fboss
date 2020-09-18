@@ -42,8 +42,6 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
-DECLARE_bool(create_l2_entry_for_nbr);
-
 namespace {
 // Even when running the same test repeatedly could result in different
 // learning counts based on hash insertion  order.
