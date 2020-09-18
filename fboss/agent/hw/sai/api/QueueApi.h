@@ -56,7 +56,8 @@ struct SaiQueueTraits {
       Attributes::Type,
       Attributes::Port,
       Attributes::Index,
-      Attributes::ParentSchedulerNode>;
+      Attributes::ParentSchedulerNode,
+      std::optional<Attributes::SchedulerProfileId>>;
   static constexpr std::array<sai_stat_id_t, 4> CounterIdsToRead = {
       SAI_QUEUE_STAT_PACKETS,
       SAI_QUEUE_STAT_BYTES,

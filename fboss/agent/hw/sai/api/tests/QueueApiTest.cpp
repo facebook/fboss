@@ -34,7 +34,8 @@ class QueueApiTest : public ::testing::Test {
     SaiQueueTraits::Attributes::Port port(saiPortId);
     SaiQueueTraits::Attributes::Index queueId(queueIndex);
     SaiQueueTraits::Attributes::ParentSchedulerNode schedulerNode(saiPortId);
-    SaiQueueTraits::CreateAttributes a{type, port, queueId, schedulerNode};
+    SaiQueueTraits::CreateAttributes a{
+        type, port, queueId, schedulerNode, std::nullopt};
     auto saiQueueId = queueApi->create<SaiQueueTraits>(a, 0);
     return saiQueueId;
   }

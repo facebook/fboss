@@ -21,8 +21,8 @@ class QueueStoreTest : public SaiStoreTest {
  public:
   QueueSaiId
   createQueue(sai_queue_type_t type, sai_object_id_t portId, uint8_t queueId) {
-    SaiQueueTraits::CreateAttributes c =
-        SaiQueueTraits::CreateAttributes{type, portId, queueId, portId};
+    SaiQueueTraits::CreateAttributes c = SaiQueueTraits::CreateAttributes{
+        type, portId, queueId, portId, std::nullopt};
     return saiApiTable->queueApi().create<SaiQueueTraits>(c, 0);
   }
 };
@@ -49,8 +49,8 @@ TEST_F(QueueStoreTest, queueLoadCtor) {
 
 TEST_F(QueueStoreTest, queueCreateCtor) {
   SaiQueueTraits::AdapterHostKey k{SAI_QUEUE_TYPE_UNICAST, 2, 6};
-  SaiQueueTraits::CreateAttributes c =
-      SaiQueueTraits::CreateAttributes{SAI_QUEUE_TYPE_UNICAST, 2, 6, 2};
+  SaiQueueTraits::CreateAttributes c = SaiQueueTraits::CreateAttributes{
+      SAI_QUEUE_TYPE_UNICAST, 2, 6, 2, std::nullopt};
   SaiObject<SaiQueueTraits> obj(k, c, 0);
   EXPECT_EQ(GET_ATTR(Queue, Type, obj.attributes()), SAI_QUEUE_TYPE_UNICAST);
   EXPECT_EQ(GET_ATTR(Queue, Port, obj.attributes()), 2);

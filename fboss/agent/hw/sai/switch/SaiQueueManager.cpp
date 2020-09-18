@@ -62,7 +62,7 @@ SaiQueueTraits::CreateAttributes makeQueueAttributes(
     type = SAI_QUEUE_TYPE_ALL;
   }
   return SaiQueueTraits::CreateAttributes{
-      type, portSaiId, portQueue.getID(), portSaiId};
+      type, portSaiId, portQueue.getID(), portSaiId, std::nullopt};
 }
 
 SaiQueueConfig makeSaiQueueConfig(
