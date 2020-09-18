@@ -89,10 +89,8 @@ void SaiQueueHandle::resetQueue() {
    * defaults. For long term, this will be removed and resetting the
    * objects will be part of SaiObject.
    */
-  SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
-      SAI_NULL_OBJECT_ID};
-  SaiApiTable::getInstance()->queueApi().setAttribute(
-      queue->adapterKey(), schedulerId);
+  queue->setOptionalAttribute(
+      SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
 }
 
 SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
@@ -117,8 +115,9 @@ void SaiQueueManager::changeQueue(
       managerTable_->schedulerManager().createScheduler(newPortQueue);
   SaiQueueTraits::Attributes::SchedulerProfileId schedulerId{
       queueHandle->scheduler->adapterKey()};
-  SaiApiTable::getInstance()->queueApi().setAttribute(
-      queueHandle->queue->adapterKey(), schedulerId);
+  queueHandle->queue->setOptionalAttribute(
+      SaiQueueTraits::Attributes::SchedulerProfileId{
+          queueHandle->scheduler->adapterKey()});
 }
 
 void SaiQueueManager::ensurePortQueueConfig(
