@@ -35,6 +35,10 @@ struct SaiObjectEventSubscriber {
     return publisherAttrs_;
   }
 
+  bool isReady() {
+    return publisherObject_.lock() != nullptr;
+  }
+
   /* return non-owning reference to monitored object */
   PublisherObjectWeakPtr getPublisherObject() const;
 

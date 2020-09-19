@@ -198,39 +198,46 @@ void SaiRouteManager::addOrUpdateRoute(
           managerTable_->nextHopManager().refOrEmplaceNextHop(swNextHop);
 
       SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-      sai_object_id_t cpuPortId{
+      sai_object_id_t nextHopId{
           SaiApiTable::getInstance()->switchApi().getAttribute(
               switchId, SaiSwitchTraits::Attributes::CpuPort{})};
-      attributes =
-          SaiRouteTraits::CreateAttributes{packetAction, cpuPortId, metadata};
-
-      auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
-      auto route = store.setObject(entry, attributes.value());
-      routeHandle->route = route;
-
+      ;
+      /* claim the next hop first */
       if (auto* ipNextHop =
               std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedNextHop)) {
         auto managedRouteNextHop =
             std::make_shared<ManagedRouteNextHop<SaiIpNextHopTraits>>(
-                managerTable_, platform_, route->adapterHostKey(), *ipNextHop);
+                managerTable_, platform_, entry, *ipNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiIpNextHopTraits>()
             .subscribe(managedRouteNextHop);
+        if (managedRouteNextHop->isReady()) {
+          nextHopId =
+              managedRouteNextHop->getPublisherObject().lock()->adapterKey();
+        }
         routeHandle->nexthopHandle_ = managedRouteNextHop;
       } else if (
           auto* mplsNextHop = std::get_if<std::shared_ptr<ManagedMplsNextHop>>(
               &managedNextHop)) {
         auto managedRouteNextHop =
             std::make_shared<ManagedRouteNextHop<SaiMplsNextHopTraits>>(
-                managerTable_,
-                platform_,
-                route->adapterHostKey(),
-                *mplsNextHop);
+                managerTable_, platform_, entry, *mplsNextHop);
         SaiObjectEventPublisher::getInstance()
             ->get<SaiMplsNextHopTraits>()
             .subscribe(managedRouteNextHop);
+        if (managedRouteNextHop->isReady()) {
+          nextHopId =
+              managedRouteNextHop->getPublisherObject().lock()->adapterKey();
+        }
         routeHandle->nexthopHandle_ = managedRouteNextHop;
       }
+      attributes =
+          SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
+
+      /* claim the route now */
+      auto& store = SaiStore::getInstance()->get<SaiRouteTraits>();
+      auto route = store.setObject(entry, attributes.value());
+      routeHandle->route = route;
       return;
     }
   } else if (fwd.getAction() == TO_CPU) {
@@ -347,6 +354,10 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
   this->setPublisherObject(nexthop);
   // set route to next hop
   auto route = SaiStore::getInstance()->get<SaiRouteTraits>().get(routeKey_);
+  if (!route) {
+    // route is not yet created.
+    return;
+  }
   auto attributes = route->attributes();
   sai_object_id_t nextHopId = nexthop->adapterKey();
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =

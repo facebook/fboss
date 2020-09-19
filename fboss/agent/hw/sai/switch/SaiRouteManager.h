@@ -47,6 +47,7 @@ class ManagedRouteNextHop
   void afterCreate(PublisherObject nexthop) override;
   void beforeRemove() override;
   sai_object_id_t adapterKey() const;
+  using detail::SaiObjectEventSubscriber<NextHopTraitsT>::isReady;
 
  private:
   void updateMetadata() const;
