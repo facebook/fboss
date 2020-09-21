@@ -57,7 +57,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/QsetCmpTests.cpp
   fboss/agent/hw/bcm/tests/HwTestRouteUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestQosUtils.cpp
-  fboss/agent/hw/bcm/tests/oss/HwTestCoppUtils.cpp
+  fboss/agent/hw/bcm/tests/HwTestCoppUtils.cpp
   fboss/agent/hw/bcm/tests/oss/BcmSwitchEnsemble.cpp
 
   fboss/agent/hw/bcm/tests/dataplane_tests/BcmSflowTests.cpp
@@ -146,5 +146,41 @@ add_library(bcm_port_utils
 )
 
 target_link_libraries(bcm_port_utils
+  bcm
+)
+
+add_library(bcm_qos_utils
+  fboss/agent/hw/bcm/tests/HwTestQosUtils.cpp
+  fboss/agent/hw/bcm/tests/dataplane_tests/BcmQosUtils.cpp
+)
+
+target_link_libraries(bcm_qos_utils
+  bcm
+)
+
+add_library(bcm_stat_utils
+  fboss/agent/hw/bcm/tests/BcmTestStatUtils.cpp
+)
+
+target_link_libraries(bcm_stat_utils
+  bcm
+  bcm_qos_utils
+)
+
+add_library(bcm_copp_utils
+  fboss/agent/hw/bcm/tests/HwTestCoppUtils.cpp
+)
+
+target_link_libraries(bcm_copp_utils
+  bcm
+  bcm_stat_utils
+  hw_copp_utils
+)
+
+add_library(bcm_packet_trap_helper
+  fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
+)
+
+target_link_libraries(bcm_packet_trap_helper
   bcm
 )
