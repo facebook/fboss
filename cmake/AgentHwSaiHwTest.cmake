@@ -69,6 +69,49 @@ set_target_properties(sai_port_utils PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_copp_utils
+  fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
+)
+
+target_link_libraries(sai_copp_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  hw_copp_utils
+)
+
+set_target_properties(sai_copp_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
+add_library(sai_packet_trap_helper
+  fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
+)
+
+target_link_libraries(sai_packet_trap_helper
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_packet_trap_helper PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
+add_library(sai_qos_utils
+  fboss/agent/hw/sai/hw_test/HwTestQosUtils.cpp
+)
+
+target_link_libraries(sai_qos_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_qos_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
