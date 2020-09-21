@@ -27,6 +27,7 @@ sai_status_t create_queue_fn(
   std::optional<uint8_t> index = 0;
   std::optional<sai_queue_type_t> type;
   sai_object_id_t schedulerProfileId{SAI_NULL_OBJECT_ID};
+  sai_object_id_t wredProfileId{SAI_NULL_OBJECT_ID};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_QUEUE_ATTR_TYPE:
@@ -44,6 +45,9 @@ sai_status_t create_queue_fn(
       case SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID:
         schedulerProfileId = attr_list[i].value.oid;
         break;
+      case SAI_QUEUE_ATTR_WRED_PROFILE_ID:
+        wredProfileId = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -56,7 +60,8 @@ sai_status_t create_queue_fn(
       port.value(),
       index.value(),
       parentScheduler.value(),
-      schedulerProfileId);
+      schedulerProfileId,
+      wredProfileId);
   return SAI_STATUS_SUCCESS;
 }
 
