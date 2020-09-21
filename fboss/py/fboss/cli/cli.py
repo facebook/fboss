@@ -676,10 +676,13 @@ class AgentConfig(object):
         pass
 
     @click.command()
+    @click.option(
+        "--json", is_flag=True, default=False, help="Show configuration in JSON format"
+    )
     @click.pass_obj
-    def _show(cli_opts):  # noqa: B902
+    def _show(cli_opts, json):  # noqa: B902
         """ Show running config """
-        agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_SHOW)
+        agent.AgentConfigCmd(cli_opts).run(KEYWORD_CONFIG_SHOW, json)
 
     @click.command()
     @click.pass_obj

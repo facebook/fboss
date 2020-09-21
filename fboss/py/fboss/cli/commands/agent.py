@@ -10,21 +10,33 @@
 
 import json
 
+from configerator.utils import config_contents_to_thrift
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
+from libfb.py.asyncio.thrift_utils import thrift_dumps
+from neteng.fboss.switch_config.types import SwitchConfig
 from neteng.fboss.ttypes import FbossBaseError
 
 
 class AgentConfigCmd(cmds.FbossCmd):
-    def _print_config(self):
+    def _print_config(self, json_flag):
         with self._create_agent_client() as client:
             resp = client.getRunningConfig()
 
         if not resp:
             print("No Agent Config Info Found")
             return
-        parsed = json.loads(resp)
-        print(json.dumps(parsed, indent=4, sort_keys=True, separators=(",", ": ")))
+
+        if json_flag:  # Output displayed as JSON if --json option is passed
+            parsed = json.loads(resp)
+            print(json.dumps(parsed, indent=4, sort_keys=True, separators=(",", ": ")))
+
+        else:  # Display thrift struct output
+            # Convert the received config into SwitchConfig thrift struct
+            parsed = config_contents_to_thrift(resp, SwitchConfig)
+
+            # Ensures that the output of thrift-py3 struct is readable
+            print(thrift_dumps(parsed))
 
     def _reload_config(self):
         """ Reload agent config without restarting """
@@ -37,9 +49,9 @@ class AgentConfigCmd(cmds.FbossCmd):
                 print("Fboss Error: " + e)
                 return 2
 
-    def run(self, cmd_type):
+    def run(self, cmd_type, json=False):
         if cmd_type == KEYWORD_CONFIG_SHOW:
-            self._print_config()
+            self._print_config(json)
         elif cmd_type == KEYWORD_CONFIG_RELOAD:
             self._reload_config()
         else:
