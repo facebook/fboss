@@ -34,8 +34,7 @@ class QueueApiTest : public ::testing::Test {
     SaiQueueTraits::Attributes::Port port(saiPortId);
     SaiQueueTraits::Attributes::Index queueId(queueIndex);
     SaiQueueTraits::Attributes::ParentSchedulerNode schedulerNode(saiPortId);
-    SaiQueueTraits::CreateAttributes a{
-        type, port, queueId, schedulerNode, std::nullopt};
+    SaiQueueTraits::CreateAttributes a{type, port, queueId, schedulerNode, 42};
     auto saiQueueId = queueApi->create<SaiQueueTraits>(a, 0);
     return saiQueueId;
   }
@@ -49,10 +48,13 @@ class QueueApiTest : public ::testing::Test {
     auto gotIndex = queueApi->getAttribute(queueId, indexAttribute);
     SaiQueueTraits::Attributes::ParentSchedulerNode schedulerAttribute;
     auto gotScheduler = queueApi->getAttribute(queueId, schedulerAttribute);
+    SaiQueueTraits::Attributes::SchedulerProfileId schedulerId;
+    auto gotSchedulerId = queueApi->getAttribute(queueId, schedulerId);
     EXPECT_EQ(fs->queueManager.get(queueId).type, gotType);
     EXPECT_EQ(fs->queueManager.get(queueId).port, gotPort);
     EXPECT_EQ(fs->queueManager.get(queueId).index, gotIndex);
     EXPECT_EQ(fs->queueManager.get(queueId).parentScheduler, gotScheduler);
+    EXPECT_EQ(fs->queueManager.get(queueId).schedulerProfileId, gotSchedulerId);
   }
 };
 
@@ -130,4 +132,6 @@ TEST_F(QueueApiTest, formatQueueAttributes) {
   EXPECT_EQ("Index: 3", fmt::format("{}", i));
   SaiQueueTraits::Attributes::ParentSchedulerNode psn{42};
   EXPECT_EQ("ParentSchedulerNode: 42", fmt::format("{}", psn));
+  SaiQueueTraits::Attributes::SchedulerProfileId schedulerProfileId{24};
+  EXPECT_EQ("SchedulerProfileId: 24", fmt::format("{}", schedulerProfileId));
 }

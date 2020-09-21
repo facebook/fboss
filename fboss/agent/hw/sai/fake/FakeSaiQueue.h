@@ -25,11 +25,13 @@ class FakeQueue {
       sai_queue_type_t type,
       sai_object_id_t port,
       uint8_t index,
-      sai_object_id_t parentScheduler)
+      sai_object_id_t parentScheduler,
+      sai_object_id_t schedulerProfileId = SAI_NULL_OBJECT_ID)
       : type(type),
         port(port),
         index(index),
-        parentScheduler(parentScheduler) {}
+        parentScheduler(parentScheduler),
+        schedulerProfileId(schedulerProfileId) {}
   sai_queue_type_t type;
   sai_object_id_t port;
   uint8_t index;
