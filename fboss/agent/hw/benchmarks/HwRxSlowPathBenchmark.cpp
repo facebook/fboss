@@ -1,0 +1,105 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
+
+#include <folly/IPAddressV6.h>
+#include <folly/dynamic.h>
+#include <folly/init/Init.h>
+#include <folly/json.h>
+#include "common/time/Time.h"
+
+#include <iostream>
+
+DEFINE_bool(json, true, "Output in json form");
+
+namespace facebook::fboss {
+
+void runRxSlowPathBenchmark() {
+  constexpr int kEcmpWidth = 1;
+  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto hwSwitch = ensemble->getHwSwitch();
+  auto portUsed = ensemble->masterLogicalPortIds()[0];
+  auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
+  ensemble->applyInitialConfig(config);
+  // capture packet exiting port 0 (entering due to loopback)
+  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, portUsed);
+  auto dstMac = utility::getInterfaceMac(
+      ensemble->getProgrammedState(), utility::firstVlanID(config));
+  auto ecmpHelper =
+      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  auto ecmpRouteState = ecmpHelper.setupECMPForwarding(
+      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth),
+      kEcmpWidth);
+  ensemble->applyNewState(ecmpRouteState);
+  // Disable TTL decrements
+  utility::disableTTLDecrements(
+      hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
+
+  const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
+  // Send packet
+  auto txPacket = utility::makeUDPTxPacket(
+      hwSwitch,
+      VlanID(*config.vlanPorts_ref()[0].vlanID_ref()),
+      kSrcMac,
+      dstMac,
+      folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+      folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+      8000,
+      8001);
+  hwSwitch->sendPacketSwitchedSync(std::move(txPacket));
+
+  constexpr auto kBurnIntevalMs = 5000;
+  // Let the packet flood warm up
+  WallClockMs::Burn(kBurnIntevalMs);
+  constexpr uint8_t kCpuQueue = 0;
+  auto [pktsBefore, bytesBefore] =
+      utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
+  auto timeBefore = WallClockMs::Now();
+  CHECK_NE(pktsBefore, 0);
+  WallClockMs::Burn(kBurnIntevalMs);
+  auto [pktsAfter, bytesAfter] =
+      utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
+  auto timeAfter = WallClockMs::Now();
+  uint32_t pps =
+      (static_cast<double>(pktsAfter - pktsBefore) / (timeAfter - timeBefore)) *
+      1000;
+  uint32_t bytesPerSec = (static_cast<double>(bytesAfter - bytesBefore) /
+                          (timeAfter - timeBefore)) *
+      1000;
+
+  if (FLAGS_json) {
+    folly::dynamic cpuRxRateJson = folly::dynamic::object;
+    cpuRxRateJson["cpu_rx_pps"] = pps;
+    cpuRxRateJson["cpu_rx_bytes_per_sec"] = bytesPerSec;
+    std::cout << toPrettyJson(cpuRxRateJson) << std::endl;
+  } else {
+    XLOG(INFO) << " Pkts before: " << pktsBefore << " Pkts after: " << pktsAfter
+               << " interval ms: " << timeAfter - timeBefore << " pps: " << pps
+               << " bytes per sec: " << bytesPerSec;
+  }
+}
+} // namespace facebook::fboss
+
+int main(int argc, char* argv[]) {
+  folly::init(&argc, &argv, true);
+  facebook::fboss::runRxSlowPathBenchmark();
+  return 0;
+}
