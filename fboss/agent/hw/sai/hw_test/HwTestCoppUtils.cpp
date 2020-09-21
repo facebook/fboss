@@ -21,16 +21,23 @@ namespace facebook::fboss {
 
 namespace utility {
 
-uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId) {
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* hwSwitch,
+    int queueId) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch);
   SwitchStats dummy;
   saiSwitch->updateStats(&dummy);
   auto hwPortStats =
       saiSwitch->managerTable()->hostifManager().getCpuPortStats();
   auto queueIter = hwPortStats.queueOutPackets__ref()->find(queueId);
-  return (queueIter != hwPortStats.queueOutPackets__ref()->end())
+  auto outPackets = (queueIter != hwPortStats.queueOutPackets__ref()->end())
       ? queueIter->second
       : 0;
+  queueIter = hwPortStats.queueOutBytes__ref()->find(queueId);
+  auto outBytes = (queueIter != hwPortStats.queueOutPackets__ref()->end())
+      ? queueIter->second
+      : 0;
+  return std::pair(outPackets, outBytes);
 }
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(

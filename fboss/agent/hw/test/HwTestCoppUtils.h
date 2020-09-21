@@ -57,7 +57,9 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
 
-uint64_t getCpuQueueOutPackets(HwSwitch* hwSwitch, int queueId);
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* hwSwitch,
+    int queueId);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic);
 

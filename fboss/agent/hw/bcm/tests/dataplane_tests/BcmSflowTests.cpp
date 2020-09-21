@@ -54,12 +54,12 @@ class BcmSflowTest : public BcmLinkStateDependentTests {
   }
 
   uint64_t getSampledPackets() const {
-    return utility::getQueueOutPackets(
+    return std::get<0>(utility::getQueueOutPacketsAndBytes(
         getPlatform()->useQueueGportForCos(),
         getUnit(),
         utility::kCPUPort,
         utility::kCoppDefaultPriQueueId,
-        true /* multicast queue */);
+        true /* multicast queue */));
   }
 
   void runTest(bool enableSflow) {

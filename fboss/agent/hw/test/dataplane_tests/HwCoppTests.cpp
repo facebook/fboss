@@ -162,9 +162,10 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int queueId,
       int retryTimes,
       uint64_t expectedNumPkts) {
-    uint64_t outPkts = 0;
+    uint64_t outPkts = 0, outBytes = 0;
     do {
-      outPkts = utility::getCpuQueueOutPackets(getHwSwitch(), queueId);
+      std::tie(outPkts, outBytes) =
+          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
       if (retryTimes == 0 || outPkts == expectedNumPkts) {
         break;
       }

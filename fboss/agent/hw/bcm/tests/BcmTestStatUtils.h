@@ -20,9 +20,11 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-uint64_t
-getQueueOutPackets(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq = 0);
-uint64_t getQueueOutPackets(
+std::pair<uint64_t, uint64_t> getQueueOutPacketsAndBytes(
+    int unit,
+    bcm_gport_t gport,
+    bcm_cos_queue_t cosq = 0);
+std::pair<uint64_t, uint64_t> getQueueOutPacketsAndBytes(
     bool useQueueGportForCos,
     int unit,
     int port,

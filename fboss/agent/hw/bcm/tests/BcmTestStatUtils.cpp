@@ -26,15 +26,19 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 
-uint64_t getQueueOutPackets(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq) {
-  uint64_t value;
-  auto rv =
-      bcm_cosq_stat_sync_get(unit, gport, cosq, bcmCosqStatOutPackets, &value);
-  bcmCheckError(rv, "failed to get queue stats");
-  return value;
+std::pair<uint64_t, uint64_t>
+getQueueOutPacketsAndBytes(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq) {
+  uint64_t outPackets, outBytes;
+  auto rv = bcm_cosq_stat_sync_get(
+      unit, gport, cosq, bcmCosqStatOutPackets, &outPackets);
+  bcmCheckError(rv, "failed to get queue packet stats");
+  rv =
+      bcm_cosq_stat_sync_get(unit, gport, cosq, bcmCosqStatOutBytes, &outBytes);
+  bcmCheckError(rv, "failed to get queue byte stats");
+  return std::make_pair(outPackets, outBytes);
 }
 
-uint64_t getQueueOutPackets(
+std::pair<uint64_t, uint64_t> getQueueOutPacketsAndBytes(
     bool useQueueGportForCos,
     int unit,
     int port,
@@ -54,7 +58,7 @@ uint64_t getQueueOutPackets(
     cosq = queueId;
   }
 
-  return utility::getQueueOutPackets(unit, gport, cosq);
+  return utility::getQueueOutPacketsAndBytes(unit, gport, cosq);
 }
 
 } // namespace facebook::fboss::utility

@@ -13,9 +13,11 @@
 
 namespace facebook::fboss::utility {
 
-uint64_t getCpuQueueOutPackets(HwSwitch* /*hwSwitch*/, int /*queueId*/) {
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* /*hwSwitch*/,
+    int /*queueId*/) {
   // Required APIs not available in bcm
-  return 0;
+  return std::make_pair(0, 0);
 }
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
