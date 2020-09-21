@@ -36,6 +36,17 @@ target_link_libraries(hw_packet_utils
   Folly::folly
 )
 
+add_library(hw_copp_utils
+  fboss/agent/hw/test/HwTestCoppUtils.cpp
+)
+
+target_link_libraries(hw_copp_utils
+  hw_switch_ensemble
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+)
+
 add_library(hw_link_state_toggler
   fboss/agent/hw/test/HwLinkStateToggler.cpp
 )
