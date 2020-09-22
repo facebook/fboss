@@ -49,6 +49,10 @@ class HwMemoryRegion {
     return device_;
   }
 
+  uint32_t getBaseAddress() {
+    return start_;
+  }
+
  private:
   const std::string name_;
   IO* device_;
