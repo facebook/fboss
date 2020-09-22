@@ -25,16 +25,17 @@ struct HwPortStats {
   16: i64 outDiscards_ = STAT_UNINITIALIZED;
   17: i64 outErrors_ = STAT_UNINITIALIZED;
   18: i64 outPause_ = STAT_UNINITIALIZED;
-  19: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED;
-  20: map<i16, i64> queueOutDiscardBytes_ = {}
-  21: map<i16, i64> queueOutBytes_ = {}
-  22: i64 outEcnCounter_ = STAT_UNINITIALIZED
-  23: map<i16, i64> queueOutPackets_ = {}
-  24: map<i16, i64> queueOutDiscardPackets_ = {}
-  25: map<i16, i64> queueWatermarkBytes_ = {}
-  26: i64 fecCorrectableErrors =
+  19: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
+  20: i64 wredDroppedPackets_ = STAT_UNINITIALIZED
+  21: map<i16, i64> queueOutDiscardBytes_ = {}
+  22: map<i16, i64> queueOutBytes_ = {}
+  23: i64 outEcnCounter_ = STAT_UNINITIALIZED
+  24: map<i16, i64> queueOutPackets_ = {}
+  25: map<i16, i64> queueOutDiscardPackets_ = {}
+  26: map<i16, i64> queueWatermarkBytes_ = {}
+  27: i64 fecCorrectableErrors =
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
-  27: i64 fecUncorrectableErrors =
+  28: i64 fecUncorrectableErrors =
             STAT_UNINITIALIZED (cpp2.type = "std::uint64_t");
 
   // seconds from epoch
@@ -65,6 +66,7 @@ struct HwTrunkStats {
   19: i64 outPause_ = STAT_UNINITIALIZED
   20: i64 outCongestionDiscardPkts_ = STAT_UNINITIALIZED
   21: i64 outEcnCounter_ = STAT_UNINITIALIZED
+  22: i64 wredDroppedPackets_ = STAT_UNINITIALIZED
 }
 
 struct HwResourceStats {
