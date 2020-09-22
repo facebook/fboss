@@ -631,6 +631,7 @@ bool doQsfpHardReset(
   auto busAndError = getTransceiverPlatformAPI(bus);
 
   if (busAndError.second) {
+    fprintf(stderr, "Trying to doQsfpHardReset, Couldn't getTransceiverPlatformAPI, error out.\n");
       return false;
   }
 
