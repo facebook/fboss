@@ -16,40 +16,15 @@ void FbFpga::initHW() {
   if (isHwInitialized_) {
     return;
   }
-  // mmap the 32bit io physical memory
-  phyMem32_->mmap();
-  for (uint32_t pim = 0; pim < FbFpga::kNumberPim; ++pim) {
-    pimFpgas_[pim]->initHW();
-  }
+  fpgaDevice_->mmap();
   isHwInitialized_ = true;
-}
-
-uint32_t FbFpga::readSmb(uint32_t offset) {
-  CHECK(offset >= 0 && offset <= fpgaPimBase_ + kNumberPim * fpgaPimSize_);
-  uint32_t ret = phyMem32_->read(offset);
-  XLOG(DBG5) << folly::format("FPGA read {:#x}={:#x}", offset, ret);
-  return ret;
-}
-
-uint32_t FbFpga::readPim(uint8_t pim, uint32_t offset) {
-  return pimFpgas_[pim - pimStartNum_]->read(offset);
-}
-
-void FbFpga::writePim(uint8_t pim, uint32_t offset, uint32_t value) {
-  return pimFpgas_[pim - pimStartNum_]->write(offset, value);
-}
-
-void FbFpga::writeSmb(uint32_t offset, uint32_t value) {
-  CHECK(offset >= 0 && offset <= fpgaPimBase_ + kNumberPim * fpgaPimSize_);
-  XLOG(DBG5) << folly::format("FPGA write {:#x} to {:#x}", value, offset);
-  phyMem32_->write(offset, value);
 }
 
 void FbFpga::setFrontPanelLedColor(
     uint8_t pim,
     int qsfp,
     FbDomFpga::LedColor ledColor) {
-  pimFpgas_[pim - pimStartNum_]->setFrontPanelLedColor(qsfp, ledColor);
+  getDomFpga(pim)->setFrontPanelLedColor(qsfp, ledColor);
 }
 
 FbDomFpga* FbFpga::getDomFpga(uint8_t pim) {

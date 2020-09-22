@@ -45,32 +45,9 @@ inline uint32_t getPortLedAddress(int port) {
 } // namespace
 
 namespace facebook::fboss {
-FbDomFpga::FbDomFpga(uint32_t domBaseAddr, uint32_t domFpgaSize, uint8_t pim)
-    : FpgaIoBase(domBaseAddr, domFpgaSize),
-      pim_{pim},
-      domBaseAddr_(domBaseAddr),
-      domFpgaSize_(domFpgaSize) {
-  XLOG(DBG2) << folly::format(
-      "Creating Fb DOM FPGA at address={:#x} size={:d}",
-      domBaseAddr_,
-      domFpgaSize_);
-}
-
-uint32_t FbDomFpga::read(uint32_t offset) const {
-  CHECK(offset >= 0 && offset <= domFpgaSize_);
-  uint32_t ret = phyMem32_->read(offset);
-  XLOG(DBG5) << folly::format("FPGA read {:#x}={:#x}", offset, ret);
-  return ret;
-}
-
-void FbDomFpga::write(uint32_t offset, uint32_t value) {
-  CHECK(offset >= 0 && offset <= domFpgaSize_);
-  XLOG(DBG5) << folly::format("FPGA write {:#x} to {:#x}", value, offset);
-  phyMem32_->write(offset, value);
-}
 
 bool FbDomFpga::isQsfpPresent(int qsfp) {
-  uint32_t qsfpPresentReg = read(kFacebookFpgaQsfpPresentReg);
+  uint32_t qsfpPresentReg = io_->read(kFacebookFpgaQsfpPresentReg);
   // From the lower end, each bit of this register represent the presence of a
   // QSFP.
   XLOG(DBG5) << folly::format("qsfpPresentReg value:{:#x}", qsfpPresentReg);
@@ -78,21 +55,21 @@ bool FbDomFpga::isQsfpPresent(int qsfp) {
 }
 
 uint32_t FbDomFpga::getQsfpsPresence() {
-  return read(kFacebookFpgaQsfpPresentReg);
+  return io_->read(kFacebookFpgaQsfpPresentReg);
 }
 
 void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
-  uint32_t currentResetReg = read(kFacebookFpgaQsfpResetReg);
+  uint32_t currentResetReg = io_->read(kFacebookFpgaQsfpResetReg);
   // 1 to hold QSFP reset active. 0 to release QSFP reset.
   uint32_t newResetReg = ~(0x1 << qsfp) & currentResetReg;
   if (currentResetReg != newResetReg) {
     XLOG(DBG5) << folly::format(
-        "For pim_{:d}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
-        pim_,
+        "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
+        io_->getName(),
         qsfp,
         currentResetReg,
         newResetReg);
-    write(kFacebookFpgaQsfpResetReg, newResetReg);
+    io_->write(kFacebookFpgaQsfpResetReg, newResetReg);
   }
 }
 
@@ -101,7 +78,7 @@ void FbDomFpga::ensureQsfpOutOfReset(int qsfp) {
  * which call it through Minipack.*Manager class
  */
 void FbDomFpga::triggerQsfpHardReset(int qsfp) {
-  uint32_t originalResetReg = read(kFacebookFpgaQsfpResetReg);
+  uint32_t originalResetReg = io_->read(kFacebookFpgaQsfpResetReg);
 
   // 1: hold QSFP in reset state
   // 0: release QSFP reset for normal operation
@@ -110,35 +87,35 @@ void FbDomFpga::triggerQsfpHardReset(int qsfp) {
   uint32_t newResetReg = (0x1 << qsfp) | originalResetReg;
 
   XLOG(INFO) << folly::format(
-      "For pim_{:d}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
-      pim_,
+      "For {}, port{:d}, old QsfpResetReg value:{:#x}, new value:{:#x}",
+      io_->getName(),
       qsfp,
       originalResetReg,
       newResetReg);
-  write(kFacebookFpgaQsfpResetReg, newResetReg);
+  io_->write(kFacebookFpgaQsfpResetReg, newResetReg);
 
   // Wait for 10ms
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   // Release the QSFP reset
   newResetReg = ~(0x1 << qsfp) & originalResetReg;
-  write(kFacebookFpgaQsfpResetReg, newResetReg);
+  io_->write(kFacebookFpgaQsfpResetReg, newResetReg);
 }
 
 // This function will bring all the transceivers out of reset.
 void FbDomFpga::clearAllTransceiverReset() {
   XLOG(DBG5) << "Clearing all transceiver out of reset.";
   // For each bit, 1 to hold QSFP reset active. 0 to release QSFP reset.
-  write(kFacebookFpgaQsfpResetReg, 0x0);
+  io_->write(kFacebookFpgaQsfpResetReg, 0x0);
 }
 
 void FbDomFpga::setFrontPanelLedColor(int qsfp, FbDomFpga::LedColor ledColor) {
   uint32_t qsfpLedAddress = getPortLedAddress(qsfp);
-  write(qsfpLedAddress, static_cast<uint32_t>(ledColor));
+  io_->write(qsfpLedAddress, static_cast<uint32_t>(ledColor));
 
   XLOG(DBG5) << folly::format(
-      "Set pim={:d} qsfp={:d} LED to {:s}. Register={:#x}, new value={:#x}",
-      pim_,
+      "Set {} qsfp={:d} LED to {:s}. Register={:#x}, new value={:#x}",
+      io_->getName(),
       qsfp,
       getColorStr(ledColor),
       qsfpLedAddress,
@@ -147,7 +124,7 @@ void FbDomFpga::setFrontPanelLedColor(int qsfp, FbDomFpga::LedColor ledColor) {
 
 FbDomFpga::PimType FbDomFpga::getPimType() {
   uint32_t curPimTypeReg =
-      read(kFacebookFpgaPimTypeReg) & kFacebookFpgaPimTypeBase;
+      io_->read(kFacebookFpgaPimTypeReg) & kFacebookFpgaPimTypeBase;
   switch (curPimTypeReg) {
     case static_cast<uint32_t>(FbDomFpga::PimType::MINIPACK_16Q):
     case static_cast<uint32_t>(FbDomFpga::PimType::MINIPACK_16O):

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "fboss/lib/fpga/FpgaIoBase.h"
 #include "fboss/lib/fpga/FbFpgaRegisters.h"
+#include "fboss/lib/fpga/HwMemoryRegion.h"
 #include "fboss/mdio/Mdio.h"
 
 namespace facebook::fboss {
@@ -23,8 +23,11 @@ enum class FbFpgaMdioVersion {
 
 class FbFpgaMdio : public Mdio {
  public:
-   // TODO: use a static factory method when we add more versions
-  explicit FbFpgaMdio(FpgaIoBase *io, uint32_t baseAddr, FbFpgaMdioVersion version=FbFpgaMdioVersion::V0);
+  // TODO: use a static factory method when we add more versions
+  explicit FbFpgaMdio(
+      FpgaMemoryRegion* io,
+      uint32_t baseAddr,
+      FbFpgaMdioVersion version = FbFpgaMdioVersion::V0);
 
   // read/write apis.
   phy::Cl45Data readCl45(
@@ -49,7 +52,7 @@ class FbFpgaMdio : public Mdio {
   template <typename Register>
   void writeReg(Register value);
 
-  FpgaIoBase* io_{nullptr};
+  FpgaMemoryRegion* io_{nullptr};
   const uint32_t baseAddr_;
   const FbFpgaMdioVersion version_;
 };

@@ -8,13 +8,13 @@
  *
  */
 
-#include "fboss/lib/fpga/MinipackFpga.h"
-#include "fboss/lib/fpga/FujiFpga.h"
-#include "fboss/mdio/MdioError.h"
 #include "fboss/mdio/FbFpgaMdio.h"
-#include <sstream>
 #include <folly/logging/xlog.h>
 #include <chrono>
+#include <sstream>
+#include "fboss/lib/fpga/FujiFpga.h"
+#include "fboss/lib/fpga/MinipackFpga.h"
+#include "fboss/mdio/MdioError.h"
 
 namespace {
 
@@ -24,10 +24,14 @@ constexpr uint32_t kDefaultTxnWaitMillis = 10000;
 
 namespace facebook::fboss {
 
-FbFpgaMdio::FbFpgaMdio(FpgaIoBase* io, uint32_t baseAddr, FbFpgaMdioVersion version)
+FbFpgaMdio::FbFpgaMdio(
+    FpgaMemoryRegion* io,
+    uint32_t baseAddr,
+    FbFpgaMdioVersion version)
     : io_(io), baseAddr_(baseAddr), version_(version) {
-  if(version_ == FbFpgaMdioVersion::UNKNOWN) {
-    XLOG(DBG4) << "unknown verion, do auto-detection by reading version register";
+  if (version_ == FbFpgaMdioVersion::UNKNOWN) {
+    XLOG(DBG4)
+        << "unknown verion, do auto-detection by reading version register";
     throw MdioError("Mdio version auto-detection not implemented");
     // TODO: read fpga version register and set up version_
   }
@@ -37,7 +41,8 @@ void FbFpgaMdio::reset() {
   auto config = readReg<MdioConfig>();
 
   config.reset = 1;
-  XLOG(DBG1) << "Resetting mdio controller and bringing mdio controller out of reset";
+  XLOG(DBG1)
+      << "Resetting mdio controller and bringing mdio controller out of reset";
   writeReg(config);
   sleep(1);
   config.reset = 0;
@@ -123,7 +128,7 @@ template <typename Register>
 Register FbFpgaMdio::readReg() {
   Register ret;
   uint32_t offset = Register::addr::value + baseAddr_;
-  ret.reg = io_->read(offset);;
+  ret.reg = io_->read(offset);
   XLOG(DBG5) << ret;
   return ret;
 }

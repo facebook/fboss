@@ -2,10 +2,18 @@
 
 #pragma once
 
+#include <pciaccess.h>
+#include <memory>
 #include "fboss/lib/PhysicalMemory.h"
 #include "fboss/lib/fpga/FbDomFpga.h"
+#include "fboss/lib/fpga/FpgaDevice.h"
 
 namespace facebook::fboss {
+
+constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
+constexpr uint32_t kFacebookFpgaSmbSize = 0x40000;
+constexpr uint32_t kFacebookFpgaPimBase = 0x40000;
+constexpr uint32_t kFacebookFpgaPimSize = 0x8000;
 
 class FbFpga {
  public:
@@ -22,16 +30,6 @@ class FbFpga {
    */
   void initHW();
 
-  /**
-   * FPGA PCIe Register has been upgraded to 32bits data width on 32 bits
-   * address.
-   */
-  uint32_t readSmb(uint32_t offset);
-  uint32_t readPim(uint8_t pim, uint32_t offset);
-
-  void writeSmb(uint32_t offset, uint32_t value);
-  void writePim(uint8_t pim, uint32_t offset, uint32_t value);
-
   void
   setFrontPanelLedColor(uint8_t pim, int qsfp, FbDomFpga::LedColor ledColor);
 
@@ -40,15 +38,9 @@ class FbFpga {
   FbDomFpga::PimType getPimType(uint8_t pim);
 
  protected:
-  static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
-
   uint32_t pimStartNum_ = 0;
-  uint32_t fpgaPimBase_ = 0;
-  uint32_t fpgaPimSize_ = 0;
 
-  using FbFpgaPhysicalMemory32 = PhysicalMemory32<PhysicalMemory>;
-
-  std::unique_ptr<FbFpgaPhysicalMemory32> phyMem32_;
+  std::unique_ptr<FpgaDevice> fpgaDevice_;
 
   std::array<std::unique_ptr<FbDomFpga>, kNumberPim> pimFpgas_;
 

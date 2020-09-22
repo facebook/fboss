@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "fboss/lib/fpga/FpgaIoBase.h"
+#include "fboss/lib/fpga/FpgaDevice.h"
+#include "fboss/lib/fpga/HwMemoryRegion.h"
 
 namespace facebook::fboss {
-class FbDomFpga : public FpgaIoBase {
+class FbDomFpga {
  public:
   enum class LedColor : uint32_t {
     OFF = 0x0,
@@ -24,14 +25,15 @@ class FbDomFpga : public FpgaIoBase {
     MINIPACK_16O = 0xA5000000,
   };
 
-  FbDomFpga(uint32_t domBaseAddr, uint32_t domFpgaSize, uint8_t pim);
+  explicit FbDomFpga(std::unique_ptr<FpgaMemoryRegion> io) : io_(move(io)) {}
 
-  /**
-   * FPGA PCIe Register has been upgraded to 32bits data width on 32 bits
-   * address.
-   */
-  virtual uint32_t read(uint32_t offset) const override;
-  virtual void write(uint32_t offset, uint32_t value) override;
+  uint32_t read(uint32_t offset) const {
+    return io_->read(offset);
+  }
+
+  void write(uint32_t offset, uint32_t value) {
+    io_->write(offset, value);
+  }
 
   bool isQsfpPresent(int qsfp);
   uint32_t getQsfpsPresence();
@@ -47,16 +49,18 @@ class FbDomFpga : public FpgaIoBase {
 
   void setFrontPanelLedColor(int qsfp, LedColor ledColor);
 
-  virtual ~FbDomFpga() {}
-
   PimType getPimType();
+
+  // TODO(pgardideh): this is temporary. eventually memory region ownership
+  // shall be moved to separate controllers and should not be accessed from
+  // outside
+  FpgaMemoryRegion* getMemoryRegion() {
+    return io_.get();
+  }
 
  private:
   static constexpr uint32_t kFacebookFpgaVendorID = 0x1d9b;
-
-  uint8_t pim_;
-  uint32_t domBaseAddr_;
-  uint32_t domFpgaSize_;
+  std::unique_ptr<FpgaMemoryRegion> io_;
 };
 
 } // namespace facebook::fboss

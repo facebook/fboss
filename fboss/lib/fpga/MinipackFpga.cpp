@@ -14,13 +14,9 @@
 #include <folly/logging/xlog.h>
 
 namespace {
-constexpr uint32_t kPimStartNum = 1;
-
 constexpr uint32_t kFacebookFpgaBarAddr = 0xfbd00000;
-constexpr uint32_t kFacebookFpgaSmbSize = 0x40000;
-
-constexpr uint32_t kFacebookFpgaPimBase = 0x40000;
-constexpr uint32_t kFacebookFpgaPimSize = 0x8000;
+constexpr uint32_t kFacebookFpgaBarSize = 0x80000;
+constexpr uint32_t kPimStartNum = 1;
 } // namespace
 
 namespace facebook::fboss {
@@ -31,26 +27,30 @@ std::shared_ptr<MinipackFpga> MinipackFpga::getInstance() {
 
 MinipackFpga::MinipackFpga() {
   pimStartNum_ = kPimStartNum;
-  fpgaPimBase_ = kFacebookFpgaPimBase;
-  fpgaPimSize_ = kFacebookFpgaPimSize;
 
-  XLOG(DBG2) << folly::format(
-      "Creating Minipack FPGA at address={:#x} size={:d}",
-      kFacebookFpgaBarAddr,
-      kFacebookFpgaSmbSize);
+  try {
+    fpgaDevice_ = std::make_unique<FpgaDevice>(
+        PciVendorId(kFacebookFpgaVendorID), PciDeviceId(PCI_MATCH_ANY));
+  } catch (const std::exception& ex) {
+    XLOG(ERR)
+        << folly::format(
+               "Could not access FPGA PCI device with vendorId={}, deviceId={}: ",
+               kFacebookFpgaVendorID,
+               PCI_MATCH_ANY)
+        << folly::exceptionStr(ex);
+    // fallback to default address
+    fpgaDevice_ = std::make_unique<FpgaDevice>(
+        kFacebookFpgaBarAddr, kFacebookFpgaBarSize);
+  }
 
-  phyMem32_ = std::make_unique<FbFpgaPhysicalMemory32>(
-      kFacebookFpgaBarAddr, kFacebookFpgaSmbSize, false);
   for (uint32_t pim = 0; pim < MinipackFpga::kNumberPim; ++pim) {
-    auto domFpgaBaseAddr = kFacebookFpgaBarAddr + kFacebookFpgaPimBase +
-        pim * kFacebookFpgaPimSize;
-    pimFpgas_[pim] = std::make_unique<FbDomFpga>(
-        domFpgaBaseAddr, kFacebookFpgaPimSize, pim + pimStartNum_);
-
-    XLOG(DBG2) << folly::format(
-        "Creating DOM FPGA at address={:#x} size={:d}",
-        domFpgaBaseAddr,
-        kFacebookFpgaPimSize);
+    auto domFpgaBaseAddr = kFacebookFpgaPimBase + pim * kFacebookFpgaPimSize;
+    pimFpgas_[pim] =
+        std::make_unique<FbDomFpga>(std::make_unique<FpgaMemoryRegion>(
+            folly::format("pim{:d}", pim + pimStartNum_).str(),
+            fpgaDevice_.get(),
+            domFpgaBaseAddr,
+            kFacebookFpgaPimSize));
   }
 }
 

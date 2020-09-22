@@ -73,6 +73,8 @@ FBOSS_STRONG_TYPE(uint16_t, BridgeID);
 FBOSS_STRONG_TYPE(uint16_t, TrafficClass);
 FBOSS_STRONG_TYPE(uint8_t, DSCP);
 FBOSS_STRONG_TYPE(uint8_t, EXP);
+FBOSS_STRONG_TYPE(uint32_t, PciVendorId);
+FBOSS_STRONG_TYPE(uint32_t, PciDeviceId);
 
 /*
  * A unique ID identifying a node in our state tree.

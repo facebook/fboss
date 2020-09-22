@@ -11,16 +11,11 @@
 #include <folly/Format.h>
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
-#include <pciaccess.h>
 #include "fboss/agent/FbossError.h"
-#include "fboss/lib/PciDevice.h"
 
 namespace {
+// normally, PIM index should start at 2
 constexpr uint32_t kPimStartNum = 2;
-
-constexpr uint32_t kFacebookFpgaSmbSize = 0x40000;
-constexpr uint32_t kFacebookFpgaPimBase = 0x40000;
-constexpr uint32_t kFacebookFpgaPimSize = 0x8000;
 } // namespace
 
 namespace facebook::fboss {
@@ -31,32 +26,17 @@ std::shared_ptr<FujiFpga> FujiFpga::getInstance() {
 
 FujiFpga::FujiFpga() {
   pimStartNum_ = kPimStartNum;
-  fpgaPimBase_ = kFacebookFpgaPimBase;
-  fpgaPimSize_ = kFacebookFpgaPimSize;
+  fpgaDevice_ = std::make_unique<FpgaDevice>(
+      PciVendorId(kFacebookFpgaVendorID), PciDeviceId(PCI_MATCH_ANY));
 
-  uint64_t fpgaBar0;
-  // Get the BAR address for FPGA device
-  PciDevice fpgaPciDevice(kFacebookFpgaVendorID, PCI_MATCH_ANY);
-  fpgaPciDevice.open();
-  if (fpgaPciDevice.isGood()) {
-    fpgaBar0 = fpgaPciDevice.getMemoryRegionAddress(0);
-  } else {
-    throw FbossError("cannot get BAR address for Fuji FPGA device");
-  }
-
-  phyMem32_ = std::make_unique<FbFpgaPhysicalMemory32>(
-      fpgaBar0, kFacebookFpgaSmbSize, false);
   for (uint32_t pim = 0; pim < FujiFpga::kNumberPim; ++pim) {
-    auto domFpgaBaseAddr =
-        fpgaBar0 + kFacebookFpgaPimBase + pim * kFacebookFpgaPimSize;
-    // pim id start from 2
-    pimFpgas_[pim] = std::make_unique<FbDomFpga>(
-        domFpgaBaseAddr, kFacebookFpgaPimSize, pim + pimStartNum_);
-
-    XLOG(DBG2) << folly::format(
-        "Creating DOM FPGA at address={:#x} size={:d}",
-        domFpgaBaseAddr,
-        kFacebookFpgaPimSize);
+    auto domFpgaBaseAddr = kFacebookFpgaPimBase + pim * kFacebookFpgaPimSize;
+    pimFpgas_[pim] =
+        std::make_unique<FbDomFpga>(std::make_unique<FpgaMemoryRegion>(
+            folly::format("pim{:d}", pim + pimStartNum_).str(),
+            fpgaDevice_.get(),
+            domFpgaBaseAddr,
+            kFacebookFpgaPimSize));
   }
 }
 
