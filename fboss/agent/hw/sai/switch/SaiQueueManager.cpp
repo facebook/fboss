@@ -9,10 +9,13 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/lib/TupleUtils.h"
 
 namespace facebook::fboss {
@@ -95,6 +98,10 @@ void SaiQueueHandle::resetQueue() {
    */
   queue->setOptionalAttribute(
       SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
+  if (wredProfile) {
+    queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
+  }
 }
 
 SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
@@ -122,6 +129,15 @@ void SaiQueueManager::changeQueue(
   queueHandle->queue->setOptionalAttribute(
       SaiQueueTraits::Attributes::SchedulerProfileId{
           queueHandle->scheduler->adapterKey()});
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    queueHandle->wredProfile =
+        managerTable_->wredManager().getOrCreateProfile(newPortQueue);
+    if (queueHandle->wredProfile) {
+      queueHandle->queue->setOptionalAttribute(
+          SaiQueueTraits::Attributes::WredProfileId{
+              queueHandle->wredProfile->adapterKey()});
+    }
+  }
 }
 
 void SaiQueueManager::ensurePortQueueConfig(

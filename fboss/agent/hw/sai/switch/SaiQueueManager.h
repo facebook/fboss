@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
+#include "fboss/agent/hw/sai/switch/SaiWredManager.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -37,6 +38,7 @@ struct SaiQueueHandle {
   ~SaiQueueHandle();
   void resetQueue();
   std::shared_ptr<SaiScheduler> scheduler;
+  std::shared_ptr<SaiWred> wredProfile;
   std::shared_ptr<SaiQueue> queue;
 };
 
