@@ -48,14 +48,15 @@ HwPortStats getInitedStats() {
       17, // outErrors
       18, // outPause
       19, // outCongestionDiscardPkts
+      20, // wredDroppedPackets
       {{1, 1}, {2, 1}}, // queueOutDiscards
       {{1, 2}, {2, 2}}, // queueOutBytes
-      20, // outEcnCounter
+      21, // outEcnCounter
       {{1, 3}, {2, 3}}, // queueOutPackets
       {{0, 0}, {0, 0}}, // queueOutDiscardPackets
       {{1, 0}, {2, 10}}, // queueWatermarkBytes
-      21, // fecCorrectableErrors
-      22, // fecUncorrectableErrors
+      22, // fecCorrectableErrors
+      23, // fecUncorrectableErrors
       0, // timestamp
   };
 }

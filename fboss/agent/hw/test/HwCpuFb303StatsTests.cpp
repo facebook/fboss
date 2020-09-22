@@ -47,6 +47,7 @@ HwPortStats getInitedStats() {
       0, // outErrors
       0, // outPause
       0, // outCongestionDiscardPkts
+      0, // wredDroppedPackets
       {{1, 0}, {2, 0}}, // queueOutDiscards
       {{1, 0}, {2, 0}}, // queueOutBytes
       0, // outEcnCounter
