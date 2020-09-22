@@ -40,8 +40,11 @@ struct SaiQueueTraits {
         EnumType,
         SAI_QUEUE_ATTR_PARENT_SCHEDULER_NODE,
         SaiObjectIdT>;
-    using WredProfileId =
-        SaiAttribute<EnumType, SAI_QUEUE_ATTR_WRED_PROFILE_ID, SaiObjectIdT>;
+    using WredProfileId = SaiAttribute<
+        EnumType,
+        SAI_QUEUE_ATTR_WRED_PROFILE_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using BufferProfileId =
         SaiAttribute<EnumType, SAI_QUEUE_ATTR_BUFFER_PROFILE_ID, SaiObjectIdT>;
     using SchedulerProfileId = SaiAttribute<
@@ -57,7 +60,8 @@ struct SaiQueueTraits {
       Attributes::Port,
       Attributes::Index,
       Attributes::ParentSchedulerNode,
-      std::optional<Attributes::SchedulerProfileId>>;
+      std::optional<Attributes::SchedulerProfileId>,
+      std::optional<Attributes::WredProfileId>>;
   static constexpr std::array<sai_stat_id_t, 4> CounterIdsToRead = {
       SAI_QUEUE_STAT_PACKETS,
       SAI_QUEUE_STAT_BYTES,

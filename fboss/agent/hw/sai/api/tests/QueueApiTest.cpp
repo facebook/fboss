@@ -34,7 +34,8 @@ class QueueApiTest : public ::testing::Test {
     SaiQueueTraits::Attributes::Port port(saiPortId);
     SaiQueueTraits::Attributes::Index queueId(queueIndex);
     SaiQueueTraits::Attributes::ParentSchedulerNode schedulerNode(saiPortId);
-    SaiQueueTraits::CreateAttributes a{type, port, queueId, schedulerNode, 42};
+    SaiQueueTraits::CreateAttributes a{
+        type, port, queueId, schedulerNode, 42, 24};
     auto saiQueueId = queueApi->create<SaiQueueTraits>(a, 0);
     return saiQueueId;
   }
@@ -50,11 +51,14 @@ class QueueApiTest : public ::testing::Test {
     auto gotScheduler = queueApi->getAttribute(queueId, schedulerAttribute);
     SaiQueueTraits::Attributes::SchedulerProfileId schedulerId;
     auto gotSchedulerId = queueApi->getAttribute(queueId, schedulerId);
+    SaiQueueTraits::Attributes::WredProfileId wredId;
+    auto gotWredId = queueApi->getAttribute(queueId, wredId);
     EXPECT_EQ(fs->queueManager.get(queueId).type, gotType);
     EXPECT_EQ(fs->queueManager.get(queueId).port, gotPort);
     EXPECT_EQ(fs->queueManager.get(queueId).index, gotIndex);
     EXPECT_EQ(fs->queueManager.get(queueId).parentScheduler, gotScheduler);
     EXPECT_EQ(fs->queueManager.get(queueId).schedulerProfileId, gotSchedulerId);
+    EXPECT_EQ(fs->queueManager.get(queueId).wredProfileId, gotWredId);
   }
 };
 
@@ -87,6 +91,7 @@ TEST_F(QueueApiTest, setQueueAttribute) {
   SaiQueueTraits::Attributes::WredProfileId wredProfileId{1};
   SaiQueueTraits::Attributes::BufferProfileId bufferProfileId{1};
   SaiQueueTraits::Attributes::SchedulerProfileId schedulerProfileId{1};
+  SaiQueueTraits::Attributes::WredProfileId wredrProfileId{2};
 
   queueApi->setAttribute(saiQueueId, parentSchedulerNode);
   queueApi->setAttribute(saiQueueId, wredProfileId);
@@ -110,6 +115,7 @@ TEST_F(QueueApiTest, setQueueAttribute) {
   EXPECT_EQ(wredProfileIdGot, wredProfileId);
   EXPECT_EQ(bufferProfileIdGot, bufferProfileId);
   EXPECT_EQ(schedulerProfileIdGot, schedulerProfileId);
+  EXPECT_EQ(wredProfileIdGot, wredProfileId);
 
   // Queue does not support setting type, port and index attributes post
   // creation
@@ -134,4 +140,6 @@ TEST_F(QueueApiTest, formatQueueAttributes) {
   EXPECT_EQ("ParentSchedulerNode: 42", fmt::format("{}", psn));
   SaiQueueTraits::Attributes::SchedulerProfileId schedulerProfileId{24};
   EXPECT_EQ("SchedulerProfileId: 24", fmt::format("{}", schedulerProfileId));
+  SaiQueueTraits::Attributes::WredProfileId wredProfileId{24};
+  EXPECT_EQ("WredProfileId: 24", fmt::format("{}", wredProfileId));
 }
