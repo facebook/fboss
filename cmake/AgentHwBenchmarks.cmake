@@ -158,3 +158,14 @@ target_link_libraries(hw_ecmp_shrink_with_competing_route_updates_speed
   hw_benchmark_main
   Folly::folly
 )
+
+add_library(hw_rx_slow_path_rate
+  fboss/agent/hw/benchmarks/HwRxSlowPathBenchmark.cpp
+)
+
+target_link_libraries(hw_rx_slow_path_rate
+  config_factory
+  hw_packet_utils
+  ecmp_helper
+  Folly::folly
+)

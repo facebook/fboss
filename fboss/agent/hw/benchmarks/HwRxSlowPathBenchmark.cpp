@@ -24,9 +24,9 @@
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
 #include <folly/json.h>
-#include "common/time/Time.h"
 
 #include <iostream>
+#include <thread>
 
 DEFINE_bool(json, true, "Output in json form");
 
@@ -66,23 +66,25 @@ void runRxSlowPathBenchmark() {
       8001);
   hwSwitch->sendPacketSwitchedSync(std::move(txPacket));
 
-  constexpr auto kBurnIntevalMs = 5000;
+  constexpr auto kBurnIntevalInSeconds = 5;
   // Let the packet flood warm up
-  WallClockMs::Burn(kBurnIntevalMs);
+  std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   constexpr uint8_t kCpuQueue = 0;
   auto [pktsBefore, bytesBefore] =
       utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
-  auto timeBefore = WallClockMs::Now();
+  auto timeBefore = std::chrono::steady_clock::now();
   CHECK_NE(pktsBefore, 0);
-  WallClockMs::Burn(kBurnIntevalMs);
+  std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   auto [pktsAfter, bytesAfter] =
       utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
-  auto timeAfter = WallClockMs::Now();
-  uint32_t pps =
-      (static_cast<double>(pktsAfter - pktsBefore) / (timeAfter - timeBefore)) *
+  auto timeAfter = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::milli> durationMillseconds =
+      timeAfter - timeBefore;
+  uint32_t pps = (static_cast<double>(pktsAfter - pktsBefore) /
+                  durationMillseconds.count()) *
       1000;
   uint32_t bytesPerSec = (static_cast<double>(bytesAfter - bytesBefore) /
-                          (timeAfter - timeBefore)) *
+                          durationMillseconds.count()) *
       1000;
 
   if (FLAGS_json) {
@@ -92,8 +94,8 @@ void runRxSlowPathBenchmark() {
     std::cout << toPrettyJson(cpuRxRateJson) << std::endl;
   } else {
     XLOG(INFO) << " Pkts before: " << pktsBefore << " Pkts after: " << pktsAfter
-               << " interval ms: " << timeAfter - timeBefore << " pps: " << pps
-               << " bytes per sec: " << bytesPerSec;
+               << " interval ms: " << durationMillseconds.count()
+               << " pps: " << pps << " bytes per sec: " << bytesPerSec;
   }
 }
 } // namespace facebook::fboss

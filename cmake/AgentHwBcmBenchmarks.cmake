@@ -202,6 +202,18 @@ target_link_libraries(bcm_warm_boot_exit_speed
   -Wl,--no-whole-archive
 )
 
+add_executable(bcm_rx_slow_path_rate /dev/null)
+
+target_link_libraries(bcm_rx_slow_path_rate
+  -Wl,--whole-archive
+  bcm_switch_ensemble
+  hw_tx_slow_path_rate
+  bcm_copp_utils
+  bcm_qos_utils
+  bcm_packet_trap_helper
+  -Wl,--no-whole-archive
+)
+
 install(TARGETS bcm_ecmp_shrink_speed)
 install(TARGETS bcm_ecmp_shrink_with_competing_route_updates_speed)
 install(TARGETS bcm_fsw_scale_route_add_speed)
@@ -215,3 +227,4 @@ install(TARGETS bcm_hgrid_uu_scale_route_del_speed)
 install(TARGETS bcm_stats_collection_speed)
 install(TARGETS bcm_tx_slow_path_rate)
 install(TARGETS bcm_warm_boot_exit_speed)
+install(TARGETS bcm_rx_slow_path_rate)

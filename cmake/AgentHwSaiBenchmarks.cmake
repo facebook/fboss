@@ -243,6 +243,25 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
 
+  add_executable(sai_rx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
+
+  target_link_libraries(sai_rx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    sai_switch_ensemble
+    hw_rx_slow_path_rate
+    sai_copp_utils
+    sai_packet_trap_helper
+    sai_qos_utils
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+
+  set_target_properties(sai_rx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
 
 endfunction()
 
@@ -294,4 +313,7 @@ if(SAI_IMPL)
   install(
     TARGETS
     sai_tx_slow_path_rate-sai_impl-${SAI_VER_SUFFIX})
+  install(
+    TARGETS
+    sai_rx_slow_path_rate-sai_impl-${SAI_VER_SUFFIX})
 endif()
