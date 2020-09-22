@@ -113,7 +113,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::optional<uint8_t> queue = std::nullopt);
   bool waitPortStatsCondition(
       std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn,
-      uint32_t retries = 10,
+      uint32_t retries = 20,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(20));
 
