@@ -58,15 +58,13 @@ void runTxSlowPathBenchmark() {
     while (!packetTxDone) {
       for (auto i = 0; i < 1'000; ++i) {
         // Send packet
-        auto txPacket = utility::makeUDPTxPacket(
+        auto txPacket = utility::makeIpTxPacket(
             hwSwitch,
             VlanID(*config.vlanPorts_ref()[0].vlanID_ref()),
             kSrcMac,
             cpuMac,
             kSrcIp,
-            kDstIp,
-            8000,
-            8001);
+            kDstIp);
         hwSwitch->sendPacketSwitchedAsync(std::move(txPacket));
       }
     }
