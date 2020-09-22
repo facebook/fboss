@@ -1118,6 +1118,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processControlPlaneChanges(delta);
 
+  processAggregatePortChanges(delta);
+
   // Any neighbor additions/changes, and modify appliedState if some changes
   // fail to apply
   processNeighborDelta(delta, &appliedState, ADDED);
@@ -1149,8 +1151,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Process any new routes or route changes
   processAddedChangedRoutes(delta, &appliedState);
   processAddedChangedFibRoutes(delta, &appliedState);
-
-  processAggregatePortChanges(delta);
 
   processAddedPorts(delta);
   processChangedPorts(delta);

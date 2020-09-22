@@ -62,3 +62,22 @@ TEST(MacEntry, fromJSON) {
           std::nullopt,
           MacEntryType::DYNAMIC_ENTRY));
 }
+
+TEST(MacEntry, fromJSONWithType) {
+  std::string jsonStrMissingEntryType = R"(
+  {
+      "mac": "01:02:03:04:05:06",
+      "portId": {
+            "portId": 1,
+            "portType": 0
+      }
+  })";
+  auto entry = MacEntry::fromJson(jsonStrMissingEntryType);
+  EXPECT_EQ(
+      *entry,
+      MacEntry(
+          kMac,
+          PortDescriptor(PortID(1)),
+          std::nullopt,
+          MacEntryType::DYNAMIC_ENTRY));
+}

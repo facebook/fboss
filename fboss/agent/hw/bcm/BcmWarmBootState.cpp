@@ -85,14 +85,7 @@ folly::dynamic BcmWarmBootState::toFollyDynamic(
   host[kPort] = 0;
   auto egressPort = bcmHost->getEgressPortDescriptor();
   if (egressPort) {
-    switch (egressPort->type()) {
-      case BcmPortDescriptor::PortType::AGGREGATE:
-        // TODO: support warmboot for trunks
-        break;
-      case BcmPortDescriptor::PortType::PHYSICAL:
-        host[kPort] = egressPort->toFollyDynamic();
-        break;
-    }
+    host[kPort] = egressPort->toFollyDynamic();
   }
   host[kEgressId] = bcmHost->getEgressId();
   auto* egress = bcmHost->getEgress();

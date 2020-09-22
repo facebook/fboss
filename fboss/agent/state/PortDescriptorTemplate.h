@@ -15,6 +15,11 @@
 #include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 
+namespace {
+constexpr auto kPortId = "portId";
+constexpr auto kPortType = "portType";
+} // namespace
+
 namespace facebook::fboss {
 
 template <typename PortIdType, typename TrunkIdType>
@@ -84,20 +89,34 @@ class PortDescriptorTemplate {
     XLOG(FATAL) << "Unknown port type";
   }
   folly::dynamic toFollyDynamic() const {
+    folly::dynamic entry = folly::dynamic::object;
     switch (type()) {
       case PortType::PHYSICAL:
+        // encode using old format for downgrade scenarios
         return folly::dynamic(static_cast<uint16_t>(physicalPortID_));
       case PortType::AGGREGATE:
-        return folly::dynamic(static_cast<uint16_t>(aggregatePortID_));
+        entry[kPortType] = static_cast<uint16_t>(PortType::AGGREGATE);
+        entry[kPortId] = static_cast<uint16_t>(aggregatePortID_);
+        return entry;
     }
     XLOG(FATAL) << "Unknown port type";
   }
   static PortDescriptorTemplate fromFollyDynamic(
       const folly::dynamic& descJSON) {
-    // Until warm-boot support is implemented for aggregate ports, we assume
-    // it is undefined behavior to warm-boot across a state with configured
-    // aggregate ports
-    return PortDescriptorTemplate(PortIdType(descJSON.asInt()));
+    // For backward compatibility, try to decode using
+    // old format if type is not object. This can be removed later
+    // after physical port also switch to new format
+    if (descJSON.type() == folly::dynamic::Type::OBJECT) {
+      switch ((PortType)descJSON[kPortType].asInt()) {
+        case PortType::PHYSICAL:
+          return PortDescriptorTemplate(PortIdType(descJSON[kPortId].asInt()));
+        case PortType::AGGREGATE:
+          return PortDescriptorTemplate(TrunkIdType(descJSON[kPortId].asInt()));
+      }
+      XLOG(FATAL) << "Unknown port type";
+    } else {
+      return PortDescriptorTemplate(PortIdType(descJSON.asInt()));
+    }
   }
   PortIdType getPhysicalPortOrThrow() const {
     if (type() != PortType::PHYSICAL) {

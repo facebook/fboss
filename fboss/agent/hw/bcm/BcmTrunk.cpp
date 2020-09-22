@@ -54,6 +54,41 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
 
   if (foundTrunk != warmBootCache->trunks_end()) {
     bcmTrunkID_ = foundTrunk->second;
+
+    // Get trunk member information from SDK
+    bcm_trunk_info_t info;
+    bcm_trunk_info_t_init(&info);
+    int member_count;
+    vector<bcm_trunk_member_t> members(aggPort->forwardingSubportCount());
+
+    auto rv = bcm_trunk_get(
+        hw_->getUnit(),
+        bcmTrunkID_,
+        &info,
+        members.size(),
+        members.data(),
+        &member_count);
+    bcmCheckError(rv, "failed to get subports for trunk ", bcmTrunkID_);
+    XLOG(INFO) << "Found " << member_count
+               << " members in HW for AggregatePort " << aggPort->getID();
+
+    for (auto [subPort, fwdState] : aggPort->subportAndFwdState()) {
+      // ignore members in sw disabled state
+      if (fwdState == AggregatePort::Forwarding::DISABLED) {
+        continue;
+      }
+      auto memberGport =
+          hw_->getPortTable()->getBcmPort(subPort)->getBcmGport();
+      if (none_of(members.begin(), members.end(), [&](auto& mem) {
+            return mem.gport == memberGport;
+          })) {
+        // TODO - handle members that transitioned to down during warmboot
+        XLOG(INFO) << "Found disabled member port " << subPort;
+      } else {
+        trunkStats_.grantMembership(subPort);
+      }
+    }
+    trunkStats_.initialize(aggPort->getID(), aggPort->getName());
     warmBootCache->programmed(foundTrunk);
     return;
   }

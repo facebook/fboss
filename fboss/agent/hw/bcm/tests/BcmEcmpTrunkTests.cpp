@@ -64,6 +64,7 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
   }
 
   void runEcmpWithTrunkMinLinks(uint8_t minlinks) {
+    auto ecmpShrinkTest = (minlinks >= 2) ? true : false;
     auto setup = [=]() {
       auto state = enableTrunkPorts(getProgrammedState());
       applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
@@ -107,11 +108,15 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
                   getHwSwitch(), kDefaultRoute.network, kDefaultRoute.mask),
               kEcmpWidth));
     };
-    setup();
-    verify();
+    // TODO - Enable warm boot verification in ECMP shrink case
+    if (ecmpShrinkTest) {
+      setup();
+      verify();
+    } else {
+      verifyAcrossWarmBoots(setup, verify);
+    }
   }
 
- private:
   const int kEcmpWidth = 7;
   const AggregatePortID kAggId{1};
   std::unique_ptr<EcmpSetupTargetedPorts6> ecmpHelper_;
@@ -124,5 +129,4 @@ TEST_F(BcmEcmpTrunkTest, TrunkRemovedFromEcmpWithMinLinks) {
 TEST_F(BcmEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
   runEcmpWithTrunkMinLinks(1);
 }
-
 } // namespace facebook::fboss

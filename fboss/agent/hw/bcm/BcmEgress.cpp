@@ -395,8 +395,8 @@ bool BcmEcmpEgress::removeEgressIdHwLocked(
 
 void BcmEgress::programToTrunk(
     bcm_if_t intfId,
-    bcm_vrf_t /* vrf */,
-    const folly::IPAddress& /* ip */,
+    bcm_vrf_t vrf,
+    const folly::IPAddress& ip,
     const MacAddress mac,
     bcm_trunk_t trunk) {
   bcm_l3_egress_t egress;
@@ -406,31 +406,67 @@ void BcmEgress::programToTrunk(
   egress.trunk = trunk;
   memcpy(egress.mac_addr, mac.bytes(), sizeof(egress.mac_addr));
 
-  uint32_t creationFlags = 0;
-  if (id_ != INVALID) {
-    creationFlags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
+  bool addOrUpdateEgress = false;
+  const auto warmBootCache = hw_->getWarmBootCache();
+  CHECK(warmBootCache);
+  auto egressId2EgressCitr = findEgress(vrf, intfId, ip);
+  if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
+    auto equivalent = [](const bcm_l3_egress_t& newEgress,
+                         const bcm_l3_egress_t& existingEgress) {
+      // Compare mac, port and interface of egress objects
+      return !memcmp(
+                 newEgress.mac_addr,
+                 existingEgress.mac_addr,
+                 sizeof(newEgress.mac_addr)) &&
+          existingEgress.intf == newEgress.intf &&
+          existingEgress.port == newEgress.port;
+    };
+    const auto& existingEgressId = egressId2EgressCitr->first;
+    // Cache existing egress id
+    id_ = existingEgressId;
+    auto existingEgressObject = egressId2EgressCitr->second;
+    if (!equivalent(egress, existingEgressObject)) {
+      XLOG(DBG1) << "Updating egress object for next hop : " << ip
+                 << " @ brcmif " << intfId;
+      addOrUpdateEgress = true;
+    } else {
+      XLOG(DBG1) << "Egress object for: " << ip << " @ brcmif " << intfId
+                 << " already exists";
+    }
+  } else {
+    addOrUpdateEgress = true;
   }
 
-  if (!alreadyExists(egress)) {
-    auto rc =
-        bcm_l3_egress_create(hw_->getUnit(), creationFlags, &egress, &id_);
+  if (addOrUpdateEgress) {
+    uint32_t creationFlags = 0;
+    if (id_ != INVALID) {
+      creationFlags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
+    }
 
-    auto desc = folly::to<std::string>(
-        "L3 egress object ",
-        id_,
-        " to ",
-        mac.toString(),
-        " on trunk ",
-        trunk,
-        " on unit ",
-        hw_->getUnit());
-    bcmCheckError(rc, "failed to program ", desc);
-    XLOG(DBG2) << "programmed " << desc;
+    if (!alreadyExists(egress)) {
+      auto rc =
+          bcm_l3_egress_create(hw_->getUnit(), creationFlags, &egress, &id_);
+
+      auto desc = folly::to<std::string>(
+          "L3 egress object ",
+          id_,
+          " to ",
+          mac.toString(),
+          " on trunk ",
+          trunk,
+          " on unit ",
+          hw_->getUnit());
+      bcmCheckError(rc, "failed to program ", desc);
+      XLOG(DBG2) << "programmed " << desc;
+    }
   }
-
   intfId_ = intfId;
   mac_ = mac;
 
+  // update warmboot cache if needed
+  if (egressId2EgressCitr != warmBootCache->egressId2Egress_end()) {
+    warmBootCache->programmed(egressId2EgressCitr);
+  }
   CHECK_NE(id_, INVALID);
 }
 
