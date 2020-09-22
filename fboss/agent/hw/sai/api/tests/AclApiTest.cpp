@@ -239,6 +239,10 @@ class AclApiTest : public ::testing::Test {
     return SAI_PACKET_ACTION_TRAP;
   }
 
+  sai_uint32_t kPacketAction3() const {
+    return SAI_PACKET_ACTION_COPY;
+  }
+
   sai_object_id_t kCounter() const {
     return 42;
   }
@@ -1093,6 +1097,13 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kSetDSCP2(),
       kMirrorIngress2(),
       kMirrorEgress2());
+
+  SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
+      AclEntryActionU32(kPacketAction3())};
+  aclApi->setAttribute(aclEntryId, aclActionPacketAction3);
+  auto aclActionPacketActionGot = aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
+  EXPECT_EQ(aclActionPacketActionGot.getData(), kPacketAction3());
 }
 
 TEST_F(AclApiTest, getAvailableEntries) {
