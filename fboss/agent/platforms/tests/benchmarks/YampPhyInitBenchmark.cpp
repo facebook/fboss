@@ -10,18 +10,18 @@
 #include <folly/Benchmark.h>
 
 #include <fboss/agent/platforms/wedge/facebook/yamp/YampPlatform.h>
-#include <fboss/lib/fpga/facebook/yamp/YampFpga.h>
+#include <fboss/lib/fpga/facebook/yamp/YampSystemContainer.h>
 
 #include "PhyInitBenchmark-defs.h"
 
 namespace facebook::fboss {
 
 BENCHMARK(YampPhyInitAllForce) {
-  PhyInitAllForce<YampPlatform, YampFpga>();
+  PhyInitAllForce<YampPlatform, YampSystemContainer>();
 }
 
 BENCHMARK(YampPhyInitAllAuto) {
-  PhyInitAllAuto<YampPlatform, YampFpga>();
+  PhyInitAllAuto<YampPlatform, YampSystemContainer>();
 }
 
 } // namespace facebook::fboss
