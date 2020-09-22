@@ -9,7 +9,7 @@ class HwSwitch;
 
 class HwTestPacketTrapEntry {
  public:
-  HwTestPacketTrapEntry(const HwSwitch* hwSwitch, PortID port);
+  HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port);
   ~HwTestPacketTrapEntry();
 
  private:

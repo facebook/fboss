@@ -10,10 +10,8 @@ extern "C" {
 
 namespace facebook::fboss {
 
-HwTestPacketTrapEntry::HwTestPacketTrapEntry(
-    const HwSwitch* hwSwitch,
-    PortID port) {
-  unit_ = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
+HwTestPacketTrapEntry::HwTestPacketTrapEntry(HwSwitch* hwSwitch, PortID port) {
+  unit_ = static_cast<facebook::fboss::BcmSwitch*>(hwSwitch)->getUnit();
   const bcm_field_group_t gid =
       static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
           ->getPlatform()
