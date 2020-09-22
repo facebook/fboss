@@ -192,12 +192,7 @@ TYPED_TEST(HwNeighborTest, AddPendingEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
@@ -210,12 +205,7 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
     EXPECT_FALSE(this->isProgrammedToCPU());
     this->verifyClassId(static_cast<int>(this->kLookupClass));
   };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
@@ -230,12 +220,7 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
     EXPECT_FALSE(this->isProgrammedToCPU());
     this->verifyClassId(static_cast<int>(this->kLookupClass2));
   };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
@@ -246,12 +231,7 @@ TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
@@ -263,12 +243,7 @@ TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
@@ -279,12 +254,7 @@ TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
     this->applyNewState(newState);
   };
   auto verify = [this]() { EXPECT_FALSE(this->nbrExists()); };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, AddPendingRemovedEntry) {
@@ -295,12 +265,7 @@ TYPED_TEST(HwNeighborTest, AddPendingRemovedEntry) {
     this->applyNewState(this->addNeighbor(this->getProgrammedState()));
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
@@ -322,12 +287,7 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
       this->verifyClassId(static_cast<int>(this->kLookupClass));
     }
   };
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
@@ -351,12 +311,7 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
     }
   };
 
-  if (TypeParam::isTrunk) {
-    setup();
-    verify();
-  } else {
-    this->verifyAcrossWarmBoots(setup, verify);
-  }
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
