@@ -128,7 +128,13 @@ void SaiFdbManager::addFdbEntry(
     return;
   }
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
-      switchId, port, interfaceId, mac, type, metadata);
+      switchId,
+      port,
+      interfaceId,
+      mac,
+      type,
+      metadata,
+      platform_->getAsic()->isSupported(HwAsic::Feature::L2ENTRY_METADATA));
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
@@ -151,10 +157,13 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
       updated->getType() == MacEntryType::STATIC_ENTRY
           ? SAI_FDB_ENTRY_TYPE_STATIC
           : SAI_FDB_ENTRY_TYPE_DYNAMIC));
-  sai_uint32_t metadata = updated->getClassID()
-      ? static_cast<sai_uint32_t>(updated->getClassID().value())
-      : 0;
-  fdbEntry->setOptionalAttribute(SaiFdbTraits::Attributes::Metadata{metadata});
+  if (metadataSupported_) {
+    sai_uint32_t metadata = updated->getClassID()
+        ? static_cast<sai_uint32_t>(updated->getClassID().value())
+        : 0;
+    fdbEntry->setOptionalAttribute(
+        SaiFdbTraits::Attributes::Metadata{metadata});
+  }
 }
 
 void SaiFdbManager::removeFdbEntry(
