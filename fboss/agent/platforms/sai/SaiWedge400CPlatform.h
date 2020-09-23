@@ -38,7 +38,7 @@ class SaiWedge400CPlatform : public SaiHwPlatform {
     return std::nullopt;
   }
   bool isSerdesApiSupported() override {
-    return false;
+    return true;
   }
 
   bool supportInterfaceType() const override {
