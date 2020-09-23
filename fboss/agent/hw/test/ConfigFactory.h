@@ -22,6 +22,7 @@
  */
 
 namespace facebook::fboss::utility {
+
 /*
  * Use vlan 1000, as the base vlan for ports in configs generated here.
  * Anything except 0, 1 would actually work fine. 0 because
@@ -35,6 +36,8 @@ auto constexpr kBaseVlanId = 1000;
  * Default VLAN
  */
 auto constexpr kDefaultVlanId = 4094;
+
+auto constexpr kDownlinkBaseVlanId = 2000;
 
 folly::MacAddress kLocalCpuMac();
 
@@ -99,4 +102,16 @@ void addMatcher(
     const std::string& matcherName,
     const cfg::MatchAction& matchAction);
 std::vector<PortID> getAllPortsInGroup(const HwSwitch* hwSwitch, PortID portID);
+
+cfg::SwitchConfig createUplinkDownlinkConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    cfg::PortSpeed uplinkPortSpeed,
+    cfg::PortSpeed downlinkPortSpeed,
+    cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
+    bool interfaceHasSubnet = true);
+uint16_t getNumUplinks(
+    const HwSwitch* hwSwitch,
+    cfg::PortSpeed uplinkPortSpeed,
+    cfg::PortSpeed downlinkPortSpeed);
 } // namespace facebook::fboss::utility

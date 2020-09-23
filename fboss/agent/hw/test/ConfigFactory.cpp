@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -211,6 +212,14 @@ void removeSubsumedPorts(
       removePort(config, PortID(subsumedPortID), supportsAddRemovePort);
     }
   }
+}
+
+bool isRswPlatform(PlatformMode mode) {
+  std::set rswPlatforms = {PlatformMode::WEDGE,
+                           PlatformMode::WEDGE100,
+                           PlatformMode::WEDGE400,
+                           PlatformMode::WEDGE400C};
+  return rswPlatforms.find(mode) == rswPlatforms.end();
 }
 
 } // unnamed namespace
@@ -543,5 +552,151 @@ std::vector<PortID> getAllPortsInGroup(
     }
   }
   return allPortsinGroup;
+}
+
+uint16_t getNumUplinks(
+    const HwSwitch* hwSwitch,
+    cfg::PortSpeed uplinkPortSpeed,
+    cfg::PortSpeed downlinkPortSpeed) {
+  auto platformMode = hwSwitch->getPlatform()->getMode();
+  typedef std::tuple<PlatformMode, cfg::PortSpeed, cfg::PortSpeed> ConfigType;
+  static const std::map<ConfigType, uint16_t> numUplinksMap = {
+      {{PlatformMode::WEDGE, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG}, 4},
+      {{PlatformMode::WEDGE100, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
+       4},
+      {{PlatformMode::WEDGE100,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWENTYFIVEG},
+       4},
+      {{PlatformMode::WEDGE100,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       4},
+      {{PlatformMode::GALAXY_LC,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       16},
+      {{PlatformMode::GALAXY_FC,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       16},
+      {{PlatformMode::WEDGE400C, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
+       4},
+      {{PlatformMode::WEDGE400C,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWENTYFIVEG},
+       4},
+      {{PlatformMode::WEDGE400C,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       4},
+  };
+
+  auto numUplinksMapIter = numUplinksMap.find(
+      std::make_tuple(platformMode, uplinkPortSpeed, downlinkPortSpeed));
+  if (numUplinksMapIter == numUplinksMap.end()) {
+    throw FbossError("Platform and the config type is not compatible");
+  }
+  return numUplinksMapIter->second;
+}
+
+cfg::SwitchConfig createUplinkDownlinkConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    cfg::PortSpeed uplinkPortSpeed,
+    cfg::PortSpeed downlinkPortSpeed,
+    cfg::PortLoopbackMode lbMode,
+    bool interfaceHasSubnet) {
+  auto platform = hwSwitch->getPlatform();
+  /*
+   * For platforms which are not rsw, its always onePortPerVlanConfig
+   * config with all uplinks and downlinks in same speed. Use the
+   * config factory utility to generate the config, update the port
+   * speed and return the config.
+   */
+  if (isRswPlatform(platform->getMode())) {
+    auto config =
+        utility::onePortPerVlanConfig(hwSwitch, masterLogicalPortIds, lbMode);
+    for (auto portId : masterLogicalPortIds) {
+      utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
+    }
+    return config;
+  }
+
+  auto numUplinks = getNumUplinks(hwSwitch, uplinkPortSpeed, downlinkPortSpeed);
+  /*
+   * Configure the top ports in the master logical port ids as uplinks
+   * and remaining as downlinks based on the platform
+   */
+  std::vector<PortID> uplinkMasterPorts(
+      masterLogicalPortIds.begin(), masterLogicalPortIds.begin() + numUplinks);
+  std::vector<PortID> downlinkMasterPorts(
+      masterLogicalPortIds.begin() + numUplinks, masterLogicalPortIds.end());
+  /*
+   * Prod uplinks are always onePortPerVlanConfig. Use the existing
+   * utlity to generate one port per vlan config followed by port
+   * speed update.
+   */
+  auto config = utility::onePortPerVlanConfig(
+      hwSwitch, uplinkMasterPorts, lbMode, interfaceHasSubnet);
+  for (auto portId : uplinkMasterPorts) {
+    utility::updatePortSpeed(*hwSwitch, config, portId, uplinkPortSpeed);
+  }
+
+  /*
+   * downlinkMasterPorts are master logical port ids. Get all the ports in
+   * a port group and add them to the config. Use configurePortGroup
+   * to set the right speed and remove/disable the subsumed ports
+   * based on the platform.
+   */
+  std::vector<PortID> allDownlinkPorts;
+  for (auto masterDownlinkPort : downlinkMasterPorts) {
+    auto allDownlinkPortsInGroup =
+        utility::getAllPortsInGroup(hwSwitch, masterDownlinkPort);
+    for (auto logicalPortId : allDownlinkPortsInGroup) {
+      auto portConfig = findCfgPortIf(config, masterDownlinkPort);
+      if (portConfig != config.ports_ref()->end()) {
+        allDownlinkPorts.push_back(logicalPortId);
+      }
+    }
+    configurePortGroup(
+        *hwSwitch, config, downlinkPortSpeed, allDownlinkPortsInGroup);
+  }
+
+  // Vlan config
+  cfg::Vlan vlan;
+  vlan.id_ref() = kDownlinkBaseVlanId;
+  vlan.name_ref() = "vlan" + std::to_string(kDownlinkBaseVlanId);
+  vlan.routable_ref() = true;
+  config.vlans_ref()->push_back(vlan);
+
+  // Vlan port config
+  for (auto logicalPortId : allDownlinkPorts) {
+    auto portConfig = utility::findCfgPortIf(config, logicalPortId);
+    if (portConfig == config.ports_ref()->end()) {
+      continue;
+    }
+    portConfig->loopbackMode_ref() = lbMode;
+    portConfig->ingressVlan_ref() = kDownlinkBaseVlanId;
+    portConfig->routable_ref() = true;
+    portConfig->parserType_ref() = cfg::ParserType::L3;
+    portConfig->maxFrameSize_ref() = 9412;
+    cfg::VlanPort vlanPort;
+    vlanPort.logicalPort_ref() = logicalPortId;
+    vlanPort.vlanID_ref() = kDownlinkBaseVlanId;
+    vlanPort.spanningTreeState_ref() = cfg::SpanningTreeState::FORWARDING;
+    vlanPort.emitTags_ref() = false;
+    config.vlanPorts_ref()->push_back(vlanPort);
+  }
+
+  cfg::Interface interface;
+  interface.intfID_ref() = kDownlinkBaseVlanId;
+  interface.vlanID_ref() = kDownlinkBaseVlanId;
+  interface.routerID_ref() = 0;
+  interface.mac_ref() = utility::kLocalCpuMac().toString();
+  interface.mtu_ref() = 9000;
+  config.interfaces_ref()->push_back(interface);
+
+  return config;
 }
 } // namespace facebook::fboss::utility
