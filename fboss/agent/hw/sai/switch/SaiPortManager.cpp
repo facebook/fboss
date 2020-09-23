@@ -46,52 +46,52 @@ void fillHwPortStats(
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
       case SAI_PORT_STAT_IF_IN_OCTETS:
-        *hwPortStats.inBytes__ref() = value;
+        hwPortStats.inBytes__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_UCAST_PKTS:
-        *hwPortStats.inUnicastPkts__ref() = value;
+        hwPortStats.inUnicastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
-        *hwPortStats.inMulticastPkts__ref() = value;
+        hwPortStats.inMulticastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_BROADCAST_PKTS:
-        *hwPortStats.inBroadcastPkts__ref() = value;
+        hwPortStats.inBroadcastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_DISCARDS:
         // Fill into inDiscards raw, we will then compute
         // inDiscards by subtracting dst null and in pause
         // discards from these
-        *hwPortStats.inDiscardsRaw__ref() = value;
+        hwPortStats.inDiscardsRaw__ref() = value;
         break;
       case SAI_PORT_STAT_IF_IN_ERRORS:
-        *hwPortStats.inErrors__ref() = value;
+        hwPortStats.inErrors__ref() = value;
         break;
       case SAI_PORT_STAT_PAUSE_RX_PKTS:
-        *hwPortStats.inPause__ref() = value;
+        hwPortStats.inPause__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_OCTETS:
-        *hwPortStats.outBytes__ref() = value;
+        hwPortStats.outBytes__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_UCAST_PKTS:
-        *hwPortStats.outUnicastPkts__ref() = value;
+        hwPortStats.outUnicastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
-        *hwPortStats.outMulticastPkts__ref() = value;
+        hwPortStats.outMulticastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_BROADCAST_PKTS:
-        *hwPortStats.outBroadcastPkts__ref() = value;
+        hwPortStats.outBroadcastPkts__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_DISCARDS:
-        *hwPortStats.outDiscards__ref() = value;
+        hwPortStats.outDiscards__ref() = value;
         break;
       case SAI_PORT_STAT_IF_OUT_ERRORS:
-        *hwPortStats.outErrors__ref() = value;
+        hwPortStats.outErrors__ref() = value;
         break;
       case SAI_PORT_STAT_PAUSE_TX_PKTS:
-        *hwPortStats.outPause__ref() = value;
+        hwPortStats.outPause__ref() = value;
         break;
       case SAI_PORT_STAT_ECN_MARKED_PACKETS:
-        *hwPortStats.outEcnCounter__ref() = value;
+        hwPortStats.outEcnCounter__ref() = value;
         break;
       default:
         if (counterId ==
