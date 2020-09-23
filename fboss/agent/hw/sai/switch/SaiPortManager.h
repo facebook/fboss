@@ -63,6 +63,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort) const;
 
   SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPort(
+      PortSaiId portSaid,
       const std::shared_ptr<Port>& swPort);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;

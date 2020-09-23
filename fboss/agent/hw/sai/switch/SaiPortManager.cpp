@@ -697,16 +697,15 @@ std::shared_ptr<SaiPortSerdes> SaiPortManager::programSerdes(
   auto& store = SaiStore::getInstance()->get<SaiPortSerdesTraits>();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{saiPort->adapterKey()};
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
-      serdesAttributesFromSwPort(swPort);
+      serdesAttributesFromSwPort(saiPort->adapterKey(), swPort);
   return store.setObject(serdesKey, serdesAttributes);
 }
 
 SaiPortSerdesTraits::CreateAttributes
 SaiPortManager::serdesAttributesFromSwPort(
+    PortSaiId portSaiId,
     const std::shared_ptr<Port>& swPort) {
   SaiPortSerdesTraits::CreateAttributes attrs;
-  auto* handle = getPortHandle(swPort->getID());
-  sai_object_id_t portid = handle->port->adapterKey();
 
   auto txSettings = platform_->getPlatformPortTxSettings(
       swPort->getID(), swPort->getProfileID());
@@ -728,7 +727,7 @@ SaiPortManager::serdesAttributesFromSwPort(
     for (auto& tx : txSettings) {
       txPre1.push_back(*tx.pre_ref());
       txMain.push_back(*tx.main_ref());
-      txIDriver.push_back(*tx.post_ref());
+      txPost1.push_back(*tx.post_ref());
       if (auto driveCurrent = tx.driveCurrent_ref()) {
         txIDriver.push_back(driveCurrent.value());
       }
@@ -759,7 +758,8 @@ SaiPortManager::serdesAttributesFromSwPort(
     }
   };
 
-  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) = portid;
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
+      static_cast<sai_object_id_t>(portSaiId);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);

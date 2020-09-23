@@ -41,11 +41,12 @@ class PortManagerTest : public ManagerTestBase {
   // port ids...
   void checkPort(
       const PortID& swId,
-      PortSaiId saiId,
+      const SaiPortHandle* handle,
       bool enabled,
       sai_uint32_t mtu = 9412) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
+    auto saiId = handle->port->adapterKey();
     SaiPortTraits::Attributes::AdminState adminStateAttribute;
     SaiPortTraits::Attributes::HwLaneList hwLaneListAttribute;
     SaiPortTraits::Attributes::Speed speedAttribute;
@@ -66,6 +67,16 @@ class PortManagerTest : public ManagerTestBase {
         static_cast<int32_t>(SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE), gotIlbMode);
     auto gotMtu = portApi.getAttribute(saiId, mtuAttribute);
     EXPECT_EQ(mtu, gotMtu);
+    ASSERT_NE(handle->serdes.get(), nullptr);
+    checkPortSerdes(handle->serdes.get(), saiId);
+  }
+
+  void checkPortSerdes(SaiPortSerdes* serdes, PortSaiId portId) {
+    auto& portApi = saiApiTable->portApi();
+    EXPECT_EQ(
+        portApi.getAttribute(
+            serdes->adapterKey(), SaiPortSerdesTraits::Attributes::PortId{}),
+        portId);
   }
 
   /**
@@ -127,16 +138,18 @@ enum class ExpectExport { NO_EXPORT, EXPORT };
 
 TEST_F(PortManagerTest, addPort) {
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
-  checkPort(PortID(0), saiId, true);
+  saiManagerTable->portManager().addPort(swPort);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(PortID(0), handle, true);
 }
 
 TEST_F(PortManagerTest, addTwoPorts) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
   std::shared_ptr<Port> port2 = makePort(p1);
-  auto saiId2 = saiManagerTable->portManager().addPort(port2);
-  checkPort(PortID(10), saiId2, true);
+  saiManagerTable->portManager().addPort(port2);
+  auto handle = saiManagerTable->portManager().getPortHandle(port2->getID());
+  checkPort(PortID(10), handle, true);
 }
 
 TEST_F(PortManagerTest, iterator) {
@@ -205,27 +218,30 @@ TEST_F(PortManagerTest, removeNonExistentPort) {
 
 TEST_F(PortManagerTest, changePortAdminState) {
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  saiManagerTable->portManager().addPort(swPort);
   swPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(swPort, swPort);
-  checkPort(swPort->getID(), saiId, false);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(swPort->getID(), handle, false);
 }
 
 TEST_F(PortManagerTest, changePortMtu) {
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  saiManagerTable->portManager().addPort(swPort);
   swPort->setMaxFrameSize(9000);
   saiManagerTable->portManager().changePort(swPort, swPort);
-  checkPort(swPort->getID(), saiId, true, 9000);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(swPort->getID(), handle, true, 9000);
 }
 
 TEST_F(PortManagerTest, changePortNoChange) {
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
+  saiManagerTable->portManager().addPort(swPort);
   swPort->setSpeed(cfg::PortSpeed::TWENTYFIVEG);
   swPort->setAdminState(cfg::PortState::ENABLED);
   saiManagerTable->portManager().changePort(swPort, swPort);
-  checkPort(swPort->getID(), saiId, true);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(swPort->getID(), handle, true);
 }
 
 TEST_F(PortManagerTest, changeNonExistentPort) {
@@ -241,16 +257,17 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
   PortID portId(0);
   // adds a port "behind the back of" PortManager
   auto saiId0 = addPort(portId, cfg::PortSpeed::TWENTYFIVEG);
-
   // loads the added port into SaiStore
   SaiStore::getInstance()->release();
   SaiStore::getInstance()->reload();
 
   // add a port with the same lanes through PortManager
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId1 = saiManagerTable->portManager().addPort(swPort);
+  saiManagerTable->portManager().addPort(swPort);
+  auto handle1 = saiManagerTable->portManager().getPortHandle(PortID(0));
+  auto saiId1 = handle1->port->adapterKey();
 
-  checkPort(portId, saiId0, true);
+  checkPort(portId, handle1, true);
   // expect it to return the existing port rather than create a new one
   EXPECT_EQ(saiId0, saiId1);
 }
@@ -288,8 +305,9 @@ TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
 
 TEST_F(PortManagerTest, updateStats) {
   std::shared_ptr<Port> swPort = makePort(p0);
-  auto saiId = saiManagerTable->portManager().addPort(swPort);
-  checkPort(PortID(0), saiId, true);
+  saiManagerTable->portManager().addPort(swPort);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(PortID(0), handle, true);
   saiManagerTable->portManager().updateStats(swPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());

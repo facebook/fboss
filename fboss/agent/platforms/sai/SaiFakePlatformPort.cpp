@@ -22,4 +22,10 @@ bool SaiFakePlatformPort::supportsTransceiver() const {
   return false;
 }
 
+std::vector<phy::PinConfig> SaiFakePlatformPort::getIphyPinConfigs(
+    cfg::PortProfileID profileID) const {
+  return getPlatform()->getPlatformMapping()->getPortIphyPinConfigs(
+      getPortID(), profileID);
+}
+
 } // namespace facebook::fboss

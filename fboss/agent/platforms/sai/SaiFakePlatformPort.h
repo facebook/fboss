@@ -20,6 +20,8 @@ class SaiFakePlatformPort : public SaiPlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override;
   virtual bool supportsTransceiver() const override;
+  std::vector<phy::PinConfig> getIphyPinConfigs(
+      cfg::PortProfileID profileID) const override;
 };
 
 } // namespace facebook::fboss
