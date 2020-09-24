@@ -183,20 +183,18 @@ TEST_F(HwPortProfileTest, PROFILE_20G_2_NRZ_NOFEC_OPTICAL) {
   // TODO: investigate and fix failures
   testProfile(cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_OPTICAL);
 }
+*/
 
 TEST_F(HwPortProfileTest, PROFILE_200G_4_PAM4_RS544X2N_COPPER) {
-  // TODO: test once it is supported
   testProfile(cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER);
 }
 
 TEST_F(HwPortProfileTest, PROFILE_200G_4_PAM4_RS544X2N_OPTICAL) {
-  // TODO: test once it is supported
   testProfile(cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
 }
 
 TEST_F(HwPortProfileTest, PROFILE_400G_8_PAM4_RS544X2N_OPTICAL) {
-  // TODO: test once it is supported
   testProfile(cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL);
 }
-*/
+
 } // namespace facebook::fboss
