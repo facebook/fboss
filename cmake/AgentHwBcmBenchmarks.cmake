@@ -234,6 +234,16 @@ target_link_libraries(bcm_cold_boot_init_100Gx10G
   -Wl,--no-whole-archive
 )
 
+add_executable(bcm_cold_boot_init_100Gx50G /dev/null)
+
+target_link_libraries(bcm_cold_boot_init_100Gx50G
+  -Wl,--whole-archive
+  bcm_switch_ensemble
+  config_factory
+  hw_cold_boot_init_100Gx50G
+  -Wl,--no-whole-archive
+)
+
 install(TARGETS bcm_ecmp_shrink_speed)
 install(TARGETS bcm_ecmp_shrink_with_competing_route_updates_speed)
 install(TARGETS bcm_fsw_scale_route_add_speed)
@@ -250,3 +260,4 @@ install(TARGETS bcm_warm_boot_exit_speed)
 install(TARGETS bcm_rx_slow_path_rate)
 install(TARGETS bcm_cold_boot_init_40Gx10G)
 install(TARGETS bcm_cold_boot_init_100Gx10G)
+install(TARGETS bcm_cold_boot_init_100Gx50G)
