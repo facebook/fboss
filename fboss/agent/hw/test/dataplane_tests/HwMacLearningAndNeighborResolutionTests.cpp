@@ -24,6 +24,8 @@ namespace facebook::fboss {
 namespace {
 const AggregatePortID kAggID{1};
 constexpr int kMinAgeInSecs{1};
+const cfg::AclLookupClass kLookupClass{
+    cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
 
 template <
     cfg::L2LearningMode mode = cfg::L2LearningMode::HARDWARE,
@@ -89,8 +91,39 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       return folly::IPAddressV6("1::2");
     }
   }
-  void programNeighbors(
+  void verifyForwarding() {
+    for (auto i = 0; i < 5; ++i) {
+      verifySentPacket(neighborAddr<folly::IPAddressV4>());
+      verifySentPacket(neighborAddr<folly::IPAddressV6>());
+    }
+  }
+
+  void learnMacAndProgramNeighbors(
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    triggerMacLearning();
+    programNeighbors(lookupClass);
+  }
+  void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
+    auto newState = getProgrammedState()->clone();
+    auto vlan = newState->getVlans()->getVlanIf(kVlanID).get();
+    auto macTable = vlan->getMacTable().get();
+    macTable = macTable->modify(&vlan, &newState);
+    auto macEntry = macTable->getNode(kNeighborMac);
+    macTable->updateEntry(
+        kNeighborMac, macEntry->getPort(), lookupClass, macEntry->getType());
+    applyNewState(newState);
+  }
+
+  bool skipTest() const {
+    // Neighbor and MAC interaction tests only relevant for
+    // HwSwitch that maintain MAC entries for nighbors
+    return !getHwSwitch()->needL2EntryForNeighbor();
+  }
+
+ private:
+  void programNeighbors(std::optional<cfg::AclLookupClass> lookupClass) {
     programNeighbor(neighborAddr<folly::IPAddressV4>(), lookupClass);
     programNeighbor(neighborAddr<folly::IPAddressV6>(), lookupClass);
   }
@@ -102,30 +135,9 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
 
-    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    EXPECT_TRUE(getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        std::move(txPacket), PortID(masterLogicalPortIds()[0])));
   }
-  void verifyForwarding() {
-    for (auto i = 0; i < 5; ++i) {
-      verifySentPacket(neighborAddr<folly::IPAddressV4>());
-      verifySentPacket(neighborAddr<folly::IPAddressV6>());
-    }
-  }
-
-  void learnMacAndProgramNeighbors() {
-    // Disable aging, so entry stays in L2 table when we verify.
-    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
-    triggerMacLearning();
-    programNeighbors();
-  }
-
-  bool skipTest() const {
-    // Neighbor and MAC interaction tests only relevant for
-    // HwSwitch that maintain MAC entries for nighbors
-    return !getHwSwitch()->needL2EntryForNeighbor();
-  }
-
- private:
   void verifySentPacket(const folly::IPAddress& dstIp) {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -141,7 +153,8 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         8000, // l4 src port
         8001 // l4 dst port
     );
-    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket)));
   }
   template <typename AddrT>
   void programNeighbor(
@@ -170,8 +183,6 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
   const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
-  const cfg::AclLookupClass kLookupClass{
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
 };
 
 TYPED_TEST_SUITE(HwMacLearningAndNeighborResolutionTest, LearningAndPortTypes);
@@ -209,6 +220,26 @@ TYPED_TEST(
     this->learnMacAndProgramNeighbors();
     utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
+  };
+  auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(
+    HwMacLearningAndNeighborResolutionTest,
+    learnMacProgramNeighborsAndUpdateMac) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto setup = [this]() {
+    this->learnMacAndProgramNeighbors();
+    // Update neighbor class Id
+    this->learnMacAndProgramNeighbors(kLookupClass);
+    // Update MAC class ID
+    this->updateMacEntry(kLookupClass);
   };
   auto verify = [this]() { this->verifyForwarding(); };
   this->verifyAcrossWarmBoots(setup, verify);
