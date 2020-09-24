@@ -13,8 +13,10 @@
 #include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 namespace facebook::fboss {
@@ -53,7 +55,7 @@ using LearningAndPortTypes = ::testing::Types<
     SwLearningModeAndTrunk,
     SwLearningModeAndPort,
     HwLearningModeAndTrunk,
-    HwLearningModeAndTrunk>;
+    HwLearningModeAndPort>;
 
 } // namespace
 
@@ -86,9 +88,10 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       return folly::IPAddressV6("1::2");
     }
   }
-  void programNeighbors() {
-    programNeighbor<folly::IPAddressV4>();
-    programNeighbor<folly::IPAddressV6>();
+  void programNeighbors(
+      std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    programNeighbor(neighborAddr<folly::IPAddressV4>(), lookupClass);
+    programNeighbor(neighborAddr<folly::IPAddressV6>(), lookupClass);
   }
   void triggerMacLearning() {
     auto txPacket = utility::makeEthTxPacket(
@@ -101,8 +104,38 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), PortID(masterLogicalPortIds()[0]));
   }
+  void verifyForwarding() {
+    for (auto i = 0; i < 5; ++i) {
+      verifySentPacket(neighborAddr<folly::IPAddressV4>());
+      verifySentPacket(neighborAddr<folly::IPAddressV6>());
+    }
+  }
+
+  void learnMacAndProgramNeighbors() {
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
+    triggerMacLearning();
+    programNeighbors();
+  }
 
  private:
+  void verifySentPacket(const folly::IPAddress& dstIp) {
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcIp =
+        dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
+    auto txPacket = utility::makeUDPTxPacket(
+        getHwSwitch(),
+        kVlanID,
+        srcMac, // src mac
+        intfMac, // dst mac
+        srcIp,
+        dstIp,
+        8000, // l4 src port
+        8001 // l4 dst port
+    );
+    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+  }
   template <typename AddrT>
   void programNeighbor(
       const AddrT addr,
@@ -120,7 +153,9 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
       neighborTable->updateEntry(
           addr, kNeighborMac, portDescriptor(), kIntfID, lookupClass);
     } else {
-      neighborTable->addEntry(
+      neighborTable->addEntry(addr, kNeighborMac, portDescriptor(), kIntfID);
+      // Update entry to add classid if any
+      neighborTable->updateEntry(
           addr, kNeighborMac, portDescriptor(), kIntfID, lookupClass);
     }
     applyNewState(state);
@@ -133,4 +168,14 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
 };
 
 TYPED_TEST_SUITE(HwMacLearningAndNeighborResolutionTest, LearningAndPortTypes);
+
+// Typical scenario where neighbor resolution (ARP, NDP) packet cause MAC
+// learning followed by neighbor resolution and programming
+TYPED_TEST(
+    HwMacLearningAndNeighborResolutionTest,
+    learnMacAndProgramNeighbors) {
+  auto setup = [this]() { this->learnMacAndProgramNeighbors(); };
+  auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
