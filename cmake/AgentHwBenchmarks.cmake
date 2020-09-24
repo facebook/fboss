@@ -205,3 +205,15 @@ target_link_libraries(hw_cold_boot_init_100Gx50G
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_cold_boot_init_100Gx100G
+  fboss/agent/hw/benchmarks/HwColdbootInit100Gx100GBenchmark.cpp
+)
+
+target_link_libraries(hw_cold_boot_init_100Gx100G
+  config_factory
+  hw_switch_ensemble
+  hw_benchmark_main
+  Folly::folly
+  Folly::follybenchmark
+)
