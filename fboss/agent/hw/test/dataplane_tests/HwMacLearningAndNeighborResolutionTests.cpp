@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 namespace {
 const AggregatePortID kAggID{1};
+constexpr int kMinAgeInSecs{1};
 
 template <
     cfg::L2LearningMode mode = cfg::L2LearningMode::HARDWARE,
@@ -118,6 +119,12 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     programNeighbors();
   }
 
+  bool skipTest() const {
+    // Neighbor and MAC interaction tests only relevant for
+    // HwSwitch that maintain MAC entries for nighbors
+    return !getHwSwitch()->needL2EntryForNeighbor();
+  }
+
  private:
   void verifySentPacket(const folly::IPAddress& dstIp) {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
@@ -174,7 +181,35 @@ TYPED_TEST_SUITE(HwMacLearningAndNeighborResolutionTest, LearningAndPortTypes);
 TYPED_TEST(
     HwMacLearningAndNeighborResolutionTest,
     learnMacAndProgramNeighbors) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
   auto setup = [this]() { this->learnMacAndProgramNeighbors(); };
+  auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+// Learn MAC, program neighbors and now age MAC.
+// Packets should still be able to get through
+//  - For BCM we don't need L2 entries for switched/routed packets. So MAC aging
+//  should have no influence
+//  - For SAI we configure static MAC, so it should never age.
+TYPED_TEST(
+    HwMacLearningAndNeighborResolutionTest,
+    learnMacProgramNeighborsAndAgeMac) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto setup = [this]() {
+    this->learnMacAndProgramNeighbors();
+    utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
+  };
   auto verify = [this]() { this->verifyForwarding(); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
