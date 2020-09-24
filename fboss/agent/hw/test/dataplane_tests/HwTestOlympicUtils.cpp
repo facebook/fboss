@@ -11,20 +11,31 @@
 
 namespace facebook::fboss::utility {
 
+namespace {
 cfg::ActiveQueueManagement kGetOlympicEcnConfig() {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength = 41600;
-  ecnLQCD.maximumLength = 41600;
-  ecnAQM.detection.set_linear(ecnLQCD);
-  ecnAQM.behavior = cfg::QueueCongestionBehavior::ECN;
+  ecnLQCD.minimumLength_ref() = 41600;
+  ecnLQCD.maximumLength_ref() = 41600;
+  ecnAQM.detection_ref()->set_linear(ecnLQCD);
+  ecnAQM.behavior_ref() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
-
+cfg::ActiveQueueManagement kGetWredConfig() {
+  cfg::ActiveQueueManagement wredAQM;
+  cfg::LinearQueueCongestionDetection wredLQCD;
+  wredLQCD.minimumLength_ref() = 41600;
+  wredLQCD.maximumLength_ref() = 41600;
+  wredAQM.detection_ref()->set_linear(wredLQCD);
+  wredAQM.behavior_ref() = cfg::QueueCongestionBehavior::EARLY_DROP;
+  return wredAQM;
+}
+} // namespace
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType) {
+    cfg::StreamType streamType,
+    bool addWredConfig) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
@@ -56,6 +67,9 @@ void addOlympicQueueConfig(
   queue2.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
   queue2.aqms_ref() = {};
   queue2.aqms_ref()->push_back(kGetOlympicEcnConfig());
+  if (addWredConfig) {
+    queue2.aqms_ref()->push_back(kGetWredConfig());
+  }
   portQueues.push_back(queue2);
 
   cfg::PortQueue queue4;

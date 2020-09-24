@@ -37,7 +37,8 @@ constexpr int kOlympicHighestQueueId = kOlympicNCQueueId;
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType);
+    cfg::StreamType streamType,
+    bool addWredConfig = false);
 void addOlympicQosMaps(cfg::SwitchConfig& cfg);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
