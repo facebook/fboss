@@ -23,7 +23,8 @@ namespace facebook::fboss {
 
 void initToConfigBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed) {
+    cfg::PortSpeed downlinkPortSpeed,
+    bool setupForWarmboot = false) {
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   folly::BenchmarkSuspender suspender;
   auto hwSwitch = ensemble->getHwSwitch();
@@ -36,11 +37,18 @@ void initToConfigBenchmarkHelper(
   suspender.dismiss();
   ensemble->applyInitialConfig(config);
   suspender.rehire();
+  if (setupForWarmboot) {
+    ensemble->gracefulExit();
+    // Leak HwSwitchEnsemble for warmboot, so that
+    // we don't run destructors and unprogram h/w. We are
+    // going to exit the process anyways.
+    __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
+  }
 }
 
 #define INIT_TO_CONFIG_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
-  BENCHMARK(name) {                                               \
-    initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);      \
+  BENCHMARK(name) {                                                       \
+    initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);              \
   }
 
 } // namespace facebook::fboss
