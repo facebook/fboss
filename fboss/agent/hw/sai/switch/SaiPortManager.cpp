@@ -93,6 +93,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_ECN_MARKED_PACKETS:
         hwPortStats.outEcnCounter__ref() = value;
         break;
+      case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
+        hwPortStats.wredDroppedPackets__ref() = value;
+        break;
       default:
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {
@@ -494,16 +497,20 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
   if (counterIds.size()) {
     return counterIds;
   }
-  auto ecnSupported = platform_->getAsic()->isSupported(HwAsic::Feature::ECN);
-  counterIds.resize(
-      ecnSupported ? SaiPortTraits::CounterIdsToRead.size()
-                   : SaiPortTraits::CounterIdsToRead.size() - 1);
+  std::set<sai_stat_id_t> countersToFilter;
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
+    countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);
+  }
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    countersToFilter.insert(SAI_PORT_STAT_WRED_DROPPED_PACKETS);
+  }
+  counterIds.reserve(SaiPortTraits::CounterIdsToRead.size() + 1);
   std::copy_if(
       SaiPortTraits::CounterIdsToRead.begin(),
       SaiPortTraits::CounterIdsToRead.end(),
-      counterIds.begin(),
-      [ecnSupported](auto statId) {
-        return ecnSupported || statId != SAI_PORT_STAT_ECN_MARKED_PACKETS;
+      std::back_inserter(counterIds),
+      [&countersToFilter](auto statId) {
+        return countersToFilter.find(statId) == countersToFilter.end();
       });
   if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
     counterIds.emplace_back(

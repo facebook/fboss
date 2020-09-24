@@ -108,7 +108,7 @@ struct SaiPortTraits {
       std::optional<Attributes::DisableTtlDecrement>,
       std::optional<Attributes::InterfaceType>>;
 
-  static constexpr std::array<sai_stat_id_t, 15> CounterIdsToRead = {
+  static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,
@@ -123,6 +123,7 @@ struct SaiPortTraits {
       SAI_PORT_STAT_IF_OUT_DISCARDS,
       SAI_PORT_STAT_IF_OUT_ERRORS,
       SAI_PORT_STAT_PAUSE_TX_PKTS,
+      SAI_PORT_STAT_WRED_DROPPED_PACKETS,
       SAI_PORT_STAT_ECN_MARKED_PACKETS,
   };
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
