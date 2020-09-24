@@ -8,13 +8,13 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwColdbootInitBenchmarkHelper.h"
+#include "fboss/agent/hw/benchmarks/HwInitToConfigBenchmarkHelper.h"
 
 namespace facebook::fboss {
 
-COLDBOOT_INIT_BENCHMARK(
-    HwColdBootInit100Gx10GBenchmark,
+INIT_TO_CONFIG_BENCHMARK_HELPER(
+    HwInitToConfig100Gx50GBenchmark,
     cfg::PortSpeed::HUNDREDG,
-    cfg::PortSpeed::XG);
+    cfg::PortSpeed::FIFTYG);
 
 } // namespace facebook::fboss

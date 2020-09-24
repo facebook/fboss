@@ -170,11 +170,11 @@ target_link_libraries(hw_rx_slow_path_rate
   Folly::folly
 )
 
-add_library(hw_cold_boot_init_40Gx10G
-  fboss/agent/hw/benchmarks/HwColdbootInit40Gx10GBenchmark.cpp
+add_library(hw_init_to_config_40Gx10G
+  fboss/agent/hw/benchmarks/HwInitToConfig40Gx10GBenchmark.cpp
 )
 
-target_link_libraries(hw_cold_boot_init_40Gx10G
+target_link_libraries(hw_init_to_config_40Gx10G
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
@@ -182,11 +182,11 @@ target_link_libraries(hw_cold_boot_init_40Gx10G
   Folly::follybenchmark
 )
 
-add_library(hw_cold_boot_init_100Gx10G
-  fboss/agent/hw/benchmarks/HwColdbootInit100Gx10GBenchmark.cpp
+add_library(hw_init_to_config_100Gx10G
+  fboss/agent/hw/benchmarks/HwInitToConfig100Gx10GBenchmark.cpp
 )
 
-target_link_libraries(hw_cold_boot_init_100Gx10G
+target_link_libraries(hw_init_to_config_100Gx10G
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
@@ -194,11 +194,11 @@ target_link_libraries(hw_cold_boot_init_100Gx10G
   Folly::follybenchmark
 )
 
-add_library(hw_cold_boot_init_100Gx50G
-  fboss/agent/hw/benchmarks/HwColdbootInit100Gx50GBenchmark.cpp
+add_library(hw_init_to_config_100Gx50G
+  fboss/agent/hw/benchmarks/HwInitToConfig100Gx50GBenchmark.cpp
 )
 
-target_link_libraries(hw_cold_boot_init_100Gx50G
+target_link_libraries(hw_init_to_config_100Gx50G
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
@@ -206,11 +206,11 @@ target_link_libraries(hw_cold_boot_init_100Gx50G
   Folly::follybenchmark
 )
 
-add_library(hw_cold_boot_init_100Gx100G
-  fboss/agent/hw/benchmarks/HwColdbootInit100Gx100GBenchmark.cpp
+add_library(hw_init_to_config_100Gx100G
+  fboss/agent/hw/benchmarks/HwInitToConfig100Gx100GBenchmark.cpp
 )
 
-target_link_libraries(hw_cold_boot_init_100Gx100G
+target_link_libraries(hw_init_to_config_100Gx100G
   config_factory
   hw_switch_ensemble
   hw_benchmark_main

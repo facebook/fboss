@@ -21,7 +21,7 @@ using namespace facebook::fboss;
 
 namespace facebook::fboss {
 
-void initColdBootInitBenchmarker(
+void initToConfigBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed) {
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
@@ -38,9 +38,9 @@ void initColdBootInitBenchmarker(
   suspender.rehire();
 }
 
-#define COLDBOOT_INIT_BENCHMARK(name, uplinkSpeed, downlinkSpeed) \
+#define INIT_TO_CONFIG_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
   BENCHMARK(name) {                                               \
-    initColdBootInitBenchmarker(uplinkSpeed, downlinkSpeed);      \
+    initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);      \
   }
 
 } // namespace facebook::fboss
