@@ -195,6 +195,7 @@ void BcmPort::reinitPortStats(const std::shared_ptr<Port>& swPort) {
   reinitPortStat(kOutErrors(), portName);
   reinitPortStat(kOutPause(), portName);
   reinitPortStat(kOutEcnCounter(), portName);
+  reinitPortStat(kWredDroppedPackets(), portName);
   reinitPortStat(kFecCorrectable(), portName);
   reinitPortStat(kFecUncorrectable(), portName);
 
@@ -953,6 +954,7 @@ void BcmPort::updateStats() {
       snmpBcmCustomReceive3,
       &(*curPortStats.inDstNullDiscards__ref()));
   updateFecStats(now, curPortStats);
+  updateWredStats(now, &(*curPortStats.wredDroppedPackets__ref()));
   queueManager_->updateQueueStats(now, &curPortStats);
 
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -1066,6 +1068,25 @@ void BcmPort::updateStat(
   }
   stat->updateValue(now, value);
   *statVal = value;
+}
+
+void BcmPort::updateWredStats(std::chrono::seconds now, int64_t* portStatVal) {
+  auto getWredDroppedPackets = [this](auto statId) {
+    uint64_t count{0};
+    auto rv =
+        bcm_cosq_stat_get(hw_->getUnit(), getBcmGport(), -1, statId, &count);
+    if (BCM_FAILURE(rv)) {
+      XLOG(ERR) << "Failed to get stat " << statId << " for port " << port_
+                << " :" << bcm_errmsg(rv);
+      return 0UL;
+    }
+    return count;
+  };
+  *portStatVal += getWredDroppedPackets(bcmCosqStatGreenDiscardDroppedPackets);
+  *portStatVal += getWredDroppedPackets(bcmCosqStatYellowDiscardDroppedPackets);
+  *portStatVal += getWredDroppedPackets(bcmCosqStatRedDiscardDroppedPackets);
+  auto stat = getPortCounterIf(kWredDroppedPackets());
+  stat->updateValue(now, *portStatVal);
 }
 
 bool BcmPort::isMmuLossy() const {

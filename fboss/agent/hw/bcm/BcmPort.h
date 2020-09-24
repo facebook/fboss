@@ -209,6 +209,7 @@ class BcmPort {
     std::chrono::seconds timeRetrieved_{0};
   };
 
+  void updateWredStats(std::chrono::seconds now, int64_t* portStatVal);
   uint32_t getCL91FECStatus() const;
   bool isCL91FECApplicable() const;
   // no copy or assignment
