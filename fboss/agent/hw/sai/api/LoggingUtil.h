@@ -262,6 +262,7 @@ struct formatter<sai_s32_range_t> {
   }
 };
 
+// formatter for extension attributes
 template <typename T>
 struct formatter<
     T,
@@ -273,9 +274,13 @@ struct formatter<
   }
 
   template <typename FormatContext>
-  auto format(const T&, FormatContext& ctx) {
+  auto format(const T& attr, FormatContext& ctx) {
     // TODO: implement this
-    return format_to(ctx.out(), "extension attr");
+    return format_to(
+        ctx.out(),
+        "{}: {}",
+        facebook::fboss::AttributeName<T>::value,
+        attr.value());
   }
 };
 
