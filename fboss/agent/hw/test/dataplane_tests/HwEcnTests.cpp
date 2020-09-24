@@ -20,26 +20,22 @@
 
 namespace facebook::fboss {
 
-class HwEcnTest : public HwLinkStateDependentTest {
- protected:
+class HwAqmTest : public HwLinkStateDependentTest {
+ private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
-      utility::addOlympicQueueConfig(&cfg, streamType);
+      utility::addOlympicQueueConfig(&cfg, streamType, true /*add wred*/);
       utility::addOlympicQosMaps(cfg);
     }
     return cfg;
   }
 
-  uint8_t kEcnDscp() const {
+  uint8_t kDscp() const {
     return 5;
-  }
-
-  int kEcnQueueId() const {
-    return 2;
   }
 
   template <typename ECMP_HELPER>
@@ -57,10 +53,15 @@ class HwEcnTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendEcnCapableUdpPkt(uint8_t dscpVal) {
+  void sendUdpPkt(uint8_t dscpVal, bool isEcn) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+
+    dscpVal = static_cast<uint8_t>(dscpVal << 2);
+    if (isEcn) {
+      dscpVal |= kECT1;
+    }
 
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -71,7 +72,7 @@ class HwEcnTest : public HwLinkStateDependentTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
         8000,
         8001,
-        static_cast<uint8_t>((dscpVal << 2) | kECT1));
+        dscpVal);
 
     getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
   }
@@ -81,34 +82,47 @@ class HwEcnTest : public HwLinkStateDependentTest {
    * 128, a packet count of 128 has been enough to cause ECN marking. Inject
    * 128 * 2 packets to avoid test noise.
    */
-  void sendEcnCapableUdpPkts(uint8_t dscpVal, int cnt = 256) {
+  void sendUdpPkts(uint8_t dscpVal, bool isEcn, int cnt = 256) {
     for (int i = 0; i < cnt; i++) {
-      sendEcnCapableUdpPkt(dscpVal);
+      sendUdpPkt(dscpVal, isEcn);
     }
+  }
+
+ protected:
+  void runTest(bool isEcn) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+    auto setup = [=]() {
+      auto kEcmpWidthForTest = 1;
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
+                                               getPlatform()->getLocalMac()};
+      setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
+      disableTTLDecrements(ecmpHelper6);
+    };
+    auto verify = [=]() {
+      sendUdpPkts(kDscp(), isEcn);
+      auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto increment = isEcn ? *portStats.outEcnCounter__ref()
+                             : *portStats.wredDroppedPackets__ref();
+      XLOG(DBG0) << (isEcn ? " ECN " : "WRED ") << " counter: " << increment;
+      XLOG(DBG0) << "Queue watermark : "
+                 << (*portStats.queueWatermarkBytes__ref())[2];
+      EXPECT_GT(increment, 0);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 
-TEST_F(HwEcnTest, verifyEcn) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
-  auto setup = [=]() {
-    auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(),
-                                             getPlatform()->getLocalMac()};
-    setupECMPForwarding(ecmpHelper6, kEcmpWidthForTest);
-    disableTTLDecrements(ecmpHelper6);
-  };
-
-  auto verify = [=]() {
-    sendEcnCapableUdpPkts(kEcnDscp());
-    auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(DBG0) << " ECN counter: " << *portStats.outEcnCounter__ref();
-    EXPECT_GT(*portStats.outEcnCounter__ref(), 0);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
+TEST_F(HwAqmTest, verifyEcn) {
+  runTest(true);
 }
 
+TEST_F(HwAqmTest, verifyWred) {
+  runTest(false);
+}
 } // namespace facebook::fboss
