@@ -121,6 +121,10 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     // HwSwitch that maintain MAC entries for nighbors
     return !getHwSwitch()->needL2EntryForNeighbor();
   }
+  void removeNeighbors() {
+    removeNeighbor(neighborAddr<folly::IPAddressV4>());
+    removeNeighbor(neighborAddr<folly::IPAddressV6>());
+  }
 
  private:
   void programNeighbors(std::optional<cfg::AclLookupClass> lookupClass) {
@@ -158,16 +162,12 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
   template <typename AddrT>
   void programNeighbor(
-      const AddrT addr,
+      const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    using NTable = typename std::conditional_t<
-        std::is_same_v<AddrT, folly::IPAddressV4>,
-        ArpTable,
-        NdpTable>;
     auto state = getProgrammedState()->clone();
     auto neighborTable = state->getVlans()
                              ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
+                             ->template getNeighborEntryTable<AddrT>()
                              ->modify(kVlanID, &state);
     if (neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
@@ -179,6 +179,17 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
           addr, kNeighborMac, portDescriptor(), kIntfID, lookupClass);
     }
     applyNewState(state);
+  }
+  template <typename AddrT>
+  void removeNeighbor(const AddrT& ip) {
+    auto newState{getProgrammedState()->clone()};
+    auto neighborTable = newState->getVlans()
+                             ->getVlan(kVlanID)
+                             ->template getNeighborEntryTable<AddrT>()
+                             ->modify(kVlanID, &newState);
+
+    neighborTable->removeEntry(ip);
+    applyNewState(newState);
   }
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
@@ -240,6 +251,36 @@ TYPED_TEST(
     this->learnMacAndProgramNeighbors(kLookupClass);
     // Update MAC class ID
     this->updateMacEntry(kLookupClass);
+  };
+  auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwMacLearningAndNeighborResolutionTest, flapMacAndNeighbors) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto program = [this] {
+    this->learnMacAndProgramNeighbors();
+    // Update neighbor class Id
+    this->learnMacAndProgramNeighbors(kLookupClass);
+    // Update MAC class ID
+    this->updateMacEntry(kLookupClass);
+  };
+  auto prune = [this] {
+    // Remove neighbors and macs
+    this->removeNeighbors();
+    // Age out Mac
+    utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
+  };
+  auto setup = [program, prune]() {
+    program();
+    prune();
+    program();
   };
   auto verify = [this]() { this->verifyForwarding(); };
   this->verifyAcrossWarmBoots(setup, verify);
