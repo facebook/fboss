@@ -331,9 +331,7 @@ void verifyTxSettting(
   auto main = portApi.getAttribute(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirMain{});
   auto post = portApi.getAttribute(
-      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
-  auto driverCurrent = portApi.getAttribute(
-      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::IDriver{});
+      serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost1{});
 
   auto expectedPre = getTxSetting(txSettings, [](phy::TxSettings tx) {
     return static_cast<sai_uint32_t>(*tx.pre_ref());
@@ -354,7 +352,11 @@ void verifyTxSettting(
   EXPECT_EQ(pre, expectedPre);
   EXPECT_EQ(main, expectedMain);
   EXPECT_EQ(post, expectedPost);
-  EXPECT_EQ(driverCurrent, expectedDriverCurrent);
+  if (txSettings[0].driveCurrent_ref()) {
+    auto driverCurrent = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::IDriver{});
+    EXPECT_EQ(driverCurrent, expectedDriverCurrent);
+  }
 }
 
 void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
