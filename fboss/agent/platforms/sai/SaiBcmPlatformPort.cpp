@@ -73,4 +73,8 @@ uint32_t SaiBcmPlatformPort::getLEDState(uint32_t led, uint32_t index) {
   return switchLedAttribute[3];
 }
 
+uint32_t SaiBcmPlatformPort::getCurrentLedState() const {
+  return currentLedState_;
+}
+
 } // namespace facebook::fboss

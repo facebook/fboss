@@ -28,4 +28,8 @@ std::vector<phy::PinConfig> SaiFakePlatformPort::getIphyPinConfigs(
       getPortID(), profileID);
 }
 
+uint32_t SaiFakePlatformPort::getCurrentLedState() const {
+  return 0;
+}
+
 } // namespace facebook::fboss

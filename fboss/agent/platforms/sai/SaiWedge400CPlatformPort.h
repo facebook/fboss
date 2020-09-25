@@ -23,11 +23,12 @@ class SaiWedge400CPlatformPort : public SaiPlatformPort {
   virtual bool supportsTransceiver() const override;
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+  uint32_t getCurrentLedState() const override;
 
  private:
   FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;
   void setLedStatus(FbDomFpga::LedColor state) const;
-  FbDomFpga::LedColor internalLedState_;
+  FbDomFpga::LedColor currentLedState_;
 };
 
 } // namespace facebook::fboss

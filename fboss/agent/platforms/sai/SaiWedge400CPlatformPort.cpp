@@ -23,17 +23,21 @@ bool SaiWedge400CPlatformPort::supportsTransceiver() const {
 }
 
 void SaiWedge400CPlatformPort::linkStatusChanged(bool up, bool adminUp) {
-  internalLedState_ = Wedge400LedUtils::getLedState(
+  currentLedState_ = Wedge400LedUtils::getLedState(
       getHwPortLanes(getCurrentProfile()).size(), up, adminUp);
-  setLedStatus(internalLedState_);
+  setLedStatus(currentLedState_);
 }
 
 void SaiWedge400CPlatformPort::externalState(PortLedExternalState lfs) {
-  auto color =
+  currentLedState_ =
       (lfs == PortLedExternalState::NONE
-           ? internalLedState_
+           ? currentLedState_
            : Wedge400LedUtils::getLedExternalState(lfs));
-  setLedStatus(color);
+  setLedStatus(currentLedState_);
+}
+
+uint32_t SaiWedge400CPlatformPort::getCurrentLedState() const {
+  return static_cast<uint32_t>(currentLedState_);
 }
 
 } // namespace facebook::fboss
