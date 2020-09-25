@@ -44,4 +44,18 @@ TEST_F(HwPortTest, AssertTxSetting) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwPortTest, AssertRxSetting) {
+  auto setup = [this]() { applyNewConfig(initialConfig()); };
+  auto verify = [this]() {
+    for (const auto& port : *getProgrammedState()->getPorts()) {
+      if (!port->isEnabled()) {
+        continue;
+      }
+      utility::verifyRxSettting(
+          port->getID(), port->getProfileID(), getPlatform());
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

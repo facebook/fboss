@@ -343,4 +343,12 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
       static_cast<BcmTestPlatform*>(ensemble->getPlatform());
   EXPECT_TRUE(platform->verifyLEDStatus(port, up));
 }
+
+void verifyRxSettting(
+    PortID /*portID*/,
+    cfg::PortProfileID /*profileID*/,
+    Platform* /*platform*/) {
+  // no rx settings
+  return;
+}
 } // namespace facebook::fboss::utility

@@ -57,6 +57,14 @@ std::vector<sai_uint32_t> getTxSetting(
   std::transform(tx.begin(), tx.end(), std::back_inserter(result), func);
   return result;
 }
+
+std::vector<sai_int32_t> getRxSetting(
+    const std::vector<phy::RxSettings>& rx,
+    std::function<sai_uint32_t(phy::RxSettings)> func) {
+  std::vector<sai_int32_t> result{};
+  std::transform(rx.begin(), rx.end(), std::back_inserter(result), func);
+  return result;
+}
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -380,5 +388,64 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
       return;
   }
   EXPECT_EQ(currentVal, expectedVal);
+}
+
+void verifyRxSettting(
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* saiPlatform = static_cast<SaiPlatform*>(platform);
+  if (!saiPlatform->isSerdesApiSupported()) {
+    return;
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto* saiPortHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+  auto serdes = saiPortHandle->serdes;
+
+  auto rxSettings = saiPlatform->getPlatformPortRxSettings(portID, profileID);
+  if (!serdes) {
+    EXPECT_TRUE(rxSettings.empty());
+    return;
+  }
+  if (rxSettings.empty()) {
+    // not all platforms may have these settings
+    return;
+  }
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  if (rxSettings[0].ctlCode_ref()) {
+    auto rxCtlCode = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxCtleCode{});
+    auto expectedRxCtlCode = getRxSetting(rxSettings, [](phy::RxSettings rx) {
+      return static_cast<sai_int32_t>(*rx.ctlCode_ref());
+    });
+    EXPECT_EQ(rxCtlCode, expectedRxCtlCode);
+  }
+  if (rxSettings[0].dspMode_ref()) {
+    auto rxDspMode = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxDspMode{});
+    auto expectedRxDspMode = getRxSetting(rxSettings, [](phy::RxSettings rx) {
+      return static_cast<sai_int32_t>(*rx.dspMode_ref());
+    });
+    EXPECT_EQ(rxDspMode, expectedRxDspMode);
+  }
+  if (rxSettings[0].afeTrim_ref()) {
+    auto rxAafeTrim = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::RxAfeTrim{});
+    auto expectedRxAfeTrim = getRxSetting(rxSettings, [](phy::RxSettings rx) {
+      return static_cast<sai_int32_t>(*rx.afeTrim_ref());
+    });
+    EXPECT_EQ(rxAafeTrim, expectedRxAfeTrim);
+  }
+  if (rxSettings[0].acCouplingBypass_ref()) {
+    auto rxAcCouplingBypass = portApi.getAttribute(
+        serdes->adapterKey(),
+        SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{});
+    auto expectedRxAcCouplingBypass =
+        getRxSetting(rxSettings, [](phy::RxSettings rx) {
+          return static_cast<sai_int32_t>(*rx.acCouplingBypass_ref());
+        });
+    EXPECT_EQ(rxAcCouplingBypass, expectedRxAcCouplingBypass);
+  }
 }
 } // namespace facebook::fboss::utility

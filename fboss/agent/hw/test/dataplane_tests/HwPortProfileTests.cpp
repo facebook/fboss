@@ -45,6 +45,9 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
     // verify tx settings
     utility::verifyTxSettting(
         port->getID(), port->getProfileID(), getPlatform());
+    // verify rx settings
+    utility::verifyRxSettting(
+        port->getID(), port->getProfileID(), getPlatform());
     // (TODO): verify speed
     // (TODO): verify fec
     // (TODO): verify lane count (for sai)
