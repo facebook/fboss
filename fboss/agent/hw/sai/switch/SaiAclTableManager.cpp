@@ -717,15 +717,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(queueId)};
-      } else {
-        /*
-         * When sendToCpu is set, a copy of the packet will be sent to CPU.
-         * TODO: By default, these packets are sent to queue 0. Use TC
-         * to set the right traffic class which will be mapped to queue id.
-         */
-        aclActionPacketAction =
-            SaiAclEntryTraits::Attributes::ActionPacketAction{
-                SAI_PACKET_ACTION_COPY};
       }
     }
 
