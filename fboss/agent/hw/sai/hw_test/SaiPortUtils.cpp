@@ -56,12 +56,6 @@ std::vector<sai_uint32_t> getTxSetting(
   std::transform(tx.begin(), tx.end(), std::back_inserter(result), func);
   return result;
 }
-
-uint32_t getCurrentWedgeBcmLEDState(SaiPlatform* platform, PortID port) {
-  auto platformPort =
-      static_cast<SaiBcmPlatformPort*>(platform->getPlatformPort(port));
-  return platformPort->getCurrentLedState();
-}
 } // namespace
 bool portEnabled(const HwSwitch* hw, PortID port) {
   auto key = getPortAdapterKey(hw, port);
@@ -362,7 +356,7 @@ void verifyTxSettting(
 void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
   SaiPlatform* platform = static_cast<SaiPlatform*>(ensemble->getPlatform());
   SaiPlatformPort* platformPort = platform->getPort(port);
-  uint32_t currentVal = getCurrentWedgeBcmLEDState(platform, port);
+  uint32_t currentVal = platformPort->getCurrentLedState();
   uint32_t expectedVal = 0;
   switch (platform->getMode()) {
     case PlatformMode::WEDGE: {
