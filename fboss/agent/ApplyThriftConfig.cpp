@@ -2471,20 +2471,21 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
     const std::shared_ptr<Mirror>& orig,
     const cfg::Mirror* mirrorConfig) {
   auto newMirror = createMirror(mirrorConfig);
-  if (*newMirror == *orig) {
-    return nullptr;
-  }
-  if (!orig->isResolved() || !newMirror->getDestinationIp().has_value()) {
-    return newMirror;
-  }
   if (newMirror->getDestinationIp() == orig->getDestinationIp() &&
       newMirror->getSrcIp() == orig->getSrcIp() &&
-      newMirror->getDscp() == orig->getDscp() &&
+      newMirror->getTunnelUdpPorts() == orig->getTunnelUdpPorts() &&
       newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
        newMirror->getEgressPort() == orig->getEgressPort())) {
-    newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
-    newMirror->setEgressPort(orig->getEgressPort().value());
+    if (orig->getMirrorTunnel()) {
+      newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
+    }
+    if (orig->getEgressPort()) {
+      newMirror->setEgressPort(orig->getEgressPort().value());
+    }
+  }
+  if (*newMirror == *orig) {
+    return nullptr;
   }
   return newMirror;
 }

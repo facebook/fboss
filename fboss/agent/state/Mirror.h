@@ -22,6 +22,13 @@ struct TunnelUdpPorts {
   uint32_t udpDstPort;
   TunnelUdpPorts(uint32_t src, uint32_t dst)
       : udpSrcPort(src), udpDstPort(dst) {}
+  bool operator==(const TunnelUdpPorts& that) const {
+    return udpSrcPort == that.udpSrcPort && udpDstPort == that.udpDstPort;
+  }
+  bool operator<(const TunnelUdpPorts& that) const {
+    return std::tie(udpSrcPort, udpDstPort) <
+        std::tie(that.udpSrcPort, that.udpDstPort);
+  }
 };
 
 struct MirrorTunnel {
@@ -64,17 +71,18 @@ struct MirrorTunnel {
 
   bool operator==(const MirrorTunnel& rhs) const {
     return srcIp == rhs.srcIp && dstIp == rhs.dstIp && srcMac == rhs.srcMac &&
-        dstMac == rhs.dstMac && ttl == rhs.ttl &&
+        dstMac == rhs.dstMac && udpPorts == rhs.udpPorts && ttl == rhs.ttl &&
         greProtocol == rhs.greProtocol;
   }
 
   bool operator<(const MirrorTunnel& rhs) const {
-    return std::tie(srcIp, dstIp, srcMac, dstMac, ttl, greProtocol) <
+    return std::tie(srcIp, dstIp, srcMac, dstMac, udpPorts, ttl, greProtocol) <
         std::tie(
                rhs.srcIp,
                rhs.dstIp,
                rhs.srcMac,
                rhs.dstMac,
+               rhs.udpPorts,
                rhs.ttl,
                rhs.greProtocol);
   }

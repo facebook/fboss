@@ -229,6 +229,7 @@ bool Mirror::operator==(const Mirror& rhs) const {
        getEgressPort() == rhs.getEgressPort()) &&
       getDestinationIp() == rhs.getDestinationIp() &&
       getSrcIp() == rhs.getSrcIp() &&
+      getTunnelUdpPorts() == rhs.getTunnelUdpPorts() &&
       getMirrorTunnel() == rhs.getMirrorTunnel() &&
       getDscp() == rhs.getDscp() && getTruncate() == rhs.getTruncate();
 }
