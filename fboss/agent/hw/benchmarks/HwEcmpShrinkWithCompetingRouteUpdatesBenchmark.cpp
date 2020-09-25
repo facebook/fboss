@@ -47,7 +47,8 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   CHECK_EQ(
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
-
+  // Warm up the stats cache
+  ensemble->getLatestPortStats(ensemble->masterLogicalPortIds());
   auto routeStates = utility::RouteDistributionGenerator(
                          ensemble->getProgrammedState(),
                          {{64, 10'000}},
