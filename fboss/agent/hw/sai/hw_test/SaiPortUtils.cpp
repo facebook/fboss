@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+#include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 
@@ -370,6 +371,10 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
     case PlatformMode::GALAXY_FC:
     case PlatformMode::GALAXY_LC: {
       expectedVal = GalaxyLedUtils::getExpectedLEDState(up, up);
+    } break;
+    case PlatformMode::WEDGE400C: {
+      expectedVal = static_cast<uint32_t>(Wedge400LedUtils::getLedState(
+          platform->getLaneCount(platformPort->getCurrentProfile()), up, up));
     } break;
     default:
       return;
