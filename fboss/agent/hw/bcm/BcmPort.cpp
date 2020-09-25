@@ -937,7 +937,7 @@ void BcmPort::updateStats() {
     // ECN stats not supported by TD2
     bcm_stat_val_t snmpType = snmpBcmTxEcnErrors;
     auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-    if (asicType != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
       // TODO(daiweix): remove this if block after SDK makes ecn type name the
       // same
       int snmpBcmTxEcnType = 289;
