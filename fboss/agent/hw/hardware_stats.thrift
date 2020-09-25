@@ -40,6 +40,7 @@ struct HwPortStats {
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
+  51: string portName_ = "";
 }
 
 struct HwTrunkStats {

@@ -228,6 +228,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   hardware_stats_cpp2
   fboss/agent/hw/hardware_stats.thrift
+  OPTIONS
+    visitation
 )
 add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2

@@ -58,6 +58,7 @@ HwPortStats getInitedStats() {
       22, // fecCorrectableErrors
       23, // fecUncorrectableErrors
       0, // timestamp
+      "test", // portName
   };
 }
 
