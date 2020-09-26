@@ -170,16 +170,25 @@ target_link_libraries(hw_rx_slow_path_rate
   Folly::folly
 )
 
+add_library(hw_init_to_config_benchmark_helper
+  fboss/agent/hw/benchmarks/HwInitToConfigBenchmarkHelper.cpp
+)
+
+target_link_libraries(hw_init_to_config_benchmark_helper
+  config_factory
+  hw_switch_ensemble
+  hw_benchmark_main
+  Folly::folly
+  Folly::follybenchmark
+)
+
 add_library(hw_init_to_config_40Gx10G
   fboss/agent/hw/benchmarks/HwInitToConfig40Gx10GBenchmark.cpp
 )
 
 target_link_libraries(hw_init_to_config_40Gx10G
   config_factory
-  hw_switch_ensemble
-  hw_benchmark_main
-  Folly::folly
-  Folly::follybenchmark
+  hw_init_to_config_benchmark_helper
 )
 
 add_library(hw_init_to_config_100Gx10G
@@ -188,10 +197,7 @@ add_library(hw_init_to_config_100Gx10G
 
 target_link_libraries(hw_init_to_config_100Gx10G
   config_factory
-  hw_switch_ensemble
-  hw_benchmark_main
-  Folly::folly
-  Folly::follybenchmark
+  hw_init_to_config_benchmark_helper
 )
 
 add_library(hw_init_to_config_100Gx50G
@@ -200,10 +206,7 @@ add_library(hw_init_to_config_100Gx50G
 
 target_link_libraries(hw_init_to_config_100Gx50G
   config_factory
-  hw_switch_ensemble
-  hw_benchmark_main
-  Folly::folly
-  Folly::follybenchmark
+  hw_init_to_config_benchmark_helper
 )
 
 add_library(hw_init_to_config_100Gx100G
@@ -212,8 +215,5 @@ add_library(hw_init_to_config_100Gx100G
 
 target_link_libraries(hw_init_to_config_100Gx100G
   config_factory
-  hw_switch_ensemble
-  hw_benchmark_main
-  Folly::folly
-  Folly::follybenchmark
+  hw_init_to_config_benchmark_helper
 )

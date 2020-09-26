@@ -8,9 +8,7 @@
  *
  */
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
@@ -19,36 +17,17 @@
 
 using namespace facebook::fboss;
 
-namespace facebook::fboss {
+DECLARE_bool(setup_for_warmboot);
+
+namespace facebook::fboss::utility {
 
 void initToConfigBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed,
-    bool setupForWarmboot = false) {
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  folly::BenchmarkSuspender suspender;
-  auto hwSwitch = ensemble->getHwSwitch();
-  auto config = utility::createUplinkDownlinkConfig(
-      hwSwitch,
-      ensemble->masterLogicalPortIds(),
-      uplinkPortSpeed,
-      downlinkPortSpeed,
-      cfg::PortLoopbackMode::MAC);
-  suspender.dismiss();
-  ensemble->applyInitialConfig(config);
-  suspender.rehire();
-  if (setupForWarmboot) {
-    ensemble->gracefulExit();
-    // Leak HwSwitchEnsemble for warmboot, so that
-    // we don't run destructors and unprogram h/w. We are
-    // going to exit the process anyways.
-    __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
-  }
-}
+    cfg::PortSpeed downlinkPortSpeed);
 
 #define INIT_TO_CONFIG_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
   BENCHMARK(name) {                                                       \
-    initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);              \
+    utility::initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);     \
   }
 
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility
