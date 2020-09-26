@@ -124,7 +124,11 @@ void WedgeManager::getTransceiversInfo(std::map<int32_t, TransceiverInfo>& info,
                   << ": Error calling getTransceiverInfo(): " << ex.what();
       }
     } else {
-      trans.present_ref() = WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
+      try {
+        trans.present_ref() = WedgeQsfp(i, wedgeI2cBus_.get()).detectTransceiver();
+      } catch (const std::exception& ex) {
+        trans.present_ref() = false;
+      }
       trans.transceiver_ref() = TransceiverType::QSFP;
       trans.port_ref() = i;
     }
