@@ -40,3 +40,11 @@ add_library(exponential_back_off
 target_link_libraries(exponential_back_off
   Folly::folly
 )
+
+add_library(function_call_time_reporter
+  fboss/lib/FunctionCallTimeReporter.cpp
+)
+
+target_link_libraries(function_call_time_reporter
+  Folly::folly
+)
