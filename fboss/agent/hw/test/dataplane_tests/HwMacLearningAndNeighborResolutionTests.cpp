@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 namespace {
 const AggregatePortID kAggID{1};
+const AggregatePortID kAggID2{2};
 constexpr int kMinAgeInSecs{1};
 const cfg::AclLookupClass kLookupClass{
     cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
@@ -36,10 +37,16 @@ struct LearningModeAndPortTypesT {
   static cfg::SwitchConfig initialConfig(cfg::SwitchConfig config) {
     config.switchSettings_ref()->l2LearningMode_ref() = kLearningMode;
     if (kIsTrunk) {
-      std::vector<int> ports;
-      ports.push_back(*config.ports_ref()[0].logicalID_ref());
-      ports.push_back(*config.ports_ref()[1].logicalID_ref());
-      utility::addAggPort(kAggID, ports, &config);
+      auto addTrunk = [&config](auto aggId, auto startIdx) {
+        std::vector<int> ports;
+        auto configPorts = config.vlanPorts_ref();
+        for (auto i = startIdx; i < startIdx + 2; ++i) {
+          ports.push_back(*(configPorts[i].logicalPort_ref()));
+        }
+        utility::addAggPort(aggId, ports, &config);
+      };
+      addTrunk(kAggID, 0);
+      addTrunk(kAggID2, 2);
     }
     return config;
   }
@@ -70,17 +77,17 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto inConfig = kIsTrunk
-        ? utility::oneL3IntfTwoPortConfig(
-              getHwSwitch(),
-              masterLogicalPortIds()[0],
-              masterLogicalPortIds()[1])
-        : utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    auto inConfig =
+        utility::oneL3IntfNPortConfig(getHwSwitch(), allConfigPorts());
     return LearningModeAndPortT::initialConfig(inConfig);
   }
   PortDescriptor portDescriptor() const {
     return kIsTrunk ? PortDescriptor(kAggID)
                     : PortDescriptor(masterLogicalPortIds()[0]);
+  }
+  PortDescriptor portDescriptor2() const {
+    return kIsTrunk ? PortDescriptor(kAggID2)
+                    : PortDescriptor(masterLogicalPortIds()[1]);
   }
 
   template <typename AddrT>
@@ -100,6 +107,9 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
 
   void learnMacAndProgramNeighbors(
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
+    bringUpPorts(physicalPortsFor(portDescriptor()));
+    bringDownPorts(physicalPortsExcluding(portDescriptor()));
+
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
     triggerMacLearning();
@@ -127,6 +137,32 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
 
  private:
+  std::vector<PortID> allConfigPorts() const {
+    auto masterLogicalPorts = masterLogicalPortIds();
+    return std::vector<PortID>(
+        masterLogicalPorts.begin(), masterLogicalPorts.begin() + 4);
+  }
+  std::vector<PortID> physicalPortsFor(PortDescriptor port) const {
+    if (!port.isAggregatePort()) {
+      return {port.phyPortID()};
+    } else if (port.aggPortID() == kAggID) {
+      return {masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+    } else {
+      return {masterLogicalPortIds()[2], masterLogicalPortIds()[3]};
+    }
+  }
+  std::vector<PortID> physicalPortsExcluding(PortDescriptor port) {
+    std::vector<PortID> otherPorts;
+    auto portDescrPorts = physicalPortsFor(port);
+    for (auto configPort : allConfigPorts()) {
+      if (std::find(portDescrPorts.begin(), portDescrPorts.end(), configPort) ==
+          portDescrPorts.end()) {
+        otherPorts.emplace_back(configPort);
+      }
+    }
+    return otherPorts;
+  }
+
   void programNeighbors(std::optional<cfg::AclLookupClass> lookupClass) {
     programNeighbor(neighborAddr<folly::IPAddressV4>(), lookupClass);
     programNeighbor(neighborAddr<folly::IPAddressV6>(), lookupClass);
