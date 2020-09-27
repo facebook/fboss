@@ -14,6 +14,7 @@ class SaiBcmWedge100PlatformPort : public SaiBcmPlatformPort {
   void externalState(PortLedExternalState) override;
   static std::optional<std::tuple<uint32_t, uint32_t>> getLedAndIndex(
       uint32_t port);
+  bool useCompactMode() const;
 };
 
 } // namespace facebook::fboss

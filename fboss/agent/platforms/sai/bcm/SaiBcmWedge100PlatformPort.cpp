@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 #include <tuple>
@@ -56,5 +57,31 @@ SaiBcmWedge100PlatformPort::getLedAndIndex(uint32_t phyPortId) {
     return std::nullopt;
   }
   return std::make_tuple(led.value(), index);
+}
+
+bool SaiBcmWedge100PlatformPort::useCompactMode() const {
+  auto tcvrID = getTransceiverID();
+  if (!tcvrID) {
+    return false;
+  }
+  // This should return true when the port is part of a qsfp that is
+  // configured in a way that it could mirror the leds. This means
+  // that the port is configured as either one or two ports
+  // (e.g. 1x40, 1x100 or 2x50). If in compact mode, the button should
+  // have no effect on these LEDs.
+
+  auto lanesCount = getLaneCount();
+
+  if (lanesCount != 1) {
+    // Our port group supports compact mode. Now we need to check
+    // our neighboring port group
+    auto neighborFpPort = TransceiverID((*tcvrID) ^ 0x1);
+    auto neighborPorts = static_cast<SaiPlatform*>(getPlatform())
+                             ->getPortsWithTransceiverID(neighborFpPort);
+    if (neighborPorts.size() > 0 && neighborPorts[0]->getLaneCount() != 1) {
+      return true;
+    }
+  }
+  return false;
 }
 } // namespace facebook::fboss

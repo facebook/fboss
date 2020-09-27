@@ -243,4 +243,9 @@ std::optional<ChannelID> SaiPlatformPort::getChannel() const {
   return std::nullopt;
 }
 
+int SaiPlatformPort::getLaneCount() const {
+  auto lanes = getHwPortLanes(getCurrentProfile());
+  return lanes.size();
+}
+
 } // namespace facebook::fboss

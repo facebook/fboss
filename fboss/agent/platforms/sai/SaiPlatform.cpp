@@ -266,4 +266,19 @@ std::vector<phy::RxSettings> SaiPlatform::getPlatformPortRxSettings(
   return rxSettings;
 }
 
+std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
+    TransceiverID id) const {
+  std::vector<SaiPlatformPort*> ports;
+  for (const auto& port : portMapping_) {
+    if (auto tcvrID = port.second->getTransceiverID()) {
+      if (tcvrID == id &&
+          port.second->getCurrentProfile() !=
+              cfg::PortProfileID::PROFILE_DEFAULT) {
+        ports.push_back(port.second.get());
+      }
+    }
+  }
+  return ports;
+}
+
 } // namespace facebook::fboss

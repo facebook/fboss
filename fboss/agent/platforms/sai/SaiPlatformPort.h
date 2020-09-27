@@ -64,6 +64,7 @@ class SaiPlatformPort : public PlatformPort {
   cfg::PortProfileID getCurrentProfile() const {
     return profile_;
   }
+  int getLaneCount() const;
   std::optional<ChannelID> getChannel() const;
   virtual uint32_t getCurrentLedState() const = 0;
 

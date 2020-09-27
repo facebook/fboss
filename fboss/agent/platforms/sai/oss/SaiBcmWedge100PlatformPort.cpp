@@ -14,4 +14,8 @@ std::optional<std::tuple<uint32_t, uint32_t>>
 SaiBcmWedge100PlatformPort::getLedAndIndex(uint32_t /*phyPortId*/) {
   return std::nullopt;
 }
+
+bool SaiBcmWedge100PlatformPort::useCompactMode() const {
+  return false;
+}
 } // namespace facebook::fboss

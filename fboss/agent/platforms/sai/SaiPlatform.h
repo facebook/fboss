@@ -97,6 +97,9 @@ class SaiPlatform : public Platform, public StateObserver {
       PortID port,
       cfg::PortProfileID profile);
 
+  std::vector<SaiPlatformPort*> getPortsWithTransceiverID(
+      TransceiverID id) const;
+
   virtual void initLEDs() = 0;
 
  private:
