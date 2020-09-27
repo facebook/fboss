@@ -106,14 +106,15 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
 
   void learnMacAndProgramNeighbors(
+      PortDescriptor port,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    bringUpPorts(physicalPortsFor(portDescriptor()));
-    bringDownPorts(physicalPortsExcluding(portDescriptor()));
+    bringUpPorts(physicalPortsFor(port));
+    bringDownPorts(physicalPortsExcluding(port));
 
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitch(), 0);
-    triggerMacLearning();
-    programNeighbors(lookupClass);
+    triggerMacLearning(port);
+    programNeighbors(port, lookupClass);
   }
   void updateMacEntry(std::optional<cfg::AclLookupClass> lookupClass) {
     auto newState = getProgrammedState()->clone();
@@ -163,20 +164,22 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     return otherPorts;
   }
 
-  void programNeighbors(std::optional<cfg::AclLookupClass> lookupClass) {
-    programNeighbor(neighborAddr<folly::IPAddressV4>(), lookupClass);
-    programNeighbor(neighborAddr<folly::IPAddressV6>(), lookupClass);
+  void programNeighbors(
+      PortDescriptor port,
+      std::optional<cfg::AclLookupClass> lookupClass) {
+    programNeighbor(port, neighborAddr<folly::IPAddressV4>(), lookupClass);
+    programNeighbor(port, neighborAddr<folly::IPAddressV6>(), lookupClass);
   }
-  void triggerMacLearning() {
+  void triggerMacLearning(PortDescriptor port) {
     auto txPacket = utility::makeEthTxPacket(
         getHwSwitch(),
         kVlanID,
         kNeighborMac,
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
-
+    auto phyPort = *physicalPortsFor(port).begin();
     EXPECT_TRUE(getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), PortID(masterLogicalPortIds()[0])));
+        std::move(txPacket), phyPort));
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
@@ -198,6 +201,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
   }
   template <typename AddrT>
   void programNeighbor(
+      PortDescriptor port,
       const AddrT& addr,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = getProgrammedState()->clone();
@@ -207,12 +211,12 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
                              ->modify(kVlanID, &state);
     if (neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
-          addr, kNeighborMac, portDescriptor(), kIntfID, lookupClass);
+          addr, kNeighborMac, port, kIntfID, lookupClass);
     } else {
-      neighborTable->addEntry(addr, kNeighborMac, portDescriptor(), kIntfID);
+      neighborTable->addEntry(addr, kNeighborMac, port, kIntfID);
       // Update entry to add classid if any
       neighborTable->updateEntry(
-          addr, kNeighborMac, portDescriptor(), kIntfID, lookupClass);
+          addr, kNeighborMac, port, kIntfID, lookupClass);
     }
     applyNewState(state);
   }
@@ -245,7 +249,9 @@ TYPED_TEST(
 #endif
     return;
   }
-  auto setup = [this]() { this->learnMacAndProgramNeighbors(); };
+  auto setup = [this]() {
+    this->learnMacAndProgramNeighbors(this->portDescriptor());
+  };
   auto verify = [this]() { this->verifyForwarding(); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -264,7 +270,7 @@ TYPED_TEST(
     return;
   }
   auto setup = [this]() {
-    this->learnMacAndProgramNeighbors();
+    this->learnMacAndProgramNeighbors(this->portDescriptor());
     utility::setMacAgeTimerSeconds(this->getHwSwitch(), kMinAgeInSecs);
     std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs));
   };
@@ -282,9 +288,9 @@ TYPED_TEST(
     return;
   }
   auto setup = [this]() {
-    this->learnMacAndProgramNeighbors();
+    this->learnMacAndProgramNeighbors(this->portDescriptor());
     // Update neighbor class Id
-    this->learnMacAndProgramNeighbors(kLookupClass);
+    this->learnMacAndProgramNeighbors(this->portDescriptor(), kLookupClass);
     // Update MAC class ID
     this->updateMacEntry(kLookupClass);
   };
@@ -300,9 +306,9 @@ TYPED_TEST(HwMacLearningAndNeighborResolutionTest, flapMacAndNeighbors) {
     return;
   }
   auto program = [this] {
-    this->learnMacAndProgramNeighbors();
+    this->learnMacAndProgramNeighbors(this->portDescriptor());
     // Update neighbor class Id
-    this->learnMacAndProgramNeighbors(kLookupClass);
+    this->learnMacAndProgramNeighbors(this->portDescriptor(), kLookupClass);
     // Update MAC class ID
     this->updateMacEntry(kLookupClass);
   };
@@ -321,4 +327,5 @@ TYPED_TEST(HwMacLearningAndNeighborResolutionTest, flapMacAndNeighbors) {
   auto verify = [this]() { this->verifyForwarding(); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
 } // namespace facebook::fboss
