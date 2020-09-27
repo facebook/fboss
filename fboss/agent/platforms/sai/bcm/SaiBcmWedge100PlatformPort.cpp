@@ -12,7 +12,6 @@
 namespace facebook::fboss {
 
 void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
-  // TODO(pshaikh): add support for compact mode LED
   uint32_t phyPortId = getPhysicalPortId();
   auto ledAndIndex = getLedAndIndex(phyPortId);
   if (!ledAndIndex) {
@@ -21,16 +20,65 @@ void SaiBcmWedge100PlatformPort::linkStatusChanged(bool up, bool adminUp) {
 
   auto [led, index] = ledAndIndex.value();
   auto lanes = getHwPortLanes(getCurrentProfile());
-
   try {
     uint32_t status =
         static_cast<uint32_t>(Wedge100LedUtils::getDesiredLEDState(
             static_cast<int>(lanes.size()), up, adminUp));
-    setLEDState(led, index, status);
+    if (!useCompactMode()) {
+      XLOG(DBG5) << "setting LED status in non-compact mode";
+      setLEDState(led, index, status);
+    } else {
+      // compact mode
+      XLOG(DBG5) << "setting LED status in compact mode";
+      compactLEDStateChange(status);
+    }
   } catch (const FbossError& ex) {
-    XLOG(ERR) << "exception while getting LED state for port: "
+    XLOG(ERR) << "exception while setting LED state for port: "
               << static_cast<PortID>(phyPortId) << ":" << ex.what();
     throw;
+  }
+}
+
+void SaiBcmWedge100PlatformPort::compactLEDStateChange(uint32_t status) {
+  auto quadMode = getLaneCount() == 4;
+  auto channel = getChannel();
+  if (!channel || *channel == 1 || *channel == 3 ||
+      (quadMode && *channel == 2)) {
+    // We don't ever do anything for channel 1 & 3 in compact mode, and
+    // we shouldn't do anything for lane 2 if in QUAD mode;
+    XLOG(DBG5) << "skipping LED status change";
+    return;
+  }
+  std::vector<uint32_t> compactModePorts{};
+  if (Wedge100LedUtils::isTop(getTransceiverID())) {
+    compactModePorts.push_back(getPhysicalPortId());
+    auto neighborPort = static_cast<PortID>(static_cast<int>(getPortID()) + 4);
+    auto platformPort = static_cast<SaiBcmWedge100PlatformPort*>(
+        getPlatform()->getPlatformPort(neighborPort));
+    if (platformPort) {
+      compactModePorts.push_back(platformPort->getPhysicalPortId());
+    } else {
+      XLOG(ERR) << "platform port not found " << neighborPort;
+    }
+  } else {
+    auto target = quadMode ? getPortID() + 2 : getPortID();
+    for (auto neighborPort : {target + 1, target - 3}) {
+      auto platformPort = static_cast<SaiBcmWedge100PlatformPort*>(
+          getPlatform()->getPlatformPort(static_cast<PortID>(neighborPort)));
+      if (platformPort) {
+        compactModePorts.push_back(platformPort->getPhysicalPortId());
+      } else {
+        XLOG(ERR) << "platform port not found " << neighborPort;
+      }
+    }
+  }
+
+  for (auto phyPort : compactModePorts) {
+    if (auto ledAndIndex = getLedAndIndex(phyPort)) {
+      auto [led, index] = ledAndIndex.value();
+      XLOG(DBG5) << "compact LED state changed for " << phyPort;
+      setLEDState(led, index, status);
+    }
   }
 }
 

@@ -113,7 +113,7 @@ std::vector<phy::PinID> getTransceiverLanes(
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
-  if (profileID) {
+  if (profileID && profileID != cfg::PortProfileID::PROFILE_DEFAULT) {
     auto itPortCfg = port.supportedProfiles_ref()->find(*profileID);
     if (itPortCfg == port.supportedProfiles_ref()->end()) {
       throw FbossError(
@@ -195,7 +195,7 @@ std::vector<phy::PinID> getOrderedIphyLanes(
     const std::map<std::string, phy::DataPlanePhyChip>& chipsMap,
     std::optional<cfg::PortProfileID> profileID) {
   std::vector<phy::PinID> lanes;
-  if (profileID) {
+  if (profileID && profileID != cfg::PortProfileID::PROFILE_DEFAULT) {
     auto itrPortCfg = port.supportedProfiles_ref()->find(*profileID);
     if (itrPortCfg == port.supportedProfiles_ref()->end()) {
       throw FbossError(

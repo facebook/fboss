@@ -15,6 +15,9 @@ class SaiBcmWedge100PlatformPort : public SaiBcmPlatformPort {
   static std::optional<std::tuple<uint32_t, uint32_t>> getLedAndIndex(
       uint32_t port);
   bool useCompactMode() const;
+
+ private:
+  void compactLEDStateChange(uint32_t status);
 };
 
 } // namespace facebook::fboss

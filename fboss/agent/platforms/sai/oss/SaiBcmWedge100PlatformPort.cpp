@@ -18,4 +18,6 @@ SaiBcmWedge100PlatformPort::getLedAndIndex(uint32_t /*phyPortId*/) {
 bool SaiBcmWedge100PlatformPort::useCompactMode() const {
   return false;
 }
+
+void SaiBcmWedge100PlatformPort::compactLEDStateChange(uint32_t /*status*/) {}
 } // namespace facebook::fboss

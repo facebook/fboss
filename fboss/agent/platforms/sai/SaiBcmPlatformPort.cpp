@@ -44,7 +44,8 @@ void SaiBcmPlatformPort::setLEDState(
 
   SaiSwitch* saiSwitch = static_cast<SaiSwitch*>(getPlatform()->getHwSwitch());
   auto switchID = saiSwitch->getSwitchId();
-
+  XLOG(DBG5) << "setting led state : (" << led << "," << index << ","
+             << std::hex << status << ")";
   SaiApiTable::getInstance()->switchApi().setAttribute(
       switchID,
       SaiSwitchTraits::Attributes::Led{
