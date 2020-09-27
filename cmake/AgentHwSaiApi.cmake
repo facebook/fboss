@@ -79,6 +79,7 @@ set(SAI_API_DEPS
   logging_util
   fboss_error
   fboss_types
+  function_call_time_reporter
   switch_config_cpp2
   Folly::folly
 )

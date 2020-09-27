@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 #include "fboss/lib/TupleUtils.h"
 
 #include <folly/Format.h>
@@ -68,8 +69,12 @@ class SaiApi {
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    sai_status_t status = impl()._create(
-        &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
+    sai_status_t status;
+    {
+      TIME_CALL;
+      status = impl()._create(
+          &key, switch_id, saiAttributeTs.size(), saiAttributeTs.data());
+    }
     saiApiCheckError(
         status,
         ApiT::ApiType,
@@ -90,8 +95,12 @@ class SaiApi {
         "invalid traits for the api");
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    sai_status_t status =
-        impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
+    sai_status_t status;
+    {
+      TIME_CALL;
+      status =
+          impl()._create(entry, saiAttributeTs.size(), saiAttributeTs.data());
+    }
     saiApiCheckError(
         status,
         ApiT::ApiType,
@@ -103,7 +112,11 @@ class SaiApi {
   template <typename AdapterKeyT>
   void remove(const AdapterKeyT& key) {
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
-    sai_status_t status = impl()._remove(key);
+    sai_status_t status;
+    {
+      TIME_CALL;
+      status = impl()._remove(key);
+    }
     saiApiCheckError(
         status,
         ApiT::ApiType,
@@ -134,7 +147,10 @@ class SaiApi {
         "collection of SaiAttributes");
     std::lock_guard<std::mutex> g{SaiApiLock::getInstance()->lock};
     sai_status_t status;
-    status = impl()._getAttribute(key, attr.saiAttr());
+    {
+      TIME_CALL;
+      status = impl()._getAttribute(key, attr.saiAttr());
+    }
     /*
      * If this is a list attribute and we have not allocated enough
      * memory for the data coming from SAI, the Adapter will return
@@ -144,7 +160,10 @@ class SaiApi {
      */
     if (status == SAI_STATUS_BUFFER_OVERFLOW) {
       attr.realloc();
-      status = impl()._getAttribute(key, attr.saiAttr());
+      {
+        TIME_CALL;
+        status = impl()._getAttribute(key, attr.saiAttr());
+      }
     }
     saiApiCheckError(
         status,
@@ -230,7 +249,11 @@ class SaiApi {
             key);
       }
     }
-    auto status = impl()._setAttribute(key, saiAttr(attr));
+    sai_status_t status;
+    {
+      TIME_CALL;
+      status = impl()._setAttribute(key, saiAttr(attr));
+    }
     saiApiCheckError(
         status,
         ApiT::ApiType,
@@ -313,8 +336,12 @@ class SaiApi {
     std::vector<uint64_t> counters;
     if (numCounters) {
       counters.resize(numCounters);
-      sai_status_t status = impl()._getStats(
-          key, counters.size(), counterIds, mode, counters.data());
+      sai_status_t status;
+      {
+        TIME_CALL
+        status = impl()._getStats(
+            key, counters.size(), counterIds, mode, counters.data());
+      }
       saiApiCheckError(
           status, ApiT::ApiType, fmt::format("Failed to get stats {}", key));
       saiApiCheckError(status, ApiT::ApiType, "Failed to get stats");
@@ -327,7 +354,11 @@ class SaiApi {
       const sai_stat_id_t* counterIds,
       size_t numCounters) const {
     if (numCounters) {
-      sai_status_t status = impl()._clearStats(key, numCounters, counterIds);
+      sai_status_t status;
+      {
+        TIME_CALL
+        status = impl()._clearStats(key, numCounters, counterIds);
+      }
       saiApiCheckError(status, ApiT::ApiType, "Failed to clear stats");
     }
   }
