@@ -17,11 +17,6 @@
 
 using namespace facebook::fboss;
 
-DEFINE_bool(
-    setup_for_warmboot,
-    false,
-    "Set to true will prepare the device for warmboot");
-
 namespace facebook::fboss::utility {
 
 void initToConfigBenchmarkHelper(
