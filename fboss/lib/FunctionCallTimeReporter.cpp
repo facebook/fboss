@@ -12,7 +12,10 @@
 
 #include <folly/logging/xlog.h>
 
+#include <folly/Format.h>
 #include <folly/Singleton.h>
+#include <folly/system/ThreadName.h>
+#include <sstream>
 #include <thread>
 
 namespace {
@@ -34,7 +37,18 @@ thread_local FunctionCallTimeReporter::CallTimeTracker
     FunctionCallTimeReporter::tracker_;
 
 FunctionCallTimeReporter::CallTimeTracker::~CallTimeTracker() {
-  XLOG(INFO) << " TID: " << std::this_thread::get_id()
+  std::string threadIdStr;
+  std::stringstream ss;
+  ss << std::this_thread::get_id();
+  threadIdStr = ss.str();
+  std::string threadStr;
+  auto threadName = folly::getCurrentThreadName();
+  if (threadName) {
+    threadStr = folly::sformat("{} ({})", *threadName, threadIdStr);
+  } else {
+    threadStr = threadIdStr;
+  }
+  XLOG(INFO) << " Thread: " << threadStr
              << " function time msecs: " << (cumalativeUsecs_.count() / 1000.0);
 }
 
