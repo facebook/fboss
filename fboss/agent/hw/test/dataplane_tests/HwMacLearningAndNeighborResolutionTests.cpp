@@ -328,4 +328,35 @@ TYPED_TEST(HwMacLearningAndNeighborResolutionTest, flapMacAndNeighbors) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+// Typical scenario where neighbor resolution (ARP, NDP) packet cause MAC
+// learning followed by neighbor resolution and programming. Post that
+// simulate a MAC move
+TYPED_TEST(
+    HwMacLearningAndNeighborResolutionTest,
+    learnMacProgramNeighborsAndMove) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto program = [this](auto port) {
+    this->learnMacAndProgramNeighbors(port);
+    // Update neighbor class Id
+    this->learnMacAndProgramNeighbors(port, kLookupClass);
+    // Update MAC class ID
+    this->updateMacEntry(kLookupClass);
+  };
+  auto setup = [this, program]() {
+    program(this->portDescriptor());
+    // TODO - Neighbor move can happen before the old entry transitions
+    // to pending. However moving the neighbor like that triggers a
+    // bug in brcm-sai that's being chased down in CS00011145260
+    this->removeNeighbors();
+    // Now move it to port descriptor 2
+    program(this->portDescriptor2());
+  };
+  auto verify = [this]() { this->verifyForwarding(); };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
