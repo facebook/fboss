@@ -42,10 +42,12 @@ class LinkNeighborDB {
   std::vector<LinkNeighbor> getNeighbors(PortID port);
 
   /*
-   * Remove expired neighbor entries from the database.
+   * Remove expired neighbor entries from the database and return number
+   * of entries left.
    */
-  void pruneExpiredNeighbors();
-  void pruneExpiredNeighbors(std::chrono::steady_clock::time_point now);
+  int pruneExpiredNeighbors();
+  int pruneExpiredNeighbors(std::chrono::steady_clock::time_point now);
+
   void portDown(PortID port);
 
  private:
@@ -67,7 +69,8 @@ class LinkNeighborDB {
   LinkNeighborDB(LinkNeighborDB const&) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
 
-  void pruneLocked(std::chrono::steady_clock::time_point now);
+  // Returns number of entries left after pruning
+  int pruneLocked(std::chrono::steady_clock::time_point now);
 
   std::mutex mutex_;
   std::map<PortID, NeighborMap> byLocalPort_;

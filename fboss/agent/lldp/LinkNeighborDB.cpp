@@ -96,14 +96,14 @@ vector<LinkNeighbor> LinkNeighborDB::getNeighbors(PortID port) {
   return results;
 }
 
-void LinkNeighborDB::pruneExpiredNeighbors() {
+int LinkNeighborDB::pruneExpiredNeighbors() {
   lock_guard<mutex> guard(mutex_);
-  pruneLocked(steady_clock::now());
+  return pruneLocked(steady_clock::now());
 }
 
-void LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
+int LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
   lock_guard<mutex> guard(mutex_);
-  pruneLocked(now);
+  return pruneLocked(now);
 }
 
 void LinkNeighborDB::portDown(PortID port) {
@@ -112,7 +112,7 @@ void LinkNeighborDB::portDown(PortID port) {
   byLocalPort_.erase(port);
 }
 
-void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
+int LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   // We just do a linear scan for now.
   //
   // We could maintain a priority queue of entries by expiration time,
@@ -120,6 +120,7 @@ void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
   // neighbors to be very large, so the extra complexity isn't worth
   // implementing right now.
 
+  int count = 0;
   for (auto& portEntry : byLocalPort_) {
     // Advance the iterator manually to avoid make sure we don't
     // have invalid iterators to erased elements.
@@ -130,9 +131,13 @@ void LinkNeighborDB::pruneLocked(steady_clock::time_point now) {
       ++it;
       if (current->second.isExpired(now)) {
         map.erase(current);
+      } else {
+        count++;
       }
     }
   }
+
+  return count;
 }
 
 } // namespace facebook::fboss

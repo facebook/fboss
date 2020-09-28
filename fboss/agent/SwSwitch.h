@@ -178,6 +178,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   bool isExiting() const;
 
+  void updateLldpStats();
+
   void updateStats();
 
   /*

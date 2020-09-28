@@ -334,9 +334,19 @@ void SwSwitch::getProductInfo(ProductInfo& productInfo) const {
   platform_->getProductInfo(productInfo);
 }
 
+void SwSwitch::updateLldpStats() {
+  if (!lldpManager_) {
+    return;
+  }
+
+  // Use number of entries left after pruning expired entries
+  stats()->LldpNeighborsSize(lldpManager_->getDB()->pruneExpiredNeighbors());
+}
+
 void SwSwitch::updateStats() {
   updateRouteStats();
   updatePortInfo();
+  updateLldpStats();
   try {
     getHw()->updateStats(stats());
   } catch (const std::exception& ex) {

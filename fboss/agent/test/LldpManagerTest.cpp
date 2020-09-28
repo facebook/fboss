@@ -270,17 +270,20 @@ TEST(LldpManagerTest, LldpValidationPass) {
       "somesysname0",
       "portname",
       "someportdesc0",
-      1,
+      120,
       LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
   handle->rxPacket(
       std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), VlanID(1));
 
+  sw->updateStats();
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "lldp.recvd.sum", 1);
   counters.checkDelta(
       SwitchStats::kCounterPrefix + "lldp.validate_mismatch.sum", 0);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "lldp.neighbors_size.sum", 1);
 }
 
 TEST(LldpManagerTest, LldpValidationFail) {
