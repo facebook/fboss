@@ -1691,40 +1691,6 @@ TYPED_TEST(BcmMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
       portCfg->ingressMirror_ref().reset();
     }
     this->applyNewConfig(cfg);
-    // TODO(pshaikh): skip unresolving mirror if tunnel parameters are unchanged
-    mirrors = this->getProgrammedState()->getMirrors()->clone();
-    for (auto mirror : *mirrors) {
-      auto newMirror = mirror->getTunnelUdpPorts()
-          ? std::make_shared<Mirror>(
-                mirror->getID(),
-                mirror->getEgressPort(),
-                mirror->getDestinationIp(),
-                mirror->getSrcIp(),
-                mirror->getTunnelUdpPorts().value())
-          : std::make_shared<Mirror>(
-                mirror->getID(),
-                mirror->getEgressPort(),
-                mirror->getDestinationIp(),
-                mirror->getSrcIp());
-      newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
-      newMirror->setMirrorTunnel(
-          newMirror->getTunnelUdpPorts()
-              ? MirrorTunnel(
-                    params.ipAddrs[0],
-                    params.ipAddrs[1],
-                    params.macAddrs[0],
-                    params.macAddrs[1],
-                    newMirror->getTunnelUdpPorts().value())
-              : MirrorTunnel(
-                    params.ipAddrs[0],
-                    params.ipAddrs[1],
-                    params.macAddrs[0],
-                    params.macAddrs[1]));
-      mirrors->updateNode(newMirror);
-    }
-    newState = this->getProgrammedState()->clone();
-    newState->resetMirrors(mirrors);
-    this->applyNewState(newState);
   };
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
@@ -2136,4 +2102,61 @@ TYPED_TEST(BcmMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
 }
 
+TYPED_TEST(BcmMirrorTest, SampleAllPortsReloadConfig) {
+  /* Setup sample destination to mirror for all ports, and mirror only one port
+  this will ensure all port traffic is sampled and sent to that mirror */
+  auto setup = [=]() {
+    auto params = this->testParams();
+    auto cfg = this->initialConfig();
+    /* sampling all ports and send traffic to sflow mirror */
+    cfg.mirrors_ref()->push_back(this->getSflowMirror());
+    for (auto portId : this->masterLogicalPortIds()) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->sampleDest_ref() = cfg::SampleDestination::MIRROR;
+      *portCfg->sFlowIngressRate_ref() = 90000;
+      portCfg->ingressMirror_ref() = *cfg.mirrors_ref()[0].name_ref();
+    }
+    this->applyNewConfig(cfg);
+    // resolve mirror
+    auto mirrors = this->getProgrammedState()->getMirrors()->clone();
+    auto mirror = mirrors->getMirrorIf(kSflow);
+    auto newMirror = std::make_shared<Mirror>(
+        mirror->getID(),
+        mirror->getEgressPort(),
+        mirror->getDestinationIp(),
+        mirror->getSrcIp(),
+        mirror->getTunnelUdpPorts().value());
+    newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
+    newMirror->setMirrorTunnel(MirrorTunnel(
+        params.ipAddrs[0],
+        params.ipAddrs[1],
+        params.macAddrs[0],
+        params.macAddrs[1],
+        newMirror->getTunnelUdpPorts().value()));
+    mirrors->updateNode(newMirror);
+    auto newState = this->getProgrammedState()->clone();
+    newState->resetMirrors(mirrors);
+    this->applyNewState(newState);
+
+    // reload config and verify mirror stays resolved
+    this->applyNewConfig(cfg);
+  };
+  auto verify = [=]() {
+    auto mirror = this->getProgrammedState()->getMirrors()->getMirrorIf(kSflow);
+    this->verifyResolvedBcmMirror(mirror);
+    std::vector<bcm_gport_t> destinations;
+    this->getAllMirrorDestinations(destinations);
+    ASSERT_EQ(destinations.size(), 1);
+    for (auto port : this->masterLogicalPortIds()) {
+      this->verifyPortMirrorDestination(
+          port,
+          BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_SFLOW,
+          destinations[0]);
+    }
+  };
+  if (this->skipMirrorTest() || this->skipSflowTest()) {
+    return;
+  }
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
