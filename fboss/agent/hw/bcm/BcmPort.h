@@ -66,6 +66,7 @@ class BcmPort {
 
   void attachIngressQosPolicy(const std::string& name);
   void detachIngressQosPolicy();
+  void destroy();
 
   /*
    * Getters.
@@ -297,6 +298,7 @@ class BcmPort {
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 
   std::atomic<bool> statCollectionEnabled_{false};
+  std::atomic<bool> destroyed_{false};
 };
 
 } // namespace facebook::fboss

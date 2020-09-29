@@ -76,6 +76,11 @@ void BcmPortTable::removeBcmPort(bcm_port_t logicalPort) {
   }
 
   PortID fbossPortID = platformPort->getPortID();
+  // folly's concurrent hashmaps are implemented using hazard pointers that
+  // are only cleared after reaching a certain memory threshold. We need to
+  // explicitly clean up the bcmPort object now so it's not still in use when
+  // we configure dependent components of the system.
+  it->second->destroy();
   fbossPhysicalPorts_.erase(fbossPortID);
   bcmPhysicalPorts_.erase(logicalPort);
 }

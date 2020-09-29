@@ -237,8 +237,7 @@ BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
 }
 
 BcmPort::~BcmPort() {
-  applyMirrorAction(MirrorAction::STOP, MirrorDirection::INGRESS, sampleDest_);
-  applyMirrorAction(MirrorAction::STOP, MirrorDirection::EGRESS, sampleDest_);
+  destroy();
 }
 
 void BcmPort::init(bool warmBoot) {
@@ -1771,6 +1770,15 @@ void BcmPort::attachIngressQosPolicy(const std::string& name) {
 void BcmPort::detachIngressQosPolicy() {
   auto rv = bcm_qos_port_map_set(hw_->getUnit(), gport_, 0, 0);
   bcmCheckError(rv, "failed to unset qos map");
+}
+
+void BcmPort::destroy() {
+  auto destroyed = destroyed_.exchange(true);
+  if (!destroyed) {
+    applyMirrorAction(
+        MirrorAction::STOP, MirrorDirection::INGRESS, sampleDest_);
+    applyMirrorAction(MirrorAction::STOP, MirrorDirection::EGRESS, sampleDest_);
+  }
 }
 
 void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
