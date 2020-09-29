@@ -448,4 +448,11 @@ void verifyRxSettting(
     EXPECT_EQ(rxAcCouplingBypass, expectedRxAcCouplingBypass);
   }
 }
+
+void verifyFec(
+    PortID /*portID*/,
+    cfg::PortProfileID /*profileID*/,
+    Platform* /*platform*/) {
+  // TODO: verify FEC
+}
 } // namespace facebook::fboss::utility

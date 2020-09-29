@@ -351,4 +351,12 @@ void verifyRxSettting(
   // no rx settings
   return;
 }
+
+void verifyFec(
+    PortID /*portID*/,
+    cfg::PortProfileID /*profileID*/,
+    Platform* /*platform*/) {
+  // TODO: verify FEC
+  return;
+}
 } // namespace facebook::fboss::utility
