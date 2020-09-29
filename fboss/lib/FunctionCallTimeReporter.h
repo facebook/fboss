@@ -71,4 +71,12 @@ class FunctionCallTimeReporter {
   SCOPE_EXIT {                                          \
     FunctionCallTimeReporter::getInstance()->callEnd(); \
   };
+
+class ScopedCallTimer {
+ public:
+  ScopedCallTimer();
+  ~ScopedCallTimer();
+  ScopedCallTimer(const ScopedCallTimer&) = delete;
+  ScopedCallTimer& operator=(const ScopedCallTimer&) = delete;
+};
 } // namespace facebook::fboss

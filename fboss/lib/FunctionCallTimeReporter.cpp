@@ -15,10 +15,14 @@
 #include <folly/Format.h>
 #include <folly/Singleton.h>
 #include <folly/system/ThreadName.h>
+#include <gflags/gflags.h>
 #include <sstream>
 #include <thread>
 
+DEFINE_bool(enable_call_timing, false, "Enable call time reporting");
+
 namespace {
+
 struct singleton_tag_type {};
 } // namespace
 
@@ -53,6 +57,7 @@ FunctionCallTimeReporter::CallTimeTracker::~CallTimeTracker() {
 }
 
 void FunctionCallTimeReporter::start() {
+  CHECK(!isOn_);
   isOn_ = true;
   startTime_ = std::chrono::steady_clock::now();
 }
@@ -64,4 +69,16 @@ void FunctionCallTimeReporter::end() {
   XLOG(INFO) << "Total time, msecs: " << (durationUsecs.count() / 1000.0);
   isOn_ = false;
 }
+
+ScopedCallTimer::ScopedCallTimer() {
+  if (FLAGS_enable_call_timing) {
+    FunctionCallTimeReporter::getInstance()->start();
+  }
+}
+ScopedCallTimer::~ScopedCallTimer() {
+  if (FLAGS_enable_call_timing) {
+    FunctionCallTimeReporter::getInstance()->end();
+  }
+}
+
 } // namespace facebook::fboss
