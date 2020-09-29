@@ -298,7 +298,6 @@ std::chrono::seconds ReceiveMachine::epochDuration() {
 }
 
 void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
-  partnerInfo_ = lacpdu.actorInfo;
   // TODO(samank): needs to be moved after
   controller_.setActorState(controller_.actorState() & ~LacpState::DEFAULTED);
 
@@ -311,9 +310,18 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
 
   if ((matched || ((lacpdu.actorInfo.state & LacpState::AGGREGATABLE) == 0)) &&
       (lacpdu.actorInfo.state & LacpState::IN_SYNC)) {
+    partnerInfo_ = lacpdu.actorInfo;
     partnerInfo_.state |= LacpState::IN_SYNC;
     controller_.matched();
   } else {
+    // if partner transitions out of sync, LACP will disable fwding on the port
+    if (partnerInfo_.state & LacpState::IN_SYNC) {
+      XLOG(WARNING) << "ReceiveMachine[" << controller_.portID() << "]: "
+                    << "Partner not in sync. Got LACP PDU ("
+                    << lacpdu.describe() << ") Previous State ("
+                    << partnerInfo_.describe() << ")";
+    }
+    partnerInfo_ = lacpdu.actorInfo;
     partnerInfo_.state &= ~LacpState::IN_SYNC;
     controller_.notMatched();
   }
@@ -331,6 +339,8 @@ void ReceiveMachine::timeoutExpired() noexcept {
   try {
     switch (state_) {
       case ReceiveState::CURRENT:
+        XLOG(WARNING) << "ReceiveMachine[" << controller_.portID()
+                      << "]: RX timer expired in CURRENT state";
         expired();
         break;
       case ReceiveState::EXPIRED:
