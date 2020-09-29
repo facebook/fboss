@@ -84,7 +84,6 @@ namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
 auto constexpr kTrunks = "trunks";
 auto constexpr kVlanForCPUEgressEntries = 0;
-auto constexpr kACLFieldGroupID = 128;
 
 struct AddrTables {
   AddrTables()
@@ -502,7 +501,7 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
 
   // populate acls, acl stats
   populateAcls(
-      kACLFieldGroupID,
+      hw_->getPlatform()->getAsic()->getDefaultACLGroupID(),
       this->aclEntry2AclStat_,
       this->priority2BcmAclEntryHandle_);
 
