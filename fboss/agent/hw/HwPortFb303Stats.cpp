@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-std::array<folly::StringPiece, 22> HwPortFb303Stats::kPortStatKeys() {
+std::array<folly::StringPiece, 23> HwPortFb303Stats::kPortStatKeys() {
   return {
       kInBytes(),
       kInUnicastPkts(),
@@ -37,6 +37,7 @@ std::array<folly::StringPiece, 22> HwPortFb303Stats::kPortStatKeys() {
       kOutErrors(),
       kOutPause(),
       kOutCongestionDiscards(),
+      kWredDroppedPackets(),
       kOutEcnCounter(),
       kFecCorrectable(),
       kFecUncorrectable(),
@@ -179,6 +180,10 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kOutCongestionDiscards(),
       *curPortStats.outCongestionDiscardPkts__ref());
+  updateStat(
+      timeRetrieved_,
+      kWredDroppedPackets(),
+      *curPortStats.wredDroppedPackets__ref());
   updateStat(
       timeRetrieved_, kOutEcnCounter(), *curPortStats.outEcnCounter__ref());
   updateStat(
