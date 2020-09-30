@@ -106,7 +106,7 @@ void BcmTrunkTable::deleteTrunk(const std::shared_ptr<AggregatePort>& aggPort) {
  * 2. If bcm_trunk_t != INVALID, then all ECMP egress entries which egress
  *    over this physical port must be shrunk to exclude it.
  */
-bcm_trunk_t BcmTrunkTable::linkDownHwNotLocked(bcm_port_t port) {
+bcm_trunk_t BcmTrunkTable::linkDownHwNotLocked(bcm_port_t port) const {
   auto maybeTrunk =
       BcmTrunk::findTrunk(hw_->getUnit(), static_cast<bcm_module_t>(0), port);
 
@@ -143,6 +143,38 @@ void BcmTrunkTable::updateStats() {
     BcmTrunk* trunk = idAndTrunk.second.get();
     trunk->stats().update();
   }
+}
+
+bool BcmTrunkTable::isMinLinkMet(bcm_trunk_t trunk) const {
+  auto maybeMinLinkCount = trunkToMinLinkCount_.get(trunk);
+  if (!maybeMinLinkCount) {
+    return false;
+  }
+  auto minLinkCount = *maybeMinLinkCount;
+
+  bcm_trunk_info_t info;
+  bcm_trunk_info_t_init(&info);
+  int memberCount;
+  std::vector<bcm_trunk_member_t> members(BCM_TRUNK_MAX_PORTCNT);
+
+  auto rv = bcm_trunk_get(
+      hw_->getUnit(),
+      trunk,
+      &info,
+      members.size(),
+      members.data(),
+      &memberCount);
+  bcmCheckError(rv, "failed to get subports for trunk ", trunk);
+  if (!memberCount) {
+    return false;
+  }
+
+  auto memGport = members[0].gport & 0x3FFFFFF;
+  auto count = BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
+      hw_->getUnit(), trunk, memGport);
+  XLOG(INFO) << count << " member ports enabled in trunk " << trunk;
+
+  return count < minLinkCount ? false : true;
 }
 
 } // namespace facebook::fboss

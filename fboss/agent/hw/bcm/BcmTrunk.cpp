@@ -82,8 +82,15 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
       if (none_of(members.begin(), members.end(), [&](auto& mem) {
             return mem.gport == memberGport;
           })) {
-        // TODO - handle members that transitioned to down during warmboot
+        // if a member port transitioned down before warm boot, link scan
+        // will remove member from trunk and update port state. LACP
+        // watches port state and removes member from Aggport. In a rare
+        // scenario where warm boot shut down happened after port was
+        // removed from trunk but before LACP reacts to port down, we add
+        // it back here. However this will be short lived since
+        // linkUp/DownHwLocked will be involked at end of warmboot init.
         XLOG(INFO) << "Found disabled member port " << subPort;
+        modifyMemberPort(true, subPort);
       } else {
         trunkStats_.grantMembership(subPort);
       }

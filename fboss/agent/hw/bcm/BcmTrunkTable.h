@@ -52,9 +52,11 @@ class BcmTrunkTable {
   // Serialize to folly::dynamic
   folly::dynamic toFollyDynamic() const;
 
-  bcm_trunk_t linkDownHwNotLocked(bcm_port_t port);
+  bcm_trunk_t linkDownHwNotLocked(bcm_port_t port) const;
 
   void updateStats();
+
+  bool isMinLinkMet(bcm_trunk_t trunk) const;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -350,9 +350,22 @@ void BcmHost::programToTrunk(
   hw_->writableEgressManager()->updatePortToEgressMapping(
       getEgressId(), getSetPortAsGPort(), BcmTrunk::asGPort(trunk));
 
-  hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
-      getEgressId(), BcmEcmpEgress::Action::EXPAND);
-
+  // ARP/ND will resolve over trunk only if minlink condition is met.
+  // However during warm boot, port might have changed
+  // to down state resulting in member removal. Agg port should go down
+  // and ARP/ND should purge entries in this case. But in a rare scenario
+  // where ARP doesn't get chance to purge, warm boot restore can come here.
+  // check for minlink condition before expanding ECMP
+  if (hw_->getTrunkTable()->isMinLinkMet(trunk)) {
+    hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
+        getEgressId(), BcmEcmpEgress::Action::EXPAND);
+  } else {
+    XLOG(INFO)
+        << "Skip adding trunk to ECMP since minLink condition is not met for trunk "
+        << trunk;
+    hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
+        getEgressId(), BcmEcmpEgress::Action::SKIP);
+  }
   egressPort_ = newEgressPort;
   action_ = NEXTHOPS;
 }
@@ -429,6 +442,11 @@ void BcmHostTable::warmBootHostEntriesSynced() {
     if (hw_->isPortUp(PortID(idx))) {
       hw_->writableEgressManager()->linkUpHwLocked(idx);
     } else {
+      auto trunk = hw_->getTrunkTable()->linkDownHwNotLocked(idx);
+      if (trunk != BcmTrunk::INVALID) {
+        XLOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
+        hw_->writableEgressManager()->trunkDownHwNotLocked(trunk);
+      }
       hw_->writableEgressManager()->linkDownHwLocked(idx);
     }
   }

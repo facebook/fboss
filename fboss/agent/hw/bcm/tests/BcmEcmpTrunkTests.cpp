@@ -122,10 +122,6 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
   std::unique_ptr<EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
-TEST_F(BcmEcmpTrunkTest, TrunkRemovedFromEcmpWithMinLinks) {
-  runEcmpWithTrunkMinLinks(2);
-}
-
 TEST_F(BcmEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
   runEcmpWithTrunkMinLinks(1);
 }
