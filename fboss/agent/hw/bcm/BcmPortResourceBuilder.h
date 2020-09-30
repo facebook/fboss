@@ -44,13 +44,15 @@ class BcmPortResourceBuilder {
 
   int getBaseLane(std::shared_ptr<Port> port);
 
+  void setPortSpecificControls(bcm_port_t bcmPort, bool enable);
+
   BcmSwitch* hw_;
   BcmPort* controllingPort_{nullptr};
   BcmPortGroup::LaneMode desiredLaneMode_;
   int numRemovedPorts_{0};
   int numAddedPorts_{0};
   bcm_port_t basePhysicalPort_{-1};
-  std::vector<bcm_port_resource_t> ports_;
+  std::vector<bcm_port_resource_t> portResources_;
 };
 
 } // namespace facebook::fboss

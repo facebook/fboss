@@ -13,10 +13,19 @@
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
+
+extern "C" {
+#include <bcm/switch.h>
+}
+
+namespace {
+const int kBcmL2DeleteStatic = 0x1;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -32,11 +41,11 @@ BcmPortResourceBuilder::BcmPortResourceBuilder(
 
 void BcmPortResourceBuilder::removePorts(const std::vector<BcmPort*>& ports) {
   // BRCM SDK limits all the remove ports should be in front of the final array
-  if (!ports_.empty()) {
+  if (!portResources_.empty()) {
     throw FbossError(
         "All the removed ports should be in front of the final array. ",
         "Current array size:",
-        ports_.size());
+        portResources_.size());
   }
 
   const auto& chips = hw_->getPlatform()->getDataPlanePhyChips();
@@ -63,7 +72,7 @@ void BcmPortResourceBuilder::removePorts(const std::vector<BcmPort*>& ports) {
       basePhysicalPort_ = oldPortRes.physical_port;
     }
     oldPortRes.physical_port = -1; /* -1: delete port */
-    ports_.push_back(oldPortRes);
+    portResources_.push_back(oldPortRes);
   }
   numRemovedPorts_ = ports.size();
 }
@@ -134,7 +143,7 @@ int BcmPortResourceBuilder::getBaseLane(std::shared_ptr<Port> port) {
 std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     const std::vector<std::shared_ptr<Port>>& ports) {
   // BRCM SDK limits all the remove ports should be in front of the final array
-  if (ports_.empty()) {
+  if (portResources_.empty()) {
     throw FbossError(
         "All the added ports should be after removed ports in the final array.",
         " Current array is empty");
@@ -157,6 +166,7 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
   for (auto port : filteredPorts) {
     auto profileConf =
         hw_->getPlatform()->getPortProfileConfig(port->getProfileID());
+    auto platformPort = hw_->getPlatform()->getPlatformPort(port->getID());
     if (!profileConf) {
       throw FbossError(
           "Port: ",
@@ -175,39 +185,94 @@ std::vector<std::shared_ptr<Port>> BcmPortResourceBuilder::addPorts(
     newPortRes.lanes = desiredLaneMode_;
     newPortRes.speed = static_cast<int>(*(*profileConf).speed_ref());
     newPortRes.fec_type = utility::phyFecModeToBcmPortPhyFec(
-        *(*profileConf).iphy_ref()->fec_ref());
+        platformPort->shouldDisableFEC() ? phy::FecMode::NONE
+                                         : profileConf->get_iphy().get_fec());
+    newPortRes.phy_lane_config = utility::getDesiredPhyLaneConfig(*profileConf);
     newPortRes.link_training = 0; /* turn off link training as default */
-    // set lane_config as default and then will let BcmPort::setPortResource
-    // program the correct config later when it get the medium type and
-    // modulation.
-    newPortRes.phy_lane_config = -1;
-    ports_.push_back(newPortRes);
+    portResources_.push_back(newPortRes);
   }
 
   numAddedPorts_ = filteredPorts.size();
   return filteredPorts;
 }
 
+// Some *_switch_control_set operations are performed on a port-by-port basis
+// These controls are not updated by the flexport API, so we need to disable
+// these controls before changing port groups, and then re-enable them after
+void BcmPortResourceBuilder::setPortSpecificControls(
+    bcm_port_t bcmPort,
+    bool enable) {
+  auto enableStr = enable ? "enable" : "disable";
+  auto enableInt = enable ? 1 : 0;
+  int unit_ = hw_->getUnit();
+  int rv = bcm_switch_control_port_set(
+      unit_, bcmPort, bcmSwitchArpRequestToCpu, enableInt);
+  bcmCheckError(
+      rv, "failed to ", enableStr, " ARP request trapping for port ", bcmPort);
+
+  rv = bcm_switch_control_port_set(
+      unit_, bcmPort, bcmSwitchArpReplyToCpu, enableInt);
+  bcmCheckError(
+      rv, "failed to ", enableStr, " ARP reply trapping for port", bcmPort);
+
+  rv = bcm_switch_control_port_set(
+      unit_, bcmPort, bcmSwitchDhcpPktDrop, enableInt);
+  bcmCheckError(
+      rv, "failed to ", enableStr, " DHCP dropping for port ", bcmPort);
+
+  rv = bcm_switch_control_port_set(
+      unit_, bcmPort, bcmSwitchDhcpPktToCpu, enableInt);
+  bcmCheckError(
+      rv, "failed to ", enableStr, " DHCP request trapping for port ", bcmPort);
+
+  rv = bcm_switch_control_port_set(
+      unit_, bcmPort, bcmSwitchNdPktToCpu, enableInt);
+  bcmCheckError(rv, "failed to ", enableStr, " ND trapping for port ", bcmPort);
+}
+
 void BcmPortResourceBuilder::program() {
-  if (ports_.empty()) {
+  if (portResources_.empty()) {
     throw FbossError(
         "Can't program the portresource build since the final array is empty");
   }
+  int unit_ = hw_->getUnit();
 
   XLOG(INFO) << "About to reconfigure port group of for control port: "
              << controllingPort_->getPortID()
              << ", from port size: " << numRemovedPorts_
              << " to port size: " << numAddedPorts_;
 
-  for (const auto& portRes : ports_) {
+  std::vector<bcm_port_t> oldPortIDs;
+  std::vector<bcm_port_t> newPortIDs;
+  auto i = 0;
+  for (const auto& portRes : portResources_) {
     XLOG(INFO) << "Set port resource. logical_id:" << portRes.port
                << ", physical_port:" << portRes.physical_port
                << ", lanes:" << portRes.lanes;
+    if (i < numRemovedPorts_) {
+      oldPortIDs.push_back(portRes.port);
+    } else {
+      newPortIDs.push_back(portRes.port);
+    }
+    i++;
+  }
+
+  // The flexport API requires us to do the following for all ports:
+  // * remove any l2 forwarding entries for the port
+  // * disable any switch_control that may be set for the port
+  for (auto port : oldPortIDs) {
+    int rv = bcm_l2_addr_delete_by_port(unit_, -1, port, kBcmL2DeleteStatic);
+    bcmCheckError(
+        rv,
+        "failed to delete static + non-static l2 entries for bcmPort ",
+        port);
+
+    setPortSpecificControls(port, false);
   }
 
   // Use Flex Port Api to program the port resources list
   auto rv = bcm_port_resource_multi_set(
-      hw_->getUnit(), numRemovedPorts_ + numAddedPorts_, ports_.data());
+      hw_->getUnit(), numRemovedPorts_ + numAddedPorts_, portResources_.data());
   bcmCheckError(
       rv,
       "Fail to configure multiple port resources for controlling port: ",
@@ -216,6 +281,13 @@ void BcmPortResourceBuilder::program() {
       numRemovedPorts_,
       ", newly add port size: ",
       numAddedPorts_);
+
+  // Enable any per-port switch_controls that we previously cleared
+  for (auto port : newPortIDs) {
+    bcm_port_resource_t resource;
+    bcm_port_resource_get(unit_, port, &resource);
+    setPortSpecificControls(port, true);
+  }
 }
 
 } // namespace facebook::fboss

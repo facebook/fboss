@@ -23,10 +23,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
-extern "C" {
-#include <bcm/switch.h>
-}
-
 namespace {
 using facebook::fboss::BcmPortGroup;
 using facebook::fboss::FbossError;
@@ -34,9 +30,6 @@ using facebook::fboss::LaneSpeeds;
 using facebook::fboss::Port;
 using facebook::fboss::PortID;
 using facebook::fboss::cfg::PortSpeed;
-
-const int kBcmL2DeleteStatic = 0x1;
-const int kBcmL2DeletePending = 0x2;
 
 void setLanesControl(int unit, bcm_port_t port, unsigned lanes) {
   int rv = bcm_port_control_set(unit, port, bcmPortControlLanes, lanes);
@@ -256,60 +249,6 @@ void BcmPortGroup::reconfigureIfNeeded(
   }
 }
 
-// Some *_switch_control_set operations are performed on a port-by-port basis
-// These controls are not updated by the flexport API, so we need to disable
-// these controls before changing port groups, and then re-enable them after
-void BcmPortGroup::setPortSpecificControls(
-    const BcmPort& bcmPort,
-    bool enable) {
-  int unit_ = hw_->getUnit();
-  int rv = bcm_switch_control_port_set(
-      unit_, bcmPort.getBcmPortId(), bcmSwitchArpRequestToCpu, enable);
-  auto enableStr = enable ? "enable" : "disable";
-  bcmCheckError(
-      rv,
-      "failed to ",
-      enableStr,
-      " ARP request trapping for port ",
-      bcmPort.getPortID());
-
-  rv = bcm_switch_control_port_set(
-      unit_, bcmPort.getBcmPortId(), bcmSwitchArpReplyToCpu, enable);
-  bcmCheckError(
-      rv,
-      "failed to ",
-      enableStr,
-      " ARP reply trapping for port",
-      bcmPort.getPortID());
-
-  rv = bcm_switch_control_port_set(
-      unit_, bcmPort.getBcmPortId(), bcmSwitchDhcpPktDrop, enable);
-  bcmCheckError(
-      rv,
-      "failed to ",
-      enableStr,
-      " DHCP dropping for port ",
-      bcmPort.getPortID());
-
-  rv = bcm_switch_control_port_set(
-      unit_, bcmPort.getBcmPortId(), bcmSwitchDhcpPktToCpu, enable);
-  bcmCheckError(
-      rv,
-      "failed to ",
-      enableStr,
-      " DHCP request trapping for port ",
-      bcmPort.getPortID());
-
-  rv = bcm_switch_control_port_set(
-      unit_, bcmPort.getBcmPortId(), bcmSwitchNdPktToCpu, enable);
-  bcmCheckError(
-      rv,
-      "failed to ",
-      enableStr,
-      " ND trapping for port ",
-      bcmPort.getPortID());
-}
-
 void BcmPortGroup::reconfigureLaneMode(
     const std::vector<std::shared_ptr<Port>>& oldPorts,
     const std::vector<std::shared_ptr<Port>>& newPorts,
@@ -412,27 +351,9 @@ void BcmPortGroup::setActiveLanes(
 void BcmPortGroup::setActiveLanesWithFlexPortApi(
     const std::vector<std::shared_ptr<Port>>& ports,
     LaneMode desiredLaneMode) {
-  int unit_ = hw_->getUnit();
   auto portResBuilder = std::make_unique<BcmPortResourceBuilder>(
       hw_, controllingPort_, desiredLaneMode);
 
-  // The flexport API requires us to do the following for all ports:
-  // * remove any l2 forwarding entries for the port
-  // * disable any switch_control that may be set for the port
-  for (auto port : allPorts_) {
-    int rv = bcm_l2_addr_delete_by_port(
-        unit_, -1, port->getBcmPortId(), kBcmL2DeleteStatic);
-    bcmCheckError(
-        rv,
-        "failed to delete static + non-static l2 entries for port ",
-        port->getPortID());
-    rv = bcm_l2_addr_delete_by_port(
-        unit_, -1, port->getBcmPortId(), kBcmL2DeletePending);
-    bcmCheckError(
-        rv, "failed to delete pending l2 entries for port ", port->getPortID());
-
-    setPortSpecificControls(*port, 0);
-  }
   // First remove all the existing ports
   portResBuilder->removePorts(allPorts_);
   // And then add the new ports
@@ -463,11 +384,6 @@ void BcmPortGroup::setActiveLanesWithFlexPortApi(
   // Finally register this portgroup to all the members
   for (auto& member : allPorts_) {
     member->registerInPortGroup(this);
-  }
-
-  // Enable any per-port switch_control's that we previously cleared
-  for (auto port : allPorts_) {
-    setPortSpecificControls(*port, 1);
   }
 
   // update laneMode_ to the new desiredMode

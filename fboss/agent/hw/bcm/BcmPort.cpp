@@ -33,6 +33,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatformPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
+#include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -1842,8 +1843,18 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
              << ", phy_lane_config=0x" << std::hex
              << desiredPortResource.phy_lane_config;
 
-  auto rv = bcm_port_resource_speed_set(unit_, gport_, &desiredPortResource);
-  bcmCheckError(rv, "failed to set port resource on port ", swPort->getID());
+  bool portState = isEnabled();
+  if (portState) {
+    disable(swPort);
+  }
+  // Remove then add the port back. This is the only way to change the speed.
+  auto portResBuilder = std::make_unique<BcmPortResourceBuilder>(
+      hw_,
+      this,
+      static_cast<BcmPortGroup::LaneMode>(desiredPortResource.lanes));
+  portResBuilder->removePorts({this});
+  portResBuilder->addPorts({swPort});
+  portResBuilder->program();
 }
 
 cfg::PortProfileID BcmPort::getCurrentProfile() const {
