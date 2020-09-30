@@ -57,7 +57,10 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
-          cfg::PacketRxReason::LACP, coppHighPriQueueId)};
+          cfg::PacketRxReason::LACP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+  };
   return rxReasonToQueues;
 }
 
