@@ -286,7 +286,7 @@ TEST_F(HwCoppTest, VerifyCoppPpsLowPri) {
   auto verify = [=]() {
     auto kNumPktsToSend = 60000;
     auto kMinDurationInSecs = 12;
-    const double kVariance = 0.12; // i.e. + or -12%
+    const double kVariance = 0.30; // i.e. + or -30%
 
     auto beforeSecs = getCurrentTime();
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
