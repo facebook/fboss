@@ -381,7 +381,8 @@ bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
 }
 
 bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
-  return addEgressIdHwLocked(hw_->getUnit(), getID(), paths_, path);
+  return addEgressIdHwLocked(
+      hw_->getUnit(), getID(), paths_, path, hw_->getRunState());
 }
 
 bool BcmEcmpEgress::removeEgressIdHwLocked(
@@ -519,7 +520,8 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     int unit,
     EgressId ecmpId,
     const Paths& pathsInSw,
-    EgressId toAdd) {
+    EgressId toAdd,
+    SwitchRunState runState) {
   if (pathsInSw.find(toAdd) == pathsInSw.end()) {
     // Egress id is not part of this ecmp group. Nothing
     // to do.
@@ -575,7 +577,17 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
     obj.ecmp_intf = ecmpId;
     ret = bcm_l3_egress_ecmp_add(unit, &obj, toAdd);
     bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
-    XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+    if (runState < SwitchRunState::INITIALIZED) {
+      // If a port transitioned to down state before warm boot
+      // and in the rare scenario that ARP/ND was not removed,
+      // the ECMP member will be added back here. However this
+      // will be short lived since linkUp/DownHwLocked will be
+      // involked at end of warmboot init.
+      XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                 << " before transitioning to INIT state";
+    } else {
+      XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+    }
   }
   return true;
 }

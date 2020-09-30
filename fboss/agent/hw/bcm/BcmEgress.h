@@ -175,7 +175,8 @@ class BcmEcmpEgress : public BcmEgressBase {
       int unit,
       EgressId ecmpId,
       const Paths& egressIdInSw,
-      EgressId toAdd);
+      EgressId toAdd,
+      SwitchRunState runState);
   static bool
   removeEgressIdHwNotLocked(int unit, EgressId ecmpId, EgressId toRemove);
   static bool

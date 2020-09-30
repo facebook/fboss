@@ -124,7 +124,8 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               hw->getUnit(),
               ecmpAndEgressIds.first,
               ecmpAndEgressIds.second,
-              path);
+              path,
+              hw->getRunState());
           break;
         case BcmEcmpEgress::Action::SHRINK:
           BcmEcmpEgress::removeEgressIdHwLocked(
