@@ -49,6 +49,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
+    case HwAsic::Feature::ACL_COPY_TO_CPU:
       return false;
   }
   return false;

@@ -28,6 +28,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::GET_OBJECT_KEYS:
+    case HwAsic::Feature::ACL_COPY_TO_CPU:
       return true;
 
     case HwAsic::Feature::BUFFER_PROFILE:
