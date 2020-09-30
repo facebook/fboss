@@ -2328,8 +2328,17 @@ void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
 }
 
 folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
-  // TODO
-  return {};
+  folly::F14FastMap<std::string, HwPortStats> portStats;
+  for (auto& bcmPortEntry : *portTable_) {
+    // we currently only target on enabled port
+    if (bcmPortEntry.second->isEnabled()) {
+      auto stat = bcmPortEntry.second->getPortStats();
+      if (stat) {
+        portStats.emplace(bcmPortEntry.second->getPortName(), *stat);
+      }
+    }
+  }
+  return portStats;
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
