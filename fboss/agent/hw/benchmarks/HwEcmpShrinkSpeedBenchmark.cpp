@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -53,26 +54,29 @@ BENCHMARK(HwEcmpGroupShrink) {
       hwSwitch,
       ecmpHelper.ecmpPortDescriptorAt(0).phyPortID(),
       cfg::PortLoopbackMode::NONE);
-  // We restart benchmarking ASAP *after* we have triggered port down
-  // event above. This is analogous to starting a timer immediately
-  // after a event that triggers a port down event. However, with such
-  // a low interval benchmark its possible that link down handling and
-  // ecmp shrink already occurs while we are restarting the timer. However,
-  // if we ever introduce slowness in ecmp shrink path, we should still
-  // notice it since restarting the timer/benchmark is happening at program
-  // execution speed.
-  // An alternative approach would be to start the timer/benchmark, before
-  // triggering the link down event. Unfortunately, that's not feasible, since
-  // the executing the API call to trigger link down above is relatively slow -
-  // starting the timer before link down increases the benchmark time by order
-  // of magnitude.
-  suspender.dismiss();
-  // Busy loop to see how soon after port down do we shrink ECMP group
-  while (
-      getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth) !=
-      kEcmpWidth - 1)
-    ;
-  suspender.rehire();
+  {
+    ScopedCallTimer timeIt;
+    // We restart benchmarking ASAP *after* we have triggered port down
+    // event above. This is analogous to starting a timer immediately
+    // after a event that triggers a port down event. However, with such
+    // a low interval benchmark its possible that link down handling and
+    // ecmp shrink already occurs while we are restarting the timer. However,
+    // if we ever introduce slowness in ecmp shrink path, we should still
+    // notice it since restarting the timer/benchmark is happening at program
+    // execution speed.
+    // An alternative approach would be to start the timer/benchmark, before
+    // triggering the link down event. Unfortunately, that's not feasible, since
+    // the executing the API call to trigger link down above is relatively slow
+    // - starting the timer before link down increases the benchmark time by
+    // order of magnitude.
+    suspender.dismiss();
+    // Busy loop to see how soon after port down do we shrink ECMP group
+    while (getEcmpSizeInHw(
+               hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth) !=
+           kEcmpWidth - 1) {
+    }
+    suspender.rehire();
+  }
 }
 
 } // namespace facebook::fboss

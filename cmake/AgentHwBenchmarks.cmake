@@ -143,6 +143,7 @@ target_link_libraries(hw_ecmp_shrink_speed
   hw_packet_utils
   ecmp_helper
   hw_benchmark_main
+  function_call_time_reporter
   Folly::folly
 )
 
@@ -156,6 +157,7 @@ target_link_libraries(hw_ecmp_shrink_with_competing_route_updates_speed
   hw_packet_utils
   ecmp_helper
   hw_benchmark_main
+  function_call_time_reporter
   Folly::folly
 )
 
