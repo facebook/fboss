@@ -26,6 +26,10 @@
 #include <iostream>
 
 DEFINE_bool(json, true, "Output in json form");
+DEFINE_bool(
+    setup_for_warmboot,
+    false,
+    "Set to true will prepare the device for warmboot");
 
 namespace {
 class StopWatch {
