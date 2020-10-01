@@ -363,9 +363,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto mediaType =
       utility::getSaiPortMediaType(platformPort->getTransmitterTech(), speed);
 
-  auto enableFec = (speed >= cfg::PortSpeed::HUNDREDG) ||
-      ((swPort->getFEC() != cfg::PortFEC::OFF) &&
-       (!platformPort->shouldDisableFEC()));
+  auto enableFec =
+      (speed >= cfg::PortSpeed::HUNDREDG) || !platformPort->shouldDisableFEC();
 
   SaiPortTraits::Attributes::FecMode fecMode;
   if (!enableFec) {

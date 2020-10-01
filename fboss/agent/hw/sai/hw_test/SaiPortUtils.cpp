@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
@@ -450,9 +451,23 @@ void verifyRxSettting(
 }
 
 void verifyFec(
-    PortID /*portID*/,
-    cfg::PortProfileID /*profileID*/,
-    Platform* /*platform*/) {
-  // TODO: verify FEC
+    PortID portID,
+    cfg::PortProfileID profileID,
+    Platform* platform) {
+  auto* saiPlatform = static_cast<SaiPlatform*>(platform);
+  auto* saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto* saiPortHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+
+  // retrive configured fec.
+  auto expectedFec =
+      utility::getSaiPortFecMode(platform->getPhyFecMode(profileID));
+
+  // retrive programmed fec.
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  auto programmedFec = portApi.getAttribute(
+      saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::FecMode{});
+
+  EXPECT_EQ(expectedFec, programmedFec);
 }
 } // namespace facebook::fboss::utility
