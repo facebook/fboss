@@ -206,7 +206,8 @@ void SaiSwitch::unregisterCallbacks() noexcept {
 
   // linkscan is turned off and the evb loop is set to break
   // just need to block until the last event is processed
-  if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
     linkStateBottomHalfEventBase_.terminateLoopSoon();
     linkStateBottomHalfThread_->join();
     // link scan is completely shut-off
@@ -901,11 +902,18 @@ void SaiSwitch::packetRxCallback(
 void SaiSwitch::unregisterCallbacksLocked(
     const std::lock_guard<std::mutex>& /* lock */) noexcept {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
-    switchApi.unregisterPortStateChangeCallback(switchId_);
-  }
-  if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
-    switchApi.unregisterRxCallback(switchId_);
+  /*
+   * Ungregister callbacks based on the run state. fdb is registered
+   * in initialized state and linkscan and packet rx callbacks are
+   * registered in configured state.
+   */
+  if (runState_ >= SwitchRunState::CONFIGURED) {
+    if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
+      switchApi.unregisterPortStateChangeCallback(switchId_);
+    }
+    if (getFeaturesDesired() & FeaturesDesired::PACKET_RX_DESIRED) {
+      switchApi.unregisterRxCallback(switchId_);
+    }
   }
   switchApi.unregisterFdbEventCallback(switchId_);
 }
