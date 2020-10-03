@@ -17,7 +17,10 @@ namespace facebook::fboss {
 
 class SaiTxPacket : public TxPacket {
  public:
-  explicit SaiTxPacket(uint32_t size);
+  explicit SaiTxPacket(uint32_t size) {
+    buf_ = folly::IOBuf::createCombined(size);
+    buf_->append(size);
+  }
 };
 
 } // namespace facebook::fboss
