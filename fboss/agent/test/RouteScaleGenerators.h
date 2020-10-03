@@ -73,4 +73,13 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 };
 
+class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  explicit TurboFSWRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
+};
+
 } // namespace facebook::fboss::utility

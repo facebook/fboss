@@ -194,4 +194,36 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
           ecmpWidth,
           routerId) {}
 
+TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    RouterID routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          {
+              {
+                  46,
+                  (95 + // Pod Aggregates
+                   11 + // Pods Within the Mesh
+                   84) // Pods Outside the Mesh
+              },
+              {
+                  56,
+                  (95 + // Pod Aggregates
+                   11 + // Pods Within the Mesh
+                   84) // Pods Outside the Mesh
+              },
+              {64, 11}, // Pod RSW Loopback Aggregates
+              {128, 11}, // FSW Loopbacks
+          },
+          // v4 distribution
+          {
+              {26, 11}, // Pod RSW Loopback Aggregates
+              {32, 11}, // FSW Loopbacks
+          },
+          chunkSize,
+          ecmpWidth,
+          routerId) {}
+
 } // namespace facebook::fboss::utility

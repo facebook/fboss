@@ -64,4 +64,13 @@ TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
   verifyChunking(routeDistributionGen, 48350, kChunkSize);
 }
 
+TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
+  auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
+  auto routeDistributionGen = utility::TurboFSWRouteScaleGenerator(
+      createTestState(mockPlatform.get()), kChunkSize, 2);
+
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 424);
+  verifyChunking(routeDistributionGen, 424, kChunkSize);
+}
+
 } // namespace facebook::fboss
