@@ -98,6 +98,7 @@ class DiagShell {
       const std::string& input,
       const std::optional<std::string>& result = std::nullopt) const;
   std::unique_ptr<Repl> makeRepl() const;
+  std::string getDelimiterDiagCmd(const std::string& UUID) const;
 
   std::unique_ptr<detail::PtyMaster> ptym_;
   std::unique_ptr<detail::PtySlave> ptys_;

@@ -224,6 +224,32 @@ DiagShell::~DiagShell() noexcept {
   }
 }
 
+std::string DiagShell::getDelimiterDiagCmd(const std::string& UUID) const {
+  /* Returns the command used for separating each diagCmd,
+   * which varies between platform.
+   */
+  switch (hw_->getPlatform()->getMode()) {
+    case PlatformMode::WEDGE:
+    case PlatformMode::WEDGE100:
+    case PlatformMode::GALAXY_LC:
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::MINIPACK:
+    case PlatformMode::YAMP:
+    case PlatformMode::WEDGE400:
+    case PlatformMode::FUJI:
+    case PlatformMode::ELBERT:
+      return UUID + "\n";
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400C_SIM:
+      return folly::to<std::string>("print('", UUID, "')\n");
+    case PlatformMode::FAKE_WEDGE:
+    case PlatformMode::FAKE_WEDGE40:
+      throw FbossError("Shell not supported for fake platforms");
+  }
+  CHECK(0) << " Should never get here";
+  return "";
+}
+
 void DiagShell::consumeInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
