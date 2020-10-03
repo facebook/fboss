@@ -78,7 +78,11 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
   explicit TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,
       unsigned int chunkSize = kDefaultChunkSize,
-      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      // in reality, 33 are mesh links and 36 are ssw links, giving total of 69,
+      // but approaximating to 64 for now, as total number of ports in test
+      // platform on minimpack are 64.
+      // TODO: extend it beyond 64 and then can be 69
+      unsigned int ecmpWidth = 64,
       RouterID routerId = RouterID(0));
 };
 

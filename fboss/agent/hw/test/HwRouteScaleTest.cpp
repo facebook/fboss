@@ -77,4 +77,10 @@ TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
       {PlatformMode::MINIPACK, PlatformMode::YAMP, PlatformMode::WEDGE400});
 }
 
+TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
+  runTest<utility::TurboFSWRouteScaleGenerator>({PlatformMode::MINIPACK,
+                                                 PlatformMode::YAMP,
+                                                 PlatformMode::WEDGE400,
+                                                 PlatformMode::WEDGE400C});
+}
 } // namespace facebook::fboss
