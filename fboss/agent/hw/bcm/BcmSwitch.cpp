@@ -796,6 +796,12 @@ HwInitResult BcmSwitch::init(Callback* callback) {
     bcmCheckError(rv, "failed to set L3 egress mode");
   }
 
+  if (getPlatform()->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    rv = bcm_l3_enable_set(unit_, 1);
+    bcmCheckError(rv, "failed to enable l3");
+  }
+
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
   // TODO: We may want to trap ARP on a per-port or per-VLAN basis.
   rv = bcm_switch_control_set(unit_, bcmSwitchArpRequestToCpu, 1);

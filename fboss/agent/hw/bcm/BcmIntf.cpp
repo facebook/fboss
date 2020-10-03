@@ -222,6 +222,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
       bcmIfId_ = ifParams.l3a_intf_id;
+      programIngressIfNeeded(intf);
     }
     if (vlanMac2IntfItr != warmBootCache->vlanAndMac2Intf_end()) {
       warmBootCache->programmed(vlanMac2IntfItr);
@@ -234,6 +235,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     if (updateIntfIfNeeded(ifParams, oldIfParams)) {
       auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
       bcmCheckError(rc, "failed to update L3 interface ", intf->getID());
+      programIngressIfNeeded(intf, true);
     }
   }
   std::unordered_set<std::shared_ptr<BcmHost>> hosts;
@@ -262,6 +264,34 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
              << intf->getID();
 }
 
+void BcmIntf::programIngressIfNeeded(
+    const std::shared_ptr<Interface>& intf,
+    bool replace) {
+  auto asic = hw_->getPlatform()->getAsic()->getAsicType();
+  if (asic != HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    return;
+  }
+  bcm_l3_ingress_t l3_ingress;
+  bcm_l3_ingress_t_init(&l3_ingress);
+  l3_ingress.flags = BCM_L3_INGRESS_WITH_ID;
+  if (replace) {
+    l3_ingress.flags |= BCM_L3_INGRESS_REPLACE;
+  }
+  bcm_if_t ingress_if = bcmIfId_;
+  l3_ingress.vrf = BcmSwitch::getBcmVrfId(intf->getRouterID());
+  auto rc = bcm_l3_ingress_create(hw_->getUnit(), &l3_ingress, &ingress_if);
+  bcmCheckError(
+      rc, "failed to create or update ingress L3 interface ", intf->getID());
+  bcmIngIfId_ = ingress_if;
+
+  bcm_vlan_control_vlan_t vlan_ctrl;
+  bcm_vlan_control_vlan_t_init(&vlan_ctrl);
+  bcm_vlan_control_vlan_get(hw_->getUnit(), intf->getVlanID(), &vlan_ctrl);
+  vlan_ctrl.ingress_if = ingress_if;
+  rc = bcm_vlan_control_vlan_set(hw_->getUnit(), intf->getVlanID(), vlan_ctrl);
+  bcmCheckError(rc, "failed to set vlan control ", intf->getVlanID());
+}
+
 BcmIntf::~BcmIntf() {
   if (bcmIfId_ == INVALID) {
     return;
@@ -275,6 +305,10 @@ BcmIntf::~BcmIntf() {
   auto rc = bcm_l3_intf_delete(hw_->getUnit(), &ifParams);
   bcmLogFatal(rc, hw_, "failed to delete L3 interface ", bcmIfId_);
   XLOG(DBG3) << "deleted L3 interface " << bcmIfId_;
+  if (bcmIngIfId_ != INVALID) {
+    rc = bcm_l3_ingress_destroy(hw_->getUnit(), bcmIfId_);
+    bcmCheckError(rc, "failed to destroy ingress L3 interface ", bcmIfId_);
+  }
 }
 
 std::shared_ptr<BcmLabeledTunnel> BcmIntf::getBcmLabeledTunnel(

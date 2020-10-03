@@ -83,12 +83,16 @@ class BcmIntf {
   // no copy or assignment
   BcmIntf(BcmIntf const&) = delete;
   BcmIntf& operator=(BcmIntf const&) = delete;
+  void programIngressIfNeeded(
+      const std::shared_ptr<Interface>& intf,
+      bool replace = false);
   enum : bcm_if_t {
     INVALID = -1,
   };
   BcmSwitch* hw_;
   std::shared_ptr<Interface> intf_;
   bcm_if_t bcmIfId_{INVALID};
+  bcm_if_t bcmIngIfId_{INVALID};
   // TODO: we now generate one station entry per interface, even if all
   //       interfaces are sharing the same MAC. We can save some station
   //       entries by just generate one per different MAC. But with
