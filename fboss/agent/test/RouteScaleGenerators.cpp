@@ -10,6 +10,10 @@
 
 #include "fboss/agent/test/RouteScaleGenerators.h"
 
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+
 namespace facebook::fboss::utility {
 
 /*
@@ -226,4 +230,78 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
           ecmpWidth,
           routerId) {}
 
+const RouteDistributionGenerator::SwitchStates&
+TurboFSWRouteScaleGenerator::getSwitchStates() const {
+  auto& generatedStates = getGeneratedStates();
+  if (generatedStates) {
+    return *generatedStates;
+  }
+  generatedStates = SwitchStates();
+  auto state = startingState();
+
+  auto ecmpHelper4 = EcmpSetupTargetedPorts4(state);
+  auto ecmpHelper6 = EcmpSetupTargetedPorts6(state);
+  auto width = ecmpWidth();
+
+  CHECK_GE(width, 32);
+  size_t unlabeledPortsSize = width - 32;
+
+  std::map<PortDescriptor, LabelForwardingAction::LabelStack> labels{};
+  boost::container::flat_set<PortDescriptor> unlabeledPorts{};
+  boost::container::flat_set<PortDescriptor> labeledPorts{};
+  boost::container::flat_set<PortDescriptor> allPorts{};
+
+  for (auto port : *state->getPorts()) {
+    if (!port->isEnabled()) {
+      continue;
+    }
+    allPorts.insert(PortDescriptor(port->getID()));
+  }
+  CHECK_GE(allPorts.size(), width);
+
+  for (auto i = 0; i < width; i++) {
+    auto iPortId = *(allPorts.begin() + i);
+    if (i < unlabeledPortsSize) {
+      unlabeledPorts.insert(iPortId);
+    } else {
+      labeledPorts.insert(iPortId);
+      LabelForwardingAction::LabelStack stack{1001 + i};
+      labels.emplace(PortDescriptor(iPortId), stack);
+    }
+  }
+
+  auto nhopsResolvedState =
+      ecmpHelper6.resolveNextHops(startingState(), unlabeledPorts);
+  nhopsResolvedState =
+      ecmpHelper6.resolveNextHops(nhopsResolvedState, labeledPorts);
+  nhopsResolvedState =
+      ecmpHelper4.resolveNextHops(nhopsResolvedState, unlabeledPorts);
+  nhopsResolvedState =
+      ecmpHelper4.resolveNextHops(nhopsResolvedState, labeledPorts);
+  nhopsResolvedState->publish();
+  generatedStates->push_back(nhopsResolvedState);
+
+  for (const auto& routeChunk : get()) {
+    std::vector<RoutePrefixV6> v6Prefixes;
+    std::vector<RoutePrefixV4> v4Prefixes;
+    for (const auto& route : routeChunk) {
+      const auto& cidrNetwork = route.prefix;
+      if (cidrNetwork.first.isV6()) {
+        v6Prefixes.emplace_back(
+            RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
+      } else {
+        v4Prefixes.emplace_back(
+            RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
+      }
+    }
+    auto newState = generatedStates->back()->clone();
+    newState = ecmpHelper6.setupIp2MplsECMPForwarding(
+        newState, allPorts, labels, v6Prefixes);
+    newState = ecmpHelper4.setupIp2MplsECMPForwarding(
+        newState, allPorts, labels, v4Prefixes);
+    generatedStates->push_back(newState);
+  }
+
+  return *generatedStates;
+}
 } // namespace facebook::fboss::utility

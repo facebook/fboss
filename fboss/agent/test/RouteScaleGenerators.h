@@ -84,6 +84,8 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       // TODO: extend it beyond 64 and then can be 69
       unsigned int ecmpWidth = 64,
       RouterID routerId = RouterID(0));
+
+  const SwitchStates& getSwitchStates() const;
 };
 
 } // namespace facebook::fboss::utility

@@ -63,6 +63,14 @@ class RouteDistributionGenerator {
     return chunkSize_;
   }
 
+ protected:
+  std::optional<SwitchStates>& getGeneratedStates() const {
+    return generatedStates_;
+  }
+  std::optional<SwitchStates>& getGeneratedStates() {
+    return generatedStates_;
+  }
+
  private:
   template <typename AddrT>
   const std::vector<folly::IPAddress>& getNhops() const;

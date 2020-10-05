@@ -22,25 +22,16 @@ namespace facebook::fboss {
 // Random test state with 2 ports and 2 vlans
 std::shared_ptr<SwitchState> createTestState(Platform* platform) {
   cfg::SwitchConfig cfg;
-
-  std::array<string, 2> v4IntefacePrefixes = {
-      "10.0.0.1/24",
-      "20.20.20.2/24",
-  };
-  std::array<string, 2> v6IntefacePrefixes = {
-      "2400::1/64",
-      "2620::1/64",
-  };
-
-  cfg.ports_ref()->resize(2);
-  cfg.vlans_ref()->resize(2);
-  cfg.vlanPorts_ref()->resize(2);
-  cfg.interfaces_ref()->resize(2);
-  for (int i = 0; i < 2; ++i) {
+  cfg.ports_ref()->resize(64);
+  cfg.vlans_ref()->resize(64);
+  cfg.vlanPorts_ref()->resize(64);
+  cfg.interfaces_ref()->resize(64);
+  for (int i = 0; i < 64; ++i) {
     auto id = i + 1;
     // port
     *cfg.ports_ref()[i].logicalID_ref() = id;
     cfg.ports_ref()[i].name_ref() = folly::to<string>("port", id);
+    cfg.ports_ref()[i].state_ref() = cfg::PortState::ENABLED;
     // vlans
     *cfg.vlans_ref()[i].id_ref() = id;
     *cfg.vlans_ref()[i].name_ref() = folly::to<string>("Vlan", id);
@@ -57,8 +48,10 @@ std::shared_ptr<SwitchState> createTestState(Platform* platform) {
         folly::to<string>("00:02:00:00:00:", id);
     cfg.interfaces_ref()[i].mtu_ref() = 9000;
     cfg.interfaces_ref()[i].ipAddresses_ref()->resize(2);
-    cfg.interfaces_ref()[i].ipAddresses_ref()[0] = v4IntefacePrefixes[i];
-    cfg.interfaces_ref()[i].ipAddresses_ref()[1] = v6IntefacePrefixes[i];
+    cfg.interfaces_ref()[i].ipAddresses_ref()[0] =
+        folly::to<std::string>("10.0.", id, ".0/24");
+    cfg.interfaces_ref()[i].ipAddresses_ref()[1] =
+        folly::to<std::string>("2400:", id, "::/64");
   }
   return applyThriftConfig(std::make_shared<SwitchState>(), &cfg, platform);
 }

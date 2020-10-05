@@ -27,7 +27,7 @@ class Platform;
 
 // Random test state with 2 ports and 2 vlans
 std::shared_ptr<SwitchState> createTestState(Platform* platform);
-constexpr auto kExtraRoutes = 4 /*interface route*/ + 1 /*link local route*/;
+constexpr auto kExtraRoutes = 128 /*interface route*/ + 1 /*link local route*/;
 uint64_t getRouteCount(const std::shared_ptr<SwitchState>& state);
 
 template <typename AddrT>

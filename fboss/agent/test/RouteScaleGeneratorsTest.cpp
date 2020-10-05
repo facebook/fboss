@@ -67,8 +67,7 @@ TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
 TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
   auto mockPlatform = std::make_unique<testing::NiceMock<MockPlatform>>();
   auto routeDistributionGen = utility::TurboFSWRouteScaleGenerator(
-      createTestState(mockPlatform.get()), kChunkSize, 2);
-
+      createTestState(mockPlatform.get()), kChunkSize, 64);
   verifyRouteCount(routeDistributionGen, kExtraRoutes, 424);
   verifyChunking(routeDistributionGen, 424, kChunkSize);
 }
