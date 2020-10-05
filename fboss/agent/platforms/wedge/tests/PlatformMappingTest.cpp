@@ -53,6 +53,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   auto mapping = std::make_unique<Wedge400PlatformMapping>();
   for (auto port : mapping->getPlatformPorts()) {
     const auto& profiles = *port.second.supportedProfiles_ref();
+
     // Only downlink ports has 10G profile
     if (profiles.find(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER) ==
         profiles.end()) {
@@ -68,7 +69,6 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
 
       for (auto pinCfg : pinCfgs) {
         auto tx = pinCfg.tx_ref();
-        // Only NRZ mode has override tx
         if (*itProfileCfg->second.iphy_ref()->modulation_ref() ==
             phy::IpModulation::NRZ) {
           EXPECT_TRUE(tx.has_value());
@@ -78,6 +78,21 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           EXPECT_EQ(*tx->post_ref(), 0);
           EXPECT_EQ(*tx->post2_ref(), 0);
           EXPECT_EQ(*tx->post3_ref(), 0);
+        } else if (
+            *itProfileCfg->second.iphy_ref()->modulation_ref() ==
+            phy::IpModulation::PAM4) {
+          if (profile.first ==
+              cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER) {
+            EXPECT_TRUE(tx.has_value());
+            EXPECT_EQ(*tx->pre2_ref(), 4);
+            EXPECT_EQ(*tx->pre_ref(), -20);
+            EXPECT_EQ(*tx->main_ref(), 140);
+            EXPECT_EQ(*tx->post_ref(), 0);
+            EXPECT_EQ(*tx->post2_ref(), 0);
+            EXPECT_EQ(*tx->post3_ref(), 0);
+          } else {
+            EXPECT_FALSE(tx.has_value());
+          }
         } else {
           EXPECT_FALSE(tx.has_value());
         }
@@ -86,7 +101,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
   }
 
   // Not override case will read directly from PlatformPortConfig
-  std::unordered_map<PortID, std::vector<int>> uplinkTxMap = {
+  std::unordered_map<PortID, std::vector<int>> uplinkTxMapForProfile23 = {
       {PortID(36), {0, -6, 92, -24, 0, 0}},
       {PortID(37), {0, -2, 90, -18, 0, 0}},
       {PortID(56), {0, -2, 90, -18, 0, 0}},
@@ -103,9 +118,10 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       {PortID(117), {0, -2, 90, -18, 0, 0}},
       {PortID(136), {0, -2, 88, -20, 0, 0}},
       {PortID(137), {0, -6, 92, -24, 0, 0}},
-
   };
-  for (auto uplinkTx : uplinkTxMap) {
+
+  for (auto uplinkTx : uplinkTxMapForProfile23) {
+    // this is profile 23
     const auto& pinCfgs = mapping->getPortIphyPinConfigs(
         uplinkTx.first, cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
     EXPECT_EQ(pinCfgs.size(), 4);
@@ -117,6 +133,178 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         EXPECT_EQ(*tx->post_ref(), uplinkTx.second[3]);
         EXPECT_EQ(*tx->post2_ref(), uplinkTx.second[4]);
         EXPECT_EQ(*tx->post3_ref(), uplinkTx.second[5]);
+      }
+    }
+  }
+
+  // profile25 has different tx settings per lane
+  //  {portID: { laneId1: {txSettings1}, laneId2: {txSettings2} .... }}
+  std::unordered_map<PortID, std::unordered_map<int, std::vector<int>>>
+      uplinkTxMapForProfile25 = {
+          {
+              PortID(17),
+              {
+                  {0, {0, -12, 140, -16, 0, 0}},
+                  {1, {0, -12, 140, -16, 0, 0}},
+                  {2, {0, -12, 140, -16, 0, 0}},
+                  {3, {0, -12, 140, -16, 0, 0}},
+              },
+          },
+          {
+              PortID(18),
+              {
+                  {0, {0, -12, 140, -12, 0, 0}},
+                  {1, {0, -12, 140, -16, 0, 0}},
+                  {2, {0, -12, 140, -16, 0, 0}},
+                  {3, {0, -12, 140, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(36),
+              {
+                  {0, {0, -12, 136, -16, 0, 0}},
+                  {1, {0, -12, 136, -16, 0, 0}},
+                  {2, {0, -12, 136, -16, 0, 0}},
+                  {3, {0, -12, 132, -16, 0, 0}},
+              },
+          },
+          {
+              PortID(37),
+              {
+                  {0, {0, -16, 140, -12, 0, 0}},
+                  {1, {0, -16, 140, -12, 0, 0}},
+                  {2, {0, -16, 140, -12, 0, 0}},
+                  {3, {0, -16, 136, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(56),
+              {
+                  {0, {0, -8, 136, -16, 0, 0}},
+                  {1, {0, -12, 140, -16, 0, 0}},
+                  {2, {0, -12, 136, -12, 0, 0}},
+                  {3, {0, -16, 140, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(57),
+              {
+                  {0, {0, -12, 140, -12, 0, 0}},
+                  {1, {0, -12, 136, -12, 0, 0}},
+                  {2, {0, -12, 136, -12, 0, 0}},
+                  {3, {0, -12, 136, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(76),
+              {
+                  {0, {0, -12, 136, -12, 0, 0}},
+                  {1, {0, -12, 136, -12, 0, 0}},
+                  {2, {0, -12, 136, -12, 0, 0}},
+                  {3, {0, -12, 136, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(77),
+              {
+                  {0, {0, -8, 132, -8, 0, 0}},
+                  {1, {0, -8, 136, -8, 0, 0}},
+                  {2, {0, -8, 128, -4, 0, 0}},
+                  {3, {0, -8, 136, -8, 0, 0}},
+              },
+          },
+          {
+              PortID(96),
+              {
+                  {0, {0, -8, 136, -8, 0, 0}},
+                  {1, {0, -8, 136, -8, 0, 0}},
+                  {2, {0, -8, 136, -8, 0, 0}},
+                  {3, {0, -8, 136, -8, 0, 0}},
+              },
+          },
+          {
+              PortID(97),
+              {
+                  {0, {0, -8, 136, -8, 0, 0}},
+                  {1, {0, -8, 136, -8, 0, 0}},
+                  {2, {0, -8, 136, -8, 0, 0}},
+                  {3, {0, -8, 136, -8, 0, 0}},
+              },
+          },
+          {
+              PortID(116),
+              {
+                  {0, {0, -12, 140, -12, 0, 0}},
+                  {1, {0, -12, 136, -12, 0, 0}},
+                  {2, {0, -12, 140, -12, 0, 0}},
+                  {3, {0, -12, 136, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(117),
+              {
+                  {0, {0, -12, 132, -12, 0, 0}},
+                  {1, {0, -12, 132, -12, 0, 0}},
+                  {2, {0, -12, 132, -12, 0, 0}},
+                  {3, {0, -12, 132, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(136),
+              {
+                  {0, {0, -12, 132, -12, 0, 0}},
+                  {1, {0, -12, 132, -16, 0, 0}},
+                  {2, {0, -12, 132, -12, 0, 0}},
+                  {3, {0, -12, 132, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(137),
+              {
+                  {0, {0, -16, 136, -12, 0, 0}},
+                  {1, {0, -8, 128, -16, 0, 0}},
+                  {2, {0, -12, 132, -16, 0, 0}},
+                  {3, {0, -12, 140, -16, 0, 0}},
+              },
+          },
+          {
+              PortID(156),
+              {
+                  {0, {0, -12, 136, -12, 0, 0}},
+                  {1, {0, -12, 136, -12, 0, 0}},
+                  {2, {0, -12, 136, -12, 0, 0}},
+                  {3, {0, -12, 136, -12, 0, 0}},
+              },
+          },
+          {
+              PortID(157),
+              {
+                  {0, {0, -16, 136, -12, 0, 0}},
+                  {1, {0, -16, 136, -12, 0, 0}},
+                  {2, {0, -16, 136, -12, 0, 0}},
+                  {3, {0, -16, 136, -12, 0, 0}},
+              },
+          },
+      };
+
+  for (auto laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile25) {
+    // this is profile 25
+    const auto& pinCfgs = mapping->getPortIphyPinConfigs(
+        laneToUplinkTxSettingsToPortMap.first,
+        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
+    EXPECT_EQ(pinCfgs.size(), 4);
+    for (auto pinCfg : pinCfgs) {
+      auto pinId = *pinCfg.id_ref();
+      auto laneId = *pinId.lane_ref();
+      if (auto tx = pinCfg.tx_ref()) {
+        auto laneToUplinkTxSettinsMap = laneToUplinkTxSettingsToPortMap.second;
+        auto uplinkTxSettings = laneToUplinkTxSettinsMap[laneId];
+        EXPECT_EQ(*tx->pre2_ref(), uplinkTxSettings[0]);
+        EXPECT_EQ(*tx->pre_ref(), uplinkTxSettings[1]);
+        EXPECT_EQ(*tx->main_ref(), uplinkTxSettings[2]);
+        EXPECT_EQ(*tx->post_ref(), uplinkTxSettings[3]);
+        EXPECT_EQ(*tx->post2_ref(), uplinkTxSettings[4]);
+        EXPECT_EQ(*tx->post3_ref(), uplinkTxSettings[5]);
       }
     }
   }

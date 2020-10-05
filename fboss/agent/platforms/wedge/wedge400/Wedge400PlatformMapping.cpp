@@ -13,7 +13,7 @@
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {
-  "ports": {
+ "ports": {
     "1": {
         "mapping": {
           "id": 1,
@@ -2838,24 +2838,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC0",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -3197,24 +3233,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC2",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC2",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -6176,24 +6248,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC4",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -6535,24 +6643,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC6",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC6",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -9514,24 +9658,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC8",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -9873,24 +10053,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC10",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC10",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -12852,24 +13068,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC12",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -13211,24 +13463,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC14",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 128,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC14",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -16190,24 +16478,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC16",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC16",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -16549,24 +16873,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC18",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC18",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -8,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -19528,24 +19888,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC21",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC21",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -19887,24 +20283,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC23",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC23",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -22866,24 +23298,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC25",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC25",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -23225,24 +23693,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC27",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -8,
+                      "pre2": 0,
+                      "main": 128,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 132,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC27",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 140,
+                      "post": -16,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -26204,24 +26708,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC29",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC29",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -12,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -26563,24 +27103,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC31",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "BC31",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -16,
+                      "pre2": 0,
+                      "main": 136,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "amp": 0
                     }
                   }
                 ],
@@ -27768,6 +28344,207 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "pre": -8,
               "pre2": 0,
               "main": 89,
+              "post": 0,
+              "post2": 0,
+              "post3": 0,
+              "amp": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "factor": {
+        "ports": [
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135
+        ],
+        "profiles": [
+          24
+        ]
+      },
+      "pins": {
+        "iphy": [
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 0
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0,
+              "amp": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 1
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0,
+              "amp": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 2
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
+              "post": 0,
+              "post2": 0,
+              "post3": 0,
+              "amp": 0
+            }
+          },
+          {
+            "id": {
+              "chip": "ALL",
+              "lane": 3
+            },
+            "tx": {
+              "pre": -20,
+              "pre2": 4,
+              "main": 140,
               "post": 0,
               "post2": 0,
               "post3": 0,
