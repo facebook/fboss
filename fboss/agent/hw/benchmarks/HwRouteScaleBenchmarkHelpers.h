@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
 #include <folly/Benchmark.h>
+#include "fboss/lib/FunctionCallTimeReporter.h"
 
 namespace facebook::fboss {
 
@@ -32,19 +33,28 @@ void routeAddDelBenchmarker(bool measureAdd) {
   ensemble->applyInitialConfig(config);
   static const auto states =
       RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
+
   if (measureAdd) {
+    ScopedCallTimer timeIt;
     // Activate benchmarker before applying switch states
     // for adding routes to h/w
     suspender.dismiss();
+    for (auto& state : states) {
+      ensemble->applyNewState(state);
+    }
+    // We are about to blow away all routes, before that
+    // deactivate benchmark measurement.
+    suspender.rehire();
+  } else {
+    for (auto& state : states) {
+      ensemble->applyNewState(state);
+    }
+    ScopedCallTimer timeIt;
+    // We are about to blow away all routes, before that
+    // activate benchmark measurement.
+    suspender.dismiss();
+    ensemble.reset();
   }
-  for (auto& state : states) {
-    ensemble->applyNewState(state);
-  }
-  // We are about to blow away all routes, before that
-  // - Deactivate benchmark measurement if we are measuring
-  // route addition
-  // - Activate benchmark if we are measuring route deletion
-  measureAdd ? suspender.rehire() : suspender.dismiss();
 }
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \
