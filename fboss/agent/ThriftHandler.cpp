@@ -1939,4 +1939,8 @@ void ThriftHandler::getHwDebugDump(std::string& out) {
   ensureConfigured(__func__);
   out = sw_->getHw()->getDebugDump();
 }
+
+void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {
+  ret = sw_->getPlatform()->getPlatformMapping()->toThrift();
+}
 } // namespace facebook::fboss

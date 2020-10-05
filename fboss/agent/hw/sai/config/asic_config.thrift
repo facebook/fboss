@@ -1,6 +1,9 @@
 namespace py neteng.fboss.asic_config
+namespace py3 neteng.fboss.asic_config
 namespace py.asyncio neteng.fboss.asyncio.asic_config
 namespace cpp2 facebook.fboss.asic
+namespace go neteng.fboss.asic_config
+namespace php fboss_asic_config
 
 struct SerdesParam {
   1: byte slice_id

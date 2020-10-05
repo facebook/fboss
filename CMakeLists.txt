@@ -207,6 +207,7 @@ add_fbthrift_cpp_library(
     mpls_cpp2
     network_address_cpp2
     optic_cpp2
+    platform_config_cpp2
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(

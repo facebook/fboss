@@ -2,8 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 namespace py neteng.fboss.phy
+namespace py3 neteng.fboss.phy
 namespace py.asyncio neteng.fboss.asyncio.phy
 namespace cpp2 facebook.fboss.phy
+namespace go neteng.fboss.phy
+namespace php fboss_phy
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"

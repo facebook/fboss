@@ -12,6 +12,7 @@ include "common/network/if/Address.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/agent/if/optic.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "fboss/agent/platform_config.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
@@ -885,6 +886,11 @@ service FbossCtrl extends fb303.FacebookService {
    * Enables submitting diag cmds to the switch
    */
   fbstring diagCmd(1: fbstring cmd, 2: ClientInformation client)
+
+  /*
+  * Return the system's platform mapping (see platform_config.thrift)
+  */
+  platform_config.PlatformMapping getPlatformMapping()
     throws (1: fboss.FbossBaseError error)
 }
 

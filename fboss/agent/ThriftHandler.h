@@ -311,6 +311,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void getHwDebugDump(std::string& out) override;
 
+  void getPlatformMapping(cfg::PlatformMapping& ret) override;
+
  protected:
   void addMplsRoutesImpl(
       std::shared_ptr<SwitchState>* state,

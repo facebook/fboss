@@ -31,6 +31,17 @@ PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
   }
 }
 
+cfg::PlatformMapping PlatformMapping::toThrift() const {
+  cfg::PlatformMapping newMapping;
+  newMapping.ports_ref() = this->platformPorts_;
+  newMapping.supportedProfiles_ref() = this->supportedProfiles_;
+  for (auto nameChipPair : this->chips_) {
+    newMapping.chips_ref()->push_back(nameChipPair.second);
+  }
+  newMapping.portConfigOverrides_ref() = this->portConfigOverrides_;
+  return newMapping;
+}
+
 void PlatformMapping::merge(PlatformMapping* mapping) {
   for (auto port : mapping->platformPorts_) {
     platformPorts_.emplace(port.first, std::move(port.second));

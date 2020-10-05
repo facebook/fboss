@@ -6,6 +6,8 @@ namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
+namespace go neteng.fboss.switch_config
+namespace php fboss_switch_config
 
 include "fboss/agent/if/mpls.thrift"
 
