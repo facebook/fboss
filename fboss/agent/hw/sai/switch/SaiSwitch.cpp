@@ -53,6 +53,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <chrono>
 #include <optional>
 
 extern "C" {
@@ -597,12 +598,31 @@ void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
 void SaiSwitch::gracefulExitLocked(
     folly::dynamic& switchState,
     const std::lock_guard<std::mutex>& lock) {
+  std::chrono::steady_clock::time_point begin =
+      std::chrono::steady_clock::now();
+  XLOG(INFO) << "[Exit] Starting SAI Switch graceful exit";
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
   switchState[kHwSwitch] = toFollyDynamicLocked(lock);
   platform_->getWarmBootHelper()->storeWarmBootState(switchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
+  std::chrono::steady_clock::time_point wbSaiSwitchWrite =
+      std::chrono::steady_clock::now();
+  XLOG(INFO) << "[Exit] SaiSwitch warm boot state write time: "
+             << std::chrono::duration_cast<std::chrono::duration<float>>(
+                    wbSaiSwitchWrite - begin)
+                    .count();
   managerTable_->switchManager().gracefulExit();
+  std::chrono::steady_clock::time_point wbSdk =
+      std::chrono::steady_clock::now();
+  XLOG(INFO) << "[Exit] Warm boot sdk time: "
+             << std::chrono::duration_cast<std::chrono::duration<float>>(
+                    wbSdk - wbSaiSwitchWrite)
+                    .count();
+  XLOG(INFO) << " [Exit] SaiSwitch Graceful exit locked time: "
+             << std::chrono::duration_cast<std::chrono::duration<float>>(
+                    wbSdk - begin)
+                    .count();
 }
 
 folly::dynamic SaiSwitch::toFollyDynamic() const {
