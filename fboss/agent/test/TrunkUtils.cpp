@@ -81,4 +81,15 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
   return newState;
 }
 
+std::shared_ptr<SwitchState> disableTrunkPort(
+    std::shared_ptr<SwitchState> curState,
+    const AggregatePortID& aggId,
+    const facebook::fboss::PortID& portId) {
+  auto newState{curState};
+  auto aggPortOld = newState->getAggregatePorts()->getAggregatePortIf(aggId);
+  auto aggPort = aggPortOld->modify(&newState);
+  aggPort->setForwardingState(portId, AggregatePort::Forwarding::DISABLED);
+  return newState;
+}
+
 } // namespace facebook::fboss::utility

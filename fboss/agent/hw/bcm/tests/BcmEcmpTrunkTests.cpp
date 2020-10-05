@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
 
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateDependentTests.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -29,13 +30,14 @@ facebook::fboss::RoutePrefix<IPAddressV6> kDefaultRoute{folly::IPAddressV6(),
 namespace facebook::fboss {
 
 using utility::addAggPort;
+using utility::disableTrunkPort;
 using utility::EcmpSetupTargetedPorts6;
 using utility::enableTrunkPorts;
 using utility::getEcmpSizeInHw;
 using utility::getEgressIdForRoute;
 
 class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
- private:
+ protected:
   std::vector<int32_t> getTrunkMemberPorts() const {
     return {(masterLogicalPortIds()[kEcmpWidth - 1]),
             (masterLogicalPortIds()[kEcmpWidth])};
@@ -50,7 +52,6 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
     return ports;
   }
 
- protected:
   void SetUp() override {
     BcmLinkStateDependentTests::SetUp();
     ecmpHelper_ =
@@ -125,4 +126,64 @@ class BcmEcmpTrunkTest : public BcmLinkStateDependentTests {
 TEST_F(BcmEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
   runEcmpWithTrunkMinLinks(1);
 }
+
+// Test removal of trunk members with routes resolving over it.
+// This test performs member removal and add in a loop in an attempt
+// to see whether we can recreate EBUSY error return from SDK which
+// is seen on production switches.
+TEST_F(BcmEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
+  uint8_t minlinks = 2;
+  auto setup = [=]() {
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
+
+    std::vector<RoutePrefixV6> v6Prefixes = {
+        RoutePrefixV6{IPAddressV6("1000::1"), 48},
+        RoutePrefixV6{IPAddressV6("1001::1"), 48},
+        RoutePrefixV6{IPAddressV6("1002::1"), 48},
+        RoutePrefixV6{IPAddressV6("1003::1"), 48},
+        RoutePrefixV6{IPAddressV6("1004::1"), 64},
+        RoutePrefixV6{IPAddressV6("1005::1"), 64},
+        RoutePrefixV6{IPAddressV6("1006::1"), 64},
+        RoutePrefixV6{IPAddressV6("1007::1"), 128},
+        RoutePrefixV6{IPAddressV6("1008::1"), 128},
+        RoutePrefixV6{IPAddressV6("1009::1"), 128},
+    };
+
+    applyNewState(ecmpHelper_->resolveNextHops(
+        ecmpHelper_->setupECMPForwarding(
+            getProgrammedState(), getEcmpPorts(), v6Prefixes),
+        getEcmpPorts()));
+  };
+
+  auto verify = [=]() {
+    auto trunkMembers = getTrunkMemberPorts();
+    auto trunkMemberCount = trunkMembers.size();
+    auto trunkTable = getHwSwitch()->getTrunkTable();
+    EXPECT_NO_THROW(trunkTable->getBcmTrunkId(kAggId));
+    auto activeMemberCount = trunkMemberCount;
+    for (const auto& member : trunkMembers) {
+      EXPECT_EQ(
+          activeMemberCount,
+          utility::getBcmTrunkMemberCount(
+              getUnit(), trunkTable->getBcmTrunkId(kAggId), trunkMemberCount));
+      auto state =
+          disableTrunkPort(getProgrammedState(), kAggId, PortID(member));
+      applyNewState(state);
+      activeMemberCount--;
+      EXPECT_EQ(
+          activeMemberCount,
+          utility::getBcmTrunkMemberCount(
+              getUnit(), trunkTable->getBcmTrunkId(kAggId), trunkMemberCount));
+    }
+    auto state = enableTrunkPorts(getProgrammedState());
+    applyNewState(state);
+    EXPECT_EQ(
+        trunkMemberCount,
+        utility::getBcmTrunkMemberCount(
+            getUnit(), trunkTable->getBcmTrunkId(kAggId), trunkMemberCount));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

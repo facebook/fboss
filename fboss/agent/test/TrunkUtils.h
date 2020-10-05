@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class SwitchState;
@@ -32,5 +33,9 @@ std::shared_ptr<SwitchState> enableTrunkPorts(
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     std::shared_ptr<SwitchState> curState,
     uint8_t minlinks);
+std::shared_ptr<SwitchState> disableTrunkPort(
+    std::shared_ptr<SwitchState> curState,
+    const AggregatePortID& aggId,
+    const facebook::fboss::PortID& portId);
 
 } // namespace facebook::fboss::utility
