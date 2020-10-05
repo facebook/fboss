@@ -45,8 +45,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
-    utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, getAsic(), getPlatform()->getLocalMac());
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
   }

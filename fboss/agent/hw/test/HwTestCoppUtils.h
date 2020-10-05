@@ -46,12 +46,10 @@ constexpr uint16_t kNonSpecialPort2 = 60001;
 void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const folly::MacAddress& localMac,
     const HwAsic* hwAsic);
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic,
-    const folly::MacAddress& localMac);
+    const HwAsic* hwAsic);
 
 cfg::Range getRange(uint32_t minimum, uint32_t maximum);
 

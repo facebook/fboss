@@ -78,8 +78,7 @@ class BcmAclCoppTest : public BcmTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]);
-    utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, getAsic(), getPlatform()->getLocalMac());
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     return cfg;
   }
 };
