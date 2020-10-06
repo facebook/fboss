@@ -188,8 +188,6 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
     }
   }
 
-  // N.B., state changed will be locking/unlocking in a more fine grained manner
-  // and expects the mutex to be unlocked
   stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
   return ret;
 }
@@ -455,8 +453,16 @@ void SaiSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   if (oldSwitchSettings != newSwitchSettings) {
     if (oldSwitchSettings->getL2LearningMode() !=
         newSwitchSettings->getL2LearningMode()) {
-      if (bootType_ == BootType::WARM_BOOT ||
-          getSwitchRunState() >= SwitchRunState::CONFIGURED) {
+      // We don't allow for l2 learning mode change after initial setting. This
+      // means
+      // - For cold boot prohibit changes after first config application
+      // - For warmboot prohibit changes after we have applied the warm boot
+      // state (in init). We still need to apply the initial changes in warmboot
+      // to setup our internal data structures correctly
+      auto l2LearningChangeProhibitedAfter = bootType_ == BootType::WARM_BOOT
+          ? SwitchRunState::INITIALIZED
+          : SwitchRunState::CONFIGURED;
+      if (getSwitchRunState() >= l2LearningChangeProhibitedAfter) {
         /*
          * Changing L2 learning mode on SAI is quite complex and I am
          *     inclined to not support it at all here (see prod plan below).
