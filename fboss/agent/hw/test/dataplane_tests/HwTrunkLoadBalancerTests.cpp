@@ -122,8 +122,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       EXPECT_TRUE(utility::isLoadBalanced(
           getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), 25));
     };
-    setup();
-    verify();
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 /*
