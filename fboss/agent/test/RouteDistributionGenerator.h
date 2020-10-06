@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -61,6 +62,10 @@ class RouteDistributionGenerator {
   }
   unsigned int chunkSize() const {
     return chunkSize_;
+  }
+
+  bool isSupported(PlatformMode /*mode*/) const {
+    return true;
   }
 
  protected:

@@ -28,11 +28,15 @@ template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto routeGenerator = RouteScaleGeneratorT(ensemble->getProgrammedState());
+  if (!routeGenerator.isSupported(ensemble->getPlatform()->getMode())) {
+    // skip if this is not supported for a platform
+    return;
+  }
   auto config = utility::onePortPerVlanConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
-  static const auto states =
-      RouteScaleGeneratorT(ensemble->getProgrammedState()).getSwitchStates();
+  static const auto states = routeGenerator.getSwitchStates();
 
   if (measureAdd) {
     ScopedCallTimer timeIt;

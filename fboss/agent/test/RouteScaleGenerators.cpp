@@ -304,4 +304,10 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
 
   return *generatedStates;
 }
+
+bool TurboFSWRouteScaleGenerator::isSupported(PlatformMode mode) const {
+  return (
+      mode == PlatformMode::MINIPACK || mode == PlatformMode::YAMP ||
+      mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C);
+}
 } // namespace facebook::fboss::utility

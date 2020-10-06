@@ -86,6 +86,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 
   const SwitchStates& getSwitchStates() const;
+  bool isSupported(PlatformMode mode) const;
 };
 
 } // namespace facebook::fboss::utility
