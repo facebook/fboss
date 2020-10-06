@@ -132,6 +132,7 @@ target_link_libraries(core
   fboss_config_utils
   phy_cpp2
   transceiver_cpp2
+  alert_logger
   Folly::folly
   normalizer
   ${IPROUTE2}

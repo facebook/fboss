@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
+#include "fboss/lib/AlertLogger.h"
 
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
@@ -82,9 +83,9 @@ void BcmSwitchEventUnitNonFatalErrorCallback::callback(
       case SOC_SWITCH_EVENT_DATA_ERROR_FAILEDTOCORRECT:
         BcmSwitchEventUtils::exportEventCounters(eventID, 1, data);
 
-        XLOG(ERR) << "BCM Uncorrectable error on unit " << unit << ": " << alarm
-                  << " (" << eventID << "), " << errName << " (" << arg1
-                  << "), " << arg2 << ", " << arg3;
+        XLOG(ERR) << AsicAlert() << "BCM Uncorrectable error on unit " << unit
+                  << ": " << alarm << " (" << eventID << "), " << errName
+                  << " (" << arg1 << "), " << arg2 << ", " << arg3;
         return;
       default:
         BcmSwitchEventUtils::exportEventCounters(eventID, 0, data);
@@ -102,8 +103,9 @@ void BcmSwitchEventUnitNonFatalErrorCallback::logNonFatalError(
     uint32_t arg2,
     uint32_t arg3) {
   XLOG_N_PER_MS(ERR, 100, 1000)
-      << "BCM non-fatal error on unit " << unit << ": " << alarm << " ("
-      << eventID << ") with params " << arg1 << ", " << arg2 << ", " << arg3;
+      << AsicAlert() << "BCM non-fatal error on unit " << unit << ": " << alarm
+      << " (" << eventID << ") with params " << arg1 << ", " << arg2 << ", "
+      << arg3;
 }
 
 void BcmSwitchEventUnitFatalErrorCallback::callback(
@@ -114,9 +116,9 @@ void BcmSwitchEventUnitFatalErrorCallback::callback(
     const uint32_t arg3,
     void* /* data */) {
   auto alarm = BcmSwitchEventUtils::getAlarmName(eventID);
-  XLOG(ERR) << "BCM uncorrected error on unit " << unit << ": " << alarm << " ("
-            << eventID << ") with params " << arg1 << ", " << arg2 << ", "
-            << arg3;
+  XLOG(ERR) << AsicAlert() << "BCM uncorrected error on unit " << unit << ": "
+            << alarm << " (" << eventID << ") with params " << arg1 << ", "
+            << arg2 << ", " << arg3;
 }
 
 } // namespace facebook::fboss

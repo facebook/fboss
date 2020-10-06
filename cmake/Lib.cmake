@@ -21,6 +21,14 @@ target_link_libraries(log_thrift_call
   FBThrift::thriftcpp2
 )
 
+add_library(alert_logger
+  fboss/lib/AlertLogger.cpp
+)
+
+target_link_libraries(alert_logger
+  Folly::folly
+)
+
 add_library(ref_map
   fboss/lib/RefMap.h
 )

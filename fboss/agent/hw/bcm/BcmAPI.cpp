@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/lib/AlertLogger.h"
 
 #include <folly/experimental/StringKeyedUnorderedMap.h>
 
@@ -239,7 +240,8 @@ bool BcmAPI::isHwInSimMode() {
 std::unique_ptr<BcmUnit> BcmAPI::createOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
   if (numDevices == 0) {
-    throw FbossError("no Broadcom switching ASIC found");
+    throw FbossError(
+        PlatformAlert().tagString() + "no Broadcom switching ASIC found");
   } else if (numDevices > 1) {
     throw FbossError("found more than 1 Broadcom switching ASIC");
   }

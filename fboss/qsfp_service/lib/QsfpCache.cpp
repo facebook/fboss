@@ -11,6 +11,8 @@
 
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
+#include "fboss/lib/AlertLogger.h"
+
 #include <folly/logging/xlog.h>
 #include <chrono>
 
@@ -166,7 +168,7 @@ folly::Future<folly::Unit> QsfpCache::doSync(PortMapThrift&& toSync) {
       .thenError(
           folly::tag_t<std::exception>{},
           [this](const std::exception& e) {
-            XLOG(ERR) << "Exception talking to qsfp_service: " << e.what();
+            XLOG(ERR) << PlatformAlert() << "Exception talking to qsfp_service: " << e.what();
             this->maybeSync();
           })
       .ensure([this]() {
