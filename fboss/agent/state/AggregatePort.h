@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
@@ -63,13 +64,19 @@ struct AggregatePortFields {
         PortID id,
         uint16_t pri,
         cfg::LacpPortRate r,
-        cfg::LacpPortActivity a)
-        : portID(id), priority(pri), rate(r), activity(a) {}
+        cfg::LacpPortActivity a,
+        uint16_t mul)
+        : portID(id),
+          priority(pri),
+          rate(r),
+          activity(a),
+          holdTimerMulitiplier(mul) {}
 
     // Needed for std::equal
     bool operator==(const Subport& rhs) const {
       return portID == rhs.portID && priority == rhs.priority &&
-          rate == rhs.rate && activity == rhs.activity;
+          rate == rhs.rate && activity == rhs.activity &&
+          holdTimerMulitiplier == rhs.holdTimerMulitiplier;
     }
     bool operator!=(const Subport& rhs) const {
       return !(*this == rhs);
@@ -87,6 +94,8 @@ struct AggregatePortFields {
     uint16_t priority{0};
     cfg::LacpPortRate rate{cfg::LacpPortRate::SLOW};
     cfg::LacpPortActivity activity{cfg::LacpPortActivity::PASSIVE};
+    uint16_t holdTimerMulitiplier{
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER()};
   };
   using Subports = boost::container::flat_set<Subport>;
 

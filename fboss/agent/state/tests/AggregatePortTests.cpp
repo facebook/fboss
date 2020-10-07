@@ -724,7 +724,8 @@ TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {
       PortID(1),
       static_cast<uint16_t>(1) << 8,
       cfg::LacpPortRate::SLOW,
-      cfg::LacpPortActivity::PASSIVE);
+      cfg::LacpPortActivity::PASSIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
 
   AggregatePortFields::SubportToForwardingState portStates;
   portStates[PortID(1)] = AggregatePortFields::Forwarding::ENABLED;
@@ -742,7 +743,8 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
         PortID(i),
         (1 << 15) + i,
         i % 2 ? cfg::LacpPortRate::SLOW : cfg::LacpPortRate::FAST,
-        i % 2 ? cfg::LacpPortActivity::PASSIVE : cfg::LacpPortActivity::ACTIVE);
+        i % 2 ? cfg::LacpPortActivity::PASSIVE : cfg::LacpPortActivity::ACTIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
   }
 
   auto subportRange =

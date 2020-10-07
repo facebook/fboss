@@ -34,6 +34,7 @@ constexpr auto kForwarding = "forwarding";
 constexpr auto kForwardingStates = "forwardingStates";
 constexpr auto kPartnerInfo = "partnerInfo";
 constexpr auto kPartnerInfos = "partnerInfos";
+constexpr auto kHoldTimerMultiplier = "holdTimerMultiplier";
 } // namespace
 
 namespace facebook::fboss {
@@ -42,6 +43,7 @@ folly::dynamic AggregatePortFields::Subport::toFollyDynamic() const {
   folly::dynamic subport = folly::dynamic::object;
   subport[kPortID] = static_cast<uint16_t>(portID);
   subport[kPriority] = static_cast<uint16_t>(priority);
+  subport[kHoldTimerMultiplier] = static_cast<uint16_t>(holdTimerMulitiplier);
   subport[kRate] = rate == cfg::LacpPortRate::FAST ? "fast" : "slow";
   subport[kActivity] =
       activity == cfg::LacpPortActivity::ACTIVE ? "active" : "passive";
@@ -87,8 +89,9 @@ AggregatePortFields::Subport AggregatePortFields::Subport::fromFollyDynamic(
   // TODO(samank): check widths match up
   auto id = static_cast<PortID>(json[kPortID].asInt());
   auto priority = static_cast<uint16_t>(json[kPriority].asInt());
+  auto timer = static_cast<uint16_t>(json[kHoldTimerMultiplier].asInt());
 
-  return Subport(id, priority, rate, activity);
+  return Subport(id, priority, rate, activity, timer);
 }
 
 AggregatePortFields::AggregatePortFields(

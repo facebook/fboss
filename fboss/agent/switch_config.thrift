@@ -794,6 +794,8 @@ enum LacpPortActivity {
   ACTIVE = 1,
 }
 
+const i16 DEFAULT_LACP_HOLD_TIMER_MULTIPLIER = 3
+
 struct AggregatePortMember {
   /**
    * Member ports are identified according to their logicalID, as defined in
@@ -803,6 +805,7 @@ struct AggregatePortMember {
   2: i32 priority
   3: LacpPortRate rate = FAST
   4: LacpPortActivity activity = ACTIVE
+  5: i16 holdTimerMultiplier = DEFAULT_LACP_HOLD_TIMER_MULTIPLIER
 }
 
 union MinimumCapacity {

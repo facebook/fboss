@@ -1117,8 +1117,10 @@ std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
         static_cast<uint16_t>(*cfg.memberPorts_ref()[i].priority_ref());
     auto rate = *cfg.memberPorts_ref()[i].rate_ref();
     auto activity = *cfg.memberPorts_ref()[i].activity_ref();
+    auto multiplier = *cfg.memberPorts_ref()[i].holdTimerMultiplier_ref();
 
-    subports[i] = AggregatePort::Subport(id, priority, rate, activity);
+    subports[i] =
+        AggregatePort::Subport(id, priority, rate, activity, multiplier);
   }
 
   std::sort(subports.begin(), subports.end());

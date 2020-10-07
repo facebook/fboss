@@ -340,19 +340,22 @@ TEST(AggregatePort, ToFromJSON) {
               "portId": 42,
               "priority": 1,
               "rate": "fast",
-              "activity": "active"
+              "activity": "active",
+              "holdTimerMultiplier": 3
             },
             {
               "portId": 43,
               "priority": 1,
               "rate": "fast",
-              "activity": "passive"
+              "activity": "passive",
+              "holdTimerMultiplier": 3
             },
             {
               "portId": 44,
               "priority": 1,
               "rate": "slow",
-              "activity": "active"
+              "activity": "active",
+              "holdTimerMultiplier": 3
             }
           ],
           "forwardingStates": [
