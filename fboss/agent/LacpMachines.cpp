@@ -298,6 +298,7 @@ std::chrono::seconds ReceiveMachine::epochDuration() {
 }
 
 void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
+  bool partnerChanged = partnerInfo_ != lacpdu.actorInfo;
   // TODO(samank): needs to be moved after
   controller_.setActorState(controller_.actorState() & ~LacpState::DEFAULTED);
 
@@ -312,7 +313,7 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
       (lacpdu.actorInfo.state & LacpState::IN_SYNC)) {
     partnerInfo_ = lacpdu.actorInfo;
     partnerInfo_.state |= LacpState::IN_SYNC;
-    controller_.matched();
+    controller_.matched(partnerChanged);
   } else {
     // if partner transitions out of sync, LACP will disable fwding on the port
     if (partnerInfo_.state & LacpState::IN_SYNC) {
@@ -376,6 +377,17 @@ void ReceiveMachine::updateState(ReceiveState nextState) {
 
 ParticipantInfo ReceiveMachine::partnerInfo() const {
   return partnerInfo_;
+}
+
+void ReceiveMachine::restoreState(AggregatePort::PartnerState partnerState) {
+  updateState(ReceiveState::CURRENT);
+  partnerInfo_ = partnerState;
+  controller_.setActorState(
+      controller_.actorState() | LacpState::DISTRIBUTING |
+      LacpState::COLLECTING | LacpState::IN_SYNC);
+  XLOG(DBG3) << "ReceiveMachine[" << controller_.portID()
+             << "]: restored actor state " << controller_.actorState();
+  startNextEpoch(epochDuration());
 }
 
 const std::chrono::seconds PeriodicTransmissionMachine::SHORT_PERIOD(1);
@@ -596,7 +608,7 @@ void MuxMachine::standby() {
   }
 }
 
-void MuxMachine::matched() {
+void MuxMachine::matched(bool partnerChanged) {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
   matched_ = true;
@@ -605,8 +617,14 @@ void MuxMachine::matched() {
     case MuxState::DETACHED:
     case MuxState::WAITING:
     case MuxState::COLLECTING_DISTRIBUTING:
-      XLOG(DBG4) << "MuxMachine[" << controller_.portID()
-                 << "]: Ignoring MATCHED in " << state_;
+      if (partnerChanged) {
+        XLOG(DBG4) << "MuxMachine[" << controller_.portID()
+                   << "]: MATCHED partner changed in " << state_;
+        enableCollectingDistributing();
+      } else {
+        XLOG(DBG4) << "MuxMachine[" << controller_.portID()
+                   << "]: Ignoring MATCHED in " << state_;
+      }
       break;
     case MuxState::ATTACHED:
       XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: MATCHED in "
@@ -660,14 +678,16 @@ void MuxMachine::enableCollectingDistributing() const {
    * LACP operation, then we would not want to add the newly-up port to the LAG
    * group, as dictated by LACP.
    */
-  servicer_->enableForwarding(portID, aggPortID);
+  servicer_->enableForwardingAndSetPartnerState(
+      portID, aggPortID, controller_.partnerInfo());
 }
 
 void MuxMachine::disableCollectingDistributing() const {
   auto portID = controller_.portID();
   auto aggPortID = selection_;
 
-  servicer_->disableForwarding(portID, aggPortID);
+  servicer_->disableForwardingAndSetPartnerState(
+      portID, aggPortID, controller_.partnerInfo());
 }
 
 void MuxMachine::detached() {
@@ -743,6 +763,11 @@ void MuxMachine::updateState(MuxState nextState) {
 
   XLOG(DBG4) << "MuxMachine[" << controller_.portID() << "]: " << prevState_
              << "-->" << state_;
+}
+
+void MuxMachine::restoreState(void) {
+  updateState(MuxState::COLLECTING_DISTRIBUTING);
+  enableCollectingDistributing();
 }
 
 Selector::Selector(LacpController& controller, uint8_t minLinkCount)
@@ -920,6 +945,10 @@ void Selector::standby() {
   }
 
   it->second.state = SelectionState::STANDBY;
+}
+
+void Selector::restoreState() {
+  select();
 }
 
 } // namespace facebook::fboss

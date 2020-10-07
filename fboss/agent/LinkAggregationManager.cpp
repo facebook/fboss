@@ -60,15 +60,17 @@ void LinkAggregationManager::recordStatistics(
   aggregatePortStats->flapped();
 }
 
-ProgramForwardingState::ProgramForwardingState(
+ProgramForwardingAndPartnerState::ProgramForwardingAndPartnerState(
     PortID portID,
     AggregatePortID aggPortID,
-    AggregatePort::Forwarding fwdState)
+    AggregatePort::Forwarding fwdState,
+    AggregatePort::PartnerState partnerState)
     : portID_(portID),
       aggregatePortID_(aggPortID),
-      forwardingState_(fwdState) {}
+      forwardingState_(fwdState),
+      partnerState_(partnerState) {}
 
-std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
+std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
     const std::shared_ptr<SwitchState>& state) {
   std::shared_ptr<SwitchState> nextState(state);
   auto* aggPort = nextState->getAggregatePorts()
@@ -82,11 +84,12 @@ std::shared_ptr<SwitchState> ProgramForwardingState::operator()(
              << nextState->getPorts()->getPort(portID_)->getName() << "] --> "
              << (forwardingState_ == AggregatePort::Forwarding::ENABLED
                      ? "ENABLED"
-                     : "DISABLED");
+                     : "DISABLED")
+             << " PartnerState " << partnerState_.describe();
 
   aggPort = aggPort->modify(&nextState);
   aggPort->setForwardingState(portID_, forwardingState_);
-
+  aggPort->setPartnerState(portID_, partnerState_);
   return nextState;
 }
 
@@ -128,7 +131,16 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
   folly::SharedMutexWritePriority::WriteHolder writeGuard(&controllersLock_);
-
+  // The first state update after warmboot contains saved state in
+  // oldState. Apply oldState before checking delta
+  if (!initialStateSynced_) {
+    const auto aggPorts = delta.oldState()->getAggregatePorts();
+    for (const auto aggPort : *aggPorts) {
+      XLOG(DBG3) << "Adding AggregatePort " << aggPort->getID();
+      aggregatePortAdded(aggPort);
+    }
+    initialStateSynced_ = true;
+  }
   DeltaFunctions::forEachChanged(
       delta.getAggregatePortsDelta(),
       &LinkAggregationManager::aggregatePortChanged,
@@ -163,7 +175,18 @@ void LinkAggregationManager::aggregatePortAdded(
             aggPort->getMinimumLinkCount(),
             this));
     CHECK(inserted);
-    it->second->startMachines();
+    if (aggPort->getForwardingState(subport.portID) ==
+        AggregatePortFields::Forwarding::ENABLED) {
+      const auto pstate = aggPort->getPartnerState(subport.portID);
+      XLOG(DBG3) << "Port [" << subport.portID
+                 << "] Restoring Lacp state machine with partner state "
+                 << pstate.describe();
+      it->second->restoreMachines(pstate);
+    } else {
+      XLOG(DBG3) << "Port [" << subport.portID
+                 << "] Starting Lacp state machines";
+      it->second->startMachines();
+    }
   }
 }
 
@@ -320,28 +343,30 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
   return true;
 }
 
-void LinkAggregationManager::enableForwarding(
+void LinkAggregationManager::enableForwardingAndSetPartnerState(
     PortID portID,
-    AggregatePortID aggPortID) {
+    AggregatePortID aggPortID,
+    const AggregatePort::PartnerState& partnerState) {
   CHECK(sw_->getLacpEvb()->inRunningEventBaseThread());
 
-  auto enableFwdStateFn = ProgramForwardingState(
-      portID, aggPortID, AggregatePort::Forwarding::ENABLED);
+  auto enableFwdStateFn = ProgramForwardingAndPartnerState(
+      portID, aggPortID, AggregatePort::Forwarding::ENABLED, partnerState);
 
   sw_->updateStateNoCoalescing(
-      "AggregatePort ForwardingState", std::move(enableFwdStateFn));
+      "AggregatePort ForwardingAndPartnerState", std::move(enableFwdStateFn));
 }
 
-void LinkAggregationManager::disableForwarding(
+void LinkAggregationManager::disableForwardingAndSetPartnerState(
     PortID portID,
-    AggregatePortID aggPortID) {
+    AggregatePortID aggPortID,
+    const ParticipantInfo& partnerState) {
   CHECK(sw_->getLacpEvb()->inRunningEventBaseThread());
 
-  auto disableFwdStateFn = ProgramForwardingState(
-      portID, aggPortID, AggregatePort::Forwarding::DISABLED);
+  auto disableFwdStateFn = ProgramForwardingAndPartnerState(
+      portID, aggPortID, AggregatePort::Forwarding::DISABLED, partnerState);
 
   sw_->updateStateNoCoalescing(
-      "AggregatePort ForwardingState", std::move(disableFwdStateFn));
+      "AggregatePort ForwardingAndPartnerState", std::move(disableFwdStateFn));
 }
 
 std::vector<std::shared_ptr<LacpController>>

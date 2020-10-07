@@ -79,7 +79,10 @@ class LacpServiceInterceptor : public LacpServicerIf {
     // "Transmit" the frame
     return true;
   }
-  void enableForwarding(PortID portID, AggregatePortID aggPortID) override {
+  void enableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& /* unused */) override {
     auto portToIsForwardingLocked = portToIsForwarding_.wlock();
 
     (*portToIsForwardingLocked)[portID] = true;
@@ -88,7 +91,10 @@ class LacpServiceInterceptor : public LacpServicerIf {
     XLOG(INFO) << "Enabling member " << portID << " in "
                << "aggregate " << aggPortID;
   }
-  void disableForwarding(PortID portID, AggregatePortID aggPortID) override {
+  void disableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& /* unused */) override {
     auto portToIsForwardingLocked = portToIsForwarding_.wlock();
 
     (*portToIsForwardingLocked)[portID] = false;
@@ -180,9 +186,21 @@ class LacpServiceInterceptor : public LacpServicerIf {
 };
 
 class MockLacpServicer : public LacpServicerIf {
+  void enableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& /* unused */) override {
+    XLOG(INFO) << "Enabling member " << portID << " in "
+               << "aggregate " << aggPortID;
+  }
+  void disableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& /* unused */) override {
+    XLOG(INFO) << "Disabling member " << portID << " in "
+               << "aggregate " << aggPortID;
+  }
   MOCK_METHOD2(transmit, bool(LACPDU, PortID));
-  MOCK_METHOD2(enableForwarding, void(PortID, AggregatePortID));
-  MOCK_METHOD2(disableForwarding, void(PortID, AggregatePortID));
   MOCK_METHOD1(
       getControllersFor,
       std::vector<std::shared_ptr<LacpController>>(

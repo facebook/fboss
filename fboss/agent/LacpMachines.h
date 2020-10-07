@@ -38,6 +38,7 @@ class ReceiveMachine : private folly::AsyncTimeout {
   // thread-safe
   void start();
   void stop();
+  void restoreState(AggregatePort::PartnerState partnerState);
 
   // External events
   void rx(LACPDU lacpdu);
@@ -167,9 +168,10 @@ class MuxMachine : private folly::AsyncTimeout {
 
   void selected(AggregatePortID selection);
   void unselected();
-  void matched();
+  void matched(bool partnerChanged);
   void notMatched();
   void standby();
+  void restoreState();
 
  private:
   enum class MuxState {
@@ -232,6 +234,7 @@ class Selector {
   void selected();
   void unselected();
   void standby();
+  void restoreState();
 
   Selection getSelection();
   std::optional<Selection> getSelectionIf();

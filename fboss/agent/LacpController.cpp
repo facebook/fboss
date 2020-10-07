@@ -76,6 +76,22 @@ void LacpController::startMachines() {
     self->periodicTx_.start();
     self->rx_.start();
     self->selector_.start();
+    XLOG(DBG3) << "Started LACP State Machine " << self->portID();
+  });
+}
+
+void LacpController::restoreMachines(
+    const AggregatePort::PartnerState& partnerState) {
+  evb()->runInEventBaseThread([self = shared_from_this(), partnerState]() {
+    self->mux_.start();
+    self->selector_.start();
+    self->mux_.restoreState();
+    self->selector_.restoreState();
+    self->rx_.restoreState(partnerState);
+    self->tx_.start();
+    self->ntt();
+    self->periodicTx_.start();
+    XLOG(DBG3) << "Restored LACP State Machine " << self->portID();
   });
 }
 
@@ -176,8 +192,8 @@ void LacpController::standby() {
   selector_.standby();
 }
 
-void LacpController::matched() {
-  mux_.matched();
+void LacpController::matched(bool partnerChanged) {
+  mux_.matched(partnerChanged);
 }
 
 void LacpController::notMatched() {

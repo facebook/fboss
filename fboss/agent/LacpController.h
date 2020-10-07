@@ -47,6 +47,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   ~LacpController();
 
   void startMachines();
+  void restoreMachines(const AggregatePort::PartnerState& partnerState);
   void stopMachines();
 
   // All of machines.cpp should execute in the context of the EventBase *evb()
@@ -76,7 +77,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   void standby();
   void standby(folly::Range<std::vector<PortID>::const_iterator> ports);
 
-  void matched();
+  void matched(bool partnerChanged);
   void notMatched();
 
   void startPeriodicTransmissionMachine();

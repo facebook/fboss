@@ -35,20 +35,27 @@ struct LacpServicerIf {
   virtual ~LacpServicerIf() {}
 
   virtual bool transmit(LACPDU lacpdu, PortID portID) = 0;
-  virtual void enableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
-  virtual void disableForwarding(PortID portID, AggregatePortID aggPortID) = 0;
+  virtual void enableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& partnerState) = 0;
+  virtual void disableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& partnerState) = 0;
   // If Selector was a static member of LinkAggregationManager, this wouldn't be
   // necessary
   virtual std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) = 0;
 };
 
-class ProgramForwardingState {
+class ProgramForwardingAndPartnerState {
  public:
-  ProgramForwardingState(
+  ProgramForwardingAndPartnerState(
       PortID portID,
       AggregatePortID aggPortID,
-      AggregatePort::Forwarding fwdState);
+      AggregatePort::Forwarding fwdState,
+      AggregatePort::PartnerState partnerState);
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
 
@@ -56,6 +63,7 @@ class ProgramForwardingState {
   PortID portID_;
   AggregatePortID aggregatePortID_;
   AggregatePort::Forwarding forwardingState_;
+  AggregatePort::PartnerState partnerState_;
 };
 
 class LinkAggregationManager : public AutoRegisterStateObserver,
@@ -71,8 +79,14 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
   void populatePartnerPairs(std::vector<LacpPartnerPair>& partnerPairs);
 
   bool transmit(LACPDU lacpdu, PortID portID) override;
-  void enableForwarding(PortID portID, AggregatePortID aggPortID) override;
-  void disableForwarding(PortID portID, AggregatePortID aggPortID) override;
+  void enableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& partnerState) override;
+  void disableForwardingAndSetPartnerState(
+      PortID portID,
+      AggregatePortID aggPortID,
+      const ParticipantInfo& partnerState) override;
   std::vector<std::shared_ptr<LacpController>> getControllersFor(
       folly::Range<std::vector<PortID>::const_iterator> ports) override;
 
@@ -108,6 +122,7 @@ class LinkAggregationManager : public AutoRegisterStateObserver,
   PortIDToController portToController_;
   mutable folly::SharedMutexWritePriority controllersLock_;
   SwSwitch* sw_{nullptr};
+  bool initialStateSynced_{false};
 };
 
 } // namespace facebook::fboss

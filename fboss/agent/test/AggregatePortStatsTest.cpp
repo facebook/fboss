@@ -77,6 +77,7 @@ TEST(AggregatePortStats, FlapOnce) {
   const AggregatePortID aggregatePortID = AggregatePortID(1);
   const auto aggregatePortName = "Port-Channel1";
   const auto flapsCounterName = "Port-Channel1.flaps.sum";
+  AggregatePort::PartnerState pState{};
 
   auto config = createConfig(aggregatePortID, aggregatePortName);
   auto handle = createTestHandle(&config);
@@ -86,13 +87,13 @@ TEST(AggregatePortStats, FlapOnce) {
 
   auto oldAggPort = getAggregatePort(sw, aggregatePortID);
 
-  ProgramForwardingState addPort1ToAggregatePort(
-      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding first port to AggregatePort", addPort1ToAggregatePort);
 
-  ProgramForwardingState addPort2ToAggregatePort(
-      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort2ToAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding second port tn AggrgatePort", addPort2ToAggregatePort);
 
@@ -109,6 +110,7 @@ TEST(AggregatePortStats, FlapTwice) {
   const AggregatePortID aggregatePortID = AggregatePortID(1);
   const auto aggregatePortName = "Port-Channel1";
   const auto flapsCounterName = "Port-Channel1.flaps.sum";
+  AggregatePort::PartnerState pState{};
 
   auto config = createConfig(aggregatePortID, aggregatePortName);
   auto handle = createTestHandle(&config);
@@ -118,13 +120,13 @@ TEST(AggregatePortStats, FlapTwice) {
 
   auto baseAggPort = getAggregatePort(sw, aggregatePortID);
 
-  ProgramForwardingState addPort1ToAggregatePort(
-      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding first port to AggregatePort", addPort1ToAggregatePort);
 
-  ProgramForwardingState addPort2ToAggregatePort(
-      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort2ToAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding second port to AggrgatePort", addPort2ToAggregatePort);
 
@@ -132,8 +134,8 @@ TEST(AggregatePortStats, FlapTwice) {
   auto initialAggPort = getAggregatePort(sw, aggregatePortID);
   LinkAggregationManager::recordStatistics(sw, baseAggPort, initialAggPort);
 
-  ProgramForwardingState removePort2FromAggregatePort(
-      PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED);
+  ProgramForwardingAndPartnerState removePort2FromAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED, pState);
   sw->updateStateNoCoalescing(
       "Removing second port from AggregatePort", removePort2FromAggregatePort);
 
@@ -156,6 +158,7 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   const auto updatedFlapsCounterName = "Port-Channel001.flaps.sum";
 
   SwSwitch* sw = nullptr;
+  AggregatePort::PartnerState pState{};
 
   std::shared_ptr<AggregatePort> baseAggPort = nullptr;
   auto config = createConfig(aggregatePortID, initialAggregatePortName);
@@ -166,13 +169,13 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
   CounterCache counters(sw);
 
   std::shared_ptr<AggregatePort> initialAggPort = nullptr;
-  ProgramForwardingState addPort1ToAggregatePort(
-      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+      PortID(1), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding first port to AggregatePort", addPort1ToAggregatePort);
 
-  ProgramForwardingState addPort2ToAggregatePort(
-      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED);
+  ProgramForwardingAndPartnerState addPort2ToAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::ENABLED, pState);
   sw->updateStateNoCoalescing(
       "Adding second port tn AggregatePort", addPort2ToAggregatePort);
 
@@ -188,8 +191,8 @@ TEST(AggregatePortStats, UpdateAggregatePortName) {
       ->aggregatePort(aggregatePortID)
       ->aggregatePortNameChanged(updatedAggregatePortName);
 
-  ProgramForwardingState removePort2FromAggregatePort(
-      PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED);
+  ProgramForwardingAndPartnerState removePort2FromAggregatePort(
+      PortID(2), aggregatePortID, AggregatePort::Forwarding::DISABLED, pState);
   sw->updateStateNoCoalescing(
       "Removing second port from AggregatePort", removePort2FromAggregatePort);
 
