@@ -91,10 +91,10 @@ struct SaiBufferProfileTraits {
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
       Attributes::PoolId,
-      Attributes::ReservedBytes,
-      Attributes::ThresholdMode,
-      Attributes::SharedDynamicThreshold,
-      Attributes::SharedStaticThreshold>;
+      std::optional<Attributes::ReservedBytes>,
+      std::optional<Attributes::ThresholdMode>,
+      std::optional<Attributes::SharedDynamicThreshold>,
+      std::optional<Attributes::SharedStaticThreshold>>;
   using AdapterHostKey = CreateAttributes;
 };
 
