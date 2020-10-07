@@ -169,6 +169,7 @@ void LinkAggregationManager::aggregatePortAdded(
             subport.priority,
             subport.rate,
             subport.activity,
+            subport.holdTimerMulitiplier,
             aggPort->getID(),
             aggPort->getSystemPriority(),
             aggPort->getSystemID(),

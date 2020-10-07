@@ -344,6 +344,7 @@ void DUColdBootReconvergenceWithESWHelper(
       duInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
       MacAddress::fromBinary(
@@ -543,6 +544,7 @@ void UUColdBootReconvergenceWithDRHelper(
         info.portPriority,
         rate,
         cfg::LacpPortActivity::ACTIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
         AggregatePortID(info.key),
         info.systemPriority,
         MacAddress::fromBinary(
@@ -804,6 +806,7 @@ void selfInteroperabilityHelper(
       uuInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(uuInfo.key),
       uuInfo.systemPriority,
       MacAddress::fromBinary(
@@ -817,6 +820,7 @@ void selfInteroperabilityHelper(
       duInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
       MacAddress::fromBinary(
@@ -972,6 +976,7 @@ void selfInteroperabilityAfterWarmbootHelper(
       uuInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(uuInfo.key),
       uuInfo.systemPriority,
       MacAddress::fromBinary(
@@ -985,6 +990,7 @@ void selfInteroperabilityAfterWarmbootHelper(
       duInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
       MacAddress::fromBinary(

@@ -32,7 +32,10 @@ class LacpServicerIf;
 
 class ReceiveMachine : private folly::AsyncTimeout {
  public:
-  explicit ReceiveMachine(LacpController& controller, folly::EventBase* evb);
+  explicit ReceiveMachine(
+      LacpController& controller,
+      folly::EventBase* evb,
+      uint16_t holdTimerMultiplier);
   ~ReceiveMachine() override;
 
   // thread-safe
@@ -82,14 +85,13 @@ class ReceiveMachine : private folly::AsyncTimeout {
   std::chrono::seconds epochDuration();
   void updateState(ReceiveState nextState);
 
-  static const std::chrono::seconds SLOW_EPOCH_DURATION;
-  static const std::chrono::seconds FAST_EPOCH_DURATION;
-
   ReceiveState state_{ReceiveState::INITIALIZED};
   ReceiveState prevState_{ReceiveState::INITIALIZED};
   ParticipantInfo partnerInfo_; // operational
 
   LacpController& controller_;
+  std::chrono::seconds slowEpochSeconds_;
+  std::chrono::seconds fastEpochSeconds_;
 };
 void toAppend(ReceiveMachine::ReceiveState state, std::string* result);
 std::ostream& operator<<(std::ostream& out, ReceiveMachine::ReceiveState s);

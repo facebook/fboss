@@ -137,13 +137,14 @@ std::ostream& operator<<(std::ostream& out, MuxMachine::MuxState s) {
   return (out << stateAsString);
 }
 
-const std::chrono::seconds ReceiveMachine::FAST_EPOCH_DURATION(3);
-const std::chrono::seconds ReceiveMachine::SLOW_EPOCH_DURATION(90);
-
 ReceiveMachine::ReceiveMachine(
     LacpController& controller,
-    folly::EventBase* evb)
-    : folly::AsyncTimeout(evb), controller_(controller) {}
+    folly::EventBase* evb,
+    uint16_t holdTimerMultiplier)
+    : folly::AsyncTimeout(evb),
+      controller_(controller),
+      slowEpochSeconds_(std::chrono::seconds(30 * holdTimerMultiplier)),
+      fastEpochSeconds_(std::chrono::seconds(1 * holdTimerMultiplier)) {}
 
 ReceiveMachine::~ReceiveMachine() {}
 
@@ -223,7 +224,7 @@ void ReceiveMachine::expired() {
 
   controller_.setActorState(controller_.actorState() | LacpState::EXPIRED);
 
-  startNextEpoch(FAST_EPOCH_DURATION);
+  startNextEpoch(fastEpochSeconds_);
 }
 
 void ReceiveMachine::disabled() {
@@ -293,8 +294,8 @@ void ReceiveMachine::current(LACPDU lacpdu) {
 
 std::chrono::seconds ReceiveMachine::epochDuration() {
   return controller_.actorInfo().state & LacpState::SHORT_TIMEOUT
-      ? FAST_EPOCH_DURATION
-      : SLOW_EPOCH_DURATION;
+      ? fastEpochSeconds_
+      : slowEpochSeconds_;
 }
 
 void ReceiveMachine::recordPDU(LACPDU& lacpdu) {

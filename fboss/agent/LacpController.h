@@ -38,6 +38,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
       uint16_t portPriority,
       cfg::LacpPortRate rate,
       cfg::LacpPortActivity activity,
+      uint16_t holdTimerMultiplier,
       AggregatePortID aggPortID,
       uint16_t systemPriority,
       folly::MacAddress systemID,
