@@ -931,3 +931,99 @@ TEST_F(LacpTest, selfInteroperabilityLacpSlow) {
 TEST_F(LacpTest, selfInteroperabilityLacpFast) {
   selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::FAST);
 }
+
+/*
+ * Restore state machines after warmboot and verify that
+ * Rx/Tx continues with saved state
+ */
+void selfInteroperabilityAfterWarmbootHelper(
+    folly::EventBase* lacpEvb,
+    cfg::LacpPortRate rate) {
+  LacpServiceInterceptor uuEventInterceptor(lacpEvb);
+  LacpServiceInterceptor duEventInterceptor(lacpEvb);
+
+  PortID uuPort(static_cast<uint16_t>(0xA));
+  PortID duPort(static_cast<uint16_t>(0xD));
+
+  using SystemID = std::array<uint8_t, 6>;
+  auto makeParticipantInfo = [&rate](SystemID systemID, auto port) {
+    ParticipantInfo pInfo;
+    pInfo.systemPriority = 65535;
+    pInfo.systemID = systemID;
+    pInfo.key = port;
+    pInfo.portPriority = 32768;
+    pInfo.port = port;
+    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+        LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
+    if (rate == cfg::LacpPortRate::FAST) {
+      pInfo.state |= LacpState::SHORT_TIMEOUT;
+    }
+    return pInfo;
+  };
+
+  ParticipantInfo uuInfo =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort);
+  ParticipantInfo duInfo =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort);
+
+  auto uuController = std::make_shared<LacpController>(
+      uuPort,
+      lacpEvb,
+      uuInfo.portPriority,
+      rate,
+      cfg::LacpPortActivity::ACTIVE,
+      AggregatePortID(uuInfo.key),
+      uuInfo.systemPriority,
+      MacAddress::fromBinary(
+          folly::ByteRange(uuInfo.systemID.cbegin(), uuInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &uuEventInterceptor);
+  uuEventInterceptor.addController(uuController);
+  auto duController = std::make_shared<LacpController>(
+      duPort,
+      lacpEvb,
+      duInfo.portPriority,
+      rate,
+      cfg::LacpPortActivity::ACTIVE,
+      AggregatePortID(duInfo.key),
+      duInfo.systemPriority,
+      MacAddress::fromBinary(
+          folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &duEventInterceptor);
+  duEventInterceptor.addController(duController);
+
+  AggregatePort::PartnerState uuPartnerState =
+      makeParticipantInfo(duInfo.systemID, duInfo.port);
+  uuController->restoreMachines(uuPartnerState);
+
+  AggregatePort::PartnerState duPartnerState =
+      makeParticipantInfo(uuInfo.systemID, uuInfo.port);
+  duController->restoreMachines(duPartnerState);
+  XLOG(DBG3) << "Restored LACP state machines";
+
+  LACPDU uuTransmission;
+  LACPDU duTransmission;
+  uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort);
+  duController->received(uuTransmission);
+  duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
+  uuController->received(duTransmission);
+
+  auto state = LacpState::AGGREGATABLE | LacpState::ACTIVE |
+      LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
+  if (rate == cfg::LacpPortRate::FAST) {
+    state |= LacpState::SHORT_TIMEOUT;
+  }
+  ASSERT_EQ(duEventInterceptor.lastActorStateTransmitted(duPort), state);
+  ASSERT_EQ(duEventInterceptor.lastPartnerStateTransmitted(duPort), state);
+  ASSERT_EQ(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
+  ASSERT_EQ(uuEventInterceptor.lastPartnerStateTransmitted(uuPort), state);
+}
+
+TEST_F(LacpTest, selfInteroperabilityAfterWarmbootSlow) {
+  selfInteroperabilityAfterWarmbootHelper(lacpEvb(), cfg::LacpPortRate::SLOW);
+}
+
+TEST_F(LacpTest, selfInteroperabilityAfterWarmbootFast) {
+  selfInteroperabilityAfterWarmbootHelper(lacpEvb(), cfg::LacpPortRate::FAST);
+}
