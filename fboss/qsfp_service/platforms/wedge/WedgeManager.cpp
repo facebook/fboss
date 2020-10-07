@@ -281,7 +281,7 @@ void WedgeManager::refreshTransceivers() {
     futs.push_back(transceiver.second->futureRefresh());
   }
 
-  folly::collectAllUnsafe(futs.begin(), futs.end()).wait();
+  folly::collectAll(futs.begin(), futs.end()).wait();
   XLOG(INFO) << "Finished refreshing all transceivers";
 }
 
