@@ -13,6 +13,15 @@
 #include <folly/Conv.h>
 #include <folly/Range.h>
 
+namespace {
+constexpr auto kId = "id";
+constexpr auto kSystemID = "systemID";
+constexpr auto kSystemPriority = "systemPriority";
+constexpr auto kPortID = "portId";
+constexpr auto kState = "state";
+constexpr auto kPriority = "priority";
+} // namespace
+
 namespace facebook::fboss {
 
 LACPDU::LACPDU(ParticipantInfo actor, ParticipantInfo partner)
@@ -72,6 +81,31 @@ void ParticipantInfo::populate(LacpEndpoint& endpoint) const {
   *endpoint.state_ref()->distributing_ref() = state & LacpState::DISTRIBUTING;
   *endpoint.state_ref()->defaulted_ref() = state & LacpState::DEFAULTED;
   *endpoint.state_ref()->expired_ref() = state & LacpState::EXPIRED;
+}
+
+folly::dynamic ParticipantInfo::toFollyDynamic() const {
+  folly::dynamic info = folly::dynamic::object;
+  info[kId] = static_cast<uint16_t>(key);
+  info[kPortID] = static_cast<uint16_t>(port);
+  info[kSystemID] = folly::dynamic(systemID.begin(), systemID.end());
+  info[kSystemPriority] = static_cast<uint16_t>(systemPriority);
+  info[kPriority] = static_cast<uint16_t>(portPriority);
+  info[kState] = static_cast<uint16_t>(state);
+  return info;
+}
+
+ParticipantInfo ParticipantInfo::fromFollyDynamic(const folly::dynamic& json) {
+  ParticipantInfo actorInfo;
+  actorInfo.key = static_cast<uint16_t>(json[kId].asInt());
+  actorInfo.port = static_cast<uint16_t>(json[kPortID].asInt());
+  actorInfo.portPriority = static_cast<uint16_t>(json[kPriority].asInt());
+  actorInfo.state = static_cast<LacpState>(json[kState].asInt());
+  actorInfo.systemPriority =
+      static_cast<uint16_t>(json[kSystemPriority].asInt());
+  for (auto i = 0; i < folly::MacAddress::SIZE; i++) {
+    actorInfo.systemID[i] = json[kSystemID][i].asInt();
+  }
+  return actorInfo;
 }
 
 bool LACPDU::isValid() const {

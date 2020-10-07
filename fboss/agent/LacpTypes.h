@@ -15,6 +15,7 @@
 
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <folly/dynamic.h>
 #include <folly/io/Cursor.h>
 
 #include "fboss/agent/FbossError.h"
@@ -94,6 +95,9 @@ struct ParticipantInfo {
   void to(CursorType* cursor) const;
 
   void populate(LacpEndpoint& endpoint) const;
+
+  folly::dynamic toFollyDynamic() const;
+  static ParticipantInfo fromFollyDynamic(const folly::dynamic& json);
 
   bool operator==(const ParticipantInfo& rhs) const;
   bool operator!=(const ParticipantInfo& rhs) const;

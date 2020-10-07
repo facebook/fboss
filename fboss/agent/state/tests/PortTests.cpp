@@ -340,22 +340,68 @@ TEST(AggregatePort, ToFromJSON) {
               "portId": 42,
               "priority": 1,
               "rate": "fast",
-              "activity": "active",
-              "forwarding": "disabled"
+              "activity": "active"
             },
             {
               "portId": 43,
               "priority": 1,
               "rate": "fast",
-              "activity": "passive",
-              "forwarding": "enabled"
+              "activity": "passive"
             },
             {
               "portId": 44,
               "priority": 1,
               "rate": "slow",
-              "activity": "active",
+              "activity": "active"
+            }
+          ],
+          "forwardingStates": [
+            {
+              "portId": 42,
+              "forwarding": "disabled"
+            },
+            {
+              "portId": 43,
               "forwarding": "enabled"
+            },
+            {
+              "portId": 44,
+              "forwarding": "enabled"
+            }
+          ],
+          "partnerInfos": [
+            {
+              "portId": 42,
+              "partnerInfo": {
+                "id": 52,
+                "portId": 152,
+                "priority": 1,
+                "state": 0,
+                "systemID": [ 12, 42, 00, 32, 10, 01],
+                "systemPriority": 10
+              }
+            },
+            {
+              "portId": 43,
+              "partnerInfo": {
+                "id": 53,
+                "portId": 153,
+                "priority": 1,
+                "state": 63,
+                "systemID": [ 12, 42, 00, 32, 10, 02],
+                "systemPriority": 10
+              }
+            },
+            {
+              "portId": 44,
+              "partnerInfo": {
+                "id": 54,
+                "portId": 154,
+                "priority": 1,
+                "state": 61,
+                "systemID": [ 12, 42, 00, 32, 10, 03],
+                "systemPriority": 10
+              }
             }
           ]
         }
@@ -369,6 +415,9 @@ TEST(AggregatePort, ToFromJSON) {
   EXPECT_EQ(folly::MacAddress("12:42:00:22:53:01"), aggPort->getSystemID());
   EXPECT_EQ(2, aggPort->getMinimumLinkCount());
   EXPECT_EQ(3, aggPort->subportsCount());
+
+  auto lacpState = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+      LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
 
   for (const auto& subport : aggPort->sortedSubports()) {
     EXPECT_EQ(1, subport.priority);
@@ -384,6 +433,14 @@ TEST(AggregatePort, ToFromJSON) {
         subport.portID == 42 ? AggregatePort::Forwarding::DISABLED
                              : AggregatePort::Forwarding::ENABLED,
         aggPort->getForwardingState(subport.portID));
+
+    auto partnerInfo = aggPort->getPartnerState(subport.portID);
+    EXPECT_EQ(
+        subport.portID == 42
+            ? 0
+            : (subport.portID == 43 ? lacpState | LacpState::SHORT_TIMEOUT
+                                    : lacpState),
+        partnerInfo.state);
   }
 
   auto dyn1 = aggPort->toFollyDynamic();

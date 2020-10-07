@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
@@ -53,6 +54,9 @@ struct AggregatePortFields {
   using SubportToForwardingState =
       boost::container::flat_map<PortID, Forwarding>;
 
+  using SubportToPartnerState =
+      boost::container::flat_map<PortID, ParticipantInfo>;
+
   struct Subport {
     Subport() {}
     Subport(
@@ -76,11 +80,8 @@ struct AggregatePortFields {
       return portID < rhs.portID;
     }
 
-    folly::dynamic toFollyDynamic(
-        const AggregatePortFields::SubportToForwardingState& portStates) const;
-    static Subport fromFollyDynamic(
-        const folly::dynamic& json,
-        AggregatePortFields::SubportToForwardingState& portStates);
+    folly::dynamic toFollyDynamic() const;
+    static Subport fromFollyDynamic(const folly::dynamic& json);
 
     PortID portID{0};
     uint16_t priority{0};
@@ -97,7 +98,8 @@ struct AggregatePortFields {
       folly::MacAddress systemID,
       uint8_t minLinkCount,
       Subports&& ports,
-      SubportToForwardingState&& portStates);
+      SubportToForwardingState&& portStates,
+      SubportToPartnerState&& portPartnerStates);
 
   AggregatePortFields(
       AggregatePortID id,
@@ -107,7 +109,8 @@ struct AggregatePortFields {
       folly::MacAddress systemID,
       uint8_t minLinkCount,
       Subports&& ports,
-      Forwarding fwd = Forwarding::DISABLED);
+      Forwarding fwd = Forwarding::DISABLED,
+      ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
 
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
@@ -128,6 +131,14 @@ struct AggregatePortFields {
   uint8_t minimumLinkCount_;
   Subports ports_;
   SubportToForwardingState portToFwdState_;
+  SubportToPartnerState portToPartnerState_;
+
+ private:
+  folly::dynamic portAndFwdStateToFollyDynamic(
+      const std::pair<PortID, Forwarding>& fwdState) const;
+
+  folly::dynamic portAndPartnerStateToFollyDynamic(
+      const std::pair<PortID, ParticipantInfo>& partnerState) const;
 };
 
 /*
@@ -140,6 +151,7 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   using SubportsConstRange =
       folly::Range<AggregatePortFields::Subports::const_iterator>;
   using Forwarding = AggregatePortFields::Forwarding;
+  using PartnerState = ParticipantInfo;
   using SubportAndForwardingStateConstRange = folly::Range<
       AggregatePortFields::SubportToForwardingState::const_iterator>;
   using SubportAndForwardingStateValueType =
@@ -240,6 +252,24 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
     }
 
     it->second = fwd;
+  }
+
+  AggregatePort::PartnerState getPartnerState(PortID port) const {
+    auto it = getFields()->portToPartnerState_.find(port);
+    if (it == getFields()->portToPartnerState_.cend()) {
+      throw FbossError("No partner state found for port ", port);
+    }
+
+    return it->second;
+  }
+
+  void setPartnerState(PortID port, const AggregatePort::PartnerState& state) {
+    auto it = writableFields()->portToPartnerState_.find(port);
+    if (it == writableFields()->portToPartnerState_.end()) {
+      throw FbossError("No partner state found for port ", port);
+    }
+
+    it->second = state;
   }
 
   SubportsConstRange sortedSubports() const {

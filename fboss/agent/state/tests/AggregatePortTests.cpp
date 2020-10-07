@@ -719,7 +719,7 @@ TEST(AggregatePort, multiTrunkRemove) {
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
 }
 
-TEST(Subport, serializationInverseOfDeserialization) {
+TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {
   auto subport = AggregatePort::Subport(
       PortID(1),
       static_cast<uint16_t>(1) << 8,
@@ -728,10 +728,9 @@ TEST(Subport, serializationInverseOfDeserialization) {
 
   AggregatePortFields::SubportToForwardingState portStates;
   portStates[PortID(1)] = AggregatePortFields::Forwarding::ENABLED;
-
-  auto serializedSubport = subport.toFollyDynamic(portStates);
+  auto serializedSubport = subport.toFollyDynamic();
   auto deserializedSubport =
-      AggregatePort::Subport::fromFollyDynamic(serializedSubport, portStates);
+      AggregatePort::Subport::fromFollyDynamic(serializedSubport);
 
   EXPECT_TRUE(subport == deserializedSubport);
 }
