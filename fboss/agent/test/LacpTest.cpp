@@ -778,7 +778,8 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDRLacpFast) {
 
 void selfInteroperabilityHelper(
     folly::EventBase* lacpEvb,
-    cfg::LacpPortRate rate) {
+    cfg::LacpPortRate rate,
+    uint16_t holdTimer) {
   LacpServiceInterceptor uuEventInterceptor(lacpEvb);
   LacpServiceInterceptor duEventInterceptor(lacpEvb);
 
@@ -806,7 +807,7 @@ void selfInteroperabilityHelper(
       uuInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
-      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+      holdTimer,
       AggregatePortID(uuInfo.key),
       uuInfo.systemPriority,
       MacAddress::fromBinary(
@@ -820,7 +821,7 @@ void selfInteroperabilityHelper(
       duInfo.portPriority,
       rate,
       cfg::LacpPortActivity::ACTIVE,
-      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+      holdTimer,
       AggregatePortID(duInfo.key),
       duInfo.systemPriority,
       MacAddress::fromBinary(
@@ -926,14 +927,44 @@ void selfInteroperabilityHelper(
   }
   ASSERT_EQ(duEventInterceptor.lastActorStateTransmitted(duPort), state);
   ASSERT_EQ(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
+
+  // verify that Rx waits till hold timer value before expiring
+  period = (rate == cfg::LacpPortRate::SLOW)
+      ? PeriodicTransmissionMachine::LONG_PERIOD * (holdTimer - 1)
+      : PeriodicTransmissionMachine::SHORT_PERIOD * (holdTimer - 1);
+  std::this_thread::sleep_for(period);
+  ASSERT_EQ(duEventInterceptor.lastActorStateTransmitted(duPort), state);
+  ASSERT_EQ(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
+
+  // cross the boundary for wait time and now rx should expire
+  period = (rate == cfg::LacpPortRate::SLOW)
+      ? PeriodicTransmissionMachine::LONG_PERIOD * 2
+      : PeriodicTransmissionMachine::SHORT_PERIOD * 2;
+  std::this_thread::sleep_for(period);
+  ASSERT_NE(duEventInterceptor.lastActorStateTransmitted(duPort), state);
+  ASSERT_NE(uuEventInterceptor.lastActorStateTransmitted(uuPort), state);
 }
 
 TEST_F(LacpTest, selfInteroperabilityLacpSlow) {
-  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::SLOW);
+  selfInteroperabilityHelper(
+      lacpEvb(),
+      cfg::LacpPortRate::SLOW,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
 }
 
 TEST_F(LacpTest, selfInteroperabilityLacpFast) {
-  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::FAST);
+  selfInteroperabilityHelper(
+      lacpEvb(),
+      cfg::LacpPortRate::FAST,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
+}
+
+TEST_F(LacpTest, selfInteroperabilityLacpSlowCustomTimer) {
+  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::SLOW, 5);
+}
+
+TEST_F(LacpTest, selfInteroperabilityLacpFastCustomTimer) {
+  selfInteroperabilityHelper(lacpEvb(), cfg::LacpPortRate::FAST, 5);
 }
 
 /*
