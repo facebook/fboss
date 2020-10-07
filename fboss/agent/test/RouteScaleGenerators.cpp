@@ -246,7 +246,6 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
   CHECK_GE(width, 32);
   size_t unlabeledPortsSize = width - 32;
 
-  std::map<PortDescriptor, LabelForwardingAction::LabelStack> labels{};
   boost::container::flat_set<PortDescriptor> unlabeledPorts{};
   boost::container::flat_set<PortDescriptor> labeledPorts{};
   boost::container::flat_set<PortDescriptor> allPorts{};
@@ -265,8 +264,6 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
       unlabeledPorts.insert(iPortId);
     } else {
       labeledPorts.insert(iPortId);
-      LabelForwardingAction::LabelStack stack{1001 + i};
-      labels.emplace(PortDescriptor(iPortId), stack);
     }
   }
 
@@ -281,24 +278,44 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
   nhopsResolvedState->publish();
   generatedStates->push_back(nhopsResolvedState);
 
+  // b19 is always 1, b18 identifies IP version
+  int v4LabelBase = 0x3 << 18;
+  int v6LabelBase = 0x2 << 18;
+  // [b17-b10] (8 bits) identify prefix
+  // maximum 256 prefix possible
+  int prefixCountV4 = 1;
+  int prefixCountV6 = 1;
   for (const auto& routeChunk : get()) {
-    std::vector<RoutePrefixV6> v6Prefixes;
-    std::vector<RoutePrefixV4> v4Prefixes;
+    auto newState = generatedStates->back()->clone();
     for (const auto& route : routeChunk) {
+      std::vector<RoutePrefixV6> v6Prefixes;
+      std::vector<RoutePrefixV4> v4Prefixes;
+      std::map<PortDescriptor, LabelForwardingAction::LabelStack> labels{};
       const auto& cidrNetwork = route.prefix;
+      int label = cidrNetwork.first.isV6()
+          ? v6LabelBase | ((0xff & prefixCountV6) << 10)
+          : v4LabelBase | ((0xff & prefixCountV4) << 10);
+
+      for (auto i = 0; i < labeledPorts.size(); i++) {
+        auto labeledPort = *(labeledPorts.begin() + i);
+        LabelForwardingAction::LabelStack stack{
+            label + static_cast<int>(labeledPort.phyPortID())};
+        labels.emplace(labeledPort, stack);
+      }
       if (cidrNetwork.first.isV6()) {
+        prefixCountV6++;
         v6Prefixes.emplace_back(
             RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
+        newState = ecmpHelper6.setupIp2MplsECMPForwarding(
+            newState, allPorts, labels, v6Prefixes);
       } else {
+        prefixCountV4++;
         v4Prefixes.emplace_back(
             RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
+        newState = ecmpHelper4.setupIp2MplsECMPForwarding(
+            newState, allPorts, labels, v4Prefixes);
       }
     }
-    auto newState = generatedStates->back()->clone();
-    newState = ecmpHelper6.setupIp2MplsECMPForwarding(
-        newState, allPorts, labels, v6Prefixes);
-    newState = ecmpHelper4.setupIp2MplsECMPForwarding(
-        newState, allPorts, labels, v4Prefixes);
     generatedStates->push_back(newState);
   }
 
