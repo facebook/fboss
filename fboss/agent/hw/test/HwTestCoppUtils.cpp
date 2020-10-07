@@ -22,6 +22,14 @@ constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
 
 namespace facebook::fboss::utility {
 
+folly::CIDRNetwork kIPv6LinkLocalMcastNetwork() {
+  return folly::IPAddress::createNetwork("ff02::/16");
+}
+
+folly::CIDRNetwork kIPv6LinkLocalUcastNetwork() {
+  return folly::IPAddress::createNetwork("fe80::/10");
+}
+
 cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
   cfg::Range range;
   range.minimum_ref() = minimum;
@@ -145,6 +153,53 @@ void setDefaultCpuTrafficPolicyConfig(
     cpuConfig.rxReasonToQueueOrderedList_ref() = rxReasonToQueues;
   }
   config.cpuTrafficPolicy_ref() = cpuConfig;
+}
+
+cfg::MatchAction createQueueMatchAction(int queueId) {
+  cfg::MatchAction action;
+  cfg::QueueMatchAction queueAction;
+  queueAction.queueId_ref() = queueId;
+  action.sendToQueue_ref() = queueAction;
+  return action;
+}
+
+void addNoActionAclForNw(
+    const folly::CIDRNetwork& nw,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+  cfg::AclEntry acl;
+  auto dstIp = folly::to<std::string>(nw.first, "/", nw.second);
+  acl.name_ref() =
+      folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
+
+  acl.dstIp_ref() = dstIp;
+  acl.srcPort_ref() = kCPUPort;
+  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+}
+
+void addHighPriAclForNwAndNetworoControlDscp(
+    const folly::CIDRNetwork& dstNetwork,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+  cfg::AclEntry acl;
+  auto dstNetworkStr =
+      folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+  acl.name_ref() = folly::to<std::string>(
+      "cpuPolicing-high-", dstNetworkStr, "-network-control");
+  acl.dstIp_ref() = dstNetworkStr;
+  acl.dscp_ref() = 48;
+  acls.push_back(std::make_pair(acl, createQueueMatchAction(highPriQueueId)));
+}
+
+void addMidPriAclForNw(
+    const folly::CIDRNetwork& dstNetwork,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+  cfg::AclEntry acl;
+  auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+  acl.name_ref() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
+  acl.dstIp_ref() = dstIp;
+
+  acls.push_back(
+      std::make_pair(acl, createQueueMatchAction(utility::kCoppMidPriQueueId)));
 }
 
 } // namespace facebook::fboss::utility

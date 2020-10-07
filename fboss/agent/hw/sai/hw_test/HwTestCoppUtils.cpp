@@ -17,19 +17,6 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/ControlPlane.h"
 
-namespace {
-/**
- * Link-local multicast network
- */
-const auto kIPv6LinkLocalMcastNetwork =
-    folly::IPAddress::createNetwork("ff02::/16");
-/*
- * Link local ucast network
- */
-const auto kIPv6LinkLocalUcastNetwork =
-    folly::IPAddress::createNetwork("fe80::/10");
-} // unnamed namespace
-
 namespace facebook::fboss {
 
 namespace utility {
@@ -57,60 +44,19 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
-  auto createMatchAction = [](int queueId) {
-    cfg::MatchAction action;
-    cfg::QueueMatchAction queueAction;
-    *queueAction.queueId_ref() = queueId;
-    action.sendToQueue_ref() = queueAction;
-    return action;
-  };
-
   // multicast link local dst ip
-  auto createNoOpAcl = [&](const folly::CIDRNetwork& dstNetwork) {
-    cfg::AclEntry acl;
-    auto dstIp =
-        folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-    *acl.name_ref() =
-        folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
-
-    acl.dstIp_ref() = dstIp;
-    acl.srcPort_ref() = kCPUPort;
-
-    acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
-  };
-  createNoOpAcl(kIPv6LinkLocalMcastNetwork);
+  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
 
   // Link local IPv6 + DSCP 48 to high pri queue
-  auto createHighPriLinkLocalV6NetworoControlAcl =
-      [&](const folly::CIDRNetwork& dstNetwork) {
-        cfg::AclEntry acl;
-        auto dstNetworkStr =
-            folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-        *acl.name_ref() = folly::to<std::string>(
-            "cpuPolicing-high-", dstNetworkStr, "-network-control");
-        acl.dstIp_ref() = dstNetworkStr;
-        acl.dscp_ref() = 48;
-        acls.push_back(std::make_pair(
-            acl, createMatchAction(getCoppHighPriQueueId(hwAsic))));
-      };
-  createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalMcastNetwork);
-  createHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalUcastNetwork);
+  addHighPriAclForNwAndNetworoControlDscp(
+      kIPv6LinkLocalMcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
+  addHighPriAclForNwAndNetworoControlDscp(
+      kIPv6LinkLocalUcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
 
   // unicast and multicast link local dst ip
-  auto createMidPriDstIpAcl = [&](const folly::CIDRNetwork& dstNetwork) {
-    cfg::AclEntry acl;
-    auto dstIp =
-        folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
-    *acl.name_ref() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
-    acl.dstIp_ref() = dstIp;
-
-    acls.push_back(
-        std::make_pair(acl, createMatchAction(utility::kCoppMidPriQueueId)));
-  };
-  createMidPriDstIpAcl(kIPv6LinkLocalMcastNetwork);
-
+  addMidPriAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
   // All fe80::/10 to mid pri queue
-  createMidPriDstIpAcl(kIPv6LinkLocalUcastNetwork);
+  addMidPriAclForNw(kIPv6LinkLocalUcastNetwork(), acls);
 
   return acls;
 }

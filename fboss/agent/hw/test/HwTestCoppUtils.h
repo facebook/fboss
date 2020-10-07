@@ -45,8 +45,28 @@ constexpr uint16_t kNonSpecialPort2 = 60001;
 
 void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic);
 
+folly::CIDRNetwork kIPv6LinkLocalMcastNetwork();
+
+folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
+
+cfg::MatchAction createQueueMatchAction(int queueId);
+
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic);
+
+void addNoActionAclForNw(
+    const folly::CIDRNetwork& nw,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
+void addHighPriAclForNwAndNetworoControlDscp(
+    const folly::CIDRNetwork& dstNetwork,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
+void addMidPriAclForNw(
+    const folly::CIDRNetwork& dstNetwork,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic);
