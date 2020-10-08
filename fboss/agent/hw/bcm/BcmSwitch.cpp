@@ -627,28 +627,6 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
 
 std::shared_ptr<SwitchState> BcmSwitch::applyAndGetWarmBootSwitchState() {
   auto warmBootState = warmBootCache_->getDumpedSwSwitchState().clone();
-
-  // Ensure we have the correct oper state set post warm boot. Since
-  // the SwSwitch Callback manages the oper state of a port, we want
-  // to ensure the port status is consistent with reality. This also
-  // enables warm boot testing to mirror reality w/out being attached
-  // to SwSwitch.
-  for (auto port : *warmBootState->getPorts()) {
-    auto bcmPort = portTable_->getBcmPort(port->getID());
-    auto newPort = port->modify(&warmBootState);
-    auto isUp = bcmPort->isUp();
-    auto wasUp = port->isUp();
-    XLOG(INFO) << "Verifying oper state on port "
-               << static_cast<int>(port->getID()) << "(" << port->getName()
-               << "): wasUp=" << wasUp << ", isUp=" << isUp;
-    if (wasUp != isUp) {
-      // Use same log format as SwSwitch::linkStateChanged for grep purposes
-      XLOG(INFO) << "Link state changed: " << static_cast<int>(port->getID())
-                 << "->" << (isUp ? "UP" : "DOWN") << " (during warm boot)";
-    }
-    newPort->setOperState(isUp);
-  }
-
   getPlatform()->preWarmbootStateApplied();
 
   warmBootState->publish();
