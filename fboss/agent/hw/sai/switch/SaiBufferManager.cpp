@@ -21,6 +21,36 @@
 
 namespace facebook::fboss {
 
+namespace {
+int scalingFactorToBufferDynThresh(cfg::MMUScalingFactor scalingFactor) {
+  switch (scalingFactor) {
+    case cfg::MMUScalingFactor::ONE:
+      return 0;
+    case cfg::MMUScalingFactor::EIGHT:
+      return 3;
+    case cfg::MMUScalingFactor::ONE_128TH:
+      return -7;
+    case cfg::MMUScalingFactor::ONE_64TH:
+      return -6;
+    case cfg::MMUScalingFactor::ONE_32TH:
+      return -5;
+    case cfg::MMUScalingFactor::ONE_16TH:
+      return -4;
+    case cfg::MMUScalingFactor::ONE_8TH:
+      return -3;
+    case cfg::MMUScalingFactor::ONE_QUARTER:
+      return -2;
+    case cfg::MMUScalingFactor::ONE_HALF:
+      return -1;
+    case cfg::MMUScalingFactor::TWO:
+      return 1;
+    case cfg::MMUScalingFactor::FOUR:
+      return 2;
+  }
+  CHECK(0) << "Should never get here";
+  return -1;
+}
+} // namespace
 SaiBufferManager::SaiBufferManager(
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
@@ -64,8 +94,8 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
       dynThresh;
   if (queue.getScalingFactor()) {
-    // TODO convert scaling factor to sai values
-    dynThresh = static_cast<int>(queue.getScalingFactor().value());
+    dynThresh =
+        scalingFactorToBufferDynThresh(queue.getScalingFactor().value());
   }
   return SaiBufferProfileTraits::CreateAttributes{
       pool, reservedBytes, mode, dynThresh, std::nullopt};
