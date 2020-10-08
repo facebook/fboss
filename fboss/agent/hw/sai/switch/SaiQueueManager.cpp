@@ -69,6 +69,7 @@ SaiQueueTraits::CreateAttributes makeQueueAttributes(
                                           portQueue.getID(),
                                           portSaiId,
                                           std::nullopt,
+                                          std::nullopt,
                                           std::nullopt};
 }
 
