@@ -54,26 +54,30 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     const PortQueue& queue) const {
   SaiBufferProfileTraits::Attributes::PoolId pool{
       egressBufferPoolHandle_->bufferPool->adapterKey()};
-  uint64_t resBytes =
-      queue.getReservedBytes() ? queue.getReservedBytes().value() : 0;
-  SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes{resBytes};
+  std::optional<SaiBufferProfileTraits::Attributes::ReservedBytes>
+      reservedBytes;
+  if (queue.getReservedBytes()) {
+    reservedBytes = queue.getReservedBytes().value();
+  }
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  // TODO convert scaling factor to sai values
-  int8_t dynThresh = queue.getScalingFactor()
-      ? static_cast<int>(queue.getScalingFactor().value())
-      : 0;
-  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynamicThresh{
-      static_cast<int8_t>(dynThresh)};
-  // TODO: handle static threshold
-  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
+      dynThresh;
+  if (queue.getScalingFactor()) {
+    // TODO convert scaling factor to sai values
+    dynThresh = static_cast<int>(queue.getScalingFactor().value());
+  }
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynamicThresh, staticThresh};
+      pool, reservedBytes, mode, dynThresh, std::nullopt};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
     const PortQueue& queue) {
   setupEgressBufferPool();
+  // TODO throw error if shared bytes is set. We don't handle that in SAI
+  if (!queue.getReservedBytes() && !queue.getScalingFactor()) {
+    return nullptr;
+  }
   auto c = profileCreateAttrs(queue);
   return bufferProfiles_
       .refOrEmplace(c, c, c, managerTable_->switchManager().getSwitchSaiId())
