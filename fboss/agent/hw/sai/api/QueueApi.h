@@ -45,8 +45,11 @@ struct SaiQueueTraits {
         SAI_QUEUE_ATTR_WRED_PROFILE_ID,
         SaiObjectIdT,
         SaiObjectIdDefault>;
-    using BufferProfileId =
-        SaiAttribute<EnumType, SAI_QUEUE_ATTR_BUFFER_PROFILE_ID, SaiObjectIdT>;
+    using BufferProfileId = SaiAttribute<
+        EnumType,
+        SAI_QUEUE_ATTR_BUFFER_PROFILE_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using SchedulerProfileId = SaiAttribute<
         EnumType,
         SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID,
