@@ -101,7 +101,7 @@ void SaiQueueHandle::resetQueue() {
       SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
   if (wredProfile) {
     queue->setOptionalAttribute(
-        SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
+        SaiQueueTraits::Attributes::WredProfileId{SAI_NULL_OBJECT_ID});
   }
   if (bufferProfile) {
     queue->setOptionalAttribute(
@@ -141,6 +141,15 @@ void SaiQueueManager::changeQueue(
       queueHandle->queue->setOptionalAttribute(
           SaiQueueTraits::Attributes::WredProfileId{
               queueHandle->wredProfile->adapterKey()});
+    }
+  }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
+    queueHandle->bufferProfile =
+        managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
+    if (queueHandle->bufferProfile) {
+      queueHandle->queue->setOptionalAttribute(
+          SaiQueueTraits::Attributes::BufferProfileId{
+              queueHandle->bufferProfile->adapterKey()});
     }
   }
 }
