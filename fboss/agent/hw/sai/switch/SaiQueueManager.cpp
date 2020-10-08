@@ -103,6 +103,10 @@ void SaiQueueHandle::resetQueue() {
     queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId{SAI_NULL_OBJECT_ID});
   }
+  if (bufferProfile) {
+    queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::BufferProfileId{SAI_NULL_OBJECT_ID});
+  }
 }
 
 SaiQueueHandle::SaiQueueHandle(QueueSaiId queueSaiId) {
