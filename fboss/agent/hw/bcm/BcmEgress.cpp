@@ -377,6 +377,9 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 }
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
+  if (paths_.find(path) == paths_.end()) {
+    return false;
+  }
   return removeEgressIdHwLocked(hw_->getUnit(), getID(), path);
 }
 
