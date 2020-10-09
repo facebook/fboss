@@ -111,6 +111,9 @@ class SaiPortManager {
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode);
 
  private:
+  void addRemovedHandle(PortID portID);
+  void removeRemovedHandleIf(PortID portID);
+
   void setQosMaps(
       QosMapSaiId dscpToTc,
       QosMapSaiId tcToQueue,
@@ -130,6 +133,9 @@ class SaiPortManager {
   SaiPlatform* platform_;
   ConcurrentIndices* concurrentIndices_;
   Handles handles_;
+  // on some platforms port can not be removed freely. on such platforms retain
+  // removed port handle so it does not invoke remove port api.
+  Handles removedHandles_;
   Stats portStats_;
   std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;

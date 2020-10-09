@@ -32,6 +32,7 @@ add_library(sai_switch
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
   fboss/agent/hw/sai/switch/oss/SaiBufferManager.cpp
+  fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
 )
 
 target_link_libraries(sai_switch

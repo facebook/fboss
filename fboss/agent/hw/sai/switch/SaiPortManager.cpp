@@ -164,6 +164,7 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
         " SAI id: ",
         portHandle->port->adapterKey());
   }
+  removeRemovedHandleIf(swPort->getID());
   SaiPortTraits::CreateAttributes attributes = attributesFromSwPort(swPort);
   SaiPortTraits::AdapterHostKey portKey{GET_ATTR(Port, HwLaneList, attributes)};
   auto handle = std::make_unique<SaiPortHandle>();
@@ -231,6 +232,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
   concurrentIndices_->vlanIds.erase(itr->second->port->adapterKey());
+  addRemovedHandle(itr->first);
   handles_.erase(itr);
   portStats_.erase(swId);
   // TODO: do FDB entries associated with this port need to be removed
