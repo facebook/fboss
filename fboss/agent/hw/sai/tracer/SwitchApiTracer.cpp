@@ -111,6 +111,7 @@ void setSwitchAttributes(
       case SAI_SWITCH_ATTR_ECMP_HASH_IPV6:
       case SAI_SWITCH_ATTR_QOS_DSCP_TO_TC_MAP:
       case SAI_SWITCH_ATTR_QOS_TC_TO_QUEUE_MAP:
+      case SAI_SWITCH_ATTR_INGRESS_ACL:
         attrLines.push_back(oidAttr(attr_list, i));
         break;
       case SAI_SWITCH_ATTR_PORT_LIST:
