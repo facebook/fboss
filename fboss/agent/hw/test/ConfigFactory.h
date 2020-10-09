@@ -106,12 +106,9 @@ std::vector<PortID> getAllPortsInGroup(const HwSwitch* hwSwitch, PortID portID);
 cfg::SwitchConfig createUplinkDownlinkConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
+    uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true);
-uint16_t getNumUplinks(
-    const HwSwitch* hwSwitch,
-    cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed);
 } // namespace facebook::fboss::utility

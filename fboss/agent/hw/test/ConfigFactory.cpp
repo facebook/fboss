@@ -554,55 +554,10 @@ std::vector<PortID> getAllPortsInGroup(
   return allPortsinGroup;
 }
 
-uint16_t getNumUplinks(
-    const HwSwitch* hwSwitch,
-    cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed) {
-  auto platformMode = hwSwitch->getPlatform()->getMode();
-  typedef std::tuple<PlatformMode, cfg::PortSpeed, cfg::PortSpeed> ConfigType;
-  static const std::map<ConfigType, uint16_t> numUplinksMap = {
-      {{PlatformMode::WEDGE, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG}, 4},
-      {{PlatformMode::WEDGE100, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
-       4},
-      {{PlatformMode::WEDGE100,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWENTYFIVEG},
-       4},
-      {{PlatformMode::WEDGE100,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::FIFTYG},
-       4},
-      {{PlatformMode::GALAXY_LC,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::FIFTYG},
-       16},
-      {{PlatformMode::GALAXY_FC,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::FIFTYG},
-       16},
-      {{PlatformMode::WEDGE400C, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
-       4},
-      {{PlatformMode::WEDGE400C,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWENTYFIVEG},
-       4},
-      {{PlatformMode::WEDGE400C,
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::FIFTYG},
-       4},
-  };
-
-  auto numUplinksMapIter = numUplinksMap.find(
-      std::make_tuple(platformMode, uplinkPortSpeed, downlinkPortSpeed));
-  if (numUplinksMapIter == numUplinksMap.end()) {
-    throw FbossError("Platform and the config type is not compatible");
-  }
-  return numUplinksMapIter->second;
-}
-
 cfg::SwitchConfig createUplinkDownlinkConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
+    uint16_t uplinksCount,
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed,
     cfg::PortLoopbackMode lbMode,
@@ -623,15 +578,15 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     return config;
   }
 
-  auto numUplinks = getNumUplinks(hwSwitch, uplinkPortSpeed, downlinkPortSpeed);
   /*
    * Configure the top ports in the master logical port ids as uplinks
    * and remaining as downlinks based on the platform
    */
   std::vector<PortID> uplinkMasterPorts(
-      masterLogicalPortIds.begin(), masterLogicalPortIds.begin() + numUplinks);
+      masterLogicalPortIds.begin(),
+      masterLogicalPortIds.begin() + uplinksCount);
   std::vector<PortID> downlinkMasterPorts(
-      masterLogicalPortIds.begin() + numUplinks, masterLogicalPortIds.end());
+      masterLogicalPortIds.begin() + uplinksCount, masterLogicalPortIds.end());
   /*
    * Prod uplinks are always onePortPerVlanConfig. Use the existing
    * utlity to generate one port per vlan config followed by port

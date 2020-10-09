@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -19,12 +20,65 @@ using namespace facebook::fboss;
 
 namespace facebook::fboss::utility {
 
+std::optional<uint16_t> getUplinksCount(
+    const HwSwitch* hwSwitch,
+    cfg::PortSpeed uplinkSpeed,
+    cfg::PortSpeed downlinkSpeed) {
+  auto platformMode = hwSwitch->getPlatform()->getMode();
+  using ConfigType = std::tuple<PlatformMode, cfg::PortSpeed, cfg::PortSpeed>;
+  static const std::map<ConfigType, uint16_t> numUplinksMap = {
+      {{PlatformMode::WEDGE, cfg::PortSpeed::FORTYG, cfg::PortSpeed::XG}, 4},
+      {{PlatformMode::WEDGE100, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
+       4},
+      {{PlatformMode::WEDGE100,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWENTYFIVEG},
+       4},
+      {{PlatformMode::WEDGE100,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       4},
+      {{PlatformMode::GALAXY_LC,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       16},
+      {{PlatformMode::GALAXY_FC,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       16},
+      {{PlatformMode::WEDGE400C, cfg::PortSpeed::HUNDREDG, cfg::PortSpeed::XG},
+       4},
+      {{PlatformMode::WEDGE400C,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWENTYFIVEG},
+       4},
+      {{PlatformMode::WEDGE400C,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::FIFTYG},
+       4},
+  };
+
+  auto iter = numUplinksMap.find(
+      std::make_tuple(platformMode, uplinkSpeed, downlinkSpeed));
+  if (iter == numUplinksMap.end()) {
+    return std::nullopt;
+  }
+  return iter->second;
+}
+
 void initToConfigBenchmarkHelper(
-    cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed) {
+    cfg::PortSpeed uplinkSpeed,
+    cfg::PortSpeed downlinkSpeed) {
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   folly::BenchmarkSuspender suspender;
   auto hwSwitch = ensemble->getHwSwitch();
+  auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
+  if (!numUplinks) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
   /*
    * Based on the uplink/downlink speed, use the ConfigFactory to create
    * agent config to mimic the production config. For instance, in TH,
@@ -33,8 +87,9 @@ void initToConfigBenchmarkHelper(
   auto config = utility::createUplinkDownlinkConfig(
       hwSwitch,
       ensemble->masterLogicalPortIds(),
-      uplinkPortSpeed,
-      downlinkPortSpeed,
+      numUplinks.value(),
+      uplinkSpeed,
+      downlinkSpeed,
       cfg::PortLoopbackMode::MAC);
   /*
    * This is to measure the performance when the config is applied during
