@@ -81,7 +81,9 @@ class DiagShell {
   std::string getPrompt() const;
 
  protected:
-  std::unique_ptr<Repl> makeRepl() const;
+  void initTerminal();
+  void resetTerminal();
+  int getPtymFd() const;
   std::string getDelimiterDiagCmd(const std::string& UUID) const;
 
   std::mutex diagShellMutex_;
@@ -89,18 +91,19 @@ class DiagShell {
 
   // Buffer to read into from pty master side
   std::array<char, 512> producerBuffer_;
-  std::unique_ptr<detail::PtyMaster> ptym_;
-  std::unique_ptr<detail::PtySlave> ptys_;
-  std::unique_ptr<detail::TerminalSession> ts_;
-  std::unique_ptr<Repl> repl_;
 
  private:
+  std::unique_ptr<Repl> makeRepl() const;
   std::string getClientInformationStr(
       std::unique_ptr<ClientInformation> clientInfo) const;
   void logToScuba(
       std::unique_ptr<ClientInformation> client,
       const std::string& input,
       const std::optional<std::string>& result = std::nullopt) const;
+  std::unique_ptr<detail::PtyMaster> ptym_;
+  std::unique_ptr<detail::PtySlave> ptys_;
+  std::unique_ptr<detail::TerminalSession> ts_;
+  std::unique_ptr<Repl> repl_;
   const SaiSwitch* hw_;
 };
 

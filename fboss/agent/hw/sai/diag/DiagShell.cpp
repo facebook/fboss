@@ -159,6 +159,26 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
   return nullptr;
 }
 
+void DiagShell::initTerminal() {
+  if (!repl_) {
+    // Set up REPL on connect if needed
+    repl_ = makeRepl();
+    ts_ =
+        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
+    repl_->run();
+  }
+}
+
+void DiagShell::resetTerminal() {
+  ts_.reset();
+  repl_.reset();
+}
+
+int DiagShell::getPtymFd() const {
+  /* Helper function to return the file descriptor for pty master */
+  return ptym_->file.fd();
+}
+
 bool DiagShell::tryConnect() {
   /* Checks if there are no other clients connected.
    * Once this function runs, it will obtain ownership of a lock
@@ -216,7 +236,7 @@ void DiagShell::consumeInput(
     return;
   }
   std::size_t ret =
-      folly::writeFull(ptym_->file.fd(), input->c_str(), input->size() + 1);
+      folly::writeFull(getPtymFd(), input->c_str(), input->size() + 1);
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
 }
 
@@ -234,13 +254,7 @@ StreamingDiagShellServer::~StreamingDiagShellServer() noexcept {
 
 void StreamingDiagShellServer::setPublisher(
     apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
-  if (!repl_) {
-    // Set up REPL on connect
-    repl_ = makeRepl();
-    ts_ =
-        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
-    repl_->run();
-  }
+  initTerminal();
   publisher_ =
       std::make_unique<apache::thrift::ServerStreamPublisher<std::string>>(
           std::move(publisher));
@@ -282,10 +296,8 @@ void StreamingDiagShellServer::resetPublisher() {
   if (*locked) {
     std::move(**locked).complete();
   }
+  resetTerminal();
   locked->reset();
-  // Reset repl and terminal session.
-  ts_.reset();
-  repl_.reset();
   shouldResetPublisher_ = false;
   diagShellLock_.unlock();
   XLOG(INFO) << "Ready to accept new clients";
@@ -294,7 +306,7 @@ void StreamingDiagShellServer::resetPublisher() {
 // TODO: Log command output to Scuba
 void StreamingDiagShellServer::streamOutput() {
   std::size_t nread = 0;
-  auto fd = ptym_->file.fd();
+  auto fd = getPtymFd();
   while (true) {
     fd_set readSet;
     FD_ZERO(&readSet);
