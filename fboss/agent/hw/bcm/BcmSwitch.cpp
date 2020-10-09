@@ -1339,9 +1339,6 @@ void BcmSwitch::pickupLinkStatusChanges(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
           const std::shared_ptr<Port>& newPort) {
-        if (!oldPort->isEnabled() && !newPort->isEnabled()) {
-          return;
-        }
         auto id = newPort->getID();
 
         auto adminStateChanged =
