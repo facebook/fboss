@@ -74,16 +74,17 @@ class DiagShell {
   explicit DiagShell(const SaiSwitch* hw);
   virtual ~DiagShell() noexcept = default;
 
-  virtual void consumeInput(
+  void consumeInput(
       std::unique_ptr<std::string> input,
       std::unique_ptr<ClientInformation> client);
+  std::string readOutput(int timeoutMs);
   bool tryConnect();
+  void disconnect();
   std::string getPrompt() const;
 
  protected:
   void initTerminal();
   void resetTerminal();
-  int getPtymFd() const;
   std::string getDelimiterDiagCmd(const std::string& UUID) const;
 
   std::mutex diagShellMutex_;
@@ -100,11 +101,12 @@ class DiagShell {
       std::unique_ptr<ClientInformation> client,
       const std::string& input,
       const std::optional<std::string>& result = std::nullopt) const;
+  int getPtymFd() const;
+  const SaiSwitch* hw_;
   std::unique_ptr<detail::PtyMaster> ptym_;
   std::unique_ptr<detail::PtySlave> ptys_;
-  std::unique_ptr<detail::TerminalSession> ts_;
   std::unique_ptr<Repl> repl_;
-  const SaiSwitch* hw_;
+  std::unique_ptr<detail::TerminalSession> ts_;
 };
 
 class StreamingDiagShellServer : public DiagShell {
@@ -117,7 +119,7 @@ class StreamingDiagShellServer : public DiagShell {
   void markResetPublisher();
   void consumeInput(
       std::unique_ptr<std::string> input,
-      std::unique_ptr<ClientInformation> client) override;
+      std::unique_ptr<ClientInformation> client);
 
  private:
   void setPublisher(
@@ -130,7 +132,7 @@ class StreamingDiagShellServer : public DiagShell {
       std::unique_ptr<apache::thrift::ServerStreamPublisher<std::string>>,
       std::mutex>
       publisher_;
-  bool shouldResetPublisher_ = false;
+  std::atomic<bool> shouldResetPublisher_ = false;
 };
 
 } // namespace facebook::fboss

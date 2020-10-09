@@ -163,15 +163,14 @@ void DiagShell::initTerminal() {
   if (!repl_) {
     // Set up REPL on connect if needed
     repl_ = makeRepl();
-    ts_ =
-        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
+    ts_.reset(new detail::TerminalSession(*ptys_, repl_->getStreams()));
     repl_->run();
   }
 }
 
 void DiagShell::resetTerminal() {
-  ts_.reset();
   repl_.reset();
+  ts_.reset();
 }
 
 int DiagShell::getPtymFd() const {
@@ -186,13 +185,22 @@ bool DiagShell::tryConnect() {
    */
   try {
     if (diagShellLock_.try_lock()) {
+      initTerminal();
       return true;
     }
   } catch (const std::system_error& ex) {
-    LOG(WARNING) << "Another client already connected";
+    LOG(WARNING) << "Another diag shell client already connected";
   }
   throw FbossError(
       "Unable to acquire diag shell lock, client already connected");
+}
+
+void DiagShell::disconnect() {
+  try {
+    diagShellLock_.unlock();
+  } catch (const std::system_error& ex) {
+    XLOG(WARNING) << "Trying to disconnect when it was never connected";
+  }
 }
 
 // TODO: Customize
@@ -232,7 +240,7 @@ void DiagShell::consumeInput(
   if (FLAGS_sai_log_to_scribe) {
     logToScuba(std::move(client), *input);
   }
-  if (*input == "quit") {
+  if (*input == "quit" || !repl_) {
     return;
   }
   std::size_t ret =
@@ -240,11 +248,40 @@ void DiagShell::consumeInput(
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
 }
 
-StreamingDiagShellServer::StreamingDiagShellServer(const SaiSwitch* hw)
-    : DiagShell(hw) {
-  // Create a stream producer thread
-  producerThread_ = std::make_unique<std::thread>([this]() { streamOutput(); });
+std::string DiagShell::readOutput(int timeoutMs) {
+  auto fd = getPtymFd();
+  std::string output;
+  fd_set readSet;
+  FD_ZERO(&readSet);
+  FD_SET(fd, &readSet);
+  /* Set the timeout as 500 ms for each read.
+   * This is to check that a client has disconnected in the meantime.
+   * If the client is still connected, will continue to wait.
+   * If the client has disconnected, will clean up the client states.
+   */
+  struct timeval timeout = {0, timeoutMs * 1000};
+  // If timeout is < 0, have no timeout and block indefinitely
+  timeval* timeoutPtr = (timeoutMs >= 0) ? &timeout : nullptr;
+  if (select(fd + 1, &readSet, nullptr, nullptr, timeoutPtr) > 0) {
+    if (!FD_ISSET(fd, &readSet)) {
+      std::string msg = "Invalid file descriptor for the PTY";
+      XLOG(WARNING) << msg;
+      throw FbossError(msg);
+    }
+    int nread = ::read(fd, producerBuffer_.data(), producerBuffer_.size());
+    folly::checkUnixError(nread, "Failed to read from the pty master");
+    if (nread == 0) {
+      std::string msg = "read 0 bytes from PTY slave;";
+      XLOG(WARNING) << msg;
+      throw FbossError(msg);
+    }
+    output += std::string(producerBuffer_.data(), nread);
+  }
+  return output;
 }
+
+StreamingDiagShellServer::StreamingDiagShellServer(const SaiSwitch* hw)
+    : DiagShell(hw) {}
 
 StreamingDiagShellServer::~StreamingDiagShellServer() noexcept {
   if (producerThread_) {
@@ -254,7 +291,6 @@ StreamingDiagShellServer::~StreamingDiagShellServer() noexcept {
 
 void StreamingDiagShellServer::setPublisher(
     apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
-  initTerminal();
   publisher_ =
       std::make_unique<apache::thrift::ServerStreamPublisher<std::string>>(
           std::move(publisher));
@@ -264,9 +300,8 @@ std::string StreamingDiagShellServer::start(
     apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
   assert(diagShellLock_.owns_lock());
   setPublisher(std::move(publisher));
-  // We connect to an existing shell (either for the first time or especially
-  // on re-connect) so it is necessary to explicitly send the first prompt
-  // to the client
+  // Create a stream producer thread
+  producerThread_.reset(new std::thread([this]() { streamOutput(); }));
   return getPrompt();
 }
 
@@ -296,56 +331,35 @@ void StreamingDiagShellServer::resetPublisher() {
   if (*locked) {
     std::move(**locked).complete();
   }
+  // Detaching the producer thread, since it should already be completed
+  if (producerThread_) {
+    producerThread_->detach();
+  }
   resetTerminal();
-  locked->reset();
   shouldResetPublisher_ = false;
-  diagShellLock_.unlock();
+  locked->reset();
+  disconnect();
   XLOG(INFO) << "Ready to accept new clients";
 }
 
 // TODO: Log command output to Scuba
 void StreamingDiagShellServer::streamOutput() {
-  std::size_t nread = 0;
-  auto fd = getPtymFd();
-  while (true) {
-    fd_set readSet;
-    FD_ZERO(&readSet);
-    FD_SET(fd, &readSet);
+  while (!shouldResetPublisher_) {
     /* Set the timeout as 500 ms for each read.
      * This is to check that a client has disconnected in the meantime.
      * If the client is still connected, will continue to wait.
      * If the client has disconnected, will clean up the client states.
      */
-    struct timeval timeout = {0, 500000};
-    if (select(fd + 1, &readSet, nullptr, nullptr, &timeout) > 0) {
-      if (!FD_ISSET(fd, &readSet)) {
-        std::string msg = "Invalid file descriptor for the PTY";
-        XLOG(WARNING) << msg;
-        throw FbossError(msg);
+    std::string toPublish = readOutput(500);
+    if (toPublish.length() > 0) {
+      // publish string on stream
+      auto locked = publisher_.lock();
+      if (*locked) {
+        (*locked)->next(toPublish);
       }
-      nread = ::read(fd, producerBuffer_.data(), producerBuffer_.size());
-      folly::checkUnixError(nread, "Failed to read from the pty master");
-      if (nread == 0) {
-        XLOG(INFO) << "read 0 bytes from PTY slave; shutting off diag shell";
-        break;
-      } else {
-        // publish string on stream
-        std::string toPublish(producerBuffer_.data(), nread);
-        auto locked = publisher_.lock();
-        if (*locked) {
-          (*locked)->next(toPublish);
-        } else if (!shouldResetPublisher_) {
-          // Warn if there has not been a client but output was produced
-          XLOG(WARNING)
-              << "Received diag shell output when no client is connected";
-        }
-      }
-    }
-
-    if (shouldResetPublisher_) {
-      resetPublisher();
     }
   }
+  resetPublisher();
 }
 
 } // namespace facebook::fboss
