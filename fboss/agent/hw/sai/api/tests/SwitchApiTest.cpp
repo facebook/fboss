@@ -422,3 +422,17 @@ TEST_F(SwitchApiTest, getAvailableNeighbor) {
           switchId, SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{}),
       0);
 }
+
+TEST_F(SwitchApiTest, getIngressAcl) {
+  EXPECT_FALSE(switchApi->getAttribute(
+      switchId, SaiSwitchTraits::Attributes::IngressAcl()));
+}
+
+TEST_F(SwitchApiTest, setIngressAcl) {
+  switchApi->setAttribute(switchId, SaiSwitchTraits::Attributes::IngressAcl{1});
+
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::IngressAcl()),
+      1);
+}
