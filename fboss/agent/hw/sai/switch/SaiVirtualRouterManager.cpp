@@ -28,23 +28,13 @@ SaiVirtualRouterManager::SaiVirtualRouterManager(
     : managerTable_(managerTable), platform_(platform) {
   auto& store = SaiStore::getInstance()->get<SaiVirtualRouterTraits>();
   auto virtualRouterHandle = std::make_unique<SaiVirtualRouterHandle>();
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
-    /*
-     * TODO: This is only a temporary solution till the hw supports
-     * reload of the default Virtual Router.
-     */
-    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-    VirtualRouterSaiId defaultVrfId{
-        SaiApiTable::getInstance()->switchApi().getAttribute(
-            switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
-    virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
-        SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
-  }
-  if (!virtualRouterHandle->virtualRouter) {
-    SaiVirtualRouterTraits::CreateAttributes attributes{std::make_tuple()};
-    virtualRouterHandle->virtualRouter =
-        store.setObject(std::monostate{}, attributes);
-  }
+  SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+  VirtualRouterSaiId defaultVrfId{
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          switchId, SaiSwitchTraits::Attributes::DefaultVirtualRouterId{})};
+  virtualRouterHandle->virtualRouter = store.loadObjectOwnedByAdapter(
+      SaiVirtualRouterTraits::AdapterKey{defaultVrfId});
+  CHECK(virtualRouterHandle->virtualRouter);
   handles_.emplace(std::make_pair(RouterID(0), std::move(virtualRouterHandle)));
 }
 
