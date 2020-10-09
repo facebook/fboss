@@ -176,6 +176,9 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
         sai_uint32_t>;
+    using IngressAcl =
+        SaiAttribute<EnumType, SAI_SWITCH_ATTR_INGRESS_ACL, SaiObjectIdT>;
+
     /* extension attributes */
     struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -253,6 +256,8 @@ SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6NeighborEntry)
 
 SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
+
+SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
