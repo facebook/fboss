@@ -118,6 +118,13 @@ class FakeSwitch {
   bool getEcnEctThresholdEnable() {
     return ecnEctThresholdEnable_;
   }
+  sai_object_id_t getIngressAcl() {
+    return ingressAcl_;
+  }
+  void setIngressAcl(sai_object_id_t oid) {
+    ingressAcl_ = oid;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -139,6 +146,7 @@ class FakeSwitch {
   bool restartWarm_{false};
   sai_uint32_t macAgingTime_{0};
   bool ecnEctThresholdEnable_{false};
+  sai_object_id_t ingressAcl_{SAI_NULL_OBJECT_ID};
   struct FakeSwitchLedState {
     bool reset{};
     std::array<uint8_t, 256> program{};

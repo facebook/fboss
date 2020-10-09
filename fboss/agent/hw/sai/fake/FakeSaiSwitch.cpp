@@ -184,6 +184,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
       sw.setEcnEctThresholdEnable(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_INGRESS_ACL:
+      sw.setIngressAcl(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_EXT_FAKE_LED:
     case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
       return sw.setLed(attr);
@@ -338,6 +341,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY:
         // Why not
         attr[i].value.u32 = 1'000'000;
+        break;
+      case SAI_SWITCH_ATTR_INGRESS_ACL:
+        attr[i].value.oid = sw.getIngressAcl();
         break;
 
       default:
