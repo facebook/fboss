@@ -475,7 +475,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
 
-  // TODO(skhare) Support all other ACL fields
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV4> fieldSrcIpV4{
