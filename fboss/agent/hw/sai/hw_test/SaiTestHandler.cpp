@@ -28,9 +28,7 @@ SaiTestHandler::startDiagShell() {
   if (!hw_->isFullyInitialized()) {
     throw FbossError("switch is still initializing or is exiting ");
   }
-  if (diagShell_.hasPublisher()) {
-    throw FbossError("Diag shell already connected");
-  }
+  diagShell_.tryConnect();
   auto streamAndPublisher =
       apache::thrift::ServerStream<std::string>::createPublisher([this]() {
         diagShell_.markResetPublisher();

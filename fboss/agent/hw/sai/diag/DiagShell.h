@@ -72,57 +72,62 @@ class DiagShellClientState {
 class DiagShell {
  public:
   explicit DiagShell(const SaiSwitch* hw);
-  ~DiagShell() noexcept;
+  virtual ~DiagShell() noexcept = default;
 
-  void consumeInput(
+  virtual void consumeInput(
       std::unique_ptr<std::string> input,
       std::unique_ptr<ClientInformation> client);
-
-  void setPublisher(
-      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
-  void markResetPublisher();
-  void resetPublisher();
-  bool hasPublisher() const;
-
+  bool tryConnect();
   std::string getPrompt() const;
 
-  std::string start(
-      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
+ protected:
+  std::unique_ptr<Repl> makeRepl() const;
+  std::string getDelimiterDiagCmd(const std::string& UUID) const;
+
+  std::mutex diagShellMutex_;
+  std::unique_lock<std::mutex> diagShellLock_;
+
+  // Buffer to read into from pty master side
+  std::array<char, 512> producerBuffer_;
+  std::unique_ptr<detail::PtyMaster> ptym_;
+  std::unique_ptr<detail::PtySlave> ptys_;
+  std::unique_ptr<detail::TerminalSession> ts_;
+  std::unique_ptr<Repl> repl_;
 
  private:
-  void produceOutput();
   std::string getClientInformationStr(
       std::unique_ptr<ClientInformation> clientInfo) const;
   void logToScuba(
       std::unique_ptr<ClientInformation> client,
       const std::string& input,
       const std::optional<std::string>& result = std::nullopt) const;
-  std::unique_ptr<Repl> makeRepl() const;
-  std::string getDelimiterDiagCmd(const std::string& UUID) const;
+  const SaiSwitch* hw_;
+};
 
-  std::unique_ptr<detail::PtyMaster> ptym_;
-  std::unique_ptr<detail::PtySlave> ptys_;
-  std::unique_ptr<detail::TerminalSession> ts_;
+class StreamingDiagShellServer : public DiagShell {
+ public:
+  explicit StreamingDiagShellServer(const SaiSwitch* hw);
+  ~StreamingDiagShellServer() noexcept override;
 
+  std::string start(
+      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
+  void markResetPublisher();
+  void consumeInput(
+      std::unique_ptr<std::string> input,
+      std::unique_ptr<ClientInformation> client) override;
+
+ private:
+  void setPublisher(
+      apache::thrift::ServerStreamPublisher<std::string>&& publisher);
+  void resetPublisher();
+  void streamOutput();
+
+  std::unique_ptr<std::thread> producerThread_;
   folly::Synchronized<
       std::unique_ptr<apache::thrift::ServerStreamPublisher<std::string>>,
       std::mutex>
       publisher_;
-
-  std::unique_ptr<std::thread> producerThread_;
-
-  // Buffer to read into from pty master side
-  std::array<char, 512> producerBuffer_;
-
-  std::unique_ptr<Repl> repl_;
-  const SaiSwitch* hw_;
   bool shouldResetPublisher_ = false;
-
-  // Condition variable for producer thread
-  std::condition_variable producerCV_;
-
-  // Mutex to control when producing should happen
-  std::mutex producerMutex_;
 };
 
 } // namespace facebook::fboss

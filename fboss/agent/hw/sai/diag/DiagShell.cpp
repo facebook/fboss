@@ -133,25 +133,7 @@ DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
   // Set up PTY
   ptym_ = std::make_unique<detail::PtyMaster>();
   ptys_ = std::make_unique<detail::PtySlave>(*ptym_);
-
-  // Start listening on pty master
-  producerThread_ =
-      std::make_unique<std::thread>([this]() { produceOutput(); });
-}
-
-void DiagShell::setPublisher(
-    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
-  if (!repl_) {
-    // Set up REPL on connect
-    repl_ = makeRepl();
-    ts_ =
-        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
-    repl_->run();
-  }
-
-  publisher_ =
-      std::make_unique<apache::thrift::ServerStreamPublisher<std::string>>(
-          std::move(publisher));
+  diagShellLock_ = std::unique_lock(diagShellMutex_, std::defer_lock);
 }
 
 std::unique_ptr<Repl> DiagShell::makeRepl() const {
@@ -177,51 +159,25 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
   return nullptr;
 }
 
-void DiagShell::markResetPublisher() {
-  XLOG(INFO) << "Marked to reset diag shell client states";
-  shouldResetPublisher_ = true;
-}
-
-void DiagShell::resetPublisher() {
-  XLOG(INFO) << "Resetting diag shell client state";
-  auto locked = publisher_.lock();
-  if (!shouldResetPublisher_) {
-    return;
+bool DiagShell::tryConnect() {
+  /* Checks if there are no other clients connected.
+   * Once this function runs, it will obtain ownership of a lock
+   * and block other clients from connecting
+   */
+  try {
+    if (diagShellLock_.try_lock()) {
+      return true;
+    }
+  } catch (const std::system_error& ex) {
+    LOG(WARNING) << "Another client already connected";
   }
-  if (*locked) {
-    std::move(**locked).complete();
-  }
-  locked->reset();
-  // Reset repl and terminal session.
-  ts_.reset();
-  repl_.reset();
-  shouldResetPublisher_ = false;
-  XLOG(INFO) << "Ready to accept new clients";
-}
-
-bool DiagShell::hasPublisher() const {
-  auto locked = publisher_.lock();
-  return static_cast<bool>(*locked);
+  throw FbossError(
+      "Unable to acquire diag shell lock, client already connected");
 }
 
 // TODO: Customize
 std::string DiagShell::getPrompt() const {
   return repl_->getPrompt();
-}
-
-std::string DiagShell::start(
-    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
-  setPublisher(std::move(publisher));
-  // We connect to an existing shell (either for the first time or especially
-  // on re-connect) so it is necessary to explicitly send the first prompt
-  // to the client
-  return getPrompt();
-}
-
-DiagShell::~DiagShell() noexcept {
-  if (producerThread_) {
-    producerThread_->detach();
-  }
 }
 
 std::string DiagShell::getDelimiterDiagCmd(const std::string& UUID) const {
@@ -253,22 +209,90 @@ std::string DiagShell::getDelimiterDiagCmd(const std::string& UUID) const {
 void DiagShell::consumeInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
-  auto locked = publisher_.lock();
-  if (!*locked) {
-    std::string msg = "No diag shell connected!";
-    XLOG(WARNING) << msg;
-    throw FbossError(msg);
-  }
   if (FLAGS_sai_log_to_scribe) {
     logToScuba(std::move(client), *input);
+  }
+  if (*input == "quit") {
+    return;
   }
   std::size_t ret =
       folly::writeFull(ptym_->file.fd(), input->c_str(), input->size() + 1);
   folly::checkUnixError(ret, "Failed to write diag shell input to PTY master");
 }
 
+StreamingDiagShellServer::StreamingDiagShellServer(const SaiSwitch* hw)
+    : DiagShell(hw) {
+  // Create a stream producer thread
+  producerThread_ = std::make_unique<std::thread>([this]() { streamOutput(); });
+}
+
+StreamingDiagShellServer::~StreamingDiagShellServer() noexcept {
+  if (producerThread_) {
+    producerThread_->detach();
+  }
+}
+
+void StreamingDiagShellServer::setPublisher(
+    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
+  if (!repl_) {
+    // Set up REPL on connect
+    repl_ = makeRepl();
+    ts_ =
+        std::make_unique<detail::TerminalSession>(*ptys_, repl_->getStreams());
+    repl_->run();
+  }
+  publisher_ =
+      std::make_unique<apache::thrift::ServerStreamPublisher<std::string>>(
+          std::move(publisher));
+}
+
+std::string StreamingDiagShellServer::start(
+    apache::thrift::ServerStreamPublisher<std::string>&& publisher) {
+  assert(diagShellLock_.owns_lock());
+  setPublisher(std::move(publisher));
+  // We connect to an existing shell (either for the first time or especially
+  // on re-connect) so it is necessary to explicitly send the first prompt
+  // to the client
+  return getPrompt();
+}
+
+void StreamingDiagShellServer::markResetPublisher() {
+  XLOG(INFO) << "Marked to reset diag shell client states";
+  shouldResetPublisher_ = true;
+}
+
+void StreamingDiagShellServer::consumeInput(
+    std::unique_ptr<std::string> input,
+    std::unique_ptr<ClientInformation> client) {
+  auto locked = publisher_.lock();
+  if (!*locked) {
+    std::string msg = "No diag shell connected!";
+    XLOG(WARNING) << msg;
+    throw FbossError(msg);
+  }
+  DiagShell::consumeInput(std::move(input), std::move(client));
+}
+
+void StreamingDiagShellServer::resetPublisher() {
+  XLOG(INFO) << "Resetting diag shell client state";
+  auto locked = publisher_.lock();
+  if (!shouldResetPublisher_) {
+    return;
+  }
+  if (*locked) {
+    std::move(**locked).complete();
+  }
+  locked->reset();
+  // Reset repl and terminal session.
+  ts_.reset();
+  repl_.reset();
+  shouldResetPublisher_ = false;
+  diagShellLock_.unlock();
+  XLOG(INFO) << "Ready to accept new clients";
+}
+
 // TODO: Log command output to Scuba
-void DiagShell::produceOutput() {
+void StreamingDiagShellServer::streamOutput() {
   std::size_t nread = 0;
   auto fd = ptym_->file.fd();
   while (true) {

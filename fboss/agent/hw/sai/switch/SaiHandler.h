@@ -17,6 +17,7 @@
 namespace facebook::fboss {
 
 class SaiSwitch;
+class StreamingDiagShellServer;
 
 class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
  public:
@@ -35,7 +36,7 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
 
  private:
   const SaiSwitch* hw_;
-  DiagShell diagShell_;
+  StreamingDiagShellServer diagShell_;
 };
 
 } // namespace facebook::fboss

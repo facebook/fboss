@@ -22,7 +22,7 @@
 namespace facebook::fboss {
 
 class SaiSwitch;
-class DiagShell;
+class StreamingDiagShellServer;
 
 class SaiTestHandler : virtual public SaiTestCtrlSvIf,
                        public fb303::FacebookBase2,
@@ -48,7 +48,7 @@ class SaiTestHandler : virtual public SaiTestCtrlSvIf,
   SaiTestHandler& operator=(SaiTestHandler const&) = delete;
 
   const SaiSwitch* hw_;
-  DiagShell diagShell_;
+  StreamingDiagShellServer diagShell_;
 };
 
 } // namespace facebook::fboss
