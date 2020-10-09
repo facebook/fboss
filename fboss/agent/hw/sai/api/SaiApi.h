@@ -165,10 +165,17 @@ class SaiApi {
         status = impl()._getAttribute(key, attr.saiAttr());
       }
     }
-    saiApiCheckError(
-        status,
-        ApiT::ApiType,
-        fmt::format("Failed to get sai attribute: {}: {}", key, attr));
+    if constexpr (!std::remove_reference_t<AttrT>::HasDefaultGetter) {
+      saiApiCheckError(
+          status,
+          ApiT::ApiType,
+          fmt::format("Failed to get sai attribute: {}: {}", key, attr));
+    } else if (status != SAI_STATUS_SUCCESS) {
+      throw SaiApiError(
+          status,
+          ApiT::ApiType,
+          fmt::format("Failed to get sai attribute: {}: {}", key, attr));
+    }
     XLOGF(DBG5, "got SAI attribute: {}: {}", key, attr);
     return attr.value();
   }
