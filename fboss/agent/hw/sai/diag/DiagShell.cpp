@@ -14,6 +14,9 @@
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
@@ -208,32 +211,6 @@ std::string DiagShell::getPrompt() const {
   return repl_->getPrompt();
 }
 
-std::string DiagShell::getDelimiterDiagCmd(const std::string& UUID) const {
-  /* Returns the command used for separating each diagCmd,
-   * which varies between platform.
-   */
-  switch (hw_->getPlatform()->getMode()) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
-      return UUID + "\n";
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-      return folly::to<std::string>("print('", UUID, "')\n");
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
-      throw FbossError("Shell not supported for fake platforms");
-  }
-  CHECK(0) << " Should never get here";
-  return "";
-}
-
 void DiagShell::consumeInput(
     std::unique_ptr<std::string> input,
     std::unique_ptr<ClientInformation> client) {
@@ -360,6 +337,126 @@ void StreamingDiagShellServer::streamOutput() {
     }
   }
   resetPublisher();
+}
+
+DiagCmdServer::DiagCmdServer(const SaiSwitch* hw, DiagShell* diagShell)
+    : hw_(hw),
+      diagShell_(diagShell),
+      uuid_(boost::uuids::to_string(boost::uuids::random_generator()())) {}
+
+DiagCmdServer::~DiagCmdServer() noexcept {}
+
+std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
+  /* Returns the command used for separating each diagCmd,
+   * which varies between platform.
+   */
+  switch (hw_->getPlatform()->getMode()) {
+    case PlatformMode::WEDGE:
+    case PlatformMode::WEDGE100:
+    case PlatformMode::GALAXY_LC:
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::MINIPACK:
+    case PlatformMode::YAMP:
+    case PlatformMode::WEDGE400:
+    case PlatformMode::FUJI:
+    case PlatformMode::ELBERT:
+      return UUID + "\n";
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400C_SIM:
+      return folly::to<std::string>("print('", UUID, "')\n");
+    case PlatformMode::FAKE_WEDGE:
+    case PlatformMode::FAKE_WEDGE40:
+      throw FbossError("Shell not supported for fake platforms");
+  }
+  CHECK(0) << " Should never get here";
+  return "";
+}
+
+std::string& DiagCmdServer::cleanUpOutput(
+    std::string& output,
+    const std::string& input) {
+  switch (hw_->getPlatform()->getMode()) {
+    case PlatformMode::WEDGE:
+    case PlatformMode::WEDGE100:
+    case PlatformMode::GALAXY_LC:
+    case PlatformMode::GALAXY_FC:
+    case PlatformMode::MINIPACK:
+    case PlatformMode::YAMP:
+    case PlatformMode::WEDGE400:
+    case PlatformMode::FUJI:
+    case PlatformMode::ELBERT:
+      // Clean up the back of the string
+      if (!output.empty() && !input.empty()) {
+        std::string shell = "drivshell>";
+        int pos = output.rfind(shell + uuid_);
+        if (pos != std::string::npos) {
+          // Remove uuid if the output is for an actual command.
+          output = output.erase(pos);
+        }
+        // Cleaning shell inputs
+        std::string inputStr = input.substr(0, input.find('\n')) + "\x0d\n";
+        pos = output.find(input.substr(0, input.find('\n')) + "\x0d\n");
+        if (pos != std::string::npos) {
+          output = output.erase(0, pos + inputStr.length());
+        }
+      }
+      return output;
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400C_SIM:
+      return output;
+    case PlatformMode::FAKE_WEDGE:
+    case PlatformMode::FAKE_WEDGE40:
+      throw FbossError("Shell not supported for fake platforms");
+  }
+  CHECK(0) << " Should never get here";
+  return output;
+}
+
+std::string DiagCmdServer::diagCmd(
+    std::unique_ptr<fbstring> input,
+    std::unique_ptr<ClientInformation> client) {
+  // TODO: Look into adding timeout for try_connect
+  // TODO: Look into adding context on which client is connected
+  if (!diagShell_->tryConnect()) {
+    // TODO: Look into how we can add timeout in future diffs
+    throw FbossError("Another client connected");
+  }
+  std::string inputStr = input->toStdString();
+  // Flush out old output
+  // These should be made in different consumeInput calls,
+  // or the input gets mixed up.
+  diagShell_->consumeInput(
+      std::make_unique<std::string>("\n"), std::move(client));
+  produceOutput();
+  diagShell_->consumeInput(
+      std::make_unique<std::string>(inputStr), std::move(client));
+  diagShell_->consumeInput(
+      std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
+      std::move(client));
+  // Currently the timeout is 4 seconds
+  // For results that take more than 4 seconds, the diagCmd call timesout
+  // TODO: Look into requesting results that take a long time
+  std::string output = produceOutput(4000);
+  cleanUpOutput(output, inputStr);
+  diagShell_->disconnect();
+  return output;
+}
+
+std::string DiagCmdServer::produceOutput(int timeoutMs) {
+  std::string output;
+  int currTimeout = timeoutMs;
+  while (true) {
+    std::string tmpOutput = diagShell_->readOutput(currTimeout);
+    if (tmpOutput.length() == 0) {
+      break;
+    }
+    output += tmpOutput;
+    // TODO: Check platform specific termination criteria
+    if (output.rfind("Unknown command: " + uuid_) != std::string::npos) {
+      break;
+    }
+  }
+  return output;
 }
 
 } // namespace facebook::fboss

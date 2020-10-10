@@ -21,6 +21,7 @@
 
 namespace facebook::fboss {
 
+class DiagCmdServer;
 class SaiSwitch;
 class StreamingDiagShellServer;
 
@@ -49,6 +50,7 @@ class SaiTestHandler : virtual public SaiTestCtrlSvIf,
 
   const SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;
+  DiagCmdServer diagCmdServer_;
 };
 
 } // namespace facebook::fboss

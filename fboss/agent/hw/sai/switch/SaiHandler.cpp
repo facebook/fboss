@@ -16,7 +16,10 @@
 namespace facebook::fboss {
 
 SaiHandler::SaiHandler(SwSwitch* sw, const SaiSwitch* hw)
-    : ThriftHandler(sw), hw_(hw), diagShell_(hw) {}
+    : ThriftHandler(sw),
+      hw_(hw),
+      diagShell_(hw),
+      diagCmdServer_(hw, &diagShell_) {}
 
 SaiHandler::~SaiHandler() {}
 
@@ -45,11 +48,10 @@ void SaiHandler::produceDiagShellInput(
 }
 
 void SaiHandler::diagCmd(
-    folly::fbstring& /* unused */,
-    std::unique_ptr<fbstring> /* unused */,
-    std::unique_ptr<ClientInformation> /* unused */) {
-  // TODO
-  throw FbossError("Unsupported");
+    fbstring& result,
+    std::unique_ptr<fbstring> cmd,
+    std::unique_ptr<ClientInformation> client) {
+  result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
 } // namespace facebook::fboss

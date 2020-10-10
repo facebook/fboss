@@ -18,7 +18,10 @@ using folly::fbstring;
 namespace facebook::fboss {
 
 SaiTestHandler::SaiTestHandler(const SaiSwitch* hw)
-    : FacebookBase2("FBOSS_SAI_TEST"), hw_(hw), diagShell_(hw) {}
+    : FacebookBase2("FBOSS_SAI_TEST"),
+      hw_(hw),
+      diagShell_(hw),
+      diagCmdServer_(hw, &diagShell_) {}
 
 SaiTestHandler::~SaiTestHandler() {}
 
@@ -47,11 +50,10 @@ void SaiTestHandler::produceDiagShellInput(
 }
 
 void SaiTestHandler::diagCmd(
-    folly::fbstring& /* unused */,
-    std::unique_ptr<fbstring> /* unused */,
-    std::unique_ptr<ClientInformation> /* unused */) {
-  // TODO
-  throw FbossError("Unsupported");
+    fbstring& result,
+    std::unique_ptr<fbstring> cmd,
+    std::unique_ptr<ClientInformation> client) {
+  result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
 } // namespace facebook::fboss

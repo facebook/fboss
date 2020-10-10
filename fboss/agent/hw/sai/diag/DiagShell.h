@@ -85,7 +85,6 @@ class DiagShell {
  protected:
   void initTerminal();
   void resetTerminal();
-  std::string getDelimiterDiagCmd(const std::string& UUID) const;
 
   std::mutex diagShellMutex_;
   std::unique_lock<std::mutex> diagShellLock_;
@@ -133,6 +132,25 @@ class StreamingDiagShellServer : public DiagShell {
       std::mutex>
       publisher_;
   std::atomic<bool> shouldResetPublisher_ = false;
+};
+
+class DiagCmdServer {
+ public:
+  explicit DiagCmdServer(const SaiSwitch* hw, DiagShell* diagShell);
+  ~DiagCmdServer() noexcept;
+
+  // Processing programmatic inputs
+  std::string diagCmd(
+      std::unique_ptr<fbstring> input,
+      std::unique_ptr<ClientInformation> client);
+
+ private:
+  std::string produceOutput(int timeoutMs = 0);
+  std::string getDelimiterDiagCmd(const std::string& UUID) const;
+  std::string& cleanUpOutput(std::string& output, const std::string& input);
+  const SaiSwitch* hw_;
+  DiagShell* diagShell_;
+  const std::string uuid_; // UUID used for I/O
 };
 
 } // namespace facebook::fboss
