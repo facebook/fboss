@@ -17,6 +17,7 @@ using facebook::fboss::FakeSai;
 namespace {
 static constexpr uint64_t kDefaultVlanId = 0;
 static constexpr uint64_t kDefaultVirtualRouterId = 0;
+static constexpr uint64_t kDefault1QBridgeId = 0;
 static constexpr uint64_t kCpuPort = 0;
 static constexpr uint32_t kMaxPortUnicastQueues = 8;
 static constexpr uint32_t kMaxPortMulticastQueues = 8;
@@ -223,6 +224,9 @@ sai_status_t get_switch_attribute_fn(
   auto& sw = fs->switchManager.get(switch_id);
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
+      case SAI_SWITCH_ATTR_DEFAULT_1Q_BRIDGE_ID:
+        attr[i].value.oid = kDefault1QBridgeId;
+        break;
       case SAI_SWITCH_ATTR_DEFAULT_VIRTUAL_ROUTER_ID:
         attr[i].value.oid = kDefaultVirtualRouterId;
         break;

@@ -29,22 +29,13 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
   if (UNLIKELY(!bridgeHandle_)) {
     auto& store = SaiStore::getInstance()->get<SaiBridgeTraits>();
     bridgeHandle_ = std::make_unique<SaiBridgeHandle>();
-    if (!platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
-      /*
-       * TODO: This is only a temporary solution till the hw supports
-       * reload of the default 1Q bridge
-       */
-      SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-      BridgeSaiId default1QBridgeId{
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              switchId, SaiSwitchTraits::Attributes::Default1QBridgeId{})};
-      bridgeHandle_->bridge = store.loadObjectOwnedByAdapter(
-          SaiBridgeTraits::AdapterKey{default1QBridgeId});
-    }
-    if (!bridgeHandle_->bridge) {
-      SaiBridgeTraits::CreateAttributes attributes{SAI_BRIDGE_TYPE_1Q};
-      bridgeHandle_->bridge = store.setObject(std::monostate{}, attributes);
-    }
+    SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
+    BridgeSaiId default1QBridgeId{
+        SaiApiTable::getInstance()->switchApi().getAttribute(
+            switchId, SaiSwitchTraits::Attributes::Default1QBridgeId{})};
+    bridgeHandle_->bridge = store.loadObjectOwnedByAdapter(
+        SaiBridgeTraits::AdapterKey{default1QBridgeId});
+    CHECK(bridgeHandle_->bridge);
   }
   auto& store = SaiStore::getInstance()->get<SaiBridgePortTraits>();
   SaiBridgePortTraits::AdapterHostKey k{portId};
