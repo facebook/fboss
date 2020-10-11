@@ -45,7 +45,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::HSDK:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
-    case HwAsic::Feature::GET_OBJECT_KEYS:
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::ACL_COPY_TO_CPU:

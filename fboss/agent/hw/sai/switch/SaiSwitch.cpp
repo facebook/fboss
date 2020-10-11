@@ -816,10 +816,8 @@ HwInitResult SaiSwitch::initLocked(
   // perhaps reload fixes it?
   auto saiStore = SaiStore::getInstance();
   saiStore->setSwitchId(switchId_);
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::GET_OBJECT_KEYS)) {
-    saiStore->reload(
-        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
-  }
+  saiStore->reload(
+      adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
   managerTable_->createSaiTableManagers(platform_, concurrentIndices_.get());
   callback_ = callback;
   __gSaiSwitch = this;

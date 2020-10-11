@@ -28,7 +28,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
-    case HwAsic::Feature::GET_OBJECT_KEYS:
     case HwAsic::Feature::WARM_BOOT:
       return true;
 
