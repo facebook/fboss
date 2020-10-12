@@ -88,11 +88,7 @@ class HwPortProfileTest : public HwLinkStateDependentTest {
       }
     };
     auto setupPostWb = [=]() { setupPort2OverrideTransceiverInfo(profile); };
-    // TODO(T74567694): support warm boot
-    // verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
-    setup();
-    verify();
-    setupPostWb();
+    verifyAcrossWarmBoots(setup, verify, setupPostWb, verify);
   }
 
   std::map<PortID, TransceiverInfo> port2transceiverInfo(
