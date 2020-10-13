@@ -42,6 +42,10 @@ FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, WredSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
 
 namespace facebook::fboss {
 
