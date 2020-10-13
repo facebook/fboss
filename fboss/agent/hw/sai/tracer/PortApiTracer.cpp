@@ -150,22 +150,39 @@ sai_status_t wrap_create_port_serdes(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
-  // TODO: log create port serdes
-  return SaiTracer::getInstance()->portApi_->create_port_serdes(
+  auto rv = SaiTracer::getInstance()->portApi_->create_port_serdes(
       port_serdes_id, switch_id, attr_count, attr_list);
+  SaiTracer::getInstance()->logCreateFn(
+      "create_port_serdes",
+      port_serdes_id,
+      switch_id,
+      attr_count,
+      attr_list,
+      SAI_OBJECT_TYPE_PORT_SERDES,
+      rv);
+  return rv;
 }
 
 sai_status_t wrap_remove_port_serdes(sai_object_id_t port_serdes_id) {
-  // TODO: log remove port serdes
-  return SaiTracer::getInstance()->portApi_->remove_port_serdes(port_serdes_id);
+  auto rv =
+      SaiTracer::getInstance()->portApi_->remove_port_serdes(port_serdes_id);
+  SaiTracer::getInstance()->logRemoveFn(
+      "remove_port_serdes", port_serdes_id, SAI_OBJECT_TYPE_PORT_SERDES, rv);
+  return rv;
 }
 
 sai_status_t wrap_set_port_serdes_attribute(
     sai_object_id_t port_serdes_id,
     const sai_attribute_t* attr) {
-  // TODO: log set port serdes attribute
-  return SaiTracer::getInstance()->portApi_->set_port_serdes_attribute(
+  auto rv = SaiTracer::getInstance()->portApi_->set_port_serdes_attribute(
       port_serdes_id, attr);
+  SaiTracer::getInstance()->logSetAttrFn(
+      "set_port_serdes_attribute",
+      port_serdes_id,
+      attr,
+      SAI_OBJECT_TYPE_PORT_SERDES,
+      rv);
+  return rv;
 }
 
 sai_status_t wrap_get_port_serdes_attribute(
