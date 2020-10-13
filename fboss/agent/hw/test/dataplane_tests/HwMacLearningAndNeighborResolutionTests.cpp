@@ -349,10 +349,6 @@ TYPED_TEST(
   };
   auto setup = [this, program]() {
     program(this->portDescriptor());
-    // TODO - Neighbor move can happen before the old entry transitions
-    // to pending. However moving the neighbor like that triggers a
-    // bug in brcm-sai that's being chased down in CS00011145260
-    this->removeNeighbors();
     // Now move it to port descriptor 2
     program(this->portDescriptor2());
   };
