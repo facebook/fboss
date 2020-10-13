@@ -234,6 +234,16 @@ target_link_libraries(bcm_init_to_config_100Gx10G
   -Wl,--no-whole-archive
 )
 
+add_executable(bcm_init_to_config_100Gx25G /dev/null)
+
+target_link_libraries(bcm_init_to_config_100Gx25G
+  -Wl,--whole-archive
+  bcm_switch_ensemble
+  config_factory
+  hw_init_to_config_100Gx25G
+  -Wl,--no-whole-archive
+)
+
 add_executable(bcm_init_to_config_100Gx50G /dev/null)
 
 target_link_libraries(bcm_init_to_config_100Gx50G
@@ -270,5 +280,6 @@ install(TARGETS bcm_warm_boot_exit_speed)
 install(TARGETS bcm_rx_slow_path_rate)
 install(TARGETS bcm_init_to_config_40Gx10G)
 install(TARGETS bcm_init_to_config_100Gx10G)
+install(TARGETS bcm_init_to_config_100Gx25G)
 install(TARGETS bcm_init_to_config_100Gx50G)
 install(TARGETS bcm_init_to_config_100Gx100G)

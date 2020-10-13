@@ -297,6 +297,23 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
 
+  add_executable(sai_init_to_config_100Gx25G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
+
+  target_link_libraries(sai_init_to_config_100Gx25G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    sai_switch_ensemble
+    hw_init_to_config_100Gx25G
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+
+  set_target_properties(sai_init_to_config_100Gx25G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
+
   add_executable(sai_init_to_config_100Gx50G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX} /dev/null)
 
   target_link_libraries(sai_init_to_config_100Gx50G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
@@ -390,6 +407,9 @@ if(SAI_IMPL)
   install(
     TARGETS
     sai_init_to_config_100Gx10G-sai_impl-${SAI_VER_SUFFIX})
+  install(
+    TARGETS
+    sai_init_to_config_100Gx25G-sai_impl-${SAI_VER_SUFFIX})
   install(
     TARGETS
     sai_init_to_config_100Gx50G-sai_impl-${SAI_VER_SUFFIX})

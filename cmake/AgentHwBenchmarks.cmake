@@ -210,6 +210,15 @@ target_link_libraries(hw_init_to_config_100Gx10G
   hw_init_to_config_benchmark_helper
 )
 
+add_library(hw_init_to_config_100Gx25G
+  fboss/agent/hw/benchmarks/HwInitToConfig100Gx25GBenchmark.cpp
+)
+
+target_link_libraries(hw_init_to_config_100Gx25G
+  config_factory
+  hw_init_to_config_benchmark_helper
+)
+
 add_library(hw_init_to_config_100Gx50G
   fboss/agent/hw/benchmarks/HwInitToConfig100Gx50GBenchmark.cpp
 )
