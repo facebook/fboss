@@ -28,9 +28,9 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::BUFFER_PROFILE:
       return true;
 
-    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
     case HwAsic::Feature::ERSPANv6:

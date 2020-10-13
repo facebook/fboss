@@ -48,9 +48,9 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::BUFFER_PROFILE:
       return true;
 
-    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::TX_VLAN_STRIPPING_ON_PORT:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
