@@ -158,6 +158,7 @@ class SaiTracer {
   sai_switch_api_t* switchApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
+  sai_tam_api_t* tamApi_;
 
   std::map<sai_api_t, std::string> init_api_;
 

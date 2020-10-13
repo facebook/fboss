@@ -32,6 +32,7 @@
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VlanApiTracer.h"
 
@@ -249,6 +250,11 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedVlanApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "vlan_api");
       break;
+    case SAI_API_TAM:
+      SaiTracer::getInstance()->tamApi_ =
+          static_cast<sai_tam_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedTamApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "tam_api");
     default:
       // TODO: For other APIs, create new API wrappers and invoke wrappedApi()
       // funtion here

@@ -22,6 +22,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/SaiTracer.cpp
   fboss/agent/hw/sai/tracer/SchedulerApiTracer.cpp
   fboss/agent/hw/sai/tracer/SwitchApiTracer.cpp
+  fboss/agent/hw/sai/tracer/TamApiTracer.cpp
   fboss/agent/hw/sai/tracer/Utils.cpp
   fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.cpp
   fboss/agent/hw/sai/tracer/VlanApiTracer.cpp
