@@ -188,8 +188,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
-  if (getPlatform()->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -200,5 +199,19 @@ TEST_F(HwMmuTuningTest, verifyReservedBytesTuning) {
         setup({0, 1});
       },
       [this]() { verify(0, 1); });
+}
+
+TEST_F(HwMmuTuningTest, verifyScalingFactorTuning) {
+  if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  verifyAcrossWarmBoots(
+      [this]() {
+        setup({2, 3});
+      },
+      [this]() { verify(2, 3); });
 }
 } // namespace facebook::fboss
