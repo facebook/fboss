@@ -155,16 +155,15 @@ sai_status_t create_buffer_profile_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (!poolId || !reservedBytes || !threshMode || !dynamicThreshold ||
-      !staticThreshold) {
+  if (!poolId) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *buffer_profile_id = fs->bufferProfileManager.create(
       poolId.value(),
-      reservedBytes.value(),
-      threshMode.value(),
-      dynamicThreshold.value(),
-      staticThreshold.value());
+      reservedBytes,
+      threshMode,
+      dynamicThreshold,
+      staticThreshold);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -211,16 +210,19 @@ sai_status_t get_buffer_profile_attribute_fn(
         attr[i].value.oid = profile.poolId;
         break;
       case SAI_BUFFER_PROFILE_ATTR_RESERVED_BUFFER_SIZE:
-        attr[i].value.u64 = profile.reservedBytes;
+        attr[i].value.u64 =
+            profile.reservedBytes ? profile.reservedBytes.value() : 0;
         break;
       case SAI_BUFFER_PROFILE_ATTR_THRESHOLD_MODE:
-        attr[i].value.s32 = profile.threshMode;
+        attr[i].value.s32 = profile.threshMode ? profile.threshMode.value() : 0;
         break;
       case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
-        attr[i].value.s8 = profile.dynamicThreshold;
+        attr[i].value.s8 =
+            profile.dynamicThreshold ? profile.dynamicThreshold.value() : 0;
         break;
       case SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH:
-        attr[i].value.s8 = profile.staticThreshold;
+        attr[i].value.s8 =
+            profile.staticThreshold ? profile.staticThreshold.value() : 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

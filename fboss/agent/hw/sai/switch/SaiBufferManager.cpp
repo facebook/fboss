@@ -105,9 +105,6 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
     const PortQueue& queue) {
   setupEgressBufferPool();
   // TODO throw error if shared bytes is set. We don't handle that in SAI
-  if (!queue.getReservedBytes() && !queue.getScalingFactor()) {
-    return nullptr;
-  }
   auto c = profileCreateAttrs(queue);
   return bufferProfiles_
       .refOrEmplace(c, c, c, managerTable_->switchManager().getSwitchSaiId())
