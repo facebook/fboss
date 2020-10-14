@@ -16,3 +16,8 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_FAKE_LED = SAI_SWITCH_ATTR_END,
   SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET,
 } sai_switch_extensions_attr_t;
+
+typedef enum _sai_tam_event_extensions_attr_t {
+  SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_TYPE = SAI_TAM_EVENT_ATTR_END,
+  SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID,
+} sai_tam_event_extensions_attr_t;

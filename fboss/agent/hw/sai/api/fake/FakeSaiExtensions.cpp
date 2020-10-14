@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/TamApi.h"
 
 extern "C" {
 #include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
@@ -33,6 +34,16 @@ SaiSwitchTraits::Attributes::AttributeLedIdWrapper::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLedResetIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_TYPE;
+}
+
+std::optional<sai_attr_id_t> SaiTamEventTraits::Attributes::AttributeEventId::
+operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID;
 }
 
 } // namespace facebook::fboss

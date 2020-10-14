@@ -16,7 +16,7 @@ namespace facebook::fboss {
 
 class TamApi;
 
-struct SaiTamReport {
+struct SaiTamReportTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM_REPORT;
   struct Attributes {
     using EnumType = sai_tam_report_attr_t;
@@ -42,7 +42,7 @@ struct SaiTamEventActionTraits {
   using CreateAttributes = std::tuple<Attributes::ReportType>;
 };
 
-struct SaiTamEvent {
+struct SaiTamEventTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM_EVENT;
   struct Attributes {
     using EnumType = sai_tam_event_attr_t;
@@ -55,10 +55,19 @@ struct SaiTamEvent {
         EnumType,
         SAI_TAM_EVENT_ATTR_COLLECTOR_LIST,
         std::vector<sai_object_id_t>>;
-    using SwitchEventType = SaiAttribute<
-        EnumType,
-        SAI_TAM_EVENT_ATTR_SWITCH_EVENT_TYPE,
-        std::vector<sai_int32_t>>;
+    /* extension attributes */
+    struct AttributeSwitchEventType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SwitchEventType = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeSwitchEventType>;
+
+    struct AttributeEventId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SwitchEventId =
+        SaiExtensionAttribute<std::vector<sai_int32_t>, AttributeEventId>;
   };
   using AdapterKey = TamEventSaiId;
   using AdapterHostKey = std::tuple<
@@ -71,6 +80,7 @@ struct SaiTamEvent {
 
 struct SaiTamTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM;
+  using EnumType = sai_tam_attr_t;
   struct Attributes {
     using EventObjectList = SaiAttribute<
         EnumType,
@@ -79,7 +89,7 @@ struct SaiTamTraits {
     using TamBindPointList = SaiAttribute<
         EnumType,
         SAI_TAM_ATTR_TAM_BIND_POINT_TYPE_LIST,
-        std::vector<sai_s32_list_t>>;
+        std::vector<sai_int32_t>>;
   };
   using AdapterKey = TamSaiId;
   using AdapterHostKey =
@@ -107,15 +117,15 @@ class TamApi : public SaiApi<TamApi> {
   }
 
   sai_status_t _remove(TamSaiId id) const {
-    return api_->remove_tam(rawSaiId(id), switch_id, count, attr_list);
+    return api_->remove_tam(id);
   }
 
   sai_status_t _getAttribute(TamSaiId id, sai_attribute_t* attr) const {
-    return api_->get_tam_attribute(rawSaiId(id), 1, attr);
+    return api_->get_tam_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(TamSaiId id, const sai_attribute_t* attr) const {
-    return api_->set_tam_attribute(rawSaiId(id), attr);
+    return api_->set_tam_attribute(id, attr);
   }
 
   // TAM Event
@@ -128,16 +138,16 @@ class TamApi : public SaiApi<TamApi> {
   }
 
   sai_status_t _remove(TamEventSaiId id) const {
-    return api_->remove_tam_event(rawSaiId(id), switch_id, count, attr_list);
+    return api_->remove_tam_event(id);
   }
 
   sai_status_t _getAttribute(TamEventSaiId id, sai_attribute_t* attr) const {
-    return api_->get_tam_event_attribute(rawSaiId(id), 1, attr);
+    return api_->get_tam_event_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(TamEventSaiId id, const sai_attribute_t* attr)
       const {
-    return api_->set_tam_event_attribute(rawSaiId(id), attr);
+    return api_->set_tam_event_attribute(id, attr);
   }
 
   // TAM Event Action
@@ -151,19 +161,18 @@ class TamApi : public SaiApi<TamApi> {
   }
 
   sai_status_t _remove(TamEventActionSaiId id) const {
-    return api_->remove_tam_event_action(
-        rawSaiId(id), switch_id, count, attr_list);
+    return api_->remove_tam_event_action(id);
   }
 
   sai_status_t _getAttribute(TamEventActionSaiId id, sai_attribute_t* attr)
       const {
-    return api_->get_tam_event_action_attribute(rawSaiId(id), 1, attr);
+    return api_->get_tam_event_action_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(
       TamEventActionSaiId id,
       const sai_attribute_t* attr) const {
-    return api_->set_tam_event_action_attribute(rawSaiId(id), attr);
+    return api_->set_tam_event_action_attribute(id, attr);
   }
 
   // TAM Report
@@ -176,15 +185,15 @@ class TamApi : public SaiApi<TamApi> {
   }
 
   sai_status_t _remove(TamReportSaiId id) const {
-    return api_->remove_tam_report(rawSaiId(id));
+    return api_->remove_tam_report(id);
   }
 
   sai_status_t _getAttribute(TamReportSaiId id, sai_attribute_t* attr) const {
-    return api_->get_tam_report_attribute(rawSaiId(id), 1, attr);
+    return api_->get_tam_report_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(TamReportSaiId id, sai_attribute_t* attr) const {
-    return api_->set_tam_report_attribute(rawSaiId(id), attr);
+    return api_->set_tam_report_attribute(id, attr);
   }
 
   sai_tam_api_t* api_;
