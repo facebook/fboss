@@ -1857,6 +1857,9 @@ void BcmPort::setPortResource(const std::shared_ptr<Port>& swPort) {
   portResBuilder->removePorts({this});
   portResBuilder->addPorts({swPort});
   portResBuilder->program();
+  if (portState) {
+    enable(swPort);
+  }
 }
 
 cfg::PortProfileID BcmPort::getCurrentProfile() const {
