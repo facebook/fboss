@@ -140,6 +140,44 @@ class HwAclQualifierTest : public HwTest {
     configureQualifier(acl->proto_ref(), true, 6);
   }
 
+  std::string kAclName() const {
+    return "acl0";
+  }
+
+  void aclSetupHelper(bool isIpV4, bool isL3LookupClass) {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
+
+    if (isIpV4) {
+      configureIp4QualifiersHelper(acl);
+    } else {
+      configureIp6QualifiersHelper(acl);
+    }
+
+    if (isL3LookupClass) {
+      configureQualifier(
+          acl->lookupClass_ref(),
+          true,
+          cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
+    } else { // isL2LookupClass
+      if (getPlatform()->getAsic()->getAsicType() !=
+          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        configureQualifier(
+            acl->lookupClassL2_ref(),
+            true,
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+      }
+    }
+
+    applyNewConfig(newCfg);
+  }
+
+  void aclVerifyHelper() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName());
+  }
+
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
@@ -335,59 +373,42 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4AndLookupClassQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp4L2LookupClass) {
   auto setup = [=]() {
-    auto newCfg = initialConfig();
-    auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
-    configureIp4QualifiersHelper(acl);
-    if (getPlatform()->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-      configureQualifier(
-          acl->lookupClassL2_ref(),
-          true,
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-    }
-    configureQualifier(
-        acl->lookupClass_ref(),
-        true,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
-
-    applyNewConfig(newCfg);
+    aclSetupHelper(true /* isIpV4 */, false /* L2 LookupClass */);
   };
 
-  auto verify = [=]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
-  };
+  auto verify = [=]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6AndLookupClassQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp4L3LookupClass) {
   auto setup = [=]() {
-    auto newCfg = initialConfig();
-    auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
-    configureIp6QualifiersHelper(acl);
-    if (getPlatform()->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
-      configureQualifier(
-          acl->lookupClassL2_ref(),
-          true,
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-    }
-    configureQualifier(
-        acl->lookupClass_ref(),
-        true,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
-    applyNewConfig(newCfg);
+    aclSetupHelper(true /* isIpV4 */, true /* L3 LookupClass */);
   };
 
-  auto verify = [=]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
+  auto verify = [=]() { aclVerifyHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6L2LookupClass) {
+  auto setup = [=]() {
+    aclSetupHelper(false /* isIpV6 */, false /* L2 lookupClass */);
   };
+
+  auto verify = [=]() { aclVerifyHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6L3LookupClass) {
+  auto setup = [=]() {
+    aclSetupHelper(false /* isIpV6 */, true /* L3 LookupClass */);
+  };
+
+  auto verify = [=]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
