@@ -296,9 +296,7 @@ BcmEcmpEgress::BcmEcmpEgress(
     const BcmSwitchIf* hw,
     const EgressId2Weight& egressId2Weight)
     : BcmEgressBase(hw), egressId2Weight_(egressId2Weight) {
-  auto platform = hw_->getPlatform();
-  if (platform &&
-      platform->getAsic()->isSupported(
+  if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
     weightedMember_ = true;
   }
