@@ -389,11 +389,17 @@ void WedgeManager::updateTransceiverMap() {
         continue;
       }
       // There are times when a module cannot be read however it's present.
-        // Try to reset here since that may be able to bring it back.
+      // Try to reset here since that may be able to bring it back.
       bool safeToReset = false;
       if (auto iter = lockedPorts->find(TransceiverID(idx));
           iter != lockedPorts->end()) {
-        safeToReset = std::all_of(iter->second.begin(), iter->second.end(), [](const auto& port) {
+        // Check if we have expected ports info synced over and if all of
+        // the port is down. If any of them is not true then we will not
+        // perform the reset.
+        safeToReset = (iter->second.size() == portsPerTransceiver) &&
+            std::all_of(iter->second.begin(),
+                        iter->second.end(),
+                        [](const auto& port) {
               return !(*port.second.up_ref());
             });
       }
