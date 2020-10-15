@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <optional>
+#include <sstream>
 
 extern "C" {
 #include <sai.h>
@@ -190,15 +191,6 @@ class SaiObjectStore {
     }
     return adapterKeys;
   }
-  std::string str() const {
-    std::stringstream ss;
-    ss << "Object type: " << saiObjectTypeToString(SaiObjectTraits::ObjectType)
-       << std::endl;
-    for (const auto& [key, object] : objects_) {
-      ss << fmt::format("{}", *object.lock()) << std::endl;
-    }
-    return ss.str();
-  }
   void exitForWarmBoot() {
     for (auto itr : objects_) {
       if (auto object = itr.second.lock()) {
@@ -215,19 +207,6 @@ class SaiObjectStore {
 
   uint64_t size() const {
     return objects_.size();
-  }
-  typename UnorderedRefMap<
-      typename SaiObjectTraits::AdapterHostKey,
-      ObjectType>::MapType::const_iterator
-  begin() const {
-    return objects_.begin();
-  }
-
-  typename UnorderedRefMap<
-      typename SaiObjectTraits::AdapterHostKey,
-      ObjectType>::MapType::const_iterator
-  end() const {
-    return objects_.end();
   }
 
  private:
@@ -377,3 +356,29 @@ keysForSaiObjStoreFromStoreJson(const folly::dynamic& json) {
       json[saiObjectTypeToString(SaiObjectTraits::ObjectType)]);
 }
 } // namespace facebook::fboss
+
+namespace fmt {
+
+template <typename SaiObjectTraits>
+struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiObjectStore<SaiObjectTraits>& store,
+      FormatContext& ctx) {
+    std::stringstream ss;
+    ss << "Object type: "
+       << facebook::fboss::saiObjectTypeToString(SaiObjectTraits::ObjectType)
+       << std::endl;
+    const auto& objs = store.objects();
+    for (const auto& [key, object] : objs) {
+      ss << fmt::format("{}", *object.lock()) << std::endl;
+    }
+    return format_to(ctx.out(), "{}", ss.str());
+  }
+};
+}

@@ -49,6 +49,6 @@ void verifyToStr() {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiObjectTraits>();
-  auto str = store.str();
+  auto str = fmt::format("{}", store);
   EXPECT_EQ(std::count(str.begin(), str.end(), '\n'), store.size() + 1);
 }

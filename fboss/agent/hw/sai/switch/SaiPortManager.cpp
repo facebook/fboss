@@ -618,7 +618,7 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
 std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
   auto& portStore = SaiStore::getInstance()->get<SaiPortTraits>();
   auto portMap = std::make_shared<PortMap>();
-  for (auto& iter : portStore) {
+  for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
     auto port = swPortFromAttributes(saiPort->attributes());
     portMap->addNode(port);
