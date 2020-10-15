@@ -60,6 +60,23 @@ SaiSwitchTraits::Attributes::MacAgingTime getMacAgingTime() {
   return FLAGS_l2AgeTimerSeconds;
 }
 
+const std::vector<sai_int32_t>& kTajoAclFieldList() {
+  static const std::vector<sai_int32_t> aclFieldList = {
+      SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6,
+      SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6,
+      SAI_ACL_TABLE_ATTR_FIELD_SRC_IP,
+      SAI_ACL_TABLE_ATTR_FIELD_DST_IP,
+      SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL,
+      SAI_ACL_TABLE_ATTR_FIELD_DSCP,
+      SAI_ACL_TABLE_ATTR_FIELD_TTL,
+      SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
+      SAI_ACL_TABLE_ATTR_FIELD_ROUTE_DST_USER_META,
+      SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
+  };
+
+  return aclFieldList;
+}
+
 // (TODO: srikrishnagopu) Move this to SaiPlatform ?
 SaiSwitchTraits::CreateAttributes getSwitchAttributes(
     SaiPlatform* platform,
@@ -73,6 +90,13 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
     srcMac = getSrcMac(platform);
     macAgingTime = getMacAgingTime();
   }
+
+  std::optional<SaiSwitchTraits::Attributes::AclFieldList> aclFieldList{
+      std::nullopt};
+  if (platform->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO) {
+    aclFieldList = kTajoAclFieldList();
+  }
+
   return {
       initSwitch,
       hwInfo,
@@ -88,7 +112,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // qos dscp to tc map
       std::nullopt, // qos tc to queue map
       macAgingTime,
-      std::nullopt, // acl field list
+      aclFieldList,
   };
 }
 
