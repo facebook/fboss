@@ -22,14 +22,10 @@ constexpr auto kFbossBmcAlert("BMC");
 constexpr auto kFbossKernelAlert("KERNEL");
 constexpr auto kFbossPortAlert("PORT");
 constexpr auto kFbossRouteAlert("ROUTE");
-
-// Prefix for alert tag
-constexpr auto kFbossAlertTag("FBOSS_ALERT");
+constexpr auto kFbossBGPAlert("BGP");
 
 // Alert tag by type
-AlertTag::AlertTag(std::string type)
-    : type_(std::move(type)),
-      fullTag_(folly::sformat("{}({}): ", kFbossAlertTag, type_)){};
+AlertTag::AlertTag(std::string type) : type_(std::move(type)){};
 
 MiscAlert::MiscAlert() : AlertTag(kFbossMiscAlert){};
 AsicAlert::AsicAlert() : AlertTag(kFbossAsicAlert){};
@@ -39,6 +35,7 @@ BmcAlert::BmcAlert() : AlertTag(kFbossBmcAlert){};
 KernelAlert::KernelAlert() : AlertTag(kFbossKernelAlert){};
 PortAlert::PortAlert() : AlertTag(kFbossPortAlert){};
 RouteAlert::RouteAlert() : AlertTag(kFbossRouteAlert){};
+BGPAlert::BGPAlert() : AlertTag(kFbossBGPAlert){};
 
 // Alert param types
 constexpr auto kFbossPort("port");

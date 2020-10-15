@@ -17,6 +17,9 @@
 
 namespace facebook::fboss {
 
+// Prefix for alert tag
+constexpr auto kFbossAlertTag("FBOSS_ALERT");
+
 /*
  * Utilities for logging of hi-signal events
  * with event-type and additional metadata params over XLOG
@@ -39,15 +42,16 @@ struct AlertTag {
   explicit AlertTag(std::string type);
 
   friend std::ostream& operator<<(std::ostream& out, const AlertTag& tag) {
-    return (out << tag.fullTag_);
+    // Note: blank space at end
+    return (out << kFbossAlertTag << "(" << tag.type_ << "): ");
   }
 
-  const std::string& tagString(void) {
-    return fullTag_;
+  const std::string str(void) const {
+    // Note: blank space at end
+    return folly::sformat("{}({}): ", kFbossAlertTag, type_);
   }
 
   const std::string type_;
-  const std::string fullTag_;
 };
 
 class MiscAlert : public AlertTag {
@@ -82,13 +86,23 @@ class RouteAlert : public AlertTag {
  public:
   RouteAlert();
 };
+class BGPAlert : public AlertTag {
+ public:
+  BGPAlert();
+};
 
 // Alert parameter types
 struct AlertParam {
   explicit AlertParam(std::string type, std::string value);
 
   friend std::ostream& operator<<(std::ostream& out, const AlertParam& param) {
+    // Note: blank space at front
     return (out << " <" << param.type_ << ":" << param.value_ << ">");
+  }
+
+  const std::string str() const {
+    // Note: blank space at front
+    return folly::sformat(" <{}:{}>", type_, value_);
   }
 
   const std::string type_;

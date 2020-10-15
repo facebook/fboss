@@ -241,7 +241,7 @@ std::unique_ptr<BcmUnit> BcmAPI::createOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
   if (numDevices == 0) {
     throw FbossError(
-        PlatformAlert().tagString() + "no Broadcom switching ASIC found");
+        PlatformAlert().str() + "no Broadcom switching ASIC found");
   } else if (numDevices > 1) {
     throw FbossError("found more than 1 Broadcom switching ASIC");
   }
