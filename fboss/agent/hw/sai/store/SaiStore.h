@@ -37,8 +37,6 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
     : std::false_type {};
 
-namespace detail {
-
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject
@@ -291,8 +289,6 @@ class SaiObjectStore {
       warmBootHandles_;
 };
 
-} // namespace detail
-
 /*
  * SaiStore represents FBOSS's knowledge of objects and their attributes
  * that have been programmed via SAI.
@@ -327,8 +323,8 @@ class SaiStore {
   void release();
 
   template <typename SaiObjectTraits>
-  detail::SaiObjectStore<SaiObjectTraits>& get() {
-    return std::get<detail::SaiObjectStore<SaiObjectTraits>>(stores_);
+  SaiObjectStore<SaiObjectTraits>& get() {
+    return std::get<SaiObjectStore<SaiObjectTraits>>(stores_);
   }
 
   folly::dynamic adapterKeysFollyDynamic() const;
@@ -340,44 +336,44 @@ class SaiStore {
  private:
   sai_object_id_t switchId_{};
   std::tuple<
-      detail::SaiObjectStore<SaiAclTableGroupTraits>,
-      detail::SaiObjectStore<SaiAclTableGroupMemberTraits>,
-      detail::SaiObjectStore<SaiAclTableTraits>,
-      detail::SaiObjectStore<SaiAclEntryTraits>,
-      detail::SaiObjectStore<SaiAclCounterTraits>,
-      detail::SaiObjectStore<SaiBridgeTraits>,
-      detail::SaiObjectStore<SaiBridgePortTraits>,
-      detail::SaiObjectStore<SaiBufferPoolTraits>,
-      detail::SaiObjectStore<SaiBufferProfileTraits>,
-      detail::SaiObjectStore<SaiDebugCounterTraits>,
-      detail::SaiObjectStore<SaiPortTraits>,
-      detail::SaiObjectStore<SaiVlanTraits>,
-      detail::SaiObjectStore<SaiVlanMemberTraits>,
-      detail::SaiObjectStore<SaiRouteTraits>,
-      detail::SaiObjectStore<SaiRouterInterfaceTraits>,
-      detail::SaiObjectStore<SaiNeighborTraits>,
-      detail::SaiObjectStore<SaiFdbTraits>,
-      detail::SaiObjectStore<SaiVirtualRouterTraits>,
-      detail::SaiObjectStore<SaiIpNextHopTraits>,
-      detail::SaiObjectStore<SaiMplsNextHopTraits>,
-      detail::SaiObjectStore<SaiNextHopGroupTraits>,
-      detail::SaiObjectStore<SaiNextHopGroupMemberTraits>,
-      detail::SaiObjectStore<SaiHostifTrapGroupTraits>,
-      detail::SaiObjectStore<SaiHostifTrapTraits>,
-      detail::SaiObjectStore<SaiQueueTraits>,
-      detail::SaiObjectStore<SaiSchedulerTraits>,
-      detail::SaiObjectStore<SaiHashTraits>,
-      detail::SaiObjectStore<SaiInSegTraits>,
-      detail::SaiObjectStore<SaiQosMapTraits>,
-      detail::SaiObjectStore<SaiPortSerdesTraits>,
-      detail::SaiObjectStore<SaiWredTraits>>
+      SaiObjectStore<SaiAclTableGroupTraits>,
+      SaiObjectStore<SaiAclTableGroupMemberTraits>,
+      SaiObjectStore<SaiAclTableTraits>,
+      SaiObjectStore<SaiAclEntryTraits>,
+      SaiObjectStore<SaiAclCounterTraits>,
+      SaiObjectStore<SaiBridgeTraits>,
+      SaiObjectStore<SaiBridgePortTraits>,
+      SaiObjectStore<SaiBufferPoolTraits>,
+      SaiObjectStore<SaiBufferProfileTraits>,
+      SaiObjectStore<SaiDebugCounterTraits>,
+      SaiObjectStore<SaiPortTraits>,
+      SaiObjectStore<SaiVlanTraits>,
+      SaiObjectStore<SaiVlanMemberTraits>,
+      SaiObjectStore<SaiRouteTraits>,
+      SaiObjectStore<SaiRouterInterfaceTraits>,
+      SaiObjectStore<SaiNeighborTraits>,
+      SaiObjectStore<SaiFdbTraits>,
+      SaiObjectStore<SaiVirtualRouterTraits>,
+      SaiObjectStore<SaiIpNextHopTraits>,
+      SaiObjectStore<SaiMplsNextHopTraits>,
+      SaiObjectStore<SaiNextHopGroupTraits>,
+      SaiObjectStore<SaiNextHopGroupMemberTraits>,
+      SaiObjectStore<SaiHostifTrapGroupTraits>,
+      SaiObjectStore<SaiHostifTrapTraits>,
+      SaiObjectStore<SaiQueueTraits>,
+      SaiObjectStore<SaiSchedulerTraits>,
+      SaiObjectStore<SaiHashTraits>,
+      SaiObjectStore<SaiInSegTraits>,
+      SaiObjectStore<SaiQosMapTraits>,
+      SaiObjectStore<SaiPortSerdesTraits>,
+      SaiObjectStore<SaiWredTraits>>
       stores_;
 };
 
 template <typename SaiObjectTraits>
 std::vector<typename SaiObjectTraits::AdapterKey>
 keysForSaiObjStoreFromStoreJson(const folly::dynamic& json) {
-  return detail::SaiObjectStore<SaiObjectTraits>::adapterKeysFromFollyDynamic(
+  return SaiObjectStore<SaiObjectTraits>::adapterKeysFromFollyDynamic(
       json[saiObjectTypeToString(SaiObjectTraits::ObjectType)]);
 }
 } // namespace facebook::fboss
