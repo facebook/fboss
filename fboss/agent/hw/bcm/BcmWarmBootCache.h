@@ -88,16 +88,18 @@ class BcmWarmBootCache {
   };
   typedef bcm_if_t EcmpEgressId;
   typedef bcm_if_t EgressId;
-  typedef boost::container::flat_map<EgressId, uint64_t> EgressIds;
-  typedef boost::container::flat_map<EcmpEgressId, EgressIds> Ecmp2EgressIds;
-  static EgressIds toEgressIds(EgressId* egress, int count) {
-    EgressIds egressIds;
-    std::for_each(egress, egress + count, [&egressIds](EgressId egress) {
-      egressIds[egress]++;
+  typedef boost::container::flat_map<EgressId, uint64_t> EgressId2Weight;
+  typedef boost::container::flat_map<EcmpEgressId, EgressId2Weight>
+      Ecmp2EgressIds;
+  static EgressId2Weight toEgressId2Weight(EgressId* egress, int count) {
+    EgressId2Weight egressId2Weight;
+    std::for_each(egress, egress + count, [&egressId2Weight](EgressId egress) {
+      egressId2Weight[egress]++;
     });
-    return egressIds;
+    return egressId2Weight;
   }
-  static std::string toEgressIdsStr(const EgressIds& egressIds);
+  static std::string toEgressId2WeightStr(
+      const EgressId2Weight& egressId2Weight);
   /*
    * Get all cached ecmp egress Ids
    */
@@ -132,7 +134,8 @@ class BcmWarmBootCache {
 
   typedef folly::F14FastMap<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
   typedef folly::F14FastMap<VrfAndPrefix, bcm_l3_route_t> VrfAndPrefix2Route;
-  typedef boost::container::flat_map<EgressIds, EcmpEgress> EgressIds2Ecmp;
+  typedef boost::container::flat_map<EgressId2Weight, EcmpEgress>
+      EgressIds2Ecmp;
   using VrfAndIP2Route = boost::container::flat_map<VrfAndIP, bcm_l3_route_t>;
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
@@ -430,8 +433,8 @@ class BcmWarmBootCache {
   EgressIds2EcmpCItr egressIds2Ecmp_end() {
     return egressIds2Ecmp_.end();
   }
-  EgressIds2EcmpCItr findEcmp(const EgressIds& egressIds) {
-    return egressIds2Ecmp_.find(egressIds);
+  EgressIds2EcmpCItr findEcmp(const EgressId2Weight& egressId2Weight) {
+    return egressIds2Ecmp_.find(egressId2Weight);
   }
   void programmed(EgressIds2EcmpCItr eeitr) {
     XLOG(DBG1) << "Programmed ecmp egress: " << eeitr->second.ecmp_intf
@@ -609,7 +612,7 @@ class BcmWarmBootCache {
    * if ecmp id is not found in hwSwitchEcmp2EgressIds_
    * map
    */
-  const EgressIds& getPathsForEcmp(EgressId ecmp) const;
+  const EgressId2Weight& getPathsForEcmp(EgressId ecmp) const;
   folly::dynamic getWarmBootState() const;
   void populateFromWarmBootState(const folly::dynamic& warmBootState);
   // No copy or assignment.
@@ -622,7 +625,7 @@ class BcmWarmBootCache {
   Vlan2BcmIfIdInWarmBootFile vlan2BcmIfIdInWarmBootFile_;
 
   // This is the set of egress ids pointed by BcmHost in warm boot file.
-  EgressIds egressIdsInWarmBootFile_;
+  EgressId2Weight egressId2WeightInWarmBootFile_;
   // Mapping from <vrf, ip, intf> to the egress,
   // based on the BcmHost in warm boot file.
   HostTableInWarmBootFile vrfIp2EgressFromBcmHostInWarmBootFile_;

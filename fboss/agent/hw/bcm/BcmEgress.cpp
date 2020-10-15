@@ -292,8 +292,10 @@ BcmEgress::~BcmEgress() {
              << hw_->getUnit();
 }
 
-BcmEcmpEgress::BcmEcmpEgress(const BcmSwitchIf* hw, const Paths& paths)
-    : BcmEgressBase(hw), paths_(paths) {
+BcmEcmpEgress::BcmEcmpEgress(
+    const BcmSwitchIf* hw,
+    const EgressId2Weight& egressId2Weight)
+    : BcmEgressBase(hw), egressId2Weight_(egressId2Weight) {
   auto platform = hw_->getPlatform();
   if (platform &&
       platform->getAsic()->isSupported(
@@ -310,16 +312,16 @@ void BcmEcmpEgress::program() {
   if (weightedMember_) {
     // TODO(daiweix): use bcm_l3_ecmp_* to program ecmp
     // if weightedMember_ is true
-    numPaths = paths_.size();
+    numPaths = egressId2Weight_.size();
   } else {
-    for (auto path : paths_) {
+    for (auto path : egressId2Weight_) {
       numPaths += path.second;
     }
   }
   obj.max_paths = ((numPaths + 3) >> 2) << 2; // multiple of 4
 
   const auto warmBootCache = hw_->getWarmBootCache();
-  auto egressIds2EcmpCItr = warmBootCache->findEcmp(paths_);
+  auto egressIds2EcmpCItr = warmBootCache->findEcmp(egressId2Weight_);
   if (egressIds2EcmpCItr != warmBootCache->egressIds2Ecmp_end()) {
     const auto& existing = egressIds2EcmpCItr->second;
     // TODO figure out why the following check fails
@@ -331,19 +333,19 @@ void BcmEcmpEgress::program() {
     // CHECK(obj.max_paths == existing.max_paths);
     id_ = existing.ecmp_intf;
     XLOG(DBG1) << "Ecmp egress object for egress : "
-               << BcmWarmBootCache::toEgressIdsStr(paths_)
+               << BcmWarmBootCache::toEgressId2WeightStr(egressId2Weight_)
                << " already exists ";
     warmBootCache->programmed(egressIds2EcmpCItr);
   } else {
     XLOG(DBG1) << "Adding ecmp egress with egress : "
-               << BcmWarmBootCache::toEgressIdsStr(paths_);
+               << BcmWarmBootCache::toEgressId2WeightStr(egressId2Weight_);
     if (id_ != INVALID) {
       obj.flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
       obj.ecmp_intf = id_;
     }
     bcm_if_t pathsArray[numPaths];
     auto index = 0;
-    for (const auto& path : paths_) {
+    for (const auto& path : egressId2Weight_) {
       for (int i = 0; i < path.second; i++) {
         if (hw_->getEgressManager()->isResolved(path.first)) {
           pathsArray[index++] = path.first;
@@ -397,7 +399,7 @@ BcmEcmpEgress::~BcmEcmpEgress() {
 }
 
 bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
-  if (paths_.find(path) == paths_.end()) {
+  if (egressId2Weight_.find(path) == egressId2Weight_.end()) {
     return false;
   }
   return removeEgressIdHwLocked(hw_->getUnit(), getID(), path);
@@ -407,7 +409,7 @@ bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
   return addEgressIdHwLocked(
       hw_->getUnit(),
       getID(),
-      paths_,
+      egressId2Weight_,
       path,
       hw_->getRunState(),
       weightedMember_);
@@ -550,11 +552,11 @@ bool BcmEcmpEgress::removeEgressIdHwNotLocked(
 bool BcmEcmpEgress::addEgressIdHwLocked(
     int unit,
     EgressId ecmpId,
-    const Paths& pathsInSw,
+    const EgressId2Weight& egressId2WeightInSw,
     EgressId toAdd,
     SwitchRunState runState,
     bool weightedMember) {
-  if (pathsInSw.find(toAdd) == pathsInSw.end()) {
+  if (egressId2WeightInSw.find(toAdd) == egressId2WeightInSw.end()) {
     // Egress id is not part of this ecmp group. Nothing
     // to do.
     return false;
@@ -563,9 +565,9 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   if (weightedMember) {
     // TODO(daiweix): use bcm_l3_ecmp_* to program ecmp
     // if weightedMember_ is true
-    numPaths = pathsInSw.size();
+    numPaths = egressId2WeightInSw.size();
   } else {
-    for (auto path : pathsInSw) {
+    for (auto path : egressId2WeightInSw) {
       numPaths += path.second;
     }
   }
@@ -608,7 +610,7 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
       ++countInHw;
     }
   }
-  auto countInSw = pathsInSw.at(toAdd);
+  auto countInSw = egressId2WeightInSw.at(toAdd);
   if (countInSw <= countInHw) {
     return false; // Already exists no need to update
   }

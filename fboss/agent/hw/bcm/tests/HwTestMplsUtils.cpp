@@ -149,7 +149,7 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
   const auto* egr =
       dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());
   ASSERT_NE(egr, nullptr);
-  const auto& nextHops = egr->paths();
+  const auto& nextHops = egr->egressId2Weight();
   EXPECT_GT(nextHops.size(), memberIndex);
   auto i = 0;
   for (const auto nextHopId : nextHops) {

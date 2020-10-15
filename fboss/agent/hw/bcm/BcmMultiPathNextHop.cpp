@@ -17,7 +17,7 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
     : hw_(hw), vrf_(key.first) {
   auto& fwd = key.second;
   CHECK_GT(fwd.size(), 0);
-  BcmEcmpEgress::Paths paths;
+  BcmEcmpEgress::EgressId2Weight egressId2Weight;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops;
   // allocate a NextHop object for each path in this ECMP
   for (const auto& nhop : fwd) {
@@ -33,12 +33,14 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
       const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf());
       nexthop->programToCPU(intf->getBcmIfId());
     }
-    paths.insert(std::make_pair(nexthop->getEgressId(), nhop.weight()));
+    egressId2Weight.insert(
+        std::make_pair(nexthop->getEgressId(), nhop.weight()));
     nexthops.push_back(std::move(nexthopSharedPtr));
   }
-  if (paths.size() > 1) {
+  if (egressId2Weight.size() > 1) {
     // BcmEcmpEgress object only for more than 1 paths.
-    ecmpEgress_ = std::make_unique<BcmEcmpEgress>(hw, std::move(paths));
+    ecmpEgress_ =
+        std::make_unique<BcmEcmpEgress>(hw, std::move(egressId2Weight));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);

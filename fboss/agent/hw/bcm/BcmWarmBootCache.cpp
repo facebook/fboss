@@ -139,13 +139,13 @@ BcmWarmBootCache::AclEntry2AclStatItr BcmWarmBootCache::findAclStat(
   return aclStatItr;
 }
 
-const BcmWarmBootCache::EgressIds& BcmWarmBootCache::getPathsForEcmp(
+const BcmWarmBootCache::EgressId2Weight& BcmWarmBootCache::getPathsForEcmp(
     EgressId ecmp) const {
-  static const EgressIds kEmptyEgressIds;
+  static const EgressId2Weight kEmptyEgressId2Weight;
   if (hwSwitchEcmp2EgressIds_.empty()) {
     // We may have empty hwSwitchEcmp2EgressIds_ when
     // we exited with no ECMP entries.
-    return kEmptyEgressIds;
+    return kEmptyEgressId2Weight;
   }
   auto itr = hwSwitchEcmp2EgressIds_.find(ecmp);
   if (itr == hwSwitchEcmp2EgressIds_.end()) {
@@ -222,7 +222,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
   XLOG(DBG1) << "Reconstructed following ecmp path map ";
   for (auto& ecmpIdAndEgress : hwSwitchEcmp2EgressIds_) {
     XLOG(DBG1) << ecmpIdAndEgress.first << " (from warmboot file) ==> "
-               << toEgressIdsStr(ecmpIdAndEgress.second);
+               << toEgressId2WeightStr(ecmpIdAndEgress.second);
   }
 
   auto& wbCache = warmBootState[kHwSwitch][kWarmBootCache];
@@ -243,7 +243,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
-    egressIdsInWarmBootFile_[egressId]++;
+    egressId2WeightInWarmBootFile_[egressId]++;
 
     std::optional<bcm_if_t> intf{std::nullopt};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
@@ -286,7 +286,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
-    egressIdsInWarmBootFile_[egressId]++;
+    egressId2WeightInWarmBootFile_[egressId]++;
     auto vrf = mplsNextHop[kVrf].asInt();
     auto ip = folly::IPAddress(mplsNextHop[kIp].stringPiece());
     auto intfID = InterfaceID(mplsNextHop[kIntf].asInt());
@@ -559,10 +559,10 @@ int BcmWarmBootCache::egressTraversalCallback(
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   CHECK(cache->egressId2Egress_.find(egressId) == cache->egressId2Egress_.end())
       << "Double callback for egress id: " << egressId;
-  // Look up egressId in egressIdsInWarmBootFile_
+  // Look up egressId in egressId2WeightInWarmBootFile_
   // to populate both dropEgressId_ and toCPUEgressId_.
-  auto egressIdItr = cache->egressIdsInWarmBootFile_.find(egressId);
-  if (egressIdItr != cache->egressIdsInWarmBootFile_.cend()) {
+  auto egressIdItr = cache->egressId2WeightInWarmBootFile_.find(egressId);
+  if (egressIdItr != cache->egressId2WeightInWarmBootFile_.cend()) {
     // May be: Add information to figure out how many host or route entry
     // reference it.
     XLOG(DBG1) << "Adding bcm egress entry for: " << egressIdItr->first
@@ -632,13 +632,13 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
     bcm_if_t* intfArray,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
-  EgressIds egressIds;
+  EgressId2Weight egressId2Weight;
   // Rather than using the egressId in the intfArray we use the
-  // egressIds that we dumped as part of the warm boot state. IntfArray
+  // egressId2Weight that we dumped as part of the warm boot state. IntfArray
   // does not include any egressIds that go over the ports that may be
   // down while the warm boot state we dumped does
   try {
-    egressIds = cache->getPathsForEcmp(ecmp->ecmp_intf);
+    egressId2Weight = cache->getPathsForEcmp(ecmp->ecmp_intf);
   } catch (const FbossError& ex) {
     // There was a bug in SDK where sometimes we got callback with invalid
     // ecmp id with zero number of interfaces. This happened for double wide
@@ -656,30 +656,35 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
     }
     throw ex;
   }
-  EgressIds egressIdsInHw;
-  egressIdsInHw = cache->toEgressIds(intfArray, intfCount);
+  EgressId2Weight egressId2WeightInHw;
+  egressId2WeightInHw = cache->toEgressId2Weight(intfArray, intfCount);
   XLOG(DBG1) << "ignoring paths for ecmp egress " << ecmp->ecmp_intf
-             << " gotten from hardware: " << toEgressIdsStr(egressIdsInHw);
+             << " gotten from hardware: "
+             << toEgressId2WeightStr(egressId2WeightInHw);
 
-  CHECK(egressIds.size() > 0)
+  CHECK_GT(egressId2Weight.size(), 0)
       << "There must be at least one egress pointed to by the ecmp egress id: "
       << ecmp->ecmp_intf;
-  CHECK(cache->egressIds2Ecmp_.find(egressIds) == cache->egressIds2Ecmp_.end())
+  CHECK(
+      cache->egressIds2Ecmp_.find(egressId2Weight) ==
+      cache->egressIds2Ecmp_.end())
       << "Got a duplicated call for ecmp id: " << ecmp->ecmp_intf
-      << " referencing: " << toEgressIdsStr(egressIds);
-  cache->egressIds2Ecmp_[egressIds] = *ecmp;
+      << " referencing: " << toEgressId2WeightStr(egressId2Weight);
+  cache->egressIds2Ecmp_[egressId2Weight] = *ecmp;
   XLOG(DBG1) << "Added ecmp egress id : " << ecmp->ecmp_intf
-             << " pointing to : " << toEgressIdsStr(egressIds) << " egress ids";
+             << " pointing to : " << toEgressId2WeightStr(egressId2Weight)
+             << " egress ids";
   return 0;
 }
 
-std::string BcmWarmBootCache::toEgressIdsStr(const EgressIds& egressIds) {
+std::string BcmWarmBootCache::toEgressId2WeightStr(
+    const EgressId2Weight& egressId2Weight) {
   std::stringstream ss;
   int i = 0;
-  for (const auto& egressId : egressIds) {
+  for (const auto& egressId : egressId2Weight) {
     for (int j = 0; j < egressId.second; j++) {
       ss << egressId.first;
-      ss << (++i < egressIds.size() ? ", " : "");
+      ss << (++i < egressId2Weight.size() ? ", " : "");
     }
   }
   return ss.str();
@@ -753,7 +758,7 @@ void BcmWarmBootCache::clear() {
   for (auto idsAndEcmp : egressIds2Ecmp_) {
     auto& ecmp = idsAndEcmp.second;
     XLOG(DBG1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
-               << " pointing to : " << toEgressIdsStr(idsAndEcmp.first);
+               << " pointing to : " << toEgressId2WeightStr(idsAndEcmp.first);
     auto rv = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);
     bcmLogFatal(
         rv,
@@ -761,7 +766,7 @@ void BcmWarmBootCache::clear() {
         "failed to destroy ecmp egress object :",
         ecmp.ecmp_intf,
         " referring to ",
-        toEgressIdsStr(idsAndEcmp.first));
+        toEgressId2WeightStr(idsAndEcmp.first));
   }
   egressIds2Ecmp_.clear();
 
@@ -821,7 +826,7 @@ void BcmWarmBootCache::clear() {
     vlanItr = vlan2VlanInfo_.erase(vlanItr);
   }
 
-  egressIdsInWarmBootFile_.clear();
+  egressId2WeightInWarmBootFile_.clear();
   vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
 
   // Detach the unclaimed bcm acl stats

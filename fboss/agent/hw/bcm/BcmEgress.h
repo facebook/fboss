@@ -146,15 +146,15 @@ class BcmEcmpEgress : public BcmEgressBase {
  public:
   using EgressId = bcm_if_t;
   using EgressIdSet = boost::container::flat_set<EgressId>;
-  using Paths = boost::container::flat_map<EgressId, uint64_t>;
+  using EgressId2Weight = boost::container::flat_map<EgressId, uint64_t>;
   enum class Action { SHRINK, EXPAND, SKIP };
 
-  BcmEcmpEgress(const BcmSwitchIf* hw, const Paths& paths);
+  BcmEcmpEgress(const BcmSwitchIf* hw, const EgressId2Weight& egressId2Weight);
   ~BcmEcmpEgress() override;
   bool pathUnreachableHwLocked(EgressId path);
   bool pathReachableHwLocked(EgressId path);
-  const Paths& paths() const {
-    return paths_;
+  const EgressId2Weight& egressId2Weight() const {
+    return egressId2Weight_;
   }
   bool isEcmp() const override {
     return true;
@@ -174,7 +174,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   static bool addEgressIdHwLocked(
       int unit,
       EgressId ecmpId,
-      const Paths& egressIdInSw,
+      const EgressId2Weight& egressIdInSw,
       EgressId toAdd,
       SwitchRunState runState,
       bool weightedMember = false);
@@ -185,7 +185,7 @@ class BcmEcmpEgress : public BcmEgressBase {
 
  private:
   void program();
-  const Paths paths_;
+  const EgressId2Weight egressId2Weight_;
   bool weightedMember_{false};
 };
 

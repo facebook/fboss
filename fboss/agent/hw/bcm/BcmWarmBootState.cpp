@@ -135,7 +135,7 @@ folly::dynamic BcmWarmBootState::egressToFollyDynamic(
   folly::dynamic ecmpEgressDynamic = folly::dynamic::object;
   ecmpEgressDynamic[kEgressId] = ecmpEgress->getID();
   folly::dynamic paths = folly::dynamic::array;
-  for (const auto& path : ecmpEgress->paths()) {
+  for (const auto& path : ecmpEgress->egressId2Weight()) {
     for (int i = 0; i < path.second; i++) {
       paths.push_back(path.first);
     }

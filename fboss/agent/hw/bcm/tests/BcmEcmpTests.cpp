@@ -102,7 +102,7 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
     bcm_l3_egress_ecmp_t ecmpObj;
     bcm_l3_egress_ecmp_t_init(&ecmpObj);
     auto ecmpEgress = getEcmpEgress();
-    auto egressIdsInSw = ecmpEgress->paths();
+    auto egressIdsInSw = ecmpEgress->egressId2Weight();
     ASSERT_EQ(kNumNextHops, egressIdsInSw.size());
     ecmpObj.ecmp_intf = ecmpEgress->getID();
     for (const auto& egressId : egressIdsInSw) {

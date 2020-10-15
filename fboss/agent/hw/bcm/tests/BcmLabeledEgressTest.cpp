@@ -131,8 +131,10 @@ class BcmLabeledEgressTest : public BcmTest {
     return rv;
   }
 
-  BcmEcmpEgress* makeEcmpEgress(const BcmEcmpEgress::Paths& paths) {
-    auto ecmpEgress = std::make_unique<BcmEcmpEgress>(getHwSwitch(), paths);
+  BcmEcmpEgress* makeEcmpEgress(
+      const BcmEcmpEgress::EgressId2Weight& egressId2Weight) {
+    auto ecmpEgress =
+        std::make_unique<BcmEcmpEgress>(getHwSwitch(), egressId2Weight);
     auto* rv = ecmpEgress.get();
     ecmpEgresses_.push_back(std::move(ecmpEgress));
     return rv;
@@ -240,13 +242,13 @@ TEST_F(BcmLabeledEgressTest, noLabeledEgress) {
 TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
   auto setup = [=]() {
     auto state = applyNewConfig(initialConfig());
-    BcmEcmpEgress::Paths paths;
+    BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
       auto* egress = makeLabeledEgress(kLabels[i]);
       programEgressToPort(egress, i);
-      paths[egress->getID()] = 1;
+      egressId2Weight[egress->getID()] = 1;
     }
-    makeEcmpEgress(paths);
+    makeEcmpEgress(egressId2Weight);
     return state;
   };
   auto verify = [=]() {
@@ -283,12 +285,12 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
       egresses.push_back(makeLabeledTunnelEgress(
           kLabels[i], kLabelStacks[i], intf->getBcmIfId()));
     }
-    BcmEcmpEgress::Paths paths;
+    BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths[egresses[i]->getID()] = 1;
+      egressId2Weight[egresses[i]->getID()] = 1;
     }
-    makeEcmpEgress(paths);
+    makeEcmpEgress(egressId2Weight);
     return state;
   };
   auto verify = [=]() {
@@ -329,12 +331,12 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
       egresses.push_back(makeLabeledTunnelEgress(
           kLabelStacks[0][0], kLabelStacks[0], intf->getBcmIfId()));
     }
-    BcmEcmpEgress::Paths paths;
+    BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths[egresses[i]->getID()] = 1;
+      egressId2Weight[egresses[i]->getID()] = 1;
     }
-    makeEcmpEgress(paths);
+    makeEcmpEgress(egressId2Weight);
     return state;
   };
   auto verify = [=]() {
@@ -372,12 +374,12 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
       egresses.push_back(
           makeLabeledTunnelEgress(stack[0], stack, intf->getBcmIfId()));
     }
-    BcmEcmpEgress::Paths paths;
+    BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths[egresses[i]->getID()] = 1;
+      egressId2Weight[egresses[i]->getID()] = 1;
     }
-    makeEcmpEgress(paths);
+    makeEcmpEgress(egressId2Weight);
     return state;
   };
   auto verify = [=]() {
@@ -412,12 +414,12 @@ TEST_F(BcmLabeledEgressTest, LabeledUnlabeledEgressWithEcmp) {
     egresses.push_back(makeLabeledEgress(kLabels[1]));
     egresses.push_back(makeUnlabeledEgress());
     egresses.push_back(makeUnlabeledEgress());
-    BcmEcmpEgress::Paths paths;
+    BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths[egresses[i]->getID()] = 1;
+      egressId2Weight[egresses[i]->getID()] = 1;
     }
-    makeEcmpEgress(paths);
+    makeEcmpEgress(egressId2Weight);
     return state;
   };
   auto verify = [=]() {
