@@ -46,4 +46,9 @@ operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
+  return SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST;
+}
+
 } // namespace facebook::fboss

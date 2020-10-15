@@ -5,24 +5,23 @@
 extern "C" {
 #include <sai.h>
 
-#include <experimental/saiswitchextensions.h>
+#include <experimental/sai_attr_ext.h>
 }
 
 namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLedIdWrapper::operator()() {
-  return SAI_SWITCH_ATTR_LED;
+  return std::nullopt;
 }
-
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLedResetIdWrapper::operator()() {
-  return SAI_SWITCH_ATTR_LED_PROCESSOR_RESET;
+  return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
-  return std::nullopt;
+  return SAI_SWITCH_ATTR_EXT_ACL_FIELD_LIST;
 }
 
 } // namespace facebook::fboss

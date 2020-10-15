@@ -88,6 +88,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // qos dscp to tc map
       std::nullopt, // qos tc to queue map
       macAgingTime,
+      std::nullopt, // acl field list
   };
 }
 

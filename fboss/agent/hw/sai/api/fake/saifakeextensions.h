@@ -15,6 +15,7 @@ typedef enum _sai_port_serdes_extensions_attr_t {
 typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_FAKE_LED = SAI_SWITCH_ATTR_END,
   SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET,
+  SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

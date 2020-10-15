@@ -191,6 +191,13 @@ struct SaiSwitchTraits {
     using LedReset = SaiExtensionAttribute<
         std::vector<sai_uint32_t>,
         AttributeLedResetIdWrapper>;
+
+    struct AttributeAclFieldListWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AclFieldList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeAclFieldListWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -208,7 +215,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SwitchRestartWarm>,
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
-      std::optional<Attributes::MacAgingTime>>;
+      std::optional<Attributes::MacAgingTime>,
+      std::optional<Attributes::AclFieldList>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -258,6 +266,8 @@ SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)
 
 SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
+
+SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
