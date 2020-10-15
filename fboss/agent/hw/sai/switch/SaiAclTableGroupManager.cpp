@@ -11,8 +11,6 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -50,12 +48,7 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
       handles_.emplace(aclStage, std::move(aclTableGroupHandle));
   CHECK(inserted);
 
-  auto aclTableGroupSaiId = it->second->aclTableGroup->adapterKey();
-  SaiApiTable::getInstance()->switchApi().setAttribute(
-      managerTable_->switchManager().getSwitchSaiId(),
-      SaiSwitchTraits::Attributes::IngressAcl(aclTableGroupSaiId));
-
-  return aclTableGroupSaiId;
+  return it->second->aclTableGroup->adapterKey();
 }
 
 const SaiAclTableGroupHandle* FOLLY_NULLABLE
