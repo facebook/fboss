@@ -51,6 +51,10 @@ void FakeSai::clear() {
   fs->virtualRouteManager.clear();
   fs->vlanManager.clearWithMembers();
   fs->wredManager.clear();
+  fs->tamManager.clear();
+  fs->tamEventManager.clear();
+  fs->tamEventActionManager.clear();
+  fs->tamReportManager.clear();
 }
 
 sai_object_id_t FakeSai::getCpuPort() {
@@ -194,6 +198,10 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
       break;
     case SAI_API_WRED:
       facebook::fboss::populate_wred_api((sai_wred_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_TAM:
+      facebook::fboss::populate_tam_api((sai_tam_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     default:
