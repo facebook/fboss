@@ -215,6 +215,9 @@ class SaiObjectStore {
     return objects_;
   }
 
+  uint64_t size() const {
+    return objects_.size();
+  }
   typename UnorderedRefMap<
       typename SaiObjectTraits::AdapterHostKey,
       ObjectType>::MapType::const_iterator
