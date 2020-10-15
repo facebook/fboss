@@ -86,3 +86,10 @@ TEST_F(SchedulerStoreTest, serDeser) {
       SAI_SCHEDULING_TYPE_STRICT, 0, SAI_METER_TYPE_BYTES, 1200, 40000);
   verifyAdapterKeySerDeser<SaiSchedulerTraits>({id});
 }
+
+TEST_F(SchedulerStoreTest, toStr) {
+  // create a Scheduler
+  std::ignore = createScheduler(
+      SAI_SCHEDULING_TYPE_STRICT, 0, SAI_METER_TYPE_BYTES, 1200, 40000);
+  verifyToStr<SaiSchedulerTraits>();
+}

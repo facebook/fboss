@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 #include <folly/logging/xlog.h>
 
@@ -96,4 +97,14 @@ TEST_F(QosMapStoreTest, qosMapSetMapping) {
   EXPECT_EQ(gotMapping.size(), 1);
   EXPECT_EQ(gotMapping[0].key.dscp, 2);
   EXPECT_EQ(gotMapping[0].value.tc, 4);
+}
+
+TEST_F(QosMapStoreTest, serDeser) {
+  auto id = createQosMap(SAI_QOS_MAP_TYPE_DSCP_TO_TC);
+  verifyAdapterKeySerDeser<SaiQosMapTraits>({id});
+}
+
+TEST_F(QosMapStoreTest, toStr) {
+  std::ignore = createQosMap(SAI_QOS_MAP_TYPE_DSCP_TO_TC);
+  verifyToStr<SaiQosMapTraits>();
 }

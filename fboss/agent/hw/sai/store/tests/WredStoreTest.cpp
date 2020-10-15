@@ -147,3 +147,13 @@ TEST_F(WredStoreTest, serDeserEcnProfileStore) {
   auto ecnId = createWredProfile(false, 0, 0, 1, 300, 400);
   verifyAdapterKeySerDeser<SaiWredTraits>({ecnId});
 }
+
+TEST_F(WredStoreTest, toStrWredProfileStore) {
+  std::ignore = createWredProfile(true, 100, 200, 0, 0, 0);
+  verifyToStr<SaiWredTraits>();
+}
+
+TEST_F(WredStoreTest, toStrEcnProfileStore) {
+  std::ignore = createWredProfile(false, 0, 0, 1, 300, 400);
+  verifyToStr<SaiWredTraits>();
+}

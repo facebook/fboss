@@ -256,3 +256,8 @@ TEST_F(PortStoreTest, serDeserStore) {
   // Look for this key in port adaptor JSON
   verifyAdapterKeySerDeser<SaiPortTraits>({id}, true);
 }
+
+TEST_F(PortStoreTest, toStrStore) {
+  std::ignore = createPort(0);
+  verifyToStr<SaiPortTraits>();
+}

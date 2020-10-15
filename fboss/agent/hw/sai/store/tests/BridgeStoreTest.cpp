@@ -115,6 +115,10 @@ TEST_F(SaiStoreTest, serDeserBridge) {
   verifyAdapterKeySerDeser<SaiBridgeTraits>({got->adapterKey()});
 }
 
+TEST_F(SaiStoreTest, toStrBridge) {
+  verifyToStr<SaiBridgeTraits>();
+}
+
 TEST_F(SaiStoreTest, serDeserBridgePort) {
   auto& bridgeApi = saiApiTable->bridgeApi();
   SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
@@ -123,4 +127,14 @@ TEST_F(SaiStoreTest, serDeserBridgePort) {
                                           SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
   auto bridgePortId = bridgeApi.create<SaiBridgePortTraits>(c, 0);
   verifyAdapterKeySerDeser<SaiBridgePortTraits>({bridgePortId});
+}
+
+TEST_F(SaiStoreTest, toStrBridgePort) {
+  auto& bridgeApi = saiApiTable->bridgeApi();
+  SaiBridgePortTraits::CreateAttributes c{SAI_BRIDGE_PORT_TYPE_PORT,
+                                          42,
+                                          true,
+                                          SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  std::ignore = bridgeApi.create<SaiBridgePortTraits>(c, 0);
+  verifyToStr<SaiBridgePortTraits>();
 }

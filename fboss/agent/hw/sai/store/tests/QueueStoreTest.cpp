@@ -77,3 +77,8 @@ TEST_F(QueueStoreTest, serDeser) {
   // Look for this queue key in queue adaptor JSON
   verifyAdapterKeySerDeser<SaiQueueTraits>({id}, true);
 }
+
+TEST_F(QueueStoreTest, toStr) {
+  std::ignore = createQueue(SAI_QUEUE_TYPE_UNICAST, 1, 4);
+  verifyToStr<SaiQueueTraits>();
+}

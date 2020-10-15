@@ -64,3 +64,13 @@ TEST_F(SaiStoreTest, InsegEntrySerDeser) {
   mplsApi.create<SaiInSegTraits>(entry, attributes);
   verifyAdapterKeySerDeser<SaiInSegTraits>({entry});
 }
+
+TEST_F(SaiStoreTest, InsegEntryToStr) {
+  auto& mplsApi = saiApiTable->mplsApi();
+  typename SaiInSegTraits::InSegEntry entry{0, 100};
+  typename SaiInSegTraits::Attributes::NextHopId nextHopIdAttribute(1010);
+  typename SaiInSegTraits::CreateAttributes attributes{
+      SAI_PACKET_ACTION_FORWARD, 1, nextHopIdAttribute};
+  mplsApi.create<SaiInSegTraits>(entry, attributes);
+  verifyToStr<SaiInSegTraits>();
+}

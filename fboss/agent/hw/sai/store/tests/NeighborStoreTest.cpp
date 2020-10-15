@@ -132,6 +132,16 @@ TEST_F(SaiStoreTest, neighbor4SerDeser) {
   verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
 }
 
+TEST_F(SaiStoreTest, neighbor4ToStr) {
+  auto& neighborApi = saiApiTable->neighborApi();
+  folly::IPAddress ip{"10.10.10.1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
+  verifyToStr<SaiNeighborTraits>();
+}
+
 TEST_F(SaiStoreTest, neighbor6SerDeser) {
   auto& neighborApi = saiApiTable->neighborApi();
   folly::IPAddress ip{"42::1"};
@@ -140,6 +150,16 @@ TEST_F(SaiStoreTest, neighbor6SerDeser) {
   SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
   neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
   verifyAdapterKeySerDeser<SaiNeighborTraits>({n});
+}
+
+TEST_F(SaiStoreTest, neighbor6ToStr) {
+  auto& neighborApi = saiApiTable->neighborApi();
+  folly::IPAddress ip{"42::1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  SaiNeighborTraits::Attributes::DstMac daAttrcreateAttrs(dstMac);
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac));
+  verifyToStr<SaiNeighborTraits>();
 }
 
 TEST_F(SaiStoreTest, neighborPublisher) {

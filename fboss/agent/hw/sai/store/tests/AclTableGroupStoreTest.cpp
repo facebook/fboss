@@ -183,6 +183,11 @@ TEST_P(AclTableGroupStoreParamTest, serDeserAclTableGroupStore) {
   verifyAdapterKeySerDeser<SaiAclTableGroupTraits>({aclTableGroupId});
 }
 
+TEST_P(AclTableGroupStoreParamTest, toStrAclTableGroupStore) {
+  std::ignore = createAclTableGroup(GetParam());
+  verifyToStr<SaiAclTableGroupTraits>();
+}
+
 TEST_P(AclTableGroupStoreParamTest, serDeserAclTableGroupMemberStore) {
   auto aclTableGroupId = createAclTableGroup(GetParam());
   auto aclTableId = createAclTable(GetParam());
@@ -190,6 +195,13 @@ TEST_P(AclTableGroupStoreParamTest, serDeserAclTableGroupMemberStore) {
       createAclTableGroupMember(aclTableGroupId, aclTableId);
   verifyAdapterKeySerDeser<SaiAclTableGroupMemberTraits>(
       {aclTableGroupMemberId});
+}
+
+TEST_P(AclTableGroupStoreParamTest, toStrAclTableGroupMemberStore) {
+  auto aclTableGroupId = createAclTableGroup(GetParam());
+  auto aclTableId = createAclTable(GetParam());
+  std::ignore = createAclTableGroupMember(aclTableGroupId, aclTableId);
+  verifyToStr<SaiAclTableGroupMemberTraits>();
 }
 
 INSTANTIATE_TEST_CASE_P(

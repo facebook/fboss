@@ -478,16 +478,33 @@ TEST_P(AclTableStoreParamTest, serDeserAclTableStore) {
   verifyAdapterKeySerDeser<SaiAclTableTraits>({aclTableId});
 }
 
+TEST_P(AclTableStoreParamTest, toStrAclTableStore) {
+  std::ignore = createAclTable(GetParam());
+  verifyToStr<SaiAclTableTraits>();
+}
+
 TEST_P(AclTableStoreParamTest, serDeserAclEntryStore) {
   auto aclTableId = createAclTable(GetParam());
   auto aclEntryId = createAclEntry(aclTableId);
   verifyAdapterKeySerDeser<SaiAclEntryTraits>({aclEntryId});
 }
 
+TEST_P(AclTableStoreParamTest, toStrAclEntryStore) {
+  auto aclTableId = createAclTable(GetParam());
+  std::ignore = createAclEntry(aclTableId);
+  verifyToStr<SaiAclEntryTraits>();
+}
+
 TEST_P(AclTableStoreParamTest, serDeserAclCounterStore) {
   auto aclTableId = createAclTable(GetParam());
   auto aclCounterId = createAclCounter(aclTableId);
   verifyAdapterKeySerDeser<SaiAclCounterTraits>({aclCounterId});
+}
+
+TEST_P(AclTableStoreParamTest, toStrAclCounterStore) {
+  auto aclTableId = createAclTable(GetParam());
+  std::ignore = createAclCounter(aclTableId);
+  verifyToStr<SaiAclCounterTraits>();
 }
 
 INSTANTIATE_TEST_CASE_P(

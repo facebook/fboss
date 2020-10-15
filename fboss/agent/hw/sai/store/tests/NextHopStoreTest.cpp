@@ -92,3 +92,15 @@ TEST_F(NextHopStoreTest, mplsNextHopSerDeser) {
       folly::IPAddress{"4200::41"}, std::vector<sai_uint32_t>{1001, 1002});
   verifyAdapterKeySerDeser<SaiMplsNextHopTraits>({nextHopSaiId});
 }
+
+TEST_F(NextHopStoreTest, ipNextHopToStr) {
+  auto ip = folly::IPAddress("::");
+  std::ignore = createNextHop(ip);
+  verifyToStr<SaiIpNextHopTraits>();
+}
+
+TEST_F(NextHopStoreTest, mplsNextHopToStr) {
+  std::ignore = createMplsNextHop(
+      folly::IPAddress{"4200::41"}, std::vector<sai_uint32_t>{1001, 1002});
+  verifyToStr<SaiMplsNextHopTraits>();
+}

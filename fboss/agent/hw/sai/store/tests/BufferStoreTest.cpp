@@ -146,8 +146,19 @@ TEST_F(BufferStoreTest, serDeserBufferPool) {
   verifyAdapterKeySerDeser<SaiBufferPoolTraits>({poolId});
 }
 
+TEST_F(BufferStoreTest, toStrBufferPool) {
+  std::ignore = createBufferPool();
+  verifyToStr<SaiBufferPoolTraits>();
+}
+
 TEST_F(BufferStoreTest, serDeserBufferProfile) {
   auto poolId = createBufferPool();
   auto profileId = createBufferProfile(poolId);
   verifyAdapterKeySerDeser<SaiBufferProfileTraits>({profileId});
+}
+
+TEST_F(BufferStoreTest, toStrBufferProfile) {
+  auto poolId = createBufferPool();
+  std::ignore = createBufferProfile(poolId);
+  verifyToStr<SaiBufferProfileTraits>();
 }

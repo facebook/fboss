@@ -152,12 +152,25 @@ TEST_F(NextHopGroupStoreTest, nhopGroupSerDeser) {
   verifyAdapterKeySerDeser<SaiNextHopGroupTraits>({nextHopGroupId});
 }
 
+TEST_F(NextHopGroupStoreTest, nhopGroupToStr) {
+  std::ignore = createNextHopGroup();
+  verifyToStr<SaiNextHopGroupTraits>();
+}
+
 TEST_F(NextHopGroupStoreTest, nhopGroupMemberSerDeser) {
   auto nextHopGroupId = createNextHopGroup();
   auto nextHopId = createNextHop(folly::IPAddress{"10.10.10.1"});
   auto nextHopGroupMemberId =
       createNextHopGroupMember(nextHopGroupId, nextHopId, std::nullopt);
   verifyAdapterKeySerDeser<SaiNextHopGroupMemberTraits>({nextHopGroupMemberId});
+}
+
+TEST_F(NextHopGroupStoreTest, nhopGroupMemberToStr) {
+  auto nextHopGroupId = createNextHopGroup();
+  auto nextHopId = createNextHop(folly::IPAddress{"10.10.10.1"});
+  std::ignore =
+      createNextHopGroupMember(nextHopGroupId, nextHopId, std::nullopt);
+  verifyToStr<SaiNextHopGroupMemberTraits>();
 }
 
 TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {

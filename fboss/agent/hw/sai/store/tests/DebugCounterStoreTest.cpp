@@ -72,3 +72,8 @@ TEST_F(DebugCounterStoreTest, serDeser) {
   auto id = createInDebugCounter();
   verifyAdapterKeySerDeser<SaiDebugCounterTraits>({id});
 }
+
+TEST_F(DebugCounterStoreTest, toStr) {
+  std::ignore = createInDebugCounter();
+  verifyToStr<SaiDebugCounterTraits>();
+}

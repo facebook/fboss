@@ -132,3 +132,13 @@ TEST_F(HostifTrapStoreTest, hostifTrapGroupSerDeser) {
   auto hostifTrapGroupSaiId = createTrapGroup(2);
   verifyAdapterKeySerDeser<SaiHostifTrapGroupTraits>({hostifTrapGroupSaiId});
 }
+
+TEST_F(HostifTrapStoreTest, hostifTrapToStr) {
+  std::ignore = createTrap(SAI_HOSTIF_TRAP_TYPE_IP2ME);
+  verifyToStr<SaiHostifTrapTraits>();
+}
+
+TEST_F(HostifTrapStoreTest, hostifTrapGroupToStr) {
+  std::ignore = createTrapGroup(2);
+  verifyToStr<SaiHostifTrapGroupTraits>();
+}

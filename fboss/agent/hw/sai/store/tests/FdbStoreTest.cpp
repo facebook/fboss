@@ -87,3 +87,11 @@ TEST_F(SaiStoreTest, fdbSerDeser) {
   fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, 24});
   verifyAdapterKeySerDeser<SaiFdbTraits>({f});
 }
+
+TEST_F(SaiStoreTest, fdbToStr) {
+  auto& fdbApi = saiApiTable->fdbApi();
+  folly::MacAddress mac{"42:42:42:42:42:42"};
+  SaiFdbTraits::FdbEntry f(0, 10, mac);
+  fdbApi.create<SaiFdbTraits>(f, {SAI_FDB_ENTRY_TYPE_STATIC, 42, 24});
+  verifyToStr<SaiFdbTraits>();
+}

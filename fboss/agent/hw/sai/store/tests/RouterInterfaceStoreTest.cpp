@@ -108,3 +108,9 @@ TEST_F(RouterInterfaceStoreTest, routerFormatTest) {
       "SrcMac: 41:41:41:41:41:41, Mtu: 9000)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
+
+TEST_F(RouterInterfaceStoreTest, toStrTest) {
+  std::ignore =
+      createRouterInterface(41, folly::MacAddress{"41:41:41:41:41:41"}, 1514);
+  verifyToStr<SaiRouterInterfaceTraits>();
+}

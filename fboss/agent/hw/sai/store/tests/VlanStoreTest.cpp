@@ -90,9 +90,20 @@ TEST_F(VlanStoreTest, serDeserVlanStore) {
   verifyAdapterKeySerDeser<SaiVlanTraits>({vlanSaiId});
 }
 
+TEST_F(VlanStoreTest, toStrVlanStore) {
+  std::ignore = createVlan(42);
+  verifyToStr<SaiVlanTraits>();
+}
+
 TEST_F(VlanStoreTest, serDeserVlanMemberStore) {
   auto vlanId = createVlan(42);
   auto vlanMemberId = createVlanMember(vlanId, 10);
 
   verifyAdapterKeySerDeser<SaiVlanMemberTraits>({vlanMemberId});
+}
+
+TEST_F(VlanStoreTest, toStrVlanMemberStore) {
+  auto vlanId = createVlan(42);
+  std::ignore = createVlanMember(vlanId, 10);
+  verifyToStr<SaiVlanMemberTraits>();
 }
