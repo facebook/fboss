@@ -138,3 +138,12 @@ TEST_F(HashStoreTest, serDeser) {
   auto id = createHash(kFullHash, {{}});
   verifyAdapterKeySerDeser<SaiHashTraits>({id});
 }
+
+TEST_F(HashStoreTest, toStr) {
+  std::ignore = createHash(kFullHash, {{}});
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiHashTraits>();
+  auto str = store.str();
+  EXPECT_EQ(std::count(str.begin(), str.end(), '\n'), 2);
+}

@@ -192,7 +192,15 @@ class SaiObjectStore {
     }
     return adapterKeys;
   }
-
+  std::string str() const {
+    std::stringstream ss;
+    ss << "Object type: " << saiObjectTypeToString(SaiObjectTraits::ObjectType)
+       << std::endl;
+    for (const auto& [key, object] : objects_) {
+      ss << fmt::format("{}", *object.lock()) << std::endl;
+    }
+    return ss.str();
+  }
   void exitForWarmBoot() {
     for (auto itr : objects_) {
       if (auto object = itr.second.lock()) {
