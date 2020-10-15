@@ -244,7 +244,7 @@ TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
     for (auto i = 0; i < 4; i++) {
       auto* egress = makeLabeledEgress(kLabels[i]);
       programEgressToPort(egress, i);
-      paths.insert(egress->getID());
+      paths[egress->getID()] = 1;
     }
     makeEcmpEgress(paths);
     return state;
@@ -286,7 +286,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
     BcmEcmpEgress::Paths paths;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths.insert(egresses[i]->getID());
+      paths[egresses[i]->getID()] = 1;
     }
     makeEcmpEgress(paths);
     return state;
@@ -332,7 +332,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
     BcmEcmpEgress::Paths paths;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths.insert(egresses[i]->getID());
+      paths[egresses[i]->getID()] = 1;
     }
     makeEcmpEgress(paths);
     return state;
@@ -375,7 +375,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
     BcmEcmpEgress::Paths paths;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths.insert(egresses[i]->getID());
+      paths[egresses[i]->getID()] = 1;
     }
     makeEcmpEgress(paths);
     return state;
@@ -415,7 +415,7 @@ TEST_F(BcmLabeledEgressTest, LabeledUnlabeledEgressWithEcmp) {
     BcmEcmpEgress::Paths paths;
     for (auto i = 0; i < 4; i++) {
       programEgressToPort(egresses[i], i);
-      paths.insert(egresses[i]->getID());
+      paths[egresses[i]->getID()] = 1;
     }
     makeEcmpEgress(paths);
     return state;

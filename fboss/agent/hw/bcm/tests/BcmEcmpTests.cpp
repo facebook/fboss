@@ -108,7 +108,7 @@ TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
     for (const auto& egressId : egressIdsInSw) {
       ASSERT_EQ(
           BCM_E_NOT_FOUND,
-          bcm_l3_egress_ecmp_delete(getUnit(), &ecmpObj, egressId));
+          bcm_l3_egress_ecmp_delete(getUnit(), &ecmpObj, egressId.first));
     }
     auto pathsInHwCount =
         getEcmpSizeInHw(getUnit(), ecmpEgress->getID(), egressIdsInSw.size());

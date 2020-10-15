@@ -88,12 +88,12 @@ class BcmWarmBootCache {
   };
   typedef bcm_if_t EcmpEgressId;
   typedef bcm_if_t EgressId;
-  typedef boost::container::flat_multiset<EgressId> EgressIds;
+  typedef boost::container::flat_map<EgressId, uint64_t> EgressIds;
   typedef boost::container::flat_map<EcmpEgressId, EgressIds> Ecmp2EgressIds;
   static EgressIds toEgressIds(EgressId* egress, int count) {
     EgressIds egressIds;
     std::for_each(egress, egress + count, [&egressIds](EgressId egress) {
-      egressIds.insert(egress);
+      egressIds[egress]++;
     });
     return egressIds;
   }

@@ -146,7 +146,7 @@ class BcmEcmpEgress : public BcmEgressBase {
  public:
   using EgressId = bcm_if_t;
   using EgressIdSet = boost::container::flat_set<EgressId>;
-  using Paths = boost::container::flat_multiset<EgressId>;
+  using Paths = boost::container::flat_map<EgressId, uint64_t>;
   enum class Action { SHRINK, EXPAND, SKIP };
 
   BcmEcmpEgress(const BcmSwitchIf* hw, const Paths& paths);
@@ -176,7 +176,8 @@ class BcmEcmpEgress : public BcmEgressBase {
       EgressId ecmpId,
       const Paths& egressIdInSw,
       EgressId toAdd,
-      SwitchRunState runState);
+      SwitchRunState runState,
+      bool weightedMember = false);
   static bool
   removeEgressIdHwNotLocked(int unit, EgressId ecmpId, EgressId toRemove);
   static bool
@@ -185,6 +186,7 @@ class BcmEcmpEgress : public BcmEgressBase {
  private:
   void program();
   const Paths paths_;
+  bool weightedMember_{false};
 };
 
 bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs);

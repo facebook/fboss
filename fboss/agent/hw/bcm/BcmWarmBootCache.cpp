@@ -165,7 +165,9 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
     ecmp[kEcmpEgressId] = ecmpAndEgressIds.first;
     folly::dynamic paths = folly::dynamic::array;
     for (const auto& path : ecmpAndEgressIds.second) {
-      paths.push_back(path);
+      for (int i = 0; i < path.second; i++) {
+        paths.push_back(path.first);
+      }
     }
     ecmp[kPaths] = std::move(paths);
     ecmps.push_back(std::move(ecmp));
@@ -203,7 +205,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     // If the entry is valid, then there must be paths associated with it.
     for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
       EgressId e = path.asInt();
-      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(e);
+      hwSwitchEcmp2EgressIds_[ecmpEgressId][e]++;
     }
   }
   // Extract ecmps from dumped warm boot cache. We
@@ -214,7 +216,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
     for (const auto& path : ecmpEntry[kPaths]) {
       EgressId e = path.asInt();
-      hwSwitchEcmp2EgressIds_[ecmpEgressId].insert(e);
+      hwSwitchEcmp2EgressIds_[ecmpEgressId][e]++;
     }
   }
   XLOG(DBG1) << "Reconstructed following ecmp path map ";
@@ -241,7 +243,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
-    egressIdsInWarmBootFile_.insert(egressId);
+    egressIdsInWarmBootFile_[egressId]++;
 
     std::optional<bcm_if_t> intf{std::nullopt};
     auto ip = folly::IPAddress(hostEntry[kIp].stringPiece());
@@ -284,7 +286,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     if (egressId == BcmEgressBase::INVALID) {
       continue;
     }
-    egressIdsInWarmBootFile_.insert(egressId);
+    egressIdsInWarmBootFile_[egressId]++;
     auto vrf = mplsNextHop[kVrf].asInt();
     auto ip = folly::IPAddress(mplsNextHop[kIp].stringPiece());
     auto intfID = InterfaceID(mplsNextHop[kIntf].asInt());
@@ -563,7 +565,7 @@ int BcmWarmBootCache::egressTraversalCallback(
   if (egressIdItr != cache->egressIdsInWarmBootFile_.cend()) {
     // May be: Add information to figure out how many host or route entry
     // reference it.
-    XLOG(DBG1) << "Adding bcm egress entry for: " << *egressIdItr
+    XLOG(DBG1) << "Adding bcm egress entry for: " << egressIdItr->first
                << " which is referenced by at least one host or route entry.";
     cache->egressId2Egress_[egressId] = *egress;
   } else {
@@ -675,8 +677,10 @@ std::string BcmWarmBootCache::toEgressIdsStr(const EgressIds& egressIds) {
   std::stringstream ss;
   int i = 0;
   for (const auto& egressId : egressIds) {
-    ss << egressId;
-    ss << (++i < egressIds.size() ? ", " : "");
+    for (int j = 0; j < egressId.second; j++) {
+      ss << egressId.first;
+      ss << (++i < egressIds.size() ? ", " : "");
+    }
   }
   return ss.str();
 }

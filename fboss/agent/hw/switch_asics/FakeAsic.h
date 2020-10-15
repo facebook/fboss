@@ -16,6 +16,7 @@ class FakeAsic : public HwAsic {
       case Feature::OBJECT_KEY_CACHE:
       case Feature::RESOURCE_USAGE_STATS:
       case Feature::PKTIO:
+      case Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
         return false;
 
       default:

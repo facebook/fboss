@@ -158,9 +158,9 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
       // its egress label must be tunnelLabel (top of stack)
       // rest of srack is from tunnel interface attached to egress
       if (resolved) {
-        utility::verifyTunneledEgress(nextHopId, tunnelStack);
+        utility::verifyTunneledEgress(nextHopId.first, tunnelStack);
       } else {
-        utility::verifyTunneledEgressToDrop(nextHopId, tunnelStack);
+        utility::verifyTunneledEgressToDrop(nextHopId.first, tunnelStack);
       }
     }
     i++;

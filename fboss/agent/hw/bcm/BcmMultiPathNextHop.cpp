@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
@@ -32,9 +33,7 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
       const auto intf = hw->getIntfTable()->getBcmIntf(nhop.intf());
       nexthop->programToCPU(intf->getBcmIfId());
     }
-    for (int i = 0; i < nhop.weight(); ++i) {
-      paths.insert(nexthop->getEgressId());
-    }
+    paths.insert(std::make_pair(nexthop->getEgressId(), nhop.weight()));
     nexthops.push_back(std::move(nexthopSharedPtr));
   }
   if (paths.size() > 1) {
