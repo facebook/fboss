@@ -25,6 +25,9 @@ sai_status_t sai_get_object_count(
       // All ports excluding CPU port
       *count = fs->portManager.map().size() - 1;
       break;
+    case SAI_OBJECT_TYPE_PORT_SERDES:
+      *count = fs->portSerdesManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       *count = fs->virtualRouteManager.map().size();
       break;
@@ -152,6 +155,12 @@ sai_status_t sai_get_object_key(
           continue;
         }
         object_list[i++].key.object_id = p.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_PORT_SERDES: {
+      for (const auto& serdes : fs->portSerdesManager.map()) {
+        object_list[i++].key.object_id = serdes.second.id;
       }
       break;
     }
