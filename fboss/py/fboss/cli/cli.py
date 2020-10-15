@@ -103,9 +103,9 @@ class AggregatePortCli(object):
     @click.argument("port", required=False, default="")
     @click.pass_obj
     def aggregate_port(cli_opts, port):
-        """ Show aggregate port information; Outputs a list of
-            aggregate port and the subports that are part of the
-            aggregate port."""
+        """Show aggregate port information; Outputs a list of
+        aggregate port and the subports that are part of the
+        aggregate port."""
         aggregate_port.AggregatePortCmd(cli_opts).run(port)
 
 
@@ -162,8 +162,8 @@ class InterfaceCli(object):
     @click.argument("interfaces", type=int, nargs=-1)
     @click.pass_obj
     def _show(cli_opts, interfaces):
-        """ Show interface information for Interface(s); Outputs a list of
-            interfaces on host if no interfaces are specified """
+        """Show interface information for Interface(s); Outputs a list of
+        interfaces on host if no interfaces are specified"""
         interface.InterfaceShowCmd(cli_opts).run(interfaces)
 
     @click.command()
@@ -737,8 +737,8 @@ class AclCli(object):
 )
 @click.pass_context
 def main(ctx, hostname, file, port, timeout):
-    """ Main CLI options, all options are passed to children via the context obj
-        "ctx" and can be accessed accordingly """
+    """Main CLI options, all options are passed to children via the context obj
+    "ctx" and can be accessed accordingly"""
     ctx.obj = CliOptions(hostname, file, port, timeout)
 
 

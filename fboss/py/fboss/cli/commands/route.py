@@ -220,8 +220,8 @@ class RouteTableCmd(cmds.FbossCmd):
 
 
 class RouteTableSummaryCmd(cmds.FbossCmd):
-    """ Print rough statistics of various route types
-        Useful for understanding HW table capacity/usage
+    """Print rough statistics of various route types
+    Useful for understanding HW table capacity/usage
     """
 
     def run(self):

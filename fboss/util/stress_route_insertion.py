@@ -13,7 +13,7 @@ from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
 
 
 class StressRouteInsertion(object):
-    """ Measure latency of bulk route thrashing.
+    """Measure latency of bulk route thrashing.
 
     Algorithm:
             1) Insert $entries randomly generated v6 route entries
@@ -71,7 +71,7 @@ class StressRouteInsertion(object):
         return routes
 
     def gen_rand_route(self):
-        """ Generate a random IPv6 route as a string
+        """Generate a random IPv6 route as a string
 
         @NOTE: doesn't work for prefix > 120 bits"""
         prefix = random.randint(self.minprefix, self.maxprefix)  # inclusive

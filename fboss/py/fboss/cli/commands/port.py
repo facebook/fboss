@@ -50,11 +50,11 @@ class PortDetailsCmd(cmds.FbossCmd):
                 self._print_port_counters(client, port)
 
     def _convert_bps(self, bps):
-        """ convert bps to human readable form
+        """convert bps to human readable form
 
-            :var bps int: port speed in bps
-            :return bps_per_unit float: bps divided by factor of the unit found
-            :return suffix string: human readable format
+        :var bps int: port speed in bps
+        :return bps_per_unit float: bps divided by factor of the unit found
+        :return suffix string: human readable format
         """
 
         # TODO: Make this more accurate.
@@ -76,9 +76,9 @@ class PortDetailsCmd(cmds.FbossCmd):
 
     # TODO: Make this function less complex
     def _print_port_details(self, port_info):
-        """ Print out port details
+        """Print out port details
 
-            :var port_info PortInfoThrift: port information
+        :var port_info PortInfoThrift: port information
         """
 
         admin_status = "ENABLED" if port_info.adminState else "DISABLED"
@@ -568,8 +568,8 @@ class PortStatusDetailCmd(object):
         return {p: info.speedMbps for p, info in all_info.items()}
 
     def _get_port_channels(self, port, xcvr_info):
-        """  This function handles figuring out correct channel info even for
-             older controllers that don't return full channel info. """
+        """This function handles figuring out correct channel info even for
+        older controllers that don't return full channel info."""
 
         start_channel = xcvr_info.channelId
         speed = self._port_speeds[port]

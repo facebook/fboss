@@ -70,7 +70,7 @@ class FbosslinkTestCase(LinkTestCase):
     @memoize_forever
     def _get_all_interface_name_to_port_id_mapping(self) -> Dict[str, NamedTuple]:
         """
-            Used to fetch the interface name to the internal Port ID mapping.
+        Used to fetch the interface name to the internal Port ID mapping.
         """
         Port_info_tuple = namedtuple("Port_info_tuple", ["port_id", "vlan_id"])
         intf_map: dict = {}
@@ -96,7 +96,7 @@ class FbosslinkTestCase(LinkTestCase):
         self,
     ) -> Dict[str, NamedTuple]:
         """
-            Used to fetch the transceiver id to interface name and portid mapping.
+        Used to fetch the transceiver id to interface name and portid mapping.
         """
         Transceiver_info = namedtuple("transceiver_info", ["interface_name", "port_id"])
         transceiver_map: DefaultDict = DefaultDict(NamedTuple)
@@ -118,7 +118,7 @@ class FbosslinkTestCase(LinkTestCase):
 
     def get_all_qsfp_dom_values(self) -> Dict[str, dict]:
         """
-            Used to obtain the QSFP TransceiverInfo for all optics present.
+        Used to obtain the QSFP TransceiverInfo for all optics present.
         """
         all_interfaces_dom_values: DefaultDict[str, dict] = defaultdict(dict)
         trans_to_int_name_map: Dict[
@@ -140,7 +140,7 @@ class FbosslinkTestCase(LinkTestCase):
         self, fboss_client: Union[FbossAgentClient, QsfpServiceClient]
     ) -> Dict[str, str]:
         """
-            Used to fetch the build info of the given client.
+        Used to fetch the build info of the given client.
         """
         build_info_res: Dict[str, str] = fboss_client.getRegexExportedValues("build_.*")
         if not build_info_res:
