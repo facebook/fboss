@@ -33,7 +33,8 @@ class SaiHandler : virtual public SaiCtrlSvIf, public ThriftHandler {
   void diagCmd(
       folly::fbstring& result,
       std::unique_ptr<fbstring> cmd,
-      std::unique_ptr<ClientInformation> client) override;
+      std::unique_ptr<ClientInformation> client,
+      int16_t serverTimeoutMsecs = 0) override;
 
  private:
   const SaiSwitch* hw_;

@@ -41,7 +41,8 @@ class SaiTestHandler : virtual public SaiTestCtrlSvIf,
   void diagCmd(
       folly::fbstring& result,
       std::unique_ptr<fbstring> cmd,
-      std::unique_ptr<ClientInformation> client) override;
+      std::unique_ptr<ClientInformation> client,
+      int16_t serverTimeoutMsecs = 0) override;
 
  private:
   // Forbidden copy constructor and assignment operator

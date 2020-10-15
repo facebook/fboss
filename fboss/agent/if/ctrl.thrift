@@ -885,7 +885,11 @@ service FbossCtrl extends fb303.FacebookService {
   /*
    * Enables submitting diag cmds to the switch
    */
-  fbstring diagCmd(1: fbstring cmd, 2: ClientInformation client)
+  fbstring diagCmd(
+    1: fbstring cmd,
+    2: ClientInformation client,
+    3: i16 serverTimeoutMsecs = 0
+  )
 
   /*
   * Return the system's platform mapping (see platform_config.thrift)

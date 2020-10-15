@@ -52,7 +52,8 @@ void SaiTestHandler::produceDiagShellInput(
 void SaiTestHandler::diagCmd(
     fbstring& result,
     std::unique_ptr<fbstring> cmd,
-    std::unique_ptr<ClientInformation> client) {
+    std::unique_ptr<ClientInformation> client,
+    int16_t /* unused */) {
   result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
 }
 
