@@ -798,14 +798,16 @@ HwInitResult SaiSwitch::initLocked(
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
-      if (switchStateJson[kHwSwitch].find(kAdapterKey2AdapterHostKey) !=
-          switchStateJson[kHwSwitch].items().end()) {
-        adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
-            switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
-      }
       const auto& switchKeysJson = (*adapterKeysJson)[saiObjectTypeToString(
           SaiSwitchTraits::ObjectType)];
       CHECK_EQ(1, switchKeysJson.size());
+    }
+    // adapter host keys may not be recoverable for all types of object, such
+    // as next hop group.
+    if (switchStateJson[kHwSwitch].find(kAdapterKey2AdapterHostKey) !=
+        switchStateJson[kHwSwitch].items().end()) {
+      adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
+          switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
   }
   SaiApiTable::getInstance()->queryApis();
