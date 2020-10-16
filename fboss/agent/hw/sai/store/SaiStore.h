@@ -345,7 +345,11 @@ class SaiStore {
       SaiObjectStore<SaiInSegTraits>,
       SaiObjectStore<SaiQosMapTraits>,
       SaiObjectStore<SaiPortSerdesTraits>,
-      SaiObjectStore<SaiWredTraits>>
+      SaiObjectStore<SaiWredTraits>,
+      SaiObjectStore<SaiTamReportTraits>,
+      SaiObjectStore<SaiTamEventActionTraits>,
+      SaiObjectStore<SaiTamEventTraits>,
+      SaiObjectStore<SaiTamTraits>>
       stores_;
 };
 

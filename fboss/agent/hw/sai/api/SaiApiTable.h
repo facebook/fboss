@@ -27,6 +27,7 @@
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -115,6 +116,9 @@ class SaiApiTable {
   WredApi& wredApi();
   const WredApi& wredApi() const;
 
+  TamApi& tamApi();
+  const TamApi& tamApi() const;
+
   template <typename SaiApiT>
   SaiApiT& getApi() {
     return *std::get<std::unique_ptr<SaiApiT>>(apis_);
@@ -149,7 +153,8 @@ class SaiApiTable {
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<VirtualRouterApi>,
       std::unique_ptr<VlanApi>,
-      std::unique_ptr<WredApi>>
+      std::unique_ptr<WredApi>,
+      std::unique_ptr<TamApi>>
       apis_;
   bool apisQueried_{false};
 };

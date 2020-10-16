@@ -212,6 +212,14 @@ const WredApi& SaiApiTable::wredApi() const {
   return getApi<WredApi>();
 }
 
+TamApi& SaiApiTable::tamApi() {
+  return getApi<TamApi>();
+}
+
+const TamApi& SaiApiTable::tamApi() const {
+  return getApi<TamApi>();
+}
+
 void SaiApiTable::enableLogging(const std::string& logLevelStr) const {
   auto logLevel = saiLogLevelFromString(logLevelStr);
   for (uint32_t api = SAI_API_UNSPECIFIED; api < SAI_API_MAX; api++) {

@@ -186,6 +186,14 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "debug-counter";
     case SAI_OBJECT_TYPE_WRED:
       return "wred";
+    case SAI_OBJECT_TYPE_TAM_REPORT:
+      return "tam-report";
+    case SAI_OBJECT_TYPE_TAM_EVENT_ACTION:
+      return "tam-event-action";
+    case SAI_OBJECT_TYPE_TAM_EVENT:
+      return "tam-event";
+    case SAI_OBJECT_TYPE_TAM:
+      return "tam";
     default:
       throw FbossError("object type invalid: ", objectType);
   }
