@@ -308,8 +308,6 @@ void BcmEcmpEgress::program() {
   bcm_l3_egress_ecmp_t_init(&obj);
   int numPaths = 0;
   if (weightedMember_) {
-    // TODO(daiweix): use bcm_l3_ecmp_* to program ecmp
-    // if weightedMember_ is true
     numPaths = egressId2Weight_.size();
   } else {
     for (auto path : egressId2Weight_) {
@@ -337,22 +335,11 @@ void BcmEcmpEgress::program() {
   } else {
     XLOG(DBG1) << "Adding ecmp egress with egress : "
                << BcmWarmBootCache::toEgressId2WeightStr(egressId2Weight_);
+    int option = 0;
     if (id_ != INVALID) {
       obj.flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
       obj.ecmp_intf = id_;
-    }
-    bcm_if_t pathsArray[numPaths];
-    auto index = 0;
-    for (const auto& path : egressId2Weight_) {
-      for (int i = 0; i < path.second; i++) {
-        if (hw_->getEgressManager()->isResolved(path.first)) {
-          pathsArray[index++] = path.first;
-        } else {
-          XLOG(DBG1) << "Skipping unresolved egress : " << path.first
-                     << " while "
-                     << "programming ECMP group ";
-        }
-      }
+      option = BCM_L3_ECMP_O_REPLACE | BCM_L3_ECMP_O_CREATE_WITH_ID;
     }
 
     XLOG(DBG2) << "Programming L3 ECMP egress object "
@@ -361,8 +348,38 @@ void BcmEcmpEgress::program() {
                << " for " << numPaths << " paths"
                << ((obj.flags & BCM_L3_REPLACE) ? " replace" : " noreplace")
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id");
-    auto ret =
-        bcm_l3_egress_ecmp_create(hw_->getUnit(), &obj, index, pathsArray);
+    int ret = 0;
+    if (weightedMember_) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+      // @lint-ignore HOWTOEVEN CArray
+      bcm_l3_ecmp_member_t ecmpMemberArray[numPaths];
+      auto idx = 0;
+      for (const auto& path : egressId2Weight_) {
+        bcm_l3_ecmp_member_t_init(&ecmpMemberArray[idx]);
+        ecmpMemberArray[idx].egress_if = path.first;
+        ecmpMemberArray[idx].weight = path.second;
+      }
+      obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;
+      ret = bcm_l3_ecmp_create(
+          hw_->getUnit(), option, &obj, idx, ecmpMemberArray);
+#endif
+    } else {
+      // @lint-ignore HOWTOEVEN CArray
+      bcm_if_t pathsArray[numPaths];
+      auto index = 0;
+      for (const auto& path : egressId2Weight_) {
+        for (int i = 0; i < path.second; i++) {
+          if (hw_->getEgressManager()->isResolved(path.first)) {
+            pathsArray[index++] = path.first;
+          } else {
+            XLOG(DBG1) << "Skipping unresolved egress : " << path.first
+                       << " while "
+                       << "programming ECMP group ";
+          }
+        }
+      }
+      ret = bcm_l3_egress_ecmp_create(hw_->getUnit(), &obj, index, pathsArray);
+    }
     bcmCheckError(
         ret,
         "failed to program L3 ECMP egress object ",
@@ -381,10 +398,15 @@ BcmEcmpEgress::~BcmEcmpEgress() {
   if (id_ == INVALID) {
     return;
   }
-  bcm_l3_egress_ecmp_t obj;
-  bcm_l3_egress_ecmp_t_init(&obj);
-  obj.ecmp_intf = id_;
-  auto ret = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &obj);
+  int ret;
+  if (weightedMember_) {
+    ret = bcm_l3_ecmp_destroy(hw_->getUnit(), id_);
+  } else {
+    bcm_l3_egress_ecmp_t obj;
+    bcm_l3_egress_ecmp_t_init(&obj);
+    obj.ecmp_intf = id_;
+    ret = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &obj);
+  }
   bcmLogFatal(
       ret,
       hw_,
