@@ -329,17 +329,26 @@ TEST_F(HwEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
   programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
   auto nhop = ecmpHelper_->nhop(0);
   bringDownPort(nhop.portDesc.phyPortID());
-  auto pathsInHwCount = utility::getEcmpSizeInHw(
+
+  auto pathsInHw0 = utility::getEcmpMembersInHw(
       getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  EXPECT_EQ(7, pathsInHwCount);
+  auto totalWeightInHw0 =
+      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw0);
+  EXPECT_EQ(7, totalWeightInHw0);
+
   bringUpPort(nhop.portDesc.phyPortID());
-  pathsInHwCount = utility::getEcmpSizeInHw(
+  auto pathsInHw1 = utility::getEcmpMembersInHw(
       getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  EXPECT_EQ(7, pathsInHwCount);
+  auto totalWeightInHw1 =
+      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw1);
+  EXPECT_EQ(7, totalWeightInHw1);
+
   unresolveNhops(1);
   resolveNhops(1);
-  pathsInHwCount = utility::getEcmpSizeInHw(
+  auto pathsInHw2 = utility::getEcmpMembersInHw(
       getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  EXPECT_EQ(10, pathsInHwCount);
+  auto totalWeightInHw2 =
+      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw2);
+  EXPECT_EQ(10, totalWeightInHw2);
 }
 } // namespace facebook::fboss

@@ -29,9 +29,9 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::WARM_BOOT:
+    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
       return true;
 
-    case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:
