@@ -128,6 +128,18 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_WRED:
       *count = fs->wredManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_TAM_REPORT:
+      *count = fs->tamReportManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT_ACTION:
+      *count = fs->tamEventActionManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TAM_EVENT:
+      *count = fs->tamEventManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_TAM:
+      *count = fs->tamManager.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -358,6 +370,30 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_WRED: {
       for (const auto& wred : fs->wredManager.map()) {
         object_list[i++].key.object_id = wred.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_REPORT: {
+      for (const auto& ob : fs->tamReportManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_EVENT_ACTION: {
+      for (const auto& ob : fs->tamEventActionManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_EVENT: {
+      for (const auto& ob : fs->tamEventManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM: {
+      for (const auto& ob : fs->tamManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
       }
       break;
     }
