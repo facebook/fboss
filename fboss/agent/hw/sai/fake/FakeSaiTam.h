@@ -17,6 +17,7 @@ class FakeSaiTam {
       const std::vector<sai_int32_t>& bindpoints)
       : events_(events), bindpoints_(bindpoints) {}
 
+  sai_object_id_t id;
   std::vector<sai_object_id_t> events_;
   std::vector<sai_int32_t> bindpoints_;
 };
@@ -32,7 +33,7 @@ class FakeSaiTamEvent {
         actions_(actions),
         collectors_(collectors),
         switchEvents_(switchEvents) {}
-
+  sai_object_id_t id;
   sai_int32_t eventType_;
   std::vector<sai_object_id_t> actions_;
   std::vector<sai_object_id_t> collectors_;
@@ -42,13 +43,14 @@ class FakeSaiTamEvent {
 class FakeSaiTamEventAction {
  public:
   explicit FakeSaiTamEventAction(sai_object_id_t report) : report_(report) {}
+  sai_object_id_t id;
   sai_object_id_t report_;
 };
 
 class FakeSaiTamReport {
  public:
   explicit FakeSaiTamReport(sai_int32_t type) : type_(type) {}
-
+  sai_object_id_t id;
   sai_int32_t type_;
 };
 
