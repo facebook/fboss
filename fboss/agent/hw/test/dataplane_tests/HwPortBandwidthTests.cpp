@@ -124,7 +124,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   uint32_t kMaxKbps() const {
-    return 1000;
+    return 100000;
   }
 
   template <typename GetQueueOutCntT>
