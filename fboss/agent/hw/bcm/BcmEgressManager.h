@@ -93,13 +93,17 @@ class BcmEgressManager {
   static void egressResolutionChangedHwNotLocked(
       int unit,
       const EgressIdSet& affectedEgressIds,
-      bool up);
+      bool up,
+      bool weightedMember);
+  template <typename T>
+  static BcmEcmpEgress::EgressId toEgressId(T egress);
   // Callback for traversal in egressResolutionChangedHwNotLocked
+  template <typename T>
   static int removeAllEgressesFromEcmpCallback(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp, // ecmp object being traversed
       int intfCount, // number of egresses in the ecmp group
-      bcm_if_t* intfArray, // array of egresses in the ecmp group
+      T* intfArray, // array of egresses in the ecmp group
       void* userData); // egresses we intend to remove from the ecmp group
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
 

@@ -91,13 +91,8 @@ class BcmWarmBootCache {
   typedef boost::container::flat_map<EgressId, uint64_t> EgressId2Weight;
   typedef boost::container::flat_map<EcmpEgressId, EgressId2Weight>
       Ecmp2EgressIds;
-  static EgressId2Weight toEgressId2Weight(EgressId* egress, int count) {
-    EgressId2Weight egressId2Weight;
-    std::for_each(egress, egress + count, [&egressId2Weight](EgressId egress) {
-      egressId2Weight[egress]++;
-    });
-    return egressId2Weight;
-  }
+  template <typename T>
+  static EgressId2Weight toEgressId2Weight(T* egress, int count);
   static std::string toEgressId2WeightStr(
       const EgressId2Weight& egressId2Weight);
   /*
@@ -197,12 +192,13 @@ class BcmWarmBootCache {
       int index,
       bcm_l3_route_t* info,
       void* userData);
+  template <typename T>
   static int ecmpEgressTraversalCallback(
       int unit,
       bcm_l3_egress_ecmp_t* ecmp,
-      int intf_count,
-      bcm_if_t* intf_array,
-      void* user_data);
+      int memberCount,
+      T* memberArray,
+      void* userData);
 
   /**
    * Helper functions for populate AclEntry since we don't have

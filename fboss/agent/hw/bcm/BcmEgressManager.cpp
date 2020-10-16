@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
@@ -71,22 +72,40 @@ void BcmEgressManager::linkStateChangedMaybeLocked(
   } else {
     CHECK(!up);
     egressResolutionChangedHwNotLocked(
-        hw_->getUnit(), portAndEgressIds->getEgressIds(), up);
+        hw_->getUnit(),
+        portAndEgressIds->getEgressIds(),
+        up,
+        hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER));
   }
 }
 
+template <typename T>
+BcmEcmpEgress::EgressId BcmEgressManager::toEgressId(T egress) {
+  return egress;
+}
+
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+template <>
+BcmEcmpEgress::EgressId BcmEgressManager::toEgressId<bcm_l3_ecmp_member_t>(
+    bcm_l3_ecmp_member_t egress) {
+  return egress.egress_if;
+}
+#endif
+
+template <typename T>
 int BcmEgressManager::removeAllEgressesFromEcmpCallback(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
-    int intfCount,
-    bcm_if_t* intfArray,
+    int memberCount,
+    T* memberArray,
     void* userData) {
   // loop over the egresses present in the ecmp group. For each that is
   // in the passed in list of egresses to remove (userData),
   // remove it from the ecmp group.
   EgressIdSet* egressesToRemove = static_cast<EgressIdSet*>(userData);
-  for (int i = 0; i < intfCount; ++i) {
-    bcm_if_t egressInHw = intfArray[i];
+  for (int i = 0; i < memberCount; ++i) {
+    BcmEcmpEgress::EgressId egressInHw = toEgressId<T>(memberArray[i]);
     if (egressesToRemove->find(egressInHw) != egressesToRemove->end()) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
           unit, ecmp->ecmp_intf, egressInHw);
@@ -98,11 +117,21 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
 void BcmEgressManager::egressResolutionChangedHwNotLocked(
     int unit,
     const EgressIdSet& affectedEgressIds,
-    bool up) {
+    bool up,
+    bool weightedMember) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
-  bcm_l3_egress_ecmp_traverse(
-      unit, removeAllEgressesFromEcmpCallback, &tmpEgressIds);
+  if (weightedMember) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    bcm_l3_ecmp_traverse(
+        unit,
+        removeAllEgressesFromEcmpCallback<bcm_l3_ecmp_member_t>,
+        &tmpEgressIds);
+#endif
+  } else {
+    bcm_l3_egress_ecmp_traverse(
+        unit, removeAllEgressesFromEcmpCallback<bcm_if_t>, &tmpEgressIds);
+  }
 }
 
 } // namespace facebook::fboss

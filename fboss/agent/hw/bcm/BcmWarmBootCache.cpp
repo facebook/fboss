@@ -42,6 +42,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -124,6 +125,29 @@ folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
 
   return bcmWarmBootState;
 }
+
+template <typename T>
+BcmWarmBootCache::EgressId2Weight BcmWarmBootCache::toEgressId2Weight(
+    T* egress,
+    int count) {
+  EgressId2Weight egressIds;
+  std::for_each(
+      egress, egress + count, [&egressIds](T egress) { egressIds[egress]++; });
+  return egressIds;
+}
+
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+template <>
+BcmWarmBootCache::EgressId2Weight BcmWarmBootCache::toEgressId2Weight<
+    bcm_l3_ecmp_member_t>(bcm_l3_ecmp_member_t* egress, int count) {
+  EgressId2Weight egressIds;
+  std::for_each(
+      egress, egress + count, [&egressIds](bcm_l3_ecmp_member_t egress) {
+        egressIds[egress.egress_if] += egress.weight;
+      });
+  return egressIds;
+}
+#endif
 
 void BcmWarmBootCache::programmed(AclEntry2AclStatItr itr) {
   XLOG(DBG1) << "Programmed acl stat=" << itr->second.stat;
@@ -497,8 +521,18 @@ void BcmWarmBootCache::populate(std::optional<folly::dynamic> warmBootState) {
   rv = bcm_l3_egress_traverse(hw_->getUnit(), egressTraversalCallback, this);
   bcmCheckError(rv, "Failed to traverse egress");
   // Traverse ecmp egress entries
-  rv = bcm_l3_egress_ecmp_traverse(
-      hw_->getUnit(), ecmpEgressTraversalCallback, this);
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    rv = bcm_l3_ecmp_traverse(
+        hw_->getUnit(),
+        ecmpEgressTraversalCallback<bcm_l3_ecmp_member_t>,
+        this);
+#endif
+  } else {
+    rv = bcm_l3_egress_ecmp_traverse(
+        hw_->getUnit(), ecmpEgressTraversalCallback<bcm_if_t>, this);
+  }
   bcmCheckError(rv, "Failed to traverse ecmp egress");
 
   // populate acls, acl stats
@@ -625,15 +659,16 @@ int BcmWarmBootCache::routeTraversalCallback(
   return 0;
 }
 
+template <typename T>
 int BcmWarmBootCache::ecmpEgressTraversalCallback(
     int /*unit*/,
     bcm_l3_egress_ecmp_t* ecmp,
-    int intfCount,
-    bcm_if_t* intfArray,
+    int memberCount,
+    T* memberArray,
     void* userData) {
   BcmWarmBootCache* cache = static_cast<BcmWarmBootCache*>(userData);
   EgressId2Weight egressId2Weight;
-  // Rather than using the egressId in the intfArray we use the
+  // Rather than using the egressId in the memberArray we use the
   // egressId2Weight that we dumped as part of the warm boot state. IntfArray
   // does not include any egressIds that go over the ports that may be
   // down while the warm boot state we dumped does
@@ -647,17 +682,17 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
     // for 200257 also with zero interfaces associated with it. If this is
     // the case, we skip this entry.
     //
-    // We can also get intfCount of zero with valid ecmp entry (when all the
+    // We can also get memberCount of zero with valid ecmp entry (when all the
     // links associated with egress of the ecmp are down. But in this case,
     // cache->getPathsForEcmp() call above should return a valid set of
     // egressIds.
-    if (intfCount == 0) {
+    if (memberCount == 0) {
       return 0;
     }
     throw ex;
   }
   EgressId2Weight egressId2WeightInHw;
-  egressId2WeightInHw = cache->toEgressId2Weight(intfArray, intfCount);
+  egressId2WeightInHw = cache->toEgressId2Weight<T>(memberArray, memberCount);
   XLOG(DBG1) << "ignoring paths for ecmp egress " << ecmp->ecmp_intf
              << " gotten from hardware: "
              << toEgressId2WeightStr(egressId2WeightInHw);
@@ -759,7 +794,13 @@ void BcmWarmBootCache::clear() {
     auto& ecmp = idsAndEcmp.second;
     XLOG(DBG1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
                << " pointing to : " << toEgressId2WeightStr(idsAndEcmp.first);
-    auto rv = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);
+    int rv;
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+      rv = bcm_l3_ecmp_destroy(hw_->getUnit(), ecmp.ecmp_intf);
+    } else {
+      rv = bcm_l3_egress_ecmp_destroy(hw_->getUnit(), &ecmp);
+    }
     bcmLogFatal(
         rv,
         hw_,
