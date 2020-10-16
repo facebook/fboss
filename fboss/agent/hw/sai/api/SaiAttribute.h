@@ -854,4 +854,16 @@ struct hash<facebook::fboss::SaiAttribute<AttrEnumT, AttrEnum, DataT, void>> {
   }
 };
 
+template <typename T, typename SaiExtensionAttributeId>
+struct hash<
+    facebook::fboss::SaiExtensionAttribute<T, SaiExtensionAttributeId>> {
+  size_t operator()(
+      const facebook::fboss::SaiExtensionAttribute<T, SaiExtensionAttributeId>&
+          attr) const {
+    size_t seed = 0;
+    boost::hash_combine(seed, attr.value());
+    return seed;
+  }
+};
+
 } // namespace std
