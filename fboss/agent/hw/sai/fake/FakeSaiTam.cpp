@@ -56,18 +56,20 @@ sai_status_t get_tam_attribute(
     switch (attr_list[i].id) {
       case SAI_TAM_ATTR_EVENT_OBJECTS_LIST:
         if (attr_list[i].value.objlist.count < tam.events_.size()) {
+          attr_list[i].value.objlist.count = tam.events_.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        for (auto j = 0; attr_list[i].value.objlist.count; j++) {
+        for (auto j = 0; j < attr_list[i].value.objlist.count; j++) {
           attr_list[i].value.objlist.list[j] = tam.events_[j];
         }
         break;
 
       case SAI_TAM_ATTR_TAM_BIND_POINT_TYPE_LIST:
         if (attr_list[i].value.s32list.count < tam.bindpoints_.size()) {
+          attr_list[i].value.objlist.count = tam.bindpoints_.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        for (auto j = 0; attr_list[i].value.s32list.count; j++) {
+        for (auto j = 0; j < attr_list[i].value.s32list.count; j++) {
           attr_list[i].value.s32list.list[j] = tam.bindpoints_[j];
         }
         break;
@@ -179,18 +181,20 @@ sai_status_t get_tam_event_attribute(
 
       case SAI_TAM_EVENT_ATTR_ACTION_LIST:
         if (attr_list[i].value.objlist.count < eventAction.actions_.size()) {
+          attr_list[i].value.objlist.count = eventAction.actions_.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        for (auto j = 0; attr_list[i].value.objlist.count; j++) {
+        for (auto j = 0; j < attr_list[i].value.objlist.count; j++) {
           attr_list[i].value.objlist.list[j] = eventAction.actions_[j];
         }
         break;
 
       case SAI_TAM_EVENT_ATTR_COLLECTOR_LIST:
         if (attr_list[i].value.objlist.count < eventAction.collectors_.size()) {
+          attr_list[i].value.objlist.count = eventAction.collectors_.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        for (auto j = 0; attr_list[i].value.objlist.count; j++) {
+        for (auto j = 0; j < attr_list[i].value.objlist.count; j++) {
           attr_list[i].value.objlist.list[j] = eventAction.collectors_[j];
         }
         break;
@@ -198,9 +202,10 @@ sai_status_t get_tam_event_attribute(
       case SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_TYPE:
         if (attr_list[i].value.s32list.count <
             eventAction.switchEvents_.size()) {
+          attr_list[i].value.s32list.count = eventAction.switchEvents_.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        for (auto j = 0; attr_list[i].value.s32list.count; j++) {
+        for (auto j = 0; j < attr_list[i].value.s32list.count; j++) {
           attr_list[i].value.s32list.list[j] = eventAction.switchEvents_[j];
         }
         break;

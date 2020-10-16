@@ -18,18 +18,22 @@ class TamApi;
 
 struct SaiTamReportTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM_REPORT;
+  using SaiApiT = TamApi;
   struct Attributes {
     using EnumType = sai_tam_report_attr_t;
     using Type = SaiAttribute<EnumType, SAI_TAM_REPORT_ATTR_TYPE, sai_int32_t>;
   };
   using AdapterKey = TamReportSaiId;
-  using AdapterHostKey = Attributes::Type;
+  using AdapterHostKey = std::tuple<Attributes::Type>;
   using CreateAttributes = std::tuple<Attributes::Type>;
 };
+
+SAI_ATTRIBUTE_NAME(TamReport, Type)
 
 struct SaiTamEventActionTraits {
   static constexpr sai_object_type_t ObjectType =
       SAI_OBJECT_TYPE_TAM_EVENT_ACTION;
+  using SaiApiT = TamApi;
   struct Attributes {
     using EnumType = sai_tam_event_action_attr_t;
     using ReportType = SaiAttribute<
@@ -38,12 +42,15 @@ struct SaiTamEventActionTraits {
         sai_object_id_t>;
   };
   using AdapterKey = TamEventActionSaiId;
-  using AdapterHostKey = Attributes::ReportType;
+  using AdapterHostKey = std::tuple<Attributes::ReportType>;
   using CreateAttributes = std::tuple<Attributes::ReportType>;
 };
 
+SAI_ATTRIBUTE_NAME(TamEventAction, ReportType)
+
 struct SaiTamEventTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM_EVENT;
+  using SaiApiT = TamApi;
   struct Attributes {
     using EnumType = sai_tam_event_attr_t;
     using Type = SaiAttribute<EnumType, SAI_TAM_EVENT_ATTR_TYPE, sai_int32_t>;
@@ -78,8 +85,14 @@ struct SaiTamEventTraits {
   using CreateAttributes = AdapterHostKey;
 };
 
+SAI_ATTRIBUTE_NAME(TamEvent, Type)
+SAI_ATTRIBUTE_NAME(TamEvent, ActionList)
+SAI_ATTRIBUTE_NAME(TamEvent, CollectorList)
+SAI_ATTRIBUTE_NAME(TamEvent, SwitchEventType)
+
 struct SaiTamTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM;
+  using SaiApiT = TamApi;
   using EnumType = sai_tam_attr_t;
   struct Attributes {
     using EventObjectList = SaiAttribute<
@@ -97,9 +110,12 @@ struct SaiTamTraits {
   using CreateAttributes = AdapterHostKey;
 };
 
+SAI_ATTRIBUTE_NAME(Tam, EventObjectList)
+SAI_ATTRIBUTE_NAME(Tam, TamBindPointList)
+
 class TamApi : public SaiApi<TamApi> {
  public:
-  static constexpr sai_api_t ApiType = SAI_API_PORT;
+  static constexpr sai_api_t ApiType = SAI_API_TAM;
   TamApi() {
     sai_status_t status =
         sai_api_query(ApiType, reinterpret_cast<void**>(&api_));
