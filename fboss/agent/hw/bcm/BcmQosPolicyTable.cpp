@@ -51,7 +51,12 @@ void BcmQosPolicyTable::processAddedQosPolicy(
 void BcmQosPolicyTable::processChangedQosPolicy(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  getQosPolicy(newQosPolicy->getName())->update(oldQosPolicy, newQosPolicy);
+  if (oldQosPolicy->getName() != newQosPolicy->getName()) {
+    processRemovedQosPolicy(oldQosPolicy);
+    processAddedQosPolicy(newQosPolicy);
+  } else {
+    getQosPolicy(newQosPolicy->getName())->update(oldQosPolicy, newQosPolicy);
+  }
 }
 
 void BcmQosPolicyTable::processRemovedQosPolicy(
