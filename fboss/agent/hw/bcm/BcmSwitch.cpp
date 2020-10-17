@@ -3040,4 +3040,8 @@ bool BcmSwitch::isValidPortQosPolicyUpdate(
       qosPolicy->getExpMap().from().empty();
 }
 
+std::string BcmSwitch::listObjects(
+    const std::vector<std::string>& /*types*/) const {
+  throw FbossError("Listing hw objects not supported. Use Bcm shell");
+}
 } // namespace facebook::fboss

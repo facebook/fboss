@@ -99,6 +99,11 @@ class SimSwitch : public HwSwitch {
     return 0;
   }
 
+  std::string listObjects(
+      const std::vector<std::string>& /*types*/) const override {
+    return "";
+  }
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO

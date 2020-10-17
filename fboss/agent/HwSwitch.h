@@ -302,6 +302,8 @@ class HwSwitch {
 
   std::string getDebugDump() const;
   virtual void dumpDebugState(const std::string& path) const = 0;
+  virtual std::string listObjects(
+      const std::vector<std::string>& types) const = 0;
 
   HwSwitchStats* getSwitchStats() const;
 
