@@ -319,7 +319,12 @@ class SaiStore {
   SaiObjectStore<SaiObjectTraits>& get() {
     return std::get<SaiObjectStore<SaiObjectTraits>>(stores_);
   }
+  template <typename SaiObjectTraits>
+  const SaiObjectStore<SaiObjectTraits>& get() const {
+    return std::get<SaiObjectStore<SaiObjectTraits>>(stores_);
+  }
 
+  std::string storeStr(sai_object_type_t objType) const;
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();

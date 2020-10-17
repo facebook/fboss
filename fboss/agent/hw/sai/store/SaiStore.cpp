@@ -103,4 +103,21 @@ folly::dynamic SaiStore::adapterKeys2AdapterHostKeysFollyDynamic() const {
   return storeJson;
 }
 
+std::string SaiStore::storeStr(sai_object_type_t objType) const {
+  std::string output;
+  tupleForEach(
+      [objType, &output](const auto& store) {
+        using StoreType = std::decay_t<decltype(store)>;
+        using ObjectTraits = typename StoreType::ObjectTraits;
+        if (objType == ObjectTraits::ObjectType) {
+          output += fmt::format("{}\n", store);
+        }
+      },
+      stores_);
+  if (!output.size()) {
+    throw FbossError("Object type {}, not found ", objType);
+  }
+  return output;
+}
+
 } // namespace facebook::fboss

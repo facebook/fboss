@@ -137,6 +137,7 @@ class SaiSwitch : public HwSwitch {
     return "";
   }
   void dumpDebugState(const std::string& /*path*/) const override;
+  std::string listObjects(const std::vector<sai_object_type_t>& objects) const;
 
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override;

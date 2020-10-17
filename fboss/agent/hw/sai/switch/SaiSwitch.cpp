@@ -1369,4 +1369,13 @@ void SaiSwitch::processRemovedDelta(
 void SaiSwitch::dumpDebugState(const std::string& path) const {
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
+
+std::string SaiSwitch::listObjects(
+    const std::vector<sai_object_type_t>& objects) const {
+  std::string output;
+  std::for_each(objects.begin(), objects.end(), [&output](auto objType) {
+    output += SaiStore::getInstance()->storeStr(objType);
+  });
+  return output;
+}
 } // namespace facebook::fboss
