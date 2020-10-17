@@ -25,6 +25,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <type_traits>
 
 extern "C" {
 #include <sai.h>
@@ -208,6 +209,19 @@ class SaiObjectStore {
   uint64_t size() const {
     return objects_.size();
   }
+  typename UnorderedRefMap<
+      typename SaiObjectTraits::AdapterHostKey,
+      ObjectType>::MapType::const_iterator
+  begin() const {
+    return objects_.begin();
+  }
+
+  typename UnorderedRefMap<
+      typename SaiObjectTraits::AdapterHostKey,
+      ObjectType>::MapType::const_iterator
+  end() const {
+    return objects_.end();
+  }
 
  private:
   ObjectType getObject(
@@ -360,7 +374,6 @@ keysForSaiObjStoreFromStoreJson(const folly::dynamic& json) {
       json[saiObjectTypeToString(SaiObjectTraits::ObjectType)]);
 }
 } // namespace facebook::fboss
-
 namespace fmt {
 
 template <typename SaiObjectTraits>
@@ -385,4 +398,7 @@ struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
     return format_to(ctx.out(), "{}", ss.str());
   }
 };
+
+template <typename T, typename Char>
+struct is_range<facebook::fboss::SaiObjectStore<T>, Char> : std::false_type {};
 }
