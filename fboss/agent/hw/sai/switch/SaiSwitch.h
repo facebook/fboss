@@ -132,10 +132,7 @@ class SaiSwitch : public HwSwitch {
   bool isFullyInitialized() const;
 
   std::string listObjects(
-      const std::vector<HwObjectType>& /*types*/) const override {
-    // TODO
-    return "";
-  }
+      const std::vector<HwObjectType>& types) const override;
   void dumpDebugState(const std::string& /*path*/) const override;
   std::string listObjects(const std::vector<sai_object_type_t>& objects) const;
 

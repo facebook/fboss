@@ -1378,4 +1378,92 @@ std::string SaiSwitch::listObjects(
   });
   return output;
 }
+
+std::string SaiSwitch::listObjects(
+    const std::vector<HwObjectType>& types) const {
+  std::vector<sai_object_type_t> objTypes;
+  for (auto type : types) {
+    switch (type) {
+      case HwObjectType::PORT:
+        objTypes.push_back(SAI_OBJECT_TYPE_PORT);
+        objTypes.push_back(SAI_OBJECT_TYPE_PORT_SERDES);
+        break;
+      case HwObjectType::LAG:
+        objTypes.push_back(SAI_OBJECT_TYPE_LAG);
+        objTypes.push_back(SAI_OBJECT_TYPE_LAG_MEMBER);
+        break;
+      case HwObjectType::VIRTUAL_ROUTER:
+        objTypes.push_back(SAI_OBJECT_TYPE_VIRTUAL_ROUTER);
+        break;
+      case HwObjectType::NEXT_HOP:
+        objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP);
+        break;
+      case HwObjectType::NEXT_HOP_GROUP:
+        objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP);
+        objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER);
+        break;
+      case HwObjectType::ROUTER_INTERFACE:
+        objTypes.push_back(SAI_OBJECT_TYPE_ROUTER_INTERFACE);
+        break;
+      case HwObjectType::CPU_TRAP:
+        objTypes.push_back(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP);
+        objTypes.push_back(SAI_OBJECT_TYPE_HOSTIF_TRAP);
+        break;
+      case HwObjectType::HASH:
+        objTypes.push_back(SAI_OBJECT_TYPE_HASH);
+        break;
+      case HwObjectType::MIRROR:
+        objTypes.push_back(SAI_OBJECT_TYPE_MIRROR_SESSION);
+        break;
+      case HwObjectType::QOS_MAP:
+        objTypes.push_back(SAI_OBJECT_TYPE_QOS_MAP);
+        break;
+      case HwObjectType::QUEUE:
+        objTypes.push_back(SAI_OBJECT_TYPE_QUEUE);
+        objTypes.push_back(SAI_OBJECT_TYPE_WRED);
+        break;
+      case HwObjectType::SCHEDULER:
+        objTypes.push_back(SAI_OBJECT_TYPE_SCHEDULER);
+        break;
+      case HwObjectType::L2_ENTRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_FDB_ENTRY);
+        break;
+      case HwObjectType::NEIGHBOR_ENTRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_NEIGHBOR_ENTRY);
+        break;
+      case HwObjectType::ROUTE_ENTRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_ROUTE_ENTRY);
+        break;
+      case HwObjectType::VLAN:
+        objTypes.push_back(SAI_OBJECT_TYPE_VLAN);
+        objTypes.push_back(SAI_OBJECT_TYPE_VLAN_MEMBER);
+        break;
+      case HwObjectType::BRIDGE:
+        objTypes.push_back(SAI_OBJECT_TYPE_BRIDGE);
+        objTypes.push_back(SAI_OBJECT_TYPE_BRIDGE_PORT);
+        break;
+      case HwObjectType::BUFFER:
+        objTypes.push_back(SAI_OBJECT_TYPE_BUFFER_POOL);
+        objTypes.push_back(SAI_OBJECT_TYPE_BUFFER_PROFILE);
+        break;
+      case HwObjectType::ACL_:
+        objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE_GROUP);
+        objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
+        objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE);
+        objTypes.push_back(SAI_OBJECT_TYPE_ACL_ENTRY);
+        objTypes.push_back(SAI_OBJECT_TYPE_ACL_COUNTER);
+        break;
+      case HwObjectType::DEBUG_COUNTER:
+        objTypes.push_back(SAI_OBJECT_TYPE_DEBUG_COUNTER);
+        break;
+      case HwObjectType::TELEMETRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM);
+        break;
+    }
+  }
+  return listObjects(objTypes);
+}
 } // namespace facebook::fboss
