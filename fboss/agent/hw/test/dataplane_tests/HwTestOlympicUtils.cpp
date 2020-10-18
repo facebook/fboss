@@ -190,15 +190,15 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg) {
     ++qosMapIdx;
   }
   cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies_ref()[0].name_ref() = "qp";
+  *cfg.qosPolicies_ref()[0].name_ref() = "olympic";
   cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "olympic";
   cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
-  cpuTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  cpuTrafficPolicy.defaultQosPolicy_ref() = "olympic";
   cpuConfig.trafficPolicy_ref() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy_ref() = cpuConfig;
 }

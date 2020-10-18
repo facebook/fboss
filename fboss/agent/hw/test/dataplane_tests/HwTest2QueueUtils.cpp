@@ -81,11 +81,11 @@ void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
     ++qosMapIdx;
   }
   cfg.qosPolicies_ref()->resize(1);
-  *cfg.qosPolicies_ref()[0].name_ref() = "qp";
+  *cfg.qosPolicies_ref()[0].name_ref() = "2queue";
   cfg.qosPolicies_ref()[0].qosMap_ref() = qosMap;
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "qp";
+  dataPlaneTrafficPolicy.defaultQosPolicy_ref() = "2queue";
   cfg.dataPlaneTrafficPolicy_ref() = dataPlaneTrafficPolicy;
 }
 
