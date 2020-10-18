@@ -543,9 +543,10 @@ enum HwObjectType {
   VLAN = 15,
   BRIDGE = 16,
   BUFFER = 17,
-  ACL_ = 18,
+  ACL = 18,
   DEBUG_COUNTER = 19,
   TELEMETRY = 20,
+  LABEL_ENTRY = 21,
 }
 
 service FbossCtrl extends fb303.FacebookService {

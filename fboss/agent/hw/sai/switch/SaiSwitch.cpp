@@ -1446,7 +1446,7 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_BUFFER_POOL);
         objTypes.push_back(SAI_OBJECT_TYPE_BUFFER_PROFILE);
         break;
-      case HwObjectType::ACL_:
+      case HwObjectType::ACL:
         objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE_GROUP);
         objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER);
         objTypes.push_back(SAI_OBJECT_TYPE_ACL_TABLE);
@@ -1461,6 +1461,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);
+        break;
+      case HwObjectType::LABEL_ENTRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_INSEG_ENTRY);
         break;
     }
   }
