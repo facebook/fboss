@@ -422,7 +422,8 @@ class BcmSwitch : public BcmSwitchIf {
   /**
    * Log the hardware state for the switch
    */
-  std::string listObjects(const std::vector<std::string>& types) const override;
+  std::string listObjects(
+      const std::vector<HwObjectType>& types) const override;
 
   /**
    * Set the aging timer for MAC address aging
