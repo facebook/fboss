@@ -524,6 +524,30 @@ struct ClientInformation {
   2: optional fbstring hostname,
 }
 
+enum HwObjectType {
+  PORT = 0,
+  LAG = 1,
+  VIRTUAL_ROUTER = 2,
+  NEXT_HOP = 3,
+  NEXT_HOP_GROUP = 4,
+  ROUTER_INTERFACE = 5,
+  CPU_TRAP = 6,
+  HASH = 7,
+  MIRROR = 8,
+  QOS_MAP = 9,
+  QUEUE = 10,
+  SCHEDULER = 11,
+  L2_ENTRY = 12,
+  NEIGHBOR_ENTRY = 13,
+  ROUTE_ENTRY = 14,
+  VLAN = 15,
+  BRIDGE = 16,
+  BUFFER = 17,
+  ACL_ = 18,
+  DEBUG_COUNTER = 19,
+  TELEMETRY = 20,
+}
+
 service FbossCtrl extends fb303.FacebookService {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -800,6 +824,11 @@ service FbossCtrl extends fb303.FacebookService {
    * on a box
    */
   string getHwDebugDump()
+  /*
+   * String formatted information of givens Hw Objects.
+   */
+  string listHwObjects(1: list<HwObjectType> objects)
+    throws (1: fboss.FbossBaseError error)
 
   /*
    * Type of boot performed by the controller

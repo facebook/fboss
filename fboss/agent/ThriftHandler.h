@@ -310,6 +310,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       override;
 
   void getHwDebugDump(std::string& out) override;
+  void listHwObjects(
+      std::string& /*out*/,
+      std::unique_ptr<std::vector<HwObjectType>> /*hwObjects*/) override {
+    // TODO
+  }
 
   void getPlatformMapping(cfg::PlatformMapping& ret) override;
 
