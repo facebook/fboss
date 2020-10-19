@@ -97,8 +97,20 @@ TEST(ThriftTest, listHwObjects) {
 
   ThriftHandler handler(sw);
   std::string out;
-  EXPECT_HW_CALL(sw, listObjects(testing::_)).Times(1);
-  handler.listHwObjects(out, std::make_unique<std::vector<HwObjectType>>());
+  std::vector<HwObjectType> in{HwObjectType::PORT};
+  EXPECT_HW_CALL(sw, listObjects(in)).Times(1);
+  handler.listHwObjects(out, std::make_unique<std::vector<HwObjectType>>(in));
+}
+
+TEST(ThriftTest, getHwDebugDump) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  ThriftHandler handler(sw);
+  std::string out;
+  EXPECT_HW_CALL(sw, dumpDebugState(testing::_)).Times(1);
+  // Mock getHwDebugDump doesn't write any thing so expect FbossError
+  EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
 
 TEST(ThriftTest, assertPortSpeeds) {
