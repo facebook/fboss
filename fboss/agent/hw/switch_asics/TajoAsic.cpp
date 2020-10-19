@@ -30,6 +30,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
+    case HwAsic::Feature::L2ENTRY_METADATA:
       return true;
 
     case HwAsic::Feature::HOT_SWAP:
@@ -39,7 +40,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
-    case HwAsic::Feature::L2ENTRY_METADATA:
     case HwAsic::Feature::NEIGHBOR_METADATA:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
