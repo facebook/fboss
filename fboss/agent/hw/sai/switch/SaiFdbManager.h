@@ -60,16 +60,14 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
       InterfaceID interfaceId,
       const folly::MacAddress& mac,
       sai_fdb_entry_type_t type,
-      std::optional<sai_uint32_t> metadata,
-      bool metadataSupported)
+      std::optional<sai_uint32_t> metadata)
       : Base(portId, interfaceId),
         switchId_(switchId),
         portId_(portId),
         interfaceId_(interfaceId),
         mac_(mac),
         type_(type),
-        metadata_(metadata),
-        metadataSupported_(metadataSupported) {}
+        metadata_(metadata) {}
 
   void createObject(PublisherObjects);
   void removeObject(size_t, PublisherObjects);
@@ -100,7 +98,6 @@ class ManagedFdbEntry : public SaiObjectEventAggregateSubscriber<
   folly::MacAddress mac_;
   sai_fdb_entry_type_t type_;
   std::optional<sai_uint32_t> metadata_;
-  bool metadataSupported_;
 };
 
 class SaiFdbManager {

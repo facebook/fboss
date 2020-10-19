@@ -128,13 +128,7 @@ void SaiFdbManager::addFdbEntry(
     return;
   }
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
-      switchId,
-      port,
-      interfaceId,
-      mac,
-      type,
-      metadata,
-      platform_->getAsic()->isSupported(HwAsic::Feature::L2ENTRY_METADATA));
+      switchId, port, interfaceId, mac, type, metadata);
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);
@@ -157,13 +151,10 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
       updated->getType() == MacEntryType::STATIC_ENTRY
           ? SAI_FDB_ENTRY_TYPE_STATIC
           : SAI_FDB_ENTRY_TYPE_DYNAMIC));
-  if (metadataSupported_) {
-    sai_uint32_t metadata = updated->getClassID()
-        ? static_cast<sai_uint32_t>(updated->getClassID().value())
-        : 0;
-    fdbEntry->setOptionalAttribute(
-        SaiFdbTraits::Attributes::Metadata{metadata});
-  }
+  sai_uint32_t metadata = updated->getClassID()
+      ? static_cast<sai_uint32_t>(updated->getClassID().value())
+      : 0;
+  fdbEntry->setOptionalAttribute(SaiFdbTraits::Attributes::Metadata{metadata});
 }
 
 void SaiFdbManager::removeFdbEntry(
@@ -303,12 +294,10 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
     throw FbossError("l2 table entry had unknown port sai id: ", portSaiId);
   }
   entry.port_ref() = portItr->second;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::L2ENTRY_METADATA)) {
-    auto metadata =
-        fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
-    if (metadata) {
-      entry.classID_ref() = metadata;
-    }
+  auto metadata =
+      fdbApi.getAttribute(fdbEntry, SaiFdbTraits::Attributes::Metadata{});
+  if (metadata) {
+    entry.classID_ref() = metadata;
   }
   return entry;
 }
