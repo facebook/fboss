@@ -363,9 +363,7 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
   std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
       nextHopId;
   route->setAttributes(attributes);
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
-    updateMetadata();
-  }
+  updateMetadata();
 }
 
 template <typename NextHopTraitsT>

@@ -13,7 +13,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::WARM_BOOT:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
