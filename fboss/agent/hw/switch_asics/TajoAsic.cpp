@@ -11,7 +11,6 @@ bool TajoAsic::isSupported(Feature feature) const {
      * verified on the asic. Marking them as true for now but need to revisit
      * this as we verify the features.
      */
-    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
@@ -28,7 +27,6 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
-    case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
       return true;
 

@@ -8,7 +8,6 @@ namespace facebook::fboss {
 class HwAsic {
  public:
   enum class Feature {
-    BUFFER_PROFILE,
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,
@@ -24,7 +23,6 @@ class HwAsic {
     QUEUE,
     ECN,
     L3_QOS,
-    WARM_BOOT,
     QOS_MAP_GLOBAL,
     QCM,
     SCHEDULER_PPS,

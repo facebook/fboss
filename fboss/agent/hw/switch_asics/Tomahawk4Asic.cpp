@@ -35,7 +35,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::DEBUG_COUNTER:
@@ -45,7 +44,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::BUFFER_PROFILE:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
       return true;
 

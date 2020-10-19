@@ -16,7 +16,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
@@ -25,7 +24,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::BUFFER_PROFILE:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

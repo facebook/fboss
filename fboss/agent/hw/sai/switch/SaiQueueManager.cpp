@@ -143,14 +143,12 @@ void SaiQueueManager::changeQueue(
               queueHandle->wredProfile->adapterKey()});
     }
   }
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
-    queueHandle->bufferProfile =
-        managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
-    if (queueHandle->bufferProfile) {
-      queueHandle->queue->setOptionalAttribute(
-          SaiQueueTraits::Attributes::BufferProfileId{
-              queueHandle->bufferProfile->adapterKey()});
-    }
+  queueHandle->bufferProfile =
+      managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
+  if (queueHandle->bufferProfile) {
+    queueHandle->queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::BufferProfileId{
+            queueHandle->bufferProfile->adapterKey()});
   }
 }
 

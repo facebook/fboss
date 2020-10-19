@@ -183,9 +183,7 @@ HwInitResult SaiSwitch::init(Callback* callback) noexcept {
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();
     }
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_PROFILE)) {
-      managerTable_->bufferManager().setupEgressBufferPool();
-    }
+    managerTable_->bufferManager().setupEgressBufferPool();
   }
 
   stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
@@ -593,10 +591,6 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
 }
 
 void SaiSwitch::gracefulExit(folly::dynamic& switchState) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::WARM_BOOT)) {
-    XLOG(ERR) << " Asic does not support warm boot, skipping graceful exit";
-    return;
-  }
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   gracefulExitLocked(switchState, lock);
 }

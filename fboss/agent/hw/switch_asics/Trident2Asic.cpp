@@ -12,7 +12,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::HOT_SWAP:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QUEUE:
-    case HwAsic::Feature::WARM_BOOT:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
@@ -20,7 +19,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::BUFFER_PROFILE:
       return true;
 
     case HwAsic::Feature::TRUNCATE_MIRROR_PACKET:
