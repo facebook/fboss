@@ -91,6 +91,16 @@ TEST(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
+TEST(ThriftTest, listHwObjects) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+
+  ThriftHandler handler(sw);
+  std::string out;
+  EXPECT_HW_CALL(sw, listObjects(testing::_)).Times(1);
+  handler.listHwObjects(out, std::make_unique<std::vector<HwObjectType>>());
+}
+
 TEST(ThriftTest, assertPortSpeeds) {
   // We rely on the exact value of the port speeds for some
   // logic, so we want to ensure that these values don't change.
