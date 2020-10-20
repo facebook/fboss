@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
@@ -1019,7 +1020,9 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
     // Before turning up power, check whether we want to override
     // channel control settings or no.
-    if (FLAGS_aoi_override) {
+    // TODO(clin82) Remove aoi_override flag once this solution has been
+    // deployed.
+    if (transceiverManager_->getPlatformMode() == PlatformMode::YAMP) {
       overwriteChannelControlSettings();
     }
 

@@ -36,7 +36,7 @@ class WedgeManager : public TransceiverManager {
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
   void syncPorts(TransceiverMap& info, std::unique_ptr<PortMap> ports) override;
 
-  PlatformMode getPlatformMode() {
+  PlatformMode getPlatformMode() override {
     return platformMode_;
   }
 

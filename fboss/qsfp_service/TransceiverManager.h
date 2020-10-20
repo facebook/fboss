@@ -11,6 +11,8 @@
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 
+class PlatformMode;
+
 namespace facebook { namespace fboss {
 class TransceiverManager {
  public:
@@ -28,6 +30,8 @@ class TransceiverManager {
   virtual void syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) = 0;
+
+  virtual PlatformMode getPlatformMode() = 0;
 
   bool isValidTransceiver(int32_t id) {
     return id < getNumQsfpModules() && id >= 0;

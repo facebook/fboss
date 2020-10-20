@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
+#include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
 #include <folly/Memory.h>
 #include "fboss/agent/FbossError.h"
@@ -30,6 +31,7 @@ using namespace ::testing;
 class QsfpModuleTest : public ::testing::Test {
  public:
   void SetUp() override {
+    wedgeManager_ = std::make_unique<MockWedgeManager>();
     // save some typing in most tests by creating the test qsfp
     // expecting 4 ports. Tests that need a different number of ports
     // can call setupQsfp() themselves.
@@ -42,7 +44,8 @@ class QsfpModuleTest : public ::testing::Test {
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
     qsfp_ = std::make_unique<MockSffModule>(
-        nullptr, std::move(transceiverImpl), portsPerTransceiver);
+        wedgeManager_.get(),
+        std::move(transceiverImpl), portsPerTransceiver);
 
     gflags::SetCommandLineOptionWithMode(
       "tx_enable_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -64,6 +67,7 @@ class QsfpModuleTest : public ::testing::Test {
 
   std::unique_ptr<MockSffModule> qsfp_;
   NiceMock<MockTransceiverImpl>* transImpl_;
+  std::unique_ptr<MockWedgeManager> wedgeManager_;
 };
 
 TEST_F(QsfpModuleTest, setRateSelect) {

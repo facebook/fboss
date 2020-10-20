@@ -8,11 +8,10 @@
  *
  */
 
-#include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
+#include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
 #include <folly/Memory.h>
@@ -23,22 +22,6 @@
 using namespace facebook::fboss;
 using namespace ::testing;
 namespace {
-
-class MockWedgeManager : public WedgeManager {
- public:
-  MockWedgeManager() : WedgeManager(nullptr, nullptr, PlatformMode::WEDGE) {}
-  void makeTransceiverMap() {
-    for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-      std::unique_ptr<MockSffModule> qsfp =
-          std::make_unique<MockSffModule>(
-              this, nullptr, numPortsPerTransceiver());
-      mockTransceivers_.emplace(TransceiverID(idx), qsfp.get());
-      transceivers_.wlock()->emplace(TransceiverID(idx), move(qsfp));
-    }
-  }
-
-  std::map<TransceiverID, MockSffModule*> mockTransceivers_;
-};
 
 class WedgeManagerTest : public ::testing::Test {
  public:
