@@ -27,6 +27,22 @@
 namespace facebook::fboss {
 
 class ConcurrentIndices;
+/*
+ * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
+ * necessary FDB event attributes from sai_fdb_event_notification_data_t.
+ */
+struct FdbEventNotificationData {
+  sai_fdb_event_t eventType;
+  sai_fdb_entry_t fdbEntry;
+  BridgePortSaiId bridgePortSaiId;
+  explicit FdbEventNotificationData(
+      sai_fdb_event_t eventType,
+      sai_fdb_entry_t fdbEntry,
+      BridgePortSaiId bridgePortSaiId)
+      : eventType(eventType),
+        fdbEntry(fdbEntry),
+        bridgePortSaiId(bridgePortSaiId) {}
+};
 
 class SaiSwitch : public HwSwitch {
  public:
@@ -196,7 +212,7 @@ class SaiSwitch : public HwSwitch {
 
   void fdbEventCallbackLockedBottomHalf(
       const std::lock_guard<std::mutex>& lock,
-      std::vector<sai_fdb_event_notification_data_t> data);
+      std::vector<FdbEventNotificationData> data);
 
   BootType getBootTypeLocked(const std::lock_guard<std::mutex>& lock) const;
 
@@ -317,7 +333,7 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
   std::optional<L2Entry> getL2Entry(
-      const sai_fdb_event_notification_data_t& fdbEvent) const;
+      const FdbEventNotificationData& fdbEvent) const;
 
   std::unique_ptr<SaiManagerTable> managerTable_;
   BootType bootType_{BootType::UNINITIALIZED};

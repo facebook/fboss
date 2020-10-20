@@ -1183,11 +1183,39 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  std::vector<sai_fdb_event_notification_data_t> fdbNotificationsTmp;
-  fdbNotificationsTmp.resize(count);
-  std::copy(data, data + count, fdbNotificationsTmp.data());
+  XLOG(INFO) << "Received " << count << "learn notifications";
+  /*
+   * FDB event notifications can be parsed in several ways
+   * 1) Deep copy of sai_fdb_event_notification_data_t. This includes
+   * allocating memory for sai_attribute_t in the fdb event data and freeing
+   * them in the fdb bottom half thread.
+   * 2) Create a temporary struct FdbEventNotificationData which is a subset of
+   * sai_fdb_event_notification_data_t. This will be used to store only
+   * the necessary attributes and pass it on to fdb bottom half thread.
+   * 3) Avoid creating temporary structs and create L2Entry which can be sent
+   * to sw switch. The problem with this approach is we need to hold the sai
+   * switch mutex in the callback thread. Also, this can cause deadlock when
+   * we used the bridge port id to fetch the port id from the SDK.
+   * Going with option 2 for fdb event notifications.
+   */
+  std::vector<FdbEventNotificationData> fdbEventNotificationDataTmp;
+  for (auto i = 0; i < count; i++) {
+    BridgePortSaiId bridgePortSaiId{0};
+    for (auto j = 0; j < data[i].attr_count; j++) {
+      switch (data[i].attr[j].id) {
+        case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
+          bridgePortSaiId = data[i].attr[j].value.oid;
+          break;
+        default:
+          break;
+      }
+    }
+    fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
+        data[i].event_type, data[i].fdb_entry, bridgePortSaiId));
+  }
   fdbEventBottomHalfEventBase_.runInEventBaseThread(
-      [this, fdbNotifications = std::move(fdbNotificationsTmp)]() mutable {
+      [this,
+       fdbNotifications = std::move(fdbEventNotificationDataTmp)]() mutable {
         auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
         fdbEventCallbackLockedBottomHalf(lock, std::move(fdbNotifications));
       });
@@ -1195,7 +1223,7 @@ void SaiSwitch::fdbEventCallback(
 
 void SaiSwitch::fdbEventCallbackLockedBottomHalf(
     const std::lock_guard<std::mutex>& /*lock*/,
-    std::vector<sai_fdb_event_notification_data_t> fdbNotifications) {
+    std::vector<FdbEventNotificationData> fdbNotifications) {
   if (managerTable_->portManager().getL2LearningMode() !=
       cfg::L2LearningMode::SOFTWARE) {
     // Some platforms call fdb callback even when mode is set to HW. In
@@ -1204,7 +1232,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
   }
   for (const auto& fdbNotification : fdbNotifications) {
     auto ditr =
-        kL2AddrUpdateOperationsOfInterest.find(fdbNotification.event_type);
+        kL2AddrUpdateOperationsOfInterest.find(fdbNotification.eventType);
     if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
       auto l2Entry = getL2Entry(fdbNotification);
       if (l2Entry) {
@@ -1215,7 +1243,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
 }
 
 std::optional<L2Entry> SaiSwitch::getL2Entry(
-    const sai_fdb_event_notification_data_t& fdbEvent) const {
+    const FdbEventNotificationData& fdbEvent) const {
   /*
    * Idea behind returning a optional here on spurious FDB event
    * (say with bogus port or vlan ID) vs throwing a exception
@@ -1223,26 +1251,16 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
    * spurious events. This is similar to the philosophy we follow
    * for spurious linkstate change or packet RX callbacks.
    */
-  std::optional<PortSaiId> portSaiId;
-  for (int i = 0; i < fdbEvent.attr_count && !portSaiId; ++i) {
-    const auto attr = fdbEvent.attr;
-    switch (fdbEvent.attr[i].id) {
-      case SAI_FDB_ENTRY_ATTR_BRIDGE_PORT_ID:
-        portSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
-            BridgePortSaiId{attr[i].value.oid},
-            SaiBridgePortTraits::Attributes::PortId{});
-        break;
-      default:
-        break;
-    }
-  }
-  if (!portSaiId) {
-    XLOG(ERR) << "Missing port attribute in FDB event";
+  if (!fdbEvent.bridgePortSaiId) {
+    XLOG(ERR) << "Missing bridge port attribute in FDB event";
     return std::nullopt;
   }
+  auto portSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+      fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
-  auto mac = fromSaiMacAddress(fdbEvent.fdb_entry.mac_address);
-  switch (fdbEvent.event_type) {
+  auto mac = fromSaiMacAddress(fdbEvent.fdbEntry.mac_address);
+  switch (fdbEvent.eventType) {
     // For learning events consider entry type as pending (else the
     // fdb event should not have been punted to us)
     // For Aging events, consider the entry as already validated (programmed)
@@ -1253,24 +1271,24 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
       entryType = L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED;
       break;
     default:
-      XLOG(ERR) << "Unexpected fdb event type: " << fdbEvent.event_type
+      XLOG(ERR) << "Unexpected fdb event type: " << fdbEvent.eventType
                 << " for " << mac;
       return std::nullopt;
   }
-  auto portItr = concurrentIndices_->portIds.find(portSaiId.value());
+  auto portItr = concurrentIndices_->portIds.find(PortSaiId(portSaiId));
   if (portItr == concurrentIndices_->portIds.end()) {
     XLOG(ERR) << " FDB event for " << mac
-              << ", got non existent port id : " << portSaiId.value();
+              << ", got non existent port id : " << portSaiId;
     return std::nullopt;
   }
-  auto vlanItr = concurrentIndices_->vlanIds.find(portSaiId.value());
+  auto vlanItr = concurrentIndices_->vlanIds.find(PortSaiId(portSaiId));
   if (vlanItr == concurrentIndices_->vlanIds.end()) {
     XLOG(ERR) << " FDB event for " << mac
               << " could not look up VLAN for : " << portItr->second;
     return std::nullopt;
   }
 
-  return L2Entry{fromSaiMacAddress(fdbEvent.fdb_entry.mac_address),
+  return L2Entry{fromSaiMacAddress(fdbEvent.fdbEntry.mac_address),
                  vlanItr->second,
                  PortDescriptor(portItr->second),
                  entryType};
