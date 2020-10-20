@@ -21,6 +21,7 @@ from fboss.cli.commands import (
     interface,
     ip,
     l2,
+    list_hw_objects,
     lldp,
     ndp,
     nic,
@@ -33,7 +34,7 @@ from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
-from neteng.fboss.ctrl.ttypes import PortLedExternalState, PrbsComponent
+from neteng.fboss.ctrl.ttypes import HwObjectType, PortLedExternalState, PrbsComponent
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
@@ -721,6 +722,35 @@ class AclCli(object):
         acl.AclTableCmd(cli_opts).run()
 
 
+class ListHwObjectsCli(object):
+    """ Show list Hw obects sub-commands """
+
+    def __init__(self):
+        self.list_hw_objects.add_command(self._list, name="list")
+
+    @click.group(cls=AliasedGroup)
+    def list_hw_objects():
+        """ List HW objecttsn """
+        pass
+
+    @click.command()
+    @click.option(
+        "-o",
+        "--hw-object",
+        multiple=True,
+        default=None,
+        type=click.Choice(sorted(HwObjectType()._NAMES_TO_VALUES.keys())),
+    )
+    @click.pass_obj
+    def _list(cli_opts, hw_object):
+        """ List Hw objects """
+        hw_obj_types = [
+            HwObjectType()._NAMES_TO_VALUES[_hw_obj_type] for _hw_obj_type in hw_object
+        ]
+        cli_opts.options["hw_obj_types"] = hw_obj_types
+        list_hw_objects.ListHwObjectsCmd(cli_opts).run(hw_obj_types)
+
+
 # -- Main Command Group -- #
 @click.group(cls=AliasedGroup)
 @click.option(
@@ -750,6 +780,7 @@ def add_modules(main_func):
     main_func.add_command(IpCli().ip)
     main_func.add_command(InterfaceCli().interface)
     main_func.add_command(L2Cli().l2)
+    main_func.add_command(ListHwObjectsCli().list_hw_objects)
     main_func.add_command(LldpCli().lldp)
     main_func.add_command(NdpCli().ndp)
     main_func.add_command(NicCli().nic)
