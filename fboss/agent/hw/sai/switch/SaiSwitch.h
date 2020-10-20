@@ -150,9 +150,9 @@ class SaiSwitch : public HwSwitch {
   std::string listObjects(
       const std::vector<HwObjectType>& types) const override;
   void dumpDebugState(const std::string& /*path*/) const override;
-  std::string listObjects(const std::vector<sai_object_type_t>& objects) const;
 
  private:
+  std::string listObjects(const std::vector<sai_object_type_t>& objects) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   void updateStatsImpl(SwitchStats* switchStats) override;
