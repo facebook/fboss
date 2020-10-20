@@ -12,6 +12,6 @@ from fboss.cli.commands import commands as cmds
 
 
 class ListHwObjectsCmd(cmds.FbossCmd):
-    def run(self, hw_object_types):
+    def run(self, hw_object_types, cached):
         with self._create_agent_client() as client:
-            print(client.listHwObjects(hw_object_types))
+            print(client.listHwObjects(hw_object_types, cached))

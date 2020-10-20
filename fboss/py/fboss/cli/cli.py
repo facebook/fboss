@@ -741,14 +741,22 @@ class ListHwObjectsCli(object):
         default=None,
         type=click.Choice(sorted(HwObjectType()._NAMES_TO_VALUES.keys())),
     )
+    @click.option(
+        "-c",
+        "--cached",
+        default=False,
+        type=bool,
+        is_flag=True,
+        help="Use objects cached in memory rather than retrieving from HW",
+    )
     @click.pass_obj
-    def _list(cli_opts, hw_object):
+    def _list(cli_opts, hw_object, cached):
         """ List Hw objects """
         hw_obj_types = [
             HwObjectType()._NAMES_TO_VALUES[_hw_obj_type] for _hw_obj_type in hw_object
         ]
         cli_opts.options["hw_obj_types"] = hw_obj_types
-        list_hw_objects.ListHwObjectsCmd(cli_opts).run(hw_obj_types)
+        list_hw_objects.ListHwObjectsCmd(cli_opts).run(hw_obj_types, cached)
 
 
 # -- Main Command Group -- #
