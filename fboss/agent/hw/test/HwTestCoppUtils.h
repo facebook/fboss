@@ -58,7 +58,7 @@ void addNoActionAclForNw(
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
-void addHighPriAclForNwAndNetworoControlDscp(
+void addHighPriAclForNwAndNetworkControlDscp(
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);

@@ -88,7 +88,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   addHigPriLocalIpNetworkControlAcl(true);
   addHigPriLocalIpNetworkControlAcl(false);
   // Link local IPv6 + DSCP 48 to high pri queue
-  auto addHighPriLinkLocalV6NetworoControlAcl =
+  auto addHighPriLinkLocalV6NetworkControlAcl =
       [&](const folly::CIDRNetwork& dstNetwork) {
         cfg::AclEntry acl;
         auto dstNetworkStr =
@@ -100,8 +100,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
         acls.push_back(std::make_pair(
             acl, createQueueMatchAction(getCoppHighPriQueueId(hwAsic))));
       };
-  addHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalMcastNetwork());
-  addHighPriLinkLocalV6NetworoControlAcl(kIPv6LinkLocalUcastNetwork());
+  addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
+  addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
 
   // Now steer traffic destined to this (local) interface IP
   // to mid pri queue. Note that we add this Acl entry *after*

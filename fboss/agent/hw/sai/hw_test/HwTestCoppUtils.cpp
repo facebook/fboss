@@ -48,9 +48,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
 
   // Link local IPv6 + DSCP 48 to high pri queue
-  addHighPriAclForNwAndNetworoControlDscp(
+  addHighPriAclForNwAndNetworkControlDscp(
       kIPv6LinkLocalMcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
-  addHighPriAclForNwAndNetworoControlDscp(
+  addHighPriAclForNwAndNetworkControlDscp(
       kIPv6LinkLocalUcastNetwork(), getCoppHighPriQueueId(hwAsic), acls);
 
   // unicast and multicast link local dst ip

@@ -176,7 +176,7 @@ void addNoActionAclForNw(
   acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
 }
 
-void addHighPriAclForNwAndNetworoControlDscp(
+void addHighPriAclForNwAndNetworkControlDscp(
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
