@@ -307,7 +307,7 @@ void verifyInterfaceMode(
   auto programmedInterfaceType = portApi.getAttribute(
       saiPortHandle->port->adapterKey(),
       SaiPortTraits::Attributes::InterfaceType{});
-  EXPECT_EQ(expectedInterfaceType, programmedInterfaceType);
+  EXPECT_EQ(expectedInterfaceType.value(), programmedInterfaceType);
 }
 
 void verifyTxSettting(

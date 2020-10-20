@@ -240,6 +240,7 @@ void setPortAttributes(
       case SAI_PORT_ATTR_OPER_STATUS:
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
       case SAI_PORT_ATTR_MEDIA_TYPE:
+      case SAI_PORT_ATTR_INTERFACE_TYPE:
       case SAI_PORT_ATTR_GLOBAL_FLOW_CONTROL_MODE:
         attrLines.push_back(s32Attr(attr_list, i));
         break;
