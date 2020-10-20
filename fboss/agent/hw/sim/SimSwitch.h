@@ -100,7 +100,8 @@ class SimSwitch : public HwSwitch {
   }
 
   std::string listObjects(
-      const std::vector<HwObjectType>& /*types*/) const override {
+      const std::vector<HwObjectType>& /*types*/,
+      bool /*cached*/) const override {
     return "";
   }
 

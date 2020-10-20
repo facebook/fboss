@@ -1412,7 +1412,8 @@ std::string SaiSwitch::listObjectsLocked(
 }
 
 std::string SaiSwitch::listObjects(
-    const std::vector<HwObjectType>& types) const {
+    const std::vector<HwObjectType>& types,
+    bool cached) const {
   std::vector<sai_object_type_t> objTypes;
   for (auto type : types) {
     switch (type) {

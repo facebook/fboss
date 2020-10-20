@@ -1949,6 +1949,6 @@ void ThriftHandler::listHwObjects(
     std::unique_ptr<std::vector<HwObjectType>> hwObjects) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHw()->listObjects(*hwObjects);
+  out = sw_->getHw()->listObjects(*hwObjects, false);
 }
 } // namespace facebook::fboss

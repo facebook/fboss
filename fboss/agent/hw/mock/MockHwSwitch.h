@@ -92,9 +92,9 @@ class MockHwSwitch : public HwSwitch {
   uint64_t getDeviceWatermarkBytes() const override {
     return 0;
   }
-  MOCK_CONST_METHOD1(
+  MOCK_CONST_METHOD2(
       listObjects,
-      std::string(const std::vector<HwObjectType>&));
+      std::string(const std::vector<HwObjectType>&, bool));
 
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));

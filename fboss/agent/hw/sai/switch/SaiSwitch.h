@@ -147,8 +147,8 @@ class SaiSwitch : public HwSwitch {
   SwitchRunState getSwitchRunState() const;
   bool isFullyInitialized() const;
 
-  std::string listObjects(
-      const std::vector<HwObjectType>& types) const override;
+  std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
+      const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
  private:
