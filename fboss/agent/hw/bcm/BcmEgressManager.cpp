@@ -103,12 +103,15 @@ int BcmEgressManager::removeAllEgressesFromEcmpCallback(
   // loop over the egresses present in the ecmp group. For each that is
   // in the passed in list of egresses to remove (userData),
   // remove it from the ecmp group.
-  EgressIdSet* egressesToRemove = static_cast<EgressIdSet*>(userData);
+  auto egressesToRemove =
+      static_cast<std::pair<EgressIdSet*, bool>*>(userData)->first;
+  auto weightedMember =
+      static_cast<std::pair<EgressIdSet*, bool>*>(userData)->second;
   for (int i = 0; i < memberCount; ++i) {
     BcmEcmpEgress::EgressId egressInHw = toEgressId<T>(memberArray[i]);
     if (egressesToRemove->find(egressInHw) != egressesToRemove->end()) {
       BcmEcmpEgress::removeEgressIdHwNotLocked(
-          unit, ecmp->ecmp_intf, egressInHw);
+          unit, ecmp->ecmp_intf, egressInHw, weightedMember);
     }
   }
   return 0;
@@ -121,16 +124,17 @@ void BcmEgressManager::egressResolutionChangedHwNotLocked(
     bool weightedMember) {
   CHECK(!up);
   EgressIdSet tmpEgressIds(affectedEgressIds);
+  auto userData = std::make_pair(&tmpEgressIds, weightedMember);
   if (weightedMember) {
 #ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
     bcm_l3_ecmp_traverse(
         unit,
         removeAllEgressesFromEcmpCallback<bcm_l3_ecmp_member_t>,
-        &tmpEgressIds);
+        &userData);
 #endif
   } else {
     bcm_l3_egress_ecmp_traverse(
-        unit, removeAllEgressesFromEcmpCallback<bcm_if_t>, &tmpEgressIds);
+        unit, removeAllEgressesFromEcmpCallback<bcm_if_t>, &userData);
   }
 }
 

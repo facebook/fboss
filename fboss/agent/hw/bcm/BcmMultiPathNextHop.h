@@ -10,6 +10,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook::fboss {
@@ -58,7 +59,10 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
  public:
   using EgressIdSet = BcmEcmpEgress::EgressIdSet;
   explicit BcmMultiPathNextHopTable(BcmSwitch* hw)
-      : BcmMultiPathNextHopTableBase(hw) {}
+      : BcmMultiPathNextHopTableBase(hw) {
+    weightedMember_ = getBcmSwitch()->getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
+  }
   void egressResolutionChangedHwLocked(
       const EgressIdSet& affectedEgressIds,
       BcmEcmpEgress::Action action);
@@ -71,6 +75,9 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   }
 
   long getEcmpEgressCount() const;
+
+ private:
+  bool weightedMember_{false};
 };
 
 } // namespace facebook::fboss

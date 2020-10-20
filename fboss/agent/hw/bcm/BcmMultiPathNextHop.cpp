@@ -7,7 +7,6 @@
 #include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
@@ -126,11 +125,12 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
               ecmpAndEgressIds.first,
               ecmpAndEgressIds.second,
               path,
-              hw->getRunState());
+              hw->getRunState(),
+              weightedMember_);
           break;
         case BcmEcmpEgress::Action::SHRINK:
           BcmEcmpEgress::removeEgressIdHwLocked(
-              hw->getUnit(), ecmpAndEgressIds.first, path);
+              hw->getUnit(), ecmpAndEgressIds.first, path, weightedMember_);
           break;
         case BcmEcmpEgress::Action::SKIP:
           break;

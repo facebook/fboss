@@ -177,11 +177,17 @@ class BcmEcmpEgress : public BcmEgressBase {
       const EgressId2Weight& egressIdInSw,
       EgressId toAdd,
       SwitchRunState runState,
-      bool weightedMember = false);
-  static bool
-  removeEgressIdHwNotLocked(int unit, EgressId ecmpId, EgressId toRemove);
-  static bool
-  removeEgressIdHwLocked(int unit, EgressId ecmpId, EgressId toRemove);
+      bool weightedMember);
+  static bool removeEgressIdHwNotLocked(
+      int unit,
+      EgressId ecmpId,
+      EgressId toRemove,
+      bool weightedMember);
+  static bool removeEgressIdHwLocked(
+      int unit,
+      EgressId ecmpId,
+      EgressId toRemove,
+      bool weightedMember);
 
  private:
   void program();

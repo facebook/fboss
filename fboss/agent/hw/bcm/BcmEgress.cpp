@@ -422,7 +422,7 @@ bool BcmEcmpEgress::pathUnreachableHwLocked(EgressId path) {
   if (egressId2Weight_.find(path) == egressId2Weight_.end()) {
     return false;
   }
-  return removeEgressIdHwLocked(hw_->getUnit(), getID(), path);
+  return removeEgressIdHwLocked(hw_->getUnit(), getID(), path, weightedMember_);
 }
 
 bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
@@ -438,10 +438,11 @@ bool BcmEcmpEgress::pathReachableHwLocked(EgressId path) {
 bool BcmEcmpEgress::removeEgressIdHwLocked(
     int unit,
     EgressId ecmpId,
-    EgressId toRemove) {
+    EgressId toRemove,
+    bool weightedMember) {
   // We don't really need the lock here so safe to call the
   // stricter non locked version.
-  return removeEgressIdHwNotLocked(unit, ecmpId, toRemove);
+  return removeEgressIdHwNotLocked(unit, ecmpId, toRemove, weightedMember);
 }
 
 void BcmEgress::programToTrunk(
@@ -536,14 +537,20 @@ bool operator==(const bcm_l3_egress_t& lhs, const bcm_l3_egress_t& rhs) {
 bool BcmEcmpEgress::removeEgressIdHwNotLocked(
     int unit,
     EgressId ecmpId,
-    EgressId toRemove) {
-  // TODO(daiweix): use bcm_l3_ecmp_* to program ecmp
-  // if weightedMember_ is true
-
-  bcm_l3_egress_ecmp_t obj;
-  bcm_l3_egress_ecmp_t_init(&obj);
-  obj.ecmp_intf = ecmpId;
-  auto ret = bcm_l3_egress_ecmp_delete(unit, &obj, toRemove);
+    EgressId toRemove,
+    bool weightedMember) {
+  int ret;
+  if (weightedMember) {
+    bcm_l3_ecmp_member_t member;
+    bcm_l3_ecmp_member_t_init(&member);
+    member.egress_if = toRemove;
+    ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+  } else {
+    bcm_l3_egress_ecmp_t obj;
+    bcm_l3_egress_ecmp_t_init(&obj);
+    obj.ecmp_intf = ecmpId;
+    ret = bcm_l3_egress_ecmp_delete(unit, &obj, toRemove);
+  }
   if (ret && ret != BCM_E_NOT_FOUND) {
     // If ret == BCM_E_NOT_FOUND this means that
     // egress entry was not present in ECMP group (likely
@@ -583,8 +590,6 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   }
   int numPaths = 0;
   if (weightedMember) {
-    // TODO(daiweix): use bcm_l3_ecmp_* to program ecmp
-    // if weightedMember_ is true
     numPaths = egressId2WeightInSw.size();
   } else {
     for (auto path : egressId2WeightInSw) {
@@ -618,39 +623,80 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
   bcm_l3_egress_ecmp_t existing;
   bcm_l3_egress_ecmp_t_init(&existing);
   existing.ecmp_intf = ecmpId;
-
-  bcm_if_t pathsInHw[numPaths];
-  int totalPathsInHw;
-  auto ret = bcm_l3_egress_ecmp_get(
-      unit, &existing, numPaths, pathsInHw, &totalPathsInHw);
-  bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
   int countInHw = 0;
-  for (size_t i = 0; i < totalPathsInHw; ++i) {
-    if (toAdd == pathsInHw[i]) {
-      ++countInHw;
+  int ret;
+
+  if (weightedMember) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    // @lint-ignore HOWTOEVEN CArray
+    bcm_l3_ecmp_member_t pathsInHw[numPaths];
+    int totalPathsInHw;
+    ret =
+        bcm_l3_ecmp_get(unit, &existing, numPaths, pathsInHw, &totalPathsInHw);
+    bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+    for (size_t i = 0; i < totalPathsInHw; ++i) {
+      if (toAdd == pathsInHw[i].egress_if) {
+        countInHw = pathsInHw[i].weight;
+        break;
+      }
+    }
+#endif
+  } else {
+    // @lint-ignore HOWTOEVEN CArray
+    bcm_if_t pathsInHw[numPaths];
+    int totalPathsInHw;
+    ret = bcm_l3_egress_ecmp_get(
+        unit, &existing, numPaths, pathsInHw, &totalPathsInHw);
+    bcmCheckError(ret, "Unable to get ecmp entry ", ecmpId);
+    for (size_t i = 0; i < totalPathsInHw; ++i) {
+      if (toAdd == pathsInHw[i]) {
+        ++countInHw;
+      }
     }
   }
   auto countInSw = egressId2WeightInSw.at(toAdd);
   if (countInSw <= countInHw) {
     return false; // Already exists no need to update
   }
-  for (int i = 0; i < countInSw - countInHw; ++i) {
-    // Egress id exists in s/w but not in HW, add it
-    bcm_l3_egress_ecmp_t obj;
-    bcm_l3_egress_ecmp_t_init(&obj);
-    obj.ecmp_intf = ecmpId;
-    ret = bcm_l3_egress_ecmp_add(unit, &obj, toAdd);
+
+  if (weightedMember) {
+#ifdef BCM_L3_ECMP_MEMBER_WEIGHTED
+    bcm_l3_ecmp_member_t member;
+    bcm_l3_ecmp_member_t_init(&member);
+    member.egress_if = toAdd;
+    if (countInHw > 0) {
+      ret = bcm_l3_ecmp_member_delete(unit, ecmpId, &member);
+      bcmCheckError(ret, "Error removing ", toAdd, " from ", ecmpId);
+    }
+    member.weight = countInSw;
+    ret = bcm_l3_ecmp_member_add(unit, ecmpId, &member);
     bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
     if (runState < SwitchRunState::INITIALIZED) {
-      // If a port transitioned to down state before warm boot
-      // and in the rare scenario that ARP/ND was not removed,
-      // the ECMP member will be added back here. However this
-      // will be short lived since linkUp/DownHwLocked will be
-      // involked at end of warmboot init.
       XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
                  << " before transitioning to INIT state";
     } else {
       XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+    }
+#endif
+  } else {
+    for (int i = 0; i < countInSw - countInHw; ++i) {
+      // Egress id exists in s/w but not in HW, add it
+      bcm_l3_egress_ecmp_t obj;
+      bcm_l3_egress_ecmp_t_init(&obj);
+      obj.ecmp_intf = ecmpId;
+      ret = bcm_l3_egress_ecmp_add(unit, &obj, toAdd);
+      bcmCheckError(ret, "Error adding ", toAdd, " to ", ecmpId);
+      if (runState < SwitchRunState::INITIALIZED) {
+        // If a port transitioned to down state before warm boot
+        // and in the rare scenario that ARP/ND was not removed,
+        // the ECMP member will be added back here. However this
+        // will be short lived since linkUp/DownHwLocked will be
+        // involked at end of warmboot init.
+        XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId
+                   << " before transitioning to INIT state";
+      } else {
+        XLOG(DBG1) << "Added " << toAdd << " to " << ecmpId;
+      }
     }
   }
   return true;
