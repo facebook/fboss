@@ -1382,8 +1382,9 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
-std::string SaiSwitch::listObjects(
-    const std::vector<sai_object_type_t>& objects) const {
+std::string SaiSwitch::listObjectsLocked(
+    const std::vector<sai_object_type_t>& objects,
+    const std::lock_guard<std::mutex>& /*lock*/) const {
   std::string output;
   std::for_each(objects.begin(), objects.end(), [&output](auto objType) {
     output += SaiStore::getInstance()->storeStr(objType);
@@ -1479,6 +1480,7 @@ std::string SaiSwitch::listObjects(
         break;
     }
   }
-  return listObjects(objTypes);
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return listObjectsLocked(objTypes, lk);
 }
 } // namespace facebook::fboss
