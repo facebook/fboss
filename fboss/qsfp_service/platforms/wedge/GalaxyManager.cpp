@@ -17,7 +17,8 @@ GalaxyManager::GalaxyManager(PlatformMode mode) :
         GalaxyLCPlatformMapping::getLinecardName())
     : (std::unique_ptr<PlatformMapping>)
       std::make_unique<GalaxyFCPlatformMapping>(
-        GalaxyFCPlatformMapping::getFabriccardName())) {}
+        GalaxyFCPlatformMapping::getFabriccardName()),
+    mode) {}
   // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
   // construct the bus pointer before construct WedgeManager and will get rid of
   // getI2CBus at that time.

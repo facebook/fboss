@@ -8,7 +8,8 @@ namespace facebook { namespace fboss {
 Wedge100Manager::Wedge100Manager() :
   WedgeManager(
     std::make_unique<TransceiverPlatformI2cApi>(new Wedge100I2CBus()),
-    std::make_unique<Wedge100PlatformMapping>()) {}
+    std::make_unique<Wedge100PlatformMapping>(),
+    PlatformMode::WEDGE100) {}
   // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
   // construct the bus pointer before construct WedgeManager and will get rid of
   // getI2CBus at that time.

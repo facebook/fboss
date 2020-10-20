@@ -4,6 +4,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
@@ -19,7 +20,8 @@ class WedgeManager : public TransceiverManager {
 
   explicit WedgeManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      std::unique_ptr<PlatformMapping> platformMapping,
+      PlatformMode mode);
   ~WedgeManager() override {}
 
   void initTransceiverMap() override;
@@ -33,6 +35,10 @@ class WedgeManager : public TransceiverManager {
     std::unique_ptr<std::vector<int32_t>> ids) override;
   void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
   void syncPorts(TransceiverMap& info, std::unique_ptr<PortMap> ports) override;
+
+  PlatformMode getPlatformMode() {
+    return platformMode_;
+  }
 
   int getNumQsfpModules() override {
     return 16;
@@ -81,6 +87,8 @@ class WedgeManager : public TransceiverManager {
 
   folly::Synchronized<std::map<TransceiverID, std::map<uint32_t, PortStatus>>>
       ports_;
+
+  PlatformMode platformMode_;
 
  private:
   void loadConfig() override;

@@ -21,9 +21,11 @@ namespace facebook { namespace fboss {
 
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    std::unique_ptr<PlatformMapping> platformMapping)
+    std::unique_ptr<PlatformMapping> platformMapping,
+    PlatformMode mode)
     : TransceiverManager(std::move(api)),
-      platformMapping_(std::move(platformMapping))
+      platformMapping_(std::move(platformMapping)),
+      platformMode_(mode)
    {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
