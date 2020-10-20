@@ -99,7 +99,8 @@ TEST(ThriftTest, listHwObjects) {
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
   EXPECT_HW_CALL(sw, listObjects(in, testing::_)).Times(1);
-  handler.listHwObjects(out, std::make_unique<std::vector<HwObjectType>>(in));
+  handler.listHwObjects(
+      out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
 TEST(ThriftTest, getHwDebugDump) {

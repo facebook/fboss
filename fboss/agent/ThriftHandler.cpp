@@ -1946,9 +1946,10 @@ void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {
 
 void ThriftHandler::listHwObjects(
     std::string& out,
-    std::unique_ptr<std::vector<HwObjectType>> hwObjects) {
+    std::unique_ptr<std::vector<HwObjectType>> hwObjects,
+    bool cached) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHw()->listObjects(*hwObjects, false);
+  out = sw_->getHw()->listObjects(*hwObjects, cached);
 }
 } // namespace facebook::fboss

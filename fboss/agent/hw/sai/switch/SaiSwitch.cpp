@@ -1501,6 +1501,6 @@ std::string SaiSwitch::listObjects(
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
-  return listObjectsLocked(objTypes, false, lk);
+  return listObjectsLocked(objTypes, cached, lk);
 }
 } // namespace facebook::fboss

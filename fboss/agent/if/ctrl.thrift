@@ -828,7 +828,7 @@ service FbossCtrl extends fb303.FacebookService {
   /*
    * String formatted information of givens Hw Objects.
    */
-  string listHwObjects(1: list<HwObjectType> objects)
+  string listHwObjects(1: list<HwObjectType> objects, 2: bool cached)
     throws (1: fboss.FbossBaseError error)
 
   /*
