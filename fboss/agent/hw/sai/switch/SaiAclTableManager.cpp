@@ -704,17 +704,26 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             AclEntryActionU8(queueId)};
       } else {
         /*
-         *  When sendToCpu is set, a copy of the packet will be sent
+         * When sendToCpu is set, a copy of the packet will be sent
          * to CPU.
-         * TODO: By default, these packets are sent to queue
-         * 0. Use TC to set the right traffic class which
+         * By default, these packets are sent to queue 0.
+         * Set TC to set the right traffic class which
          * will be mapped to queue id.
+         *
+         * TODO(skhare)
+         * By default, BCM maps TC i to Queue i for i in [0, 9].
+         * Tajo claims to map TC i to Queue i by default as well.
+         * However, explicitly set the QoS Map and associate with the CPU port.
          */
         if (platform_->getAsic()->isSupported(
                 HwAsic::Feature::ACL_COPY_TO_CPU)) {
           aclActionPacketAction =
               SaiAclEntryTraits::Attributes::ActionPacketAction{
                   SAI_PACKET_ACTION_COPY};
+          auto queueId =
+              static_cast<sai_uint8_t>(*sendToQueue.first.queueId_ref());
+          aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
+              AclEntryActionU8(queueId)};
         }
       }
     }
