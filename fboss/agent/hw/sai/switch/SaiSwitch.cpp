@@ -1384,10 +1384,29 @@ void SaiSwitch::dumpDebugState(const std::string& path) const {
 
 std::string SaiSwitch::listObjectsLocked(
     const std::vector<sai_object_type_t>& objects,
-    const std::lock_guard<std::mutex>& /*lock*/) const {
+    bool cached,
+    const std::lock_guard<std::mutex>& lock) const {
+  const SaiStore* store = nullptr;
+  SaiStore directToHwStore;
+  if (!cached) {
+    directToHwStore.setSwitchId(getSwitchId());
+    auto json = toFollyDynamicLocked(lock);
+    std::unique_ptr<folly::dynamic> adapterKeysJson;
+    std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
+      adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
+    }
+    adapterKeys2AdapterHostKeysJson =
+        std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
+    directToHwStore.reload(
+        adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
+    store = &directToHwStore;
+  } else {
+    store = SaiStore::getInstance().get();
+  }
   std::string output;
-  std::for_each(objects.begin(), objects.end(), [&output](auto objType) {
-    output += SaiStore::getInstance()->storeStr(objType);
+  std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {
+    output += store->storeStr(objType);
   });
   return output;
 }
@@ -1481,6 +1500,6 @@ std::string SaiSwitch::listObjects(
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
-  return listObjectsLocked(objTypes, lk);
+  return listObjectsLocked(objTypes, false, lk);
 }
 } // namespace facebook::fboss
