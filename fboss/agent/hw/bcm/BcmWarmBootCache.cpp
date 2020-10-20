@@ -715,12 +715,13 @@ int BcmWarmBootCache::ecmpEgressTraversalCallback(
 std::string BcmWarmBootCache::toEgressId2WeightStr(
     const EgressId2Weight& egressId2Weight) {
   std::stringstream ss;
-  int i = 0;
+  int i = 1;
   for (const auto& egressId : egressId2Weight) {
-    for (int j = 0; j < egressId.second; j++) {
+    for (int j = 1; j <= egressId.second; j++) {
       ss << egressId.first;
-      ss << (++i < egressId2Weight.size() ? ", " : "");
+      ss << (i < egressId2Weight.size() || j < egressId.second ? ", " : "");
     }
+    i++;
   }
   return ss.str();
 }
