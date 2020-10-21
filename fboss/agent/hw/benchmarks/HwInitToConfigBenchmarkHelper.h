@@ -8,6 +8,8 @@
  *
  */
 
+#pragma once
+
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -15,9 +17,8 @@
 #include <folly/Benchmark.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-using namespace facebook::fboss;
-
 DECLARE_bool(setup_for_warmboot);
+DECLARE_bool(json);
 
 namespace facebook::fboss::utility {
 
