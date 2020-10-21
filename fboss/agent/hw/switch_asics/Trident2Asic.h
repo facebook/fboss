@@ -47,6 +47,10 @@ class Trident2Asic : public BroadcomAsic {
     //
     return cfg::PortLoopbackMode::PHY;
   }
+  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
+      const override {
+    return cpu ? 1664 : 0;
+  }
 };
 
 } // namespace facebook::fboss

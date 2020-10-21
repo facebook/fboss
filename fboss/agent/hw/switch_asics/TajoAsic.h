@@ -42,6 +42,11 @@ class TajoAsic : public HwAsic {
     // TODO - verify this
     return 4;
   }
+  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool /*cpu*/)
+      const override {
+    // Concept of reserved bytes does not apply to Tajo
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

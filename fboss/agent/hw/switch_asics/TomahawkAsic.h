@@ -40,6 +40,10 @@ class TomahawkAsic : public BroadcomAsic {
   uint64_t getMMUSizeBytes() const override {
     return 16 * 1024 * 1024;
   }
+  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
+      const override {
+    return cpu ? 1664 : 0;
+  }
 };
 
 } // namespace facebook::fboss

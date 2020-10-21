@@ -42,6 +42,11 @@ class MockAsic : public HwAsic {
   uint32_t getMaxMirrors() const override {
     return 4;
   }
+  uint64_t getDefaultReservedBytes(cfg::StreamType /*streamType*/, bool cpu)
+      const override {
+    // Mimicking TH
+    return cpu ? 1664 : 0;
+  }
 };
 
 } // namespace facebook::fboss
