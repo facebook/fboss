@@ -8,6 +8,7 @@
 namespace facebook::fboss {
 
 class Tomahawk3Asic : public BroadcomAsic {
+ public:
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK3;

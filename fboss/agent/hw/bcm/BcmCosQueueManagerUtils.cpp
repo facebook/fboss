@@ -10,6 +10,9 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -34,7 +37,6 @@ constexpr auto kDefaultPortQueueScheduling =
 constexpr auto kDefaultPortQueueWeight = 1;
 const auto kPortQueueNoAqm = AqmMap();
 
-constexpr int kDefaultPortQueueReservedBytes = 0;
 constexpr bcm_cosq_control_drop_limit_alpha_value_t kDefaultPortQueueAlpha =
     bcmCosqControlDropLimitAlpha_2;
 
@@ -71,13 +73,9 @@ AqmMap makeDefauleAqmMap(int32_t threshold) {
 }
 // Unique setting for each single chip
 // ======TD2======
-// default cpu queue control bytes is 8 mmu units
-constexpr int kDefaultTD2CPUQueueReservedBytes = 1664;
 // default port queue shared bytes is 8 mmu units
 constexpr int kDefaultTD2PortQueueSharedBytes = 1664;
 // ======TH======
-// default cpu queue control bytes is 8 mmu units
-constexpr int kDefaultTHCPUQueueReservedBytes = 1664;
 // default Aqm thresholds
 constexpr int32_t kDefaultTHAqmThreshold = 13631280;
 const auto kDefaultTHPortQueueAqm = makeDefauleAqmMap(kDefaultTHAqmThreshold);
@@ -85,8 +83,6 @@ const auto kDefaultTHPortQueueAqm = makeDefauleAqmMap(kDefaultTHAqmThreshold);
 // default port queue shared bytes is 8 mmu units
 constexpr int kDefaultTHPortQueueSharedBytes = 1664;
 // ======TH3======
-// default cpu queue control bytes is 7 mmu units
-constexpr int kDefaultTH3CPUQueueReservedBytes = 1778;
 // default port queue shared bytes is 8 mmu units
 constexpr int kDefaultTH3PortQueueSharedBytes = 2032;
 constexpr int32_t kDefaultTH3AqmThreshold = 13631418;
@@ -100,12 +96,14 @@ bcm_cosq_stat_t getBcmCosqStatType(BcmCosQueueStatType type) {
 const PortQueue& getTD2DefaultUCPortQueueSettings() {
   // Since the default queue is constant, we can use static to cache this
   // object here.
+  Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::UNICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::UNICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTD2PortQueueSharedBytes,
@@ -117,12 +115,14 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultUCPortQueueSettings() {
+  TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::UNICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::UNICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTHPortQueueSharedBytes,
@@ -134,12 +134,14 @@ const PortQueue& getTHDefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultUCPortQueueSettings() {
+  Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::UNICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::UNICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTH3PortQueueSharedBytes,
@@ -151,12 +153,14 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
+  Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTD2PortQueueSharedBytes,
@@ -168,12 +172,14 @@ const PortQueue& getTD2DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCPortQueueSettings() {
+  TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTHPortQueueSharedBytes,
@@ -185,12 +191,14 @@ const PortQueue& getTHDefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCPortQueueSettings() {
+  Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultPortQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, false /*is front panel port*/),
       .scalingFactor = bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       .name = std::nullopt,
       .sharedBytes = kDefaultTH3PortQueueSharedBytes,
@@ -232,12 +240,14 @@ const PortQueue& getDefaultPortQueueSettings(
 }
 
 const PortQueue& getTD2DefaultMCCPUQueueSettings() {
+  Trident2Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultTD2CPUQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, true /*cpu port*/),
       .scalingFactor = std::nullopt,
       .name = std::nullopt,
       .sharedBytes = kDefaultTD2PortQueueSharedBytes,
@@ -249,12 +259,14 @@ const PortQueue& getTD2DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
+  TomahawkAsic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultTHCPUQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, true /*cpu port*/),
       .scalingFactor = std::nullopt,
       .name = std::nullopt,
       .sharedBytes = kDefaultTHPortQueueSharedBytes,
@@ -266,12 +278,14 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCCPUQueueSettings() {
+  Tomahawk3Asic asic;
   static const PortQueue kPortQueue{PortQueueFields{
       .id = kDefaultPortQueueId,
       .scheduling = kDefaultPortQueueScheduling,
       .streamType = cfg::StreamType::MULTICAST,
       .weight = kDefaultPortQueueWeight,
-      .reservedBytes = kDefaultTH3CPUQueueReservedBytes,
+      .reservedBytes = asic.getDefaultReservedBytes(
+          cfg::StreamType::MULTICAST, true /*cpu port*/),
       .scalingFactor = std::nullopt,
       .name = std::nullopt,
       .sharedBytes = kDefaultTH3PortQueueSharedBytes,
