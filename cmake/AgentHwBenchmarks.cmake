@@ -180,11 +180,11 @@ target_link_libraries(hw_rx_slow_path_rate
   Folly::folly
 )
 
-add_library(hw_init_to_config_benchmark_helper
-  fboss/agent/hw/benchmarks/HwInitToConfigBenchmarkHelper.cpp
+add_library(hw_init_and_exit_benchmark_helper
+  fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.cpp
 )
 
-target_link_libraries(hw_init_to_config_benchmark_helper
+target_link_libraries(hw_init_and_exit_benchmark_helper
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
@@ -192,47 +192,47 @@ target_link_libraries(hw_init_to_config_benchmark_helper
   Folly::follybenchmark
 )
 
-add_library(hw_init_to_config_40Gx10G
-  fboss/agent/hw/benchmarks/HwInitToConfig40Gx10GBenchmark.cpp
+add_library(hw_init_and_exit_40Gx10G
+  fboss/agent/hw/benchmarks/HwInitAndExit40Gx10GBenchmark.cpp
 )
 
-target_link_libraries(hw_init_to_config_40Gx10G
+target_link_libraries(hw_init_and_exit_40Gx10G
   config_factory
-  hw_init_to_config_benchmark_helper
+  hw_init_and_exit_benchmark_helper
 )
 
-add_library(hw_init_to_config_100Gx10G
-  fboss/agent/hw/benchmarks/HwInitToConfig100Gx10GBenchmark.cpp
+add_library(hw_init_and_exit_100Gx10G
+  fboss/agent/hw/benchmarks/HwInitAndExit100Gx10GBenchmark.cpp
 )
 
-target_link_libraries(hw_init_to_config_100Gx10G
+target_link_libraries(hw_init_and_exit_100Gx10G
   config_factory
-  hw_init_to_config_benchmark_helper
+  hw_init_and_exit_benchmark_helper
 )
 
-add_library(hw_init_to_config_100Gx25G
-  fboss/agent/hw/benchmarks/HwInitToConfig100Gx25GBenchmark.cpp
+add_library(hw_init_and_exit_100Gx25G
+  fboss/agent/hw/benchmarks/HwInitAndExit100Gx25GBenchmark.cpp
 )
 
-target_link_libraries(hw_init_to_config_100Gx25G
+target_link_libraries(hw_init_and_exit_100Gx25G
   config_factory
-  hw_init_to_config_benchmark_helper
+  hw_init_and_exit_benchmark_helper
 )
 
-add_library(hw_init_to_config_100Gx50G
-  fboss/agent/hw/benchmarks/HwInitToConfig100Gx50GBenchmark.cpp
+add_library(hw_init_and_exit_100Gx50G
+  fboss/agent/hw/benchmarks/HwInitAndExit100Gx50GBenchmark.cpp
 )
 
-target_link_libraries(hw_init_to_config_100Gx50G
+target_link_libraries(hw_init_and_exit_100Gx50G
   config_factory
-  hw_init_to_config_benchmark_helper
+  hw_init_and_exit_benchmark_helper
 )
 
-add_library(hw_init_to_config_100Gx100G
-  fboss/agent/hw/benchmarks/HwInitToConfig100Gx100GBenchmark.cpp
+add_library(hw_init_and_exit_100Gx100G
+  fboss/agent/hw/benchmarks/HwInitAndExit100Gx100GBenchmark.cpp
 )
 
-target_link_libraries(hw_init_to_config_100Gx100G
+target_link_libraries(hw_init_and_exit_100Gx100G
   config_factory
-  hw_init_to_config_benchmark_helper
+  hw_init_and_exit_benchmark_helper
 )

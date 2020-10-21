@@ -214,53 +214,53 @@ target_link_libraries(bcm_rx_slow_path_rate
   -Wl,--no-whole-archive
 )
 
-add_executable(bcm_init_to_config_40Gx10G /dev/null)
+add_executable(bcm_init_and_exit_40Gx10G /dev/null)
 
-target_link_libraries(bcm_init_to_config_40Gx10G
+target_link_libraries(bcm_init_and_exit_40Gx10G
   -Wl,--whole-archive
   bcm_switch_ensemble
   config_factory
-  hw_init_to_config_40Gx10G
+  hw_init_and_exit_40Gx10G
   -Wl,--no-whole-archive
 )
 
-add_executable(bcm_init_to_config_100Gx10G /dev/null)
+add_executable(bcm_init_and_exit_100Gx10G /dev/null)
 
-target_link_libraries(bcm_init_to_config_100Gx10G
+target_link_libraries(bcm_init_and_exit_100Gx10G
   -Wl,--whole-archive
   bcm_switch_ensemble
   config_factory
-  hw_init_to_config_100Gx10G
+  hw_init_and_exit_100Gx10G
   -Wl,--no-whole-archive
 )
 
-add_executable(bcm_init_to_config_100Gx25G /dev/null)
+add_executable(bcm_init_and_exit_100Gx25G /dev/null)
 
-target_link_libraries(bcm_init_to_config_100Gx25G
+target_link_libraries(bcm_init_and_exit_100Gx25G
   -Wl,--whole-archive
   bcm_switch_ensemble
   config_factory
-  hw_init_to_config_100Gx25G
+  hw_init_and_exit_100Gx25G
   -Wl,--no-whole-archive
 )
 
-add_executable(bcm_init_to_config_100Gx50G /dev/null)
+add_executable(bcm_init_and_exit_100Gx50G /dev/null)
 
-target_link_libraries(bcm_init_to_config_100Gx50G
+target_link_libraries(bcm_init_and_exit_100Gx50G
   -Wl,--whole-archive
   bcm_switch_ensemble
   config_factory
-  hw_init_to_config_100Gx50G
+  hw_init_and_exit_100Gx50G
   -Wl,--no-whole-archive
 )
 
-add_executable(bcm_init_to_config_100Gx100G /dev/null)
+add_executable(bcm_init_and_exit_100Gx100G /dev/null)
 
-target_link_libraries(bcm_init_to_config_100Gx100G
+target_link_libraries(bcm_init_and_exit_100Gx100G
   -Wl,--whole-archive
   bcm_switch_ensemble
   config_factory
-  hw_init_to_config_100Gx100G
+  hw_init_and_exit_100Gx100G
   -Wl,--no-whole-archive
 )
 
@@ -278,8 +278,8 @@ install(TARGETS bcm_stats_collection_speed)
 install(TARGETS bcm_tx_slow_path_rate)
 install(TARGETS bcm_warm_boot_exit_speed)
 install(TARGETS bcm_rx_slow_path_rate)
-install(TARGETS bcm_init_to_config_40Gx10G)
-install(TARGETS bcm_init_to_config_100Gx10G)
-install(TARGETS bcm_init_to_config_100Gx25G)
-install(TARGETS bcm_init_to_config_100Gx50G)
-install(TARGETS bcm_init_to_config_100Gx100G)
+install(TARGETS bcm_init_and_exit_40Gx10G)
+install(TARGETS bcm_init_and_exit_100Gx10G)
+install(TARGETS bcm_init_and_exit_100Gx25G)
+install(TARGETS bcm_init_and_exit_100Gx50G)
+install(TARGETS bcm_init_and_exit_100Gx100G)

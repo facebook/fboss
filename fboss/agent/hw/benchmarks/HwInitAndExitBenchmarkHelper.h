@@ -22,13 +22,13 @@ DECLARE_bool(json);
 
 namespace facebook::fboss::utility {
 
-void initToConfigBenchmarkHelper(
+void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
     cfg::PortSpeed downlinkPortSpeed);
 
-#define INIT_TO_CONFIG_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
-  BENCHMARK(name) {                                                       \
-    utility::initToConfigBenchmarkHelper(uplinkSpeed, downlinkSpeed);     \
+#define INIT_AND_EXIT_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
+  BENCHMARK(name) {                                                      \
+    utility::initandExitBenchmarkHelper(uplinkSpeed, downlinkSpeed);     \
   }
 
 } // namespace facebook::fboss::utility

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwInitToConfigBenchmarkHelper.h"
+#include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -94,7 +94,7 @@ std::optional<uint16_t> getUplinksCount(
   return iter->second;
 }
 
-void initToConfigBenchmarkHelper(
+void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
