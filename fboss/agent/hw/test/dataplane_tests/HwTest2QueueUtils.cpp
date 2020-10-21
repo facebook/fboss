@@ -17,13 +17,13 @@ namespace facebook::fboss::utility {
 
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 // XXX this is 2Q config minus ECN. If needed, add 2Q + ECN config
-void add2QueueConfig(cfg::SwitchConfig* config, PortID portID) {
+void add2QueueConfig(cfg::SwitchConfig* config, cfg::StreamType streamType) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
   queue0.id = k2QueueLowPriQueueId;
   queue0.name_ref() = "queue0.low_pri";
-  queue0.streamType = cfg::StreamType::UNICAST;
+  queue0.streamType_ref() = streamType;
   queue0.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue0.weight_ref() = k2QueueLowPriWeight;
   queue0.scalingFactor_ref() = cfg::MMUScalingFactor::ONE;
@@ -33,7 +33,7 @@ void add2QueueConfig(cfg::SwitchConfig* config, PortID portID) {
   cfg::PortQueue queue1;
   queue1.id = k2QueueHighPriQueueId;
   queue1.name_ref() = "queue1.high_pri";
-  queue1.streamType = cfg::StreamType::UNICAST;
+  queue1.streamType_ref() = streamType;
   queue1.scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   queue1.weight_ref() = k2QueueHighPriWeight;
   queue1.scalingFactor_ref() = cfg::MMUScalingFactor::EIGHT;
@@ -43,18 +43,14 @@ void add2QueueConfig(cfg::SwitchConfig* config, PortID portID) {
   cfg::PortQueue queue7;
   queue7.id = k2QueueNCQueueId;
   queue7.name_ref() = "queue7.network_control";
-  queue7.streamType = cfg::StreamType::UNICAST;
+  queue7.streamType_ref() = streamType;
   queue7.scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
   config->portQueueConfigs_ref()["queue_config"] = portQueues;
-  auto portCfg = std::find_if(
-      config->ports_ref()->begin(),
-      config->ports_ref()->end(),
-      [&portID](auto& port) {
-        return PortID(*port.logicalID_ref()) == portID;
-      });
-  portCfg->portQueueConfigName_ref() = "queue_config";
+  for (auto& port : *config->ports_ref()) {
+    port.portQueueConfigName_ref() = "queue_config";
+  }
 }
 
 std::string get2QueueAclNameForDscp(uint8_t dscp) {

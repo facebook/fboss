@@ -98,6 +98,9 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     auto setup = [=]() {
       setupECMPForwarding();
       auto newCfg{initialConfig()};
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::add2QueueConfig(&newCfg, streamType);
       utility::add2QueueQosMaps(newCfg);
       applyNewConfig(newCfg);
     };
