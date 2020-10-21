@@ -289,11 +289,19 @@ void SaiHostifManager::changeCpuQueue(
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
   cpuPortHandle_->configuredQueues.clear();
+  const auto asic = platform_->getAsic();
+  auto cpuQueueStreams = asic->getQueueStreamTypes(true /* cpu port*/);
+  CHECK_EQ(cpuQueueStreams.size(), 1);
   for (auto newPortQueue : newQueueConfig) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
+    newPortQueue->setReservedBytes(
+        newPortQueue->getReservedBytes()
+            ? *newPortQueue->getReservedBytes()
+            : asic->getDefaultReservedBytes(
+                  *cpuQueueStreams.begin(), true /*cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
