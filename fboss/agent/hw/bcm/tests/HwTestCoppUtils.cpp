@@ -16,6 +16,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
 
+namespace {
+constexpr uint32_t kCoppLowPriSharedBytes = 10192;
+constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
+} // unnamed namespace
+
 namespace facebook::fboss::utility {
 
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
@@ -150,6 +155,15 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     rxReasonToQueues.push_back(rxReasonToQueue);
   }
   return rxReasonToQueues;
+}
+
+void setPortQueueSharedBytes(cfg::PortQueue& queue) {
+  // Set sharedBytes for Low and Default Pri-Queue
+  if (queue.id_ref() == kCoppLowPriQueueId) {
+    queue.sharedBytes_ref() = kCoppLowPriSharedBytes;
+  } else if (queue.id_ref() == kCoppDefaultPriQueueId) {
+    queue.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
+  }
 }
 
 } // namespace facebook::fboss::utility

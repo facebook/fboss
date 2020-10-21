@@ -14,10 +14,6 @@
 namespace {
 constexpr uint32_t kCoppLowPriReservedBytes = 1040;
 constexpr uint32_t kCoppDefaultPriReservedBytes = 1040;
-
-constexpr uint32_t kCoppLowPriSharedBytes = 10192;
-constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
-
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
@@ -94,7 +90,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue0.weight_ref() = kCoppLowPriWeight;
   queue0.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
   queue0.reservedBytes_ref() = kCoppLowPriReservedBytes;
-  queue0.sharedBytes_ref() = kCoppLowPriSharedBytes;
+  setPortQueueSharedBytes(queue0);
   cpuQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
@@ -105,7 +101,7 @@ void addCpuQueueConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   queue1.weight_ref() = kCoppDefaultPriWeight;
   queue1.portQueueRate_ref() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
   queue1.reservedBytes_ref() = kCoppDefaultPriReservedBytes;
-  queue1.sharedBytes_ref() = kCoppDefaultPriSharedBytes;
+  setPortQueueSharedBytes(queue1);
   cpuQueues.push_back(queue1);
 
   cfg::PortQueue queue2;

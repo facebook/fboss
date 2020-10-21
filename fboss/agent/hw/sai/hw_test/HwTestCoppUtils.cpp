@@ -84,5 +84,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
   return rxReasonToQueues;
 }
 
+// Setting Shared Bytes for SAI is a no-op
+void setPortQueueSharedBytes(cfg::PortQueue& /* unused */) {}
+
 } // namespace utility
 } // namespace facebook::fboss

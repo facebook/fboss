@@ -81,4 +81,6 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic);
 
+void setPortQueueSharedBytes(cfg::PortQueue& queue);
+
 } // namespace facebook::fboss::utility
