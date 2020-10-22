@@ -398,6 +398,7 @@ struct formatter<facebook::fboss::SaiObjectStore<SaiObjectTraits>> {
        << std::endl;
     const auto& objs = store.objects();
     for (const auto& [key, object] : objs) {
+      std::ignore = key;
       ss << fmt::format("{}", *object.lock()) << std::endl;
     }
     return format_to(ctx.out(), "{}", ss.str());
