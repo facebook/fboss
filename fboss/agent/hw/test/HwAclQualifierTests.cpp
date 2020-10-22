@@ -97,6 +97,12 @@ namespace facebook::fboss {
 
 class HwAclQualifierTest : public HwTest {
  public:
+  enum class LookupClassType : uint8_t {
+    LOOKUPCLASS_L2,
+    LOOKUPCLASS_NEIGHBOR,
+    LOOKUPCLASS_ROUTE,
+  };
+
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
     configureQualifier(acl->dstMac_ref(), true, "00:11:22:33:44:55");
     /*
@@ -144,7 +150,7 @@ class HwAclQualifierTest : public HwTest {
     return "acl0";
   }
 
-  void aclSetupHelper(bool isIpV4, bool isL3LookupClass) {
+  void aclSetupHelper(bool isIpV4, LookupClassType lookupClassType) {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
 
@@ -154,19 +160,33 @@ class HwAclQualifierTest : public HwTest {
       configureIp6QualifiersHelper(acl);
     }
 
-    if (isL3LookupClass) {
-      configureQualifier(
-          acl->lookupClass_ref(),
-          true,
-          cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
-    } else { // isL2LookupClass
-      if (getPlatform()->getAsic()->getAsicType() !=
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+    switch (lookupClassType) {
+      case LookupClassType::LOOKUPCLASS_L2:
+        if (getPlatform()->getAsic()->getAsicType() !=
+            HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+          configureQualifier(
+              acl->lookupClassL2_ref(),
+              true,
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+        }
+        break;
+      case LookupClassType::LOOKUPCLASS_NEIGHBOR:
         configureQualifier(
-            acl->lookupClassL2_ref(),
+            acl->lookupClassNeighbor_ref(),
             true,
-            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-      }
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+
+        break;
+      case LookupClassType::LOOKUPCLASS_ROUTE:
+        configureQualifier(
+            acl->lookupClassRoute_ref(),
+            true,
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+        break;
+      default:
+        CHECK(false);
     }
 
     applyNewConfig(newCfg);
@@ -373,9 +393,10 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4L2LookupClass) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
   auto setup = [=]() {
-    aclSetupHelper(true /* isIpV4 */, false /* L2 LookupClass */);
+    aclSetupHelper(
+        true /* isIpV4 */, HwAclQualifierTest::LookupClassType::LOOKUPCLASS_L2);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -383,9 +404,11 @@ TEST_F(HwAclQualifierTest, AclIp4L2LookupClass) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4L3LookupClass) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
   auto setup = [=]() {
-    aclSetupHelper(true /* isIpV4 */, true /* L3 LookupClass */);
+    aclSetupHelper(
+        true /* isIpV4 */,
+        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_NEIGHBOR);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -393,9 +416,11 @@ TEST_F(HwAclQualifierTest, AclIp4L3LookupClass) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6L2LookupClass) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
   auto setup = [=]() {
-    aclSetupHelper(false /* isIpV6 */, false /* L2 lookupClass */);
+    aclSetupHelper(
+        true /* isIpV4 */,
+        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_ROUTE);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -403,9 +428,35 @@ TEST_F(HwAclQualifierTest, AclIp6L2LookupClass) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6L3LookupClass) {
+TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
   auto setup = [=]() {
-    aclSetupHelper(false /* isIpV6 */, true /* L3 LookupClass */);
+    aclSetupHelper(
+        false /* isIpV6 */,
+        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_L2);
+  };
+
+  auto verify = [=]() { aclVerifyHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
+  auto setup = [=]() {
+    aclSetupHelper(
+        false /* isIpV6 */,
+        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_NEIGHBOR);
+  };
+
+  auto verify = [=]() { aclVerifyHelper(); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
+  auto setup = [=]() {
+    aclSetupHelper(
+        false /* isIpV6 */,
+        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_ROUTE);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
