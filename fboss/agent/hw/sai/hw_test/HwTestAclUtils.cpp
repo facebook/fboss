@@ -275,20 +275,23 @@ void checkSwHwAclMatch(
         aclFieldFdbDstUserMetaGot.getDataAndMask(), fdbMetaDataAndMaskExpected);
   }
 
-  if (swAcl->getLookupClass()) {
+  if (swAcl->getLookupClassRoute()) {
     auto routeMetaDataAndMaskExpected =
         aclTableManager.cfgLookupClassToSaiRouteMetaDataAndMask(
-            swAcl->getLookupClass().value());
+            swAcl->getLookupClassRoute().value());
+
     auto aclFieldRouteDstUserMetaGot =
         SaiApiTable::getInstance()->aclApi().getAttribute(
             aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta());
     EXPECT_EQ(
         aclFieldRouteDstUserMetaGot.getDataAndMask(),
         routeMetaDataAndMaskExpected);
+  }
 
+  if (swAcl->getLookupClassNeighbor()) {
     auto neighborMetaDataAndMaskExpected =
         aclTableManager.cfgLookupClassToSaiNeighborMetaDataAndMask(
-            swAcl->getLookupClass().value());
+            swAcl->getLookupClassNeighbor().value());
     auto aclFieldNeighborDstUserMetaGot =
         SaiApiTable::getInstance()->aclApi().getAttribute(
             aclEntryId,
