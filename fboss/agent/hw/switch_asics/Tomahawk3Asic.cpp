@@ -39,6 +39,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_EGRESS_MODE_AUTO_ENABLED:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
       return false;
   }
   return false;

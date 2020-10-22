@@ -39,6 +39,7 @@ class HwAsic {
     SAI_ECN_WRED,
     PKTIO,
     ACL_COPY_TO_CPU,
+    SWITCH_ATTR_INGRESS_ACL,
   };
 
   enum class AsicType {
