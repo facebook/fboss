@@ -110,8 +110,6 @@ std::
   /*
    * Tajo either does not support following qualifier or enabling those
    * overflows max key width. Thus, disable those on Tajo for now.
-   * Except fieldIpType, all the other fields are not used in prod today.
-   * TODO(skhare) Enable fieldIpType after Tajo bug is fixed.
    */
   bool isTajo =
       platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TAJO;
@@ -126,7 +124,6 @@ std::
   auto fieldIcmpV6Type = isTajo ? false : true;
   auto fieldIcmpV6Code = isTajo ? false : true;
   auto fieldDstMac = isTajo ? false : true;
-  auto fieldIpType = isTajo ? false : true;
 
   /*
    * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
@@ -162,7 +159,7 @@ std::
       fieldIcmpV6Code,
       true, // dscp
       fieldDstMac,
-      fieldIpType,
+      true, // ipType
       true, // ttl
       fieldFdbDstUserMeta,
       true, // route meta
