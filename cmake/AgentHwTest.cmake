@@ -47,6 +47,17 @@ target_link_libraries(hw_copp_utils
   switch_config_cpp2
 )
 
+add_library(hw_qos_utils
+  fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
+)
+
+target_link_libraries(hw_qos_utils
+  hw_switch_ensemble
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+)
+
 add_library(hw_link_state_toggler
   fboss/agent/hw/test/HwLinkStateToggler.cpp
 )
