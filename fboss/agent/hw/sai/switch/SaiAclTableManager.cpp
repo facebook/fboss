@@ -640,18 +640,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta>
       fieldRouteDstUserMeta{std::nullopt};
-  std::optional<SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta>
-      fieldNeighborDstUserMeta{std::nullopt};
-
-  if (addedAclEntry->getLookupClass()) {
+  if (addedAclEntry->getLookupClassRoute()) {
     fieldRouteDstUserMeta =
         SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta{
             AclEntryFieldU32(cfgLookupClassToSaiRouteMetaDataAndMask(
-                addedAclEntry->getLookupClass().value()))};
+                addedAclEntry->getLookupClassRoute().value()))};
+  }
+
+  std::optional<SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta>
+      fieldNeighborDstUserMeta{std::nullopt};
+  if (addedAclEntry->getLookupClassNeighbor()) {
     fieldNeighborDstUserMeta =
         SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta{
             AclEntryFieldU32(cfgLookupClassToSaiNeighborMetaDataAndMask(
-                addedAclEntry->getLookupClass().value()))};
+                addedAclEntry->getLookupClassNeighbor().value()))};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
