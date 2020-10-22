@@ -922,8 +922,8 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
 
   getQsfpFieldAddress(CmisField::MODULE_CONTROL, dataAddress, offset, length);
 
-  uint8_t currentModuleControl = qsfpImpl_->readTransceiver(
-      TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
+  uint8_t currentModuleControl;
+  getFieldValueLocked(CmisField::MODULE_CONTROL, &currentModuleControl);
 
   // LowPwr is on the 6 bit of ModuleControl.
   currentModuleControl = currentModuleControl | (1 << 6);
@@ -944,7 +944,7 @@ void CmisModule::setPowerOverrideIfSupported(PowerControlState currentState) {
       TransceiverI2CApi::ADDR_QSFP, offset, length, &currentModuleControl);
 
   XLOG(INFO) << "Port " << portStr << ": QSFP module control field set to "
-             << currentModuleControl;
+             << std::hex << (int)currentModuleControl;
 }
 
 void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
