@@ -41,6 +41,8 @@ constexpr auto kTtlValue = "value";
 constexpr auto kTtlMask = "mask";
 constexpr auto kLookupClassL2 = "lookupClassL2";
 constexpr auto kLookupClass = "lookupClass";
+constexpr auto kLookupClassNeighbor = "lookupClassNeighbor";
+constexpr auto kLookupClassRoute = "lookupClassRoute";
 constexpr auto kAclAction = "aclAction";
 } // namespace
 
@@ -128,6 +130,22 @@ folly::dynamic AclEntryFields::toFollyDynamic() const {
     }
     aclEntry[kLookupClass] = lookupClassName;
   }
+  if (lookupClassNeighbor) {
+    auto lookupClassNameNeighbor =
+        apache::thrift::util::enumName(*lookupClassNeighbor);
+    if (lookupClassNameNeighbor == nullptr) {
+      throw FbossError("invalid lookupClassNeighbor");
+    }
+    aclEntry[kLookupClassNeighbor] = lookupClassNameNeighbor;
+  }
+  if (lookupClassRoute) {
+    auto lookupClassNameRoute =
+        apache::thrift::util::enumName(*lookupClassRoute);
+    if (lookupClassNameRoute == nullptr) {
+      throw FbossError("invalid lookupClassRoute");
+    }
+    aclEntry[kLookupClassRoute] = lookupClassNameRoute;
+  }
   auto actionTypeName = apache::thrift::util::enumName(actionType);
   if (actionTypeName == nullptr) {
     throw FbossError("invalid actionType");
@@ -213,6 +231,19 @@ AclEntryFields AclEntryFields::fromFollyDynamic(
         aclEntryJson[kLookupClass].asString().c_str(), &lookupClass);
     aclEntry.lookupClass = lookupClass;
   }
+  if (aclEntryJson.find(kLookupClassNeighbor) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClassNeighbor;
+    TEnumTraits<cfg::AclLookupClass>::findValue(
+        aclEntryJson[kLookupClassNeighbor].asString().c_str(),
+        &lookupClassNeighbor);
+    aclEntry.lookupClassNeighbor = lookupClassNeighbor;
+  }
+  if (aclEntryJson.find(kLookupClassRoute) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClassRoute;
+    TEnumTraits<cfg::AclLookupClass>::findValue(
+        aclEntryJson[kLookupClassRoute].asString().c_str(), &lookupClassRoute);
+    aclEntry.lookupClassRoute = lookupClassRoute;
+  }
   TEnumTraits<cfg::AclActionType>::findValue(
       aclEntryJson[kActionType].asString().c_str(), &aclEntry.actionType);
   if (aclEntryJson.find(kAclAction) != aclEntryJson.items().end()) {
@@ -256,6 +287,28 @@ void AclEntryFields::checkFollyDynamic(const folly::dynamic& aclEntryJson) {
       throw FbossError(
           "Unsupported ACL Lookup ClassL2 option ",
           aclEntryJson[kLookupClassL2].asString());
+    }
+  }
+  // check lookupClassNeighbor is valid
+  if (aclEntryJson.find(kLookupClassNeighbor) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClassNeighbor;
+    if (!TEnumTraits<cfg::AclLookupClass>::findValue(
+            aclEntryJson[kLookupClassNeighbor].asString().c_str(),
+            &lookupClassNeighbor)) {
+      throw FbossError(
+          "Unsupported ACL LookupClassNeighbor option ",
+          aclEntryJson[kLookupClassNeighbor].asString());
+    }
+  }
+  // check lookupClassRoute is valid
+  if (aclEntryJson.find(kLookupClassRoute) != aclEntryJson.items().end()) {
+    cfg::AclLookupClass lookupClassRoute;
+    if (!TEnumTraits<cfg::AclLookupClass>::findValue(
+            aclEntryJson[kLookupClassRoute].asString().c_str(),
+            &lookupClassRoute)) {
+      throw FbossError(
+          "Unsupported ACL LookupClassRoute option ",
+          aclEntryJson[kLookupClassRoute].asString());
     }
   }
   // check ipFrag is valid

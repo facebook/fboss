@@ -1688,6 +1688,13 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto lookupClassL2 = config->lookupClassL2_ref()) {
     newAcl->setLookupClassL2(*lookupClassL2);
   }
+  if (auto lookupClassNeighbor = config->lookupClassNeighbor_ref()) {
+    newAcl->setLookupClassNeighbor(*lookupClassNeighbor);
+  }
+  if (auto lookupClassRoute = config->lookupClassRoute_ref()) {
+    newAcl->setLookupClassRoute(*lookupClassRoute);
+  }
+
   return newAcl;
 }
 

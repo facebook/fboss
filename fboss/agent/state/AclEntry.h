@@ -114,6 +114,8 @@ struct AclEntryFields {
   std::optional<uint16_t> l4DstPort{std::nullopt};
   std::optional<cfg::AclLookupClass> lookupClassL2{std::nullopt};
   std::optional<cfg::AclLookupClass> lookupClass{std::nullopt};
+  std::optional<cfg::AclLookupClass> lookupClassNeighbor{std::nullopt};
+  std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
 
   cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
   std::optional<MatchAction> aclAction{std::nullopt};
@@ -161,7 +163,9 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
         getFields()->l4SrcPort == acl.getL4SrcPort() &&
         getFields()->l4DstPort == acl.getL4DstPort() &&
         getFields()->lookupClassL2 == acl.getLookupClassL2() &&
-        getFields()->lookupClass == acl.getLookupClass();
+        getFields()->lookupClass == acl.getLookupClass() &&
+        getFields()->lookupClassNeighbor == acl.getLookupClassNeighbor() &&
+        getFields()->lookupClassRoute == acl.getLookupClassRoute();
   }
 
   int getPriority() const {
@@ -322,13 +326,27 @@ class AclEntry : public NodeBaseT<AclEntry, AclEntryFields> {
     writableFields()->lookupClass = lookupClass;
   }
 
+  std::optional<cfg::AclLookupClass> getLookupClassNeighbor() const {
+    return getFields()->lookupClassNeighbor;
+  }
+  void setLookupClassNeighbor(const cfg::AclLookupClass& lookupClassNeighbor) {
+    writableFields()->lookupClassNeighbor = lookupClassNeighbor;
+  }
+
+  std::optional<cfg::AclLookupClass> getLookupClassRoute() const {
+    return getFields()->lookupClassRoute;
+  }
+  void setLookupClassRoute(const cfg::AclLookupClass& lookupClassRoute) {
+    writableFields()->lookupClassRoute = lookupClassRoute;
+  }
+
   bool hasMatcher() const {
     // at least one qualifier must be specified
     return getSrcIp().first || getDstIp().first || getProto() ||
         getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
-        getLookupClass();
+        getLookupClass() || getLookupClassNeighbor() || getLookupClassRoute();
   }
 
  private:
