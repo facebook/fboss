@@ -176,8 +176,11 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
         sai_uint32_t>;
-    using IngressAcl =
-        SaiAttribute<EnumType, SAI_SWITCH_ATTR_INGRESS_ACL, SaiObjectIdT>;
+    using IngressAcl = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
 
     /* extension attributes */
     struct AttributeLedIdWrapper {
@@ -216,6 +219,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::QosDscpToTcMap>,
       std::optional<Attributes::QosTcToQueueMap>,
       std::optional<Attributes::MacAgingTime>,
+      std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::AclFieldList>>;
 };
 

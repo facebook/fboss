@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -112,6 +113,7 @@ SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       std::nullopt, // qos dscp to tc map
       std::nullopt, // qos tc to queue map
       macAgingTime,
+      std::nullopt, // ingress acl
       aclFieldList,
   };
 }
@@ -265,6 +267,15 @@ void SaiSwitchManager::setQosPolicy() {
 void SaiSwitchManager::clearQosPolicy() {
   XLOG(INFO) << "Reset default qos map";
   resetQosMaps();
+}
+
+void SaiSwitchManager::setIngressAcl() {
+  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
+                                 .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
+                                 ->aclTableGroup;
+  XLOG(INFO) << "Set ingress ACL; " << aclTableGroupHandle->adapterKey();
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::IngressAcl{
+      aclTableGroupHandle->adapterKey()});
 }
 
 void SaiSwitchManager::gracefulExit() {

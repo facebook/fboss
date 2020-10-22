@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -47,6 +49,11 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
   auto [it, inserted] =
       handles_.emplace(aclStage, std::move(aclTableGroupHandle));
   CHECK(inserted);
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
+    managerTable_->switchManager().setIngressAcl();
+  }
 
   return it->second->aclTableGroup->adapterKey();
 }
