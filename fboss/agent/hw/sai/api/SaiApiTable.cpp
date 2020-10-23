@@ -64,6 +64,7 @@ void SaiApiTable::queryApis() {
       std::make_unique<VirtualRouterApi>();
   std::get<std::unique_ptr<VlanApi>>(apis_) = std::make_unique<VlanApi>();
   std::get<std::unique_ptr<WredApi>>(apis_) = std::make_unique<WredApi>();
+  std::get<std::unique_ptr<TamApi>>(apis_) = std::make_unique<TamApi>();
 }
 
 AclApi& SaiApiTable::aclApi() {

@@ -208,7 +208,8 @@ class TamApi : public SaiApi<TamApi> {
     return api_->get_tam_report_attribute(id, 1, attr);
   }
 
-  sai_status_t _setAttribute(TamReportSaiId id, sai_attribute_t* attr) const {
+  sai_status_t _setAttribute(TamReportSaiId id, const sai_attribute_t* attr)
+      const {
     return api_->set_tam_report_attribute(id, attr);
   }
 
