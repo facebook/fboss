@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -92,6 +93,35 @@ cfg::Port createDefaultPortConfig(const HwSwitch* hwSwitch, PortID id) {
   return defaultConfig;
 }
 
+void optimizePortProfiles(cfg::SwitchConfig& config, const HwSwitch* hwSwitch) {
+  auto platform = hwSwitch->getPlatform();
+  for (auto iter = config.ports_ref()->begin();
+       iter != config.ports_ref()->end();
+       ++iter) {
+    auto cfgPort = *iter;
+    const auto portID = PortID(*cfgPort.logicalID_ref());
+
+    auto speed = maxPortSpeed(hwSwitch, portID);
+    auto platformPort = platform->getPlatformPort(portID);
+    if (auto platPortEntry = platformPort->getPlatformPortEntry()) {
+      auto profileID = platformPort->getProfileIDBySpeed(speed);
+      const auto& supportedProfiles = *platPortEntry->supportedProfiles_ref();
+      auto profile = supportedProfiles.find(profileID);
+      if (profile == supportedProfiles.end()) {
+        throw FbossError("No profile ", profileID, " found for port ", portID);
+      }
+      cfgPort.profileID_ref() = profileID;
+    }
+    cfgPort.speed_ref() = speed;
+    updatePortProfile(*hwSwitch, config, portID, *cfgPort.profileID_ref());
+  }
+}
+
+bool isTh3Platform(const Platform* platform) {
+  return platform->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
+}
+
 // Fill in configs for all remaining ports that exist in the default state
 cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
   cfg::SwitchConfig config;
@@ -105,6 +135,15 @@ cfg::SwitchConfig createDefaultConfig(const HwSwitch* hwSwitch) {
     }
     config.ports_ref()->push_back(
         createDefaultPortConfig(hwSwitch, PortID(id)));
+  }
+  // this is a TH3 optimization to update port profiles for all ports
+  // genPortVlanCfg will do the same, but its not invoked always
+  // for all ports, remaining ports have to go through lane changes
+  // which is not needed and turns out to be expensive op.
+  // Approx 300 test cases today doesn't use genPortVlanCfg to convert
+  // all ports and benifit from this optimization
+  if (isTh3Platform(platform)) {
+    optimizePortProfiles(config, hwSwitch);
   }
   return config;
 }
@@ -120,11 +159,12 @@ cfg::SwitchConfig genPortVlanCfg(
   // Port config
   std::map<std::string, cfg::PortProfileID> chipToProfileID;
   for (auto portID : ports) {
-    if (findCfgPortIf(config, portID) == config.ports_ref()->end()) {
+    auto portCfg = findCfgPortIf(config, portID);
+    if (portCfg == config.ports_ref()->end()) {
       config.ports_ref()->push_back(createDefaultPortConfig(hwSwitch, portID));
+      portCfg = findCfgPort(config, portID);
     }
     updatePortSpeed(*hwSwitch, config, portID, maxPortSpeed(hwSwitch, portID));
-    auto portCfg = findCfgPort(config, portID);
     auto chip = getAsicChipFromPortID(hwSwitch, portID);
     chipToProfileID[chip] = *portCfg->profileID_ref();
     portCfg->maxFrameSize_ref() = 9412;
