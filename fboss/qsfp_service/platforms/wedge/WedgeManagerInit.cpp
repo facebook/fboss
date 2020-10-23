@@ -30,6 +30,8 @@ std::unique_ptr<TransceiverManager> createTransceiverManager() {
     return std::make_unique<GalaxyManager>(mode);
   } else if (mode == PlatformMode::YAMP) {
     return createYampTransceiverManager();
+  } else if (mode == PlatformMode::ELBERT) {
+    return createElbertTransceiverManager();
   } else if (
       mode == PlatformMode::MINIPACK ||
       mode == PlatformMode::WEDGE400 ||

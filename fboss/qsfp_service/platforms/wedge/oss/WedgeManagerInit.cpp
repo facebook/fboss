@@ -20,4 +20,8 @@ std::unique_ptr<TransceiverManager> createFBTransceiverManager(
 std::unique_ptr<TransceiverManager> createYampTransceiverManager() {
   return std::unique_ptr<TransceiverManager>{};
 }
+
+std::unique_ptr<TransceiverManager> createElbertTransceiverManager() {
+  return std::unique_ptr<TransceiverManager>{};
+}
 }} // facebook::fboss

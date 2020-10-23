@@ -25,4 +25,6 @@ std::unique_ptr<TransceiverManager> createFBTransceiverManager(
   std::unique_ptr<PlatformProductInfo> productInfo);
 
 std::unique_ptr<TransceiverManager> createYampTransceiverManager();
+
+std::unique_ptr<TransceiverManager> createElbertTransceiverManager();
 }} //facebook::fboss
