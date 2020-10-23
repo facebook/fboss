@@ -617,6 +617,9 @@ void MuxMachine::matched(bool partnerChanged) {
   switch (state_) {
     case MuxState::DETACHED:
     case MuxState::WAITING:
+      XLOG(DBG4) << "MuxMachine[" << controller_.portID()
+                 << "]: Ignoring MATCHED in " << state_;
+      break;
     case MuxState::COLLECTING_DISTRIBUTING:
       if (partnerChanged) {
         XLOG(DBG4) << "MuxMachine[" << controller_.portID()
