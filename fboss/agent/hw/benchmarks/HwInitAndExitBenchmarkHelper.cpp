@@ -123,8 +123,8 @@ void enableFeaturesInConfig(
    * Enable Load balancer
    */
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    config.loadBalancers_ref() =
-        utility::getEcmpFullTrunkHalfHashConfig(hwSwitch->getPlatform());
+    config.loadBalancers_ref()->push_back(
+        utility::getEcmpFullHashConfig(hwSwitch->getPlatform()));
   }
 }
 
