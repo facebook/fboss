@@ -284,17 +284,29 @@ void BcmPortGroup::reconfigureLaneMode(
 }
 
 int BcmPortGroup::retrieveActiveLanes() const {
-  int activeLanes;
-  int rv = bcm_port_control_get(
-      hw_->getUnit(),
-      controllingPort_->getBcmPortId(),
-      bcmPortControlLanes,
-      &activeLanes);
-  bcmCheckError(
-      rv,
-      "Failed to get the number of active lanes for port ",
-      controllingPort_->getBcmPortId());
-  return activeLanes;
+  if (controllingPort_->getPlatformPort()->shouldUsePortResourceAPIs()) {
+    bcm_port_resource_t portResource;
+    bcm_port_resource_t_init(&portResource);
+    int rv = bcm_port_resource_get(
+        hw_->getUnit(), controllingPort_->getBcmGport(), &portResource);
+    bcmCheckError(
+        rv,
+        "Failed to get the number of active lanes using port resource for port ",
+        controllingPort_->getBcmGport());
+    return portResource.lanes;
+  } else {
+    int activeLanes;
+    int rv = bcm_port_control_get(
+        hw_->getUnit(),
+        controllingPort_->getBcmPortId(),
+        bcmPortControlLanes,
+        &activeLanes);
+    bcmCheckError(
+        rv,
+        "Failed to get the number of active lanes for port ",
+        controllingPort_->getBcmPortId());
+    return activeLanes;
+  }
 }
 
 void BcmPortGroup::setActiveLanes(
