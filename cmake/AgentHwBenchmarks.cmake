@@ -190,6 +190,7 @@ target_link_libraries(hw_init_and_exit_benchmark_helper
   hw_benchmark_main
   hw_copp_utils
   hw_qos_utils
+  route_scale_gen
   load_balancer_utils
   Folly::folly
   Folly::follybenchmark

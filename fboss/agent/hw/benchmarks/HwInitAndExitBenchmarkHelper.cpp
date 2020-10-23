@@ -17,6 +17,8 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/test/RouteDistributionGenerator.h"
+#include "fboss/agent/test/RouteScaleGenerators.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -126,6 +128,40 @@ void enableFeaturesInConfig(
   }
 }
 
+RouteDistributionGenerator::SwitchStates getRouteScaleSwitchStates(
+    const HwSwitchEnsemble* ensemble) {
+  /*
+   * |  Platform   |  Role  |
+   * |  TRIDENT2   |   RSW  |
+   * |  TOMAHAWK   |   FSW  |
+   * |  TOMAHAWK3  |    UU  |
+   * |  TAJO       |   RSW  |
+   *
+   * The benchmarks are categorized by chip and not by the route scale.
+   * Pick the highest scale for that chip. For instance, any TH asic will
+   * be categorized as th_atom_init_and_exit_100Gx100G which is applicable
+   * for wedge100, wedge100S and Galaxy. Hence, use FSW route scale for TH.
+   */
+  auto asicType =
+      ensemble->getHwSwitch()->getPlatform()->getAsic()->getAsicType();
+
+  if (asicType == HwAsic::AsicType::ASIC_TYPE_TAJO ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+    return utility::RSWRouteScaleGenerator(ensemble->getProgrammedState())
+        .getSwitchStates();
+  } else if (
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
+        .getSwitchStates();
+  } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
+    return utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
+        .getSwitchStates();
+  } else {
+    CHECK(false) << "Invalid asic type for route scale";
+  }
+}
+
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
@@ -152,7 +188,6 @@ void initandExitBenchmarkHelper(
       downlinkSpeed,
       cfg::PortLoopbackMode::MAC);
   enableFeaturesInConfig(config, hwSwitch);
-
   /*
    * This is to measure the performance when the config is applied during
    * coldboot/warmboot. This measures the time agent took to transition
@@ -163,6 +198,10 @@ void initandExitBenchmarkHelper(
    */
   suspender.dismiss();
   ensemble->applyInitialConfig(config);
+  auto states = getRouteScaleSwitchStates(ensemble.get());
+  for (auto& state : states) {
+    ensemble->applyNewState(state);
+  }
   suspender.rehire();
   if (FLAGS_setup_for_warmboot) {
     // Static such that the object destructor runs as late as possible. In
