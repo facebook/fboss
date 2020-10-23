@@ -13,12 +13,22 @@
 #include <memory>
 #include <vector>
 
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
 class SwitchState;
 }
 namespace facebook::fboss::utility {
+
+struct PrefixLabelDistribution {
+  uint32_t totalPrefixes; // number of prefixes sharing mask length
+  uint32_t chunkSize; // chunk of prefixes sharing a label
+  uint32_t startingLabel; // label for first chunk, incremented by one for every
+                          // chunk of  prefixes sharing a label
+};
+using MaskLen2PrefixLabelDistribution =
+    std::map<uint8_t, PrefixLabelDistribution>;
 
 constexpr unsigned int kDefaultChunkSize = 4000;
 constexpr unsigned int kDefaulEcmpWidth = 4;
@@ -74,6 +84,17 @@ class HgridUuRouteScaleGenerator : public RouteDistributionGenerator {
 };
 
 class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
+ private:
+  const MaskLen2PrefixLabelDistribution v6PrefixLabelDistributionSpec_;
+  const MaskLen2PrefixLabelDistribution v4PrefixLabelDistributionSpec_;
+
+  template <typename AddrT>
+  void genIp2MplsRouteDistribution(
+      const MaskLen2PrefixLabelDistribution& LabelDistributionSpec,
+      const boost::container::flat_set<PortDescriptor>& labeledPorts,
+      const boost::container::flat_set<PortDescriptor>& allPorts,
+      SwitchStates& generatedStates) const;
+
  public:
   explicit TurboFSWRouteScaleGenerator(
       const std::shared_ptr<SwitchState>& startingState,

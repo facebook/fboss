@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -206,29 +207,96 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
     : RouteDistributionGenerator(
           startingState,
           {
-              {
-                  46,
-                  (95 + // Pod Aggregates
-                   11 + // Pods Within the Mesh
-                   84) // Pods Outside the Mesh
-              },
-              {
-                  56,
-                  (95 + // Pod Aggregates
-                   11 + // Pods Within the Mesh
-                   84) // Pods Outside the Mesh
-              },
-              {64, 11}, // Pod RSW Loopback Aggregates
-              {128, 11}, // FSW Loopbacks
+              // ip2ip routes. There may not be any in turbo fabric
+              // adding few just to test the code.
+              {46, 12},
+              {56, 12},
+              {64, 12},
+              {128, 11},
           },
           // v4 distribution
           {
-              {26, 11}, // Pod RSW Loopback Aggregates
-              {32, 11}, // FSW Loopbacks
+              {26, 11},
+              {32, 11},
           },
           chunkSize,
           ecmpWidth,
-          routerId) {}
+          routerId),
+      // V6 Routes per label path
+      v6PrefixLabelDistributionSpec_({
+          // mapping from prefix len to
+          // {numlabelledRoutes, numRoutesPerLabel, startingLabel}
+          //
+          // 11 pods within mesh + 84 pods outside mesh
+          {46,
+           {95, 8, 100}}, // 11 interpod + 1 spine = 12 ECMP paths share routes
+          // 11 pods within mesh + 84 pods outside mesh
+          {56,
+           {95, 8, 100}}, // 11 interpod + 1 spine = 12 ECMP paths share routes
+          // 11 pods within mesh + 3750 VIP routes
+          {64, {3761, 376, 200}}, // 10 spine ECMP NHs in link failure cases.
+                                  // In steady state, the routes will resolve
+                                  // over a single ECMP NH
+          {128, {11, 1, 300}}, // 11 spines
+      }),
+      // V4 Routes per label path
+      // 11 /26 for interpod + 3750 VIP routes
+      v4PrefixLabelDistributionSpec_(
+          {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {}
+
+template <typename AddrT>
+void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
+    const MaskLen2PrefixLabelDistribution& labelDistributionSpec,
+    const boost::container::flat_set<PortDescriptor>& labeledPorts,
+    const boost::container::flat_set<PortDescriptor>& allPorts,
+    SwitchStates& generatedStates) const {
+  using PrefixT = RoutePrefix<AddrT>;
+  std::vector<PrefixT> prefixes;
+  auto state = generatedStates.back()->clone();
+  EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
+
+  for (const auto& prefixLabelDistribution : labelDistributionSpec) {
+    uint8_t prefixSize = prefixLabelDistribution.first;
+    uint32_t numRoutes = prefixLabelDistribution.second.totalPrefixes;
+    uint32_t chunkSize = prefixLabelDistribution.second.chunkSize;
+    uint32_t labelForChunk = prefixLabelDistribution.second.startingLabel;
+
+    auto prefixGenerator = PrefixGenerator<AddrT>(prefixSize);
+    while (numRoutes) {
+      int label = labelForChunk;
+      for (auto j = 0; j < chunkSize && numRoutes > 0; ++j, numRoutes--) {
+        const auto cidrNetwork =
+            getNewPrefix(prefixGenerator, state, getRouterID());
+        if constexpr (std::is_same<folly::IPAddressV6, AddrT>::value) {
+          prefixes.emplace_back(
+              RoutePrefix<AddrT>{cidrNetwork.first.asV6(), cidrNetwork.second});
+        } else {
+          prefixes.emplace_back(
+              RoutePrefix<AddrT>{cidrNetwork.first.asV4(), cidrNetwork.second});
+        }
+      }
+
+      // b19 is always 1, b18 identifies IP version
+      if constexpr (std::is_same<folly::IPAddressV6, AddrT>::value) {
+        label = 0x3 << 18 | ((0xff & label) << 10);
+      } else {
+        label = 0x2 << 18 | ((0xff & label) << 10);
+      }
+      std::map<PortDescriptor, LabelForwardingAction::LabelStack> labels{};
+      for (auto i = 0; i < labeledPorts.size(); i++) {
+        auto labeledPort = *(labeledPorts.begin() + i);
+        LabelForwardingAction::LabelStack stack{
+            label + static_cast<int>(labeledPort.phyPortID())};
+        labels.emplace(labeledPort, stack);
+      }
+      state = ecmpHelper.setupIp2MplsECMPForwarding(
+          state, allPorts, labels, prefixes);
+      generatedStates.push_back(state);
+      labelForChunk++;
+      prefixes.clear();
+    }
+  }
+}
 
 const RouteDistributionGenerator::SwitchStates&
 TurboFSWRouteScaleGenerator::getSwitchStates() const {
@@ -278,46 +346,36 @@ TurboFSWRouteScaleGenerator::getSwitchStates() const {
   nhopsResolvedState->publish();
   generatedStates->push_back(nhopsResolvedState);
 
-  // b19 is always 1, b18 identifies IP version
-  int v4LabelBase = 0x3 << 18;
-  int v6LabelBase = 0x2 << 18;
-  // [b17-b10] (8 bits) identify prefix
-  // maximum 256 prefix possible
-  int prefixCountV4 = 1;
-  int prefixCountV6 = 1;
-  for (const auto& routeChunk : get()) {
-    auto newState = generatedStates->back()->clone();
-    for (const auto& route : routeChunk) {
-      std::vector<RoutePrefixV6> v6Prefixes;
-      std::vector<RoutePrefixV4> v4Prefixes;
-      std::map<PortDescriptor, LabelForwardingAction::LabelStack> labels{};
-      const auto& cidrNetwork = route.prefix;
-      int label = cidrNetwork.first.isV6()
-          ? v6LabelBase | ((0xff & prefixCountV6) << 10)
-          : v4LabelBase | ((0xff & prefixCountV4) << 10);
+  std::vector<RoutePrefixV6> v6Prefixes;
+  std::vector<RoutePrefixV4> v4Prefixes;
+  auto newState = generatedStates->back()->clone();
 
-      for (auto i = 0; i < labeledPorts.size(); i++) {
-        auto labeledPort = *(labeledPorts.begin() + i);
-        LabelForwardingAction::LabelStack stack{
-            label + static_cast<int>(labeledPort.phyPortID())};
-        labels.emplace(labeledPort, stack);
-      }
+  // Add ip2ip routes
+  for (const auto& routeChunk : get()) {
+    for (const auto& route : routeChunk) {
+      const auto& cidrNetwork = route.prefix;
       if (cidrNetwork.first.isV6()) {
-        prefixCountV6++;
         v6Prefixes.emplace_back(
             RoutePrefixV6{cidrNetwork.first.asV6(), cidrNetwork.second});
-        newState = ecmpHelper6.setupIp2MplsECMPForwarding(
-            newState, allPorts, labels, v6Prefixes);
       } else {
-        prefixCountV4++;
         v4Prefixes.emplace_back(
             RoutePrefixV4{cidrNetwork.first.asV4(), cidrNetwork.second});
-        newState = ecmpHelper4.setupIp2MplsECMPForwarding(
-            newState, allPorts, labels, v4Prefixes);
       }
     }
-    generatedStates->push_back(newState);
   }
+  newState =
+      ecmpHelper6.setupECMPForwarding(newState, unlabeledPorts, v6Prefixes);
+  newState =
+      ecmpHelper4.setupECMPForwarding(newState, unlabeledPorts, v4Prefixes);
+  generatedStates->push_back(newState);
+
+  // Add v6 labelled routes
+  genIp2MplsRouteDistribution<folly::IPAddressV6>(
+      v6PrefixLabelDistributionSpec_, labeledPorts, allPorts, *generatedStates);
+
+  // Add v4 labelled routes
+  genIp2MplsRouteDistribution<folly::IPAddressV4>(
+      v4PrefixLabelDistributionSpec_, labeledPorts, allPorts, *generatedStates);
 
   return *generatedStates;
 }

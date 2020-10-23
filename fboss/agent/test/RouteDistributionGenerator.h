@@ -11,6 +11,9 @@
 #pragma once
 
 #include "fboss/agent/platforms/common/PlatformMode.h"
+#include "fboss/agent/state/RouteTable.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -23,6 +26,21 @@ class SwitchState;
 }
 
 namespace facebook::fboss::utility {
+
+template <typename AddrT>
+folly::CIDRNetwork getNewPrefix(
+    PrefixGenerator<AddrT>& prefixGenerator,
+    const std::shared_ptr<facebook::fboss::SwitchState>& state,
+    facebook::fboss::RouterID routerId) {
+  // Obtain a new prefix.
+  auto prefix = prefixGenerator.getNext();
+  const auto& routeTableRib =
+      state->getRouteTables()->getRouteTable(routerId)->getRib<AddrT>();
+  while (routeTableRib->exactMatch(prefix)) {
+    prefix = prefixGenerator.getNext();
+  }
+  return folly::CIDRNetwork{{prefix.network}, prefix.mask};
+}
 
 using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;
 
@@ -74,6 +92,9 @@ class RouteDistributionGenerator {
   }
   std::optional<SwitchStates>& getGeneratedStates() {
     return generatedStates_;
+  }
+  const RouterID getRouterID() const {
+    return routerId_;
   }
 
  private:

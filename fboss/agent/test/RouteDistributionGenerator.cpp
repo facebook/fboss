@@ -10,12 +10,7 @@
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/state/RouteTable.h"
-#include "fboss/agent/state/RouteTableMap.h"
-#include "fboss/agent/state/RouteTableRib.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <glog/logging.h>
 #include <optional>
@@ -24,20 +19,6 @@ namespace {
 
 using facebook::fboss::utility::PrefixGenerator;
 
-template <typename AddrT>
-folly::CIDRNetwork getNewPrefix(
-    PrefixGenerator<AddrT>& prefixGenerator,
-    const std::shared_ptr<facebook::fboss::SwitchState>& state,
-    facebook::fboss::RouterID routerId) {
-  // Obtain a new prefix.
-  auto prefix = prefixGenerator.getNext();
-  const auto& routeTableRib =
-      state->getRouteTables()->getRouteTable(routerId)->getRib<AddrT>();
-  while (routeTableRib->exactMatch(prefix)) {
-    prefix = prefixGenerator.getNext();
-  }
-  return folly::CIDRNetwork{{prefix.network}, prefix.mask};
-}
 } // namespace
 
 namespace facebook::fboss::utility {
