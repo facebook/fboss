@@ -650,6 +650,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
   interface.routerID_ref() = 0;
   interface.mac_ref() = utility::kLocalCpuMac().toString();
   interface.mtu_ref() = 9000;
+  if (interfaceHasSubnet) {
+    interface.ipAddresses_ref()->resize(2);
+    interface.ipAddresses_ref()[0] = "192.1.1.1/24";
+    interface.ipAddresses_ref()[1] = "2192::1/64";
+  }
   config.interfaces_ref()->push_back(interface);
 
   return config;
