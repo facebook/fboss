@@ -268,6 +268,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_init_and_exit_40Gx10G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_copp_utils
     hw_init_and_exit_40Gx10G
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
@@ -285,6 +286,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_init_and_exit_100Gx10G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_copp_utils
     hw_init_and_exit_100Gx10G
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
@@ -302,6 +304,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_init_and_exit_100Gx25G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_copp_utils
     hw_init_and_exit_100Gx25G
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
@@ -319,6 +322,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_init_and_exit_100Gx50G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_copp_utils
     hw_init_and_exit_100Gx50G
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
@@ -336,6 +340,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_init_and_exit_100Gx100G-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_copp_utils
     hw_init_and_exit_100Gx100G
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive

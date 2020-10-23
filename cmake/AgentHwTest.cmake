@@ -89,6 +89,7 @@ target_link_libraries(load_balancer_utils
   fboss_types
   switch_config_cpp2
   hw_switch_ensemble
+  resourcelibutil
   packet_factory
   state
   Folly::folly

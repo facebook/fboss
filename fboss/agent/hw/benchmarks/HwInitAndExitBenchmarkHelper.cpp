@@ -9,9 +9,13 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/platforms/common/PlatformMode.h"
 
 #include <folly/logging/xlog.h>
@@ -94,6 +98,34 @@ std::optional<uint16_t> getUplinksCount(
   return iter->second;
 }
 
+void enableFeaturesInConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch) {
+  auto hwAsic = hwSwitch->getPlatform()->getAsic();
+  /*
+   * Configures port queue for cpu port
+   */
+  utility::addCpuQueueConfig(config, hwAsic);
+  /*
+   * Enable Olympic QOS
+   */
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    utility::addOlympicQosMaps(config);
+  }
+  /*
+   * Enable COPP.
+   */
+  config.cpuTrafficPolicy_ref()->rxReasonToQueueOrderedList_ref() =
+      getCoppRxReasonToQueues(hwAsic);
+  /*
+   * Enable Load balancer
+   */
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    config.loadBalancers_ref() =
+        utility::getEcmpFullTrunkHalfHashConfig(hwSwitch->getPlatform());
+  }
+}
+
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
@@ -119,6 +151,8 @@ void initandExitBenchmarkHelper(
       uplinkSpeed,
       downlinkSpeed,
       cfg::PortLoopbackMode::MAC);
+  enableFeaturesInConfig(config, hwSwitch);
+
   /*
    * This is to measure the performance when the config is applied during
    * coldboot/warmboot. This measures the time agent took to transition

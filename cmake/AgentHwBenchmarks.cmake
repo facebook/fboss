@@ -188,6 +188,9 @@ target_link_libraries(hw_init_and_exit_benchmark_helper
   config_factory
   hw_switch_ensemble
   hw_benchmark_main
+  hw_copp_utils
+  hw_qos_utils
+  load_balancer_utils
   Folly::folly
   Folly::follybenchmark
 )
