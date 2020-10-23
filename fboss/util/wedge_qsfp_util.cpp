@@ -350,6 +350,34 @@ RawDOMData fetchDataFromLocalI2CBus(TransceiverI2CApi* bus, unsigned int port) {
         128,
         rawDOMData.page3_ref().value_unchecked().writableData());
   }
+
+  if (getModuleType(bus, port) == TransceiverManagementInterface::CMIS) {
+
+    rawDOMData.page10_ref() = IOBuf(IOBuf::CREATE, 128);
+    rawDOMData.page11_ref() = IOBuf(IOBuf::CREATE, 128);
+
+    if (!flatMem) {
+      uint8_t page10 = 0x10;
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page10);
+      // read page 0x10
+      bus->moduleRead(
+        port,
+        TransceiverI2CApi::ADDR_QSFP,
+        128,
+        128,
+        rawDOMData.page10_ref().value_unchecked().writableData());
+
+      uint8_t page11 = 0x11;
+      bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, 1, &page11);
+      // read page 0x11
+      bus->moduleRead(
+        port,
+        TransceiverI2CApi::ADDR_QSFP,
+        128,
+        128,
+        rawDOMData.page11_ref().value_unchecked().writableData());
+    }
+  }
   return rawDOMData;
 }
 
@@ -423,7 +451,130 @@ void printChannelMonitor(unsigned int index,
          index, rxPower, txPower, txBias);
 }
 
-void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
+void printCmisPortDetail(const RawDOMData& data, unsigned int port) {
+  auto dataLower = data.lower_ref()->data();
+  int i;
+  uint16_t data16;
+
+  printf("Port: %d\n", port);
+
+  // Page 0
+  std::array<std::string, 8> moduleStateStr = {
+    "RESRV", "LOPWR", "PWRUP", "READY", "PWRDN", "FAULT", "RESRV", "RESRV"
+  };
+  printf("\nModule state:            %s\n", moduleStateStr[(dataLower[3] >> 1) & 0x7].c_str());
+  printf("Firmware fault:          0x%x\n", (dataLower[8] >> 1) & 0x3);
+  printf("VCC warning:             0x%x\n", (dataLower[9] >> 6) & 0x3);
+  printf("VCC alarm:               0x%x\n", (dataLower[9] >> 4) & 0x3);
+  printf("Temperature warning:     0x%x\n", (dataLower[9] >> 2) & 0x3);
+  printf("Temperature alarm:       0x%x\n", (dataLower[9] >> 0) & 0x3);
+  printf("Low power:               0x%x\n", (dataLower[26] >> 6) & 0x1);
+  printf("Low power forced:        0x%x\n", (dataLower[26] >> 4) & 0x1);
+  printf("Num lanes Host side:     0x%x\n", (dataLower[88] >> 4) & 0xf);
+  printf("Num lanes Line side:     0x%x\n", (dataLower[88] >> 0) & 0xf);
+
+  // Page 0x10
+  if (!data.page10_ref()) {
+    return;
+  }
+  auto data10 = data.page10_ref()->data();
+  printf("\nPer Lane status: \n");
+  printf("Lanes             1        2        3        4        5        6        7        8\n");
+  printf("Datapath de-init  ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data10[0]>>i)&1);
+  }
+  printf("\nTx disable        ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data10[2]>>i)&1);
+  }
+  printf("\nTx squelch bmap   ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data10[4]>>i)&1);
+  }
+  printf("\nRx Out disable    ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data10[10]>>i)&1);
+  }
+  printf("\nRx Sqlch disable  ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data10[11]>>i)&1);
+  }
+
+  // Page 0x11
+  if (!data.page11_ref()) {
+    return;
+  }
+  auto data11 = data.page11_ref()->data();
+  std::array<std::string, 16> hostLaneStateStr = {
+    "RESRV", "DEACT", "INITL", "DEINT", "ACTIV", "TX_ON", "TXOFF", "DPINT",
+    "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV", "RESRV"
+  };
+  printf("\nHost lane state   ");
+  for (i=0; i<4; i++) {
+    printf("%s    %s    ", hostLaneStateStr[data11[i] & 0xf].c_str(), hostLaneStateStr[(data11[i]>>4) & 0xf].c_str());
+  }
+  printf("\nTx fault          ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[7]>>i)&1);
+  }
+  printf("\nTx LOS            ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[8]>>i)&1);
+  }
+  printf("\nTx PWR alarm Hi   ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[11]>>i)&1);
+  }
+  printf("\nTx PWR alarm Lo   ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[12]>>i)&1);
+  }
+  printf("\nTx PWR warn Hi    ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[13]>>i)&1);
+  }
+  printf("\nTx PWR warn Lo    ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[14]>>i)&1);
+  }
+  printf("\nRx LOS            ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[19]>>i)&1);
+  }
+  printf("\nRx LOL            ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[20]>>i)&1);
+  }
+
+  printf("\nRx PWR alarm Hi   ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[21]>>i)&1);
+  }
+  printf("\nRx PWR alarm Lo   ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[22]>>i)&1);
+  }
+  printf("\nRx PWR warn Hi    ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[23]>>i)&1);
+  }
+  printf("\nRx PWR warn Lo    ");
+  for (i=0; i<8; i++) {
+    printf("%d        ", (data11[24]>>i)&1);
+  }
+  printf("\nTX Power (mW)     ");
+  for (i=0; i<8; i++) {
+    printf("%.3f    ", (data16 = (data11[26+i*2]<<8 | data11[27+i*2]))*0.0001);
+  }
+  printf("\nRX Power (mW)     ");
+  for (i=0; i<8; i++) {
+    printf("%.3f    ", (data16 = (data11[58+i*2]<<8 | data11[59+i*2]))*0.0001);
+  }
+  printf("\n\n");
+}
+
+void printSffPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   auto lowerBuf = rawDOMData.lower_ref()->data();
   auto page0Buf = rawDOMData.page0_ref()->data();
 
@@ -585,6 +736,18 @@ void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
   });
 }
 
+void printPortDetail(const RawDOMData& rawDOMData, unsigned int port) {
+  auto lowerBuf = rawDOMData.lower_ref()->data();
+  uint8_t modType = lowerBuf[0];
+
+  if (modType == kCMISIdentifier) {
+    printf("Module type = CMIS\n");
+    printCmisPortDetail(rawDOMData, port);
+  } else {
+    printSffPortDetail(rawDOMData, port);
+  }
+}
+
 bool isTrident2() {
   std::string contents;
   if (!folly::readFile(chipCheckPath, contents)) {
@@ -663,6 +826,19 @@ bool doMiniphotonLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMod
     return false;
   }
   return true;
+}
+
+void cmisHostInputLoopback(TransceiverI2CApi* bus, unsigned int port, LoopbackMode mode) {
+  try {
+    // Make sure we have page 0x13 selected.
+    uint8_t page = 0x13;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page), &page);
+
+    uint8_t data = (mode == electricalLoopback) ? 0xff : 0;
+    bus->moduleWrite(port, TransceiverI2CApi::ADDR_QSFP, 183, sizeof(data), &data);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -792,9 +968,14 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: Hard reset done\n", portNum);
     }
 
-    if (FLAGS_electrical_loopback &&
-        doMiniphotonLoopback(bus.get(), portNum, electricalLoopback)) {
-      printf("QSFP %d: done setting module to electrical loopback.\n", portNum);
+    if (FLAGS_electrical_loopback) {
+      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+        if (doMiniphotonLoopback(bus.get(), portNum, electricalLoopback)) {
+          printf("QSFP %d: done setting module to electrical loopback.\n", portNum);
+        }
+      } else {
+        cmisHostInputLoopback(bus.get(), portNum, electricalLoopback);
+      }
     }
 
     if (FLAGS_optical_loopback &&
@@ -802,9 +983,14 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: done setting module to optical loopback.\n", portNum);
     }
 
-    if (FLAGS_clear_loopback &&
-        doMiniphotonLoopback(bus.get(), portNum, noLoopback)) {
-      printf("QSFP %d: done clear module to loopback.\n", portNum);
+    if (FLAGS_clear_loopback) {
+      if (getModuleType(bus.get(), portNum) != TransceiverManagementInterface::CMIS) {
+        if (doMiniphotonLoopback(bus.get(), portNum, noLoopback)) {
+          printf("QSFP %d: done clear module to loopback.\n", portNum);
+        }
+      } else {
+        cmisHostInputLoopback(bus.get(), portNum, noLoopback);
+      }
     }
 
     if (FLAGS_read_reg) {
@@ -840,6 +1026,8 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_direct_i2c && printInfo) {
       try {
+        // Get the port details from the direct i2c read and then print out the
+        // i2c info from module
         printPortDetail(fetchDataFromLocalI2CBus(bus.get(), portNum), portNum);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.

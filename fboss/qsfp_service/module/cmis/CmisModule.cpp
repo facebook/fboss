@@ -660,6 +660,8 @@ RawDOMData CmisModule::getRawDOMData() {
     *data.lower_ref() =
         IOBuf::wrapBufferAsValue(lowerPage_, MAX_QSFP_PAGE_SIZE);
     *data.page0_ref() = IOBuf::wrapBufferAsValue(page0_, MAX_QSFP_PAGE_SIZE);
+    data.page10_ref() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
+    data.page11_ref() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
   }
   return data;
 }

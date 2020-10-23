@@ -197,9 +197,12 @@ struct RawDOMData {
   // ones we use now are upper pages 0 and 3. Page 0 is required of
   // every transceiver, but the rest are optional. If we need other
   // fields in the future we can add support for other pages.
+  // Added page10 and page11 for cmis optics
   1: IOBuf lower,
   2: IOBuf page0,
   3: optional IOBuf page3,
+  4: optional IOBuf page10,
+  5: optional IOBuf page11,
 }
 
 // Create a union data structure where we can store SffData and
