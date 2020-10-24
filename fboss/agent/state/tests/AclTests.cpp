@@ -635,6 +635,30 @@ TEST(Acl, LookupClass) {
   ASSERT_NE(nullptr, aclV2);
   EXPECT_TRUE(aclV2->getLookupClassL2());
   EXPECT_EQ(aclV2->getLookupClassL2().value(), lookupClassL2);
+
+  // set lookupClassNeighbor
+  auto lookupClassNeighbor = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0;
+  config.acls_ref()[0].lookupClassNeighbor_ref() = lookupClassNeighbor;
+
+  // apply lookupClassNeighbor config and validate
+  auto stateV3 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  auto aclV3 = stateV3->getAcl("acl1");
+  ASSERT_NE(nullptr, aclV3);
+  EXPECT_TRUE(aclV3->getLookupClassNeighbor());
+  EXPECT_EQ(aclV3->getLookupClassNeighbor().value(), lookupClassNeighbor);
+
+  // set lookupClassRoute
+  auto lookupClassRoute = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0;
+  config.acls_ref()[0].lookupClassRoute_ref() = lookupClassRoute;
+
+  // apply lookupClassRoute config and validate
+  auto stateV4 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV4);
+  auto aclV4 = stateV4->getAcl("acl1");
+  ASSERT_NE(nullptr, aclV4);
+  EXPECT_TRUE(aclV4->getLookupClassRoute());
+  EXPECT_EQ(aclV4->getLookupClassRoute().value(), lookupClassRoute);
 }
 
 TEST(Acl, LookupClassSerialization) {
@@ -664,6 +688,7 @@ TEST(Acl, LookupClassSerialization) {
   serialized["lookupClass"] = "DST_CLASS_L3_LOCAL_IP6_TYPO";
   EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 
+  // TODO
   // test for lookupClassL2 serialization/de-serialization
   auto entryL2 = std::make_unique<AclEntry>(0, "stat1");
   auto lookupClassL2 = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
@@ -684,6 +709,51 @@ TEST(Acl, LookupClassSerialization) {
 
   // negative test for invalid lookupClassL2 de-serialization
   serialized["lookupClassL2"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
+
+  // test for lookupClassNeighbor serialization/de-serialization
+  auto entryNeighbor = std::make_unique<AclEntry>(0, "stat1");
+  auto lookupClassNeighbor = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
+  entryNeighbor->setLookupClassNeighbor(lookupClassNeighbor);
+  entryNeighbor->setAclAction(action);
+
+  serialized = entryNeighbor->toFollyDynamic();
+  auto entryBackNeighbor = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entryNeighbor == *entryBackNeighbor);
+  EXPECT_TRUE(entryBackNeighbor->getLookupClassNeighbor());
+  EXPECT_EQ(
+      entryBackNeighbor->getLookupClassNeighbor().value(), lookupClassNeighbor);
+
+  // negative test for invalid lookupClassNeighbor serialization
+  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
+  entryNeighbor->setLookupClassNeighbor(lookupClassBad);
+  EXPECT_THROW(serialized = entryNeighbor->toFollyDynamic(), FbossError);
+
+  // negative test for invalid lookupClassNeighbor de-serialization
+  serialized["lookupClassNeighbor"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
+  EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
+
+  // test for lookupClassRoute serialization/de-serialization
+  auto entryRoute = std::make_unique<AclEntry>(0, "stat1");
+  auto lookupClassRoute = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
+  entryRoute->setLookupClassRoute(lookupClassRoute);
+  entryRoute->setAclAction(action);
+
+  serialized = entryRoute->toFollyDynamic();
+  auto entryBackRoute = AclEntry::fromFollyDynamic(serialized);
+
+  EXPECT_TRUE(*entryRoute == *entryBackRoute);
+  EXPECT_TRUE(entryBackRoute->getLookupClassRoute());
+  EXPECT_EQ(entryBackRoute->getLookupClassRoute().value(), lookupClassRoute);
+
+  // negative test for invalid lookupClassRouteserialization
+  lookupClassBad = static_cast<cfg::AclLookupClass>(100);
+  entryRoute->setLookupClassRoute(lookupClassBad);
+  EXPECT_THROW(serialized = entryRoute->toFollyDynamic(), FbossError);
+
+  // negative test for invalid lookupClassNeighbor de-serialization
+  serialized["lookupClassNeighbor"] = "DST_CLASS_L3_LOCAL_IP4_TYPO";
   EXPECT_THROW(AclEntryFields::checkFollyDynamic(serialized), FbossError);
 }
 
