@@ -117,7 +117,11 @@ void optimizePortProfiles(cfg::SwitchConfig& config, const HwSwitch* hwSwitch) {
   }
 }
 
-bool isTh3Platform(const Platform* platform) {
+bool isTh3Platform(Platform* platform) {
+  if (!platform->isProductInfoExist()) {
+    // SIM platform
+    return false;
+  }
   return platform->getAsic()->getAsicType() ==
       HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
 }

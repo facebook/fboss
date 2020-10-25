@@ -127,6 +127,13 @@ class Platform {
    */
   void getProductInfo(ProductInfo& info);
 
+  bool isProductInfoExist() {
+    if (!productInfo_) {
+      return false;
+    }
+    return true;
+  }
+
   /*
    * Get the product mode
    */
