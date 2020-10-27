@@ -15,6 +15,7 @@
 namespace facebook::fboss {
 
 class BcmSwitch;
+class BcmIngressFieldProcessorFlexCounter;
 
 /**
  *  BcmAclStat is the class to abstract a stat's resource and functions
@@ -25,13 +26,14 @@ class BcmAclStat {
       BcmSwitch* hw,
       int gid,
       const std::vector<cfg::CounterType>& counters);
-  BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
-      : hw_(hw), handle_(statHandle) {}
+  BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle);
   ~BcmAclStat();
 
   BcmAclStatHandle getHandle() const {
     return handle_;
   }
+
+  void attachToAcl(BcmAclEntryHandle acl);
 
   /**
    * Check whether the acl details of handle in h/w matches the s/w acl and
@@ -45,6 +47,7 @@ class BcmAclStat {
  private:
   BcmSwitch* hw_;
   BcmAclStatHandle handle_;
+  std::unique_ptr<BcmIngressFieldProcessorFlexCounter> flexCounter_;
 };
 
 } // namespace facebook::fboss

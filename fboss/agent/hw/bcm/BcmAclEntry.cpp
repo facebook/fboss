@@ -322,14 +322,7 @@ void BcmAclEntry::createAclStat() {
   } else {
     auto bcmAclStat =
         aclTable->incRefOrCreateBcmAclStat(counterName, counterTypes, gid_);
-    auto rv = bcm_field_entry_stat_attach(
-        hw_->getUnit(), handle_, bcmAclStat->getHandle());
-    bcmCheckError(
-        rv,
-        "Failed to attach stat=",
-        bcmAclStat->getHandle(),
-        " to acl=",
-        handle_);
+    bcmAclStat->attachToAcl(handle_);
   }
 }
 

@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -33,16 +34,25 @@ BcmAclStat::BcmAclStat(
     int gid,
     const std::vector<cfg::CounterType>& counters)
     : hw_(hw) {
-  int statHandle;
-  std::vector<bcm_field_stat_t> types;
-  for (auto counter : counters) {
-    types.push_back(utility::cfgCounterTypeToBcmCounterType(counter));
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
+        hw_->getUnit(), gid);
+    handle_ = flexCounter_->getID();
+  } else {
+    int statHandle;
+    std::vector<bcm_field_stat_t> types;
+    for (auto counter : counters) {
+      types.push_back(utility::cfgCounterTypeToBcmCounterType(counter));
+    }
+    auto rv = bcm_field_stat_create(
+        hw_->getUnit(), gid, types.size(), types.data(), &statHandle);
+    bcmCheckError(rv, "Failed to create stat in group=", gid);
+    handle_ = statHandle;
   }
-  auto rv = bcm_field_stat_create(
-      hw_->getUnit(), gid, types.size(), types.data(), &statHandle);
-  bcmCheckError(rv, "Failed to create stat in group=", gid);
-  handle_ = statHandle;
 }
+
+BcmAclStat::BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
+    : hw_(hw), handle_(statHandle) {}
 
 BcmAclStat::~BcmAclStat() {
   auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle_);
@@ -97,5 +107,14 @@ bool BcmAclStat::isStateSame(
         expectedCounterTypes.end());
   }
   return counterTypes == expectedCounterTypes;
+}
+
+void BcmAclStat::attachToAcl(BcmAclEntryHandle acl) {
+  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+    flexCounter_->attach(acl);
+  } else {
+    auto rv = bcm_field_entry_stat_attach(hw_->getUnit(), acl, handle_);
+    bcmCheckError(rv, "Failed to attach stat=", handle_, " to acl=", acl);
+  }
 }
 } // namespace facebook::fboss
