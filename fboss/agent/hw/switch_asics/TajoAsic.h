@@ -47,6 +47,12 @@ class TajoAsic : public HwAsic {
     // Concept of reserved bytes does not apply to Tajo
     return 0;
   }
+  cfg::MMUScalingFactor getDefaultScalingFactor(
+      cfg::StreamType /*streamType*/,
+      bool /*cpu*/) const override {
+    // Concept of scaling factor does not apply returning the same value TH3
+    return cfg::MMUScalingFactor::TWO;
+  }
 };
 
 } // namespace facebook::fboss

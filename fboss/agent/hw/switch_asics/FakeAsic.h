@@ -59,6 +59,12 @@ class FakeAsic : public HwAsic {
     // Mimicking TH
     return cpu ? 1664 : 0;
   }
+  cfg::MMUScalingFactor getDefaultScalingFactor(
+      cfg::StreamType /*streamType*/,
+      bool /*cpu*/) const override {
+    // Mimicking TH
+    return cfg::MMUScalingFactor::TWO;
+  }
 };
 
 } // namespace facebook::fboss

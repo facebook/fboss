@@ -51,6 +51,11 @@ class Trident2Asic : public BroadcomAsic {
       const override {
     return cpu ? 1664 : 0;
   }
+  cfg::MMUScalingFactor getDefaultScalingFactor(
+      cfg::StreamType /*streamType*/,
+      bool /*cpu*/) const override {
+    return cfg::MMUScalingFactor::TWO;
+  }
 };
 
 } // namespace facebook::fboss

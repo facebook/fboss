@@ -46,6 +46,12 @@ class Tomahawk4Asic : public BroadcomAsic {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/
     return cpu ? 1778 : 0;
   }
+  cfg::MMUScalingFactor getDefaultScalingFactor(
+      cfg::StreamType /*streamType*/,
+      bool /*cpu*/) const override {
+    /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/
+    return cfg::MMUScalingFactor::TWO;
+  }
 
   int getDefaultACLGroupID() const override;
 

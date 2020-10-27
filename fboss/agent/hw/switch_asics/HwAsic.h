@@ -67,6 +67,9 @@ class HwAsic {
   virtual uint32_t getMaxMirrors() const = 0;
   virtual uint64_t getDefaultReservedBytes(cfg::StreamType streamType, bool cpu)
       const = 0;
+  virtual cfg::MMUScalingFactor getDefaultScalingFactor(
+      cfg::StreamType streamType,
+      bool cpu) const = 0;
   virtual cfg::PortLoopbackMode desiredLoopbackMode() const {
     return cfg::PortLoopbackMode::MAC;
   }
