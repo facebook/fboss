@@ -32,7 +32,7 @@ struct SaiIntDefault {
   }
 };
 
-struct SaiBoolDefault {
+struct SaiBoolDefaultFalse {
   bool operator()() const {
     return false;
   }

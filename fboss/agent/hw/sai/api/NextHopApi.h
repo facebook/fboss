@@ -135,7 +135,7 @@ struct SaiNextHopTraitsT {
         EnumType,
         SAI_NEXT_HOP_ATTR_DECREMENT_TTL,
         bool,
-        SaiBoolDefault>;
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = NextHopSaiId;
   using AdapterHostKey = typename detail::

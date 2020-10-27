@@ -82,7 +82,7 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_DECREMENT_TTL,
         bool,
-        SaiBoolDefault>;
+        SaiBoolDefaultFalse>;
     using InterfaceType = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INTERFACE_TYPE,
