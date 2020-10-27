@@ -170,17 +170,18 @@ class BcmStatUpdater {
    *  thread safety.
    */
 
-  MonotonicCounter* getCounterIf(
+  MonotonicCounter* getAclStatCounterIf(
       BcmAclStatHandle handle,
-      cfg::CounterType type);
-  size_t getCounterCount() const;
+      cfg::CounterType counterType);
+  size_t getAclStatCounterCount() const;
 
   /* Functions to be called during state update */
   void toBeAddedAclStat(
       BcmAclStatHandle handle,
-      const std::string& name,
+      const std::string& aclStatName,
       const std::vector<cfg::CounterType>& counterTypes);
   void toBeRemovedAclStat(BcmAclStatHandle handle);
+
   void refreshPostBcmStateChange(const StateDelta& delta);
 
   /* Functions to be called during stats collection (UpdateStatsThread) */
@@ -196,16 +197,13 @@ class BcmStatUpdater {
   }
 
  private:
-  void updateAclStat(
-      int unit,
-      BcmAclStatHandle handle,
-      cfg::CounterType counterType,
-      std::chrono::seconds now,
-      MonotonicCounter* counter);
-
   std::string counterTypeToString(cfg::CounterType type);
 
   void updateAclStats();
+  BcmTrafficCounterStats getAclTrafficStats(
+      BcmAclStatHandle handle,
+      const std::vector<cfg::CounterType>& counters);
+
   void updateHwTableStats();
   void updatePrbsStats();
   void refreshHwTableStats(const StateDelta& delta);
@@ -217,22 +215,31 @@ class BcmStatUpdater {
   BcmSwitch* hw_;
   std::unique_ptr<BcmHwTableStatManager> bcmTableStatsManager_;
 
+  folly::Synchronized<HwResourceStats> resourceStats_;
+
   /* ACL stats */
-  struct AclCounterDescriptor {
-    AclCounterDescriptor(BcmAclStatHandle hdl, cfg::CounterType type)
-        : handle(hdl), counterType(type) {}
-    bool operator<(const AclCounterDescriptor& d) const {
-      return std::tie(handle, counterType) < std::tie(d.handle, d.counterType);
+  struct BcmAclStatDescriptor {
+    BcmAclStatDescriptor(BcmAclStatHandle hdl, const std::string& aclStatName)
+        : handle(hdl), aclStatName(aclStatName) {}
+    bool operator<(const BcmAclStatDescriptor& d) const {
+      return std::tie(handle, aclStatName) < std::tie(d.handle, d.aclStatName);
     }
     BcmAclStatHandle handle;
-    cfg::CounterType counterType;
+    std::string aclStatName;
   };
-  folly::Synchronized<HwResourceStats> resourceStats_;
+
   std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
-  std::queue<std::pair<std::string, AclCounterDescriptor>> toBeAddedAclStats_;
-  folly::Synchronized<
-      std::map<AclCounterDescriptor, std::unique_ptr<MonotonicCounter>>>
+  std::queue<std::pair<BcmAclStatDescriptor, cfg::CounterType>>
+      toBeAddedAclStats_;
+  // Outer-map key: BcmAclStatHandle
+  // Inner-map key: counter type, value: MonotonicCounter
+  // Usually one BcmAclStatHandle can get both packets and bytes counters back
+  // at one function call.
+  folly::Synchronized<std::unordered_map<
+      BcmAclStatHandle,
+      std::unordered_map<cfg::CounterType, std::unique_ptr<MonotonicCounter>>>>
       aclStats_;
+
   folly::Synchronized<std::map<int32_t, LanePrbsStatsTable>> portAsicPrbsStats_;
 }; // namespace facebook::fboss
 

@@ -11,6 +11,8 @@
 
 #include "fboss/agent/types.h"
 
+#include <unordered_map>
+
 FBOSS_STRONG_TYPE(int, BcmAclStatHandle);
 FBOSS_STRONG_TYPE(int, BcmQosPolicyHandle);
 
@@ -18,5 +20,7 @@ namespace facebook::fboss {
 
 using BcmAclEntryHandle = int;
 using BcmMirrorHandle = int;
+
+using BcmTrafficCounterStats = std::unordered_map<cfg::CounterType, uint64_t>;
 
 } // namespace facebook::fboss

@@ -110,7 +110,8 @@ void checkAclEntryAndStatCount(
   ASSERT_EQ(
       aclStatCount,
       fpGroupNumAclStatEntries(bcmSwitch->getUnit(), defaultGroupID));
-  ASSERT_EQ(counterCount, bcmSwitch->getStatUpdater()->getCounterCount());
+  ASSERT_EQ(
+      counterCount, bcmSwitch->getStatUpdater()->getAclStatCounterCount());
 }
 
 void checkAclStat(
@@ -143,7 +144,8 @@ void checkAclStat(
   for (auto type : counterTypes) {
     ASSERT_NE(
         nullptr,
-        bcmSwitch->getStatUpdater()->getCounterIf(hwStat->getHandle(), type));
+        bcmSwitch->getStatUpdater()->getAclStatCounterIf(
+            hwStat->getHandle(), type));
   }
 }
 

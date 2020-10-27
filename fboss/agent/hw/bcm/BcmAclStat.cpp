@@ -18,6 +18,7 @@
 #include "fboss/agent/state/AclEntry.h"
 
 #include <boost/container/flat_map.hpp>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
 #include <bcm/field.h>
@@ -97,5 +98,4 @@ bool BcmAclStat::isStateSame(
   }
   return counterTypes == expectedCounterTypes;
 }
-
 } // namespace facebook::fboss
