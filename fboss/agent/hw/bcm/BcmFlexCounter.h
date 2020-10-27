@@ -18,7 +18,9 @@ namespace facebook::fboss {
 class BcmFlexCounter {
  public:
   explicit BcmFlexCounter(int unit) : unit_(unit) {}
-  virtual ~BcmFlexCounter() = default;
+  BcmFlexCounter(int unit, uint32_t counterID)
+      : unit_(unit), counterID_(counterID) {}
+  virtual ~BcmFlexCounter();
 
   uint32_t getID() const {
     return counterID_;

@@ -53,11 +53,21 @@ BcmAclStat::BcmAclStat(
 }
 
 BcmAclStat::BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
-    : hw_(hw), handle_(statHandle) {}
+    : hw_(hw), handle_(statHandle) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
+        hw_->getUnit(), statHandle);
+  }
+}
 
 BcmAclStat::~BcmAclStat() {
-  auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle_);
-  bcmLogFatal(rv, hw_, "Failed to destroy stat, stat_id=", handle_);
+  if (flexCounter_) {
+    flexCounter_.reset();
+  } else {
+    auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle_);
+    bcmLogFatal(rv, hw_, "Failed to destroy stat, stat_id=", handle_);
+  }
 }
 
 bool BcmAclStat::isStateSame(
