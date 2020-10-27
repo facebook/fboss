@@ -111,8 +111,7 @@ class BcmHostTest : public BcmTest {
       // other non local ip host should be 0
       CHECK_EQ(host->getLookupClassId(), 0);
     }
-    CHECK_EQ(
-        host->getLookupClassId(), BcmHost::getLookupClassFromL3Host(l3Host));
+    CHECK_EQ(host->getLookupClassId(), l3Host.l3a_lookup_class);
   }
 
   void checkSwHwBcmHostNum(int expectedNum) {

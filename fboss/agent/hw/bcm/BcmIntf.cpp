@@ -238,9 +238,9 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       programIngressIfNeeded(intf, true);
     }
   }
-  std::unordered_set<std::shared_ptr<BcmHost>> hosts;
+  std::unordered_set<std::shared_ptr<BcmHostIf>> hosts;
   for (const auto& addr : intf->getAddresses()) {
-    auto host = hw_->writableHostTable()->refOrEmplace(
+    auto host = hw_->writableHostTable()->refOrEmplaceHost(
         BcmHostKey(vrf, addr.first, intf->getID()));
     CHECK(host);
     if (!host->isProgrammed()) {

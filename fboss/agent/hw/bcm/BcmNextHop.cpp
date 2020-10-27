@@ -64,7 +64,7 @@ bool BcmMplsNextHop::isProgrammed() const {
 
 BcmL3NextHop::BcmL3NextHop(BcmSwitch* hw, BcmHostKey key)
     : hw_(hw), key_(std::move(key)) {
-  host_ = hw_->writableHostTable()->refOrEmplace(key_);
+  host_ = hw_->writableHostTable()->refOrEmplaceHost(key_);
 }
 
 BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)
@@ -75,7 +75,7 @@ BcmMplsNextHop::BcmMplsNextHop(BcmSwitch* hw, BcmLabeledHostKey key)
 void BcmMplsNextHop::program(BcmHostKey bcmHostKey) {
   CHECK_EQ(bcmHostKey, getBcmHostKey());
 
-  BcmHost* bcmHostEntry = hw_->getNeighborTable()->getNeighborIf(bcmHostKey);
+  BcmHostIf* bcmHostEntry = hw_->getNeighborTable()->getNeighborIf(bcmHostKey);
 
   if (!mplsEgress_) {
     /* no egress exists, create one */

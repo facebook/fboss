@@ -62,11 +62,11 @@ std::string BcmHost::l3HostToString(const bcm_l3_host_t& host) {
   os << "is v6: " << (host.l3a_flags & BCM_L3_IP6 ? "yes" : "no")
      << ", is multipath: " << (host.l3a_flags & BCM_L3_MULTIPATH ? "yes" : "no")
      << ", vrf: " << host.l3a_vrf << ", intf: " << host.l3a_intf
-     << ", lookupClass: " << getLookupClassFromL3Host(host);
+     << ", lookupClass: " << host.l3a_lookup_class;
   return os.str();
 }
 
-void BcmHost::setEgressId(bcm_if_t eid) {
+void BcmHostIf::setEgressId(bcm_if_t eid) {
   if (eid == getEgressId()) {
     // This could happen for loopback interface route.
     // For example, for the loopback interface address, 1.1.1.1/32.
@@ -101,10 +101,10 @@ void BcmHost::initHostCommon(bcm_l3_host_t* host) const {
   }
   host->l3a_vrf = key_.getVrf();
   host->l3a_intf = getEgressId();
-  setLookupClassToL3Host(host);
+  host->l3a_lookup_class = lookupClassId_;
 }
 
-void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
+void BcmHost::addToBcmHw(bool isMultipath, bool replace) {
   if (key_.hasLabel()) {
     return;
   }
@@ -140,7 +140,7 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
                (newHost.l3a_flags & BCM_L3_MULTIPATH));
       return flagsEqual && existingHost.l3a_vrf == newHost.l3a_vrf &&
           existingHost.l3a_intf == newHost.l3a_intf &&
-          matchLookupClass(host, existingHost);
+          existingHost.l3a_lookup_class == newHost.l3a_lookup_class;
     };
     const auto& existingHost = vrfIp2HostCitr->second;
     if (equivalent(host, existingHost)) {
@@ -176,7 +176,7 @@ void BcmHost::addToBcmHostTable(bool isMultipath, bool replace) {
   addedInHW_ = true;
 }
 
-void BcmHost::program(
+void BcmHostIf::program(
     bcm_if_t intf,
     const MacAddress* mac,
     bcm_port_t port,
@@ -213,7 +213,7 @@ void BcmHost::program(
        * ClassID changed.
        * If addedInHW_ is true, 'replace' it to apply new classID.
        * If addedInHW_ is false, entry will be programmed in hw with right
-       * classID by addToBcmHostTable anyway, no need to 'replace'.
+       * classID by addToBcmHw anyway, no need to 'replace'.
        */
       replace = addedInHW_;
     }
@@ -248,7 +248,7 @@ void BcmHost::program(
    * changed), then reprogram the entry.
    */
   if (!addedInHW_ || replace) {
-    addToBcmHostTable(false, replace);
+    addToBcmHw(false, replace);
   }
 
   std::optional<BcmPortDescriptor> newEgressPort = (port == 0)
@@ -319,7 +319,7 @@ void BcmHost::program(
   action_ = action;
 }
 
-void BcmHost::programToTrunk(
+void BcmHostIf::programToTrunk(
     bcm_if_t intf,
     const MacAddress mac,
     bcm_trunk_t trunk) {
@@ -335,7 +335,7 @@ void BcmHost::programToTrunk(
 
   // if no host was added already, add one pointing to the egress object
   if (!addedInHW_) {
-    addToBcmHostTable();
+    addToBcmHw();
   }
 
   std::optional<BcmPortDescriptor> newEgressPort = (trunk == BcmTrunk::INVALID)
@@ -370,17 +370,9 @@ void BcmHost::programToTrunk(
   action_ = NEXTHOPS;
 }
 
-BcmHost::~BcmHost() {
-  if (addedInHW_) {
-    bcm_l3_host_t host;
-    initHostCommon(&host);
-    auto rc = bcm_l3_host_delete(hw_->getUnit(), &host);
-    bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", key_.str());
-    XLOG(DBG3) << "deleted L3 host object for " << key_.str();
-  } else {
-    XLOG(DBG3) << "No need to delete L3 host object for " << key_.str()
-               << " as it was not added to the HW before";
-  }
+BcmHostIf::~BcmHostIf() {
+  // host entry is removed from hw host table or hw route table in child
+  // class destructor, e.g. BcmHost::~BcmHost()
   if (getEgressId() == BcmEgressBase::INVALID) {
     return;
   }
@@ -396,8 +388,22 @@ BcmHost::~BcmHost() {
                          : BcmEcmpEgress::Action::SKIP);
 }
 
-std::optional<BcmPortDescriptor> BcmHost::getEgressPortDescriptor() const {
+std::optional<BcmPortDescriptor> BcmHostIf::getEgressPortDescriptor() const {
   return egressPort_;
+}
+
+BcmHost::~BcmHost() {
+  if (addedInHW_) {
+    bcm_l3_host_t host;
+    initHostCommon(&host);
+    auto rc = bcm_l3_host_delete(hw_->getUnit(), &host);
+    bcmLogFatal(rc, hw_, "failed to delete L3 host object for ", key_.str());
+    XLOG(DBG3) << "deleted L3 host object for " << key_.str();
+  } else {
+    XLOG(DBG3) << "No need to delete L3 host object for " << key_.str()
+               << " as it was not added to the HW before";
+  }
+  addedInHW_ = false;
 }
 
 BcmHostTable::BcmHostTable(const BcmSwitchIf* hw) : hw_(hw) {}
@@ -409,7 +415,7 @@ uint32_t BcmHostTable::getReferenceCount(const BcmHostKey& key) const noexcept {
 }
 
 BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
-  auto* host = getBcmHostIf(key);
+  auto* host = hosts_.getMutable(key);
   CHECK(host);
   if (!host) {
     throw FbossError("Cannot find BcmHost key=", key);
@@ -417,8 +423,8 @@ BcmHost* BcmHostTable::getBcmHost(const BcmHostKey& key) const {
   return host;
 }
 
-BcmHost* FOLLY_NULLABLE BcmHostTable::getBcmHostIf(const BcmHostKey& key) const
-    noexcept {
+BcmHostIf* FOLLY_NULLABLE
+BcmHostTable::getBcmHostIf(const BcmHostKey& key) const noexcept {
   return hosts_.getMutable(key);
 }
 
@@ -452,7 +458,8 @@ void BcmHostTable::warmBootHostEntriesSynced() {
   }
 }
 
-std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {
+std::shared_ptr<BcmHostIf> BcmHostTable::refOrEmplaceHost(
+    const BcmHostKey& key) {
   auto rv = hosts_.refOrEmplace(key, hw_, key);
   if (rv.second) {
     XLOG(DBG3) << "inserted reference to " << key.str();
@@ -462,20 +469,20 @@ std::shared_ptr<BcmHost> BcmHostTable::refOrEmplace(const BcmHostKey& key) {
   return rv.first;
 }
 
-BcmHost* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
-  auto neighborHost = hw_->writableHostTable()->refOrEmplace(neighbor);
+BcmHostIf* BcmNeighborTable::registerNeighbor(const BcmHostKey& neighbor) {
+  auto neighborHost = hw_->writableHostTable()->refOrEmplaceHost(neighbor);
   auto* result = neighborHost.get();
   neighborHosts_.emplace(neighbor, std::move(neighborHost));
   return result;
 }
 
-BcmHost* FOLLY_NULLABLE
+BcmHostIf* FOLLY_NULLABLE
 BcmNeighborTable::unregisterNeighbor(const BcmHostKey& neighbor) {
   neighborHosts_.erase(neighbor);
   return hw_->getHostTable()->getBcmHostIf(neighbor);
 }
 
-BcmHost* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
+BcmHostIf* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
   auto* host = getNeighborIf(neighbor);
   if (!host) {
     throw FbossError("neighbor entry not found for :", neighbor.str());
@@ -483,7 +490,7 @@ BcmHost* BcmNeighborTable::getNeighbor(const BcmHostKey& neighbor) const {
   return host;
 }
 
-BcmHost* FOLLY_NULLABLE
+BcmHostIf* FOLLY_NULLABLE
 BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
   auto iter = neighborHosts_.find(neighbor);
   if (iter == neighborHosts_.end()) {
@@ -492,7 +499,7 @@ BcmNeighborTable::getNeighborIf(const BcmHostKey& neighbor) const {
   return iter->second.get();
 }
 
-void BcmHostTable::programHostsToTrunk(
+void BcmHostTableIf::programHostsToTrunk(
     const BcmHostKey& key,
     bcm_if_t intf,
     const MacAddress& mac,
@@ -503,7 +510,7 @@ void BcmHostTable::programHostsToTrunk(
   // (TODO) program labeled next hops to the host
 }
 
-void BcmHostTable::programHostsToPort(
+void BcmHostTableIf::programHostsToPort(
     const BcmHostKey& key,
     bcm_if_t intf,
     const MacAddress& mac,
@@ -515,7 +522,7 @@ void BcmHostTable::programHostsToPort(
   // (TODO) program labeled next hops to the host
 }
 
-void BcmHostTable::programHostsToCPU(
+void BcmHostTableIf::programHostsToCPU(
     const BcmHostKey& key,
     bcm_if_t intf,
     std::optional<cfg::AclLookupClass> classID) {
@@ -543,21 +550,7 @@ bool BcmHost::getAndClearHitBit() const {
   return host.l3a_flags & BCM_L3_HIT;
 }
 
-bool BcmHost::matchLookupClass(
-    const bcm_l3_host_t& newHost,
-    const bcm_l3_host_t& existingHost) {
-  return newHost.l3a_lookup_class == existingHost.l3a_lookup_class;
-}
-
-void BcmHost::setLookupClassToL3Host(bcm_l3_host_t* host) const {
-  host->l3a_lookup_class = lookupClassId_;
-}
-
-int BcmHost::getLookupClassFromL3Host(const bcm_l3_host_t& host) {
-  return host.l3a_lookup_class;
-}
-
-std::unique_ptr<BcmEgress> BcmHost::createEgress() {
+std::unique_ptr<BcmEgress> BcmHostIf::createEgress() {
   CHECK(!key_.hasLabel());
   return std::make_unique<BcmEgress>(hw_);
 }

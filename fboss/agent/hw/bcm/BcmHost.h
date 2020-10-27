@@ -64,12 +64,15 @@ class BcmHostEgress : public boost::noncopyable {
   std::optional<bcm_if_t> referencedEgressId_;
 };
 
-class BcmHost {
+/**
+ * BcmHostIf includes host entry API interfaces like programTo*
+ */
+class BcmHostIf {
  public:
-  BcmHost(const BcmSwitchIf* hw, BcmHostKey key)
+  BcmHostIf(const BcmSwitchIf* hw, BcmHostKey key)
       : hw_(hw), key_(std::move(key)) {}
 
-  virtual ~BcmHost();
+  virtual ~BcmHostIf();
   bool isProgrammed() const {
     // Cannot use addedInHW_, as v6 link-local will not be added
     // to the HW. Instead, check the egressId_.
@@ -110,8 +113,7 @@ class BcmHost {
     return egress_->getEgressId();
   }
 
-  bool getAndClearHitBit() const;
-  void addToBcmHostTable(bool isMultipath = false, bool replace = false);
+  virtual void addToBcmHw(bool isMultipath = false, bool replace = false) = 0;
 
   bool isPortOrTrunkSet() const {
     return egressPort_.has_value();
@@ -132,11 +134,7 @@ class BcmHost {
   void setLookupClassId(int lookupClassId) {
     lookupClassId_ = lookupClassId;
   }
-  static int getLookupClassFromL3Host(const bcm_l3_host_t& host);
-  static std::string l3HostToString(const bcm_l3_host_t& host);
-  static bool matchLookupClass(
-      const bcm_l3_host_t& newHost,
-      const bcm_l3_host_t& existingHost);
+
   std::optional<BcmPortDescriptor> getEgressPortDescriptor() const;
 
   bool isProgrammedToDrop() const {
@@ -160,20 +158,13 @@ class BcmHost {
     return addedInHW_;
   }
 
- private:
-  // no copy or assignment
-  BcmHost(BcmHost const&) = delete;
-  BcmHost& operator=(BcmHost const&) = delete;
+ protected:
   void program(
       bcm_if_t intf,
       const folly::MacAddress* mac,
       bcm_port_t port,
       RouteForwardAction action,
       std::optional<cfg::AclLookupClass> classID = std::nullopt);
-
-  void initHostCommon(bcm_l3_host_t* host) const;
-
-  void setLookupClassToL3Host(bcm_l3_host_t* host) const;
 
   std::unique_ptr<BcmEgress> createEgress();
   const BcmSwitchIf* hw_;
@@ -187,9 +178,66 @@ class BcmHost {
   int lookupClassId_{0}; // DST Lookup Class
   RouteForwardAction action_{DROP};
   std::unique_ptr<BcmHostEgress> egress_;
+
+ private:
+  // no copy or assignment
+  BcmHostIf(BcmHostIf const&) = delete;
+  BcmHostIf& operator=(BcmHostIf const&) = delete;
 };
 
-class BcmHostTable {
+/**
+ * BcmHost represents a L3 host entry.
+ */
+class BcmHost : public BcmHostIf {
+ public:
+  BcmHost(const BcmSwitchIf* hw, BcmHostKey key) : BcmHostIf(hw, key) {}
+  ~BcmHost() override;
+  void addToBcmHw(bool isMultipath = false, bool replace = false) override;
+  bool getAndClearHitBit() const;
+  static std::string l3HostToString(const bcm_l3_host_t& host);
+
+ private:
+  // no copy or assignment
+  BcmHost(BcmHost const&) = delete;
+  BcmHost& operator=(BcmHost const&) = delete;
+  void initHostCommon(bcm_l3_host_t* host) const;
+};
+
+// virtual base class to provide APIs to program hosts
+class BcmHostTableIf {
+ public:
+  BcmHostTableIf() {}
+  virtual ~BcmHostTableIf() = default;
+  // APIs used to program host routes for neighbors or l3 interfaces.
+  // They are called only when HW l3 host tables is not available,
+  // and need to be programmed to l3 route table instead.
+  void programHostsToTrunk(
+      const BcmHostKey& key,
+      bcm_if_t intf,
+      const MacAddress& mac,
+      bcm_trunk_t trunk);
+  void programHostsToPort(
+      const BcmHostKey& key,
+      bcm_if_t intf,
+      const MacAddress& mac,
+      bcm_port_t port,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+  void programHostsToCPU(
+      const BcmHostKey& key,
+      bcm_if_t intf,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+  virtual BcmHostIf* getBcmHostIf(const BcmHostKey& key) const noexcept = 0;
+  virtual std::shared_ptr<BcmHostIf> refOrEmplaceHost(
+      const BcmHostKey& key) = 0;
+  virtual void releaseHosts() = 0;
+
+ private:
+  // no copy or assignment
+  BcmHostTableIf(BcmHostTableIf const&) = delete;
+  BcmHostTableIf& operator=(BcmHostTableIf const&) = delete;
+};
+
+class BcmHostTable : public BcmHostTableIf {
  public:
   using HostRefMap = FlatRefMap<BcmHostKey, BcmHost>;
   using HostConstIterator = typename HostRefMap::MapType::const_iterator;
@@ -200,7 +248,7 @@ class BcmHostTable {
   BcmHost* getBcmHost(const BcmHostKey& key) const;
 
   // return nullptr if not found
-  BcmHost* getBcmHostIf(const BcmHostKey& key) const noexcept;
+  BcmHostIf* getBcmHostIf(const BcmHostKey& key) const noexcept override;
 
   int getNumBcmHost() const {
     return hosts_.size();
@@ -218,27 +266,11 @@ class BcmHostTable {
    * be called when we are about to reset/destroy
    * the host table
    */
-  void releaseHosts() {
+  void releaseHosts() override {
     hosts_.clear();
   }
 
-  void programHostsToTrunk(
-      const BcmHostKey& key,
-      bcm_if_t intf,
-      const MacAddress& mac,
-      bcm_trunk_t trunk);
-  void programHostsToPort(
-      const BcmHostKey& key,
-      bcm_if_t intf,
-      const MacAddress& mac,
-      bcm_port_t port,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt);
-  void programHostsToCPU(
-      const BcmHostKey& key,
-      bcm_if_t intf,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt);
-
-  std::shared_ptr<BcmHost> refOrEmplace(const BcmHostKey& key);
+  std::shared_ptr<BcmHostIf> refOrEmplaceHost(const BcmHostKey& key) override;
 
   HostConstIterator begin() const {
     return hosts_.begin();
@@ -257,14 +289,14 @@ class BcmHostTable {
 class BcmNeighborTable {
  public:
   explicit BcmNeighborTable(BcmSwitch* hw) : hw_(hw) {}
-  BcmHost* registerNeighbor(const BcmHostKey& neighbor);
-  BcmHost* unregisterNeighbor(const BcmHostKey& neighbor);
-  BcmHost* getNeighbor(const BcmHostKey& neighbor) const;
-  BcmHost* getNeighborIf(const BcmHostKey& neighbor) const;
+  BcmHostIf* registerNeighbor(const BcmHostKey& neighbor);
+  BcmHostIf* unregisterNeighbor(const BcmHostKey& neighbor);
+  BcmHostIf* getNeighbor(const BcmHostKey& neighbor) const;
+  BcmHostIf* getNeighborIf(const BcmHostKey& neighbor) const;
 
  private:
   BcmSwitch* hw_;
-  boost::container::flat_map<BcmHostKey, std::shared_ptr<BcmHost>>
+  boost::container::flat_map<BcmHostKey, std::shared_ptr<BcmHostIf>>
       neighborHosts_;
 };
 

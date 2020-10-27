@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class BcmEgress;
 class BcmSwitch;
-class BcmHost;
+class BcmHostIf;
 class BcmLabeledEgress;
 class BcmLabeledTunnelEgress;
 
@@ -40,7 +40,7 @@ class BcmL3NextHop : public BcmNextHop {
  private:
   BcmSwitch* hw_;
   BcmHostKey key_;
-  std::shared_ptr<BcmHost> host_;
+  std::shared_ptr<BcmHostIf> host_;
 };
 
 class BcmMplsNextHop : public BcmNextHop {

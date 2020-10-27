@@ -28,7 +28,7 @@ namespace facebook::fboss {
 
 class Interface;
 class BcmSwitch;
-class BcmHost;
+class BcmHostIf;
 
 class BcmStation {
  public:
@@ -100,7 +100,7 @@ class BcmIntf {
   std::unique_ptr<BcmStation> station_;
   // The interface addresses that have BcmHost object created
   BcmLabeledTunnelMap labelStack2MplsTunnel_;
-  std::unordered_set<std::shared_ptr<BcmHost>> hosts_;
+  std::unordered_set<std::shared_ptr<BcmHostIf>> hosts_;
 };
 
 class BcmIntfTable {

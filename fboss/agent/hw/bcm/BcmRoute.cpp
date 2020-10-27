@@ -142,14 +142,14 @@ void BcmRoute::program(
   added_ = true;
 }
 
-std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
+std::shared_ptr<BcmHostIf> BcmRoute::programHostRoute(
     bcm_if_t egressId,
     const RouteNextHopEntry& fwd,
     bool replace) {
   XLOG(DBG3) << "creating a host route entry for " << prefix_.str()
              << " @egress " << egressId << " with " << fwd;
   auto prefixHost =
-      hw_->writableHostTable()->refOrEmplace(BcmHostKey(vrf_, prefix_));
+      hw_->writableHostTable()->refOrEmplaceHost(BcmHostKey(vrf_, prefix_));
   prefixHost->setEgressId(egressId);
 
   /*
@@ -158,7 +158,7 @@ std::shared_ptr<BcmHost> BcmRoute::programHostRoute(
    * reprogram  (replace = true).
    */
   if (!prefixHost->isAddedInHw() || replace) {
-    prefixHost->addToBcmHostTable(fwd.getNextHopSet().size() > 1, replace);
+    prefixHost->addToBcmHw(fwd.getNextHopSet().size() > 1, replace);
   }
   return prefixHost;
 }

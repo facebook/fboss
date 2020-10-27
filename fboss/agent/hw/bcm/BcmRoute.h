@@ -25,7 +25,7 @@ extern "C" {
 namespace facebook::fboss {
 
 class BcmSwitch;
-class BcmHost;
+class BcmHostIf;
 class BcmMultiPathNextHop;
 
 /**
@@ -64,7 +64,7 @@ class BcmRoute {
   }
 
  private:
-  std::shared_ptr<BcmHost> programHostRoute(
+  std::shared_ptr<BcmHostIf> programHostRoute(
       bcm_if_t egressId,
       const RouteNextHopEntry& fwd,
       bool replace);
@@ -93,7 +93,7 @@ class BcmRoute {
   void initL3RouteT(bcm_l3_route_t* rt) const;
   std::shared_ptr<BcmMultiPathNextHop>
       nextHopHostReference_; // reference to nexthops
-  std::shared_ptr<BcmHost> hostRouteEntry_; // for host routes
+  std::shared_ptr<BcmHostIf> hostRouteEntry_; // for host routes
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
