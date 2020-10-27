@@ -20,6 +20,10 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
 
   void attach(BcmAclEntryHandle acl);
 
+  static std::set<cfg::CounterType> getCounterTypeList(
+      int unit,
+      uint32_t counterID);
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmIngressFieldProcessorFlexCounter(

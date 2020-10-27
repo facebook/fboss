@@ -203,6 +203,9 @@ class BcmStatUpdater {
   BcmTrafficCounterStats getAclTrafficStats(
       BcmAclStatHandle handle,
       const std::vector<cfg::CounterType>& counters);
+  BcmTrafficCounterStats getAclTrafficFlexCounterStats(
+      BcmAclStatHandle handle,
+      const std::vector<cfg::CounterType>& counters);
 
   void updateHwTableStats();
   void updatePrbsStats();

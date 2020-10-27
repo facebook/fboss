@@ -45,6 +45,7 @@ bool TajoAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
       return false;
   }
   return false;

@@ -16,6 +16,7 @@
 
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -403,6 +404,10 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
 BcmTrafficCounterStats BcmStatUpdater::getAclTrafficStats(
     BcmAclStatHandle handle,
     const std::vector<cfg::CounterType>& counters) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    return getAclTrafficFlexCounterStats(handle, counters);
+  }
   BcmTrafficCounterStats stats;
   for (auto counterType : counters) {
     uint64_t value;

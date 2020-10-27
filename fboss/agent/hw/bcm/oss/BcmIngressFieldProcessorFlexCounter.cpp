@@ -22,4 +22,11 @@ BcmIngressFieldProcessorFlexCounter::BcmIngressFieldProcessorFlexCounter(
 void BcmIngressFieldProcessorFlexCounter::attach(BcmAclEntryHandle /* acl */) {
   throw FbossError("OSS doesn't support attach IFP flex counter to acl");
 }
+
+std::set<cfg::CounterType>
+BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
+    int /* unit */,
+    uint32_t /* counterID */) {
+  throw FbossError("OSS doesn't support get counter types of IFP flex counter");
+}
 } // namespace facebook::fboss

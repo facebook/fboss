@@ -34,7 +34,8 @@ BcmAclStat::BcmAclStat(
     int gid,
     const std::vector<cfg::CounterType>& counters)
     : hw_(hw) {
-  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
         hw_->getUnit(), gid);
     handle_ = flexCounter_->getID();
@@ -63,6 +64,19 @@ bool BcmAclStat::isStateSame(
     const BcmSwitch* hw,
     BcmAclStatHandle statHandle,
     cfg::TrafficCounter& counter) {
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    const auto& hwCounterTypes =
+        BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
+            hw->getUnit(), statHandle);
+    for (auto type : *counter.types_ref()) {
+      if (hwCounterTypes.find(type) == hwCounterTypes.end()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   std::vector<bcm_field_stat_t> expectedCounterTypes;
   for (auto type : *counter.types_ref()) {
     expectedCounterTypes.push_back(
@@ -110,7 +124,8 @@ bool BcmAclStat::isStateSame(
 }
 
 void BcmAclStat::attachToAcl(BcmAclEntryHandle acl) {
-  if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_->attach(acl);
   } else {
     auto rv = bcm_field_entry_stat_attach(hw_->getUnit(), acl, handle_);

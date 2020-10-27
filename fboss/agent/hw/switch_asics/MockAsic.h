@@ -9,8 +9,17 @@ namespace facebook::fboss {
 class MockAsic : public HwAsic {
  public:
   bool isSupported(Feature feature) const override {
-    // mock supports all features but HSDK or object key cache
-    return !(feature == Feature::HSDK || feature == Feature::OBJECT_KEY_CACHE);
+    switch (feature) {
+      case Feature::HSDK:
+      case Feature::OBJECT_KEY_CACHE:
+      case Feature::RESOURCE_USAGE_STATS:
+      case Feature::PKTIO:
+      case Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
+        return false;
+
+      default:
+        return true;
+    }
   }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_MOCK;
